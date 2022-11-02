@@ -11,18 +11,28 @@
 
 package alluxio.util;
 
+import static org.mockito.ArgumentMatchers.any;
+
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
  * Units tests for {@link TarUtils}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(TarUtils.class)
 public final class TarUtilsTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -76,6 +86,28 @@ public final class TarUtilsTest {
     Files.write(file, "hello world".getBytes());
 
     tarUntarTest(dir);
+  }
+
+  @Test
+  public void testLargePosixUserAndGroupIds() throws Exception {
+    // when the TarArchiveEntry(File, String) constructor is called (as is used in
+    // TarUtils#writeTarGz), return a new instance of TarArchiveEntry that has a group id greater
+    // than the max id
+    Long largeId = TarArchiveEntry.MAXID + 100;
+    PowerMockito.whenNew(TarArchiveEntry.class)
+        .withParameterTypes(File.class, String.class)
+        .withArguments(any())
+        .thenAnswer(i -> {
+          TarArchiveEntry spy = PowerMockito.spy(
+              TarArchiveEntry.class.getConstructor(File.class, String.class)
+                  .newInstance(i.getArguments()));
+          PowerMockito.when(spy.getLongGroupId()).thenReturn(largeId);
+          PowerMockito.when(spy.getLongUserId()).thenReturn(largeId);
+          return spy;
+        });
+
+    Path empty = mFolder.newFolder("emptyDir").toPath();
+    tarUntarTest(empty);
   }
 
   private void tarUntarTest(Path path) throws Exception {

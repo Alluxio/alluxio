@@ -11,22 +11,24 @@
 
 package alluxio.cli.fs.command;
 
+import static java.util.stream.Collectors.toList;
+
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
-
 import alluxio.exception.status.NotFoundException;
 import alluxio.resource.CloseableResource;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
+
 import io.grpc.StatusRuntimeException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.List;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Synchronously free all blocks and directories of specific worker in Alluxio.
@@ -45,30 +47,31 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
     super(fsContext);
   }
 
+  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     String workerName = args[0];
 
     // 1. Get the decommissioned BlockWorkerInfo to build a BlockWorkerClient in the future.
-    List<BlockWorkerInfo> totalWorkers;
+    List<WorkerNetAddress> totalWorkers;
 
     try (CloseableResource<BlockMasterClient> masterClientResource =
                  mFsContext.acquireBlockMasterClientResource()) {
-       totalWorkers = masterClientResource.get().getWorkerInfoList().stream()
-              .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
+      totalWorkers = masterClientResource.get().getWorkerInfoList().stream()
+              .map(WorkerInfo::getAddress)
               .collect(toList());
     }
 
-    BlockWorkerInfo targetBlockWorkerInfo = null;
+    WorkerNetAddress targetWorkerNetAddress = null;
 
     // 2. Get the BlockWorkerInfo of target worker.
-    for (BlockWorkerInfo worker : totalWorkers) {
-      if (worker.getNetAddress().getHost().equals(workerName))  {
-        targetBlockWorkerInfo = worker;
+    for (WorkerNetAddress workerNetAddress : totalWorkers) {
+      if (workerNetAddress.getHost().equals(workerName))  {
+        targetWorkerNetAddress = workerNetAddress;
         break;
       }
     }
-    if (targetBlockWorkerInfo == null)  {
+    if (targetWorkerNetAddress == null)  {
       System.out.println("Worker " + workerName + " is not found in Alluxio.");
       return -1;
     }
@@ -84,10 +87,10 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
 
     // 4. Free target worker.
     try (CloseableResource<BlockWorkerClient> blockWorkerClient =
-                 mFsContext.acquireBlockWorkerClient(targetBlockWorkerInfo.getNetAddress())) {
+                 mFsContext.acquireBlockWorkerClient(targetWorkerNetAddress)) {
       blockWorkerClient.get().freeWorker();
     } catch (StatusRuntimeException statusRuntimeException) {
-      System.out.println("These directories are failed to be freed: " + statusRuntimeException.getMessage());
+      System.out.println("Exception: " + statusRuntimeException.getMessage());
       return -1;
     }
 
@@ -105,14 +108,13 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
     return new Options();
   }
 
+  @Override
   public String getUsage() {
     return "freeWorker <worker host name>";
   }
 
   @Override
   public String getDescription() {
-    return "Synchronously free all blocks" +
-            " and directories of specific worker in Alluxio.";
+    return "Synchronously free all blocks and directories of specific worker in Alluxio.";
   }
-
 }

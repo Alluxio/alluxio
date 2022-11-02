@@ -498,6 +498,23 @@ See [Fuse configuration]({{ '/en/api/POSIX-API.html' | relativize_url }}#configu
 and [Fuse mount options]({{ '/en/api/POSIX-API.html' | relativize_url }}#configure-mount-point-options)
 for more details about how to modify the Fuse mount configuration.
 
+### Set up Alluxio Proxy
+
+To start the Alluxio proxy server inside a Docker container, simply run the following command:
+
+```console
+$ docker run -d \
+    --net=host \
+    --name=alluxio-proxy \
+    --security-opt apparmor:unconfined \
+    -e ALLUXIO_JAVA_OPTS=" \
+       -Dalluxio.master.hostname=localhost" \
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} proxy
+```
+
+See [Properties List](https://docs.alluxio.io/os/user/edge/en/reference/Properties-List.html) for more
+configuration options for Alluxio proxy server.
+
 ## Performance Optimization
 
 ### Enable short-circuit reads and writes
@@ -575,7 +592,7 @@ your issue, you can get help on the
 or [github issues](https://github.com/Alluxio/alluxio/issues).
 
 Logging can also have a performance impact if sufficiently verbose.
-You can [disable or redirect logging]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#disable-certain-log-files)
+You can [disable or redirect logging]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#disable-certain-log-files)
 to mitigate this problem.
 
 ## FAQ

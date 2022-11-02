@@ -408,7 +408,7 @@ public class FileSystemMasterSyncTest extends FileSystemMasterTestBase {
     assertEquals(InodeSyncStream.SyncStatus.NOT_NEEDED, syncStatus);
 
     // invalidate f1 at time 1
-    mFileSystemMaster.invalidateSyncPath(f1);
+    mFileSystemMaster.needsSync(f1);
     // move to time 2
     currentTime[0] = 2L;
     // dir1 should still not need a sync with interval 2

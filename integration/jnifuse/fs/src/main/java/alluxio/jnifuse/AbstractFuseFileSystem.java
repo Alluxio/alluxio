@@ -16,7 +16,6 @@ import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
 import alluxio.jnifuse.utils.SecurityUtils;
-import alluxio.jnifuse.utils.VersionPreference;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
@@ -39,7 +38,6 @@ import java.util.stream.Collectors;
 public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   static {
-    LibFuse.loadLibrary(VersionPreference.NO);
     // Preload dependencies for jnr-runtime to avoid exceptions during class loading
     // when launching a large number of pods in kubernetes. (to resolve issues/15679)
     jnr.ffi.Runtime.getSystemRuntime();

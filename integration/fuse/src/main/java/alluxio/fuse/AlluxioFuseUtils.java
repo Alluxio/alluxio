@@ -27,13 +27,20 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
+import alluxio.exception.runtime.InvalidArgumentRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.runtime.PermissionDeniedRuntimeException;
+import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.utils.Environment;
-import alluxio.jnifuse.utils.VersionPreference;
+import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryUtils;
@@ -43,6 +50,10 @@ import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
+import com.google.common.base.Preconditions;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,10 +120,12 @@ public final class AlluxioFuseUtils {
           optionsBuilder.build());
       authPolicy.setUserGroupIfNeeded(uri);
       return out;
+    } catch (FileAlreadyExistsException e) {
+      throw new AlreadyExistsRuntimeException(e);
+    } catch (InvalidPathException e) {
+      throw new InvalidArgumentRuntimeException(e);
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(String.format(
-          "Failed to create file %s [mode: %s, auth policy: %s]",
-          uri, mode, authPolicy.getClass().getName()), e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 
@@ -125,8 +138,10 @@ public final class AlluxioFuseUtils {
   public static void deletePath(FileSystem fileSystem, AlluxioURI uri) {
     try {
       fileSystem.delete(uri);
+    } catch (FileDoesNotExistException e) {
+      throw new NotFoundRuntimeException(e);
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(String.format("Failed to delete path %s", uri), e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 
@@ -141,8 +156,10 @@ public final class AlluxioFuseUtils {
       AlluxioURI uri, SetAttributePOptions options) {
     try {
       fileSystem.setAttribute(uri, options);
+    } catch (FileDoesNotExistException e) {
+      throw new NotFoundRuntimeException(e);
     } catch (IOException | AlluxioException e) {
-      throw new RuntimeException(e);
+      throw AlluxioRuntimeException.from(e);
     }
   }
 
@@ -152,20 +169,19 @@ public final class AlluxioFuseUtils {
    * @param conf the configuration object
    * @return the version preference
    */
-  public static VersionPreference getVersionPreference(AlluxioConfiguration conf) {
+  public static LibfuseVersion getLibfuseVersion(AlluxioConfiguration conf) {
     if (Environment.isMac()) {
       LOG.info("osxfuse doesn't support libfuse3 api. Using libfuse version 2.");
-      return VersionPreference.VERSION_2;
+      return LibfuseVersion.VERSION_2;
     }
 
     final int val = conf.getInt(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION);
     if (val == 2) {
-      return VersionPreference.VERSION_2;
+      return LibfuseVersion.VERSION_2;
     } else if (val == 3) {
-      return VersionPreference.VERSION_3;
-    } else {
-      return VersionPreference.NO;
+      return LibfuseVersion.VERSION_3;
     }
+    throw new InvalidArgumentRuntimeException(String.format("Libfuse version %d is invalid", val));
   }
 
   /**
@@ -195,11 +211,11 @@ public final class AlluxioFuseUtils {
   public static long getSystemUid() {
     String launchUser = System.getProperty("user.name");
     if (launchUser == null || launchUser.isEmpty()) {
-      throw new RuntimeException("Failed to get current system user name");
+      throw new UnavailableRuntimeException("Failed to get current system user name");
     }
     Optional<Long> launchUserId = AlluxioFuseUtils.getUid(launchUser);
     if (!launchUserId.isPresent()) {
-      throw new RuntimeException(
+      throw new FailedPreconditionRuntimeException(
           "Failed to get uid of system user "
               + launchUser);
     }
@@ -212,17 +228,17 @@ public final class AlluxioFuseUtils {
   public static long getSystemGid() {
     String launchUser = System.getProperty("user.name");
     if (launchUser == null || launchUser.isEmpty()) {
-      throw new RuntimeException("Failed to get current system user name");
+      throw new FailedPreconditionRuntimeException("Failed to get current system user name");
     }
     Optional<String> launchGroupName = AlluxioFuseUtils.getGroupName(launchUser);
     if (!launchGroupName.isPresent()) {
-      throw new RuntimeException(
+      throw new FailedPreconditionRuntimeException(
           "Failed to get group name from system user name "
               + launchUser);
     }
     Optional<Long> launchGroupId = AlluxioFuseUtils.getGidFromGroupName(launchGroupName.get());
     if (!launchGroupId.isPresent()) {
-      throw new RuntimeException(
+      throw new FailedPreconditionRuntimeException(
           "Failed to get gid of system group "
               + launchGroupName.get());
     }
@@ -436,8 +452,10 @@ public final class AlluxioFuseUtils {
       return Optional.of(fileSystem.getStatus(uri));
     } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
       return Optional.empty();
+    } catch (AccessControlException e) {
+      throw new PermissionDeniedRuntimeException(e);
     } catch (IOException | AlluxioException ex) {
-      throw new RuntimeException(String.format("Failed to get path status of %s", uri), ex);
+      throw AlluxioRuntimeException.from(ex);
     }
   }
 
@@ -456,8 +474,7 @@ public final class AlluxioFuseUtils {
         try {
           return fileSystem.getStatus(uri);
         } catch (Exception e) {
-          throw new RuntimeException(
-              String.format("Unexpected error while getting backup status: %s", e));
+          throw AlluxioRuntimeException.from(e);
         }
       }, URIStatus::isCompleted,
           WaitForOptions.defaults().setTimeoutMs(MAX_ASYNC_RELEASE_WAITTIME_MS)));
@@ -524,5 +541,41 @@ public final class AlluxioFuseUtils {
       return -ErrorCodes.EIO();
     }
     return ret;
+  }
+
+  /**
+   * Gets the cache for resolving FUSE path into {@link AlluxioURI}.
+   *
+   * @param conf the configuration
+   * @return the cache
+   */
+  public static LoadingCache<String, AlluxioURI> getPathResolverCache(AlluxioConfiguration conf) {
+    return CacheBuilder.newBuilder()
+        .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
+        .build(new AlluxioFuseUtils.PathCacheLoader(
+            new AlluxioURI(conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH))));
+  }
+
+  /**
+   * Resolves a FUSE path into {@link AlluxioURI} and possibly keeps it in the cache.
+   */
+  static final class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
+    private final AlluxioURI mRootURI;
+
+    /**
+     * Constructs a new {@link PathCacheLoader}.
+     *
+     * @param rootURI the root URI
+     */
+    PathCacheLoader(AlluxioURI rootURI) {
+      mRootURI = Preconditions.checkNotNull(rootURI);
+    }
+
+    @Override
+    public AlluxioURI load(String fusePath) {
+      // fusePath is guaranteed to always be an absolute path (i.e., starts
+      // with a fwd slash) - relative to the FUSE mount point
+      return mRootURI.join(fusePath);
+    }
   }
 }

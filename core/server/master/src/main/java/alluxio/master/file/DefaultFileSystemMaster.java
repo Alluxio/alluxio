@@ -891,7 +891,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             createAuditContext("getFileInfo", path, null, null)) {
 
       if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(),
-          DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull).equals(NOT_NEEDED)) {
+          DescendantType.NONE, auditContext, LockedInodePath::getInodeOrNull).equals(NOT_NEEDED)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
         ufsAccessed = true;
@@ -2986,9 +2986,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
 
         String ufsSrcPath = resolution.getUri().toString();
+        String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
-          String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
           boolean success;
           if (srcInode.isFile()) {
             success = ufs.renameRenamableFile(ufsSrcPath, ufsDstUri);
@@ -4658,8 +4658,8 @@ public class DefaultFileSystemMaster extends CoreMaster
         // UFS mkdirs might fail if the directory is already created.
         // If so, skip the mkdirs and assume the directory is already prepared,
         // regardless of permission matching.
+        boolean mkdirSuccess = false;
         try {
-          boolean mkdirSuccess = false;
           try {
             mkdirSuccess = ufs.mkdirs(dir, options);
           } catch (IOException e) {
@@ -5255,7 +5255,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void invalidateSyncPath(AlluxioURI path) throws InvalidPathException {
+  public void needsSync(AlluxioURI path) throws InvalidPathException {
     getSyncPathCache().notifyInvalidation(path);
   }
 }

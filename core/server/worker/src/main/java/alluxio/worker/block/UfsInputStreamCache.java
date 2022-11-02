@@ -275,7 +275,7 @@ public final class UfsInputStreamCache {
      * @param id the id of the input stream
      */
     synchronized void acquire(long id) {
-      Preconditions.checkArgument(!mInUseStreamIds.contains(id), "%d is already in use", id);
+      Preconditions.checkArgument(!mInUseStreamIds.contains(id), "%s is already in use", id);
       mAvailableStreamIds.remove(id);
       mInUseStreamIds.add(id);
     }

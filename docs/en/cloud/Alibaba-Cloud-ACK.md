@@ -122,7 +122,7 @@ After the Alluxio client jar package is ready, start building the image:
 $ docker build -t \
   spark-alluxio:2.4.6 -f $SPARK_HOME/kubernetes/dockerfiles/spark/Dockerfile $SPARK_HOME
 ```
-You can find more details about running Alluxio with Spark on Kubernetes [here]({{ '/en/compute/Spark-On-Kubernetes.html' | relativize_url }}).
+You can find more details about running Alluxio with Spark on Kubernetes [here]({{ '/en/kubernetes/Spark-On-Kubernetes.html' | relativize_url }}).
 
 After the image is built, there are two ways to distribute the image:
 

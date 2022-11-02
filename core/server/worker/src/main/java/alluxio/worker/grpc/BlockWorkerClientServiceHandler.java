@@ -25,6 +25,8 @@ import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.FreeWorkerRequest;
+import alluxio.grpc.FreeWorkerResponse;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
@@ -39,8 +41,6 @@ import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.grpc.WriteRequestMarshaller;
 import alluxio.grpc.WriteResponse;
-import alluxio.grpc.FreeWorkerRequest;
-import alluxio.grpc.FreeWorkerResponse;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.underfs.UfsManager;
@@ -214,7 +214,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
 
   @Override
   public void freeWorker(FreeWorkerRequest request,
-     StreamObserver<FreeWorkerResponse> responseObserver) {
+       StreamObserver<FreeWorkerResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       mBlockWorker.freeWorker();
       return FreeWorkerResponse.getDefaultInstance();

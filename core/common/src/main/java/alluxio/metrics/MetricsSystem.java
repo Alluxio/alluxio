@@ -102,6 +102,7 @@ public final class MetricsSystem {
     JOB_MASTER("JobMaster"),
     JOB_WORKER("JobWorker"),
     PLUGIN("Plugin"),
+    PROCESS("Process"),
     PROXY("Proxy"),
     CLIENT("Client"),
     FUSE("Fuse");
@@ -155,7 +156,7 @@ public final class MetricsSystem {
 
     DIRECT_BUFFER_POOL = getDirectBufferPool();
     MetricsSystem.registerGaugeIfAbsent(
-        MetricsSystem.getMetricName(MetricKey.POOL_DIRECT_MEM_USED.getName()),
+        MetricsSystem.getMetricName(MetricKey.PROCESS_POOL_DIRECT_MEM_USED.getName()),
         MetricsSystem::getDirectMemUsed);
   }
 

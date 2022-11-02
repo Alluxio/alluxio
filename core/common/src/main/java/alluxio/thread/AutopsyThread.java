@@ -11,6 +11,11 @@
 
 package alluxio.thread;
 
+import alluxio.util.ExceptionUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
@@ -19,6 +24,8 @@ import javax.annotation.Nullable;
  * so other classes can check the status of the thread and know why it crashed.
  */
 public class AutopsyThread extends Thread {
+  private static final Logger LOG = LoggerFactory.getLogger(AutopsyThread.class);
+
   /** If the thread meets an uncaught exception, this field will be set. */
   private final AtomicReference<Throwable> mThrowable = new AtomicReference<>(null);
 
@@ -51,10 +58,19 @@ public class AutopsyThread extends Thread {
 
   /**
    * Handles the uncaught error on thread crashing.
+   * By default, just log the error for further analysis.
    *
    * @param t the crashing error
    */
   public void onError(Throwable t) {
+    if (ExceptionUtils.containsInterruptedException(t)) {
+      // Tolerate interruption when the master is failing over or closing
+      // so we don't extra-crash
+      LOG.warn("Thread {} interrupted, assume the master is failing over or shutting down",
+          Thread.currentThread().getId());
+      return;
+    }
+    LOG.error("Uncaught exception from thread {}", Thread.currentThread().getId(), t);
     setError(t);
   }
 

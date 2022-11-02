@@ -11,6 +11,8 @@
 
 package alluxio.master.file.meta;
 
+import static alluxio.util.io.PathUtils.cleanPath;
+
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
@@ -59,7 +61,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * appropriate invalidation times updated. Validation times are updated on the path
  * when {@link #notifySyncedPath} is called on the root sync path after a successful sync.
  * An invalidation is received either when a client calls
- * {@link alluxio.master.file.DefaultFileSystemMaster#invalidateSyncPath} to notify that a path
+ * {@link alluxio.master.file.DefaultFileSystemMaster#needsSync} to notify that a path
  * needs synchronization, or when a file is updated by an external Alluxio cluster, and
  * cross cluster sync is enabled.
  *
@@ -86,9 +88,8 @@ public class UfsSyncPathCache {
   }
 
   @VisibleForTesting
-  UfsSyncPathCache(Clock clock,
-                   @Nullable BiConsumer<String, SyncState> onRemoval) {
-    mClock = clock;
+  UfsSyncPathCache(Clock clock, @Nullable BiConsumer<String, SyncState> onRemoval) {
+    mClock = Preconditions.checkNotNull(clock);
     mItems = CacheBuilder.newBuilder()
         .removalListener(
             (removal) -> {
@@ -114,7 +115,7 @@ public class UfsSyncPathCache {
       // On eviction, we must mark our parent as needing a sync with our invalidation time.
       // Note that if the parent has a more recent sync time than this updated invalidation
       // time the parent will still not need a sync
-      notifyInvalidationInternal(PathUtils.getParent(path), state.mInvalidationTime);
+      notifyInvalidationInternal(PathUtils.getParentCleaned(path), state.mInvalidationTime);
     } catch (InvalidPathException e) {
       throw new RuntimeException("Should not have an invalid path in the cache", e);
     }
@@ -157,7 +158,7 @@ public class UfsSyncPathCache {
   public SyncCheck shouldSyncPath(AlluxioURI path, long intervalMs, DescendantType descendantType)
       throws InvalidPathException {
     int parentLevel = 0;
-    String currPath = path.getPath();
+    String currPath = cleanPath(path.getPath());
 
     long lastSyncTime = 0;
     long lastInvalidationTime = 0;
@@ -215,7 +216,7 @@ public class UfsSyncPathCache {
       if (currPath.equals(AlluxioURI.SEPARATOR)) {
         break;
       }
-      currPath = PathUtils.getParent(currPath);
+      currPath = PathUtils.getParentCleaned(currPath);
       parentLevel++;
     }
     return computeSyncResult(path, lastSyncTime, lastInvalidationTime, intervalMs);
@@ -256,7 +257,7 @@ public class UfsSyncPathCache {
    */
   @VisibleForTesting
   public void notifyInvalidation(AlluxioURI path) throws InvalidPathException {
-    String currPath = path.getPath();
+    String currPath = cleanPath(path.getPath());
     long time = mClock.millis();
     notifyInvalidationInternal(currPath, time);
   }
@@ -281,7 +282,7 @@ public class UfsSyncPathCache {
       });
     }
     while (!currPath.equals(AlluxioURI.SEPARATOR)) {
-      currPath = PathUtils.getParent(currPath);
+      currPath = PathUtils.getParentCleaned(currPath);
       parentLevel++;
       if (currPath.equals(AlluxioURI.SEPARATOR)) {
         try (LockResource ignored = new LockResource(mRootLock)) {

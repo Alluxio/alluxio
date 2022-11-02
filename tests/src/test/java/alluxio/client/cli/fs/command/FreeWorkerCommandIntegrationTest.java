@@ -11,15 +11,20 @@
 
 package alluxio.client.cli.fs.command;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.AlluxioTestDirectory;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.worker.block.BlockStoreType;
 import alluxio.worker.block.BlockWorker;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -33,8 +38,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import static org.junit.Assert.*;
-
 /**
  * Tests for freeWorker Command.
  */
@@ -47,22 +50,22 @@ public final class FreeWorkerCommandIntegrationTest extends BaseIntegrationTest 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
-            {BlockStoreType.PAGE},
-            {BlockStoreType.FILE}
+        {BlockStoreType.PAGE},
+        {BlockStoreType.FILE}
     });
   }
 
-  public FreeWorkerCommandIntegrationTest(BlockStoreType blockStoreType) throws Exception{
+  public FreeWorkerCommandIntegrationTest(BlockStoreType blockStoreType) throws Exception {
     LocalAlluxioClusterResource.Builder builder = new LocalAlluxioClusterResource.Builder()
-            .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, blockStoreType)
-            .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
+        .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, blockStoreType)
+        .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
 
     if (blockStoreType == BlockStoreType.PAGE) {
       builder.setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
-             .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
-             .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, ImmutableList.of(100 * Constants.KB))
-             .setProperty(PropertyKey.WORKER_PAGE_STORE_DIRS,
-                     ImmutableList.of(AlluxioTestDirectory.ALLUXIO_TEST_DIRECTORY));
+          .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
+          .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, ImmutableList.of(100 * Constants.KB))
+          .setProperty(PropertyKey.WORKER_PAGE_STORE_DIRS,
+              ImmutableList.of(AlluxioTestDirectory.ALLUXIO_TEST_DIRECTORY));
     }
     mLocalAlluxioClusterResource = builder.build();
     mLocalAlluxioClusterResource.start();
@@ -75,7 +78,7 @@ public final class FreeWorkerCommandIntegrationTest extends BaseIntegrationTest 
       int tierCount = Configuration.global().getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
       for (int i = 0; i < tierCount; i++) {
         paths.addAll(Configuration.global().getList(PropertyKey
-                .Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(i)));
+            .Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(i)));
       }
     } else {
       paths.addAll(Configuration.global().getList(PropertyKey.WORKER_PAGE_STORE_DIRS));
@@ -83,7 +86,7 @@ public final class FreeWorkerCommandIntegrationTest extends BaseIntegrationTest 
 
     assertNotEquals(0, paths.size());
 
-    for (String tmpPath : paths)  {
+    for (String tmpPath : paths) {
       String dataString = "freeWorkerCommandTest";
       File testFile = new File(tmpPath + "/testForFreeWorker.txt");
       assertTrue(testFile.createNewFile());
@@ -95,7 +98,7 @@ public final class FreeWorkerCommandIntegrationTest extends BaseIntegrationTest 
     mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class).freeWorker();
 
     int subFileCount = 0;
-    for (String tmpPath : paths)  {
+    for (String tmpPath : paths) {
       File[] files = new File(tmpPath).listFiles();
       assertNotNull(files);
       subFileCount += files.length;

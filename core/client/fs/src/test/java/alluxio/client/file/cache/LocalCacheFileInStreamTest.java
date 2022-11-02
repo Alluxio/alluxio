@@ -858,6 +858,11 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public void needsSync(AlluxioURI path) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void close() throws IOException {
       throw new UnsupportedOperationException();
     }

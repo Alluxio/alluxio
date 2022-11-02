@@ -138,14 +138,14 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   }
 
   @Override
-  public void commit(String fileId) throws IOException {
+  public void commit(String fileId, String newFileId) throws IOException {
     try (LockResource tempFileIdSetlock = new LockResource(mTempFileIdSetLock.writeLock());
         LockResource fileIdSetlock = new LockResource(mFileIdSetLock.writeLock())) {
       checkState(mTempFileIdSet.contains(fileId), "temp file does not exist " + fileId);
-      checkState(!mFileIdSet.contains(fileId), "file already committed " + fileId);
-      getPageStore().commit(fileId);
+      checkState(!mFileIdSet.contains(newFileId), "file already committed " + newFileId);
+      getPageStore().commit(fileId, newFileId);
       mTempFileIdSet.remove(fileId);
-      mFileIdSet.add(fileId);
+      mFileIdSet.add(newFileId);
     }
   }
 

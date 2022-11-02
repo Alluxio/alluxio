@@ -63,7 +63,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   int getLostWorkerCount();
 
   /**
-   * @return the number of decommissioned workers.
+   * @return the number of decommissioned workers
    */
   int getDecommissionedWorkerCount();
 
@@ -124,7 +124,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   /**
    * Decommission a worker.
    *
-   * @param workerId the WorkerInfo of worker to be decommissioned.
+   * @param workerId the WorkerInfo of worker to be decommissioned
    */
   void decommissionWorker(long workerId) throws Exception;
 
@@ -368,7 +368,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * Removes all associated metadata about the decommissioned worker from block master.
    *
    * The worker to free must have been decommissioned.
-   * @param workerId the workerId of target worker.
+   * @param workerId the workerId of target worker
    */
   void removeDecommissionedWorker(long workerId) throws NotFoundException;
 }

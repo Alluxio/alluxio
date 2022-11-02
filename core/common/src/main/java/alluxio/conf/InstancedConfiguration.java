@@ -197,9 +197,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
         throw new IllegalArgumentException(
             format("Invalid value for property key %s: %s", key, value));
       }
-      LOG.warn(format("The value %s for property key %s is invalid. PropertyKey are now typed "
+      LOG.warn("The value {} for property key {} is invalid. PropertyKey are now typed "
               + "and require values to be properly typed. Invalid PropertyKey values will not be "
-              + "accepted in 3.0", value, key));
+              + "accepted in 3.0", value, key);
       mProperties.put(key, key.parseValue(value), Source.RUNTIME);
     }
   }
@@ -255,9 +255,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   @Override
   public String getString(PropertyKey key) {
     if (key.getType() != PropertyKey.PropertyType.STRING) {
-      LOG.warn(format("PropertyKey %s's type is %s, please use proper getter method for the type, "
+      LOG.warn("PropertyKey {}'s type is {}, please use proper getter method for the type, "
           + "getString will no longer work for non-STRING property types in 3.0",
-          key, key.getType()));
+          key, key.getType());
     }
     Object value = get(key);
     if (value instanceof String) {
@@ -475,9 +475,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       String message = "%s cannot be specified when allowing multiple workers per host with "
           + PropertyKey.Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX + "=" + maxWorkersPerHost;
       checkState(System.getProperty(PropertyKey.Name.WORKER_RPC_PORT) == null,
-          String.format(message, PropertyKey.WORKER_RPC_PORT));
+          message, PropertyKey.WORKER_RPC_PORT);
       checkState(System.getProperty(PropertyKey.Name.WORKER_WEB_PORT) == null,
-          String.format(message, PropertyKey.WORKER_WEB_PORT));
+          message, PropertyKey.WORKER_WEB_PORT);
     }
   }
 

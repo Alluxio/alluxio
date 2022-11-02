@@ -28,8 +28,9 @@ import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -42,6 +43,7 @@ import javax.annotation.concurrent.GuardedBy;
  * This class manages metadata for the paged block store.
  */
 public class PagedBlockMetaStore implements PageMetaStore {
+  private static final Logger LOG = LoggerFactory.getLogger(PagedBlockMetaStore.class);
   @GuardedBy("getLock()")
   private final PageMetaStore mDelegate;
   @GuardedBy("getLock()")
@@ -97,7 +99,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
      */
     @Override
     public PageStoreDir allocate(String fileId, long fileLength) {
-      long blockId = Long.parseLong(fileId);
+      long blockId = BlockPageId.parseBlockId(fileId);
       PagedBlockMeta blockMeta = mBlocks.getFirstByField(INDEX_BLOCK_ID, blockId);
       if (blockMeta != null) {
         return blockMeta.getDir();
@@ -164,14 +166,14 @@ public class PagedBlockMetaStore implements PageMetaStore {
    * However, it is unspecified whether the same directory will be chosen for a block, when all
    * of its pages are removed from the page store and then added back.
    *
-   * @param blockIdStr the block ID
+   * @param fileId the block ID
    * @param pageSize size of the page
    * @return the allocated page store dir
    */
   @Override
   @GuardedBy("getLock().readLock()")
-  public PageStoreDir allocate(String blockIdStr, long pageSize) {
-    return mDelegate.allocate(blockIdStr, pageSize);
+  public PageStoreDir allocate(String fileId, long pageSize) {
+    return mDelegate.allocate(fileId, pageSize);
   }
 
   @Override
@@ -194,7 +196,24 @@ public class PagedBlockMetaStore implements PageMetaStore {
   @Override
   @GuardedBy("getLock().writeLock()")
   public void addPage(PageId pageId, PageInfo pageInfo) {
-    getBlockMetaOfPage(pageId);
+    final BlockPageId blockPageId;
+    if (pageId instanceof BlockPageId) {
+      // the page is being added from paged block store internally
+      blockPageId = (BlockPageId) pageId;
+    } else {
+      // the page is being added from external code, typically by cache manager
+      // when the worker restarts
+      blockPageId = BlockPageId.downcast(pageId);
+      pageInfo = new PageInfo(blockPageId, pageInfo.getPageSize(),
+          pageInfo.getScope(), pageInfo.getLocalCacheDir());
+    }
+
+    long blockId = blockPageId.getBlockId();
+    if (!mBlocks.contains(INDEX_BLOCK_ID, blockId)) {
+      long blockSize = blockPageId.getBlockSize();
+      PagedBlockStoreDir dir = downcast(pageInfo.getLocalCacheDir());
+      mBlocks.add(new PagedBlockMeta(blockId, blockSize, dir));
+    }
     mDelegate.addPage(pageId, pageInfo);
   }
 
@@ -205,7 +224,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
    * @throws BlockDoesNotExistRuntimeException when the block is not being stored in the store
    */
   private PagedBlockMeta getBlockMetaOfPage(PageId pageId) {
-    long blockId = Long.parseLong(pageId.getFileId());
+    long blockId = BlockPageId.downcast(pageId).getBlockId();
     PagedBlockMeta blockMeta = mBlocks.getFirstByField(INDEX_BLOCK_ID, blockId);
     if (blockMeta == null) {
       throw new BlockDoesNotExistRuntimeException(blockId);
@@ -216,13 +235,18 @@ public class PagedBlockMetaStore implements PageMetaStore {
   @Override
   @GuardedBy("getLock().writeLock()")
   public void addTempPage(PageId pageId, PageInfo pageInfo) {
-    long blockId = Long.parseLong(pageId.getFileId());
+    long blockId = BlockPageId.downcast(pageId).getBlockId();
     PagedTempBlockMeta blockMeta = mTempBlocks.getFirstByField(INDEX_TEMP_BLOCK_ID, blockId);
     if (blockMeta == null) {
       throw new BlockDoesNotExistRuntimeException(blockId);
     }
     mDelegate.addTempPage(pageId, pageInfo);
     blockMeta.setBlockSize(blockMeta.getBlockSize() + pageInfo.getPageSize());
+  }
+
+  @Override
+  public void commitFile(String fileId, String newFileId) throws PageNotFoundException {
+    mDelegate.commitFile(fileId, newFileId);
   }
 
   /**
@@ -238,12 +262,16 @@ public class PagedBlockMetaStore implements PageMetaStore {
         tempBlockMeta.getBlockSize(), tempBlockMeta.getDir());
     mTempBlocks.remove(tempBlockMeta);
     mBlocks.add(blockMeta);
+    try {
+      commitFile(BlockPageId.tempFileIdOf(blockId),
+          BlockPageId.fileIdOf(blockId, blockMeta.getBlockSize()));
+    } catch (PageNotFoundException e) {
+      // this should be unreachable, since we have checked the existence of the block
+      // otherwise it's a bug
+      LOG.error("Cannot commit block {} as no pages are found", blockId, e);
+      throw new RuntimeException(e);
+    }
     return blockMeta;
-  }
-
-  @Override
-  public Iterator<PageId> getPagesIterator() {
-    return mDelegate.getPagesIterator();
   }
 
   @Override

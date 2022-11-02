@@ -106,7 +106,7 @@ public class LocalPageStore implements PageStore {
       int bytesRead = 0;
       int bytesLeft = (int) Math.min(pageLength - pageOffset, target.remaining());
       bytesLeft = Math.min(bytesLeft, bytesToRead);
-      while (bytesLeft >= 0) {
+      while (bytesLeft > 0) {
         int bytes = target.readFromFile(localFile, bytesLeft);
         if (bytes <= 0) {
           break;
@@ -150,8 +150,8 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public void commit(String fileId) throws IOException {
-    Path filePath = getFilePath(fileId);
+  public void commit(String fileId, String newFileId) throws IOException {
+    Path filePath = getFilePath(newFileId);
     Path bucketPath = Preconditions.checkNotNull(filePath.getParent(),
         "%s does not have a parent path", filePath);
     if (!Files.exists(bucketPath)) {

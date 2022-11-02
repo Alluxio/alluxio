@@ -153,7 +153,7 @@ public interface ReadOnlyInodeStore extends Closeable {
         }
       }
     };
-    return CloseableIterator.create(iter, (any) -> it.closeResource());
+    return CloseableIterator.create(iter, (any) -> it.close());
   }
 
   /**

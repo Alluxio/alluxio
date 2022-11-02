@@ -16,6 +16,7 @@ import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
+import alluxio.client.file.options.FileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -150,16 +151,24 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context) {
+      return create(context, FileSystemOptions.create(context.getClusterConf()));
+    }
+
+    /**
+     * @param context the FileSystemContext to use with the FileSystem
+     * @return a new FileSystem instance
+     */
+    public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
       AlluxioConfiguration conf = context.getClusterConf();
       checkSortConf(conf);
       if (CommonUtils.PROCESS_TYPE.get() != CommonUtils.ProcessType.CLIENT) {
         return new BaseFileSystem(context);
       }
       FileSystem fs = new BaseFileSystem(context);
-      if (conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
+      if (options.isMetadataCacheEnabled()) {
         fs = new MetadataCachingFileSystem(fs, context);
       }
-      if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)) {
+      if (options.isDataCacheEnabled()) {
         try {
           CacheManager cacheManager = CacheManager.Factory.get(conf);
           return new LocalCacheFileSystem(cacheManager, fs, conf);
@@ -720,4 +729,11 @@ public interface FileSystem extends Closeable {
    * @param options options to associate with this operation
    */
   void unmount(AlluxioURI path, UnmountPOptions options) throws IOException, AlluxioException;
+
+  /**
+   * Marks the path in Alluxio as needing sync with the UFS. The next time the
+   * path or any of its children are accessed they will be synced with the UFS.
+   * @param path the path needing synchronization
+   */
+  void needsSync(AlluxioURI path) throws IOException, AlluxioException;
 }
