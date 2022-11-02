@@ -2298,40 +2298,37 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  /**
-   * @deprecated use {@link #MASTER_INODE_METASTORE} and {@link #MASTER_BLOCK_METASTORE} instead
-   */
-  @Deprecated
   public static final PropertyKey MASTER_METASTORE =
       enumBuilder(Name.MASTER_METASTORE, MetastoreType.class)
           .setDefaultValue(MetastoreType.ROCKS)
-          .setDescription("The type of metastore to use, either HEAP or ROCKS. If this property is "
-              + "set, the " + Name.MASTER_INODE_METASTORE + " " + Name.MASTER_BLOCK_METASTORE + " "
-              + "property will be ignored. The heap metastore keeps all metadata on-heap, "
+          .setDescription("The type of metastore to use, either HEAP or ROCKS. "
+              + "The heap metastore keeps all metadata on-heap, "
               + "while the rocks metastore stores some metadata on heap and some metadata on disk. "
               + "The rocks metastore has the advantage of being able to support a large namespace "
-              + "(1 billion plus files) without needing a massive heap size.")
+              + "(1 billion plus files) without needing a massive heap size."
+              + "The metadata storage includes inode and block metadata. "
+              + "Users can override the type of metastore using " + Name.MASTER_INODE_METASTORE
+              + " and " + Name.MASTER_BLOCK_METASTORE
+              + ". For example if " + Name.MASTER_METASTORE + "=ROCKS but "
+              + Name.MASTER_INODE_METASTORE + "=HEAP, then inodes are stored with HEAP and blocks"
+              + " are stored with ROCKS."
+          )
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_INODE_METASTORE =
       enumBuilder(Name.MASTER_INODE_METASTORE, MetastoreType.class)
-          .setDefaultValue(String.format("${%s}", PropertyKey.Name.MASTER_METASTORE))
-          .setDescription("The type of inode metastore to use, either HEAP or ROCKS. The heap "
-              + "metastore keeps all metadata on-heap, while the rocks metastore stores some "
-              + "metadata on heap and some metadata on disk. The rocks metastore has the advantage "
-              + "of being able to support a large namespace (1 billion plus files) without needing"
-              + "a massive heap size.")
+          .setDefaultValue(MASTER_METASTORE.getDefaultValue())
+          .setDescription("The type of inode metastore to use, either HEAP or ROCKS. "
+              + "By default this uses " + PropertyKey.Name.MASTER_METASTORE.toString() + ".")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BLOCK_METASTORE =
       enumBuilder(Name.MASTER_BLOCK_METASTORE, MetastoreType.class)
-          .setDefaultValue(String.format("${%s}", PropertyKey.Name.MASTER_METASTORE))
-          .setDescription("The type of metastore for block, either HEAP or ROCKS. Separate "
-              + "configuration for block and inodes is make sense, because in some cases, "
-              + "block use ROCKS is enough, but we prefer to use HEAP for inode, we want to "
-              + "distinguish the difference between these two types. ")
+          .setDefaultValue(MASTER_METASTORE.getDefaultValue())
+          .setDescription("The type of block metastore to use, either HEAP or ROCKS. "
+              + "By default this uses " + PropertyKey.Name.MASTER_METASTORE.toString() + ".")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();

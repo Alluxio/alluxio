@@ -62,9 +62,9 @@ public final class MasterUtils {
    * @return a block store factory of the configured type
    */
   public static BlockMetaStore.Factory getBlockStoreFactory(String baseDir) {
-    MetastoreType type = Configuration.isSetByUser(PropertyKey.MASTER_METASTORE)
-        ? Configuration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class) :
-        Configuration.getEnum(PropertyKey.MASTER_BLOCK_METASTORE, MetastoreType.class);
+    MetastoreType type = Configuration.isSetByUser(PropertyKey.MASTER_BLOCK_METASTORE)
+        ? Configuration.getEnum(PropertyKey.MASTER_BLOCK_METASTORE, MetastoreType.class) :
+        Configuration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
     switch (type) {
       case HEAP:
         return HeapBlockMetaStore::new;
@@ -80,9 +80,9 @@ public final class MasterUtils {
    * @return an inode store factory of the configured type
    */
   public static InodeStore.Factory getInodeStoreFactory(String baseDir) {
-    MetastoreType type = Configuration.isSetByUser(PropertyKey.MASTER_METASTORE)
-        ? Configuration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class) :
-        Configuration.getEnum(PropertyKey.MASTER_INODE_METASTORE, MetastoreType.class);
+    MetastoreType type = Configuration.isSetByUser(PropertyKey.MASTER_INODE_METASTORE)
+        ? Configuration.getEnum(PropertyKey.MASTER_INODE_METASTORE, MetastoreType.class) :
+        Configuration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
     switch (type) {
       case HEAP:
         return lockManager -> new HeapInodeStore();
