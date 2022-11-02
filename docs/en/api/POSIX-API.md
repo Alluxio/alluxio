@@ -452,7 +452,8 @@ $ ls -al /mnt/people/file
 $ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/file
 -rw-r--r--  alluxio-user  alluxio-group  0  PERSISTED 10-11-2022 23:26:03:406 100% /people/file
 
-# The user/group of all files/dirs is shown as the user/group that launches the FUSE application regardless of the actual user/group in the underlying Alluxio system
+# Regardless of the actual file/dir user/group,
+# getting file/dir status through the FUSE mount point will show the user/group that launches the FUSE application
 $ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/file
 -rw-r--r--  nonexisting-user  nonexisting-group  27040  PERSISTED 10-11-2022 23:26:03:406 100% /people/file
 $ ls -al /mnt/people/file
@@ -476,12 +477,12 @@ $ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/LICENSE
 $ rm /mnt/people/LICENSE
 rm: cannot remove '/mnt/people/LICENSE': Permission denied
 
-# The users/groups of all files/dirs are translated to local system users/groups.
+# The user/group of all file/dir statuses getting via the FUSE mount point is translated to local system user/group.
 $ ${ALLUXIO_HOME}/bin/alluxio fs chown other-user:other-group /people/LICENSE
 $ ls -al /mnt/people/LICENSE
 -rw-r--r--    1 other-user  other-group  27040 Oct 11 23:26 LICENSE
 
-# If cannot be translated, the users/groups of files/dirs will be shown as -1 (or other default string based on the operating system settings)
+# If cannot be translated, the user/group of file/dir will be shown as -1 (or other default string based on the operating system settings)
 $ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/file
 -rw-r--r--  nonexisting-user  nonexisting-group  27040  PERSISTED 10-11-2022 23:26:03:406 100% /people/file
 $ ls -al /mnt/people/file
@@ -507,7 +508,8 @@ $ ls -al /mnt/people/file
 $ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/file
 -rw-r--r--  custom-user  custom-group  0  PERSISTED 10-11-2022 23:26:03:406 100% /people/file
 
-# The user/group of all files/dirs is shown as the configured customized user/group regardless of the actual user/group in the underlying Alluxio system
+# Regardless of the actual file/dir user/group,
+# getting file/dir status through the FUSE mount point will show the configured customized user/group
 $ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/file
 -rw-r--r--  nonexisting-user  nonexisting-group  27040  PERSISTED 10-11-2022 23:26:03:406 100% /people/file
 $ ls -al /mnt/people/file
