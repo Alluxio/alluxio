@@ -2259,6 +2259,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
 
+  // Other system related metrics
+  public static final MetricKey PROCESS_POOL_DIRECT_MEM_USED =
+      new Builder("Process.pool.direct.mem.used")
+          .setDescription("The used direct memory")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
   /**
    * Registers the given key to the global key map.
    *
