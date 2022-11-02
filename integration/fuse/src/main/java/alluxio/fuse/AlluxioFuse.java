@@ -300,9 +300,10 @@ public final class AlluxioFuse {
   }
 
   private static FuseOptions getFuseOptions(CommandLine cli, AlluxioConfiguration conf) {
-    return cli.hasOption(MOUNT_OPTIONS_OPTION_NAME) ?
-        new FuseOptions(FileSystemOptions.create(conf, Optional.of(new UfsFileSystemOptions(
-            cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME))))) : FuseOptions.create(conf);
+    return cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)
+        ? new FuseOptions(FileSystemOptions.create(conf,
+        Optional.of(new UfsFileSystemOptions(cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME)))))
+        : FuseOptions.create(conf);
   }
 
   private static void validateFuseConfAndOptions(AlluxioConfiguration conf, FuseOptions options) {

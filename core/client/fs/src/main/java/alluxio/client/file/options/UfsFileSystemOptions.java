@@ -25,6 +25,8 @@ public class UfsFileSystemOptions {
    * @param ufsAddress the ufs address
    */
   public UfsFileSystemOptions(String ufsAddress) {
+    Preconditions.checkState(ufsAddress != null && !ufsAddress.isEmpty(),
+        "ufs address should not be null or empty");
     mUfsAddress = Preconditions.checkNotNull(ufsAddress);
   }
 
