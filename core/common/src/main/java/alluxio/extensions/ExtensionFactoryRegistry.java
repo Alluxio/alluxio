@@ -153,7 +153,7 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
         factories.size());
 
     if (conf.isSetByUser(PropertyKey.UNDERFS_VERSION)) {
-      recorder.recordIfEnabled("alluxio.underfs.version is set by user,  target version is {}",
+      recorder.recordIfEnabled("alluxio.underfs.version is set by user, target version is {}",
           conf.getString(PropertyKey.UNDERFS_VERSION));
     } else {
       recorder.recordIfEnabled("alluxio.underfs.version is not set by user");
@@ -166,18 +166,16 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
         version =
             Optional.ofNullable(((UnderFileSystemFactory) factory).getVersion()).orElse("unknown");
       }
-      recorder.recordIfEnabled("Check eligible of {} version {} for {}",
-          factory.getClass().getSimpleName(), version, path);
       if (factory.supportsPath(path, conf)) {
         String message =
-            String.format("Factory implementation %s version %s is eligible for path %s",
+            String.format("Adding factory %s of version %s which supports path %s",
                 factory.getClass().getSimpleName(), version, path);
-        recorder.recordIfEnabled("Successfully! " + message + "\n");
+        recorder.recordIfEnabled(message);
         LOG.debug(message);
         eligibleFactories.add(factory);
       } else {
-        recorder.recordIfEnabled("Factory implementation {} version {} "
-            + "isn't eligible for path {}\n", factory.getClass().getSimpleName(), version, path);
+        recorder.recordIfEnabled("Factory implementation {} of version {} "
+            + "isn't eligible for path {}", factory.getClass().getSimpleName(), version, path);
       }
     }
     if (eligibleFactories.isEmpty()) {

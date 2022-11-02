@@ -112,27 +112,32 @@ public interface UnderFileSystem extends Closeable {
 
       List<Throwable> errors = new ArrayList<>();
       for (UnderFileSystemFactory factory : factories) {
-        recorder.recordIfEnabled("Under File System Factory {} version {} found for: {}",
-            factory.getClass().getSimpleName(), factory.getVersion(), path);
         ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
         try {
           // Reflection may be invoked during UFS creation on service loading which uses context
           // classloader by default. Stashing the context classloader on creation and switch it back
           // when creation is done.
-          recorder.recordIfEnabled("Load Under File System {} with ClassLoader {}",
+          recorder.recordIfEnabled(
+              "Trying to create UFS from factory {} of version {} for path {} with ClassLoader {}",
               factory.getClass().getSimpleName(),
+              factory.getVersion(),
+              path,
               factory.getClass().getClassLoader().getClass().getSimpleName());
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
           UnderFileSystem underFileSystem =
               new UnderFileSystemWithLogging(path, factory.create(path, ufsConf), ufsConf);
           // Use the factory to create the actual client for the Under File System
-          recorder.recordIfEnabled("Load Under File System {} successfully",
+          recorder.recordIfEnabled("UFS created with factory {}",
               factory.getClass().getSimpleName());
           return underFileSystem;
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);
-          LOG.warn("Failed to create UnderFileSystem by factory {}: {}", factory, e.toString());
+          String errorMsg = String.format(
+              "Failed to create UnderFileSystem by factory %s: %s",
+              factory.getClass().getSimpleName(), e);
+          recorder.recordIfEnabled(errorMsg);
+          LOG.warn(errorMsg);
         } finally {
           Thread.currentThread().setContextClassLoader(previousClassLoader);
         }
@@ -151,6 +156,7 @@ public interface UnderFileSystem extends Closeable {
     }
 
     /**
+     * @param conf configuration
      * @return the instance of under file system for Alluxio root directory
      */
     public static UnderFileSystem createForRoot(AlluxioConfiguration conf) {

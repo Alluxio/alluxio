@@ -298,15 +298,16 @@ public final class FileSystemMasterClientServiceHandler
     RpcUtils.call(LOG, () -> {
       MountContext mountContext = MountContext.create(request.getOptions().toBuilder())
           .withTracker(new GrpcCallTracker(responseObserver));
-      // By default, the mount execution process record is enabled
+      // the mount execution process is recorded so that
+      // when an exception occurs during mounting, the user can get detailed debugging messages
       mountContext.getRecorder().setEnabled();
       try {
         mFileSystemMaster.mount(new AlluxioURI(request.getAlluxioPath()),
             new AlluxioURI(request.getUfsPath()), mountContext);
       } catch (Exception e) {
-        // if throw Exception, returns the record of mount execution process by exception message
         Recorder recorder = mountContext.getRecorder();
         recorder.recordIfEnabled(e.getMessage());
+        // put the messages in an exception and let it carry over to the user
         throw new AlluxioException(String.join("\n", recorder.takeRecords()), e);
       }
       return MountPResponse.newBuilder().build();

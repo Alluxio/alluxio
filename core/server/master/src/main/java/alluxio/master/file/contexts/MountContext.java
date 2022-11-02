@@ -25,8 +25,6 @@ public class MountContext extends OperationContext<MountPOptions.Builder, MountC
   // A Recorder used to record the execution process
   private final Recorder mRecorder;
 
-  // Used to record mount execution process
-
   /**
    * Creates context with given option data.
    *
@@ -66,7 +64,7 @@ public class MountContext extends OperationContext<MountPOptions.Builder, MountC
   }
 
   /**
-   * get a Recorder.
+   * Gets the Recorder.
    * @return Recorder
    */
   public Recorder getRecorder() {

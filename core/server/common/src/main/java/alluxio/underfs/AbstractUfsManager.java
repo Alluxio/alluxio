@@ -136,16 +136,16 @@ public abstract class AbstractUfsManager implements UfsManager {
     Key key = new Key(ufsUri, ufsConf.getMountSpecificConf());
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
-      recorder.recordIfEnabled("{} UFS {} already exists in the cache, use cached UFS",
-          key.toString(), cachedFs.getClass().getSimpleName());
+      recorder.recordIfEnabled("Using cached instance of UFS {} identified by key {}",
+          cachedFs.getClass().getSimpleName(), key.toString());
       return cachedFs;
     }
     // On cache miss, synchronize the creation to ensure ufs is only created once
     synchronized (mLock) {
       cachedFs = mUnderFileSystemMap.get(key);
       if (cachedFs != null) {
-        recorder.recordIfEnabled("{} UFS {} already exists in the cache, use cached UFS",
-            key.toString(), cachedFs.getClass().getSimpleName());
+        recorder.recordIfEnabled("Using cached instance of UFS {} identified by key {}",
+            cachedFs.getClass().getSimpleName(), key.toString());
         return cachedFs;
       }
       UnderFileSystem fs = UnderFileSystem.Factory.createWithRecorder(

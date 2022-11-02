@@ -3372,7 +3372,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       mMountTable.validateMountPoint(inodePath.getUri(), ufsPath, mountId,
           context.getOptions().build());
       Recorder recorder = context.getRecorder();
-      recorder.recordIfEnabled("createMountId {}", mountId);
+      recorder.recordIfEnabled("Acquired mount ID for the new mount point: {}", mountId);
       // get UfsManager prepared
       mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
           new UnderFileSystemConfiguration(
@@ -3387,7 +3387,7 @@ public class DefaultFileSystemMaster extends CoreMaster
                 LoadMetadataPOptions.newBuilder().setCreateAncestors(false)), getMountTable(),
             mountId, context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
             this);
-        recorder.recordIfEnabled("Create mount directory {} successfully",
+        recorder.recordIfEnabled("Mount point {} created successfully",
             inodePath.getUri().getPath());
         // As we have verified the mount operation by calling MountTable.verifyMount, there won't
         // be any error thrown when doing MountTable.add
