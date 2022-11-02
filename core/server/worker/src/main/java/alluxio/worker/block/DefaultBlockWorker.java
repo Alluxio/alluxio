@@ -12,13 +12,13 @@
 package alluxio.worker.block;
 
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
-import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.PrefixList;
 import alluxio.conf.Configuration;
@@ -52,16 +52,13 @@ import alluxio.util.io.FileUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
+import alluxio.worker.HeartbeatThreadCloser;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.block.meta.DefaultStorageTier;
-import alluxio.worker.block.meta.StorageDir;
-import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.page.PagedBlockStore;
-import alluxio.worker.HeartbeatThreadCloser;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
@@ -70,8 +67,10 @@ import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -80,7 +79,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.IntStream;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -215,20 +213,23 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
     // Setup BlockMasterSync
     BlockMasterSync blockMasterSync = mResourceCloser.register(
-            new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
+        new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
     getExecutorService()
         .submit(mThreadExecutorCloser.register(
-                new HeartbeatThreadCloser(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
-                        blockMasterSync, (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
-            Configuration.global(), ServerUserState.global()))));
+            new HeartbeatThreadCloser(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
+                blockMasterSync,
+                (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+                Configuration.global(), ServerUserState.global()))));
 
     // Setup PinListSyncer
-    PinListSync pinListSync = mResourceCloser.register(new PinListSync(this, mFileSystemMasterClient));
+    PinListSync pinListSync =
+        mResourceCloser.register(new PinListSync(this, mFileSystemMasterClient));
     getExecutorService()
         .submit(mThreadExecutorCloser.register(
-                new HeartbeatThreadCloser(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, pinListSync,
-                        (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
-            Configuration.global(), ServerUserState.global()))));
+            new HeartbeatThreadCloser(
+                new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, pinListSync,
+                    (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+                    Configuration.global(), ServerUserState.global()))));
 
     // Setup session cleaner
     SessionCleaner sessionCleaner = mResourceCloser.register(
@@ -240,8 +241,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       StorageChecker storageChecker = mResourceCloser.register(new StorageChecker());
       getExecutorService()
           .submit(mThreadExecutorCloser.register(
-                  new HeartbeatThreadCloser(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH,
-                          storageChecker, (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+              new HeartbeatThreadCloser(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH,
+                  storageChecker,
+                  (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
                   Configuration.global(), ServerUserState.global()))));
     }
 
@@ -366,23 +368,47 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mBlockStore.removeBlock(sessionId, blockId);
   }
 
-  // TODO(Tony Sun): Currently no data access, locks needed?
-  public void freeCurrentWorker() throws IOException{
-    List<StorageTier> curTiers = IntStream.range(0, WORKER_STORAGE_TIER_ASSOC.size()).mapToObj(
-                    tierOrdinal -> DefaultStorageTier.newStorageTier(
-                            WORKER_STORAGE_TIER_ASSOC.getAlias(tierOrdinal),
-                            tierOrdinal,
-                            WORKER_STORAGE_TIER_ASSOC.size() > 1))
-            .collect(toImmutableList());
-    for (StorageTier tier : curTiers) {
-      for (StorageDir dir : tier.getStorageDirs())  {
-        FileUtils.deletePathRecursively(dir.getDirPath());
+  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
+  @Override
+  public void freeWorker() throws IOException {
+    List<String> paths = new ArrayList<>();
+    if (Configuration.global().get(PropertyKey.WORKER_BLOCK_STORE_TYPE) == BlockStoreType.FILE) {
+      int tierCount = Configuration.global().getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
+      for (int i = 0; i < tierCount; i++) {
+        paths.addAll(Configuration.global().getList(PropertyKey
+                .Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(i)));
+      }
+    } else if (Configuration.global()
+        .get(PropertyKey.WORKER_BLOCK_STORE_TYPE) == BlockStoreType.PAGE) {
+      paths.addAll(Configuration.global().getList(PropertyKey.WORKER_PAGE_STORE_DIRS));
+    } else {
+      throw new IllegalStateException("Unknown WORKER_BLOCK_STORE_TYPE.");
+    }
+
+    List<String> failDeleteDirs = new ArrayList<>();
+    for (String tmpPath : paths) {
+      File[] files = new File(tmpPath).listFiles();
+      Preconditions.checkNotNull(files, "The path does not denote a directory.");
+      for (File file : files) {
+        try {
+          FileUtils.deletePathRecursively(file.getPath());
+        } catch (IOException ie) {
+          failDeleteDirs.add(file.getPath());
+        }
       }
     }
-    LOG.info("All blocks in worker {} are freed.", getWorkerId());
+    if (!failDeleteDirs.isEmpty()) {
+      LOG.info("Some directories fail to be deleted: " + failDeleteDirs);
+      throw new IOException(failDeleteDirs.toString());
+    }
+    LOG.info("All blocks and directories in worker {} are freed.", getWorkerId());
   }
 
-  public void shutDownThreads() throws IOException{
+  /**
+   * Shut down all threads in worker.
+   * @throws IOException
+   */
+  public void shutDownThreads() throws IOException {
     mThreadExecutorCloser.close();
     LOG.info("All threads are closed at this worker.");
   }
@@ -548,12 +574,13 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   @NotThreadSafe
   public final class StorageChecker implements HeartbeatExecutor {
 
-    private final AtomicBoolean closeFlag = new AtomicBoolean(false);
+    private final AtomicBoolean mCloseFlag = new AtomicBoolean(false);
 
     @Override
     public void heartbeat() {
-      if (closeFlag.get())
+      if (mCloseFlag.get()) {
         return;
+      }
       try {
         mBlockStore.removeInaccessibleStorage();
       } catch (Exception e) {
@@ -564,7 +591,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
     @Override
     public void close() {
-      closeFlag.set(true);
+      mCloseFlag.set(true);
     }
   }
 }

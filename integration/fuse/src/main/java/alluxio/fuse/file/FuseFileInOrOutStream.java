@@ -14,6 +14,7 @@ package alluxio.fuse.file;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.auth.AuthPolicy;
@@ -69,8 +70,10 @@ public class FuseFileInOrOutStream implements FuseFileStream {
     if (status.isPresent() && truncate) {
       AlluxioFuseUtils.deletePath(fileSystem, uri);
       currentStatus = Optional.empty();
-      LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
-          + "Alluxio deleted the old file and created a new file for writing", uri, flags));
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
+            + "Alluxio deleted the old file and created a new file for writing", uri, flags));
+      }
     }
     if (!currentStatus.isPresent()) {
       FuseFileOutStream outStream = FuseFileOutStream.create(fileSystem, authPolicy,
@@ -102,7 +105,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   @Override
   public synchronized int read(ByteBuffer buf, long size, long offset) {
     if (mOutStream.isPresent()) {
-      throw new UnsupportedOperationException(
+      throw new UnimplementedRuntimeException(
           "Alluxio does not support reading while writing/truncating");
     }
     if (!mInStream.isPresent()) {
@@ -115,7 +118,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   @Override
   public synchronized void write(ByteBuffer buf, long size, long offset) {
     if (mInStream.isPresent()) {
-      throw new UnsupportedOperationException(
+      throw new UnimplementedRuntimeException(
           "Alluxio does not support reading while writing/truncating");
     }
     if (!mOutStream.isPresent()) {
@@ -151,7 +154,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   @Override
   public synchronized void truncate(long size) {
     if (mInStream.isPresent()) {
-      throw new UnsupportedOperationException(
+      throw new UnimplementedRuntimeException(
           "Alluxio does not support reading while writing/truncating");
     }
     if (mOutStream.isPresent()) {
@@ -171,7 +174,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
       }
       return;
     }
-    throw new UnsupportedOperationException(
+    throw new UnimplementedRuntimeException(
         String.format("Cannot truncate file %s from size %s to size %s", mUri, currentSize, size));
   }
 

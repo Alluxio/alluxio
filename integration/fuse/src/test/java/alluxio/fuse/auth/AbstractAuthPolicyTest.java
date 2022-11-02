@@ -27,6 +27,7 @@ import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
@@ -41,8 +42,6 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.grpc.FreeWorkerPOptions;
-import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.jnifuse.FuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.security.authorization.AclEntry;
@@ -51,6 +50,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerNetAddress;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
@@ -158,14 +158,9 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
-    public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options)
+    public void decommissionWorker(WorkerNetAddress workerNetAddress,
+         DecommissionWorkerPOptions options)
         throws IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void decommissionWorker(WorkerNetAddress workerNetAddress, DecommissionWorkerPOptions options)
-        throws IOException, AlluxioException{
       throw new UnsupportedOperationException();
     }
 
@@ -302,6 +297,11 @@ public abstract class AbstractAuthPolicyTest {
 
     @Override
     public void unmount(AlluxioURI path, UnmountPOptions options) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void needsSync(AlluxioURI path) {
       throw new UnsupportedOperationException();
     }
 

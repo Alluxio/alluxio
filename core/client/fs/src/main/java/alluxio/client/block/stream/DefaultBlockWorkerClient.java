@@ -23,11 +23,15 @@ import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.DataMessageMarshallerProvider;
+import alluxio.grpc.DecommissionWorkerRequest;
+import alluxio.grpc.FreeWorkerRequest;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcNetworkGroup;
 import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.HandleRPCRequest;
+import alluxio.grpc.HandleRPCResponse;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
@@ -40,10 +44,6 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
-import alluxio.grpc.FreeWorkerRequest;
-import alluxio.grpc.DecommissionWorkerRequest;
-import alluxio.grpc.HandleRPCRequest;
-import alluxio.grpc.HandleRPCResponse;
 import alluxio.resource.AlluxioResourceLeakDetectorFactory;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
@@ -242,26 +242,27 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public void freeWorker(FreeWorkerRequest request) {
+  public void decommissionWorker(DecommissionWorkerRequest request) {
     try {
-      mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).freeWorker(request);
+      mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs,
+          TimeUnit.MILLISECONDS).decommissionWorker(request);
     } catch (Exception e) {
-      LOG.warn("Error sending sync freeWorker request {} to worker {}.", request, mAddress, e);
+      LOG.warn("Error sending sync decommissionWorker request {} to worker {}.",
+          request, mAddress, e);
     }
   }
 
   @Override
-  public void decommissionWorker(DecommissionWorkerRequest request) {
-    try {
-      mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).decommissionWorker(request);
-    } catch (Exception e) {
-      LOG.warn("Error sending sync decommissionWorker request {} to worker {}.", request, mAddress, e);
-    }
-  }
-  @Override
   public HandleRPCResponse handleRPC(HandleRPCRequest request) throws StatusRuntimeException {
     // Because the Grpc server will be rebooted, the line below will occur Exception definitely.
-    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).handleRPC(request);
+    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+        .handleRPC(request);
+  }
+
+  @Override
+  public void freeWorker() {
+    mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+            .freeWorker(FreeWorkerRequest.getDefaultInstance());
   }
 
   @Override

@@ -23,6 +23,7 @@ import alluxio.exception.OpenDirectoryException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
@@ -37,8 +38,6 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.grpc.FreeWorkerPOptions;
-import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
@@ -107,14 +106,10 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public void decommissionWorker(WorkerNetAddress workerNetAddress, DecommissionWorkerPOptions options)
-          throws IOException, AlluxioException, InterruptedException {
+  public void decommissionWorker(WorkerNetAddress workerNetAddress,
+         DecommissionWorkerPOptions options)
+      throws IOException, AlluxioException, InterruptedException {
     mDelegatedFileSystem.decommissionWorker(workerNetAddress, options);
-  }
-
-  @Override
-  public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws IOException, AlluxioException {
-    mDelegatedFileSystem.freeWorker(workerNetAddress, options);
   }
 
   @Override
@@ -248,6 +243,11 @@ public class DelegatingFileSystem implements FileSystem {
   public void unmount(AlluxioURI path, UnmountPOptions options)
       throws IOException, AlluxioException {
     mDelegatedFileSystem.unmount(path, options);
+  }
+
+  @Override
+  public void needsSync(AlluxioURI path) throws IOException, AlluxioException {
+    mDelegatedFileSystem.needsSync(path);
   }
 
   @Override

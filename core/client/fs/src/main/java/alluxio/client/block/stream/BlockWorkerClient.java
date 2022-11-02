@@ -17,7 +17,10 @@ import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.DecommissionWorkerRequest;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.HandleRPCRequest;
+import alluxio.grpc.HandleRPCResponse;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
@@ -30,10 +33,6 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
-import alluxio.grpc.FreeWorkerRequest;
-import alluxio.grpc.DecommissionWorkerRequest;
-import alluxio.grpc.HandleRPCRequest;
-import alluxio.grpc.HandleRPCResponse;
 import alluxio.security.user.UserState;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -62,12 +61,7 @@ public interface BlockWorkerClient extends Closeable {
     public static BlockWorkerClient create(UserState userState, GrpcServerAddress address,
         AlluxioConfiguration alluxioConf)
         throws IOException {
-      try {
-        return new DefaultBlockWorkerClient(userState, address, alluxioConf);
-      } catch (Exception e) {
-        throw new IOException(
-            String.format("Failed to connect to block worker (%s)", address), e);
-      }
+      return new DefaultBlockWorkerClient(userState, address, alluxioConf);
     }
   }
 
@@ -157,11 +151,24 @@ public interface BlockWorkerClient extends Closeable {
    */
   void cache(CacheRequest request);
 
-  void freeWorker(FreeWorkerRequest request);
-
+  /**
+   * Decommission a worker.
+   * @param request the remove block request
+   */
   void decommissionWorker(DecommissionWorkerRequest request);
 
+  /**
+   * Handle the RPC of a decommissioned worker.
+   * @param request
+   * @return the response from server
+   * @throws StatusRuntimeException if any error occurs
+   */
   HandleRPCResponse handleRPC(HandleRPCRequest request) throws StatusRuntimeException;
+
+  /**
+   * Free this worker.
+   */
+  void freeWorker();
 
   /**
    * load blocks into alluxio.

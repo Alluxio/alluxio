@@ -78,7 +78,8 @@ public final class GrpcDataServer implements DataServer {
   private final FileSystemContext mFsContext =
       FileSystemContext.create(Configuration.global());
 
-  // TODO(Tony Sun): Moving injector from builder to here seems not good. But I can't find a better design.
+  // TODO(Tony Sun): Moving injector from builder to here seems not good.
+  //  But I can't find a better design.
   private ReadOnlyModeCheckerInjector mROMCheckerInjector;
 
   /**

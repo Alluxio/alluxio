@@ -76,7 +76,7 @@ public final class BlockMasterInfo implements Serializable {
   }
 
   /**
-   * @return the decommissioned worker number.
+   * @return the decommissioned worker number
    */
   public int getDecommissionedWorkerNum() {
     return mDecommissionedWorkerNum;

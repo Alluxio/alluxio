@@ -19,6 +19,8 @@ import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DecommissionWorkerPOptions;
+import alluxio.grpc.DecommissionWorkerPResponse;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
@@ -32,11 +34,6 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UpdateUfsModePOptions;
-import alluxio.grpc.FreeWorkerPOptions;
-import alluxio.grpc.FreeWorkerPResponse;
-import alluxio.grpc.DecommissionToFreePResponse;
-import alluxio.grpc.DecommissionWorkerPOptions;
-import alluxio.grpc.DecommissionWorkerPResponse;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -96,19 +93,8 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public FreeWorkerPResponse freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions Options)
-    throws AlluxioStatusException {
-    return null;
-  }
-
-  public DecommissionToFreePResponse decommissionToFree(WorkerNetAddress workerNetAddress)
-    throws AlluxioStatusException{
-    return null;
-  }
-
-  @Override
   public DecommissionWorkerPResponse decommissionWorker(WorkerNetAddress workerNetAddress,
-    DecommissionWorkerPOptions Options) throws AlluxioStatusException {
+      DecommissionWorkerPOptions Options) throws AlluxioStatusException {
     return null;
   }
 
@@ -255,6 +241,6 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public void invalidateSyncPath(AlluxioURI path) throws AlluxioStatusException {
+  public void needsSync(AlluxioURI path) throws AlluxioStatusException {
   }
 }

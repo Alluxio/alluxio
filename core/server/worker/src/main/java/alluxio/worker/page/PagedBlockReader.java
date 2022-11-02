@@ -14,7 +14,6 @@ package alluxio.worker.page;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.store.ByteBufferTargetBuffer;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
@@ -26,6 +25,7 @@ import alluxio.worker.block.io.BlockReader;
 import com.google.common.base.Preconditions;
 import io.grpc.Status;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -73,22 +73,46 @@ public class PagedBlockReader extends BlockReader {
 
   @Override
   public ByteBuffer read(long offset, long length) throws IOException {
-    Preconditions.checkState(!mClosed);
-    Preconditions.checkArgument(length >= 0, "length should be non-negative");
-    Preconditions.checkArgument(offset >= 0, "offset should be non-negative");
-
     if (length == 0 || offset >= mBlockMeta.getBlockSize()) {
       return EMPTY_BYTE_BUFFER;
     }
-
+    // cap length to the remaining of block, as the caller may pass in a longer length than what
+    // is left in the block, but expect as many bytes as there is
     length = Math.min(length, mBlockMeta.getBlockSize() - offset);
-    ByteBuffer buf = NioDirectBufferPool.acquire((int) length);
-    PageReadTargetBuffer target = new ByteBufferTargetBuffer(buf);
+    ensureReadable(offset, length);
+
+    // must not use pooled buffer, see interface implementation note
+    ByteBuffer buffer = ByteBuffer.allocateDirect((int) length);
+    ByteBuf buf = Unpooled.wrappedBuffer(buffer);
+    // Unpooled.wrappedBuffer returns a buffer with writer index set to capacity, so writable
+    // bytes is 0, needs explicit clear
+    buf.clear();
+    long bytesRead = read(buf, offset, length);
+    if (bytesRead < 0) {
+      return EMPTY_BYTE_BUFFER;
+    }
+    buffer.position(0);
+    buffer.limit((int) bytesRead);
+    return buffer;
+  }
+
+  /**
+   * Preconditions:
+   * 1. reader not closed
+   * 2. offset and length must be valid, check them with ensureReadable
+   * 3. enough space left in buffer for the bytes to read
+   */
+  private long read(ByteBuf byteBuf, long offset, long length) throws IOException {
+    Preconditions.checkArgument(byteBuf.writableBytes() >= length,
+        "buffer overflow, trying to write %s bytes, only %s writable",
+        length, byteBuf.writableBytes());
+    PageReadTargetBuffer target = new NettyBufTargetBuffer(byteBuf);
     long bytesRead = 0;
     while (bytesRead < length) {
       long pos = offset + bytesRead;
       long pageIndex = pos / mPageSize;
-      PageId pageId = new PageId(String.valueOf(mBlockMeta.getBlockId()), pageIndex);
+      PageId pageId =
+          new BlockPageId(mBlockMeta.getBlockId(), pageIndex, mBlockMeta.getBlockSize());
       int currentPageOffset = (int) (pos % mPageSize);
       int bytesLeftInPage =
           (int) Math.min(mPageSize - currentPageOffset, length - bytesRead);
@@ -112,25 +136,28 @@ public class PagedBlockReader extends BlockReader {
         PagedUfsBlockReader ufsBlockReader = mUfsBlockReader.get();
         // get the page at pageIndex as a whole from UFS
         ByteBuffer ufsBuf = NioDirectBufferPool.acquire((int) mPageSize);
-        int pageBytesRead = ufsBlockReader.readPageAtIndex(ufsBuf, pageIndex);
-        if (pageBytesRead > 0) {
-          ufsBuf.position(currentPageOffset);
-          ufsBuf.limit(currentPageOffset + bytesLeftInPage);
-          buf.put(ufsBuf);
-          bytesRead += bytesLeftInPage;
-          MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
-              .mark(bytesLeftInPage);
-          mReadFromUfs = true;
-          ufsBuf.rewind();
-          ufsBuf.limit(pageBytesRead);
-          if (ufsBlockReader.getUfsReadOptions().isCacheIntoAlluxio()) {
-            mCacheManager.put(pageId, ufsBuf);
+        try {
+          int pageBytesRead = ufsBlockReader.readPageAtIndex(ufsBuf, pageIndex);
+          if (pageBytesRead > 0) {
+            ufsBuf.position(currentPageOffset);
+            ufsBuf.limit(currentPageOffset + bytesLeftInPage);
+            byteBuf.writeBytes(ufsBuf);
+            bytesRead += bytesLeftInPage;
+            MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
+                .mark(bytesLeftInPage);
+            mReadFromUfs = true;
+            ufsBuf.rewind();
+            ufsBuf.limit(pageBytesRead);
+            if (ufsBlockReader.getUfsReadOptions().isCacheIntoAlluxio()) {
+              mCacheManager.put(pageId, ufsBuf);
+            }
           }
+        } finally {
+          NioDirectBufferPool.release(ufsBuf);
         }
       }
     }
-    buf.flip();
-    return buf;
+    return bytesRead;
   }
 
   @Override
@@ -145,16 +172,15 @@ public class PagedBlockReader extends BlockReader {
 
   @Override
   public int transferTo(ByteBuf buf) throws IOException {
-    Preconditions.checkState(!mClosed);
     if (mBlockMeta.getBlockSize() <= mPosition) {
       return -1;
     }
     int bytesToTransfer =
         (int) Math.min(buf.writableBytes(), mBlockMeta.getBlockSize() - mPosition);
-    ByteBuffer srcBuf = read(mPosition, bytesToTransfer);
-    buf.writeBytes(srcBuf);
-    mPosition += bytesToTransfer;
-    return bytesToTransfer;
+    ensureReadable(mPosition, bytesToTransfer);
+    long bytesRead = read(buf, mPosition, bytesToTransfer);
+    mPosition += bytesRead;
+    return (int) bytesRead;
   }
 
   @Override
@@ -178,5 +204,16 @@ public class PagedBlockReader extends BlockReader {
       }
     }
     mClosed = true;
+  }
+
+  private void ensureReadable(long offset, long length) {
+    Preconditions.checkState(!mClosed, "reader closed");
+    Preconditions.checkArgument(length >= 0, "negative read length %s", length);
+    Preconditions.checkArgument(offset >= 0, "negative offset %s", offset);
+    Preconditions.checkArgument(offset <= mBlockMeta.getBlockSize(),
+        "offset (%s) exceeds block size (%s)", offset, mBlockMeta.getBlockSize());
+    Preconditions.checkArgument(
+        offset + length >= 0 && offset + length <= mBlockMeta.getBlockSize(),
+        "read end %s exceed block size %s", offset + length, mBlockMeta.getBlockSize());
   }
 }

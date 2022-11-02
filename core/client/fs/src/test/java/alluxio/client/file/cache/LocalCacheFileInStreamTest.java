@@ -35,6 +35,7 @@ import alluxio.exception.OpenDirectoryException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
@@ -49,19 +50,17 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.grpc.FreeWorkerPOptions;
-import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.AclEntry;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.*;
-
+import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerNetAddress;
+
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableMap;
@@ -715,15 +714,10 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public void decommissionWorker(WorkerNetAddress workerNetAddress, DecommissionWorkerPOptions options)
+    public void decommissionWorker(WorkerNetAddress workerNetAddress,
+         DecommissionWorkerPOptions options)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options)
-        throws IOException, AlluxioException {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -869,6 +863,11 @@ public class LocalCacheFileInStreamTest {
     @Override
     public void unmount(AlluxioURI path, UnmountPOptions options)
         throws IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void needsSync(AlluxioURI path) {
       throw new UnsupportedOperationException();
     }
 

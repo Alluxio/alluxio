@@ -47,7 +47,7 @@ import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.resource.DummyCloseableResource;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -339,7 +339,7 @@ public final class BlockStoreClientTest {
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L)));
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(S_CONF),
+        new InStreamOptions(dummyStatus, FileSystemOptionsUtils.openFileDefaults(S_CONF),
             S_CONF, mContext);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mContext.getCachedWorkers()).thenReturn(Collections.emptyList());
@@ -353,7 +353,7 @@ public final class BlockStoreClientTest {
     URIStatus dummyStatus = new URIStatus(
         new FileInfo().setPersisted(false).setBlockIds(Collections.singletonList(0L)));
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(S_CONF),
+        new InStreamOptions(dummyStatus, FileSystemOptionsUtils.openFileDefaults(S_CONF),
             S_CONF, mContext);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     Exception e = assertThrows(UnavailableException.class, () ->
@@ -540,7 +540,7 @@ public final class BlockStoreClientTest {
         .getArgument(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
         .getNetAddress());
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(S_CONF),
+        new InStreamOptions(dummyStatus, FileSystemOptionsUtils.openFileDefaults(S_CONF),
             S_CONF, mContext);
     options.setUfsReadLocationPolicy(mockPolicy);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
@@ -581,7 +581,7 @@ public final class BlockStoreClientTest {
         .getArgument(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
         .getNetAddress()));
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(S_CONF),
+        new InStreamOptions(dummyStatus, FileSystemOptionsUtils.openFileDefaults(S_CONF),
             S_CONF, mContext);
     options.setUfsReadLocationPolicy(mockPolicy);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);

@@ -136,6 +136,9 @@ public final class HeartbeatThread implements Runnable {
     mTimer.setIntervalMs(intervalMs);
   }
 
+  /**
+   * Close the heartbeat.
+   */
   public void closeHeartBeat() {
     mRunning = false;
   }

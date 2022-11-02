@@ -27,6 +27,8 @@ import alluxio.grpc.CreateDirectoryPRequest;
 import alluxio.grpc.CreateDirectoryPResponse;
 import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.CreateFilePResponse;
+import alluxio.grpc.DecommissionWorkerPRequest;
+import alluxio.grpc.DecommissionWorkerPResponse;
 import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.DeletePResponse;
 import alluxio.grpc.ExistsPRequest;
@@ -48,14 +50,14 @@ import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.InvalidateSyncPathRequest;
-import alluxio.grpc.InvalidateSyncPathResponse;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.ListStatusPartialPRequest;
 import alluxio.grpc.ListStatusPartialPResponse;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
+import alluxio.grpc.NeedsSyncRequest;
+import alluxio.grpc.NeedsSyncResponse;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.RenamePResponse;
 import alluxio.grpc.ReverseResolvePRequest;
@@ -76,21 +78,15 @@ import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateMountPResponse;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
-import alluxio.grpc.FreeWorkerPRequest;
-import alluxio.grpc.FreeWorkerPResponse;
-import alluxio.grpc.DecommissionToFreePRequest;
-import alluxio.grpc.DecommissionToFreePResponse;
-import alluxio.grpc.DecommissionWorkerPRequest;
-import alluxio.grpc.DecommissionWorkerPResponse;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.DecommissionWorkerContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.FreeContext;
-import alluxio.master.file.contexts.FreeWorkerContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.GrpcCallTracker;
 import alluxio.master.file.contexts.ListStatusContext;
@@ -99,7 +95,6 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
-import alluxio.master.file.contexts.DecommissionWorkerContext;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -219,35 +214,15 @@ public final class FileSystemMasterClientServiceHandler
   }
 
   @Override
-  public void freeWorker(FreeWorkerPRequest request, StreamObserver<FreeWorkerPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
-      boolean isIn = mFileSystemMaster.freeWorker(request.getWorkerName(),
-              FreeWorkerContext.create(request.getOptions().toBuilder()));
-      return FreeWorkerPResponse.newBuilder().setWorkerCanBeFreed(isIn).build();
-    }, "FreeWorker", "request=%s", responseObserver, request);
-  }
-
-  @Override
-  public void decommissionToFree(DecommissionToFreePRequest request,
-      StreamObserver<DecommissionToFreePResponse> responseObserver) {
-    String workerName = request.getWorkerName();
-    RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.decommissionToFree(workerName);
-      // Currently status is always true.
-      return DecommissionToFreePResponse.newBuilder().setStatus(true).build();
-    }, "DecommissionToFree", "request=%s", responseObserver, request);
-  }
-
   public void decommissionWorker(DecommissionWorkerPRequest request,
-    StreamObserver<DecommissionWorkerPResponse> responseObserver) {
+      StreamObserver<DecommissionWorkerPResponse> responseObserver) {
     System.out.println("Received the decommissionWorker request.");
     RpcUtils.call(LOG, () -> {
       //TODO(Tony Sun): Not totally finished.
       mFileSystemMaster.setWorkerToBeDecommissioned(request.getWorkerName(),
               DecommissionWorkerContext.create(request.getOptions().toBuilder()));
-      ;
       return DecommissionWorkerPResponse.newBuilder().setDecommissionSuccessful(true).build();
-    }, "FreeWorker", "request=%s", responseObserver, request);
+    }, "DecommissionWorker", "request=%s", responseObserver, request);
   }
 
   @Override
@@ -504,12 +479,12 @@ public final class FileSystemMasterClientServiceHandler
   }
 
   @Override
-  public void invalidateSyncPath(InvalidateSyncPathRequest request,
-                                 StreamObserver<InvalidateSyncPathResponse> responseObserver) {
+  public void needsSync(NeedsSyncRequest request,
+                        StreamObserver<NeedsSyncResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.invalidateSyncPath(new AlluxioURI(request.getPath()));
-      return InvalidateSyncPathResponse.getDefaultInstance();
-    }, "InvalidateSyncPath", true, "request=%s", responseObserver, request);
+      mFileSystemMaster.needsSync(new AlluxioURI(request.getPath()));
+      return NeedsSyncResponse.getDefaultInstance();
+    }, "NeedsSync", true, "request=%s", responseObserver, request);
   }
 
   /**

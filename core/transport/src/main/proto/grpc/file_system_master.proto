@@ -184,27 +184,6 @@ message DecommissionWorkerPRequest{
   optional DecommissionWorkerPOptions options = 2;
 }
 
-message FreeWorkerPResponse {
-  required bool workerCanBeFreed = 1;
-}
-message FreeWorkerPOptions {
-  optional int64 timeOut = 1;
-  optional FileSystemMasterCommonPOptions commonOption = 2;
-}
-message FreeWorkerPRequest {
-  /** The name of the worker to be freed.   */
-  required string workerName = 1;
-  optional FreeWorkerPOptions options = 2;
-}
-
-message DecommissionToFreePRequest {
-  required string workerName = 1;
-}
-
-message DecommissionToFreePResponse {
-  optional bool status = 1;
-}
-
 message GetNewBlockIdForFilePResponse {
   optional int64 id = 1;
 }
@@ -608,11 +587,11 @@ message GetStateLockHoldersPRequest {
   optional GetStateLockHoldersPOptions options = 1;
 }
 
-message InvalidateSyncPathRequest {
+message NeedsSyncRequest {
   required string path = 1;
 }
 
-message InvalidateSyncPathResponse {}
+message NeedsSyncResponse {}
 
 
 /**
@@ -654,16 +633,6 @@ service FileSystemMasterClientService {
    * Frees the given file or directory from Alluxio.
    */
   rpc Free(FreePRequest) returns (FreePResponse);
-
-  /**
-   * Frees the given Worker from Alluxio.
-   */
-  rpc FreeWorker(FreeWorkerPRequest) returns (FreeWorkerPResponse);
-
-  /**
-   * Move the target worker from decommissioned status to freed status.
-   */
-  rpc DecommissionToFree(DecommissionToFreePRequest) returns (DecommissionToFreePResponse);
 
   /**
    *  Decommission the given worker from Alluxio.
@@ -774,7 +743,7 @@ service FileSystemMasterClientService {
 
   rpc GetStateLockHolders(GetStateLockHoldersPRequest) returns (GetStateLockHoldersPResponse);
 
-  rpc InvalidateSyncPath(InvalidateSyncPathRequest) returns (InvalidateSyncPathResponse);
+  rpc NeedsSync(NeedsSyncRequest) returns (NeedsSyncResponse);
 }
 
 message FileSystemHeartbeatPResponse {

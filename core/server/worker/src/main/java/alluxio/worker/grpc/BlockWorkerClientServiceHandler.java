@@ -25,6 +25,12 @@ import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.DecommissionWorkerRequest;
+import alluxio.grpc.DecommissionWorkerResponse;
+import alluxio.grpc.FreeWorkerRequest;
+import alluxio.grpc.FreeWorkerResponse;
+import alluxio.grpc.HandleRPCRequest;
+import alluxio.grpc.HandleRPCResponse;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
@@ -39,18 +45,11 @@ import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.grpc.WriteRequestMarshaller;
 import alluxio.grpc.WriteResponse;
-import alluxio.grpc.FreeWorkerRequest;
-import alluxio.grpc.FreeWorkerResponse;
-import alluxio.grpc.DecommissionWorkerRequest;
-import alluxio.grpc.DecommissionWorkerResponse;
-import alluxio.grpc.HandleRPCRequest;
-import alluxio.grpc.HandleRPCResponse;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.underfs.UfsManager;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
-import alluxio.worker.AlluxioWorkerProcess;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockStoreLocation;
@@ -86,7 +85,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   private final WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();
   private final boolean mDomainSocketEnabled;
   // The ROM status can also be reserved even after rebooting. Because of "static".
-  private static final AtomicBoolean mReadOnlyMode = new AtomicBoolean(false);
+  private static final AtomicBoolean READ_ONLY_MODE = new AtomicBoolean(false);
   private final WorkerProcess mWorkerProcess;
 
   /**
@@ -137,8 +136,9 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public StreamObserver<alluxio.grpc.WriteRequest> writeBlock(
       StreamObserver<WriteResponse> responseObserver) {
     // TODO(Tony Sun): Consider an elegant return method.
-    if (mReadOnlyMode.get())
+    if (READ_ONLY_MODE.get()) {
       return null;
+    }
     ServerCallStreamObserver<WriteResponse> serverResponseObserver =
         (ServerCallStreamObserver<WriteResponse>) responseObserver;
     if (ZERO_COPY_ENABLED) {
@@ -162,8 +162,9 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public StreamObserver<CreateLocalBlockRequest> createLocalBlock(
       StreamObserver<CreateLocalBlockResponse> responseObserver) {
     // TODO(Tony Sun): Consider an elegant return method.
-    if (mReadOnlyMode.get())
+    if (READ_ONLY_MODE.get()) {
       return null;
+    }
     ShortCircuitBlockWriteHandler handler = new ShortCircuitBlockWriteHandler(
         mBlockWorker, responseObserver);
     ServerCallStreamObserver<CreateLocalBlockResponse> serverCallStreamObserver =
@@ -192,8 +193,9 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   @Override
   public void load(LoadRequest request, StreamObserver<LoadResponse> responseObserver) {
     // TODO(Tony Sun): Consider an elegant return method.
-    if (mReadOnlyMode.get())
+    if (READ_ONLY_MODE.get()) {
       return;
+    }
     CompletableFuture<List<BlockStatus>> failures =
         mBlockWorker.load(request.getBlocksList(), request.getOptions());
     CompletableFuture<LoadResponse> future = failures.thenApply(fail -> {
@@ -231,25 +233,34 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
     }, "moveBlock", "request=%s", responseObserver, request);
   }
 
+  /**
+   * Set Worker to be Read_Only_Mode.
+   * @return Whether Read_Only_Mode is set successfully
+   */
   public boolean setWorkerToBeReadOnlyMode() {
-    return mReadOnlyMode.compareAndSet(false, true);
+    return READ_ONLY_MODE.compareAndSet(false, true);
   }
 
-  // TODO(Tony Sun): Not finished, This method works for set ROM, waiting for the reading and writing to be ended.
-  // Refactoring: Extract the persistence function.
+  // TODO(Tony Sun): Not finished, This method works for set ROM,
+  //  waiting for the reading and writing to be ended.
+  //  Refactoring: Extract the persistence function.
   @Override
   public void decommissionWorker(DecommissionWorkerRequest request,
-     StreamObserver<DecommissionWorkerResponse> responseObserver) {
+      StreamObserver<DecommissionWorkerResponse> responseObserver) {
     // If target worker is not in ROM now, return and do nothing.
-    if (!mReadOnlyMode.get())
+    if (!READ_ONLY_MODE.get()) {
       return;
+    }
     RpcUtils.call(LOG, () -> {
-      System.out.println("Now there are no reading and writing grpc. Next step is committing persist jobs");
+      System.out.println("Now there are no reading and writing grpc."
+          + " Next step is committing persist jobs");
       return DecommissionWorkerResponse.getDefaultInstance();
     }, "decommissionWorker", "request=%s", responseObserver, request);
   }
 
-  public void handleRPC(HandleRPCRequest request, StreamObserver<HandleRPCResponse> responseObserver) {
+  @Override
+  public void handleRPC(HandleRPCRequest request,
+      StreamObserver<HandleRPCResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       // 1. Set ROM
       if (setWorkerToBeReadOnlyMode()) {
@@ -260,9 +271,10 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       else {
         System.out.println("ROM has been set.");
       }
-      // TODO(Tony Sun): In the future, add logic to monitor the running read and write service, add timeout handling.
-      System.out.println("The return below will raise Exception, " +
-              "because the older data server has been shut down.");
+      // TODO(Tony Sun): In the future, add logic to monitor the running read and write service,
+      //  add timeout handling.
+      System.out.println("The return below will raise Exception, "
+          + "because the older data server has been shut down.");
       // 3. Shut down all threads.
       // TODO(Tony Sun): Just for test, should be moved to other place in the future;
       mBlockWorker.shutDownThreads();
@@ -271,16 +283,21 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
     }, "handleRPC", "request=%s", responseObserver, request);
   }
 
-  @Override
-  public void freeWorker(FreeWorkerRequest request, StreamObserver<FreeWorkerResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
-      mBlockWorker.freeCurrentWorker();
-      return FreeWorkerResponse.getDefaultInstance();
-    }, "freeWorker", "request=%s", responseObserver, request);
+  /**
+   * Get the READ_ONLY_MODE status.
+   * @return the READ_ONLY_MODE status
+   */
+  public boolean getReadOnlyModeStatus() {
+    return READ_ONLY_MODE.get();
   }
 
-  public boolean getReadOnlyModeStatus() {
-    return mReadOnlyMode.get();
+  @Override
+  public void freeWorker(FreeWorkerRequest request,
+       StreamObserver<FreeWorkerResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mBlockWorker.freeWorker();
+      return FreeWorkerResponse.getDefaultInstance();
+    }, "freeWorker", "request=%s", responseObserver, request);
   }
 
   @Override

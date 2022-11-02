@@ -11,17 +11,14 @@
 
 package alluxio.worker.grpc;
 
+import io.grpc.ForwardingServerCallListener;
 import io.grpc.Metadata;
 import io.grpc.ServerCall;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
-import io.grpc.ForwardingServerCallListener;
 import io.grpc.Status;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Server side interceptor that is used to set Read Only Mode Lock.
@@ -29,17 +26,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class ReadOnlyModeCheckerInjector implements ServerInterceptor {
   private static final Logger LOG = LoggerFactory.getLogger(ReadOnlyModeCheckerInjector.class);
 
-  private static final int presumeSplitValue = 2;
+  private static final int PRESUME_SPLIT_VALUE = 2;
 
-  private final BlockWorkerClientServiceHandler mhandler;
+  private final BlockWorkerClientServiceHandler mHandler;
 
+  /**
+   * Initialise ReadOnlyModeCheckerInjector.
+   * @param handler the BlockWorkerClientServiceHandler
+   */
   public ReadOnlyModeCheckerInjector(BlockWorkerClientServiceHandler handler) {
-    mhandler = handler;
+    mHandler = handler;
   }
 
   @Override
   public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> call,
-                                                               Metadata headers, ServerCallHandler<ReqT, RespT> next) {
+       Metadata headers, ServerCallHandler<ReqT, RespT> next) {
     /**
      * For streaming calls, below will make sure authenticated user is injected prior to creating
      * the stream. If the call gets closed during authentication, the listener we return below
@@ -66,13 +67,14 @@ public final class ReadOnlyModeCheckerInjector implements ServerInterceptor {
     System.out.println(call.getMethodDescriptor().getFullMethodName());
     String[] sArray = call.getMethodDescriptor().getFullMethodName().split("/");
     // TODO(Tony Sun): Maybe useless. The validation may have been checked.
-    if (sArray.length != presumeSplitValue) {
+    if (sArray.length != PRESUME_SPLIT_VALUE) {
       closeQuietly(call, Status.FAILED_PRECONDITION.withDescription(
               "Invalid Command."), headers);
     }
     System.out.println(sArray[1]);
-    if ((sArray[1].equals("DecommissionWorker") || sArray[1].equals("CreateLocalBlock") ||
-            sArray[1].equals("Load") || sArray[1].equals("WriteBlock")) && mhandler.getReadOnlyModeStatus()) {
+    if ((sArray[1].equals("DecommissionWorker") || sArray[1].equals("CreateLocalBlock")
+        || sArray[1].equals("Load") || sArray[1].equals("WriteBlock"))
+        && mHandler.getReadOnlyModeStatus()) {
       closeQuietly(call, Status.FAILED_PRECONDITION.withDescription(
               "worker has been set to Read Only Mode."), headers);
     }

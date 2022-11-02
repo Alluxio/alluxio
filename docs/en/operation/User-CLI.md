@@ -27,11 +27,6 @@ Usage: alluxio [COMMAND]
 This section lists usages and examples of general Alluxio operations with the exception of file
 system commands which are covered in the [Admin CLI doc]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
 
-### extensions
-
-The `extensions` command is for managing UFS extensions to Alluxio. For additional information, refer
-to the [main page]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}).
-
 ### format
 
 The `format` command formats the Alluxio master and all its workers.
@@ -240,7 +235,7 @@ The default target value is the primary master, primary job master, all workers 
 * `--level <arg>` If provided, the command changes to the given logger level,
 otherwise it returns the current logger level.
 
-See [here]({{ '/en/operation/Basic-Logging.html#modifying-server-logging-at-runtime' | relativize_url }})
+See [here]({{ '/en/administration/Basic-Logging.html#modifying-server-logging-at-runtime' | relativize_url }})
 for more examples.
 
 > Note: This command requires the Alluxio cluster to be running.
@@ -566,7 +561,7 @@ server-side hadoop configuration directory when running validating tasks.
 ### collectInfo
 
 The `collectInfo` command collects information to troubleshoot an Alluxio cluster.
-For more information see the [collectInfo command page]({{ '/en/operation/Troubleshooting.html#alluxio-collectinfo-command' | relativize_url }}).
+For more information see the [collectInfo command page]({{ '/en/administration/Troubleshooting.html#alluxio-collectinfo-command' | relativize_url }}).
 
 > Note: This command does not require the Alluxio cluster to be running.
 > But if the cluster is not running, this command will fail to gather some information from it.
@@ -938,8 +933,6 @@ $ ./bin/alluxio fs distributedLoad /data/today --locality ROCK2,ROCK3 --hosts ho
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host2,host3 --excluded-locality ROCK2,ROCK3
 ```
 
-See examples for [Tiered Locality Example]({{ '/en/operation/Tiered-Locality.html' | relativize_url }}#Example)
-
 ### distributedMv
 
 The `distributedMv` command moves a file or directory in the Alluxio file system distributed across workers
@@ -1258,6 +1251,23 @@ For example, `mv` can be used to re-organize your files.
 
 ```console
 $ ./bin/alluxio fs mv /data/2014 /data/archives/2014
+```
+
+### needsSync
+
+The `needsSync` command marks a path in Alluxio as needing synchronization with the UFS.
+The next time the path or any child path is accessed by a file system operation the
+metadata for that path will be synchronized with the UFS. Note that the metadata will not
+be synchronized immediately, the synchronization will only happen on each path when it
+is accessed.
+
+Usage `needsSync <path>`
+
+For example, `needsSync` can be used after a set of files have been modified on the UFS
+outside Alluxio and those changes should be visible the next time the files are accessed.
+
+```console
+$ ./bin/alluxio fs needsSync /data
 ```
 
 ### persist

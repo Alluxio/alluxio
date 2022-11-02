@@ -13,7 +13,7 @@ package alluxio.master.file.contexts;
 
 import alluxio.conf.Configuration;
 import alluxio.grpc.DecommissionWorkerPOptions;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 
 import com.google.common.base.MoreObjects;
 
@@ -36,18 +36,23 @@ public class DecommissionWorkerContext extends OperationContext<DecommissionWork
    * @param optionsBuilder Builder for proto {@link DecommissionWorkerPOptions}
    * @return the instance of {@link DecommissionWorkerContext} with the given options
    */
-  public static DecommissionWorkerContext create(DecommissionWorkerPOptions.Builder optionsBuilder) {
+  public static DecommissionWorkerContext create(
+      DecommissionWorkerPOptions.Builder optionsBuilder) {
     return new DecommissionWorkerContext(optionsBuilder);
   }
 
   /**
-   * Merges and embeds the given {@link DecommissionWorkerPOptions} with the corresponding master options.
+   * Merges and embeds the given {@link DecommissionWorkerPOptions}
+   * with the corresponding master options.
    *
-   * @param optionsBuilder Builder for proto {@link DecommissionWorkerPOptions} to merge with defaults
+   * @param optionsBuilder Builder for
+   *        proto {@link DecommissionWorkerPOptions} to merge with defaults
    * @return the instance of {@link DecommissionWorkerContext} with default values for master
    */
-  public static DecommissionWorkerContext mergeFrom(DecommissionWorkerPOptions.Builder optionsBuilder) {
-    DecommissionWorkerPOptions masterOptions = FileSystemOptions.decommissionWorkerDefaults(Configuration.global());
+  public static DecommissionWorkerContext
+      mergeFrom(DecommissionWorkerPOptions.Builder optionsBuilder) {
+    DecommissionWorkerPOptions masterOptions =
+        FileSystemOptionsUtils.decommissionWorkerDefaults(Configuration.global());
     DecommissionWorkerPOptions.Builder mergedOptionsBuilder =
             masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -57,7 +62,8 @@ public class DecommissionWorkerContext extends OperationContext<DecommissionWork
    * @return the instance of {@link DecommissionWorkerContext} with default values for master
    */
   public static DecommissionWorkerContext defaults() {
-    return create(FileSystemOptions.decommissionWorkerDefaults(Configuration.global()).toBuilder());
+    return create(FileSystemOptionsUtils
+        .decommissionWorkerDefaults(Configuration.global()).toBuilder());
   }
 
   @Override

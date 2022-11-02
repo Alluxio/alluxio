@@ -63,7 +63,6 @@ public final class PinListSync implements HeartbeatExecutor {
 
   @Override
   public void close() {
-    // Nothing to clean up
     mMasterClient = null;
   }
 }

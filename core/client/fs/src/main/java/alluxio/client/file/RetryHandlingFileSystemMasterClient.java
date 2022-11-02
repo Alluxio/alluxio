@@ -25,6 +25,9 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateDirectoryPRequest;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.CreateFilePRequest;
+import alluxio.grpc.DecommissionWorkerPOptions;
+import alluxio.grpc.DecommissionWorkerPRequest;
+import alluxio.grpc.DecommissionWorkerPResponse;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.ExistsPOptions;
@@ -42,13 +45,13 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.InvalidateSyncPathRequest;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.ListStatusPartialPRequest;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
+import alluxio.grpc.NeedsSyncRequest;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.ReverseResolvePRequest;
@@ -67,21 +70,13 @@ import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
-import alluxio.grpc.FreeWorkerPOptions;
-import alluxio.grpc.FreeWorkerPRequest;
-import alluxio.grpc.FreeWorkerPResponse;
-import alluxio.grpc.DecommissionToFreePRequest;
-import alluxio.grpc.DecommissionToFreePResponse;
-import alluxio.grpc.DecommissionWorkerPOptions;
-import alluxio.grpc.DecommissionWorkerPRequest;
-import alluxio.grpc.DecommissionWorkerPResponse;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.CountingRetry;
 import alluxio.security.authorization.AclEntry;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.SyncPointInfo;
-
 import alluxio.wire.WorkerNetAddress;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -212,24 +207,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public FreeWorkerPResponse freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options)
-      throws AlluxioStatusException {
-    return retryRPC(() -> mClient.freeWorker(FreeWorkerPRequest.newBuilder()
-            .setWorkerName(workerNetAddress.getHost()).setOptions(options).build()), RPC_LOG, "FreeWorker",
-            "workerName=%s,options=%s", workerNetAddress.getHost(), options);
-  }
-
-  @Override
-  public DecommissionToFreePResponse decommissionToFree(WorkerNetAddress workerNetAddress)
-      throws AlluxioStatusException{
-    return retryRPC(() -> mClient.decommissionToFree(DecommissionToFreePRequest.newBuilder()
-            .setWorkerName(workerNetAddress.getHost()).build()),
-            RPC_LOG, "DecommissionToFree", "workerName=%s", workerNetAddress.getHost());
-  }
-
-  @Override
   public DecommissionWorkerPResponse decommissionWorker(WorkerNetAddress workerNetAddress,
-      DecommissionWorkerPOptions options) throws AlluxioStatusException{
+      DecommissionWorkerPOptions options) throws AlluxioStatusException {
     return retryRPC(() -> mClient.decommissionWorker(DecommissionWorkerPRequest.newBuilder()
             .setWorkerName(workerNetAddress.getHost()).build()),
             RPC_LOG, "DecommissionWorker", "workerName=%s,options=%s",
@@ -354,7 +333,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public void rename(final AlluxioURI src, final AlluxioURI dst)
       throws AlluxioStatusException {
-    rename(src, dst, FileSystemOptions.renameDefaults(mContext.getClusterConf()));
+    rename(src, dst, FileSystemOptionsUtils.renameDefaults(mContext.getClusterConf()));
   }
 
   @Override
@@ -445,11 +424,11 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public void invalidateSyncPath(AlluxioURI path) throws AlluxioStatusException {
+  public void needsSync(AlluxioURI path) throws AlluxioStatusException {
     retryRPC(
-        () -> mClient.invalidateSyncPath(
-            InvalidateSyncPathRequest.newBuilder().setPath(getTransportPath(path)).build()),
-        RPC_LOG, "InvalidateSyncPath", "path=%s", path);
+        () -> mClient.needsSync(
+            NeedsSyncRequest.newBuilder().setPath(getTransportPath(path)).build()),
+        RPC_LOG, "NeedsSync", "path=%s", path);
   }
 
   /**

@@ -584,6 +584,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The directory containing Alluxio extensions.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey HOME =
       stringBuilder(Name.HOME)
@@ -1895,7 +1896,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_BACKUP_DELEGATION_ENABLED =
       booleanBuilder(Name.MASTER_BACKUP_DELEGATION_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether to delegate journals to standby masters in HA cluster.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -2936,7 +2937,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The threshold of the number of completed single operations in a "
               + "recursive file system operation, e.g. delete file/set file attributes "
               + "to trigger a force journal flush. Increasing the threshold decreases the "
-              + "possibility to see partial state of a recurisive operation on a standby master "
+              + "possibility to see partial state of a recursive operation on a standby master "
               + "but increases the memory consumption as alluxio holds more journal entries "
               + "in memory. This config is only available when "
               + Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS + "is enabled.")
@@ -3701,9 +3702,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS =
       booleanBuilder(Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("If enabled, the file system master inode related journals"
-              + "will be merged and submitted BEFORE the inode path lock is released.")
+              + "will be merged and submitted BEFORE the inode path lock is released. "
+              + "Due to the performance consideration, this will not apply to the metadata sync, "
+              + "where journals are still flushed asynchronously.")
           .build();
 
   //
@@ -5028,6 +5031,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Ordering of locality tiers")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey LOCALITY_SCRIPT =
       stringBuilder(Name.LOCALITY_SCRIPT)
@@ -5035,11 +5039,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("A script to determine tiered identity for locality checking")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey LOCALITY_TIER_NODE =
       new Builder(PropertyType.STRING, Template.LOCALITY_TIER, Constants.LOCALITY_NODE)
           .setDescription("Value to use for determining node locality")
           .setScope(Scope.ALL)
+          .setIsHidden(true)
           .build();
   // This property defined so that it is included in the documentation.
   public static final PropertyKey LOCALITY_TIER_RACK =
@@ -5047,6 +5053,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Value to use for determining rack locality")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
+          .setIsHidden(true)
           .build();
 
   public static final PropertyKey LOCALITY_COMPARE_NODE_IP =
@@ -6260,25 +6267,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  @Deprecated(message = "CapacityBaseRandomPolicy no longer caches block locations. "
+      + "To make sure a block is always assigned to the same worker, use DeterministicHashPolicy.")
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE =
       intBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE)
           .setDefaultValue(10000)
-          .setDescription("When alluxio.user.ufs.block.read.location.policy is set "
+          .setDescription("Deprecated - When alluxio.user.ufs.block.read.location.policy is set "
               + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
               + "this specifies cache size of block location.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  @Deprecated(message = "CapacityBaseRandomPolicy no longer caches block locations. "
+      + "To make sure a block is always assigned to the same worker, use DeterministicHashPolicy.")
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME =
       durationBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME)
           .setDefaultValue("10min")
-          .setDescription("When alluxio.user.ufs.block.read.location.policy is set "
+          .setDescription("Deprecated - When alluxio.user.ufs.block.read.location.policy is set "
               + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
               + "this specifies cache expire time of block location.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-
   public static final PropertyKey USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
       intBuilder(Name.USER_UFS_BLOCK_READ_CONCURRENCY_MAX)
           .setDefaultValue(Integer.MAX_VALUE)
@@ -6389,10 +6399,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey FUSE_JNIFUSE_LIBFUSE_VERSION =
       intBuilder(Name.FUSE_JNIFUSE_LIBFUSE_VERSION)
-          .setDefaultValue(0)
+          .setDefaultValue(2)
           .setDescription("The version of libfuse used by libjnifuse. "
-              + "Set 2 to force use libfuse2, 3 to libfuse3, and "
-              + "other value to use libfuse2 first, libfuse3 if libfuse2 failed")
+              + "Libfuse2 and Libfuse3 are supported.")
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey FUSE_SHARED_CACHING_READER_ENABLED =
@@ -6977,6 +6986,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("(Experimental) Enables the table service.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_CATALOG_PATH =
       stringBuilder(Name.TABLE_CATALOG_PATH)
@@ -6984,6 +6994,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The Alluxio file path for the table catalog metadata.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_CATALOG_UDB_SYNC_TIMEOUT =
       durationBuilder(Name.TABLE_CATALOG_UDB_SYNC_TIMEOUT)
@@ -6992,6 +7003,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "takes longer than this timeout, the sync will be terminated.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE =
       intBuilder(Name.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE)
@@ -6999,6 +7011,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum table partitions number in a single journal entry.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
       durationBuilder(Name.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL)
@@ -7009,6 +7022,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "locations after transformation.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
       durationBuilder(Name.TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME)
@@ -7017,6 +7031,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "about finished transformation jobs before they are discarded.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MIN =
       intBuilder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MIN)
@@ -7024,6 +7039,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The minimum capacity of the hive client pool per hive metastore")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MAX =
       intBuilder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MAX)
@@ -7031,6 +7047,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum capacity of the hive client pool per hive metastore")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_LOAD_DEFAULT_REPLICATION =
       intBuilder(Name.TABLE_LOAD_DEFAULT_REPLICATION)
@@ -7038,6 +7055,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The default replication number of files under the SDS table after "
                   + "load option.")
           .setScope(Scope.CLIENT)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey HADOOP_SECURITY_AUTHENTICATION =
           stringBuilder(Name.HADOOP_SECURITY_AUTHENTICATION)
@@ -7730,7 +7748,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE =
         "alluxio.master.filesystem.operation.retry.cache.size";
     public static final String MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS =
-        "alluxio.master.filesystem.commit.journals.before.release.inode.path.lock";
+        "alluxio.master.filesystem.merge.inode.journals";
 
     //
     // Throttle
@@ -7931,7 +7949,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_PAGE_STORE_QUOTA_ENABLED =
         "alluxio.worker.page.store.quota.enabled";
     public static final String WORKER_PAGE_STORE_SIZES =
-        "alluxio.worker.page.store.size";
+        "alluxio.worker.page.store.sizes";
     public static final String WORKER_PAGE_STORE_TIMEOUT_DURATION =
         "alluxio.worker.page.store.timeout.duration";
     public static final String WORKER_PAGE_STORE_TIMEOUT_THREADS =
@@ -9092,7 +9110,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public Class<? extends Enum> getEnumType()
   {
     checkState(mType == PropertyType.ENUM && mEnumType.isPresent(),
-        format("PropertyKey %s is not of enum type", mName));
+        "PropertyKey %s is not of enum type", mName);
     return mEnumType.get();
   }
 
@@ -9101,7 +9119,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public String getDelimiter() {
     checkState(mType == PropertyType.LIST && mDelimiter.isPresent(),
-        format("PropertyKey %s is not of list type", mName));
+        "PropertyKey %s is not of list type", mName);
     return mDelimiter.get();
   }
 

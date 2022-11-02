@@ -29,8 +29,8 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.FileInfo;
@@ -110,27 +110,27 @@ public class FuseShellTest {
     assertFalse(isSpecialPath);
   }
 
-  @Test(expected = InvalidArgumentException.class)
-  public  void runMetadataCacheCommandWhenSpecialCommandDisable() throws InvalidArgumentException {
+  @Test(expected = InvalidArgumentRuntimeException.class)
+  public  void runMetadataCacheCommandWhenSpecialCommandDisable() {
     mConf.set(PropertyKey.USER_METADATA_CACHE_ENABLED, false);
     AlluxioURI reservedPath = new AlluxioURI("/dir/.alluxiocli.metadatacache.drop");
     new FuseShell(mFileSystem, mConf).runCommand(reservedPath);
   }
 
-  @Test(expected = InvalidArgumentException.class)
-  public  void runNoneExistCommand() throws InvalidArgumentException {
+  @Test(expected = InvalidArgumentRuntimeException.class)
+  public  void runNoneExistCommand() {
     AlluxioURI reservedPath = new AlluxioURI("/dir/.alluxiocli.None.subcommand");
     mFuseShell.runCommand(reservedPath);
   }
 
-  @Test(expected = InvalidArgumentException.class)
-  public  void runNoneExistSubCommand() throws InvalidArgumentException {
+  @Test(expected = InvalidArgumentRuntimeException.class)
+  public  void runNoneExistSubCommand() {
     AlluxioURI reservedPath = new AlluxioURI("/dir/.alluxiocli.metadatacache.None");
     mFuseShell.runCommand(reservedPath);
   }
 
   @Test
-  public void runGetMetadataCacheSizeCommand() throws Exception {
+  public void runGetMetadataCacheSizeCommand() {
     AlluxioURI reservedPath = new AlluxioURI("/.alluxiocli.metadatacache.size");
     URIStatus status = mFuseShell.runCommand(reservedPath);
     assertEquals(2, status.getFileInfo().getLength());

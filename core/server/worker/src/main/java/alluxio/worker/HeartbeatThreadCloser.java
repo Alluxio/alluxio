@@ -1,6 +1,7 @@
 package alluxio.worker;
 
 import alluxio.heartbeat.HeartbeatThread;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,10 +20,15 @@ public class HeartbeatThreadCloser implements Runnable, Closeable {
 
   private final HeartbeatThread mHeartBeatThread;
 
+  /**
+   * Initialise HeartbeatThreadCloser.
+   * @param heartbeatThread
+   */
   public HeartbeatThreadCloser(HeartbeatThread heartbeatThread) {
     mHeartBeatThread = heartbeatThread;
   }
 
+  @Override
   public void run() {
     mHeartBeatThread.run();
     LOG.info("A HeartBeat thread has been closed.");

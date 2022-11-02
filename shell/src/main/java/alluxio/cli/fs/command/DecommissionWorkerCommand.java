@@ -12,30 +12,25 @@
 package alluxio.cli.fs.command;
 
 import alluxio.Constants;
-import alluxio.annotation.PublicApi;
 import alluxio.cli.fs.FileSystemShellUtils;
-import alluxio.cli.fs.command.AbstractFileSystemCommand;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
-import alluxio.grpc.Block;
-import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.BlockWorker;
+import alluxio.grpc.DecommissionWorkerPOptions;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import alluxio.grpc.FreeWorkerPOptions;
-import alluxio.grpc.DecommissionWorkerPOptions;
-
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-
-public final class DecommissionWorkerCommand extends AbstractFileSystemCommand{
+/**
+ * TODO(Tony Sun): Add detail javadoc.
+ * Decommission a worker.
+ */
+public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
 
   private static final int DEFAULT_TIMEOUT = 10 * Constants.MINUTE_MS;
   private static final Option TIMEOUT_OPTION =
@@ -43,8 +38,8 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand{
                   .longOpt("timeout")
                   .argName("timeout in milliseconds")
                   .numberOfArgs(1)
-                  .desc("Time in milliseconds for decommissioning a single worker to time out; default:"
-                          + DEFAULT_TIMEOUT)
+                  .desc("Time in milliseconds for decommissioning a"
+                      + "single worker to time out; default:" + DEFAULT_TIMEOUT)
                   .required(false)
                   .build();
 
@@ -67,16 +62,23 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand{
                   .desc("force to decommission a worker.")
                   .build();
 
+  /**
+   * Constructs a new instance to decommission the given worker from Alluxio.
+   * @param fsContext the filesystem of Alluxio
+   */
   public DecommissionWorkerCommand(FileSystemContext fsContext) {
     super(fsContext);
   }
 
+  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     int timeoutMS = FileSystemShellUtils.getIntArg(cl, TIMEOUT_OPTION, DEFAULT_TIMEOUT);
-    String workerName = FileSystemShellUtils.getWorkerNameArg(cl, HOSTS_OPTION, DEFAULT_WORKER_NAME);
+    String workerName = FileSystemShellUtils
+        .getWorkerNameArg(cl, HOSTS_OPTION, DEFAULT_WORKER_NAME);
 
     DecommissionWorkerPOptions options =
-            DecommissionWorkerPOptions.newBuilder().setTimeOut(timeoutMS).setForced(cl.hasOption("f")).build();
+            DecommissionWorkerPOptions.newBuilder()
+                .setTimeOut(timeoutMS).setForced(cl.hasOption("f")).build();
 
     List<BlockWorkerInfo> cachedWorkers = mFsContext.getCachedWorkers();
 
@@ -107,6 +109,7 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand{
             .addOption(FORCE_OPTION);
   }
 
+  @Override
   public String getUsage() {
     return "freeWorker [-t max_wait_time] <List<worker>>";
   }

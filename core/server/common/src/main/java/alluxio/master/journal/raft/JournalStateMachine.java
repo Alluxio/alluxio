@@ -500,12 +500,16 @@ public class JournalStateMachine extends BaseStateMachine {
    * @param entry the entry to apply
    */
   private void applyEntry(JournalEntry entry) {
-    Preconditions.checkState(
-        entry.getAllFields().size() <= 2
-            || (entry.getAllFields().size() == 3 && entry.hasSequenceNumber()),
-        "Raft journal entries should never set multiple fields in addition to sequence "
-            + "number, but found %s",
-        entry);
+    if (LOG.isDebugEnabled()) {
+      // This check is put behind the debug flag as the call to getAllFields creates
+      // a map and is very expensive
+      Preconditions.checkState(
+          entry.getAllFields().size() <= 2
+              || (entry.getAllFields().size() == 3 && entry.hasSequenceNumber()),
+          "Raft journal entries should never set multiple fields in addition to sequence "
+              + "number, but found %s",
+          entry);
+    }
     if (entry.getJournalEntriesCount() > 0) {
       // This entry aggregates multiple entries.
       for (JournalEntry e : entry.getJournalEntriesList()) {

@@ -74,36 +74,40 @@
                 "integer": 1
               },
               {
-                "name": "WORKER_CAPACITY_BYTES",
+                "name": "BLOCK_COUNT",
                 "integer": 2
               },
               {
-                "name": "WORKER_CAPACITY_BYTES_ON_TIERS",
+                "name": "WORKER_CAPACITY_BYTES",
                 "integer": 3
               },
               {
-                "name": "ID",
+                "name": "WORKER_CAPACITY_BYTES_ON_TIERS",
                 "integer": 4
               },
               {
-                "name": "LAST_CONTACT_SEC",
+                "name": "ID",
                 "integer": 5
               },
               {
-                "name": "START_TIME_MS",
+                "name": "LAST_CONTACT_SEC",
                 "integer": 6
               },
               {
-                "name": "STATE",
+                "name": "START_TIME_MS",
                 "integer": 7
               },
               {
-                "name": "WORKER_USED_BYTES",
+                "name": "STATE",
                 "integer": 8
               },
               {
-                "name": "WORKER_USED_BYTES_ON_TIERS",
+                "name": "WORKER_USED_BYTES",
                 "integer": 9
+              },
+              {
+                "name": "WORKER_USED_BYTES_ON_TIERS",
+                "integer": 10
               }
             ]
           }
@@ -332,20 +336,6 @@
             ]
           },
           {
-            "name": "GetDecommissionWorkerInfoListPOptions"
-          },
-          {
-            "name": "GetDecommissionWorkerInfoListPResponse",
-            "fields": [
-              {
-                "id": 1,
-                "name": "workerInfos",
-                "type": "WorkerInfo",
-                "is_repeated": true
-              }
-            ]
-          },
-          {
             "name": "WorkerLostStorageInfo",
             "fields": [
               {
@@ -364,6 +354,19 @@
                 }
               }
             ]
+          },
+          {
+            "name": "RemoveDecommissionedWorkerPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "RemoveDecommissionedWorkerPResponse"
           },
           {
             "name": "GetWorkerLostStoragePOptions"
@@ -760,9 +763,9 @@
                 "out_type": "GetWorkerInfoListPResponse"
               },
               {
-                "name": "GetDecommissionWorkerInfoList",
-                "in_type": "GetDecommissionWorkerInfoListPOptions",
-                "out_type": "GetDecommissionWorkerInfoListPResponse"
+                "name": "RemoveDecommissionedWorker",
+                "in_type": "RemoveDecommissionedWorkerPOptions",
+                "out_type": "RemoveDecommissionedWorkerPResponse"
               },
               {
                 "name": "GetWorkerReport",
@@ -1240,29 +1243,10 @@
             ]
           },
           {
-            "name": "FreeWorkerRequest",
-            "fields": [
-              {
-                "id": 1,
-                "name": "workerName",
-                "type": "string"
-              },
-              {
-                "id": 2,
-                "name": "async",
-                "type": "bool"
-              }
-            ]
+            "name": "FreeWorkerRequest"
           },
           {
-            "name": "FreeWorkerResponse",
-            "fields": [
-              {
-                "id": 1,
-                "name": "status",
-                "type": "TaskStatus"
-              }
-            ]
+            "name": "FreeWorkerResponse"
           },
           {
             "name": "BlockStatus",
@@ -2602,66 +2586,6 @@
             ]
           },
           {
-            "name": "FreeWorkerPResponse",
-            "fields": [
-              {
-                "id": 1,
-                "name": "workerCanBeFreed",
-                "type": "bool"
-              }
-            ]
-          },
-          {
-            "name": "FreeWorkerPOptions",
-            "fields": [
-              {
-                "id": 1,
-                "name": "timeOut",
-                "type": "int64"
-              },
-              {
-                "id": 2,
-                "name": "commonOption",
-                "type": "FileSystemMasterCommonPOptions"
-              }
-            ]
-          },
-          {
-            "name": "FreeWorkerPRequest",
-            "fields": [
-              {
-                "id": 1,
-                "name": "workerName",
-                "type": "string"
-              },
-              {
-                "id": 2,
-                "name": "options",
-                "type": "FreeWorkerPOptions"
-              }
-            ]
-          },
-          {
-            "name": "DecommissionToFreePRequest",
-            "fields": [
-              {
-                "id": 1,
-                "name": "workerName",
-                "type": "string"
-              }
-            ]
-          },
-          {
-            "name": "DecommissionToFreePResponse",
-            "fields": [
-              {
-                "id": 1,
-                "name": "status",
-                "type": "bool"
-              }
-            ]
-          },
-          {
             "name": "GetNewBlockIdForFilePResponse",
             "fields": [
               {
@@ -3824,7 +3748,7 @@
             ]
           },
           {
-            "name": "InvalidateSyncPathRequest",
+            "name": "NeedsSyncRequest",
             "fields": [
               {
                 "id": 1,
@@ -3834,7 +3758,7 @@
             ]
           },
           {
-            "name": "InvalidateSyncPathResponse"
+            "name": "NeedsSyncResponse"
           },
           {
             "name": "FileSystemHeartbeatPResponse",
@@ -3999,16 +3923,6 @@
                 "out_type": "FreePResponse"
               },
               {
-                "name": "FreeWorker",
-                "in_type": "FreeWorkerPRequest",
-                "out_type": "FreeWorkerPResponse"
-              },
-              {
-                "name": "DecommissionToFree",
-                "in_type": "DecommissionToFreePRequest",
-                "out_type": "DecommissionToFreePResponse"
-              },
-              {
                 "name": "DecommissionWorker",
                 "in_type": "DecommissionWorkerPRequest",
                 "out_type": "DecommissionWorkerPResponse"
@@ -4115,9 +4029,9 @@
                 "out_type": "GetStateLockHoldersPResponse"
               },
               {
-                "name": "InvalidateSyncPath",
-                "in_type": "InvalidateSyncPathRequest",
-                "out_type": "InvalidateSyncPathResponse"
+                "name": "NeedsSync",
+                "in_type": "NeedsSyncRequest",
+                "out_type": "NeedsSyncResponse"
               }
             ]
           },

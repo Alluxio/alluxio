@@ -192,15 +192,9 @@ message HandleRPCResponse{
   required TaskStatus status = 1;
 }
 
-// TODO(Tony Sun): Options may be needed.
-message FreeWorkerRequest{
-  required string workerName = 1;
-  optional bool async = 2;
-}
+message FreeWorkerRequest{}
 
-message FreeWorkerResponse{
-  required TaskStatus status = 1;
-}
+message FreeWorkerResponse{}
 
 enum TaskStatus {
   SUCCESS = 0;

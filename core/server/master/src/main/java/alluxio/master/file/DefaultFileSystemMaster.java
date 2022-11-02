@@ -40,8 +40,8 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
@@ -83,6 +83,7 @@ import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.DecommissionWorkerContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.FreeContext;
@@ -97,8 +98,6 @@ import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
-import alluxio.master.file.contexts.FreeWorkerContext;
-import alluxio.master.file.contexts.DecommissionWorkerContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
@@ -218,12 +217,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.Spliterators;
 import java.util.Stack;
 import java.util.TreeMap;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -417,7 +416,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   private final ReplicationHandler mReplicationHandler;
 
   final Clock mClock;
-
 
   /** Used to determine if we should journal inode journals within a JournalContext. */
   private final boolean mMergeInodeJournals = Configuration.getBoolean(
@@ -907,7 +905,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             createAuditContext("getFileInfo", path, null, null)) {
 
       if (!syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(),
-          DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull).equals(NOT_NEEDED)) {
+          DescendantType.NONE, auditContext, LockedInodePath::getInodeOrNull).equals(NOT_NEEDED)) {
         // If synced, do not load metadata.
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
         ufsAccessed = true;
@@ -3002,9 +3000,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
 
         String ufsSrcPath = resolution.getUri().toString();
+        String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
-          String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
           boolean success;
           if (srcInode.isFile()) {
             success = ufs.renameRenamableFile(ufsSrcPath, ufsDstUri);
@@ -3154,12 +3152,13 @@ public class DefaultFileSystemMaster extends CoreMaster
    *    2. No persisting blocks.
    *    3. No single replication.
    * Then the target worker can be added into decommissioned worker set.
-   * @param workerName the name of the target worker.
-   * @param decommissionWorkerContext context to decommission worker.
-   * @throws UnavailableException
+   * @param workerName the name of the target worker
+   * @param decommissionWorkerContext context to decommission worker
+   * @throws UnavailableException when worker is unavailable
    */
-  public void setWorkerToBeDecommissioned(String workerName, DecommissionWorkerContext decommissionWorkerContext)
-    throws UnavailableException{
+  public void setWorkerToBeDecommissioned(String workerName,
+        DecommissionWorkerContext decommissionWorkerContext)
+      throws UnavailableException {
     try {
       WorkerInfo workerInfo = getWorkerInfo(workerName);
       /*
@@ -3181,28 +3180,9 @@ public class DefaultFileSystemMaster extends CoreMaster
        * Now, target worker can be added into decommissionedWorker set.
        */
       mBlockMaster.decommissionWorker(workerInfo);
-
     } catch (Exception e) {
       throw new UnavailableException(e);
     }
-  }
-
-  /**
-   * TODO(Tony Sun): Add locks and exception.
-   * Juege whether target worker is in decommissioned worker or not.
-   * @param workerName
-   * @param freeWorkerContext
-   * @throws UnavailableException
-   */
-  public boolean freeWorker(String workerName, FreeWorkerContext freeWorkerContext)
-    throws UnavailableException, NotFoundException{
-    List<WorkerInfo> listWorkerInfo = mBlockMaster.getDecommissionedWorkerInfoList();
-    for (WorkerInfo workerInfo : listWorkerInfo) {
-      if (Objects.equals(workerInfo.getAddress().getHost(), workerName)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -3213,7 +3193,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @throws Exception
    */
   private void replicateSingleReps(WorkerInfo workerInfo)
-    throws Exception{
+      throws Exception {
     //TODO(Tony Sun): Add replication migrate operation. Migrate Or Replicate? I choose Replicate.
     MasterWorkerInfo masterWorkerInfo = null;
     try {
@@ -3230,10 +3210,10 @@ public class DefaultFileSystemMaster extends CoreMaster
     for (long blockId : masterWorkerInfo.getBlocks()) {
       // TODO(Tony Sun): So ugly, ask for some elegant method.
       // blockId.getFileId()
-      FileInfo fileInfo= getFileInfo(blockId >> 24);
+      FileInfo fileInfo = getFileInfo(blockId >> 24);
       //TODO(Tony Sun): Add proper lock(s).
-      try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileInfo.getFileId(), LockPattern.READ,
-              NoopJournalContext.INSTANCE)) {
+      try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileInfo.getFileId(),
+          LockPattern.READ, NoopJournalContext.INSTANCE)) {
         InodeFile file = inodePath.getInodeFile();
         BlockInfo blockInfo = null;
         try {
@@ -3246,7 +3226,8 @@ public class DefaultFileSystemMaster extends CoreMaster
           return;
         }
         // After decommissioning, the replications will be decreased by 1.
-        int replicasAfterDecommission = (blockInfo == null) ? 0 : (blockInfo.getLocations().size() - 1);
+        int replicasAfterDecommission =
+            (blockInfo == null) ? 0 : (blockInfo.getLocations().size() - 1);
         int minReplicas = file.getReplicationMin();
         if (file.getPersistenceState() == PersistenceState.TO_BE_PERSISTED
                 && file.getReplicationDurable() > minReplicas) {
@@ -3259,10 +3240,11 @@ public class DefaultFileSystemMaster extends CoreMaster
           requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId, minReplicas));
         }
       } catch (FileDoesNotExistException e) {
-        LOG.warn("Failed to replication level for inode id {} : {}", fileInfo.getFileId(), e.toString());
+        LOG.warn("Failed to replication level for inode id {} : {}",
+            fileInfo.getFileId(), e.toString());
       }
     }
-    
+
     for (Triple<AlluxioURI, Long, Integer> entry : requests) {
       AlluxioURI uri = entry.getLeft();
       long blockId = entry.getMiddle();
@@ -3289,11 +3271,11 @@ public class DefaultFileSystemMaster extends CoreMaster
   /**
    * TODO(Tony Sun): Add locks and exceptions.
    * @param workerName
-   * @return a WorkerInfo which representing the target worker.
+   * @return a WorkerInfo which representing the target worker
    * @throws UnavailableException
    */
   public WorkerInfo getWorkerInfo(String workerName)
-    throws UnavailableException{
+      throws UnavailableException {
     List<WorkerInfo> listOfWorker = getWorkerInfoList();
     for (WorkerInfo workerInfo : listOfWorker)  {
       if (Objects.equals(workerInfo.getAddress().getHost(), workerName))  {
@@ -3301,20 +3283,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
     }
     throw new UnavailableException("WorkerName is not found in Alluxio WorkerInfoList.");
-  }
-
-  public void decommissionToFree(String workerName) throws UnavailableException {
-    /*
-     * In phase 1, active worker has been added into decommission worker set.
-     * Now is phase 2, Decommissioned worker should be moved from decommission worker set,
-     * and added into freed worker set.
-     */
-    for (WorkerInfo workerInfo : mBlockMaster.getDecommissionedWorkerInfoList()) {
-      if (Objects.equals(workerInfo.getAddress().getHost(), workerName))  {
-        mBlockMaster.decommissionToFree(workerInfo);
-        break;
-      }
-    }
   }
 
   @Override
@@ -4843,8 +4811,8 @@ public class DefaultFileSystemMaster extends CoreMaster
         // UFS mkdirs might fail if the directory is already created.
         // If so, skip the mkdirs and assume the directory is already prepared,
         // regardless of permission matching.
+        boolean mkdirSuccess = false;
         try {
-          boolean mkdirSuccess = false;
           try {
             mkdirSuccess = ufs.mkdirs(dir, options);
           } catch (IOException e) {
@@ -5440,7 +5408,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void invalidateSyncPath(AlluxioURI path) throws InvalidPathException {
+  public void needsSync(AlluxioURI path) throws InvalidPathException {
     getSyncPathCache().notifyInvalidation(path);
   }
 }

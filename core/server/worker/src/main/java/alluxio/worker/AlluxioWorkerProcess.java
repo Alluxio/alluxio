@@ -366,7 +366,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   }
 
   @Override
-  public void rebootDataServer(){
+  public void rebootDataServer() {
     LOG.info("Try to reboot DataServer.");
     try {
       mRebootFlag.compareAndSet(false, true);

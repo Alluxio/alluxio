@@ -21,8 +21,11 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
+import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
@@ -57,6 +60,7 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.wire.BackupStatus;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -238,6 +242,98 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
       mCluster.notifySuccess();
     }
     backupFolder.delete();
+  }
+
+  @Test
+  public void syncRootOnBackupRestore() throws Exception {
+    TemporaryFolder temporaryFolder = new TemporaryFolder();
+    temporaryFolder.create();
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_SYNC_ON_RESTORE)
+        .setClusterName("syncRootOnBackupRestore")
+        .setNumMasters(1)
+        .setNumWorkers(1)
+        .addProperty(PropertyKey.MASTER_BACKUP_DIRECTORY, temporaryFolder.getRoot())
+        .addProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
+        // this test uses NEVER as the metadata load type to ensure that the UFS sync is
+        // performed due to the invalidation associated with restoring a backup, as opposed to
+        // performed automatically under some other metadata load types
+        .addProperty(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataPType.NEVER)
+        .build();
+    mCluster.start();
+
+    mCluster.getFileSystemClient().createDirectory(new AlluxioURI("/in_backup"));
+    BackupStatus backup =
+        mCluster.getMetaMasterClient().backup(BackupPRequest.getDefaultInstance());
+    UUID id = backup.getBackupId();
+    while (backup.getState() != BackupState.Completed) {
+      backup = mCluster.getMetaMasterClient().getBackupStatus(id);
+    }
+    mCluster.getFileSystemClient().createDirectory(new AlluxioURI("/NOT_in_backup"));
+    mCluster.stopMasters();
+    // give it an empty journal and start from backup
+    mCluster.updateMasterConf(PropertyKey.MASTER_JOURNAL_FOLDER,
+        temporaryFolder.newFolder().getAbsolutePath());
+    mCluster.updateMasterConf(PropertyKey.MASTER_METASTORE_DIR,
+        temporaryFolder.newFolder().getAbsolutePath());
+    mCluster.updateMasterConf(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP,
+        backup.getBackupUri().getPath());
+    mCluster.startMasters();
+    List<URIStatus> statuses = mCluster.getFileSystemClient().listStatus(new AlluxioURI("/"));
+    assertEquals(2, statuses.size());
+    mCluster.notifySuccess();
+    temporaryFolder.delete();
+  }
+
+  @Test
+  public void syncContentsOnBackupRestore() throws Exception {
+    TemporaryFolder temporaryFolder = new TemporaryFolder();
+    temporaryFolder.create();
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_CONTENT_ON_RESTORE)
+        .setClusterName("syncContentOnBackupRestore")
+        .setNumMasters(1)
+        .setNumWorkers(1)
+        .addProperty(PropertyKey.MASTER_BACKUP_DIRECTORY, temporaryFolder.getRoot())
+        .addProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
+        .build();
+    mCluster.start();
+
+    AlluxioURI f = new AlluxioURI("/in_backup");
+    try (FileOutStream inBackup = mCluster.getFileSystemClient().createFile(f)) {
+      inBackup.write("data".getBytes());
+    }
+
+    BackupStatus backup =
+        mCluster.getMetaMasterClient().backup(BackupPRequest.getDefaultInstance());
+    UUID id = backup.getBackupId();
+    while (backup.getState() != BackupState.Completed) {
+      backup = mCluster.getMetaMasterClient().getBackupStatus(id);
+    }
+
+    mCluster.getFileSystemClient().delete(f);
+    String modifiedData = "modified data";
+    try (FileOutStream overwriteInBackup = mCluster.getFileSystemClient().createFile(f)) {
+      overwriteInBackup.write(modifiedData.getBytes());
+    }
+    mCluster.stopMasters();
+    // give it an empty journal and start from backup
+    mCluster.updateMasterConf(PropertyKey.MASTER_JOURNAL_FOLDER,
+        temporaryFolder.newFolder().getAbsolutePath());
+    mCluster.updateMasterConf(PropertyKey.MASTER_METASTORE_DIR,
+        temporaryFolder.newFolder().getAbsolutePath());
+    mCluster.updateMasterConf(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP,
+        backup.getBackupUri().getPath());
+    mCluster.startMasters();
+
+    try (FileInStream inStream = mCluster.getFileSystemClient().openFile(f)) {
+      byte[] bytes = new byte[modifiedData.length()];
+      int read = inStream.read(bytes);
+      // if the invalidation is not set during the backup restore only the length of the old
+      // contents ("data") will be read (instead of reading the new contents "modified data")
+      assertEquals(modifiedData.length(), read);
+      assertEquals(modifiedData, new String(bytes));
+    }
+    mCluster.notifySuccess();
+    temporaryFolder.delete();
   }
 
   // This test needs to stop and start master many times, so it can take up to a minute to complete.

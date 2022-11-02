@@ -16,6 +16,7 @@ import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
+import alluxio.client.file.options.FileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -31,6 +32,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
@@ -47,8 +49,6 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.grpc.FreeWorkerPOptions;
-import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
@@ -152,16 +152,25 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context) {
+      return create(context, FileSystemOptions.create(context.getClusterConf()));
+    }
+
+    /**
+     * @param context the FileSystemContext to use with the FileSystem
+     * @param options the FileSystemOptions to use with this method
+     * @return a new FileSystem instance
+     */
+    public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
       AlluxioConfiguration conf = context.getClusterConf();
       checkSortConf(conf);
       if (CommonUtils.PROCESS_TYPE.get() != CommonUtils.ProcessType.CLIENT) {
         return new BaseFileSystem(context);
       }
       FileSystem fs = new BaseFileSystem(context);
-      if (conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
+      if (options.isMetadataCacheEnabled()) {
         fs = new MetadataCachingFileSystem(fs, context);
       }
-      if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)) {
+      if (options.isDataCacheEnabled()) {
         try {
           CacheManager cacheManager = CacheManager.Factory.get(conf);
           return new LocalCacheFileSystem(cacheManager, fs, conf);
@@ -324,10 +333,17 @@ public interface FileSystem extends Closeable {
   void free(AlluxioURI path, FreePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
+  /**
+   * TODO(Tony Sun): Detail the javadoc.
+   * Decommission a worker.
+   * @param workerNetAddress the net address of target worker
+   * @param options command options
+   * @throws IOException
+   * @throws AlluxioException
+   * @throws InterruptedException
+   */
   void decommissionWorker(WorkerNetAddress workerNetAddress, DecommissionWorkerPOptions options)
           throws IOException, AlluxioException, InterruptedException;
-
-  void freeWorker(WorkerNetAddress workerNetAddress, FreeWorkerPOptions options) throws IOException, AlluxioException;
 
   /**
    * Builds a list of {@link BlockLocationInfo} for the given file. Each list item contains a list
@@ -727,4 +743,11 @@ public interface FileSystem extends Closeable {
    * @param options options to associate with this operation
    */
   void unmount(AlluxioURI path, UnmountPOptions options) throws IOException, AlluxioException;
+
+  /**
+   * Marks the path in Alluxio as needing sync with the UFS. The next time the
+   * path or any of its children are accessed they will be synced with the UFS.
+   * @param path the path needing synchronization
+   */
+  void needsSync(AlluxioURI path) throws IOException, AlluxioException;
 }

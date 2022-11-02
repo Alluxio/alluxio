@@ -19,6 +19,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.master.file.contexts.ListStatusContext;
@@ -27,6 +28,8 @@ import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.NoopUfsAbsentPathCache;
 import alluxio.master.file.meta.UfsAbsentPathCache;
+import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.user.UserState;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UfsStatusCache;
 import alluxio.underfs.UnderFileSystem;
@@ -46,6 +49,12 @@ import java.util.stream.Collectors;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({UnderFileSystem.Factory.class})
 public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyncMetadataTestBase {
+  @Override
+  public void before() throws Exception {
+    super.before();
+    UserState us = UserState.Factory.create(Configuration.global());
+    AuthenticatedClientUser.set(us.getUser().getName());
+  }
 
   @Test
   public void metadataSyncMetrics() throws Exception {

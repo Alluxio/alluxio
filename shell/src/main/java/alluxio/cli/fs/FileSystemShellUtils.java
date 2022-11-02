@@ -269,7 +269,7 @@ public final class FileSystemShellUtils {
    * @param cl Commandline
    * @param option The commandline option
    * @param defaultValue The default value of the commandline
-   * @return The worker Name, as a Dotted decimal notation currently.
+   * @return The worker Name, as a Dotted decimal notation currently
    */
   public static String getWorkerNameArg(CommandLine cl, Option option, String defaultValue)  {
     String arg = defaultValue;
@@ -283,10 +283,9 @@ public final class FileSystemShellUtils {
     return arg;
   }
 
-
   /**
-   * Gets all {@link Command} instances in the same package as {@link FileSystemShell} and load them
-   * into a map. Provides a way to gain these commands information by their CommandName.
+   * Gets all {@link Command} instances in the same package as {@link FileSystemShell} and load
+   * them into a map. Provides a way to gain these commands information by their CommandName.
    *
    * @param fsContext the {@link FileSystemContext} instance to construct the command
    * @return a mapping from command name to command instance

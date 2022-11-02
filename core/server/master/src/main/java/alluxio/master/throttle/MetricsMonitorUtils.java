@@ -39,7 +39,7 @@ public class MetricsMonitorUtils {
     public static final String HEAP_USAGE = "heap.usage";
     public static final String HEAP_USED = "heap.used";
 
-    public static final String DIRECT_MEM_USED = MetricKey.POOL_DIRECT_MEM_USED.getName();
+    public static final String DIRECT_MEM_USED = MetricKey.PROCESS_POOL_DIRECT_MEM_USED.getName();
   }
 
   /**

@@ -27,17 +27,13 @@ import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournalContext;
 
-import io.netty.util.ResourceLeakDetector;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.util.Arrays;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -599,32 +595,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     checkOnlyIncomingEdgesWriteLocked(mDirA);
   }
 
-  @Ignore
   @Test
-  public void testLeakTrackingLog() throws Exception {
-    ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.SIMPLE);
-    for (int i = 0; i < 200; i++) {
-      create("/" + RandomStringUtils.randomAlphanumeric(10),
-          LockPattern.READ);
-    }
-    for (int i = 0; i < 10; i++) {
-      byte[] mem = new byte[1024 * 1024 * 1024];
-      if (mem[0] == 0x7a) {
-        continue;
-      }
-      mem[ThreadLocalRandom.current().nextInt(1024 * 1024)] += 1;
-    }
-    for (int i = 0; i < 200; i++) {
-      create("/" + RandomStringUtils.randomAlphanumeric(10),
-          LockPattern.READ);
-    }
-    System.gc();
-    assertTrue(mLogger.wasLogged("LockedInodePath\\.close\\(\\) was not called before "
-        + "resource is garbage-collected"));
-  }
-
-  @Test
-  public void testFlushJournal() throws UnavailableException, InvalidPathException {
+  public void testFlushJournal() throws InvalidPathException, UnavailableException {
     AtomicInteger journalFlushCount = new AtomicInteger();
     JournalContext journalContext = mock(JournalContext.class);
     Mockito.doAnswer(
@@ -637,10 +609,21 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
         PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS,
         true);
 
-    try (LockedInodePath path = create("/a/missing", LockPattern.WRITE_EDGE, journalContext)) {
-      InodeFile inodeB = inodeFile(10, mDirA.getId(), "missing");
+    try (LockedInodePath path =
+             create("/a/missing/missing2", LockPattern.WRITE_EDGE, journalContext)) {
+      InodeDirectory inodeB = inodeDir(10, mDirA.getId(), "missing");
+      Assert.assertEquals(0, journalFlushCount.get());
+
       path.addNextInode(inodeB);
+      Assert.assertEquals(1, journalFlushCount.get());
+
+      // Add the last inode in the path doesn't trigger a journal flush
+      InodeFile inodeC = inodeFile(11, inodeB.getId(), "missing2");
+      path.addNextInode(inodeC);
+      Assert.assertEquals(1, journalFlushCount.get());
+
       path.downgradeToRead();
+      Assert.assertEquals(2, journalFlushCount.get());
     }
     Assert.assertEquals(3, journalFlushCount.get());
   }

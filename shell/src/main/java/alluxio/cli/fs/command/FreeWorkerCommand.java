@@ -11,72 +11,36 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.Constants;
+import static java.util.stream.Collectors.toList;
+
 import alluxio.annotation.PublicApi;
-import alluxio.cli.fs.FileSystemShellUtils;
-import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.BlockMasterClient;
+import alluxio.client.block.options.GetWorkerReportOptions;
+import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
+import alluxio.exception.status.NotFoundException;
+import alluxio.resource.CloseableResource;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
-import alluxio.grpc.FreeWorkerPOptions;
+import io.grpc.StatusRuntimeException;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 
 /**
- * Frees all blocks of given worker(s) synchronously from Alluxio cluster.
- * TODO(Yichuan Sun):
- *  1. -t handler, set default value.
- *  2. runWildCardCmd?
- *  3.
+ * Synchronously free all blocks and directories of specific worker in Alluxio.
  */
 
 @PublicApi
 public final class FreeWorkerCommand extends AbstractFileSystemCommand {
 
-  private static final int DEFAULT_PARALLELISM = 1;
-
-  private static final Option PARALLELISM_OPTION =
-          Option.builder("p")
-                  .longOpt("parallelism")
-                  .argName("# concurrent operations")
-                  .numberOfArgs(1)
-                  .desc("Number of concurrent persist operations, default: " + DEFAULT_PARALLELISM)
-                  .required(false)
-                  .build();
-
-  private static final int DEFAULT_TIMEOUT = 2 * Constants.MINUTE_MS;
-
-  private static final Option TIMEOUT_OPTION =
-          Option.builder("t")
-                  .longOpt("timeout")
-                  .argName("timeout in milliseconds")
-                  .numberOfArgs(1)
-                  .desc("Time in milliseconds for freeing a single worker to time out; default:"
-                          + DEFAULT_TIMEOUT)
-                  .required(false)
-                  .build();
-
-  private static final String DEFAULT_WORKER_NAME = "";
-
-  private static final Option HOSTS_OPTION =
-          Option.builder("h")
-                  .longOpt("hosts")
-                  .required(true)         // Host option is mandatory.
-                  .hasArg(true)
-                  .numberOfArgs(1)
-                  .argName("hosts")
-                  .desc("A worker host name, which is mandatory.")
-                  .build();
-
-
   /**
    *
-   * Constructs a new instance to free the given worker(s) from Alluxio.
+   * Constructs a new instance to free the given worker.
    *
    * @param fsContext fs command context
    */
@@ -84,36 +48,55 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
     super(fsContext);
   }
 
+  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    int parallelism = FileSystemShellUtils.getIntArg(cl, PARALLELISM_OPTION, DEFAULT_PARALLELISM);
-    int timeoutMs = (int) FileSystemShellUtils.getMsArg(cl, TIMEOUT_OPTION, DEFAULT_TIMEOUT);
+    String[] args = cl.getArgs();
+    String workerName = args[0];
 
-    String workerName = FileSystemShellUtils.getWorkerNameArg(cl, HOSTS_OPTION, DEFAULT_WORKER_NAME);
+    // 1. Get the decommissioned BlockWorkerInfo to build a BlockWorkerClient in the future.
+    List<WorkerNetAddress> totalWorkers;
 
-    // Not sure.
-    // The TimeOut is not consistent. int64, int, and long.
-    FreeWorkerPOptions options =
-            FreeWorkerPOptions.newBuilder().setTimeOut(timeoutMs).build();
-
-    if (parallelism > 1) {
-      System.out.println("FreeWorker command only support free a worker at a time currently.");
-      return 0;
+    try (CloseableResource<BlockMasterClient> masterClientResource =
+                 mFsContext.acquireBlockMasterClientResource()) {
+      totalWorkers = masterClientResource.get()
+              .getWorkerReport(GetWorkerReportOptions.defaults()).stream()
+              .map(WorkerInfo::getAddress)
+              .collect(toList());
     }
 
-    List<BlockWorkerInfo> decommissionWorkers = mFsContext.getDecommissionWorkers();
+    WorkerNetAddress targetWorkerNetAddress = null;
 
-    // Only Support free one Worker.
-    for (BlockWorkerInfo blockWorkerInfo : decommissionWorkers) {
-      if (Objects.equals(blockWorkerInfo.getNetAddress().getHost(), workerName))  {
-        // TODO(Tony Sun): Do we need a timeout handler for freeWorker cmd?
-        mFileSystem.freeWorker(blockWorkerInfo.getNetAddress(), options);
-        return 0;
+    // 2. Get the BlockWorkerInfo of target worker.
+    for (WorkerNetAddress workerNetAddress : totalWorkers) {
+      if (workerNetAddress.getHost().equals(workerName))  {
+        targetWorkerNetAddress = workerNetAddress;
+        break;
       }
     }
+    if (targetWorkerNetAddress == null)  {
+      System.out.println("Worker " + workerName + " is not found in Alluxio.");
+      return -1;
+    }
 
-    // exception or return ?
-    System.out.println("Target worker is not found in Alluxio decommissionWorker set, " +
-            "please input another name.");
+    // 3. Remove target worker metadata.
+    try (CloseableResource<BlockMasterClient> blockMasterClient =
+                 mFsContext.acquireBlockMasterClientResource()) {
+      blockMasterClient.get().removeDecommissionedWorker(workerName);
+    } catch (NotFoundException notFoundException) {
+      System.out.println("Worker" + workerName + " is not found in decommissioned worker set.");
+      return -1;
+    }
+
+    // 4. Free target worker.
+    try (CloseableResource<BlockWorkerClient> blockWorkerClient =
+                 mFsContext.acquireBlockWorkerClient(targetWorkerNetAddress)) {
+      blockWorkerClient.get().freeWorker();
+    } catch (StatusRuntimeException statusRuntimeException) {
+      System.out.println("Exception: " + statusRuntimeException.getMessage());
+      return -1;
+    }
+
+    System.out.println("Target worker has been freed successfully.");
     return 0;
   }
 
@@ -124,19 +107,16 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(PARALLELISM_OPTION)
-            .addOption(TIMEOUT_OPTION)
-            .addOption(HOSTS_OPTION);
+    return new Options();
   }
 
+  @Override
   public String getUsage() {
-    return "freeWorker [-t max_wait_time] <List<worker>>";
+    return "freeWorker <worker host name>";
   }
 
   @Override
   public String getDescription() {
-    return "Frees all the blocks synchronously of specific worker(s) in Alluxio."
-            + " Specify -t to set a maximum wait time.";
+    return "Synchronously free all blocks and directories of specific worker in Alluxio.";
   }
-
 }

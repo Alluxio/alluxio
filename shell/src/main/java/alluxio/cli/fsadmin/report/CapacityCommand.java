@@ -289,7 +289,7 @@ public class CapacityCommand {
       workerOptions.setWorkerRange(WorkerRange.LIVE);
     } else if (cl.hasOption(ReportCommand.LOST_OPTION_NAME)) {
       workerOptions.setWorkerRange(WorkerRange.LOST);
-    } else if (cl.hasOption(ReportCommand.DECOMMISSION_OPTION_NAME)) {
+    } else if (cl.hasOption(ReportCommand.DECOMMISSIONED_OPTION_NAME)) {
       workerOptions.setWorkerRange(WorkerRange.DECOMMISSIONED);
     } else if (cl.hasOption(ReportCommand.SPECIFIED_OPTION_NAME)) {
       workerOptions.setWorkerRange(WorkerRange.SPECIFIED);

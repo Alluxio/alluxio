@@ -21,7 +21,7 @@ import alluxio.grpc.OpenFilePOptions;
 import alluxio.master.block.BlockId;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 
@@ -54,7 +54,7 @@ public final class InStreamOptions {
    * @param alluxioConf Alluxio configuration
    */
   public InStreamOptions(URIStatus status, @Nonnull AlluxioConfiguration alluxioConf) {
-    this(status, FileSystemOptions.openFileDefaults(alluxioConf), alluxioConf,
+    this(status, FileSystemOptionsUtils.openFileDefaults(alluxioConf), alluxioConf,
         FileSystemContext.create(alluxioConf));
   }
 
@@ -67,7 +67,7 @@ public final class InStreamOptions {
    */
   public InStreamOptions(URIStatus status, @Nonnull AlluxioConfiguration alluxioConf,
       @Nonnull FileSystemContext context) {
-    this(status, FileSystemOptions.openFileDefaults(alluxioConf), alluxioConf, context);
+    this(status, FileSystemOptionsUtils.openFileDefaults(alluxioConf), alluxioConf, context);
   }
 
   /**

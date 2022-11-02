@@ -39,14 +39,14 @@ under storage instead of the Alluxio cache.
 ## Should I deploy Alluxio as a stand-alone system or through an orchestration framework?
 
 It is recommended to deploy Alluxio as a stand-alone system. Orchestration frameworks supported include:
-- [Kubernetes]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
+- [Kubernetes]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
 
 ## Which programming language does Alluxio support?
 
 Alluxio is primarily developed in Java and exposes Java-like File APIs for other applications to
 interact with. Alluxio supports other language bindings (experimental currently) including
-[Python]({{ '/en/api/FS-API.html' | relativize_url }}#python) and
-[Golang]({{ '/en/api/FS-API.html' | relativize_url }}#go).
+[Python]({{ '/en/api/REST-API.html' | relativize_url }}#python) and
+[Golang]({{ '/en/api/REST-API.html' | relativize_url }}#go).
 
 Alluxio can be run as a FUSE mount exposing a [POSIX API]({{ '/en/api/POSIX-API.html' | relativize_url }}).
 This enables any program which normally accesses a local file system to access data from Alluxio without
@@ -70,12 +70,6 @@ Yes. See instructions about
 ## Will Alluxio rebalance cached blocks to the newly added nodes in order to balance memory space utilization?
 
 No, rebalancing of data blocks in Alluxio is not currently supported.
-
-## How can I add support for other under store systems?
-
-Support for other under storages is in progress by many contributors. See the
-[documentation]({{ '/en/ufs/Ufs-Extension-API.html' | relativize_url }}) for adding other under storage
-systems.
 
 ## Does Alluxio require HDFS?
 

@@ -80,14 +80,15 @@ enum WorkerRange {
 
 enum WorkerInfoField {
   ADDRESS = 1;
-  WORKER_CAPACITY_BYTES = 2;
-  WORKER_CAPACITY_BYTES_ON_TIERS = 3;
-  ID = 4;
-  LAST_CONTACT_SEC = 5;
-  START_TIME_MS = 6;
-  STATE = 7;
-  WORKER_USED_BYTES = 8;
-  WORKER_USED_BYTES_ON_TIERS = 9;
+  BLOCK_COUNT = 2;
+  WORKER_CAPACITY_BYTES = 3;
+  WORKER_CAPACITY_BYTES_ON_TIERS = 4;
+  ID = 5;
+  LAST_CONTACT_SEC = 6;
+  START_TIME_MS = 7;
+  STATE = 8;
+  WORKER_USED_BYTES = 9;
+  WORKER_USED_BYTES_ON_TIERS = 10;
 }
 
 message GetWorkerReportPOptions {
@@ -100,15 +101,16 @@ message GetWorkerInfoListPOptions {}
 message GetWorkerInfoListPResponse {
   repeated WorkerInfo workerInfos = 1;
 }
-message GetDecommissionWorkerInfoListPOptions {}
-message GetDecommissionWorkerInfoListPResponse {
-  repeated WorkerInfo workerInfos = 1;
-}
+
 message WorkerLostStorageInfo {
   optional grpc.WorkerNetAddress address = 1;
   /** a map from tier alias to the lost storage paths */
   map<string, StorageList> lostStorage = 2;
 }
+message RemoveDecommissionedWorkerPOptions {
+  optional string workerName = 1;
+}
+message RemoveDecommissionedWorkerPResponse {}
 
 message GetWorkerLostStoragePOptions {}
 message GetWorkerLostStoragePResponse {
@@ -145,8 +147,12 @@ service BlockMasterClientService {
    */
   rpc GetWorkerInfoList(GetWorkerInfoListPOptions) returns (GetWorkerInfoListPResponse);
 
-  rpc GetDecommissionWorkerInfoList(GetDecommissionWorkerInfoListPOptions)
-      returns (GetDecommissionWorkerInfoListPResponse);
+  /**
+   * If target worker is in the decommissioned worker set,
+   * return true, remove target worker from decommissioned worker set; else, return false.
+   */
+  rpc RemoveDecommissionedWorker(RemoveDecommissionedWorkerPOptions)
+      returns (RemoveDecommissionedWorkerPResponse);
 
   /**
    * Returns a list of workers information for report CLI.

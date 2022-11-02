@@ -45,6 +45,7 @@ public class S3ErrorCode {
     public static final String AUTHINFO_CREATION_ERROR = "AuthInfoCreationError";
     public static final String ACCESS_DENIED_ERROR = "AccessDenied";
     public static final String INVALID_IDENTIFIER = "InvalidIdentifier";
+    public static final String NOT_IMPLEMENTED = "NotImplemented";
 
     private Name() {
     } // prevents instantiation
@@ -154,6 +155,10 @@ public class S3ErrorCode {
       Name.METADATA_TOO_LARGE,
       "Your metadata headers exceed the maximum allowed metadata size.",
       Response.Status.BAD_REQUEST);
+  public static final S3ErrorCode NOT_IMPLEMENTED = new S3ErrorCode(
+          Name.NOT_IMPLEMENTED,
+          "Requested functionality is not implemented.",
+          Response.Status.NOT_IMPLEMENTED);
 
   //
   // Customized error codes.
