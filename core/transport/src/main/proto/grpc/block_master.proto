@@ -88,7 +88,6 @@ enum WorkerInfoField {
   STATE = 7;
   WORKER_USED_BYTES = 8;
   WORKER_USED_BYTES_ON_TIERS = 9;
-  BLOCK_COUNT = 10;
 }
 
 message GetWorkerReportPOptions {
