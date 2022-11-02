@@ -40,7 +40,7 @@ public class CephfsHadoopUnderFileSystem extends HdfsUnderFileSystem {
   }
 
   /**
-   * Constructs a new HDFS {@link UnderFileSystem}.
+   * Constructs a new Cephfs-Hadoop {@link UnderFileSystem}.
    *
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
