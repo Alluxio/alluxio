@@ -15,11 +15,15 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.LockPool;
+import alluxio.concurrent.LockMode;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
+import alluxio.fuse.AlluxioFuseUtils;
+import alluxio.resource.RWLockResource;
 
 import com.google.common.base.Preconditions;
 
@@ -36,34 +40,59 @@ public class FuseFileInStream implements FuseFileStream {
   private final FileInStream mInStream;
   private final long mFileLength;
   private final AlluxioURI mURI;
+  private final RWLockResource mLockResource;
+  private volatile boolean mClosed = false;
 
   /**
    * Creates a {@link FuseFileInStream}.
    *
    * @param fileSystem the file system
+   * @param pathLocks the path locks
    * @param uri the alluxio uri
-   * @param status the uri status, null if not uri does not exist
    * @return a {@link FuseFileInStream}
    */
-  public static FuseFileInStream create(FileSystem fileSystem, AlluxioURI uri,
-      Optional<URIStatus> status) {
+  public static FuseFileInStream create(FileSystem fileSystem, LockPool<String> pathLocks,
+      AlluxioURI uri) {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(uri);
-    if (!status.isPresent()) {
-      throw new NotFoundRuntimeException(String.format(
-          "Failed to create read-only stream for %s: file does not exist", uri));
-    }
+    // Make sure file is not being written by current FUSE
+    // deal with the async Fuse.release issue by waiting for write lock to be released
+    RWLockResource lockResource = AlluxioFuseUtils.lock(pathLocks, uri.toString(), LockMode.READ,
+        "Failed to create fuse file in stream for %s", uri);
 
     try {
-      FileInStream is = fileSystem.openFile(uri);
-      return new FuseFileInStream(is, status.get().getLength(), uri);
-    } catch (IOException | AlluxioException e) {
-      throw AlluxioRuntimeException.from(e);
+      // Make sure file is not being written by other clients outside current FUSE
+      Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(fileSystem, uri);
+      if (status.isPresent() && !status.get().isCompleted()) {
+        status = AlluxioFuseUtils.waitForFileCompleted(fileSystem, uri);
+        if (!status.isPresent()) {
+          throw new UnimplementedRuntimeException(String.format(
+              "Failed to create fuse file in stream for %s: file is being written", uri));
+        }
+      }
+
+      if (!status.isPresent()) {
+        throw new NotFoundRuntimeException(String.format(
+            "Failed to create read-only stream for %s: file does not exist", uri));
+      }
+
+      try {
+        FileInStream is = fileSystem.openFile(uri);
+        return new FuseFileInStream(is, lockResource, status.get().getLength(), uri);
+      } catch (IOException | AlluxioException e) {
+        throw new RuntimeException(e);
+      }
+    } catch (Throwable t) {
+      lockResource.close();
+      throw t;
     }
   }
 
-  private FuseFileInStream(FileInStream inStream, long fileLength, AlluxioURI uri) {
+  private FuseFileInStream(FileInStream inStream, RWLockResource lockResource,
+      long fileLength, AlluxioURI uri) {
     mInStream = Preconditions.checkNotNull(inStream);
+    // The lock must be locked
+    mLockResource = Preconditions.checkNotNull(lockResource);
     mURI = Preconditions.checkNotNull(uri);
     mFileLength = fileLength;
   }
@@ -117,10 +146,16 @@ public class FuseFileInStream implements FuseFileStream {
 
   @Override
   public synchronized void close() {
+    if (mClosed) {
+      return;
+    }
+    mClosed = true;
     try {
       mInStream.close();
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
+    } finally {
+      mLockResource.close();
     }
   }
 }

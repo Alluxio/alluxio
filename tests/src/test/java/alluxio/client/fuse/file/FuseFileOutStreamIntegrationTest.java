@@ -58,7 +58,6 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
   public void createTruncateFlag() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
-    URIStatus uriStatus = mFileSystem.getStatus(alluxioURI);
     int newLen = 30;
     int newStartValue = 15;
     try (FuseFileStream outStream = mStreamFactory.create(alluxioURI,

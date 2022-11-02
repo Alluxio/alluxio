@@ -25,7 +25,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
 
 /**
  * Integration test for {@link alluxio.fuse.file.FuseFileInOrOutStream}.
@@ -37,7 +36,8 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    mStreamFactory.create(alluxioURI, OpenFlags.O_RDWR.intValue(), MODE).close();
+    mStreamFactory.create(alluxioURI,
+        OpenFlags.O_RDWR.intValue() | OpenFlags.O_CREAT.intValue(), MODE).close();
     URIStatus status = mFileSystem.getStatus(alluxioURI);
     Assert.assertNotNull(status);
     Assert.assertTrue(status.isCompleted());
@@ -106,11 +106,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
-    URIStatus uriStatus = mFileSystem.getStatus(alluxioURI);
     int newFileLength = 30;
     try (FuseFileInOrOutStream stream = FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue(),
-        MODE, Optional.of(uriStatus))) {
+        mPathLocks, alluxioURI, OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(0, newFileLength);
       stream.write(buffer, newFileLength, 0);
     }
@@ -183,7 +181,7 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test
-  public void truncateZeroOrDEFAULT_FILE_LENgth() throws Exception {
+  public void truncateZeroOrDefault() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
