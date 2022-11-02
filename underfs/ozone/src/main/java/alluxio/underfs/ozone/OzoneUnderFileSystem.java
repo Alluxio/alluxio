@@ -44,7 +44,7 @@ public class OzoneUnderFileSystem extends HdfsUnderFileSystem {
    *
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
-   * @param hdfsConf the configuration for HDFS
+   * @param hdfsConf the configuration for Ozone
    */
   public OzoneUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
       Configuration hdfsConf) {
