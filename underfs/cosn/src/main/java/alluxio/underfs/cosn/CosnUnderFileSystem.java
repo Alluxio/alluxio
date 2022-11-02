@@ -21,7 +21,7 @@ import org.apache.hadoop.conf.Configuration;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * HDFS {@link UnderFileSystem} implementation.
+ * COSN {@link UnderFileSystem} implementation.
  */
 @ThreadSafe
 public class CosnUnderFileSystem extends HdfsUnderFileSystem {
@@ -40,11 +40,11 @@ public class CosnUnderFileSystem extends HdfsUnderFileSystem {
   }
 
   /**
-   * Constructs a new HDFS {@link UnderFileSystem}.
+   * Constructs a new COSN {@link UnderFileSystem}.
    *
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
-   * @param hdfsConf the configuration for HDFS
+   * @param hdfsConf the configuration for COSN
    */
   public CosnUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
       Configuration hdfsConf) {
