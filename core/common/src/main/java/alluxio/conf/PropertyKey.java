@@ -2307,17 +2307,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "The rocks metastore has the advantage of being able to support a large namespace "
               + "(1 billion plus files) without needing a massive heap size."
               + "The metadata storage includes inode and block metadata. "
-              + "Users can override the type of metastore using " + Name.MASTER_INODE_METASTORE
-              + " and " + Name.MASTER_BLOCK_METASTORE
+              + "Users can override the type of metastore using " + Name.MASTER_METASTORE_INODE
+              + " and " + Name.MASTER_METASTORE_BLOCK
               + ". For example if " + Name.MASTER_METASTORE + "=ROCKS but "
-              + Name.MASTER_INODE_METASTORE + "=HEAP, then inodes are stored with HEAP and blocks"
+              + Name.MASTER_METASTORE_INODE + "=HEAP, then inodes are stored with HEAP and blocks"
               + " are stored with ROCKS."
           )
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_INODE_METASTORE =
-      enumBuilder(Name.MASTER_INODE_METASTORE, MetastoreType.class)
+      enumBuilder(Name.MASTER_METASTORE_INODE, MetastoreType.class)
           .setDefaultValue(MASTER_METASTORE.getDefaultValue())
           .setDescription("The type of inode metastore to use, either HEAP or ROCKS. "
               + "By default this uses " + PropertyKey.Name.MASTER_METASTORE.toString() + ".")
@@ -2325,7 +2325,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BLOCK_METASTORE =
-      enumBuilder(Name.MASTER_BLOCK_METASTORE, MetastoreType.class)
+      enumBuilder(Name.MASTER_METASTORE_BLOCK, MetastoreType.class)
           .setDefaultValue(MASTER_METASTORE.getDefaultValue())
           .setDescription("The type of block metastore to use, either HEAP or ROCKS. "
               + "By default this uses " + PropertyKey.Name.MASTER_METASTORE.toString() + ".")
@@ -7558,8 +7558,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
         "alluxio.master.metadata.sync.ufs.prefetch.timeout";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
-    public static final String MASTER_INODE_METASTORE = "alluxio.master.metastore.inode";
-    public static final String MASTER_BLOCK_METASTORE = "alluxio.master.metastore.block";
+    public static final String MASTER_METASTORE_INODE = "alluxio.master.metastore.inode";
+    public static final String MASTER_METASTORE_BLOCK = "alluxio.master.metastore.block";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
         "alluxio.master.metastore.rocks.parallel.backup";
