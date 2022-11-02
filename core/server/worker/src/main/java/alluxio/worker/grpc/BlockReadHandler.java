@@ -465,6 +465,10 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           LOG.error("Failed to close the request.", e);
         }
         replyError(error);
+        Throwable rootCause = error.getCause().getCause();
+        if (rootCause != null && rootCause instanceof java.lang.Error) {
+          throw (java.lang.Error) rootCause;
+        }
       } else if (eof || cancel) {
         try {
           completeRequest(mContext);
