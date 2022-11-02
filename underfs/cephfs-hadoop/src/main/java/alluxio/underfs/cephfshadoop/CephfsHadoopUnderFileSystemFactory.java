@@ -23,9 +23,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Factory for creating {@link CephfsHadoopUnderFileSystem}.
- *
- * It caches created {@link CephfsHadoopUnderFileSystem}s,
- * using the scheme and authority pair as the key.
  */
 @ThreadSafe
 public class CephfsHadoopUnderFileSystemFactory extends HdfsUnderFileSystemFactory {

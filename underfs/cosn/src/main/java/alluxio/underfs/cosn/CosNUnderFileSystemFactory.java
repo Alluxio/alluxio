@@ -23,8 +23,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Factory for creating {@link CosnUnderFileSystem}.
- *
- * It caches created {@link CosnUnderFileSystem}s, using the scheme and authority pair as the key.
  */
 @ThreadSafe
 public class CosNUnderFileSystemFactory extends HdfsUnderFileSystemFactory {

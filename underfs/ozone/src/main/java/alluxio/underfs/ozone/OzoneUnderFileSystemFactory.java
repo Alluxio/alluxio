@@ -26,8 +26,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Factory for creating {@link OzoneUnderFileSystem}.
- *
- * It caches created {@link OzoneUnderFileSystem}s, using the scheme and authority pair as the key.
  */
 @ThreadSafe
 public class OzoneUnderFileSystemFactory extends HdfsUnderFileSystemFactory {
