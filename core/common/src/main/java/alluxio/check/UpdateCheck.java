@@ -146,8 +146,8 @@ public final class UpdateCheck {
   @VisibleForTesting
   public static void addUserAgentFeatures(List<String> info) {
     addIfTrue(FeatureUtils.isEmbeddedJournal(), info, EMBEDDED_KEY);
-    addIfTrue(FeatureUtils.isInodeRocks(), info, INODE_METASTORE_ROCKS_KEY);
-    addIfTrue(FeatureUtils.isBlockRocks(), info, BLOCK_METASTORE_ROCKS_KEY);
+    addIfTrue(FeatureUtils.isInodeMetastoreRocks(), info, INODE_METASTORE_ROCKS_KEY);
+    addIfTrue(FeatureUtils.isBlockMetastoreRocks(), info, BLOCK_METASTORE_ROCKS_KEY);
     addIfTrue(FeatureUtils.isZookeeperEnabled(), info, ZOOKEEPER_KEY);
     addIfTrue(FeatureUtils.isBackupDelegationEnabled(), info, BACKUP_DELEGATION_KEY);
     addIfTrue(FeatureUtils.isDailyBackupEnabled(), info, DAILY_BACKUP_KEY);
