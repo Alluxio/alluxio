@@ -28,6 +28,12 @@ public class S3RestServiceHandlerTest {
   @Test
   public void userFromAuthorization() throws Exception {
     try {
+      S3RestUtils.getUserFromAuthorization("AWS-SHA256-HMAC Credential=xxx:asd", mConf);
+      Assert.fail();
+    } catch (Exception e) {
+      Assert.assertTrue(e instanceof S3Exception);
+    }
+    try {
       S3RestUtils.getUserFromAuthorization("AWS-SHA256-HMAC Credential=/asd", mConf);
       Assert.fail();
     } catch (Exception e) {
