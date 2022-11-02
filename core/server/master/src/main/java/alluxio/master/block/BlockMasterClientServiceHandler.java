@@ -140,7 +140,7 @@ public final class BlockMasterClientServiceHandler
     RpcUtils.call(LOG,
         () -> GetWorkerInfoListPResponse.newBuilder()
             .addAllWorkerInfos(mBlockMaster.getWorkerInfoList().stream().map(GrpcUtils::toProto)
-                .collect(Collectors.toList())).build(),
+            .collect(Collectors.toList())).build(),
         "GetWorkerInfoList", "options=%s", responseObserver, options);
   }
 
@@ -149,10 +149,10 @@ public final class BlockMasterClientServiceHandler
       StreamObserver<RemoveDecommissionedWorkerPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       List<WorkerInfo> decommissionedWorkers = mBlockMaster.getWorkerReport(
-          new GetWorkerReportOptions(GetWorkerReportPOptions.newBuilder()
-              .setWorkerRange(WorkerRange.DECOMMISSIONED).build()));
+              new GetWorkerReportOptions(GetWorkerReportPOptions.newBuilder()
+                      .setWorkerRange(WorkerRange.DECOMMISSIONED).build()));
       for (WorkerInfo worker : decommissionedWorkers) {
-        if (worker.getAddress().getHost().equals(options.getWorkerName())) {
+        if (worker.getAddress().getHost().equals(options.getWorkerName()))  {
           mBlockMaster.removeDecommissionedWorker(worker.getId());
           return RemoveDecommissionedWorkerPResponse.getDefaultInstance();
         }
