@@ -264,11 +264,7 @@ public final class Fingerprint {
   }
 
   private Fingerprint(Map<Tag, String> values) {
-    mValues = new HashMap<>();
-    for (Map.Entry<Tag, String> entry : values.entrySet()) {
-      putTag(entry.getKey(), entry.getValue());
-    }
-    mUfsStatus = null;
+    this(values, null);
   }
 
   private Fingerprint(Map<Tag, String> values, UfsStatus ufsStatus) {

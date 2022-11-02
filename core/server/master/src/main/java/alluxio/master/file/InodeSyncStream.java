@@ -817,7 +817,8 @@ public class InodeSyncStream {
               (Fingerprint) getFromUfs(
                   () -> ufs.getParsedFingerprint(ufsUri.toString()), rpcContext);
           if (ufsFpParsed.getUfsStatus() != null) {
-            mStatusCache.addStatus(inodePath.getUri(), ufsFpParsed.getUfsStatus());
+            mStatusCache.addStatus(inodePath.getUri(),
+                ufsFpParsed.getUfsStatus().setName(inodePath.getUri().getName()));
           }
           mMountTable.getUfsSyncMetric(resolution.getMountId()).inc();
         } else {
