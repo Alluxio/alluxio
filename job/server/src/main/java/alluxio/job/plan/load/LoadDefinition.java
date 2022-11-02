@@ -166,9 +166,9 @@ public final class LoadDefinition
    */
   private List<BlockWorkerInfo> getWorkersWithoutBlock(List<BlockWorkerInfo> blockWorkers,
       FileBlockInfo blockInfo) {
-    List<WorkerNetAddress> blockLocations = blockInfo.getBlockInfo().getLocations().stream()
+    Set<WorkerNetAddress> blockLocations = blockInfo.getBlockInfo().getLocations().stream()
         .map(BlockLocation::getWorkerAddress)
-        .collect(Collectors.toList());
+        .collect(Collectors.toSet());
 
     return blockWorkers.stream()
         .filter(worker -> !blockLocations.contains(worker.getNetAddress()))
