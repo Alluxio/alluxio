@@ -21,8 +21,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proxy.ProxyProcess;
 import alluxio.proxy.s3.CompleteMultipartUploadHandler;
-import alluxio.proxy.s3.S3AuthenticationFilter;
-import alluxio.proxy.s3.S3RequstHandler;
+import alluxio.proxy.s3.S3RequstServlet;
 import alluxio.proxy.s3.S3RestExceptionMapper;
 import alluxio.util.io.PathUtils;
 
@@ -139,7 +138,7 @@ public final class ProxyWebServer extends WebServer {
 
     };
 //    ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
-    ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", S3RequstHandler.getInstance());
+    ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", S3RequstServlet.getInstance());
     mServletContextHandler
         .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
     // TODO(czhu): Move S3 API logging out of CompleteMultipartUploadHandler into a logging handler
