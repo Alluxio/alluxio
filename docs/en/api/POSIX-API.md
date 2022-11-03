@@ -439,10 +439,46 @@ All file/dir permissions in Alluxio POSIX API are checked against the user launc
 
 User group policies decide the user/group of the created file/dir and the user/group shown in the get file/dir path status operations.
 
-Three user group policies can be chosen and configured via setting `alluxio.fuse.auth.policy.class=<policy_class_name>`
-in `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
+Three user group policies can be chosen from:
+<table class="table table-striped">
+    <tr>
+        <td>User Group Policy</td>
+        <td>(Default) Launch User Group Policy</td>
+        <td>System User Group Policy</td>
+        <td>Custom User Group Policy</td>
+    </tr>
+    <tr>
+        <td>The user/group of the file/dir created through Alluxio POSIX API</td>
+        <td>The user/group that launches the Alluxio FUSE application</td>
+        <td>The user/group that runs the file/dir creation operation</td>
+        <td>The configured customize user/group</td>
+    </tr>
+    <tr>
+        <td>The user/group of the file/dir listed through Alluxio POSIX API</td>
+        <td>The user/group that launches the Alluxio FUSE application</td>
+        <td>The actual file/dir user/group, or -1 if user/group not found in the local system</td>
+        <td>The configured customize user/group</td>
+    </tr>
+    <tr>
+        <td>Security Guard</td>
+        <td>Weak</td>
+        <td>Strong</td>
+        <td>Weak</td>
+    </tr>
+    <tr>
+        <td>Performance Overhead</td>
+        <td>Low</td>
+        <td>High. Each create/list file/dir operation needs to do user/group translation</td>
+        <td>Low</td>
+    </tr>
+</table>
 
-- Default launch user group policy (`alluxio.fuse.auth.policy.class=alluxio.fuse.auth.LaunchUserGroupAuthPolicy`):
+The detailed configuration and example usage are listed below:
+
+{% navtabs userGroupPolicy %}
+  {% navtab Launch User Group Policy %}
+This is the default user group policy (set via `alluxio.fuse.auth.policy.class=alluxio.fuse.auth.LaunchUserGroupAuthPolicy`).
+
 Assuming user `alluxio-user` with group `alluxio-group` launches the FUSE process.
 ```console
 # The user/group of all files/dirs created through the FUSE mount point is set to the user/group that launches the FUSE application
@@ -460,8 +496,10 @@ $ ls -al /mnt/people/file
 -rw-r--r--    1 alluxio-user alluxio-group 27040 Oct 11 23:26 LICENSE
 ```
 This policy has weak security support but with minimum performance overhead.
+  {% endnavtab %}
+  {% navtab System User Group Policy %}
+Enabled via setting `alluxio.fuse.auth.policy.class=alluxio.fuse.auth.SystemUserGroupAuthPolicy` in `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
 
-- End user group policy (`alluxio.fuse.auth.policy.class=alluxio.fuse.auth.SystemUserGroupAuthPolicy`)
 Assuming user `alluxio-user` with group `alluxio-group` launches the FUSE process
 and user `end-user` with group `end-group` runs the actual operations against the FUSE mount point:
 ```console
@@ -489,14 +527,15 @@ $ ls -al /mnt/people/file
 -rw-r--r--    1 -1 -1 27040 Oct 11 23:26 LICENSE
 ```
 This matches POSIX standard but sacrifices performance.
-
-- Custom user group policy:
-Configure to use the custom user group policy:
+  {% endnavtab %}
+  {% navtab Custom User Group Policy %}
+Enabling by adding the following configuration in `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
 ```config
 alluxio.fuse.auth.policy.class=alluxio.fuse.auth.CustomAuthPolicy
 alluxio.fuse.auth.policy.custom.user=<user_name>
 alluxio.fuse.auth.policy.custom.group=<group_name>
 ```
+
 Assuming user `alluxio-user` with group `alluxio-group` launches the FUSE process,
 user `end-user` with group `end-group` runs the actual operations against the FUSE mount point,
 and user `custom-user` with group `custom-group` is configured.
@@ -516,6 +555,8 @@ $ ls -al /mnt/people/file
 -rw-r--r--    1 custom-user custom-group 27040 Oct 11 23:26 LICENSE
 ```
 This policy has weak security support but with minimum performance overhead.
+  {% endnavtab %}
+{% endnavtabs %}
 
 ### Advanced Configuration
 
