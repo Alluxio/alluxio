@@ -42,7 +42,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 // TODO(calvin, jianjian): Rename this class since it's not used by InStream
 public final class InStreamOptions {
-  private final URIStatus mStatus;
+  private URIStatus mStatus;
   private final OpenFilePOptions mProtoOptions;
   private BlockLocationPolicy mUfsReadLocationPolicy;
   private boolean mPositionShort;
@@ -133,6 +133,14 @@ public final class InStreamOptions {
    */
   public URIStatus getStatus() {
     return mStatus;
+  }
+
+  /**
+   * refresh URIStatus for options
+   * @param status current status for this file
+   */
+  public void setStatus(URIStatus status) {
+    this.mStatus = status;
   }
 
   /**

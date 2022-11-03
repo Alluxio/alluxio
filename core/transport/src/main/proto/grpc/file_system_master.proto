@@ -94,6 +94,7 @@ message OpenFilePOptions {
   optional int32 maxUfsReadConcurrency = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
   optional bool updateLastAccessTime = 4 [default = true];
+  optional bool updateURIStatusWhenRetry = 5 [default =false];
 }
 
 // XAttrPropagationStrategy controls the behaviour for assigning xAttr
