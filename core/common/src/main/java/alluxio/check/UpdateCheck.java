@@ -51,7 +51,8 @@ public final class UpdateCheck {
   static final String MASTER_AUDIT_LOG_KEY = "masterAuditLog";
   static final String PERSIST_BLACK_LIST_KEY = "persistBlackList";
   static final String PAGE_STORE_KEY = "pageStore";
-  static final String ROCKS_KEY = "rocks";
+  static final String INODE_METASTORE_ROCKS_KEY = "inodeRocks";
+  static final String BLOCK_METASTORE_ROCKS_KEY = "blockRocks";
   static final String UNSAFE_PERSIST_KEY = "unsafePersist";
   static final String ZOOKEEPER_KEY = "zookeeper";
 
@@ -145,7 +146,8 @@ public final class UpdateCheck {
   @VisibleForTesting
   public static void addUserAgentFeatures(List<String> info) {
     addIfTrue(FeatureUtils.isEmbeddedJournal(), info, EMBEDDED_KEY);
-    addIfTrue(FeatureUtils.isRocks(), info, ROCKS_KEY);
+    addIfTrue(FeatureUtils.isInodeStoreRocks(), info, INODE_METASTORE_ROCKS_KEY);
+    addIfTrue(FeatureUtils.isBlockStoreRocks(), info, BLOCK_METASTORE_ROCKS_KEY);
     addIfTrue(FeatureUtils.isZookeeperEnabled(), info, ZOOKEEPER_KEY);
     addIfTrue(FeatureUtils.isBackupDelegationEnabled(), info, BACKUP_DELEGATION_KEY);
     addIfTrue(FeatureUtils.isDailyBackupEnabled(), info, DAILY_BACKUP_KEY);

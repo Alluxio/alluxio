@@ -160,15 +160,27 @@ public class UpdateCheckTest {
   }
 
   @Test
-  public void featureStringRocks() {
+  public void featureStringInodeMetastoreRocks() {
     List<String> info = new ArrayList<>();
-    Configuration.set(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS);
+    Configuration.set(PropertyKey.MASTER_INODE_METASTORE, MetastoreType.ROCKS);
     UpdateCheck.addUserAgentFeatures(info);
-    Assert.assertTrue(listContainsTarget(info, UpdateCheck.ROCKS_KEY));
-    Configuration.set(PropertyKey.MASTER_METASTORE, MetastoreType.HEAP);
+    Assert.assertTrue(listContainsTarget(info, UpdateCheck.INODE_METASTORE_ROCKS_KEY));
+    Configuration.set(PropertyKey.MASTER_INODE_METASTORE, MetastoreType.HEAP);
     info.clear();
     UpdateCheck.addUserAgentFeatures(info);
-    Assert.assertFalse(listContainsTarget(info, UpdateCheck.ROCKS_KEY));
+    Assert.assertFalse(listContainsTarget(info, UpdateCheck.INODE_METASTORE_ROCKS_KEY));
+  }
+
+  @Test
+  public void featureStringBlockMetastoreRocks() {
+    List<String> info = new ArrayList<>();
+    Configuration.set(PropertyKey.MASTER_BLOCK_METASTORE, MetastoreType.ROCKS);
+    UpdateCheck.addUserAgentFeatures(info);
+    Assert.assertTrue(listContainsTarget(info, UpdateCheck.BLOCK_METASTORE_ROCKS_KEY));
+    Configuration.set(PropertyKey.MASTER_BLOCK_METASTORE, MetastoreType.HEAP);
+    info.clear();
+    UpdateCheck.addUserAgentFeatures(info);
+    Assert.assertFalse(listContainsTarget(info, UpdateCheck.BLOCK_METASTORE_ROCKS_KEY));
   }
 
   @Test
