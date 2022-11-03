@@ -17,7 +17,6 @@ import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.grpc.StorageList;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.metastore.BlockMetaStore;
-import alluxio.proto.meta.Block;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
@@ -684,29 +683,32 @@ public final class MasterWorkerInfo {
    */
   public void updateReplica(long blockId, long AddedNum) {
     try (LockResource r = lockReplicaInfoBlock()) {
-      if(mRequiredSyncReplica || mReplicaNum.size() > 10000){
-        //todo: 10000 is a temporary number as the boundary to give recording the replica number changed
+      if (mRequiredSyncReplica || mReplicaNum.size() > 10000) {
+        //todo: 10000 is temporary, the upper bound of the number of changes to record
         mRequiredSyncReplica = true;
         mReplicaNum.clear();
       }
       else if (mReplicaNum.containsKey(blockId)) {
-        //since the number of machines in the cluster is limited, replica number can be stored in short to save the memory
-        mReplicaNum.compute(blockId, (key,value) -> (short)(value + (short)AddedNum));
+        // the number of machines in the cluster is limited
+        // so replica number can be stored in short to save the memory
+        mReplicaNum.compute(blockId, (key, value) -> (short) (value + (short) AddedNum));
       } else {
-        mReplicaNum.put(blockId, (short)AddedNum);
+        mReplicaNum.put(blockId, (short) AddedNum);
       }
     }
   }
 
   /**
-   * @return the changed replica info to be sent to workers
+   * Send the new added replica info to the workers.
+   * @param mBlockMetaStore
+   * @return the replica info sent to the workers
    */
   public Map<Long, Long> getReplicaInfo(BlockMetaStore mBlockMetaStore) {
     Map<Long, Long> retReplicaNum = new HashMap<>();
     if (mRequiredSyncReplica) {
       try (LockResource r = lockReplicaInfoBlock()) {
         for (Long blockId : mBlocks) {
-          retReplicaNum.put(blockId, (long)mBlockMetaStore.getLocations(blockId).size());
+          retReplicaNum.put(blockId, (long) mBlockMetaStore.getLocations(blockId).size());
         }
         mRequiredSyncReplica = false;
       }

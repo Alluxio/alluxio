@@ -251,7 +251,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     }
   }
 
-  private void handleMasterReplicaChange(Map<Long, Long> ReplicaInfo) throws IOException, ConnectionFailedException {
+  private void handleMasterReplicaChange(Map<Long, Long> ReplicaInfo)
+      throws IOException, ConnectionFailedException {
     if (ReplicaInfo == null) {
       return;
     }

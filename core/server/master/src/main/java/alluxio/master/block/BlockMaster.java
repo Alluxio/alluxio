@@ -27,7 +27,12 @@ import alluxio.master.Master;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
-import alluxio.wire.*;
+import alluxio.wire.Address;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.HeartBeatResponseMessage;
+import alluxio.wire.RegisterLease;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 
