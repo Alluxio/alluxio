@@ -176,11 +176,11 @@ public class UpdateCheckTest {
     List<String> info = new ArrayList<>();
     Configuration.set(PropertyKey.MASTER_BLOCK_METASTORE, MetastoreType.ROCKS);
     UpdateCheck.addUserAgentFeatures(info);
-    Assert.assertTrue(listContainsTarget(info, UpdateCheck.BLOCKS_METASTORE_ROCKS_KEY));
+    Assert.assertTrue(listContainsTarget(info, UpdateCheck.BLOCK_METASTORE_ROCKS_KEY));
     Configuration.set(PropertyKey.MASTER_BLOCK_METASTORE, MetastoreType.HEAP);
     info.clear();
     UpdateCheck.addUserAgentFeatures(info);
-    Assert.assertFalse(listContainsTarget(info, UpdateCheck.BLOCKS_METASTORE_ROCKS_KEY));
+    Assert.assertFalse(listContainsTarget(info, UpdateCheck.BLOCK_METASTORE_ROCKS_KEY));
   }
 
   @Test
