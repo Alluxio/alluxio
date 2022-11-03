@@ -227,7 +227,7 @@ public class AlluxioFileInStream extends FileInStream {
   // force a sync to update the latest metadata, then abort the current stream
   // The user should restart the stream and read the updated file
   private void refreshMetadataOnMismatchedLength(OutOfRangeException e) {
-    try {
+    try (CloseableResource<FileSystemMasterClient> client = mContext.acquireMasterClientResource()) {
       // Force refresh the file metadata by loadMetadata
       AlluxioURI path = new AlluxioURI(mStatus.getPath());
       ListStatusPOptions refreshPathOptions = ListStatusPOptions.newBuilder()
@@ -237,7 +237,7 @@ public class AlluxioFileInStream extends FileInStream {
           .build();
       ListStatusPOptions mergedOptions = FileSystemOptionsUtils.listStatusDefaults(
           mContext.getPathConf(path)).toBuilder().mergeFrom(refreshPathOptions).build();
-      mContext.acquireMasterClientResource().get().listStatus(path, mergedOptions);
+      client.get().listStatus(path, mergedOptions);
       LOG.info("Notified the master that {} should be sync-ed with UFS on the next access",
           mStatus.getPath());
       throw new IllegalStateException(e.getMessage());
