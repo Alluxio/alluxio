@@ -28,6 +28,8 @@ import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.NoopUfsAbsentPathCache;
 import alluxio.master.file.meta.UfsAbsentPathCache;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.UserState;
 import alluxio.underfs.UfsStatus;
@@ -35,6 +37,7 @@ import alluxio.underfs.UfsStatusCache;
 import alluxio.underfs.UnderFileSystem;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,8 +45,13 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @RunWith(PowerMockRunner.class)
@@ -337,8 +345,13 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     UfsStatusCache ufsStatusCache = new UfsStatusCache(mUfsStateCacheExecutorService,
         mFileSystemMaster.getAbsentPathCache(), UfsAbsentPathCache.ALWAYS);
     MountTable mountTable = mFileSystemMaster.getMountTable();
-
     String dir0 = TEST_DIR_PREFIX + "0";
+    MountTable.Resolution resolution = mountTable.resolve(new AlluxioURI(dir0));
+    System.out.println("Resolved path " + dir0 + " to " + resolution);
+    final Counter mountPointCounter = mountTable.getUfsSyncMetric(resolution.getMountId());
+
+
+
     createUfsDir(dir0);
     createUfsFile(dir0 + TEST_FILE_PREFIX + "0").close();
     createUfsFile(dir0 + TEST_FILE_PREFIX + "1").close();
@@ -354,6 +367,7 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
     Collection<UfsStatus> ufsStatusCollection =
         ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    System.out.println("Mount point " + mountPointCounter.getCount() + " operations after prefetch root");
     assertNotNull(ufsStatusCollection);
     assertEquals(2, ufsStatusCollection.size());
     assertEquals(prefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
@@ -374,6 +388,7 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     ufsStatusCache.prefetchChildren(new AlluxioURI(dir2), mountTable);
     ufsStatusCollection =
         ufsStatusCache.fetchChildrenIfAbsent(null, new AlluxioURI(dir2), mountTable, false);
+    System.out.println("Mount point " + mountPointCounter.getCount() + " operations after prefetch children");
     assertNull(ufsStatusCollection);
     assertEquals(prefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
     prefetchOpsCount += 1;
@@ -393,6 +408,7 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
     ufsStatusCollection =
         ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    System.out.println("Mount point " + mountPointCounter.getCount() + " operations after prefetch throws IOE");
     assertNull(ufsStatusCollection);
     assertEquals(prefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
     prefetchOpsCount += 1;
@@ -412,6 +428,7 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
     ufsStatusCollection =
         ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    System.out.println("Mount point " + mountPointCounter.getCount() + " operations after prefetch throws RuntimeEx");
     assertNull(ufsStatusCollection);
     assertEquals(prefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
     prefetchOpsCount += 1;
@@ -432,6 +449,7 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
     ufsStatusCollection =
         ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    System.out.println("Mount point " + mountPointCounter.getCount() + " operations after prefetch slow");
     assertNotNull(ufsStatusCollection);
     assertEquals(2, ufsStatusCollection.size());
     assertEquals(prefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
@@ -453,6 +471,7 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
     ufsStatusCollection =
         ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
+    System.out.println("Mount point " + mountPointCounter.getCount() + " operations after dup prefetches");
     assertNotNull(ufsStatusCollection);
     assertEquals(2, ufsStatusCollection.size());
     assertEquals(prefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
@@ -599,6 +618,106 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     ufsStatusCache.remove(path2);
     assertEquals(0, cacheSizeTotal.getCount());
     assertEquals(0, cacheChildrenSizeTotal.getCount());
+  }
+
+  @Test
+  public void instrumentedThreadPool() throws Exception {
+    int threadNum = 10; // level of concurrency
+    int iterNum = 1000; // number of files to sync in each thread
+    int fileCount = 10;
+
+    // 1 dir for each thread and ${fileCount} files under each dir
+    for (int i = 0; i < threadNum; i++) {
+      String dir = TEST_DIR_PREFIX + i;
+      createUfsDir(TEST_DIR_PREFIX);
+      for (int j = 0; j < fileCount; j++) {
+        createUfsFile(dir + TEST_FILE_PREFIX + j).close();
+      }
+    }
+
+    // verify the files don't exist in alluxio
+    assertEquals(1, mFileSystemMaster.getInodeTree().getInodeCount());
+
+    String syncExecutorName = MetricKey.MASTER_METADATA_SYNC_EXECUTOR.getName();
+    String prefetchExecutorName = MetricKey.MASTER_METADATA_SYNC_PREFETCH_EXECUTOR.getName();
+
+    FileSystemMasterCommonPOptions forceRefresh =
+        FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
+    ExecutorService threadpool = Executors.newFixedThreadPool(10);
+    List<Future<Void>> futures = new ArrayList<>();
+    AtomicReference<Throwable> testError = new AtomicReference<>(null);
+
+    Meter syncExecutorCompleted = MetricsSystem.meter(syncExecutorName + ".completed");
+    Meter prefetchExecutorCompleted = MetricsSystem.meter(prefetchExecutorName + ".completed");
+    Meter syncExecutorSubmitted = MetricsSystem.meter(syncExecutorName + ".submitted");
+    Meter prefetchExecutorSubmitted = MetricsSystem.meter(prefetchExecutorName + ".submitted");
+
+    for (int i = 0; i < threadNum; i++) {
+      final int index = i;
+      Future<Void> f = threadpool.submit(() -> {
+        String threadDir = TEST_DIR_PREFIX + index;
+
+        long syncExecutorCompletedMax = 0;
+        long prefetchExecutorCompletedMax = 0;
+        long syncExecutorSubmittedMax = 0;
+        long prefetchExecutorSubmittedMax = 0;
+        for (int k = 0; k < iterNum; k++) {
+          // Sync the path again and again
+          LockingScheme syncScheme =
+              new LockingScheme(new AlluxioURI(threadDir), InodeTree.LockPattern.READ,
+                  true); // shouldSync
+          InodeSyncStream syncStream =
+              new InodeSyncStream(syncScheme, mFileSystemMaster,
+                  mFileSystemMaster.getSyncPathCache(),
+                  RpcContext.NOOP,
+                  DescendantType.ALL,
+                  forceRefresh,
+                  false, // forceSync
+                  false, // loadOnly
+                  false); // loadAlways
+          try {
+            syncStream.sync();
+          } catch (Throwable t) {
+            testError.set(t);
+          }
+          // The metric values should be monotonously increasing
+          // The values should all be larger as a new sync has completed in this thread
+          assertTrue(syncExecutorCompleted.getCount() > syncExecutorCompletedMax);
+          syncExecutorCompletedMax = syncExecutorCompleted.getCount();
+          assertTrue(syncExecutorSubmitted.getCount() > syncExecutorSubmittedMax);
+          syncExecutorSubmittedMax = syncExecutorSubmitted.getCount();
+          assertTrue(prefetchExecutorCompleted.getCount() > prefetchExecutorCompletedMax);
+          prefetchExecutorCompletedMax = prefetchExecutorCompleted.getCount();
+          assertTrue(prefetchExecutorSubmitted.getCount() > prefetchExecutorSubmittedMax);
+          prefetchExecutorSubmittedMax = prefetchExecutorSubmitted.getCount();
+        }
+        return null;
+      });
+      futures.add(f);
+    }
+    // Wait for all tasks to finish
+    for (Future<Void> x : futures) {
+      x.get();
+    }
+    // No errors in the test
+    assertNull(testError.get());
+
+    // sync thread pool:
+    // Creating the dir inode is the job of the RPC thread
+    // 1 task for creating each file inode
+    int completedSyncTaskCount = fileCount * threadNum * iterNum;
+    assertEquals(completedSyncTaskCount, syncExecutorSubmitted.getCount());
+    assertEquals(completedSyncTaskCount, syncExecutorCompleted.getCount());
+
+    // prefetch thread pool:
+    // 1 getAcl for dir
+    // 1 listStatus for dir
+    // 1 getAcl for each file in the dir
+    int completedPrefetchTaskCount = (fileCount + 2) * threadNum * iterNum;
+    assertEquals(completedPrefetchTaskCount, prefetchExecutorSubmitted.getCount());
+    assertEquals(completedPrefetchTaskCount, prefetchExecutorCompleted.getCount());
+
+    threadpool.shutdownNow();
   }
 }
 
