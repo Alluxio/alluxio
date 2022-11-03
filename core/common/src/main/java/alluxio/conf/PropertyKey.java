@@ -4211,6 +4211,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + " when creating a buffer for remote read")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
+          .setHidden(true)
           .build();
   public static final PropertyKey WORKER_REGISTER_STREAM_ENABLED =
       booleanBuilder(Name.WORKER_REGISTER_STREAM_ENABLED)
