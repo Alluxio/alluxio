@@ -20,7 +20,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.wire.Configuration;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
@@ -28,8 +27,10 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Removes path level configurations.
@@ -78,39 +79,38 @@ public final class RemoveCommand extends AbstractFsAdminCommand {
   public int run(CommandLine cl) throws IOException {
     AlluxioURI path = new AlluxioURI(cl.getArgs()[0]);
     boolean recursive = cl.hasOption(RECURSIVE_OPTION.getOpt());
+    Set<PropertyKey> keysToRemove = new HashSet<>();
     if (cl.hasOption(KEYS_OPTION_NAME)) {
       String[] keys = cl.getOptionValue(KEYS_OPTION_NAME).split(",");
-      Set<PropertyKey> propertyKeys = new HashSet<>();
       for (String key : keys) {
-        propertyKeys.add(PropertyKey.fromString(key));
+        keysToRemove.add(PropertyKey.fromString(key));
       }
-      handleRemove(path, recursive,
-          p -> mMetaConfigClient.removePathConfiguration(p, propertyKeys));
-    } else {
-      handleRemove(path, recursive, p -> mMetaConfigClient.removePathConfiguration(p));
+    }
+    Set<AlluxioURI> pathsToRemove = recursive ? mMetaConfigClient.getConfiguration(
+        GetConfigurationPOptions
+            .newBuilder()
+            .setIgnoreClusterConf(true)
+            .build())
+        .getPathConf().keySet().stream()
+        .map(k -> new AlluxioURI(k))
+        .filter(k -> isAncestorOf(path, k))
+        .collect(Collectors.toSet()) : Collections.singleton(path);
+
+    if (keysToRemove.isEmpty()) {
+      for (AlluxioURI p : pathsToRemove) {
+        mMetaConfigClient.removePathConfiguration(p);
+      }
+      return 0;
+    }
+    for (AlluxioURI p : pathsToRemove) {
+      mMetaConfigClient.removePathConfiguration(p, keysToRemove);
     }
     return 0;
   }
 
-  private void handleRemove(AlluxioURI path, boolean recursive,
-      CheckedConsumer<AlluxioURI> function) throws IOException {
-    if (recursive) {
-      Configuration conf = mMetaConfigClient.getConfiguration(
-          GetConfigurationPOptions.newBuilder().setIgnoreClusterConf(true).build());
-      for (String pathWithConf : conf.getPathConf().keySet()) {
-        AlluxioURI subPathAlluxioURI = new AlluxioURI(pathWithConf);
-        if (isAncestorOf(path, subPathAlluxioURI)) {
-          function.consume(subPathAlluxioURI);
-        }
-      }
-    } else {
-      function.consume(path);
-    }
-  }
-
   @Override
   public String getUsage() {
-    return String.format("%s [--%s <key1,key2,key3>] <path>%n"
+    return String.format("%s [-R/--recursive] [--%s <key1,key2,key3>] <path>%n"
         + "\t--%s: %s",
         getCommandName(), KEYS_OPTION_NAME,
         KEYS_OPTION_NAME, KEYS_OPTION.getDescription());
@@ -138,10 +138,5 @@ public final class RemoveCommand extends AbstractFsAdminCommand {
       e.printStackTrace();
     }
     return false;
-  }
-
-  @FunctionalInterface
-  private interface CheckedConsumer<T> {
-    void consume(T t) throws IOException;
   }
 }
