@@ -439,7 +439,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
               }
             });
           }
-        } catch (Exception e) {
+        } catch (Throwable e) {
           LogUtils.warnWithException(LOG,
               "Exception occurred while reading data for read request {}. session {}",
               mContext.getRequest(), mContext.getRequest().getSessionId(),
