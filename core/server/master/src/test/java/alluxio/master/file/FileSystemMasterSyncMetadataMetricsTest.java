@@ -783,7 +783,8 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     // 1 call on getting sync root acl
     // 1 getAcl call for the dir in syncExistingInodeMetadata
     // 1 getAcl call for each file in syncExistingInodeMetadata
-    // TODO: reduce excessive getAcl calls https://github.com/Alluxio/alluxio/issues/16473
+    // TODO(jiacheng): reduce excessive getAcl calls
+    //  https://github.com/Alluxio/alluxio/issues/16473
     expectedOpCount = expectedOpCount + (fileCount + 2) * iterNum * threadNum;
     assertEquals(expectedOpCount, mountPointCounter.getCount());
 
