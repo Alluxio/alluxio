@@ -442,31 +442,31 @@ User group policies decide the user/group of the created file/dir and the user/g
 Three user group policies can be chosen from:
 <table class="table table-striped">
     <tr>
-        <td>Policy Name/td>
+        <td><th>Policy Name</th></td>
         <td>(Default) Launch User Group Policy</td>
         <td>System User Group Policy</td>
         <td>Custom User Group Policy</td>
     </tr>
     <tr>
-        <td>Security Guard</td>
+        <td><th>Security Guard</th></td>
         <td>Weak</td>
         <td>Strong</td>
         <td>Weak</td>
     </tr>
     <tr>
-        <td>Performance Overhead</td>
+        <td><th>Performance Overhead</th></td>
         <td>Low</td>
         <td>High. Each create/list file/dir operation needs to do user/group translation</td>
         <td>Low</td>
     </tr>
     <tr>
-        <td>The user/group of the file/dir created through Alluxio POSIX API</td>
+        <td><th>The user/group of the file/dir created through Alluxio POSIX API</th></td>
         <td>The user/group that launches the Alluxio FUSE application</td>
         <td>The user/group that runs the file/dir creation operation</td>
         <td>The configured customize user/group</td>
     </tr>
     <tr>
-        <td>The user/group of the file/dir listed through Alluxio POSIX API</td>
+        <td><th>The user/group of the file/dir listed through Alluxio POSIX API</th></td>
         <td>The user/group that launches the Alluxio FUSE application</td>
         <td>The actual file/dir user/group, or -1 if user/group not found in the local system</td>
         <td>The configured customize user/group</td>
