@@ -346,12 +346,6 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
         mFileSystemMaster.getAbsentPathCache(), UfsAbsentPathCache.ALWAYS);
     MountTable mountTable = mFileSystemMaster.getMountTable();
     String dir0 = TEST_DIR_PREFIX + "0";
-    MountTable.Resolution resolution = mountTable.resolve(new AlluxioURI(dir0));
-    System.out.println("Resolved path " + dir0 + " to " + resolution);
-    final Counter mountPointCounter = mountTable.getUfsSyncMetric(resolution.getMountId());
-
-
-
     createUfsDir(dir0);
     createUfsFile(dir0 + TEST_FILE_PREFIX + "0").close();
     createUfsFile(dir0 + TEST_FILE_PREFIX + "1").close();
@@ -367,7 +361,6 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
     Collection<UfsStatus> ufsStatusCollection =
         ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
-    System.out.println("Mount point " + mountPointCounter.getCount() + " operations after prefetch root");
     assertNotNull(ufsStatusCollection);
     assertEquals(2, ufsStatusCollection.size());
     assertEquals(prefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
@@ -388,7 +381,6 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     ufsStatusCache.prefetchChildren(new AlluxioURI(dir2), mountTable);
     ufsStatusCollection =
         ufsStatusCache.fetchChildrenIfAbsent(null, new AlluxioURI(dir2), mountTable, false);
-    System.out.println("Mount point " + mountPointCounter.getCount() + " operations after prefetch children");
     assertNull(ufsStatusCollection);
     assertEquals(prefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
     prefetchOpsCount += 1;
@@ -408,7 +400,6 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
     ufsStatusCollection =
         ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
-    System.out.println("Mount point " + mountPointCounter.getCount() + " operations after prefetch throws IOE");
     assertNull(ufsStatusCollection);
     assertEquals(prefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
     prefetchOpsCount += 1;
@@ -428,7 +419,6 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
     ufsStatusCollection =
         ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
-    System.out.println("Mount point " + mountPointCounter.getCount() + " operations after prefetch throws RuntimeEx");
     assertNull(ufsStatusCollection);
     assertEquals(prefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
     prefetchOpsCount += 1;
@@ -449,7 +439,6 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
     ufsStatusCollection =
         ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
-    System.out.println("Mount point " + mountPointCounter.getCount() + " operations after prefetch slow");
     assertNotNull(ufsStatusCollection);
     assertEquals(2, ufsStatusCollection.size());
     assertEquals(prefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
@@ -471,7 +460,6 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     ufsStatusCache.prefetchChildren(ROOT, mountTable);
     ufsStatusCollection =
         ufsStatusCache.fetchChildrenIfAbsent(null, ROOT, mountTable, false);
-    System.out.println("Mount point " + mountPointCounter.getCount() + " operations after dup prefetches");
     assertNotNull(ufsStatusCollection);
     assertEquals(2, ufsStatusCollection.size());
     assertEquals(prefetchOpsCount + 1, prefetchOpsCountCounter.getCount());
