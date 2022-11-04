@@ -48,7 +48,7 @@ public final class RemoveCommand extends AbstractFsAdminCommand {
   private static final Option RECURSIVE_OPTION =
       Option.builder("R")
           .longOpt("recursive")
-          .desc("Remove all properties starts with the given key prefix")
+          .desc("remove properties set on paths starting from the specified path recursively")
           .build();
 
   /**
