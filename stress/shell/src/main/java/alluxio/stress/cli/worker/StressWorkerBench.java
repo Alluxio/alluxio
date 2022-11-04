@@ -15,9 +15,11 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.WritePType;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.cli.client.ClientIOWritePolicy;
+import alluxio.stress.common.FileSystemParameters;
 import alluxio.stress.worker.WorkerBenchParameters;
 import alluxio.stress.worker.WorkerBenchTaskResult;
 import alluxio.util.CommonUtils;
@@ -132,6 +134,10 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       Configuration hdfsConf = new Configuration();
       // force delete, create dirs through to UFS
       hdfsConf.set(PropertyKey.Name.USER_FILE_DELETE_UNCHECKED, "true");
+      if (mParameters.mFree && WritePType.MUST_CACHE.name().equals(mParameters.mWriteType)) {
+        throw new IllegalStateException(String.format("%s cannot be %s when %s option provided",
+            FileSystemParameters.WRITE_TYPE_OPTION_NAME, WritePType.MUST_CACHE, "--free"));
+      }
       hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
       hdfsConf.set(PropertyKey.Name.USER_BLOCK_WRITE_LOCATION_POLICY,
           ClientIOWritePolicy.class.getName());
