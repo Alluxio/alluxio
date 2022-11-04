@@ -43,7 +43,7 @@ public final class RemoveCommand extends AbstractFsAdminCommand {
           .required(false)
           .hasArg(true)
           .numberOfArgs(1)
-          .desc("properties keys to be removed from this path's configurations, separated by comma")
+          .desc("property keys to be removed, separated by comma")
           .build();
   private static final Option RECURSIVE_OPTION =
       Option.builder("R")
