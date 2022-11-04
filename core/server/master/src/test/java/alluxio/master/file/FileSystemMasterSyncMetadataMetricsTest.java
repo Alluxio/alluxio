@@ -643,7 +643,7 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
 
     FileSystemMasterCommonPOptions forceRefresh =
         FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
-    ExecutorService threadpool = Executors.newFixedThreadPool(10);
+    ExecutorService threadpool = Executors.newFixedThreadPool(threadNum);
     List<Future<Void>> futures = new ArrayList<>();
     AtomicReference<Throwable> testError = new AtomicReference<>(null);
 
@@ -716,6 +716,88 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     int completedPrefetchTaskCount = (fileCount + 2) * threadNum * iterNum;
     assertEquals(completedPrefetchTaskCount, prefetchExecutorSubmitted.getCount());
     assertEquals(completedPrefetchTaskCount, prefetchExecutorCompleted.getCount());
+
+    threadpool.shutdownNow();
+  }
+
+  @Test
+  public void mountPointOpsCount() throws Exception {
+    int threadNum = 10; // level of concurrency
+    int iterNum = 10; // number of forced sync iterations in each thread
+    int fileCount = 10; // number of files to sync in each thread
+
+    // 1 dir for each thread and ${fileCount} files under each dir
+    for (int i = 0; i < threadNum; i++) {
+      String dir = TEST_DIR_PREFIX + i;
+      createUfsDir(TEST_DIR_PREFIX);
+      for (int j = 0; j < fileCount; j++) {
+        createUfsFile(dir + TEST_FILE_PREFIX + j).close();
+      }
+    }
+
+    // verify the files don't exist in alluxio
+    assertEquals(1, mFileSystemMaster.getInodeTree().getInodeCount());
+
+    FileSystemMasterCommonPOptions forceRefresh =
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
+    ExecutorService threadpool = Executors.newFixedThreadPool(10);
+    List<Future<Void>> futures = new ArrayList<>();
+    AtomicReference<Throwable> testError = new AtomicReference<>(null);
+
+    MountTable mountTable = mFileSystemMaster.getMountTable();
+    MountTable.Resolution resolution = mountTable.resolve(new AlluxioURI("/"));
+    final Counter mountPointCounter = mountTable.getUfsSyncMetric(resolution.getMountId());
+    assertEquals(0, mountPointCounter.getCount());
+
+    for (int i = 0; i < threadNum; i++) {
+      final int index = i;
+      Future<Void> f = threadpool.submit(() -> {
+        String threadDir = TEST_DIR_PREFIX + index;
+
+        for (int k = 0; k < iterNum; k++) {
+          // Sync the path again and again
+          LockingScheme syncScheme =
+              new LockingScheme(new AlluxioURI(threadDir), InodeTree.LockPattern.READ,
+                  true); // shouldSync
+          InodeSyncStream syncStream =
+              new InodeSyncStream(syncScheme, mFileSystemMaster,
+                  mFileSystemMaster.getSyncPathCache(),
+                  RpcContext.NOOP,
+                  DescendantType.ALL,
+                  forceRefresh,
+                  false, // forceSync
+                  false, // loadOnly
+                  false); // loadAlways
+          try {
+            syncStream.sync();
+          } catch (Throwable t) {
+            testError.set(t);
+          }
+        }
+        return null;
+      });
+      futures.add(f);
+    }
+    // Wait for all tasks to finish
+    for (Future<Void> x : futures) {
+      x.get();
+    }
+    // No errors in the test
+    assertNull(testError.get());
+
+    // When an inode does not exist(1st iter), for each thread(dir):
+    // 1 call on getting sync root status
+    // 1 call on listing sync root
+    // 1 getAcl call for each file in loadMetadataForPath
+    int expectedOpCount = threadNum * (fileCount + 2);
+
+    // When an inode exists, for each thread(dir):
+    // 1 call on getting sync root acl
+    // 1 getAcl call for the dir in syncExistingInodeMetadata
+    // 1 getAcl call for each file in syncExistingInodeMetadata
+    // TODO: reduce excessive getAcl calls https://github.com/Alluxio/alluxio/issues/16473
+    expectedOpCount = expectedOpCount + (fileCount + 2) * iterNum * threadNum;
+    assertEquals(expectedOpCount, mountPointCounter.getCount());
 
     threadpool.shutdownNow();
   }

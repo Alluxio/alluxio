@@ -822,6 +822,7 @@ public class InodeSyncStream {
           if (!mFsMaster.isAclEnabled()) {
             ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus);
           } else {
+            // TODO(jiacheng): can this call be avoided?
             Pair<AccessControlList, DefaultAccessControlList> aclPair =
                 (Pair<AccessControlList, DefaultAccessControlList>)
                     getFromUfs(() -> ufs.getAclPair(ufsUri.toString()), rpcContext);
@@ -1171,6 +1172,7 @@ public class InodeSyncStream {
       long blockSize = ((UfsFileStatus) context.getUfsStatus()).getBlockSize();
       ufsBlockSizeByte = blockSize != UfsFileStatus.UNKNOWN_BLOCK_SIZE
           ? blockSize : ufs.getBlockSizeByte(ufsUri.toString());
+      // TODO(jiacheng): for HDFS this actually calls the UFS
 
       if (fsMaster.isAclEnabled()) {
         Pair<AccessControlList, DefaultAccessControlList> aclPair
