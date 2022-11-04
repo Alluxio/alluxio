@@ -274,6 +274,17 @@ public class ListBucketResult {
         .filter(content -> !content.mIsCommonPrefix)
         .collect(Collectors.toList());
 
+    /*
+    As explained in:
+    https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html#API_ListObjectsV2_ResponseElements
+    The encoding type, if specified, we will return encoded key name values in the
+    following response elements:
+      Delimiter, Prefix, Key, and StartAfter.
+    AWS S3 for some reason is not encoding every char,  / and * for example.
+    Since we are not supporting delimiter other than /, we will apply url encoding
+    on these fields for now:
+    Prefix, Key, and StartAfter
+     */
     if (StringUtils.equals(getEncodingType(), ListBucketOptions.DEFAULT_ENCODING_TYPE)) {
       mContents.stream().forEach(content -> {
         try {
