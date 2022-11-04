@@ -77,6 +77,10 @@ $ curl <WORKER_HOSTNAME>:<WORKER_WEB_PORT>/metrics/json/
 $ curl 127.0.0.1:19999/metrics/json/
 # Get the local worker metrics with its default web port 30000
 $ curl 127.0.0.1:30000/metrics/json/
+# Get the local job master metrics with its default web port 20002
+$ curl 127.0.0.1:20002/metrics/json/
+# Get the local job worker metrics with its default web port 30003
+$ curl 127.0.0.1:30003/metrics/json/
 
 # After setting alluxio.fuse.web.enabled=true and launching the standalone Fuse process,
 # get the metrics with its default web port
@@ -108,15 +112,21 @@ setting `alluxio.fuse.web.enabled` to `true` in `${ALLUXIO_HOME}/conf/alluxio-si
 You can send an HTTP request to `/metrics/prometheus/` of the target Alluxio process to get a snapshot of metrics in Prometheus format.
 
 ```console
-# Get the metrics in Prometheus format from Alluxio leading master or workers or standalone fuse
+# Get the metrics in Prometheus format from Alluxio leading master or workers or job service or standalone fuse
 $ curl <LEADING_MASTER_HOSTNAME>:<MASTER_WEB_PORT>/metrics/prometheus/
 $ curl <WORKER_HOSTNAME>:<WORKER_WEB_PORT>/metrics/prometheus/
+$ curl <LEADING_JOB_MASTER_HOSTNAME>:<JOB_MASTER_WEB_PORT>/metrics/prometheus/
+$ curl <JOB_WORKER_HOSTNAME>:<JOB_WORKER_WEB_PORT>/metrics/prometheus/
 $ curl <FUSE_WEB_HOSTNAME>:<FUSE_WEB_PORT>/metrics/prometheus/
 
 # For example, get the local master metrics with its default web port 19999
 $ curl 127.0.0.1:19999/metrics/prometheus/
 # Get the local worker metrics with its default web port 30000
 $ curl 127.0.0.1:30000/metrics/prometheus/
+# Get the local job master metrics with its default web port 20002
+$ curl 127.0.0.1:20002/metrics/prometheus/
+# Get the local job worker metrics with its default web port 30003
+$ curl 127.0.0.1:30003/metrics/prometheus/
 # Get the local standalone Fuse process metrics with its default web port 49999
 $ curl 127.0.0.1:49999/metrics/prometheus/
 ```
@@ -136,6 +146,14 @@ scrape_configs:
       metrics_path: '/metrics/prometheus/'
       static_configs:
       - targets: [ '<WORKER_HOSTNAME>:<WORKER_WEB_PORT>' ]
+  - job_name: "alluxio job master"
+      metrics_path: '/metrics/prometheus/'
+      static_configs:
+      - targets: [ '<LEADING_JOB_MASTER_HOSTNAME>:<JOB_MASTER_WEB_PORT>' ]
+  - job_name: "alluxio job worker"
+      metrics_path: '/metrics/prometheus/'
+      static_configs:
+      - targets: [ '<JOB_WORKER_HOSTNAME>:<JOB_WORKER_WEB_PORT>' ]
   - job_name: "alluxio standalone fuse"
       metrics_path: '/metrics/prometheus/'
       static_configs:
