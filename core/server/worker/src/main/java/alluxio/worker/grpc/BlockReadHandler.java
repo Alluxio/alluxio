@@ -11,7 +11,10 @@
 
 package alluxio.worker.grpc;
 
+import static alluxio.util.CommonUtils.isFatalError;
+
 import alluxio.Constants;
+import alluxio.ProcessUtils;
 import alluxio.RpcSensitiveConfigMask;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -440,6 +443,9 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
             });
           }
         } catch (Throwable e) {
+          if (isFatalError(e)) {
+            ProcessUtils.fatalError(LOG, e, "Error while reading");
+          }
           LogUtils.warnWithException(LOG,
               "Exception occurred while reading data for read request {}. session {}",
               mContext.getRequest(), mContext.getRequest().getSessionId(),
@@ -448,7 +454,6 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         }
         continue;
       }
-
       if (error != null) {
         try {
           completeRequest(mContext);

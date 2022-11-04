@@ -906,5 +906,18 @@ public final class CommonUtils {
     return Objects.toString(obj);
   }
 
+  /**
+   * @param e error
+   * @return whether it's fatal error
+   */
+  public static boolean isFatalError(Throwable e) {
+    // StackOverflowError ok even though it is a VirtualMachineError
+    if (e instanceof StackOverflowError) {
+      return false;
+    }
+    // VirtualMachineError includes OutOfMemoryError and other fatal errors
+    return e instanceof VirtualMachineError || e instanceof LinkageError;
+  }
+
   private CommonUtils() {} // prevent instantiation
 }
