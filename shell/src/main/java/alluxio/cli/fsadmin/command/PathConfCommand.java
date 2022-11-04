@@ -15,7 +15,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.cli.Command;
 import alluxio.cli.fsadmin.pathconf.AddCommand;
 import alluxio.cli.fsadmin.pathconf.ListCommand;
-import alluxio.cli.fsadmin.pathconf.RemoveAllCommand;
 import alluxio.cli.fsadmin.pathconf.RemoveCommand;
 import alluxio.cli.fsadmin.pathconf.ShowCommand;
 import alluxio.conf.AlluxioConfiguration;
