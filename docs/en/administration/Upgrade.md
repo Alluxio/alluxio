@@ -2,8 +2,8 @@
 layout: global
 title: Upgrading
 nickname: Upgrading
-group: Operations
-priority: 15
+group: Administration
+priority: 7
 ---
 
 * Table of Contents
@@ -11,7 +11,7 @@ priority: 15
 
 ## Basic upgrading procedure
 
-In normal cases, users can directly shutdown the current Alluxio processes, change
+In normal cases, users can directly shut down the current Alluxio processes, change
 the Alluxio binaries to a newer version, configure Alluxio clusters similar to before,
 and start Alluxio processes with the existing journal folder/address for upgrading.
 Alluxio can read the previous journal files and recover the Alluxio metadata automatically.
@@ -50,7 +50,7 @@ $ ./bin/alluxio format
 ```
 - **WARNING:** This will re-format the ramdisks on the Alluxio workers (i.e: wipe their contents).
 If you wish to preserve the worker ramdisks please see
-[Alluxio worker ramdisk cache persistence]({{ '/en/operation/Upgrade.html' | relativize_url}}#alluxio-worker-ramdisk-cache-persistence).
+[Alluxio worker ramdisk cache persistence]({{ '/en/administration/Upgrade.html' | relativize_url}}#alluxio-worker-ramdisk-cache-persistence).
 
 Then start the cluster with the `-i ${BACKUP_PATH}` argument, replacing
 `${BACKUP_PATH}` with your specific backup path.

@@ -11,9 +11,11 @@
 
 package alluxio.worker.grpc;
 
+import static alluxio.util.CommonUtils.isFatalError;
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
 
 import alluxio.Constants;
+import alluxio.ProcessUtils;
 import alluxio.RpcSensitiveConfigMask;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -376,7 +378,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         runInternal();
       } catch (Throwable e) {
         LOG.error("Failed to run DataReader.", e);
-        throw new RuntimeException(e);
+        throw e;
       }
     }
 
@@ -448,7 +450,10 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
               }
             });
           }
-        } catch (Exception e) {
+        } catch (Throwable e) {
+          if (isFatalError(e)) {
+            ProcessUtils.fatalError(LOG, e, "Error while reading");
+          }
           LogUtils.warnWithException(LOG,
               "Exception occurred while reading data for read request {}. session {}",
               mContext.getRequest(), mContext.getRequest().getSessionId(),
@@ -457,7 +462,6 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         }
         continue;
       }
-
       if (error != null) {
         try {
           completeRequest(mContext);

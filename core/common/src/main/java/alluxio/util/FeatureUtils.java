@@ -31,11 +31,26 @@ public final class FeatureUtils {
   }
 
   /**
-   * Utility to check the master metastore is rocks.
+   * Utility to check the master inode metastore is rocks.
    *
    * @return true, if running with rocks
    */
-  public static boolean isRocks() {
+  public static boolean isInodeStoreRocks() {
+    if (Configuration.isSetByUser(PropertyKey.MASTER_INODE_METASTORE)) {
+      return Configuration.get(PropertyKey.MASTER_INODE_METASTORE) == MetastoreType.ROCKS;
+    }
+    return Configuration.get(PropertyKey.MASTER_METASTORE) == MetastoreType.ROCKS;
+  }
+
+  /**
+   * Utility to check the master block metastore is rocks.
+   *
+   * @return true, if running with rocks
+   */
+  public static boolean isBlockStoreRocks() {
+    if (Configuration.isSetByUser(PropertyKey.MASTER_BLOCK_METASTORE)) {
+      return Configuration.get(PropertyKey.MASTER_BLOCK_METASTORE) == MetastoreType.ROCKS;
+    }
     return Configuration.get(PropertyKey.MASTER_METASTORE) == MetastoreType.ROCKS;
   }
 

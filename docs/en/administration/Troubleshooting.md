@@ -2,8 +2,8 @@
 layout: global
 title: Troubleshooting
 nickname: Troubleshooting
-group: Operations
-priority: 14
+group: Administration
+priority: 1
 ---
 
 * Table of Contents
@@ -29,18 +29,18 @@ Workers are doing, especially when running into any issues. If you do not unders
 search for them in the [Github issues](https://github.com/Alluxio/alluxio/issues),
 in the case the problem has been discussed before. 
 You can also join our [Slack channel](https://slackin.alluxio.io/) and seek help there.
-You can find more details about the Alluxio server logs [here]({{ '/en/operation/Basic-Logging.html#server-logs' | relativize_url }}).
+You can find more details about the Alluxio server logs [here]({{ '/en/administration/Basic-Logging.html#server-logs' | relativize_url }}).
 
 The client-side logs are also helpful when Alluxio service is running but the client cannot connect to the servers.
 Alluxio client emits logging messages through log4j, so the location of the logs is determined by the client side
 log4j configuration used by the application.
-You can find more details about the client-side logs [here]({{ '/en/operation/Basic-Logging.html#application-logs' | relativize_url }}).
+You can find more details about the client-side logs [here]({{ '/en/administration/Basic-Logging.html#application-logs' | relativize_url }}).
 
 The user logs in `${ALLUXIO_HOME}/logs/user/` are the logs from running Alluxio shell.
 Each user will have separate log files.
 
 For more information about logging, please check out
-[this page]({{ '/en/operation/Basic-Logging.html' | relativize_url }}).
+[this page]({{ '/en/administration/Basic-Logging.html' | relativize_url }}).
 
 ## Alluxio remote debug
 
@@ -257,7 +257,7 @@ If you are operating your Alluxio cluster it is possible you may notice a
 message in the logs like:
 
 ```
-LEAK: <>.close() was not called before resource is garbage-collected. See https://docs.alluxio.io/os/user/stable/en/operation/Troubleshooting.html#resource-leak-detection for more information about this message.
+LEAK: <>.close() was not called before resource is garbage-collected. See https://docs.alluxio.io/os/user/stable/en/administration/Troubleshooting.html#resource-leak-detection for more information about this message.
 ```
 
 Alluxio has a built-in detection mechanism to help identify potential resource
@@ -449,7 +449,7 @@ A: This problem can be caused by different possible reasons.
 - Please double check if the port of Alluxio master address is correct. The default listening port for Alluxio master is port 19998,
 while a common mistake causing this error message is due to using a wrong port in master address (e.g., using port 19999 which is the default Web UI port for Alluxio master).
 - Please ensure that the security settings of Alluxio client and master are consistent.
-Alluxio provides different approaches to [authenticate]({{ '/en/operation/Security.html' | relativize_url }}#authentication) users by configuring `alluxio.security.authentication.type`.
+Alluxio provides different approaches to [authenticate]({{ '/en/security/Security.html' | relativize_url }}#authentication) users by configuring `alluxio.security.authentication.type`.
 This error happens if this property is configured with different values across servers and clients
 (e.g., one uses the default value `NOSASL` while the other is customized to `SIMPLE`).
 Please read [Configuration-Settings]({{ '/en/operation/Configuration.html' | relativize_url }}) for how to customize Alluxio clusters and applications.
@@ -524,7 +524,7 @@ execute, such as persisting a large file on a slow UFS. If you want to know what
 as `${ALLUXIO_HOME}/logs/user_${USER_NAME}.log` by default) or master log (stored as `${ALLUXIO_HOME}/logs/master.log` on the master
 node by default).
 
-If the logs are not sufficient to reveal the problem, you can [enable more verbose logging]({{ '/en/operation/Basic-Logging.html#enabling-advanced-logging' | relativize_url }}).
+If the logs are not sufficient to reveal the problem, you can [enable more verbose logging]({{ '/en/administration/Basic-Logging.html#enabling-advanced-logging' | relativize_url }}).
 
 ### Q: I'm getting unknown gRPC errors like "io.grpc.StatusRuntimeException: UNKNOWN"
 
@@ -541,7 +541,7 @@ If you do not find the answer above, please post a question following [here](#po
 A: Alluxio accelerates your system performance by leveraging temporal or spatial locality using distributed in-memory storage
 (and tiered storage). If your workloads don't have any locality, you will not see noticeable performance boost.
 
-**For a comprehensive guide on tuning performance of Alluxio cluster, please check out [this page]({{ '/en/operation/Performance-Tuning.html' | relativize_url }}).**
+**For a comprehensive guide on tuning performance of Alluxio cluster, please check out [this page]({{ '/en/administration/Performance-Tuning.html' | relativize_url }}).**
 
 ## Environment
 

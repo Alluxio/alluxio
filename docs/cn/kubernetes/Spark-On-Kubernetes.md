@@ -3,7 +3,7 @@ layout: global
 title: Kubernetes环境下在Alluxio上运行Spark
 nickname: Spark on Kubernetes
 group: Compute Integrations
-priority: 7
+priority: 1
 ---
 
 Alluxio可以在Kubernetes上运行。本指南演示了如何在Kubernetes环境下运行的Alluxio上跑一个Spark作业。
@@ -22,7 +22,7 @@ Alluxio可以在Kubernetes上运行。本指南演示了如何在Kubernetes环�
 
 - Kubernetes集群(版本>=1.8)。
 - Alluxio已部署在Kubernetes集群上。有关如何部署Alluxio的说明，请参考
-[本页]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url}})
+[本页]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url}})
 
 ## 基本设置
 
@@ -78,7 +78,7 @@ $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 因为不通过网络堆栈来与Alluxio worker通信，这样可以提高性能。
 
 如果在部署Alluxio时未按照指令设置domain socket
-[本页]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url}}＃short-circuit-access)，则
+[本页]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url}}＃short-circuit-access)，则
 可以跳过将`hostPath`卷挂载到Spark执行器步骤。
 
 如果在运行Alluxio worker进程的主机上将domain socket位置设置为
@@ -86,7 +86,7 @@ $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 配置将`/tmp/alluxio-domain`挂载到Spark执行器pod中的`/opt/domain`。
 下一节中的`spark-submit`命令包含这些属性。
 
-取决于你的设置，Alluxio worker上的domain socket可以是`hostPath`卷或`PersistententVolumeClaim`两种之一。可以再[此处]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#short-circuit-access' | relativize_url}})找到有关如何配置Alluxio worker以使用短路操作的更多详细信息。
+取决于你的设置，Alluxio worker上的domain socket可以是`hostPath`卷或`PersistententVolumeClaim`两种之一。可以再[此处]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html#short-circuit-access' | relativize_url}})找到有关如何配置Alluxio worker以使用短路操作的更多详细信息。
 这两个选项的spark-submit参数将有所不同。
 可以在以下Spark文档中找到有关如何将卷挂载到Spark执行器的更多[信息](https://spark.apache.org/docs/2.4.4/running-on-kubernetes.html#using-kubernetes-volumes)。
 
@@ -154,7 +154,7 @@ alluxio://<alluxio-master>:19998/LICENSE
 > 注意:可以通过运行`kubectl cluster-info`找到Kubernetes API服务器地址。
 您可以在Spark[文档](https://spark.apache.org/docs/latest/running-on-kubernetes.html?q=cluster-info#cluster-mode)中找到更多详细信息。
 你应该使用与你的domain socket卷类型相应的属性 
-[domain socket卷类型]({{ '/en/compute/Spark-On-Kubernetes.html#short-circuit-operations' | relativize_url}}。
+[domain socket卷类型]({{ '/en/kubernetes/Spark-On-Kubernetes.html#short-circuit-operations' | relativize_url}}。
 
 ## 故障排除
 
@@ -196,4 +196,4 @@ pods "spark-alluxiolatest-exec-1" is forbidden: User "system:serviceaccount:defa
 cannot delete resource "pods" in API group "" in the namespace "default".
 ```
 
-你应该参考[创建服务帐户]({{ '/en/compute/Spark-On-Kubernetes.html#create-the-service-account-optional' | relativize_url}}确保有正确访问权限。
+你应该参考[创建服务帐户]({{ '/en/kubernetes/Spark-On-Kubernetes.html#create-the-service-account-optional' | relativize_url}}确保有正确访问权限。

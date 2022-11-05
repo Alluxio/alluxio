@@ -125,7 +125,7 @@ public abstract class AbstractMaxThroughput<Q extends TaskResult, T extends
       List<String> newArgs = new ArrayList<>(baseArgs);
       updateArgValue(newArgs, "--target-throughput", Integer.toString(perWorkerThroughput));
 
-      S mbr = runSingleTest(newArgs, perWorkerThroughput);
+      S mbr = runSingleTest(newArgs, next);
 
       int current = next;
       final float actualThroughput = mbr.getThroughput();

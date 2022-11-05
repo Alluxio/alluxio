@@ -37,7 +37,7 @@ data model, the mounted file system does not have full POSIX semantics and conta
 limitations.
 Please read the [functionalities and limitations](#functionalities-and-limitations) for details.
 
-For additional limitation on file path names on Alluxio please check : [Alluxio limitations]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#file-path-limitations)
+For additional limitation on file path names on Alluxio please check : [Alluxio limitations]({{ '/en/administration/Troubleshooting.html' | relativize_url }}#file-path-limitations)
 
 ## Quick Start Example
 
@@ -47,7 +47,7 @@ This example shows how to mount the whole Alluxio cluster to a local directory a
 
 The followings are the basic requirements running ALLUXIO POSIX API.
 Installing Alluxio POSIX API using [Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url}}#enable-posix-api-access)
-and [Kubernetes]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url}}#posix-api)
+and [Kubernetes]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url}}#posix-api)
 can further simplify the setup.
 
 - Have a running Alluxio cluster
@@ -208,6 +208,7 @@ characteristics, some operations are not fully supported.
 </table>
 
 Note that all file/dir permissions are checked against the user launching the AlluxioFuse process instead of the end user running the operations.
+See [Security section](#security-configuration) for more details about the configuration and limitation of Alluxio POSIX API security.
 
 ## Configuration
 
@@ -425,6 +426,138 @@ Data can be cached on ramdisk or disk based on the type of the cache directory.
   {% endnavtab %}
 {% endnavtabs %}
 
+### Security Configuration
+
+The security of the Alluxio POSIX API does not exactly follow the POSIX standard.
+This is a known limitation and we are working to improve it.
+
+#### Permission Check
+
+All file/dir permissions in Alluxio POSIX API are checked against the user launching the AlluxioFuse process instead of the end user running the operations.
+
+#### User Group Policy
+
+User group policies decide the user/group of the created file/dir and the user/group shown in the get file/dir path status operations.
+
+Three user group policies can be chosen from:
+<table class="table table-striped">
+    <tr>
+        <td><th>Policy Name</th></td>
+        <td>(Default) Launch User Group Policy</td>
+        <td>System User Group Policy</td>
+        <td>Custom User Group Policy</td>
+    </tr>
+    <tr>
+        <td><th>Security Guard</th></td>
+        <td>Weak</td>
+        <td>Strong</td>
+        <td>Weak</td>
+    </tr>
+    <tr>
+        <td><th>Performance Overhead</th></td>
+        <td>Low</td>
+        <td>High. Each create/list file/dir operation needs to do user/group translation</td>
+        <td>Low</td>
+    </tr>
+    <tr>
+        <td><th>The user/group of the file/dir created through Alluxio POSIX API</th></td>
+        <td>The user/group that launches the Alluxio FUSE application</td>
+        <td>The user/group that runs the file/dir creation operation</td>
+        <td>The configured customize user/group</td>
+    </tr>
+    <tr>
+        <td><th>The user/group of the file/dir listed through Alluxio POSIX API</th></td>
+        <td>The user/group that launches the Alluxio FUSE application</td>
+        <td>The actual file/dir user/group, or -1 if user/group not found in the local system</td>
+        <td>The configured customize user/group</td>
+    </tr>
+</table>
+
+The detailed configuration and example usage are listed below:
+
+{% navtabs userGroupPolicy %}
+  {% navtab Launch User Group Policy %}
+This is the default user group policy (set via `alluxio.fuse.auth.policy.class=alluxio.fuse.auth.LaunchUserGroupAuthPolicy`).
+
+Assuming user `alluxio-user` with group `alluxio-group` launches the FUSE process.
+```console
+# The user/group of all files/dirs created through the FUSE mount point is set to the user/group that launches the FUSE application
+$ touch /mnt/people/file
+$ ls -al /mnt/people/file
+-rw-r--r--    1 alluxio-user  alluxio-group  0 Oct 11 23:26 file
+$ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/file
+-rw-r--r--  alluxio-user  alluxio-group  0  PERSISTED 10-11-2022 23:26:03:406 100% /people/file
+
+# Regardless of the actual file/dir user/group,
+# getting file/dir status through the FUSE mount point will show the user/group that launches the FUSE application
+$ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/file
+-rw-r--r--  nonexisting-user  nonexisting-group  27040  PERSISTED 10-11-2022 23:26:03:406 100% /people/file
+$ ls -al /mnt/people/file
+-rw-r--r--    1 alluxio-user alluxio-group 27040 Oct 11 23:26 LICENSE
+```
+This policy has weak security support but with minimum performance overhead.
+  {% endnavtab %}
+  {% navtab System User Group Policy %}
+Enabled via setting `alluxio.fuse.auth.policy.class=alluxio.fuse.auth.SystemUserGroupAuthPolicy` in `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
+
+Assuming user `alluxio-user` with group `alluxio-group` launches the FUSE process
+and user `end-user` with group `end-group` runs the actual operations against the FUSE mount point:
+```console
+# The user/group of all files/dirs created through the FUSE mount point is set to the end user/group that runs the operation
+$ cp LICENSE /mnt/people/LICENSE
+$ ls -al /mnt/people/LICENSE
+-rw-r--r--    1 end-user  end-group  27040 Oct 11 23:26 LICENSE
+$ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/LICENSE
+-rw-r--r--  end-user  end-group  27040  PERSISTED 10-11-2022 23:26:03:406 100% /people/LICENSE
+
+# Permission check is run against the user launching the AlluxioFuse process `alluxio-user:alluxio-group`
+# which does not have the write permission
+$ rm /mnt/people/LICENSE
+rm: cannot remove '/mnt/people/LICENSE': Permission denied
+
+# The user/group of all file/dir statuses getting via the FUSE mount point is translated to local system user/group.
+$ ${ALLUXIO_HOME}/bin/alluxio fs chown other-user:other-group /people/LICENSE
+$ ls -al /mnt/people/LICENSE
+-rw-r--r--    1 other-user  other-group  27040 Oct 11 23:26 LICENSE
+
+# If cannot be translated, the user/group of file/dir will be shown as -1 (or other default string based on the operating system settings)
+$ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/file
+-rw-r--r--  nonexisting-user  nonexisting-group  27040  PERSISTED 10-11-2022 23:26:03:406 100% /people/file
+$ ls -al /mnt/people/file
+-rw-r--r--    1 -1 -1 27040 Oct 11 23:26 LICENSE
+```
+This matches POSIX standard but sacrifices performance.
+  {% endnavtab %}
+  {% navtab Custom User Group Policy %}
+Enabling by adding the following configuration in `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
+```config
+alluxio.fuse.auth.policy.class=alluxio.fuse.auth.CustomAuthPolicy
+alluxio.fuse.auth.policy.custom.user=<user_name>
+alluxio.fuse.auth.policy.custom.group=<group_name>
+```
+
+Assuming user `alluxio-user` with group `alluxio-group` launches the FUSE process,
+user `end-user` with group `end-group` runs the actual operations against the FUSE mount point,
+and user `custom-user` with group `custom-group` is configured.
+```console
+# The user/group of all files/dirs created through the FUSE mount point is set to the configured customized user/group
+$ touch /mnt/people/file
+$ ls -al /mnt/people/file
+-rw-r--r--    1 custom-user custom-group  0 Oct 11 23:26 file
+$ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/file
+-rw-r--r--  custom-user  custom-group  0  PERSISTED 10-11-2022 23:26:03:406 100% /people/file
+
+# Regardless of the actual file/dir user/group,
+# getting file/dir status through the FUSE mount point will show the configured customized user/group
+$ ${ALLUXIO_HOME}/bin/alluxio fs ls /people/file
+-rw-r--r--  nonexisting-user  nonexisting-group  27040  PERSISTED 10-11-2022 23:26:03:406 100% /people/file
+$ ls -al /mnt/people/file
+-rw-r--r--    1 custom-user custom-group 27040 Oct 11 23:26 LICENSE
+```
+This policy has weak security support but with minimum performance overhead.
+  {% endnavtab %}
+{% endnavtabs %}
+
 ### Advanced Configuration
 
 #### Select Libfuse Version
@@ -614,7 +747,7 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount -f mount_point
 
 This section talks about how to troubleshoot issues related to Alluxio POSIX API.
 Note that the errors or problems of Alluxio POSIX API may come from the underlying Alluxio system.
-For general guideline in troubleshooting, please refer to [troubleshooting documentation]({{ '/en/operation/Troubleshooting.html' | relativize_url }})
+For general guideline in troubleshooting, please refer to [troubleshooting documentation]({{ '/en/administration/Troubleshooting.html' | relativize_url }})
 
 
 ### Out of Direct Memory
@@ -649,7 +782,7 @@ and lastly a `Fuse.release` to close file to commit a file written to Alluxio fi
 One can set `alluxio.fuse.debug.enabled=true` in `${ALLUXIO_HOME}/conf/alluxio-site.properties` before mounting the Alluxio FUSE
 to enable debug logging.
 
-For more information about logging, please check out [this page]({{ '/en/operation/Basic-Logging.html' | relativize_url }}).
+For more information about logging, please check out [this page]({{ '/en/administration/Basic-Logging.html' | relativize_url }}).
 
 ### Advanced Performance Investigation
 
@@ -690,7 +823,7 @@ and whether the libfuse threads keep being created/destroyed.
 
 #### Alluxio Level
 
-[Alluxio general performance tuning]({{ '/en/operation/Performance-Tuning.html' | relativize_url }}) provides
+[Alluxio general performance tuning]({{ '/en/administration/Performance-Tuning.html' | relativize_url }}) provides
 more information about how to investigate and tune the performance of Alluxio Java client and servers.
 
 ##### Clock time tracing

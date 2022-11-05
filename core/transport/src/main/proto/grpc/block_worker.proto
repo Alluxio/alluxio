@@ -27,6 +27,8 @@ service BlockWorker {
 
   // TODO(lu) Move to metrics worker
   rpc ClearMetrics (ClearMetricsRequest) returns (ClearMetricsResponse);
+
+  rpc FreeWorker (FreeWorkerRequest) returns (FreeWorkerResponse);
 }
 
 // The check request
@@ -163,7 +165,6 @@ message Block{
 message LoadResponse {
   required TaskStatus status = 1;
   repeated BlockStatus block_status = 2;
-
 }
 
 enum TaskStatus {
@@ -171,6 +172,10 @@ enum TaskStatus {
   FAILURE = 1;
   PARTIAL_FAILURE = 2;
 }
+
+message FreeWorkerRequest{}
+
+message FreeWorkerResponse{}
 
 message BlockStatus {
   required Block block = 1;
