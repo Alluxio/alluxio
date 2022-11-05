@@ -227,7 +227,8 @@ public class AlluxioFileInStream extends FileInStream {
   // force a sync to update the latest metadata, then abort the current stream
   // The user should restart the stream and read the updated file
   private void refreshMetadataOnMismatchedLength(OutOfRangeException e) {
-    try (CloseableResource<FileSystemMasterClient> client = mContext.acquireMasterClientResource()) {
+    try (CloseableResource<FileSystemMasterClient> client =
+        mContext.acquireMasterClientResource()) {
       // Force refresh the file metadata by loadMetadata
       AlluxioURI path = new AlluxioURI(mStatus.getPath());
       ListStatusPOptions refreshPathOptions = ListStatusPOptions.newBuilder()
