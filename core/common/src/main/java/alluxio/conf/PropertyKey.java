@@ -1896,7 +1896,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_BACKUP_DELEGATION_ENABLED =
       booleanBuilder(Name.MASTER_BACKUP_DELEGATION_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether to delegate journals to standby masters in HA cluster.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -2301,11 +2301,34 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_METASTORE =
       enumBuilder(Name.MASTER_METASTORE, MetastoreType.class)
           .setDefaultValue(MetastoreType.ROCKS)
-          .setDescription("The type of metastore to use, either HEAP or ROCKS. The heap metastore "
-              + "keeps all metadata on-heap, while the rocks metastore stores some metadata on "
-              + "heap and some metadata on disk. The rocks metastore has the advantage of being "
-              + "able to support a large namespace (1 billion plus files) without needing a "
-              + "massive heap size.")
+          .setDescription("The type of metastore to use, either HEAP or ROCKS. "
+              + "The heap metastore keeps all metadata on-heap, "
+              + "while the rocks metastore stores some metadata on heap and some metadata on disk. "
+              + "The rocks metastore has the advantage of being able to support a large namespace "
+              + "(1 billion plus files) without needing a massive heap size."
+              + "The metadata storage includes inode and block metadata. "
+              + "Users can override the type of metastore using " + Name.MASTER_METASTORE_INODE
+              + " and " + Name.MASTER_METASTORE_BLOCK
+              + ". For example if " + Name.MASTER_METASTORE + "=ROCKS but "
+              + Name.MASTER_METASTORE_INODE + "=HEAP, then inodes are stored with HEAP and blocks"
+              + " are stored with ROCKS."
+          )
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_INODE_METASTORE =
+      enumBuilder(Name.MASTER_METASTORE_INODE, MetastoreType.class)
+          .setDefaultValue(MASTER_METASTORE.getDefaultValue())
+          .setDescription("The type of inode metastore to use, either HEAP or ROCKS. "
+              + "By default this uses " + PropertyKey.Name.MASTER_METASTORE.toString() + ".")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BLOCK_METASTORE =
+      enumBuilder(Name.MASTER_METASTORE_BLOCK, MetastoreType.class)
+          .setDefaultValue(MASTER_METASTORE.getDefaultValue())
+          .setDescription("The type of block metastore to use, either HEAP or ROCKS. "
+              + "By default this uses " + PropertyKey.Name.MASTER_METASTORE.toString() + ".")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -6267,25 +6290,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  @Deprecated(message = "CapacityBaseRandomPolicy no longer caches block locations. "
+      + "To make sure a block is always assigned to the same worker, use DeterministicHashPolicy.")
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE =
       intBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE)
           .setDefaultValue(10000)
-          .setDescription("When alluxio.user.ufs.block.read.location.policy is set "
+          .setDescription("Deprecated - When alluxio.user.ufs.block.read.location.policy is set "
               + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
               + "this specifies cache size of block location.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  @Deprecated(message = "CapacityBaseRandomPolicy no longer caches block locations. "
+      + "To make sure a block is always assigned to the same worker, use DeterministicHashPolicy.")
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME =
       durationBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME)
           .setDefaultValue("10min")
-          .setDescription("When alluxio.user.ufs.block.read.location.policy is set "
+          .setDescription("Deprecated - When alluxio.user.ufs.block.read.location.policy is set "
               + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
               + "this specifies cache expire time of block location.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-
   public static final PropertyKey USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
       intBuilder(Name.USER_UFS_BLOCK_READ_CONCURRENCY_MAX)
           .setDefaultValue(Integer.MAX_VALUE)
@@ -7549,6 +7575,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
         "alluxio.master.metadata.sync.ufs.prefetch.timeout";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
+    public static final String MASTER_METASTORE_INODE = "alluxio.master.metastore.inode";
+    public static final String MASTER_METASTORE_BLOCK = "alluxio.master.metastore.block";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
         "alluxio.master.metastore.rocks.parallel.backup";

@@ -170,7 +170,7 @@ alluxio.master.mount.table.root.ufs=hdfs://nameservice/
 
 ### User/Permission Mapping
 
-Alluxio supports POSIX-like filesystem [user and permission checking]({{ '/en/operation/Security.html' | relativize_url }}).
+Alluxio supports POSIX-like filesystem [user and permission checking]({{ '/en/security/Security.html' | relativize_url }}).
 To ensure that the permission information of files/directories including user, group and mode in
 HDFS is consistent with Alluxio (e.g., a file created by user Foo in Alluxio is persisted to
 HDFS also with owner as user Foo), the user to start Alluxio master and worker processes

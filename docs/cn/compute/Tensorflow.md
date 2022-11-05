@@ -13,7 +13,7 @@ priority: 6
 ## 概述
 
 Tensorflow使开发人员可以快速轻松地开始使用深度学习。 
-[深度学习]({{ '/en/compute/Deep-Learning.html' | relativize_url}})部分介绍了深度学习的数据挑战 
+[深度学习]({{ '/cn/solutions/Deep-Learning.html' | relativize_url}})部分介绍了深度学习的数据挑战 
 以及Alluxio如何帮助解决这些挑战。 
 本教程针对在Alluxio POSIX API之上运行Tensorflow提供一些动手实例和技巧。
 

@@ -148,6 +148,36 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  public void backupRestoreMetastore_InodeRocksBlockHeap() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_METASSTORE_ROCKS)
+        .setClusterName("backupRestoreMetastore_InodeRocksBlockHeap")
+        .setNumMasters(1)
+        .setNumWorkers(1)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
+        // Masters become primary faster
+        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        .addProperty(PropertyKey.MASTER_INODE_METASTORE, MetastoreType.ROCKS)
+        .addProperty(PropertyKey.MASTER_BLOCK_METASTORE, MetastoreType.HEAP)
+        .build();
+    backupRestoreMetaStoreTest();
+  }
+
+  @Test
+  public void backupRestoreMetastore_InodeHeapBlockRocks() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_METASSTORE_ROCKS)
+        .setClusterName("backupRestoreMetastore_InodeHeapBlockRocks")
+        .setNumMasters(1)
+        .setNumWorkers(1)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
+        // Masters become primary faster
+        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        .addProperty(PropertyKey.MASTER_INODE_METASTORE, MetastoreType.HEAP)
+        .addProperty(PropertyKey.MASTER_BLOCK_METASTORE, MetastoreType.ROCKS)
+        .build();
+    backupRestoreMetaStoreTest();
+  }
+
+  @Test
   public void emergencyBackup() throws Exception {
     emergencyBackupCore(1);
   }

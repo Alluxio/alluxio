@@ -2,8 +2,8 @@
 layout: global
 title: Scalability Tuning
 nickname: Scalability Tuning
-group: Operations
-priority: 9
+group: Administration
+priority: 5
 ---
 
 Alluxio is a scalable distributed file system designed to handle many workers within a single
@@ -330,7 +330,7 @@ nodes (across workers), we recommend having 1 Gbit/s bandwidth (across workers) 
 gives a ratio of at least 10:1. The UFS link throughput can be greatly decreased based on the
 expected cache hit ratio.
 
-You may use the [UfsIOBench]({{ '/en/operation/StressBench.html#ufs-io-bench' | relativize_url }})
+You may use the [UfsIOBench]({{ '/en/administration/StressBench.html#ufs-io-bench' | relativize_url }})
 tool to measure the worker-UFS network bandwidth.
 
 ### Disk

@@ -34,6 +34,10 @@
               {
                 "name": "USED_BYTES_ON_TIERS",
                 "integer": 7
+              },
+              {
+                "name": "DECOMMISSIONED_WORKER_NUM",
+                "integer": 8
               }
             ]
           },
@@ -55,6 +59,10 @@
               {
                 "name": "SPECIFIED",
                 "integer": 4
+              },
+              {
+                "name": "DECOMMISSIONED",
+                "integer": 5
               }
             ]
           },
@@ -128,6 +136,11 @@
                 "id": 6,
                 "name": "usedBytes",
                 "type": "int64"
+              },
+              {
+                "id": 8,
+                "name": "decommissionedWorkerNum",
+                "type": "int32"
               }
             ],
             "maps": [
@@ -337,6 +350,19 @@
                 }
               }
             ]
+          },
+          {
+            "name": "RemoveDecommissionedWorkerPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "RemoveDecommissionedWorkerPResponse"
           },
           {
             "name": "GetWorkerLostStoragePOptions"
@@ -731,6 +757,11 @@
                 "name": "GetWorkerInfoList",
                 "in_type": "GetWorkerInfoListPOptions",
                 "out_type": "GetWorkerInfoListPResponse"
+              },
+              {
+                "name": "RemoveDecommissionedWorker",
+                "in_type": "RemoveDecommissionedWorkerPOptions",
+                "out_type": "RemoveDecommissionedWorkerPResponse"
               },
               {
                 "name": "GetWorkerReport",
@@ -1148,6 +1179,12 @@
             ]
           },
           {
+            "name": "FreeWorkerRequest"
+          },
+          {
+            "name": "FreeWorkerResponse"
+          },
+          {
             "name": "BlockStatus",
             "fields": [
               {
@@ -1352,6 +1389,11 @@
                 "name": "ClearMetrics",
                 "in_type": "ClearMetricsRequest",
                 "out_type": "ClearMetricsResponse"
+              },
+              {
+                "name": "FreeWorker",
+                "in_type": "FreeWorkerRequest",
+                "out_type": "FreeWorkerResponse"
               }
             ]
           }

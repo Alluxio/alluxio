@@ -57,6 +57,13 @@ public interface BlockMasterClient extends Client {
   List<WorkerInfo> getWorkerInfoList() throws IOException;
 
   /**
+   * Remove the metadata of a decommissioned worker.
+   *
+   * @param workerName contains a string, representing the workerName
+   */
+  void removeDecommissionedWorker(String workerName) throws IOException;
+
+  /**
    * Gets the worker information of selected workers and selected fields for report CLI.
    *
    * @param options the client defined worker and field ranges

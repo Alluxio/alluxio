@@ -1,9 +1,9 @@
 ---
 layout: global
 title: Running Deep Learning Frameworks on Alluxio
-nickname: Deep Learning Frameworks
-group: Compute Integrations
-priority: 5
+nickname: Framework | Deep Learning Frameworks
+group: Solutions
+priority: 9
 ---
 
 * Table of Contents

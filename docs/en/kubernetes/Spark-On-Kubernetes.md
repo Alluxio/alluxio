@@ -2,8 +2,8 @@
 layout: global
 title: Running Spark on Alluxio in Kubernetes
 nickname: Spark on Kubernetes
-group: Compute Integrations
-priority: 7
+group: Kubernetes
+priority: 1
 ---
 
 Alluxio can be run on Kubernetes. This guide demonstrates how to run a Spark job on Alluxio
@@ -23,7 +23,7 @@ We refer to this job as `count` in the following text.
 
 - A Kubernetes cluster (version >= 1.8).
 - Alluxio is deployed on the Kubernetes cluster. For instructions on how to deploy Alluxio, refer to
-[this page]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
+[this page]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
 
 ## Basic Setup
 
@@ -81,7 +81,7 @@ worker storage on the host machine directly.
 This improves performance by not communicating with the Alluxio worker using the networking stack.
 
 If domain sockets were not setup when deploying Alluxio as per instructions on
-[this page]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#enable-short-circuit-access),
+[this page]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#enable-short-circuit-access),
 you can skip mounting the `hostPath` volumes to the Spark executors.
 
 If a domain socket location was setup on hosts running the Alluxio worker process at location
@@ -93,7 +93,7 @@ The `spark-submit` command in the following section includes these properties.
 The domain socket on the Alluxio worker can be a `hostPath` Volume or a `PersistententVolumeClaim`,
 depending on your setup.
 You can find more details on how to configure Alluxio worker to use short circuit 
-[here]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#short-circuit-access' | relativize_url }}).
+[here]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html#short-circuit-access' | relativize_url }}).
 The spark-submit arguments will be different for these two options.
 You can find more about how to mount volumes to Spark executors in Spark
 [documentation](https://spark.apache.org/docs/2.4.4/running-on-kubernetes.html#using-kubernetes-volumes).
@@ -174,7 +174,7 @@ alluxio://<alluxio-master>:19998/LICENSE
 > - If you are using a different version of Spark, please ensure the path to the
   `spark-examples_2.11-2.4.4.jar` is correctly set for your version of Spark
 > - You should also take care to ensure the volume properties align with your
-  [domain socket volume type]({{ '/en/compute/Spark-On-Kubernetes.html#short-circuit-operations' | relativize_url }}).
+  [domain socket volume type]({{ '/en/kubernetes/Spark-On-Kubernetes.html#short-circuit-operations' | relativize_url }}).
 
 ## Troubleshooting
 
@@ -223,4 +223,4 @@ cannot delete resource "pods" in API group "" in the namespace "default".
 ```
 
 You should ensure you have the correct access by 
-[creating a service account]({{ '/en/compute/Spark-On-Kubernetes.html#create-the-service-account-optional' | relativize_url }}).
+[creating a service account]({{ '/en/kubernetes/Spark-On-Kubernetes.html#create-the-service-account-optional' | relativize_url }}).
