@@ -11,6 +11,9 @@
 
 package alluxio.fuse.lock;
 
+import static com.google.common.hash.Hashing.md5;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import alluxio.Constants;
 import alluxio.concurrent.ClientRWLock;
 import alluxio.concurrent.LockMode;
@@ -30,13 +33,15 @@ import java.util.concurrent.locks.Lock;
  */
 public class FuseReadWriteLockManager {
   private static final long TRY_LOCK_TIMEOUT = 20 * Constants.SECOND_MS;
+  // Maximum readers allowed for each file
+  private static final int MAX_READER_CONCURRENCY = 64;
 
   private final LoadingCache<String, ClientRWLock> mLockCache
       = CacheBuilder.newBuilder().weakValues()
       .build(new CacheLoader<String, ClientRWLock>() {
         @Override
         public ClientRWLock load(String key) {
-          return new ClientRWLock(64);
+          return new ClientRWLock(MAX_READER_CONCURRENCY);
         }
       });
 
@@ -53,13 +58,13 @@ public class FuseReadWriteLockManager {
    * @return the lock resource to unlock the locked lock
    */
   public CloseableResource<Lock> tryLock(String path, LockMode mode) {
-    ClientRWLock pathLock = mLockCache.getUnchecked(path);
+    ClientRWLock pathLock = mLockCache.getUnchecked(getHashedKey(path));
     Lock lock = mode == LockMode.READ ? pathLock.readLock() : pathLock.writeLock();
     try {
       if (!lock.tryLock(TRY_LOCK_TIMEOUT, TimeUnit.MILLISECONDS)) {
         throw new DeadlineExceededRuntimeException(String.format(
-            "Failed to acquire lock for path %s after %s ms. "
-                + "LockMode: %s, lock reference count = %s",
+            "Failed to acquire lock for path %s after %s ms "
+                + "(LockMode: %s, lock reference count = %s)",
             path, TRY_LOCK_TIMEOUT, mode, pathLock.getReferenceCount()));
       }
       return new CloseableResource<Lock>(lock) {
@@ -71,9 +76,15 @@ public class FuseReadWriteLockManager {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new CancelledRuntimeException(String.format(
-          "Failed to acquire lock for path %s after %s ms. "
-              + "LockMode: %s, lock reference count = %s",
+          "Failed to acquire lock for path %s after %s ms: interrupted "
+              + "(LockMode: %s, lock reference count = %s)",
           path, TRY_LOCK_TIMEOUT, mode, pathLock.getReferenceCount()));
     }
+  }
+
+  private String getHashedKey(String key) {
+    // File path is a unique identifier for a file, however it can be a long string
+    // hence using md5 hash of the file path as the lock identifier
+    return md5().hashString(key, UTF_8).toString();
   }
 }
