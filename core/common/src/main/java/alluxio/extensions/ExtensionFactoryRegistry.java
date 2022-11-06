@@ -82,6 +82,7 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
     S extends AlluxioConfiguration> {
   private static final Logger LOG = LoggerFactory.getLogger(ExtensionFactoryRegistry.class);
 
+  public static final String UNKNOWN_VERSION = "unknown";
   /**
    * The base list of factories, which does not include any lib or extension factories. The only
    * factories in the base list will be built-in factories, and any additional factories
@@ -146,41 +147,40 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
     String libDir = PathUtils.concatPath(conf.getString(PropertyKey.HOME), "lib");
     String extensionDir = conf.getString(PropertyKey.EXTENSIONS_DIR);
     scanLibs(factories, libDir);
-    recorder.recordIfEnabled("Loaded {} factory core jars from {}", factories.size(), libDir);
+    recorder.record("Loaded {} factory core jars from {}", factories.size(), libDir);
     scanExtensions(factories, extensionDir);
-    recorder.recordIfEnabled("Loaded extension jars from {}", extensionDir);
-    recorder.recordIfEnabled("The total number of loaded factory core jars is {}",
-        factories.size());
+    recorder.record("Loaded extension jars from {}.%n"
+        + "The total number of loaded factory core jars is {}", extensionDir, factories.size());
 
     if (conf.isSetByUser(PropertyKey.UNDERFS_VERSION)) {
-      recorder.recordIfEnabled("alluxio.underfs.version is set by user, target version is {}",
+      recorder.record("alluxio.underfs.version is set by user, target version is {}",
           conf.getString(PropertyKey.UNDERFS_VERSION));
     } else {
-      recorder.recordIfEnabled("alluxio.underfs.version is not set by user");
+      recorder.record("alluxio.underfs.version is not set by user");
     }
 
     for (T factory : factories) {
-      // if `getVersion` return null set the version to "unknown"
-      String version = "unknown";
+      // if `getVersion` returns null set the version to "unknown"
+      String version = UNKNOWN_VERSION;
       if (factory instanceof UnderFileSystemFactory) {
-        version =
-            Optional.ofNullable(((UnderFileSystemFactory) factory).getVersion()).orElse("unknown");
+        version = Optional.ofNullable(((UnderFileSystemFactory) factory)
+            .getVersion()).orElse(UNKNOWN_VERSION);
       }
       if (factory.supportsPath(path, conf)) {
         String message =
             String.format("Adding factory %s of version %s which supports path %s",
                 factory.getClass().getSimpleName(), version, path);
-        recorder.recordIfEnabled(message);
+        recorder.record(message);
         LOG.debug(message);
         eligibleFactories.add(factory);
       } else {
-        recorder.recordIfEnabled("Factory implementation {} of version {} "
+        recorder.record("Factory implementation {} of version {} "
             + "isn't eligible for path {}", factory.getClass().getSimpleName(), version, path);
       }
     }
     if (eligibleFactories.isEmpty()) {
       String message = String.format("No factory implementation supports the path %s", path);
-      recorder.recordIfEnabled(message);
+      recorder.record(message);
       LOG.warn(message);
     }
     return eligibleFactories;

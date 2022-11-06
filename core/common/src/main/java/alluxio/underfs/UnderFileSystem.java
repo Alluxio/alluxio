@@ -17,6 +17,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.recorder.NoopRecorder;
 import alluxio.recorder.Recorder;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
@@ -87,7 +88,7 @@ public interface UnderFileSystem extends Closeable {
      * @return client for the under file system
      */
     public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
-      return createWithRecorder(path, ufsConf, Recorder.createDisabledRecorder());
+      return createWithRecorder(path, ufsConf, new NoopRecorder());
     }
 
     /**
@@ -117,7 +118,7 @@ public interface UnderFileSystem extends Closeable {
           // Reflection may be invoked during UFS creation on service loading which uses context
           // classloader by default. Stashing the context classloader on creation and switch it back
           // when creation is done.
-          recorder.recordIfEnabled(
+          recorder.record(
               "Trying to create UFS from factory {} of version {} for path {} with ClassLoader {}",
               factory.getClass().getSimpleName(),
               factory.getVersion(),
@@ -127,7 +128,7 @@ public interface UnderFileSystem extends Closeable {
           UnderFileSystem underFileSystem =
               new UnderFileSystemWithLogging(path, factory.create(path, ufsConf), ufsConf);
           // Use the factory to create the actual client for the Under File System
-          recorder.recordIfEnabled("UFS created with factory {}",
+          recorder.record("UFS created with factory {}",
               factory.getClass().getSimpleName());
           return underFileSystem;
         } catch (Throwable e) {
@@ -136,7 +137,7 @@ public interface UnderFileSystem extends Closeable {
           String errorMsg = String.format(
               "Failed to create UnderFileSystem by factory %s: %s",
               factory.getClass().getSimpleName(), e);
-          recorder.recordIfEnabled(errorMsg);
+          recorder.record(errorMsg);
           LOG.warn(errorMsg);
         } finally {
           Thread.currentThread().setContextClassLoader(previousClassLoader);

@@ -3312,7 +3312,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       IOException, AccessControlException {
     Metrics.MOUNT_OPS.inc();
     Recorder recorder = context.getRecorder();
-    recorder.recordIfEnabled("mount command: alluxio fs mount {} {} option {}",
+    recorder.record("mount command: alluxio fs mount {} {} option {}",
         alluxioPath, ufsPath, context);
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
@@ -3372,7 +3372,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       mMountTable.validateMountPoint(inodePath.getUri(), ufsPath, mountId,
           context.getOptions().build());
       Recorder recorder = context.getRecorder();
-      recorder.recordIfEnabled("Acquired mount ID for the new mount point: {}", mountId);
+      recorder.record("Acquired mount ID for the new mount point: {}", mountId);
       // get UfsManager prepared
       mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
           new UnderFileSystemConfiguration(
@@ -3387,7 +3387,7 @@ public class DefaultFileSystemMaster extends CoreMaster
                 LoadMetadataPOptions.newBuilder().setCreateAncestors(false)), getMountTable(),
             mountId, context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
             this);
-        recorder.recordIfEnabled("Mount point {} created successfully",
+        recorder.record("Mount point {} created successfully",
             inodePath.getUri().getPath());
         // As we have verified the mount operation by calling MountTable.verifyMount, there won't
         // be any error thrown when doing MountTable.add
@@ -3396,7 +3396,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       } catch (Exception e) {
         // if exception happens, it indicates the failure of loadMetadata
         LOG.error("Failed to mount {} at {}: ", ufsPath, inodePath.getUri(), e);
-        recorder.recordIfEnabled("Failed to mount {} at {}: ",
+        recorder.record("Failed to mount {} at {}: ",
             ufsPath, inodePath.getUri(), e.getMessage());
         mUfsManager.removeMount(mountId);
         throw e;

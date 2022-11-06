@@ -300,13 +300,12 @@ public final class FileSystemMasterClientServiceHandler
           .withTracker(new GrpcCallTracker(responseObserver));
       // the mount execution process is recorded so that
       // when an exception occurs during mounting, the user can get detailed debugging messages
-      mountContext.getRecorder().setEnabled();
       try {
         mFileSystemMaster.mount(new AlluxioURI(request.getAlluxioPath()),
             new AlluxioURI(request.getUfsPath()), mountContext);
       } catch (Exception e) {
         Recorder recorder = mountContext.getRecorder();
-        recorder.recordIfEnabled(e.getMessage());
+        recorder.record(e.getMessage());
         // put the messages in an exception and let it carry over to the user
         throw new AlluxioException(String.join("\n", recorder.takeRecords()), e);
       }

@@ -15,6 +15,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.extensions.ExtensionFactoryRegistry;
+import alluxio.recorder.NoopRecorder;
 import alluxio.recorder.Recorder;
 
 import org.apache.commons.lang3.StringUtils;
@@ -89,7 +90,7 @@ public final class UnderFileSystemFactoryRegistry {
   public static UnderFileSystemFactory find(
       String path, UnderFileSystemConfiguration ufsConf) {
     List<UnderFileSystemFactory> factories = findAllWithRecorder(path, ufsConf,
-        Recorder.createDisabledRecorder());
+        new NoopRecorder());
     if (factories.isEmpty()) {
       LOG.warn("No Under File System Factory implementation supports the path {}. Please check if "
           + "the under storage path is valid.", path);
@@ -121,7 +122,7 @@ public final class UnderFileSystemFactoryRegistry {
             "Versions [%s] are supported for path %s but you have configured version: %s",
             StringUtils.join(supportedVersions, ","), path,
             configuredVersion);
-        recorder.recordIfEnabled(message);
+        recorder.record(message);
         LOG.warn(message);
       }
     } else if (ufsConf.getBoolean(PropertyKey.UNDERFS_STRICT_VERSION_MATCH_ENABLED)
@@ -155,7 +156,7 @@ public final class UnderFileSystemFactoryRegistry {
     // Check if any versioned factory supports the default configuration
     List<UnderFileSystemFactory> factories = sRegistryInstance
         .findAllWithRecorder(path, UnderFileSystemConfiguration.defaults(confCopy),
-             Recorder.createDisabledRecorder());
+             new Recorder());
     List<String> supportedVersions = new ArrayList<>();
     for (UnderFileSystemFactory factory : factories) {
       if (!factory.getVersion().isEmpty()) {
