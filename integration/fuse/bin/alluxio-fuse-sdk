@@ -187,7 +187,7 @@ launch_fuse_process() {
        alluxio.fuse.AlluxioFuse -m ${mount_point} -u ${ufs_address} ${mount_options}"
 
   if [[ "${foreground}" == 'true' ]]; then
-    exec "${cmd}"
+    exec ${cmd}
   else
     (nohup ${cmd} > "${ALLUXIO_LOGS_DIR}"/fuse.out 2>&1) &
     wait_for_fuse_mounted "${ufs_address}" "${mount_point}"

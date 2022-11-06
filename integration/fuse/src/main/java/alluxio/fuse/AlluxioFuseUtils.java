@@ -40,6 +40,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.struct.FileStat;
+import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricKey;
@@ -50,7 +51,9 @@ import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.io.BufferUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -58,9 +61,11 @@ import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -508,7 +513,8 @@ public final class AlluxioFuseUtils {
   public static Optional<URIStatus> getPathStatus(FileSystem fileSystem, AlluxioURI uri) {
     try {
       return Optional.of(fileSystem.getStatus(uri));
-    } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
+    } catch (InvalidPathException | FileNotFoundException
+        | FileDoesNotExistException | NotFoundRuntimeException e) {
       return Optional.empty();
     } catch (AccessControlException e) {
       throw new PermissionDeniedRuntimeException(e);
@@ -646,6 +652,39 @@ public final class AlluxioFuseUtils {
       // fusePath is guaranteed to always be an absolute path (i.e., starts
       // with a fwd slash) - relative to the FUSE mount point
       return mRootURI.join(fusePath);
+    }
+  }
+
+  /**
+   * Creates a closeable fuse file info.
+   */
+  @VisibleForTesting
+  public static class CloseableFuseFileInfo implements Closeable {
+    private final FuseFileInfo mInfo;
+    private final ByteBuffer mBuffer;
+
+    /**
+     * Constructor.
+     */
+    public CloseableFuseFileInfo() {
+      mBuffer = ByteBuffer.allocateDirect(36);
+      mBuffer.clear();
+      mInfo =  FuseFileInfo.of(mBuffer);
+    }
+
+    /**
+     * @return the fuse file info
+     */
+    public FuseFileInfo get() {
+      return mInfo;
+    }
+
+    /**
+     * Closes the underlying resources.
+     */
+    @Override
+    public void close() throws IOException {
+      BufferUtils.cleanDirectBuffer(mBuffer);
     }
   }
 }
