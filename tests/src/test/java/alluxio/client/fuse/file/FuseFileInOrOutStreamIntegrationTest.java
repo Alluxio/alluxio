@@ -14,7 +14,6 @@ package alluxio.client.fuse.file;
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
-import alluxio.fuse.file.FuseFileInOrOutStream;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.util.io.BufferUtils;
@@ -107,8 +106,8 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
     int newFileLength = 30;
-    try (FuseFileInOrOutStream stream = FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy,
-        mPathLocks, alluxioURI, OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue(), MODE)) {
+    try (FuseFileStream stream = mStreamFactory.create(
+        alluxioURI, OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(0, newFileLength);
       stream.write(buffer, newFileLength, 0);
     }

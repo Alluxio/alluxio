@@ -20,7 +20,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
-import alluxio.collections.LockPool;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -75,7 +74,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -106,13 +104,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   // Add a PATH_INDEX to know getattr() been called when writing this file
   private static final IndexDefinition<FuseFileEntry<FuseFileStream>, String>
       PATH_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getPath);
-  /**
-   * Making sure only one write stream at a time.
-   * Key is the hash string of file path.
-   */
-  private static final LockPool<String> PATH_LOCKS
-      = new LockPool<>((key) -> new ReentrantReadWriteLock(),
-      128, 128, 512, 64);
+
   private final IndexedSet<FuseFileEntry<FuseFileStream>> mFileEntries
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final AuthPolicy mAuthPolicy;
@@ -142,7 +134,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         : this::acquireBlockMasterInfo;
     mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(mConf);
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, mConf, this);
-    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy, PATH_LOCKS);
+    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
     mUfsEnabled = mConf.getBoolean(PropertyKey.USER_UFS_ENABLED);
     if (mConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)) {
       try {
