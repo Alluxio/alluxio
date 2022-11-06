@@ -2339,6 +2339,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE_DIR_INODE =
+      stringBuilder(Name.MASTER_METASTORE_DIR_INODE)
+          .setDefaultValue(String.format("${%s}", Name.MASTER_METASTORE_DIR))
+          .setDescription("The inode metastore work directory. "
+              + "Only some metastores need disk.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_DIR_BLOCK =
+      stringBuilder(Name.MASTER_METASTORE_DIR_BLOCK)
+          .setDefaultValue(String.format("${%s}", Name.MASTER_METASTORE_DIR))
+          .setDescription("The block metastore work directory. "
+              + "Only some metastores need disk.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
       booleanBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP)
         .setDefaultValue(false)
@@ -2361,14 +2377,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             Math.max(1, Runtime.getRuntime().availableProcessors() / 2)),
             "The default number of threads used by backing up rocksdb in parallel.")
         .setDescription("The number of threads used by backing up rocksdb in parallel.")
-        .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-        .setScope(Scope.MASTER)
-        .build();
-  public static final PropertyKey MASTER_METASTORE_BLOCK_STORE_DIR =
-      stringBuilder(Name.MASTER_METASTORE_BLOCK_STORE_DIR)
-        .setDefaultValue(String.format("${%s}", Name.MASTER_METASTORE_DIR))
-        .setDescription("The block store metastore work directory. "
-            + "Only some metastores need disk.")
         .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
         .setScope(Scope.MASTER)
         .build();
@@ -7569,14 +7577,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_METASTORE_INODE = "alluxio.master.metastore.inode";
     public static final String MASTER_METASTORE_BLOCK = "alluxio.master.metastore.block";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
+    public static final String MASTER_METASTORE_DIR_INODE =
+        "alluxio.master.metastore.dir.block";
+    public static final String MASTER_METASTORE_DIR_BLOCK =
+        "alluxio.master.metastore.dir.block";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
         "alluxio.master.metastore.rocks.parallel.backup";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL =
         "alluxio.master.metastore.rocks.parallel.backup.compression.level";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =
         "alluxio.master.metastore.rocks.parallel.backup.threads";
-    public static final String MASTER_METASTORE_BLOCK_STORE_DIR =
-        "alluxio.master.metastore.block.store.dir";
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
         "alluxio.master.metastore.inode.cache.evict.batch.size";
     public static final String MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO =

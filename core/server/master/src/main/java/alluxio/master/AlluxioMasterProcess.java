@@ -118,15 +118,14 @@ public class AlluxioMasterProcess extends MasterProcess {
           String.format("Journal %s has not been formatted!", mJournalSystem));
     }
     // Create masters.
-    String baseDir = Configuration.getString(PropertyKey.MASTER_METASTORE_DIR);
-    String blockStoreBaseDir =
-        Configuration.getString(PropertyKey.MASTER_METASTORE_BLOCK_STORE_DIR);
+    String inodeStoreBaseDir = Configuration.getString(PropertyKey.MASTER_METASTORE_DIR_INODE);
+    String blockStoreBaseDir = Configuration.getString(PropertyKey.MASTER_METASTORE_DIR_BLOCK);
     mContext = CoreMasterContext.newBuilder()
         .setJournalSystem(mJournalSystem)
         .setSafeModeManager(mSafeModeManager)
         .setBackupManager(mBackupManager)
         .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(blockStoreBaseDir))
-        .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(baseDir))
+        .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(inodeStoreBaseDir))
         .setStartTimeMs(mStartTimeMs)
         .setPort(NetworkAddressUtils
             .getPort(ServiceType.MASTER_RPC, Configuration.global()))
