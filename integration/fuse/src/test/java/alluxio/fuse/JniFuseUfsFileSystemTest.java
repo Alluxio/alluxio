@@ -58,7 +58,6 @@ public class JniFuseUfsFileSystemTest {
   private AlluxioURI mRootUfs;
   private AlluxioJniFuseFileSystem mFuseFs;
   private CloseableFuseFileInfo mFileInfo;
-  // TODO(lu) release file stat?
   private FileStat mFileStat;
 
   @Before
@@ -82,6 +81,7 @@ public class JniFuseUfsFileSystemTest {
   @After
   public void after() throws IOException {
     FileUtils.deletePathRecursively(mRootUfs.toString());
+    BufferUtils.cleanDirectBuffer(mFileStat.getBuffer());
     mFileInfo.close();
   }
 
@@ -381,26 +381,22 @@ public class JniFuseUfsFileSystemTest {
     Assert.assertEquals(len * 2, mFileStat.st_size.intValue());
   }
 
-  // TODO(lu) fix the code to avoid data corruption
   @Test
   public void readingWhenWriting() {
     mFileInfo.get().flags.set(O_WRONLY.intValue());
     Assert.assertEquals(0, mFuseFs.create(FILE,
         DEFAULT_MODE.toShort(), mFileInfo.get()));
-    int len = 20;
-    ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(20);
-    Assert.assertEquals(len,
-        mFuseFs.write(FILE, buffer, len, 0, mFileInfo.get()));
+    try {
+      int len = 20;
+      ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(20);
+      Assert.assertEquals(len,
+          mFuseFs.write(FILE, buffer, len, 0, mFileInfo.get()));
 
-    mFileInfo.get().flags.set(O_RDONLY.intValue());
-    Assert.assertEquals(0, mFuseFs.open(FILE, mFileInfo.get()));
-    buffer.flip();
-    // Expected to be error code but 0
-    // UFS does not have incomplete file concept
-    // TODO(lu) how to fix
-    Assert.assertEquals(-5,
-        mFuseFs.read(FILE, buffer, len, 0, mFileInfo.get()));
-    Assert.assertEquals(0, mFuseFs.release(FILE, mFileInfo.get()));
+      mFileInfo.get().flags.set(O_RDONLY.intValue());
+      Assert.assertEquals(-ErrorCodes.ETIME(), mFuseFs.open(FILE, mFileInfo.get()));
+    } finally {
+      mFuseFs.release(FILE, mFileInfo.get());
+    }
   }
 
   private void createEmptyFile(String path) {
