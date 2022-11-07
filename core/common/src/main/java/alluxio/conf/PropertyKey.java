@@ -2774,6 +2774,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_JOURNAL_SYNC_ROOT_AFTER_INIT_FROM_BACKUP =
+      booleanBuilder(Name.MASTER_JOURNAL_SYNC_ROOT_AFTER_INIT_FROM_BACKUP)
+          .setDefaultValue(true)
+          .setDescription("Controls whether to automatically mark the root of the UFS as "
+              + "needing synchronization after restoring from backup.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setIsHidden(true)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD =
       intBuilder(Name.MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD)
           .setDefaultValue(10)
@@ -7447,6 +7456,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_FOLDER = "alluxio.master.journal.folder";
     public static final String MASTER_JOURNAL_INIT_FROM_BACKUP =
         "alluxio.master.journal.init.from.backup";
+    public static final String MASTER_JOURNAL_SYNC_ROOT_AFTER_INIT_FROM_BACKUP =
+        "alluxio.master.journal.sync.root.after.init.from.backup";
     public static final String MASTER_JOURNAL_SPACE_MONITOR_INTERVAL =
         "alluxio.master.journal.space.monitor.interval";
     public static final String MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD
