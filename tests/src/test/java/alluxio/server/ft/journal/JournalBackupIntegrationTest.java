@@ -115,6 +115,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "3sec")
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     backupRestoreTest(true);
   }
@@ -129,6 +131,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
         .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.HEAP)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     backupRestoreMetaStoreTest();
   }
@@ -143,6 +147,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
         .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     backupRestoreMetaStoreTest();
   }
@@ -158,6 +164,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
         .addProperty(PropertyKey.MASTER_INODE_METASTORE, MetastoreType.ROCKS)
         .addProperty(PropertyKey.MASTER_BLOCK_METASTORE, MetastoreType.HEAP)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     backupRestoreMetaStoreTest();
   }
@@ -173,6 +181,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
         .addProperty(PropertyKey.MASTER_INODE_METASTORE, MetastoreType.HEAP)
         .addProperty(PropertyKey.MASTER_BLOCK_METASTORE, MetastoreType.ROCKS)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     backupRestoreMetaStoreTest();
   }
@@ -203,6 +213,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS)
         .addProperty(PropertyKey.MASTER_BACKUP_DIRECTORY, backupFolder.getRoot())
         .addProperty(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED, true)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     mCluster.start();
     final int numFiles = 10;
@@ -298,6 +310,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         // performed due to the invalidation associated with restoring a backup, as opposed to
         // performed automatically under some other metadata load types
         .addProperty(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataPType.NEVER)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     mCluster.start();
 
@@ -345,6 +359,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_BACKUP_DIRECTORY, temporaryFolder.getRoot())
         .addProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
         .addProperty(PropertyKey.MASTER_JOURNAL_SYNC_ROOT_AFTER_INIT_FROM_BACKUP, syncRootOnRestore)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     mCluster.start();
 
@@ -398,6 +414,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .setClusterName("backupRestoreEmbedded")
         .setNumMasters(3)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     backupRestoreTest(true);
   }
@@ -408,6 +426,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .setClusterName("backupRestoreSingle")
         .setNumMasters(1)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     backupRestoreTest(false);
   }
