@@ -59,6 +59,8 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
     try (CloseableResource<BlockMasterClient> masterClientResource =
                  mFsContext.acquireBlockMasterClientResource()) {
       totalWorkers = masterClientResource.get()
+              // the default option is to get all worker infos,
+              // as we want to make sure the worker by the name exists and is not a typo
               .getWorkerReport(GetWorkerReportOptions.defaults())
               .stream()
               .map(WorkerInfo::getAddress)
