@@ -17,7 +17,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.recorder.NoopRecorder;
 import alluxio.recorder.Recorder;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
@@ -88,7 +87,7 @@ public interface UnderFileSystem extends Closeable {
      * @return client for the under file system
      */
     public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
-      return createWithRecorder(path, ufsConf, new NoopRecorder());
+      return createWithRecorder(path, ufsConf, Recorder.createNoopRecorder());
     }
 
     /**

@@ -19,11 +19,13 @@ import java.util.List;
  */
 public class NoopRecorder extends Recorder {
   private final LinkedList<String> mRecords;
+  static final Recorder INSTANCE = new NoopRecorder();
 
   /**
    * Constructs a new instance.
    */
-  public NoopRecorder() {
+  private NoopRecorder() {
+    super();
     mRecords = new LinkedList<>();
   }
 

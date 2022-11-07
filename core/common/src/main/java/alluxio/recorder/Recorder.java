@@ -64,4 +64,12 @@ public class Recorder {
     mRecords.clear();
     return records;
   }
+
+  /**
+   * Create a {@link NoopRecorder} instance.
+   * @return a NoopRecorder instance
+   */
+  public static Recorder createNoopRecorder() {
+    return NoopRecorder.INSTANCE;
+  }
 }

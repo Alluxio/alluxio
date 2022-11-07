@@ -15,7 +15,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.extensions.ExtensionFactoryRegistry;
-import alluxio.recorder.NoopRecorder;
 import alluxio.recorder.Recorder;
 
 import org.apache.commons.lang3.StringUtils;
@@ -90,7 +89,7 @@ public final class UnderFileSystemFactoryRegistry {
   public static UnderFileSystemFactory find(
       String path, UnderFileSystemConfiguration ufsConf) {
     List<UnderFileSystemFactory> factories = findAllWithRecorder(path, ufsConf,
-        new NoopRecorder());
+        Recorder.createNoopRecorder());
     if (factories.isEmpty()) {
       LOG.warn("No Under File System Factory implementation supports the path {}. Please check if "
           + "the under storage path is valid.", path);

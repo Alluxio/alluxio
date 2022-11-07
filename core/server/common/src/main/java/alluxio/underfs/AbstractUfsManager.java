@@ -18,7 +18,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.ufs.UfsJournal;
-import alluxio.recorder.NoopRecorder;
 import alluxio.recorder.Recorder;
 import alluxio.util.IdUtils;
 
@@ -120,7 +119,7 @@ public abstract class AbstractUfsManager implements UfsManager {
    * @return the UFS instance
    */
   private UnderFileSystem getOrAdd(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
-    return getOrAddWithRecorder(ufsUri, ufsConf, new NoopRecorder());
+    return getOrAddWithRecorder(ufsUri, ufsConf, Recorder.createNoopRecorder());
   }
 
   /**
@@ -189,7 +188,7 @@ public abstract class AbstractUfsManager implements UfsManager {
   @Override
   public void addMount(long mountId, final AlluxioURI ufsUri,
       final UnderFileSystemConfiguration ufsConf) {
-    addMountWithRecorder(mountId, ufsUri, ufsConf, new NoopRecorder());
+    addMountWithRecorder(mountId, ufsUri, ufsConf, Recorder.createNoopRecorder());
   }
 
   @Override
