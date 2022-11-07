@@ -270,7 +270,6 @@ public class FileSystemCache {
     }
 
     @Override
-<<<<<<< HEAD
     public List<BlockLocationInfo> getBlockLocations(URIStatus status)
         throws FileDoesNotExistException, IOException, AlluxioException {
       if (mClosed) {
@@ -280,18 +279,6 @@ public class FileSystemCache {
     }
 
     @Override
-||||||| 90879c08dd (Refactor metadata caching filesystem)
-    public List<BlockLocationInfo> getBlockLocations(URIStatus status, AlluxioURI path)
-        throws FileDoesNotExistException, IOException, AlluxioException {
-      if (mClosed) {
-        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
-      }
-      return super.getBlockLocations(status, path);
-    }
-
-    @Override
-=======
->>>>>>> parent of 90879c08dd (Refactor metadata caching filesystem)
     public AlluxioConfiguration getConf() {
       return super.getConf();
     }

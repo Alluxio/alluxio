@@ -110,22 +110,12 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-<<<<<<< HEAD
   public List<BlockLocationInfo> getBlockLocations(URIStatus status)
       throws FileDoesNotExistException, IOException, AlluxioException {
     return mDelegatedFileSystem.getBlockLocations(status);
   }
 
   @Override
-||||||| 90879c08dd (Refactor metadata caching filesystem)
-  public List<BlockLocationInfo> getBlockLocations(URIStatus status, AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
-    return mDelegatedFileSystem.getBlockLocations(status, path);
-  }
-
-  @Override
-=======
->>>>>>> parent of 90879c08dd (Refactor metadata caching filesystem)
   public AlluxioConfiguration getConf() {
     return mDelegatedFileSystem.getConf();
   }

@@ -162,22 +162,12 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
-<<<<<<< HEAD
     public List<BlockLocationInfo> getBlockLocations(URIStatus status)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
 
     @Override
-||||||| 90879c08dd (Refactor metadata caching filesystem)
-    public List<BlockLocationInfo> getBlockLocations(URIStatus status, AlluxioURI path)
-        throws IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-=======
->>>>>>> parent of 90879c08dd (Refactor metadata caching filesystem)
     public AlluxioConfiguration getConf() {
       return Configuration.global();
     }

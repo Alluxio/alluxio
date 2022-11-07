@@ -116,25 +116,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
     mMetadataCache.invalidate(src);
     mMetadataCache.invalidate(dst.getParent());
     mMetadataCache.invalidate(dst);
-<<<<<<< HEAD:core/client/fs/src/main/java/alluxio/client/file/MetadataCachingFileSystem.java
-    mDelegatedFileSystem.rename(src, dst, options);
-  }
-
-  @Override
-  public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
-      throws IOException, AlluxioException {
-    return mDelegatedFileSystem.getBlockLocations(getStatus(path));
-||||||| 90879c08dd (Refactor metadata caching filesystem):core/client/fs/src/main/java/alluxio/client/file/MetadataCachingFileSystem.java
-    mDelegatedFileSystem.rename(src, dst, options);
-  }
-
-  @Override
-  public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
-      throws IOException, AlluxioException {
-    return mDelegatedFileSystem.getBlockLocations(getStatus(path), path);
-=======
     super.rename(src, dst, options);
->>>>>>> parent of 90879c08dd (Refactor metadata caching filesystem):core/client/fs/src/main/java/alluxio/client/file/MetadataCachingBaseFileSystem.java
   }
 
   @Override
@@ -210,34 +192,6 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
     return statuses;
   }
 
-<<<<<<< HEAD:core/client/fs/src/main/java/alluxio/client/file/MetadataCachingFileSystem.java
-  @Override
-  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
-      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
-      IOException, AlluxioException {
-    URIStatus status = getStatus(path,
-        FileSystemOptionsUtils.getStatusDefaults(mFsContext.getPathConf(path)).toBuilder()
-            .setAccessMode(Bits.READ)
-            .setUpdateTimestamps(options.getUpdateLastAccessTime())
-            .build());
-    return mDelegatedFileSystem.openFile(status, options);
-  }
-
-||||||| 90879c08dd (Refactor metadata caching filesystem):core/client/fs/src/main/java/alluxio/client/file/MetadataCachingFileSystem.java
-  @Override
-  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
-      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
-      IOException, AlluxioException {
-    URIStatus status = getStatus(path,
-        FileSystemOptions.getStatusDefaults(mFsContext.getPathConf(path)).toBuilder()
-            .setAccessMode(Bits.READ)
-            .setUpdateTimestamps(options.getUpdateLastAccessTime())
-            .build());
-    return mDelegatedFileSystem.openFile(status, options);
-  }
-
-=======
->>>>>>> parent of 90879c08dd (Refactor metadata caching filesystem):core/client/fs/src/main/java/alluxio/client/file/MetadataCachingBaseFileSystem.java
   /**
    * Asynchronously update file's last access time.
    *
