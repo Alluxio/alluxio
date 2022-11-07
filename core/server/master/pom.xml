@@ -79,6 +79,10 @@
       <artifactId>jersey-media-json-jackson</artifactId>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>it.unimi.dsi</groupId>
+      <artifactId>fastutil-core</artifactId>
+    </dependency>
 
     <!-- Internal dependencies -->
     <dependency>
