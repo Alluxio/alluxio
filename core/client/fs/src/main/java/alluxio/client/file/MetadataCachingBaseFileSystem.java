@@ -51,7 +51,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class MetadataCachingBaseFileSystem extends BaseFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MetadataCachingBaseFileSystem.class);
   private static final int THREAD_KEEPALIVE_SECOND = 60;
   private static final int THREAD_TERMINATION_TIMEOUT_MS = 10000;
   private static final URIStatus NOT_FOUND_STATUS = new URIStatus(
