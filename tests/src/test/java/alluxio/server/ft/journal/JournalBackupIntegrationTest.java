@@ -276,6 +276,15 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void syncRootOnBackupRestore() throws Exception {
+    syncTestCore(true);
+  }
+
+  @Test
+  public void doNotSyncRootOnBackupRestore() throws Exception {
+    syncTestCore(false);
+  }
+
+  private void syncTestCore(boolean syncRootOnRestore) throws Exception {
     TemporaryFolder temporaryFolder = new TemporaryFolder();
     temporaryFolder.create();
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_SYNC_ON_RESTORE)
@@ -284,6 +293,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .setNumWorkers(1)
         .addProperty(PropertyKey.MASTER_BACKUP_DIRECTORY, temporaryFolder.getRoot())
         .addProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
+        .addProperty(PropertyKey.MASTER_JOURNAL_SYNC_ROOT_AFTER_INIT_FROM_BACKUP, syncRootOnRestore)
         // this test uses NEVER as the metadata load type to ensure that the UFS sync is
         // performed due to the invalidation associated with restoring a backup, as opposed to
         // performed automatically under some other metadata load types
@@ -309,7 +319,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         backup.getBackupUri().getPath());
     mCluster.startMasters();
     List<URIStatus> statuses = mCluster.getFileSystemClient().listStatus(new AlluxioURI("/"));
-    assertEquals(2, statuses.size());
+    int expected = syncRootOnRestore ? 2 : 1;
+    assertEquals(expected, statuses.size());
     mCluster.notifySuccess();
     temporaryFolder.delete();
   }
