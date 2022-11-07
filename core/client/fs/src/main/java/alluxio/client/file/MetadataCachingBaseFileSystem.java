@@ -17,22 +17,18 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.OpenDirectoryException;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.ThreadUtils;
-import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -54,26 +50,23 @@ import javax.annotation.concurrent.ThreadSafe;
  * FileSystem implementation with the capability of caching metadata of paths.
  */
 @ThreadSafe
-public class MetadataCachingFileSystem extends DelegatingFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(MetadataCachingFileSystem.class);
+public class MetadataCachingBaseFileSystem extends BaseFileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
   private static final int THREAD_KEEPALIVE_SECOND = 60;
   private static final int THREAD_TERMINATION_TIMEOUT_MS = 10000;
   private static final URIStatus NOT_FOUND_STATUS = new URIStatus(
       new FileInfo().setCompleted(true));
 
-  private final FileSystemContext mFsContext;
   private final MetadataCache mMetadataCache;
   private final ExecutorService mAccessTimeUpdater;
   private final boolean mDisableUpdateFileAccessTime;
 
   /**
-   * @param fileSystem the file system
    * @param context the fs context
    */
-  public MetadataCachingFileSystem(FileSystem fileSystem, FileSystemContext context) {
-    super(fileSystem);
+  public MetadataCachingBaseFileSystem(FileSystemContext context) {
+    super(context);
 
-    mFsContext = context;
     int maxSize = mFsContext.getClusterConf().getInt(PropertyKey.USER_METADATA_CACHE_MAX_SIZE);
     long expirationTimeMs = mFsContext.getClusterConf()
         .getMs(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME);
@@ -96,7 +89,7 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     mMetadataCache.invalidate(path.getParent());
     mMetadataCache.invalidate(path);
-    mDelegatedFileSystem.createDirectory(path, options);
+    super.createDirectory(path, options);
   }
 
   @Override
@@ -104,7 +97,7 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
       throws IOException, AlluxioException {
     mMetadataCache.invalidate(path.getParent());
     mMetadataCache.invalidate(path);
-    return mDelegatedFileSystem.createFile(path, options);
+    return super.createFile(path, options);
   }
 
   @Override
@@ -113,7 +106,7 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
       AlluxioException {
     mMetadataCache.invalidate(path.getParent());
     mMetadataCache.invalidate(path);
-    mDelegatedFileSystem.delete(path, options);
+    super.delete(path, options);
   }
 
   @Override
@@ -123,6 +116,7 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
     mMetadataCache.invalidate(src);
     mMetadataCache.invalidate(dst.getParent());
     mMetadataCache.invalidate(dst);
+<<<<<<< HEAD:core/client/fs/src/main/java/alluxio/client/file/MetadataCachingFileSystem.java
     mDelegatedFileSystem.rename(src, dst, options);
   }
 
@@ -130,15 +124,27 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
   public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
       throws IOException, AlluxioException {
     return mDelegatedFileSystem.getBlockLocations(getStatus(path));
+||||||| 90879c08dd (Refactor metadata caching filesystem):core/client/fs/src/main/java/alluxio/client/file/MetadataCachingFileSystem.java
+    mDelegatedFileSystem.rename(src, dst, options);
+  }
+
+  @Override
+  public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
+      throws IOException, AlluxioException {
+    return mDelegatedFileSystem.getBlockLocations(getStatus(path), path);
+=======
+    super.rename(src, dst, options);
+>>>>>>> parent of 90879c08dd (Refactor metadata caching filesystem):core/client/fs/src/main/java/alluxio/client/file/MetadataCachingBaseFileSystem.java
   }
 
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    checkUri(path);
     URIStatus status = mMetadataCache.get(path);
     if (status == null || !status.isCompleted()) {
       try {
-        status = mDelegatedFileSystem.getStatus(path, options);
+        status = super.getStatus(path, options);
         mMetadataCache.put(path, status);
       } catch (FileDoesNotExistException e) {
         mMetadataCache.put(path, NOT_FOUND_STATUS);
@@ -159,19 +165,21 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
   public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    checkUri(path);
+
     if (options.getRecursive()) {
       // Do not cache results of recursive list status,
       // because some results might be cached multiple times.
       // Otherwise, needs more complicated logic inside the cache,
       // that might not worth the effort of caching.
-      mDelegatedFileSystem.iterateStatus(path, options, action);
+      super.iterateStatus(path, options, action);
       return;
     }
 
     List<URIStatus> cachedStatuses = mMetadataCache.listStatus(path);
     if (cachedStatuses == null) {
       List<URIStatus> statuses = new ArrayList<>();
-      mDelegatedFileSystem.iterateStatus(path, options, status -> {
+      super.iterateStatus(path, options, status -> {
         statuses.add(status);
         action.accept(status);
       });
@@ -184,22 +192,25 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
   @Override
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    checkUri(path);
+
     if (options.getRecursive()) {
       // Do not cache results of recursive list status,
       // because some results might be cached multiple times.
       // Otherwise, needs more complicated logic inside the cache,
       // that might not worth the effort of caching.
-      return mDelegatedFileSystem.listStatus(path, options);
+      return super.listStatus(path, options);
     }
 
     List<URIStatus> statuses = mMetadataCache.listStatus(path);
     if (statuses == null) {
-      statuses = mDelegatedFileSystem.listStatus(path, options);
+      statuses = super.listStatus(path, options);
       mMetadataCache.put(path, statuses);
     }
     return statuses;
   }
 
+<<<<<<< HEAD:core/client/fs/src/main/java/alluxio/client/file/MetadataCachingFileSystem.java
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
@@ -212,6 +223,21 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
     return mDelegatedFileSystem.openFile(status, options);
   }
 
+||||||| 90879c08dd (Refactor metadata caching filesystem):core/client/fs/src/main/java/alluxio/client/file/MetadataCachingFileSystem.java
+  @Override
+  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
+      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+      IOException, AlluxioException {
+    URIStatus status = getStatus(path,
+        FileSystemOptions.getStatusDefaults(mFsContext.getPathConf(path)).toBuilder()
+            .setAccessMode(Bits.READ)
+            .setUpdateTimestamps(options.getUpdateLastAccessTime())
+            .build());
+    return mDelegatedFileSystem.openFile(status, options);
+  }
+
+=======
+>>>>>>> parent of 90879c08dd (Refactor metadata caching filesystem):core/client/fs/src/main/java/alluxio/client/file/MetadataCachingBaseFileSystem.java
   /**
    * Asynchronously update file's last access time.
    *
@@ -243,9 +269,9 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
 
   @Override
   public synchronized void close() throws IOException {
-    if (!mDelegatedFileSystem.isClosed()) {
+    if (!mClosed) {
       ThreadUtils.shutdownAndAwaitTermination(mAccessTimeUpdater, THREAD_TERMINATION_TIMEOUT_MS);
-      mDelegatedFileSystem.close();
+      super.close();
     }
   }
 

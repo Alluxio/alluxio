@@ -219,10 +219,26 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+<<<<<<< HEAD
   public List<BlockLocationInfo> getBlockLocations(URIStatus status)
       throws IOException, AlluxioException {
+||||||| 90879c08dd (Refactor metadata caching filesystem)
+  public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
+      throws IOException, AlluxioException {
+    // Don't need to checkUri here because we call other client operations
+    return getBlockLocations(getStatus(path), path);
+  }
+
+  @Override
+  public List<BlockLocationInfo> getBlockLocations(URIStatus status, AlluxioURI path)
+      throws IOException, AlluxioException {
+=======
+  public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
+      throws IOException, AlluxioException {
+>>>>>>> parent of 90879c08dd (Refactor metadata caching filesystem)
     List<BlockLocationInfo> blockLocations = new ArrayList<>();
-    List<FileBlockInfo> blocks = status.getFileBlockInfos();
+    // Don't need to checkUri here because we call other client operations
+    List<FileBlockInfo> blocks = getStatus(path).getFileBlockInfos();
     for (FileBlockInfo fileBlockInfo : blocks) {
       // add the existing in-Alluxio block locations
       List<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()
