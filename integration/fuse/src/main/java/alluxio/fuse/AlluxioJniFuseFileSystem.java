@@ -100,7 +100,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final FuseShell mFuseShell;
   private static final IndexDefinition<FuseFileEntry<FuseFileStream>, Long>
       ID_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getId);
-
   // Add a PATH_INDEX to know getattr() been called when writing this file
   private static final IndexDefinition<FuseFileEntry<FuseFileStream>, String>
       PATH_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getPath);

@@ -26,11 +26,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ClientRWLock implements ReadWriteLock {
-  /**
-   * Uses the unfair lock to prevent a read lock that fails to release from locking the block
-   * forever and thus blocking all the subsequent write access.
-   * See https://alluxio.atlassian.net/browse/ALLUXIO-2636.
-   */
   private final Semaphore mAvailable;
   /** Reference count. */
   private final AtomicInteger mReferences = new AtomicInteger();
@@ -43,6 +38,9 @@ public final class ClientRWLock implements ReadWriteLock {
    */
   public ClientRWLock(int maxReaders) {
     mMaxReaders = maxReaders;
+    // Uses the unfair lock to prevent a read lock
+    // that fails to release from locking the block forever
+    // and thus blocking all the subsequent write access.
     mAvailable = new Semaphore(maxReaders, false);
   }
 
