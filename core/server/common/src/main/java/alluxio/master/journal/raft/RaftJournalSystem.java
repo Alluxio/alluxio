@@ -427,6 +427,16 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         SizeInBytes.valueOf(messageSize));
     RatisDropwizardExports.registerRatisMetricReporters(mRatisMetricsMap);
 
+    Map<String, Object> ratisConf =
+        Configuration.getNestedProperties(PropertyKey.MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG);
+
+    for (Map.Entry<String, Object> entry : ratisConf.entrySet()) {
+      if (entry.getValue() != null) {
+        properties.set(entry.getKey(), entry.getValue().toString());
+        LOG.info("set ratis config {}={}", entry.getKey(), entry.getValue());
+      }
+    }
+
     // TODO(feng): clean up embedded journal configuration
     // build server
     mServer = RaftServer.newBuilder()
