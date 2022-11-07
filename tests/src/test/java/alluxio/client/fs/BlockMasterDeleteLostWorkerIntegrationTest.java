@@ -50,7 +50,8 @@ public class BlockMasterDeleteLostWorkerIntegrationTest {
    */
   @Before
   public void before() throws Exception {
-    Configuration.set(PropertyKey.MASTER_WORKER_DELETE_TIMEOUT_MS, MASTER_WORKER_DELETE_TIMEOUT_MS);
+    Configuration.set(PropertyKey.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS,
+        MASTER_WORKER_DELETE_TIMEOUT_MS);
     Configuration.set(PropertyKey.MASTER_WORKER_TIMEOUT_MS, MASTER_WORKER_TIMEOUT_MS);
 
     mRegistry = new MasterRegistry();
@@ -60,8 +61,8 @@ public class BlockMasterDeleteLostWorkerIntegrationTest {
     mClock = new ManualClock();
 
     mBlockMaster = new DefaultBlockMaster(metricsMaster, masterContext, mClock,
-            ExecutorServiceFactories.constantExecutorServiceFactory(
-                    Executors.newFixedThreadPool(10)));
+        ExecutorServiceFactories.constantExecutorServiceFactory(
+            Executors.newFixedThreadPool(10)));
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);
   }

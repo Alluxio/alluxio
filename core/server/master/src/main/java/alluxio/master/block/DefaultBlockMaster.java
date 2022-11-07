@@ -1324,33 +1324,21 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   private void processWorkerRemovedBlocks(MasterWorkerInfo workerInfo,
       Collection<Long> removedBlockIds, boolean sendCommand) {
-    workerLostBlocks(workerInfo, removedBlockIds);
     for (long removedBlockId : removedBlockIds) {
-      // Remove the block even if its metadata has been deleted already.
-      if (sendCommand) {
-        workerInfo.scheduleRemoveFromWorker(removedBlockId);
-      } else {
-        workerInfo.removeBlockFromWorkerMeta(removedBlockId);
-      }
-    }
-  }
-
-  /**
-   * Updates block metadata and block locations in the BlockMaster when block lost.
-   * @param workerInfo The worker metadata object
-   * @param lostBlockIds The lost Blocks
-   */
-  private void workerLostBlocks(MasterWorkerInfo workerInfo,
-      Collection<Long> lostBlockIds) {
-    for (long lostBlockId : lostBlockIds) {
-      try (LockResource r = lockBlock(lostBlockId)) {
-        Optional<BlockMeta> block = mBlockMetaStore.getBlock(lostBlockId);
+      try (LockResource r = lockBlock(removedBlockId)) {
+        Optional<BlockMeta> block = mBlockMetaStore.getBlock(removedBlockId);
         if (block.isPresent()) {
-          LOG.debug("Block {} is removed on worker {}.", lostBlockId, workerInfo.getId());
-          mBlockMetaStore.removeLocation(lostBlockId, workerInfo.getId());
-          if (mBlockMetaStore.getLocations(lostBlockId).size() == 0) {
-            mLostBlocks.add(lostBlockId);
+          LOG.debug("Block {} is removed on worker {}.", removedBlockId, workerInfo.getId());
+          mBlockMetaStore.removeLocation(removedBlockId, workerInfo.getId());
+          if (mBlockMetaStore.getLocations(removedBlockId).size() == 0) {
+            mLostBlocks.add(removedBlockId);
           }
+        }
+        // Remove the block even if its metadata has been deleted already.
+        if (sendCommand) {
+          workerInfo.scheduleRemoveFromWorker(removedBlockId);
+        } else {
+          workerInfo.removeBlockFromWorkerMeta(removedBlockId);
         }
       }
     }
@@ -1519,7 +1507,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     public void heartbeat() {
       long masterWorkerTimeoutMs = Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
       long masterWorkerDeleteTimeoutMs =
-          Configuration.getMs(PropertyKey.MASTER_WORKER_DELETE_TIMEOUT_MS);
+          Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
         try (LockResource r = worker.lockWorkerMeta(
             EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
@@ -1595,7 +1583,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     for (Consumer<Address> function : mWorkerDeleteListeners) {
       function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
     }
-    workerLostBlocks(worker, worker.getBlocks());
   }
 
   LockResource lockBlock(long blockId) {

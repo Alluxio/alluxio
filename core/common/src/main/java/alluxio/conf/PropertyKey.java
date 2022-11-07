@@ -3317,13 +3317,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_WORKER_DELETE_TIMEOUT_MS =
-      durationBuilder(Name.MASTER_WORKER_DELETE_TIMEOUT_MS)
-          .setAlias("alluxio.master.worker.delete.timeout.ms")
-          .setDefaultValue(Long.MAX_VALUE)
-          .setDescription("If the lost worker has no heartbeat for more than this time, "
-              + "it will be completely deleted from the master. By default,"
-              + " the lost worker will never be deleted.")
+  public static final PropertyKey MASTER_LOST_WORKER_DELETION_TIMEOUT_MS =
+      durationBuilder(Name.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS)
+          .setAlias("alluxio.master.lost.worker.deletion.timeout.ms")
+          .setDefaultValue(3 * Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS))
+          .setDescription("If a worker has no heartbeat with the master "
+              + "for more than this timeout, the master will totally forget this worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -7725,8 +7724,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT =
         "alluxio.master.worker.register.stream.response.timeout";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout";
-    public static final String MASTER_WORKER_DELETE_TIMEOUT_MS =
-        "alluxio.master.worker.delete.timeout";
+    public static final String MASTER_LOST_WORKER_DELETION_TIMEOUT_MS =
+        "alluxio.master.lost.worker.deletion.timeout";
     public static final String MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
         "alluxio.master.journal.checkpoint.period.entries";
     public static final String MASTER_JOURNAL_LOCAL_LOG_COMPACTION =
