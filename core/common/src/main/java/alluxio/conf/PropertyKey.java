@@ -2800,8 +2800,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_JOURNAL_SYNC_ROOT_AFTER_INIT_FROM_BACKUP =
       booleanBuilder(Name.MASTER_JOURNAL_SYNC_ROOT_AFTER_INIT_FROM_BACKUP)
           .setDefaultValue(true)
-          .setDescription("Controls whether to automatically invalidate the root of the UFS after"
-              + " restoring from backup")
+          .setDescription("Controls whether to automatically mark the root of the UFS as "
+              + "needing synchronization after restoring from backup.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setIsHidden(true)
           .setScope(Scope.MASTER)
