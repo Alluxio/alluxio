@@ -11,6 +11,8 @@
 
 package alluxio.hadoop;
 
+import static java.lang.String.format;
+
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.URIStatus;
@@ -42,6 +44,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class FileSystem extends AbstractFileSystem {
+  public static final String MASTER_LOGICAL_NAMESERVICES = "alluxio.master.nameservices.%s";
+  public static final String MASTER_LOGICAL_RPC_ADDRESS = "alluxio.master.rpc.address.%s.%s";
+  public static final String MASTER_LOGICAL_ZOOKEEPER_NAMESERVICES =
+      "alluxio.master.zookeeper.nameservices.%s";
+  public static final String MASTER_LOGICAL_ZOOKEEPER_ADDRESS =
+      "alluxio.master.zookeeper.address.%s.%s";
+
   /**
    * Constructs a new {@link FileSystem}.
    */
@@ -98,16 +107,14 @@ public class FileSystem extends AbstractFileSystem {
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
     } else if (alluxioUri.getAuthority() instanceof EmbeddedLogicalAuthority) {
       EmbeddedLogicalAuthority authority = (EmbeddedLogicalAuthority) alluxioUri.getAuthority();
-      String masterNamesConfKey = PropertyKey.Template.MASTER_LOGICAL_NAMESERVICES
-          .format(authority.getLogicalName()).getName();
+      String masterNamesConfKey = format(MASTER_LOGICAL_NAMESERVICES, authority.getLogicalName());
       String[] masterNames = conf.getTrimmedStrings(masterNamesConfKey);
       Preconditions.checkArgument(masterNames.length != 0,
           "Invalid uri. You must set %s to use the logical name ", masterNamesConfKey);
 
       StringJoiner masterRpcAddress = new StringJoiner(",");
       for (String masterName : masterNames) {
-        String name = PropertyKey.Template.MASTER_LOGICAL_RPC_ADDRESS
-            .format(authority.getLogicalName(), masterName).getName();
+        String name = format(MASTER_LOGICAL_RPC_ADDRESS, authority.getLogicalName(), masterName);
         String address = conf.get(name);
         Preconditions.checkArgument(address != null, "You need to set %s", name);
         masterRpcAddress.add(address);
@@ -119,16 +126,15 @@ public class FileSystem extends AbstractFileSystem {
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
     } else if (alluxioUri.getAuthority() instanceof ZookeeperLogicalAuthority) {
       ZookeeperLogicalAuthority authority = (ZookeeperLogicalAuthority) alluxioUri.getAuthority();
-      String zkNodesConfKey = PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_NAMESERVICES
-          .format(authority.getLogicalName()).getName();
+      String zkNodesConfKey = format(MASTER_LOGICAL_ZOOKEEPER_NAMESERVICES,
+          authority.getLogicalName());
       String[] zkNodeNames = conf.getTrimmedStrings(zkNodesConfKey);
       Preconditions.checkArgument(zkNodeNames.length != 0,
           "Invalid uri. You must set %s to use the logical name", zkNodesConfKey);
 
       StringJoiner zkAddress = new StringJoiner(",");
       for (String zkName : zkNodeNames) {
-        String name = PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_ADDRESS
-            .format(authority.getLogicalName(), zkName).getName();
+        String name = format(MASTER_LOGICAL_ZOOKEEPER_ADDRESS, authority.getLogicalName(), zkName);
         String address = conf.get(name);
         Preconditions.checkArgument(address != null, "You need to set %s", name);
         zkAddress.add(address);
@@ -147,7 +153,7 @@ public class FileSystem extends AbstractFileSystem {
 
     Authority auth = Authority.fromString(fsUri.getAuthority());
     if (auth instanceof UnknownAuthority) {
-      throw new IOException(String.format("Authority \"%s\" is unknown. The client can not be "
+      throw new IOException(format("Authority \"%s\" is unknown. The client can not be "
               + "configured with the authority from %s", auth, fsUri));
     }
   }
