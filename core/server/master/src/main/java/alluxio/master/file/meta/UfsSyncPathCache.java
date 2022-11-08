@@ -61,7 +61,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * appropriate invalidation times updated. Validation times are updated on the path
  * when {@link #notifySyncedPath} is called on the root sync path after a successful sync.
  * An invalidation is received either when a client calls
- * {@link alluxio.master.file.DefaultFileSystemMaster#invalidateSyncPath} to notify that a path
+ * {@link alluxio.master.file.DefaultFileSystemMaster#needsSync} to notify that a path
  * needs synchronization, or when a file is updated by an external Alluxio cluster, and
  * cross cluster sync is enabled.
  *

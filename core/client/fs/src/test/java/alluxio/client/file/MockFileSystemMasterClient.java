@@ -232,6 +232,6 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public void invalidateSyncPath(AlluxioURI path) throws AlluxioStatusException {
+  public void needsSync(AlluxioURI path) throws AlluxioStatusException {
   }
 }

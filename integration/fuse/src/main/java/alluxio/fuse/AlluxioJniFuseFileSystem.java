@@ -26,15 +26,20 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.AlreadyExistsRuntimeException;
+import alluxio.exception.runtime.CancelledRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.file.FuseFileEntry;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.ErrorType;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.ErrorCodes;
-import alluxio.jnifuse.FuseException;
 import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
@@ -51,13 +56,13 @@ import alluxio.wire.BlockMasterInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;
 import com.google.common.cache.LoadingCache;
+import io.grpc.Status;
 import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -159,10 +164,18 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     if (res != 0) {
       return res;
     }
-    FuseFileStream stream = mStreamFactory.create(uri, fi.flags.get(), mode);
-    long fd = mNextOpenFileId.getAndIncrement();
-    mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
-    fi.fh.set(fd);
+    try {
+      FuseFileStream stream = mStreamFactory.create(uri, fi.flags.get(), mode);
+      long fd = mNextOpenFileId.getAndIncrement();
+      mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
+      fi.fh.set(fd);
+    } catch (NotFoundRuntimeException e) {
+      LOG.error("Failed to read {}: path does not exist or is invalid", path);
+      return -ErrorCodes.ENOENT();
+    } catch (AlreadyExistsRuntimeException e) {
+      LOG.error("Failed to write {}: path already exist", path);
+      return -ErrorCodes.EEXIST();
+    }
     return 0;
   }
 
@@ -298,7 +311,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       LOG.error("Failed to read {}: Cannot find fd {}", path, fd);
       return -ErrorCodes.EBADFD();
     }
-    return entry.getFileStream().read(buf, size, offset);
+    try {
+      return entry.getFileStream().read(buf, size, offset);
+    } catch (NotFoundRuntimeException e) {
+      LOG.error("Failed to read {}: File does not exist or is writing by other clients", path);
+      return -ErrorCodes.ENOENT();
+    }
   }
 
   @Override
@@ -316,7 +334,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       LOG.error("Failed to write {}: Cannot find fd {}", path, fd);
       return -ErrorCodes.EBADFD();
     }
-    entry.getFileStream().write(buf, size, offset);
+    try {
+      entry.getFileStream().write(buf, size, offset);
+    } catch (AlreadyExistsRuntimeException e) {
+      LOG.error("Failed to write {}: cannot overwrite existing file", path);
+      return -ErrorCodes.EEXIST();
+    }
     return (int) size;
   }
 
@@ -661,7 +684,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   @Override
-  public void umount(boolean force) throws FuseException {
+  public void umount(boolean force) {
     // Release operation is async, we will try our best efforts to
     // close all opened file in/out stream before umounting the fuse
     long unmountTimeout = mConf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
@@ -676,12 +699,14 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       } catch (InterruptedException e) {
         LOG.error("Unmount {} interrupted", mountpoint);
         Thread.currentThread().interrupt();
+        throw new CancelledRuntimeException("Unmount interrupted", e);
       } catch (TimeoutException e) {
         LOG.error("Timeout when waiting all in progress file read/write to finish "
             + "when unmounting {}. {} file streams remain unclosed.",
             mountpoint, mFileEntries.size());
         if (!force) {
-          throw new FuseException("Timed out for umount due to device is busy.");
+          throw new AlluxioRuntimeException(Status.DEADLINE_EXCEEDED,
+              "Timed out for umount due to device is busy.", e, ErrorType.External, false);
         }
       }
     }

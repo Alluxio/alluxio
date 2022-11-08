@@ -592,7 +592,8 @@ public final class S3RestUtils {
     String credentials = fields[1];
     String[] creds = credentials.split("=");
     // only support version 4 signature
-    if (creds.length < 2 || !StringUtils.equals("Credential", creds[0])) {
+    if (creds.length < 2 || !StringUtils.equals("Credential", creds[0])
+        || !creds[1].contains("/")) {
       throw new S3Exception("The authorization header that you provided is not valid.",
           S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
     }

@@ -273,6 +273,11 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   }
 
   @Override
+  protected URI canonicalizeUri(URI uri) {
+    return uri;
+  }
+
+  @Override
   public long getDefaultBlockSize() {
     return mFileSystem.getConf()
         .getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);

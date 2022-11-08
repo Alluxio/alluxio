@@ -343,10 +343,13 @@ public class AlluxioMasterProcess extends MasterProcess {
     }
     // When restoring from backup, some fs modifications exist only in UFS. We invalidate the root
     // to force new accesses to sync with UFS first to update our picture of the UFS.
-    try {
-      mRegistry.get(FileSystemMaster.class).invalidateSyncPath(new AlluxioURI("/"));
-    } catch (InvalidPathException e) {
-      LOG.warn("Failed to mark root as needing syncing after backup restore");
+    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_SYNC_ROOT_AFTER_INIT_FROM_BACKUP)) {
+      try {
+        mRegistry.get(FileSystemMaster.class).needsSync(new AlluxioURI("/"));
+        LOG.info("Marked root as needing sync after backup restore");
+      } catch (InvalidPathException e) {
+        LOG.warn("Failed to mark root as needing syncing after backup restore");
+      }
     }
   }
 

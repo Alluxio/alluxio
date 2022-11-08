@@ -30,7 +30,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerNetAddress;
@@ -227,7 +227,8 @@ public class AlluxioFileInStream extends FileInStream {
   // force a sync to update the latest metadata, then abort the current stream
   // The user should restart the stream and read the updated file
   private void refreshMetadataOnMismatchedLength(OutOfRangeException e) {
-    try {
+    try (CloseableResource<FileSystemMasterClient> client =
+        mContext.acquireMasterClientResource()) {
       // Force refresh the file metadata by loadMetadata
       AlluxioURI path = new AlluxioURI(mStatus.getPath());
       ListStatusPOptions refreshPathOptions = ListStatusPOptions.newBuilder()
@@ -235,9 +236,9 @@ public class AlluxioFileInStream extends FileInStream {
               FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())
           .setLoadMetadataOnly(true)
           .build();
-      ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
+      ListStatusPOptions mergedOptions = FileSystemOptionsUtils.listStatusDefaults(
           mContext.getPathConf(path)).toBuilder().mergeFrom(refreshPathOptions).build();
-      mContext.acquireMasterClientResource().get().listStatus(path, mergedOptions);
+      client.get().listStatus(path, mergedOptions);
       LOG.info("Notified the master that {} should be sync-ed with UFS on the next access",
           mStatus.getPath());
       throw new IllegalStateException(e.getMessage());

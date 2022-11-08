@@ -1896,7 +1896,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_BACKUP_DELEGATION_ENABLED =
       booleanBuilder(Name.MASTER_BACKUP_DELEGATION_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether to delegate journals to standby masters in HA cluster.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -2301,11 +2301,34 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_METASTORE =
       enumBuilder(Name.MASTER_METASTORE, MetastoreType.class)
           .setDefaultValue(MetastoreType.ROCKS)
-          .setDescription("The type of metastore to use, either HEAP or ROCKS. The heap metastore "
-              + "keeps all metadata on-heap, while the rocks metastore stores some metadata on "
-              + "heap and some metadata on disk. The rocks metastore has the advantage of being "
-              + "able to support a large namespace (1 billion plus files) without needing a "
-              + "massive heap size.")
+          .setDescription("The type of metastore to use, either HEAP or ROCKS. "
+              + "The heap metastore keeps all metadata on-heap, "
+              + "while the rocks metastore stores some metadata on heap and some metadata on disk. "
+              + "The rocks metastore has the advantage of being able to support a large namespace "
+              + "(1 billion plus files) without needing a massive heap size."
+              + "The metadata storage includes inode and block metadata. "
+              + "Users can override the type of metastore using " + Name.MASTER_METASTORE_INODE
+              + " and " + Name.MASTER_METASTORE_BLOCK
+              + ". For example if " + Name.MASTER_METASTORE + "=ROCKS but "
+              + Name.MASTER_METASTORE_INODE + "=HEAP, then inodes are stored with HEAP and blocks"
+              + " are stored with ROCKS."
+          )
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_INODE_METASTORE =
+      enumBuilder(Name.MASTER_METASTORE_INODE, MetastoreType.class)
+          .setDefaultValue(MASTER_METASTORE.getDefaultValue())
+          .setDescription("The type of inode metastore to use, either HEAP or ROCKS. "
+              + "By default this uses " + PropertyKey.Name.MASTER_METASTORE.toString() + ".")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BLOCK_METASTORE =
+      enumBuilder(Name.MASTER_METASTORE_BLOCK, MetastoreType.class)
+          .setDefaultValue(MASTER_METASTORE.getDefaultValue())
+          .setDescription("The type of block metastore to use, either HEAP or ROCKS. "
+              + "By default this uses " + PropertyKey.Name.MASTER_METASTORE.toString() + ".")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -2774,6 +2797,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_JOURNAL_SYNC_ROOT_AFTER_INIT_FROM_BACKUP =
+      booleanBuilder(Name.MASTER_JOURNAL_SYNC_ROOT_AFTER_INIT_FROM_BACKUP)
+          .setDefaultValue(true)
+          .setDescription("Controls whether to automatically mark the root of the UFS as "
+              + "needing synchronization after restoring from backup.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setIsHidden(true)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD =
       intBuilder(Name.MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD)
           .setDefaultValue(10)
@@ -2937,7 +2969,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The threshold of the number of completed single operations in a "
               + "recursive file system operation, e.g. delete file/set file attributes "
               + "to trigger a force journal flush. Increasing the threshold decreases the "
-              + "possibility to see partial state of a recurisive operation on a standby master "
+              + "possibility to see partial state of a recursive operation on a standby master "
               + "but increases the memory consumption as alluxio holds more journal entries "
               + "in memory. This config is only available when "
               + Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS + "is enabled.")
@@ -3711,9 +3743,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS =
       booleanBuilder(Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("If enabled, the file system master inode related journals"
-              + "will be merged and submitted BEFORE the inode path lock is released.")
+              + "will be merged and submitted BEFORE the inode path lock is released. "
+              + "Due to the performance consideration, this will not apply to the metadata sync, "
+              + "where journals are still flushed asynchronously.")
           .build();
 
   //
@@ -6274,25 +6308,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  @Deprecated(message = "CapacityBaseRandomPolicy no longer caches block locations. "
+      + "To make sure a block is always assigned to the same worker, use DeterministicHashPolicy.")
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE =
       intBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE)
           .setDefaultValue(10000)
-          .setDescription("When alluxio.user.ufs.block.read.location.policy is set "
+          .setDescription("Deprecated - When alluxio.user.ufs.block.read.location.policy is set "
               + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
               + "this specifies cache size of block location.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  @Deprecated(message = "CapacityBaseRandomPolicy no longer caches block locations. "
+      + "To make sure a block is always assigned to the same worker, use DeterministicHashPolicy.")
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME =
       durationBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME)
           .setDefaultValue("10min")
-          .setDescription("When alluxio.user.ufs.block.read.location.policy is set "
+          .setDescription("Deprecated - When alluxio.user.ufs.block.read.location.policy is set "
               + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
               + "this specifies cache expire time of block location.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-
   public static final PropertyKey USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
       intBuilder(Name.USER_UFS_BLOCK_READ_CONCURRENCY_MAX)
           .setDefaultValue(Integer.MAX_VALUE)
@@ -7454,6 +7491,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_FOLDER = "alluxio.master.journal.folder";
     public static final String MASTER_JOURNAL_INIT_FROM_BACKUP =
         "alluxio.master.journal.init.from.backup";
+    public static final String MASTER_JOURNAL_SYNC_ROOT_AFTER_INIT_FROM_BACKUP =
+        "alluxio.master.journal.sync.root.after.init.from.backup";
     public static final String MASTER_JOURNAL_SPACE_MONITOR_INTERVAL =
         "alluxio.master.journal.space.monitor.interval";
     public static final String MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD
@@ -7539,6 +7578,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
         "alluxio.master.metadata.sync.ufs.prefetch.timeout";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
+    public static final String MASTER_METASTORE_INODE = "alluxio.master.metastore.inode";
+    public static final String MASTER_METASTORE_BLOCK = "alluxio.master.metastore.block";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
         "alluxio.master.metastore.rocks.parallel.backup";
@@ -7754,7 +7795,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE =
         "alluxio.master.filesystem.operation.retry.cache.size";
     public static final String MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS =
-        "alluxio.master.filesystem.commit.journals.before.release.inode.path.lock";
+        "alluxio.master.filesystem.merge.inode.journals";
 
     //
     // Throttle
