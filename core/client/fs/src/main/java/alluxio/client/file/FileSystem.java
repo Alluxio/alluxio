@@ -166,7 +166,7 @@ public interface FileSystem extends Closeable {
         fs = new MetadataCachingFileSystem(fs, context);
       }
       if (options.isDataCacheEnabled()
-          && CommonUtils.PROCESS_TYPE.get() != CommonUtils.ProcessType.CLIENT) {
+          && CommonUtils.PROCESS_TYPE.get() == CommonUtils.ProcessType.CLIENT) {
         try {
           CacheManager cacheManager = CacheManager.Factory.get(conf);
           return new LocalCacheFileSystem(cacheManager, fs, conf);
