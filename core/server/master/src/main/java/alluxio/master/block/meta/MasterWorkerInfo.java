@@ -26,6 +26,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -161,8 +161,8 @@ public final class MasterWorkerInfo {
   public MasterWorkerInfo(long id, WorkerNetAddress address) {
     mMeta = new StaticWorkerMeta(id, address);
     mUsage = new WorkerUsageMeta();
-    mBlocks = new HashSet<>();
-    mToRemoveBlocks = new HashSet<>();
+    mBlocks = new LongOpenHashSet();
+    mToRemoveBlocks = new LongOpenHashSet();
     mLastUpdatedTimeMs = new AtomicLong(CommonUtils.getCurrentMs());
 
     // Init all locks
@@ -375,7 +375,7 @@ public final class MasterWorkerInfo {
    * @return ids of all blocks the worker contains
    */
   public Set<Long> getBlocks() {
-    return new HashSet<>(mBlocks);
+    return new LongOpenHashSet(mBlocks);
   }
 
   /**
@@ -426,7 +426,7 @@ public final class MasterWorkerInfo {
    * @return ids of blocks the worker should remove
    */
   public Set<Long> getToRemoveBlocks() {
-    return new HashSet<>(mToRemoveBlocks);
+    return new LongOpenHashSet(mToRemoveBlocks);
   }
 
   /**
