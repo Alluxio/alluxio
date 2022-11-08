@@ -8569,11 +8569,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     MASTER_IMPERSONATION_GROUPS_OPTION("alluxio.master.security.impersonation.%s.groups",
         "alluxio\\.master\\.security\\.impersonation\\.([a-zA-Z_0-9-\\.@]+)\\.groups",
         PropertyType.STRING),
+
     MASTER_IMPERSONATION_USERS_OPTION("alluxio.master.security.impersonation.%s.users",
         "alluxio\\.master\\.security\\.impersonation\\.([a-zA-Z_0-9-\\.@]+)\\.users",
         PropertyType.STRING),
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",
         "alluxio\\.master\\.journal\\.ufs\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
+        PropertyCreators.NESTED_JOURNAL_PROPERTY_CREATOR),
+    MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG_PROPERTY(
+        "alluxio.master.embedded.journal.ratis.config.%s",
+        "alluxio\\.master\\.embedded\\.journal\\.ratis\\.config\\.(?<nested>(\\w+\\.)*+\\w+)",
         PropertyCreators.NESTED_JOURNAL_PROPERTY_CREATOR),
     MASTER_LOGICAL_NAMESERVICES("alluxio.master.nameservices.%s",
         String.format("alluxio\\.master\\.nameservices\\.%s",
