@@ -182,6 +182,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
               storeMeta.getCapacityBytesOnTiers(),
               storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
               blockReport.getAddedBlocks(), blockReport.getLostStorage(), metrics);
+      cmdFromMaster = heartbeatReturn.getCommand();
       handleMasterCommand(heartbeatReturn.getCommand());
       handleMasterReplicaChange(heartbeatReturn.getReplicaInfo());
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
@@ -259,6 +260,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     if (ReplicaInfo.isEmpty()) {
       return;
     }
-    //TodoL to update the replica Info
+    //Todo to update the replica Info
   }
 }

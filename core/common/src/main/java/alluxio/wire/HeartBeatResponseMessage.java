@@ -75,17 +75,6 @@ public final class HeartBeatResponseMessage implements Serializable {
             .putAllReplicaInfo(mReplicaInfo).build();
   }
 
-  /**
-   * Creates a new instance of {@link HeartBeatResponseMessage} from a proto representation.
-   *
-   * @param info the proto representation of HeartBeatResponse
-   * @return the instance
-   */
-  public static HeartBeatResponseMessage fromProto(alluxio.grpc.BlockHeartbeatPResponse info) {
-    return new HeartBeatResponseMessage().setCommand(info.getCommand())
-             .setReplicaInfo(info.getReplicaInfoMap());
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {

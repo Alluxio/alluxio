@@ -45,8 +45,6 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
-import alluxio.grpc.Command;
-import alluxio.grpc.CommandType;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.master.NoopUfsManager;
 import alluxio.proto.dataserver.Protocol;
@@ -56,6 +54,7 @@ import alluxio.util.IdUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.HeartBeatResponseMessage;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -696,7 +695,7 @@ public class DefaultBlockWorkerTest {
         .getId(any(WorkerNetAddress.class));
 
     // return Command.Nothing for heartbeat
-    doReturn(Command.newBuilder().setCommandType(CommandType.Nothing).build())
+    doReturn(new HeartBeatResponseMessage())
         .when(client)
         .heartbeat(
             anyLong(),

@@ -329,7 +329,8 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       // Worker 2 tries to heartbeat (with original id), and should get "Register" in response.
       assertEquals(CommandType.Register, blockMaster2
           .workerHeartbeat(workerId2a, null, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
-              Collections.EMPTY_MAP, Collections.EMPTY_MAP, Lists.newArrayList()).getCommand().getCommandType());
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP,
+          Lists.newArrayList()).getCommand().getCommandType());
 
       // Worker 2 re-registers (and gets a new worker id)
       long workerId2b =
