@@ -49,16 +49,11 @@ public class FuseFileOutStream implements FuseFileStream {
   private final AuthPolicy mAuthPolicy;
   private final FileSystem mFileSystem;
   private final CloseableResource<Lock> mLockResource;
-  private final long mMode;
   private final AlluxioURI mURI;
-  // Support returning the correct file length
-  // after an existing file is opened and before it's truncated to 0 length for sequential writing
-  private final long mOriginalFileLen;
+  private final CreateFileStatus mFileStatus;
 
   private volatile boolean mClosed = false;
   private Optional<FileOutStream> mOutStream;
-  // Support setting the file length to a value bigger than bytes written by truncate()
-  private long mExtendedFileLen;
 
   /**
    * Creates a {@link FuseFileInOrOutStream}.
@@ -95,41 +90,41 @@ public class FuseFileOutStream implements FuseFileStream {
         mode = status.get().getMode();
       }
       long fileLen = status.map(URIStatus::getLength).orElse(0L);
+      CreateFileStatus createFileStatus = CreateFileStatus.create(authPolicy, mode, fileLen);
       if (status.isPresent()) {
         if (AlluxioFuseOpenUtils.containsTruncate(flags) || fileLen == 0) {
           // support OPEN(O_WRONLY | O_RDONLY) existing file + O_TRUNC to write
           // support create empty file then open for write/read_write workload
           AlluxioFuseUtils.deletePath(fileSystem, uri);
-          fileLen = 0;
+          createFileStatus.setFileLength(0L);
           if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
                 + "Alluxio deleted the old file and created a new file for writing", uri, flags));
           }
         } else {
           // Support open(O_WRONLY | O_RDWR flag) - truncate(0) - write() workflow
-          return new FuseFileOutStream(fileSystem, authPolicy, uri, lockResource,
-              Optional.empty(), fileLen, mode);
+          return new FuseFileOutStream(fileSystem, authPolicy, uri, createFileStatus, lockResource,
+              Optional.empty());
         }
       }
-      return new FuseFileOutStream(fileSystem, authPolicy, uri, lockResource,
-          Optional.of(AlluxioFuseUtils.createFile(fileSystem, authPolicy, uri, mode)),
-          fileLen, mode);
+      return new FuseFileOutStream(fileSystem, authPolicy, uri,
+          createFileStatus, lockResource,
+          Optional.of(AlluxioFuseUtils.createFile(fileSystem, authPolicy, uri, createFileStatus)));
     } catch (Throwable t) {
       lockResource.close();
       throw t;
     }
   }
 
-  private FuseFileOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
-      AlluxioURI uri, CloseableResource<Lock> lockResource, Optional<FileOutStream> outStream,
-      long fileLen, long mode) {
+  private FuseFileOutStream(FileSystem fileSystem, AuthPolicy authPolicy, AlluxioURI uri,
+      CreateFileStatus fileStatus, CloseableResource<Lock> lockResource,
+      Optional<FileOutStream> outStream) {
     mFileSystem = Preconditions.checkNotNull(fileSystem);
     mAuthPolicy = Preconditions.checkNotNull(authPolicy);
+    mFileStatus = Preconditions.checkNotNull(fileStatus);
     mURI = Preconditions.checkNotNull(uri);
     mLockResource = Preconditions.checkNotNull(lockResource);
     mOutStream = Preconditions.checkNotNull(outStream);
-    mOriginalFileLen = fileLen;
-    mMode = mode;
   }
 
   @Override
@@ -170,11 +165,13 @@ public class FuseFileOutStream implements FuseFileStream {
   }
 
   @Override
-  public synchronized long getFileLength() {
+  public synchronized FileStatus getFileStatus() {
     if (mOutStream.isPresent()) {
-      return Math.max(mOutStream.get().getBytesWritten(), mExtendedFileLen);
+      if (mOutStream.get().getBytesWritten() > mFileStatus.getFileLength()) {
+        mFileStatus.setFileLength(mOutStream.get().getBytesWritten());
+      }
     }
-    return mOriginalFileLen;
+    return mFileStatus;
   }
 
   @Override
@@ -191,16 +188,16 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public synchronized void truncate(long size) {
-    long currentSize = getFileLength();
+    long currentSize = getFileStatus().getFileLength();
     if (size == currentSize) {
-      mExtendedFileLen = 0L;
       return;
     }
     if (size == 0) {
       closeStreams();
       AlluxioFuseUtils.deletePath(mFileSystem, mURI);
-      mOutStream = Optional.of(AlluxioFuseUtils.createFile(mFileSystem, mAuthPolicy, mURI, mMode));
-      mExtendedFileLen = 0L;
+      mOutStream = Optional.of(AlluxioFuseUtils
+          .createFile(mFileSystem, mAuthPolicy, mURI, mFileStatus));
+      mFileStatus.setFileLength(0);
       return;
     }
     if (mOutStream.isPresent() && size >= mOutStream.get().getBytesWritten()) {
@@ -209,7 +206,7 @@ public class FuseFileOutStream implements FuseFileStream {
       // e.g. support "create() -> sequential write
       // -> truncate(to larger value) -> sequential write"
       // do not support "file exist -> open(W or RW) -> truncate(to a larger value)"
-      mExtendedFileLen = size;
+      mFileStatus.setFileLength(size);
       return;
     }
     throw new UnimplementedRuntimeException(
@@ -249,10 +246,10 @@ public class FuseFileOutStream implements FuseFileStream {
       return;
     }
     long bytesWritten = mOutStream.get().getBytesWritten();
-    if (bytesWritten >= mExtendedFileLen) {
+    if (bytesWritten >= mFileStatus.getFileLength()) {
       return;
     }
-    long bytesGap = mExtendedFileLen - bytesWritten;
+    long bytesGap = mFileStatus.getFileLength() - bytesWritten;
     final long originalBytesGap = bytesGap;
     int bufferSize = bytesGap >= DEFAULT_BUFFER_SIZE
         ? DEFAULT_BUFFER_SIZE : (int) bytesGap;
@@ -265,6 +262,6 @@ public class FuseFileOutStream implements FuseFileStream {
       bytesGap -= DEFAULT_BUFFER_SIZE;
     }
     LOG.debug("Filled {} zero bytes to file {} to fulfill the extended file length of {}",
-        originalBytesGap, mURI, mExtendedFileLen);
+        originalBytesGap, mURI, mFileStatus.getFileLength());
   }
 }

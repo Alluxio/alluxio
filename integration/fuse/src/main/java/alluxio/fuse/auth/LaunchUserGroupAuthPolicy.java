@@ -131,12 +131,12 @@ public class LaunchUserGroupAuthPolicy implements AuthPolicy {
   }
 
   @Override
-  public Optional<Long> getUid(String owner) {
+  public Optional<Long> getUid() {
     return Optional.of(mLaunchUserId);
   }
 
   @Override
-  public Optional<Long> getGid(String group) {
+  public Optional<Long> getGid() {
     return Optional.of(mLaunchGroupId);
   }
 }

@@ -39,7 +39,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class FuseFileInStream implements FuseFileStream {
   private final FileInStream mInStream;
-  private final long mFileLength;
+  private final FileStatus mFileStatus;
   private final AlluxioURI mURI;
   private final CloseableResource<Lock> mLockResource;
   private volatile boolean mClosed = false;
@@ -78,7 +78,8 @@ public class FuseFileInStream implements FuseFileStream {
 
       try {
         FileInStream is = fileSystem.openFile(uri);
-        return new FuseFileInStream(is, lockResource, status.get().getLength(), uri);
+        return new FuseFileInStream(is, lockResource,
+            new FileStatus(status.get().getLength()), uri);
       } catch (IOException | AlluxioException e) {
         throw new RuntimeException(e);
       }
@@ -89,11 +90,11 @@ public class FuseFileInStream implements FuseFileStream {
   }
 
   private FuseFileInStream(FileInStream inStream, CloseableResource<Lock> lockResource,
-      long fileLength, AlluxioURI uri) {
+      FileStatus fileStatus, AlluxioURI uri) {
     mInStream = Preconditions.checkNotNull(inStream);
     mLockResource = Preconditions.checkNotNull(lockResource);
+    mFileStatus = Preconditions.checkNotNull(fileStatus);
     mURI = Preconditions.checkNotNull(uri);
-    mFileLength = fileLength;
   }
 
   @Override
@@ -103,7 +104,7 @@ public class FuseFileInStream implements FuseFileStream {
     if (size == 0) {
       return 0;
     }
-    if (offset >= mFileLength) {
+    if (offset >= mFileStatus.getFileLength()) {
       return 0;
     }
     final int sz = (int) size;
@@ -130,8 +131,8 @@ public class FuseFileInStream implements FuseFileStream {
   }
 
   @Override
-  public long getFileLength() {
-    return mFileLength;
+  public FileStatus getFileStatus() {
+    return mFileStatus;
   }
 
   @Override

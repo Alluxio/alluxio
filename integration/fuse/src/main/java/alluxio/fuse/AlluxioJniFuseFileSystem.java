@@ -33,6 +33,7 @@ import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
+import alluxio.fuse.file.CreateFileStatus;
 import alluxio.fuse.file.FuseFileEntry;
 import alluxio.fuse.file.FuseFileInOrOutStream;
 import alluxio.fuse.file.FuseFileOutStream;
@@ -100,7 +101,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final FuseShell mFuseShell;
   private static final IndexDefinition<FuseFileEntry<FuseFileStream>, Long>
       ID_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getId);
-
   // Add a PATH_INDEX to know getattr() been called when writing this file
   private static final IndexDefinition<FuseFileEntry<FuseFileStream>, String>
       PATH_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getPath);
@@ -243,6 +243,55 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         LOG.debug("Failed to getattr {}: path does not exist or is invalid", path);
         return -ErrorCodes.ENOENT();
       }
+<<<<<<< HEAD
+||||||| a0a185f799
+      AlluxioFuseUtils.fillStat(mAuthPolicy, stat, status.get());
+
+      if (!status.get().isCompleted()) {
+        List<FuseFileEntry<FuseFileStream>> stream
+            = mFileEntries.getByField(PATH_INDEX, path).stream()
+            .filter(a -> a.getFileStream() instanceof FuseFileOutStream
+                || (a.getFileStream() instanceof FuseFileInOrOutStream
+                && ((FuseFileInOrOutStream) a.getFileStream()).isWriteStream()))
+            .collect(Collectors.toList());
+        if (!stream.isEmpty()) {
+          // File is being written by current Alluxio client
+          AlluxioFuseUtils.updateStatSize(stat, stream.get(0).getFileStream().getFileLength());
+        } else {
+          // File is being written by other Alluxio client
+          status = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri);
+          status.ifPresent(uriStatus
+              -> AlluxioFuseUtils.updateStatSize(stat, uriStatus.getLength()));
+          if (!status.isPresent()) {
+            LOG.error("File {} is not completed, cannot get accurate file length", path);
+          }
+        }
+      }
+=======
+      AlluxioFuseUtils.fillStat(mAuthPolicy, stat, status.get());
+
+      if (!status.get().isCompleted()) {
+        List<FuseFileEntry<FuseFileStream>> stream
+            = mFileEntries.getByField(PATH_INDEX, path).stream()
+            .filter(a -> a.getFileStream() instanceof FuseFileOutStream
+                || (a.getFileStream() instanceof FuseFileInOrOutStream
+                && (a.getFileStream().getFileStatus() instanceof CreateFileStatus)))
+            .collect(Collectors.toList());
+        if (!stream.isEmpty()) {
+          // File is being written by current Alluxio client
+          AlluxioFuseUtils.updateCreateFileStatus(stat,
+              (CreateFileStatus) stream.get(0).getFileStream().getFileStatus());
+        } else {
+          // File is being written by other Alluxio client
+          status = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri);
+          status.ifPresent(uriStatus
+              -> AlluxioFuseUtils.updateStatSize(stat, uriStatus.getLength()));
+          if (!status.isPresent()) {
+            LOG.error("File {} is not completed, cannot get accurate file length", path);
+          }
+        }
+      }
+>>>>>>> 8202f5b1e4481ba8db8740236b445a5c8a8a23f3
     } catch (Throwable t) {
       LOG.error("Failed to getattr {}", path, t);
       return -ErrorCodes.EIO();
