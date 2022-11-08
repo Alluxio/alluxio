@@ -26,6 +26,7 @@
 
   <properties>
     <build.path>${project.parent.parent.basedir}/build</build.path>
+    <ufs.cosn.version>3.1.0-5.8.5</ufs.cosn.version>
   </properties>
 
   <dependencies>
@@ -38,7 +39,7 @@
     <dependency>
       <groupId>com.qcloud.cos</groupId>
       <artifactId>hadoop-cos</artifactId>
-      <version>${hadoop-cos.version}</version>
+      <version>${ufs.cosn.version}</version>
     </dependency>
     <!-- Internal dependencies -->
     <dependency>
@@ -58,7 +59,7 @@
       <version>${project.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
-  </dependency>
+    </dependency>
   </dependencies>
 
   <build>
@@ -70,6 +71,22 @@
         <plugin>
             <groupId>com.coderplus.maven.plugins</groupId>
             <artifactId>copy-rename-maven-plugin</artifactId>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>templating-maven-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>filter-src</id>
+              <goals>
+                <goal>filter-sources</goal>
+              </goals>
+              <configuration>
+                <sourceDirectory>${basedir}/src/main/java-templates</sourceDirectory>
+                <outputDirectory>${project.build.directory}/generated-sources/java-templates</outputDirectory>
+              </configuration>
+            </execution>
+          </executions>
         </plugin>
     </plugins>
 </build>

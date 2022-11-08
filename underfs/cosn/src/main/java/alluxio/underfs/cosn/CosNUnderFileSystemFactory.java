@@ -13,6 +13,8 @@ package alluxio.underfs.cosn;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.CosNUfsConstants;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsUnderFileSystemFactory;
@@ -40,6 +42,17 @@ public class CosNUnderFileSystemFactory extends HdfsUnderFileSystemFactory {
 
   @Override
   public boolean supportsPath(String path, UnderFileSystemConfiguration conf) {
-    return supportsPath(path);
+    if (supportsPath(path)) {
+      if (!conf.isSetByUser(PropertyKey.UNDERFS_VERSION)
+          || conf.get(PropertyKey.UNDERFS_VERSION).equals(getVersion())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public String getVersion() {
+    return CosNUfsConstants.UFS_COSN_VERSION;
   }
 }
