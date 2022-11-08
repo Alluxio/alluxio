@@ -188,7 +188,11 @@ public class CmdRunAttempt {
         Set<JobInfo> failed = jobInfo.getChildren().stream()
                 .filter(child -> child.getStatus() == Status.FAILED).collect(Collectors.toSet());
         for (JobInfo task : failed) {
-          mFailedFiles.add(StringUtils.substringBetween(task.getDescription(), prefix, ","));
+          String filePath = StringUtils.substringBetween(task.getDescription(), prefix, ",");
+          if (filePath == null) {
+            filePath = String.format("unknown filePath for task: %s", task.getId());
+          }
+          mFailedFiles.add(filePath);
         }
       }
       return jobInfo.getStatus();
