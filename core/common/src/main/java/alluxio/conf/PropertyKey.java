@@ -2228,7 +2228,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG =
       stringBuilder(Name.MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG)
-          .setDescription("The configuration to use for the ratis.")
+          .setDescription("Prefix for Apache Ratis internal configuration options.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
