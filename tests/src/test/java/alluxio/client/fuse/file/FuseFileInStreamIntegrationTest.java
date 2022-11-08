@@ -36,11 +36,11 @@ public class FuseFileInStreamIntegrationTest extends AbstractFuseFileStreamInteg
     URIStatus uriStatus = mFileSystem.getStatus(alluxioURI);
     try (FuseFileStream inStream = mStreamFactory
         .create(alluxioURI, OpenFlags.O_RDONLY.intValue(), MODE)) {
-      Assert.assertEquals(uriStatus.getLength(), inStream.getFileLength());
+      Assert.assertEquals(uriStatus.getLength(), inStream.getFileStatus().getFileLength());
       ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_FILE_LEN);
       Assert.assertEquals(DEFAULT_FILE_LEN, inStream.read(buffer, DEFAULT_FILE_LEN, 0));
       Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, DEFAULT_FILE_LEN, buffer));
-      Assert.assertEquals(uriStatus.getLength(), inStream.getFileLength());
+      Assert.assertEquals(uriStatus.getLength(), inStream.getFileStatus().getFileLength());
     }
   }
 

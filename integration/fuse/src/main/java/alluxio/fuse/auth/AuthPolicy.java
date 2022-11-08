@@ -41,12 +41,24 @@ public interface AuthPolicy {
   void setUserGroup(AlluxioURI uri, long uid, long gid);
 
   /**
+   * @return uid based on authentication policy
+   */
+  Optional<Long> getUid();
+
+  /**
    * Gets the uid based on the auth policy and file owner.
    *
    * @param owner the owner of the file
    * @return the uid
    */
-  Optional<Long> getUid(String owner);
+  default Optional<Long> getUid(String owner) {
+    return getUid();
+  }
+
+  /**
+   * @return gid based on authentication policy
+   */
+  Optional<Long> getGid();
 
   /**
    * Gets the gid based on the auth policy and file group.
@@ -54,5 +66,7 @@ public interface AuthPolicy {
    * @param group the file group
    * @return the gid
    */
-  Optional<Long> getGid(String group);
+  default Optional<Long> getGid(String group) {
+    return getGid();
+  }
 }
