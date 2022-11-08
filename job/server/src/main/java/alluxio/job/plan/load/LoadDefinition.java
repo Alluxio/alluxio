@@ -139,7 +139,7 @@ public final class LoadDefinition
         String address = workersWithoutBlock.get(i).getNetAddress().getHost();
         WorkerInfo jobWorker = jobWorkersByAddress.get(address);
         assignments.put(jobWorker, new LoadTask(blockInfo.getBlockInfo().getBlockId(),
-            workersWithoutBlock.get(i).getNetAddress()));
+            workersWithoutBlock.get(i).getNetAddress(), config.getFilePath()));
       }
     }
 
@@ -203,15 +203,18 @@ public final class LoadDefinition
   public static class LoadTask implements Serializable {
     private static final long serialVersionUID = 2028545900913354425L;
     final long mBlockId;
+    final String mFilePath;
     final WorkerNetAddress mWorkerNetAddress;
 
     /**
      * @param blockId the id of the block to load
      * @param workerNetAddress worker net address
+     * @param filePath file path for task
      */
-    public LoadTask(long blockId, WorkerNetAddress workerNetAddress) {
+    public LoadTask(long blockId, WorkerNetAddress workerNetAddress, String filePath) {
       mBlockId = blockId;
       mWorkerNetAddress = workerNetAddress;
+      mFilePath = filePath;
     }
 
     /**
@@ -219,6 +222,13 @@ public final class LoadDefinition
      */
     public long getBlockId() {
       return mBlockId;
+    }
+
+    /**
+     * @return the file path
+     */
+    public String getFilePath() {
+      return mFilePath;
     }
 
     /**
@@ -231,6 +241,7 @@ public final class LoadDefinition
     @Override
     public String toString() {
       return MoreObjects.toStringHelper(this)
+          .add("FilePath", mFilePath) // first letter has to be Upper case for parsing
           .add("blockId", mBlockId)
           .add("workerNetAddress", mWorkerNetAddress)
           .toString();
