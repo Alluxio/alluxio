@@ -48,6 +48,8 @@ public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     try {
       cluster.start();
