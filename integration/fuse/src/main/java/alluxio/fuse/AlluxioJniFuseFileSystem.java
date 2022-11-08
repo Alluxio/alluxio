@@ -35,8 +35,6 @@ import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.file.CreateFileStatus;
 import alluxio.fuse.file.FuseFileEntry;
-import alluxio.fuse.file.FuseFileInOrOutStream;
-import alluxio.fuse.file.FuseFileOutStream;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.ErrorType;
@@ -226,9 +224,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       if (!status.get().isCompleted()) {
         List<FuseFileEntry<FuseFileStream>> stream
             = mFileEntries.getByField(PATH_INDEX, path).stream()
-            .filter(a -> a.getFileStream() instanceof FuseFileOutStream
-                || (a.getFileStream() instanceof FuseFileInOrOutStream
-                && (a.getFileStream().getFileStatus() instanceof CreateFileStatus)))
+            .filter(a -> a.getFileStream().getFileStatus() instanceof CreateFileStatus)
             .collect(Collectors.toList());
         if (!stream.isEmpty()) {
           // File is being written by current Alluxio client
