@@ -106,8 +106,6 @@ public final class Constants {
   public static final String METRICS_MASTER_NAME = "MetricsMaster";
   public static final String BLOCK_WORKER_NAME = "BlockWorker";
   public static final String FILE_SYSTEM_WORKER_NAME = "FileSystemWorker";
-  public static final String LIVE_WORKER_STATE = "In Service";
-  public static final String LOST_WORKER_STATE = "Out of Service";
 
   public static final String BLOCK_MASTER_CLIENT_SERVICE_NAME = "BlockMasterClient";
   public static final String BLOCK_MASTER_WORKER_SERVICE_NAME = "BlockMasterWorker";
