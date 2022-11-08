@@ -216,11 +216,6 @@ so the TGT is automatically refreshed.
 The user can also use `alluxio.hadoop.security.krb5.conf` to specify the krb5.conf file location
 and use `alluxio.hadoop.security.authentication` to specify authentication method.
 
-```properties
-alluxio.hadoop.security.krb5.conf
-alluxio.hadoop.security.kerberos.keytab.login.autorenewal
-```
-
 #### Custom Kerberos Realm/KDC
 
 By default, Alluxio will use machine-level Kerberos configuration to determine the Kerberos realm
