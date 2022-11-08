@@ -64,6 +64,25 @@ public class RemoveCommandIntegrationTest extends AbstractShellIntegrationTest {
       output = mOutput.toString();
       Assert.assertEquals(DIR1 + "\n" + DIR2 + "\n", output);
 
+      ret = shell.run("pathConf", "remove", "-R", "/");
+      Assert.assertEquals(0, ret);
+
+      mOutput.reset();
+      ret = shell.run("pathConf", "list");
+      Assert.assertEquals(0, ret);
+      output = mOutput.toString();
+      Assert.assertEquals("", output);
+
+      ret = shell.run("pathConf", "add", "--property", format(PROPERTY_KEY11, PROPERTY_VALUE11),
+          "--property", format(PROPERTY_KEY12, PROPERTY_VALUE12), DIR1);
+      Assert.assertEquals(0, ret);
+      ret = shell.run("pathConf", "add", "--property", format(PROPERTY_KEY13, PROPERTY_VALUE13),
+          DIR1);
+      Assert.assertEquals(0, ret);
+      ret = shell.run("pathConf", "add", "--property", format(PROPERTY_KEY2, PROPERTY_VALUE2),
+          DIR2);
+      Assert.assertEquals(0, ret);
+
       ret = shell.run("pathConf", "remove", DIR2);
       Assert.assertEquals(0, ret);
 
