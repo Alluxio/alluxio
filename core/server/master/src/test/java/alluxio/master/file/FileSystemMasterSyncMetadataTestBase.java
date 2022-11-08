@@ -24,6 +24,7 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.MountTable;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.JournalType;
@@ -66,6 +67,7 @@ public class FileSystemMasterSyncMetadataTestBase {
   protected ExecutorService mUfsStateCacheExecutorService;
   protected MasterRegistry mRegistry;
   protected DefaultFileSystemMaster mFileSystemMaster;
+  protected MountTable mMountTable;
 
   protected InodeTree mInodeTree;
 
@@ -80,8 +82,8 @@ public class FileSystemMasterSyncMetadataTestBase {
     mTempDir.create();
     mUfsUri = mTempDir.newFolder().getAbsolutePath();
 
-    mUfs = new FlakyLocalUnderFileSystem(new AlluxioURI(mUfsUri),
-        UnderFileSystemConfiguration.defaults(Configuration.global()));
+    mUfs = Mockito.spy(new FlakyLocalUnderFileSystem(new AlluxioURI(mUfsUri),
+        UnderFileSystemConfiguration.defaults(Configuration.global())));
     PowerMockito.mockStatic(UnderFileSystem.Factory.class);
     Mockito.when(UnderFileSystem.Factory.create(anyString(), any())).thenReturn(mUfs);
 
