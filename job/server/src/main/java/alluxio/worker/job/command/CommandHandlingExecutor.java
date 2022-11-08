@@ -56,6 +56,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
   private final TaskExecutorManager mTaskExecutorManager;
   private final WorkerNetAddress mWorkerNetAddress;
   private final JobWorkerHealthReporter mHealthReporter;
+  private final boolean mIsThrottleWorkerOnPoorHealth;
 
   // Keep this single threaded to keep the order of command execution consistent
   private final ExecutorService mCommandHandlingService =
@@ -77,25 +78,24 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
     mTaskExecutorManager = Preconditions.checkNotNull(taskExecutorManager, "taskExecutorManager");
     mMasterClient = Preconditions.checkNotNull(masterClient, "masterClient");
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress, "workerNetAddress");
-    if (Configuration.getBoolean(PropertyKey.JOB_WORKER_THROTTLING)) {
-      mHealthReporter = new JobWorkerHealthReporter();
-    } else {
-      mHealthReporter = new AlwaysHealthyJobWorkerHealthReporter();
-    }
+    mIsThrottleWorkerOnPoorHealth = Configuration.getBoolean(PropertyKey.JOB_WORKER_THROTTLING);
+    mHealthReporter = new JobWorkerHealthReporter(mWorkerNetAddress);
   }
 
   @Override
   public void heartbeat() {
-    mHealthReporter.compute();
-
-    if (mHealthReporter.isHealthy()) {
-      mTaskExecutorManager.unthrottle();
-    } else {
-      mTaskExecutorManager.throttle();
+    JobWorkerHealthReporter.JobWorkerHealthReport jobWorkerHealthReport = mHealthReporter.getJobWorkerHealthReport();
+    if(mIsThrottleWorkerOnPoorHealth){
+      if (jobWorkerHealthReport.isHealthy()) {
+        mTaskExecutorManager.unthrottle();
+      } else {
+        mTaskExecutorManager.throttle();
+        LOG.warn("Worker,{}, is throttled.", mWorkerNetAddress.getHost());
+      }
     }
 
     JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(JobWorkerIdRegistry.getWorkerId(),
-        mHealthReporter.getCpuLoadAverage(), mTaskExecutorManager.getTaskExecutorPoolSize(),
+        jobWorkerHealthReport.getCpuLoadAverage(), mTaskExecutorManager.getTaskExecutorPoolSize(),
         mTaskExecutorManager.getNumActiveTasks(), mTaskExecutorManager.unfinishedTasks(),
         mWorkerNetAddress.getHost());
 
