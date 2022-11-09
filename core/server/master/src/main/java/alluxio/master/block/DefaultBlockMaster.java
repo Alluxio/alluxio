@@ -1200,6 +1200,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     final Map<String, Long> totalBytesOnTiers = chunk.getTotalBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = chunk.getUsedBytesOnTiersMap();
     final Map<String, StorageList> lostStorage = chunk.getLostStorageMap();
+    final BuildVersion buildVersion = chunk.getBuildVersion();
 
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
         BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(
@@ -1221,6 +1222,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     processWorkerAddedBlocks(workerInfo, currentBlocksOnLocation);
     processWorkerOrphanedBlocks(workerInfo);
     workerInfo.addLostStorage(lostStorage);
+    workerInfo.setBuildVersion(buildVersion);
 
     // TODO(jiacheng): This block can be moved to a non-locked section
     if (options.getConfigsCount() > 0) {
