@@ -150,7 +150,7 @@ public final class BlockMasterWorkerServiceHandler extends
 
     final long workerId = request.getWorkerId();
     RegisterWorkerPOptions options = request.getOptions();
-    BuildVersion version = request.getVersion();
+    BuildVersion buildVersion = request.getBuildVersion();
     RpcUtils.call(LOG,
         () -> {
           // The exception will be propagated to the worker side and the worker should retry.
@@ -174,7 +174,7 @@ public final class BlockMasterWorkerServiceHandler extends
           // If the register is unsuccessful, the lease will be kept around until the expiry.
           // The worker can retry and use the existing lease.
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-                  currBlocksOnLocationMap, lostStorageMap, version, options);
+                  currBlocksOnLocationMap, lostStorageMap, buildVersion, options);
           LOG.info("Worker {} finished registering, releasing its lease.", workerId);
           mBlockMaster.releaseRegisterLease(workerId);
           return RegisterWorkerPResponse.getDefaultInstance();

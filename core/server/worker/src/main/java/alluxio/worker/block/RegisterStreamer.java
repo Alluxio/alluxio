@@ -281,7 +281,7 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
       } else {
         blockBatch = Collections.emptyList();
       }
-      final BuildVersion version = BuildVersion.newBuilder()
+      final BuildVersion buildVersion = BuildVersion.newBuilder()
           .setVersion(ProjectConstants.VERSION)
           .setRevision(ProjectConstants.REVISION)
           .build();
@@ -294,7 +294,7 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
           .putAllLostStorage(mLostStorageMap)
           .setOptions(mOptions)
           .addAllCurrentBlocks(blockBatch)
-          .setVersion(version)
+          .setBuildVersion(buildVersion)
           .build();
     } else {
       blockBatch = mBlockMapIterator.next();

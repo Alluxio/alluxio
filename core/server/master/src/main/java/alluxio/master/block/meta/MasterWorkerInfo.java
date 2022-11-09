@@ -128,7 +128,7 @@ public final class MasterWorkerInfo {
   /** Worker's last updated time in ms. */
   private final AtomicLong mLastUpdatedTimeMs;
   /** Worker's build version (including version and revision). */
-  private final AtomicReference<BuildVersion> mVersion;
+  private final AtomicReference<BuildVersion> mBuildVersion;
   /** Worker metadata, this field is thread safe. */
   private final StaticWorkerMeta mMeta;
 
@@ -168,7 +168,7 @@ public final class MasterWorkerInfo {
     mBlocks = new LongOpenHashSet();
     mToRemoveBlocks = new LongOpenHashSet();
     mLastUpdatedTimeMs = new AtomicLong(CommonUtils.getCurrentMs());
-    mVersion = new AtomicReference<>(BuildVersion.getDefaultInstance());
+    mBuildVersion = new AtomicReference<>(BuildVersion.getDefaultInstance());
 
     // Init all locks
     mStatusLock = new StampedLock().asReadWriteLock();
@@ -344,7 +344,7 @@ public final class MasterWorkerInfo {
           info.setUsedBytesOnTiers(mUsage.mUsedBytesOnTiers);
           break;
         case BUILD_VERSION:
-          BuildVersion v = mVersion.get();
+          BuildVersion v = mBuildVersion.get();
           info.setBuildVersion(v.getVersion(), v.getRevision());
           break;
         default:
@@ -711,10 +711,10 @@ public final class MasterWorkerInfo {
    * Sets the build version of the worker.
    * BuildVersion is reported by the worker in the register request.
    *
-   * @param version the {@link BuildVersion} of the worker
+   * @param buildVersion the {@link BuildVersion} of the worker
    */
-  public void setVersion(BuildVersion version) {
-    mVersion.set(version);
+  public void setBuildVersion(BuildVersion buildVersion) {
+    mBuildVersion.set(buildVersion);
   }
 
   /**
@@ -724,6 +724,6 @@ public final class MasterWorkerInfo {
    * @return the {@link BuildVersion} of the worker
    */
   public BuildVersion getVersion() {
-    return mVersion.get();
+    return mBuildVersion.get();
   }
 }

@@ -300,7 +300,7 @@ public class BlockMasterClient extends AbstractMasterClient {
         .collect(Collectors.toMap(Map.Entry::getKey,
             e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
 
-    final BuildVersion version = BuildVersion.newBuilder()
+    final BuildVersion buildVersion = BuildVersion.newBuilder()
         .setVersion(ProjectConstants.VERSION)
         .setRevision(ProjectConstants.REVISION).build();
 
@@ -309,7 +309,7 @@ public class BlockMasterClient extends AbstractMasterClient {
         .putAllUsedBytesOnTiers(usedBytesOnTiers)
         .addAllCurrentBlocks(currentBlocks)
         .putAllLostStorage(lostStorageMap)
-        .setVersion(version)
+        .setBuildVersion(buildVersion)
         .setOptions(options).build();
 
     retryRPC(() -> {

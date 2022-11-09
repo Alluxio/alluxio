@@ -68,7 +68,7 @@ message WorkerInfo {
   optional int64 startTimeMs = 7;
   map<string, int64> capacityBytesOnTiers = 8;
   map<string, int64> usedBytesOnTiers = 9;
-  optional BuildVersion version = 10;
+  optional BuildVersion buildVersion = 10;
 }
 
 enum WorkerRange {
@@ -287,7 +287,7 @@ message RegisterWorkerPRequest {
   /** use repeated fields to represent mapping from BlockStoreLocationProto to TierList */
   repeated LocationBlockIdListEntry currentBlocks = 8;
   /** the worker version to display in info pages (useful for rolling upgrades) */
-  optional BuildVersion version = 9;
+  optional BuildVersion buildVersion = 9;
 }
 message RegisterWorkerPResponse {}
 

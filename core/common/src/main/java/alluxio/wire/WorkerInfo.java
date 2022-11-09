@@ -39,8 +39,8 @@ public final class WorkerInfo implements Serializable {
   private Map<String, Long> mCapacityBytesOnTiers;
   private Map<String, Long> mUsedBytesOnTiers;
   private long mBlockCount;
-  private String version;
-  private String revision;
+  private String mVersion;
+  private String mRevision;
 
   /**
    * Creates a new instance of {@link WorkerInfo}.
@@ -124,7 +124,7 @@ public final class WorkerInfo implements Serializable {
    */
   @ApiModelProperty(value = "The project version of the worker")
   public String getVersion() {
-    return version;
+    return mVersion;
   }
 
   /**
@@ -132,7 +132,7 @@ public final class WorkerInfo implements Serializable {
    */
   @ApiModelProperty(value = "The latest git revision of at the time of building the worker")
   public String getRevision() {
-    return revision;
+    return mRevision;
   }
 
   /**
@@ -224,8 +224,8 @@ public final class WorkerInfo implements Serializable {
    * @return the worker information
    */
   public WorkerInfo setBuildVersion(String version, String revision) {
-    this.version = version;
-    this.revision = revision;
+    mVersion = version;
+    mRevision = revision;
     return this;
   }
 
@@ -244,7 +244,7 @@ public final class WorkerInfo implements Serializable {
         && mStartTimeMs == that.mStartTimeMs
         && Objects.equal(mCapacityBytesOnTiers, that.mCapacityBytesOnTiers)
         && Objects.equal(mUsedBytesOnTiers, that.mUsedBytesOnTiers)
-        && version.equals(that.version) && revision.equals(that.revision);
+        && mVersion.equals(that.mVersion) && mRevision.equals(that.mRevision);
   }
 
   /**
@@ -285,7 +285,7 @@ public final class WorkerInfo implements Serializable {
   @Override
   public int hashCode() {
     return Objects.hashCode(mId, mAddress, mLastContactSec, mState, mCapacityBytes, mUsedBytes,
-        mStartTimeMs, mCapacityBytesOnTiers, mUsedBytesOnTiers, version, revision);
+        mStartTimeMs, mCapacityBytesOnTiers, mUsedBytesOnTiers, mVersion, mRevision);
   }
 
   @Override
@@ -295,6 +295,6 @@ public final class WorkerInfo implements Serializable {
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("startTimeMs", mStartTimeMs).add("capacityBytesOnTiers", mCapacityBytesOnTiers)
         .add("usedBytesOnTiers", mUsedBytesOnTiers)
-        .add("version", version).add("revision", revision).toString();
+        .add("version", mVersion).add("revision", mRevision).toString();
   }
 }

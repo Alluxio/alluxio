@@ -1114,7 +1114,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<BlockLocation, List<Long>> currentBlocksOnLocation,
-      Map<String, StorageList> lostStorage, BuildVersion version,
+      Map<String, StorageList> lostStorage, BuildVersion buildVersion,
       RegisterWorkerPOptions options)
       throws NotFoundException {
 
@@ -1128,7 +1128,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
 
-    worker.setVersion(version);
+    worker.setBuildVersion(buildVersion);
 
     // Gather all blocks on this worker.
     int totalSize = currentBlocksOnLocation.values().stream().mapToInt(List::size).sum();

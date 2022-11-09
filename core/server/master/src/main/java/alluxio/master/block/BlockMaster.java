@@ -266,14 +266,14 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param usedBytesOnTiers a mapping from storage tier alias to the used byes
    * @param currentBlocksOnLocation a mapping from storage tier alias to a list of blocks
    * @param lostStorage a mapping from storage tier alias to a list of lost storage paths
-   * @param version the build version of the worker (including version and revision)
+   * @param buildVersion the build version of the worker (including version and revision)
    * @param options the options that may contain worker configuration
    * @throws NotFoundException if workerId cannot be found
    */
   void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
-      Map<String, StorageList> lostStorage, BuildVersion version,
+      Map<String, StorageList> lostStorage, BuildVersion buildVersion,
       RegisterWorkerPOptions options)
       throws NotFoundException;
 
