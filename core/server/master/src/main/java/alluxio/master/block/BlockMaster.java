@@ -17,6 +17,7 @@ import alluxio.exception.BlockInfoException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetRegisterLeasePRequest;
@@ -244,10 +245,34 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param options the options that may contain worker configuration
    * @throws NotFoundException if workerId cannot be found
    */
-  void workerRegister(long workerId, List<String> storageTiers,
+  default void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
       Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
+      throws NotFoundException {
+    workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
+        currentBlocksOnLocation, lostStorage, BuildVersion.getDefaultInstance(), options);
+  }
+
+  /**
+   * Updates metadata when a worker registers with the master.
+   *
+   * @param workerId the worker id of the worker registering
+   * @param storageTiers a list of storage tier aliases in order of their position in the worker's
+   *        hierarchy
+   * @param totalBytesOnTiers a mapping from storage tier alias to total bytes
+   * @param usedBytesOnTiers a mapping from storage tier alias to the used byes
+   * @param currentBlocksOnLocation a mapping from storage tier alias to a list of blocks
+   * @param lostStorage a mapping from storage tier alias to a list of lost storage paths
+   * @param version the build version of the worker (including version and revision)
+   * @param options the options that may contain worker configuration
+   * @throws NotFoundException if workerId cannot be found
+   */
+  void workerRegister(long workerId, List<String> storageTiers,
+      Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
+      Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
+      Map<String, StorageList> lostStorage, BuildVersion version,
+      RegisterWorkerPOptions options)
       throws NotFoundException;
 
   /**

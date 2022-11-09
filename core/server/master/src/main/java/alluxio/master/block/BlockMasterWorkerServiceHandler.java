@@ -18,6 +18,7 @@ import alluxio.exception.RegisterLeaseNotFoundException;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockInUfsPResponse;
 import alluxio.grpc.CommitBlockPRequest;
@@ -149,6 +150,7 @@ public final class BlockMasterWorkerServiceHandler extends
 
     final long workerId = request.getWorkerId();
     RegisterWorkerPOptions options = request.getOptions();
+    BuildVersion version = request.getVersion();
     RpcUtils.call(LOG,
         () -> {
           // The exception will be propagated to the worker side and the worker should retry.
@@ -172,7 +174,7 @@ public final class BlockMasterWorkerServiceHandler extends
           // If the register is unsuccessful, the lease will be kept around until the expiry.
           // The worker can retry and use the existing lease.
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-                  currBlocksOnLocationMap, lostStorageMap, options);
+                  currBlocksOnLocationMap, lostStorageMap, version, options);
           LOG.info("Worker {} finished registering, releasing its lease.", workerId);
           mBlockMaster.releaseRegisterLease(workerId);
           return RegisterWorkerPResponse.getDefaultInstance();

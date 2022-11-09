@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.StorageList;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.resource.LockResource;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.StampedLock;
@@ -125,6 +127,8 @@ public final class MasterWorkerInfo {
 
   /** Worker's last updated time in ms. */
   private final AtomicLong mLastUpdatedTimeMs;
+  /** Worker's build version (including version and revision). */
+  private final AtomicReference<BuildVersion> mVersion;
   /** Worker metadata, this field is thread safe. */
   private final StaticWorkerMeta mMeta;
 
@@ -164,6 +168,7 @@ public final class MasterWorkerInfo {
     mBlocks = new LongOpenHashSet();
     mToRemoveBlocks = new LongOpenHashSet();
     mLastUpdatedTimeMs = new AtomicLong(CommonUtils.getCurrentMs());
+    mVersion = new AtomicReference<>(BuildVersion.getDefaultInstance());
 
     // Init all locks
     mStatusLock = new StampedLock().asReadWriteLock();
@@ -696,5 +701,25 @@ public final class MasterWorkerInfo {
       lockTypes.add(WorkerMetaLockSection.USAGE);
     }
     return lockWorkerMeta(lockTypes, true);
+  }
+
+  /**
+   * Sets the build version of the worker.
+   * BuildVersion is reported by the worker in the register request.
+   *
+   * @param version the {@link BuildVersion} of the worker
+   */
+  public void setVersion(BuildVersion version) {
+    mVersion.set(version);
+  }
+
+  /**
+   * Get the build version of the worker.
+   * This is used to monitor cluster status when performing rolling upgrades.
+   *
+   * @return the {@link BuildVersion} of the worker
+   */
+  public BuildVersion getVersion() {
+    return mVersion.get();
   }
 }

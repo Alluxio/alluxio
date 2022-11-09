@@ -29,6 +29,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.ConfigProperty;
@@ -1113,7 +1114,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<BlockLocation, List<Long>> currentBlocksOnLocation,
-      Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
+      Map<String, StorageList> lostStorage, BuildVersion version,
+      RegisterWorkerPOptions options)
       throws NotFoundException {
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
@@ -1125,6 +1127,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     if (worker == null) {
       throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
+
+    worker.setVersion(version);
 
     // Gather all blocks on this worker.
     int totalSize = currentBlocksOnLocation.values().stream().mapToInt(List::size).sum();

@@ -260,6 +260,12 @@ message GetRegisterLeasePResponse {
   optional GetRegisterLeasePOptions options = 4;
 }
 
+message BuildVersion {
+  /** the project version of the worker */
+  optional string version = 1;
+  /** the latest git revision of at the time of building the worker */
+  optional string revision = 2;
+}
 message RegisterWorkerPOptions {
   repeated grpc.ConfigProperty configs = 1;
 }
@@ -279,6 +285,8 @@ message RegisterWorkerPRequest {
   map<string, StorageList> lostStorage = 7;
   /** use repeated fields to represent mapping from BlockStoreLocationProto to TierList */
   repeated LocationBlockIdListEntry currentBlocks = 8;
+  /** the worker version to display in info pages (useful for rolling upgrades) */
+  optional BuildVersion version = 9;
 }
 message RegisterWorkerPResponse {}
 
