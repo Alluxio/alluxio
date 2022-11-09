@@ -210,7 +210,11 @@ Use the principal `hdfs` and the keytab that you configured earlier in `alluxio-
 A known limitation is that the Kerberos TGT may expire after
 the max renewal lifetime. You can work around this by renewing the TGT periodically. Otherwise you
 may see `No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)`
-when starting Alluxio services.
+when starting Alluxio services. Another option is to set `alluxio.hadoop.security.kerberos.keytab.login.autorenewal=true`
+so the TGT is automatically refreshed.
+
+The user can also use `alluxio.hadoop.security.krb5.conf` to specify the krb5.conf file location
+and use `alluxio.hadoop.security.authentication` to specify authentication method.
 
 #### Custom Kerberos Realm/KDC
 
