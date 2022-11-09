@@ -39,4 +39,4 @@ RUN wget -qO /tmp/async-profiler-1.8.3-linux-x64.tar.gz "https://github.com/jvm-
     mv /opt/async-profiler-* /opt/async-profiler && \
     rm /tmp/async-profiler-1.8.3-linux-x64.tar.gz
 
-USER ${ALLUXIO_UID}
+USER ${ALLUXIO_DEV_UID}
