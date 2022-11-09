@@ -11,9 +11,15 @@
 
 package alluxio.network.protocol.databuffer;
 
+import alluxio.network.protocol.databuffer.managed.BufOwner;
+import alluxio.network.protocol.databuffer.managed.BufferEnvelope;
+import alluxio.network.protocol.databuffer.managed.OwnedByteBuf;
+import alluxio.network.protocol.databuffer.managed.TrackingOwnedByteBuf;
+
 import io.netty.buffer.ByteBuf;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Pooled direct NIO byte buffer allocated from {@link NioDirectBufferPool}
@@ -38,5 +44,30 @@ public class PooledDirectNioByteBuf extends RefCountedNioByteBuf {
    */
   public static ByteBuf allocate(int length) {
     return new PooledDirectNioByteBuf(NioDirectBufferPool.acquire(length), length);
+  }
+
+  /**
+   * Allocates a new ownership managed buffer from {@link NioDirectBufferPool}.
+   *
+   * @param length buffer capacity
+   * @return the allocated buffer in envelope
+   */
+  public static BufferEnvelope allocateManaged(int length) {
+    return new Envelope(
+        new PooledDirectNioByteBuf(NioDirectBufferPool.acquire(length), length));
+  }
+
+  private static class Envelope implements BufferEnvelope {
+    private final AtomicReference<ByteBuf> mBufRef;
+
+    protected Envelope(ByteBuf buffer) {
+      mBufRef = new AtomicReference<>(buffer);
+    }
+
+    // todo(bowen): make the tracking optional and configurable
+    @Override
+    public <OwnerT extends BufOwner<OwnerT>> OwnedByteBuf<OwnerT> unseal(OwnerT owner) {
+      return TrackingOwnedByteBuf.fromFreshAllocation(mBufRef.getAndSet(null), owner);
+    }
   }
 }
