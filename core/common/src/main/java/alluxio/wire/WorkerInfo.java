@@ -45,7 +45,10 @@ public final class WorkerInfo implements Serializable {
   /**
    * Creates a new instance of {@link WorkerInfo}.
    */
-  public WorkerInfo() {}
+  public WorkerInfo() {
+    mVersion = "";
+    mRevision = "";
+  }
 
   /**
    * @return the worker id
