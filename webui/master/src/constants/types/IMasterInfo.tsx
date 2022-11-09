@@ -9,12 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export * from './data/headerNavigation';
-export * from './data/footerNavigation';
-export * from './data/routePaths';
-
-export * from './types/INodeInfo';
-export * from './types/IMasterInfo';
-export * from './types/IScopedPropertyInfo';
-export * from './types/IStorageTierInfo';
-export * from '@alluxio/common-ui/src/constants/types/IConfigTriple';
+export interface IMasterInfo {
+  address: {
+    rpcPort: number,
+    host: string,
+  };
+  id: string;
+  lastUpdatedTimeMs: number;
+  lastUpdatedTime: string;
+}

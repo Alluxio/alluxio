@@ -9,12 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export * from './data/headerNavigation';
-export * from './data/footerNavigation';
-export * from './data/routePaths';
+import { AxiosResponse } from 'axios';
+import { action } from 'typesafe-actions';
 
-export * from './types/INodeInfo';
-export * from './types/IMasterInfo';
-export * from './types/IScopedPropertyInfo';
-export * from './types/IStorageTierInfo';
-export * from '@alluxio/common-ui/src/constants/types/IConfigTriple';
+import { MastersActionTypes } from './types';
+import { AnyAction } from 'redux';
+
+export const fetchRequest = (): AnyAction => action(MastersActionTypes.FETCH_REQUEST);
+export const fetchSuccess = (response: AxiosResponse): AnyAction => action(MastersActionTypes.FETCH_SUCCESS, response);
+export const fetchError = (message: string): AnyAction => action(MastersActionTypes.FETCH_ERROR, message);

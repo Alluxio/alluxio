@@ -184,6 +184,6 @@ public final class MasterWebUIInit implements Serializable {
         .add("newerVersionAvailable", mNewerVersionAvailable)
         .add("webFileInfoEnabled", mWebFileInfoEnabled)
         .add("securityAuthorizationPermissionEnabled", mSecurityAuthorizationPermissionEnabled)
-        .add("workerPort", mWorkerPort).add("refreshInterval", mRefreshInterval).toString();
+        .add("refreshInterval", mRefreshInterval).toString();
   }
 }

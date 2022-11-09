@@ -23,6 +23,7 @@ import alluxio.wire.Address;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigHash;
 import alluxio.wire.Configuration;
+import alluxio.wire.MasterInfo;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -130,6 +131,16 @@ public interface MetaMaster extends BackupOps, Master {
    * @return the master's web port
    */
   int getWebPort();
+
+  /**
+   * @return a list of {@link MasterInfo}s of masters
+   */
+  List<MasterInfo> getMasterInfoList();
+
+  /**
+   * @return a list of {@link MasterInfo}s of lost masters
+   */
+  List<MasterInfo> getLostMasterInfoList();
 
   /**
    * @return the addresses of live workers

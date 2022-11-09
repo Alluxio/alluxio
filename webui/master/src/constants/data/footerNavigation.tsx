@@ -24,6 +24,10 @@ export const footerNavigationData: INavigationData[] = [
     url: 'https://groups.google.com/forum/#!forum/alluxio-users',
   },
   {
+    innerText: 'Masters',
+    url: routePaths.masters,
+  },
+  {
     innerText: 'Workers',
     url: routePaths.workers,
   },

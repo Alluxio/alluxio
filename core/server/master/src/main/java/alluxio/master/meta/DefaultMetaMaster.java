@@ -64,6 +64,7 @@ import alluxio.wire.Address;
 import alluxio.wire.BackupStatus;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigHash;
+import alluxio.wire.MasterInfo;
 
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
@@ -73,6 +74,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.text.MessageFormat;
 import java.time.Clock;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -485,6 +487,24 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   @Override
   public List<Address> getWorkerAddresses() {
     return mWorkerConfigStore.getLiveNodeAddresses();
+  }
+
+  @Override
+  public List<MasterInfo> getMasterInfoList() {
+    List<MasterInfo> masterInfoList = new ArrayList<>(mMasters.size());
+    for (MasterInfo master : mMasters) {
+      masterInfoList.add(master);
+    }
+    return masterInfoList;
+  }
+
+  @Override
+  public List<MasterInfo> getLostMasterInfoList() {
+    List<MasterInfo> masterInfoList = new ArrayList<>(mLostMasters.size());
+    for (MasterInfo master : mLostMasters) {
+      masterInfoList.add(master);
+    }
+    return masterInfoList;
   }
 
   @Override

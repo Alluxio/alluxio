@@ -9,10 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.meta;
+package alluxio.wire;
 
-import alluxio.wire.Address;
-
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.CommonUtils;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
@@ -43,6 +44,17 @@ public final class MasterInfo {
   }
 
   /**
+   * Creates a new instance of {@link MasterInfo}.
+   *
+   * @param masterInfo the masterInfo need to be cloned
+   */
+  public MasterInfo(MasterInfo masterInfo) {
+    mAddress = masterInfo.getAddress();
+    mId = masterInfo.getId();
+    mLastUpdatedTimeMs = masterInfo.getLastUpdatedTimeMs();
+  }
+
+  /**
    * @return the master's address
    */
   public Address getAddress() {
@@ -63,10 +75,18 @@ public final class MasterInfo {
     return mLastUpdatedTimeMs;
   }
 
+  /**
+   * @return the last updated time of the master in date format
+   */
+  public String getLastUpdatedTime() {
+    return CommonUtils.convertMsToDate(mLastUpdatedTimeMs,
+            Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN));
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
-        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).toString();
+            .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).toString();
   }
 
   /**
@@ -75,4 +95,5 @@ public final class MasterInfo {
   public void updateLastUpdatedTimeMs() {
     mLastUpdatedTimeMs = System.currentTimeMillis();
   }
+
 }
