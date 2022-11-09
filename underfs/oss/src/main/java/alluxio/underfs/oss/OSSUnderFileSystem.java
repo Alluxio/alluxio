@@ -62,7 +62,6 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   private boolean mStsEnabled;
   private StsOssClientProvider mClientProvider;
 
-
   /**
    * Constructs a new instance of {@link OSSUnderFileSystem}.
    *
