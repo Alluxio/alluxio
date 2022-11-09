@@ -14,6 +14,7 @@ package alluxio.cli.fsadmin.report;
 import alluxio.Constants;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.options.GetWorkerReportOptions;
+import alluxio.grpc.GetWorkerReportPOptions;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -151,6 +152,18 @@ public class CapacityCommandTest {
       Assert.assertThat(testOutput,
           IsIterableContainingInOrder.contains(expectedOutput.toArray()));
     }
+  }
+
+  /**
+   * Check whether WorkerInfoField class and WorkerInfoField in proto file has identical fields.
+   */
+  @Test
+  public void workerInfoFieldCapacity() throws IOException {
+    // If Options has a WorkerInfoField which POptions does not have, throw IOException.
+    GetWorkerReportOptions.defaults().toProto();
+    // If POptions has a WorkerInfoField which Options does not have, throw IOException.
+    new GetWorkerReportOptions(GetWorkerReportPOptions.newBuilder()
+        .addAllFieldRanges(Arrays.asList(alluxio.grpc.WorkerInfoField.values())).build());
   }
 
   /**
