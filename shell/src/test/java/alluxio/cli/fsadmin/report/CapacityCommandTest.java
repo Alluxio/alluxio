@@ -161,7 +161,8 @@ public class CapacityCommandTest {
   public void workerInfoFieldCapacity() throws IOException {
     // If Options has a WorkerInfoField which POptions does not have, throw IOException.
     GetWorkerReportOptions.defaults().toProto();
-    // If POptions has a WorkerInfoField which Options does not have, throw IOException.
+    // If POptions has a WorkerInfoField which Options does not have,
+    // the constructive method will fail.
     new GetWorkerReportOptions(GetWorkerReportPOptions.newBuilder()
         .addAllFieldRanges(Arrays.asList(alluxio.grpc.WorkerInfoField.values())).build());
   }
