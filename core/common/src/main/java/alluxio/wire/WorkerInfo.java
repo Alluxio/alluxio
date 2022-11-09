@@ -39,6 +39,8 @@ public final class WorkerInfo implements Serializable {
   private Map<String, Long> mCapacityBytesOnTiers;
   private Map<String, Long> mUsedBytesOnTiers;
   private long mBlockCount;
+  private String version;
+  private String revision;
 
   /**
    * Creates a new instance of {@link WorkerInfo}.
@@ -115,6 +117,22 @@ public final class WorkerInfo implements Serializable {
   @ApiModelProperty(value = "The number of bytes currently used on each of the worker's tiers")
   public Map<String, Long> getUsedBytesOnTiers() {
     return mUsedBytesOnTiers;
+  }
+
+  /**
+   * @return the project version of the worker
+   */
+  @ApiModelProperty(value = "The project version of the worker")
+  public String getVersion() {
+    return version;
+  }
+
+  /**
+   * @return the latest git revision of at the time of building the worker
+   */
+  @ApiModelProperty(value = "The latest git revision of at the time of building the worker")
+  public String getRevision() {
+    return revision;
   }
 
   /**
@@ -200,6 +218,17 @@ public final class WorkerInfo implements Serializable {
     return this;
   }
 
+  /**
+   * @param version the project version of the worker
+   * @param revision the latest git revision of at the time of building the worker
+   * @return the worker information
+   */
+  public WorkerInfo setBuildVersion(String version, String revision) {
+    this.version = version;
+    this.revision = revision;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -214,7 +243,8 @@ public final class WorkerInfo implements Serializable {
         && mCapacityBytes == that.mCapacityBytes && mUsedBytes == that.mUsedBytes
         && mStartTimeMs == that.mStartTimeMs
         && Objects.equal(mCapacityBytesOnTiers, that.mCapacityBytesOnTiers)
-        && Objects.equal(mUsedBytesOnTiers, that.mUsedBytesOnTiers);
+        && Objects.equal(mUsedBytesOnTiers, that.mUsedBytesOnTiers)
+        && version.equals(that.version) && revision.equals(that.revision);
   }
 
   /**
@@ -255,7 +285,7 @@ public final class WorkerInfo implements Serializable {
   @Override
   public int hashCode() {
     return Objects.hashCode(mId, mAddress, mLastContactSec, mState, mCapacityBytes, mUsedBytes,
-        mStartTimeMs, mCapacityBytesOnTiers, mUsedBytesOnTiers);
+        mStartTimeMs, mCapacityBytesOnTiers, mUsedBytesOnTiers, version, revision);
   }
 
   @Override
@@ -264,6 +294,7 @@ public final class WorkerInfo implements Serializable {
         .add("lastContactSec", mLastContactSec).add("state", mState)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("startTimeMs", mStartTimeMs).add("capacityBytesOnTiers", mCapacityBytesOnTiers)
-        .add("usedBytesOnTiers", mUsedBytesOnTiers).toString();
+        .add("usedBytesOnTiers", mUsedBytesOnTiers)
+        .add("version", version).add("revision", revision).toString();
   }
 }

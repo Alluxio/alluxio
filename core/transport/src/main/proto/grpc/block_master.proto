@@ -68,6 +68,7 @@ message WorkerInfo {
   optional int64 startTimeMs = 7;
   map<string, int64> capacityBytesOnTiers = 8;
   map<string, int64> usedBytesOnTiers = 9;
+  optional BuildVersion version = 10;
 }
 
 enum WorkerRange {

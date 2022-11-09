@@ -343,6 +343,10 @@ public final class MasterWorkerInfo {
         case WORKER_USED_BYTES_ON_TIERS:
           info.setUsedBytesOnTiers(mUsage.mUsedBytesOnTiers);
           break;
+        case BUILD_VERSION:
+          BuildVersion v = mVersion.get();
+          info.setBuildVersion(v.getVersion(), v.getRevision());
+          break;
         default:
           LOG.warn("Unrecognized worker info field: " + field);
       }
