@@ -16,6 +16,7 @@ import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.grpc.StorageList;
 import alluxio.master.block.DefaultBlockMaster;
+import alluxio.master.metastore.BlockMetaStore;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
@@ -38,7 +39,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.StampedLock;
 import javax.annotation.concurrent.GuardedBy;
@@ -146,6 +149,13 @@ public final class MasterWorkerInfo {
   /** Stores the mapping from WorkerMetaLockSection to the lock. */
   private final Map<WorkerMetaLockSection, ReadWriteLock> mLockTypeToLock;
 
+  /** Storage the Replica Changes for the block. Key: block id , Value: Changed replica number.*/
+  @GuardedBy("mReplicaInfoLock")
+  private final Map<Long, Short> mReplicaNum;
+  boolean mRequiredSyncReplica;
+
+  private final Lock mReplicaInfoLock = new ReentrantLock();
+
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
    *
@@ -167,6 +177,7 @@ public final class MasterWorkerInfo {
         WorkerMetaLockSection.STATUS, mStatusLock,
         WorkerMetaLockSection.USAGE, mUsageLock,
         WorkerMetaLockSection.BLOCKS, mBlockListLock);
+    mReplicaNum = new HashMap<>();
   }
 
   /**
@@ -656,6 +667,62 @@ public final class MasterWorkerInfo {
   public void updateUsage(StorageTierAssoc globalStorageTierAssoc, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers) {
     mUsage.updateUsage(globalStorageTierAssoc, storageTiers, totalBytesOnTiers, usedBytesOnTiers);
+  }
+
+  /**
+   * Require the lock for update replica info.
+   */
+  LockResource lockReplicaInfoBlock() {
+    return new LockResource(mReplicaInfoLock);
+  }
+
+  /**
+   * @param blockId the id of the block whose replica number is changed
+   * @param AddedNum the changed value
+   * Update the replica changed map.
+   */
+  public void updateReplica(long blockId, long AddedNum) {
+    try (LockResource r = lockReplicaInfoBlock()) {
+      if (mRequiredSyncReplica || mReplicaNum.size() > 10000) {
+        //todo: 10000 is temporary, the upper bound of the number of changes to record
+        mRequiredSyncReplica = true;
+        mReplicaNum.clear();
+      }
+      else if (mReplicaNum.containsKey(blockId)) {
+        // the number of machines in the cluster is limited
+        // so replica number can be stored in short to save the memory
+        mReplicaNum.compute(blockId, (key, value) -> (short) (value + (short) AddedNum));
+      } else {
+        mReplicaNum.put(blockId, (short) AddedNum);
+      }
+    }
+  }
+
+  /**
+   * Send the new added replica info to the workers.
+   * @param mBlockMetaStore
+   * @return the replica info sent to the workers
+   */
+  public Map<Long, Long> getReplicaInfo(BlockMetaStore mBlockMetaStore) {
+    Map<Long, Long> retReplicaNum = new HashMap<>();
+    if (mRequiredSyncReplica) {
+      try (LockResource r = lockReplicaInfoBlock()) {
+        for (Long blockId : mBlocks) {
+          retReplicaNum.put(blockId, (long) mBlockMetaStore.getLocations(blockId).size());
+        }
+        mRequiredSyncReplica = false;
+      }
+      return retReplicaNum;
+    }
+    try (LockResource r = lockReplicaInfoBlock()) {
+      for (Map.Entry<Long, Short> entry : mReplicaNum.entrySet()) {
+        if (entry.getValue() != 0) {
+          retReplicaNum.put(entry.getKey(), (long) entry.getValue());
+        }
+      }
+      mReplicaNum.clear();
+    }
+    return retReplicaNum;
   }
 
   /**

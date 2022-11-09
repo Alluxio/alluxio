@@ -482,6 +482,16 @@
                 "name": "command",
                 "type": "grpc.Command"
               }
+            ],
+            "maps": [
+              {
+                "key_type": "int64",
+                "field": {
+                  "id": 2,
+                  "name": "replicaInfo",
+                  "type": "int64"
+                }
+              }
             ]
           },
           {

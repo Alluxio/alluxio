@@ -21,7 +21,6 @@ import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockIdList;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
 import alluxio.grpc.BlockStoreLocationProto;
-import alluxio.grpc.Command;
 import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.ConfigProperty;
@@ -37,6 +36,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.RetryPolicy;
+import alluxio.wire.HeartBeatResponseMessage;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -200,7 +200,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    * @param metrics a list of worker metrics
    * @return an optional command for the worker to execute
    */
-  public synchronized Command heartbeat(final long workerId,
+  public synchronized HeartBeatResponseMessage heartbeat(final long workerId,
       final Map<String, Long> capacityBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final List<Long> removedBlocks, final Map<BlockStoreLocation, List<Long>> addedBlocks,
       final Map<String, List<String>> lostStorage, final List<Metric> metrics)
@@ -219,9 +219,12 @@ public class BlockMasterClient extends AbstractMasterClient {
         .addAllAddedBlocks(entryList).setOptions(options)
         .putAllLostStorage(lostStorageMap).build();
 
-    return retryRPC(() -> mClient.withDeadlineAfter(mContext.getClusterConf()
+    alluxio.grpc.BlockHeartbeatPResponse heartbeatReturn = retryRPC(() -> mClient.withDeadlineAfter(
+        mContext.getClusterConf()
         .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
-        .blockHeartbeat(request).getCommand(), LOG, "Heartbeat", "workerId=%d", workerId);
+        .blockHeartbeat(request), LOG, "Heartbeat", "workerId=%d", workerId);
+    return new HeartBeatResponseMessage().setCommand(heartbeatReturn.getCommand())
+            .setReplicaInfo(heartbeatReturn.getReplicaInfoMap());
   }
 
   private GetRegisterLeasePResponse acquireRegisterLease(

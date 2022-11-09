@@ -115,7 +115,7 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
             // So an empty map will be used here
             ImmutableMap.of(),
             LOST_STORAGE,
-            EMPTY_METRICS);
+            EMPTY_METRICS).getCommand();
         LOG.debug("Received command from heartbeat {}", cmd);
         Instant e = Instant.now();
         Duration d = Duration.between(s, e);

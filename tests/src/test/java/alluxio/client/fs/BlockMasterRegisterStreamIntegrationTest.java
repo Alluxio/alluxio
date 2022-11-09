@@ -874,6 +874,6 @@ public class BlockMasterRegisterStreamIntegrationTest {
         // list of added blockIds
         ImmutableMap.of(),
         NO_LOST_STORAGE,
-        ImmutableList.of());
+        ImmutableList.of()).getCommand();
   }
 }

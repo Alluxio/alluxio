@@ -72,6 +72,7 @@ import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.HeartBeatResponseMessage;
 import alluxio.wire.RegisterLease;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -134,6 +135,12 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   private final long mContainerIdReservationSize = Configuration.getInt(
       PropertyKey.MASTER_CONTAINER_ID_RESERVATION_SIZE);
+
+  /**
+   * Whether we maintain the replica number of each block for each worker.
+   */
+  private final boolean mMaintainReplicaInfo = Configuration.getBoolean(
+          PropertyKey.MAINTAIN_REPLICA_INFO);
 
   /** The only valid key for {@link #mWorkerInfoCache}. */
   private static final String WORKER_INFO_CACHE_KEY = "WorkerInfoKey";
@@ -903,6 +910,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           // TODO(binfan): when retry commitBlock on master is expected, make sure metrics are not
           // double counted.
           worker.addBlock(blockId);
+          if (mMaintainReplicaInfo) {
+            worker.updateReplica(blockId, 1);
+          }
           worker.updateUsedBytes(tierAlias, usedBytesOnTier);
         }
       }
@@ -1252,15 +1262,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
+  public HeartBeatResponseMessage workerHeartbeat(
+      long workerId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
-      Map<BlockLocation, List<Long>> addedBlocks,
-      Map<String, StorageList> lostStorage,
+      Map<BlockLocation, List<Long>> addedBlocks, Map<String, StorageList> lostStorage,
       List<Metric> metrics) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
-      return Command.newBuilder().setCommandType(CommandType.Register).build();
+      Command workerCommand = Command.newBuilder().setCommandType(CommandType.Register).build();
+      return new HeartBeatResponseMessage().setCommand(workerCommand);
     }
 
     // Update the TS before the heartbeat so even if the worker heartbeat processing
@@ -1272,6 +1283,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
 
     Command workerCommand = null;
+    Map<java.lang.Long, java.lang.Long> mworkerReplicaInfo = new HashMap<>();
     try (LockResource r = worker.lockWorkerMeta(
         EnumSet.of(WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), false)) {
       worker.addLostStorage(lostStorage);
@@ -1298,11 +1310,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     // Update the TS again
     worker.updateLastUpdatedTimeMs();
-
+    mworkerReplicaInfo = worker.getReplicaInfo(mBlockMetaStore);
     // Should not reach here
     Preconditions.checkNotNull(workerCommand, "Worker heartbeat response command is null!");
-
-    return workerCommand;
+    return new HeartBeatResponseMessage().setCommand(workerCommand)
+            .setReplicaInfo(mworkerReplicaInfo);
   }
 
   @Override
@@ -1334,6 +1346,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         Optional<BlockMeta> block = mBlockMetaStore.getBlock(removedBlockId);
         if (block.isPresent()) {
           LOG.debug("Block {} is removed on worker {}.", removedBlockId, workerInfo.getId());
+          if (mMaintainReplicaInfo) {
+            for (BlockLocation relatedWorkers : mBlockMetaStore.getLocations(removedBlockId)) {
+              MasterWorkerInfo worker =
+                  mWorkers.getFirstByField(ID_INDEX, relatedWorkers.getWorkerId());
+              worker.updateReplica(removedBlockId, -1);
+            }
+          }
           mBlockMetaStore.removeLocation(removedBlockId, workerInfo.getId());
           if (mBlockMetaStore.getLocations(removedBlockId).size() == 0) {
             mLostBlocks.add(removedBlockId);
@@ -1374,6 +1393,17 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                 location.getWorkerId(), workerInfo.getId());
             mBlockMetaStore.addLocation(blockId, location);
             mLostBlocks.remove(blockId);
+            if (mMaintainReplicaInfo) {
+              for (BlockLocation relatedWorkers : mBlockMetaStore.getLocations(blockId)) {
+                MasterWorkerInfo worker =
+                    mWorkers.getFirstByField(ID_INDEX, relatedWorkers.getWorkerId());
+                if (worker != workerInfo) {
+                  worker.updateReplica(blockId, 1);
+                } else {
+                  worker.updateReplica(blockId, mBlockMetaStore.getLocations(blockId).size());
+                }
+              }
+            }
           } else {
             invalidBlockCount++;
             // The block is not recognized and should therefore be purged from the worker

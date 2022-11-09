@@ -316,7 +316,7 @@ public class BlockMasterClientTest {
         removedBlocks,
         addedBlocks,
         lostStorage,
-        metrics).getCommandType());
+        metrics).getCommand().getCommandType());
   }
 
   @Test

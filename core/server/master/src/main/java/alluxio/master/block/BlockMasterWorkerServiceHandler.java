@@ -34,6 +34,7 @@ import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
+import alluxio.wire.HeartBeatResponseMessage;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -86,11 +87,13 @@ public final class BlockMasterWorkerServiceHandler extends
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
 
+    HeartBeatResponseMessage mheartBeatSendInfo = mBlockMaster.workerHeartbeat(workerId,
+        capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
+        lostStorageMap, metrics);
     RpcUtils.call(LOG, () ->
-        BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
-          capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
-            lostStorageMap, metrics)).build(),
-        "blockHeartbeat", "request=%s", responseObserver, request);
+        BlockHeartbeatPResponse.newBuilder().setCommand(mheartBeatSendInfo.getCommand())
+          .putAllReplicaInfo(mheartBeatSendInfo.getReplicaInfo())
+          .build(), "blockHeartbeat", "request=%s", responseObserver, request);
   }
 
   @Override

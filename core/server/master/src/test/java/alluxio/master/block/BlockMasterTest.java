@@ -72,6 +72,8 @@ public class BlockMasterTest {
       .setRpcPort(80).setDataPort(81).setWebPort(82);
   private static final WorkerNetAddress NET_ADDRESS_2 = new WorkerNetAddress().setHost("localhost")
       .setRpcPort(83).setDataPort(84).setWebPort(85);
+  private static final WorkerNetAddress NET_ADDRESS_3 = new WorkerNetAddress().setHost("localhost")
+          .setRpcPort(86).setDataPort(87).setWebPort(88);
 
   private static final List<Long> NO_BLOCKS = ImmutableList.of();
   private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATION
@@ -103,6 +105,7 @@ public class BlockMasterTest {
    */
   @Before
   public void before() throws Exception {
+    Configuration.set(PropertyKey.MAINTAIN_REPLICA_INFO, true);
     mRegistry = new MasterRegistry();
     mMetrics = Lists.newArrayList();
     JournalSystem journalSystem = new NoopJournalSystem();
@@ -227,7 +230,7 @@ public class BlockMasterTest {
     // Check that the worker heartbeat tells the worker to remove the block.
     Map<String, Long> memUsage = ImmutableMap.of(Constants.MEDIUM_MEM, 0L);
     alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(worker1, null, memUsage,
-        NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
+        NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics).getCommand();
     assertEquals(ImmutableList.of(1L), heartBeat.getDataList());
   }
 
@@ -248,7 +251,7 @@ public class BlockMasterTest {
 
     // Check that the worker heartbeat tells the worker to remove the blocks.
     alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(workerId, null,
-        memUsage, NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
+        memUsage, NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics).getCommand();
     assertEquals(orphanedBlocks, heartBeat.getDataList());
   }
 
@@ -367,8 +370,115 @@ public class BlockMasterTest {
   }
 
   @Test
+  public void replicaInfoUpdateTest() throws Exception {
+    long blockId1 = 1L;
+    long blockId2 = 101L;
+    long blockId3 = 201L;
+    // Create  worker 1.
+    long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
+    Block.BlockLocation blockOnWorker1 = Block.BlockLocation.newBuilder()
+            .setWorkerId(worker1).setTier(Constants.MEDIUM_MEM)
+            .setMediumType(Constants.MEDIUM_MEM).build();
+    mBlockMaster.workerRegister(worker1, Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 100L, Constants.MEDIUM_SSD, 200L),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 0L, Constants.MEDIUM_SSD, 0L),
+            NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
+            RegisterWorkerPOptions.getDefaultInstance());
+    //Create worker 2
+    long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
+    Block.BlockLocation blockOnWorker2 = Block.BlockLocation.newBuilder()
+            .setWorkerId(worker2).setTier(Constants.MEDIUM_MEM)
+            .setMediumType(Constants.MEDIUM_MEM).build();
+    mBlockMaster.workerRegister(worker2, Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_HDD),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 100L, Constants.MEDIUM_HDD, 300L),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 0L, Constants.MEDIUM_HDD, 0L),
+            NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
+            RegisterWorkerPOptions.getDefaultInstance());
+    //Create Worker 3
+    long worker3 = mBlockMaster.getWorkerId(NET_ADDRESS_3);
+    Block.BlockLocation blockOnWorker3 = Block.BlockLocation.newBuilder()
+            .setWorkerId(worker3).setTier(Constants.MEDIUM_MEM)
+            .setMediumType(Constants.MEDIUM_MEM).build();
+    mBlockMaster.workerRegister(worker3, Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_HDD),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 100L, Constants.MEDIUM_HDD, 300L),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 0L, Constants.MEDIUM_HDD, 0L),
+            NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
+            RegisterWorkerPOptions.getDefaultInstance());
+    //Commit block3 with worker 3
+    //Current State: worker1:{}, worker2:{}. worker3:{block3}
+    mBlockMaster.commitBlock(worker3, 50L, Constants.MEDIUM_MEM,
+            Constants.MEDIUM_MEM, blockId3, 20L);
+
+    //Commit block1 with worker1
+    //Current State: worker1:{block1}, worker2:{}, worker3:{}
+    mBlockMaster.commitBlock(worker1, 50L, Constants.MEDIUM_MEM,
+            Constants.MEDIUM_MEM, blockId1, 20L);
+    Map<Long, Long> worker1Info = mBlockMaster.workerHeartbeat(worker1, null,
+            ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
+            NO_BLOCKS_ON_LOCATION,
+            NO_LOST_STORAGE, mMetrics).getReplicaInfo();
+    //worker1 heartbeat
+    assertEquals(ImmutableMap.copyOf(worker1Info), ImmutableMap.of(blockId1, 1L));
+
+    //worker2 add block1 and heartbeat
+    List<Long> addedBlocks = ImmutableList.of(blockId1);
+    Map<Long, Long> worker2Info = mBlockMaster.workerHeartbeat(worker2, null,
+            ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
+            ImmutableMap.of(blockOnWorker2, addedBlocks),
+            NO_LOST_STORAGE, mMetrics).getReplicaInfo();
+    assertEquals(ImmutableMap.copyOf(worker2Info), ImmutableMap.of(blockId1, 2L));
+
+    //worker1 heartbeat
+    Map<Long, Long> worker1Info2 = mBlockMaster.workerHeartbeat(worker1, null,
+            ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
+            NO_BLOCKS_ON_LOCATION,
+            NO_LOST_STORAGE, mMetrics).getReplicaInfo();
+    assertEquals(ImmutableMap.copyOf(worker1Info2), ImmutableMap.of(blockId1, 1L));
+
+    //block2 commit by worker2 and worker2 heartbeat
+    mBlockMaster.commitBlock(worker2, 50L, Constants.MEDIUM_MEM,
+            Constants.MEDIUM_MEM, blockId2, 20L);
+    Map<Long, Long> worker2Info2 = mBlockMaster.workerHeartbeat(worker2, null,
+            ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
+            NO_BLOCKS_ON_LOCATION,
+            NO_LOST_STORAGE, mMetrics).getReplicaInfo();
+    assertEquals(ImmutableMap.copyOf(worker2Info2), ImmutableMap.of(blockId2, 1L));
+
+    //worker3 add block1 and block2 and heartbeat
+    addedBlocks = ImmutableList.of(blockId1, blockId2);
+    Map<Long, Long> worker3Info = mBlockMaster.workerHeartbeat(worker3, null,
+            ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
+            ImmutableMap.of(blockOnWorker3, addedBlocks),
+            NO_LOST_STORAGE, mMetrics).getReplicaInfo();
+    assertEquals(ImmutableMap.copyOf(worker3Info),
+        ImmutableMap.of(blockId1, 3L, blockId2, 2L, blockId3, 1L));
+
+    //worker2 delete block1 and heartbeat
+    Map<Long, Long> worker2Info3 = mBlockMaster.workerHeartbeat(worker2, null,
+            ImmutableMap.of(Constants.MEDIUM_MEM, 0L), ImmutableList.of(blockId1),
+            NO_BLOCKS_ON_LOCATION,
+            NO_LOST_STORAGE, mMetrics).getReplicaInfo();
+    assertEquals(ImmutableMap.copyOf(worker2Info3), ImmutableMap.of(blockId2, 1L));
+
+    //worker1 delete block1 and heartbeat
+    Map<Long, Long> worker1Info3 = mBlockMaster.workerHeartbeat(worker1, null,
+            ImmutableMap.of(Constants.MEDIUM_MEM, 0L), ImmutableList.of(blockId1),
+            NO_BLOCKS_ON_LOCATION,
+            NO_LOST_STORAGE, mMetrics).getReplicaInfo();
+    assertEquals(ImmutableMap.copyOf(worker1Info3), ImmutableMap.of(blockId1, -1L));
+
+    //worker2 add block1 and heartbeat
+    Map<Long, Long> worker2Info4 = mBlockMaster.workerHeartbeat(worker2, null,
+            ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
+            ImmutableMap.of(blockOnWorker2, ImmutableList.of(blockId1)),
+            NO_LOST_STORAGE, mMetrics).getReplicaInfo();
+    assertEquals(ImmutableMap.copyOf(worker2Info4), ImmutableMap.of(blockId1, 2L));
+  }
+
+  @Test
   public void unknownWorkerHeartbeatTriggersRegisterRequest() {
-    Command heartBeat = mBlockMaster.workerHeartbeat(0, null, null, null, null, null, mMetrics);
+    Command heartBeat =
+        mBlockMaster.workerHeartbeat(0, null, null, null, null, null, mMetrics).getCommand();
     assertEquals(Command.newBuilder().setCommandType(CommandType.Register).build(), heartBeat);
   }
 

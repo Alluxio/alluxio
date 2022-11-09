@@ -17,7 +17,6 @@ import alluxio.exception.BlockInfoException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -30,6 +29,7 @@ import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.HeartBeatResponseMessage;
 import alluxio.wire.RegisterLease;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -250,7 +250,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param metrics worker metrics
    * @return an optional command for the worker to execute
    */
-  Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
+  HeartBeatResponseMessage workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
       Map<Block.BlockLocation, List<Long>> addedBlocks,
       Map<String, StorageList> lostStorage,
