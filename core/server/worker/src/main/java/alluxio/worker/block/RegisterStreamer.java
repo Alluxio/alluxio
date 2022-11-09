@@ -11,12 +11,14 @@
 
 package alluxio.worker.block;
 
+import alluxio.ProjectConstants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.InternalException;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -279,6 +281,10 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
       } else {
         blockBatch = Collections.emptyList();
       }
+      final BuildVersion version = BuildVersion.newBuilder()
+          .setVersion(ProjectConstants.VERSION)
+          .setRevision(ProjectConstants.REVISION)
+          .build();
       // If it is the 1st batch, include metadata
       request = RegisterWorkerPRequest.newBuilder()
           .setWorkerId(mWorkerId)
@@ -288,6 +294,7 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
           .putAllLostStorage(mLostStorageMap)
           .setOptions(mOptions)
           .addAllCurrentBlocks(blockBatch)
+          .setVersion(version)
           .build();
     } else {
       blockBatch = mBlockMapIterator.next();

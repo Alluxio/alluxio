@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.exception.status.AlluxioStatusException;
@@ -21,6 +22,7 @@ import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockIdList;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
 import alluxio.grpc.BlockStoreLocationProto;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockPRequest;
@@ -298,11 +300,16 @@ public class BlockMasterClient extends AbstractMasterClient {
         .collect(Collectors.toMap(Map.Entry::getKey,
             e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
 
+    final BuildVersion version = BuildVersion.newBuilder()
+        .setVersion(ProjectConstants.VERSION)
+        .setRevision(ProjectConstants.REVISION).build();
+
     final RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder().setWorkerId(workerId)
         .addAllStorageTiers(storageTierAliases).putAllTotalBytesOnTiers(totalBytesOnTiers)
         .putAllUsedBytesOnTiers(usedBytesOnTiers)
         .addAllCurrentBlocks(currentBlocks)
         .putAllLostStorage(lostStorageMap)
+        .setVersion(version)
         .setOptions(options).build();
 
     retryRPC(() -> {
