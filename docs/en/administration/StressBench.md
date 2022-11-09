@@ -391,7 +391,7 @@ The parameters for the Client IO Stress Bench are (other than common parameters 
     <tr>
         <td>client-type</td>
         <td>AlluxioHDFS</td>
-        <td>The client API type. Options are [AlluxioHDFS, AlluxioNative, AlluxioPOSIX</td>
+        <td>The client API type. Options are [AlluxioHDFS, AlluxioNative, AlluxioPOSIX]</td>
     </tr>
     <tr>
         <td>read-type</td>
