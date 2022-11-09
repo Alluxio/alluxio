@@ -50,8 +50,8 @@ Worker.CacheFailedBlocks,COUNTER
 Worker.CacheManagerCompleteTaskCount,GAUGE
 Worker.CacheManagerThreadActiveCount,GAUGE
 Worker.CacheManagerThreadCurrentCount,GAUGE
-Worker.CacheManagerThreadQueueWaitingTaskCount,GAUGE
 Worker.CacheManagerThreadMaxCount,GAUGE
+Worker.CacheManagerThreadQueueWaitingTaskCount,GAUGE
 Worker.CacheRemoteBlocks,COUNTER
 Worker.CacheRequests,COUNTER
 Worker.CacheRequestsAsync,COUNTER
