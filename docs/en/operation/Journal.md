@@ -197,6 +197,9 @@ the default backup directory would be `hdfs://192.168.1.1:9000/alluxio_backups`.
 The files to retain in the backup directory is limited by `alluxio.master.daily.backup.files.retained`.
 Users can set this property to the number of backup files they want to keep in the backup directory.
 
+In addition, upon encountering journal corruption, the master will take a backup of its current state
+automatically. This can be disabled by setting `alluxio.master.journal.backup.when.corrupted=false`.
+
 ### Backup delegation on HA cluster
 
 Alluxio supports taking backup without causing service unavailability on a HA cluster configuration.
