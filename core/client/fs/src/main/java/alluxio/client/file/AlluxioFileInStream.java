@@ -23,7 +23,11 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.OutOfRangeException;
-import alluxio.grpc.*;
+import alluxio.grpc.Bits;
+import alluxio.grpc.CacheRequest;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
@@ -513,11 +517,17 @@ public class AlluxioFileInStream extends FileInStream {
     }
   }
 
+  /**
+   * Refresh URIStatus if needed.
+   * @param e what exception occurs
+   * @throws IOException if failed to refresh URIStatus
+   */
   public void refreshUriStatusIfNeeded(IOException e) throws IOException {
     if (!mOptions.getOptions().getUpdateURIStatusWhenRetry()) {
       return;
     }
-    try (CloseableResource<FileSystemMasterClient> client = mContext.acquireMasterClientResource()) {
+    try (CloseableResource<FileSystemMasterClient> client
+             = mContext.acquireMasterClientResource()) {
       client.close();
       URIStatus update = client.get().getStatus(new AlluxioURI(mOptions.getStatus().getPath()),
               FileSystemOptionsUtils.getStatusDefaults(mContext.getClusterConf()).toBuilder()
@@ -526,7 +536,8 @@ public class AlluxioFileInStream extends FileInStream {
                       .setUpdateTimestamps(mOptions.getOptions().getUpdateLastAccessTime())
                       .build());
       if (!update.equals(mOptions.getStatus())) {
-        LOG.info("refresh status because some exception occurs: {}, new: {}, old: {}", e.getMessage(), update, mStatus);
+        LOG.info("refresh status because some exception occurs: {}, new: {}, old: {}",
+            e.getMessage(), update, mStatus);
         mOptions.setStatus(update);
         mStatus = update;
       }

@@ -136,11 +136,11 @@ public final class InStreamOptions {
   }
 
   /**
-   * refresh URIStatus for options
+   * refresh URIStatus for options.
    * @param status current status for this file
    */
   public void setStatus(URIStatus status) {
-    this.mStatus = status;
+    mStatus = status;
   }
 
   /**
