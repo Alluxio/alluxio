@@ -16,6 +16,7 @@ import alluxio.grpc.Command;
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -27,7 +28,7 @@ public final class HeartBeatResponseMessage implements Serializable {
 
   private static final long serialVersionUID = -8936215337909224255L;
   Command mCommand = null;
-  Map<Long, Long> mReplicaInfo = null;
+  Map<Long, Long> mReplicaInfo = new HashMap<>();
 
   /**
   * Creates a new instance of {@link HeartBeatResponseMessage}.
