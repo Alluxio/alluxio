@@ -233,6 +233,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   void releaseRegisterLease(long workerId);
 
   /**
+   * @deprecated
    * Updates metadata when a worker registers with the master.
    *
    * @param workerId the worker id of the worker registering
@@ -245,6 +246,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param options the options that may contain worker configuration
    * @throws NotFoundException if workerId cannot be found
    */
+  @Deprecated
   default void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
