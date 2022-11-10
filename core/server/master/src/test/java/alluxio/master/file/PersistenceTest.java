@@ -482,6 +482,8 @@ public final class PersistenceTest {
         WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS));
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), fileInfo.getPersistenceState());
     Assert.assertNotEquals(Constants.INVALID_UFS_FINGERPRINT, fileInfo.getUfsFingerprint());
+    Assert.assertFalse(
+        ((DefaultFileSystemMaster) mFileSystemMaster).isPersisting(fileInfo.getFileId()));
   }
 
   private void checkPersistenceInProgress(AlluxioURI testFile, long jobId) throws Exception {
@@ -497,6 +499,8 @@ public final class PersistenceTest {
     Assert.assertTrue(job.getTempUfsPath().contains(fileName));
     Assert.assertEquals(
         PersistenceState.TO_BE_PERSISTED.toString(), fileInfo.getPersistenceState());
+    Assert.assertTrue(
+        ((DefaultFileSystemMaster) mFileSystemMaster).isPersisting(fileInfo.getFileId()));
   }
 
   private void checkPersistenceRequested(AlluxioURI testFile) throws Exception {
@@ -507,6 +511,8 @@ public final class PersistenceTest {
     Assert.assertTrue(persistRequests.containsKey(fileInfo.getFileId()));
     Assert.assertEquals(
         PersistenceState.TO_BE_PERSISTED.toString(), fileInfo.getPersistenceState());
+    Assert.assertTrue(
+        ((DefaultFileSystemMaster) mFileSystemMaster).isPersisting(fileInfo.getFileId()));
   }
 
   private Map<Long, ExponentialTimer> getPersistRequests() {

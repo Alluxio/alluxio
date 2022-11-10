@@ -23,6 +23,7 @@ import alluxio.Server;
 import alluxio.client.job.JobMasterClient;
 import alluxio.client.job.JobMasterClientPool;
 import alluxio.clock.SystemClock;
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
 import alluxio.conf.Configuration;
@@ -156,6 +157,7 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.BooleanHolder;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
@@ -374,6 +376,9 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** Map from file IDs to persist jobs. */
   private final Map<Long, PersistJob> mPersistJobs;
 
+  /** Set of persisting file IDs. */
+  private final Set<Long> mPersistingFileIds;
+
   /** The manager of all ufs. */
   private final MasterUfsManager mUfsManager;
 
@@ -498,6 +503,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         .newBuilder(ClientContext.create(Configuration.global())).build());
     mPersistRequests = new ConcurrentHashMap<>();
     mPersistJobs = new ConcurrentHashMap<>();
+    mPersistingFileIds = new ConcurrentHashSet<>();
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable, mClock);
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
     mSyncManager = new ActiveSyncManager(mMountTable, this);
@@ -675,6 +681,7 @@ public class DefaultFileSystemMaster extends CoreMaster
               getPersistenceWaitTime(inodeFile.getShouldPersistTime()),
               path, inodeFile.getTempUfsPath());
         }
+        mPersistingFileIds.add(inodeFile.getId());
       }
       if (Configuration
           .getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)) {
@@ -2257,6 +2264,8 @@ public class DefaultFileSystemMaster extends CoreMaster
         LockedInodePath tempInodePath = delInodePair.getSecond();
         MountTable.Resolution resolution = mMountTable.resolve(tempInodePath.getUri());
         mInodeTree.deleteInode(rpcContext, tempInodePath, opTimeMs);
+        // remove from mPersistingFileIds when deleted
+        mPersistingFileIds.remove(tempInodePath.getInode().getId());
         if (deleteContext.getOptions().getAlluxioOnly()) {
           Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
               Metrics.UFSOps.DELETE_FILE).inc();
@@ -2861,6 +2870,13 @@ public class DefaultFileSystemMaster extends CoreMaster
     if (context.getPersist() && srcInode.isFile() && !srcInode.isPersisted()
         && shouldPersistPath(dstInodePath.toString())) {
       LOG.debug("Schedule Async Persist on rename for File {}", srcInodePath);
+
+      if (isPersisting(srcInode.asFile().getId())) {
+        LOG.info("[{}] is persisting, skip schedule async persist on rename", srcInode.getName());
+        return;
+      }
+      mPersistingFileIds.add(srcInode.getId());
+
       mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
           .setId(srcInode.getId())
           .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
@@ -2888,6 +2904,14 @@ public class DefaultFileSystemMaster extends CoreMaster
               && shouldPersistPath(
                   childPath.toString().substring(srcInodePath.toString().length()))) {
             LOG.debug("Schedule Async Persist on rename for Child File: {}", childPath);
+
+            if (isPersisting(childInode.asFile().getId())) {
+              LOG.info("[{}] is persisting, skip schedule async persist on rename",
+                  childInode.getName());
+              continue;
+            }
+            mPersistingFileIds.add(childInode.getId());
+
             mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
                 .setId(childInode.getId())
                 .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
@@ -3785,7 +3809,14 @@ public class DefaultFileSystemMaster extends CoreMaster
       throw new InvalidPathException(
           "Cannot persist an incomplete Alluxio file: " + inodePath.getUri());
     }
+
+    if (isPersisting(inode.getId())) {
+      LOG.info("file [{}] is persisting, skip", inode.getName());
+      return;
+    }
+
     if (shouldPersistPath(inodePath.toString())) {
+      mPersistingFileIds.add(inode.getId());
       mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder().setId(inode.getId())
           .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name()).build());
       mPersistRequests.put(inode.getId(),
@@ -3795,6 +3826,15 @@ public class DefaultFileSystemMaster extends CoreMaster
               context.getPersistenceWaitTime(),
               Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
     }
+  }
+
+  /**
+   * Is the file being persisting.
+   * @param fileId file id
+   * @return is persisting
+   */
+  public boolean isPersisting(long fileId) {
+    return mPersistingFileIds.contains(fileId);
   }
 
   /**
@@ -4314,8 +4354,10 @@ public class DefaultFileSystemMaster extends CoreMaster
      * Attempts to schedule a persist job and updates the file system metadata accordingly.
      *
      * @param fileId the file ID
+     * @param removePersistingFileId whether to remove from mPersistingFileIds
      */
-    private void handleReady(long fileId) throws AlluxioException, IOException {
+    private void handleReady(long fileId, BooleanHolder removePersistingFileId)
+        throws AlluxioException, IOException {
       alluxio.time.ExponentialTimer timer = mPersistRequests.get(fileId);
       // Lookup relevant file information.
       AlluxioURI uri;
@@ -4334,6 +4376,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           case PERSISTED:
             LOG.warn("File {} (id={}) persistence state is {} and will not be changed.",
                 inodePath.getUri(), fileId, inode.getPersistenceState());
+            removePersistingFileId.mValue = true;
             return;
           case TO_BE_PERSISTED:
             tempUfsPath = inodePath.getInodeFile().getTempUfsPath();
@@ -4413,6 +4456,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           throw new InterruptedException("PersistenceScheduler interrupted.");
         }
         boolean remove = true;
+        BooleanHolder removePersistingFileId = new BooleanHolder(false);
         alluxio.time.ExponentialTimer timer = mPersistRequests.get(fileId);
         if (timer == null) {
           // This could occur if a key is removed from mPersistRequests while we are iterating.
@@ -4431,6 +4475,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           } catch (FileDoesNotExistException e) {
             LOG.debug("The file (id={}) to be persisted was not found. Likely this file has been "
                 + "removed by users", fileId, e);
+            removePersistingFileId.mValue = true;
             continue;
           }
           try {
@@ -4444,9 +4489,10 @@ public class DefaultFileSystemMaster extends CoreMaster
           switch (timerResult) {
             case EXPIRED:
               handleExpired(fileId);
+              removePersistingFileId.mValue = true;
               break;
             case READY:
-              handleReady(fileId);
+              handleReady(fileId, removePersistingFileId);
               break;
             default:
               throw new IllegalStateException("Unrecognized timer state: " + timerResult);
@@ -4455,6 +4501,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           LOG.warn("The file {} (id={}) to be persisted was not found : {}", uri, fileId,
               e.toString());
           LOG.debug("Exception: ", e);
+          removePersistingFileId.mValue = true;
         } catch (UnavailableException e) {
           LOG.warn("Failed to persist file {}, will retry later: {}", uri, e.toString());
           remove = false;
@@ -4471,9 +4518,13 @@ public class DefaultFileSystemMaster extends CoreMaster
           LOG.warn("Unexpected exception encountered when scheduling the persist job for file {} "
               + "(id={}) : {}", uri, fileId, e.toString());
           LOG.debug("Exception: ", e);
+          removePersistingFileId.mValue = true;
         } finally {
           if (remove) {
             mPersistRequests.remove(fileId);
+          }
+          if (removePersistingFileId.mValue) {
+            mPersistingFileIds.remove(fileId);
           }
         }
       }
@@ -4520,6 +4571,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           case PERSISTED:
             LOG.warn("File {} (id={}) persistence state is {}. Successful persist has no effect.",
                 job.getUri(), fileId, inode.getPersistenceState());
+            mPersistingFileIds.remove(fileId);
             break;
           case TO_BE_PERSISTED:
             UpdateInodeEntry.Builder builder = UpdateInodeEntry.newBuilder();
@@ -4578,6 +4630,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
             // Save state for possible cleanup
             blockIds.addAll(inode.getBlockIds());
+            mPersistingFileIds.remove(fileId);
             break;
           default:
             throw new IllegalStateException(
@@ -4593,6 +4646,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             cleanup(ufsResource.get(), tempUfsPath);
           }
         }
+        mPersistingFileIds.remove(fileId);
       } catch (Exception e) {
         LOG.warn(
             "Unexpected exception encountered when trying to complete persistence of a file {} "
@@ -4749,6 +4803,7 @@ public class DefaultFileSystemMaster extends CoreMaster
               break;
             case CANCELED:
               mPersistJobs.remove(fileId);
+              mPersistingFileIds.remove(fileId);
               break;
             case COMPLETED:
               mPersistJobs.remove(fileId);
