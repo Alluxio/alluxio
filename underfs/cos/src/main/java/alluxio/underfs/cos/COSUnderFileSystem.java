@@ -29,6 +29,8 @@ import com.qcloud.cos.auth.BasicCOSCredentials;
 import com.qcloud.cos.auth.COSCredentials;
 import com.qcloud.cos.exception.CosClientException;
 import com.qcloud.cos.model.COSObjectSummary;
+import com.qcloud.cos.model.DeleteObjectsRequest;
+import com.qcloud.cos.model.DeleteObjectsResult;
 import com.qcloud.cos.model.ListObjectsRequest;
 import com.qcloud.cos.model.ObjectListing;
 import com.qcloud.cos.model.ObjectMetadata;
@@ -41,6 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -161,6 +164,24 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
       return false;
     }
     return true;
+  }
+
+  @Override
+  protected List<String> deleteObjects(List<String> keys) throws IOException {
+    try {
+      DeleteObjectsRequest request = new DeleteObjectsRequest(mBucketName);
+      List<DeleteObjectsRequest.KeyVersion> keyVersions = keys.stream()
+          .map(DeleteObjectsRequest.KeyVersion::new)
+          .collect(Collectors.toList());
+      request.setKeys(keyVersions);
+      DeleteObjectsResult result = mClient.deleteObjects(request);
+      return result.getDeletedObjects()
+          .stream()
+          .map(DeleteObjectsResult.DeletedObject::getKey)
+          .collect(Collectors.toList());
+    } catch (CosClientException e) {
+      throw new IOException("failed to delete objects", e);
+    }
   }
 
   @Override

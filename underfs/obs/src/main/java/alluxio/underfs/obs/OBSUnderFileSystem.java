@@ -30,6 +30,9 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.obs.services.ObsClient;
 import com.obs.services.exception.ObsException;
 import com.obs.services.model.AbortMultipartUploadRequest;
+import com.obs.services.model.DeleteObjectsRequest;
+import com.obs.services.model.DeleteObjectsResult;
+import com.obs.services.model.KeyAndVersion;
 import com.obs.services.model.ListMultipartUploadsRequest;
 import com.obs.services.model.ListObjectsRequest;
 import com.obs.services.model.MultipartUpload;
@@ -50,6 +53,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -208,6 +212,23 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
       return false;
     }
     return true;
+  }
+
+  @Override
+  protected List<String> deleteObjects(List<String> keys) throws IOException {
+    KeyAndVersion[] kvs = keys.stream()
+        .map(KeyAndVersion::new)
+        .toArray(KeyAndVersion[]::new);
+    DeleteObjectsRequest request = new DeleteObjectsRequest(mBucketName, false, kvs);
+    try {
+      DeleteObjectsResult result = mClient.deleteObjects(request);
+      return result.getDeletedObjectResults()
+          .stream()
+          .map(DeleteObjectsResult.DeleteObjectResult::getObjectKey)
+          .collect(Collectors.toList());
+    } catch (ObsException e) {
+      throw new IOException("Failed to delete objects", e);
+    }
   }
 
   @Override

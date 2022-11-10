@@ -29,6 +29,8 @@ import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.ServiceException;
 import com.aliyun.oss.model.AbortMultipartUploadRequest;
+import com.aliyun.oss.model.DeleteObjectsRequest;
+import com.aliyun.oss.model.DeleteObjectsResult;
 import com.aliyun.oss.model.ListMultipartUploadsRequest;
 import com.aliyun.oss.model.ListObjectsRequest;
 import com.aliyun.oss.model.MultipartUpload;
@@ -213,6 +215,18 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       return false;
     }
     return true;
+  }
+
+  @Override
+  protected List<String> deleteObjects(List<String> keys) throws IOException {
+    try {
+      DeleteObjectsRequest request = new DeleteObjectsRequest(mBucketName);
+      request.setKeys(keys);
+      DeleteObjectsResult result = mClient.deleteObjects(request);
+      return result.getDeletedObjects();
+    } catch (ServiceException e) {
+      throw new IOException("Failed to delete objects", e);
+    }
   }
 
   @Override
