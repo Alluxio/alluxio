@@ -48,15 +48,7 @@ public class FuseFileOutStream implements FuseFileStream {
   private static final int DEFAULT_BUFFER_SIZE = Constants.MB * 4;
   private final AuthPolicy mAuthPolicy;
   private final FileSystem mFileSystem;
-<<<<<<< HEAD
   private final CloseableResource<Lock> mLockResource;
-||||||| 3af24cf2b5
-  private final RWLockResource mLockResource;
-  private final long mMode;
-=======
-  private final CloseableResource<Lock> mLockResource;
-  private final long mMode;
->>>>>>> e6f1a8509ebe9a6ba9ca9e20e0f3b28496f95103
   private final AlluxioURI mURI;
   private final CreateFileStatus mFileStatus;
 
@@ -124,19 +116,9 @@ public class FuseFileOutStream implements FuseFileStream {
     }
   }
 
-<<<<<<< HEAD
-  private FuseFileOutStream(FileSystem fileSystem, AuthPolicy authPolicy, AlluxioURI uri,
-      CreateFileStatus fileStatus, CloseableResource<Lock> lockResource,
+  private FuseFileOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
+      AlluxioURI uri, CreateFileStatus fileStatus, CloseableResource<Lock> lockResource,
       Optional<FileOutStream> outStream) {
-||||||| 3af24cf2b5
-  private FuseFileOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
-      AlluxioURI uri, RWLockResource lockResource, Optional<FileOutStream> outStream,
-      long fileLen, long mode) {
-=======
-  private FuseFileOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
-      AlluxioURI uri, CloseableResource<Lock> lockResource, Optional<FileOutStream> outStream,
-      long fileLen, long mode) {
->>>>>>> e6f1a8509ebe9a6ba9ca9e20e0f3b28496f95103
     mFileSystem = Preconditions.checkNotNull(fileSystem);
     mAuthPolicy = Preconditions.checkNotNull(authPolicy);
     mFileStatus = Preconditions.checkNotNull(fileStatus);
