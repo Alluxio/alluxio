@@ -856,7 +856,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * Gets Web UI workers page data.
+   * Gets Web UI Master page data.
    *
    * @return the response object
    */

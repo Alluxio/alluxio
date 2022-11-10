@@ -14,7 +14,7 @@ package alluxio.util.webui;
 import alluxio.util.CommonUtils;
 
 /**
- * Displays information about a worker in the UI.
+ * Displays information about a master in the UI.
  */
 public class UIMasterInfo {
   private final String mMasterAddress;
