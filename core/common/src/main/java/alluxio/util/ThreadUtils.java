@@ -42,9 +42,17 @@ public final class ThreadUtils {
   public static String formatStackTrace(Thread thread) {
     Throwable t = new Throwable(String.format("Stack trace for thread %s (State: %s):",
         thread.getName(), thread.getState()));
-    t.setStackTrace(thread.getStackTrace());
+    return formatStackTrace(t);
+  }
+
+  /**
+   * Return formatted stacktrace of Throwable instance.
+   * @param th - a Throwable instance
+   * @return a human-readable representation of the Throwable's stack trace
+   */
+  public static String formatStackTrace(Throwable th) {
     StringWriter sw = new StringWriter();
-    t.printStackTrace(new PrintWriter(sw));
+    th.printStackTrace(new PrintWriter(sw));
     return sw.toString();
   }
 

@@ -75,7 +75,7 @@ public abstract class WebServer {
     mServiceName = serviceName;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    threadPool.setName(mServiceName.replace(" ", "-").toLowerCase());
+    threadPool.setName(mServiceName.replace(" ", "-").toUpperCase());
     int webThreadCount = Configuration.getInt(PropertyKey.WEB_THREADS);
 
     // Jetty needs at least (1 + selectors + acceptors) threads.

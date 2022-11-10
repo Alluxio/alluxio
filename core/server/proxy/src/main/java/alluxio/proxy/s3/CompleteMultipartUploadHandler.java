@@ -23,12 +23,13 @@ import alluxio.grpc.Bits;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.PMode;
-
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
+
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Stopwatch;
 import com.google.common.io.ByteStreams;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
@@ -46,6 +47,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -71,8 +73,10 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
    */
   public CompleteMultipartUploadHandler(final FileSystem fs, final String baseUri) {
     mMetaFs = fs;
+    ThreadFactory namedThreadFactory = new ThreadFactoryBuilder()
+            .setNameFormat("MULTIPART-UPLOAD-%d").build();
     mExecutor = Executors.newFixedThreadPool(Configuration.getInt(
-        PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE));
+        PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE), namedThreadFactory);
     mKeepAliveEnabled = Configuration.getBoolean(
         PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED);
     mKeepAliveTime = Configuration.getMs(
@@ -166,14 +170,14 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
             httpServletResponse.setStatus(s3Exception.getErrorCode().getStatus().getStatusCode());
           }
         }
-        LOG.error(S3RestUtils.throwableToString(cause));
+        LOG.error(ThreadUtils.formatStackTrace(e));
       }
       httpServletResponse.getWriter().flush();
       request.setHandled(true);
     } catch (Exception e) {
       // This try-catch is not intended to handle any exceptions, it is purely
       // to ensure that encountered exceptions get logged.
-      LOG.error("Unhandled exception for {}. {}", s, S3RestUtils.throwableToString(e));
+      LOG.error("Unhandled exception for {}. {}", s, ThreadUtils.formatStackTrace(e));
       throw e;
     } finally {
       if (stopwatch != null) {
@@ -232,7 +236,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
               multipartTemporaryDir, mUploadId).get(1);
         } catch (Exception e) {
           LOG.error("checkStatusesForUploadId failed:{}:{}",
-                  e.getMessage(), S3RestUtils.throwableToString(e));
+                  e.getMessage(), ThreadUtils.formatStackTrace(e));
           throw new S3Exception(objectPath, S3ErrorCode.NO_SUCH_UPLOAD);
         }
 
@@ -243,7 +247,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
               .readValue(mBody);
         } catch (IllegalArgumentException e) {
           LOG.error("Failed parsing CompleteMultipartUploadRequest {}:{}",
-                  e.getMessage(), S3RestUtils.throwableToString(e));
+                  e.getMessage(), ThreadUtils.formatStackTrace(e));
           Throwable cause = e.getCause();
           if (cause instanceof S3Exception) {
             throw S3RestUtils.toObjectS3Exception((S3Exception) cause, objectPath);
