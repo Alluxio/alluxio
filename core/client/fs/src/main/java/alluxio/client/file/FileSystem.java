@@ -162,16 +162,9 @@ public interface FileSystem extends Closeable {
     public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
       AlluxioConfiguration conf = context.getClusterConf();
       checkSortConf(conf);
-<<<<<<< HEAD
-      FileSystem fs = conf.getBoolean(PropertyKey.USER_UFS_ENABLED)
-          ? new UfsBaseFileSystem(context) : new BaseFileSystem(context);
-||||||| 3af24cf2b5
-      FileSystem fs = new BaseFileSystem(context);
-=======
       FileSystem fs = options.getUfsFileSystemOptions().isPresent()
           ? new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get())
           : new BaseFileSystem(context);
->>>>>>> e6f1a8509ebe9a6ba9ca9e20e0f3b28496f95103
       if (options.isMetadataCacheEnabled()) {
         fs = new MetadataCachingFileSystem(fs, context);
       }
