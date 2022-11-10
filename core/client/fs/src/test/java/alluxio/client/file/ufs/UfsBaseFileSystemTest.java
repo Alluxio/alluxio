@@ -19,10 +19,9 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
@@ -59,11 +58,9 @@ public class UfsBaseFileSystemTest {
   public void before() {
     String ufs = AlluxioTestDirectory.createTemporaryDirectory("ufs").toString();
     mRootUfs = new AlluxioURI(ufs);
-    mConf.set(PropertyKey.USER_UFS_ENABLED, true, Source.RUNTIME);
-    mConf.set(PropertyKey.USER_ROOT_UFS, ufs, Source.RUNTIME);
     UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
     mFileSystem = new UfsBaseFileSystem(FileSystemContext.create(
-        ClientContext.create(mConf)));
+        ClientContext.create(mConf)), new UfsFileSystemOptions(ufs));
   }
 
   @After

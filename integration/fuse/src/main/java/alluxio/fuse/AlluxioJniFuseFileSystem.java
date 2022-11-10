@@ -37,6 +37,7 @@ import alluxio.fuse.file.FuseFileEntry;
 import alluxio.fuse.file.FuseFileInOrOutStream;
 import alluxio.fuse.file.FuseFileOutStream;
 import alluxio.fuse.file.FuseFileStream;
+import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.ErrorType;
 import alluxio.grpc.SetAttributePOptions;
@@ -120,8 +121,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    *
    * @param fsContext the file system context
    * @param fs Alluxio file system
+   * @param fuseOptions the fuse options
    */
-  public AlluxioJniFuseFileSystem(FileSystemContext fsContext, FileSystem fs) {
+  public AlluxioJniFuseFileSystem(FileSystemContext fsContext, FileSystem fs,
+      FuseOptions fuseOptions) {
     super(Paths.get(fsContext.getClusterConf().getString(PropertyKey.FUSE_MOUNT_POINT)));
     mFileSystemContext = fsContext;
     mFileSystem = fs;
@@ -131,10 +134,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mFsStatCache = statCacheTimeout > 0 ? Suppliers.memoizeWithExpiration(
         this::acquireBlockMasterInfo, statCacheTimeout, TimeUnit.MILLISECONDS)
         : this::acquireBlockMasterInfo;
-    mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(mConf);
+    mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(mConf, fuseOptions);
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, mConf, this);
     mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
-    mUfsEnabled = mConf.getBoolean(PropertyKey.USER_UFS_ENABLED);
+    mUfsEnabled = fuseOptions.getFileSystemOptions().getUfsFileSystemOptions().isPresent();
     if (mConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)) {
       try {
         LogUtils.setLogLevel(this.getClass().getName(), org.slf4j.event.Level.DEBUG.toString());

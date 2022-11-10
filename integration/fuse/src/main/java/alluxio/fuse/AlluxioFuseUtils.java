@@ -16,6 +16,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -36,6 +37,7 @@ import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.PermissionDeniedRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
+import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.ErrorCodes;
@@ -605,11 +607,13 @@ public final class AlluxioFuseUtils {
    * Gets the path be mounted to local fuse mount point.
    *
    * @param conf the configuration to get path from
+   * @param fuseOptions the fuse options
    * @return the mounted root path
    */
-  public static String getMountedRootPath(AlluxioConfiguration conf) {
-    return conf.getBoolean(PropertyKey.USER_UFS_ENABLED)
-        ? conf.getString(PropertyKey.USER_ROOT_UFS)
+  public static String getMountedRootPath(AlluxioConfiguration conf, FuseOptions fuseOptions) {
+    Optional<UfsFileSystemOptions> options
+        = fuseOptions.getFileSystemOptions().getUfsFileSystemOptions();
+    return options.isPresent() ? options.get().getUfsAddress()
         : conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
   }
 
@@ -617,13 +621,15 @@ public final class AlluxioFuseUtils {
    * Gets the cache for resolving FUSE path into {@link AlluxioURI}.
    *
    * @param conf the configuration
+   * @param options the FUSE options
    * @return the cache
    */
-  public static LoadingCache<String, AlluxioURI> getPathResolverCache(AlluxioConfiguration conf) {
+  public static LoadingCache<String, AlluxioURI> getPathResolverCache(
+      AlluxioConfiguration conf, FuseOptions options) {
     return CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new AlluxioFuseUtils.PathCacheLoader(
-            new AlluxioURI(getMountedRootPath(conf))));
+            new AlluxioURI(getMountedRootPath(conf, options))));
   }
 
   /**

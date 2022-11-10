@@ -18,6 +18,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
+import alluxio.fuse.options.FuseOptions;
 import alluxio.jnifuse.LibFuse;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.util.io.BufferUtils;
@@ -49,7 +50,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
     Configuration.set(PropertyKey.FUSE_MOUNT_POINT, mountPoint);
     AlluxioConfiguration conf = Configuration.global();
     LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(conf));
-    mFuseFileSystem = new AlluxioJniFuseFileSystem(context, fileSystem);
+    mFuseFileSystem = new AlluxioJniFuseFileSystem(context, fileSystem, FuseOptions.create(conf));
     mFuseFileSystem.mount(false, false, new String[] {});
   }
 
