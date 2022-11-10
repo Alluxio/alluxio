@@ -20,13 +20,7 @@ import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
-<<<<<<< HEAD
-||||||| f8f07a18f2
-import alluxio.conf.PropertyKey;
-=======
-import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
->>>>>>> a4999d605ccdb9ecc622402688b492f1ee9f52f1
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -387,20 +381,11 @@ public class UfsBaseFileSystem implements FileSystem {
     throw new UnsupportedOperationException();
   }
 
-<<<<<<< HEAD
-  @Override
-  public void needsSync(AlluxioURI path) {
-    throw new UnsupportedOperationException();
-  }
-
-||||||| f8f07a18f2
-=======
   @Override
   public void needsSync(AlluxioURI path) throws IOException, AlluxioException {
     throw new UnsupportedOperationException();
   }
 
->>>>>>> a4999d605ccdb9ecc622402688b492f1ee9f52f1
   /**
    * Transform UFS file/directory status to client-side status.
    *
