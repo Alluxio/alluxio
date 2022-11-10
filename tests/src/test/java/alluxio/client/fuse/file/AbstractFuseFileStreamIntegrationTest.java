@@ -16,7 +16,6 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.collections.LockPool;
 import alluxio.conf.PropertyKey;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.LaunchUserGroupAuthPolicy;
@@ -34,7 +33,6 @@ import org.junit.Before;
 import org.junit.Rule;
 
 import java.util.Optional;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Abstract classes for all integration tests of {@link FuseFileStream}.
@@ -52,7 +50,6 @@ public abstract class AbstractFuseFileStreamIntegrationTest extends BaseIntegrat
 
   protected FileSystem mFileSystem = null;
   protected AuthPolicy mAuthPolicy = null;
-  protected LockPool<String> mPathLocks = null;
   protected FuseFileStream.Factory mStreamFactory = null;
 
   @Before
@@ -61,9 +58,7 @@ public abstract class AbstractFuseFileStreamIntegrationTest extends BaseIntegrat
     mAuthPolicy = LaunchUserGroupAuthPolicy.create(mFileSystem,
         mLocalAlluxioClusterResource.get().getClient().getConf(), Optional.empty());
     mAuthPolicy.init();
-    mPathLocks = new LockPool<>((key) -> new ReentrantReadWriteLock(),
-        8, 16, 128, 8);
-    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy, mPathLocks);
+    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
   }
 
   /**

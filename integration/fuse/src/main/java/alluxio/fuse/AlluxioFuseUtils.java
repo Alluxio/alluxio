@@ -11,16 +11,11 @@
 
 package alluxio.fuse;
 
-import static com.google.common.hash.Hashing.md5;
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.collections.LockPool;
-import alluxio.concurrent.LockMode;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -35,8 +30,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
-import alluxio.exception.runtime.CancelledRuntimeException;
-import alluxio.exception.runtime.DeadlineExceededRuntimeException;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
@@ -51,7 +44,6 @@ import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.resource.RWLockResource;
 import alluxio.retry.RetryUtils;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
@@ -549,47 +541,6 @@ public final class AlluxioFuseUtils {
       return Optional.empty();
     } catch (TimeoutException te) {
       return Optional.empty();
-    }
-  }
-
-  /**
-   * Trys to lock the lock.
-   *
-   * @param lockPool the lock pool to get lock from
-   * @param key the lock key
-   * @param mode the lock mode
-   * @param message fail to lock message
-   * @param args fail to lock arguments
-   * @return the lock resource which much be closed
-   */
-  public static RWLockResource lock(LockPool<String> lockPool, String key, LockMode mode,
-      String message, Object... args) {
-    try {
-      // File path is a unique identifier for a file, however it can be a long string
-      // hence using md5 hash of the file path as the lock identifier
-      String hashedKey = md5().hashString(key, UTF_8).toString();
-      Optional<RWLockResource> resource = CommonUtils
-          .waitForResult("successfully get the path lock", () -> {
-            try {
-              return lockPool.tryGet(hashedKey, mode);
-            } catch (Exception e) {
-              throw AlluxioRuntimeException.from(e);
-            }
-          }, Optional::isPresent,
-          WaitForOptions.defaults().setTimeoutMs(MAX_LOCK_WAIT_TIME).setInterval(1000));
-      if (!resource.isPresent()) {
-        // should not reach here
-        throw new DeadlineExceededRuntimeException(String.format(
-            message + ": fail to acquire lock", args));
-      }
-      return resource.get();
-    } catch (InterruptedException ie) {
-      Thread.currentThread().interrupt();
-      throw new CancelledRuntimeException(String.format(
-          message + ": acquire lock interrupted", args));
-    } catch (TimeoutException te) {
-      throw new DeadlineExceededRuntimeException(String.format(
-          message + ": fail to acquire lock", args));
     }
   }
 
