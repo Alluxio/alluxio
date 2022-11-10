@@ -15,7 +15,6 @@ import static jnr.constants.platform.OpenFlags.O_RDONLY;
 import static jnr.constants.platform.OpenFlags.O_WRONLY;
 import static org.junit.Assert.assertEquals;
 
-import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
@@ -32,7 +31,7 @@ import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.Statvfs;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
-import alluxio.underfs.local.LocalUnderFileSystemFactory;
+import alluxio.underfs.s3a.S3AUnderFileSystemFactory;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 
@@ -44,11 +43,12 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.UUID;
 
 /**
- * Isolation tests for {@link AlluxioJniFuseFileSystem} with local UFS.
+ * Isolation tests for {@link AlluxioJniFuseFileSystem} with S3.
  */
-public class JniFuseUfsFileSystemTest {
+public class FuseS3FileSystemTest {
   private static final Mode DEFAULT_MODE = new Mode(Mode.Bits.ALL, Mode.Bits.READ, Mode.Bits.READ);
   private static final String MOUNT_POINT = "/t/mountPoint";
   private static final String FILE = "/file";
@@ -63,13 +63,13 @@ public class JniFuseUfsFileSystemTest {
   @Before
   public void before() throws Exception {
     InstancedConfiguration conf = Configuration.copyGlobal();
-    String ufs = AlluxioTestDirectory.createTemporaryDirectory("ufs").toString();
+    String ufs = "s3://alluxio-test-fuse/lu" + UUID.randomUUID();
     conf.set(PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT, Source.RUNTIME);
     conf.set(PropertyKey.USER_UFS_ENABLED, true, Source.RUNTIME);
     conf.set(PropertyKey.USER_ROOT_UFS, ufs, Source.RUNTIME);
     mRootUfs = new AlluxioURI(ufs);
-    LocalUnderFileSystemFactory localUnderFileSystemFactory = new LocalUnderFileSystemFactory();
-    UnderFileSystemFactoryRegistry.register(localUnderFileSystemFactory);
+    S3AUnderFileSystemFactory s3aUnderFileSystemFactory = new S3AUnderFileSystemFactory();
+    UnderFileSystemFactoryRegistry.register(s3aUnderFileSystemFactory);
     FileSystemContext context = FileSystemContext.create(
         ClientContext.create(conf));
     LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
@@ -93,10 +93,6 @@ public class JniFuseUfsFileSystemTest {
     Assert.assertEquals(0, mFuseFs.getattr(FILE, mFileStat));
     Assert.assertEquals(0, mFileStat.st_size.longValue());
     // s3 will always be 700
-    Mode res = new Mode(mFileStat.st_mode.shortValue());
-    Assert.assertEquals(DEFAULT_MODE.getOwnerBits(), res.getOwnerBits());
-    Assert.assertEquals(DEFAULT_MODE.getGroupBits(), res.getGroupBits());
-    Assert.assertEquals(DEFAULT_MODE.getOtherBits(), res.getOtherBits());
   }
 
   @Test
@@ -199,11 +195,6 @@ public class JniFuseUfsFileSystemTest {
   public void createDirectory() {
     Assert.assertEquals(0, mFuseFs.mkdir(DIR, DEFAULT_MODE.toShort()));
     Assert.assertEquals(0, mFuseFs.getattr(DIR, mFileStat));
-    // s3 will always be 700
-    Mode res = new Mode(mFileStat.st_mode.shortValue());
-    Assert.assertEquals(DEFAULT_MODE.getOwnerBits(), res.getOwnerBits());
-    Assert.assertEquals(DEFAULT_MODE.getGroupBits(), res.getGroupBits());
-    Assert.assertEquals(DEFAULT_MODE.getOtherBits(), res.getOtherBits());
   }
 
   /**
@@ -366,6 +357,7 @@ public class JniFuseUfsFileSystemTest {
         DEFAULT_MODE.toShort(), mFileInfo.get()));
     int len = 20;
     ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(20);
+    // Expected 20, now -17
     Assert.assertEquals(len,
         mFuseFs.write(FILE, buffer, len, 0, mFileInfo.get()));
     Assert.assertEquals(0,
