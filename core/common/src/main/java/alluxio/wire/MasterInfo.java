@@ -14,6 +14,7 @@ package alluxio.wire;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
@@ -95,5 +96,4 @@ public final class MasterInfo {
   public void updateLastUpdatedTimeMs() {
     mLastUpdatedTimeMs = System.currentTimeMillis();
   }
-
 }
