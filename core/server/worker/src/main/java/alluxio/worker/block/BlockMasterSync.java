@@ -182,6 +182,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
               storeMeta.getCapacityBytesOnTiers(),
               storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
               blockReport.getAddedBlocks(), blockReport.getLostStorage(), metrics);
+      cmdFromMaster = heartbeatReturn.getCommand();
       handleMasterCommand(heartbeatReturn.getCommand());
       handleMasterReplicaChange(heartbeatReturn.getReplicaInfo());
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
@@ -251,13 +252,15 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     }
   }
 
+
   /**
    * Changes the replica number according to the message from master.
    * @param ReplicaInfo
    * @throws IOException
    * @throws ConnectionFailedException
    */
-  private void handleMasterReplicaChange(Map<Long, Long> ReplicaInfo) throws IOException, ConnectionFailedException {
+  private void handleMasterReplicaChange(Map<Long, Long> ReplicaInfo)
+      throws IOException, ConnectionFailedException {
     if (ReplicaInfo == null) {
       return;
     }

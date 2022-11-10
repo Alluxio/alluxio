@@ -46,7 +46,6 @@ import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
-import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.LocationBlockIdListEntry;

@@ -16,6 +16,7 @@ import alluxio.grpc.Command;
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -26,27 +27,25 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class HeartBeatResponseMessage implements Serializable {
 
   private static final long serialVersionUID = -8936215337909224255L;
-  Command mCommand;
-  Map<Long, Long> mReplicaInfo;
+  Command mCommand = null;
+  Map<Long, Long> mReplicaInfo = new HashMap<>();
 
   /**
-  * Creates a new instance of {@link HeartBeatResponseMessage}.
-  */
+   * Creates a new instance of {@link HeartBeatResponseMessage}.
+   */
   public HeartBeatResponseMessage() {
-    mCommand = null;
-    mReplicaInfo = null;
   }
 
   /**
-  * @return the blocks to be added
-  */
+   * @return the blocks to be added
+   */
   public Command getCommand() {
     return mCommand;
   }
 
   /**
-  * @return the replica info of blocks to be changed for worker
-  */
+   * @return the replica info of blocks to be changed for worker
+   */
   public Map<Long, Long> getReplicaInfo() {
     return mReplicaInfo;
   }
@@ -75,17 +74,6 @@ public final class HeartBeatResponseMessage implements Serializable {
   protected alluxio.grpc.BlockHeartbeatPResponse toProto() {
     return alluxio.grpc.BlockHeartbeatPResponse.newBuilder().setCommand(mCommand)
             .putAllReplicaInfo(mReplicaInfo).build();
-  }
-
-  /**
-   * Creates a new instance of {@link HeartBeatResponseMessage} from a proto representation.
-   *
-   * @param info the proto representation of HeartBeatResponse
-   * @return the instance
-   */
-  public static HeartBeatResponseMessage fromProto(alluxio.grpc.BlockHeartbeatPResponse info) {
-    return new HeartBeatResponseMessage().setCommand(info.getCommand())
-             .setReplicaInfo(info.getReplicaInfoMap());
   }
 
   @Override

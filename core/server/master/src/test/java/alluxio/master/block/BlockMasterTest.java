@@ -450,7 +450,8 @@ public class BlockMasterTest {
             ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
             ImmutableMap.of(blockOnWorker3, addedBlocks),
             NO_LOST_STORAGE, mMetrics).getReplicaInfo();
-    assertEquals(ImmutableMap.copyOf(worker3Info), ImmutableMap.of(blockId1, 3L, blockId2, 2L, blockId3, 1L));
+    assertEquals(ImmutableMap.copyOf(worker3Info),
+        ImmutableMap.of(blockId1, 3L, blockId2, 2L, blockId3, 1L));
 
     //worker2 delete block1 and heartbeat
     Map<Long, Long> worker2Info3 = mBlockMaster.workerHeartbeat(worker2, null,
@@ -476,7 +477,8 @@ public class BlockMasterTest {
 
   @Test
   public void unknownWorkerHeartbeatTriggersRegisterRequest() {
-    Command heartBeat = mBlockMaster.workerHeartbeat(0, null, null, null, null, null, mMetrics).getCommand();
+    Command heartBeat =
+        mBlockMaster.workerHeartbeat(0, null, null, null, null, null, mMetrics).getCommand();
     assertEquals(Command.newBuilder().setCommandType(CommandType.Register).build(), heartBeat);
   }
 

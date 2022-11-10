@@ -21,7 +21,6 @@ import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockIdList;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
 import alluxio.grpc.BlockStoreLocationProto;
-import alluxio.grpc.Command;
 import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.ConfigProperty;
@@ -220,10 +219,12 @@ public class BlockMasterClient extends AbstractMasterClient {
         .addAllAddedBlocks(entryList).setOptions(options)
         .putAllLostStorage(lostStorageMap).build();
 
-    alluxio.grpc.BlockHeartbeatPResponse heartbeatReturn = retryRPC(() -> mClient.withDeadlineAfter(mContext.getClusterConf()
-                    .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
-            .blockHeartbeat(request), LOG, "Heartbeat", "workerId=%d", workerId);
-    return new HeartBeatResponseMessage().fromProto(heartbeatReturn);
+    alluxio.grpc.BlockHeartbeatPResponse heartbeatReturn = retryRPC(() -> mClient.withDeadlineAfter(
+        mContext.getClusterConf()
+        .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
+        .blockHeartbeat(request), LOG, "Heartbeat", "workerId=%d", workerId);
+    return new HeartBeatResponseMessage().setCommand(heartbeatReturn.getCommand())
+            .setReplicaInfo(heartbeatReturn.getReplicaInfoMap());
   }
 
   private GetRegisterLeasePResponse acquireRegisterLease(
