@@ -12,7 +12,6 @@
 import { Reducer } from 'redux';
 
 import { IMastersState, MastersActionTypes } from './types';
-import {IMasterInfo} from "../../constants";
 
 export const initialMastersState: IMastersState = {
   data: {
@@ -27,7 +26,7 @@ export const initialMastersState: IMastersState = {
       id: '',
       lastUpdatedTimeMs: 0,
       lastUpdatedTime: '',
-      },
+    },
   },
   errors: undefined,
   loading: false,

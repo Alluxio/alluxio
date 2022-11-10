@@ -11,8 +11,8 @@
 
 export interface IMasterInfo {
   address: {
-    rpcPort: number,
-    host: string,
+    rpcPort: number;
+    host: string;
   };
   id: string;
   lastUpdatedTimeMs: number;

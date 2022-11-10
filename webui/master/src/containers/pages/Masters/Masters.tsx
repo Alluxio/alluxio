@@ -46,16 +46,16 @@ export class MastersPresenter extends React.Component<AllProps> {
               <h5>Leader Master</h5>
               <Table hover={true}>
                 <thead>
-                <tr>
-                  <th>Master Host</th>
-                  <th>Master Port</th>
-                </tr>
+                  <tr>
+                    <th>Master Host</th>
+                    <th>Master Port</th>
+                  </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                      <td>{mastersData.leaderMasterInfo.address.host}</td>
-                      <td>{mastersData.leaderMasterInfo.address.rpcPort}</td>
-                    </tr>
+                  <tr>
+                    <td>{mastersData.leaderMasterInfo.address.host}</td>
+                    <td>{mastersData.leaderMasterInfo.address.rpcPort}</td>
+                  </tr>
                 </tbody>
               </Table>
             </div>
@@ -66,7 +66,7 @@ export class MastersPresenter extends React.Component<AllProps> {
               <Table hover={true}>
                 <thead>
                   <tr>
-                    {initData.debug ? (<th>[D]Master Id</th>) : null}
+                    {initData.debug ? <th>[D]Master Id</th> : null}
                     <th>Master Host</th>
                     <th>Master Port</th>
                     <th>Last Heartbeat</th>
@@ -75,7 +75,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                 <tbody>
                   {mastersData.normalMasterInfos.map((masterInfo: IMasterInfo) => (
                     <tr key={masterInfo.id}>
-                      {initData.debug ? (<td>{masterInfo.id}</td>) : null}
+                      {initData.debug ? <td>{masterInfo.id}</td> : null}
                       <td>{masterInfo.address.host}</td>
                       <td>{masterInfo.address.rpcPort}</td>
                       <td>{masterInfo.lastUpdatedTime}</td>
