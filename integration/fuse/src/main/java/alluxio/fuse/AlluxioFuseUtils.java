@@ -16,13 +16,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-<<<<<<< HEAD
-||||||| 3af24cf2b5
-import alluxio.collections.LockPool;
-import alluxio.concurrent.LockMode;
-=======
 import alluxio.client.file.options.UfsFileSystemOptions;
->>>>>>> e6f1a8509ebe9a6ba9ca9e20e0f3b28496f95103
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -43,12 +37,8 @@ import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.PermissionDeniedRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
-<<<<<<< HEAD
 import alluxio.fuse.file.CreateFileStatus;
-||||||| 3af24cf2b5
-=======
 import alluxio.fuse.options.FuseOptions;
->>>>>>> e6f1a8509ebe9a6ba9ca9e20e0f3b28496f95103
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.ErrorCodes;
