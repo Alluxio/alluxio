@@ -78,7 +78,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                       {initData.debug ? <td>{masterInfo.id}</td> : null}
                       <td>{masterInfo.address.host}</td>
                       <td>{masterInfo.address.rpcPort}</td>
-                      <td>{masterInfo.lastUpdatedTime}</td>
+                      <td>{new Date(masterInfo.lastUpdatedTimeMs).toTimeString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -103,7 +103,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                       {initData.debug ? <td>{masterInfo.id}</td> : null}
                       <td>{masterInfo.address.host}</td>
                       <td>{masterInfo.address.rpcPort}</td>
-                      <td>{masterInfo.lastUpdatedTime}</td>
+                      <td>{new Date(masterInfo.lastUpdatedTimeMs).toTimeString()}</td>
                     </tr>
                   ))}
                 </tbody>

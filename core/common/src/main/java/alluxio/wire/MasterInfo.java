@@ -11,11 +11,8 @@
 
 package alluxio.wire;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.util.CommonUtils;
-
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -26,11 +23,16 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MasterInfo {
   /** Master's address. */
-  private final Address mAddress;
+  private Address mAddress;
   /** The id of the master. */
-  private final long mId;
+  private long mId;
   /** Master's last updated time in ms. */
   private long mLastUpdatedTimeMs;
+
+  /**
+   * Creates a new instance of {@link MasterInfo}.
+   */
+  public MasterInfo() {}
 
   /**
    * Creates a new instance of {@link MasterInfo}.
@@ -48,11 +50,13 @@ public final class MasterInfo {
    * Creates a new instance of {@link MasterInfo}.
    *
    * @param masterInfo the masterInfo need to be cloned
+   * @return the the master information
    */
-  public MasterInfo(MasterInfo masterInfo) {
+  public MasterInfo clone(MasterInfo masterInfo) {
     mAddress = masterInfo.getAddress();
     mId = masterInfo.getId();
     mLastUpdatedTimeMs = masterInfo.getLastUpdatedTimeMs();
+    return this;
   }
 
   /**
@@ -77,11 +81,30 @@ public final class MasterInfo {
   }
 
   /**
-   * @return the last updated time of the master in date format
+   * @param address the master address information
+   * @return the master information
    */
-  public String getLastUpdatedTime() {
-    return CommonUtils.convertMsToDate(mLastUpdatedTimeMs,
-            Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN));
+  public MasterInfo setAddress(Address address) {
+    mAddress = address;
+    return this;
+  }
+
+  /**
+   * @param id the master id
+   * @return the master information
+   */
+  public MasterInfo setId(long id) {
+    mId = id;
+    return this;
+  }
+
+  /**
+   * @param lastUpdatedTimeMs the last update time in ms
+   * @return the master information
+   */
+  public MasterInfo setLastUpdatedTimeMs(long lastUpdatedTimeMs) {
+    mLastUpdatedTimeMs = lastUpdatedTimeMs;
+    return this;
   }
 
   @Override
@@ -95,5 +118,23 @@ public final class MasterInfo {
    */
   public void updateLastUpdatedTimeMs() {
     mLastUpdatedTimeMs = System.currentTimeMillis();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof MasterInfo)) {
+      return false;
+    }
+    MasterInfo that = (MasterInfo) o;
+    return mId == that.mId && Objects.equal(mAddress, that.mAddress)
+            && mLastUpdatedTimeMs == that.mLastUpdatedTimeMs;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mId, mAddress, mLastUpdatedTimeMs);
   }
 }

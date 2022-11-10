@@ -67,7 +67,7 @@ public final class WebUtils {
     MasterInfo[] ret = new MasterInfo[masterInfos.size()];
     int index = 0;
     for (MasterInfo masterInfo : masterInfos) {
-      ret[index++] = new MasterInfo(masterInfo);
+      ret[index++] = new MasterInfo().clone(masterInfo);
     }
 
     return ret;
