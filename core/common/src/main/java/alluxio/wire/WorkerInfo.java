@@ -223,11 +223,18 @@ public final class WorkerInfo implements Serializable {
 
   /**
    * @param version the project version of the worker
+   * @return the worker information
+   */
+  public WorkerInfo setVersion(String version) {
+    mVersion = version;
+    return this;
+  }
+
+  /**
    * @param revision the latest git revision of at the time of building the worker
    * @return the worker information
    */
-  public WorkerInfo setBuildVersion(String version, String revision) {
-    mVersion = version;
+  public WorkerInfo setRevision(String revision) {
     mRevision = revision;
     return this;
   }

@@ -328,8 +328,8 @@ public final class GrpcUtils {
         .setStartTimeMs(workerInfo.getStartTimeMs()).setState(workerInfo.getState())
         .setUsedBytes(workerInfo.getUsedBytes())
         .setUsedBytesOnTiers(workerInfo.getUsedBytesOnTiersMap())
-        .setBuildVersion(workerInfo.getBuildVersion().getVersion(),
-            workerInfo.getBuildVersion().getRevision());
+        .setVersion(workerInfo.getBuildVersion().getVersion())
+        .setRevision(workerInfo.getBuildVersion().getRevision());
   }
 
   /**

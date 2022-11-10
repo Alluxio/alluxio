@@ -345,7 +345,8 @@ public final class MasterWorkerInfo {
           break;
         case BUILD_VERSION:
           BuildVersion v = mBuildVersion.get();
-          info.setBuildVersion(v.getVersion(), v.getRevision());
+          info.setVersion(v.getVersion());
+          info.setRevision(v.getRevision());
           break;
         default:
           LOG.warn("Unrecognized worker info field: " + field);
