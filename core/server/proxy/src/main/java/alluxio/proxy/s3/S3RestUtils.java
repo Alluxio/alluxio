@@ -606,6 +606,14 @@ public final class S3RestUtils {
     return user;
   }
 
+  public static String throwableToString(Throwable th) {
+    StringBuilder sb = new StringBuilder();
+    for (StackTraceElement ste : th.getStackTrace()) {
+      sb.append(ste.toString() + "\n");
+    }
+    return sb.toString();
+  }
+
   /**
    * Comparator based on uri name， treat uri name as a Long number.
    */

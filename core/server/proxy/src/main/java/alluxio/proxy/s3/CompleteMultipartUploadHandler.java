@@ -24,7 +24,10 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.PMode;
 
+import alluxio.util.ThreadUtils;
+import alluxio.web.ProxyWebServer;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.base.Stopwatch;
 import com.google.common.io.ByteStreams;
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
@@ -83,6 +86,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
   @Override
   public void handle(String s, Request request, HttpServletRequest httpServletRequest,
                      HttpServletResponse httpServletResponse) throws IOException {
+    Stopwatch stopwatch = null;
     try {
       if (!s.startsWith(mS3Prefix)) {
         return;
@@ -90,6 +94,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       if (!request.getMethod().equals("POST") || request.getParameter("uploadId") == null) {
         return;
       } // Otherwise, handle CompleteMultipartUpload
+      stopwatch = Stopwatch.createStarted();
       final String user;
       try {
         // TODO(czhu): support S3RestServiceHandler.getUserFromSignature()
@@ -114,10 +119,10 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       // Set headers before getting committed when flushing whitespaces
       httpServletResponse.setContentType(MediaType.APPLICATION_XML);
 
-      Future<CompleteMultipartUploadResult> future =
-          mExecutor.submit(new CompleteMultipartUploadTask(mMetaFs,
+      CompleteMultipartUploadTask task = new CompleteMultipartUploadTask(mMetaFs,
               S3RestUtils.createFileSystemForUser(user, mMetaFs), bucket, object, uploadId,
-              IOUtils.toString(request.getReader())));
+              IOUtils.toString(request.getReader()));
+      Future<CompleteMultipartUploadResult> future = mExecutor.submit(task);
       if (mKeepAliveEnabled) {
         // Set status before getting committed when flushing whitespaces
         httpServletResponse.setStatus(HttpServletResponse.SC_OK);
@@ -161,15 +166,19 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
             httpServletResponse.setStatus(s3Exception.getErrorCode().getStatus().getStatusCode());
           }
         }
-        LOG.error(e.toString());
+        LOG.error(S3RestUtils.throwableToString(cause));
       }
       httpServletResponse.getWriter().flush();
       request.setHandled(true);
     } catch (Exception e) {
       // This try-catch is not intended to handle any exceptions, it is purely
       // to ensure that encountered exceptions get logged.
-      LOG.error("Unhandled exception for {}. {}", s, e);
+      LOG.error("Unhandled exception for {}. {}", s, S3RestUtils.throwableToString(e));
       throw e;
+    } finally {
+      if (stopwatch != null) {
+        ProxyWebServer.logAccess(httpServletRequest, httpServletResponse, stopwatch);
+      }
     }
   }
 
@@ -222,6 +231,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
           metaStatus = S3RestUtils.checkStatusesForUploadId(mMetaFs, mUserFs,
               multipartTemporaryDir, mUploadId).get(1);
         } catch (Exception e) {
+          LOG.error("checkStatusesForUploadId failed:{}:{}",
+                  e.getMessage(), S3RestUtils.throwableToString(e));
           throw new S3Exception(objectPath, S3ErrorCode.NO_SUCH_UPLOAD);
         }
 
@@ -231,6 +242,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
           request = new XmlMapper().readerFor(CompleteMultipartUploadRequest.class)
               .readValue(mBody);
         } catch (IllegalArgumentException e) {
+          LOG.error("Failed parsing CompleteMultipartUploadRequest {}:{}",
+                  e.getMessage(), S3RestUtils.throwableToString(e));
           Throwable cause = e.getCause();
           if (cause instanceof S3Exception) {
             throw S3RestUtils.toObjectS3Exception((S3Exception) cause, objectPath);
