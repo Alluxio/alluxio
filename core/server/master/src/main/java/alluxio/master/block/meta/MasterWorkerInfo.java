@@ -17,7 +17,6 @@ import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.grpc.StorageList;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.metastore.BlockMetaStore;
-import alluxio.proto.meta.Block;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;

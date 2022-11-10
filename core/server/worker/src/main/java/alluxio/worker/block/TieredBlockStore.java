@@ -49,7 +49,15 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalLong;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -304,7 +312,8 @@ public class TieredBlockStore implements LocalBlockStore
     for (Map.Entry<Long, Long> entry : ReplicaInfo.entrySet()) {
       BlockMeta meta = getVolatileBlockMeta(entry.getKey()).get();
       BlockStoreLocation loc = meta.getBlockLocation();
-      updateReplicaInfo.put(entry.getKey(), new Pair<Long, BlockStoreLocation>(entry.getValue(), loc));
+      updateReplicaInfo.put(entry.getKey(),
+          new Pair<Long, BlockStoreLocation>(entry.getValue(), loc));
     }
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {

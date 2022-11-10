@@ -252,7 +252,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     }
   }
 
-
   /**
    * Changes the replica number according to the message from master.
    * @param ReplicaInfo
@@ -268,7 +267,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       return;
     }
     String annotatorType = Configuration.getString(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS);
-    if (annotatorType == "alluxio.worker.block.annotator.ReplicaBasedAnnotator") {
+    if (annotatorType.equals("alluxio.worker.block.annotator.ReplicaBasedAnnotator")) {
       mBlockWorker.updateReplicaInfo(ReplicaInfo);
     }
   }

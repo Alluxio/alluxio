@@ -13,8 +13,8 @@ package alluxio.worker.block;
 
 import alluxio.collections.Pair;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Map;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A block store event listener base class implementing the {@link BlockStoreEventListener}

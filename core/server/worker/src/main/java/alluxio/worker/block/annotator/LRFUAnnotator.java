@@ -51,9 +51,11 @@ public class LRFUAnnotator implements BlockAnnotator<LRFUAnnotator.LRFUSortedFie
   }
 
   @Override
-  public BlockSortedField updateSortedFieldReplica(long blockId, LRFUSortedField oldValue, Long value) {
+  public BlockSortedField updateSortedFieldReplica(long blockId, LRFUSortedField oldValue,
+      Long value) {
     return getNewSortedField(blockId, oldValue, mLRUClock.incrementAndGet());
   }
+
   @Override
   public void updateSortedFields(List<Pair<Long, LRFUSortedField>> blockList) {
     // Grab the current logical clock, for updating the given entries under.
