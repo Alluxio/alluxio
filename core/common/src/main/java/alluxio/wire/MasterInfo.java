@@ -114,7 +114,7 @@ public final class MasterInfo {
   }
 
   /**
-   * Updates the last updated time of the master in ms.
+   * Updates the last updated time of the master (in milliseconds).
    */
   public void updateLastUpdatedTimeMs() {
     mLastUpdatedTimeMs = System.currentTimeMillis();
