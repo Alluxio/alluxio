@@ -89,8 +89,16 @@ public class FuseFileInStream implements FuseFileStream {
     }
   }
 
+<<<<<<< HEAD
   private FuseFileInStream(FileInStream inStream, CloseableResource<Lock> lockResource,
       FileStatus fileStatus, AlluxioURI uri) {
+||||||| 3af24cf2b5
+  private FuseFileInStream(FileInStream inStream, RWLockResource lockResource,
+      long fileLength, AlluxioURI uri) {
+=======
+  private FuseFileInStream(FileInStream inStream, CloseableResource<Lock> lockResource,
+      long fileLength, AlluxioURI uri) {
+>>>>>>> e6f1a8509ebe9a6ba9ca9e20e0f3b28496f95103
     mInStream = Preconditions.checkNotNull(inStream);
     mLockResource = Preconditions.checkNotNull(lockResource);
     mFileStatus = Preconditions.checkNotNull(fileStatus);

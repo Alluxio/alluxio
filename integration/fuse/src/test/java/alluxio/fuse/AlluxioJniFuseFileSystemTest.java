@@ -43,6 +43,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
+import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -104,7 +105,7 @@ public class AlluxioJniFuseFileSystemTest {
     LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
     try {
       mFuseFs = new AlluxioJniFuseFileSystem(
-          mFileSystemContext, mFileSystem);
+          mFileSystemContext, mFileSystem, FuseOptions.create(mConf));
     } catch (UnsatisfiedLinkError e) {
       // stop test and ignore if FuseFileSystem fails to create due to missing libfuse library
       Assume.assumeNoException(e);
