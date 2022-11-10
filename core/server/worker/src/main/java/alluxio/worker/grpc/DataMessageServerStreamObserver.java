@@ -54,7 +54,7 @@ public class DataMessageServerStreamObserver<T> extends CallStreamObserver<T> {
     try {
       mObserver.onNext(value.getMessage());
     } catch (Throwable e) {
-      mBufferRepository.pollBuffer(value.getMessage());
+      mBufferRepository.pollBuffer(value.getMessage()).release();
       throw e;
     }
   }
