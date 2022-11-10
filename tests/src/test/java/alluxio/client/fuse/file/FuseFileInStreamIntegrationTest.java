@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
-import alluxio.fuse.file.FuseFileInStream;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -25,7 +24,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
 
 /**
  * Integration test for {@link alluxio.fuse.file.FuseFileInStream}.
@@ -49,7 +47,7 @@ public class FuseFileInStreamIntegrationTest extends AbstractFuseFileStreamInteg
   @Test (expected = NotFoundRuntimeException.class)
   public void createNonexisting() {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
-    FuseFileInStream.create(mFileSystem, alluxioURI, Optional.empty());
+    mStreamFactory.create(alluxioURI, OpenFlags.O_RDONLY.intValue(), MODE).close();
   }
 
   @Test

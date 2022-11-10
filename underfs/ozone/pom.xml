@@ -73,16 +73,6 @@
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-hdfs</artifactId>
       <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>hadoop-common</artifactId>
-          <groupId>org.apache.hadoop</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>hadoop-hdfs-client</artifactId>
-          <groupId>org.apache.hadoop</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
   </dependencies>
 

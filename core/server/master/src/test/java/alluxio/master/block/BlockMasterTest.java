@@ -63,6 +63,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * Unit tests for {@link BlockMaster}.
@@ -249,7 +250,8 @@ public class BlockMasterTest {
     // Check that the worker heartbeat tells the worker to remove the blocks.
     alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(workerId, null,
         memUsage, NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
-    assertEquals(orphanedBlocks, heartBeat.getDataList());
+    assertEquals(orphanedBlocks,
+        heartBeat.getDataList().stream().sorted().collect(Collectors.toList()));
   }
 
   @Test

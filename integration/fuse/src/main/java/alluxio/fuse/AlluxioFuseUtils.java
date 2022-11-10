@@ -41,6 +41,7 @@ import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.ErrorCodes;
+import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricKey;
@@ -76,7 +77,9 @@ public final class AlluxioFuseUtils {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseUtils.class);
   private static final long THRESHOLD = Configuration.global()
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
+
   private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
+  private static final int MAX_LOCK_WAIT_TIME = 20000;
   /** Most FileSystems on linux limit the length of file name beyond 255 characters. */
   public static final int MAX_NAME_LENGTH = 255;
 
@@ -205,6 +208,61 @@ public final class AlluxioFuseUtils {
           + "Proceed with local configuration for FUSE: {}", e.toString());
     }
     return fsContext.getClusterConf();
+  }
+
+  /**
+   * Fills the path status.
+   *
+   * @param policy auth policy
+   * @param stat file stat to fill
+   * @param status status
+   */
+  public static void fillStat(AuthPolicy policy, FileStat stat, URIStatus status) {
+    updateStatSize(stat, status.getLength());
+
+    final long ctime_sec = status.getLastModificationTimeMs() / 1000;
+    final long atime_sec = status.getLastAccessTimeMs() / 1000;
+    // Keeps only the "residual" nanoseconds not caputred in citme_sec
+    final long ctime_nsec = (status.getLastModificationTimeMs() % 1000) * 1_000_000L;
+    final long atime_nsec = (status.getLastAccessTimeMs() % 1000) * 1_000_000L;
+
+    stat.st_atim.tv_sec.set(atime_sec);
+    stat.st_atim.tv_nsec.set(atime_nsec);
+    stat.st_ctim.tv_sec.set(ctime_sec);
+    stat.st_ctim.tv_nsec.set(ctime_nsec);
+    stat.st_mtim.tv_sec.set(ctime_sec);
+    stat.st_mtim.tv_nsec.set(ctime_nsec);
+
+    stat.st_uid.set(policy.getUid(status.getOwner())
+        .orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE));
+    stat.st_gid.set(policy.getGid(status.getGroup())
+        .orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE));
+
+    int mode = status.getMode();
+    if (status.isFolder()) {
+      mode |= FileStat.S_IFDIR;
+    } else {
+      mode |= FileStat.S_IFREG;
+    }
+    stat.st_mode.set(mode);
+    stat.st_nlink.set(1);
+  }
+
+  /**
+   * Updates file status size.
+   *
+   * @param stat stat to file
+   * @param size size
+   */
+  public static void updateStatSize(FileStat stat, long size) {
+    stat.st_size.set(size);
+
+    // Sets block number to fulfill du command needs
+    // `st_blksize` is ignored in `getattr` according to
+    // https://github.com/libfuse/libfuse/blob/d4a7ba44b022e3b63fc215374d87ed9e930d9974/include/fuse.h#L302
+    // According to http://man7.org/linux/man-pages/man2/stat.2.html,
+    // `st_blocks` is the number of 512B blocks allocated
+    stat.st_blocks.set((int) Math.ceil((double) size / 512));
   }
 
   /**

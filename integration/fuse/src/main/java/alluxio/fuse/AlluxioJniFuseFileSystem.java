@@ -22,18 +22,20 @@ import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.exception.runtime.CancelledRuntimeException;
+import alluxio.exception.runtime.DeadlineExceededRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.file.FuseFileEntry;
+import alluxio.fuse.file.FuseFileInOrOutStream;
+import alluxio.fuse.file.FuseFileOutStream;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -62,18 +64,19 @@ import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -98,14 +101,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final FuseShell mFuseShell;
   private static final IndexDefinition<FuseFileEntry<FuseFileStream>, Long>
       ID_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getId);
-
   // Add a PATH_INDEX to know getattr() been called when writing this file
   private static final IndexDefinition<FuseFileEntry<FuseFileStream>, String>
       PATH_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getPath);
+
   private final IndexedSet<FuseFileEntry<FuseFileStream>> mFileEntries
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final AuthPolicy mAuthPolicy;
   private final FuseFileStream.Factory mStreamFactory;
+
   private final boolean mUfsEnabled;
 
   /** df command will treat -1 as an unknown value. */
@@ -176,11 +180,20 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
       fi.fh.set(fd);
     } catch (NotFoundRuntimeException e) {
-      LOG.error("Failed to read {}: path does not exist or is invalid", path);
+      LOG.error("Failed to read {}: path does not exist or is invalid", path, e);
       return -ErrorCodes.ENOENT();
     } catch (AlreadyExistsRuntimeException e) {
-      LOG.error("Failed to write {}: path already exist", path);
+      LOG.error("Failed to write {}: path already exist", path, e);
       return -ErrorCodes.EEXIST();
+    } catch (DeadlineExceededRuntimeException e) {
+      LOG.error("Failed to create stream {}: deadline exceed", path, e);
+      return -ErrorCodes.ETIME();
+    } catch (CancelledRuntimeException e) {
+      LOG.error("Failed to create stream {}: cancelled/interrupted", path, e);
+      return -ErrorCodes.ECANCELED();
+    } catch (UnimplementedRuntimeException e) {
+      LOG.error("Failed to create stream {}: operation does not supported", path, e);
+      return -ErrorCodes.ENOSYS();
     }
     return 0;
   }
@@ -198,86 +211,40 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return res;
     }
     try {
-      URIStatus status;
-      // Handle special metadata cache operation
       if (mConf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED)
           && mFuseShell.isSpecialCommand(uri)) {
         // TODO(lu) add cache for isFuseSpecialCommand if needed
-        status = mFuseShell.runCommand(uri);
-      } else {
-        try {
-          status = mFileSystem.getStatus(uri);
-        } catch (FileNotFoundException e) {
-          // TODO(lu) reconsider the logic
-          FuseFileEntry<FuseFileStream> stream = mFileEntries.getFirstByField(PATH_INDEX, path);
-          if (stream != null) {
-            long size = stream.getFileStream().getFileLength();
-            stat.st_size.set(size);
-            stat.st_blocks.set((int) Math.ceil((double) size / 512));
-            // TODO(lu) create URI status when creating the file?
-            return 0;
-          } else {
-            throw e;
-          }
-        }
+        AlluxioFuseUtils.fillStat(mAuthPolicy, stat, mFuseShell.runCommand(uri));
+        return 0;
       }
-      long size = status.getLength();
-      if (!status.isCompleted()) {
-        FuseFileEntry<FuseFileStream> stream = mFileEntries.getFirstByField(PATH_INDEX, path);
-        if (stream != null) {
-          size = stream.getFileStream().getFileLength();
+
+      Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
+      if (!status.isPresent()) {
+        LOG.debug("Failed to getattr {}: path does not exist or is invalid", path);
+        return -ErrorCodes.ENOENT();
+      }
+      AlluxioFuseUtils.fillStat(mAuthPolicy, stat, status.get());
+
+      if (!status.get().isCompleted()) {
+        List<FuseFileEntry<FuseFileStream>> stream
+            = mFileEntries.getByField(PATH_INDEX, path).stream()
+            .filter(a -> a.getFileStream() instanceof FuseFileOutStream
+                || (a.getFileStream() instanceof FuseFileInOrOutStream
+                && ((FuseFileInOrOutStream) a.getFileStream()).isWriteStream()))
+            .collect(Collectors.toList());
+        if (!stream.isEmpty()) {
+          // File is being written by current Alluxio client
+          AlluxioFuseUtils.updateStatSize(stat, stream.get(0).getFileStream().getFileLength());
         } else {
-          Optional<URIStatus> optionalStatus
-              = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri);
-          if (optionalStatus.isPresent()) {
-            status = optionalStatus.get();
-            size = status.getLength();
-          } else {
-            LOG.error("File {} is not completed", path);
+          // File is being written by other Alluxio client
+          status = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri);
+          status.ifPresent(uriStatus
+              -> AlluxioFuseUtils.updateStatSize(stat, uriStatus.getLength()));
+          if (!status.isPresent()) {
+            LOG.error("File {} is not completed, cannot get accurate file length", path);
           }
         }
       }
-      stat.st_size.set(size);
-
-      // Sets block number to fulfill du command needs
-      // `st_blksize` is ignored in `getattr` according to
-      // https://github.com/libfuse/libfuse/blob/d4a7ba44b022e3b63fc215374d87ed9e930d9974/include/fuse.h#L302
-      // According to http://man7.org/linux/man-pages/man2/stat.2.html,
-      // `st_blocks` is the number of 512B blocks allocated
-      stat.st_blocks.set((int) Math.ceil((double) size / 512));
-
-      final long ctime_sec = status.getLastModificationTimeMs() / 1000;
-      final long atime_sec = status.getLastAccessTimeMs() / 1000;
-      // Keeps only the "residual" nanoseconds not caputred in citme_sec
-      final long ctime_nsec = (status.getLastModificationTimeMs() % 1000) * 1_000_000L;
-      final long atime_nsec = (status.getLastAccessTimeMs() % 1000) * 1_000_000L;
-
-      stat.st_atim.tv_sec.set(atime_sec);
-      stat.st_atim.tv_nsec.set(atime_nsec);
-      stat.st_ctim.tv_sec.set(ctime_sec);
-      stat.st_ctim.tv_nsec.set(ctime_nsec);
-      stat.st_mtim.tv_sec.set(ctime_sec);
-      stat.st_mtim.tv_nsec.set(ctime_nsec);
-
-      stat.st_uid.set(mAuthPolicy.getUid(status.getOwner())
-          .orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE));
-      stat.st_gid.set(mAuthPolicy.getGid(status.getGroup())
-          .orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE));
-
-      int mode = status.getMode();
-      if (status.isFolder()) {
-        mode |= FileStat.S_IFDIR;
-      } else {
-        mode |= FileStat.S_IFREG;
-      }
-      stat.st_mode.set(mode);
-      stat.st_nlink.set(1);
-    } catch (FileDoesNotExistException | InvalidPathException | FileNotFoundException e) {
-      LOG.debug("Failed to getattr {}: path does not exist or is invalid", path);
-      return -ErrorCodes.ENOENT();
-    } catch (AccessControlException e) {
-      LOG.error("Failed to getattr {}: permission denied", path, e);
-      return -ErrorCodes.EACCES();
     } catch (Throwable t) {
       LOG.error("Failed to getattr {}", path, t);
       return -ErrorCodes.EIO();
