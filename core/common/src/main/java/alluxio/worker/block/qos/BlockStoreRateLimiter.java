@@ -14,7 +14,6 @@ package alluxio.worker.block.qos;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.qos.RateLimiter;
-import alluxio.resource.LockResource;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -38,10 +37,13 @@ public class BlockStoreRateLimiter implements RateLimiter {
    */
   public static BlockStoreRateLimiter getReadLimiter(AlluxioConfiguration conf) {
     if (sReadLimiter == null) {
-      try (LockResource ignored = new LockResource(READ_LIMITER_INIT_LOCK)) {
+      READ_LIMITER_INIT_LOCK.lock();
+      try {
         if (sReadLimiter == null) {
           sReadLimiter = new BlockStoreRateLimiter(getThroughputLimit(conf, TpsLimitType.READ));
         }
+      } finally {
+        READ_LIMITER_INIT_LOCK.unlock();
       }
     }
     return sReadLimiter;
@@ -54,10 +56,13 @@ public class BlockStoreRateLimiter implements RateLimiter {
    */
   public static BlockStoreRateLimiter getWriteLimiter(AlluxioConfiguration conf) {
     if (sWriteLimiter == null) {
-      try (LockResource ignored = new LockResource(WRITE_LIMITER_INIT_LOCK)) {
+      WRITE_LIMITER_INIT_LOCK.lock();
+      try {
         if (sWriteLimiter == null) {
           sWriteLimiter = new BlockStoreRateLimiter(getThroughputLimit(conf, TpsLimitType.WRITE));
         }
+      } finally {
+        WRITE_LIMITER_INIT_LOCK.unlock();
       }
     }
     return sWriteLimiter;
@@ -71,20 +76,8 @@ public class BlockStoreRateLimiter implements RateLimiter {
    * Clear the read limiter & write limiter.
    */
   public static void clear() {
-    if (sReadLimiter != null) {
-      try (LockResource ignored = new LockResource(READ_LIMITER_INIT_LOCK)) {
-        if (sReadLimiter != null) {
-          sReadLimiter = null;
-        }
-      }
-    }
-    if (sWriteLimiter != null) {
-      try (LockResource ignored = new LockResource(WRITE_LIMITER_INIT_LOCK)) {
-        if (sWriteLimiter != null) {
-          sWriteLimiter = null;
-        }
-      }
-    }
+    sReadLimiter = null;
+    sWriteLimiter = null;
   }
 
   @Override
