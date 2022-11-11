@@ -168,7 +168,7 @@ public class GrpcSerializationUtils {
       } else if (buffer.getClass().equals(sReadableByteBuf.getDeclaringClass())) {
         return (ByteBuf) sReadableByteBuf.get(buffer);
       }
-    } catch (Throwable e) {
+    } catch (Exception e) {
       LOG.warn("Failed to get data buffer from stream: {}.", e.toString());
       return null;
     }
