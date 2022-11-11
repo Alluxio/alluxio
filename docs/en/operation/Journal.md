@@ -197,11 +197,15 @@ the default backup directory would be `hdfs://192.168.1.1:9000/alluxio_backups`.
 The files to retain in the backup directory is limited by `alluxio.master.daily.backup.files.retained`.
 Users can set this property to the number of backup files they want to keep in the backup directory.
 
+In addition, upon encountering journal corruption, the master will take a backup of its current state
+automatically. This can be disabled by setting `alluxio.master.journal.backup.when.corrupted=false`.
+
 ### Backup delegation on HA cluster
 
 Alluxio supports taking backup without causing service unavailability on a HA cluster configuration.
 When enabled, Alluxio leading master delegates backups to standby masters in the cluster.
 After configuring backup delegation, both manual and scheduled backups will run in delegated mode.
+From Alluxio 2.9, backup delegation is by default enabled.
 
 Backup delegation can be configured with the below properties:
 - `alluxio.master.backup.delegation.enabled`: Whether to delegate backups to standby masters. Default: `false`.
@@ -346,6 +350,13 @@ By default, checkpoints are automatically taken every 2 million entries. This ca
 setting `alluxio.master.journal.checkpoint.period.entries` on the masters. Setting
 the value lower will reduce the amount of disk space needed by the journal at the
 cost of additional work for the standby masters.
+
+When the metadata are stored in RocksDB, Alluxio 2.9 added support to checkpointing with multiple threads.
+`alluxio.master.metastore.rocks.parallel.backup=true` will turn on multi-threaded checkpointing and
+make the checkpointing a few times faster(depending how many threads are used). 
+`alluxio.master.metastore.rocks.parallel.backup.threads` controls how many threads to use.
+`alluxio.master.metastore.rocks.parallel.backup.compression.level` specifies the compression level, 
+where smaller means bigger file and less CPU consumption, and larger means smaller file and more CPU consumption. 
 
 #### Checkpointing on secondary master
 

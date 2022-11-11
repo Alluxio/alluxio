@@ -4,22 +4,28 @@ Client.BlockReadChunkRemote:
   'The timer statistics of reading block data in chunks from remote Alluxio workers via RPC framework. This metrics will only be recorded when alluxio.user.block.read.metrics.enabled is set to true'
 Client.BlockWorkerClientCount:
   'Number of instances in the BlockWorkerClientPool.'
+Client.BusyExceptionCount:
+  'Total number of BusyException observed'
 Client.BytesReadLocal:
-  'Total number of bytes short-circuit read from local storage by this client'
+  'Total number of bytes short-circuit read from worker data storage that collocates with the client'
 Client.BytesReadLocalThroughput:
-  'Bytes throughput short-circuit read from local storage by this client'
+  'Bytes throughput short-circuit read from worker data storage that collocated with this client'
 Client.BytesWrittenLocal:
   'Total number of bytes short-circuit written to local storage by this client'
 Client.BytesWrittenLocalThroughput:
   'Bytes throughput short-circuit written to local storage by this client'
 Client.BytesWrittenUfs:
   'Total number of bytes write to Alluxio UFS by this client'
+Client.CacheBytesDiscarded:
+  'Total number of bytes discarded when restoring the page store.'
 Client.CacheBytesEvicted:
   'Total number of bytes evicted from the client cache.'
 Client.CacheBytesReadCache:
   'Total number of bytes read from the client cache.'
 Client.CacheBytesReadExternal:
   'Total number of bytes read from external storage due to a cache miss on the client cache.'
+Client.CacheBytesReadInStreamBuffer:
+  'Total number of bytes read from the client cache''s in stream buffer.'
 Client.CacheBytesRequestedExternal:
   'Total number of bytes the user requested to read which resulted in a cache miss. This number may be smaller than Client.CacheBytesReadExternal due to chunk reads.'
 Client.CacheBytesWrittenCache:
@@ -54,6 +60,8 @@ Client.CachePageReadExternalTimeNanos:
   'Time in nanoseconds taken to read a page from external source when the cache misses.'
 Client.CachePages:
   'Total number of pages in the client cache.'
+Client.CachePagesDiscarded:
+  'Total number of pages discarded when restoring the page store.'
 Client.CachePagesEvicted:
   'Total number of pages evicted from the client cache.'
 Client.CachePutAsyncRejectionErrors:

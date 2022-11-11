@@ -427,6 +427,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         SizeInBytes.valueOf(messageSize));
     RatisDropwizardExports.registerRatisMetricReporters(mRatisMetricsMap);
 
+    mergeAlluxioRatisConfig(properties);
+
     // TODO(feng): clean up embedded journal configuration
     // build server
     mServer = RaftServer.newBuilder()
@@ -441,6 +443,19 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         this::getLeaderIndex);
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ROLE_ID.getName(), this::getRoleId);
     MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_LEADER_ID.getName(), this::getLeaderId);
+  }
+
+  @VisibleForTesting
+  void mergeAlluxioRatisConfig(RaftProperties properties) {
+    Map<String, Object> ratisConf =
+        Configuration.getNestedProperties(PropertyKey.MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG);
+
+    for (Map.Entry<String, Object> entry : ratisConf.entrySet()) {
+      if (entry.getValue() != null) {
+        properties.set(entry.getKey(), entry.getValue().toString());
+        LOG.info("set ratis config {}={}", entry.getKey(), entry.getValue());
+      }
+    }
   }
 
   /**
