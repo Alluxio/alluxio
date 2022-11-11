@@ -3352,7 +3352,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_LOST_WORKER_DELETION_TIMEOUT_MS =
       durationBuilder(Name.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS)
           .setAlias("alluxio.master.lost.worker.deletion.timeout.ms")
-          .setDefaultValue(3 * Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS))
+          .setDefaultValue("30min")
           .setDescription("If a worker has no heartbeat with the master "
               + "for more than this timeout, the master will totally forget this worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
