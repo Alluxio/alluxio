@@ -269,6 +269,8 @@ message BuildVersion {
 }
 message RegisterWorkerPOptions {
   repeated grpc.ConfigProperty configs = 1;
+  /** the worker version to display in info pages (useful for rolling upgrades) */
+  optional BuildVersion buildVersion = 2;
 }
 message RegisterWorkerPRequest {
   /** the id of the worker */
@@ -286,8 +288,6 @@ message RegisterWorkerPRequest {
   map<string, StorageList> lostStorage = 7;
   /** use repeated fields to represent mapping from BlockStoreLocationProto to TierList */
   repeated LocationBlockIdListEntry currentBlocks = 8;
-  /** the worker version to display in info pages (useful for rolling upgrades) */
-  optional BuildVersion buildVersion = 9;
 }
 message RegisterWorkerPResponse {}
 

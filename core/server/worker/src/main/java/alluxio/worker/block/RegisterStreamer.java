@@ -127,7 +127,12 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     mTotalBytesOnTiers = totalBytesOnTiers;
     mUsedBytesOnTiers = usedBytesOnTiers;
 
-    mOptions = RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
+    final BuildVersion buildVersion = BuildVersion.newBuilder()
+        .setVersion(ProjectConstants.VERSION)
+        .setRevision(ProjectConstants.REVISION)
+        .build();
+    mOptions = RegisterWorkerPOptions.newBuilder().addAllConfigs(configList)
+        .setBuildVersion(buildVersion).build();
     mLostStorageMap = lostStorage.entrySet().stream()
         .collect(Collectors.toMap(Map.Entry::getKey,
             e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
@@ -281,10 +286,6 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
       } else {
         blockBatch = Collections.emptyList();
       }
-      final BuildVersion buildVersion = BuildVersion.newBuilder()
-          .setVersion(ProjectConstants.VERSION)
-          .setRevision(ProjectConstants.REVISION)
-          .build();
       // If it is the 1st batch, include metadata
       request = RegisterWorkerPRequest.newBuilder()
           .setWorkerId(mWorkerId)
@@ -294,7 +295,6 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
           .putAllLostStorage(mLostStorageMap)
           .setOptions(mOptions)
           .addAllCurrentBlocks(blockBatch)
-          .setBuildVersion(buildVersion)
           .build();
     } else {
       blockBatch = mBlockMapIterator.next();

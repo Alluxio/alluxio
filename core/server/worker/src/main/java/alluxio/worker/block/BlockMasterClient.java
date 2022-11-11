@@ -290,8 +290,13 @@ public class BlockMasterClient extends AbstractMasterClient {
       final Map<String, List<String>> lostStorage,
       final List<ConfigProperty> configList) throws IOException {
 
+    final BuildVersion buildVersion = BuildVersion.newBuilder()
+        .setVersion(ProjectConstants.VERSION)
+        .setRevision(ProjectConstants.REVISION).build();
+
     final RegisterWorkerPOptions options =
-        RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
+        RegisterWorkerPOptions.newBuilder().addAllConfigs(configList)
+            .setBuildVersion(buildVersion).build();
 
     final List<LocationBlockIdListEntry> currentBlocks
         = convertBlockListMapToProto(currentBlocksOnLocation);
@@ -300,16 +305,11 @@ public class BlockMasterClient extends AbstractMasterClient {
         .collect(Collectors.toMap(Map.Entry::getKey,
             e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
 
-    final BuildVersion buildVersion = BuildVersion.newBuilder()
-        .setVersion(ProjectConstants.VERSION)
-        .setRevision(ProjectConstants.REVISION).build();
-
     final RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder().setWorkerId(workerId)
         .addAllStorageTiers(storageTierAliases).putAllTotalBytesOnTiers(totalBytesOnTiers)
         .putAllUsedBytesOnTiers(usedBytesOnTiers)
         .addAllCurrentBlocks(currentBlocks)
         .putAllLostStorage(lostStorageMap)
-        .setBuildVersion(buildVersion)
         .setOptions(options).build();
 
     retryRPC(() -> {
