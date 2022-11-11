@@ -2226,6 +2226,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG =
+      stringBuilder(Name.MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG)
+          .setDescription("Prefix for Apache Ratis internal configuration options. For example, "
+              + "setting " + Name.MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG
+              + ".raft.server.rpc.request.timeout will set "
+              + "ratis.config.raft.server.rpc.request.timeout "
+              + "on the Ratis service in the Alluxio master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
       durationBuilder(Name.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS)
           .setDefaultValue("5sec")
@@ -7537,6 +7547,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.raft.client.request.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL =
         "alluxio.master.embedded.journal.raft.client.request.interval";
+    public static final String MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG =
+        "alluxio.master.embedded.journal.ratis.config";
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
         "alluxio.master.embedded.journal.transport.request.timeout.ms";
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE =
@@ -8576,6 +8588,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         PropertyType.STRING),
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",
         "alluxio\\.master\\.journal\\.ufs\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
+        PropertyCreators.NESTED_JOURNAL_PROPERTY_CREATOR),
+    MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG_PROPERTY(
+        "alluxio.master.embedded.journal.ratis.config.%s",
+        "alluxio\\.master\\.embedded\\.journal\\.ratis\\.config\\.(?<nested>(\\w+\\.)*+\\w+)",
         PropertyCreators.NESTED_JOURNAL_PROPERTY_CREATOR),
     MASTER_LOGICAL_NAMESERVICES("alluxio.master.nameservices.%s",
         String.format("alluxio\\.master\\.nameservices\\.%s",
