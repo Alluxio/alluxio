@@ -170,7 +170,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
             httpServletResponse.setStatus(s3Exception.getErrorCode().getStatus().getStatusCode());
           }
         }
-        LOG.error(ThreadUtils.formatStackTrace(e));
+        LOG.error(ThreadUtils.formatStackTrace(cause));
       }
       httpServletResponse.getWriter().flush();
       request.setHandled(true);
