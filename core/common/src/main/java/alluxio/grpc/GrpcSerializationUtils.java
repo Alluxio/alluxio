@@ -151,19 +151,24 @@ public class GrpcSerializationUtils {
           return getByteBufFromReadableBuffer(buffers.peek());
         } else {
           CompositeByteBuf buf = PooledByteBufAllocator.DEFAULT.compositeBuffer();
-          for (ReadableBuffer readableBuffer : buffers) {
-            ByteBuf subBuffer = getByteBufFromReadableBuffer(readableBuffer);
-            if (subBuffer == null) {
-              return null;
+          try {
+            for (ReadableBuffer readableBuffer : buffers) {
+              ByteBuf subBuffer = getByteBufFromReadableBuffer(readableBuffer);
+              if (subBuffer == null) {
+                return null;
+              }
+              buf.addComponent(true, subBuffer);
             }
-            buf.addComponent(true, subBuffer);
+            return buf;
+          } catch (Throwable e) {
+            buf.release();
+            throw e;
           }
-          return buf;
         }
       } else if (buffer.getClass().equals(sReadableByteBuf.getDeclaringClass())) {
         return (ByteBuf) sReadableByteBuf.get(buffer);
       }
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.warn("Failed to get data buffer from stream: {}.", e.toString());
       return null;
     }
