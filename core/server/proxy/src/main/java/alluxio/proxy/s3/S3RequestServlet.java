@@ -18,10 +18,10 @@ import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-public class S3RequstServlet extends HttpServlet {
+public class S3RequestServlet extends HttpServlet {
 
-    private static final Logger LOG = LoggerFactory.getLogger(S3RequstServlet.class);
-    private static S3RequstServlet mInstance = null;
+    private static final Logger LOG = LoggerFactory.getLogger(S3RequestServlet.class);
+    private static S3RequestServlet mInstance = null;
     private static ReentrantLock mCreateInstanceLock = new ReentrantLock();
 
     public static final String SERVICE_PREFIX = "s3";
@@ -33,14 +33,14 @@ public class S3RequstServlet extends HttpServlet {
     HttpServletRequest mServletRequest;
 
 
-    public static S3RequstServlet getInstance() {
+    public static S3RequestServlet getInstance() {
         if (mInstance != null)
             return mInstance;
         try {
             mCreateInstanceLock.lock();
             if (mInstance != null)
                 return mInstance;
-            mInstance = new S3RequstServlet(); // add static fields
+            mInstance = new S3RequestServlet(); // add static fields
             return mInstance;
         } finally {
             mCreateInstanceLock.unlock();

@@ -138,7 +138,7 @@ public final class ProxyWebServer extends WebServer {
 
     };
 //    ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
-    ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", S3RequstServlet.getInstance());
+    ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", S3RequestServlet.getInstance());
     mServletContextHandler
         .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
     // TODO(czhu): Move S3 API logging out of CompleteMultipartUploadHandler into a logging handler
