@@ -30,6 +30,7 @@ import alluxio.worker.block.annotator.BlockOrder;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.DelegatingBlockReader;
+import alluxio.worker.block.io.RateLimitedBlockWriter;
 import alluxio.worker.block.io.StoreBlockReader;
 import alluxio.worker.block.io.StoreBlockWriter;
 import alluxio.worker.block.management.DefaultStoreLoadTracker;
@@ -171,7 +172,10 @@ public class TieredBlockStore implements LocalBlockStore {
     // block lock here since no sharing
     // TODO(bin): Handle the case where multiple writers compete for the same block.
     checkBlockDoesNotExist(blockId);
-    return new StoreBlockWriter(checkAndGetTempBlockMeta(sessionId, blockId));
+    return Configuration.getBoolean(PropertyKey.WORKER_LOCAL_BLOCK_QOS_ENABLE)
+        ? new RateLimitedBlockWriter(new StoreBlockWriter(
+            checkAndGetTempBlockMeta(sessionId, blockId)), Configuration.copyGlobal())
+        : new StoreBlockWriter(checkAndGetTempBlockMeta(sessionId, blockId));
   }
 
   @Override

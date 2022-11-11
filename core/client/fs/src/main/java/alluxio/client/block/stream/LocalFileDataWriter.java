@@ -23,7 +23,9 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockWriter;
+import alluxio.worker.block.io.RateLimitedBlockWriter;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -41,7 +43,7 @@ public final class LocalFileDataWriter implements DataWriter {
 
   private final long mFileBufferBytes;
   private final long mDataTimeoutMs;
-  private final LocalFileBlockWriter mWriter;
+  private final BlockWriter mWriter;
   private final long mChunkSize;
   private final CreateLocalBlockRequest mCreateRequest;
   private final Closer mCloser;
@@ -100,8 +102,10 @@ public final class LocalFileDataWriter implements DataWriter {
       stream.send(createRequest, dataTimeout);
       CreateLocalBlockResponse response = stream.receive(dataTimeout);
       Preconditions.checkState(response != null && response.hasPath());
-      LocalFileBlockWriter writer =
-          closer.register(new LocalFileBlockWriter(response.getPath()));
+      BlockWriter writer = closer.register(
+          conf.getBoolean(PropertyKey.WORKER_LOCAL_BLOCK_QOS_ENABLE)
+              ? new RateLimitedBlockWriter(new LocalFileBlockWriter(response.getPath()), conf)
+              : new LocalFileBlockWriter(response.getPath()));
       return new LocalFileDataWriter(chunkSize, writer, createRequest, stream, closer,
           fileBufferBytes, dataTimeout);
     } catch (Exception e) {
@@ -162,7 +166,7 @@ public final class LocalFileDataWriter implements DataWriter {
    * @param stream the gRPC stream
    * @param closer the closer
    */
-  private LocalFileDataWriter(long packetSize, LocalFileBlockWriter writer,
+  private LocalFileDataWriter(long packetSize, BlockWriter writer,
       CreateLocalBlockRequest createRequest,
       GrpcBlockingStream<CreateLocalBlockRequest, CreateLocalBlockResponse> stream,
       Closer closer, long fileBufferBytes, long dataTimeoutMs) {

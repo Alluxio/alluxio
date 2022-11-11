@@ -15,6 +15,7 @@ import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.OpenLocalBlockRequest;
@@ -25,7 +26,9 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
+import alluxio.worker.block.io.RateLimitedBlockReader;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -42,7 +45,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LocalFileDataReader implements DataReader {
   /** The file reader to read a local block. */
-  private final LocalFileBlockReader mReader;
+  private final BlockReader mReader;
   private final long mEnd;
   private final long mChunkSize;
   private long mPos;
@@ -56,7 +59,7 @@ public final class LocalFileDataReader implements DataReader {
    * @param len the length to read
    * @param chunkSize the chunk size
    */
-  private LocalFileDataReader(LocalFileBlockReader reader, long offset, long len, long chunkSize) {
+  private LocalFileDataReader(BlockReader reader, long offset, long len, long chunkSize) {
     mReader = reader;
     Preconditions.checkArgument(chunkSize > 0);
     mPos = offset;
@@ -89,7 +92,10 @@ public final class LocalFileDataReader implements DataReader {
       return;
     }
     mClosed = true;
-    mReader.decreaseUsageCount();
+    LocalFileBlockReader localFileBlockReader = (LocalFileBlockReader)
+        (mReader instanceof RateLimitedBlockReader
+            ? ((RateLimitedBlockReader) mReader).getDelegate() : mReader);
+    localFileBlockReader.decreaseUsageCount();
   }
 
   /**
@@ -102,9 +108,10 @@ public final class LocalFileDataReader implements DataReader {
     private final long mLocalReaderChunkSize;
     private final GrpcBlockingStream<OpenLocalBlockRequest, OpenLocalBlockResponse> mStream;
 
-    private LocalFileBlockReader mReader;
+    private BlockReader mReader;
     private final long mDataTimeoutMs;
     private boolean mClosed;
+    private final boolean mQosEnabled;
 
     /**
      * Creates an instance of {@link Factory}.
@@ -120,6 +127,7 @@ public final class LocalFileDataReader implements DataReader {
       AlluxioConfiguration conf = context.getClusterConf();
       mLocalReaderChunkSize = localReaderChunkSize;
       mDataTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_DATA_READ_TIMEOUT);
+      mQosEnabled = conf.getBoolean(PropertyKey.WORKER_LOCAL_BLOCK_QOS_ENABLE);
       if (conf.getBoolean(PropertyKey.USER_DIRECT_MEMORY_IO_ENABLED)) {
         mBlockWorker = null;
         mStream = null;
@@ -163,10 +171,14 @@ public final class LocalFileDataReader implements DataReader {
     @Override
     public DataReader create(long offset, long len) throws IOException {
       if (mReader == null) {
-        mReader = new LocalFileBlockReader(mPath);
+        mReader = mQosEnabled ? new RateLimitedBlockReader(
+            new LocalFileBlockReader(mPath), Configuration.copyGlobal())
+            : new LocalFileBlockReader(mPath);
       }
-      Preconditions.checkState(mReader.getUsageCount() == 0);
-      mReader.increaseUsageCount();
+      LocalFileBlockReader localFileBlockReader = (LocalFileBlockReader) (mQosEnabled
+          ? ((RateLimitedBlockReader) mReader).getDelegate() : mReader);
+      Preconditions.checkState(localFileBlockReader.getUsageCount() == 0);
+      localFileBlockReader.increaseUsageCount();
       return new LocalFileDataReader(mReader, offset, len, mLocalReaderChunkSize);
     }
 

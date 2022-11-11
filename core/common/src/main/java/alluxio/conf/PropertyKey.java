@@ -4883,6 +4883,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_LOCAL_BLOCK_QOS_ENABLE =
+      booleanBuilder(Name.WORKER_LOCAL_BLOCK_QOS_ENABLE)
+          .setDefaultValue(false)
+          .setDescription("Whether to enable local block qos.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_LOCAL_BLOCK_READ_THROUGHPUT =
+      dataSizeBuilder(Name.WORKER_LOCAL_BLOCK_READ_THROUGHPUT)
+          .setDefaultValue("200MB")
+          .setDescription("Read throughput limit access block store.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_LOCAL_BLOCK_WRITE_THROUGHPUT =
+      dataSizeBuilder(Name.WORKER_LOCAL_BLOCK_WRITE_THROUGHPUT)
+          .setDefaultValue("200MB")
+          .setDescription("Write throughput limit access block store.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
 
   //
   // Proxy related properties
@@ -8036,6 +8057,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
         "alluxio.worker.ufs.instream.cache.max.size";
     public static final String WORKER_WHITELIST = "alluxio.worker.whitelist";
+    public static final String WORKER_LOCAL_BLOCK_QOS_ENABLE =
+        "alluxio.worker.local.block.qos.enabled";
+    public static final String WORKER_LOCAL_BLOCK_READ_THROUGHPUT =
+        "alluxio.worker.local.block.read.throughput";
+    public static final String WORKER_LOCAL_BLOCK_WRITE_THROUGHPUT =
+        "alluxio.worker.local.block.write.throughput";
 
     //
     // Proxy related properties
