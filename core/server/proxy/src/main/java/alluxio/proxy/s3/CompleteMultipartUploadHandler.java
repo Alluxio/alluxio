@@ -235,8 +235,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
           metaStatus = S3RestUtils.checkStatusesForUploadId(mMetaFs, mUserFs,
               multipartTemporaryDir, mUploadId).get(1);
         } catch (Exception e) {
-          LOG.error("checkStatusesForUploadId failed:{}:{}",
-                  e.getMessage(), ThreadUtils.formatStackTrace(e));
+          LOG.error("checkStatusesForUploadId failed:{}", ThreadUtils.formatStackTrace(e));
           throw new S3Exception(objectPath, S3ErrorCode.NO_SUCH_UPLOAD);
         }
 
@@ -246,8 +245,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
           request = new XmlMapper().readerFor(CompleteMultipartUploadRequest.class)
               .readValue(mBody);
         } catch (IllegalArgumentException e) {
-          LOG.error("Failed parsing CompleteMultipartUploadRequest {}:{}",
-                  e.getMessage(), ThreadUtils.formatStackTrace(e));
+          LOG.error("Failed parsing CompleteMultipartUploadRequest:{}",
+                  ThreadUtils.formatStackTrace(e));
           Throwable cause = e.getCause();
           if (cause instanceof S3Exception) {
             throw S3RestUtils.toObjectS3Exception((S3Exception) cause, objectPath);
