@@ -19,7 +19,6 @@ import alluxio.cli.fsadmin.report.JobServiceMetricsCommand;
 import alluxio.cli.fsadmin.report.MetricsCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.cli.fsadmin.report.UfsCommand;
-import alluxio.cli.fsadmin.report.WorkersCommand;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
@@ -82,8 +81,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
     METRICS, // Report metrics information
     SUMMARY, // Report cluster summary
     UFS, // Report under filesystem information
-    JOBSERVICE, // Report job service metrics information
-    WORKERS // Report worker information
+    JOBSERVICE // Report job service metrics information
   }
 
   private AlluxioConfiguration mConf;
@@ -135,9 +133,6 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         case "jobservice":
           command = Command.JOBSERVICE;
           break;
-        case "workers":
-          command = Command.WORKERS;
-          break;
         default:
           System.out.println(getUsage());
           System.out.println(getDescription());
@@ -177,10 +172,6 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         JobServiceMetricsCommand jobmetricsCommand = new JobServiceMetricsCommand(
             mJobMasterClient, mPrintStream, mConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN));
         jobmetricsCommand.run();
-        break;
-      case WORKERS:
-        WorkersCommand workersCommand = new WorkersCommand(mBlockClient, mPrintStream);
-        workersCommand.run();
         break;
       default:
         break;
