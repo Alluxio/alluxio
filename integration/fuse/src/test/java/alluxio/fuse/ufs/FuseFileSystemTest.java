@@ -15,72 +15,48 @@ import static jnr.constants.platform.OpenFlags.O_RDONLY;
 import static jnr.constants.platform.OpenFlags.O_WRONLY;
 import static org.junit.Assert.assertEquals;
 
-import alluxio.AlluxioURI;
-import alluxio.ClientContext;
 import alluxio.Constants;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.ufs.UfsBaseFileSystem;
-import alluxio.conf.Configuration;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.Source;
-import alluxio.fuse.AlluxioFuseUtils.CloseableFuseFileInfo;
+import alluxio.client.file.options.FileSystemOptions;
+import alluxio.fuse.options.FuseOptions;
+import alluxio.fuse.ufs.AbstractTest;
 import alluxio.jnifuse.ErrorCodes;
-import alluxio.jnifuse.LibFuse;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.Statvfs;
 import alluxio.security.authorization.Mode;
-import alluxio.underfs.UnderFileSystemFactoryRegistry;
-import alluxio.underfs.s3a.S3AUnderFileSystemFactory;
 import alluxio.util.io.BufferUtils;
-import alluxio.util.io.FileUtils;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.UUID;
+import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
- * Isolation tests for {@link AlluxioJniFuseFileSystem} with S3.
+ * Isolation tests for {@link AlluxioJniFuseFileSystem} with local UFS.
+ * This test covers the basic file system operations.
  */
-public class FuseS3FileSystemTest {
-  private static final Mode DEFAULT_MODE = new Mode(Mode.Bits.ALL, Mode.Bits.READ, Mode.Bits.READ);
-  private static final String MOUNT_POINT = "/t/mountPoint";
-  private static final String FILE = "/file";
-  private static final String DIR = "/dir";
-  private static final String EXCEED_LENGTH_PATH_NAME
-      = "/path" + String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
-  private AlluxioURI mRootUfs;
-  private AlluxioJniFuseFileSystem mFuseFs;
-  private CloseableFuseFileInfo mFileInfo;
-  private FileStat mFileStat;
+public class FuseFileSystemTest extends AbstractTest {
+  protected AlluxioJniFuseFileSystem mFuseFs;
+  protected AlluxioFuseUtils.CloseableFuseFileInfo mFileInfo;
+  protected FileStat mFileStat;
 
-  @Before
-  public void before() throws Exception {
-    InstancedConfiguration conf = Configuration.copyGlobal();
-    String ufs = "s3://alluxio-test-fuse/lu" + UUID.randomUUID();
-    conf.set(PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT, Source.RUNTIME);
-    conf.set(PropertyKey.USER_UFS_ENABLED, true, Source.RUNTIME);
-    conf.set(PropertyKey.USER_ROOT_UFS, ufs, Source.RUNTIME);
-    mRootUfs = new AlluxioURI(ufs);
-    S3AUnderFileSystemFactory s3aUnderFileSystemFactory = new S3AUnderFileSystemFactory();
-    UnderFileSystemFactoryRegistry.register(s3aUnderFileSystemFactory);
-    FileSystemContext context = FileSystemContext.create(
-        ClientContext.create(conf));
-    LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
-    mFuseFs = new AlluxioJniFuseFileSystem(context, new UfsBaseFileSystem(context));
-    mFileInfo = new CloseableFuseFileInfo();
+  @Override
+  public void beforeActions() {
+    mFuseFs = new AlluxioJniFuseFileSystem(mContext, mFileSystem,
+        new FuseOptions(FileSystemOptions.create(
+            mContext.getClusterConf(), Optional.of(mUfsOptions))));
     mFileStat = FileStat.of(ByteBuffer.allocateDirect(256));
+    mFileInfo = new AlluxioFuseUtils.CloseableFuseFileInfo();
   }
 
-  @After
-  public void after() throws IOException {
-    FileUtils.deletePathRecursively(mRootUfs.toString());
+  @Override
+  public void afterActions() throws IOException {
     BufferUtils.cleanDirectBuffer(mFileStat.getBuffer());
     mFileInfo.close();
   }
@@ -93,6 +69,10 @@ public class FuseS3FileSystemTest {
     Assert.assertEquals(0, mFuseFs.getattr(FILE, mFileStat));
     Assert.assertEquals(0, mFileStat.st_size.longValue());
     // s3 will always be 700
+    Mode res = new Mode(mFileStat.st_mode.shortValue());
+    Assert.assertEquals(DEFAULT_MODE.getOwnerBits(), res.getOwnerBits());
+    Assert.assertEquals(DEFAULT_MODE.getGroupBits(), res.getGroupBits());
+    Assert.assertEquals(DEFAULT_MODE.getOtherBits(), res.getOtherBits());
   }
 
   @Test
@@ -134,6 +114,21 @@ public class FuseS3FileSystemTest {
     mFileInfo.get().flags.set(O_WRONLY.intValue());
     assertEquals(-ErrorCodes.ENAMETOOLONG(),
         mFuseFs.create(EXCEED_LENGTH_PATH_NAME, DEFAULT_MODE.toShort(), mFileInfo.get()));
+  }
+
+  @Test
+  public void createCloseDifferentThread() throws InterruptedException, ExecutionException {
+    mFileInfo.get().flags.set(O_WRONLY.intValue());
+    Assert.assertEquals(0, mFuseFs.create(FILE, DEFAULT_MODE.toShort(), mFileInfo.get()));
+    Callable<Integer> releaseTask = () -> mFuseFs.release(FILE, mFileInfo.get());
+    ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
+    Future<Integer> releaseResult = threadExecutor.submit(releaseTask);
+    Assert.assertEquals(0, (int) releaseResult.get());
+
+    mFileInfo.get().flags.set(O_RDONLY.intValue());
+    Assert.assertEquals(0, mFuseFs.open(FILE, mFileInfo.get()));
+    releaseResult = threadExecutor.submit(releaseTask);
+    Assert.assertEquals(0, (int) releaseResult.get());
   }
 
   @Test
@@ -187,6 +182,14 @@ public class FuseS3FileSystemTest {
   }
 
   @Test
+  public void openTimeoutWhenIncomplete() {
+    mFileInfo.get().flags.set(O_WRONLY.intValue());
+    Assert.assertEquals(0, mFuseFs.create(FILE, DEFAULT_MODE.toShort(), mFileInfo.get()));
+    mFileInfo.get().flags.set(O_RDONLY.intValue());
+    Assert.assertEquals(-ErrorCodes.ETIME(), mFuseFs.open(FILE, mFileInfo.get()));
+  }
+
+  @Test
   public void getAttrNonExisting() {
     Assert.assertEquals(-ErrorCodes.ENOENT(), mFuseFs.getattr(FILE, mFileStat));
   }
@@ -195,6 +198,11 @@ public class FuseS3FileSystemTest {
   public void createDirectory() {
     Assert.assertEquals(0, mFuseFs.mkdir(DIR, DEFAULT_MODE.toShort()));
     Assert.assertEquals(0, mFuseFs.getattr(DIR, mFileStat));
+    // s3 will always be 700
+    Mode res = new Mode(mFileStat.st_mode.shortValue());
+    Assert.assertEquals(DEFAULT_MODE.getOwnerBits(), res.getOwnerBits());
+    Assert.assertEquals(DEFAULT_MODE.getGroupBits(), res.getGroupBits());
+    Assert.assertEquals(DEFAULT_MODE.getOtherBits(), res.getOtherBits());
   }
 
   /**
@@ -225,6 +233,21 @@ public class FuseS3FileSystemTest {
     Assert.assertEquals(0, mFuseFs.mkdir("dir", DEFAULT_MODE.toShort()));
     createEmptyFile("/dir/file");
     Assert.assertEquals(0, mFuseFs.unlink(DIR));
+  }
+
+  @Test
+  public void rmdir() {
+    Assert.assertEquals(0, mFuseFs.mkdir(DIR, DEFAULT_MODE.toShort()));
+    Assert.assertEquals(0, mFuseFs.getattr(DIR, mFileStat));
+    Assert.assertEquals(0, mFuseFs.rmdir(DIR));
+    Assert.assertEquals(-ErrorCodes.ENOENT(), mFuseFs.getattr(DIR, mFileStat));
+  }
+
+  @Test
+  public void rmdirNotEmpty() {
+    Assert.assertEquals(0, mFuseFs.mkdir("dir", DEFAULT_MODE.toShort()));
+    createEmptyFile("/dir/file");
+    Assert.assertEquals(0, mFuseFs.rmdir(DIR));
   }
 
   @Test
@@ -315,19 +338,19 @@ public class FuseS3FileSystemTest {
     // follow existing test cases
   }
 
-  @Test
-  public void createDeleteFileCircular() {
-    // TODO(lu) iteration to keep create/delete files and make sure it all succeed
+  private void createEmptyFile(String path) {
+    mFileInfo.get().flags.set(O_WRONLY.intValue());
+    Assert.assertEquals(0, mFuseFs.create(path, DEFAULT_MODE.toShort(), mFileInfo.get()));
+    Assert.assertEquals(0, mFuseFs.release(path, mFileInfo.get()));
   }
 
-  @Test
-  public void createDeleteFileGetStatusCircular() {
-    // TODO(lu) iteration to keep create/delete files and make sure it all succeed
-  }
-
-  @Test
-  public void createDeleteDirectoryCircular() {
-    // TODO(lu) iteration to keep create/delete files and make sure it all succeed
+  private void createFile(String path, int size) {
+    mFileInfo.get().flags.set(O_WRONLY.intValue());
+    Assert.assertEquals(0, mFuseFs.create(path, DEFAULT_MODE.toShort(), mFileInfo.get()));
+    ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(size);
+    Assert.assertEquals(size,
+        mFuseFs.write(FILE, buffer, size, 0, mFileInfo.get()));
+    Assert.assertEquals(0, mFuseFs.release(path, mFileInfo.get()));
   }
 
   @Test
@@ -351,29 +374,6 @@ public class FuseS3FileSystemTest {
   }
 
   @Test
-  public void getAttrWhenWriting() {
-    mFileInfo.get().flags.set(O_WRONLY.intValue());
-    Assert.assertEquals(0, mFuseFs.create(FILE,
-        DEFAULT_MODE.toShort(), mFileInfo.get()));
-    int len = 20;
-    ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(20);
-    // Expected 20, now -17
-    Assert.assertEquals(len,
-        mFuseFs.write(FILE, buffer, len, 0, mFileInfo.get()));
-    Assert.assertEquals(0,
-        mFuseFs.getattr(FILE, mFileStat));
-    Assert.assertEquals(len, mFileStat.st_size.intValue());
-    buffer.flip();
-    Assert.assertEquals(len,
-        mFuseFs.write(FILE, buffer, len, 0, mFileInfo.get()));
-    Assert.assertEquals(0,
-        mFuseFs.getattr(FILE, mFileStat));
-    Assert.assertEquals(len * 2, mFileStat.st_size.intValue());
-    Assert.assertEquals(0, mFuseFs.release(FILE, mFileInfo.get()));
-    Assert.assertEquals(len * 2, mFileStat.st_size.intValue());
-  }
-
-  @Test
   public void readingWhenWriting() {
     mFileInfo.get().flags.set(O_WRONLY.intValue());
     Assert.assertEquals(0, mFuseFs.create(FILE,
@@ -391,20 +391,34 @@ public class FuseS3FileSystemTest {
     }
   }
 
-  private void createEmptyFile(String path) {
+  @Test
+  public void getAttrWhenWriting() {
     mFileInfo.get().flags.set(O_WRONLY.intValue());
-    Assert.assertEquals(0, mFuseFs.create(path, DEFAULT_MODE.toShort(), mFileInfo.get()));
-    Assert.assertEquals(0, mFuseFs.release(path, mFileInfo.get()));
+    Assert.assertEquals(0, mFuseFs.create(FILE,
+        DEFAULT_MODE.toShort(), mFileInfo.get()));
+    int len = 20;
+    ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(20);
+    Assert.assertEquals(len,
+        mFuseFs.write(FILE, buffer, len, 0, mFileInfo.get()));
+    Assert.assertEquals(0,
+        mFuseFs.getattr(FILE, mFileStat));
+    Assert.assertEquals(len, mFileStat.st_size.intValue());
+    // s3 will always be 700
+    Mode res = new Mode(mFileStat.st_mode.shortValue());
+    Assert.assertEquals(DEFAULT_MODE.getOwnerBits(), res.getOwnerBits());
+    Assert.assertEquals(DEFAULT_MODE.getGroupBits(), res.getGroupBits());
+    Assert.assertEquals(DEFAULT_MODE.getOtherBits(), res.getOtherBits());
+    Assert.assertEquals(AlluxioFuseUtils.getSystemUid(), mFileStat.st_uid.get());
+    Assert.assertEquals(AlluxioFuseUtils.getSystemGid(), mFileStat.st_gid.get());
+    Assert.assertEquals(AlluxioFuseUtils.getSystemGid(), mFileStat.st_gid.get());
+    Assert.assertTrue((mFileStat.st_mode.intValue() & FileStat.S_IFREG) != 0);
+    buffer.flip();
+    Assert.assertEquals(len,
+        mFuseFs.write(FILE, buffer, len, 0, mFileInfo.get()));
+    Assert.assertEquals(0,
+        mFuseFs.getattr(FILE, mFileStat));
+    Assert.assertEquals(len * 2, mFileStat.st_size.intValue());
+    Assert.assertEquals(0, mFuseFs.release(FILE, mFileInfo.get()));
+    Assert.assertEquals(len * 2, mFileStat.st_size.intValue());
   }
-
-  private void createFile(String path, int size) {
-    mFileInfo.get().flags.set(O_WRONLY.intValue());
-    Assert.assertEquals(0, mFuseFs.create(path, DEFAULT_MODE.toShort(), mFileInfo.get()));
-    ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(size);
-    Assert.assertEquals(size,
-        mFuseFs.write(FILE, buffer, size, 0, mFileInfo.get()));
-    Assert.assertEquals(0, mFuseFs.release(path, mFileInfo.get()));
-  }
-  // TODO(lu) separate streams
-  // TODO(lu) hard to test: readdir, chown
 }

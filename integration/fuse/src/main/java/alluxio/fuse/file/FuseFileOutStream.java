@@ -20,6 +20,7 @@ import alluxio.concurrent.LockMode;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.AlreadyExistsRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.AlluxioFuseUtils;
@@ -129,7 +130,7 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public int read(ByteBuffer buf, long size, long offset) {
-    throw new UnimplementedRuntimeException("Cannot read from write only stream");
+    throw new FailedPreconditionRuntimeException("Cannot read from write only stream");
   }
 
   @Override

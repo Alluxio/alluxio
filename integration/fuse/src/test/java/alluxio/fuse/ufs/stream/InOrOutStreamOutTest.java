@@ -11,8 +11,49 @@
 
 package alluxio.fuse.ufs.stream;
 
+import alluxio.AlluxioURI;
+import alluxio.client.file.URIStatus;
+import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
+import alluxio.fuse.file.FuseFileStream;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.util.io.BufferUtils;
+
+import jnr.constants.platform.OpenFlags;
+import org.junit.Test;
+
+import java.nio.ByteBuffer;
+
 /**
  * This class includes the write tests for {@link alluxio.fuse.file.FuseFileInOrOutStream}.
  */
 public class InOrOutStreamOutTest extends OutStreamTest {
+  @Override
+  protected FuseFileStream createStream(AlluxioURI uri, boolean truncate) {
+    int flags = OpenFlags.O_RDWR.intValue();
+    if (truncate) {
+      flags |= OpenFlags.O_TRUNC.intValue();
+    }
+    return mStreamFactory
+        .create(uri, flags, DEFAULT_MODE.toShort());
+  }
+
+  @Test(expected = UnimplementedRuntimeException.class)
+  public void read() throws Exception {
+    AlluxioURI alluxioURI = getTestFileUri();
+    try (FuseFileStream outStream = createStream(alluxioURI, false)) {
+      ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
+      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.read(buffer, DEFAULT_FILE_LEN, 0);
+    }
+  }
+
+  @Test (expected = NotFoundRuntimeException.class)
+  public void createEmpty() throws Exception {
+    AlluxioURI alluxioURI = getTestFileUri();
+    mFileSystem.createDirectory(alluxioURI.getParent(),
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
+    createStream(alluxioURI, false).close();
+    URIStatus status = mFileSystem.getStatus(alluxioURI);
+  }
 }

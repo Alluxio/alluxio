@@ -13,11 +13,12 @@ package alluxio.fuse.ufs.stream;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.util.io.BufferUtils;
-import alluxio.util.io.PathUtils;
+
 import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,7 +36,7 @@ public class InStreamTest extends AbstractStreamTest {
 
   @Test
   public void createRead() throws Exception {
-    AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
+    AlluxioURI alluxioURI = getTestFileUri();
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
     URIStatus uriStatus = mFileSystem.getStatus(alluxioURI);
     try (FuseFileStream inStream = createStream(alluxioURI)) {
@@ -49,12 +50,16 @@ public class InStreamTest extends AbstractStreamTest {
 
   @Test (expected = NotFoundRuntimeException.class)
   public void createNonexisting() {
-    createStream(new AlluxioURI(PathUtils.uniqPath())).close();
+    AlluxioURI alluxioURI = getTestFileUri();
+    try (FuseFileStream inStream = createStream(alluxioURI)) {
+      ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_FILE_LEN);
+      Assert.assertEquals(DEFAULT_FILE_LEN, inStream.read(buffer, DEFAULT_FILE_LEN, 0));
+    }
   }
 
   @Test
   public void randomRead() throws Exception {
-    AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
+    AlluxioURI alluxioURI = getTestFileUri();
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
     try (FuseFileStream inStream = createStream(alluxioURI)) {
       ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_FILE_LEN / 2);
@@ -65,9 +70,9 @@ public class InStreamTest extends AbstractStreamTest {
     }
   }
 
-  @Test (expected = UnimplementedRuntimeException.class)
+  @Test (expected = FailedPreconditionRuntimeException.class)
   public void write() throws Exception {
-    AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
+    AlluxioURI alluxioURI = getTestFileUri();
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
     try (FuseFileStream inStream = createStream(alluxioURI)) {
       ByteBuffer buffer = ByteBuffer.allocate(1);
@@ -78,9 +83,11 @@ public class InStreamTest extends AbstractStreamTest {
 
   @Test (expected = UnimplementedRuntimeException.class)
   public void truncate() throws Exception {
-    AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
+    AlluxioURI alluxioURI = getTestFileUri();
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
     try (FuseFileStream inStream = createStream(alluxioURI)) {
+      ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_FILE_LEN);
+      Assert.assertEquals(DEFAULT_FILE_LEN, inStream.read(buffer, DEFAULT_FILE_LEN, 0));
       inStream.truncate(0);
     }
   }

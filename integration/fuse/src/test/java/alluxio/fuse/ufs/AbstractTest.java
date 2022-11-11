@@ -16,61 +16,63 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.fuse.AlluxioFuseUtils;
-import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.jnifuse.LibFuse;
-import alluxio.jnifuse.struct.FileStat;
+import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
-import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
+
 import org.junit.After;
 import org.junit.Before;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Collections;
 
-public abstract class AbstractFuseUfsTest {
-  private static final String MOUNT_POINT = "/t/mountPoint";
-  private static final String FILE = "/file";
-  private static final String DIR = "/dir";
-  private static final String EXCEED_LENGTH_PATH_NAME
+/**
+ * The abstract test for testing {@link alluxio.fuse.AlluxioJniFuseFileSystem}
+ * with local UFS.
+ */
+public abstract class AbstractTest {
+  protected static final String FILE = "/file";
+  protected static final String DIR = "/dir";
+  protected static final String EXCEED_LENGTH_PATH_NAME
       = "/path" + String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
-  private AlluxioURI mRootUfs;
-  private FileSystem mFileSystem;
-  private AlluxioJniFuseFileSystem mFuseFs;
-  private FileStat mFileStat;
+  protected static final int DEFAULT_FILE_LEN = 64;
+  protected static final Mode DEFAULT_MODE = new Mode(
+      Mode.Bits.ALL, Mode.Bits.READ, Mode.Bits.READ);
+
+  protected AlluxioURI mRootUfs;
+  protected FileSystem mFileSystem;
+  protected FileSystemContext mContext;
+  protected UfsFileSystemOptions mUfsOptions;
 
   @Before
   public void before() throws Exception {
     InstancedConfiguration conf = Configuration.copyGlobal();
     String ufs = AlluxioTestDirectory.createTemporaryDirectory("ufs").toString();
-    conf.set(PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT, Source.RUNTIME);
-    conf.set(PropertyKey.USER_UFS_ENABLED, true, Source.RUNTIME);
-    conf.set(PropertyKey.USER_ROOT_UFS, ufs, Source.RUNTIME);
-    configure();
+    conf.set(PropertyKey.FUSE_MOUNT_POINT, "/t/mountPoint", Source.RUNTIME);
     mRootUfs = new AlluxioURI(ufs);
     LocalUnderFileSystemFactory localUnderFileSystemFactory = new LocalUnderFileSystemFactory();
     UnderFileSystemFactoryRegistry.register(localUnderFileSystemFactory);
-    FileSystemContext context = FileSystemContext.create(
-        ClientContext.create(conf));
+    mContext = FileSystemContext.create(ClientContext.create(conf));
     LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
-    mFileSystem = new UfsBaseFileSystem(context);
-    mFuseFs = new AlluxioJniFuseFileSystem(context, mFileSystem);
-    mFileStat = FileStat.of(ByteBuffer.allocateDirect(256));
+    mUfsOptions = new UfsFileSystemOptions(ufs);
+    mFileSystem = new UfsBaseFileSystem(mContext, mUfsOptions);
     beforeActions();
   }
 
-  /**
-   * Overwrites the test configuration in this method.
-   */
-  public abstract void configure();
+  @After
+  public void after() throws IOException {
+    FileUtils.deletePathRecursively(mRootUfs.toString());
+    afterActions();
+  }
 
   /**
    * Add extra before actions.
@@ -81,11 +83,4 @@ public abstract class AbstractFuseUfsTest {
    * Add extra after actions.
    */
   public abstract void afterActions() throws IOException;
-
-  @After
-  public void after() throws IOException {
-    afterActions();
-    FileUtils.deletePathRecursively(mRootUfs.toString());
-    BufferUtils.cleanDirectBuffer(mFileStat.getBuffer());
-  }
 }
