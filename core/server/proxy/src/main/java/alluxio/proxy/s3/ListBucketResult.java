@@ -290,7 +290,7 @@ public class ListBucketResult {
         try {
           content.mKey = URLEncoder.encode(content.mKey, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
-          // IGNORE
+          // IGNORE, return as is
         }
       });
 
@@ -299,7 +299,7 @@ public class ListBucketResult {
           try {
             commonPrefix.mPrefix = URLEncoder.encode(commonPrefix.mPrefix, "UTF-8");
           } catch (UnsupportedEncodingException ex) {
-            // IGNORE
+            // IGNORE, return as is
           }
         });
       }
@@ -308,7 +308,7 @@ public class ListBucketResult {
         try {
           mStartAfter = URLEncoder.encode(mStartAfter, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
-          // IGNORE
+          // IGNORE, return as is
         }
       }
     }
