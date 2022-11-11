@@ -29,7 +29,6 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -285,10 +284,10 @@ public class CapacityCommand {
     }
     GetWorkerReportOptions workerOptions = GetWorkerReportOptions.defaults();
 
-    Set<WorkerInfoField> fieldRange = EnumSet.of(WorkerInfoField.ADDRESS,
+    Set<WorkerInfoField> fieldRange = new HashSet<>(Arrays.asList(WorkerInfoField.ADDRESS,
         WorkerInfoField.WORKER_CAPACITY_BYTES, WorkerInfoField.WORKER_CAPACITY_BYTES_ON_TIERS,
         WorkerInfoField.LAST_CONTACT_SEC, WorkerInfoField.WORKER_USED_BYTES,
-        WorkerInfoField.WORKER_USED_BYTES_ON_TIERS, WorkerInfoField.BUILD_VERSION);
+        WorkerInfoField.WORKER_USED_BYTES_ON_TIERS, WorkerInfoField.BUILD_VERSION));
     workerOptions.setFieldRange(fieldRange);
 
     if (cl.hasOption(ReportCommand.LIVE_OPTION_NAME)) {
