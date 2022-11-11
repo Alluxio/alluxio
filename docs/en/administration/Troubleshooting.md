@@ -247,9 +247,9 @@ A log file will be ignored if the last modified time is before this start time.
 
 There are some special characters and patterns in file path names that are not supported in Alluxio.
 Please avoid creating file path names with these patterns or acquire additional handling from client end.
-1) Question mark (`'?'`)
-2) Pattern with period (`./` and `../`)
-3) Backslash (`'\'`)
+1. Question mark (`'?'`)
+1. Pattern with period (`./` and `../`)
+1. Backslash (`'\'`)
 
 ## Resource Leak Detection
 
