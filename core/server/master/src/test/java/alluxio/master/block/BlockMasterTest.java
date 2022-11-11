@@ -106,6 +106,9 @@ public class BlockMasterTest {
    */
   @Before
   public void before() throws Exception {
+    // set a large value of PropertyKey.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS
+    // to prevent worker to be deleted after it is lost
+    Configuration.set(PropertyKey.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS, Integer.MAX_VALUE);
     mRegistry = new MasterRegistry();
     mMetrics = Lists.newArrayList();
     JournalSystem journalSystem = new NoopJournalSystem();
