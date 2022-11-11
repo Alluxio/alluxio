@@ -162,7 +162,15 @@ public class GrpcSerializationUtils {
             return buf;
           } catch (Throwable e) {
             buf.release();
-            throw e;
+            if (e instanceof Error) {
+              throw e;
+            } else {
+              // should not reach here
+              // if something other than what is expected happens and an exception occurs here
+              // we should not make this method return null
+              // because the subBuffer is released in the addComponent method.
+              throw new Error(e);
+            }
           }
         }
       } else if (buffer.getClass().equals(sReadableByteBuf.getDeclaringClass())) {
