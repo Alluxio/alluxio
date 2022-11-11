@@ -59,6 +59,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   private Integer[] mOffsets;
   private Integer[] mLengths;
 
+
   /** generate random number in range [min, max] (include both min and max).*/
   private Integer randomNumInRange(Random rand, int min, int max) {
     return rand.nextInt(max - min + 1) + min;
@@ -103,7 +104,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
     // initialize the base, for only the non-distributed task (the cluster launching task)
     Path path = new Path(mParameters.mBasePath);
-    int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
+    int fileSize = parseIntSpaceSize(mParameters.mFileSize);
 
     mFilePaths = new Path[mParameters.mNumFiles];
     // set random offsets and lengths if enabled
@@ -118,8 +119,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       Path filePath = new Path(path, "data" + i);
       mFilePaths[i] = filePath;
       if (mParameters.mIsRandom) {
-        int randomMin = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
-        int randomMax = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
+        int randomMin = parseIntSpaceSize(mParameters.mRandomMinReadLength);
+        int randomMax = parseIntSpaceSize(mParameters.mRandomMaxReadLength);
         mOffsets[i] = randomNumInRange(rand, 0, fileSize - 1 - randomMin);
         mLengths[i] = randomNumInRange(rand, randomMin,
             Integer.min(fileSize - mOffsets[i], randomMax));
@@ -148,7 +149,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       if (!mParameters.mSkipCreation) {
         prepareFs.delete(path, true);
         prepareFs.mkdirs(path);
-        byte[] buffer = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mBufferSize)];
+        byte[] buffer = new byte[parseIntSpaceSize(mParameters.mBufferSize)];
         Arrays.fill(buffer, (byte) 'A');
 
         for (int i = 0; i < mParameters.mNumFiles; i++) {
@@ -221,6 +222,16 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     return context.getResult();
   }
 
+  private static int parseIntSpaceSize(String value) {
+    long longFileSize = FormatUtils.parseSpaceSize(value);
+    if (longFileSize > Integer.MAX_VALUE) {
+      throw new IllegalArgumentException(
+          "space size value too large, must smaller than " + Integer.MAX_VALUE);
+    }
+    return (int) longFileSize;
+  }
+
+
   private static final class BenchContext {
     private final long mStartMs;
     private final long mEndMs;
@@ -262,6 +273,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     private final BenchContext mContext;
     private final FileSystem mFs;
     private final byte[] mBuffer;
+
+    private byte[][] mBuffers;
     private final WorkerBenchTaskResult mResult;
     private final boolean mIsRandomReed;
 
@@ -271,12 +284,21 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     private BenchThread(BenchContext context, FileSystem fs) {
       mContext = context;
       mFs = fs;
-      mBuffer = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mBufferSize)];
-
+      mBuffer = new byte[parseIntSpaceSize(mParameters.mBufferSize)];
       mResult = new WorkerBenchTaskResult();
       mResult.setParameters(mParameters);
       mResult.setBaseParameters(mBaseParameters);
       mIsRandomReed = mParameters.mIsRandom;
+      if (mIsRandomReed) {
+        mBuffers = new byte[mParameters.mNumFiles][];
+        Random rand = new Random(mParameters.mRandomSeed);
+        int minBufferSize = parseIntSpaceSize(mParameters.mRandomMinBufferSize);
+        int randomMin = parseIntSpaceSize(mParameters.mRandomMinReadLength);
+        minBufferSize = Math.min(minBufferSize, randomMin);
+        for (int i = 0; i < mParameters.mNumFiles; i++) {
+          mBuffers[i] = new byte[randomNumInRange(rand, minBufferSize, randomMin)];
+        }
+      }
     }
 
     @Override
@@ -350,7 +372,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       if (mIsRandomReed) {
         while (length > 0) {
           int actualReadLength = mInStreams[i]
-              .read(offset, mBuffer, 0, mBuffer.length);
+              .read(offset, mBuffers[i], 0, mBuffers[i].length);
           if (actualReadLength < 0) {
             closeInStream(i);
             break;
