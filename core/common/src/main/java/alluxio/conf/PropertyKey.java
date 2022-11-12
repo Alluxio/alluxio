@@ -7582,7 +7582,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_METASTORE_BLOCK = "alluxio.master.metastore.block";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
     public static final String MASTER_METASTORE_DIR_INODE =
-        "alluxio.master.metastore.dir.block";
+        "alluxio.master.metastore.dir.inode";
     public static final String MASTER_METASTORE_DIR_BLOCK =
         "alluxio.master.metastore.dir.block";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
