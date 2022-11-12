@@ -114,15 +114,15 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   }
 
   @Override
-  public synchronized long getFileLength() {
+  public synchronized FileStatus getFileStatus() {
     if (mOutStream.isPresent()) {
-      return mOutStream.get().getFileLength();
+      return mOutStream.get().getFileStatus();
     }
     if (mInStream.isPresent()) {
-      return mInStream.get().getFileLength();
+      return mInStream.get().getFileStatus();
     }
-    return AlluxioFuseUtils.getPathStatus(mFileSystem, mUri)
-        .map(URIStatus::getLength).orElse(0L);
+    return new FileStatus(AlluxioFuseUtils.getPathStatus(mFileSystem, mUri)
+        .map(URIStatus::getLength).orElse(0L));
   }
 
   @Override

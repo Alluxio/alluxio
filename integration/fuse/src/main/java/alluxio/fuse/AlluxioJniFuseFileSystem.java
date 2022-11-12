@@ -33,9 +33,9 @@ import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
+import alluxio.fuse.file.CreateFileStatus;
+import alluxio.fuse.file.FileStatus;
 import alluxio.fuse.file.FuseFileEntry;
-import alluxio.fuse.file.FuseFileInOrOutStream;
-import alluxio.fuse.file.FuseFileOutStream;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -69,14 +69,12 @@ import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -226,16 +224,20 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       AlluxioFuseUtils.fillStat(mAuthPolicy, stat, status.get());
 
       if (!status.get().isCompleted()) {
-        List<FuseFileEntry<FuseFileStream>> stream
-            = mFileEntries.getByField(PATH_INDEX, path).stream()
-            .filter(a -> a.getFileStream() instanceof FuseFileOutStream
-                || (a.getFileStream() instanceof FuseFileInOrOutStream
-                && ((FuseFileInOrOutStream) a.getFileStream()).isWriteStream()))
-            .collect(Collectors.toList());
-        if (!stream.isEmpty()) {
-          // File is being written by current Alluxio client
-          AlluxioFuseUtils.updateStatSize(stat, stream.get(0).getFileStream().getFileLength());
-        } else {
+        Set<FuseFileEntry<FuseFileStream>> fuseStreams
+            = mFileEntries.getByField(PATH_INDEX, path);
+        boolean hasWriteStream = false;
+        if (!fuseStreams.isEmpty()) {
+          for (FuseFileEntry<FuseFileStream> stream : fuseStreams) {
+            FileStatus fileStatus = stream.getFileStream().getFileStatus();
+            if (fileStatus instanceof  CreateFileStatus) {
+              // should have only one
+              AlluxioFuseUtils.updateCreateFileStatus(stat, (CreateFileStatus) fileStatus);
+              hasWriteStream = true;
+            }
+          }
+        }
+        if (!hasWriteStream) {
           // File is being written by other Alluxio client
           status = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri);
           status.ifPresent(uriStatus

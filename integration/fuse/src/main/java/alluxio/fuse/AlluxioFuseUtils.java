@@ -37,6 +37,7 @@ import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.PermissionDeniedRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
+import alluxio.fuse.file.CreateFileStatus;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -111,19 +112,19 @@ public final class AlluxioFuseUtils {
    * @param fileSystem the file system
    * @param authPolicy the authentication policy
    * @param uri the alluxio uri
-   * @param mode the create mode
+   * @param fileStatus the create file status
    * @return a file out stream
    */
   public static FileOutStream createFile(FileSystem fileSystem, AuthPolicy authPolicy,
-      AlluxioURI uri, long mode) {
+      AlluxioURI uri, CreateFileStatus fileStatus) {
     CreateFilePOptions.Builder optionsBuilder = CreateFilePOptions.newBuilder();
-    if (mode != MODE_NOT_SET_VALUE) {
-      optionsBuilder.setMode(new Mode((short) mode).toProto());
+    if (fileStatus.getMode() != MODE_NOT_SET_VALUE) {
+      optionsBuilder.setMode(new Mode((short) fileStatus.getMode()).toProto());
     }
     try {
       FileOutStream out = fileSystem.createFile(uri,
           optionsBuilder.build());
-      authPolicy.setUserGroupIfNeeded(uri);
+      authPolicy.setUserGroup(uri, fileStatus.getUid(), fileStatus.getGid());
       return out;
     } catch (FileAlreadyExistsException e) {
       throw new AlreadyExistsRuntimeException(e);
@@ -246,6 +247,28 @@ public final class AlluxioFuseUtils {
     }
     stat.st_mode.set(mode);
     stat.st_nlink.set(1);
+  }
+
+  /**
+   * Updates the create file status.
+   *
+   * @param stat stat to file
+   * @param status the create file status
+   */
+  public static void updateCreateFileStatus(FileStat stat, CreateFileStatus status) {
+    stat.st_mode.set(status.getMode() | FileStat.S_IFREG);
+    stat.st_uid.set(status.getUid());
+    stat.st_gid.set(status.getGid());
+    stat.st_nlink.set(1);
+    updateStatSize(stat, status.getFileLength());
+    // TODO(lu) return accurate atime and mtime?
+    long timeSec = System.currentTimeMillis() / 1000;
+    stat.st_atim.tv_sec.set(timeSec);
+    stat.st_atim.tv_nsec.set(timeSec);
+    stat.st_ctim.tv_sec.set(timeSec);
+    stat.st_ctim.tv_nsec.set(timeSec);
+    stat.st_mtim.tv_sec.set(timeSec);
+    stat.st_mtim.tv_nsec.set(timeSec);
   }
 
   /**

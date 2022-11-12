@@ -48,11 +48,9 @@ public interface FuseFileStream extends AutoCloseable {
   void write(ByteBuffer buf, long size, long offset);
 
   /**
-   * Gets the file length.
-   *
-   * @return file length
+   * @return file status
    */
-  long getFileLength();
+  FileStatus getFileStatus();
 
   /**
    * Flushes the stream.
