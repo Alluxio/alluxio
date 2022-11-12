@@ -467,6 +467,7 @@ message SetAttributePOptions {
   repeated string pinnedMedia = 10;
   map<string, bytes> xattr = 11;
   optional alluxio.proto.journal.XAttrUpdateStrategy xattrUpdateStrategy = 12;
+  optional bool directChildrenLoaded = 13;
 }
 message SetAttributePRequest {
   /** the path of the file */
