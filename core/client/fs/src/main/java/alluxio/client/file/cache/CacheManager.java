@@ -208,6 +208,18 @@ public interface CacheManager extends AutoCloseable {
   boolean put(PageId pageId, ByteBuffer page, CacheContext cacheContext);
 
   /**
+   * Acquires an empty page from the cache manager with scope and quota respected. This is intended
+   * to be used by MEM cache manager to avoid alloc/copy a page. Other cache manager may return null.
+   * The returned empty page can be used to read from InputStream, and then this page will be
+   * put to cache manager.
+   *
+   * @param pageId the PageId of this page
+   * @param pageSize the size of this page. Usually this is the configured in global configuration.
+   * @return an empty page if success, otherwise null.
+   */
+  byte[] acquire(PageId pageId, long pageSize);
+
+  /**
    * Reads the entire page if the queried page is found in the cache, stores the result in buffer.
    *
    * @param pageId page identifier

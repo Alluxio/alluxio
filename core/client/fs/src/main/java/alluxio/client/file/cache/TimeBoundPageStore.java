@@ -88,6 +88,11 @@ public class TimeBoundPageStore implements PageStore {
   }
 
   @Override
+  public byte[] acquire(PageId pageId) {
+    return null;
+  }
+
+  @Override
   public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
       boolean isTemporary) throws IOException, PageNotFoundException {
     Callable<Integer> callable = () ->

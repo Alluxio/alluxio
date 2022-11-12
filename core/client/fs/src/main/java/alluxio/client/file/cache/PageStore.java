@@ -118,6 +118,7 @@ public interface PageStore extends AutoCloseable {
       ByteBuffer page,
       boolean isTemporary) throws ResourceExhaustedException, IOException;
 
+  byte[] acquire(PageId pageId);
   /**
    * Gets a page from the store to the destination buffer.
    *

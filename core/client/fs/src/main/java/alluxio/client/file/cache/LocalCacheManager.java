@@ -266,6 +266,24 @@ public class LocalCacheManager implements CacheManager {
     return true;
   }
 
+  @Override
+  public byte[] acquire(PageId pageId, long pageSize) {
+    ReadWriteLock pageLock = getPageLock(pageId);
+    PageStoreDir pageStoreDir;
+    try (LockResource r = new LockResource(pageLock.writeLock())) {
+      try (LockResource r2 = new LockResource(mPageMetaStore.getLock().writeLock())) {
+        if (mPageMetaStore.hasPage(pageId)) {
+          LOG.debug("{} is already inserted before", pageId);
+          // TODO(binfan): we should return more informative result in the future
+          return null;
+        }
+        pageStoreDir = mPageMetaStore.allocate(pageId.getFileId(), pageSize);
+        byte[] newPage = pageStoreDir.getPageStore().acquire(pageId);
+        return newPage;
+      }
+    }
+  }
+
   private boolean putInternal(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
     PutResult result = PutResult.OK;
     boolean forcedToEvict = false;
