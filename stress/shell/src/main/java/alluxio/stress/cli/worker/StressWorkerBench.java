@@ -230,7 +230,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     return (int) longFileSize;
   }
 
-
   private static final class BenchContext {
     private final long mStartMs;
     private final long mEndMs;
