@@ -117,9 +117,19 @@ public class FuseFileOutStream implements FuseFileStream {
     }
   }
 
+<<<<<<< HEAD
   private FuseFileOutStream(FileSystem fileSystem, AuthPolicy authPolicy, AlluxioURI uri,
       CreateFileStatus fileStatus, CloseableResource<Lock> lockResource,
       Optional<FileOutStream> outStream) {
+||||||| e6f1a8509e
+  private FuseFileOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
+      AlluxioURI uri, CloseableResource<Lock> lockResource, Optional<FileOutStream> outStream,
+      long fileLen, long mode) {
+=======
+  private FuseFileOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
+      AlluxioURI uri, CreateFileStatus fileStatus, CloseableResource<Lock> lockResource,
+      Optional<FileOutStream> outStream) {
+>>>>>>> 4e4508ef2997add5474831c565cec4ca6790ba13
     mFileSystem = Preconditions.checkNotNull(fileSystem);
     mAuthPolicy = Preconditions.checkNotNull(authPolicy);
     mFileStatus = Preconditions.checkNotNull(fileStatus);
