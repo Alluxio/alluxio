@@ -75,7 +75,14 @@ public abstract class WebServer {
     mServiceName = serviceName;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
+<<<<<<< HEAD
     int webThreadCount = Configuration.getInt(PropertyKey.WEB_THREADS);
+||||||| parent of df82a6b8c8 (Add encoding-type support for S3 ListObjects and more logging)
+    int webThreadCount = ServerConfiguration.getInt(PropertyKey.WEB_THREADS);
+=======
+    int webThreadCount = ServerConfiguration.getInt(PropertyKey.WEB_THREADS);
+    threadPool.setName(mServiceName.replace(" ", "-").toUpperCase());
+>>>>>>> df82a6b8c8 (Add encoding-type support for S3 ListObjects and more logging)
 
     // Jetty needs at least (1 + selectors + acceptors) threads.
     threadPool.setMinThreads(webThreadCount * 2 + 1);
