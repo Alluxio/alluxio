@@ -320,6 +320,13 @@ public final class S3RestServiceHandler {
         }
         // Otherwise, this is ListObjects(v2)
         int maxKeys = maxKeysParam == null ? ListBucketOptions.DEFAULT_MAX_KEYS : maxKeysParam;
+        if (encodingTypeParam != null
+            && !StringUtils.equals(encodingTypeParam, ListBucketOptions.DEFAULT_ENCODING_TYPE)) {
+          throw new S3Exception(bucket, new S3ErrorCode(
+                  S3ErrorCode.INVALID_ARGUMENT.getCode(),
+                  "Invalid Encoding Method specified in Request.",
+                  S3ErrorCode.INVALID_ARGUMENT.getStatus()));
+        }
         ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
             .setMarker(markerParam)
             .setPrefix(prefixParam)
