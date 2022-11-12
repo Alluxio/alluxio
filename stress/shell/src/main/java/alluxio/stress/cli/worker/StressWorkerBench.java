@@ -59,7 +59,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   private Integer[] mOffsets;
   private Integer[] mLengths;
 
-
   /** generate random number in range [min, max] (include both min and max).*/
   private Integer randomNumInRange(Random rand, int min, int max) {
     return rand.nextInt(max - min + 1) + min;
