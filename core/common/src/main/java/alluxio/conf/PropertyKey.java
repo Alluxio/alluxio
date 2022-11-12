@@ -2342,14 +2342,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_METASTORE_DIR_INODE =
       stringBuilder(Name.MASTER_METASTORE_DIR_INODE)
           .setDefaultValue(String.format("${%s}", Name.MASTER_METASTORE_DIR))
-          .setDescription("If the metastore is ROCKS, this property controls where the RocksDB stores inode metadata. This property defaults to " + Name.MASTER_METASTORE_DIR + ". And it can be used to change inode metadata storage path to a different disk to improve RocksDB performance.")
+          .setDescription("If the metastore is ROCKS, this property controls where the RocksDB "
+              + "stores inode metadata. This property defaults to " + Name.MASTER_METASTORE_DIR
+              + ". And it can be used to change inode metadata storage path to a different disk "
+              + "to improve RocksDB performance.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_DIR_BLOCK =
       stringBuilder(Name.MASTER_METASTORE_DIR_BLOCK)
           .setDefaultValue(String.format("${%s}", Name.MASTER_METASTORE_DIR))
-          .setDescription("If the metastore is ROCKS, this property controls where the RocksDB stores block metadata. This property defaults to " + Name.MASTER_METASTORE_DIR + ". And it can be used to change block metadata storage path to a different disk to improve RocksDB performance.")
+          .setDescription("If the metastore is ROCKS, this property controls where the RocksDB "
+              + "stores block metadata. This property defaults to " + Name.MASTER_METASTORE_DIR
+              + ". And it can be used to change block metadata storage path to a different disk "
+              + "to improve RocksDB performance.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
