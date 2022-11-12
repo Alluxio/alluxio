@@ -255,12 +255,12 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Updates the create file status.
+   * Fills the path status.
    *
-   * @param stat stat to file
+   * @param stat file stat to fill
    * @param status the create file status
    */
-  public static void updateCreateFileStatus(FileStat stat, CreateFileStatus status) {
+  public static void fillStat(FileStat stat, CreateFileStatus status) {
     stat.st_mode.set(status.getMode() | FileStat.S_IFREG);
     stat.st_uid.set(status.getUid());
     stat.st_gid.set(status.getGid());
