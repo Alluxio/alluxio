@@ -230,7 +230,6 @@ public final class CacheManagerWithShadowCacheTest {
     @Override
     public byte[] acquire(PageId pageId, long pageSize) { return null; }
 
-
     @Override
     public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
         CacheContext cacheContext) {

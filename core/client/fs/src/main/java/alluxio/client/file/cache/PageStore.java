@@ -118,7 +118,15 @@ public interface PageStore extends AutoCloseable {
       ByteBuffer page,
       boolean isTemporary) throws ResourceExhaustedException, IOException;
 
+  /**
+   * Acquires a new/empty page from this page store. The new page is used by
+   * caller for read or write, and then this page will be put back to be a cache.
+   *
+   * @param pageId the identifier
+   * @return the page (in the format of byte array)
+   */
   byte[] acquire(PageId pageId);
+
   /**
    * Gets a page from the store to the destination buffer.
    *

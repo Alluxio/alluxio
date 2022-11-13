@@ -56,12 +56,18 @@ public class MemoryPageStore implements PageStore {
     }
   }
 
-  public byte[] acquire(PageId pageId){
+  /**
+   * Acquires a new/empty page from this page store. The returned page will be used
+   * to read or write data. After that, the page will be put back as a cache.
+   *
+   * @param pageId the page identifier
+   * @return a new/empty page (in the form of byte array)
+   */
+  public byte[] acquire(PageId pageId) {
     PageId pageKey = getKeyFromPageId(pageId);
     MemPage tempPage = mPagePool.acquire(mPagePool.mPageSize);
     return tempPage.getPage();
   }
-
 
   @Override
   public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
