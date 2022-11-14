@@ -104,6 +104,10 @@
               {
                 "name": "WORKER_USED_BYTES_ON_TIERS",
                 "integer": 9
+              },
+              {
+                "name": "BLOCK_COUNT",
+                "integer": 10
               }
             ]
           }
