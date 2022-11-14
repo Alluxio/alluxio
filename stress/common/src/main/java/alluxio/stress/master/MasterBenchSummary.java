@@ -71,7 +71,7 @@ public final class MasterBenchSummary extends GeneralBenchSummary<MasterBenchTas
     mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
     mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
-    mParameters = mergedTaskResults.getParameters();
+    mParameters = (MasterBenchParameters) mergedTaskResults.getParameters();
     mNodeResults = nodes;
   }
 

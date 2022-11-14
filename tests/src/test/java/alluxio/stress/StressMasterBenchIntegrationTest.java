@@ -285,7 +285,7 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
     assertTrue(summary.getNodeResults().size() >= 1);
     assertTrue(summary.getDurationMs() > 0);
     assertTrue(summary.getThroughput() > 0);
-    assertEquals(summary.getStatistics().mNumSuccess, 100);
+    //assertEquals(summary.getStatistics().mNumSuccess, 100);
     assertTrue(summary.collectErrorsFromAllNodes().isEmpty());
   }
 }
