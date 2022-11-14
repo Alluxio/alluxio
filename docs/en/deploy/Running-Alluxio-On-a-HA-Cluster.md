@@ -86,6 +86,22 @@ Enabling embedded journal enables Alluxio's internal leader election.
 See [embedded journal configuration documentation]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
 for more details and alternative ways to set up HA cluster with internal leader election.
 
+#### Advanced Raft-based HA setup
+
+For clusters using a shared file system to deploy Alluxio, configuration files are required to be the same for all nodes. In this case you could make use of `alluxio-env.sh` to set `alluxio.master.hostname` dynamically instead of writing it down in the `alluxio.properties` file by applying the following snippet in `alluxio-env.sh`.
+
+```bash
+MASTERS=$(cat "${ALLUXIO_CONF_DIR}/masters" | grep -v '^#')
+current_hostname=$(hostname)
+for master in ${MASTERS}; do
+        if [[ "${current_hostname}" == "${master}" ]]; then
+                ALLUXIO_MASTER_JAVA_OPTS="-Dalluxio.master.hostname=${current_hostname}"
+                echo "set ALLUXIO_MASTER_JAVA_OPTS=${ALLUXIO_MASTER_JAVA_OPTS}"
+                break
+        fi
+done
+```
+
 ### Zookeeper and Shared Journal Storage
 
 When using Zookeeper for HA there are additional prerequisites:
