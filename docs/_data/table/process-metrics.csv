@@ -1,0 +1,2 @@
+metricName,metricType
+Process.pool.direct.mem.used,GAUGE

@@ -25,7 +25,9 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.ratis.conf.RaftProperties;
 import org.apache.ratis.server.RaftServer;
+import org.apache.ratis.server.RaftServerConfigKeys;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -502,6 +504,23 @@ public class RaftJournalTest {
 
     Assert.assertTrue(exception.getMessage()
         .contains(CountingNoopFileSystemMaster.ENTRY_DOES_NOT_EXIST));
+  }
+
+  @Test
+  public void testMergeAlluxioConfig() {
+    RaftProperties properties = new RaftProperties();
+    try {
+      Configuration.set(PropertyKey.fromString(
+          PropertyKey.MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG.getName()
+              + ".raft.server.rpc.request.timeout"), 123456);
+      mLeaderJournalSystem.mergeAlluxioRatisConfig(properties);
+      Assert.assertEquals(123456,
+          RaftServerConfigKeys.Rpc.requestTimeout(properties).getDuration());
+    } finally {
+      Configuration.unset(PropertyKey.fromString(
+          PropertyKey.MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG.getName()
+              + ".raft.server.rpc.request.timeout"));
+    }
   }
 
   /**

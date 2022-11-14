@@ -32,8 +32,8 @@ alluxio.user.client.cache.async.write.enabled:
   'If this is enabled, cache data asynchronously.'
 alluxio.user.client.cache.async.write.threads:
   'Number of threads to asynchronously cache data.'
-alluxio.user.client.cache.dir:
-  'The directory where client-side cache is stored.'
+alluxio.user.client.cache.dirs:
+  'A list of the directories where client-side cache is stored.'
 alluxio.user.client.cache.enabled:
   'If this is enabled, data will be cached on Alluxio client.'
 alluxio.user.client.cache.eviction.retries:
@@ -48,6 +48,8 @@ alluxio.user.client.cache.filter.class:
   'The default cache filter caches everything'
 alluxio.user.client.cache.filter.config-file:
   'The alluxio cache filter config file'
+alluxio.user.client.cache.instream_buffer_size:
+  'Size of the reading buffer for tiny read.'
 alluxio.user.client.cache.local.store.file.buckets:
   'The number of file buckets for the local page store of the client-side cache. It is recommended to set this to a high value if the number of unique files is expected to be high (# files / file buckets &lt;= 100,000).'
 alluxio.user.client.cache.page.size:
@@ -56,14 +58,28 @@ alluxio.user.client.cache.quota.enabled:
   'Whether to support cache quota.'
 alluxio.user.client.cache.shadow.bloomfilter.num:
   'The number of bloom filters used for tracking. Each tracks a segment of window'
+alluxio.user.client.cache.shadow.cuckoo.clock.bits:
+  'The number of bits of each item''s clock field.'
+alluxio.user.client.cache.shadow.cuckoo.scope.bits:
+  'The number of bits of each item''s scope field.'
+alluxio.user.client.cache.shadow.cuckoo.size.bits:
+  'The number of bits of each item''s size field.'
+alluxio.user.client.cache.shadow.cuckoo.size.encoder.enabled:
+  'The flag to enable the size encoder for cuckoo filter.'
+alluxio.user.client.cache.shadow.cuckoo.size.prefix.bits:
+  'The prefix bits length of the size field.'
+alluxio.user.client.cache.shadow.cuckoo.size.suffix.bits:
+  'The suffix bits length of the size field.'
 alluxio.user.client.cache.shadow.enabled:
   'If this is enabled, a shadow cache will be created to tracking the working set of a past time window, and measure the hit ratio if the working set fits the cache'
 alluxio.user.client.cache.shadow.memory.overhead:
   'The total memory overhead for bloom filters used for tracking'
+alluxio.user.client.cache.shadow.type:
+  'The type of shadow cache to be used. Valid options are `MULTIPLE_BLOOM_FILTER` (which uses a chain of bloom filters), `CLOCK_CUCKOO_FILTER` (which uses cuckoo filter with extended field).'
 alluxio.user.client.cache.shadow.window:
   'The past time window for the shadow cache to tracking the working set, and it is in the unit of second'
 alluxio.user.client.cache.size:
-  'The maximum size of the client-side cache.'
+  'A list of maximum cache size for each cache directory.'
 alluxio.user.client.cache.store.overhead:
   'A fraction value representing the storage overhead writing to disk. For example, with 1GB allocated cache space, and 10% storage overhead we expect no more than 1024MB / (1 + 10%) user data to store.'
 alluxio.user.client.cache.store.type:
@@ -135,7 +151,7 @@ alluxio.user.file.write.init.sleep.min:
 alluxio.user.file.write.tier.default:
   'The default tier for choosing a where to write a block. Valid option is any integer. Non-negative values identify tiers starting from top going down (0 identifies the first tier, 1 identifies the second tier, and so on). If the provided value is greater than the number of tiers, it identifies the last tier. Negative values identify tiers starting from the bottom going up (-1 identifies the last tier, -2 identifies the second to last tier, and so on). If the absolute value of the provided value is greater than the number of tiers, it identifies the first tier.'
 alluxio.user.file.writetype.default:
-  'Default write type when creating Alluxio files. Valid options are `MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to UnderFS synchronously), `ASYNC_THROUGH` (write to cache, write to UnderFS asynchronously, replicated alluxio.user.file.replication.durable times in Alluxio before data is persisted).'
+  'Default write type when creating Alluxio files. Valid options are `MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to UnderFS synchronously), `ASYNC_THROUGH` (write to cache, write to UnderFS asynchronously, replicated alluxio.user.file.replication.durable times in Alluxio before data is persisted.'
 alluxio.user.hostname:
   'The hostname to use for an Alluxio client.'
 alluxio.user.local.reader.chunk.size.bytes:
@@ -250,6 +266,10 @@ alluxio.user.ufs.block.read.concurrency.max:
   'The maximum concurrent readers for one UFS block on one Block Worker.'
 alluxio.user.ufs.block.read.location.policy:
   'When an Alluxio client reads a file from the UFS, it delegates the read to an Alluxio worker. The client uses this policy to choose which worker to read through. Built-in choices: [&lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/DeterministicHashPolicy.html&quot;&gt;alluxio.client.block.policy.DeterministicHashPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/LocalFirstAvoidEvictionPolicy.html&quot;&gt;alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/LocalFirstPolicy.html&quot;&gt;alluxio.client.block.policy.LocalFirstPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/MostAvailableFirstPolicy.html&quot;&gt;alluxio.client.block.policy.MostAvailableFirstPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/RoundRobinPolicy.html&quot;&gt;alluxio.client.block.policy.RoundRobinPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/SpecificHostPolicy.html&quot;&gt;alluxio.client.block.policy.SpecificHostPolicy&lt;/a&gt;].'
+alluxio.user.ufs.block.read.location.policy.cache.expiration.time:
+  'Deprecated - When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.CapacityBaseRandomPolicy, this specifies cache expire time of block location.'
+alluxio.user.ufs.block.read.location.policy.cache.size:
+  'Deprecated - When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.CapacityBaseRandomPolicy, this specifies cache size of block location.'
 alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards:
   'When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of hash shards.'
 alluxio.user.worker.list.refresh.interval:

@@ -187,7 +187,6 @@ public final class GetWorkerReportOptions implements Serializable {
    */
   public enum WorkerInfoField {
     ADDRESS,
-    BLOCK_COUNT,
     WORKER_CAPACITY_BYTES,
     WORKER_CAPACITY_BYTES_ON_TIERS,
     ID,
@@ -196,6 +195,7 @@ public final class GetWorkerReportOptions implements Serializable {
     STATE,
     WORKER_USED_BYTES,
     WORKER_USED_BYTES_ON_TIERS,
+    BLOCK_COUNT,
     BUILD_VERSION;
 
     public static final Set<WorkerInfoField> ALL = EnumSet.allOf(WorkerInfoField.class);
