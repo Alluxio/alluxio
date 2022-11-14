@@ -50,11 +50,9 @@ public class StsOssClientProvider implements Closeable {
 
   private volatile OSS mOssClient = null;
   private Date mStsTokenExpiration = null;
+  private final String mEcsMetadataService;
+  private final long mTokenTimeoutMs;
 
-  public static final String ECS_METADATA_SERVICE =
-      "http://100.100.100.200/latest/meta-data/ram/security-credentials/";
-
-  private static final int IN_TOKEN_EXPIRED_MS = 1800000;
   private static final String ACCESS_KEY_ID = "AccessKeyId";
   private static final String ACCESS_KEY_SECRET = "AccessKeySecret";
   private static final String SECURITY_TOKEN = "SecurityToken";
@@ -69,6 +67,9 @@ public class StsOssClientProvider implements Closeable {
    * @throws IOException if failed to init OSS STS client
    */
   public StsOssClientProvider(UnderFileSystemConfiguration ossConfiguration) throws IOException {
+    mEcsMetadataService = ossConfiguration.getString(
+        PropertyKey.UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT);
+    mTokenTimeoutMs = ossConfiguration.getMs(PropertyKey.UNDERFS_OSS_STS_TOKEN_TIMEOUT_MS);
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(
         BASE_SLEEP_TIME_MS, MAX_SLEEP_MS, MAX_RETRIES);
     IOException lastException = null;
@@ -152,7 +153,7 @@ public class StsOssClientProvider implements Closeable {
     boolean in = true;
     Date now = convertLongToDate(System.currentTimeMillis());
     long millisecond = mStsTokenExpiration.getTime() - now.getTime();
-    if (millisecond >= IN_TOKEN_EXPIRED_MS) {
+    if (millisecond >= mTokenTimeoutMs) {
       in = false;
     }
     return in;
@@ -164,7 +165,7 @@ public class StsOssClientProvider implements Closeable {
     if (isStsTokenExpired() || isTokenWillExpired()) {
       try {
         String ecsRamRole = ossConfiguration.getString(PropertyKey.UNDERFS_OSS_ECS_RAM_ROLE);
-        String fullECSMetaDataServiceUrl = ECS_METADATA_SERVICE + ecsRamRole;
+        String fullECSMetaDataServiceUrl = mEcsMetadataService + ecsRamRole;
         String jsonStringResponse = HttpUtils.get(fullECSMetaDataServiceUrl, ECS_META_GET_TIMEOUT);
 
         JsonObject jsonObject = new Gson().fromJson(jsonStringResponse, JsonObject.class);

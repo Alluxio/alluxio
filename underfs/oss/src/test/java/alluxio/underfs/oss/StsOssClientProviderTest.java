@@ -42,8 +42,7 @@ public class StsOssClientProviderTest {
 
   InstancedConfiguration mConf;
   private static final String ECS_RAM_ROLE = "snapshot-role-test";
-  private static final String ECS_METADATA_SERVICE =
-      StsOssClientProvider.ECS_METADATA_SERVICE + ECS_RAM_ROLE;
+  private String mEcsMetadataService;
   public static final String MOCK_ECS_META_RESPONSE = "{\n"
       + "  'AccessKeyId' : 'STS.mockAK',\n"
       + "  'AccessKeySecret' : 'mockSK',\n"
@@ -56,6 +55,8 @@ public class StsOssClientProviderTest {
   @Before
   public void before() {
     mConf = Configuration.copyGlobal();
+    mEcsMetadataService = mConf.getString(
+        PropertyKey.UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT) + ECS_RAM_ROLE;
   }
 
   @Test
@@ -76,7 +77,7 @@ public class StsOssClientProviderTest {
     OSSClient ossClient = Mockito.mock(OSSClient.class);
     PowerMockito.whenNew(OSSClient.class).withAnyArguments().thenReturn(ossClient);
     PowerMockito.mockStatic(HttpUtils.class);
-    when(HttpUtils.get(ECS_METADATA_SERVICE, 10000)).thenReturn(MOCK_ECS_META_RESPONSE);
+    when(HttpUtils.get(mEcsMetadataService, 10000)).thenReturn(MOCK_ECS_META_RESPONSE);
     StsOssClientProvider clientProvider = new StsOssClientProvider(ossConfiguration);
 
     // refresh
@@ -89,7 +90,7 @@ public class StsOssClientProviderTest {
         + "  'Code' : 'Success'\n"
         + "}";
     PowerMockito.mockStatic(HttpUtils.class);
-    when(HttpUtils.get(ECS_METADATA_SERVICE, 10000)).thenReturn(responseBodyString);
+    when(HttpUtils.get(mEcsMetadataService, 10000)).thenReturn(responseBodyString);
     assertTrue(clientProvider.isStsTokenExpired());
     clientProvider.refreshOssStsClient(ossConfiguration);
     assertFalse(clientProvider.isStsTokenExpired());

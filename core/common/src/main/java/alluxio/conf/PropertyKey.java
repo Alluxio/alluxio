@@ -1298,6 +1298,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT =
+      stringBuilder(Name.UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT)
+          .setAlias("alluxio.underfs.oss.sts.ecs.metadata.service.endpoint")
+          .setDefaultValue("http://100.100.100.200/latest/meta-data/ram/security-credentials/")
+          .setDescription("The ECS metadata service endpoint for Aliyun STS")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_STS_TOKEN_TIMEOUT_MS =
+      durationBuilder(Name.UNDERFS_OSS_STS_TOKEN_TIMEOUT_MS)
+          .setAlias("alluxio.underfs.oss.sts.token.timeout.ms")
+          .setDefaultValue("30m")
+          .setDescription("The token timeout for OSS STS. How long before the token expires, "
+              + "it will refresh the token automatically")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_S3_ADMIN_THREADS_MAX =
       intBuilder(Name.UNDERFS_S3_ADMIN_THREADS_MAX)
           .setDefaultValue(20)
@@ -7264,6 +7281,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_OSS_STS_ENABLED = "alluxio.underfs.oss.sts.enabled";
     public static final String UNDERFS_OSS_RETRY_MAX = "alluxio.underfs.oss.retry.max";
     public static final String UNDERFS_OSS_ECS_RAM_ROLE = "alluxio.underfs.oss.ecs.ram.role";
+    public static final String UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT =
+        "alluxio.underfs.oss.sts.ecs.metadata.service.endpoint";
+    public static final String UNDERFS_OSS_STS_TOKEN_TIMEOUT_MS =
+        "alluxio.underfs.oss.sts.token.timeout.ms";
     public static final String UNDERFS_S3_BULK_DELETE_ENABLED =
         "alluxio.underfs.s3.bulk.delete.enabled";
     public static final String UNDERFS_S3_DEFAULT_MODE = "alluxio.underfs.s3.default.mode";
