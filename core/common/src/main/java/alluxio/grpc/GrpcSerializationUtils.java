@@ -150,28 +150,17 @@ public class GrpcSerializationUtils {
         if (buffers.size() == 1) {
           return getByteBufFromReadableBuffer(buffers.peek());
         } else {
-          CompositeByteBuf buf = PooledByteBufAllocator.DEFAULT.compositeBuffer();
-          try {
-            for (ReadableBuffer readableBuffer : buffers) {
-              ByteBuf subBuffer = getByteBufFromReadableBuffer(readableBuffer);
-              if (subBuffer == null) {
-                return null;
-              }
-              buf.addComponent(true, subBuffer);
+          // avoid consolidate
+          CompositeByteBuf buf = PooledByteBufAllocator.DEFAULT
+              .compositeBuffer(buffers.isEmpty() ? 1 : buffers.size());
+          for (ReadableBuffer readableBuffer : buffers) {
+            ByteBuf subBuffer = getByteBufFromReadableBuffer(readableBuffer);
+            if (subBuffer == null) {
+              return null;
             }
-            return buf;
-          } catch (Throwable e) {
-            buf.release();
-            if (e instanceof Error) {
-              throw e;
-            } else {
-              // should not reach here
-              // if something other than what is expected happens and an exception occurs here
-              // we should not make this method return null
-              // because the subBuffer is released in the addComponent method.
-              throw new Error(e);
-            }
+            buf.addComponent(true, subBuffer);
           }
+          return buf;
         }
       } else if (buffer.getClass().equals(sReadableByteBuf.getDeclaringClass())) {
         return (ByteBuf) sReadableByteBuf.get(buffer);
