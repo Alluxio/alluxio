@@ -13,6 +13,7 @@ package alluxio.client.fuse.file;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.file.FuseFileStream;
@@ -64,7 +65,7 @@ public class FuseFileInStreamIntegrationTest extends AbstractFuseFileStreamInteg
     }
   }
 
-  @Test (expected = UnimplementedRuntimeException.class)
+  @Test (expected = FailedPreconditionRuntimeException.class)
   public void write() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);

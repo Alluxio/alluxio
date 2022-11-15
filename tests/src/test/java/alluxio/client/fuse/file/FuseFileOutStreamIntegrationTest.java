@@ -14,6 +14,7 @@ package alluxio.client.fuse.file;
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.runtime.AlreadyExistsRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -83,7 +84,7 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     checkFileInAlluxio(alluxioURI, newLen, newStartValue);
   }
 
-  @Test (expected = UnimplementedRuntimeException.class)
+  @Test (expected = FailedPreconditionRuntimeException.class)
   public void read() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
