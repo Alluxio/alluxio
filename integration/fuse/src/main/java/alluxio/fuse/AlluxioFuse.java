@@ -11,6 +11,7 @@
 
 package alluxio.fuse;
 
+import alluxio.Constants;
 import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
@@ -24,11 +25,15 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
+import alluxio.fuse.meta.UpdateChecker;
 import alluxio.fuse.options.FuseOptions;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatThread;
 import alluxio.jnifuse.LibFuse;
 import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.network.NetworkAddressUtils;
@@ -51,6 +56,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -66,6 +73,7 @@ public final class AlluxioFuse {
   private static final String MOUNT_ROOT_UFS_OPTION_NAME = "u";
   private static final String MOUNT_OPTIONS_OPTION_NAME = "o";
   private static final String HELP_OPTION_NAME = "h";
+  private static final String UPDATE_CHECK_OPTION_NAME = "c";
 
   private static final Option MOUNT_POINT_OPTION = Option.builder(MOUNT_POINT_OPTION_NAME)
       .hasArg()
@@ -111,12 +119,21 @@ public final class AlluxioFuse {
       .required(false)
       .desc("Print this help message")
       .build();
+  private static final Option UPDATE_CHECK_OPTION = Option.builder(UPDATE_CHECK_OPTION_NAME)
+      .required(false)
+      .longOpt("update-check")
+      .hasArg()
+      .desc("Enables or disables the FUSE version update check. "
+          + "Disables when connecting to Alluxio system cache by default. "
+          + "Enables when connecting the an under storage directly by default.")
+      .build();
   private static final Options OPTIONS = new Options()
       .addOption(MOUNT_POINT_OPTION)
       .addOption(MOUNT_ALLUXIO_PATH_OPTION)
       .addOption(MOUNT_ROOT_UFS_OPTION)
       .addOption(MOUNT_OPTIONS)
-      .addOption(HELP_OPTION);
+      .addOption(HELP_OPTION)
+      .addOption(UPDATE_CHECK_OPTION);
 
   // prevent instantiation
   private AlluxioFuse() {}
@@ -139,6 +156,7 @@ public final class AlluxioFuse {
 
     LOG.info("Alluxio version: {}-{}", RuntimeConstants.VERSION, ProjectConstants.REVISION);
     setConfigurationFromInput(cli, Configuration.modifiableGlobal());
+    launchUpdateCheckerIfNeeded(cli, Configuration.global());
     FuseOptions fuseOptions = getFuseOptions(cli, Configuration.global());
 
     AlluxioConfiguration conf = Configuration.global();
@@ -161,6 +179,7 @@ public final class AlluxioFuse {
     try (FileSystem fs = FileSystem.Factory.create(fsContext, fuseOptions.getFileSystemOptions())) {
       launchFuse(fsContext, fs, fuseOptions, true);
     } catch (Throwable t) {
+      // TODO(lu) FUSE unmount gracefully
       LOG.error("Failed to launch FUSE", t);
       System.exit(-1);
     }
@@ -297,6 +316,22 @@ public final class AlluxioFuse {
             String.join(",", fuseOptions));
       }
     }
+  }
+
+  private static void launchUpdateCheckerIfNeeded(CommandLine cli, AlluxioConfiguration conf) {
+    boolean enable = false;
+    if (cli.hasOption(UPDATE_CHECK_OPTION_NAME)) {
+      enable = Boolean.parseBoolean(cli.getOptionValue(UPDATE_CHECK_OPTION_NAME));
+    } else if (cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)) {
+      enable = true;
+    }
+    if (!enable) {
+      return;
+    }
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    executor.submit(new HeartbeatThread(HeartbeatContext.FUSE_UPDATE_CHECK,
+        new UpdateChecker(), Constants.DAY_MS,
+        Configuration.global(), UserState.Factory.create(conf)));
   }
 
   private static FuseOptions getFuseOptions(CommandLine cli, AlluxioConfiguration conf) {
