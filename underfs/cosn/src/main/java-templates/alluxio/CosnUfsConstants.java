@@ -14,9 +14,9 @@ package alluxio;
 /**
  * Ufs constants from compilation time by maven.
  */
-public final class CosNUfsConstants {
-  /* Hadoop version, specified in maven property. **/
+public final class CosnUfsConstants {
+  /* COSN version, specified in maven property. **/
   public static final String UFS_COSN_VERSION = "${ufs.cosn.version}";
 
-  private CosNUfsConstants() {} // prevent instantiation
+  private CosnUfsConstants() {} // prevent instantiation
 }
