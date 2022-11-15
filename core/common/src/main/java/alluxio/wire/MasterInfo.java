@@ -39,6 +39,19 @@ public final class MasterInfo {
    *
    * @param id the master id to use
    * @param address the master address to use
+   * @param lastUpdatedTimeMs the master lastUpdatedTimeMs to use
+   */
+  public MasterInfo(long id, Address address, long lastUpdatedTimeMs) {
+    mAddress = Preconditions.checkNotNull(address, "address");
+    mId = id;
+    mLastUpdatedTimeMs = lastUpdatedTimeMs;
+  }
+
+  /**
+   * Creates a new instance of {@link MasterInfo}.
+   *
+   * @param id the master id to use
+   * @param address the master address to use
    */
   public MasterInfo(long id, Address address) {
     mAddress = Preconditions.checkNotNull(address, "address");
@@ -110,7 +123,7 @@ public final class MasterInfo {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
-            .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).toString();
+        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).toString();
   }
 
   /**
