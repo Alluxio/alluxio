@@ -25,6 +25,7 @@ import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.HeartBeatResponseMessage;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.annotator.ReplicaBasedAnnotator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
