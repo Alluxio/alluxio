@@ -154,10 +154,19 @@ public class FuseFileSystemMetadataTest extends AbstractFuseFileSystemTest {
   }
 
   /**
+   * Supported by local UFS and S3.
+   */
+  @Test
+  public void overwriteExistingDirectoryLocalS3Ufs() {
+    Assert.assertEquals(0, mFuseFs.mkdir(DIR, DEFAULT_MODE.toShort()));
+    Assert.assertEquals(0, mFuseFs.mkdir(DIR, DEFAULT_MODE.toShort()));
+  }
+
+  /**
    * S3 does not have mode concept and mode will always be 700.
    */
   @Test
-  public void chmod() {
+  public void chmodLocalUfsOnly() {
     createEmptyFile(FILE);
     Mode mode = new Mode(Mode.Bits.EXECUTE, Mode.Bits.WRITE, Mode.Bits.READ);
     mFuseFs.chmod(FILE, mode.toShort());
@@ -167,14 +176,5 @@ public class FuseFileSystemMetadataTest extends AbstractFuseFileSystemTest {
     Assert.assertEquals(mode.getOwnerBits(), res.getOwnerBits());
     Assert.assertEquals(mode.getGroupBits(), res.getGroupBits());
     Assert.assertEquals(mode.getOtherBits(), res.getOtherBits());
-  }
-
-  /**
-   * Local UFS supports overwrite existing directory.
-   */
-  @Test
-  public void createExistingDirectory() {
-    Assert.assertEquals(0, mFuseFs.mkdir(DIR, DEFAULT_MODE.toShort()));
-    Assert.assertEquals(0, mFuseFs.mkdir(DIR, DEFAULT_MODE.toShort()));
   }
 }

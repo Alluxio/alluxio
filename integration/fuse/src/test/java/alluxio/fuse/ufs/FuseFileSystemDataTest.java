@@ -100,7 +100,7 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
           mFuseFs.write(FILE, buffer, DEFAULT_FILE_LEN, 0, mFileInfo.get()));
       Assert.assertEquals(0, mFuseFs.release(FILE, mFileInfo.get()));
       Assert.assertEquals(0, mFuseFs.getattr(FILE, mFileStat));
-      Assert.assertEquals(4, mFileStat.st_size.intValue());
+      Assert.assertEquals(DEFAULT_FILE_LEN, mFileStat.st_size.intValue());
       Assert.assertEquals(0, mFuseFs.unlink(FILE));
     }, true);
   }
