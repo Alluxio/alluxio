@@ -235,7 +235,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         break;
       // Master requests re-registration
       case Register:
-        mWorkerId.set(mMasterClient.getId(mWorkerAddress));
+        if (mWorkerId.get().equals(-1L)) {
+          mWorkerId.set(mMasterClient.getId(mWorkerAddress));
+        }
         registerWithMaster();
         break;
       // Unknown request
