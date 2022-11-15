@@ -267,7 +267,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       return;
     }
     String annotatorType = Configuration.getString(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS);
-    if (annotatorType.equals("alluxio.worker.block.annotator.ReplicaBasedAnnotator")) {
+    if (annotatorType.equals(ReplicaBasedAnnotator.class.getName())) {
       mBlockWorker.updateReplicaInfo(ReplicaInfo);
     }
   }
