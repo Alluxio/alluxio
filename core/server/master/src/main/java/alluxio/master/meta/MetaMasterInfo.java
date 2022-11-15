@@ -23,56 +23,56 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MetaMasterInfo {
-    /** Master's address. */
-    private final Address mAddress;
-    /** The id of the master. */
-    private final long mId;
-    /** Master's last updated time in ms. */
-    private long mLastUpdatedTimeMs;
+  /** Master's address. */
+  private final Address mAddress;
+  /** The id of the master. */
+  private final long mId;
+  /** Master's last updated time in ms. */
+  private long mLastUpdatedTimeMs;
 
-    /**
-     * Creates a new instance of {@link MetaMasterInfo}.
-     *
-     * @param id the master id to use
-     * @param address the master address to use
-     */
-    public MetaMasterInfo(long id, Address address) {
-        mAddress = Preconditions.checkNotNull(address, "address");
-        mId = id;
-        mLastUpdatedTimeMs = System.currentTimeMillis();
-    }
+  /**
+   * Creates a new instance of {@link MetaMasterInfo}.
+   *
+   * @param id the master id to use
+   * @param address the master address to use
+   */
+  public MetaMasterInfo(long id, Address address) {
+    mAddress = Preconditions.checkNotNull(address, "address");
+    mId = id;
+    mLastUpdatedTimeMs = System.currentTimeMillis();
+  }
 
-    /**
-     * @return the master's address
-     */
-    public Address getAddress() {
-        return mAddress;
-    }
+  /**
+   * @return the master's address
+   */
+  public Address getAddress() {
+    return mAddress;
+  }
 
-    /**
-     * @return the id of the master
-     */
-    public long getId() {
-        return mId;
-    }
+  /**
+   * @return the id of the master
+   */
+  public long getId() {
+    return mId;
+  }
 
-    /**
-     * @return the last updated time of the master in ms
-     */
-    public long getLastUpdatedTimeMs() {
-        return mLastUpdatedTimeMs;
-    }
+  /**
+   * @return the last updated time of the master in ms
+   */
+  public long getLastUpdatedTimeMs() {
+    return mLastUpdatedTimeMs;
+  }
 
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
-                .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
+        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).toString();
+  }
 
-    /**
-     * Updates the last updated time of the master in ms.
-     */
-    public void updateLastUpdatedTimeMs() {
-        mLastUpdatedTimeMs = System.currentTimeMillis();
-    }
+  /**
+   * Updates the last updated time of the master in ms.
+   */
+  public void updateLastUpdatedTimeMs() {
+    mLastUpdatedTimeMs = System.currentTimeMillis();
+  }
 }
