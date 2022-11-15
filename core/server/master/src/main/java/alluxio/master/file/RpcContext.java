@@ -127,7 +127,9 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
     // are written before block master changes. If a failure occurs between deleting an inode and
     // remove its blocks, it's better to have an orphaned block than an inode with a missing block.
     closeQuietly(mJournalContext);
-    closeQuietly(mBlockDeletionContext);
+    if (null == mThrown) {
+      closeQuietly(mBlockDeletionContext);
+    }
 
     if (mThrown != null) {
       Throwables.propagateIfPossible(mThrown, UnavailableException.class);

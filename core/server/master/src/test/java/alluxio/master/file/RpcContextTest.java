@@ -12,11 +12,13 @@
 package alluxio.master.file;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import alluxio.exception.status.UnavailableException;
@@ -76,9 +78,7 @@ public final class RpcContextTest {
       fail("Expected an exception to be thrown");
     } catch (RuntimeException e) {
       assertEquals(jcException, e);
-      // journal context is closed first, so the block deletion context exception should be
-      // suppressed.
-      assertEquals(bdcException, e.getSuppressed()[0]);
+      assertEquals(0, e.getSuppressed().length);
     }
   }
 
@@ -93,9 +93,7 @@ public final class RpcContextTest {
       fail("Expected an exception to be thrown");
     } catch (UnavailableException e) {
       assertEquals(jcException, e);
-      // journal context is closed first, so the block deletion context exception should be
-      // suppressed.
-      assertEquals(bdcException, e.getSuppressed()[0]);
+      assertEquals(0, e.getSuppressed().length);
     }
   }
 
@@ -110,7 +108,7 @@ public final class RpcContextTest {
   public void journalContextThrows() throws Throwable {
     Exception jcException = new UnavailableException("journal context exception");
     doThrow(jcException).when(mMockJC).close();
-    checkClose(jcException);
+    checkOnlyJournalContextClose(jcException);
   }
 
   @Test
@@ -161,6 +159,17 @@ public final class RpcContextTest {
       assertEquals(expected, e);
       verify(mMockJC).close();
       verify(mMockBDC).close();
+    }
+  }
+
+  private void checkOnlyJournalContextClose(Exception expected) throws Throwable {
+    try {
+      mRpcContext.close();
+      fail("Expected an exception to be thrown");
+    } catch (Exception e) {
+      assertEquals(expected, e);
+      verify(mMockJC).close();
+      verify(mMockBDC, never()).close();
     }
   }
 }
