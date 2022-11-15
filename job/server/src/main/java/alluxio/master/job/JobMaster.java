@@ -551,10 +551,12 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
         }
         mWorkerHealth.remove(deadWorker.getId());
         mWorkers.remove(deadWorker);
+        mCommandManager.removeWorkerLock(deadWorker.getId());
       }
       // Generate a new worker id.
       long workerId = mNextWorkerId.getAndIncrement();
       mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress));
+      mCommandManager.createWorkerLock(workerId);
       LOG.info("registerWorker(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
       return workerId;
     }
