@@ -68,7 +68,6 @@ public class UfsJournalDumper extends AbstractJournalDumper {
           case CHECKPOINT:
             try (CheckpointInputStream checkpoint = reader.getCheckpoint()) {
               Path dir = Paths.get(mCheckpointsDir + "-" + reader.getNextSequenceNumber());
-              Files.createDirectories(dir);
               readCheckpoint(checkpoint, dir);
             }
             break;
