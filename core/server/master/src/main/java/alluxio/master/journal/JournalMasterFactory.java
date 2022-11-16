@@ -27,7 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Factory to create a {@link JournalMaster} instance.
  */
 @ThreadSafe
-public class JournalMasterFactory implements MasterFactory<MasterContext> {
+public class JournalMasterFactory implements MasterFactory {
   private static final Logger LOG = LoggerFactory.getLogger(JournalMasterFactory.class);
 
   @Override
