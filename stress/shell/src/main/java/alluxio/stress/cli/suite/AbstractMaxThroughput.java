@@ -187,3 +187,8 @@ public abstract class AbstractMaxThroughput<Q extends TaskResult, T extends
         + "when running maxThrough test.");
   }
 }
+
+// 1. 8 threads write 4 threads read / duration: 30s -> OK
+// 2. 16 threads: for each thread -> 70% write + 30% read -> first class
+// 3. 16 threads: read QPS 8000, write QPS as many as possbile
+

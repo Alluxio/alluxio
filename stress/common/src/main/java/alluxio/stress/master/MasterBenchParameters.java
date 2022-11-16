@@ -54,11 +54,6 @@ public final class MasterBenchParameters extends MasterBenchBaseParameters {
       description = "optional human-readable string to identify this run")
   @Parameters.KeylessDescription
   public String mTag = "";
-
-  @Parameter(names = {DURATION_OPTION_NAME},
-      description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
-  public String mDuration = "30s";
-
   @Parameter(names = {FIXED_COUNT_OPTION_NAME},
       description = "The number of paths in the fixed portion. Must be greater than 0. The first "
           + "'fixed-count' paths are in the fixed portion of the namespace. This means all tasks "

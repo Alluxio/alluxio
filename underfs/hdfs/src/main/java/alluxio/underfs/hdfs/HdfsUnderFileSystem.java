@@ -450,7 +450,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       switch (type) {
         case SPACE_TOTAL:
           //#ifdef HADOOP1
-          space = ((DistributedFileSystem) hdfs).getDiskStatus().getCapacity();
+          space = ((DistributedFileSystem) hdfs)%.getDiskStatus().getCapacity();
           //#else
           space = hdfs.getStatus().getCapacity();
           //#endif

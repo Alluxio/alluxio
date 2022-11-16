@@ -31,7 +31,7 @@ import alluxio.grpc.BlockStatus;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.hdfs.AlluxioHdfsException;
+//import alluxio.underfs.hdfs.AlluxioHdfsException;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.worker.file.FileSystemMasterClient;
 
@@ -91,31 +91,6 @@ public class DefaultBlockWorkerExceptionTest {
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mBlockWorker =
         new DefaultBlockWorker(blockMasterClientPool, client, sessions, blockstore, workerId);
-  }
-
-  @Test
-  public void loadFailure() throws IOException, ExecutionException, InterruptedException {
-    AlluxioHdfsException exception = AlluxioHdfsException.fromUfsException(new IOException());
-    when(mUfs.openExistingFile(eq(FILE_NAME), any(OpenOptions.class))).thenThrow(exception,
-        new RuntimeException(), new IOException());
-    int blockId = 0;
-    Block blocks = Block.newBuilder().setBlockId(blockId).setLength(BLOCK_SIZE).setMountId(0)
-        .setOffsetInFile(0).setUfsPath(FILE_NAME).build();
-    List<BlockStatus> failure =
-        mBlockWorker.load(Collections.singletonList(blocks), UfsReadOptions.getDefaultInstance())
-            .get();
-    assertEquals(failure.size(), 1);
-    assertEquals(exception.getStatus().getCode().value(), failure.get(0).getCode());
-    failure =
-        mBlockWorker.load(Collections.singletonList(blocks), UfsReadOptions.getDefaultInstance())
-            .get();
-    assertEquals(failure.size(), 1);
-    assertEquals(2, failure.get(0).getCode());
-    failure =
-        mBlockWorker.load(Collections.singletonList(blocks), UfsReadOptions.getDefaultInstance())
-            .get();
-    assertEquals(failure.size(), 1);
-    assertEquals(2, failure.get(0).getCode());
   }
 
   @Test

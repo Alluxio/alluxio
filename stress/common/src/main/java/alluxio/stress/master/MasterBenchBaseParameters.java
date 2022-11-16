@@ -27,6 +27,8 @@ public class MasterBenchBaseParameters extends FileSystemParameters {
   public static final String STOP_COUNT_OPTION_NAME = "--stop-count";
   public static final String CREATE_FILE_SIZE_OPTION_NAME = "--create-file-size";
 
+  public static final String DURATION_OPTION_NAME = "--duration";
+
   /** The stop count value that is invalid. */
   public static final int STOP_COUNT_INVALID = -1;
 
@@ -61,4 +63,8 @@ public class MasterBenchBaseParameters extends FileSystemParameters {
   @Parameter(names = {CREATE_FILE_SIZE_OPTION_NAME},
       description = "The size of a file for the Create op, allowed to be 0. (0, 1m, 2k, 8k, etc.)")
   public String mCreateFileSize = "0";
+
+  @Parameter(names = {DURATION_OPTION_NAME},
+      description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
+  public String mDuration = "30s";
 }
