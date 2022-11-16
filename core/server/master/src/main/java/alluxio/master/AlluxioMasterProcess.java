@@ -118,7 +118,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     String blockStoreBaseDir = Configuration.getString(PropertyKey.MASTER_METASTORE_DIR_BLOCK);
     mContext = CoreMasterContext.newBuilder()
         .setJournalSystem(mJournalSystem)
-        .setPrimarySelector(leaderSelector)
+        .setPrimarySelector(mLeaderSelector)
         .setSafeModeManager(mSafeModeManager)
         .setBackupManager(mBackupManager)
         .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(blockStoreBaseDir))
