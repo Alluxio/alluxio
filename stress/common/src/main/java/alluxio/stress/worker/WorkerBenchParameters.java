@@ -87,8 +87,12 @@ public final class WorkerBenchParameters extends FileSystemParameters {
   public String mRandomMinReadLength = "1m";
 
   @Parameter(names = {"--random-min-buffer-size"},
-      description = "The buffer size for random IO operations. (1k, 16k, etc.)")
+      description = "The min buffer size for random IO operations. (1k, 16k, etc.)")
   public String mRandomMinBufferSize = "1k";
+
+  @Parameter(names = {"--random-max-buffer-size"},
+      description = "The max buffer size for random IO operations. (1k, 16k, etc.)")
+  public String mRandomMaxBufferSize = "4k";
 
   @Parameter(names = {"--free"},
       description = "If true, free the data from Alluxio before reading. Only applies to Alluxio "
