@@ -146,12 +146,8 @@ public class StsOssClientProvider implements Closeable {
   }
 
   boolean tokenWillExpiredAfter(long after) {
-    boolean in = true;
-    Date now = convertLongToDate(System.currentTimeMillis());
-    if (null != mStsTokenExpiration && mStsTokenExpiration.getTime() - now.getTime() > after) {
-      in = false;
-    }
-    return in;
+    return null == mStsTokenExpiration
+        || mStsTokenExpiration.getTime() - System.currentTimeMillis() <= after;
   }
 
   private void createOrRefreshStsOssClient(
@@ -193,19 +189,6 @@ public class StsOssClientProvider implements Closeable {
    */
   public OSS getOSSClient() {
     return mOssClient;
-  }
-
-  private Date convertLongToDate(long timeMs) {
-    TimeZone zeroTimeZone = TimeZone.getTimeZone("ETC/GMT-0");
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-    sdf.setTimeZone(zeroTimeZone);
-    Date date = null;
-    try {
-      date = sdf.parse(sdf.format(new Date(timeMs)));
-    } catch (ParseException e) {
-      LOG.error("convert String to Date type error", e);
-    }
-    return date;
   }
 
   private Date convertStringToDate(String dateString) {
