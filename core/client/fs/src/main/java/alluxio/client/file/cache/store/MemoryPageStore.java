@@ -48,8 +48,15 @@ public class MemoryPageStore implements PageStore {
     //TODO(beinan): support temp page for memory page store
     PageId pageKey = getKeyFromPageId(pageId);
     try {
-      // This is to wrap the page to a MemPage, not allocating new memory.
-      MemPage pageToPut = new MemPage(page.array(), page.remaining());
+      MemPage pageToPut;
+      if (page.hasArray()) {
+        // This is to wrap the page to a MemPage, not allocating new memory.
+        pageToPut = new MemPage(page.array(), page.remaining());
+      } else {
+        // Acquire a new page and copy data.
+        pageToPut = mPagePool.acquire(page.remaining());
+        page.get(pageToPut.getPage(), 0, pageToPut.getPageLength());
+      }
       mPageStoreMap.put(pageKey, pageToPut);
     } catch (Exception e) {
       throw new IOException("Failed to put cached data in memory for page " + pageId);
