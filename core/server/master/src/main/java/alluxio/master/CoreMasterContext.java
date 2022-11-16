@@ -32,7 +32,8 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
   private final int mPort;
 
   private CoreMasterContext(Builder builder) {
-    super(builder.mJournalSystem, builder.mUserState, builder.mUfsManager);
+    super(builder.mJournalSystem, builder.mPrimarySelector, builder.mUserState,
+        builder.mUfsManager);
 
     mSafeModeManager = Preconditions.checkNotNull(builder.mSafeModeManager, "safeModeManager");
     mBackupManager = Preconditions.checkNotNull(builder.mBackupManager, "backupManager");
@@ -104,6 +105,7 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
    */
   public static class Builder {
     private JournalSystem mJournalSystem;
+    private PrimarySelector mPrimarySelector;
     private UserState mUserState;
     private SafeModeManager mSafeModeManager;
     private BackupManager mBackupManager;
@@ -119,6 +121,16 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
      */
     public Builder setJournalSystem(JournalSystem journalSystem) {
       mJournalSystem = journalSystem;
+      return this;
+    }
+
+
+    /**
+     * @param primarySelector the primary selector
+     * @return the builder
+     */
+    public Builder setPrimarySelector(PrimarySelector primarySelector) {
+      mPrimarySelector = primarySelector;
       return this;
     }
 

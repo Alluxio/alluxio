@@ -42,6 +42,7 @@ import alluxio.master.NoopUfsManager;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.plan.PlanCoordinator;
 import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.master.journal.noop.NoopPrimarySelector;
 import alluxio.underfs.UfsManager;
 
 import com.google.common.collect.Lists;
@@ -79,7 +80,8 @@ public final class JobMasterTest {
     FileSystem fs = mock(FileSystem.class);
     when(FileSystem.Factory.create(any(FileSystemContext.class)))
             .thenReturn(fs);
-    mJobMaster = new JobMaster(new MasterContext<>(new NoopJournalSystem(), new NoopUfsManager()),
+    mJobMaster = new JobMaster(new MasterContext<>(new NoopJournalSystem(),
+        new NoopPrimarySelector(), new NoopUfsManager()),
         mock(FileSystem.class), mock(FileSystemContext.class), mock(UfsManager.class));
     mJobMaster.start(true);
   }

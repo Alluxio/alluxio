@@ -27,12 +27,8 @@ import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
-import alluxio.grpc.GrpcService;
-import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NodeState;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.journal.DefaultJournalMaster;
-import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
@@ -122,6 +118,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     String blockStoreBaseDir = Configuration.getString(PropertyKey.MASTER_METASTORE_DIR_BLOCK);
     mContext = CoreMasterContext.newBuilder()
         .setJournalSystem(mJournalSystem)
+        .setPrimarySelector(leaderSelector)
         .setSafeModeManager(mSafeModeManager)
         .setBackupManager(mBackupManager)
         .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(blockStoreBaseDir))
@@ -562,21 +559,11 @@ public class AlluxioMasterProcess extends MasterProcess {
             TimeUnit.MILLISECONDS)
         .maxInboundMessageSize((int) Configuration.getBytes(
             PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
-    addGrpcServices(builder);
-    // Builds a server that is not started yet.
-    return builder.build();
-  }
-
-  protected void addGrpcServices(GrpcServerBuilder builder) {
-    // Bind manifests of each Alluxio master to RPC server.
     for (Master master : mRegistry.getServers()) {
       registerServices(builder, master.getServices());
     }
-    // Bind manifest of Alluxio JournalMaster service.
-    // TODO(ggezer) Merge this with registerServices() logic.
-    builder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
-        new GrpcService(new JournalMasterClientServiceHandler(
-            new DefaultJournalMaster(JournalDomain.MASTER, mJournalSystem, mLeaderSelector))));
+    // Builds a server that is not started yet.
+    return builder.build();
   }
 
   protected void stopServingGrpc() {
