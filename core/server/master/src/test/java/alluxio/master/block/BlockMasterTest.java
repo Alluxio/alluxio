@@ -12,12 +12,14 @@
 package alluxio.master.block;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.clock.ManualClock;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -104,6 +106,9 @@ public class BlockMasterTest {
    */
   @Before
   public void before() throws Exception {
+    // set a large value of PropertyKey.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS
+    // to prevent worker to be deleted after it is lost
+    Configuration.set(PropertyKey.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS, Integer.MAX_VALUE);
     mRegistry = new MasterRegistry();
     mMetrics = Lists.newArrayList();
     JournalSystem journalSystem = new NoopJournalSystem();
@@ -175,6 +180,34 @@ public class BlockMasterTest {
     // Make sure the worker is detected as lost.
     List<WorkerInfo> info = mBlockMaster.getLostWorkersInfoList();
     assertEquals(worker1, Iterables.getOnlyElement(info).getId());
+  }
+
+  @Test
+  public void autoDeleteTimeoutWorker() throws Exception {
+
+    // In default configuration the lost worker will never be deleted. So set a short timeout
+    Configuration.set(PropertyKey.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS, 1000);
+    // Register a worker.
+    long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
+    mBlockMaster.workerRegister(worker1,
+        ImmutableList.of(Constants.MEDIUM_MEM),
+        ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
+        ImmutableMap.of(Constants.MEDIUM_MEM, 10L),
+        NO_BLOCKS_ON_LOCATION,
+        NO_LOST_STORAGE,
+        RegisterWorkerPOptions.getDefaultInstance());
+
+    // Advance the block master's clock by an hour so that worker can be deleted.
+    mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
+
+    // Run the lost worker detector.
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
+
+    // Make sure the worker has been deleted.
+    List<WorkerInfo> info = mBlockMaster.getLostWorkersInfoList();
+    assertEquals(0, mBlockMaster.getLostWorkersInfoList().size());
+    assertThrows(NotFoundException.class, () -> mBlockMaster.getWorker(worker1));
+    assertEquals(0, mBlockMaster.getWorkerCount());
   }
 
   @Test
