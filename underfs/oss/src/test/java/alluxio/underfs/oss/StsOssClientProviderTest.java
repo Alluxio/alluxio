@@ -91,9 +91,9 @@ public class StsOssClientProviderTest {
         + "}";
     PowerMockito.mockStatic(HttpUtils.class);
     when(HttpUtils.get(mEcsMetadataService, 10000)).thenReturn(responseBodyString);
-    assertTrue(clientProvider.isStsTokenExpired());
+    assertTrue(clientProvider.tokenWillExpiredAfter(0));
     clientProvider.refreshOssStsClient(ossConfiguration);
-    assertFalse(clientProvider.isStsTokenExpired());
+    assertFalse(clientProvider.tokenWillExpiredAfter(0));
   }
 
   private Date toUtcDateString(long dateInMills) throws ParseException {

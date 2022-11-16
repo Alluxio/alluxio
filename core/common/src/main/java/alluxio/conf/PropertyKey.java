@@ -1275,19 +1275,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_OSS_STS_ENABLED =
-      booleanBuilder(Name.UNDERFS_OSS_STS_ENABLED)
-          .setAlias("alluxio.underfs.oss.sts.enabled")
-          .setDefaultValue(false)
-          .setDescription("Whether to enable oss STS(Security Token Service).")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
   public static final PropertyKey UNDERFS_OSS_RETRY_MAX =
       intBuilder(Name.UNDERFS_OSS_RETRY_MAX)
           .setAlias("alluxio.underfs.oss.retry.max")
           .setDefaultValue(3)
           .setDescription("The maximum number of OSS error retry.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_STS_ENABLED =
+      booleanBuilder(Name.UNDERFS_OSS_STS_ENABLED)
+          .setAlias("alluxio.underfs.oss.sts.enabled")
+          .setDefaultValue(false)
+          .setDescription("Whether to enable oss STS(Security Token Service).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -1306,12 +1306,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_OSS_STS_TOKEN_TIMEOUT_MS =
-      durationBuilder(Name.UNDERFS_OSS_STS_TOKEN_TIMEOUT_MS)
-          .setAlias("alluxio.underfs.oss.sts.token.timeout.ms")
+  public static final PropertyKey UNDERFS_OSS_STS_TOKEN_REFRESH_INTERVAL_MS =
+      durationBuilder(Name.UNDERFS_OSS_STS_TOKEN_REFRESH_INTERVAL_MS)
+          .setAlias("alluxio.underfs.oss.sts.token.refresh.interval.ms")
           .setDefaultValue("30m")
-          .setDescription("The token timeout for OSS STS. How long before the token expires, "
-              + "it will refresh the token automatically")
+          .setDescription("Time before an OSS Security Token is considered expired "
+              + "and will be automatically renewed")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -7278,13 +7278,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.oss.connection.timeout";
     public static final String UNDERFS_OSS_CONNECT_TTL = "alluxio.underfs.oss.connection.ttl";
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout";
-    public static final String UNDERFS_OSS_STS_ENABLED = "alluxio.underfs.oss.sts.enabled";
-    public static final String UNDERFS_OSS_RETRY_MAX = "alluxio.underfs.oss.retry.max";
     public static final String UNDERFS_OSS_ECS_RAM_ROLE = "alluxio.underfs.oss.ecs.ram.role";
+    public static final String UNDERFS_OSS_RETRY_MAX = "alluxio.underfs.oss.retry.max";
     public static final String UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT =
         "alluxio.underfs.oss.sts.ecs.metadata.service.endpoint";
-    public static final String UNDERFS_OSS_STS_TOKEN_TIMEOUT_MS =
-        "alluxio.underfs.oss.sts.token.timeout.ms";
+    public static final String UNDERFS_OSS_STS_ENABLED = "alluxio.underfs.oss.sts.enabled";
+    public static final String UNDERFS_OSS_STS_TOKEN_REFRESH_INTERVAL_MS =
+        "alluxio.underfs.oss.sts.token.refresh.interval.ms";
     public static final String UNDERFS_S3_BULK_DELETE_ENABLED =
         "alluxio.underfs.s3.bulk.delete.enabled";
     public static final String UNDERFS_S3_DEFAULT_MODE = "alluxio.underfs.s3.default.mode";

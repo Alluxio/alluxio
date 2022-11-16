@@ -72,24 +72,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   public static OSSUnderFileSystem createInstance(AlluxioURI uri, UnderFileSystemConfiguration conf)
       throws Exception {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
-
-    OSS ossClient = null;
-    if (!conf.getBoolean(PropertyKey.UNDERFS_OSS_STS_ENABLED)) {
-      Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_ACCESS_KEY),
-              "Property %s is required to connect to OSS", PropertyKey.OSS_ACCESS_KEY);
-      Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_SECRET_KEY),
-              "Property %s is required to connect to OSS", PropertyKey.OSS_SECRET_KEY);
-      Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_ENDPOINT_KEY),
-              "Property %s is required to connect to OSS", PropertyKey.OSS_ENDPOINT_KEY);
-      String accessId = conf.getString(PropertyKey.OSS_ACCESS_KEY);
-      String accessKey = conf.getString(PropertyKey.OSS_SECRET_KEY);
-      String endPoint = conf.getString(PropertyKey.OSS_ENDPOINT_KEY);
-
-      ClientBuilderConfiguration ossClientConf = initializeOSSClientConfig(conf);
-      ossClient = new OSSClientBuilder().build(endPoint, accessId, accessKey, ossClientConf);
-    }
-
-    return new OSSUnderFileSystem(uri, ossClient, bucketName, conf);
+    return new OSSUnderFileSystem(uri, null, bucketName, conf);
   }
 
   /**
@@ -108,12 +91,28 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     if (mStsEnabled) {
       try {
         mClientProvider = new StsOssClientProvider(conf);
+        mClientProvider.init();
+        mClient = mClientProvider.getOSSClient();
       } catch (IOException e) {
         LOG.error("init sts client provider failed!", e);
         throw new ServiceException(e);
       }
+    } else if (null != ossClient) {
+      mClient = ossClient;
+    } else {
+      Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_ACCESS_KEY),
+          "Property %s is required to connect to OSS", PropertyKey.OSS_ACCESS_KEY);
+      Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_SECRET_KEY),
+          "Property %s is required to connect to OSS", PropertyKey.OSS_SECRET_KEY);
+      Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_ENDPOINT_KEY),
+          "Property %s is required to connect to OSS", PropertyKey.OSS_ENDPOINT_KEY);
+      String accessId = conf.getString(PropertyKey.OSS_ACCESS_KEY);
+      String accessKey = conf.getString(PropertyKey.OSS_SECRET_KEY);
+      String endPoint = conf.getString(PropertyKey.OSS_ENDPOINT_KEY);
+
+      ClientBuilderConfiguration ossClientConf = initializeOSSClientConfig(conf);
+      mClient = new OSSClientBuilder().build(endPoint, accessId, accessKey, ossClientConf);
     }
-    mClient = mStsEnabled ? mClientProvider.getOSSClient() : ossClient;
 
     mBucketName = bucketName;
   }
@@ -309,5 +308,11 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     } catch (ServiceException e) {
       throw new IOException(e.getMessage());
     }
+  }
+
+  @Override
+  public void close() throws IOException {
+    super.close();
+    mClientProvider.close();
   }
 }
