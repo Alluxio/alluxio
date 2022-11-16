@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -241,6 +240,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
 
         // Check if the requested parts are available
         List<URIStatus> uploadedParts = mUserFs.listStatus(multipartTemporaryDir);
+        uploadedParts.sort(new S3RestUtils.URIStatusNameComparator());
         if (uploadedParts.size() < request.getParts().size()) {
           throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
         }
@@ -249,7 +249,6 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
             status -> status
         ));
         int lastPartNum = request.getParts().get(request.getParts().size() - 1).getPartNumber();
-        List<Integer> partNumberList = new ArrayList<>();
         for (CompleteMultipartUploadRequest.Part part : request.getParts()) {
           if (!uploadedPartsMap.containsKey(part.getPartNumber())) {
             throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
@@ -259,7 +258,6 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
                   PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
             throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
           }
-          partNumberList.add(part.getPartNumber());
         }
 
         CreateFilePOptions.Builder optionsBuilder = CreateFilePOptions.newBuilder()
@@ -292,8 +290,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         MessageDigest md5 = MessageDigest.getInstance("MD5");
 
         try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
-          for (int partNumber : partNumberList) {
-            URIStatus part = uploadedPartsMap.get(partNumber);
+          for (URIStatus part : uploadedParts) {
             try (FileInStream is = mUserFs.openFile(new AlluxioURI(part.getPath()))) {
               ByteStreams.copy(is, digestOutputStream);
             }
