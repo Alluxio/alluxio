@@ -1275,6 +1275,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OSS_ECS_RAM_ROLE =
+      stringBuilder(Name.UNDERFS_OSS_ECS_RAM_ROLE)
+          .setAlias("alluxio.underfs.oss.ecs.ram.role")
+          .setDescription("The RAM role of current owner of ECS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_OSS_RETRY_MAX =
       intBuilder(Name.UNDERFS_OSS_RETRY_MAX)
           .setAlias("alluxio.underfs.oss.retry.max")
@@ -1283,26 +1290,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_OSS_STS_ENABLED =
-      booleanBuilder(Name.UNDERFS_OSS_STS_ENABLED)
-          .setAlias("alluxio.underfs.oss.sts.enabled")
-          .setDefaultValue(false)
-          .setDescription("Whether to enable oss STS(Security Token Service).")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_OSS_ECS_RAM_ROLE =
-      stringBuilder(Name.UNDERFS_OSS_ECS_RAM_ROLE)
-          .setAlias("alluxio.underfs.oss.ecs.ram.role")
-          .setDescription("The RAM role of current owner of ECS.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
   public static final PropertyKey UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT =
       stringBuilder(Name.UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT)
           .setAlias("alluxio.underfs.oss.sts.ecs.metadata.service.endpoint")
           .setDefaultValue("http://100.100.100.200/latest/meta-data/ram/security-credentials/")
           .setDescription("The ECS metadata service endpoint for Aliyun STS")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_STS_ENABLED =
+      booleanBuilder(Name.UNDERFS_OSS_STS_ENABLED)
+          .setAlias("alluxio.underfs.oss.sts.enabled")
+          .setDefaultValue(false)
+          .setDescription("Whether to enable oss STS(Security Token Service).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
