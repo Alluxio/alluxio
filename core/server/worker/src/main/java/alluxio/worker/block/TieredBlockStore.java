@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 
+import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
@@ -49,9 +50,11 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.text.MessageFormat;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
@@ -300,6 +303,22 @@ public class TieredBlockStore implements LocalBlockStore
       // Increase the size of this temp block
       mMetaManager.resizeTempBlockMeta(tempBlockMeta,
           tempBlockMeta.getBlockSize() + additionalBytes);
+    }
+  }
+
+  @Override
+  public void updateReplicaInfo(Map<Long, Long> ReplicaInfo) {
+    Map<Long, Pair<Long, BlockStoreLocation>> updateReplicaInfo = new HashMap<>();
+    for (Map.Entry<Long, Long> entry : ReplicaInfo.entrySet()) {
+      BlockMeta meta = getVolatileBlockMeta(entry.getKey()).get();
+      BlockStoreLocation loc = meta.getBlockLocation();
+      updateReplicaInfo.put(entry.getKey(),
+          new Pair<Long, BlockStoreLocation>(entry.getValue(), loc));
+    }
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      synchronized (listener) {
+        listener.onUpdateReplicaInfo(updateReplicaInfo);
+      }
     }
   }
 

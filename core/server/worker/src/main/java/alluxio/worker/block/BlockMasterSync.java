@@ -25,6 +25,7 @@ import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.HeartBeatResponseMessage;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.annotator.ReplicaBasedAnnotator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -252,6 +253,12 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     }
   }
 
+  /**
+   * Changes the replica number according to the message from master.
+   * @param ReplicaInfo
+   * @throws IOException
+   * @throws ConnectionFailedException
+   */
   private void handleMasterReplicaChange(Map<Long, Long> ReplicaInfo)
       throws IOException, ConnectionFailedException {
     if (ReplicaInfo == null) {
@@ -260,6 +267,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     if (ReplicaInfo.isEmpty()) {
       return;
     }
-    //Todo to update the replica Info
+    String annotatorType = Configuration.getString(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS);
+    if (annotatorType.equals(ReplicaBasedAnnotator.class.getName())) {
+      mBlockWorker.updateReplicaInfo(ReplicaInfo);
+    }
   }
 }

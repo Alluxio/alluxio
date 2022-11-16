@@ -31,21 +31,21 @@ public final class HeartBeatResponseMessage implements Serializable {
   Map<Long, Long> mReplicaInfo = new HashMap<>();
 
   /**
-  * Creates a new instance of {@link HeartBeatResponseMessage}.
-  */
+   * Creates a new instance of {@link HeartBeatResponseMessage}.
+   */
   public HeartBeatResponseMessage() {
   }
 
   /**
-  * @return the blocks to be added
-  */
+   * @return the blocks to be added
+   */
   public Command getCommand() {
     return mCommand;
   }
 
   /**
-  * @return the replica info of blocks to be changed for worker
-  */
+   * @return the replica info of blocks to be changed for worker
+   */
   public Map<Long, Long> getReplicaInfo() {
     return mReplicaInfo;
   }

@@ -23,6 +23,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
@@ -235,6 +236,12 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @param additionalBytes the amount of more space to request in bytes, never be less than 0
    */
   void requestSpace(long sessionId, long blockId, long additionalBytes);
+
+  /**
+   * Update replica Info.
+   * @param ReplicaInfo
+   */
+  void updateReplicaInfo(Map<Long, Long> ReplicaInfo);
 
   /**
    * Load blocks into alluxio.

@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -258,6 +259,11 @@ public class MonoBlockStore implements BlockStore {
   @Override
   public void updatePinnedInodes(Set<Long> inodes) {
     mLocalBlockStore.updatePinnedInodes(inodes);
+  }
+
+  @Override
+  public void updateReplicaInfo(Map<Long, Long> ReplicaInfo) {
+    mLocalBlockStore.updateReplicaInfo(ReplicaInfo);
   }
 
   @Override

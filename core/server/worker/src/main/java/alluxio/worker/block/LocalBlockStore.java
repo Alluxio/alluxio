@@ -21,6 +21,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
@@ -249,6 +250,11 @@ public interface LocalBlockStore
    * @param inodes a set of inodes that are currently pinned
    */
   void updatePinnedInodes(Set<Long> inodes);
+
+  /**
+   * @param ReplicaInfo
+   */
+  void updateReplicaInfo(Map<Long, Long> ReplicaInfo);
 
   /**
    * Remove Storage directories that are no longer accessible.

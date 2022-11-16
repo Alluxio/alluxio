@@ -189,4 +189,7 @@ public class NoopBlockWorker implements BlockWorker {
   public void cleanupSession(long sessionId) {
     // noop
   }
+
+  @Override
+  public void updateReplicaInfo(Map<Long, Long> ReplicaInfo) {}
 }

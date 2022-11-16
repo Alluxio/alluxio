@@ -11,6 +11,9 @@
 
 package alluxio.worker.block;
 
+import alluxio.collections.Pair;
+
+import java.util.Map;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -57,4 +60,7 @@ public abstract class AbstractBlockStoreEventListener implements BlockStoreEvent
 
   @Override
   public void onStorageLost(BlockStoreLocation dirLocation) {}
+
+  @Override
+  public void onUpdateReplicaInfo(Map<Long, Pair<Long, BlockStoreLocation>> ReplicaInfo) {}
 }

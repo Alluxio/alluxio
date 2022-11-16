@@ -12,6 +12,7 @@
 package alluxio.worker.block.annotator;
 
 import alluxio.StorageTierAssoc;
+import alluxio.collections.Pair;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.BlockStoreLocation;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractBlockAnnotatorTest {
   @Rule
@@ -71,6 +73,16 @@ public abstract class AbstractBlockAnnotatorTest {
     mMetaManager.removeBlockMeta(mMetaManager.getBlockMeta(blockId).get());
     mBlockEventListener.onRemoveBlock(blockId,
         mBlockLocation.remove(blockId).toBlockStoreLocation());
+  }
+
+  protected void updateReplicaInfo(Map<Long, Long> ReplicaInfo) {
+    Map<Long, Pair<Long, BlockStoreLocation>> updateReplicaInfo = new HashMap<>();
+    for (Map.Entry<Long, Long> entry : ReplicaInfo.entrySet()) {
+      BlockStoreLocation loc = mBlockLocation.get(entry.getKey()).toBlockStoreLocation();
+      updateReplicaInfo.put(entry.getKey(),
+              new Pair<Long, BlockStoreLocation>(entry.getValue(), loc));
+    }
+    mBlockEventListener.onUpdateReplicaInfo(updateReplicaInfo);
   }
 
   protected void accessBlock(long blockId) throws Exception {

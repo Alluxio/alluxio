@@ -190,4 +190,7 @@ public class EmulatingBlockIterator implements BlockIterator {
     }
     return ImmutableList.of();
   }
+
+  @Override
+  public void updateReplicaInfo(Map<Long, Pair<Long, BlockStoreLocation>> ReplicaInfo) {}
 }

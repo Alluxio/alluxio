@@ -389,6 +389,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
+  public void updateReplicaInfo(Map<Long, Long> ReplicaInfo) {
+    mBlockStore.updateReplicaInfo(ReplicaInfo);
+  }
+
+  @Override
   public FileInfo getFileInfo(long fileId) throws IOException {
     return mFileSystemMasterClient.getFileInfo(fileId);
   }
