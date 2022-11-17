@@ -117,8 +117,7 @@ public class AlluxioMasterProcess extends MasterProcess {
         .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(blockStoreBaseDir))
         .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(inodeStoreBaseDir))
         .setStartTimeMs(mStartTimeMs)
-        .setPort(NetworkAddressUtils
-            .getPort(ServiceType.MASTER_RPC, Configuration.global()))
+        .setPort(NetworkAddressUtils.getPort(ServiceType.MASTER_RPC, Configuration.global()))
         .setUfsManager(mUfsManager)
         .build();
     MasterUtils.createMasters(mRegistry, mContext);
@@ -148,12 +147,7 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public InetSocketAddress getWebAddress() {
-    synchronized (mWebServerLock) {
-      if (mWebServer != null) {
-        return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
-      }
-      return NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, Configuration.global());
-    }
+    return mWebBindAddress;
   }
 
   @Override
@@ -218,7 +212,6 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   /**
    * Upgrades the master to primary mode.
-   *
    * If the master loses primacy during the journal upgrade, this method will clean up the partial
    * upgrade, leaving the master in standby mode.
    *
@@ -365,9 +358,6 @@ public class AlluxioMasterProcess extends MasterProcess {
       throw new RuntimeException(e);
     }
   }
-
-  @Override
-  protected void startServing(String startMessage, String stopMessage) {}
 
   @Override
   public void stop() throws Exception {

@@ -16,10 +16,7 @@ import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.Process;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServer;
-import alluxio.grpc.GrpcServerBuilder;
-import alluxio.grpc.GrpcService;
 import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.RejectingServer;
@@ -36,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -84,8 +80,6 @@ public abstract class MasterProcess implements Process {
   protected WebServer mWebServer;
   protected final Lock mWebServerLock = new ReentrantLock();
 
-  protected final long mServingThreadTimeoutMs =
-      Configuration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
   protected Thread mServingThread = null;
 
   /**
@@ -144,12 +138,6 @@ public abstract class MasterProcess implements Process {
     return mStartTimeMs;
   }
 
-  protected void startServing() {
-    startServing("", "");
-  }
-
-  abstract void startServing(String startMessage, String stopMessage);
-
   /**
    * @return the uptime of the master in milliseconds
    */
@@ -185,14 +173,6 @@ public abstract class MasterProcess implements Process {
    */
   public boolean isMetricSinkServing() {
     return MetricsSystem.isStarted();
-  }
-
-  void registerServices(GrpcServerBuilder serverBuilder,
-      Map<alluxio.grpc.ServiceType, GrpcService> services) {
-    for (Map.Entry<alluxio.grpc.ServiceType, GrpcService> serviceEntry : services.entrySet()) {
-      serverBuilder.addService(serviceEntry.getKey(), serviceEntry.getValue());
-      LOG.info("registered service {}", serviceEntry.getKey().name());
-    }
   }
 
   /**
