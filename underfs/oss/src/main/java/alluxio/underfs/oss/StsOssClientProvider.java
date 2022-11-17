@@ -47,30 +47,38 @@ public class StsOssClientProvider implements Closeable {
   private static final int BASE_SLEEP_TIME_MS = 1000;
   private static final int MAX_SLEEP_MS = 3000;
   private static final int MAX_RETRIES = 5;
-
-  private volatile OSS mOssClient = null;
-  private Date mStsTokenExpiration = null;
-  private final String mEcsMetadataServiceUrl;
-  private final long mTokenTimeoutMs;
-
   private static final String ACCESS_KEY_ID = "AccessKeyId";
   private static final String ACCESS_KEY_SECRET = "AccessKeySecret";
   private static final String SECURITY_TOKEN = "SecurityToken";
   private static final String EXPIRATION = "Expiration";
 
+  private volatile OSS mOssClient = null;
+  private long mStsTokenExpiration = 0;
+  private final String mEcsMetadataServiceUrl;
+  private final long mTokenTimeoutMs;
   private final UnderFileSystemConfiguration mOssConf;
-  private ScheduledExecutorService mRefreshOssClientScheduledThread;
+  private final ScheduledExecutorService mRefreshOssClientScheduledThread;
 
   /**
    * Constructs a new instance of {@link StsOssClientProvider}.
    * @param ossConfiguration {@link UnderFileSystemConfiguration} for OSS
-   * @throws IOException if failed to init OSS STS client
    */
-  public StsOssClientProvider(UnderFileSystemConfiguration ossConfiguration) throws IOException {
+  public StsOssClientProvider(UnderFileSystemConfiguration ossConfiguration) {
     mOssConf = ossConfiguration;
     mEcsMetadataServiceUrl = ossConfiguration.getString(
         PropertyKey.UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT);
     mTokenTimeoutMs = ossConfiguration.getMs(PropertyKey.UNDERFS_OSS_STS_TOKEN_REFRESH_INTERVAL_MS);
+
+    mRefreshOssClientScheduledThread = Executors.newSingleThreadScheduledExecutor(
+        ThreadFactoryUtils.build("refresh_oss_client-%d", false));
+    mRefreshOssClientScheduledThread.scheduleAtFixedRate(() -> {
+      try {
+        createOrRefreshOssStsClient(mOssConf);
+      } catch (Exception e) {
+        //retry it
+        LOG.warn("throw exception when clear meta data cache", e);
+      }
+    }, 0, 60000, TimeUnit.MILLISECONDS);
   }
 
   /**
@@ -83,7 +91,7 @@ public class StsOssClientProvider implements Closeable {
     IOException lastException = null;
     while (retryPolicy.attempt()) {
       try {
-        initializeOssClient(mOssConf);
+        createOrRefreshOssStsClient(mOssConf);
         lastException = null;
         break;
       } catch (IOException e) {
@@ -94,60 +102,22 @@ public class StsOssClientProvider implements Closeable {
     if (lastException != null) {
       throw lastException;
     }
-    mRefreshOssClientScheduledThread = Executors.newSingleThreadScheduledExecutor(
-        ThreadFactoryUtils.build("refresh_oss_client-%d", false));
-    mRefreshOssClientScheduledThread.scheduleAtFixedRate(() -> {
-      try {
-        if (null != mOssConf) {
-          refreshOssStsClient(mOssConf);
-        }
-      } catch (Exception e) {
-        //retry it
-        LOG.warn("throw exception when clear meta data cache", e);
-      }
-    }, 0, 60000, TimeUnit.MILLISECONDS);
-  }
-
-  protected void refreshOssStsClient(UnderFileSystemConfiguration ossConfiguration)
-      throws IOException {
-    ClientBuilderConfiguration ossClientConf = getClientBuilderConfiguration(ossConfiguration);
-    createOrRefreshStsOssClient(ossConfiguration, ossClientConf);
-  }
-
-  private ClientBuilderConfiguration getClientBuilderConfiguration(
-      UnderFileSystemConfiguration ossConfiguration) {
-    ClientBuilderConfiguration ossClientConf = new ClientBuilderConfiguration();
-    ossClientConf.setMaxConnections(ossConfiguration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
-    ossClientConf.setMaxErrorRetry(ossConfiguration.getInt(PropertyKey.UNDERFS_OSS_RETRY_MAX));
-    ossClientConf.setConnectionTimeout(
-        (int) ossConfiguration.getMs(PropertyKey.UNDERFS_OSS_CONNECT_TIMEOUT));
-    ossClientConf.setSocketTimeout(
-        (int) ossConfiguration.getMs(PropertyKey.UNDERFS_OSS_SOCKET_TIMEOUT));
-    ossClientConf.setSupportCname(false);
-    ossClientConf.setCrcCheckEnabled(true);
-    return ossClientConf;
   }
 
   /**
-   * Init the STS OSS client.
+   * Create Or Refresh the STS OSS client.
    * @param ossConfiguration OSS {@link UnderFileSystemConfiguration}
-   * @throws IOException if failed to init OSS client
+   * @throws IOException if failed to create or refresh OSS client
    */
-  private void initializeOssClient(UnderFileSystemConfiguration ossConfiguration)
+  protected void createOrRefreshOssStsClient(UnderFileSystemConfiguration ossConfiguration)
       throws IOException {
-    if (null != mOssClient) {
-      return;
-    }
-
-    ClientBuilderConfiguration clientConf = getClientBuilderConfiguration(ossConfiguration);
-    createOrRefreshStsOssClient(ossConfiguration, clientConf);
-
-    LOG.info("init ossClient success : {}", mOssClient.toString());
+    ClientBuilderConfiguration ossClientConf =
+        OSSUnderFileSystem.initializeOSSClientConfig(ossConfiguration);
+    createOrRefreshStsOssClient(ossConfiguration, ossClientConf);
   }
 
   boolean tokenWillExpiredAfter(long after) {
-    return null == mStsTokenExpiration
-        || mStsTokenExpiration.getTime() - System.currentTimeMillis() <= after;
+    return mStsTokenExpiration - System.currentTimeMillis() <= after;
   }
 
   private void createOrRefreshStsOssClient(
@@ -163,7 +133,8 @@ public class StsOssClientProvider implements Closeable {
         String accessKeyId = jsonObject.get(ACCESS_KEY_ID).getAsString();
         String accessKeySecret = jsonObject.get(ACCESS_KEY_SECRET).getAsString();
         String securityToken = jsonObject.get(SECURITY_TOKEN).getAsString();
-        mStsTokenExpiration = convertStringToDate(jsonObject.get(EXPIRATION).getAsString());
+        mStsTokenExpiration =
+            convertStringToDate(jsonObject.get(EXPIRATION).getAsString()).getTime();
 
         if (null == mOssClient) {
           mOssClient = new OSSClientBuilder().build(
@@ -174,8 +145,7 @@ public class StsOssClientProvider implements Closeable {
           mOssClient.switchCredentials((new DefaultCredentials(
               accessKeyId, accessKeySecret, securityToken)));
         }
-        LOG.info("oss sts client create success {} {} {}",
-            mOssClient, securityToken, mStsTokenExpiration);
+        LOG.info("oss sts client create success, expiration = {}", mStsTokenExpiration);
       } catch (IOException e) {
         LOG.error("create stsOssClient exception", e);
         throw new IOException("create stsOssClient exception", e);

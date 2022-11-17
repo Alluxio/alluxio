@@ -78,22 +78,23 @@ public class StsOssClientProviderTest {
     PowerMockito.whenNew(OSSClient.class).withAnyArguments().thenReturn(ossClient);
     PowerMockito.mockStatic(HttpUtils.class);
     when(HttpUtils.get(mEcsMetadataService, 10000)).thenReturn(MOCK_ECS_META_RESPONSE);
-    StsOssClientProvider clientProvider = new StsOssClientProvider(ossConfiguration);
-
-    // refresh
-    String responseBodyString = "{\n"
-        + "  'AccessKeyId' : 'STS.mockAK',\n"
-        + "  'AccessKeySecret' : 'mockSK',\n"
-        + "  'Expiration' : '" + expiration + "',\n"
-        + "  'SecurityToken' : 'mockSecurityToken',\n"
-        + "  'LastUpdated' : '" + lastUpdated + "',\n"
-        + "  'Code' : 'Success'\n"
-        + "}";
-    PowerMockito.mockStatic(HttpUtils.class);
-    when(HttpUtils.get(mEcsMetadataService, 10000)).thenReturn(responseBodyString);
-    assertTrue(clientProvider.tokenWillExpiredAfter(0));
-    clientProvider.refreshOssStsClient(ossConfiguration);
-    assertFalse(clientProvider.tokenWillExpiredAfter(0));
+    try(StsOssClientProvider clientProvider = new StsOssClientProvider(ossConfiguration)) {
+      clientProvider.init();
+      // refresh
+      String responseBodyString = "{\n"
+          + "  'AccessKeyId' : 'STS.mockAK',\n"
+          + "  'AccessKeySecret' : 'mockSK',\n"
+          + "  'Expiration' : '" + expiration + "',\n"
+          + "  'SecurityToken' : 'mockSecurityToken',\n"
+          + "  'LastUpdated' : '" + lastUpdated + "',\n"
+          + "  'Code' : 'Success'\n"
+          + "}";
+      PowerMockito.mockStatic(HttpUtils.class);
+      when(HttpUtils.get(mEcsMetadataService, 10000)).thenReturn(responseBodyString);
+      assertTrue(clientProvider.tokenWillExpiredAfter(0));
+      clientProvider.createOrRefreshOssStsClient(ossConfiguration);
+      assertFalse(clientProvider.tokenWillExpiredAfter(0));
+    }
   }
 
   private Date toUtcDateString(long dateInMills) throws ParseException {

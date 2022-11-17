@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -59,7 +60,6 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
-  private boolean mStsEnabled;
   private StsOssClientProvider mClientProvider;
 
   /**
@@ -83,12 +83,11 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * @param bucketName bucket name of user's configured Alluxio bucket
    * @param conf configuration for this UFS
    */
-  protected OSSUnderFileSystem(AlluxioURI uri, OSS ossClient, String bucketName,
-      UnderFileSystemConfiguration conf) {
+  protected OSSUnderFileSystem(AlluxioURI uri, @Nullable OSS ossClient, String bucketName,
+                               UnderFileSystemConfiguration conf) {
     super(uri, conf);
 
-    mStsEnabled = conf.getBoolean(PropertyKey.UNDERFS_OSS_STS_ENABLED);
-    if (mStsEnabled) {
+    if (conf.getBoolean(PropertyKey.UNDERFS_OSS_STS_ENABLED)) {
       try {
         mClientProvider = new StsOssClientProvider(conf);
         mClientProvider.init();
@@ -288,7 +287,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @return the OSS {@link ClientBuilderConfiguration}
    */
-  private static ClientBuilderConfiguration initializeOSSClientConfig(
+  public static ClientBuilderConfiguration initializeOSSClientConfig(
       AlluxioConfiguration alluxioConf) {
     ClientBuilderConfiguration ossClientConf = new ClientBuilderConfiguration();
     ossClientConf
@@ -296,6 +295,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     ossClientConf.setSocketTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_OSS_SOCKET_TIMEOUT));
     ossClientConf.setConnectionTTL(alluxioConf.getMs(PropertyKey.UNDERFS_OSS_CONNECT_TTL));
     ossClientConf.setMaxConnections(alluxioConf.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
+    ossClientConf.setMaxErrorRetry(alluxioConf.getInt(PropertyKey.UNDERFS_OSS_RETRY_MAX));
     return ossClientConf;
   }
 
