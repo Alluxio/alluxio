@@ -25,6 +25,7 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.MasterUtils;
 import alluxio.master.TestSafeModeManager;
 import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.master.journal.noop.NoopPrimarySelector;
 import alluxio.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.underfs.MasterUfsManager;
@@ -49,6 +50,7 @@ public class TableMasterFactoryTest {
   public void before() {
     mContext = CoreMasterContext.newBuilder()
         .setJournalSystem(new NoopJournalSystem())
+        .setPrimarySelector(new NoopPrimarySelector())
         .setSafeModeManager(new TestSafeModeManager())
         .setBackupManager(mock(BackupManager.class))
         .setBlockStoreFactory(HeapBlockMetaStore::new)

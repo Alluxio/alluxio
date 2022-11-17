@@ -26,6 +26,7 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.journal.noop.NoopPrimarySelector;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.user.ServerUserState;
 import alluxio.security.user.UserState;
@@ -122,6 +123,7 @@ public class MasterTestUtils {
     }
     CoreMasterContext masterContext = CoreMasterContext.newBuilder()
         .setJournalSystem(journalSystem)
+        .setPrimarySelector(new NoopPrimarySelector())
         .setSafeModeManager(safeModeManager)
         .setBackupManager(mock(BackupManager.class))
         .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))
