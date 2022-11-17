@@ -184,6 +184,7 @@ public final class GrpcDataReader implements DataReader {
         return;
       }
       mStream.close();
+      mMarshaller.close();
 
       // When a reader is closed, there is technically nothing the client requires from the server.
       // However, the server does need to clean up resources for a client close(), including closing
@@ -203,7 +204,6 @@ public final class GrpcDataReader implements DataReader {
             mCloseWaitMs, mReadRequest.getBlockId(), mAddress);
       }
     } finally {
-      mMarshaller.close();
       mClient.close();
     }
   }
