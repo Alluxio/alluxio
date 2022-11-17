@@ -38,6 +38,16 @@ public class FuseOptions {
    * Creates the FUSE options.
    *
    * @param conf alluxio configuration
+   * @return the file system options
+   */
+  public static FuseOptions create(AlluxioConfiguration conf) {
+    return create(conf, FileSystemOptions.create(conf), false);
+  }
+
+  /**
+   * Creates the FUSE options.
+   *
+   * @param conf alluxio configuration
    * @param updateCheckEnabled whether to enable update check
    * @return the file system options
    */
