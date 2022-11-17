@@ -114,7 +114,7 @@ public final class RemoveCommand extends AbstractFsAdminCommand {
         + "\t--%s: %s" + "\t--%s: %s",
         getCommandName(), KEYS_OPTION_NAME,
         KEYS_OPTION_NAME, KEYS_OPTION.getDescription(),
-        RECURSIVE_OPTION, RECURSIVE_OPTION.getDescription());
+        RECURSIVE_OPTION.getOpt(), RECURSIVE_OPTION.getDescription());
   }
 
   /**
