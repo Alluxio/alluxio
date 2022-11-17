@@ -95,7 +95,7 @@ public class AlluxioJobMasterProcess extends AlluxioSimpleMasterProcess {
   }
 
   @Override
-  WebServer createWebServer() {
+  public WebServer createWebServer() {
     return new JobMasterWebServer(ServiceType.JOB_MASTER_WEB.getServiceName(), mWebBindAddress,
               this);
   }

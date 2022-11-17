@@ -45,6 +45,8 @@ import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.web.MasterWebServer;
+import alluxio.web.WebServer;
 import alluxio.wire.BackupStatus;
 
 import com.codahale.metrics.Timer;
@@ -56,8 +58,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -94,8 +94,6 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   /** See {@link #isRunning()}. */
   private volatile boolean mRunning = false;
-
-  Set<SimpleService> mServices = new HashSet<>();
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -136,6 +134,11 @@ public class AlluxioMasterProcess extends MasterProcess {
   @Override
   public <T extends Master> T getMaster(Class<T> clazz) {
     return mRegistry.get(clazz);
+  }
+
+  @Override
+  public WebServer createWebServer() {
+    return new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(), mWebBindAddress, this);
   }
 
   /**

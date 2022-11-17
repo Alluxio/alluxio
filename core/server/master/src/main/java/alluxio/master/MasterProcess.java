@@ -18,6 +18,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.grpc.GrpcServer;
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.service.SimpleService;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.RejectingServer;
 import alluxio.util.CommonUtils;
@@ -33,6 +34,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -63,6 +66,8 @@ public abstract class MasterProcess implements Process {
 
   /** The start time for when the master started. */
   final long mStartTimeMs;
+
+  Set<SimpleService> mServices = new HashSet<>();
 
   /**
    * Rejecting servers for used by backup masters to reserve ports but reject connection requests.
@@ -144,6 +149,11 @@ public abstract class MasterProcess implements Process {
   public long getUptimeMs() {
     return System.currentTimeMillis() - mStartTimeMs;
   }
+
+  /**
+   * @return a newly created web server for this master
+   */
+  public abstract WebServer createWebServer();
 
   /**
    * @return the master's web address

@@ -19,9 +19,10 @@ import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NodeState;
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.service.SimpleService;
+import alluxio.master.service.web.WebServerSimpleService;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
-import alluxio.web.WebServer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,11 +43,6 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
    * @return the master that is running on this process
    */
   abstract List<AbstractMaster> getAbstractMasters();
-
-  /**
-   * @return a newly created web server for this master
-   */
-  abstract WebServer createWebServer();
 
   /** The connection address for the rpc server. */
   final InetSocketAddress mRpcConnectAddress;
@@ -94,6 +90,7 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
       LOG.error("Failed to create {} master", mMasterName, e);
       throw new RuntimeException(String.format("Failed to create %s master", mMasterName), e);
     }
+    mServices.add(WebServerSimpleService.Factory.create(mWebBindAddress, this));
     try {
       stopServing();
     } catch (Exception e) {
@@ -122,6 +119,7 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
     // the leader selector is created in state STANDBY. Once mLeaderSelector.start is called, it
     // can transition to PRIMARY at any point.
     mLeaderSelector.start(getRpcAddress());
+    mServices.forEach(SimpleService::start);
 
     while (!Thread.interrupted()) {
       if (mServingThread == null) {
@@ -132,6 +130,7 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
         stopMaster();
         LOG.info("Secondary stopped");
         startMaster(true);
+        mServices.forEach(SimpleService::promote);
         mServingThread = new Thread(() -> startServing(
                 " (gained leadership)", " (lost leadership)"), "MasterServingThread");
         mServingThread.start();
@@ -141,6 +140,7 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
         mLeaderSelector.waitForState(NodeState.STANDBY);
         LOG.info("Transitioning from primary to standby");
         stopServing();
+        mServices.forEach(SimpleService::demote);
         mServingThread.join();
         mServingThread = null;
         stopMaster();
@@ -159,6 +159,7 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
    */
   @Override
   public void stop() throws Exception {
+    mServices.forEach(SimpleService::stop);
     stopRejectingServers();
     if (isGrpcServing()) {
       stopServing();
@@ -197,21 +198,12 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
     LOG.info("Alluxio {} master web server version {} starting{}. webAddress={}",
         mMasterName, RuntimeConstants.VERSION, startMessage, mWebBindAddress);
     startServingRPCServer();
-    startServingWebServer();
     LOG.info(
         "Alluxio {} master version {} started{}. bindAddress={}, connectAddress={}, webAddress={}",
         mMasterName, RuntimeConstants.VERSION, startMessage, mRpcBindAddress,
         mRpcConnectAddress, mWebBindAddress);
     mGrpcServer.awaitTermination();
     LOG.info("Alluxio {} master ended {}", mMasterName, stopMessage);
-  }
-
-  protected void startServingWebServer() {
-    stopRejectingWebServer();
-    synchronized (mWebServerLock) {
-      mWebServer = createWebServer();
-      mWebServer.start();
-    }
   }
 
   /**
@@ -253,7 +245,7 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
     return builder.build();
   }
 
-  protected void stopServing() throws Exception {
+  protected void stopServing() {
     synchronized (mGrpcServerLock) {
       if (mGrpcServer != null && mGrpcServer.isServing()) {
         LOG.info("Stopping Alluxio {} master RPC server on {} @ {}",
@@ -261,12 +253,6 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
         if (!mGrpcServer.shutdown()) {
           LOG.warn("Alluxio {} master RPC server shutdown timed out.", mMasterName);
         }
-      }
-    }
-    synchronized (mWebServerLock) {
-      if (mWebServer != null) {
-        mWebServer.stop();
-        mWebServer = null;
       }
     }
   }

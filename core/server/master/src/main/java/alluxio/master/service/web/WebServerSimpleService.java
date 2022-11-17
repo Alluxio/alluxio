@@ -14,10 +14,9 @@ package alluxio.master.service.web;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.AlluxioMasterProcess;
+import alluxio.master.MasterProcess;
 import alluxio.master.service.SimpleService;
 import alluxio.network.RejectingServer;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
 
 import org.slf4j.Logger;
@@ -34,15 +33,14 @@ public abstract class WebServerSimpleService implements SimpleService {
   private static final Logger LOG = LoggerFactory.getLogger(WebServerSimpleService.class);
 
   private final InetSocketAddress mBindAddress;
-  private final AlluxioMasterProcess mMasterProcess;
+  private final MasterProcess mMasterProcess;
 
   @Nullable @GuardedBy("this")
   private WebServer mWebServer = null;
   @Nullable @GuardedBy("this")
   private RejectingServer mRejectingServer = null;
 
-  protected WebServerSimpleService(InetSocketAddress bindAddress,
-      AlluxioMasterProcess masterProcess) {
+  protected WebServerSimpleService(InetSocketAddress bindAddress, MasterProcess masterProcess) {
     mBindAddress = bindAddress;
     mMasterProcess = masterProcess;
   }
@@ -61,8 +59,7 @@ public abstract class WebServerSimpleService implements SimpleService {
 
   protected synchronized void startWebServer() {
     LOG.info("Starting web server.");
-    mWebServer = new MasterWebServer(NetworkAddressUtils.ServiceType.MASTER_WEB.getServiceName(),
-        mBindAddress, mMasterProcess);
+    mWebServer = mMasterProcess.createWebServer();
     mWebServer.start();
   }
 
@@ -89,8 +86,9 @@ public abstract class WebServerSimpleService implements SimpleService {
      * {@link alluxio.conf.PropertyKey#STANDBY_MASTER_WEB_ENABLED}
      */
     public static WebServerSimpleService create(InetSocketAddress bindAddress,
-        AlluxioMasterProcess masterProcess) {
-      if (Configuration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED)) {
+        MasterProcess masterProcess) {
+      if (masterProcess instanceof AlluxioMasterProcess
+          && Configuration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED)) {
         return new AlwaysOnWebServerSimpleService(bindAddress, masterProcess);
       }
       return new WhenLeadingWebServerSimpleService(bindAddress, masterProcess);
