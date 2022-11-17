@@ -122,8 +122,8 @@ public final class UpdateChecker implements HeartbeatExecutor {
     if (URIUtils.isLocalFilesystem(ufsAddress)) {
       return "local";
     }
-    String[] components = ufsAddress.split("://");
-    if (components.length != 2) {
+    String[] components = ufsAddress.split(":");
+    if (components.length < 2) {
       return "unknown";
     }
     return components[0];

@@ -31,8 +31,8 @@ import java.util.stream.Collectors;
 public class FuseOptions {
   private static final Logger LOG = LoggerFactory.getLogger(FuseOptions.class);
   private final FileSystemOptions mFileSystemOptions;
-  private final boolean mUpdateCheckEnabled;
   private final Set<String> mFuseMountOptions;
+  private final boolean mUpdateCheckEnabled;
 
   /**
    * Creates the FUSE options.

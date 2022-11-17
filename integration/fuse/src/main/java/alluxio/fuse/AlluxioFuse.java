@@ -114,10 +114,6 @@ public final class AlluxioFuse {
           + "data_cache=<local_cache_directory>,data_cache_size=<size>,"
           + "metadata_cache_size=<size>,metadata_cache_expire=<timeout>")
       .build();
-  private static final Option HELP_OPTION = Option.builder(HELP_OPTION_NAME)
-      .required(false)
-      .desc("Print this help message")
-      .build();
   private static final Option UPDATE_CHECK_OPTION = Option.builder(UPDATE_CHECK_OPTION_NAME)
       .required(false)
       .longOpt("update-check")
@@ -126,13 +122,17 @@ public final class AlluxioFuse {
           + "Disables when connecting to Alluxio system cache by default. "
           + "Enables when connecting the an under storage directly by default.")
       .build();
+  private static final Option HELP_OPTION = Option.builder(HELP_OPTION_NAME)
+      .required(false)
+      .desc("Print this help message")
+      .build();
   private static final Options OPTIONS = new Options()
       .addOption(MOUNT_POINT_OPTION)
       .addOption(MOUNT_ALLUXIO_PATH_OPTION)
       .addOption(MOUNT_ROOT_UFS_OPTION)
       .addOption(MOUNT_OPTIONS)
-      .addOption(HELP_OPTION)
-      .addOption(UPDATE_CHECK_OPTION);
+      .addOption(UPDATE_CHECK_OPTION)
+      .addOption(HELP_OPTION);
 
   // prevent instantiation
   private AlluxioFuse() {}
@@ -175,13 +175,13 @@ public final class AlluxioFuse {
     }
     startJvmMonitorProcess();
     ExecutorService executor = null;
+    if (fuseOptions.updateCheckEnabled()) {
+      executor = Executors.newSingleThreadExecutor();
+      executor.submit(new HeartbeatThread(HeartbeatContext.FUSE_UPDATE_CHECK,
+          new UpdateChecker(fuseOptions), Constants.DAY_MS,
+          Configuration.global(), UserState.Factory.create(conf)));
+    }
     try (FileSystem fs = FileSystem.Factory.create(fsContext, fuseOptions.getFileSystemOptions())) {
-      if (fuseOptions.updateCheckEnabled()) {
-        executor = Executors.newSingleThreadExecutor();
-        executor.submit(new HeartbeatThread(HeartbeatContext.FUSE_UPDATE_CHECK,
-            new UpdateChecker(fuseOptions), Constants.DAY_MS,
-            Configuration.global(), UserState.Factory.create(conf)));
-      }
       launchFuse(fsContext, fs, fuseOptions, true);
     } catch (Throwable t) {
       if (executor != null) {

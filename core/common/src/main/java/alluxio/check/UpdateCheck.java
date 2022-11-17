@@ -43,6 +43,7 @@ public final class UpdateCheck {
   public static final String USER_AGENT_SEPARATOR = ";";
 
   static final String PRODUCT_CODE_FORMAT = "ProductCode:%s";
+  static final String OS_FORMAT = "OS:%s";
 
   // Launch environment
   static final String CFT_KEY = "cft";
@@ -131,7 +132,7 @@ public final class UpdateCheck {
    */
   @VisibleForTesting
   public static void addUserAgentEnvironments(List<String> info) {
-    info.add(OSUtils.OS_NAME);
+    info.add(String.format(OS_FORMAT, OSUtils.OS_NAME));
     if (EnvironmentUtils.isDocker()) {
       info.add(DOCKER_KEY);
     }
