@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.service;
 
 import alluxio.conf.Configuration;
@@ -8,15 +19,11 @@ import alluxio.grpc.ErrorType;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
-import alluxio.grpc.GrpcService;
-import alluxio.grpc.JournalDomain;
-import alluxio.grpc.ServiceType;
 import alluxio.master.AlluxioExecutorService;
-import alluxio.master.Master;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
-import alluxio.master.journal.DefaultJournalMaster;
-import alluxio.master.journal.JournalMasterClientServiceHandler;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.RejectingServer;
 
 import io.grpc.Status;
@@ -25,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
@@ -50,15 +56,7 @@ public class RpcServerSimpleService implements SimpleService {
   @Nullable @GuardedBy("this")
   private RejectingServer mRejectingGrpcServer = null;
 
-  /**
-   * Creates a simple service wrapper around a grpc server to manager the grpc server for the
-   * master process.
-   * @param masterRegistry where the grpc services will be drawn from
-   * @param connectAddress the address where the rpc server will connect
-   * @param bindAddress the address where the rpc server will bind
-   * @param safeModeManager the safe mode manager
-   */
-  public RpcServerSimpleService(MasterRegistry masterRegistry, InetSocketAddress connectAddress,
+  private RpcServerSimpleService(MasterRegistry masterRegistry, InetSocketAddress connectAddress,
       InetSocketAddress bindAddress, SafeModeManager safeModeManager) {
     mMasterRegistry = masterRegistry;
     mConnectAddress = connectAddress;
@@ -76,6 +74,15 @@ public class RpcServerSimpleService implements SimpleService {
   public synchronized void promote() {
     stopRejectingServer();
     mRpcExecutor = createRpcExecutor();
+    MetricsSystem.removeMetrics(MetricKey.MASTER_RPC_QUEUE_LENGTH.getName());
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_QUEUE_LENGTH.getName(),
+        mRpcExecutor::getRpcQueueLength);
+    MetricsSystem.removeMetrics(MetricKey.MASTER_RPC_THREAD_ACTIVE_COUNT.getName());
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_THREAD_ACTIVE_COUNT.getName(),
+        mRpcExecutor::getActiveCount);
+    MetricsSystem.removeMetrics(MetricKey.MASTER_RPC_THREAD_CURRENT_COUNT.getName());
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_THREAD_CURRENT_COUNT.getName(),
+        mRpcExecutor::getPoolSize);
     mGrpcServer = createRpcServer(mRpcExecutor);
     try {
       mGrpcServer.start();
@@ -151,15 +158,34 @@ public class RpcServerSimpleService implements SimpleService {
         .maxInboundMessageSize((int) Configuration.getBytes(
             PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
     // register services
-    for (Master master : mMasterRegistry.getServers()) {
-      for (Map.Entry<ServiceType, GrpcService> serviceEntry : master.getServices().entrySet()) {
-        builder.addService(serviceEntry.getKey(), serviceEntry.getValue());
-        LOG.info("registered service {}", serviceEntry.getKey().name());
-      }
-    }
-    builder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
-        new GrpcService(new JournalMasterClientServiceHandler(
-            new DefaultJournalMaster(JournalDomain.MASTER, mJournalSystem, mLeaderSelector))));
+    mMasterRegistry.getServers().forEach(master -> {
+      master.getServices().forEach((type, service) -> {
+        builder.addService(type, service);
+        LOG.info("registered service {}", type.name());
+      });
+    });
     return builder.build();
+  }
+
+  /**
+   * Factory to create an {@link RpcServerSimpleService}.
+   */
+  public static class Factory {
+    /**
+     * Creates a simple service wrapper around a grpc server to manager the grpc server for the
+     * master process.
+     * @param masterRegistry where the grpc services will be drawn from
+     * @param connectAddress the address where the rpc server will connect
+     * @param bindAddress the address where the rpc server will bind
+     * @param safeModeManager the safe mode manager
+     */
+    public static RpcServerSimpleService create(
+        MasterRegistry masterRegistry,
+        InetSocketAddress connectAddress,
+        InetSocketAddress bindAddress,
+        SafeModeManager safeModeManager) {
+      return new RpcServerSimpleService(masterRegistry, connectAddress, bindAddress,
+          safeModeManager);
+    }
   }
 }
