@@ -171,7 +171,7 @@ public final class UpdateCheck {
    * @param features feature list
    * @param featureName feature name
    */
-  private static void addIfTrue(boolean valid, List<String> features, String featureName) {
+  public static void addIfTrue(boolean valid, List<String> features, String featureName) {
     if (valid) {
       features.add(featureName);
     }

@@ -11,13 +11,12 @@
 
 package alluxio.fuse.meta;
 
-import alluxio.Constants;
 import alluxio.ProjectConstants;
 import alluxio.check.UpdateCheck;
+import alluxio.fuse.options.FuseOptions;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.URIUtils;
 
-import jdk.internal.joptsimple.internal.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,14 +33,21 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UpdateChecker implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(UpdateChecker.class);
 
+  private static final String FILE_SYSTEM_FORMAT = "UnderlyingFileSystem:%s";
+
+  private final FuseOptions mFuseOptions;
+
   private String mInstanceId;
   private List<String> mUnchangeableFuseInfo;
 
   /**
    * Creates a new instance of {@link UpdateChecker}.
    *
+   * @param fuseOptions the fuse options
    */
-  public UpdateChecker() {}
+  public UpdateChecker(FuseOptions fuseOptions) {
+    mFuseOptions = fuseOptions;
+  }
 
   /**
    * Heartbeat for the periodic update check.
@@ -50,8 +56,6 @@ public final class UpdateChecker implements HeartbeatExecutor {
   public void heartbeat() {
     if (mInstanceId == null) {
       mInstanceId = getNewInstanceId();
-    }
-    if (mUnchangeableFuseInfo == null) {
       mUnchangeableFuseInfo = getUnchangeableFuseInfo();
     }
     try {
@@ -73,35 +77,55 @@ public final class UpdateChecker implements HeartbeatExecutor {
 
   private List<String> getUnchangeableFuseInfo() {
     List<String> fuseInfo = new ArrayList<>();
-    // cache settings, kernel/user data/metadata cache enabled
-    // connecting to UFS or Alluxio, which UFS
-    return Collections.unmodifiableList(fuseInfo);
-  }
-
-  private List<String> getFuseInfo(List<String> unchangeableInfo) {
-    List<String> fuseInfo = new ArrayList<>();
-    // operations, hasWrite, hasTruncate, hasChmod.... e.g.
-    fuseInfo.addAll(unchangeableInfo);
+    UpdateCheck.addIfTrue(isLocalAlluxioDataCacheEnabled(), fuseInfo, "localAlluxioDataCache");
+    UpdateCheck.addIfTrue(isLocalAlluxioMetadataCacheEnabled(), fuseInfo,
+        "localAlluxioMetadataCache");
+    UpdateCheck.addIfTrue(isLocalKernelDataCacheEnabled(), fuseInfo, "localKernelDataCache");
+    fuseInfo.add(String.format(FILE_SYSTEM_FORMAT, getUnderlyingFileSystem()));
     return Collections.unmodifiableList(fuseInfo);
   }
 
   private String getNewInstanceId() {
-    List<String> components = new ArrayList<>();
-    // Avoid throwing RuntimeException when hostname
-    // is not resolved on metrics reporting
-    try {
-      components.add(NetworkAddressUtils.getLocalHostName(5 * Constants.SECOND_MS)
-          .replace(UpdateCheck.USER_AGENT_SEPARATOR, "-"));
-    } catch (RuntimeException e) {
-      LOG.debug("Can't find local host name", e);
+    return UUID.randomUUID().toString();
+  }
+
+  /**
+   * @return true, if local Alluxio data cache is enabled
+   */
+  public boolean isLocalAlluxioDataCacheEnabled() {
+    return mFuseOptions.getFileSystemOptions().isDataCacheEnabled();
+  }
+
+  /**
+   * @return true, if local Alluxio metadata cache is enabled
+   */
+  public boolean isLocalAlluxioMetadataCacheEnabled() {
+    return mFuseOptions.getFileSystemOptions().isMetadataCacheEnabled();
+  }
+
+  /**
+   * @return true, if local kernel data cache is enabled
+   */
+  public boolean isLocalKernelDataCacheEnabled() {
+    return !mFuseOptions.getFuseMountOptions().contains("direct_io");
+  }
+
+  /**
+   * @return true, if local kernel data cache is enabled
+   */
+  public String getUnderlyingFileSystem() {
+    if (!mFuseOptions.getFileSystemOptions().getUfsFileSystemOptions().isPresent()) {
+      return "alluxio";
     }
-    try {
-      components.add(NetworkAddressUtils.getLocalIpAddress(5 * Constants.SECOND_MS)
-          .replace(UpdateCheck.USER_AGENT_SEPARATOR, "-"));
-    } catch (RuntimeException e) {
-      LOG.debug("Can't find local ip", e);
+    String ufsAddress = mFuseOptions.getFileSystemOptions()
+        .getUfsFileSystemOptions().get().getUfsAddress();
+    if (URIUtils.isLocalFilesystem(ufsAddress)) {
+      return "local";
     }
-    components.add(UUID.randomUUID().toString());
-    return Strings.join(components, "-");
+    String[] components = ufsAddress.split("://");
+    if (components.length != 2) {
+      return "unknown";
+    }
+    return components[0];
   }
 }
