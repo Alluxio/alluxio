@@ -63,6 +63,7 @@ public abstract class WebServerSimpleService implements SimpleService {
     LOG.info("Starting web server.");
     mWebServer = new MasterWebServer(NetworkAddressUtils.ServiceType.MASTER_WEB.getServiceName(),
         mBindAddress, mMasterProcess);
+    mWebServer.start();
   }
 
   protected synchronized void stopWebServer() {

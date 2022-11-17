@@ -178,6 +178,7 @@ public class RpcServerSimpleService implements SimpleService {
      * @param connectAddress the address where the rpc server will connect
      * @param bindAddress the address where the rpc server will bind
      * @param safeModeManager the safe mode manager
+     * @return a simple service that manages the behavior of the rpc server
      */
     public static RpcServerSimpleService create(
         MasterRegistry masterRegistry,
