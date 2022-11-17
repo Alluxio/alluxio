@@ -243,7 +243,12 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
     // Create underlying gRPC server.
     GrpcServerBuilder builder = createBaseRPCServer();
     // Register master services.
-    getAbstractMasters().forEach((master) -> registerServices(builder, master.getServices()));
+    getAbstractMasters().forEach(master -> {
+      master.getServices().forEach((type, service) -> {
+        builder.addService(type, service);
+        LOG.info("registered service {}", type.name());
+      });
+    });
     // Builds a server that is not started yet.
     return builder.build();
   }
