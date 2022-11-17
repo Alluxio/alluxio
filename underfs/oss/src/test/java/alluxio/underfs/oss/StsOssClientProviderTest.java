@@ -78,7 +78,7 @@ public class StsOssClientProviderTest {
     PowerMockito.whenNew(OSSClient.class).withAnyArguments().thenReturn(ossClient);
     PowerMockito.mockStatic(HttpUtils.class);
     when(HttpUtils.get(mEcsMetadataService, 10000)).thenReturn(MOCK_ECS_META_RESPONSE);
-    try(StsOssClientProvider clientProvider = new StsOssClientProvider(ossConfiguration)) {
+    try (StsOssClientProvider clientProvider = new StsOssClientProvider(ossConfiguration)) {
       clientProvider.init();
       // refresh
       String responseBodyString = "{\n"

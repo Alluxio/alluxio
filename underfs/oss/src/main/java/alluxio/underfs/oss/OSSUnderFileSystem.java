@@ -284,7 +284,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
   /**
    * Creates an OSS {@code ClientConfiguration} using an Alluxio Configuration.
-   *
+   * @param alluxioConf the OSS Configuration
    * @return the OSS {@link ClientBuilderConfiguration}
    */
   public static ClientBuilderConfiguration initializeOSSClientConfig(
