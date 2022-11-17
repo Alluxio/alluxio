@@ -17,6 +17,7 @@ import alluxio.fuse.options.FuseOptions;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.util.URIUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UpdateChecker implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(UpdateChecker.class);
 
-  private static final String FILE_SYSTEM_FORMAT = "UnderlyingFileSystem:%s";
+  static final String ALLUXIO_FS = "alluxio";
+  static final String LOCAL_FS = "local";
 
   private final FuseOptions mFuseOptions;
 
@@ -75,13 +77,14 @@ public final class UpdateChecker implements HeartbeatExecutor {
   @Override
   public void close() {}
 
-  private List<String> getUnchangeableFuseInfo() {
+  @VisibleForTesting
+  List<String> getUnchangeableFuseInfo() {
     List<String> fuseInfo = new ArrayList<>();
     UpdateCheck.addIfTrue(isLocalAlluxioDataCacheEnabled(), fuseInfo, "localAlluxioDataCache");
     UpdateCheck.addIfTrue(isLocalAlluxioMetadataCacheEnabled(), fuseInfo,
         "localAlluxioMetadataCache");
     UpdateCheck.addIfTrue(isLocalKernelDataCacheEnabled(), fuseInfo, "localKernelDataCache");
-    fuseInfo.add(String.format(FILE_SYSTEM_FORMAT, getUnderlyingFileSystem()));
+    fuseInfo.add(String.format("UnderlyingFileSystem:%s", getUnderlyingFileSystem()));
     return Collections.unmodifiableList(fuseInfo);
   }
 
@@ -92,35 +95,37 @@ public final class UpdateChecker implements HeartbeatExecutor {
   /**
    * @return true, if local Alluxio data cache is enabled
    */
-  public boolean isLocalAlluxioDataCacheEnabled() {
+  private boolean isLocalAlluxioDataCacheEnabled() {
     return mFuseOptions.getFileSystemOptions().isDataCacheEnabled();
   }
 
   /**
    * @return true, if local Alluxio metadata cache is enabled
    */
-  public boolean isLocalAlluxioMetadataCacheEnabled() {
+  private boolean isLocalAlluxioMetadataCacheEnabled() {
     return mFuseOptions.getFileSystemOptions().isMetadataCacheEnabled();
   }
 
   /**
    * @return true, if local kernel data cache is enabled
    */
-  public boolean isLocalKernelDataCacheEnabled() {
+  @VisibleForTesting
+  boolean isLocalKernelDataCacheEnabled() {
     return !mFuseOptions.getFuseMountOptions().contains("direct_io");
   }
 
   /**
    * @return true, if local kernel data cache is enabled
    */
-  public String getUnderlyingFileSystem() {
+  @VisibleForTesting
+  String getUnderlyingFileSystem() {
     if (!mFuseOptions.getFileSystemOptions().getUfsFileSystemOptions().isPresent()) {
-      return "alluxio";
+      return ALLUXIO_FS;
     }
     String ufsAddress = mFuseOptions.getFileSystemOptions()
         .getUfsFileSystemOptions().get().getUfsAddress();
     if (URIUtils.isLocalFilesystem(ufsAddress)) {
-      return "local";
+      return LOCAL_FS;
     }
     String[] components = ufsAddress.split(":");
     if (components.length < 2) {
