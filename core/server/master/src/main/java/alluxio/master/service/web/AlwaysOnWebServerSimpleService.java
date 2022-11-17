@@ -11,13 +11,12 @@
 
 package alluxio.master.service.web;
 
-import alluxio.master.AlluxioMasterProcess;
+import alluxio.master.MasterProcess;
 
 import java.net.InetSocketAddress;
 
 class AlwaysOnWebServerSimpleService extends WebServerSimpleService {
-  AlwaysOnWebServerSimpleService(InetSocketAddress bindAddress,
-      AlluxioMasterProcess masterProcess) {
+  AlwaysOnWebServerSimpleService(InetSocketAddress bindAddress, MasterProcess masterProcess) {
     super(bindAddress, masterProcess);
   }
 

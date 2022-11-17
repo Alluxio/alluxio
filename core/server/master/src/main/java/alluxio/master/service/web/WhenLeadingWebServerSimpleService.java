@@ -11,14 +11,13 @@
 
 package alluxio.master.service.web;
 
-import alluxio.master.AlluxioMasterProcess;
+import alluxio.master.MasterProcess;
 
 import java.net.InetSocketAddress;
 
 class WhenLeadingWebServerSimpleService extends WebServerSimpleService {
 
-  WhenLeadingWebServerSimpleService(InetSocketAddress bindAddress,
-      AlluxioMasterProcess masterProcess) {
+  WhenLeadingWebServerSimpleService(InetSocketAddress bindAddress, MasterProcess masterProcess) {
     super(bindAddress, masterProcess);
   }
 
