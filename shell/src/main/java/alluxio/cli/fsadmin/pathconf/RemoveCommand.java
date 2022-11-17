@@ -111,7 +111,8 @@ public final class RemoveCommand extends AbstractFsAdminCommand {
   @Override
   public String getUsage() {
     return String.format("%s [-R/--recursive] [--%s <key1,key2,key3>] <path>%n"
-        + "\t--%s: %s" + "\t--%s: %s",
+        + "\t--%s: %s" + "%n"
+        + "\t--%s: %s",
         getCommandName(), KEYS_OPTION_NAME,
         KEYS_OPTION_NAME, KEYS_OPTION.getDescription(),
         RECURSIVE_OPTION.getOpt(), RECURSIVE_OPTION.getDescription());
