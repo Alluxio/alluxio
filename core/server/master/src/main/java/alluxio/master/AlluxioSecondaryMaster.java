@@ -18,6 +18,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
+import alluxio.master.journal.noop.NoopPrimarySelector;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.CommonUtils.ProcessType;
@@ -51,6 +52,7 @@ public final class AlluxioSecondaryMaster implements Process {
     // Create masters.
     MasterUtils.createMasters(mRegistry, CoreMasterContext.newBuilder()
         .setJournalSystem(mJournalSystem)
+        .setPrimarySelector(new NoopPrimarySelector())
         .setSafeModeManager(new DefaultSafeModeManager())
         .setBackupManager(new BackupManager(mRegistry))
         .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))
