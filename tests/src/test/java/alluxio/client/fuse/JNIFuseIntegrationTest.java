@@ -45,7 +45,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
 
   @Override
   public void mountFuse(FileSystemContext context,
-                        FileSystem fileSystem, String mountPoint, String alluxioRoot) {
+      FileSystem fileSystem, String mountPoint, String alluxioRoot) {
     Configuration.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, alluxioRoot);
     Configuration.set(PropertyKey.FUSE_MOUNT_POINT, mountPoint);
     AlluxioConfiguration conf = Configuration.global();
