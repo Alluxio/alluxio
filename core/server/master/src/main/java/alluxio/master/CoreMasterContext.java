@@ -124,7 +124,6 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
       return this;
     }
 
-
     /**
      * @param primarySelector the primary selector
      * @return the builder
