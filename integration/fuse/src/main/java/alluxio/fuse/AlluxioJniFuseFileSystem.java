@@ -154,7 +154,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int create(String path, long mode, FuseFileInfo fi) {
     int originalFlags = fi.flags.get();
-    fi.flags.set(OpenFlags.O_WRONLY.intValue());
+    fi.flags.set(OpenFlags.O_WRONLY.intValue() | fi.flags.get());
     return AlluxioFuseUtils.call(LOG, () -> createOrOpenInternal(path, fi, mode),
         "Fuse.Create", "path=%s,mode=%o,flags=0x%x", path, mode, originalFlags);
   }
@@ -217,41 +217,45 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       }
 
       Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
-      if (!status.isPresent()) {
+      status.ifPresent(uriStatus -> AlluxioFuseUtils.fillStat(mAuthPolicy, stat, uriStatus));
+
+      boolean hasWriteStream = false;
+      Set<FuseFileEntry<FuseFileStream>> fuseStreams
+          = mFileEntries.getByField(PATH_INDEX, path);
+      if (!fuseStreams.isEmpty()) {
+        for (FuseFileEntry<FuseFileStream> stream : fuseStreams) {
+          FileStatus fileStatus = stream.getFileStream().getFileStatus();
+          if (fileStatus instanceof CreateFileStatus) {
+            // File is being written by current Alluxio client, should be only one write stream
+            if (status.isPresent()) {
+              AlluxioFuseUtils.updateStatSize(stat, fileStatus.getFileLength());
+            } else {
+              AlluxioFuseUtils.fillStat(stat, (CreateFileStatus) fileStatus);
+            }
+            hasWriteStream = true;
+          }
+        }
+      }
+
+      if (!hasWriteStream && status.isPresent() && !status.get().isCompleted()) {
+        // File is being written by other Alluxio client
+        Optional<URIStatus> completedFileStatus = AlluxioFuseUtils
+            .waitForFileCompleted(mFileSystem, uri);
+        completedFileStatus.ifPresent(uriStatus
+            -> AlluxioFuseUtils.updateStatSize(stat, uriStatus.getLength()));
+        if (!completedFileStatus.isPresent()) {
+          LOG.error("File {} is not completed, cannot get accurate file length", path);
+        }
+      }
+
+      if (!status.isPresent() && !hasWriteStream) {
         LOG.debug("Failed to getattr {}: path does not exist or is invalid", path);
         return -ErrorCodes.ENOENT();
-      }
-      AlluxioFuseUtils.fillStat(mAuthPolicy, stat, status.get());
-
-      if (!status.get().isCompleted()) {
-        Set<FuseFileEntry<FuseFileStream>> fuseStreams
-            = mFileEntries.getByField(PATH_INDEX, path);
-        boolean hasWriteStream = false;
-        if (!fuseStreams.isEmpty()) {
-          for (FuseFileEntry<FuseFileStream> stream : fuseStreams) {
-            FileStatus fileStatus = stream.getFileStream().getFileStatus();
-            if (fileStatus instanceof  CreateFileStatus) {
-              // should have only one
-              AlluxioFuseUtils.updateCreateFileStatus(stat, (CreateFileStatus) fileStatus);
-              hasWriteStream = true;
-            }
-          }
-        }
-        if (!hasWriteStream) {
-          // File is being written by other Alluxio client
-          status = AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri);
-          status.ifPresent(uriStatus
-              -> AlluxioFuseUtils.updateStatSize(stat, uriStatus.getLength()));
-          if (!status.isPresent()) {
-            LOG.error("File {} is not completed, cannot get accurate file length", path);
-          }
-        }
       }
     } catch (Throwable t) {
       LOG.error("Failed to getattr {}", path, t);
       return -ErrorCodes.EIO();
     }
-
     return 0;
   }
 
@@ -328,6 +332,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     } catch (AlreadyExistsRuntimeException e) {
       LOG.error("Failed to write {}: cannot overwrite existing file", path);
       return -ErrorCodes.EEXIST();
+    } catch (UnimplementedRuntimeException e) {
+      LOG.error("Failed to write {}: not supported", path, e);
+      return -ErrorCodes.EOPNOTSUPP();
     }
     return (int) size;
   }
@@ -549,37 +556,43 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     if (res != 0) {
       return res;
     }
-    FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(PATH_INDEX, path);
-    if (entry != null) {
-      entry.getFileStream().truncate(size);
-      return 0;
-    }
-    Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
-    if (!status.isPresent()) {
-      if (size == 0) {
+    try {
+      FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(PATH_INDEX, path);
+      if (entry != null) {
+        entry.getFileStream().truncate(size);
         return 0;
       }
-      LOG.error("Failed to truncate file {} to {} bytes: file does not exist", path, size);
-      return -ErrorCodes.EEXIST();
-    }
+      Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
+      if (!status.isPresent()) {
+        if (size == 0) {
+          return 0;
+        }
+        LOG.error("Failed to truncate file {} to {} bytes: file does not exist", path, size);
+        return -ErrorCodes.EEXIST();
+      }
 
-    if (status.get().isCompleted()) {
-      long fileLen = status.get().getLength();
-      if (fileLen == size) {
-        return 0;
+      if (status.get().isCompleted()) {
+        long fileLen = status.get().getLength();
+        if (fileLen == size) {
+          return 0;
+        }
+        if (size == 0) {
+          AlluxioFuseUtils.deletePath(mFileSystem, uri);
+        }
+        LOG.error("Failed to truncate file {}({} bytes) to {} bytes: not supported.",
+            path, fileLen, size);
+        return -ErrorCodes.EOPNOTSUPP();
       }
-      if (size == 0) {
-        AlluxioFuseUtils.deletePath(mFileSystem, uri);
-      }
-      LOG.error("Failed to truncate file {}({} bytes) to {} bytes: not supported.",
-          path, fileLen, size);
+
+      LOG.error("Failed to truncate file {} to {} bytes: "
+              + "file is being written by other Fuse applications or Alluxio APIs.",
+          path, size);
+      return -ErrorCodes.EOPNOTSUPP();
+    } catch (UnimplementedRuntimeException e) {
+      LOG.error("Failed to truncate file {} to {} bytes: not supported",
+          path, size);
       return -ErrorCodes.EOPNOTSUPP();
     }
-
-    LOG.error("Failed to truncate file {} to {} bytes: "
-        + "file is being written by other Fuse applications or Alluxio APIs.",
-        path, size);
-    return -ErrorCodes.EOPNOTSUPP();
   }
 
   @Override
