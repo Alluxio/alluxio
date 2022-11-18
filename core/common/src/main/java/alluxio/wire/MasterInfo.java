@@ -12,6 +12,7 @@
 package alluxio.wire;
 
 import alluxio.util.CommonUtils;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -58,19 +59,6 @@ public final class MasterInfo {
     mAddress = Preconditions.checkNotNull(address, "address");
     mId = id;
     mLastUpdatedTimeMs = System.currentTimeMillis();
-  }
-
-  /**
-   * Creates a new instance of {@link MasterInfo}.
-   *
-   * @param masterInfo the masterInfo need to be cloned
-   * @return the the master information
-   */
-  public MasterInfo clone(MasterInfo masterInfo) {
-    mAddress = masterInfo.getAddress();
-    mId = masterInfo.getId();
-    mLastUpdatedTimeMs = masterInfo.getLastUpdatedTimeMs();
-    return this;
   }
 
   /**
