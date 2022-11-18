@@ -13,7 +13,6 @@ package alluxio.underfs.oss;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -22,22 +21,17 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.network.HttpUtils;
 
 import com.aliyun.oss.OSSClient;
-import com.aliyun.oss.common.comm.DefaultServiceClient;
+import com.aliyun.oss.OSSClientBuilder;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({HttpUtils.class, OSSClient.class, OSSUnderFileSystemTest.class})
 public class StsOssClientProviderTest {
 
   InstancedConfiguration mConf;
@@ -72,28 +66,32 @@ public class StsOssClientProviderTest {
         UnderFileSystemConfiguration.defaults(mConf);
 
     // init
-    DefaultServiceClient client = Mockito.mock(DefaultServiceClient.class);
-    PowerMockito.whenNew(DefaultServiceClient.class).withAnyArguments().thenReturn(client);
+    OSSClientBuilder ossClientBuilder = Mockito.mock(OSSClientBuilder.class);
+    StsOssClientProvider.mOssClientBuilder = ossClientBuilder;
     OSSClient ossClient = Mockito.mock(OSSClient.class);
-    PowerMockito.whenNew(OSSClient.class).withAnyArguments().thenReturn(ossClient);
-    PowerMockito.mockStatic(HttpUtils.class);
-    when(HttpUtils.get(mEcsMetadataService, 10000)).thenReturn(MOCK_ECS_META_RESPONSE);
-    try (StsOssClientProvider clientProvider = new StsOssClientProvider(ossConfiguration)) {
-      clientProvider.init();
-      // refresh
-      String responseBodyString = "{\n"
-          + "  'AccessKeyId' : 'STS.mockAK',\n"
-          + "  'AccessKeySecret' : 'mockSK',\n"
-          + "  'Expiration' : '" + expiration + "',\n"
-          + "  'SecurityToken' : 'mockSecurityToken',\n"
-          + "  'LastUpdated' : '" + lastUpdated + "',\n"
-          + "  'Code' : 'Success'\n"
-          + "}";
-      PowerMockito.mockStatic(HttpUtils.class);
-      when(HttpUtils.get(mEcsMetadataService, 10000)).thenReturn(responseBodyString);
-      assertTrue(clientProvider.tokenWillExpiredAfter(0));
-      clientProvider.createOrRefreshOssStsClient(ossConfiguration);
-      assertFalse(clientProvider.tokenWillExpiredAfter(0));
+    Mockito.when(ossClientBuilder.build(
+        Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+        .thenReturn(ossClient);
+    try (MockedStatic<HttpUtils> mockedHttpUtils = Mockito.mockStatic(HttpUtils.class)) {
+      mockedHttpUtils.when(() -> HttpUtils.get(mEcsMetadataService, 10000))
+          .thenReturn(MOCK_ECS_META_RESPONSE);
+      try (StsOssClientProvider clientProvider = new StsOssClientProvider(ossConfiguration)) {
+        clientProvider.init();
+        // refresh
+        String responseBodyString = "{\n"
+            + "  'AccessKeyId' : 'STS.mockAK',\n"
+            + "  'AccessKeySecret' : 'mockSK',\n"
+            + "  'Expiration' : '" + expiration + "',\n"
+            + "  'SecurityToken' : 'mockSecurityToken',\n"
+            + "  'LastUpdated' : '" + lastUpdated + "',\n"
+            + "  'Code' : 'Success'\n"
+            + "}";
+        mockedHttpUtils.when(() -> HttpUtils.get(mEcsMetadataService, 10000))
+            .thenReturn(responseBodyString);
+        assertTrue(clientProvider.tokenWillExpiredAfter(0));
+        clientProvider.createOrRefreshOssStsClient(ossConfiguration);
+        assertFalse(clientProvider.tokenWillExpiredAfter(0));
+      }
     }
   }
 
