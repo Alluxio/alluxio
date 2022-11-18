@@ -264,6 +264,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     try (JobMasterAuditContext auditContext =
         createAuditContext("run")) {
       auditContext.setJobId(jobId);
+      auditContext.setJobName(jobConfig.getName());
       if (jobConfig instanceof PlanConfig) {
         mPlanTracker.run((PlanConfig) jobConfig, mCommandManager, mJobServerContext,
             getWorkerInfoList(), jobId);

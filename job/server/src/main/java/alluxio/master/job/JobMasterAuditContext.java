@@ -114,7 +114,7 @@ public class JobMasterAuditContext implements AuditContext {
   }
 
   /**
-   * Sets mCreationTimeNs field.
+   * Sets mJobName field.
    *
    * @param jobName the job name
    * @return this {@link AuditContext} instance
