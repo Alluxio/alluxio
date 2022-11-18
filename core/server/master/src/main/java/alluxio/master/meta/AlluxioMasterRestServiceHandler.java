@@ -868,12 +868,11 @@ public final class AlluxioMasterRestServiceHandler {
 
       response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG));
 
-      List<MasterInfo> lostMasterInfos = mMetaMaster.getLostMasterInfoList();
-      MasterInfo[] failedMasterInfos = WebUtils.generateMasterInfos(lostMasterInfos);
+      MasterInfo[] failedMasterInfos = mMetaMaster.getLostMasterInfoList().toArray(new MasterInfo[0]);
       response.setFailedMasterInfos(failedMasterInfos);
 
       List<MasterInfo> masterInfos = mMetaMaster.getMasterInfoList();
-      MasterInfo[] normalMasterInfos = WebUtils.generateMasterInfos(masterInfos);
+      MasterInfo[] normalMasterInfos = mMetaMaster.getMasterInfoList().toArray(new MasterInfo[0]);
       response.setNormalMasterInfos(normalMasterInfos);
 
       InetSocketAddress leaderMasterAddress = mMasterProcess.getRpcAddress();

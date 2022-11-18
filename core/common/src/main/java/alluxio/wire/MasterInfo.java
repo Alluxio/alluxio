@@ -11,6 +11,7 @@
 
 package alluxio.wire;
 
+import alluxio.util.CommonUtils;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -123,7 +124,8 @@ public final class MasterInfo {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
-        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).toString();
+        .add("lastUpdatedTime", CommonUtils.convertMsToClockTime(mLastUpdatedTimeMs))
+        .toString();
   }
 
   /**

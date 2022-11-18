@@ -494,7 +494,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     List<MasterInfo> masterInfoList = new ArrayList<>(mMasters.size());
     for (MetaMasterInfo master : mMasters) {
       masterInfoList.add(new MasterInfo(master.getId(),
-              master.getAddress(), master.getLastUpdatedTimeMs()));
+        master.getAddress(), master.getLastUpdatedTimeMs()));
     }
     return masterInfoList;
   }
@@ -504,7 +504,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     List<MasterInfo> masterInfoList = new ArrayList<>(mLostMasters.size());
     for (MetaMasterInfo master : mLostMasters) {
       masterInfoList.add(new MasterInfo(master.getId(),
-              master.getAddress(), master.getLastUpdatedTimeMs()));
+        master.getAddress(), master.getLastUpdatedTimeMs()));
     }
     return masterInfoList;
   }

@@ -21,7 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterWebUIMasters implements Serializable {
-  private static final long serialVersionUID = 1320235517686567983L;
+  private static final long serialVersionUID = -2709466215687255197L;
 
   private boolean mDebug;
   private MasterInfo[] mFailedMasterInfos;
@@ -117,8 +117,8 @@ public final class MasterWebUIMasters implements Serializable {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("debug", mDebug)
-            .add("failedMasterInfos", mFailedMasterInfos)
-            .add("normalMasterInfos", mNormalMasterInfos)
-            .add("leaderMasterInfo", mLeaderMasterInfo).toString();
+        .add("failedMasterInfos", mFailedMasterInfos)
+        .add("normalMasterInfos", mNormalMasterInfos)
+        .add("leaderMasterInfo", mLeaderMasterInfo).toString();
   }
 }

@@ -11,7 +11,6 @@
 
 package alluxio.util.webui;
 
-import alluxio.wire.MasterInfo;
 import alluxio.wire.WorkerInfo;
 
 import java.util.Arrays;
@@ -53,22 +52,6 @@ public final class WebUtils {
       ret[index++] = new NodeInfo(workerInfo);
     }
     Arrays.sort(ret);
-
-    return ret;
-  }
-
-  /**
-   * Generate {@link MasterInfo} list for UI display.
-   *
-   * @param masterInfos the list of {@link MasterInfo} objects
-   * @return the list of {@link MasterInfo} objects
-   */
-  public static MasterInfo[] generateMasterInfos(Collection<MasterInfo> masterInfos) {
-    MasterInfo[] ret = new MasterInfo[masterInfos.size()];
-    int index = 0;
-    for (MasterInfo masterInfo : masterInfos) {
-      ret[index++] = new MasterInfo().clone(masterInfo);
-    }
 
     return ret;
   }

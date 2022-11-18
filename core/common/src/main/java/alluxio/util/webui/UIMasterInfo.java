@@ -35,7 +35,7 @@ public class UIMasterInfo {
   }
 
   /**
-   * Get master address.
+   * Gets master address.
    *
    * @return the master address
    */
