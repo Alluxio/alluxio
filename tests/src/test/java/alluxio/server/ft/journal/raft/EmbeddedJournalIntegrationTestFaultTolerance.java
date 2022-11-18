@@ -31,7 +31,8 @@ import alluxio.util.WaitForOptions;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.ratis.server.RaftServerConfigKeys;
-import org.apache.ratis.server.storage.RaftStorageImpl;
+import org.apache.ratis.server.storage.RaftStorage;
+import org.apache.ratis.server.storage.StorageImplUtils;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.junit.Assert;
@@ -105,10 +106,13 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
     waitForSnapshot(raftDir);
     mCluster.stopMasters();
 
-    SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
-    storage.init(new RaftStorageImpl(raftDir,
+    RaftStorage rs = StorageImplUtils.newRaftStorage(raftDir,
         RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
-        RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize()));
+        RaftStorage.StartupOption.RECOVER,
+        RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize());
+    rs.initialize();
+    SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
+    storage.init(rs);
     SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
     assertNotNull(snapshot);
     mCluster.notifySuccess();
@@ -149,10 +153,13 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
         RaftJournalSystem.RAFT_GROUP_UUID.toString());
     waitForSnapshot(raftDir);
     mCluster.stopMaster(catchUpMasterIndex);
-    SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
-    storage.init(new RaftStorageImpl(raftDir,
+    RaftStorage rs = StorageImplUtils.newRaftStorage(raftDir,
         RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
-        RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize()));
+        RaftStorage.StartupOption.RECOVER,
+        RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize());
+    rs.initialize();
+    SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
+    storage.init(rs);
     SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
     assertNotNull(snapshot);
     mCluster.notifySuccess();
