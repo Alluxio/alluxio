@@ -146,7 +146,7 @@ public class JobMasterAuditContext implements AuditContext {
   @Override
   public String toString() {
     return String.format(
-        "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tmJobId=%d\tmJobName=%s\t"
+        "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tjobId=%d\tjobName=%s\t"
             + "perm=null\texecutionTimeUs=%d",
         mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mJobId, mJobName,
         mExecutionTimeNs / 1000);
