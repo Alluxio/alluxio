@@ -51,7 +51,7 @@ public class StsOssClientProvider implements Closeable {
   private static final String ACCESS_KEY_SECRET = "AccessKeySecret";
   private static final String SECURITY_TOKEN = "SecurityToken";
   private static final String EXPIRATION = "Expiration";
-  protected static OSSClientBuilder mOssClientBuilder = new OSSClientBuilder();
+  protected static OSSClientBuilder sOssClientBuilder = new OSSClientBuilder();
 
   private volatile OSS mOssClient = null;
   private long mStsTokenExpiration = 0;
@@ -138,7 +138,7 @@ public class StsOssClientProvider implements Closeable {
           convertStringToDate(jsonObject.get(EXPIRATION).getAsString()).getTime();
 
       if (null == mOssClient) {
-        mOssClient = mOssClientBuilder.build(
+        mOssClient = sOssClientBuilder.build(
             ossConfiguration.getString(PropertyKey.OSS_ENDPOINT_KEY),
             accessKeyId, accessKeySecret, securityToken,
             clientConfiguration);

@@ -67,7 +67,7 @@ public class StsOssClientProviderTest {
 
     // init
     OSSClientBuilder ossClientBuilder = Mockito.mock(OSSClientBuilder.class);
-    StsOssClientProvider.mOssClientBuilder = ossClientBuilder;
+    StsOssClientProvider.sOssClientBuilder = ossClientBuilder;
     OSSClient ossClient = Mockito.mock(OSSClient.class);
     Mockito.when(ossClientBuilder.build(
         Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
