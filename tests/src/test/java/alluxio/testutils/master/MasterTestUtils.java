@@ -15,6 +15,7 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.master.AlwaysStandbyPrimarySelector;
 import alluxio.master.BackupManager;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
@@ -26,7 +27,6 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
-import alluxio.master.journal.noop.NoopPrimarySelector;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.user.ServerUserState;
 import alluxio.security.user.UserState;
@@ -123,7 +123,7 @@ public class MasterTestUtils {
     }
     CoreMasterContext masterContext = CoreMasterContext.newBuilder()
         .setJournalSystem(journalSystem)
-        .setPrimarySelector(new NoopPrimarySelector())
+        .setPrimarySelector(new AlwaysStandbyPrimarySelector())
         .setSafeModeManager(safeModeManager)
         .setBackupManager(mock(BackupManager.class))
         .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))

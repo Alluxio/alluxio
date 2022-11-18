@@ -15,7 +15,6 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
-import alluxio.master.journal.noop.NoopPrimarySelector;
 import alluxio.master.metastore.BlockMetaStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.heap.HeapBlockMetaStore;
@@ -67,7 +66,7 @@ public final class MasterTestUtils {
       InodeStore.Factory inodeStoreFactory) {
     return CoreMasterContext.newBuilder()
         .setJournalSystem(journalSystem)
-        .setPrimarySelector(new NoopPrimarySelector())
+        .setPrimarySelector(new AlwaysStandbyPrimarySelector())
         .setUserState(userState)
         .setSafeModeManager(new TestSafeModeManager())
         .setBackupManager(mock(BackupManager.class))

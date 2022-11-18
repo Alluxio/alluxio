@@ -17,7 +17,6 @@ import alluxio.grpc.ServiceType;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournaled;
 import alluxio.master.journal.noop.NoopJournalSystem;
-import alluxio.master.journal.noop.NoopPrimarySelector;
 import alluxio.underfs.UfsManager;
 
 import java.util.Map;
@@ -55,8 +54,8 @@ public class NoopMaster implements Master, NoopJournaled {
    */
   public NoopMaster(String name, UfsManager ufsManager) {
     mName = name;
-    mMasterContext = new MasterContext(new NoopJournalSystem(), new NoopPrimarySelector(), null,
-        ufsManager);
+    mMasterContext = new MasterContext(new NoopJournalSystem(),
+        new AlwaysStandbyPrimarySelector(), null, ufsManager);
   }
 
   @Override
