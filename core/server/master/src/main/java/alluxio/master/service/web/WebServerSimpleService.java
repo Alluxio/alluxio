@@ -45,6 +45,13 @@ public abstract class WebServerSimpleService implements SimpleService {
     mMasterProcess = masterProcess;
   }
 
+  /**
+   * @return whether the web server is serving or not
+   */
+  public synchronized boolean isServing() {
+    return mWebServer != null && mWebServer.getServer().isRunning();
+  }
+
   protected synchronized void startRejectingServer() {
     mRejectingServer = new RejectingServer(mBindAddress);
     mRejectingServer.start();

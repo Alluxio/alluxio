@@ -21,6 +21,7 @@ import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.JournalDomain;
 import alluxio.master.job.JobMaster;
 import alluxio.master.journal.DefaultJournalMaster;
+import alluxio.master.journal.JournalMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
@@ -38,8 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -51,10 +50,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public class AlluxioJobMasterProcess extends AlluxioSimpleMasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobMasterProcess.class);
 
-  /** The master managing all job related metadata. */
-  protected JobMaster mJobMaster;
-  protected DefaultJournalMaster mJournalMaster;
-
   AlluxioJobMasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector) {
     super("job", JournalDomain.JOB_MASTER, journalSystem, leaderSelector,
         ServiceType.JOB_MASTER_WEB, ServiceType.JOB_MASTER_RPC, PropertyKey.JOB_MASTER_HOSTNAME);
@@ -65,25 +60,12 @@ public class AlluxioJobMasterProcess extends AlluxioSimpleMasterProcess {
       MasterContext<UfsManager> context =
           new MasterContext<>(mJournalSystem, leaderSelector, null, ufsManager);
       // Create master.
-      mJobMaster = new JobMaster(context, fileSystem, fsContext, ufsManager);
-      mJournalMaster = new DefaultJournalMaster(JournalDomain.JOB_MASTER, context);
+      mRegistry.add(JobMaster.class, new JobMaster(context, fileSystem, fsContext, ufsManager));
+      mRegistry.add(JournalMaster.class,
+          new DefaultJournalMaster(JournalDomain.JOB_MASTER, context));
     } catch (Exception e) {
       LOG.error("Failed to create job master", e);
       throw new RuntimeException("Failed to create job master", e);
-    }
-  }
-
-  @Override
-  List<AbstractMaster> getAbstractMasters() {
-    return Arrays.asList(mJobMaster, mJournalMaster);
-  }
-
-  @Override
-  public <T extends Master> T getMaster(Class<T> clazz) {
-    if (clazz == JobMaster.class) {
-      return (T) mJobMaster;
-    } else {
-      throw new RuntimeException(String.format("Could not find the master: %s", clazz));
     }
   }
 
@@ -91,7 +73,7 @@ public class AlluxioJobMasterProcess extends AlluxioSimpleMasterProcess {
    * @return the {@link JobMaster} for this process
    */
   public JobMaster getJobMaster() {
-    return mJobMaster;
+    return mRegistry.get(JobMaster.class);
   }
 
   @Override
@@ -101,7 +83,7 @@ public class AlluxioJobMasterProcess extends AlluxioSimpleMasterProcess {
   }
 
   @Override
-  GrpcServerBuilder createBaseRPCServer() {
+  public GrpcServerBuilder createBaseRpcServer() {
     return GrpcServerBuilder
         .forAddress(GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
             Configuration.global())

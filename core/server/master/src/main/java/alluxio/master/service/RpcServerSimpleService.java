@@ -14,16 +14,13 @@ package alluxio.master.service;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.grpc.ErrorType;
 import alluxio.grpc.GrpcServer;
-import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.master.AlluxioExecutorService;
+import alluxio.master.MasterProcess;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
 import alluxio.network.RejectingServer;
 
 import io.grpc.Status;
@@ -32,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -43,25 +39,29 @@ import javax.annotation.concurrent.GuardedBy;
 public class RpcServerSimpleService implements SimpleService {
   private static final Logger LOG = LoggerFactory.getLogger(RpcServerSimpleService.class);
 
-  private final MasterRegistry mMasterRegistry;
-  private final InetSocketAddress mConnectAddress;
   private final InetSocketAddress mBindAddress;
-  private final SafeModeManager mSafeModeManager;
+  private final MasterProcess mMasterProcess;
+  private final MasterRegistry mMasterRegistry;
 
-  @Nullable
-  @GuardedBy("this")
+  @Nullable @GuardedBy("this")
   private GrpcServer mGrpcServer = null;
   @Nullable @GuardedBy("this")
   private AlluxioExecutorService mRpcExecutor = null;
   @Nullable @GuardedBy("this")
   private RejectingServer mRejectingGrpcServer = null;
 
-  private RpcServerSimpleService(MasterRegistry masterRegistry, InetSocketAddress connectAddress,
-      InetSocketAddress bindAddress, SafeModeManager safeModeManager) {
-    mMasterRegistry = masterRegistry;
-    mConnectAddress = connectAddress;
+  private RpcServerSimpleService(InetSocketAddress bindAddress, MasterProcess masterProcess,
+      MasterRegistry masterRegistry) {
     mBindAddress = bindAddress;
-    mSafeModeManager = safeModeManager;
+    mMasterRegistry = masterRegistry;
+    mMasterProcess = masterProcess;
+  }
+
+  /**
+   * @return whether the grpc server is serving or not
+   */
+  public synchronized boolean isServing() {
+    return mGrpcServer != null && mGrpcServer.isServing();
   }
 
   @Override
@@ -73,24 +73,25 @@ public class RpcServerSimpleService implements SimpleService {
   @Override
   public synchronized void promote() {
     stopRejectingServer();
-    mRpcExecutor = createRpcExecutor();
-    MetricsSystem.removeMetrics(MetricKey.MASTER_RPC_QUEUE_LENGTH.getName());
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_QUEUE_LENGTH.getName(),
-        mRpcExecutor::getRpcQueueLength);
-    MetricsSystem.removeMetrics(MetricKey.MASTER_RPC_THREAD_ACTIVE_COUNT.getName());
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_THREAD_ACTIVE_COUNT.getName(),
-        mRpcExecutor::getActiveCount);
-    MetricsSystem.removeMetrics(MetricKey.MASTER_RPC_THREAD_CURRENT_COUNT.getName());
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_THREAD_CURRENT_COUNT.getName(),
-        mRpcExecutor::getPoolSize);
-    mGrpcServer = createRpcServer(mRpcExecutor);
+    GrpcServerBuilder builder = mMasterProcess.createBaseRpcServer();
+    mMasterProcess.createRpcExecutorService().ifPresent(executor -> {
+      builder.executor(executor);
+      mRpcExecutor = executor;
+    });
+    mMasterRegistry.getServers().forEach(master -> {
+      master.getServices().forEach((type, service) -> {
+        builder.addService(type, service);
+        LOG.info("registered service {}", type.name());
+      });
+    });
+    mGrpcServer = builder.build();
     try {
       mGrpcServer.start();
+      mMasterProcess.getSafeModeManager().ifPresent(SafeModeManager::notifyRpcServerStarted);
     } catch (IOException e) {
       throw new AlluxioRuntimeException(Status.INTERNAL, "Failed to start gRPC server", e,
           ErrorType.Internal, false);
     }
-    mSafeModeManager.notifyRpcServerStarted();
   }
 
   @Override
@@ -134,39 +135,6 @@ public class RpcServerSimpleService implements SimpleService {
     }
   }
 
-  private AlluxioExecutorService createRpcExecutor() {
-    return ExecutorServiceBuilder.buildExecutorService(
-        ExecutorServiceBuilder.RpcExecutorHost.MASTER);
-  }
-
-  private GrpcServer createRpcServer(Executor rpcExecutor) {
-    GrpcServerBuilder builder = GrpcServerBuilder
-        .forAddress(GrpcServerAddress.create(mConnectAddress.getHostName(), mBindAddress),
-            Configuration.global())
-        .executor(rpcExecutor)
-        .flowControlWindow(
-            (int) Configuration.getBytes(PropertyKey.MASTER_NETWORK_FLOWCONTROL_WINDOW))
-        .keepAliveTime(
-            Configuration.getMs(PropertyKey.MASTER_NETWORK_KEEPALIVE_TIME_MS),
-            TimeUnit.MILLISECONDS)
-        .keepAliveTimeout(
-            Configuration.getMs(PropertyKey.MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS),
-            TimeUnit.MILLISECONDS)
-        .permitKeepAlive(
-            Configuration.getMs(PropertyKey.MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS),
-            TimeUnit.MILLISECONDS)
-        .maxInboundMessageSize((int) Configuration.getBytes(
-            PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
-    // register services
-    mMasterRegistry.getServers().forEach(master -> {
-      master.getServices().forEach((type, service) -> {
-        builder.addService(type, service);
-        LOG.info("registered service {}", type.name());
-      });
-    });
-    return builder.build();
-  }
-
   /**
    * Factory to create an {@link RpcServerSimpleService}.
    */
@@ -174,19 +142,16 @@ public class RpcServerSimpleService implements SimpleService {
     /**
      * Creates a simple service wrapper around a grpc server to manager the grpc server for the
      * master process.
+     * @param masterProcess the master process that drives the rpc server
      * @param masterRegistry where the grpc services will be drawn from
-     * @param connectAddress the address where the rpc server will connect
      * @param bindAddress the address where the rpc server will bind
-     * @param safeModeManager the safe mode manager
      * @return a simple service that manages the behavior of the rpc server
      */
     public static RpcServerSimpleService create(
-        MasterRegistry masterRegistry,
-        InetSocketAddress connectAddress,
         InetSocketAddress bindAddress,
-        SafeModeManager safeModeManager) {
-      return new RpcServerSimpleService(masterRegistry, connectAddress, bindAddress,
-          safeModeManager);
+        MasterProcess masterProcess,
+        MasterRegistry masterRegistry) {
+      return new RpcServerSimpleService(bindAddress, masterProcess, masterRegistry);
     }
   }
 }

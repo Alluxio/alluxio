@@ -19,6 +19,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.NodeState;
 import alluxio.master.file.FileSystemMaster;
@@ -56,8 +57,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -69,13 +70,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @NotThreadSafe
 public class AlluxioMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
-
-  /** The master registry. */
-  protected final MasterRegistry mRegistry = new MasterRegistry();
-
-  /** The connection address for the rpc server. */
-  final InetSocketAddress mRpcConnectAddress =
-      NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, Configuration.global());
 
   /** The manager of safe mode state. */
   protected final SafeModeManager mSafeModeManager = new DefaultSafeModeManager();
@@ -123,8 +117,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       mRegistry.get(alluxio.master.throttle.DefaultThrottleMaster.class).setMaster(this);
     }
     // add simple services
-    mServices.add(RpcServerSimpleService.Factory.create(mRegistry, mRpcConnectAddress,
-        mRpcBindAddress, mSafeModeManager));
+    mServices.add(RpcServerSimpleService.Factory.create(mRpcBindAddress, this, mRegistry));
     mServices.add(WebServerSimpleService.Factory.create(mWebBindAddress, this));
     mServices.add(MetricsSimpleService.Factory.create());
     mServices.add(JvmMonitorSimpleService.Factory.create());
@@ -132,13 +125,29 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   @Override
-  public <T extends Master> T getMaster(Class<T> clazz) {
-    return mRegistry.get(clazz);
+  public WebServer createWebServer() {
+    return new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(), mWebBindAddress, this);
   }
 
   @Override
-  public WebServer createWebServer() {
-    return new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(), mWebBindAddress, this);
+  public Optional<AlluxioExecutorService> createRpcExecutorService() {
+    AlluxioExecutorService executor = ExecutorServiceBuilder.buildExecutorService(
+        ExecutorServiceBuilder.RpcExecutorHost.MASTER);
+    MetricsSystem.removeMetrics(MetricKey.MASTER_RPC_QUEUE_LENGTH.getName());
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_QUEUE_LENGTH.getName(),
+        executor::getRpcQueueLength);
+    MetricsSystem.removeMetrics(MetricKey.MASTER_RPC_THREAD_ACTIVE_COUNT.getName());
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_THREAD_ACTIVE_COUNT.getName(),
+        executor::getActiveCount);
+    MetricsSystem.removeMetrics(MetricKey.MASTER_RPC_THREAD_CURRENT_COUNT.getName());
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_THREAD_CURRENT_COUNT.getName(),
+        executor::getPoolSize);
+    return Optional.of(executor);
+  }
+
+  @Override
+  public Optional<SafeModeManager> getSafeModeManager() {
+    return Optional.of(mSafeModeManager);
   }
 
   /**
@@ -146,16 +155,6 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   public boolean isInSafeMode() {
     return mSafeModeManager.isInSafeMode();
-  }
-
-  @Override
-  public InetSocketAddress getWebAddress() {
-    return mWebBindAddress;
-  }
-
-  @Override
-  public InetSocketAddress getRpcAddress() {
-    return mRpcConnectAddress;
   }
 
   @Override
