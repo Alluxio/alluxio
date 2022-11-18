@@ -12,35 +12,50 @@
 package alluxio.master.service.web;
 
 import alluxio.master.MasterProcess;
+import alluxio.network.RejectingServer;
 
 import java.net.InetSocketAddress;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 
 class WhenLeadingWebServerSimpleService extends WebServerSimpleService {
+  private final InetSocketAddress mBindAddress;
+  @Nullable @GuardedBy("this")
+  private RejectingServer mRejectingServer = null;
 
   WhenLeadingWebServerSimpleService(InetSocketAddress bindAddress, MasterProcess masterProcess) {
-    super(bindAddress, masterProcess);
+    super(masterProcess);
+    mBindAddress = bindAddress;
   }
 
   @Override
-  public void start() {
-    startRejectingServer();
+  public synchronized void start() {
+    mRejectingServer = new RejectingServer(mBindAddress);
+    mRejectingServer.start();
   }
 
   @Override
-  public void promote() {
+  public synchronized void promote() {
     stopRejectingServer();
     startWebServer();
   }
 
   @Override
-  public void demote() {
+  public synchronized void demote() {
     stopWebServer();
-    startRejectingServer();
+    start(); // start rejecting server again
   }
 
   @Override
-  public void stop() {
+  public synchronized void stop() {
     stopWebServer();
     stopRejectingServer();
+  }
+
+  private synchronized void stopRejectingServer() {
+    if (mRejectingServer != null) {
+      mRejectingServer.stopAndJoin();
+      mRejectingServer = null;
+    }
   }
 }

@@ -13,26 +13,24 @@ package alluxio.master.service.web;
 
 import alluxio.master.MasterProcess;
 
-import java.net.InetSocketAddress;
-
 class AlwaysOnWebServerSimpleService extends WebServerSimpleService {
-  AlwaysOnWebServerSimpleService(InetSocketAddress bindAddress, MasterProcess masterProcess) {
-    super(bindAddress, masterProcess);
+  AlwaysOnWebServerSimpleService(MasterProcess masterProcess) {
+    super(masterProcess);
   }
 
   @Override
-  public void start() {
+  public synchronized void start() {
     startWebServer();
   }
 
   @Override
-  public void promote() {}
+  public synchronized void promote() {}
 
   @Override
-  public void demote() {}
+  public synchronized void demote() {}
 
   @Override
-  public void stop() {
+  public synchronized void stop() {
     stopWebServer();
   }
 }
