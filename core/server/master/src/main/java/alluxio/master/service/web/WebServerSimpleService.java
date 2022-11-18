@@ -16,7 +16,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.MasterProcess;
 import alluxio.master.service.SimpleService;
-import alluxio.network.RejectingServer;
 import alluxio.web.WebServer;
 
 import org.slf4j.Logger;
@@ -32,16 +31,12 @@ import javax.annotation.concurrent.GuardedBy;
 public abstract class WebServerSimpleService implements SimpleService {
   private static final Logger LOG = LoggerFactory.getLogger(WebServerSimpleService.class);
 
-  private final InetSocketAddress mBindAddress;
   private final MasterProcess mMasterProcess;
 
   @Nullable @GuardedBy("this")
   private WebServer mWebServer = null;
-  @Nullable @GuardedBy("this")
-  private RejectingServer mRejectingServer = null;
 
-  protected WebServerSimpleService(InetSocketAddress bindAddress, MasterProcess masterProcess) {
-    mBindAddress = bindAddress;
+  protected WebServerSimpleService(MasterProcess masterProcess) {
     mMasterProcess = masterProcess;
   }
 
@@ -50,18 +45,6 @@ public abstract class WebServerSimpleService implements SimpleService {
    */
   public synchronized boolean isServing() {
     return mWebServer != null && mWebServer.getServer().isRunning();
-  }
-
-  protected synchronized void startRejectingServer() {
-    mRejectingServer = new RejectingServer(mBindAddress);
-    mRejectingServer.start();
-  }
-
-  protected synchronized void stopRejectingServer() {
-    if (mRejectingServer != null) {
-      mRejectingServer.stopAndJoin();
-      mRejectingServer = null;
-    }
   }
 
   protected synchronized void startWebServer() {
@@ -96,7 +79,7 @@ public abstract class WebServerSimpleService implements SimpleService {
         MasterProcess masterProcess) {
       if (masterProcess instanceof AlluxioMasterProcess
           && Configuration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED)) {
-        return new AlwaysOnWebServerSimpleService(bindAddress, masterProcess);
+        return new AlwaysOnWebServerSimpleService(masterProcess);
       }
       return new WhenLeadingWebServerSimpleService(bindAddress, masterProcess);
     }
