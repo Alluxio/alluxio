@@ -76,7 +76,7 @@ public class StsOssClientProvider implements Closeable {
         createOrRefreshOssStsClient(mOssConf);
       } catch (Exception e) {
         //retry it
-        LOG.warn("throw exception when clear meta data cache", e);
+        LOG.warn("exception when refreshing OSS client access token", e);
       }
     }, 0, 60000, TimeUnit.MILLISECONDS);
   }
@@ -95,11 +95,12 @@ public class StsOssClientProvider implements Closeable {
         lastException = null;
         break;
       } catch (IOException e) {
-        LOG.warn("init oss client failed! has retry {} times", retryPolicy.getAttemptCount(), e);
+        LOG.warn("init oss client failed! has retried {} times", retryPolicy.getAttemptCount(), e);
         lastException = e;
       }
     }
     if (lastException != null) {
+      LOG.error("init oss client failed.", lastException);
       throw lastException;
     }
   }
@@ -113,43 +114,38 @@ public class StsOssClientProvider implements Closeable {
       throws IOException {
     ClientBuilderConfiguration ossClientConf =
         OSSUnderFileSystem.initializeOSSClientConfig(ossConfiguration);
-    createOrRefreshStsOssClient(ossConfiguration, ossClientConf);
+    doCreateOrRefreshStsOssClient(ossConfiguration, ossClientConf);
   }
 
   boolean tokenWillExpiredAfter(long after) {
     return mStsTokenExpiration - System.currentTimeMillis() <= after;
   }
 
-  private void createOrRefreshStsOssClient(
+  private void doCreateOrRefreshStsOssClient(
       UnderFileSystemConfiguration ossConfiguration,
       ClientBuilderConfiguration clientConfiguration) throws IOException {
     if (tokenWillExpiredAfter(mTokenTimeoutMs)) {
-      try {
-        String ecsRamRole = ossConfiguration.getString(PropertyKey.UNDERFS_OSS_ECS_RAM_ROLE);
-        String fullECSMetaDataServiceUrl = mEcsMetadataServiceUrl + ecsRamRole;
-        String jsonStringResponse = HttpUtils.get(fullECSMetaDataServiceUrl, ECS_META_GET_TIMEOUT);
+      String ecsRamRole = ossConfiguration.getString(PropertyKey.UNDERFS_OSS_ECS_RAM_ROLE);
+      String fullECSMetaDataServiceUrl = mEcsMetadataServiceUrl + ecsRamRole;
+      String jsonStringResponse = HttpUtils.get(fullECSMetaDataServiceUrl, ECS_META_GET_TIMEOUT);
 
-        JsonObject jsonObject = new Gson().fromJson(jsonStringResponse, JsonObject.class);
-        String accessKeyId = jsonObject.get(ACCESS_KEY_ID).getAsString();
-        String accessKeySecret = jsonObject.get(ACCESS_KEY_SECRET).getAsString();
-        String securityToken = jsonObject.get(SECURITY_TOKEN).getAsString();
-        mStsTokenExpiration =
-            convertStringToDate(jsonObject.get(EXPIRATION).getAsString()).getTime();
+      JsonObject jsonObject = new Gson().fromJson(jsonStringResponse, JsonObject.class);
+      String accessKeyId = jsonObject.get(ACCESS_KEY_ID).getAsString();
+      String accessKeySecret = jsonObject.get(ACCESS_KEY_SECRET).getAsString();
+      String securityToken = jsonObject.get(SECURITY_TOKEN).getAsString();
+      mStsTokenExpiration =
+          convertStringToDate(jsonObject.get(EXPIRATION).getAsString()).getTime();
 
-        if (null == mOssClient) {
-          mOssClient = new OSSClientBuilder().build(
-              ossConfiguration.getString(PropertyKey.OSS_ENDPOINT_KEY),
-              accessKeyId, accessKeySecret, securityToken,
-              clientConfiguration);
-        } else {
-          mOssClient.switchCredentials((new DefaultCredentials(
-              accessKeyId, accessKeySecret, securityToken)));
-        }
-        LOG.info("oss sts client create success, expiration = {}", mStsTokenExpiration);
-      } catch (IOException e) {
-        LOG.error("create stsOssClient exception", e);
-        throw new IOException("create stsOssClient exception", e);
+      if (null == mOssClient) {
+        mOssClient = new OSSClientBuilder().build(
+            ossConfiguration.getString(PropertyKey.OSS_ENDPOINT_KEY),
+            accessKeyId, accessKeySecret, securityToken,
+            clientConfiguration);
+      } else {
+        mOssClient.switchCredentials((new DefaultCredentials(
+            accessKeyId, accessKeySecret, securityToken)));
       }
+      LOG.debug("oss sts client create success, expiration = {}", mStsTokenExpiration);
     }
   }
 
@@ -161,7 +157,7 @@ public class StsOssClientProvider implements Closeable {
     return mOssClient;
   }
 
-  private Date convertStringToDate(String dateString) {
+  private Date convertStringToDate(String dateString) throws IOException {
     TimeZone zeroTimeZone = TimeZone.getTimeZone("ETC/GMT-0");
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     sdf.setTimeZone(zeroTimeZone);
@@ -169,7 +165,7 @@ public class StsOssClientProvider implements Closeable {
     try {
       date = sdf.parse(dateString);
     } catch (ParseException e) {
-      LOG.error("convert String to Date type error", e);
+      throw new IOException(String.format("failed to parse date: %s", dateString), e);
     }
     return date;
   }
