@@ -22,6 +22,7 @@ import com.aliyun.oss.ClientBuilderConfiguration;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.common.auth.DefaultCredentials;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -51,7 +52,6 @@ public class StsOssClientProvider implements Closeable {
   private static final String ACCESS_KEY_SECRET = "AccessKeySecret";
   private static final String SECURITY_TOKEN = "SecurityToken";
   private static final String EXPIRATION = "Expiration";
-  protected static OSSClientBuilder sOssClientBuilder = new OSSClientBuilder();
 
   private volatile OSS mOssClient = null;
   private long mStsTokenExpiration = 0;
@@ -59,6 +59,7 @@ public class StsOssClientProvider implements Closeable {
   private final long mTokenTimeoutMs;
   private final UnderFileSystemConfiguration mOssConf;
   private final ScheduledExecutorService mRefreshOssClientScheduledThread;
+  private OSSClientBuilder mOssClientBuilder = new OSSClientBuilder();
 
   /**
    * Constructs a new instance of {@link StsOssClientProvider}.
@@ -138,7 +139,7 @@ public class StsOssClientProvider implements Closeable {
           convertStringToDate(jsonObject.get(EXPIRATION).getAsString()).getTime();
 
       if (null == mOssClient) {
-        mOssClient = sOssClientBuilder.build(
+        mOssClient = mOssClientBuilder.build(
             ossConfiguration.getString(PropertyKey.OSS_ENDPOINT_KEY),
             accessKeyId, accessKeySecret, securityToken,
             clientConfiguration);
@@ -180,5 +181,10 @@ public class StsOssClientProvider implements Closeable {
       mOssClient.shutdown();
       mOssClient = null;
     }
+  }
+
+  @VisibleForTesting
+  protected void setOssClientBuilder(OSSClientBuilder ossClientBuilder) {
+    mOssClientBuilder = ossClientBuilder;
   }
 }

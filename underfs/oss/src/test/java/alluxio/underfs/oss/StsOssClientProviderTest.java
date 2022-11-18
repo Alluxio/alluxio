@@ -67,7 +67,6 @@ public class StsOssClientProviderTest {
 
     // init
     OSSClientBuilder ossClientBuilder = Mockito.mock(OSSClientBuilder.class);
-    StsOssClientProvider.sOssClientBuilder = ossClientBuilder;
     OSSClient ossClient = Mockito.mock(OSSClient.class);
     Mockito.when(ossClientBuilder.build(
         Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
@@ -76,6 +75,7 @@ public class StsOssClientProviderTest {
       mockedHttpUtils.when(() -> HttpUtils.get(mEcsMetadataService, 10000))
           .thenReturn(MOCK_ECS_META_RESPONSE);
       try (StsOssClientProvider clientProvider = new StsOssClientProvider(ossConfiguration)) {
+        clientProvider.setOssClientBuilder(ossClientBuilder);
         clientProvider.init();
         // refresh
         String responseBodyString = "{\n"
