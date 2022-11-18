@@ -17,6 +17,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.fuse.AlluxioFuseUtils;
+import alluxio.fuse.AlluxioFuseUtils.CloseableFuseFileInfo;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.jnifuse.LibFuse;
@@ -27,7 +28,6 @@ import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -77,7 +77,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   public void createWriteOpenRead() throws Exception {
     String testFile = "/createWriteOpenReadTestFile";
     try (CloseableFuseFileInfo info = new CloseableFuseFileInfo()) {
-      FuseFileInfo fuseFileInfo = info.getFuseFileInfo();
+      FuseFileInfo fuseFileInfo = info.get();
 
       // cannot open non-existing file for read
       fuseFileInfo.flags.set(OpenFlags.O_RDONLY.intValue());
@@ -96,7 +96,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   public void openWriteNonExisting() throws Exception {
     String testFile = "/openWriteNonExisting";
     try (CloseableFuseFileInfo closeableFuseFileInfo = new CloseableFuseFileInfo()) {
-      FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
+      FuseFileInfo info = closeableFuseFileInfo.get();
       info.flags.set(OpenFlags.O_WRONLY.intValue());
       Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
@@ -116,7 +116,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   public void openWriteExistingWithoutTruncFlag() throws Exception {
     String testFile = "/openWriteExistingWithoutTruncFlag";
     try (CloseableFuseFileInfo closeableFuseFileInfo = new CloseableFuseFileInfo()) {
-      FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
+      FuseFileInfo info = closeableFuseFileInfo.get();
       createTestFile(testFile, info, FILE_LEN);
 
       info.flags.set(OpenFlags.O_WRONLY.intValue());
@@ -138,7 +138,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   public void openWriteExistingWithTruncFlag() throws Exception {
     String testFile = "/openWriteExistingWithTruncFlag";
     try (CloseableFuseFileInfo closeableFuseFileInfo = new CloseableFuseFileInfo()) {
-      FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
+      FuseFileInfo info = closeableFuseFileInfo.get();
       createTestFile(testFile, info, FILE_LEN / 2);
 
       info.flags.set(OpenFlags.O_WRONLY.intValue() | OpenFlags.O_TRUNC.intValue());
@@ -161,7 +161,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   public void openWriteExistingWithTruncate() throws Exception {
     String testFile = "/openWriteExistingWithTruncate";
     try (CloseableFuseFileInfo closeableFuseFileInfo = new CloseableFuseFileInfo()) {
-      FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
+      FuseFileInfo info = closeableFuseFileInfo.get();
       createTestFile(testFile, info, FILE_LEN / 2);
 
       info.flags.set(OpenFlags.O_WRONLY.intValue());
@@ -204,7 +204,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   public void openReadWriteNonExisting() throws Exception {
     String testFile = "/openReadWriteNonExistingFile";
     try (CloseableFuseFileInfo closeableFuseFileInfo = new CloseableFuseFileInfo()) {
-      FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
+      FuseFileInfo info = closeableFuseFileInfo.get();
       info.flags.set(OpenFlags.O_RDWR.intValue());
       Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
       try {
@@ -226,7 +226,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   public void openReadWriteExisting() throws Exception {
     String testFile = "/openReadWriteExisting";
     try (CloseableFuseFileInfo closeableFuseFileInfo = new CloseableFuseFileInfo()) {
-      FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
+      FuseFileInfo info = closeableFuseFileInfo.get();
       createTestFile(testFile, info, FILE_LEN);
 
       info.flags.set(OpenFlags.O_RDWR.intValue());
@@ -249,7 +249,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   public void openReadWriteEmptyFile() throws Exception {
     String testFile = "/openReadWriteEmptyFile";
     try (CloseableFuseFileInfo closeableFuseFileInfo = new CloseableFuseFileInfo()) {
-      FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
+      FuseFileInfo info = closeableFuseFileInfo.get();
       // Create empty file
       info.flags.set(OpenFlags.O_WRONLY.intValue());
       Assert.assertEquals(0, mFuseFileSystem.create(testFile, 100644, info));
@@ -277,7 +277,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   public void openReadWriteTruncExisting() throws Exception {
     String testFile = "/openReadWriteTruncExisting";
     try (CloseableFuseFileInfo closeableFuseFileInfo = new CloseableFuseFileInfo()) {
-      FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
+      FuseFileInfo info = closeableFuseFileInfo.get();
       createTestFile(testFile, info, FILE_LEN / 2);
 
       info.flags.set(OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue());
@@ -314,26 +314,6 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(fileLen, buffer.array()));
     } finally {
       Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
-    }
-  }
-
-  static class CloseableFuseFileInfo implements Closeable {
-    private final FuseFileInfo mInfo;
-    private final ByteBuffer mBuffer;
-
-    public CloseableFuseFileInfo() {
-      mBuffer = ByteBuffer.allocateDirect(36);
-      mBuffer.clear();
-      mInfo =  FuseFileInfo.of(mBuffer);
-    }
-
-    public FuseFileInfo getFuseFileInfo() {
-      return mInfo;
-    }
-
-    @Override
-    public void close() throws IOException {
-      BufferUtils.cleanDirectBuffer(mBuffer);
     }
   }
 }

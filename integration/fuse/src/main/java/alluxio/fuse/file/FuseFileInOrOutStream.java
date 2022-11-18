@@ -155,11 +155,4 @@ public class FuseFileInOrOutStream implements FuseFileStream {
     }
     mOutStream.ifPresent(FuseFileOutStream::close);
   }
-
-  /**
-   * @return true if the current stream is a write stream
-   */
-  public synchronized boolean isWriteStream() {
-    return mOutStream.isPresent();
-  }
 }

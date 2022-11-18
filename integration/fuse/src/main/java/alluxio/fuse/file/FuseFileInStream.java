@@ -19,6 +19,7 @@ import alluxio.concurrent.LockMode;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseUtils;
@@ -126,7 +127,7 @@ public class FuseFileInStream implements FuseFileStream {
 
   @Override
   public void write(ByteBuffer buf, long size, long offset) {
-    throw new UnimplementedRuntimeException(String
+    throw new FailedPreconditionRuntimeException(String
         .format("Cannot write to read-only stream of path %s", mURI));
   }
 
