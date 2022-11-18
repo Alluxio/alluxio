@@ -178,7 +178,7 @@ public final class AlluxioFuse {
     if (fuseOptions.updateCheckEnabled()) {
       executor = Executors.newSingleThreadExecutor();
       executor.submit(new HeartbeatThread(HeartbeatContext.FUSE_UPDATE_CHECK,
-          new UpdateChecker(fuseOptions), Constants.DAY_MS,
+          UpdateChecker.create(fuseOptions), Constants.DAY_MS,
           Configuration.global(), UserState.Factory.create(conf)));
     }
     try (FileSystem fs = FileSystem.Factory.create(fsContext, fuseOptions.getFileSystemOptions())) {

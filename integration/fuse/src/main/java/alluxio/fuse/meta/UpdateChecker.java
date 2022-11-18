@@ -13,8 +13,10 @@ package alluxio.fuse.meta;
 
 import alluxio.ProjectConstants;
 import alluxio.check.UpdateCheck;
+import alluxio.fuse.FuseConstants;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.URIUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -24,7 +26,9 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -33,22 +37,42 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UpdateChecker implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(UpdateChecker.class);
+  static final String UNDERLYING_FS_FORMAT = "UnderlyingFileSystem:%s";
+  static final String LOCAL_ALLUXIO_DATA_CACHE = "localAlluxioDataCache";
+  static final String LOCAL_ALLUXIO_METADATA_CACHE = "localAlluxioMetadataCache";
+  static final String LOCAL_KERNEL_DATA_CACHE = "localKernelDataCache";
 
   static final String ALLUXIO_FS = "alluxio";
   static final String LOCAL_FS = "local";
 
-  private final FuseOptions mFuseOptions;
+  private final String mInstanceId = UUID.randomUUID().toString();
 
-  private String mInstanceId;
-  private List<String> mUnchangeableFuseInfo;
+  private final Map<String, Long> mFuseOpsCounter;
+  private final List<String> mUnchangeableFuseInfo;
 
   /**
-   * Creates a new instance of {@link UpdateChecker}.
+   * Creates a {@link UpdateChecker}.
    *
    * @param fuseOptions the fuse options
+   * @return the update checker
    */
-  public UpdateChecker(FuseOptions fuseOptions) {
-    mFuseOptions = fuseOptions;
+  public static UpdateChecker create(FuseOptions fuseOptions) {
+    List<String> fuseInfo = new ArrayList<>();
+    UpdateCheck.addIfTrue(isLocalAlluxioDataCacheEnabled(fuseOptions),
+        fuseInfo, LOCAL_ALLUXIO_DATA_CACHE);
+    UpdateCheck.addIfTrue(isLocalAlluxioMetadataCacheEnabled(fuseOptions), fuseInfo,
+        LOCAL_ALLUXIO_METADATA_CACHE);
+    UpdateCheck.addIfTrue(isLocalKernelDataCacheEnabled(fuseOptions),
+        fuseInfo, LOCAL_KERNEL_DATA_CACHE);
+    fuseInfo.add(String.format("UnderlyingFileSystem:%s", getUnderlyingFileSystem(fuseOptions)));
+    return new UpdateChecker(Collections.unmodifiableList(fuseInfo),
+        FuseConstants.getFuseMethodNames().stream()
+            .collect(Collectors.toMap(methodName -> methodName, methodName -> 0L)));
+  }
+
+  private UpdateChecker(List<String> unchangeableFuseInfo, Map<String, Long> fuseOpsCounter) {
+    mUnchangeableFuseInfo = unchangeableFuseInfo;
+    mFuseOpsCounter = fuseOpsCounter;
   }
 
   /**
@@ -56,13 +80,9 @@ public final class UpdateChecker implements HeartbeatExecutor {
    */
   @Override
   public void heartbeat() {
-    if (mInstanceId == null) {
-      mInstanceId = getNewInstanceId();
-      mUnchangeableFuseInfo = getUnchangeableFuseInfo();
-    }
     try {
       String latestVersion =
-          UpdateCheck.getLatestVersion(mInstanceId, mUnchangeableFuseInfo,
+          UpdateCheck.getLatestVersion(mInstanceId, getFuseCheckInfo(),
               3000, 3000, 3000);
       if (!ProjectConstants.VERSION.equals(latestVersion)) {
         LOG.info("The latest version (" + latestVersion + ") is not the same "
@@ -78,51 +98,57 @@ public final class UpdateChecker implements HeartbeatExecutor {
   public void close() {}
 
   @VisibleForTesting
-  List<String> getUnchangeableFuseInfo() {
-    List<String> fuseInfo = new ArrayList<>();
-    UpdateCheck.addIfTrue(isLocalAlluxioDataCacheEnabled(), fuseInfo, "localAlluxioDataCache");
-    UpdateCheck.addIfTrue(isLocalAlluxioMetadataCacheEnabled(), fuseInfo,
-        "localAlluxioMetadataCache");
-    UpdateCheck.addIfTrue(isLocalKernelDataCacheEnabled(), fuseInfo, "localKernelDataCache");
-    fuseInfo.add(String.format("UnderlyingFileSystem:%s", getUnderlyingFileSystem()));
-    return Collections.unmodifiableList(fuseInfo);
+  List<String> getFuseCheckInfo() {
+    List<String> info = new ArrayList<>(mUnchangeableFuseInfo);
+    for (String fuseOps : mFuseOpsCounter.keySet()) {
+      mFuseOpsCounter.computeIfPresent(fuseOps, (key, value) -> {
+        long newCount = MetricsSystem.timer(key).getCount();
+        if (newCount > value) {
+          info.add(fuseOps);
+        }
+        return newCount;
+      });
+    }
+    return info;
   }
 
-  private String getNewInstanceId() {
-    return UUID.randomUUID().toString();
+  /**
+   * @return
+   */
+  @VisibleForTesting
+  List<String> getUnchangeableFuseInfo() {
+    return mUnchangeableFuseInfo;
   }
 
   /**
    * @return true, if local Alluxio data cache is enabled
    */
-  private boolean isLocalAlluxioDataCacheEnabled() {
-    return mFuseOptions.getFileSystemOptions().isDataCacheEnabled();
+  private static boolean isLocalAlluxioDataCacheEnabled(FuseOptions fuseOptions) {
+    return fuseOptions.getFileSystemOptions().isDataCacheEnabled();
   }
 
   /**
    * @return true, if local Alluxio metadata cache is enabled
    */
-  private boolean isLocalAlluxioMetadataCacheEnabled() {
-    return mFuseOptions.getFileSystemOptions().isMetadataCacheEnabled();
+  private static boolean isLocalAlluxioMetadataCacheEnabled(FuseOptions fuseOptions) {
+    return fuseOptions.getFileSystemOptions().isMetadataCacheEnabled();
   }
 
   /**
    * @return true, if local kernel data cache is enabled
    */
-  @VisibleForTesting
-  boolean isLocalKernelDataCacheEnabled() {
-    return !mFuseOptions.getFuseMountOptions().contains("direct_io");
+  private static  boolean isLocalKernelDataCacheEnabled(FuseOptions fuseOptions) {
+    return !fuseOptions.getFuseMountOptions().contains("direct_io");
   }
 
   /**
    * @return true, if local kernel data cache is enabled
    */
-  @VisibleForTesting
-  String getUnderlyingFileSystem() {
-    if (!mFuseOptions.getFileSystemOptions().getUfsFileSystemOptions().isPresent()) {
+  private static String getUnderlyingFileSystem(FuseOptions fuseOptions) {
+    if (!fuseOptions.getFileSystemOptions().getUfsFileSystemOptions().isPresent()) {
       return ALLUXIO_FS;
     }
-    String ufsAddress = mFuseOptions.getFileSystemOptions()
+    String ufsAddress = fuseOptions.getFileSystemOptions()
         .getUfsFileSystemOptions().get().getUfsAddress();
     if (URIUtils.isLocalFilesystem(ufsAddress)) {
       return LOCAL_FS;
