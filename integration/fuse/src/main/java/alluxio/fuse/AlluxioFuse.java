@@ -119,8 +119,8 @@ public final class AlluxioFuse {
       .longOpt("update-check")
       .hasArg()
       .desc("Enables or disables the FUSE version update check. "
-          + "Disables when connecting to Alluxio system cache by default. "
-          + "Enables when connecting the an under storage directly by default.")
+          + "Disabled by default when connecting to Alluxio system cache. "
+          + "Enabled by default when connecting an under storage directly.")
       .build();
   private static final Option HELP_OPTION = Option.builder(HELP_OPTION_NAME)
       .required(false)

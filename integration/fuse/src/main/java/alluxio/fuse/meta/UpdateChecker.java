@@ -142,7 +142,7 @@ public final class UpdateChecker implements HeartbeatExecutor {
   }
 
   /**
-   * @return true, if local kernel data cache is enabled
+   * @return the underlying file system type
    */
   private static String getUnderlyingFileSystem(FuseOptions fuseOptions) {
     if (!fuseOptions.getFileSystemOptions().getUfsFileSystemOptions().isPresent()) {
