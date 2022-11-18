@@ -114,9 +114,7 @@ public class S3RangeSpec {
   public String getRealRange(long objectSize) {
     long start = getOffset(objectSize);
     long length = getLength(objectSize);
-    long end = length == 0 ? 0
-        : (start + length == objectSize) ? objectSize
-            : start + length - 1;
+    long end = length == 0 ? 0 : start + length - 1;
     return String.format("bytes %s-%s/%s", start, end, objectSize);
   }
 
