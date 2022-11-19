@@ -1,21 +1,36 @@
 package alluxio.shuttle.client;
 
+import alluxio.grpc.ReadRequest;
+import alluxio.wire.WorkerNetAddress;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.concurrent.Future;
 
-public class BlockReaderClient {
+public class NettyBlockReaderClient {
 
   private static final String DEFAULT_HOST = "127.0.0.1";
   private static final int DEFAULT_PORT = 8080;
 
-  public void readBlock(String host, int port) throws Exception {
+  private final String serverHost;
+
+  private final int serverPort;
+
+  public NettyBlockReaderClient(String serverHost, int serverPort) {
+    this.serverHost = serverHost;
+    this.serverPort = serverPort;
+  }
+
+  public ByteBuf readBlock(ReadRequest readRequest) throws Exception {
     EventLoopGroup workerGroup = new NioEventLoopGroup();
+    BlockReaderRequestHandler blockReaderRequestHandler = new BlockReaderRequestHandler(readRequest);
     try {
       Bootstrap b = new Bootstrap(); // (1)
       b.group(workerGroup); // (2)
@@ -24,18 +39,18 @@ public class BlockReaderClient {
       b.handler(new ChannelInitializer() {
         @Override
         protected void initChannel(Channel channel) throws Exception {
-          channel.pipeline().addLast(new BlockReaderClientDecoder(), new BlockReaderClientHandler());
+          channel.pipeline().addLast(blockReaderRequestHandler);
         }
       });
 
       // Start the client.
-      ChannelFuture f = b.connect(host, port).sync(); // (5)
-
+      ChannelFuture f = b.connect(serverHost, serverPort).sync(); // (5)
       // Wait until the connection is closed.
       f.channel().closeFuture().sync();
     } finally {
       workerGroup.shutdownGracefully();
     }
+    return blockReaderRequestHandler.getBlockData();
   }
 
   public static void main(String[] args) throws Exception {
@@ -45,7 +60,7 @@ public class BlockReaderClient {
       host = args[0];
       port = Integer.parseInt(args[1]);
     }
-    BlockReaderClient blockReaderClient = new BlockReaderClient();
-    blockReaderClient.readBlock(host, port);
+    NettyBlockReaderClient blockReaderClient = new NettyBlockReaderClient(host, port);
+    //blockReaderClient.readBlock();
   }
 }

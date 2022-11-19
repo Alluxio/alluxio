@@ -1,9 +1,17 @@
 package alluxio.shuttle.client;
 
+import alluxio.grpc.ReadRequest;
+import alluxio.shuttle.server.BlockReaderServerHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 public class BlockReaderClientHandler extends ChannelInboundHandlerAdapter {
+
+  private final ReadRequest readRequest;
+
+  public BlockReaderClientHandler(ReadRequest readRequest) {
+    this.readRequest = readRequest;
+  }
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) {

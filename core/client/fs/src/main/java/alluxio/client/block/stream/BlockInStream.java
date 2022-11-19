@@ -233,7 +233,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       // GrpcDataReader instances are shared across FileInStreams to mitigate seek cost
       factory = new SharedGrpcDataReader.Factory(context, address, builder, blockSize);
     } else {
-      factory = new GrpcDataReader.Factory(context, address, builder);
+      factory = new NettyDataReader.Factory(context, address, builder);
     }
     return new BlockInStream(factory, address, blockSource, blockId, blockSize);
   }

@@ -22,16 +22,23 @@ import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.resource.CloseableResource;
+import alluxio.shuttle.client.NettyBlockReaderClient;
+import alluxio.shuttle.handler.RpcCallback;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.WorkerNetAddress;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import com.codahale.metrics.Timer;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +61,7 @@ public final class NettyDataReader implements DataReader {
 
   private final long mDataTimeoutMs;
   private final boolean mDetailedMetricsEnabled;
+
   private final CloseableResource<BlockWorkerClient> mClient;
   private final ReadRequest mReadRequest;
   private final WorkerNetAddress mAddress;
@@ -65,6 +73,10 @@ public final class NettyDataReader implements DataReader {
   /** The next pos to read. */
   private long mPosToRead;
 
+  private final NettyBlockReaderClient mNettyBlockReaderClient;
+
+  private final Map<ReadRequest, ByteBuf> mResponseMap;
+
   // TODO(JiamingMai): This class is copied from GrpcDataReader. We need to rewrite all the methods.
   /**
    * Creates an instance of {@link NettyDataReader}.
@@ -75,6 +87,9 @@ public final class NettyDataReader implements DataReader {
    */
   private NettyDataReader(FileSystemContext context, WorkerNetAddress address,
                           ReadRequest readRequest) throws IOException {
+    mNettyBlockReaderClient = new NettyBlockReaderClient(address.getHost(), 8080);
+    mResponseMap = new ConcurrentHashMap<>();
+
     mAddress = address;
     mPosToRead = readRequest.getOffset();
     mReadRequest = readRequest;
@@ -134,6 +149,18 @@ public final class NettyDataReader implements DataReader {
   }
 
   private DataBuffer readChunkInternal() throws IOException {
+    try {
+      ByteBuf byteBuf = mNettyBlockReaderClient.readBlock(mReadRequest);
+      DataBuffer dataBuffer = new NettyDataBuffer(byteBuf);
+      return dataBuffer;
+    } catch (Exception e) {
+      LOG.debug("Failed to send receipt of data to worker {} for request {}: {}.", mAddress,
+          mReadRequest, e.getMessage());
+      return null;
+    }
+  }
+
+  private DataBuffer readChunkInternalBak() throws IOException {
     Preconditions.checkState(!mClient.get().isShutdown(),
         "Data reader is closed while reading data chunks.");
     DataBuffer buffer = null;
