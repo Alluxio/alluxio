@@ -30,6 +30,7 @@ public final class HeartbeatContext {
   public static final Class<? extends HeartbeatTimer> SLEEPING_TIMER_CLASS = SleepingTimer.class;
 
   // Names of different heartbeat executors.
+  public static final String FUSE_UPDATE_CHECK = "Fuse update check";
   public static final String JOB_MASTER_LOST_WORKER_DETECTION = "Job Master Lost Worker Detection";
   public static final String JOB_WORKER_COMMAND_HANDLING =
       "Job Worker Command Handling";

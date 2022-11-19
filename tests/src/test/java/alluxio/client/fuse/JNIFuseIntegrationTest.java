@@ -30,6 +30,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashSet;
 
 /**
  * Integration tests for JNR-FUSE based {@link AlluxioJniFuseFileSystem}.
@@ -51,7 +52,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
     AlluxioConfiguration conf = Configuration.global();
     LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(conf));
     mFuseFileSystem = new AlluxioJniFuseFileSystem(context, fileSystem, FuseOptions.create(conf));
-    mFuseFileSystem.mount(false, false, new String[] {});
+    mFuseFileSystem.mount(false, false, new HashSet<>());
   }
 
   @Override

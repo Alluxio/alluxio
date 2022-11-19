@@ -14,6 +14,7 @@ package alluxio.fuse.ufs;
 import static jnr.constants.platform.OpenFlags.O_WRONLY;
 
 import alluxio.client.file.options.FileSystemOptions;
+import alluxio.conf.Configuration;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
@@ -34,8 +35,8 @@ public abstract class AbstractFuseFileSystemTest extends AbstractTest {
   @Override
   public void beforeActions() {
     mFuseFs = new AlluxioJniFuseFileSystem(mContext, mFileSystem,
-        new FuseOptions(FileSystemOptions.create(
-            mContext.getClusterConf(), Optional.of(mUfsOptions))));
+        FuseOptions.create(Configuration.global(), FileSystemOptions.create(
+            mContext.getClusterConf(), Optional.of(mUfsOptions)), false));
     mFileStat = FileStat.of(ByteBuffer.allocateDirect(256));
     mFileInfo = new AlluxioFuseUtils.CloseableFuseFileInfo();
   }
