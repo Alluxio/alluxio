@@ -51,12 +51,6 @@ import java.util.Set;
  */
 public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheFileSystem.class);
-  private static final Set<String> SUPPORTED_FS = new HashSet<String>() {
-    {
-      add(Constants.SCHEME);
-      add("ws");
-    }
-  };
 
   /** The external Hadoop filesystem to query on cache miss. */
   private final org.apache.hadoop.fs.FileSystem mExternalFileSystem;
@@ -88,10 +82,6 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public synchronized void initialize(URI uri, org.apache.hadoop.conf.Configuration conf)
       throws IOException {
-    if (!SUPPORTED_FS.contains(uri.getScheme())) {
-      throw new UnsupportedOperationException(
-          uri.getScheme() + " is not supported as the external filesystem.");
-    }
     super.initialize(uri, conf);
     mHadoopConf = conf;
     // Set statistics
