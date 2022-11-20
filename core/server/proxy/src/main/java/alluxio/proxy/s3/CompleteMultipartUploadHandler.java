@@ -256,6 +256,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
 
         // Check if the requested parts are available
         List<URIStatus> uploadedParts = mUserFs.listStatus(multipartTemporaryDir);
+        uploadedParts.sort(new S3RestUtils.URIStatusNameComparator());
         if (uploadedParts.size() < request.getParts().size()) {
           throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
         }

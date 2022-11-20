@@ -238,6 +238,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     blockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
     blockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
     blockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
+    blockMaster.registerWorkerDeleteListener(mWorkerConfigStore::handleNodeDelete);
 
     mUfsManager = masterContext.getUfsManager();
 

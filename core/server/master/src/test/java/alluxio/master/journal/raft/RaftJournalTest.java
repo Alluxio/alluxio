@@ -605,10 +605,10 @@ public class RaftJournalTest {
     long currentTermObj = (long) getCurrentTermMethod.invoke(serverStateObj);
 
     Method changeToFollowerMethod = raftServerImplClass.getDeclaredMethod("changeToFollower",
-        long.class, boolean.class, Object.class);
+        long.class, boolean.class, boolean.class, Object.class);
 
     changeToFollowerMethod.setAccessible(true);
-    changeToFollowerMethod.invoke(serverImplObj, currentTermObj, true, "test");
+    changeToFollowerMethod.invoke(serverImplObj, currentTermObj, true, false, "test");
   }
 
   /**
