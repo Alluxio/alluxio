@@ -7149,6 +7149,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
                   .setScope(Scope.SERVER)
                   .build();
+
+  public static final PropertyKey USER_NETTY_DATA_TRANSMISSION_ENABLED =
+      booleanBuilder(Name.USER_NETTY_DATA_TRANSMISSION_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to enable Netty data transmission.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
+
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -8591,6 +8600,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL =
         "alluxio.hadoop.kerberos.keytab.login.autorenewal";
+
+    public static final String USER_NETTY_DATA_TRANSMISSION_ENABLED =
+        "alluxio.user.netty.data.transmission.enabled";
 
     private Name() {} // prevent instantiation
   }

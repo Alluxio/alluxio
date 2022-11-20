@@ -118,6 +118,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
     boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.NODE_LOCAL;
+    boolean nettyTransEnabled =
+        alluxioConf.getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
 
     // Short circuit is enabled when
     // 1. data source is local node
@@ -137,7 +139,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
 
     // use Netty to transfer data
-    if (useNetty) {
+    if (nettyTransEnabled) {
       // TODO(JiamingMai): implement this logic
       LOG.debug("Creating Netty input stream for block {} @ {} from client {} reading through {} ("
               + "data locates in the local worker {}, shortCircuitEnabled {}, "
