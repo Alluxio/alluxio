@@ -15,7 +15,6 @@ import alluxio.client.file.options.FileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
-import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.utils.LibfuseVersion;
 
@@ -93,8 +92,7 @@ public class FuseOptions {
     } else {
       if (mountOptions.remove("direct_io")) {
         // TODO(lu) implement direct_io with libfuse3
-        throw new UnimplementedRuntimeException(
-            "Option direct_io with libfuse 3 is not implemented in Alluxio FUSE");
+        LOG.error("FUSE 3 does not support direct_io mount option");
       }
       if (mountOptions.stream().noneMatch(a -> a.startsWith("max_idle_threads"))) {
         String idleThreadsOption = "max_idle_threads=64";
