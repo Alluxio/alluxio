@@ -887,11 +887,6 @@
     <pluginManagement>
       <plugins>
         <plugin>
-          <groupId>com.coderplus.maven.plugins</groupId>
-          <artifactId>copy-rename-maven-plugin</artifactId>
-          <version>1.0</version>
-        </plugin>
-        <plugin>
           <groupId>com.igormaznitsa</groupId>
           <artifactId>jcp</artifactId>
           <version>6.1.2</version>
