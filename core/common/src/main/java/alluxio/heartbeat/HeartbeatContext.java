@@ -154,6 +154,7 @@ public final class HeartbeatContext {
     sTimerClasses.put(WORKER_SPACE_RESERVER, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_STORAGE_HEALTH, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_WORKER_REGISTER_SESSION_CLEANER, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(FUSE_UPDATE_CHECK, SLEEPING_TIMER_CLASS);
   }
 
   private HeartbeatContext() {} // to prevent initialization
