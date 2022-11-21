@@ -15,7 +15,6 @@ import static com.google.common.hash.Hashing.md5;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.cache.CacheManager;
@@ -39,10 +38,8 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * An Alluxio client compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
