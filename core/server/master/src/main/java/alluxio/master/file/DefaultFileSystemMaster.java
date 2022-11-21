@@ -2794,7 +2794,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    */
   private void renameInternal(RpcContext rpcContext, LockedInodePath srcInodePath,
       LockedInodePath dstInodePath, RenameContext context) throws InvalidPathException,
-      FileDoesNotExistException, FileAlreadyExistsException, IOException, AccessControlException {
+          FileDoesNotExistException, FileAlreadyExistsException, IOException, AccessControlException {
     if (!srcInodePath.fullPathExists()) {
       throw new FileDoesNotExistException(
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcInodePath.getUri()));
@@ -2846,8 +2846,28 @@ public class DefaultFileSystemMaster extends CoreMaster
           ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(dstInodePath.getUri()));
     }
 
+    boolean s3Client = true;
     // Make sure destination path does not exist
     if (dstInodePath.fullPathExists()) {
+      if (s3Client) {
+        String UPLOADS_FILE_ID_XATTR_KEY = "s3_uploads_file_id";
+        // FOR OBJ OVERWRITE
+        String mpUploadIdDst = new String(dstInodePath.getInodeFile().getXAttr()
+                .getOrDefault(UPLOADS_FILE_ID_XATTR_KEY, new byte[0]));
+        String mpUploadIdSrc = new String(srcInodePath.getInodeFile().getXAttr()
+                .getOrDefault(UPLOADS_FILE_ID_XATTR_KEY, new byte[0]));
+        if (StringUtils.equals(mpUploadIdSrc, mpUploadIdDst)) {
+        /* This is a rename operation as part of complete a CompleteMultipartUpload call
+         and there's concurrent attempt on the same multipart upload succeed, so for idempotency
+         this will be a no-op and return with success. */
+          return;
+        }
+        //we need to overwrite
+        try {
+          deleteInternal(rpcContext, dstInodePath, DeleteContext
+                  .mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false)), true);
+        } catch (DirectoryNotEmptyException ex) {} // this will never happen
+      }
       throw new FileAlreadyExistsException(String
           .format("Cannot rename because destination already exists. src: %s dst: %s",
               srcInodePath.getUri(), dstInodePath.getUri()));

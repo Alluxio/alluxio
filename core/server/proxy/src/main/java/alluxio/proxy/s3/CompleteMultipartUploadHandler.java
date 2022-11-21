@@ -19,10 +19,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-import alluxio.grpc.Bits;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.PMode;
+import alluxio.grpc.*;
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
 
@@ -32,6 +29,7 @@ import com.google.common.io.ByteStreams;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -39,10 +37,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -235,7 +235,19 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
           metaStatus = S3RestUtils.checkStatusesForUploadId(mMetaFs, mUserFs,
               multipartTemporaryDir, mUploadId).get(1);
         } catch (Exception e) {
-          LOG.error("checkStatusesForUploadId failed:{}", ThreadUtils.formatStackTrace(e));
+          LOG.warn("checkStatusesForUploadId uploadId:{} failed, checking previous attempt for idempotency : {}",
+                  mUploadId, ThreadUtils.formatStackTrace(e));
+          URIStatus objStatus = checkIfComplete(objectPath);
+          boolean throwEx = true;
+          if (objStatus != null) {
+            String etag = new String(objStatus.getXAttr()
+                    .getOrDefault(S3Constants.ETAG_XATTR_KEY, new byte[0]));
+            if (!etag.isEmpty()) {
+              LOG.info("checkStatusesForUploadId uploadId:{} idempotency check passed.", mUploadId);
+              return new CompleteMultipartUploadResult(objectPath, mBucket, mObject, etag);
+            }
+            LOG.info("checkStatusesForUploadId uploadId:{} object path exists but no etag found.", mUploadId);
+          }
           throw new S3Exception(objectPath, S3ErrorCode.NO_SUCH_UPLOAD);
         }
 
@@ -279,9 +291,11 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         CreateFilePOptions.Builder optionsBuilder = CreateFilePOptions.newBuilder()
             .setRecursive(true)
             .setMode(PMode.newBuilder()
-                .setOwnerBits(Bits.ALL)
-                .setGroupBits(Bits.ALL)
-                .setOtherBits(Bits.NONE).build())
+            .setOwnerBits(Bits.ALL)
+            .setGroupBits(Bits.ALL)
+            .setOtherBits(Bits.NONE).build())
+            .putXattr(S3Constants.UPLOADS_ID_XATTR_KEY, ByteString.copyFrom(mUploadId, StandardCharsets.UTF_8))
+            .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
             .setWriteType(S3RestUtils.getS3WriteType());
         // Copy Tagging xAttr if it exists
         if (metaStatus.getXAttr().containsKey(S3Constants.TAGGING_XATTR_KEY)) {
@@ -294,15 +308,18 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
               ByteString.copyFrom(metaStatus.getXAttr().get(S3Constants.CONTENT_TYPE_XATTR_KEY)));
         }
         AlluxioURI objectUri = new AlluxioURI(objectPath);
-        try {
-          S3RestUtils.deleteExistObject(mUserFs, objectUri);
-        } catch (IOException | AlluxioException e) {
-          throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath());
-        }
+        // Only overwrite at final step to commit/complete the file (AKA rename)
+//        try {
+//          S3RestUtils.deleteExistObject(mUserFs, objectUri);
+//        } catch (IOException | AlluxioException e) {
+//          throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath());
+//        }
         // (re)create the merged object
         LOG.debug("CompleteMultipartUploadTask (bucket: {}, object: {}, uploadId: {}) "
             + "combining {} parts...", mBucket, mObject, mUploadId, uploadedParts.size());
-        FileOutStream os = mUserFs.createFile(objectUri, optionsBuilder.build());
+        String objTempPath = bucketPath + AlluxioURI.SEPARATOR + mObject + ".temp." + UUID.randomUUID();
+        AlluxioURI objectTempUri = new AlluxioURI(objTempPath);
+        FileOutStream os = mUserFs.createFile(objectTempUri, optionsBuilder.build());
         MessageDigest md5 = MessageDigest.getInstance("MD5");
 
         try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
@@ -316,6 +333,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         // persist the ETag via xAttr
         // TODO(czhu): try to compute the ETag prior to creating the file to reduce total RPC RTT
         S3RestUtils.setEntityTag(mUserFs, objectUri, entityTag);
+
+        mUserFs.rename();
 
         // Remove the temporary directory containing the uploaded parts and the
         // corresponding Alluxio S3 API metadata file
@@ -331,6 +350,21 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       } catch (Exception e) {
         throw S3RestUtils.toObjectS3Exception(e, mObject);
       }
+    }
+
+    public URIStatus checkIfComplete(String objectPath) throws IOException, AlluxioException {
+      try {
+        URIStatus objStatus = mUserFs.getStatus(new AlluxioURI(objectPath));
+        String uploadId = new String(objStatus.getXAttr()
+                .getOrDefault(S3Constants.UPLOADS_ID_XATTR_KEY, new byte[0]));
+        if (objStatus.isCompleted() && StringUtils.equals(uploadId, mUploadId)) {
+          return objStatus;
+        }
+      } catch (IOException | AlluxioException ex) {
+        // can't validate if any previous attempt has succeeded
+        return null;
+      }
+      return null;
     }
   }
 }
