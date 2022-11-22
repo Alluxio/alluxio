@@ -37,7 +37,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import java.util.concurrent.TimeUnit;
 
-@Fork(value = 3)
+@Fork(value = 5)
 @Warmup(iterations = 0)
 @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
 public class MasterWorkerInfoBench {
@@ -75,7 +75,6 @@ public class MasterWorkerInfoBench {
     @TearDown
     public void after() {
       mMasterWorkerInfo = null;
-      System.out.println(mCounter);
     }
   }
 
@@ -97,7 +96,6 @@ public class MasterWorkerInfoBench {
     @TearDown
     public void after() {
       mMasterWorkerInfo = null;
-      System.out.println(mCounter);
     }
   }
 
@@ -122,7 +120,6 @@ public class MasterWorkerInfoBench {
     @TearDown
     public void after() {
       mMasterWorkerInfo = null;
-      System.out.println(mCounter);
     }
   }
 
@@ -147,7 +144,6 @@ public class MasterWorkerInfoBench {
     @TearDown
     public void after() {
       mMasterWorkerInfo = null;
-      System.out.println(mCounter);
     }
   }
 

@@ -71,3 +71,4 @@
 dependency-reduced-pom.xml
 target/
 tests.log*
+.nvimlog
