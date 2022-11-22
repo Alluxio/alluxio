@@ -80,10 +80,11 @@ scrape_configs:
           names:
             - alluxio # Only look at pods in namespace named `alluxio`
     relabel_configs:
-      # Only look at the pods with role `alluxio-master`
+      # Only check the pods with role `alluxio-master`
       - source_labels: [__meta_kubernetes_pod_label_role]
         action: keep
         regex: alluxio-master
+      # Only check the pods with annotation prometheus.io/scrape is true
       - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
         action: keep
         regex: true
@@ -114,5 +115,147 @@ scrape_configs:
         target_label: cluster_name
 ```
 
-To read other components' metrics, use the respective pod role label and web port label. For example, to read the metrics of the job workers,
-replace the `alluxio-master` of the pod role label with `alluxio-worker`, and replace `masterWebPort` with `jobWorkerWebPort`.
+To read other components' metrics, use the respective pod role label and web port label.
+
+{% accordion PrometheusOnK8s %}
+{% collapsible Get worker metrics %}
+An example configuration reading worker metrics
+```yaml
+scrape_configs:
+  - job_name: 'alluxio worker'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - alluxio # Only look at pods in namespace named `alluxio`
+    relabel_configs:
+      # Only look at the pods with role `alluxio-worker`
+      - source_labels: [__meta_kubernetes_pod_label_role]
+        action: keep
+        regex: alluxio-worker
+      # Only check the pods with annotation prometheus.io/scrape is true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      # Use the value of prometheus.io/path in podAnnotation for endpoint
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      # Use the value of prometheus.io/workerWebPort in podAnnotation for port
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_workerWebPort]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: pod_name
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        action: replace
+        target_label: node
+      - source_labels: [__meta_kubernetes_pod_label_release]
+        action: replace
+        target_label: cluster_name
+```
+{% endcollapsible %}
+
+{% collapsible Get job master metrics %}
+An example configuration reading worker metrics
+```yaml
+scrape_configs:
+  - job_name: 'alluxio job worker'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - alluxio # Only look at pods in namespace named `alluxio`
+    relabel_configs:
+      # Only look at the pods with role `alluxio-worker`
+      - source_labels: [__meta_kubernetes_pod_label_role]
+        action: keep
+        regex: alluxio-master
+      # Only check the pods with annotation prometheus.io/scrape is true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      # Use the value of prometheus.io/path in podAnnotation for endpoint
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      # Use the value of prometheus.io/jobWorkerWebPort in podAnnotation for port
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_jobMasterWebPort]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: pod_name
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        action: replace
+        target_label: node
+      - source_labels: [__meta_kubernetes_pod_label_release]
+        action: replace
+        target_label: cluster_name
+```
+{% endcollapsible %}
+
+{% collapsible Get job worker metrics %}
+An example configuration reading worker metrics
+```yaml
+scrape_configs:
+  - job_name: 'alluxio job worker'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - alluxio # Only look at pods in namespace named `alluxio`
+    relabel_configs:
+      # Only look at the pods with role `alluxio-worker`
+      - source_labels: [__meta_kubernetes_pod_label_role]
+        action: keep
+        regex: alluxio-worker
+      # Only check the pods with annotation prometheus.io/scrape is true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      # Use the value of prometheus.io/path in podAnnotation for endpoint
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      # Use the value of prometheus.io/workerWebPort in podAnnotation for port
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_jobWorkerWebPort]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: pod_name
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        action: replace
+        target_label: node
+      - source_labels: [__meta_kubernetes_pod_label_release]
+        action: replace
+        target_label: cluster_name
+```
+{% endcollapsible %}
+{% endaccordion %}
