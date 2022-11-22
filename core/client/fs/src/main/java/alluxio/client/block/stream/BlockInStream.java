@@ -222,21 +222,12 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     long chunkSize = conf.getBytes(
         PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
     // Construct the partial read request
-    ReadRequest.Builder builder = ReadRequest.newBuilder()
+    Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder()
         .setBlockId(blockId)
         .setPromote(ReadType.fromProto(options.getOptions().getReadType()).isPromote())
         .setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId)) // Add UFS fallback options
-        .setPositionShort(options.getPositionShort())
         .setChunkSize(chunkSize);
-    DataReader.Factory factory;
-    if (context.getClusterConf().getBoolean(PropertyKey.FUSE_SHARED_CACHING_READER_ENABLED)
-        && blockSize > chunkSize * 4) {
-      // Heuristic to resolve issues/12146, guarded by alluxio.fuse.shared.caching.reader.enabled
-      // GrpcDataReader instances are shared across FileInStreams to mitigate seek cost
-      factory = new SharedGrpcDataReader.Factory(context, address, builder, blockSize);
-    } else {
-      factory = new NettyDataReader.Factory(context, address, builder);
-    }
+    DataReader.Factory factory = new NettyDataReader.Factory(context, address, builder);
     return new BlockInStream(factory, address, blockSource, blockId, blockSize);
   }
 

@@ -205,7 +205,7 @@ public final class ProtoUtils {
       case ALREADY_EXISTS:
         return PStatus.ALREADY_EXISTS;
       case CANCELLED:
-        return PStatus.CANCELED;
+        return PStatus.CANCELLED;
       case DATA_LOSS:
         return PStatus.DATA_LOSS;
       case DEADLINE_EXCEEDED:
@@ -435,7 +435,7 @@ public final class ProtoUtils {
         return Status.ABORTED;
       case ALREADY_EXISTS:
         return Status.ALREADY_EXISTS;
-      case CANCELED:
+      case CANCELLED:
         return Status.CANCELLED;
       case DATA_LOSS:
         return Status.DATA_LOSS;

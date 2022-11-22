@@ -28,4 +28,14 @@ public class BlockAlreadyExistsException extends AlluxioException {
   public BlockAlreadyExistsException(String message) {
     super(message);
   }
+
+  /**
+   * Constructs a new exception with the specified exception message and multiple parameters.
+   *
+   * @param message the exception message
+   * @param params the parameters
+   */
+  public BlockAlreadyExistsException(ExceptionMessage message, Object... params) {
+    this(message.getMessage(params));
+  }
 }

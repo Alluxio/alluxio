@@ -18,6 +18,10 @@ import static java.util.Objects.requireNonNull;
 import alluxio.Sessions;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.exception.runtime.DeadlineExceededRuntimeException;
@@ -29,6 +33,7 @@ import alluxio.grpc.BlockStatus;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
 import alluxio.underfs.UfsManager;
@@ -36,6 +41,8 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.DelegatingBlockReader;
+import alluxio.worker.block.io.LocalFileBlockReader;
+import alluxio.worker.block.io.LocalFileBlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.grpc.GrpcExecutors;
@@ -57,6 +64,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * A implementation of BlockStore.
@@ -66,12 +75,25 @@ public class MonoBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(MonoBlockStore.class);
   private static final long LOAD_TIMEOUT =
       Configuration.getMs(PropertyKey.USER_NETWORK_RPC_KEEPALIVE_TIMEOUT);
+
+  private final BlockMetadataManager mMetaManager;
+
+  private final BlockLockManager mLockManager;
   private final LocalBlockStore mLocalBlockStore;
   private final UnderFileSystemBlockStore mUnderFileSystemBlockStore;
   private final BlockMasterClientPool mBlockMasterClientPool;
   private final AtomicReference<Long> mWorkerId;
   private final ScheduledExecutorService mDelayer =
       new ScheduledThreadPoolExecutor(1, ThreadFactoryUtils.build("LoadTimeOut", true));
+
+  /** Lock to guard metadata operations. */
+  private final ReentrantReadWriteLock mMetadataLock = new ReentrantReadWriteLock();
+
+  /** ReadLock provided by {@link #mMetadataLock} to guard metadata read operations. */
+  private final Lock mMetadataReadLock = mMetadataLock.readLock();
+
+  /** WriteLock provided by {@link #mMetadataLock} to guard metadata write operations. */
+  private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
 
   /**
    * Constructor of MonoBlockStore.
@@ -90,6 +112,8 @@ public class MonoBlockStore implements BlockStore {
     mUnderFileSystemBlockStore =
         new UnderFileSystemBlockStore(localBlockStore, requireNonNull(ufsManager));
     mWorkerId = workerId;
+    mMetaManager = BlockMetadataManager.createBlockMetadataManager();
+    mLockManager = new BlockLockManager();
   }
 
   @Override
@@ -141,6 +165,16 @@ public class MonoBlockStore implements BlockStore {
         AllocateOptions.forCreate(createBlockOptions.getInitialBytes(), loc));
     DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.inc();
     return createdBlock.getPath();
+  }
+
+  @Override
+  public BlockReader createBlockReader(long sessionId, long blockId, long lockId)
+      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
+    LOG.debug("getBlockReader: sessionId={}, blockId={}, lockId={}", sessionId, blockId, lockId);
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId).get();
+      return new LocalFileBlockReader(blockMeta.getPath());
+    }
   }
 
   @Override
@@ -338,6 +372,98 @@ public class MonoBlockStore implements BlockStore {
         .thenApply(x -> errors);
   }
 
+  @Override
+  public BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
+      throws BlockDoesNotExistException, InvalidWorkerStateException {
+    LOG.debug("getBlockMeta: sessionId={}, blockId={}, lockId={}", sessionId, blockId, lockId);
+    mLockManager.validateLock(sessionId, blockId, lockId);
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      return mMetaManager.getBlockMeta(blockId).get();
+    }
+  }
+
+  @Override
+  public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
+    LOG.debug("lockBlock: sessionId={}, blockId={}", sessionId, blockId);
+    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
+    boolean hasBlock;
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      hasBlock = mMetaManager.hasBlockMeta(blockId);
+    }
+    if (hasBlock) {
+      return lockId;
+    }
+
+    mLockManager.unlockBlock(lockId);
+    throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND, blockId);
+  }
+
+  @Override
+  public long lockBlockNoException(long sessionId, long blockId) {
+    LOG.debug("lockBlockNoException: sessionId={}, blockId={}", sessionId, blockId);
+    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
+    boolean hasBlock;
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      hasBlock = mMetaManager.hasBlockMeta(blockId);
+    }
+    if (hasBlock) {
+      return lockId;
+    }
+
+    mLockManager.unlockBlockNoException(lockId);
+    return BlockLockManager.INVALID_LOCK_ID;
+  }
+
+  @Override
+  public void unlockBlock(long lockId) throws BlockDoesNotExistException {
+    LOG.debug("unlockBlock: lockId={}", lockId);
+    mLockManager.unlockBlock(lockId);
+  }
+
+  @Override
+  public boolean unlockBlock(long sessionId, long blockId) {
+    LOG.debug("unlockBlock: sessionId={}, blockId={}", sessionId, blockId);
+    return mLockManager.unlockBlock(sessionId, blockId);
+  }
+
+  @Override
+  public BlockWriter getBlockWriter(long sessionId, long blockId)
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      IOException {
+    LOG.debug("getBlockWriter: sessionId={}, blockId={}", sessionId, blockId);
+    // NOTE: a temp block is supposed to only be visible by its own writer, unnecessary to acquire
+    // block lock here since no sharing
+    // TODO(bin): Handle the case where multiple writers compete for the same block.
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      checkTempBlockOwnedBySession(sessionId, blockId);
+      TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId).get();
+      return new LocalFileBlockWriter(tempBlockMeta.getPath());
+    }
+  }
+
+  /**
+   * Checks if block id is a temporary block and owned by session id. This method must be enclosed
+   * by {@link #mMetadataLock}.
+   *
+   * @param sessionId the id of session
+   * @param blockId the id of block
+   * @throws BlockDoesNotExistException if block id can not be found in temporary blocks
+   * @throws BlockAlreadyExistsException if block id already exists in committed blocks
+   * @throws InvalidWorkerStateException if block id is not owned by session id
+   */
+  private void checkTempBlockOwnedBySession(long sessionId, long blockId)
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException {
+    if (mMetaManager.hasBlockMeta(blockId)) {
+      throw new BlockAlreadyExistsException(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED, blockId);
+    }
+    TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId).get();
+    long ownerSessionId = tempBlockMeta.getSessionId();
+    if (ownerSessionId != sessionId) {
+      throw new InvalidWorkerStateException(ExceptionMessage.BLOCK_ID_FOR_DIFFERENT_SESSION,
+          blockId, ownerSessionId, sessionId);
+    }
+  }
+
   private void handleException(Throwable e, Block block, List<BlockStatus> errors, long sessionId) {
     LOG.warn("Load block failure: {}", block, e);
     AlluxioRuntimeException exception = AlluxioRuntimeException.from(e);
@@ -368,5 +494,13 @@ public class MonoBlockStore implements BlockStore {
   public void close() throws IOException {
     mLocalBlockStore.close();
     mUnderFileSystemBlockStore.close();
+  }
+
+  /**
+   * get the local block store.
+   * @return LocalBlockStore
+   */
+  public LocalBlockStore getLocalBlockStore() {
+    return mLocalBlockStore;
   }
 }

@@ -20,7 +20,9 @@ import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
@@ -37,6 +39,7 @@ import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockLockType;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
+import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.BlockStoreLocation;
@@ -46,6 +49,7 @@ import alluxio.worker.block.UfsInputStreamCache;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.DelegatingBlockReader;
+import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
@@ -63,6 +67,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * A paged implementation of LocalBlockStore interface.
@@ -85,6 +91,17 @@ public class PagedBlockStore implements BlockStore {
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new CopyOnWriteArrayList<>();
   private final long mPageSize;
+
+  private final BlockMetadataManager mMetaManager;
+
+  /** Lock to guard metadata operations. */
+  private final ReentrantReadWriteLock mMetadataLock = new ReentrantReadWriteLock();
+
+  /** ReadLock provided by {@link #mMetadataLock} to guard metadata read operations. */
+  private final Lock mMetadataReadLock = mMetadataLock.readLock();
+
+  /** WriteLock provided by {@link #mMetadataLock} to guard metadata write operations. */
+  private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
 
   /**
    * Create an instance of PagedBlockStore.
@@ -127,6 +144,7 @@ public class PagedBlockStore implements BlockStore {
     mWorkerId = workerId;
     mPageMetaStore = pageMetaStore;
     mPageSize = pageSize;
+    mMetaManager = BlockMetadataManager.createBlockMetadataManager();
   }
 
   @Override
@@ -272,6 +290,16 @@ public class PagedBlockStore implements BlockStore {
     }
   }
 
+  @Override
+  public BlockReader createBlockReader(long sessionId, long blockId, long lockId)
+      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
+    LOG.debug("getBlockReader: sessionId={}, blockId={}, lockId={}", sessionId, blockId, lockId);
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId).get();
+      return new LocalFileBlockReader(blockMeta.getPath());
+    }
+  }
+
   private BlockReader getBlockReader(PagedBlockMeta blockMeta, long offset,
       Protocol.OpenUfsBlockOptions options) {
     final long blockId = blockMeta.getBlockId();
@@ -345,6 +373,67 @@ public class PagedBlockStore implements BlockStore {
   @Override
   public CompletableFuture<List<BlockStatus>> load(List<Block> fileBlocks, UfsReadOptions options) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
+      throws BlockDoesNotExistException, InvalidWorkerStateException {
+    LOG.debug("getBlockMeta: sessionId={}, blockId={}, lockId={}", sessionId, blockId, lockId);
+    mLockManager.validateLock(sessionId, blockId, lockId);
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      return mMetaManager.getBlockMeta(blockId).get();
+    }
+  }
+
+  @Override
+  public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
+    LOG.debug("lockBlock: sessionId={}, blockId={}", sessionId, blockId);
+    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
+    boolean hasBlock;
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      hasBlock = mMetaManager.hasBlockMeta(blockId);
+    }
+    if (hasBlock) {
+      return lockId;
+    }
+
+    mLockManager.unlockBlock(lockId);
+    throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND, blockId);
+  }
+
+  @Override
+  public long lockBlockNoException(long sessionId, long blockId) {
+    LOG.debug("lockBlockNoException: sessionId={}, blockId={}", sessionId, blockId);
+    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
+    boolean hasBlock;
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      hasBlock = mMetaManager.hasBlockMeta(blockId);
+    }
+    if (hasBlock) {
+      return lockId;
+    }
+
+    mLockManager.unlockBlockNoException(lockId);
+    return BlockLockManager.INVALID_LOCK_ID;
+  }
+
+  @Override
+  public void unlockBlock(long lockId) throws BlockDoesNotExistException {
+    LOG.debug("unlockBlock: lockId={}", lockId);
+    mLockManager.unlockBlock(lockId);
+  }
+
+  @Override
+  public boolean unlockBlock(long sessionId, long blockId) {
+    LOG.debug("unlockBlock: sessionId={}, blockId={}", sessionId, blockId);
+    return mLockManager.unlockBlock(sessionId, blockId);
+  }
+
+  @Override
+  public BlockWriter getBlockWriter(long sessionId, long blockId)
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      IOException {
+    return null;
   }
 
   @Override

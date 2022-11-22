@@ -739,6 +739,41 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
+
+  public static final PropertyKey NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =
+      durationBuilder(Name.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS)
+          .setAlias(new String[] {"alluxio.network.netty.heartbeat.timeout.ms"})
+          .setDefaultValue("30sec")
+          .setDescription("The amount of time the server will wait before closing a netty "
+              + "connection if there has not been any incoming traffic. The client will "
+              + "periodically heartbeat when there is no activity on a connection. This value "
+              + "should be the same on the clients and server.")
+          .build();
+
+  public static final PropertyKey WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT =
+      durationBuilder(Name.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT)
+          .setDefaultValue("15sec")
+          .setDescription("Maximum amount of time to wait until the netty server "
+              + "is shutdown (regardless of the quiet period).")
+          .build();
+
+  public static final PropertyKey WORKER_NETWORK_NETTY_BACKLOG =
+      intBuilder(Name.WORKER_NETWORK_NETTY_BACKLOG)
+          .setDescription("Netty socket option for SO_BACKLOG: the number of connections queued.")
+          .build();
+
+  public static final PropertyKey WORKER_NETWORK_NETTY_BUFFER_SEND =
+      intBuilder(Name.WORKER_NETWORK_NETTY_BUFFER_SEND)
+          .setDescription("Netty socket option for SO_SNDBUF: the proposed buffer size that will "
+              + "be used for sends.")
+          .build();
+
+  public static final PropertyKey WORKER_NETWORK_NETTY_BUFFER_RECEIVE =
+      intBuilder(Name.WORKER_NETWORK_NETTY_BUFFER_RECEIVE)
+          .setDescription("Netty socket option for SO_RCVBUF: the proposed buffer size that will "
+              + "be used for receives.")
+          .build();
+
   public static final PropertyKey SITE_CONF_DIR =
       listBuilder(Name.SITE_CONF_DIR)
           .setDefaultSupplier(
@@ -4045,6 +4080,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_FILE_BUFFER_SIZE =
+      dataSizeBuilder(Name.WORKER_FILE_BUFFER_SIZE)
+          .setDefaultValue("1MB")
+          .setDescription("The buffer size for worker to write data into the tiered storage.")
+          .build();
   public static final PropertyKey WORKER_FREE_SPACE_TIMEOUT =
       durationBuilder(Name.WORKER_FREE_SPACE_TIMEOUT)
           .setDefaultValue("10sec")
@@ -4141,6 +4181,56 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+
+  public static final PropertyKey WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX =
+      intBuilder(Name.WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX)
+          .setDefaultValue(8)
+          .setDescription("The maximum number of threads used to cache blocks asynchronously in "
+              + "the netty data server.")
+          .build();
+
+  public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
+      intBuilder(Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX)
+          .setDefaultValue(2048)
+          .setDescription("The maximum number of threads used to read blocks in the netty "
+              + "data server.")
+          .build();
+
+  public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
+      intBuilder(Name.WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX)
+          .setDefaultValue(1024)
+          .setDescription("The maximum number of threads used to write blocks in the netty "
+              + "data server.")
+          .build();
+
+  public static final PropertyKey WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
+      intBuilder(Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX)
+          .setDefaultValue(1024)
+          .setDescription("The maximum number of threads used to write files to UFS in the "
+              + "netty data server.")
+          .build();
+
+  public static final PropertyKey WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
+      intBuilder(Name.WORKER_NETWORK_NETTY_RPC_THREADS_MAX)
+          .setDefaultValue(2048)
+          .setDescription("The maximum number of threads used to handle worker side RPCs in "
+              + "the netty data server.")
+          .build();
+
+  public static final PropertyKey WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
+      intBuilder(Name.WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS)
+          .setDefaultValue(16)
+          .setDescription("The maximum number of parallel data packets when a client writes to a "
+              + "worker.")
+          .build();
+
+  public static final PropertyKey WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
+      intBuilder(Name.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS)
+          .setDefaultValue(16)
+          .setDescription("The maximum number of parallel data packets when a client reads from a "
+              + "worker.")
+          .build();
+
   public static final PropertyKey WORKER_NETWORK_FLOWCONTROL_WINDOW =
       dataSizeBuilder(Name.WORKER_NETWORK_FLOWCONTROL_WINDOW)
           .setDefaultValue("2MB")
@@ -4197,6 +4287,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .setDefaultValue(ChannelType.EPOLL)
+          .build();
+
+  public static final PropertyKey WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
+      stringBuilder(Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE)
+          .setDefaultValue("MAPPED")
+          .setDescription("When returning files to the user, select how the data is "
+              + "transferred; valid options are `MAPPED` (uses java MappedByteBuffer) and "
+              + "`TRANSFER` (uses Java FileChannel.transferTo).")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD =
       durationBuilder(Name.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD)
@@ -4555,6 +4653,26 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The port for Alluxio worker's RPC service.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey WORKER_DATA_BIND_HOST =
+      stringBuilder(Name.WORKER_DATA_BIND_HOST)
+          .setDefaultValue("0.0.0.0")
+          .setDescription("The hostname that the Alluxio worker's data server runs on. See <a "
+              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
+          .build();
+  public static final PropertyKey WORKER_DATA_HOSTNAME =
+      stringBuilder(Name.WORKER_DATA_HOSTNAME)
+          .setDescription("The hostname of Alluxio worker data service.").build();
+  public static final PropertyKey WORKER_DATA_PORT =
+      intBuilder(Name.WORKER_DATA_PORT)
+          .setDefaultValue(29998)
+          .setDescription("The port Alluxio's worker's data server runs on.")
+          .build();
+  public static final PropertyKey WORKER_DATA_SERVER_CLASS =
+      classBuilder(Name.WORKER_DATA_SERVER_CLASS)
+          .setDefaultValue("alluxio.worker.netty.NettyDataServer")
+          .setDescription("Selects the networking stack to run the worker with. Valid options "
+              + "are: `alluxio.worker.netty.NettyDataServer`.")
           .build();
   public static final PropertyKey WORKER_SESSION_TIMEOUT_MS =
       durationBuilder(Name.WORKER_SESSION_TIMEOUT_MS)
@@ -7158,6 +7276,42 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
+  public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
+      intBuilder(Name.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX)
+          .setDefaultValue(1024)
+          .setDescription("The maximum number of netty channels cached in the netty channel "
+              + "pool.")
+          .build();
+
+  public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS =
+      durationBuilder(Name.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS)
+          .setAlias(new String[]{"alluxio.user.network.netty.channel.pool.gc.threshold.ms"})
+          .setDefaultValue("300sec")
+          .setDescription("A netty channel is closed if it has been idle for more than this "
+              + "threshold.")
+          .build();
+
+  public static final PropertyKey USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
+      intBuilder(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS)
+          .setDefaultValue(16)
+          .setDescription("When a client reads from a remote worker, the maximum number of packets "
+              + "to buffer by the client.")
+          .build();
+  public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED =
+      booleanBuilder(Name.USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED)
+          .setDefaultValue(false)
+          .setDescription("Disable netty channel pool. This should be turned on if the client "
+              + "version is >= 1.3.0 but server version is <= 1.2.x.")
+          .build();
+
+  public static final PropertyKey USER_NETWORK_NETTY_TIMEOUT_MS =
+      durationBuilder(Name.USER_NETWORK_NETTY_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.user.network.netty.timeout.ms"})
+          .setDefaultValue("30sec")
+          .setDescription("The maximum time for a netty client (for block "
+              + "reads and block writes) to wait for a response from the data server.")
+          .build();
+
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -7223,6 +7377,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.network.connection.shutdown.timeout";
     public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
         "alluxio.network.host.resolution.timeout";
+
+    public static final String NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =
+        "alluxio.network.netty.heartbeat.timeout";
+    public static final String WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT =
+        "alluxio.worker.network.netty.shutdown.timeout";
+    public static final String WORKER_NETWORK_NETTY_BACKLOG =
+        "alluxio.worker.network.netty.backlog";
+    public static final String WORKER_NETWORK_NETTY_BUFFER_SEND =
+        "alluxio.worker.network.netty.buffer.send";
+    public static final String WORKER_NETWORK_NETTY_BUFFER_RECEIVE =
+        "alluxio.worker.network.netty.buffer.receive";
     public static final String NETWORK_IP_ADDRESS_USED = "alluxio.network.ip.address.used";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String ROCKS_INODE_CONF_FILE = "alluxio.site.conf.rocks.inode.file";
@@ -7951,6 +8116,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.management.tier.promote.range";
     public static final String WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT =
         "alluxio.worker.management.tier.promote.quota.percent";
+    public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
     public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
@@ -7969,6 +8135,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.block.writer.threads.max";
     public static final String WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
         "alluxio.worker.network.writer.buffer.size.messages";
+
+    public static final String WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX =
+        "alluxio.worker.network.netty.async.cache.manager.threads.max";
+    public static final String WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
+        "alluxio.worker.network.netty.block.reader.threads.max";
+    public static final String WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
+        "alluxio.worker.network.netty.block.writer.threads.max";
+    public static final String WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX =
+        "alluxio.worker.network.netty.file.reader.threads.max";
+    public static final String WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
+        "alluxio.worker.network.netty.file.writer.threads.max";
+    public static final String WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
+        "alluxio.worker.network.netty.rpc.threads.max";
+    public static final String WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
+        "alluxio.worker.network.netty.writer.buffer.size.packets";
+    public static final String WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
+        "alluxio.worker.network.netty.reader.buffer.size.packets";
     public static final String WORKER_NETWORK_FLOWCONTROL_WINDOW =
         "alluxio.worker.network.flowcontrol.window";
     public static final String WORKER_NETWORK_KEEPALIVE_TIME_MS =
@@ -7983,6 +8166,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.netty.boss.threads";
     public static final String WORKER_NETWORK_NETTY_CHANNEL =
         "alluxio.worker.network.netty.channel";
+
+    public static final String WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
+        "alluxio.worker.network.netty.file.transfer";
+    public static final String USER_NETWORK_NETTY_TIMEOUT_MS =
+        "alluxio.user.network.netty.timeout";
+    public static final String USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
+        "alluxio.user.network.netty.channel.pool.size.max";
+    public static final String USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS =
+        "alluxio.user.network.netty.channel.pool.gc.threshold";
     public static final String WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD =
         "alluxio.worker.network.netty.shutdown.quiet.period";
     public static final String WORKER_NETWORK_NETTY_WATERMARK_HIGH =
@@ -8063,6 +8255,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             "alluxio.worker.reviewer.probabilistic.softlimit.bytes";
     public static final String WORKER_REVIEWER_CLASS = "alluxio.worker.reviewer.class";
     public static final String WORKER_RPC_PORT = "alluxio.worker.rpc.port";
+    public static final String WORKER_DATA_BIND_HOST = "alluxio.worker.data.bind.host";
+    public static final String WORKER_DATA_HOSTNAME = "alluxio.worker.data.hostname";
+    public static final String WORKER_DATA_PORT = "alluxio.worker.data.port";
+    public static final String WORKER_DATA_SERVER_CLASS = "alluxio.worker.data.server.class";
     public static final String WORKER_RPC_EXECUTOR_TYPE = "alluxio.worker.rpc.executor.type";
     public static final String WORKER_RPC_EXECUTOR_CORE_POOL_SIZE =
         "alluxio.worker.rpc.executor.core.pool.size";
@@ -8603,6 +8799,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String USER_NETTY_DATA_TRANSMISSION_ENABLED =
         "alluxio.user.netty.data.transmission.enabled";
+
+    public static final String USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED =
+        "alluxio.user.network.netty.channel.pool.disabled";
+
+    public static final String USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
+        "alluxio.user.network.netty.reader.buffer.size.packets";
 
     private Name() {} // prevent instantiation
   }
