@@ -262,33 +262,36 @@ public class MasterWorkerInfoBench {
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Benchmark
   public long LongOpenEnumerationTest(RemoveBenchState bs) {
+    long t = 0;
     long i = bs.mTest;
     for (long x: bs.mMasterWorkerInfo.getBlocksNoCopy()) {
-      x = 0;
+      t = x;
     }
-    return i;
+    return t;
   }
 
   @BenchmarkMode(Mode.AverageTime)
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Benchmark
   public long LongOpenHashSetEnumerationTest(RemoveHashBenchState bs) {
+    long t = 0;
     long i = bs.mTest;
     for (long x: bs.mMasterWorkerInfo.getBlocksNoCopy()) {
-      x = 0;
+      t = x;
     }
-    return i;
+    return t;
   }
 
   @BenchmarkMode(Mode.AverageTime)
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Benchmark
   public long LongOpenUnifiedSetEnumerationTest(RemoveUnifiedBenchState bs) {
+    long t = 0;
     long i = bs.mTest;
     for (long x: bs.mMasterWorkerInfo.getBlocksNoCopy()) {
-      x = 0;
+      t = x;
     }
-    return i;
+    return t;
   }
 
   public static void main(String[] args) throws RunnerException, CommandLineOptionException {
