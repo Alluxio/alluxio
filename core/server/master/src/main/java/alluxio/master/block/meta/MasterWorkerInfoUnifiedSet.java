@@ -178,8 +178,8 @@ public final class MasterWorkerInfoUnifiedSet {
 
   /**
    * Marks the worker as registered, while updating all of its metadata.
-   * Write locks on {@link MasterWorkerInfoHashSet#mStatusLock}, {@link MasterWorkerInfoHashSet#mUsageLock}
-   * and {@link MasterWorkerInfoHashSet#mBlockListLock} are required.
+   * Write locks on {@link MasterWorkerInfoUnifiedSet#mStatusLock}, {@link MasterWorkerInfoUnifiedSet#mUsageLock}
+   * and {@link MasterWorkerInfoUnifiedSet#mBlockListLock} are required.
    *
    * You should lock externally with {@link MasterWorkerInfoHashSet#lockWorkerMeta(EnumSet, boolean)}
    * with all three lock types specified:
@@ -590,7 +590,7 @@ public final class MasterWorkerInfoUnifiedSet {
   /**
    * Sets the used space of the worker in bytes.
    *
-   * You should lock externally with {@link MasterWorkerInfoHashSet#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfoUnifiedSet#lockWorkerMeta(EnumSet, boolean)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * An exclusive lock is required.
    *

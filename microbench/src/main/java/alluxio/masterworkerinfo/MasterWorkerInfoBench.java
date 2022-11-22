@@ -13,6 +13,7 @@ package alluxio.masterworkerinfo;
 
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.MasterWorkerInfoHashSet;
+import alluxio.master.block.meta.MasterWorkerInfoUnifiedSet;
 import alluxio.wire.WorkerNetAddress;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -100,6 +101,27 @@ public class MasterWorkerInfoBench {
   }
 
   @State(Scope.Benchmark)
+  public static class AddUnifiedBenchState {
+    @Param("0")
+    long mTest;
+    public MasterWorkerInfoUnifiedSet mMasterWorkerInfo;
+
+    long mCounter = 0;
+
+    // public long mTest = 0;
+
+    @Setup
+    public void before() {
+      mMasterWorkerInfo = new MasterWorkerInfoUnifiedSet(1, new WorkerNetAddress());
+    }
+
+    @TearDown
+    public void after() {
+      mMasterWorkerInfo = null;
+    }
+  }
+
+  @State(Scope.Benchmark)
   public static class RemoveBenchState {
     @Param("1000000")
     long mTest;
@@ -147,6 +169,30 @@ public class MasterWorkerInfoBench {
     }
   }
 
+  @State(Scope.Benchmark)
+  public static class RemoveUnifiedBenchState {
+    @Param("1000000")
+    long mTest;
+    public MasterWorkerInfoUnifiedSet mMasterWorkerInfo;
+
+    long mCounter = 0;
+
+    // public long mTest = 0;
+
+    @Setup
+    public void before() {
+      mMasterWorkerInfo = new MasterWorkerInfoUnifiedSet(1, new WorkerNetAddress());
+      for (long i = mTest; i > 0; i--) {
+        mMasterWorkerInfo.addBlock(i);
+      }
+    }
+
+    @TearDown
+    public void after() {
+      mMasterWorkerInfo = null;
+    }
+  }
+
   @Benchmark
   public long LongOpenHashSetAddBlockTest(AddBenchState bs) {
     // System.out.println("hello world");
@@ -157,6 +203,14 @@ public class MasterWorkerInfoBench {
 
   @Benchmark
   public long LongOpenHashSetAddBlockHashTest(AddHashBenchState bs) {
+    // System.out.println("hello world");
+    bs.mMasterWorkerInfo.addBlock(bs.mCounter);
+    bs.mCounter += 1;
+    return bs.mCounter;
+  }
+
+  @Benchmark
+  public long LongOpenUnifiedSetAddBlockHashTest(AddUnifiedBenchState bs) {
     // System.out.println("hello world");
     bs.mMasterWorkerInfo.addBlock(bs.mCounter);
     bs.mCounter += 1;
@@ -189,6 +243,50 @@ public class MasterWorkerInfoBench {
     long i = bs.mTest;
     for (; i > 0; i--) {
       bs.mMasterWorkerInfo.removeBlockFromWorkerMeta(i);
+    }
+    return i;
+  }
+
+  @BenchmarkMode(Mode.AverageTime)
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  @Benchmark
+  public long LongOpenUnifiedSetRemoveHashBlockTest(RemoveUnifiedBenchState bs) {
+    long i = bs.mTest;
+    for (; i > 0; i--) {
+      bs.mMasterWorkerInfo.removeBlockFromWorkerMeta(i);
+    }
+    return i;
+  }
+
+  @BenchmarkMode(Mode.AverageTime)
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  @Benchmark
+  public long LongOpenEnumerationTest(RemoveBenchState bs) {
+    long i = bs.mTest;
+    for (long x: bs.mMasterWorkerInfo.getBlocksNoCopy()) {
+      x = 0;
+    }
+    return i;
+  }
+
+  @BenchmarkMode(Mode.AverageTime)
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  @Benchmark
+  public long LongOpenHashSetEnumerationTest(RemoveHashBenchState bs) {
+    long i = bs.mTest;
+    for (long x: bs.mMasterWorkerInfo.getBlocksNoCopy()) {
+      x = 0;
+    }
+    return i;
+  }
+
+  @BenchmarkMode(Mode.AverageTime)
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  @Benchmark
+  public long LongOpenUnifiedSetEnumerationTest(RemoveUnifiedBenchState bs) {
+    long i = bs.mTest;
+    for (long x: bs.mMasterWorkerInfo.getBlocksNoCopy()) {
+      x = 0;
     }
     return i;
   }
