@@ -378,6 +378,9 @@ public final class MasterWorkerInfoLongHashSet {
         return (Set<Long>) new LongHashSet((LongHashSet) mBlocks);
     }
 
+    public Set<Long> getBlocksNoCopy() {
+        return Collections.unmodifiableSet(mBlocks);
+    }
     /**
      * Return the block count of this worker.
      *
