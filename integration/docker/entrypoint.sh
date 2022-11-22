@@ -117,7 +117,7 @@ function mountAlluxioFSWithFuseOption {
   fi
 }
 
-function mountFuseSDK {
+function mountFuseWithUFS {
   exec bin/alluxio-fuse mount "${@}" -f
 }
 
@@ -275,7 +275,7 @@ function main {
       mountAlluxioFSWithFuseOption "${@:2}"
       ;;
     mount)
-      mountFuseSDK "${@:2}"
+      mountFuseWithUFS "${@:2}"
       ;;
     logserver)
       processes+=("logserver")
