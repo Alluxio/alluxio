@@ -17,6 +17,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.fuse.AlluxioJnrFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
+
 import org.junit.Assume;
 
 import java.nio.file.Paths;
