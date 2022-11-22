@@ -250,12 +250,6 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         // Check if the requested parts are available
         List<URIStatus> uploadedParts = validateParts(request, objectPath, multipartTemporaryDir);
 
-        // Only overwrite at final step to commit/complete the file (AKA rename)
-//        try {
-//          S3RestUtils.deleteExistObject(mUserFs, objectUri);
-//        } catch (IOException | AlluxioException e) {
-//          throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath());
-//        }
         // (re)create the merged object to a temporary object path
         LOG.debug("CompleteMultipartUploadTask (bucket: {}, object: {}, uploadId: {}) "
             + "combining {} parts...", mBucket, mObject, mUploadId, uploadedParts.size());
@@ -292,7 +286,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         achieve idempotency: when a race caused by retry(most cases), the commit of
         this object happens at time of rename op, check DefaultFileSystemMaster.rename for more info.
          * */
-        LOG.warn("[LUCYINFO] Exception during CompleteMultipartUpload:{}", ThreadUtils.formatStackTrace(e));
+        LOG.warn("Exception during CompleteMultipartUpload:{}", ThreadUtils.formatStackTrace(e));
         if (objectPath != null) {
           URIStatus objStatus = checkIfComplete(objectPath);
           if (objStatus != null) {
