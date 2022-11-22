@@ -156,7 +156,13 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.MkdirsOptions;
-import alluxio.util.*;
+import alluxio.util.CommonUtils;
+import alluxio.util.IdUtils;
+import alluxio.util.LogUtils;
+import alluxio.util.ModeUtils;
+import alluxio.util.SecurityUtils;
+import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
@@ -2788,7 +2794,8 @@ public class DefaultFileSystemMaster extends CoreMaster
    */
   private void renameInternal(RpcContext rpcContext, LockedInodePath srcInodePath,
       LockedInodePath dstInodePath, RenameContext context) throws InvalidPathException,
-          FileDoesNotExistException, FileAlreadyExistsException, IOException, AccessControlException {
+          FileDoesNotExistException, FileAlreadyExistsException,
+          IOException, AccessControlException {
     if (!srcInodePath.fullPathExists()) {
       throw new FileDoesNotExistException(
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcInodePath.getUri()));
@@ -2850,7 +2857,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         String mpUploadIdSrc = new String(srcInodePath.getInodeFile().getXAttr()
                 .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0]));
         if (StringUtils.isNotEmpty(mpUploadIdSrc) && StringUtils.isNotEmpty(mpUploadIdDst)
-          && StringUtils.equals(mpUploadIdSrc, mpUploadIdDst)) {
+                && StringUtils.equals(mpUploadIdSrc, mpUploadIdDst)) {
           LOG.info("Object with same upload exists, bail and claim success.");
         /* This is a rename operation as part of complete a CompleteMultipartUpload call
          and there's concurrent attempt on the same multipart upload succeeded */
@@ -2858,11 +2865,15 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
         //we need to overwrite, delete existing destination path
         if (context.getOptions().getS3SyntaxOptions().getOverwrite()) {
-          LOG.info("Overwrite file for s3 syntax encountered, deleting existing file and then start renaming.");
+          LOG.info("Encountered S3 Overwrite syntax, "
+                  + "deleting existing file and then start renaming.");
           try {
             deleteInternal(rpcContext, dstInodePath, DeleteContext
-                    .mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false)), true);
-          } catch (DirectoryNotEmptyException ex) {} // this will never happen
+                    .mergeFrom(DeletePOptions.newBuilder()
+                            .setRecursive(true).setAlluxioOnly(false)), true);
+          } catch (DirectoryNotEmptyException ex) {
+            // IGNORE, this will never happen
+          }
         }
       } else {
         throw new FileAlreadyExistsException(String
