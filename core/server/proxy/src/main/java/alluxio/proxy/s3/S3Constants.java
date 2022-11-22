@@ -62,7 +62,6 @@ public final class S3Constants {
   public static final String UPLOADS_BUCKET_XATTR_KEY = "s3_uploads_bucket";
   public static final String UPLOADS_OBJECT_XATTR_KEY = "s3_uploads_object";
   public static final String UPLOADS_FILE_ID_XATTR_KEY = "s3_uploads_file_id";
-  public static final String UPLOADS_ID_XATTR_KEY = "s3_uploads_mulitpartupload_id";
 
   /* Alluxio UFS metadata */
   public static final String S3_METADATA_ROOT_DIR = ".alluxio_s3_api_metadata";

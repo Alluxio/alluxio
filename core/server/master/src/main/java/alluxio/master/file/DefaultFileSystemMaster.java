@@ -2844,19 +2844,21 @@ public class DefaultFileSystemMaster extends CoreMaster
     // Make sure destination path does not exist
     if (dstInodePath.fullPathExists()) {
       if (context.getOptions().hasS3SyntaxOptions()) {
-        String UPLOADS_FILE_ID_XATTR_KEY = "s3_uploads_file_id";
         // FOR OBJ OVERWRITE
         String mpUploadIdDst = new String(dstInodePath.getInodeFile().getXAttr()
-                .getOrDefault(UPLOADS_FILE_ID_XATTR_KEY, new byte[0]));
+                .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0]));
         String mpUploadIdSrc = new String(srcInodePath.getInodeFile().getXAttr()
-                .getOrDefault(UPLOADS_FILE_ID_XATTR_KEY, new byte[0]));
-        if (StringUtils.equals(mpUploadIdSrc, mpUploadIdDst)) {
+                .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0]));
+        if (StringUtils.isNotEmpty(mpUploadIdSrc) && StringUtils.isNotEmpty(mpUploadIdDst)
+          && StringUtils.equals(mpUploadIdSrc, mpUploadIdDst)) {
+          LOG.info("Object with same upload exists, bail and claim success.");
         /* This is a rename operation as part of complete a CompleteMultipartUpload call
          and there's concurrent attempt on the same multipart upload succeeded */
           return;
         }
         //we need to overwrite, delete existing destination path
         if (context.getOptions().getS3SyntaxOptions().getOverwrite()) {
+          LOG.info("Overwrite file for s3 syntax encountered, deleting existing file and then start renaming.");
           try {
             deleteInternal(rpcContext, dstInodePath, DeleteContext
                     .mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false)), true);

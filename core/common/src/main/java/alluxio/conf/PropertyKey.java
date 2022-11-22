@@ -8131,6 +8131,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
     public static final String PROXY_AUDIT_LOGGING_ENABLED =
         "alluxio.proxy.audit.logging.enabled";
+    public static final String S3_UPLOADS_ID_XATTR_KEY = "s3_uploads_mulitpartupload_id";
 
     //
     // Locality related properties

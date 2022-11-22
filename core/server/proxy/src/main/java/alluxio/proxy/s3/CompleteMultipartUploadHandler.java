@@ -21,7 +21,6 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.*;
-import alluxio.master.file.meta.PersistenceState;
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
 
@@ -320,7 +319,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
                       .setOwnerBits(Bits.ALL)
                       .setGroupBits(Bits.ALL)
                       .setOtherBits(Bits.NONE).build())
-              .putXattr(S3Constants.UPLOADS_ID_XATTR_KEY, ByteString.copyFrom(mUploadId, StandardCharsets.UTF_8))
+              .putXattr(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, ByteString.copyFrom(mUploadId, StandardCharsets.UTF_8))
               .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
               .setWriteType(S3RestUtils.getS3WriteType());
       // Copy Tagging xAttr if it exists
@@ -397,7 +396,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         try {
           mUserFs.delete(new AlluxioURI(objTempPath), DeletePOptions.newBuilder().build());
         } catch (Exception e) {
-          LOG.warn("Failed to clean up temp path:{}", objTempPath, e.getMessage());
+          LOG.warn("Failed to clean up temp path:{}, {}", objTempPath, e.getMessage());
         }
       }
     }
@@ -406,7 +405,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       try {
         URIStatus objStatus = mUserFs.getStatus(new AlluxioURI(objectPath));
         String uploadId = new String(objStatus.getXAttr()
-                .getOrDefault(S3Constants.UPLOADS_ID_XATTR_KEY, new byte[0]));
+                .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0]));
         if (objStatus.isCompleted() && StringUtils.equals(uploadId, mUploadId)) {
           return objStatus;
         }
