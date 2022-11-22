@@ -379,6 +379,14 @@ public final class MasterWorkerInfoUnifiedSet {
     return new HashSet(mBlocks);
   }
 
+  public Set<Long> getBlocksNoCopy() {
+    return Collections.unmodifiableSet(mBlocks);
+  }
+
+  public Set<Long> getToRemoveBlocksNoCopy() {
+    return Collections.unmodifiableSet(mToRemoveBlocks);
+  }
+
   /**
    * Return the block count of this worker.
    *
