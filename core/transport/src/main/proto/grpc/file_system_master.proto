@@ -432,10 +432,15 @@ message FileSystemCommand {
   optional FileSystemCommandOptions commandOptions = 2;
 }
 
+message S3SyntaxOptions {
+  optional bool overwrite = 1;
+}
+
 message RenamePResponse {}
 message RenamePOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
   optional bool persist = 2;
+  optional S3SyntaxOptions s3SyntaxOptions = 3;
 }
 message RenamePRequest {
   /** the source path of the file or directory */

@@ -156,13 +156,7 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.MkdirsOptions;
-import alluxio.util.CommonUtils;
-import alluxio.util.IdUtils;
-import alluxio.util.LogUtils;
-import alluxio.util.ModeUtils;
-import alluxio.util.SecurityUtils;
-import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.*;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
@@ -2849,7 +2843,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     boolean s3Client = true;
     // Make sure destination path does not exist
     if (dstInodePath.fullPathExists()) {
-      if (s3Client) {
+      if (context.getOptions().hasS3SyntaxOptions()) {
         String UPLOADS_FILE_ID_XATTR_KEY = "s3_uploads_file_id";
         // FOR OBJ OVERWRITE
         String mpUploadIdDst = new String(dstInodePath.getInodeFile().getXAttr()
@@ -2858,19 +2852,21 @@ public class DefaultFileSystemMaster extends CoreMaster
                 .getOrDefault(UPLOADS_FILE_ID_XATTR_KEY, new byte[0]));
         if (StringUtils.equals(mpUploadIdSrc, mpUploadIdDst)) {
         /* This is a rename operation as part of complete a CompleteMultipartUpload call
-         and there's concurrent attempt on the same multipart upload succeed, so for idempotency
-         this will be a no-op and return with success. */
+         and there's concurrent attempt on the same multipart upload succeeded */
           return;
         }
-        //we need to overwrite
-        try {
-          deleteInternal(rpcContext, dstInodePath, DeleteContext
-                  .mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false)), true);
-        } catch (DirectoryNotEmptyException ex) {} // this will never happen
+        //we need to overwrite, delete existing destination path
+        if (context.getOptions().getS3SyntaxOptions().getOverwrite()) {
+          try {
+            deleteInternal(rpcContext, dstInodePath, DeleteContext
+                    .mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false)), true);
+          } catch (DirectoryNotEmptyException ex) {} // this will never happen
+        }
+      } else {
+        throw new FileAlreadyExistsException(String
+                .format("Cannot rename because destination already exists. src: %s dst: %s",
+                        srcInodePath.getUri(), dstInodePath.getUri()));
       }
-      throw new FileAlreadyExistsException(String
-          .format("Cannot rename because destination already exists. src: %s dst: %s",
-              srcInodePath.getUri(), dstInodePath.getUri()));
     }
 
     // Now we remove srcInode from its parent and insert it into dstPath's parent

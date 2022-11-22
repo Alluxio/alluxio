@@ -12,6 +12,7 @@
 package alluxio.proxy.s3;
 
 import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -20,9 +21,11 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.*;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Stopwatch;
 import com.google.common.io.ByteStreams;
@@ -200,6 +203,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     private final String mBody;
     private final boolean mMultipartCleanerEnabled = Configuration.getBoolean(
         PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED);
+    private AlluxioURI mMultipartTemporaryDir;
 
     /**
      * Creates a new instance of {@link CompleteMultipartUploadTask}.
@@ -224,102 +228,42 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
 
     @Override
     public CompleteMultipartUploadResult call() throws S3Exception {
+      String objectPath = null;
+      String objTempPath = null;
       try {
         String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + mBucket);
         S3RestUtils.checkPathIsAlluxioDirectory(mUserFs, bucketPath, null);
-        String objectPath = bucketPath + AlluxioURI.SEPARATOR + mObject;
+        objectPath = bucketPath + AlluxioURI.SEPARATOR + mObject;
+        // Check for existing multipart info files and dirs
         AlluxioURI multipartTemporaryDir = new AlluxioURI(
             S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, mObject, mUploadId));
         URIStatus metaStatus;
         try {
           metaStatus = S3RestUtils.checkStatusesForUploadId(mMetaFs, mUserFs,
-              multipartTemporaryDir, mUploadId).get(1);
+                  multipartTemporaryDir, mUploadId).get(1);
         } catch (Exception e) {
-          LOG.warn("checkStatusesForUploadId uploadId:{} failed, checking previous attempt for idempotency : {}",
-                  mUploadId, ThreadUtils.formatStackTrace(e));
-          URIStatus objStatus = checkIfComplete(objectPath);
-          boolean throwEx = true;
-          if (objStatus != null) {
-            String etag = new String(objStatus.getXAttr()
-                    .getOrDefault(S3Constants.ETAG_XATTR_KEY, new byte[0]));
-            if (!etag.isEmpty()) {
-              LOG.info("checkStatusesForUploadId uploadId:{} idempotency check passed.", mUploadId);
-              return new CompleteMultipartUploadResult(objectPath, mBucket, mObject, etag);
-            }
-            LOG.info("checkStatusesForUploadId uploadId:{} object path exists but no etag found.", mUploadId);
-          }
+          LOG.warn("checkStatusesForUploadId uploadId:{} failed", mUploadId, ThreadUtils.formatStackTrace(e));
           throw new S3Exception(objectPath, S3ErrorCode.NO_SUCH_UPLOAD);
         }
-
         // Parse the HTTP request body to get the intended list of parts
-        CompleteMultipartUploadRequest request;
-        try {
-          request = new XmlMapper().readerFor(CompleteMultipartUploadRequest.class)
-              .readValue(mBody);
-        } catch (IllegalArgumentException e) {
-          LOG.error("Failed parsing CompleteMultipartUploadRequest:{}",
-                  ThreadUtils.formatStackTrace(e));
-          Throwable cause = e.getCause();
-          if (cause instanceof S3Exception) {
-            throw S3RestUtils.toObjectS3Exception((S3Exception) cause, objectPath);
-          }
-          throw S3RestUtils.toObjectS3Exception(e, objectPath);
-        }
+        CompleteMultipartUploadRequest request = parseCompleteMultipartUploadRequest(objectPath);
 
         // Check if the requested parts are available
-        List<URIStatus> uploadedParts = mUserFs.listStatus(multipartTemporaryDir);
-        uploadedParts.sort(new S3RestUtils.URIStatusNameComparator());
-        if (uploadedParts.size() < request.getParts().size()) {
-          throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
-        }
-        Map<Integer, URIStatus> uploadedPartsMap = uploadedParts.stream().collect(Collectors.toMap(
-            status -> Integer.parseInt(status.getName()),
-            status -> status
-        ));
-        int lastPartNum = request.getParts().get(request.getParts().size() - 1).getPartNumber();
-        for (CompleteMultipartUploadRequest.Part part : request.getParts()) {
-          if (!uploadedPartsMap.containsKey(part.getPartNumber())) {
-            throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
-          }
-          if (part.getPartNumber() != lastPartNum // size requirement not applicable to last part
-              && uploadedPartsMap.get(part.getPartNumber()).getLength() < Configuration.getBytes(
-                  PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
-            throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
-          }
-        }
+        List<URIStatus> uploadedParts = validateParts(request, objectPath, multipartTemporaryDir);
 
-        CreateFilePOptions.Builder optionsBuilder = CreateFilePOptions.newBuilder()
-            .setRecursive(true)
-            .setMode(PMode.newBuilder()
-            .setOwnerBits(Bits.ALL)
-            .setGroupBits(Bits.ALL)
-            .setOtherBits(Bits.NONE).build())
-            .putXattr(S3Constants.UPLOADS_ID_XATTR_KEY, ByteString.copyFrom(mUploadId, StandardCharsets.UTF_8))
-            .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-            .setWriteType(S3RestUtils.getS3WriteType());
-        // Copy Tagging xAttr if it exists
-        if (metaStatus.getXAttr().containsKey(S3Constants.TAGGING_XATTR_KEY)) {
-          optionsBuilder.putXattr(S3Constants.TAGGING_XATTR_KEY,
-              ByteString.copyFrom(metaStatus.getXAttr().get(S3Constants.TAGGING_XATTR_KEY)));
-        }
-        // Copy Content-Type Header xAttr if it exists
-        if (metaStatus.getXAttr().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
-          optionsBuilder.putXattr(S3Constants.CONTENT_TYPE_XATTR_KEY,
-              ByteString.copyFrom(metaStatus.getXAttr().get(S3Constants.CONTENT_TYPE_XATTR_KEY)));
-        }
-        AlluxioURI objectUri = new AlluxioURI(objectPath);
         // Only overwrite at final step to commit/complete the file (AKA rename)
 //        try {
 //          S3RestUtils.deleteExistObject(mUserFs, objectUri);
 //        } catch (IOException | AlluxioException e) {
 //          throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath());
 //        }
-        // (re)create the merged object
+        // (re)create the merged object to a temporary object path
         LOG.debug("CompleteMultipartUploadTask (bucket: {}, object: {}, uploadId: {}) "
             + "combining {} parts...", mBucket, mObject, mUploadId, uploadedParts.size());
-        String objTempPath = bucketPath + AlluxioURI.SEPARATOR + mObject + ".temp." + UUID.randomUUID();
+        CreateFilePOptions createFileOption = prepareForCreateTempFile(metaStatus);
+        objTempPath = objectPath + ".temp." + UUID.randomUUID();
         AlluxioURI objectTempUri = new AlluxioURI(objTempPath);
-        FileOutStream os = mUserFs.createFile(objectTempUri, optionsBuilder.build());
+        FileOutStream os = mUserFs.createFile(objectTempUri, createFileOption);
         MessageDigest md5 = MessageDigest.getInstance("MD5");
 
         try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
@@ -329,30 +273,136 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
             }
           }
         }
-        String entityTag = Hex.encodeHexString(md5.digest());
         // persist the ETag via xAttr
+        String entityTag = Hex.encodeHexString(md5.digest());
         // TODO(czhu): try to compute the ETag prior to creating the file to reduce total RPC RTT
-        S3RestUtils.setEntityTag(mUserFs, objectUri, entityTag);
-
-        mUserFs.rename();
+        S3RestUtils.setEntityTag(mUserFs, objectTempUri, entityTag);
+        // rename the temp file to the target object file path
+        AlluxioURI objectUri = new AlluxioURI(objectPath);
+        mUserFs.rename(objectTempUri, objectUri, RenamePOptions.newBuilder()
+                .setPersist(WriteType.fromProto(createFileOption.getWriteType()).isThrough())
+                .setS3SyntaxOptions(S3SyntaxOptions.newBuilder().setOverwrite(true).build())
+                .build());
 
         // Remove the temporary directory containing the uploaded parts and the
         // corresponding Alluxio S3 API metadata file
-        mUserFs.delete(multipartTemporaryDir,
-            DeletePOptions.newBuilder().setRecursive(true).build());
-        mMetaFs.delete(new AlluxioURI(
-            S3RestUtils.getMultipartMetaFilepathForUploadId(mUploadId)),
-            DeletePOptions.newBuilder().build());
-        if (mMultipartCleanerEnabled) {
-          MultipartUploadCleaner.cancelAbort(mMetaFs, mUserFs, mBucket, mObject, mUploadId);
-        }
+        removePartsDirAndMPMetaFile(multipartTemporaryDir);
         return new CompleteMultipartUploadResult(objectPath, mBucket, mObject, entityTag);
       } catch (Exception e) {
+        /* On exception we always check if someone completes the multipart object before us to
+        achieve idempotency: when a race caused by retry(most cases), the commit of
+        this object happens at time of rename op, check DefaultFileSystemMaster.rename for more info.
+         * */
+        LOG.warn("[LUCYINFO] Exception during CompleteMultipartUpload:{}", ThreadUtils.formatStackTrace(e));
+        if (objectPath != null) {
+          URIStatus objStatus = checkIfComplete(objectPath);
+          if (objStatus != null) {
+            String etag = new String(objStatus.getXAttr()
+                    .getOrDefault(S3Constants.ETAG_XATTR_KEY, new byte[0]));
+            if (!etag.isEmpty()) {
+              LOG.info("Check for idempotency, uploadId:{} idempotency check passed.", mUploadId);
+              return new CompleteMultipartUploadResult(objectPath, mBucket, mObject, etag);
+            }
+            LOG.info("Check for idempotency, uploadId:{} object path exists but no etag found.", mUploadId);
+          }
+        }
         throw S3RestUtils.toObjectS3Exception(e, mObject);
+      } finally {
+        // Cleanup temp obj path no matter what, if path not exist, ignore
+        cleanupTempPath(objTempPath);
       }
     }
 
-    public URIStatus checkIfComplete(String objectPath) throws IOException, AlluxioException {
+    public CreateFilePOptions prepareForCreateTempFile(URIStatus metaStatus) {
+      CreateFilePOptions.Builder optionsBuilder = CreateFilePOptions.newBuilder()
+              .setRecursive(true)
+              .setMode(PMode.newBuilder()
+                      .setOwnerBits(Bits.ALL)
+                      .setGroupBits(Bits.ALL)
+                      .setOtherBits(Bits.NONE).build())
+              .putXattr(S3Constants.UPLOADS_ID_XATTR_KEY, ByteString.copyFrom(mUploadId, StandardCharsets.UTF_8))
+              .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+              .setWriteType(S3RestUtils.getS3WriteType());
+      // Copy Tagging xAttr if it exists
+      if (metaStatus.getXAttr().containsKey(S3Constants.TAGGING_XATTR_KEY)) {
+        optionsBuilder.putXattr(S3Constants.TAGGING_XATTR_KEY,
+                ByteString.copyFrom(metaStatus.getXAttr().get(S3Constants.TAGGING_XATTR_KEY)));
+      }
+      // Copy Content-Type Header xAttr if it exists
+      if (metaStatus.getXAttr().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
+        optionsBuilder.putXattr(S3Constants.CONTENT_TYPE_XATTR_KEY,
+                ByteString.copyFrom(metaStatus.getXAttr().get(S3Constants.CONTENT_TYPE_XATTR_KEY)));
+      }
+      return optionsBuilder.build();
+    }
+
+    public CompleteMultipartUploadRequest parseCompleteMultipartUploadRequest(String objectPath)
+            throws S3Exception {
+      CompleteMultipartUploadRequest request;
+      try {
+        request = new XmlMapper().readerFor(CompleteMultipartUploadRequest.class)
+                .readValue(mBody);
+      } catch (IllegalArgumentException | JsonProcessingException e) {
+        LOG.error("Failed parsing CompleteMultipartUploadRequest:{}",
+                ThreadUtils.formatStackTrace(e));
+        Throwable cause = e.getCause();
+        if (cause instanceof S3Exception) {
+          throw S3RestUtils.toObjectS3Exception((S3Exception) cause, objectPath);
+        }
+        throw S3RestUtils.toObjectS3Exception(e, objectPath);
+      }
+      return request;
+    }
+
+    public List<URIStatus> validateParts(CompleteMultipartUploadRequest request,
+                                         String objectPath,
+                                         AlluxioURI multipartTemporaryDir)
+            throws S3Exception, IOException, AlluxioException {
+      List<URIStatus> uploadedParts = mUserFs.listStatus(multipartTemporaryDir);
+      uploadedParts.sort(new S3RestUtils.URIStatusNameComparator());
+      if (uploadedParts.size() < request.getParts().size()) {
+        throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
+      }
+      Map<Integer, URIStatus> uploadedPartsMap = uploadedParts.stream().collect(Collectors.toMap(
+              status -> Integer.parseInt(status.getName()),
+              status -> status
+      ));
+      int lastPartNum = request.getParts().get(request.getParts().size() - 1).getPartNumber();
+      for (CompleteMultipartUploadRequest.Part part : request.getParts()) {
+        if (!uploadedPartsMap.containsKey(part.getPartNumber())) {
+          throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
+        }
+        if (part.getPartNumber() != lastPartNum // size requirement not applicable to last part
+                && uploadedPartsMap.get(part.getPartNumber()).getLength() < Configuration.getBytes(
+                PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
+          throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
+        }
+      }
+      return uploadedParts;
+    }
+
+    public void removePartsDirAndMPMetaFile(AlluxioURI multipartTemporaryDir) throws IOException, AlluxioException {
+      mUserFs.delete(multipartTemporaryDir,
+              DeletePOptions.newBuilder().setRecursive(true).build());
+      mMetaFs.delete(new AlluxioURI(
+                      S3RestUtils.getMultipartMetaFilepathForUploadId(mUploadId)),
+              DeletePOptions.newBuilder().build());
+      if (mMultipartCleanerEnabled) {
+        MultipartUploadCleaner.cancelAbort(mMetaFs, mUserFs, mBucket, mObject, mUploadId);
+      }
+    }
+
+    public void cleanupTempPath(String objTempPath) {
+      if (objTempPath != null) {
+        try {
+          mUserFs.delete(new AlluxioURI(objTempPath), DeletePOptions.newBuilder().build());
+        } catch (Exception e) {
+          LOG.warn("Failed to clean up temp path:{}", objTempPath, e.getMessage());
+        }
+      }
+    }
+
+    public URIStatus checkIfComplete(String objectPath) {
       try {
         URIStatus objStatus = mUserFs.getStatus(new AlluxioURI(objectPath));
         String uploadId = new String(objStatus.getXAttr()
