@@ -17,6 +17,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.fuse.AlluxioJnrFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
+import org.junit.Assume;
 
 import java.nio.file.Paths;
 
@@ -34,6 +35,7 @@ public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
   public void mountFuse(FileSystemContext context,
       FileSystem fileSystem, String mountPoint, String alluxioRoot) {
+    Assume.assumeTrue(Configuration.getInt(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION) == 2);
     Configuration.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, alluxioRoot);
     Configuration.set(PropertyKey.FUSE_MOUNT_POINT, mountPoint);
     Configuration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
