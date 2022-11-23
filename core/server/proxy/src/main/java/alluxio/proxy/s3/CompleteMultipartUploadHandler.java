@@ -23,10 +23,10 @@ import alluxio.exception.AlluxioException;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.PMode;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.S3SyntaxOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
-import alluxio.grpc.PMode;
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
 
@@ -291,7 +291,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       } catch (Exception e) {
         /* On exception we always check if someone completes the multipart object before us to
         achieve idempotency: when a race caused by retry(most cases), the commit of
-        this object happens at time of rename op, check DefaultFileSystemMaster.rename for more info.
+        this object happens at time of rename op, check DefaultFileSystemMaster.rename.
          * */
         LOG.warn("Exception during CompleteMultipartUpload:{}", ThreadUtils.formatStackTrace(e));
         if (objectPath != null) {
@@ -303,7 +303,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
               LOG.info("Check for idempotency, uploadId:{} idempotency check passed.", mUploadId);
               return new CompleteMultipartUploadResult(objectPath, mBucket, mObject, etag);
             }
-            LOG.info("Check for idempotency, uploadId:{} object path exists but no etag found.", mUploadId);
+            LOG.info("Check for idempotency, uploadId:{} object path exists but no etag found.",
+                    mUploadId);
           }
         }
         throw S3RestUtils.toObjectS3Exception(e, mObject);
@@ -313,6 +314,11 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       }
     }
 
+    /**
+     * Prepare CreateFilePOptions for create temp multipart upload file.
+     * @param metaStatus multi part upload meta file status
+     * @return CreateFilePOptions
+     */
     public CreateFilePOptions prepareForCreateTempFile(URIStatus metaStatus) {
       CreateFilePOptions.Builder optionsBuilder = CreateFilePOptions.newBuilder()
               .setRecursive(true)
@@ -320,7 +326,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
                       .setOwnerBits(Bits.ALL)
                       .setGroupBits(Bits.ALL)
                       .setOtherBits(Bits.NONE).build())
-              .putXattr(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, ByteString.copyFrom(mUploadId, StandardCharsets.UTF_8))
+              .putXattr(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY,
+                      ByteString.copyFrom(mUploadId, StandardCharsets.UTF_8))
               .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
               .setWriteType(S3RestUtils.getS3WriteType());
       // Copy Tagging xAttr if it exists
@@ -336,6 +343,12 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       return optionsBuilder.build();
     }
 
+    /**
+     * Parse xml http body for CompleteMultipartUploadRequest.
+     * @param objectPath
+     * @return CompleteMultipartUploadRequest
+     * @throws S3Exception
+     */
     public CompleteMultipartUploadRequest parseCompleteMultipartUploadRequest(String objectPath)
             throws S3Exception {
       CompleteMultipartUploadRequest request;
@@ -354,6 +367,16 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       return request;
     }
 
+    /**
+     * Validate the parts as part of this multipart uplaod request.
+     * @param request
+     * @param objectPath
+     * @param multipartTemporaryDir
+     * @return List of status of the part files
+     * @throws S3Exception
+     * @throws IOException
+     * @throws AlluxioException
+     */
     public List<URIStatus> validateParts(CompleteMultipartUploadRequest request,
                                          String objectPath,
                                          AlluxioURI multipartTemporaryDir)
@@ -381,7 +404,15 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       return uploadedParts;
     }
 
-    public void removePartsDirAndMPMetaFile(AlluxioURI multipartTemporaryDir) throws IOException, AlluxioException {
+    /**
+     * Cleanup the multipart upload temporary folder holding the parts files.
+     * and the meta file for this multipart.
+     * @param multipartTemporaryDir
+     * @throws IOException
+     * @throws AlluxioException
+     */
+    public void removePartsDirAndMPMetaFile(AlluxioURI multipartTemporaryDir)
+            throws IOException, AlluxioException {
       mUserFs.delete(multipartTemporaryDir,
               DeletePOptions.newBuilder().setRecursive(true).build());
       mMetaFs.delete(new AlluxioURI(
@@ -392,6 +423,10 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       }
     }
 
+    /**
+     * Cleanup the temp object file for complete multipart upload.
+     * @param objTempPath
+     */
     public void cleanupTempPath(String objTempPath) {
       if (objTempPath != null) {
         try {
@@ -402,6 +437,12 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       }
     }
 
+    /**
+     * On any exception, check with Master on if the there's a object file.
+     * bearing the same upload id already got completed.
+     * @param objectPath
+     * @return the status of the existing object through CompleteMultipartUpload call
+     */
     public URIStatus checkIfComplete(String objectPath) {
       try {
         URIStatus objStatus = mUserFs.getStatus(new AlluxioURI(objectPath));

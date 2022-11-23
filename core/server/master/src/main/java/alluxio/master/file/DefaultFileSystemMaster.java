@@ -2852,10 +2852,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       boolean failOnExist = true;
       if (context.getOptions().hasS3SyntaxOptions()) {
         // For object overwrite
-        String mpUploadIdDst = new String(dstInodePath.getInodeFile().getXAttr()
-                .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0]));
-        String mpUploadIdSrc = new String(srcInodePath.getInodeFile().getXAttr()
-                .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0]));
+        String mpUploadIdDst = new String(dstInodePath.getInodeFile().getXAttr() != null ?
+                dstInodePath.getInodeFile().getXAttr().getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0])
+                : new byte[0]);
+        String mpUploadIdSrc = new String(srcInodePath.getInodeFile().getXAttr() != null ?
+                srcInodePath.getInodeFile().getXAttr().getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0])
+                : new byte[0]);
         if (StringUtils.isNotEmpty(mpUploadIdSrc) && StringUtils.isNotEmpty(mpUploadIdDst)
                 && StringUtils.equals(mpUploadIdSrc, mpUploadIdDst)) {
           LOG.info("Object with same upload exists, bail and claim success.");
@@ -2872,6 +2874,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             deleteInternal(rpcContext, dstInodePath, DeleteContext
                     .mergeFrom(DeletePOptions.newBuilder()
                             .setRecursive(true).setAlluxioOnly(context.getPersist())), true);
+            dstInodePath.removeLastInode();
           } catch (DirectoryNotEmptyException ex) {
             // IGNORE, this will never happen
           }
