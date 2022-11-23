@@ -2847,11 +2847,11 @@ public class DefaultFileSystemMaster extends CoreMaster
           ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(dstInodePath.getUri()));
     }
 
-    boolean s3Client = true;
     // Make sure destination path does not exist
     if (dstInodePath.fullPathExists()) {
+      boolean failOnExist = true;
       if (context.getOptions().hasS3SyntaxOptions()) {
-        // FOR OBJ OVERWRITE
+        // For object overwrite
         String mpUploadIdDst = new String(dstInodePath.getInodeFile().getXAttr()
                 .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0]));
         String mpUploadIdSrc = new String(srcInodePath.getInodeFile().getXAttr()
@@ -2865,17 +2865,19 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
         //we need to overwrite, delete existing destination path
         if (context.getOptions().getS3SyntaxOptions().getOverwrite()) {
+          failOnExist = false;
           LOG.info("Encountered S3 Overwrite syntax, "
                   + "deleting existing file and then start renaming.");
           try {
             deleteInternal(rpcContext, dstInodePath, DeleteContext
                     .mergeFrom(DeletePOptions.newBuilder()
-                            .setRecursive(true).setAlluxioOnly(false)), true);
+                            .setRecursive(true).setAlluxioOnly(context.getPersist())), true);
           } catch (DirectoryNotEmptyException ex) {
             // IGNORE, this will never happen
           }
         }
-      } else {
+      }
+      if (failOnExist) {
         throw new FileAlreadyExistsException(String
                 .format("Cannot rename because destination already exists. src: %s dst: %s",
                         srcInodePath.getUri(), dstInodePath.getUri()));

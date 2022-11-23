@@ -20,7 +20,13 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-import alluxio.grpc.*;
+import alluxio.grpc.Bits;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.S3SyntaxOptions;
+import alluxio.grpc.XAttrPropagationStrategy;
+import alluxio.grpc.PMode;
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
 
@@ -241,7 +247,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
           metaStatus = S3RestUtils.checkStatusesForUploadId(mMetaFs, mUserFs,
                   multipartTemporaryDir, mUploadId).get(1);
         } catch (Exception e) {
-          LOG.warn("checkStatusesForUploadId uploadId:{} failed", mUploadId, ThreadUtils.formatStackTrace(e));
+          LOG.warn("checkStatusesForUploadId uploadId:{} failed. {}", mUploadId,
+                  ThreadUtils.formatStackTrace(e));
           throw new S3Exception(objectPath, S3ErrorCode.NO_SUCH_UPLOAD);
         }
         // Parse the HTTP request body to get the intended list of parts
