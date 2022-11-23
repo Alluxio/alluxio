@@ -175,7 +175,8 @@ public final class BlockLockManager {
    * @return lock id
    */
   public long lockBlock(long sessionId, long blockId, BlockLockType blockLockType) {
-    return lockBlockInternal(sessionId, blockId, blockLockType, false, null, null).getAsLong();
+    return lockBlockInternal(sessionId, blockId, blockLockType,
+        false, 1L, TimeUnit.MINUTES).getAsLong();
   }
 
   private OptionalLong lockBlockInternal(long sessionId, long blockId, BlockLockType blockLockType,

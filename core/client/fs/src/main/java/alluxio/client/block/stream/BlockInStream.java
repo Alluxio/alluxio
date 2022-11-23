@@ -146,9 +146,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
               + "shortCircuitPreferred {}, sourceSupportDomainSocket {})",
           blockId, dataSource, NetworkAddressUtils.getClientHostName(alluxioConf), dataSource,
           sourceIsLocal, shortCircuit, shortCircuitPreferred, sourceSupportsDomainSocket);
-      createNettyBlockInStream(context, dataSource, dataSourceType, blockId,
+      return createNettyBlockInStream(context, dataSource, dataSourceType, blockId,
           blockSize, options);
-      return null;
     }
 
     // gRPC

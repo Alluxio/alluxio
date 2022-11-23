@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.netty;
+package alluxio.network.netty;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -19,7 +19,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * outperforms {@link #TRANSFER}.
  */
 @ThreadSafe
-enum FileTransferType {
+public enum FileTransferType {
   /**
    * Uses a {@link java.nio.MappedByteBuffer} to transfer data over the network.
    */

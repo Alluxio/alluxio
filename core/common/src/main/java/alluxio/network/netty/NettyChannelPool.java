@@ -15,6 +15,8 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -43,6 +45,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class NettyChannelPool extends DynamicResourcePool<Channel> {
   private static final Logger LOG = LoggerFactory.getLogger(NettyChannelPool.class);
+
+  private static final Counter COUNTER = MetricsSystem.counter(
+      MetricKey.NETTY_CHANNEL_COUNT.getName());
 
   private static final int NETTY_CHANNEL_POOL_GC_THREADPOOL_SIZE = 10;
   private static final ScheduledExecutorService GC_EXECUTOR =
@@ -117,8 +122,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
 
   @Override
   protected Counter getMetricCounter() {
-    // TODO(JiamingMai): implement this method
-    return null;
+    return COUNTER;
   }
 
   @Override

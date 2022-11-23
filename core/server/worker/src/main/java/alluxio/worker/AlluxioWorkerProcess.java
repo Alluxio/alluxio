@@ -184,7 +184,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public int getDataLocalPort() {
-    return ((InetSocketAddress) mDataServer.getBindAddress()).getPort();
+    //return ((InetSocketAddress) mDataServer.getBindAddress()).getPort();
+    return ((InetSocketAddress) mNettyDataServer.getBindAddress()).getPort();
   }
 
   @Override

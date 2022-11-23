@@ -49,6 +49,7 @@ import alluxio.master.metastore.MetastoreType;
 import alluxio.master.metastore.rocks.DataBlockIndexType;
 import alluxio.master.metastore.rocks.IndexType;
 import alluxio.network.ChannelType;
+import alluxio.network.netty.FileTransferType;
 import alluxio.security.authentication.AuthType;
 import alluxio.util.FormatUtils;
 import alluxio.util.OSUtils;
@@ -760,18 +761,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_NETWORK_NETTY_BACKLOG =
       intBuilder(Name.WORKER_NETWORK_NETTY_BACKLOG)
           .setDescription("Netty socket option for SO_BACKLOG: the number of connections queued.")
+          .setDefaultValue(50)
           .build();
 
   public static final PropertyKey WORKER_NETWORK_NETTY_BUFFER_SEND =
-      intBuilder(Name.WORKER_NETWORK_NETTY_BUFFER_SEND)
+      dataSizeBuilder(Name.WORKER_NETWORK_NETTY_BUFFER_SEND)
           .setDescription("Netty socket option for SO_SNDBUF: the proposed buffer size that will "
               + "be used for sends.")
+          .setDefaultValue("64KB")
           .build();
 
   public static final PropertyKey WORKER_NETWORK_NETTY_BUFFER_RECEIVE =
-      intBuilder(Name.WORKER_NETWORK_NETTY_BUFFER_RECEIVE)
+      dataSizeBuilder(Name.WORKER_NETWORK_NETTY_BUFFER_RECEIVE)
           .setDescription("Netty socket option for SO_RCVBUF: the proposed buffer size that will "
               + "be used for receives.")
+          .setDefaultValue("64KB")
           .build();
 
   public static final PropertyKey SITE_CONF_DIR =
@@ -4290,7 +4294,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
-      stringBuilder(Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE)
+      enumBuilder(Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class)
           .setDefaultValue("MAPPED")
           .setDescription("When returning files to the user, select how the data is "
               + "transferred; valid options are `MAPPED` (uses java MappedByteBuffer) and "
@@ -6264,6 +6268,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.USER_NETWORK_NETTY_WORKER_THREADS)
           .setDescription("How many threads to use for remote block worker client to read "
               + "from remote block workers.")
+          .setDefaultValue(0)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
