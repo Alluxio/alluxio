@@ -16,11 +16,8 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
-import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NodeState;
-import alluxio.master.journal.DefaultJournalMaster;
-import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -31,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -43,7 +41,7 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
   /**
    * @return the master that is running on this process
    */
-  abstract AbstractMaster getAbstractMaster();
+  abstract List<AbstractMaster> getAbstractMasters();
 
   /**
    * @return a newly created web server for this master
@@ -175,7 +173,9 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
       if (!isLeader) {
         startRejectingServers();
       }
-      getAbstractMaster().start(isLeader);
+      for (AbstractMaster master : getAbstractMasters()) {
+        master.start(isLeader);
+      }
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
       throw new RuntimeException(e.getMessage(), e);
@@ -184,7 +184,9 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
 
   protected void stopMaster() {
     try {
-      getAbstractMaster().stop();
+      for (AbstractMaster master : getAbstractMasters()) {
+        master.stop();
+      }
     } catch (IOException e) {
       LOG.error("Failed to stop {} master", mMasterName, e);
       throw new RuntimeException(String.format("Failed to stop %s master", mMasterName), e);
@@ -241,14 +243,7 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
     // Create underlying gRPC server.
     GrpcServerBuilder builder = createBaseRPCServer();
     // Register master services.
-    registerServices(builder, getAbstractMaster().getServices());
-
-    // Bind manifest of Alluxio JournalMaster service.
-    // TODO(ggezer) Merge this with registerServices() logic.
-    builder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
-        new GrpcService(new JournalMasterClientServiceHandler(
-            new DefaultJournalMaster(mJournalDomain, mJournalSystem, mLeaderSelector))));
-
+    getAbstractMasters().forEach((master) -> registerServices(builder, master.getServices()));
     // Builds a server that is not started yet.
     return builder.build();
   }
