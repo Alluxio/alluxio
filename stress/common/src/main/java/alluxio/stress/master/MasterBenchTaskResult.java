@@ -11,25 +11,17 @@
 
 package alluxio.stress.master;
 
-import alluxio.stress.BaseParameters;
 import alluxio.stress.TaskResult;
 
-import java.util.ArrayList;
+import com.google.common.base.Preconditions;
+
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
  * The task result for the master stress tests.
  */
-public final class MasterBenchTaskResult implements TaskResult {
-  private long mRecordStartMs;
-  private long mEndMs;
-  private long mDurationMs;
-  private BaseParameters mBaseParameters;
-  private MasterBenchParameters mParameters;
-  private List<String> mErrors;
-
+public final class MasterBenchTaskResult extends MasterBenchTaskResultBase<MasterBenchParameters> {
   private MasterBenchTaskResultStatistics mStatistics;
 
   private Map<String, MasterBenchTaskResultStatistics> mStatisticsPerMethod;
@@ -38,42 +30,20 @@ public final class MasterBenchTaskResult implements TaskResult {
    * Creates an instance.
    */
   public MasterBenchTaskResult() {
-    // Default constructor required for json deserialization
-    mErrors = new ArrayList<>();
+    super();
     mStatistics = new MasterBenchTaskResultStatistics();
     mStatisticsPerMethod = new HashMap<>();
   }
 
-  /**
-   * Merges (updates) a task result with this result.
-   *
-   * @param result  the task result to merge
-   */
-  public void merge(MasterBenchTaskResult result) throws Exception {
-    // When merging results within a node, we need to merge all the error information.
-    mErrors.addAll(result.mErrors);
-    aggregateByWorker(result);
-  }
+  @Override
+  void mergeResultStatistics(MasterBenchTaskResultBase<MasterBenchParameters> result)
+      throws Exception {
+    Preconditions.checkState(result instanceof MasterBenchTaskResult);
+    MasterBenchTaskResult convertedResult = (MasterBenchTaskResult) result;
 
-  /**
-   * Merges (updates) a task result with this result except the error information.
-   *
-   * @param result  the task result to merge
-   */
-  public void aggregateByWorker(MasterBenchTaskResult result) throws Exception {
-    // When merging result from different workers, we don't need to merge the error information
-    // since we will keep all the result information in a map.
-    mStatistics.merge(result.mStatistics);
-
-    mRecordStartMs = result.mRecordStartMs;
-    if (result.mEndMs > mEndMs) {
-      mEndMs = result.mEndMs;
-    }
-    mBaseParameters = result.mBaseParameters;
-    mParameters = result.mParameters;
-
+    mStatistics.merge(convertedResult.mStatistics);
     for (Map.Entry<String, MasterBenchTaskResultStatistics> entry :
-        result.mStatisticsPerMethod.entrySet()) {
+        convertedResult.mStatisticsPerMethod.entrySet()) {
       final String key = entry.getKey();
       final MasterBenchTaskResultStatistics value = entry.getValue();
 
@@ -86,113 +56,12 @@ public final class MasterBenchTaskResult implements TaskResult {
   }
 
   /**
-   * @return the duration (in ms)
-   */
-  public long getDurationMs() {
-    return mDurationMs;
-  }
-
-  /**
-   * @param durationMs the duration (in ms)
-   */
-  public void setDurationMs(long durationMs) {
-    mDurationMs = durationMs;
-  }
-
-  /**
    * Increments the number of successes by an amount.
    *
    * @param numSuccess the amount to increment by
    */
   public void incrementNumSuccess(long numSuccess) {
     mStatistics.mNumSuccess += numSuccess;
-  }
-
-  @Override
-  public BaseParameters getBaseParameters() {
-    return mBaseParameters;
-  }
-
-  /**
-   * @param baseParameters the base parameters
-   */
-  public void setBaseParameters(BaseParameters baseParameters) {
-    mBaseParameters = baseParameters;
-  }
-
-  /**
-   * @return the parameters
-   */
-  public MasterBenchParameters getParameters() {
-    return mParameters;
-  }
-
-  /**
-   * @param parameters the parameters
-   */
-  public void setParameters(MasterBenchParameters parameters) {
-    mParameters = parameters;
-  }
-
-  /**
-   * @return the array of max response times (in ns)
-   */
-  public long[] getMaxResponseTimeNs() {
-    return mStatistics.mMaxResponseTimeNs;
-  }
-
-  /**
-   * @param maxResponseTimeNs the array of max response times (in ns)
-   */
-  public void setMaxResponseTimeNs(long[] maxResponseTimeNs) {
-    mStatistics.mMaxResponseTimeNs = maxResponseTimeNs;
-  }
-
-  /**
-   * @return the start time (in ms)
-   */
-  public long getRecordStartMs() {
-    return mRecordStartMs;
-  }
-
-  /**
-   * @param recordStartMs the start time (in ms)
-   */
-  public void setRecordStartMs(long recordStartMs) {
-    mRecordStartMs = recordStartMs;
-  }
-
-  /**
-   * @return the end time (in ms)
-   */
-  public long getEndMs() {
-    return mEndMs;
-  }
-
-  /**
-   * @param endMs the end time (in ms)
-   */
-  public void setEndMs(long endMs) {
-    mEndMs = endMs;
-  }
-
-  @Override
-  public List<String> getErrors() {
-    return mErrors;
-  }
-
-  /**
-   * @param errors the list of errors
-   */
-  public void setErrors(List<String> errors) {
-    mErrors = errors;
-  }
-
-  /**
-   * @param errMesssage the error message to add
-   */
-  public void addErrorMessage(String errMesssage) {
-    mErrors.add(errMesssage);
   }
 
   /**
@@ -224,10 +93,7 @@ public final class MasterBenchTaskResult implements TaskResult {
     mStatisticsPerMethod = statisticsPerMethod;
   }
 
-  /**
-   * @param method the name of the method to insert statistics for
-   * @param statistics the statistics for the method
-   */
+  @Override
   public void putStatisticsForMethod(String method, MasterBenchTaskResultStatistics statistics) {
     mStatisticsPerMethod.put(method, statistics);
   }
