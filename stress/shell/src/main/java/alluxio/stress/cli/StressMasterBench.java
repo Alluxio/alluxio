@@ -184,6 +184,7 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   protected StressMasterBenchBase<MasterBenchTaskResult, MasterBenchParameters>.BenchContext
       getContext() {
     RateLimiter rateLimiter = RateLimiter.create(mParameters.mTargetThroughput);

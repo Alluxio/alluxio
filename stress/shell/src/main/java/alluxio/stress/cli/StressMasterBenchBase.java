@@ -211,6 +211,7 @@ public abstract class StressMasterBenchBase
     /** The results. Access must be synchronized for thread safety. */
     private T mResult;
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     BenchContext(
         RateLimiter grandRateLimiter, RateLimiter[] rateLimiters,
         Operation[] operations, String[] basePaths, String duration) {
