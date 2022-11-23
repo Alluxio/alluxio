@@ -25,7 +25,9 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
+// import com.google.common.collect.Sets;
+import org.eclipse.collections.api.block.procedure.primitive.LongProcedure;
+import org.eclipse.collections.api.set.primitive.LongSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.eclipse.collections.impl.set.mutable.primitive.LongHashSet;
@@ -142,10 +144,10 @@ public final class MasterWorkerInfoLongHashSet {
 
     /** Ids of blocks the worker contains. */
     @GuardedBy("mBlockListLock")
-    private Set<Long> mBlocks;
+    private LongHashSet mBlocks;
     /** Ids of blocks the worker should remove. */
     @GuardedBy("mBlockListLock")
-    private final Set<Long> mToRemoveBlocks;
+    private final LongHashSet mToRemoveBlocks;
     /** Locks the 2 block sets above. */
     private final ReadWriteLock mBlockListLock;
 
@@ -161,8 +163,8 @@ public final class MasterWorkerInfoLongHashSet {
     public MasterWorkerInfoLongHashSet(long id, WorkerNetAddress address) {
         mMeta = new StaticWorkerMeta(id, address);
         mUsage = new WorkerUsageMeta();
-        mBlocks = (Set<Long>) new LongHashSet();
-        mToRemoveBlocks = (Set<Long>) new LongHashSet();
+        mBlocks = new LongHashSet();
+        mToRemoveBlocks =  new LongHashSet();
         mLastUpdatedTimeMs = new AtomicLong(CommonUtils.getCurrentMs());
 
         // Init all locks
@@ -200,22 +202,22 @@ public final class MasterWorkerInfoLongHashSet {
      * @param blocks set of block ids on this worker
      * @return A Set of blocks removed (or lost) from this worker
      */
-    public Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
+    public LongHashSet register(final StorageTierAssoc globalStorageTierAssoc,
                               final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
-                              final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks) {
+                              final Map<String, Long> usedBytesOnTiers, final LongHashSet blocks) {
         mUsage.updateUsage(globalStorageTierAssoc, storageTierAliases,
                 totalBytesOnTiers, usedBytesOnTiers);
 
-        Set<Long> removedBlocks;
+        LongHashSet removedBlocks = new LongHashSet();
         if (mIsRegistered) {
             // This is a re-register of an existing worker. Assume the new block ownership data is more
             // up-to-date and update the existing block information.
             LOG.info("re-registering an existing workerId: {}", mMeta.mId);
 
             // Compute the difference between the existing block data, and the new data.
-            removedBlocks = Sets.difference(mBlocks, blocks);
+            removedBlocks = mBlocks.withoutAll(blocks);
         } else {
-            removedBlocks = Collections.emptySet();
+            removedBlocks.newEmpty();
         }
 
         // Set the new block information.
@@ -374,12 +376,12 @@ public final class MasterWorkerInfoLongHashSet {
      *
      * @return ids of all blocks the worker contains
      */
-    public Set<Long> getBlocks() {
-        return (Set<Long>) new LongHashSet((LongHashSet) mBlocks);
+    public LongHashSet getBlocks() {
+        return  new LongHashSet((LongHashSet) mBlocks);
     }
 
-    public Set<Long> getBlocksNoCopy() {
-        return Collections.unmodifiableSet(mBlocks);
+    public LongSet getBlocksNoCopy() {
+        return mBlocks.freeze();
     }
     /**
      * Return the block count of this worker.
@@ -428,8 +430,8 @@ public final class MasterWorkerInfoLongHashSet {
      *
      * @return ids of blocks the worker should remove
      */
-    public Set<Long> getToRemoveBlocks() {
-        return (Set<Long>) new LongHashSet((LongHashSet) mToRemoveBlocks);
+    public LongHashSet getToRemoveBlocks() {
+        return new LongHashSet(mToRemoveBlocks);
     }
 
     /**
@@ -700,5 +702,18 @@ public final class MasterWorkerInfoLongHashSet {
         }
         return lockWorkerMeta(lockTypes, true);
     }
+
+    private static final class doNothingProcedure implements LongProcedure
+    {
+        @Override
+        public void value(long each) {}
+    }
+
+    public void goThrough() {
+        doNothingProcedure procedure = new doNothingProcedure();
+        mBlocks.forEach(procedure);
+    }
 }
+
+
 

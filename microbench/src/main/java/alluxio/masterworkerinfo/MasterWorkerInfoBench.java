@@ -13,8 +13,8 @@ package alluxio.masterworkerinfo;
 
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.MasterWorkerInfoHashSet;
-import alluxio.master.block.meta.MasterWorkerInfoUnifiedSet;
 import alluxio.master.block.meta.MasterWorkerInfoLongHashSet;
+import alluxio.master.block.meta.MasterWorkerInfoUnifiedSet;
 import alluxio.wire.WorkerNetAddress;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -365,9 +365,10 @@ public class MasterWorkerInfoBench {
   public long LongHashSetEnumerationTest(RemoveLongHashSetBenchState bs) {
     long t = 0;
     long i = bs.mTest;
-    for (long x: bs.mMasterWorkerInfo.getBlocksNoCopy()) {
-      t = x;
-    }
+    // for (long x: bs.mMasterWorkerInfo.getBlocksNoCopy()) {
+    //   t = x;
+    // }
+    bs.mMasterWorkerInfo.goThrough();
     return t;
   }
 
