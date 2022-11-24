@@ -25,8 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
@@ -157,7 +157,7 @@ public final class CommandManager {
    *
    * @param workerId id of the worker
    */
-  public void createWorkerLock(long workerId){
+  public void createWorkerLock(long workerId) {
     if (!mWorkerLocks.containsKey(workerId)) {
       mWorkerLocks.put(workerId, new ReentrantReadWriteLock(true));
     }
@@ -168,7 +168,7 @@ public final class CommandManager {
    *
    * @param workerId id of the worker
    */
-  public void removeWorkerLock(long workerId){
+  public void removeWorkerLock(long workerId) {
     if (!mWorkerLocks.containsKey(workerId)) {
       Lock writeLock = mWorkerLocks.get(workerId).writeLock();
       writeLock.lock();
