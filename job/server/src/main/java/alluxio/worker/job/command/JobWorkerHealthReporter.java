@@ -12,6 +12,7 @@
 package alluxio.worker.job.command;
 
 import alluxio.wire.WorkerNetAddress;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import oshi.SystemInfo;
@@ -51,7 +52,7 @@ public class JobWorkerHealthReporter {
   /**
    * It represents the job worker health information.
    */
-  public static class JobWorkerHealthReport{
+  public static class JobWorkerHealthReport {
     private static final double CPU_LOAD_AVERAGE_HEALTHY_FACTOR = 1.0;
     private final WorkerNetAddress mWorkerNetAddress;
     private final List<Double> mCpuLoadAverage;
@@ -65,9 +66,10 @@ public class JobWorkerHealthReporter {
      * @param workerNetAddress the connection info for this worker
      */
     public JobWorkerHealthReport(HardwareAbstractionLayer hardware,
-                               WorkerNetAddress workerNetAddress){
+                                 WorkerNetAddress workerNetAddress) {
       mWorkerNetAddress = workerNetAddress;
-      mCpuLoadAverage = DoubleStream.of(hardware.getProcessor().getSystemLoadAverage(3)).boxed()
+      mCpuLoadAverage = DoubleStream.of(hardware.getProcessor()
+              .getSystemLoadAverage(3)).boxed()
               .collect(Collectors.toList());
       mLogicalProcessorCount = hardware.getProcessor().getLogicalProcessorCount();
       mLastComputed = System.currentTimeMillis();
@@ -89,7 +91,7 @@ public class JobWorkerHealthReporter {
      *
      * @return the logical process count of the worker
      */
-    public int getLogicalProcessorCount(){
+    public int getLogicalProcessorCount() {
       return mLogicalProcessorCount;
     }
 
@@ -98,7 +100,7 @@ public class JobWorkerHealthReporter {
      *
      * @return observed time
      */
-    public long getLastComputed(){
+    public long getLastComputed() {
       return mLastComputed;
     }
 
@@ -117,7 +119,7 @@ public class JobWorkerHealthReporter {
               mLogicalProcessorCount * CPU_LOAD_AVERAGE_HEALTHY_FACTOR > mCpuLoadAverage.get(0);
 
       if (!isWorkerHealthy) {
-        LOG.warn("Worker,{}, is not healthy. Health-> logical process count:{}, average cpu load:{}",
+        LOG.warn("Worker,{}, is not healthy.Process count:{}, Average cpu load:{}",
                 mWorkerNetAddress.getHost(),
                 mLogicalProcessorCount,
                 mCpuLoadAverage);
