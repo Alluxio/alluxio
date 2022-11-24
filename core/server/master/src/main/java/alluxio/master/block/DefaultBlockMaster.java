@@ -254,6 +254,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /** Listeners to call when workers are lost. */
   private final List<Consumer<Address>> mWorkerLostListeners = new ArrayList<>();
 
+  /** Listeners to call when workers are delete. */
+  private final List<Consumer<Address>> mWorkerDeleteListeners = new ArrayList<>();
+
   /** Listeners to call when a new worker registers. */
   private final List<BiConsumer<Address, List<ConfigProperty>>> mWorkerRegisteredListeners
       = new ArrayList<>();
@@ -1551,6 +1554,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     @Override
     public void heartbeat() {
       long masterWorkerTimeoutMs = Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
+      long masterWorkerDeleteTimeoutMs =
+          Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
         try (LockResource r = worker.lockWorkerMeta(
             EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
@@ -1560,6 +1565,18 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             LOG.error("The worker {}({}) timed out after {}ms without a heartbeat!", worker.getId(),
                 worker.getWorkerAddress(), lastUpdate);
             processLostWorker(worker);
+          }
+        }
+      }
+      for (MasterWorkerInfo worker : mLostWorkers) {
+        try (LockResource r = worker.lockWorkerMeta(
+                EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+          final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
+          if ((lastUpdate - masterWorkerTimeoutMs) > masterWorkerDeleteTimeoutMs) {
+            LOG.error("The worker {}({}) timed out after {}ms without a heartbeat! "
+                + "Master will forget about this worker.", worker.getId(),
+                worker.getWorkerAddress(), lastUpdate);
+            deleteWorkerMetadata(worker);
           }
         }
       }
@@ -1604,6 +1621,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // mark these blocks to-remove from the worker.
     // So if the worker comes back again the blocks are kept.
     processWorkerRemovedBlocks(worker, worker.getBlocks(), false);
+  }
+
+  private void deleteWorkerMetadata(MasterWorkerInfo worker) {
+    mWorkers.remove(worker);
+    mLostWorkers.remove(worker);
+    mTempWorkers.remove(worker);
+    WorkerNetAddress workerAddress = worker.getWorkerAddress();
+    for (Consumer<Address> function : mWorkerDeleteListeners) {
+      function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
+    }
   }
 
   private void processFreedWorker(MasterWorkerInfo worker) {
@@ -1659,6 +1686,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void registerWorkerLostListener(Consumer<Address> function) {
     mWorkerLostListeners.add(function);
+  }
+
+  @Override
+  public void registerWorkerDeleteListener(Consumer<Address> function) {
+    mWorkerDeleteListeners.add(function);
   }
 
   @Override

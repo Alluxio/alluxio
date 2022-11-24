@@ -113,6 +113,20 @@ public class ConfigurationStore {
   }
 
   /**
+   * Updates configuration when a node delete.
+   *
+   * @param address the node address
+   */
+  public synchronized void handleNodeDelete(Address address) {
+    Preconditions.checkNotNull(address, "address should not be null");
+    mLostNodes.remove(address);
+    mConfMap.remove(address);
+    for (Runnable function : mChangeListeners) {
+      function.run();
+    }
+  }
+
+  /**
    * @return a copy of the configuration map of live nodes
    */
   public synchronized Map<Address, List<ConfigRecord>> getConfMap() {
