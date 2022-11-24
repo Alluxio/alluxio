@@ -12,7 +12,6 @@
 package alluxio.worker.job.command;
 
 import alluxio.wire.WorkerNetAddress;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import oshi.SystemInfo;
@@ -32,13 +31,19 @@ public class JobWorkerHealthReporter {
   private final WorkerNetAddress mWorkerNetAddress;
 
   /**
-   * Default constructor.
+   * Creates a new instance of {@link JobWorkerHealthReporter}.
+   *
+   * @param workerNetAddress the connection info for this worker
    */
   public JobWorkerHealthReporter(WorkerNetAddress workerNetAddress) {
     mWorkerNetAddress = workerNetAddress;
     mHardware = new SystemInfo().getHardware();
   }
 
+  /**
+   *
+   * @return instance of JobWorkerHealthReport
+   */
   public JobWorkerHealthReport getJobWorkerHealthReport() {
     return new JobWorkerHealthReport(mHardware, mWorkerNetAddress);
   }
@@ -53,6 +58,12 @@ public class JobWorkerHealthReporter {
     private final int mLogicalProcessorCount;
     private final long mLastComputed;
 
+    /**
+     * Creates a new instance of {@link JobWorkerHealthReport}.
+     *
+     * @param hardware represents the system info of the worker
+     * @param workerNetAddress the connection info for this worker
+     */
     public JobWorkerHealthReport(HardwareAbstractionLayer hardware,
                                WorkerNetAddress workerNetAddress){
       mWorkerNetAddress = workerNetAddress;
@@ -101,13 +112,17 @@ public class JobWorkerHealthReporter {
         // report healthy if cpu load average is not computable
         return true;
       }
-      boolean isWorkerHealthy = mLogicalProcessorCount * CPU_LOAD_AVERAGE_HEALTHY_FACTOR > mCpuLoadAverage.get(0);
-      if (!isWorkerHealthy){
-        LOG.warn("Worker,{}, is not in healthy state. Health-> logical process count:{}, average cpu load:{}",
+
+      boolean isWorkerHealthy =
+              mLogicalProcessorCount * CPU_LOAD_AVERAGE_HEALTHY_FACTOR > mCpuLoadAverage.get(0);
+
+      if (!isWorkerHealthy) {
+        LOG.warn("Worker,{}, is not healthy. Health-> logical process count:{}, average cpu load:{}",
                 mWorkerNetAddress.getHost(),
                 mLogicalProcessorCount,
                 mCpuLoadAverage);
       }
+
       return isWorkerHealthy;
     }
   }

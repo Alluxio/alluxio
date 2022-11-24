@@ -84,8 +84,10 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
-    JobWorkerHealthReporter.JobWorkerHealthReport jobWorkerHealthReport = mHealthReporter.getJobWorkerHealthReport();
-    if(mIsThrottleWorkerOnPoorHealth){
+    JobWorkerHealthReporter.JobWorkerHealthReport jobWorkerHealthReport =
+            mHealthReporter.getJobWorkerHealthReport();
+
+    if (mIsThrottleWorkerOnPoorHealth) {
       if (jobWorkerHealthReport.isHealthy()) {
         mTaskExecutorManager.unthrottle();
       } else {
