@@ -25,9 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
@@ -45,9 +44,8 @@ public final class CommandManager {
 
   // TODO(yupeng) add retry support
   private final Map<Long, List<JobCommand>> mWorkerIdToPendingCommands = Maps.newHashMap();
-  // TODO replace lock per worker with guava striped lock once it is unstable
+  // TODO(vimalKeshu) replace lock per worker with guava striped lock once it is unstable
   private final Map<Long, ReadWriteLock> mWorkerLocks = new ConcurrentHashMap<>();
-
 
   /**
    * Constructs a new {@link CommandManager}.
@@ -115,10 +113,12 @@ public final class CommandManager {
   }
 
   private void submit(long workerId, JobCommand.Builder command) {
-    Objects.requireNonNull(mWorkerLocks.get(workerId), String.format("Worker,%d,not holding the lock.", workerId));
+    Objects.requireNonNull(mWorkerLocks.get(workerId),
+            String.format("Worker,%d,not holding the lock.", workerId));
+
     Lock writeLock = mWorkerLocks.get(workerId).writeLock();
     writeLock.lock();
-    try{
+    try {
       if (!mWorkerIdToPendingCommands.containsKey(workerId)) {
         mWorkerIdToPendingCommands.put(workerId, Lists.newArrayList());
       }
@@ -135,12 +135,15 @@ public final class CommandManager {
    * @return the list of the commends polled
    */
   public List<alluxio.grpc.JobCommand> pollAllPendingCommands(long workerId) {
-    Objects.requireNonNull(mWorkerLocks.get(workerId), String.format("Worker,%d,not holding the lock.", workerId));
+    Objects.requireNonNull(mWorkerLocks.get(workerId),
+            String.format("Worker,%d,not holding the lock.", workerId));
+
     List<JobCommand> commands = null;
     Lock writeLock = mWorkerLocks.get(workerId).writeLock();
     writeLock.lock();
-    try{
-      List<JobCommand> workerIdToPendingCommandList = mWorkerIdToPendingCommands.getOrDefault(workerId, Lists.newArrayList());
+    try {
+      List<JobCommand> workerIdToPendingCommandList =
+              mWorkerIdToPendingCommands.getOrDefault(workerId, Lists.newArrayList());
       commands = Lists.newArrayList(workerIdToPendingCommandList);
       workerIdToPendingCommandList.clear();
     } finally {
@@ -150,13 +153,13 @@ public final class CommandManager {
   }
 
   /**
-   * Register the lock for worker
+   * Register the lock for worker.
    *
    * @param workerId id of the worker
    */
   public void createWorkerLock(long workerId){
     if (!mWorkerLocks.containsKey(workerId)) {
-      this.mWorkerLocks.put(workerId, new ReentrantReadWriteLock(true));
+      mWorkerLocks.put(workerId, new ReentrantReadWriteLock(true));
     }
   }
 
@@ -169,9 +172,9 @@ public final class CommandManager {
     if (!mWorkerLocks.containsKey(workerId)) {
       Lock writeLock = mWorkerLocks.get(workerId).writeLock();
       writeLock.lock();
-      try{
-        this.mWorkerLocks.remove(workerId);
-      }finally {
+      try {
+        mWorkerLocks.remove(workerId);
+      } finally {
         writeLock.unlock();
       }
     }
