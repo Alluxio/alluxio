@@ -531,6 +531,7 @@ public final class MasterWorkerInfo {
   @Override
   // TODO(jiacheng): Read lock on the conversion
   public String toString() {
+    BuildVersion buildVersion = mBuildVersion.get();
     return MoreObjects.toStringHelper(this)
         .add("id", mMeta.mId)
         .add("workerAddress", mMeta.mWorkerAddress)
@@ -539,7 +540,9 @@ public final class MasterWorkerInfo {
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs.get())
         // We only show the number of blocks unless it is for DEBUG logs
         .add("blocks", LOG.isDebugEnabled() ? mBlocks : CommonUtils.summarizeCollection(mBlocks))
-        .add("lostStorage", mUsage.mLostStorage).toString();
+        .add("lostStorage", mUsage.mLostStorage)
+        .add("version", buildVersion.getVersion())
+        .add("revision", buildVersion.getRevision()).toString();
   }
 
   /**
@@ -724,7 +727,7 @@ public final class MasterWorkerInfo {
    *
    * @return the {@link BuildVersion} of the worker
    */
-  public BuildVersion getVersion() {
+  public BuildVersion getBuildVersion() {
     return mBuildVersion.get();
   }
 }

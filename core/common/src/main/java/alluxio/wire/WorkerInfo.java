@@ -39,16 +39,8 @@ public final class WorkerInfo implements Serializable {
   private Map<String, Long> mCapacityBytesOnTiers;
   private Map<String, Long> mUsedBytesOnTiers;
   private long mBlockCount;
-  private String mVersion;
-  private String mRevision;
-
-  /**
-   * Creates a new instance of {@link WorkerInfo}.
-   */
-  public WorkerInfo() {
-    mVersion = "";
-    mRevision = "";
-  }
+  private String mVersion = "";
+  private String mRevision = "";
 
   /**
    * @return the worker id
@@ -131,9 +123,9 @@ public final class WorkerInfo implements Serializable {
   }
 
   /**
-   * @return the latest git revision of at the time of building the worker
+   * @return the git revision at the time of building the worker
    */
-  @ApiModelProperty(value = "The latest git revision of at the time of building the worker")
+  @ApiModelProperty(value = "Git revision at the time of building the worker")
   public String getRevision() {
     return mRevision;
   }
@@ -231,7 +223,7 @@ public final class WorkerInfo implements Serializable {
   }
 
   /**
-   * @param revision the latest git revision of at the time of building the worker
+   * @param revision the git revision at the time of building the worker
    * @return the worker information
    */
   public WorkerInfo setRevision(String revision) {
