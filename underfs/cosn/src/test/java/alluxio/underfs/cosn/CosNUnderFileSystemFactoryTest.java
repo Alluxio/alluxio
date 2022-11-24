@@ -39,7 +39,7 @@ public class CosNUnderFileSystemFactoryTest {
   }
 
   /**
-   * Tests that the COSN UFS module could choose correct version to use
+   * Tests that the COSN UFS module could choose correct version to use.
    */
   @Test
   public void version() {
