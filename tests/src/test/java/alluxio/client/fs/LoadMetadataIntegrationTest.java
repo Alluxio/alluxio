@@ -420,13 +420,15 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void testNoTtlOnLoadedFiles() throws Exception {
+  public void noTtlOnLoadedFiles() throws Exception {
     int created = createUfsFiles(2);
+    // Set cluster default configuration related TTL
     Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
         LoadMetadataType.ONCE.toString());
     Configuration.set(PropertyKey.USER_FILE_CREATE_TTL, "11000");
     Configuration.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.FREE.toString());
     Configuration.set(PropertyKey.MASTER_METADATA_SYNC_USE_CLIENT_OPTION, false);
+    // Set TTL related arguments from client side
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true)
         .setCommonOptions(
             FileSystemMasterCommonPOptions.newBuilder()
@@ -442,17 +444,20 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void testHasTtlOnLoadedFiles() throws Exception {
+  public void hasTtlOnLoadedFiles() throws Exception {
+    int created = createUfsFiles(2);
+    long expectedTtl = 1000000;
+    // Set cluster default configuration related TTL
     Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
         LoadMetadataType.ONCE.toString());
     Configuration.set(PropertyKey.USER_FILE_CREATE_TTL, "11000");
     Configuration.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.FREE.toString());
     Configuration.set(PropertyKey.MASTER_METADATA_SYNC_USE_CLIENT_OPTION, true);
-    int created = createUfsFiles(2);
+    // Set TTL related arguments from client side
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true)
         .setCommonOptions(
             FileSystemMasterCommonPOptions.newBuilder()
-                .setTtl(1000000)
+                .setTtl(expectedTtl)
                 .setTtlAction(TtlAction.FREE)
                 .build())
         .build();
@@ -460,7 +465,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     assertEquals(created + EXTRA_DIR_FILES, list.size());
     list.forEach(stat -> {
       if (stat.getPath().startsWith("/mnt/dir")) {
-        assertEquals(1000000, stat.getTtl());
+        assertEquals(expectedTtl, stat.getTtl());
       }
     });
   }
