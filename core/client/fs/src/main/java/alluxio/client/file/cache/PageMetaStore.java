@@ -13,12 +13,9 @@ package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 
@@ -28,13 +25,13 @@ import java.util.concurrent.locks.ReadWriteLock;
 public interface PageMetaStore {
 
   /**
-   * @param conf the alluxio configuration
+   * @param options the options of cache
    * @return an instance of MetaStore
    */
-  static PageMetaStore create(AlluxioConfiguration conf) throws IOException {
-    List<PageStoreDir> dirs = PageStoreDir.createPageStoreDirs(conf);
-    if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED)) {
-      return new QuotaPageMetaStore(conf, dirs);
+  static PageMetaStore create(CacheManagerOptions options) throws IOException {
+    List<PageStoreDir> dirs = PageStoreDir.createPageStoreDirs(options);
+    if (options.isQuotaEnabled()) {
+      return new QuotaPageMetaStore(options.getCacheEvictorOptions(), dirs);
     }
     return new DefaultPageMetaStore(dirs);
   }
@@ -59,11 +56,20 @@ public interface PageMetaStore {
   void addPage(PageId pageId, PageInfo pageInfo);
 
   /**
-   * Gets an iterator over the pages currently stored in this metastore.
+   * Adds a new temp page to the cache.
    *
-   * @return iterator of the pages
+   * @param pageId page identifier
+   * @param pageInfo info of the page
    */
-  Iterator<PageId> getPagesIterator();
+  void addTempPage(PageId pageId, PageInfo pageInfo);
+
+  /**
+   * Commits a temp file so that all its pages become permanent.
+   *
+   * @param fileId the temp file to commit
+   * @param newFileId the new file name of the file after committing
+   */
+  void commitFile(String fileId, String newFileId) throws PageNotFoundException;
 
   /**
    * Gets the storage directories.
@@ -71,6 +77,13 @@ public interface PageMetaStore {
    * @return the storage directories
    */
   List<PageStoreDir> getStoreDirs();
+
+  /**
+   * @param fileId
+   * @param fileLength
+   * @return the storage directory
+   */
+  PageStoreDir allocate(String fileId, long fileLength);
 
   /**
    * @param pageId page identifier

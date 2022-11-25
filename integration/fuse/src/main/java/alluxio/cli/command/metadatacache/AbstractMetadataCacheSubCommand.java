@@ -14,11 +14,12 @@ package alluxio.cli.command.metadatacache;
 import alluxio.AlluxioURI;
 import alluxio.cli.command.AbstractFuseShellCommand;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.MetadataCachingBaseFileSystem;
+import alluxio.client.file.MetadataCachingFileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
 
 /**
  * Metadata cache sub command.
@@ -27,22 +28,22 @@ public abstract class AbstractMetadataCacheSubCommand extends AbstractFuseShellC
 
   /**
    * @param fileSystem   the file system the command takes effect on
-   * @param fuseFsOpts   Alluxio configuration
+   * @param conf the Alluxio configuration
    * @param commandName  the parent command name
    */
   public AbstractMetadataCacheSubCommand(FileSystem fileSystem,
-      AlluxioFuseFileSystemOpts fuseFsOpts, String commandName) {
-    super(fileSystem, fuseFsOpts, commandName);
+      AlluxioConfiguration conf, String commandName) {
+    super(fileSystem, conf, commandName);
   }
 
   @Override
   public URIStatus run(AlluxioURI path, String[] argv) throws InvalidArgumentException {
-    if (!mFuseFsOpts.isMetadataCacheEnabled()) {
-      throw new InvalidArgumentException(String.format("%s command is "
+    if (!mConf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
+      throw new InvalidArgumentRuntimeException(String.format("%s command is "
               + "not supported when %s is false", getCommandName(),
           PropertyKey.USER_METADATA_CACHE_ENABLED.getName()));
     }
-    return runSubCommand(path, argv, (MetadataCachingBaseFileSystem) mFileSystem);
+    return runSubCommand(path, argv, (MetadataCachingFileSystem) mFileSystem);
   }
 
   /**
@@ -51,5 +52,5 @@ public abstract class AbstractMetadataCacheSubCommand extends AbstractFuseShellC
    * @return the result of running the command
    */
   protected abstract URIStatus runSubCommand(AlluxioURI path, String[] argv,
-      MetadataCachingBaseFileSystem fs);
+      MetadataCachingFileSystem fs);
 }

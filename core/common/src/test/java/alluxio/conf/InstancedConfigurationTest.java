@@ -106,12 +106,28 @@ public class InstancedConfigurationTest {
           mConfiguration.set(key, intValue);
           assertEquals(intValue, mConfiguration.get(key));
           assertEquals(intValue, mConfiguration.getInt(key));
+          // Low-precision types int can be implicitly converted to high-precision types long
+          // So getLong can be compatible with Value of type int
+          assertEquals(intValue, mConfiguration.getLong(key));
           assertThrows(IllegalArgumentException.class, () -> mConfiguration.getMs(key));
           assertThrows(IllegalArgumentException.class, () -> mConfiguration.getDuration(key));
           assertThrows(IllegalArgumentException.class, () -> mConfiguration.getDouble(key));
           intValue = random.nextInt(Integer.MAX_VALUE);
           mConfiguration.set(key, String.valueOf(intValue));
           assertEquals(intValue, mConfiguration.getInt(key));
+          break;
+        case LONG:
+          long longValue = random.nextLong();
+          mConfiguration.set(key, longValue);
+          assertEquals(longValue, mConfiguration.get(key));
+          assertEquals(longValue, mConfiguration.getLong(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getMs(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getInt(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getDuration(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getDouble(key));
+          longValue = random.nextLong();
+          mConfiguration.set(key, String.valueOf(longValue));
+          assertEquals(longValue, mConfiguration.getLong(key));
           break;
         case DOUBLE:
           double doubleValue = random.nextDouble();
@@ -217,6 +233,29 @@ public class InstancedConfigurationTest {
   public void setValidation() {
     assertThrows(IllegalArgumentException.class,
         () -> mConfiguration.set(PropertyKey.MASTER_KEYTAB_KEY_FILE, "/file/not/exist"));
+  }
+
+  @Test
+  public void getLong() {
+    // bigger than MAX_INT
+    mConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, 12345678910L);
+    assertEquals(12345678910L,
+        mConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY));
+  }
+
+  @Test
+  public void getLongFromInt() {
+    mConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, 1);
+    assertEquals(1L,
+        mConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY));
+  }
+
+  @Test
+  public void getMalformedLongThrowsException() {
+    mConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY,
+        "999999999999999999999999999999999999"); // bigger than MAX_LONG
+    mThrown.expect(RuntimeException.class);
+    mConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
   }
 
   @Test

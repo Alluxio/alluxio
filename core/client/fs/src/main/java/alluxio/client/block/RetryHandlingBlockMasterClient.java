@@ -22,6 +22,7 @@ import alluxio.grpc.GetUsedBytesPOptions;
 import alluxio.grpc.GetWorkerInfoListPOptions;
 import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.MasterClientContext;
@@ -89,6 +90,13 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
       }
       return result;
     }, RPC_LOG, "GetWorkerInfoList", "");
+  }
+
+  @Override
+  public void removeDecommissionedWorker(String workerName) throws IOException {
+    retryRPC(() -> mClient.removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions
+                    .newBuilder().setWorkerName(workerName).build()),
+            RPC_LOG, "RemoveDecommissionedWorker", "");
   }
 
   @Override

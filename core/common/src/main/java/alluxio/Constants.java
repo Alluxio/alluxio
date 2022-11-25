@@ -73,7 +73,6 @@ public final class Constants {
   public static final String HEADER_HTTPS = "https://";
   public static final String HEADER_KODO = "kodo://";
   public static final String HEADER_OSS = "oss://";
-  public static final String HEADER_OZONE = "o3fs://";
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3A = "s3a://";
   public static final String HEADER_SWIFT = "swift://";
@@ -105,6 +104,7 @@ public final class Constants {
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
   public static final String META_MASTER_NAME = "MetaMaster";
   public static final String METRICS_MASTER_NAME = "MetricsMaster";
+  public static final String JOURNAL_MASTER_NAME = "JournalMaster";
   public static final String BLOCK_WORKER_NAME = "BlockWorker";
   public static final String FILE_SYSTEM_WORKER_NAME = "FileSystemWorker";
 
@@ -121,7 +121,7 @@ public final class Constants {
   public static final String METRICS_MASTER_CLIENT_SERVICE_NAME = "MetricsMasterClient";
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
   public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
-  public static final String JOURNAL_MASTER_CLIENT_SERVICE_NAME = "JournalMaster";
+  public static final String JOURNAL_MASTER_CLIENT_SERVICE_NAME = "JournalMasterClient";
   public static final String RAFT_JOURNAL_SERVICE_NAME = "RaftJournal";
 
   public static final String UFS_INPUT_STREAM_CACHE_EXPIRATION = "UfsInputStreamCacheExpiration";
@@ -193,6 +193,9 @@ public final class Constants {
   public static final int JOB_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final String JOB_WORKER_NAME = "JobWorker";
 
+  // Throttle master
+  public static final String THROTTLE_MASTER_NAME = "ThrottleMaster";
+
   public static final int JOB_DEFAULT_MASTER_PORT = 20001;
   public static final int JOB_DEFAULT_MASTER_WEB_PORT = JOB_DEFAULT_MASTER_PORT + 1;
   public static final int JOB_DEFAULT_WORKER_PORT = 30001;
@@ -214,7 +217,6 @@ public final class Constants {
   public static final int NO_AUTO_PERSIST = -1;
   public static final int PERSISTENCE_INVALID_JOB_ID = -1;
   public static final String PERSISTENCE_INVALID_UFS_PATH = "";
-  public static final String PERSISTENCE_ASYNC_TEMP_PATH_ROOT_DIR = ".alluxio_ufs_persistence";
 
   // Table service
   public static final String TABLE_MASTER_NAME = "TableMaster";

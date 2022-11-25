@@ -18,6 +18,7 @@ import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.PrefixList;
 import alluxio.conf.Configuration;
@@ -36,6 +37,7 @@ import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.UfsReadOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -46,6 +48,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.io.FileUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
@@ -54,6 +57,7 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
+import alluxio.worker.page.PagedBlockStore;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
@@ -62,13 +66,14 @@ import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -354,6 +359,42 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mBlockStore.removeBlock(sessionId, blockId);
   }
 
+  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
+  @Override
+  public void freeWorker() throws IOException {
+    List<String> paths = new ArrayList<>();
+    if (Configuration.global().get(PropertyKey.WORKER_BLOCK_STORE_TYPE) == BlockStoreType.FILE) {
+      int tierCount = Configuration.global().getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
+      for (int i = 0; i < tierCount; i++) {
+        paths.addAll(Configuration.global().getList(PropertyKey
+                .Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(i)));
+      }
+    } else if (Configuration.global()
+        .get(PropertyKey.WORKER_BLOCK_STORE_TYPE) == BlockStoreType.PAGE) {
+      paths.addAll(Configuration.global().getList(PropertyKey.WORKER_PAGE_STORE_DIRS));
+    } else {
+      throw new IllegalStateException("Unknown WORKER_BLOCK_STORE_TYPE.");
+    }
+
+    List<String> failDeleteDirs = new ArrayList<>();
+    for (String tmpPath : paths) {
+      File[] files = new File(tmpPath).listFiles();
+      Preconditions.checkNotNull(files, "The path does not denote a directory.");
+      for (File file : files) {
+        try {
+          FileUtils.deletePathRecursively(file.getPath());
+        } catch (IOException ie) {
+          failDeleteDirs.add(file.getPath());
+        }
+      }
+    }
+    if (!failDeleteDirs.isEmpty()) {
+      LOG.info("Some directories fail to be deleted: " + failDeleteDirs);
+      throw new IOException(failDeleteDirs.toString());
+    }
+    LOG.info("All blocks and directories in worker {} are freed.", getWorkerId());
+  }
+
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes) {
     mBlockStore.requestSpace(sessionId, blockId, additionalBytes);
@@ -376,13 +417,17 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public void cache(CacheRequest request) throws AlluxioException, IOException {
+    // todo(bowen): paged block store handles caching from UFS automatically and on-the-fly
+    //  this will cause an unnecessary extra read of the block
+    if (mBlockStore instanceof PagedBlockStore) {
+      return;
+    }
     mCacheManager.submitRequest(request);
   }
 
   @Override
-  public CompletableFuture<List<BlockStatus>> load(List<Block> blocks, String tag,
-      OptionalLong bandwidth) {
-    return mBlockStore.load(blocks, tag, bandwidth);
+  public CompletableFuture<List<BlockStatus>> load(List<Block> blocks, UfsReadOptions options) {
+    return mBlockStore.load(blocks, options);
   }
 
   @Override

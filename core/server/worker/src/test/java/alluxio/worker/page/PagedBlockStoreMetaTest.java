@@ -20,10 +20,9 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
-import alluxio.client.file.cache.DefaultPageMetaStore;
+import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
-import alluxio.client.file.cache.PageMetaStore;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
@@ -43,6 +42,7 @@ import java.util.Map;
 
 public class PagedBlockStoreMetaTest {
   private static final long PAGE_SIZE = Constants.KB;
+  private static final long BLOCK_SIZE = Constants.MB;
   private static final String PAGE_STORE_TYPE = "MEM";
   private static final long PAGE_DIR_CAPACITY_0 = 4 * Constants.KB;
   private static final long PAGE_DIR_CAPACITY_1 = 8 * Constants.KB;
@@ -53,30 +53,36 @@ public class PagedBlockStoreMetaTest {
   private static final String PAGE_DIR_PATH_1_FULL =
       PathUtils.concatPath(PAGE_DIR_PATH_1, PAGE_STORE_TYPE);
 
-  private PageMetaStore mPageMetaStore;
-  private List<PageStoreDir> mDirs;
+  private PagedBlockMetaStore mPageMetaStore;
+  private List<PagedBlockStoreDir> mDirs;
 
   @Rule
   public final ConfigurationRule mConfigRule = new ConfigurationRule(
       ImmutableMap.of(
-          PropertyKey.USER_CLIENT_CACHE_SIZE,
+          PropertyKey.WORKER_PAGE_STORE_SIZES,
               String.format("%d,%d", PAGE_DIR_CAPACITY_0, PAGE_DIR_CAPACITY_1),
-          PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, String.valueOf(PAGE_SIZE),
-          PropertyKey.USER_CLIENT_CACHE_DIRS, PAGE_DIR_PATH_0 + "," + PAGE_DIR_PATH_1,
-          PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PAGE_STORE_TYPE
+          PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, String.valueOf(PAGE_SIZE),
+          PropertyKey.WORKER_PAGE_STORE_DIRS, PAGE_DIR_PATH_0 + "," + PAGE_DIR_PATH_1,
+          PropertyKey.WORKER_PAGE_STORE_TYPE, PAGE_STORE_TYPE
       ),
       Configuration.modifiableGlobal()
   );
 
   @Before
   public void setup() throws Exception {
-    mDirs = PageStoreDir.createPageStoreDirs(Configuration.global());
-    mPageMetaStore = new DefaultPageMetaStore(mDirs);
+    CacheManagerOptions cachemanagerOptions =
+        CacheManagerOptions.createForWorker(Configuration.global());
+    mDirs = PagedBlockStoreDir.fromPageStoreDirs(
+        PageStoreDir.createPageStoreDirs(cachemanagerOptions));
+    mPageMetaStore = new PagedBlockMetaStore(mDirs);
   }
 
   private void generatePages(int numPages, long parentBlockId, int dirIndex, long pageSize) {
+    PagedBlockMeta blockMeta =
+        new PagedBlockMeta(parentBlockId, numPages * pageSize, mDirs.get(dirIndex));
+    mPageMetaStore.addBlock(blockMeta);
     for (int i = 0; i < numPages; i++) {
-      PageId pageId = new PageId(String.valueOf(parentBlockId), i);
+      PageId pageId = new BlockPageId(parentBlockId, i, BLOCK_SIZE);
       PageInfo pageInfo = new PageInfo(pageId, pageSize, mDirs.get(dirIndex));
       mPageMetaStore.addPage(pageId, pageInfo);
     }
@@ -94,7 +100,7 @@ public class PagedBlockStoreMetaTest {
     for (long blockId : blockIdsOnDir1) {
       generatePages(numPages, blockId, 1, pageSize);
     }
-    PagedBlockStoreMeta storeMeta = new PagedBlockStoreMeta(mPageMetaStore, true);
+    PagedBlockStoreMeta storeMeta = mPageMetaStore.getStoreMetaFull();
 
     int numBlocks = blockIdsOnDir0.size() + blockIdsOnDir1.size();
     assertEquals(numBlocks, storeMeta.getNumberOfBlocks());
@@ -131,7 +137,7 @@ public class PagedBlockStoreMetaTest {
     for (long blockId : blockIds) {
       generatePages(numPages, blockId, 0, pageSize);
     }
-    PagedBlockStoreMeta storeMeta = new PagedBlockStoreMeta(mPageMetaStore, false);
+    PagedBlockStoreMeta storeMeta = mPageMetaStore.getStoreMeta();
     assertEquals(2, storeMeta.getNumberOfBlocks());
     assertNull(storeMeta.getBlockList());
     assertNull(storeMeta.getBlockListByStorageLocation());
@@ -139,7 +145,7 @@ public class PagedBlockStoreMetaTest {
 
   @Test
   public void capacity() {
-    PagedBlockStoreMeta storeMeta = new PagedBlockStoreMeta(mPageMetaStore, true);
+    PagedBlockStoreMeta storeMeta = mPageMetaStore.getStoreMetaFull();
 
     long totalCapacity = mDirs.stream().map(PageStoreDir::getCapacityBytes).reduce(0L, Long::sum);
     assertEquals(totalCapacity, storeMeta.getCapacityBytes());
@@ -155,7 +161,7 @@ public class PagedBlockStoreMetaTest {
 
   @Test
   public void directoryPaths() {
-    PagedBlockStoreMeta storeMeta = new PagedBlockStoreMeta(mPageMetaStore, true);
+    PagedBlockStoreMeta storeMeta = mPageMetaStore.getStoreMetaFull();
     Map<String, List<String>> dirByTiers = storeMeta.getDirectoryPathsOnTiers();
     assertEquals(1, dirByTiers.size());
     assertEquals(
@@ -165,7 +171,7 @@ public class PagedBlockStoreMetaTest {
 
   @Test
   public void lostStorage() {
-    PagedBlockStoreMeta storeMeta = new PagedBlockStoreMeta(mPageMetaStore, true);
+    PagedBlockStoreMeta storeMeta = mPageMetaStore.getStoreMetaFull();
     assertEquals(ImmutableMap.of(), storeMeta.getLostStorage());
   }
 
@@ -175,7 +181,7 @@ public class PagedBlockStoreMetaTest {
     int numPages = 4;
     long pageSize = Constants.KB;
     generatePages(numPages, blockId, 0, pageSize);
-    PagedBlockStoreMeta storeMeta = new PagedBlockStoreMeta(mPageMetaStore, true);
+    PagedBlockStoreMeta storeMeta = mPageMetaStore.getStoreMetaFull();
 
     assertEquals(numPages * pageSize, storeMeta.getUsedBytes());
     assertEquals(numPages * pageSize, (long) storeMeta.getUsedBytesOnTiers().get(DEFAULT_TIER));
@@ -189,7 +195,7 @@ public class PagedBlockStoreMetaTest {
 
   @Test
   public void storageTierAssoc() {
-    PagedBlockStoreMeta storeMeta = new PagedBlockStoreMeta(mPageMetaStore, true);
+    PagedBlockStoreMeta storeMeta = mPageMetaStore.getStoreMetaFull();
     assertEquals(PagedBlockStoreMeta.DEFAULT_STORAGE_TIER_ASSOC, storeMeta.getStorageTierAssoc());
   }
 }

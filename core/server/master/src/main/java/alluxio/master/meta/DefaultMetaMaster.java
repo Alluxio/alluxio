@@ -52,7 +52,6 @@ import alluxio.master.meta.checkconf.ConfigurationStore;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Meta;
 import alluxio.resource.CloseableIterator;
-import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
@@ -94,20 +93,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   // Master metadata management.
   private static final IndexDefinition<MasterInfo, Long> ID_INDEX =
-      new IndexDefinition<MasterInfo, Long>(true) {
-        @Override
-        public Long getFieldValue(MasterInfo o) {
-          return o.getId();
-        }
-      };
+      IndexDefinition.ofUnique(MasterInfo::getId);
 
   private static final IndexDefinition<MasterInfo, Address> ADDRESS_INDEX =
-      new IndexDefinition<MasterInfo, Address>(true) {
-        @Override
-        public Address getFieldValue(MasterInfo o) {
-          return o.getAddress();
-        }
-      };
+      IndexDefinition.ofUnique(MasterInfo::getAddress);
 
   /** Core master context. */
   private final CoreMasterContext mCoreMasterContext;
@@ -249,6 +238,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     blockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
     blockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
     blockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
+    blockMaster.registerWorkerDeleteListener(mWorkerConfigStore::handleNodeDelete);
 
     mUfsManager = masterContext.getUfsManager();
 
@@ -401,14 +391,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public String checkpoint() throws IOException {
-    try (LockResource lr =
-        mMasterContext.getStateLockManager().lockExclusive(StateLockOptions.defaults())) {
-      mJournalSystem.checkpoint();
-      return NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
-          Configuration.global());
-    } catch (Exception e) {
-      throw new IOException("Failed to take a checkpoint.", e);
-    }
+    mJournalSystem.checkpoint(mMasterContext.getStateLockManager());
+    return NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
+        Configuration.global());
   }
 
   @Override
@@ -629,13 +614,14 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         if (Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
             && key.isDynamic()) {
           Object oldValue = Configuration.get(key);
-          Configuration.set(key, entry.getValue(), Source.RUNTIME);
+          Object value = key.parseValue(entry.getValue());
+          Configuration.set(key, value, Source.RUNTIME);
           result.put(entry.getKey(), true);
           successCount++;
           LOG.info("Property {} has been updated to \"{}\" from \"{}\"",
               key.getName(), entry.getValue(), oldValue);
         } else {
-          LOG.debug("Update a non-dynamic property {} is not allowed", key.getName());
+          LOG.warn("Update a non-dynamic property {} is not allowed", key.getName());
           result.put(entry.getKey(), false);
         }
       } catch (Exception e) {

@@ -14,7 +14,7 @@ This guide describes how to run [Tensorflow](https://www.tensorflow.org/) on top
 ## Overview
 
 Tensorflow enables developers to quickly and easily get started with deep learning. 
-The [deep learning]({{ '/en/compute/Deep-Learning.html' | relativize_url }}) section illustrates the data challenges of deep learning 
+The [deep learning]({{ '/en/solutions/Deep-Learning.html' | relativize_url }}) section illustrates the data challenges of deep learning 
 and how Alluxio helps to solve those challenges. 
 This tutorial aims to provide some hands-on examples and tips for running Tensorflow
 on top of Alluxio POSIX API.

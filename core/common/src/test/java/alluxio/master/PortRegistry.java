@@ -74,7 +74,6 @@ public final class PortRegistry {
     int port;
     try {
       ServerSocket socket = new ServerSocket(0);
-      socket.setReuseAddress(true);
       port = socket.getLocalPort();
       socket.close();
     } catch (IOException e) {

@@ -84,13 +84,10 @@ public class DistributedCommandUtil {
       printKeyWord = "processed";
     }
 
+    System.out.println("Get command status information below:");
     if (cmdStatus.getJobStatusBlock().isEmpty()) {
-      System.out.format("Unable to get command status for jobControlId=%s, please retry"
-             + " or use `fs ls` command to check if files are already loaded in Alluxio.%n",
-              jobControlId);
+      System.out.format("Total completed file count is 0, failed file count is 0%n");
     } else {
-      System.out.format("Get command status information below: %n");
-
       completedFiles.forEach(file -> {
         System.out.format("Successfully %s path %s%n", printKeyWord, file);
       });
@@ -99,4 +96,6 @@ public class DistributedCommandUtil {
               completedCount, failedCount);
     }
   }
+
+  private DistributedCommandUtil() {} // prevent instantiation
 }

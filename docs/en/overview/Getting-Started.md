@@ -358,7 +358,7 @@ Alluxio can be deployed in many different environments, such as:
 * [Alluxio on Local Machine]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
 * [Alluxio Standalone on a Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
 * [Alluxio on Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }})
-* [Alluxio on Kubernetes]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
+* [Alluxio on Kubernetes]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
 
 Check the `Install Alluxio` dropdown on the left sidebar for more available options.
 

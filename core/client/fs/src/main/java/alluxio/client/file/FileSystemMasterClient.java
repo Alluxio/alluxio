@@ -221,10 +221,22 @@ public interface FileSystemMasterClient extends Client {
 
   /**
    * Lists all mount points and their corresponding under storage addresses.
+   * This is the same as calling {@link #getMountTable(boolean)} with true argument.
    *
    * @return a map from String to {@link MountPointInfo}
    */
-  Map<String, MountPointInfo> getMountTable() throws AlluxioStatusException;
+  default Map<String, MountPointInfo> getMountTable() throws AlluxioStatusException {
+    return getMountTable(true);
+  }
+
+  /**
+   * Lists all mount points and their corresponding under storage addresses.
+   *
+   * @param checkUfs whether to get UFS usage info
+   *
+   * @return a map from String to {@link MountPointInfo}
+   */
+  Map<String, MountPointInfo> getMountTable(boolean checkUfs) throws AlluxioStatusException;
 
   /**
    * Renames a file or a directory.
@@ -323,4 +335,11 @@ public interface FileSystemMasterClient extends Client {
    * @return the state lock waiters and holders thread identifiers
    */
   List<String> getStateLockHolders() throws AlluxioStatusException;
+
+  /**
+   * Mark a path as needed synchronization with the UFS, when this path or any
+   * of its children are accessed, a sync with the UFS will be performed.
+   * @param path the path to invalidate
+   */
+  void needsSync(AlluxioURI path) throws AlluxioStatusException;
 }

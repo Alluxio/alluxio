@@ -141,7 +141,8 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public Map<String, MountPointInfo> getMountTable() throws AlluxioStatusException {
+  public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
+      throws AlluxioStatusException {
     return null;
   }
 
@@ -194,6 +195,10 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   @Override
   public List<String> getStateLockHolders() throws AlluxioStatusException {
     return Collections.EMPTY_LIST;
+  }
+
+  @Override
+  public void needsSync(AlluxioURI path) throws AlluxioStatusException {
   }
 
   @Override

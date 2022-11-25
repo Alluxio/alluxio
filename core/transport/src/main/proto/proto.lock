@@ -34,6 +34,10 @@
               {
                 "name": "USED_BYTES_ON_TIERS",
                 "integer": 7
+              },
+              {
+                "name": "DECOMMISSIONED_WORKER_NUM",
+                "integer": 8
               }
             ]
           },
@@ -55,6 +59,10 @@
               {
                 "name": "SPECIFIED",
                 "integer": 4
+              },
+              {
+                "name": "DECOMMISSIONED",
+                "integer": 5
               }
             ]
           },
@@ -96,6 +104,10 @@
               {
                 "name": "WORKER_USED_BYTES_ON_TIERS",
                 "integer": 9
+              },
+              {
+                "name": "BLOCK_COUNT",
+                "integer": 10
               }
             ]
           }
@@ -128,6 +140,11 @@
                 "id": 6,
                 "name": "usedBytes",
                 "type": "int64"
+              },
+              {
+                "id": 8,
+                "name": "decommissionedWorkerNum",
+                "type": "int32"
               }
             ],
             "maps": [
@@ -337,6 +354,19 @@
                 }
               }
             ]
+          },
+          {
+            "name": "RemoveDecommissionedWorkerPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "RemoveDecommissionedWorkerPResponse"
           },
           {
             "name": "GetWorkerLostStoragePOptions"
@@ -733,6 +763,11 @@
                 "out_type": "GetWorkerInfoListPResponse"
               },
               {
+                "name": "RemoveDecommissionedWorker",
+                "in_type": "RemoveDecommissionedWorkerPOptions",
+                "out_type": "RemoveDecommissionedWorkerPResponse"
+              },
+              {
                 "name": "GetWorkerReport",
                 "in_type": "GetWorkerReportPOptions",
                 "out_type": "GetWorkerInfoListPResponse"
@@ -1076,8 +1111,23 @@
               },
               {
                 "id": 2,
+                "name": "options",
+                "type": "UfsReadOptions"
+              }
+            ]
+          },
+          {
+            "name": "UfsReadOptions",
+            "fields": [
+              {
+                "id": 1,
                 "name": "tag",
                 "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "position_short",
+                "type": "bool"
               },
               {
                 "id": 3,
@@ -1131,6 +1181,12 @@
                 "is_repeated": true
               }
             ]
+          },
+          {
+            "name": "FreeWorkerRequest"
+          },
+          {
+            "name": "FreeWorkerResponse"
           },
           {
             "name": "BlockStatus",
@@ -1337,6 +1393,11 @@
                 "name": "ClearMetrics",
                 "in_type": "ClearMetricsRequest",
                 "out_type": "ClearMetricsResponse"
+              },
+              {
+                "name": "FreeWorker",
+                "in_type": "FreeWorkerRequest",
+                "out_type": "FreeWorkerResponse"
               }
             ]
           }
@@ -2349,6 +2410,11 @@
                 "id": 4,
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
+              },
+              {
+                "id": 6,
+                "name": "deleteMountPoint",
+                "type": "bool"
               }
             ]
           },
@@ -3051,7 +3117,14 @@
             ]
           },
           {
-            "name": "GetMountTablePRequest"
+            "name": "GetMountTablePRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "checkUfs",
+                "type": "bool"
+              }
+            ]
           },
           {
             "name": "MountPointInfo",
@@ -3561,6 +3634,19 @@
             ]
           },
           {
+            "name": "NeedsSyncRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "path",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "NeedsSyncResponse"
+          },
+          {
             "name": "FileSystemHeartbeatPResponse",
             "fields": [
               {
@@ -3822,6 +3908,11 @@
                 "name": "GetStateLockHolders",
                 "in_type": "GetStateLockHoldersPRequest",
                 "out_type": "GetStateLockHoldersPResponse"
+              },
+              {
+                "name": "NeedsSync",
+                "in_type": "NeedsSyncRequest",
+                "out_type": "NeedsSyncResponse"
               }
             ]
           },

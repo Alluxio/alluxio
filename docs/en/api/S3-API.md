@@ -29,7 +29,7 @@ Only top-level Alluxio directories are treated as buckets by the S3 API.
   - **Note that this is purely a convenience feature and hence is not returned by API Actions such as ListBuckets.**
 
 Alluxio uses `/` as a reserved separator. Therefore, any S3 paths with objects or folders named `/`
-(eg: `s3://example-bucket//`) will cause undefined behavior.
+(eg: `s3://example-bucket//`) will cause undefined behavior. For additional limitations on object key names please check this page: [Alluxio limitations]({{ '/en/administration/Troubleshooting.html' | relativize_url }}#file-path-limitations)
 
 ### No Bucket Virtual Hosting
 
@@ -61,7 +61,7 @@ The maximum size for user-defined metadata in PUT-requests is 2KB by default in 
 
 ### Performance Implications
 
-The S3 API leverages the [Alluxio REST proxy]({{ '/en/api/FS-API.html#rest-api' | relativize_url }})
+The S3 API leverages the [Alluxio REST proxy]({{ '/en/api/Java-API.html#rest-api' | relativize_url }})
 , introducing an additional network hop for Alluxio clients. For optimal performance,
 it is recommended to run the proxy server and an Alluxio worker on each compute node.
 It is also recommended to put all the proxy servers behind a load balancer.
@@ -80,7 +80,7 @@ It is also recommended to put all the proxy servers behind a load balancer.
     SignedHeaders=...,
     Signature=...</td>
     <td>There is currently no support for access & secret keys in the Alluxio S3 API.
-    The only supported authentication scheme is the <a href="{{ '/en/operation/Security.html#simple' | relativize_url }}">SIMPLE</a>
+    The only supported authentication scheme is the <a href="{{ '/en/security/Security.html#simple' | relativize_url }}">SIMPLE</a>
     authentication type. By default, the user that is used to perform any operations is the user that was used to
     launch the Alluxio proxy process.
     <br/><br/>
@@ -1126,6 +1126,27 @@ Server: Jetty(9.4.43.v20210629)
     </Tag>
   </TagSet>
 </Tagging>
+```
+{% endnavtab %}
+{% endnavtabs %}
+
+#### [HeadBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadBucket.html)
+{% navtabs head_bucket %}
+{% navtab AWS CLI %}
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api head-bucket \
+  --bucket=testbucket
+```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  --head http://localhost:39999/api/v1/s3/testbucket
+HTTP/1.1 200 OK
+Date: Tue, 15 Nov 2022 04:49:12 GMT
+Content-Type: application/xml
+Content-Length: 0
+Server: Jetty(9.4.43.v20210629)
 ```
 {% endnavtab %}
 {% endnavtabs %}

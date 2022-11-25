@@ -22,7 +22,6 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.Set;
 
 /**
@@ -36,17 +35,10 @@ public interface LocalBlockStore
    *
    * @param sessionId the id of the session to lock this block
    * @param blockId the id of the block to lock
-   * @return a non-negative unique identifier to conveniently unpin the block later, or empty
+   * @return a lock of block to conveniently unpin the block later, or empty
    * if the block does not exist
    */
-  OptionalLong pinBlock(long sessionId, long blockId);
-
-  /**
-   * Unpins an accessed block based on the id (returned by {@link #pinBlock(long, long)}).
-   *
-   * @param id the id returned by {@link #pinBlock(long, long)}
-   */
-  void unpinBlock(long id);
+  Optional<BlockLock> pinBlock(long sessionId, long blockId);
 
   /**
    * Creates the metadata of a new block and assigns a temporary path (e.g., a subdir of the final
@@ -101,9 +93,9 @@ public interface LocalBlockStore
    * @param sessionId the id of the session
    * @param blockId the id of a temp block
    * @param pinOnCreate whether to pin block on create
-   * @return the lock id
+   * @return the lock
    */
-  long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate);
+  BlockLock commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate);
 
   /**
    * Aborts a temporary block. The metadata of this block will not be added, its data will be

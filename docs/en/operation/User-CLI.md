@@ -27,11 +27,6 @@ Usage: alluxio [COMMAND]
 This section lists usages and examples of general Alluxio operations with the exception of file
 system commands which are covered in the [Admin CLI doc]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
 
-### extensions
-
-The `extensions` command is for managing UFS extensions to Alluxio. For additional information, refer
-to the [main page]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}).
-
 ### format
 
 The `format` command formats the Alluxio master and all its workers.
@@ -240,7 +235,7 @@ The default target value is the primary master, primary job master, all workers 
 * `--level <arg>` If provided, the command changes to the given logger level,
 otherwise it returns the current logger level.
 
-See [here]({{ '/en/operation/Basic-Logging.html#modifying-server-logging-at-runtime' | relativize_url }})
+See [here]({{ '/en/administration/Basic-Logging.html#modifying-server-logging-at-runtime' | relativize_url }})
 for more examples.
 
 > Note: This command requires the Alluxio cluster to be running.
@@ -566,7 +561,7 @@ server-side hadoop configuration directory when running validating tasks.
 ### collectInfo
 
 The `collectInfo` command collects information to troubleshoot an Alluxio cluster.
-For more information see the [collectInfo command page]({{ '/en/operation/Troubleshooting.html#alluxio-collectinfo-command' | relativize_url }}).
+For more information see the [collectInfo command page]({{ '/en/administration/Troubleshooting.html#alluxio-collectinfo-command' | relativize_url }}).
 
 > Note: This command does not require the Alluxio cluster to be running.
 > But if the cluster is not running, this command will fail to gather some information from it.
@@ -938,8 +933,6 @@ $ ./bin/alluxio fs distributedLoad /data/today --locality ROCK2,ROCK3 --hosts ho
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host2,host3 --excluded-locality ROCK2,ROCK3
 ```
 
-See examples for [Tiered Locality Example]({{ '/en/operation/Tiered-Locality.html' | relativize_url }}#Example)
-
 ### distributedMv
 
 The `distributedMv` command moves a file or directory in the Alluxio file system distributed across workers
@@ -1246,6 +1239,21 @@ $ ./bin/alluxio fs mount \
   /mnt/s3 s3://data-bucket/
 ```
 
+To connect to the UFS for a mount point, Alluxio looks for the corresponding connector under
+`${ALLUXIO_HOME}/lib/` and will use the first one that supports the path.
+The connector jars look like `lib/alluxio-underfs-hdfs-2.7.1.jar`.
+The logic to decide whether a connector supports a path depends on the `UnderFileSystemFactory` implementation.
+When there are multiple connectors for the same UFS, like 
+`lib/alluxio-underfs-hdfs-2.7.1.jar`, `lib/alluxio-underfs-hdfs-2.7.1-patch1.jar`, `lib/alluxio-underfs-hdfs-2.7.1-patch2.jar`, 
+option `alluxio.underfs.strict.version.match.enabled` can be used to make sure the correct one is picked up.
+For example, if the HDFS is running with 2.7.1-patch1, you can use `alluxio.underfs.version`
+and `alluxio.underfs.strict.version.match.enabled=true` to ensure `lib/alluxio-underfs-hdfs-2.7.1-patch1.jar`
+is used to connect to the target HDFS at `hdfs://ns1/`.
+```
+$ ./bin/alluxio fs mount --option alluxio.underfs.version=2.7.1-patch1 \
+  --option alluxio.underfs.strict.version.match.enabled=true /ns1 hdfs://ns1/
+```
+
 ### mv
 
 The `mv` command moves a file or directory to another path in Alluxio.
@@ -1258,6 +1266,23 @@ For example, `mv` can be used to re-organize your files.
 
 ```console
 $ ./bin/alluxio fs mv /data/2014 /data/archives/2014
+```
+
+### needsSync
+
+The `needsSync` command marks a path in Alluxio as needing synchronization with the UFS.
+The next time the path or any child path is accessed by a file system operation the
+metadata for that path will be synchronized with the UFS. Note that the metadata will not
+be synchronized immediately, the synchronization will only happen on each path when it
+is accessed.
+
+Usage `needsSync <path>`
+
+For example, `needsSync` can be used after a set of files have been modified on the UFS
+outside Alluxio and those changes should be visible the next time the files are accessed.
+
+```console
+$ ./bin/alluxio fs needsSync /data
 ```
 
 ### persist
@@ -1431,6 +1456,7 @@ One can specify `-f <arg>` to display info in given format:
 * `%y` or `%Y`: modification time, where `%y` shows the UTC date in the form `yyyy-MM-dd HH:mm:ss`
  and `%Y` shows the number of milliseconds since January 1, 1970 UTC
 * `%b`: Number of blocks allocated for file
+* `%i`: file ID(inode ID) of the file
 
 For example, `stat` can be used to debug the block locations of a file.
 This is useful when trying to achieve locality for compute workloads.
@@ -1444,6 +1470,10 @@ $ ./bin/alluxio fs stat /data/2015
 
 # Displays the size of file
 $ ./bin/alluxio fs stat -f %z /data/2015/logs-1.txt
+
+# Finds the file by fileID/inodeID and displays the stat
+# Useful in troubleshooting
+$ ./bin/alluxio fs stat -fileId 12345678
 ```
 
 ### stopSync
@@ -1551,219 +1581,3 @@ Usage: `updateMount [--readonly] [--shared] [--option <key=val>] <alluxioPath>`
 For security reasons, no options from existing mount point will be inherited.
 * `<alluxioPath>` Directory path in the Alluxio filesystem
 
-## Table Operations
-
-```console
-$ ./bin/alluxio table
-Usage: alluxio table [generic options]
-	 [attachdb [-o|--option <key=value>] [--db <alluxio db name>] [--ignore-sync-errors] <udb type> <udb connection uri> <udb db name>]
-	 [detachdb <db name>]
-	 [ls [<db name> [<table name>]]]
-	 [sync <db name>]
-	 [transform <db name> <table name>]
-	 [transformStatus [<job ID>]]
-```
-
-The table subcommand manages the structured data service of Alluxio.
-
-> Note: This command requires the Alluxio cluster to be running.
-
-### attachdb
-
-Syntax:
-```
-attachdb [-o|--option <key=value>] [--db <alluxio db name>] [--ignore-sync-errors] <udb type> <udb connection uri> <udb db name>
-```
-
-The `attachdb` command attaches an existing "under database" to the Alluxio catalog. This is
-analogous to mounting a under filesystem to the Alluxio filesystem namespace. Once a database is
-attached, it will be exposed through the Alluxio catalog.
-Here is an example of the usage:
-
-```console
-$ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name
-```
-
-This command will attach the database `hive_db_name` (of type `hive`) from the URI
-`thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `hive_db_name`.
-
-Here are the attach command options:
-  * `--db <alluxio db name>`: specify a different Alluxio database name
-  * `--ignore-sync-errors`: ignore sync errors, and keeps the database attached
-  * `-o|--option <key=value>`: (multiple) additional properties associated with the attached db and UDB
-
-Here are the additional properties possible for the `-o` options:
-  * `udb-<UDB_TYPE>.mount.option.{<UFS_PREFIX>}.<MOUNT_PROPERTY>`: specify a mount option for a
-  particular UFS path
-    * `<UDB_TYPE>`: the UDB type
-    * `<UFS_PREFIX>`: the UFS path prefix, or a regex string starts with `regex:` that the mount properties are for
-    * `<MOUNT_PROPERTY>`: an Alluxio mount property
-  * `catalog.db.config.file`: the config file for the UDB, 
-    you can configure which tables and partitions to bypass from Alluxio in a configuration specified 
-    by this option. 
-    See [UDB Configuration File]({{ '/en/core-services/Catalog.html#udb-configuration-file' | relativize_url }}) 
-    for details.
-  * `catalog.db.ignore.udb.tables`: comma-separated list of table names to ignore from the UDB
-  * `catalog.db.sync.threads`: number of parallel threads to use to sync with the UDB. If too large,
-  the sync may overload the UDB, and if set too low, syncing a database with many tables make take
-  a long time. The default is `4`.
-
-
-### Hive UDB
-For the `hive` udb type, during the attach process, the Alluxio catalog will auto-mount all the
-table/partition locations in the specified database, to Alluxio. You can supply the mount options
-for the possible table locations with the
-option `-o udb-hive.mount.option.{scheme/authority}.key=value` or
-`-o udb-hive.mount.option.{regex:REGEX}.key=value`
-
-```console
-$ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
-  -o udb-hive.mount.option.{s3a://bucket1}.s3a.accessKeyId=abc \
-  -o udb-hive.mount.option.{s3a://bucket2}.s3a.accessKeyId=123
-```
-
-This command will attach the database `hive_db_name` (of type `hive`) from the URI
-`thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `alluxio_db_name`.
-When paths are mounted for `s3a://bucket1`, the mount option `s3a.accessKeyId=abc` will be used,
-and when paths are mounted for `s3a://bucket2`, the mount option `s3a.accessKeyId=123` will be used.
-
-Or using regex expression if the options are same the two buckets.
-
-```console
-$ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
-  -o udb-hive.mount.option.{regex:s3a://bucket.*}.s3a.accessKeyId=abc
-```
-
-Besides mount options, there are some additional properties with the `-o` options:
-  * `udb-hive.<UDB_PROPERTY>`: specify the UDB options for the Hive UDB. The options
-  are as follows
-    * `allow.diff.partition.location.prefix`: Whether to mount partitions that do not share
-  the same location prefix with table location(true/false, default false)
-
-
-### Glue UDB
-For `glue` udb type, there are some additional properties with the `-o` options:
-  * `udb-glue.<UDB_PROPERTY>`: specify the UDB options for the Glue UDB. The options
-  are as follows:
-    * `aws.region`: the glue aws region
-    * `aws.catalog.id`: the aws catalog id
-    * `aws.accesskey`: the aws access key id
-    * `aws.secretkey`: the aws secret key
-    * `aws.proxy.protocol`: The protocol(HTTP/HTTPS) to use for connecting to the proxy server
-    * `aws.proxy.host`: The proxy host the client will connect through
-    * `aws.proxy.port`: The proxy port the client will connect through
-    * `aws.proxy.username`: The proxy user name
-    * `aws.proxy.password`: The proxy password
-    * `table.column.statistics`: Enable table column statistics(true/false)
-    * `partition.column.statistics`: Enable partition column statistics(true/false)
-
-You can supply the mount options for the `glue` as follows:
-
-```console
-$ ./bin/alluxio table attachdb --db alluxio_db_name glue null glue_db_name \
-    -o udb-glue.aws.region=<AWS_GLUE_REGION> \
-    -o udb-glue.aws.catalog.id=<AWS_CATALOGID> \
-    -o udb-glue.aws.accesskey=<AWS_ACCESSKEY_ID> \
-    -o udb-glue.aws.secretkey=<AWS_SERCRETKEY_ID>
-```
-
-This command will attach the database `glue_db_name` (of type `glue`) to the Alluxio catalog,
-using the same database name `alluxio_db_name`. Please notice that `glue` udb does not need the
-URI as `hive` udb. When `glue` udb access to AWS glue, the aws region `udb-glue.aws.region`, AWS
-catalog id `udb-glue.aws.catalog.id` and AWS credentials, `udb-glue.aws.accesskey` and
-`udb-glue.aws.secretkey` , need to be provided.
-
-### detachdb
-
-The `detachdb` command is the opposite of the `attachdb` command. Detaching a database will remove
-the connection to the under database, and remove it from the Alluxio catalog. Example usage:
-
-```console
-$ ./bin/alluxio table detachdb alluxio_db_name
-```
-
-This command will detach the database name `alluxio_db_name` from the Alluxio catalog.
-
-### ls
-
-The `ls` command shows information about the Alluxio catalog. Here are some examples:
-
-```console
-$ ./bin/alluxio table ls
-```
-
-This command without any arguments will show all the databases attached in the system.
-
-```console
-$ ./bin/alluxio table ls db_name
-```
-
-This command with 1 argument will show all the tables in the `db_name` database.
-
-```console
-$ ./bin/alluxio table ls db_name table_name
-```
-
-This command with 2 arguments will show the table information of the `table_name` table in
-the `db_name` database.
-
-### sync
-
-The `sync` command syncs the metadata of specified database name with the under database.
-Here is an example:
-
-```console
-$ ./bin/alluxio table sync db_name
-```
-
-This will sync the metadata of `db_name` database name with its under database.
-The sync will update, add, remove catalog metadata according to the changes found in the underlying
-database and tables.
-For example, if the under database is `hive`, and the metadata of its tables is updated
-in the Hive Metastore (like `MSCK REPAIR` or other commands), then this `sync` command will
-update the Alluxio metadata with the updated Hive metadata.
-If an existing Alluxio partition or table is updated and previously had a transformation, then the
-transformation is invalidated, and must be re-triggered via the `transform` command.
-
-> If the metadata is NOT updated in the under database, then this sync command will not update
-> the Alluxio catalog metadata, even if the data of the table has been updated. For example,
-> if files are added to a Hive table but the Hive Metastore is not updated, the sync will not
-> detect changes to the metadata.
-
-### transform
-
-The `transform` command will transform a table for improved efficiency when reading the table.
-Here is an example usage:
-
-```console
-$ ./bin/alluxio table transform db_name table_name [-d <definition>]
-```
-
-This command will invoke a transformation on the table. The transformation is performed
-asynchronously, and will coalesce to a fewer number of files, and convert into the parquet file
-format.
-
-> In 2.1.0, the supported file formats which can be transformed are: parquet and csv
-> file formats. The resulting transformations are in the parquet file format. Additional formats
-> for input and output will be implemented in future versions.
-> For the coalesce feature, by default it will coalesce into a maximum of 100 files,
-> with each file no smaller than 2GB.
-
-The definition format takes a form of configuration separated by semicolon and specifies the details of the output
-format. Available configurations are:
-
-```console
-file.count.max=<num> (maximum number of files in transformed output)
-file.size.min=<num> (minimum file size in bytes of the output)
-```
-
-### transformStatus
-
-The `transformStatus` command will display information about a table transformation.
-Here is an example usage:
-
-```console
-$ ./bin/alluxio table transformStatus transform_id
-```
-
-This command will display status details on the transformation identified by `transform_id`.

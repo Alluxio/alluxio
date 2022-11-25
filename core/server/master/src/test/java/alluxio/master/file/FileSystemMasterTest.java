@@ -37,12 +37,12 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.ListStatusPOptions;
@@ -59,6 +59,7 @@ import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
@@ -73,7 +74,7 @@ import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.wire.FileBlockInfo;
@@ -659,7 +660,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.mergeFrom(
-        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
+        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptionsUtils
             .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
             .setTtlAction(alluxio.grpc.TtlAction.FREE))));
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
@@ -679,7 +680,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.mergeFrom(
-        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
+        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptionsUtils
             .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
             .setTtlAction(alluxio.grpc.TtlAction.FREE))));
     // Simulate restart.
@@ -729,7 +730,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(
-        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
+        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptionsUtils
             .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
             .setTtlAction(alluxio.grpc.TtlAction.FREE))));
 
@@ -1297,7 +1298,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     AlluxioURI notShadowUfsURI = createTempUfsDir("ufs/notshadowhi");
     mFileSystemMaster.mount(notShadowAlluxioURI, notShadowUfsURI,
         MountContext.defaults());
-    mThrown.expect(IOException.class);
+    mThrown.expect(InvalidPathException.class);
     mFileSystemMaster.mount(shadowAlluxioURI, shadowUfsURI,
         MountContext.defaults());
   }
@@ -1777,7 +1778,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
           }
 
           @Override
-          public void flush() throws UnavailableException {
+          public void flush() {
             if (mNumLogs != 0) {
               flushCount.incrementAndGet();
               mNumLogs = 0;
@@ -1785,7 +1786,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
           }
 
           @Override
-          public void close() throws UnavailableException {
+          public void close() {
             closeCount.incrementAndGet();
           }
         }
@@ -1807,5 +1808,40 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     } else {
       assertEquals(0, flushCount.get());
     }
+  }
+
+  /**
+   * Tests a readOnly mount for the set attribute op.
+   */
+  @Test
+  public void exists() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    mFileSystemMaster.mount(alluxioURI, ufsURI,
+        MountContext.mergeFrom(MountPOptions.newBuilder().setReadOnly(true)));
+
+    AlluxioURI alluxioFileURI = new AlluxioURI("/hello/file");
+
+    ExistsContext neverSyncContext = ExistsContext.create(
+        ExistsPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build()));
+
+    ExistsContext alwaysSyncContext = ExistsContext.create(
+        ExistsPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setCommonOptions(
+        FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build()));
+
+    Assert.assertFalse(mFileSystemMaster.exists(alluxioFileURI, alwaysSyncContext));
+
+    createTempUfsFile("ufs/hello/file");
+
+    Assert.assertFalse(mFileSystemMaster.exists(alluxioFileURI, neverSyncContext));
+    Assert.assertTrue(mFileSystemMaster.exists(alluxioFileURI, alwaysSyncContext));
+    Assert.assertTrue(mFileSystemMaster.exists(alluxioFileURI, alwaysSyncContext));
+    Assert.assertTrue(mFileSystemMaster.exists(alluxioFileURI, neverSyncContext));
+
+    mTestFolder.delete();
+
+    Assert.assertTrue(mFileSystemMaster.exists(alluxioFileURI, neverSyncContext));
+    Assert.assertFalse(mFileSystemMaster.exists(alluxioFileURI, alwaysSyncContext));
   }
 }

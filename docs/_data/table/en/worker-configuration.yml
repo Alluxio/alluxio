@@ -14,6 +14,8 @@ alluxio.worker.block.heartbeat.timeout:
   'The timeout value of block workers'' heartbeats. If the worker can''t connect to master before this interval expires, the worker will exit.'
 alluxio.worker.block.master.client.pool.size:
   'The block master client pool size on the Alluxio workers.'
+alluxio.worker.block.store.type:
+  'The implementation of LocalBlockStore that can be instantiated.'
 alluxio.worker.container.hostname:
   'The container hostname if worker is running in a container.'
 alluxio.worker.data.folder:
@@ -96,6 +98,8 @@ alluxio.worker.network.netty.worker.threads:
   'Number of threads to use for processing requests in worker'
 alluxio.worker.network.permit.keepalive.time:
   'Specify the most aggressive keep-alive time clients are permitted to configure. The server will try to detect clients exceeding this rate and when detected will forcefully close the connection.'
+alluxio.worker.network.reader.buffer.pooled:
+  'Whether it is using pooled direct buffer or unpooled wrapped buffer when creating a buffer for remote read'
 alluxio.worker.network.reader.buffer.size:
   'When a client reads from a remote worker, the maximum amount of data not received by client allowed before the worker pauses sending more data. If this value is lower than read chunk size, read performance may be impacted as worker waits more often for buffer to free up. Higher value will increase the memory consumed by each read request.'
 alluxio.worker.network.reader.max.chunk.size.bytes:
@@ -106,6 +110,38 @@ alluxio.worker.network.writer.buffer.size.messages:
   'When a client writes to a remote worker, the maximum number of data messages to buffer by the server for each request.'
 alluxio.worker.network.zerocopy.enabled:
   'Whether zero copy is enabled on worker when processing data streams.'
+alluxio.worker.page.store.async.restore.enabled:
+  'If this is enabled, cache restore state asynchronously.'
+alluxio.worker.page.store.async.write.enabled:
+  'If this is enabled, cache data asynchronously.'
+alluxio.worker.page.store.async.write.threads:
+  'Number of threads to asynchronously cache data.'
+alluxio.worker.page.store.dirs:
+  'A list of the directories where pages in paged block store are stored.'
+alluxio.worker.page.store.eviction.retries:
+  'Max number of eviction retries.'
+alluxio.worker.page.store.evictor.class:
+  'The strategy that worker uses to evict local cached pages when running out of space. Currently valid options include `alluxio.client.file.cache.evictor.LRUCacheEvictor`,`alluxio.client.file.cache.evictor.LFUCacheEvictor`.'
+alluxio.worker.page.store.evictor.lfu.logbase:
+  'The log base for client cache LFU evictor bucket index.'
+alluxio.worker.page.store.evictor.nondeterministic.enabled:
+  'If this is enabled, the evictor picks uniformly from the worst k elements.Currently only LRU is supported.'
+alluxio.worker.page.store.local.store.file.buckets:
+  'The number of file buckets for the page blocked store on local file system. It is recommended to set this to a high value if the number of unique files is expected to be high (# files / file buckets &lt;= 100,000).'
+alluxio.worker.page.store.overhead:
+  'A fraction value representing the storage overhead writing to disk. For example, with 1GB allocated cache space, and 10% storage overhead we expect no more than 1024MB / (1 + 10%) user data to store.'
+alluxio.worker.page.store.page.size:
+  'Size of each page in worker paged block store.'
+alluxio.worker.page.store.quota.enabled:
+  'Whether to support cache quota.'
+alluxio.worker.page.store.sizes:
+  'A list of maximum cache size for each cache directory.'
+alluxio.worker.page.store.timeout.duration:
+  'The timeout duration for local cache I/O operations (reading/writing/deleting). When this property is a positive value,local cache operations after timing out will fail and fallback to external file system but transparent to applications; when this property is a negative value, this feature is disabled.'
+alluxio.worker.page.store.timeout.threads:
+  'The number of threads to handle cache I/O operation timeout, when alluxio.worker.page.store.timeout.duration is positive.'
+alluxio.worker.page.store.type:
+  'The type of page store to use for worker page store. Can be either `LOCAL` or `ROCKS`. The `LOCAL` page store stores all pages in a directory, the `ROCKS` page store utilizes rocksDB to persist the data.'
 alluxio.worker.principal:
   'Kerberos principal for Alluxio worker.'
 alluxio.worker.ramdisk.size:

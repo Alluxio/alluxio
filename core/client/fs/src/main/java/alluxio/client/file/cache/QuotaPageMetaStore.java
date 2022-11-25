@@ -12,9 +12,9 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.evictor.CacheEvictor;
+import alluxio.client.file.cache.evictor.CacheEvictorOptions;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.PageNotFoundException;
 
 import java.util.List;
@@ -36,14 +36,14 @@ public class QuotaPageMetaStore extends DefaultPageMetaStore {
   private final Supplier<CacheEvictor> mSupplier;
 
   /**
-   * @param conf configuration
+   * @param cacheEvictorOptions options of cache evictor
    * @param dirs storage directories
    */
-  public QuotaPageMetaStore(AlluxioConfiguration conf, List<PageStoreDir> dirs) {
+  public QuotaPageMetaStore(CacheEvictorOptions cacheEvictorOptions, List<PageStoreDir> dirs) {
     super(dirs);
     mBytesInScope = new ConcurrentHashMap<>();
     mCacheEvictors = new ConcurrentHashMap<>();
-    mSupplier = () -> CacheEvictor.create(conf);
+    mSupplier = () -> CacheEvictor.create(cacheEvictorOptions);
   }
 
   @Override

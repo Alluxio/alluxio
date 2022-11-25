@@ -14,8 +14,9 @@ package alluxio.master.file.meta;
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
+import alluxio.file.options.DescendantType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 
 import com.google.common.base.MoreObjects;
@@ -29,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class LockingScheme {
   private final AlluxioURI mPath;
   private final LockPattern mDesiredLockPattern;
-  private final boolean mShouldSync;
+  private final SyncCheck mShouldSync;
 
   /**
    * Constructs a {@link LockingScheme}.
@@ -41,7 +42,7 @@ public final class LockingScheme {
   public LockingScheme(AlluxioURI path, LockPattern desiredLockPattern, boolean shouldSync) {
     mPath = path;
     mDesiredLockPattern = desiredLockPattern;
-    mShouldSync = shouldSync;
+    mShouldSync = shouldSync ? SyncCheck.SHOULD_SYNC : SyncCheck.SHOULD_NOT_SYNC;
   }
 
   /**
@@ -53,18 +54,18 @@ public final class LockingScheme {
    * @param desiredPattern the desired lock mode
    * @param options the common options provided in an RPC
    * @param pathCache the {@link alluxio.master.file.DefaultFileSystemMaster}'s path cache
-   * @param isGetFileInfo whether the caller is
-   * {@link alluxio.master.file.FileSystemMaster#getFileInfo(AlluxioURI, GetStatusContext)}
+   * @param descendantType the descendant type
    */
   public LockingScheme(AlluxioURI path, LockPattern desiredPattern,
-      FileSystemMasterCommonPOptions options, UfsSyncPathCache pathCache, boolean isGetFileInfo) {
+      FileSystemMasterCommonPOptions options, UfsSyncPathCache pathCache,
+      DescendantType descendantType) throws InvalidPathException {
     mPath = path;
     mDesiredLockPattern = desiredPattern;
     // If client options didn't specify the interval, fallback to whatever the server has
     // configured to prevent unnecessary syncing due to the default value being 0
     long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
         Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
-    mShouldSync = pathCache.shouldSyncPath(path.getPath(), syncInterval, isGetFileInfo);
+    mShouldSync = pathCache.shouldSyncPath(path, syncInterval, descendantType);
   }
 
   /**
@@ -78,7 +79,7 @@ public final class LockingScheme {
    * @return the mode that should be used to lock the path, considering if ufs sync should occur
    */
   public LockPattern getPattern() {
-    if (mShouldSync) {
+    if (mShouldSync.isShouldSync()) {
       // Syncing needs to be able to delete the inode if it was deleted in the UFS.
       return LockPattern.WRITE_EDGE;
     }
@@ -95,7 +96,7 @@ public final class LockingScheme {
   /**
    * @return true if the path should be synced with ufs
    */
-  public boolean shouldSync() {
+  public SyncCheck shouldSync() {
     return mShouldSync;
   }
 

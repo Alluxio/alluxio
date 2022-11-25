@@ -20,6 +20,14 @@ Worker.BlockRemoverTryRemoveBlocksSize:
   'The number of blocks to be removed from this worker at a moment by asynchronous block remover.'
 Worker.BlockRemoverTryRemoveCount:
   'The total number of blocks this worker attempted to remove with asynchronous block remover.'
+Worker.BlockSerializedCompleteTaskCount:
+  'The approximate total number of block serialized tasks that have completed execution'
+Worker.BlockSerializedThreadActiveCount:
+  'The approximate number of block serialized threads that are actively executing tasks in serialized thread pool'
+Worker.BlockSerializedThreadCurrentCount:
+  'The current number of serialized threads in the serialized thread pool'
+Worker.BlockSerializedThreadMaxCount:
+  'The maximum allowed number of block serialized thread in the serialized thread pool'
 Worker.BlockWriterCompleteTaskCount:
   'The approximate total number of block write tasks that have completed execution'
 Worker.BlockWriterThreadActiveCount:
@@ -51,41 +59,51 @@ Worker.BlocksReadRemote:
 Worker.BlocksReadUfs:
   'Total number of a UFS blocks read by this worker.'
 Worker.BytesReadDirect:
-  'Total number of bytes read from Alluxio storage managed by this worker and underlying UFS if data cannot be found in the Alluxio storage without external RPC involved. This records data read by worker internal calls (e.g. a client embedded in this worker).'
+  'Total number of bytes read from the this worker without external RPC involved. Data exists in worker storage or is fetched by this worker from underlying UFSes. This records data read by worker internal calls (e.g. a client embedded in this worker).'
 Worker.BytesReadDirectThroughput:
-  'Total number of bytes read from Alluxio storage managed by this worker and underlying UFS if data cannot be found in the Alluxio storage without external RPC involved. This records data read by worker internal calls (e.g. a client embedded in this worker).'
+  'Throughput of bytes read from the this worker without external RPC involved. Data exists in worker storage or is fetched by this worker from underlying UFSes. This records data read by worker internal calls (e.g. a client embedded in this worker).'
 Worker.BytesReadDomain:
-  'Total number of bytes read from Alluxio storage via domain socket by this worker'
+  'Total number of bytes read from the this worker via domain socket'
 Worker.BytesReadDomainThroughput:
-  'Bytes read throughput from Alluxio storage via domain socket by this worker'
+  'Bytes read throughput from the this worker via domain socket'
 Worker.BytesReadPerUfs:
   'Total number of bytes read from a specific Alluxio UFS by this worker'
 Worker.BytesReadRemote:
-  'Total number of bytes read from Alluxio storage managed by this worker and underlying UFS if data cannot be found in the Alluxio storage via external RPC channel. This does not include short-circuit local reads and domain socket reads.'
+  'Total number of bytes read from the this worker via network (RPC). Data exists in worker storage or is fetched by this worker from underlying UFSes. This does not include short-circuit local reads and domain socket reads.'
 Worker.BytesReadRemoteThroughput:
-  'Total number of bytes read from Alluxio storage managed by this worker and underlying UFS if data cannot be found in the Alluxio storage via external RPC channel. This does not include short-circuit local reads and domain socket reads.'
+  'Throughput of bytes read from the this worker via network (RPC). Data exists in worker storage or is fetched by this worker from underlying UFSes. This does not include short-circuit local reads and domain socket reads'
 Worker.BytesReadUfsThroughput:
   'Bytes read throughput from all Alluxio UFSes by this worker'
 Worker.BytesWrittenDirect:
-  'Total number of bytes written to Alluxio storage managed by this worker without external RPC involved. This records data written by worker internal calls (e.g. a client embedded in this worker).'
+  'Total number of bytes written to this worker without external RPC involved. Data is written to worker storage or is written by this worker to underlying UFSes. This records data written by worker internal calls (e.g. a client embedded in this worker).'
 Worker.BytesWrittenDirectThroughput:
-  'Total number of bytes written to Alluxio storage managed by this worker without external RPC involved. This records data written by worker internal calls (e.g. a client embedded in this worker).'
+  'Total number of bytes written to this worker without external RPC involved. Data is written to worker storage or is written by this worker to underlying UFSes. This records data written by worker internal calls (e.g. a client embedded in this worker).'
 Worker.BytesWrittenDomain:
-  'Total number of bytes written to Alluxio storage via domain socket by this worker'
+  'Total number of bytes written to this worker via domain socket'
 Worker.BytesWrittenDomainThroughput:
-  'Throughput of bytes written to Alluxio storage via domain socket by this worker'
+  'Throughput of bytes written to this worker via domain socket'
 Worker.BytesWrittenPerUfs:
   'Total number of bytes written to a specific Alluxio UFS by this worker'
 Worker.BytesWrittenRemote:
-  'Total number of bytes written to Alluxio storage or the underlying UFS by this worker. This does not include short-circuit local writes and domain socket writes.'
+  'Total number of bytes written to this worker via network (RPC). Data is written to worker storage or is written by this worker to underlying UFSes. This does not include short-circuit local writes and domain socket writes.'
 Worker.BytesWrittenRemoteThroughput:
-  'Bytes write throughput to Alluxio storage or the underlying UFS by this workerThis does not include short-circuit local writes and domain socket writes.'
+  'Bytes write throughput to this worker via network (RPC). Data is written to worker storage or is written by this worker to underlying UFSes. This does not include short-circuit local writes and domain socket writes.'
 Worker.BytesWrittenUfsThroughput:
   'Bytes write throughput to all Alluxio UFSes by this worker'
 Worker.CacheBlocksSize:
   'Total number of bytes that being cached through cache requests'
 Worker.CacheFailedBlocks:
   'Total number of failed cache blocks in this worker'
+Worker.CacheManagerCompleteTaskCount:
+  'The approximate total number of block cache tasks that have completed execution'
+Worker.CacheManagerThreadActiveCount:
+  'The approximate number of block cache threads that are actively executing tasks in the cache manager thread pool'
+Worker.CacheManagerThreadCurrentCount:
+  'The current number of cache threads in the cache manager thread pool'
+Worker.CacheManagerThreadMaxCount:
+  'The maximum allowed number of block cache thread in the cache manager thread pool'
+Worker.CacheManagerThreadQueueWaitingTaskCount:
+  'The current number of tasks waiting in the work queue in the cache manager thread pool, bounded by alluxio.worker.network.async.cache.manager.queue.max'
 Worker.CacheRemoteBlocks:
   'Total number of blocks that need to be cached from remote source'
 Worker.CacheRequests:
@@ -106,3 +124,7 @@ Worker.CapacityUsed:
   'Total used bytes on all tiers of a specific Alluxio worker'
 Worker.RpcQueueLength:
   'Length of the worker rpc queue. Use this metric to monitor the RPC pressure on worker.'
+Worker.RpcThreadActiveCount:
+  'The number of threads that are actively executing tasks in the worker RPC executor thread pool. Use this metric to monitor the RPC pressure on worker.'
+Worker.RpcThreadCurrentCount:
+  'Current count of threads in the worker RPC executor thread pool. Use this metric to monitor the RPC pressure on worker.'

@@ -11,5 +11,7 @@
 
 alluxio.master.block.BlockMasterFactory
 alluxio.master.file.FileSystemMasterFactory
+alluxio.master.journal.JournalMasterFactory
 alluxio.master.meta.MetaMasterFactory
 alluxio.master.metrics.MetricsMasterFactory
+alluxio.master.throttle.ThrottleMasterFactory

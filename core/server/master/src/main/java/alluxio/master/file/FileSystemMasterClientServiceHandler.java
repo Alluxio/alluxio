@@ -54,6 +54,8 @@ import alluxio.grpc.ListStatusPartialPRequest;
 import alluxio.grpc.ListStatusPartialPResponse;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
+import alluxio.grpc.NeedsSyncRequest;
+import alluxio.grpc.NeedsSyncResponse;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.RenamePResponse;
 import alluxio.grpc.ReverseResolvePRequest;
@@ -315,7 +317,11 @@ public final class FileSystemMasterClientServiceHandler
   public void getMountTable(GetMountTablePRequest request,
       StreamObserver<GetMountTablePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      Map<String, MountPointInfo> mountTableWire = mFileSystemMaster.getMountPointInfoSummary();
+      // Set the checkUfs default to true to include ufs usage info, etc.,
+      // which requires talking to UFS and comes at a cost.
+      boolean checkUfs = request.hasCheckUfs() ? request.getCheckUfs() : true;
+      Map<String, MountPointInfo> mountTableWire = mFileSystemMaster.getMountPointInfoSummary(
+          checkUfs);
       Map<String, alluxio.grpc.MountPointInfo> mountTableProto = new HashMap<>();
       for (Map.Entry<String, MountPointInfo> entry : mountTableWire.entrySet()) {
         mountTableProto.put(entry.getKey(), GrpcUtils.toProto(entry.getValue()));
@@ -455,6 +461,15 @@ public final class FileSystemMasterClientServiceHandler
       final List<String> holders = mFileSystemMaster.getStateLockSharedWaitersAndHolders();
       return GetStateLockHoldersPResponse.newBuilder().addAllThreads(holders).build();
     }, "getStateLockHolders", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void needsSync(NeedsSyncRequest request,
+                        StreamObserver<NeedsSyncResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mFileSystemMaster.needsSync(new AlluxioURI(request.getPath()));
+      return NeedsSyncResponse.getDefaultInstance();
+    }, "NeedsSync", true, "request=%s", responseObserver, request);
   }
 
   /**

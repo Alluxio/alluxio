@@ -19,6 +19,7 @@ import alluxio.Constants;
 import alluxio.Server;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.master.AlwaysStandbyPrimarySelector;
 import alluxio.master.BackupManager;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
@@ -49,6 +50,7 @@ public class TableMasterFactoryTest {
   public void before() {
     mContext = CoreMasterContext.newBuilder()
         .setJournalSystem(new NoopJournalSystem())
+        .setPrimarySelector(new AlwaysStandbyPrimarySelector())
         .setSafeModeManager(new TestSafeModeManager())
         .setBackupManager(mock(BackupManager.class))
         .setBlockStoreFactory(HeapBlockMetaStore::new)

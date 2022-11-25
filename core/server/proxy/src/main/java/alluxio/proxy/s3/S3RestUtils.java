@@ -28,13 +28,20 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.proto.journal.File;
+import alluxio.proxy.s3.auth.Authenticator;
+import alluxio.proxy.s3.auth.AwsAuthInfo;
+import alluxio.proxy.s3.signature.AwsSignatureProcessor;
+import alluxio.security.User;
+import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.Longs;
 import com.google.protobuf.ByteString;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +59,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.security.auth.Subject;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -61,6 +70,8 @@ import javax.ws.rs.core.Response;
  */
 public final class S3RestUtils {
   private static final Logger LOG = LoggerFactory.getLogger(S3RestUtils.class);
+
+  public static final String ALLUXIO_USER_HEADER = "Alluxio-Fs-User";
 
   public static final String MULTIPART_UPLOADS_METADATA_DIR = AlluxioURI.SEPARATOR
       + S3Constants.S3_METADATA_ROOT_DIR + AlluxioURI.SEPARATOR
@@ -192,6 +203,8 @@ public final class S3RestUtils {
       return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_BUCKET);
     } catch (InvalidPathException e) {
       return new S3Exception(e, resource, S3ErrorCode.INVALID_BUCKET_NAME);
+    } catch (AccessControlException e) {
+      return new S3Exception(e, resource, S3ErrorCode.ACCESS_DENIED_ERROR);
     } catch (Exception e) {
       return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
     }
@@ -231,6 +244,8 @@ public final class S3RestUtils {
       return new S3Exception(e, resource, S3ErrorCode.PRECONDITION_FAILED);
     } catch (FileDoesNotExistException e) {
       return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_KEY);
+    } catch (AccessControlException e) {
+      return new S3Exception(e, resource, S3ErrorCode.ACCESS_DENIED_ERROR);
     } catch (Exception e) {
       return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
     }
@@ -280,7 +295,8 @@ public final class S3RestUtils {
   /**
    * Fetches and returns the corresponding {@link URIStatus} for both
    * the multipart upload temp directory and the Alluxio S3 metadata file.
-   * @param fs instance of {@link FileSystem}
+   * @param metaFs instance of {@link FileSystem} - used for metadata operations
+   * @param userFs instance of {@link FileSystem} - under the scope of a user agent
    * @param multipartTempDirUri multipart upload tmp directory URI
    * @param uploadId multipart upload Id
    * @return a list of file statuses:
@@ -288,10 +304,10 @@ public final class S3RestUtils {
    *         - second, the metadata file
    */
   public static List<URIStatus> checkStatusesForUploadId(
-      FileSystem fs, AlluxioURI multipartTempDirUri, String uploadId)
+      FileSystem metaFs, FileSystem userFs, AlluxioURI multipartTempDirUri, String uploadId)
       throws AlluxioException, IOException {
     // Verify the multipart upload dir exists and is a folder
-    URIStatus multipartTempDirStatus = fs.getStatus(multipartTempDirUri);
+    URIStatus multipartTempDirStatus = userFs.getStatus(multipartTempDirUri);
     if (!multipartTempDirStatus.isFolder()) {
       //TODO(czhu): determine intended behavior in this edge-case
       throw new RuntimeException(
@@ -302,7 +318,7 @@ public final class S3RestUtils {
     // Verify the multipart upload meta file exists and matches the file ID
     final AlluxioURI metaUri = new AlluxioURI(
         S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId));
-    URIStatus metaStatus = fs.getStatus(metaUri);
+    URIStatus metaStatus = metaFs.getStatus(metaUri);
     if (metaStatus.getXAttr() == null
         || !metaStatus.getXAttr().containsKey(S3Constants.UPLOADS_FILE_ID_XATTR_KEY)) {
       //TODO(czhu): determine intended behavior in this edge-case
@@ -362,6 +378,23 @@ public final class S3RestUtils {
    */
   public static boolean isAuthenticationEnabled(AlluxioConfiguration conf) {
     return conf.getBoolean(PropertyKey.S3_REST_AUTHENTICATION_ENABLED);
+  }
+
+  /**
+   * @param user the {@link Subject} name of the filesystem user
+   * @param fs the source {@link FileSystem} to base off of
+   * @return A {@link FileSystem} with the subject set to the provided user
+   */
+  public static FileSystem createFileSystemForUser(
+      String user, FileSystem fs) {
+    if (user == null) {
+      // Used to return the top-level FileSystem view when not using Authentication
+      return fs;
+    }
+
+    final Subject subject = new Subject();
+    subject.getPrincipals().add(new User(user));
+    return FileSystem.Factory.get(subject, fs.getConf());
   }
 
   /**
@@ -481,6 +514,97 @@ public final class S3RestUtils {
     }
     return new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
         S3Constants.XATTR_STR_CHARSET);
+  }
+
+  /**
+   * Get username from header info.
+   *
+   * @param authorization authorization info
+   * @param requestContext request context
+   * @return username
+   * @throws S3Exception
+   */
+  public static String getUser(String authorization, ContainerRequestContext requestContext)
+      throws S3Exception {
+    // TODO(czhu): refactor PropertyKey.S3_REST_AUTHENTICATION_ENABLED to an ENUM
+    //             to specify between using custom Authenticator class vs. Alluxio Master schemes
+    if (S3RestUtils.isAuthenticationEnabled(Configuration.global())) {
+      return getUserFromSignature(requestContext);
+    }
+    try {
+      return getUserFromAuthorization(authorization, Configuration.global());
+    } catch (RuntimeException e) {
+      throw new S3Exception(new S3ErrorCode(S3ErrorCode.INTERNAL_ERROR.getCode(),
+          e.getMessage(), S3ErrorCode.INTERNAL_ERROR.getStatus()));
+    }
+  }
+
+  /**
+   * Get username from parsed header info.
+   *
+   * @return username
+   * @throws S3Exception
+   */
+  private static String getUserFromSignature(ContainerRequestContext requestContext)
+      throws S3Exception {
+    AwsSignatureProcessor signatureProcessor = new AwsSignatureProcessor(requestContext);
+    Authenticator authenticator = Authenticator.Factory.create(Configuration.global());
+    AwsAuthInfo authInfo = signatureProcessor.getAuthInfo();
+    if (authenticator.isAuthenticated(authInfo)) {
+      return authInfo.getAccessID();
+    }
+    throw new S3Exception(authInfo.toString(), S3ErrorCode.INVALID_IDENTIFIER);
+  }
+
+  /**
+   * Gets the user from the authorization header string for AWS Signature Version 4.
+   * @param authorization the authorization header string
+   * @param conf the {@link AlluxioConfiguration} Alluxio conf
+   * @return the user
+   */
+  @VisibleForTesting
+  public static String getUserFromAuthorization(String authorization, AlluxioConfiguration conf)
+      throws S3Exception {
+    if (conf.get(PropertyKey.SECURITY_AUTHENTICATION_TYPE) == AuthType.NOSASL) {
+      return null;
+    }
+    if (authorization == null) {
+      throw new S3Exception("The authorization header that you provided is not valid.",
+          S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+    }
+
+    // Parse the authorization header defined at
+    // https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html
+    // All other authorization types are deprecated or EOL (as of writing)
+    // Example Header value (spaces turned to line breaks):
+    // AWS4-HMAC-SHA256
+    // Credential=AKIAIOSFODNN7EXAMPLE/20130524/us-east-1/s3/aws4_request,
+    // SignedHeaders=host;range;x-amz-date,
+    // Signature=fe5f80f77d5fa3beca038a248ff027d0445342fe2855ddc963176630326f1024
+
+    // We only care about the credential key, so split the header by " " and then take everything
+    // after the "=" and before the first "/"
+    String[] fields = authorization.split(" ");
+    if (fields.length < 2) {
+      throw new S3Exception("The authorization header that you provided is not valid.",
+          S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+    }
+    String credentials = fields[1];
+    String[] creds = credentials.split("=");
+    // only support version 4 signature
+    if (creds.length < 2 || !StringUtils.equals("Credential", creds[0])
+        || !creds[1].contains("/")) {
+      throw new S3Exception("The authorization header that you provided is not valid.",
+          S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+    }
+
+    final String user = creds[1].substring(0, creds[1].indexOf("/")).trim();
+    if (user.isEmpty()) {
+      throw new S3Exception("The authorization header that you provided is not valid.",
+          S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+    }
+
+    return user;
   }
 
   /**

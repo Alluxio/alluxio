@@ -10,6 +10,10 @@ Worker.BlockRemoverBlocksRemovedCount,COUNTER
 Worker.BlockRemoverRemovingBlocksSize,GAUGE
 Worker.BlockRemoverTryRemoveBlocksSize,GAUGE
 Worker.BlockRemoverTryRemoveCount,COUNTER
+Worker.BlockSerializedCompleteTaskCount,GAUGE
+Worker.BlockSerializedThreadActiveCount,GAUGE
+Worker.BlockSerializedThreadCurrentCount,GAUGE
+Worker.BlockSerializedThreadMaxCount,GAUGE
 Worker.BlockWriterCompleteTaskCount,GAUGE
 Worker.BlockWriterThreadActiveCount,GAUGE
 Worker.BlockWriterThreadCurrentCount,GAUGE
@@ -43,6 +47,11 @@ Worker.BytesWrittenRemoteThroughput,METER
 Worker.BytesWrittenUfsThroughput,METER
 Worker.CacheBlocksSize,COUNTER
 Worker.CacheFailedBlocks,COUNTER
+Worker.CacheManagerCompleteTaskCount,GAUGE
+Worker.CacheManagerThreadActiveCount,GAUGE
+Worker.CacheManagerThreadCurrentCount,GAUGE
+Worker.CacheManagerThreadMaxCount,GAUGE
+Worker.CacheManagerThreadQueueWaitingTaskCount,GAUGE
 Worker.CacheRemoteBlocks,COUNTER
 Worker.CacheRequests,COUNTER
 Worker.CacheRequestsAsync,COUNTER
@@ -53,3 +62,5 @@ Worker.CapacityFree,GAUGE
 Worker.CapacityTotal,GAUGE
 Worker.CapacityUsed,GAUGE
 Worker.RpcQueueLength,GAUGE
+Worker.RpcThreadActiveCount,GAUGE
+Worker.RpcThreadCurrentCount,GAUGE

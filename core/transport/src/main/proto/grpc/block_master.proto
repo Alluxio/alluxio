@@ -16,6 +16,7 @@ enum BlockMasterInfoField {
   LOST_WORKER_NUM = 5;
   USED_BYTES = 6;
   USED_BYTES_ON_TIERS = 7;
+  DECOMMISSIONED_WORKER_NUM = 8;
 }
 
 message BlockMasterInfo {
@@ -26,6 +27,7 @@ message BlockMasterInfo {
   optional int32 lostWorkerNum = 5;
   optional int64 usedBytes = 6;
   map<string, int64> usedBytesOnTiers = 7;
+  optional int32 decommissionedWorkerNum = 8;
 }
 
 message GetBlockInfoPOptions {}
@@ -73,6 +75,7 @@ enum WorkerRange {
   LIVE = 2;
   LOST = 3;
   SPECIFIED = 4;
+  DECOMMISSIONED = 5;
 }
 
 enum WorkerInfoField {
@@ -85,6 +88,7 @@ enum WorkerInfoField {
   STATE = 7;
   WORKER_USED_BYTES = 8;
   WORKER_USED_BYTES_ON_TIERS = 9;
+  BLOCK_COUNT = 10;
 }
 
 message GetWorkerReportPOptions {
@@ -103,6 +107,10 @@ message WorkerLostStorageInfo {
   /** a map from tier alias to the lost storage paths */
   map<string, StorageList> lostStorage = 2;
 }
+message RemoveDecommissionedWorkerPOptions {
+  optional string workerName = 1;
+}
+message RemoveDecommissionedWorkerPResponse {}
 
 message GetWorkerLostStoragePOptions {}
 message GetWorkerLostStoragePResponse {
@@ -138,6 +146,13 @@ service BlockMasterClientService {
    * Returns a list of workers information.
    */
   rpc GetWorkerInfoList(GetWorkerInfoListPOptions) returns (GetWorkerInfoListPResponse);
+
+  /**
+   * If target worker is in the decommissioned worker set,
+   * return true, remove target worker from decommissioned worker set; else, return false.
+   */
+  rpc RemoveDecommissionedWorker(RemoveDecommissionedWorkerPOptions)
+      returns (RemoveDecommissionedWorkerPResponse);
 
   /**
    * Returns a list of workers information for report CLI.

@@ -25,6 +25,8 @@ import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.FreeWorkerRequest;
+import alluxio.grpc.FreeWorkerResponse;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
@@ -62,7 +64,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalLong;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -174,12 +175,8 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
 
   @Override
   public void load(LoadRequest request, StreamObserver<LoadResponse> responseObserver) {
-    OptionalLong bandwidth = OptionalLong.empty();
-    if (request.hasBandwidth()) {
-      bandwidth = OptionalLong.of(request.getBandwidth());
-    }
     CompletableFuture<List<BlockStatus>> failures =
-        mBlockWorker.load(request.getBlocksList(), request.getTag(), bandwidth);
+        mBlockWorker.load(request.getBlocksList(), request.getOptions());
     CompletableFuture<LoadResponse> future = failures.thenApply(fail -> {
       int numBlocks = request.getBlocksCount();
       TaskStatus taskStatus = TaskStatus.SUCCESS;
@@ -213,6 +210,15 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
                   BlockStoreLocation.anyDirInAnyTierWithMedium(request.getMediumType())));
       return MoveBlockResponse.getDefaultInstance();
     }, "moveBlock", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void freeWorker(FreeWorkerRequest request,
+       StreamObserver<FreeWorkerResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mBlockWorker.freeWorker();
+      return FreeWorkerResponse.getDefaultInstance();
+    }, "freeWorker", "request=%s", responseObserver, request);
   }
 
   @Override

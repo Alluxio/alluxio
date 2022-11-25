@@ -11,6 +11,7 @@
 
 package alluxio.client.fs.io;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.ReadType;
@@ -31,15 +32,21 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileBlockInfo;
+import alluxio.worker.block.BlockStoreType;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,6 +56,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Integration tests for {@link alluxio.client.file.FileInStream}.
  */
+@RunWith(Parameterized.class)
 public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   // The block size needs to be sufficiently large based on TCP send/receive buffers, set to 1MB.
   private static final int BLOCK_SIZE = Constants.MB;
@@ -56,10 +64,17 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   private static final int MAX_LEN = BLOCK_SIZE * 4 + 1;
   private static final int DELTA = BLOCK_SIZE / 2;
 
+  @Parameterized.Parameters(name = "{index}_BlockStoreType_{0}")
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+        {BlockStoreType.PAGE},
+        {BlockStoreType.FILE}
+    });
+  }
+
   @Rule
-  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE).build();
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource;
+
   private FileSystem mFileSystem;
   private CreateFilePOptions mWriteBoth;
   private CreateFilePOptions mWriteAlluxio;
@@ -71,6 +86,26 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
+
+  public FileInStreamIntegrationTest(BlockStoreType blockStoreType) {
+    LocalAlluxioClusterResource.Builder builder = new LocalAlluxioClusterResource.Builder()
+        .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, blockStoreType)
+        .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
+
+    if (blockStoreType == BlockStoreType.PAGE) {
+      builder
+          .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
+          // todo(bowen): this one has to be overridden with a much larger value as
+          //  local cache opens a local file on every get call, even for 1 byte read,
+          //  which makes small reads extremely slow
+          .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
+          .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, ImmutableList.of(100 * Constants.MB))
+          .setProperty(PropertyKey.WORKER_PAGE_STORE_DIRS,
+              ImmutableList.of(AlluxioTestDirectory.createTemporaryDirectory("page_store")
+                  .getAbsolutePath()));
+    }
+    mLocalAlluxioClusterResource = builder.build();
+  }
 
   @Before
   public void before() throws Exception {
@@ -478,6 +513,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test(timeout = 10000)
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "2000"})
   public void asyncCacheFirstBlock() throws Exception {
     String filename = mTestPath + "/file_" + MAX_LEN + "_" + mWriteUnderStore.hashCode();
     AlluxioURI uri = new AlluxioURI(filename);
@@ -496,6 +533,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
           OpenFilePOptions.newBuilder().setReadType(readType.toProto()).build());
       is.read();
       URIStatus status = mFileSystem.getStatus(uri);
+      // if the test is running extremely slow, this check can happen after the worker reports
+      // the newly cached blocks to master, and thus failing the assertion
       Assert.assertEquals(0, status.getInAlluxioPercentage());
       is.close();
       if (readType.isCache()) {
@@ -526,6 +565,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test(timeout = 10000)
+  @LocalAlluxioClusterResource.Config(
+          confParams = {PropertyKey.Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "2000"})
   public void asyncCacheAfterSeek() throws Exception {
     String filename = mTestPath + "/file_" + MAX_LEN + "_" + mWriteUnderStore.hashCode();
     AlluxioURI uri = new AlluxioURI(filename);

@@ -150,6 +150,7 @@ message DeletePOptions {
   optional bool alluxioOnly = 2;
   optional bool unchecked = 3;
   optional FileSystemMasterCommonPOptions commonOptions = 4;
+  optional bool deleteMountPoint = 6;
 }
 message DeletePRequest {
   /** the path of the file or directory */
@@ -398,7 +399,9 @@ message MountPRequest {
 message GetMountTablePResponse {
   map<string, MountPointInfo> mountPoints = 1;
 }
-message GetMountTablePRequest {}
+message GetMountTablePRequest {
+  optional bool checkUfs = 1;
+}
 
 message MountPointInfo {
   optional string ufsUri = 1;
@@ -570,6 +573,12 @@ message GetStateLockHoldersPRequest {
   optional GetStateLockHoldersPOptions options = 1;
 }
 
+message NeedsSyncRequest {
+  required string path = 1;
+}
+
+message NeedsSyncResponse {}
+
 
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
@@ -714,6 +723,8 @@ service FileSystemMasterClientService {
   rpc UpdateUfsMode(UpdateUfsModePRequest) returns (UpdateUfsModePResponse);
 
   rpc GetStateLockHolders(GetStateLockHoldersPRequest) returns (GetStateLockHoldersPResponse);
+
+  rpc NeedsSync(NeedsSyncRequest) returns (NeedsSyncResponse);
 }
 
 message FileSystemHeartbeatPResponse {

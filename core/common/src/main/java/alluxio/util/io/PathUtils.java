@@ -12,7 +12,8 @@
 package alluxio.util.io;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.util.OSUtils;
@@ -21,10 +22,8 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FilenameUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.annotation.concurrent.ThreadSafe;
@@ -137,18 +136,18 @@ public final class PathUtils {
     if (paths == null || paths.isEmpty()) {
       return null;
     }
-    List<String> matchedComponents = null;
+    String[] matchedComponents = null;
     int matchedLen = 0;
     for (AlluxioURI path : paths) {
       String[] pathComp = path.getPath().split(AlluxioURI.SEPARATOR);
       if (matchedComponents == null) {
-        matchedComponents = new ArrayList<>(Arrays.asList(pathComp));
+        matchedComponents = pathComp;
         matchedLen = pathComp.length;
         continue;
       }
 
       for (int i = 0; i < pathComp.length && i < matchedLen; ++i) {
-        if (!matchedComponents.get(i).equals(pathComp[i])) {
+        if (!matchedComponents[i].equals(pathComp[i])) {
           matchedLen = i;
           break;
         }
@@ -162,7 +161,7 @@ public final class PathUtils {
       }
     }
     return new AlluxioURI(PathUtils.concatPath(AlluxioURI.SEPARATOR,
-        matchedComponents.subList(0, matchedLen).toArray()));
+        Arrays.copyOf(matchedComponents, matchedLen)));
   }
 
   /**
@@ -173,7 +172,16 @@ public final class PathUtils {
    * @throws InvalidPathException if the path is invalid
    */
   public static String getParent(String path) throws InvalidPathException {
-    String cleanedPath = cleanPath(path);
+    return getParentCleaned(cleanPath(path));
+  }
+
+  /**
+   * The same as {@link #getParent} except does not clean the path before getting the parent.
+   * @param cleanedPath the path that has been cleaned
+   * @return the parent path of the file; this is "/" if the given path is the root
+   * @throws InvalidPathException if the path is invalid
+   */
+  public static String getParentCleaned(String cleanedPath) throws InvalidPathException {
     String name = FilenameUtils.getName(cleanedPath);
     String parent = cleanedPath.substring(0, cleanedPath.length() - name.length() - 1);
     if (parent.isEmpty()) {
@@ -218,16 +226,20 @@ public final class PathUtils {
   /**
    * Get temp path for async persistence job.
    *
+   * @param ufsConfiguration the ufs configuration
    * @param path ufs path
    * @return ufs temp path with UUID
    */
-  public static String getPersistentTmpPath(String path) {
+  public static String getPersistentTmpPath(AlluxioConfiguration ufsConfiguration,
+      String path) {
     StringBuilder tempFilePath = new StringBuilder();
     StringBuilder tempFileName = new StringBuilder();
     String fileName = FilenameUtils.getName(path);
     String timeStamp = String.valueOf(System.currentTimeMillis());
     String uuid = UUID.randomUUID().toString();
-    tempFilePath.append(Constants.PERSISTENCE_ASYNC_TEMP_PATH_ROOT_DIR);
+    String tempDir = ufsConfiguration
+          .getString(PropertyKey.UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR);
+    tempFilePath.append(tempDir);
     tempFilePath.append(AlluxioURI.SEPARATOR);
     tempFileName.append(fileName);
     tempFileName.append(".alluxio.");
@@ -252,6 +264,21 @@ public final class PathUtils {
   public static String[] getPathComponents(String path) throws InvalidPathException {
     path = cleanPath(path);
     if (isRoot(path)) {
+      return new String[]{""};
+    }
+    return path.split(AlluxioURI.SEPARATOR);
+  }
+
+  /**
+   * Get the components of a path that has already been cleaned.
+   * @param path the path
+   * @return the components
+   */
+  public static String[] getCleanedPathComponents(String path) throws InvalidPathException {
+    if (path == null || path.isEmpty()) {
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path));
+    }
+    if (AlluxioURI.SEPARATOR.equals(path)) { // root
       return new String[]{""};
     }
     return path.split(AlluxioURI.SEPARATOR);

@@ -11,9 +11,11 @@
 
 package alluxio.worker.grpc;
 
+import static alluxio.util.CommonUtils.isFatalError;
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
 
 import alluxio.Constants;
+import alluxio.ProcessUtils;
 import alluxio.RpcSensitiveConfigMask;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -26,12 +28,14 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
+import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import alluxio.resource.LockResource;
 import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreType;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.io.BlockReader;
 
@@ -106,6 +110,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   private final boolean mDomainSocketEnabled;
   private final boolean mIsReaderBufferPooled;
 
+  private final BlockStoreType mBlockStoreType;
+
   /**
    * This is only created in the gRPC event thread when a read request is received.
    * Using "volatile" because we want any value change of this variable to be
@@ -134,6 +140,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
     mDomainSocketEnabled = domainSocketEnabled;
     mIsReaderBufferPooled =
         Configuration.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED);
+    mBlockStoreType =
+        Configuration.getEnum(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.class);
   }
 
   @Override
@@ -370,7 +378,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         runInternal();
       } catch (Throwable e) {
         LOG.error("Failed to run DataReader.", e);
-        throw new RuntimeException(e);
+        throw e;
       }
     }
 
@@ -442,7 +450,10 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
               }
             });
           }
-        } catch (Exception e) {
+        } catch (Throwable e) {
+          if (isFatalError(e)) {
+            ProcessUtils.fatalError(LOG, e, "Error while reading");
+          }
           LogUtils.warnWithException(LOG,
               "Exception occurred while reading data for read request {}. session {}",
               mContext.getRequest(), mContext.getRequest().getSessionId(),
@@ -451,7 +462,6 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         }
         continue;
       }
-
       if (error != null) {
         try {
           completeRequest(mContext);
@@ -516,18 +526,39 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         blockReader = context.getBlockReader();
         Preconditions.checkState(blockReader != null);
         startTransferMs = System.currentTimeMillis();
-        if (mIsReaderBufferPooled) {
-          ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
-          try {
-            while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+        ByteBuf buf;
+        switch (mBlockStoreType) {
+          case PAGE:
+            if (mIsReaderBufferPooled) {
+              buf = PooledDirectNioByteBuf.allocate(len);
+            } else {
+              buf = Unpooled.directBuffer(len, len);
             }
-            return new NettyDataBuffer(buf.retain());
-          } finally {
-            buf.release();
-          }
-        } else {
-          ByteBuffer buf = blockReader.read(offset, len);
-          return new NettyDataBuffer(Unpooled.wrappedBuffer(buf));
+            try {
+              while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+              }
+              return new NettyDataBuffer(buf.retain());
+            } finally {
+              buf.release();
+            }
+          case FILE:
+            //TODO(beinan): change the blockReader interface to accept pre-allocated byte buffer
+            // or accept a supplier of the bytebuffer.
+            if (mIsReaderBufferPooled) {
+              buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
+              try {
+                while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+                }
+                return new NettyDataBuffer(buf.retain());
+              } finally {
+                buf.release();
+              }
+            } else {
+              ByteBuffer buffer = blockReader.read(offset, len);
+              return new NettyDataBuffer(Unpooled.wrappedBuffer(buffer));
+            }
+          default:
+            throw new InvalidArgumentException("Unsupported block store type:" + mBlockStoreType);
         }
       } finally {
         long transferMs = System.currentTimeMillis() - startTransferMs;

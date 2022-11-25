@@ -86,6 +86,7 @@ public final class BlockMetadataManager {
             WORKER_STORAGE_TIER_ASSOC.getAlias(tierOrdinal),
             tierOrdinal,
             WORKER_STORAGE_TIER_ASSOC.size() > 1))
+        .parallel()
         .collect(toImmutableList());
     mAliasToTiers = mTiers.stream().collect(toImmutableMap(StorageTier::getTierAlias, identity()));
     // Create the block iterator.
