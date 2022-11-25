@@ -163,8 +163,13 @@ public class CapacityCommandTest {
     GetWorkerReportOptions.defaults().toProto();
     // If POptions has a WorkerInfoField which Options does not have,
     // the constructive method will fail.
-    new GetWorkerReportOptions(GetWorkerReportPOptions.newBuilder()
-        .addAllFieldRanges(Arrays.asList(alluxio.grpc.WorkerInfoField.values())).build());
+    for (WorkerInfoField field : WorkerInfoField.values()) {
+      assertEquals(field, WorkerInfoField.fromProto(field.toProto()));
+    }
+
+    for (WorkerRange range : WorkerRange.values()) {
+      assertEquals(range, WorkerRange.fromProto(range.toProto()));
+    }
   }
 
   /**
