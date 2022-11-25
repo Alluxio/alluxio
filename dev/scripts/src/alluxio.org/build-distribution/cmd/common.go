@@ -66,6 +66,7 @@ var ufsModules = map[string]module{
 	"ufs-hadoop-3.3":  {"hadoop-3.3", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1 -PhdfsActiveSync"},
 
 	"ufs-hadoop-ozone-1.2.1": {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
+	"ufs-hadoop-cosn-3.1.0-5.8.5":  {"hadoop-cosn-3.1.0-5.8.5", "cosn", true, "-pl underfs/cosn -Dufs.cosn.version=3.1.0-5.8.5"},
 }
 
 var libJars = map[string]struct{}{
@@ -82,7 +83,6 @@ var libJars = map[string]struct{}{
 	"underfs-cephfs":        {},
 	"underfs-cephfs-hadoop": {},
 	"underfs-cos":           {},
-	"underfs-cosn":          {},
 	"underfs-oss":           {},
 	"underfs-swift":         {},
 	"underfs-web":           {},
