@@ -36,8 +36,9 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
         + "        Tier: MEM  Size: 0B\n"
         + "    Used Percentage: 0%\n"
         + "    Free Percentage: 100%\n"));
+    // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
     Assert.assertThat(output, CoreMatchers.containsString(
-        "Worker Name      Last Heartbeat   Storage       MEM"));
+        "Worker Name      Last Heartbeat   Storage       MEM              Version          Revision"));
     Assert.assertThat(output, CoreMatchers.containsString(
         "                                  used          0B (0%)"));
   }
@@ -63,8 +64,9 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
         + "        Tier: MEM  Size: 0B\n"
         + "    Used Percentage: 0%\n"
         + "    Free Percentage: 100%\n"));
+    // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
     Assert.assertThat(output, CoreMatchers.containsString(
-        "Worker Name      Last Heartbeat   Storage       MEM"));
+        "Worker Name      Last Heartbeat   Storage       MEM              Version          Revision"));
     Assert.assertThat(output, CoreMatchers.containsString(
         "                                  used          0B (0%)"));
   }

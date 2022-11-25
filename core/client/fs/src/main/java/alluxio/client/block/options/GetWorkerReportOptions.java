@@ -17,7 +17,14 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
+<<<<<<< HEAD
 import java.util.Arrays;
+||||||| parent of 7d8ad9b12a (Display build version of workers in WebUI and capacity command)
+import java.util.Arrays;
+import java.util.EnumSet;
+=======
+import java.util.EnumSet;
+>>>>>>> 7d8ad9b12a (Display build version of workers in WebUI and capacity command)
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -45,7 +52,7 @@ public final class GetWorkerReportOptions implements Serializable {
    */
   private GetWorkerReportOptions() {
     mAddresses = new HashSet<>();
-    mFieldRange = new HashSet<>(Arrays.asList(WorkerInfoField.values()));
+    mFieldRange = EnumSet.allOf(WorkerInfoField.class);
     mWorkerRange = WorkerRange.ALL;
   }
 
@@ -194,7 +201,20 @@ public final class GetWorkerReportOptions implements Serializable {
     START_TIME_MS,
     STATE,
     WORKER_USED_BYTES,
+<<<<<<< HEAD
     WORKER_USED_BYTES_ON_TIERS;
+||||||| parent of 7d8ad9b12a (Display build version of workers in WebUI and capacity command)
+    WORKER_USED_BYTES_ON_TIERS,
+    BLOCK_COUNT;
+
+    public static final Set<WorkerInfoField> ALL = EnumSet.allOf(WorkerInfoField.class);
+=======
+    WORKER_USED_BYTES_ON_TIERS,
+    BLOCK_COUNT,
+    BUILD_VERSION;
+
+    public static final Set<WorkerInfoField> ALL = EnumSet.allOf(WorkerInfoField.class);
+>>>>>>> 7d8ad9b12a (Display build version of workers in WebUI and capacity command)
 
     /**
      * @return the proto representation of this worker info fields

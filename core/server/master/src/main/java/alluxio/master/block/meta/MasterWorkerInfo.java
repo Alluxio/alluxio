@@ -14,6 +14,7 @@ package alluxio.master.block.meta;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.StorageList;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.resource.LockResource;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.StampedLock;
@@ -119,6 +121,8 @@ public final class MasterWorkerInfo {
 
   /** Worker's last updated time in ms. */
   private final AtomicLong mLastUpdatedTimeMs;
+  /** Worker's build version (including version and revision). */
+  private final AtomicReference<BuildVersion> mBuildVersion;
   /** Worker metadata, this field is thread safe. */
   private final StaticWorkerMeta mMeta;
 
@@ -158,6 +162,7 @@ public final class MasterWorkerInfo {
     mBlocks = new HashSet<>();
     mToRemoveBlocks = new HashSet<>();
     mLastUpdatedTimeMs = new AtomicLong(CommonUtils.getCurrentMs());
+    mBuildVersion = new AtomicReference<>(BuildVersion.getDefaultInstance());
 
     // Init all locks
     mStatusLock = new StampedLock().asReadWriteLock();
@@ -350,6 +355,11 @@ public final class MasterWorkerInfo {
           break;
         case WORKER_USED_BYTES_ON_TIERS:
           info.setUsedBytesOnTiers(mUsage.mUsedBytesOnTiers);
+          break;
+        case BUILD_VERSION:
+          BuildVersion v = mBuildVersion.get();
+          info.setVersion(v.getVersion());
+          info.setRevision(v.getRevision());
           break;
         default:
           LOG.warn("Unrecognized worker info field: " + field);
@@ -545,6 +555,7 @@ public final class MasterWorkerInfo {
   @Override
   // TODO(jiacheng): Read lock on the conversion
   public String toString() {
+    BuildVersion buildVersion = mBuildVersion.get();
     return MoreObjects.toStringHelper(this)
         .add("id", mMeta.mId)
         .add("workerAddress", mMeta.mWorkerAddress)
@@ -553,7 +564,9 @@ public final class MasterWorkerInfo {
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs.get())
         // We only show the number of blocks unless it is for DEBUG logs
         .add("blocks", LOG.isDebugEnabled() ? mBlocks : CommonUtils.summarizeCollection(mBlocks))
-        .add("lostStorage", mUsage.mLostStorage).toString();
+        .add("lostStorage", mUsage.mLostStorage)
+        .add("version", buildVersion.getVersion())
+        .add("revision", buildVersion.getRevision()).toString();
   }
 
   /**
@@ -702,4 +715,68 @@ public final class MasterWorkerInfo {
   public void markAllBlocksToRemove() {
     mToRemoveBlocks.addAll(mBlocks);
   }
+<<<<<<< HEAD
+||||||| parent of 7d8ad9b12a (Display build version of workers in WebUI and capacity command)
+
+  /**
+   * Finds the read locks necessary for required worker information.
+   * Locks the corresponding read locks for the specified worker information fields.
+   * This is a wrapper of {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   *
+   * @param fieldRange a set of {@link WorkerInfoField}
+   * @return a {@link LockResource} of the {@link WorkerMetaLock}
+   */
+  public LockResource lockWorkerMetaForInfo(
+      Set<GetWorkerReportOptions.WorkerInfoField> fieldRange) {
+    EnumSet<WorkerMetaLockSection> lockTypes = EnumSet.noneOf(WorkerMetaLockSection.class);
+    if (fieldRange.contains(GetWorkerReportOptions.WorkerInfoField.BLOCK_COUNT)) {
+      lockTypes.add(WorkerMetaLockSection.BLOCKS);
+    }
+    if (fieldRange.stream().anyMatch(USAGE_INFO_FIELDS::contains)) {
+      lockTypes.add(WorkerMetaLockSection.USAGE);
+    }
+    return lockWorkerMeta(lockTypes, true);
+  }
+=======
+
+  /**
+   * Finds the read locks necessary for required worker information.
+   * Locks the corresponding read locks for the specified worker information fields.
+   * This is a wrapper of {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   *
+   * @param fieldRange a set of {@link WorkerInfoField}
+   * @return a {@link LockResource} of the {@link WorkerMetaLock}
+   */
+  public LockResource lockWorkerMetaForInfo(
+      Set<GetWorkerReportOptions.WorkerInfoField> fieldRange) {
+    EnumSet<WorkerMetaLockSection> lockTypes = EnumSet.noneOf(WorkerMetaLockSection.class);
+    if (fieldRange.contains(GetWorkerReportOptions.WorkerInfoField.BLOCK_COUNT)) {
+      lockTypes.add(WorkerMetaLockSection.BLOCKS);
+    }
+    if (fieldRange.stream().anyMatch(USAGE_INFO_FIELDS::contains)) {
+      lockTypes.add(WorkerMetaLockSection.USAGE);
+    }
+    return lockWorkerMeta(lockTypes, true);
+  }
+
+  /**
+   * Sets the build version of the worker.
+   * BuildVersion is reported by the worker in the register request.
+   *
+   * @param buildVersion the {@link BuildVersion} of the worker
+   */
+  public void setBuildVersion(BuildVersion buildVersion) {
+    mBuildVersion.set(buildVersion);
+  }
+
+  /**
+   * Get the build version of the worker.
+   * This is used to monitor cluster status when performing rolling upgrades.
+   *
+   * @return the {@link BuildVersion} of the worker
+   */
+  public BuildVersion getBuildVersion() {
+    return mBuildVersion.get();
+  }
+>>>>>>> 7d8ad9b12a (Display build version of workers in WebUI and capacity command)
 }
