@@ -1047,6 +1047,7 @@ public class InodeSyncStream {
             LoadMetadataContext loadMetadataContext =
                 LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder()
                     .setLoadDescendantType(LoadDescendantPType.NONE)
+                    .setCommonOptions(context.getOptions().getCommonOptions())
                     .setCreateAncestors(false))
                 .setUfsStatus(childStatus);
             try (LockedInodePath descendant = inodePath

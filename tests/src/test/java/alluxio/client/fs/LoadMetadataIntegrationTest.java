@@ -426,6 +426,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
         LoadMetadataType.ONCE.toString());
     Configuration.set(PropertyKey.USER_FILE_CREATE_TTL, "11000");
     Configuration.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.FREE.toString());
+    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_USE_CLIENT_OPTION, false);
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true)
         .setCommonOptions(
             FileSystemMasterCommonPOptions.newBuilder()
@@ -437,6 +438,30 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     assertEquals(created + EXTRA_DIR_FILES, list.size());
     list.forEach(stat -> {
       assertEquals(-1, stat.getTtl());
+    });
+  }
+
+  @Test
+  public void testHasTtlOnLoadedFiles() throws Exception {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
+        LoadMetadataType.ONCE.toString());
+    Configuration.set(PropertyKey.USER_FILE_CREATE_TTL, "11000");
+    Configuration.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.FREE.toString());
+    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_USE_CLIENT_OPTION, true);
+    int created = createUfsFiles(2);
+    ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true)
+        .setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder()
+                .setTtl(1000000)
+                .setTtlAction(TtlAction.FREE)
+                .build())
+        .build();
+    List<URIStatus> list = mFileSystem.listStatus(new AlluxioURI("/mnt"), options);
+    assertEquals(created + EXTRA_DIR_FILES, list.size());
+    list.forEach(stat -> {
+      if (stat.getPath().startsWith("/mnt/dir")) {
+        assertEquals(1000000, stat.getTtl());
+      }
     });
   }
 
