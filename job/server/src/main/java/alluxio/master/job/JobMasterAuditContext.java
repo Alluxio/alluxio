@@ -33,6 +33,7 @@ public class JobMasterAuditContext implements AuditContext {
   private String mJobName;
   private long mCreationTimeNs;
   private long mExecutionTimeNs;
+  private String mClientVersion;
 
   @Override
   public JobMasterAuditContext setAllowed(boolean allowed) {
@@ -125,9 +126,20 @@ public class JobMasterAuditContext implements AuditContext {
   }
 
   /**
+   * Sets client version.
+   *
+   * @param clientVersion the client version
+   * @return this {@link AuditContext} instance
+   */
+  public JobMasterAuditContext setClientVersion(String clientVersion) {
+    mClientVersion = clientVersion;
+    return this;
+  }
+
+  /**
    * Constructor of {@link JobMasterAuditContext}.
    *
-   * @param asyncAuditLogWriter
+   * @param asyncAuditLogWriter async audit log writer
    */
   protected JobMasterAuditContext(AsyncUserAccessAuditLogWriter asyncAuditLogWriter) {
     mAsyncAuditLogWriter = asyncAuditLogWriter;
@@ -147,8 +159,8 @@ public class JobMasterAuditContext implements AuditContext {
   public String toString() {
     return String.format(
         "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tjobId=%d\tjobName=%s\t"
-            + "perm=null\texecutionTimeUs=%d",
+            + "perm=null\texecutionTimeUs=%d\tclientVersion=%s",
         mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mJobId, mJobName,
-        mExecutionTimeNs / 1000);
+        mExecutionTimeNs / 1000, mClientVersion);
   }
 }
