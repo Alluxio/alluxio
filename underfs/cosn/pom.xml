@@ -26,6 +26,8 @@
 
   <properties>
     <build.path>${project.parent.parent.basedir}/build</build.path>
+    <!-- This should be kept in sync with the build scripts in
+    dev/scripts/src/alluxio.org/build-distribution/cmd/common.go -->
     <ufs.cosn.version>3.1.0-5.8.5</ufs.cosn.version>
   </properties>
 

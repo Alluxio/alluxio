@@ -45,7 +45,8 @@ public class CosNUnderFileSystemFactory extends HdfsUnderFileSystemFactory {
     if (!supportsPath(path)) {
       return false;
     }
-    // if the user has explicitly specified a UFS version, do a strict match
+    // If the user has explicitly specified a UFS version,
+    // the version also has to match exactly, in addition to path prefix
     if (conf.isSetByUser(PropertyKey.UNDERFS_VERSION)
         && !conf.get(PropertyKey.UNDERFS_VERSION).equals(getVersion())) {
       return false;
