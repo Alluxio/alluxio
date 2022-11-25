@@ -1,10 +1,21 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.heapinodestore;
 
 import alluxio.master.file.meta.MutableInodeFile;
-import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.ReadOption;
-
+import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.heap.HeapInodeStoreEclipseHashMap;
+
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -31,233 +42,242 @@ import java.util.concurrent.TimeUnit;
 @Warmup(iterations = 0)
 @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
 public class HeapInodeStoreBench {
-    @State(Scope.Benchmark)
-    public static class HeapInodeStoreRemoveState {
-        @Param("1000000")
-        public long mTest;
+  @State(Scope.Benchmark)
+  public static class HeapInodeStoreRemoveState {
+    @Param("1000000")
+    public long mTest;
 
-        public HeapInodeStore mHeapInodeStore;
+    public HeapInodeStore mHeapInodeStore;
 
-        @Setup
-        public void before() {
-            mHeapInodeStore = new HeapInodeStore();
-            for(long i = mTest; i > 0; i--){
-                mHeapInodeStore.writeInode(new MutableInodeFile(i));
-            }
-        }
-
-        @TearDown
-        public void after(){
-            mHeapInodeStore = null;
-        }
+    @Setup
+    public void before() {
+      mHeapInodeStore = new HeapInodeStore();
+      for (long i = mTest; i > 0; i--) {
+        mHeapInodeStore.writeInode(new MutableInodeFile(i));
+      }
     }
 
-    @State(Scope.Benchmark)
-    public static class HeapInodeStoreWriteState {
+    @TearDown
+    public void after() {
+      mHeapInodeStore = null;
+    }
+  }
 
-        public long mCounter = 0;
-        public HeapInodeStore mHeapInodeStore;
+  @State(Scope.Benchmark)
+  public static class HeapInodeStoreWriteState {
+    public long mCounter = 0;
+    public HeapInodeStore mHeapInodeStore;
 
-        @Setup
-        public void before() {
-            mHeapInodeStore = new HeapInodeStore();
-        }
-
-        @TearDown
-        public void after(){
-            mHeapInodeStore = null;
-        }
+    @Setup
+    public void before() {
+      mHeapInodeStore = new HeapInodeStore();
     }
 
-    @State(Scope.Benchmark)
-    public static class HeapInodeStoreGetState {
-        @Param("1000000")
-        public long mTest;
-        public HeapInodeStore mHeapInodeStore;
-        public ReadOption mOption;
+    @TearDown
+    public void after() {
+      mHeapInodeStore = null;
+    }
+  }
 
-        @Setup
-        public void before() {
-            mHeapInodeStore = new HeapInodeStore();
-            mOption = ReadOption.newBuilder().build();
-            for(long i = mTest; i > 0; i--) {
-                mHeapInodeStore.writeInode(new MutableInodeFile(i));
-            }
-        }
+  @State(Scope.Benchmark)
+  public static class HeapInodeStoreGetState {
+    @Param("1000000")
+    public long mTest;
+    public HeapInodeStore mHeapInodeStore;
+    public ReadOption mOption;
 
-        @TearDown
-        public void after(){
-            mHeapInodeStore = null;
-        }
+    @Setup
+    public void before() {
+      mHeapInodeStore = new HeapInodeStore();
+      mOption = ReadOption.newBuilder().build();
+      for (long i = mTest; i > 0; i--) {
+        mHeapInodeStore.writeInode(new MutableInodeFile(i));
+      }
     }
 
-    @State(Scope.Benchmark)
-    public static class HeapInodeStoreAllState {
-        @Param("1000000")
-        public long mTest;
+    @TearDown
+    public void after() {
+      mHeapInodeStore = null;
+    }
+  }
 
-        public HeapInodeStore mHeapInodeStore;
+  @State(Scope.Benchmark)
+  public static class HeapInodeStoreAllState {
+    @Param("1000000")
+    public long mTest;
 
-        @Setup
-        public void before() {
-            mHeapInodeStore = new HeapInodeStore();
-            for(long i = mTest; i > 0; i--) {
-                mHeapInodeStore.writeInode(new MutableInodeFile(i));
-            }
-        }
+    public HeapInodeStore mHeapInodeStore;
 
-        @TearDown
-        public void after(){
-            mHeapInodeStore = null;
-        }
+    @Setup
+    public void before() {
+      mHeapInodeStore = new HeapInodeStore();
+      for (long i = mTest; i > 0; i--) {
+        mHeapInodeStore.writeInode(new MutableInodeFile(i));
+      }
     }
 
-    @BenchmarkMode(Mode.AverageTime)
-    @OutputTimeUnit(TimeUnit.MICROSECONDS)
-    @Benchmark
-    public long HeapInodeStroreRemoveBench(HeapInodeStoreRemoveState hb) {
-        long i = hb.mTest;
-        for(; i > 0; i--) {
-            hb.mHeapInodeStore.remove(i);
-        }
-        return i;
+    @TearDown
+    public void after() {
+      mHeapInodeStore = null;
+    }
+  }
+
+  @BenchmarkMode(Mode.AverageTime)
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  @Benchmark
+  public long HeapInodeStroreRemoveBench(HeapInodeStoreRemoveState hb) {
+    long i = hb.mTest;
+    for (; i > 0; i--) {
+      hb.mHeapInodeStore.remove(i);
+    }
+    return i;
+  }
+
+  @Benchmark
+  public long HeapInodeStoreWriteBench(HeapInodeStoreWriteState hb) {
+    hb.mHeapInodeStore.writeInode(new MutableInodeFile(hb.mCounter));
+    hb.mCounter += 1;
+    return hb.mCounter;
+  }
+
+  @BenchmarkMode(Mode.AverageTime)
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  @Benchmark
+  public long HeapInodeStoreGetBench(HeapInodeStoreGetState hb) {
+    long i = hb.mTest;
+    for (; i > 0; i--) {
+      hb.mHeapInodeStore.getMutable(i, hb.mOption);
+    }
+    return i;
+  }
+
+  @Benchmark
+  public void HeapInodeStoreAllBench(HeapInodeStoreAllState hb) {
+    hb.mHeapInodeStore.allInodes();
+  }
+
+  @State(Scope.Benchmark)
+  public static class HeapInodeStoreEclipseRemoveState {
+    @Param("1000000")
+    public long mTest;
+
+    public HeapInodeStoreEclipseHashMap mHeapInodeStore;
+
+    @Setup
+    public void before() {
+      mHeapInodeStore = new HeapInodeStoreEclipseHashMap();
+      for (long i = mTest; i > 0; i--) {
+        mHeapInodeStore.writeInode(new MutableInodeFile(i));
+      }
     }
 
-    @Benchmark
-    public long HeapInodeStoreWriteBench(HeapInodeStoreWriteState hb) {
-        hb.mHeapInodeStore.writeInode(new MutableInodeFile(hb.mCounter));
-        hb.mCounter += 1;
-        return hb.mCounter;
+    @TearDown
+    public void after() {
+      mHeapInodeStore = null;
+    }
+  }
+
+  @State(Scope.Benchmark)
+  public static class HeapInodeStoreEclipseWriteState {
+    public long mCounter = 0;
+    public HeapInodeStoreEclipseHashMap mHeapInodeStore;
+
+    @Setup
+    public void before() {
+      mHeapInodeStore = new HeapInodeStoreEclipseHashMap();
     }
 
-    @BenchmarkMode(Mode.AverageTime)
-    @OutputTimeUnit(TimeUnit.MICROSECONDS)
-    @Benchmark
-    public long HeapInodeStoreGetBench(HeapInodeStoreGetState hb) {
-        long i = hb.mTest;
-        for(; i > 0; i--) {
-            hb.mHeapInodeStore.getMutable(i, hb.mOption);
-        }
-        return i;
+    @TearDown
+    public void after() {
+      mHeapInodeStore = null;
+    }
+  }
+
+  @State(Scope.Benchmark)
+  public static class HeapInodeStoreEclipseGetState {
+    @Param("1000000")
+    public long mTest;
+    public HeapInodeStoreEclipseHashMap mHeapInodeStore;
+    public ReadOption mOption;
+
+    @Setup
+    public void before() {
+      mHeapInodeStore = new HeapInodeStoreEclipseHashMap();
+      mOption = ReadOption.newBuilder().build();
+      for (long i = mTest; i > 0; i--) {
+        mHeapInodeStore.writeInode(new MutableInodeFile(i));
+      }
     }
 
-    @Benchmark
-    public void HeapInodeStoreAllBench(HeapInodeStoreAllState hb) {
-        hb.mHeapInodeStore.allInodes();
+    @TearDown
+    public void after() {
+      mHeapInodeStore = null;
+    }
+  }
+
+  @State(Scope.Benchmark)
+  public static class HeapInodeStoreEclipseAllState {
+    @Param("1000000")
+    public long mTest;
+
+    public HeapInodeStoreEclipseHashMap mHeapInodeStore;
+
+    @Setup
+    public void before() {
+      mHeapInodeStore = new HeapInodeStoreEclipseHashMap();
+      for (long i = mTest; i > 0; i--) {
+        mHeapInodeStore.writeInode(new MutableInodeFile(i));
+      }
     }
 
-    @State(Scope.Benchmark)
-    public static class HeapInodeStoreEclipseRemoveState {
-        @Param("1000000")
-        public long mTest;
-
-        public HeapInodeStoreEclipseHashMap mHeapInodeStore;
-
-        @Setup
-        public void before() {
-            mHeapInodeStore = new HeapInodeStoreEclipseHashMap();
-            for(long i = mTest; i > 0; i--){
-                mHeapInodeStore.writeInode(new MutableInodeFile(i));
-            }
-        }
-
-        @TearDown
-        public void after(){
-            mHeapInodeStore = null;
-        }
+    @TearDown
+    public void after() {
+      mHeapInodeStore = null;
     }
+  }
 
-    @State(Scope.Benchmark)
-    public static class HeapInodeStoreEclipseWriteState {
-
-        public long mCounter = 0;
-        public HeapInodeStoreEclipseHashMap mHeapInodeStore;
-
-        @Setup
-        public void before() {
-            mHeapInodeStore = new HeapInodeStoreEclipseHashMap();
-        }
-
-        @TearDown
-        public void after(){
-            mHeapInodeStore = null;
-        }
+  @BenchmarkMode(Mode.AverageTime)
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  @Benchmark
+  public long HeapInodeStroreEclipseRemoveBench(HeapInodeStoreEclipseRemoveState hb) {
+    long i = hb.mTest;
+    for (; i > 0; i--) {
+      hb.mHeapInodeStore.remove(i);
     }
+    return i;
+  }
 
-    @State(Scope.Benchmark)
-    public static class HeapInodeStoreEclipseGetState {
-        @Param("1000000")
-        public long mTest;
-        public HeapInodeStoreEclipseHashMap mHeapInodeStore;
-        public ReadOption mOption;
+  @Benchmark
+  public long HeapInodeStoreEclipseWriteBench(HeapInodeStoreEclipseWriteState hb) {
+    hb.mHeapInodeStore.writeInode(new MutableInodeFile(hb.mCounter));
+    hb.mCounter += 1;
+    return hb.mCounter;
+  }
 
-        @Setup
-        public void before() {
-            mHeapInodeStore = new HeapInodeStoreEclipseHashMap();
-            mOption = ReadOption.newBuilder().build();
-            for(long i = mTest; i > 0; i--) {
-                mHeapInodeStore.writeInode(new MutableInodeFile(i));
-            }
-        }
-
-        @TearDown
-        public void after(){
-            mHeapInodeStore = null;
-        }
+  @BenchmarkMode(Mode.AverageTime)
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  @Benchmark
+  public long HeapInodeStoreEclipseGetBench(HeapInodeStoreEclipseGetState hb) {
+    long i = hb.mTest;
+    for (; i > 0; i--) {
+      hb.mHeapInodeStore.getMutable(i, hb.mOption);
     }
+    return i;
+  }
 
-    @State(Scope.Benchmark)
-    public static class HeapInodeStoreEclipseAllState {
-        @Param("1000000")
-        public long mTest;
+  @Benchmark
+  public void HeapInodeStoreEclipseAllBench(HeapInodeStoreEclipseAllState hb) {
+    hb.mHeapInodeStore.allInodes();
+  }
 
-        public HeapInodeStoreEclipseHashMap mHeapInodeStore;
-
-        @Setup
-        public void before() {
-            mHeapInodeStore = new HeapInodeStoreEclipseHashMap();
-            for(long i = mTest; i > 0; i--) {
-                mHeapInodeStore.writeInode(new MutableInodeFile(i));
-            }
-        }
-
-        @TearDown
-        public void after(){
-            mHeapInodeStore = null;
-        }
-    }
-
-    @BenchmarkMode(Mode.AverageTime)
-    @OutputTimeUnit(TimeUnit.MICROSECONDS)
-    @Benchmark
-    public long HeapInodeStroreEclipseRemoveBench(HeapInodeStoreEclipseRemoveState hb) {
-        long i = hb.mTest;
-        for(; i > 0; i--) {
-            hb.mHeapInodeStore.remove(i);
-        }
-        return i;
-    }
-
-    @Benchmark
-    public long HeapInodeStoreEclipseWriteBench(HeapInodeStoreEclipseWriteState hb) {
-        hb.mHeapInodeStore.writeInode(new MutableInodeFile(hb.mCounter));
-        hb.mCounter += 1;
-        return hb.mCounter;
-    }
-
-    @BenchmarkMode(Mode.AverageTime)
-    @OutputTimeUnit(TimeUnit.MICROSECONDS)
-    @Benchmark
-    public long HeapInodeStoreEclipseGetBench(HeapInodeStoreEclipseGetState hb) {
-        long i = hb.mTest;
-        for(; i > 0; i--) {
-            hb.mHeapInodeStore.getMutable(i, hb.mOption);
-        }
-        return i;
-    }
-
-    @Benchmark
-    public void HeapInodeStoreEclipseAllBench(HeapInodeStoreEclipseAllState hb) {
-        hb.mHeapInodeStore.allInodes();
-    }
+  public static void main(String[] args) throws RunnerException, CommandLineOptionException {
+    Options argsCli = new CommandLineOptions(args);
+    Options opts = new OptionsBuilder()
+            .parent(argsCli)
+            .include(HeapInodeStoreBench.class.getName())
+            .result("results.json")
+            .resultFormat(ResultFormatType.JSON)
+            .build();
+    new Runner(opts).run();
+  }
 }
