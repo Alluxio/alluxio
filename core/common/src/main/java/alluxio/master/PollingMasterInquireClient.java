@@ -57,6 +57,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
   private final AlluxioConfiguration mConfiguration;
   private final UserState mUserState;
+  private final ServiceType mServiceType;
 
   /**
    * @param masterAddresses the potential master addresses
@@ -67,7 +68,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
       AlluxioConfiguration alluxioConf,
       UserState userState) {
     this(masterAddresses, RetryUtils::defaultClientRetry,
-        alluxioConf, userState);
+        alluxioConf, userState, null);
   }
 
   /**
@@ -78,7 +79,34 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
       Supplier<RetryPolicy> retryPolicySupplier,
       AlluxioConfiguration alluxioConf) {
-    this(masterAddresses, retryPolicySupplier, alluxioConf, UserState.Factory.create(alluxioConf));
+    this(masterAddresses, retryPolicySupplier, alluxioConf,
+        UserState.Factory.create(alluxioConf), null);
+  }
+
+  /**
+   * @param masterAddresses the potential master addresses
+   * @param alluxioConf Alluxio configuration
+   * @param userState user state
+   * @param serviceType service type
+   */
+  public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
+      AlluxioConfiguration alluxioConf,
+      UserState userState, ServiceType serviceType) {
+    this(masterAddresses, RetryUtils::defaultClientRetry,
+        alluxioConf, userState, serviceType);
+  }
+
+  /**
+   * @param masterAddresses the potential master addresses
+   * @param retryPolicySupplier the retry policy supplier
+   * @param alluxioConf Alluxio configuration
+   * @param serviceType service type
+   */
+  public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
+      Supplier<RetryPolicy> retryPolicySupplier,
+      AlluxioConfiguration alluxioConf, ServiceType serviceType) {
+    this(masterAddresses, retryPolicySupplier, alluxioConf,
+        UserState.Factory.create(alluxioConf), serviceType);
   }
 
   /**
@@ -86,15 +114,17 @@ public class PollingMasterInquireClient implements MasterInquireClient {
    * @param retryPolicySupplier the retry policy supplier
    * @param alluxioConf Alluxio configuration
    * @param userState user state
+   * @param serviceType service type
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
       Supplier<RetryPolicy> retryPolicySupplier,
       AlluxioConfiguration alluxioConf,
-      UserState userState) {
+      UserState userState, ServiceType serviceType) {
     mConnectDetails = new MultiMasterConnectDetails(masterAddresses);
     mRetryPolicySupplier = retryPolicySupplier;
     mConfiguration = alluxioConf;
     mUserState = userState;
+    mServiceType = serviceType;
   }
 
   @Override
@@ -154,9 +184,13 @@ public class PollingMasterInquireClient implements MasterInquireClient {
         ServiceVersionClientServiceGrpc.newBlockingStub(channel)
             .withDeadlineAfter(mConfiguration.getMs(PropertyKey.USER_MASTER_POLLING_TIMEOUT),
                 TimeUnit.MILLISECONDS);
-    List<InetSocketAddress> addresses = ConfigurationUtils.getJobMasterRpcAddresses(mConfiguration);
-    ServiceType serviceType = addresses.contains(address)
-        ? ServiceType.JOB_MASTER_CLIENT_SERVICE : ServiceType.META_MASTER_CLIENT_SERVICE;
+    ServiceType serviceType = mServiceType;
+    if (serviceType == null) {
+      List<InetSocketAddress> addresses = ConfigurationUtils.getJobMasterRpcAddresses(mConfiguration);
+      serviceType = addresses.contains(address)
+          ? ServiceType.JOB_MASTER_CLIENT_SERVICE : ServiceType.META_MASTER_CLIENT_SERVICE;
+    }
+
     try {
       versionClient.getServiceVersion(GetServiceVersionPRequest.newBuilder()
           .setServiceType(serviceType).build());
