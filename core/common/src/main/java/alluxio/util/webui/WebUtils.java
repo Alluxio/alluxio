@@ -22,7 +22,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class WebUtils {
-
   /**
    * Converts a byte array to string.
    *
