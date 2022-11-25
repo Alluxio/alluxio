@@ -1129,6 +1129,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
 
+    if (options.hasBuildVersion()) {
+      worker.setBuildVersion(options.getBuildVersion());
+    }
+
     // Gather all blocks on this worker.
     int totalSize = currentBlocksOnLocation.values().stream().mapToInt(List::size).sum();
     Set<Long> blocks = new LongOpenHashSet(totalSize);
@@ -1220,6 +1224,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     processWorkerAddedBlocks(workerInfo, currentBlocksOnLocation);
     processWorkerOrphanedBlocks(workerInfo);
     workerInfo.addLostStorage(lostStorage);
+    if (options.hasBuildVersion()) {
+      workerInfo.setBuildVersion(options.getBuildVersion());
+    }
 
     // TODO(jiacheng): This block can be moved to a non-locked section
     if (options.getConfigsCount() > 0) {
