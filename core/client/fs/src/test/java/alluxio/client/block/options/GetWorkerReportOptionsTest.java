@@ -24,11 +24,15 @@ public class GetWorkerReportOptionsTest {
    */
   @Test
   public void workerInfoFieldMapTest() {
-    // If Options has a WorkerInfoField which POptions does not have, throw IOException.
-    Assert.assertEquals(GetWorkerReportPOptions.getDefaultInstance(),
-            GetWorkerReportOptions.defaults().toProto());
-    // If POptions has a WorkerInfoField which Options does not have,
-    // the constructive method will fail.
+    for (GetWorkerReportOptions.WorkerInfoField field :
+            GetWorkerReportOptions.WorkerInfoField.values()) {
+      Assert.assertEquals(field, GetWorkerReportOptions
+              .WorkerInfoField.fromProto(field.toProto()));
+    }
+    for (GetWorkerReportOptions.WorkerRange range : GetWorkerReportOptions.WorkerRange.values()) {
+      Assert.assertEquals(range, GetWorkerReportOptions.WorkerRange.fromProto(range.toProto()));
+    }
+
     for (WorkerInfoField field : WorkerInfoField.values())  {
       Assert.assertEquals(field,
               GetWorkerReportOptions.WorkerInfoField.fromProto(field).toProto());
