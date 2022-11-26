@@ -25,7 +25,6 @@ public class GetWorkerReportOptionsTest {
   @Test
   public void workerInfoFieldMapTest() {
     // If Options has a WorkerInfoField which POptions does not have, throw IOException.
-    GetWorkerReportOptions.defaults().toProto();
     Assert.assertEquals(GetWorkerReportPOptions.getDefaultInstance(),
             GetWorkerReportOptions.defaults().toProto());
     // If POptions has a WorkerInfoField which Options does not have,
