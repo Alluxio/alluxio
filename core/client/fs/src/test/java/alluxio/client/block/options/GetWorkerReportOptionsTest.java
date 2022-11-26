@@ -11,7 +11,6 @@
 
 package alluxio.client.block.options;
 
-import alluxio.grpc.GetWorkerReportPOptions;
 import alluxio.grpc.WorkerInfoField;
 import alluxio.grpc.WorkerRange;
 
