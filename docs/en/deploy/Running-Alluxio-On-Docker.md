@@ -287,6 +287,11 @@ Congratulations, you've deployed a basic Dockerized Alluxio cluster! Read on to 
 
 ## Advanced Setup
 
+### Launch Alluxio with Java 11
+Starting from v2.9.0, Alluxio processes can be launched with Java 11 inside Docker containers by pulling the `alluxio/alluxio-jdk11` image from Dockerhub.
+
+To use java 11 image, replace `alluxio/alluxio` with `alluxio/alluxio-jdk11` in the command launching Alluxio Docker container.
+
 ### Launch Alluxio with the development image
 
 Starting from v2.6.2, a new docker image, `alluxio-dev`, is available in Dockerhub for development usage. Unlike the default `alluxio/alluxio` image that 

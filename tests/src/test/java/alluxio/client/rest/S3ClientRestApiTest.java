@@ -802,6 +802,24 @@ public final class S3ClientRestApiTest extends RestApiTest {
         .runAndCheckResult(expected);
   }
 
+  @Test
+  public void headBucket() throws Exception {
+    final String bucket = "bucket-to-head";
+    final String nonExistingBucket = "non-existing-bucket";
+    createBucketRestCall(bucket);
+    // Verify the directory is created for the new bucket
+    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
+    Assert.assertTrue(mFileSystemMaster
+        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
+
+    HttpURLConnection connection = headBucketRestCall(bucket);
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), connection.getResponseCode());
+
+    // Verify 404 status will be returned by head none existing bucket.
+    connection = headBucketRestCall(nonExistingBucket);
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), connection.getResponseCode());
+  }
+
   private void putBucket(String bucket) throws Exception {
     putBucket(bucket, TEST_USER_NAME);
   }
@@ -2046,6 +2064,12 @@ public final class S3ClientRestApiTest extends RestApiTest {
     return new TestCase(mHostname, mPort, mBaseUri,
         bucketUri, NO_PARAMS, HttpMethod.DELETE,
         getDefaultOptionsWithAuth()).executeAndAssertSuccess();
+  }
+
+  private HttpURLConnection headBucketRestCall(String bucketUri) throws Exception {
+    return new TestCase(mHostname, mPort, mBaseUri,
+        bucketUri, NO_PARAMS, HttpMethod.HEAD,
+        getDefaultOptionsWithAuth()).execute();
   }
 
   private String computeObjectChecksum(byte[] objectContent) throws Exception {

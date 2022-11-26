@@ -20,6 +20,7 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.JournalDomain;
 import alluxio.master.job.JobMaster;
+import alluxio.master.journal.DefaultJournalMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
@@ -37,6 +38,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -50,6 +53,7 @@ public class AlluxioJobMasterProcess extends AlluxioSimpleMasterProcess {
 
   /** The master managing all job related metadata. */
   protected JobMaster mJobMaster;
+  protected DefaultJournalMaster mJournalMaster;
 
   AlluxioJobMasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector) {
     super("job", JournalDomain.JOB_MASTER, journalSystem, leaderSelector,
@@ -58,10 +62,11 @@ public class AlluxioJobMasterProcess extends AlluxioSimpleMasterProcess {
     FileSystem fileSystem = FileSystem.Factory.create(fsContext);
     UfsManager ufsManager = new JobUfsManager();
     try {
+      MasterContext<UfsManager> context =
+          new MasterContext<>(mJournalSystem, leaderSelector, null, ufsManager);
       // Create master.
-      mJobMaster = new JobMaster(
-          new MasterContext<>(mJournalSystem, null, ufsManager), fileSystem, fsContext,
-          ufsManager);
+      mJobMaster = new JobMaster(context, fileSystem, fsContext, ufsManager);
+      mJournalMaster = new DefaultJournalMaster(JournalDomain.JOB_MASTER, context);
     } catch (Exception e) {
       LOG.error("Failed to create job master", e);
       throw new RuntimeException("Failed to create job master", e);
@@ -69,8 +74,8 @@ public class AlluxioJobMasterProcess extends AlluxioSimpleMasterProcess {
   }
 
   @Override
-  AbstractMaster getAbstractMaster() {
-    return mJobMaster;
+  List<AbstractMaster> getAbstractMasters() {
+    return Arrays.asList(mJobMaster, mJournalMaster);
   }
 
   @Override

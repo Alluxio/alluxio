@@ -2,14 +2,17 @@ metricName,metricType
 Client.BlockMasterClientCount,COUNTER
 Client.BlockReadChunkRemote,TIMER
 Client.BlockWorkerClientCount,COUNTER
+Client.BusyExceptionCount,COUNTER
 Client.BytesReadLocal,COUNTER
 Client.BytesReadLocalThroughput,METER
 Client.BytesWrittenLocal,COUNTER
 Client.BytesWrittenLocalThroughput,METER
 Client.BytesWrittenUfs,COUNTER
+Client.CacheBytesDiscarded,METER
 Client.CacheBytesEvicted,METER
 Client.CacheBytesReadCache,METER
 Client.CacheBytesReadExternal,METER
+Client.CacheBytesReadInStreamBuffer,METER
 Client.CacheBytesRequestedExternal,METER
 Client.CacheBytesWrittenCache,METER
 Client.CacheCleanErrors,COUNTER
@@ -27,6 +30,7 @@ Client.CacheHitRate,GAUGE
 Client.CachePageReadCacheTimeNanos,METER
 Client.CachePageReadExternalTimeNanos,METER
 Client.CachePages,COUNTER
+Client.CachePagesDiscarded,METER
 Client.CachePagesEvicted,METER
 Client.CachePutAsyncRejectionErrors,COUNTER
 Client.CachePutBenignRacingErrors,COUNTER

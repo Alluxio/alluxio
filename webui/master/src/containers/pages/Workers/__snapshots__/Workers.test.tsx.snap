@@ -46,6 +46,12 @@ exports[`Workers Shallow component Matches snapshot 1`] = `
               <th>
                 Space Usage
               </th>
+              <th>
+                Version
+              </th>
+              <th>
+                Revision
+              </th>
             </tr>
           </thead>
           <tbody />

@@ -66,6 +66,8 @@ export class WorkersPresenter extends React.Component<AllProps> {
                     <th>Workers Capacity</th>
                     <th>Space Used</th>
                     <th>Space Usage</th>
+                    <th>Version</th>
+                    <th>Revision</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -109,6 +111,8 @@ export class WorkersPresenter extends React.Component<AllProps> {
                           </Progress>
                         </Progress>
                       </td>
+                      <td>{nodeInfo.version}</td>
+                      <td>{nodeInfo.revision}</td>
                     </tr>
                   ))}
                 </tbody>

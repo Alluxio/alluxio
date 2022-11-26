@@ -25,7 +25,9 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.ratis.conf.RaftProperties;
 import org.apache.ratis.server.RaftServer;
+import org.apache.ratis.server.RaftServerConfigKeys;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -504,6 +506,23 @@ public class RaftJournalTest {
         .contains(CountingNoopFileSystemMaster.ENTRY_DOES_NOT_EXIST));
   }
 
+  @Test
+  public void testMergeAlluxioConfig() {
+    RaftProperties properties = new RaftProperties();
+    try {
+      Configuration.set(PropertyKey.fromString(
+          PropertyKey.MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG.getName()
+              + ".raft.server.rpc.request.timeout"), 123456);
+      mLeaderJournalSystem.mergeAlluxioRatisConfig(properties);
+      Assert.assertEquals(123456,
+          RaftServerConfigKeys.Rpc.requestTimeout(properties).getDuration());
+    } finally {
+      Configuration.unset(PropertyKey.fromString(
+          PropertyKey.MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG.getName()
+              + ".raft.server.rpc.request.timeout"));
+    }
+  }
+
   /**
    * Creates list of raft journal systems in a clustered mode.
    */
@@ -586,10 +605,10 @@ public class RaftJournalTest {
     long currentTermObj = (long) getCurrentTermMethod.invoke(serverStateObj);
 
     Method changeToFollowerMethod = raftServerImplClass.getDeclaredMethod("changeToFollower",
-        long.class, boolean.class, Object.class);
+        long.class, boolean.class, boolean.class, Object.class);
 
     changeToFollowerMethod.setAccessible(true);
-    changeToFollowerMethod.invoke(serverImplObj, currentTermObj, true, "test");
+    changeToFollowerMethod.invoke(serverImplObj, currentTermObj, true, false, "test");
   }
 
   /**

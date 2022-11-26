@@ -54,6 +54,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,6 +83,7 @@ public final class AlluxioFuseUtils {
   public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
 
   public static final long MODE_NOT_SET_VALUE = -1;
+  public static final String MACFUSE_SUPPORT_MINIMUM_OS_VERSION = "10.9";
 
   private AlluxioFuseUtils() {}
 
@@ -364,14 +366,47 @@ public final class AlluxioFuseUtils {
         String result = ShellUtils.execCommand("fusermount", "-V");
         return !result.isEmpty();
       } else if (OSUtils.isMacOS()) {
+
         String result = ShellUtils.execCommand("bash", "-c",
-            "pkgutil --pkgs | grep -i com.github.osxfuse.pkg.Core");
+            "pkgutil --pkgs | grep -i "
+            + (isMacFuse() ? "io.macfuse.installer.components.core"
+            : "com.github.osxfuse.pkg.Core"));
         return !result.isEmpty();
       }
     } catch (Exception e) {
       return false;
     }
     return false;
+  }
+
+  /**
+   * @return true if os version is matched to use macFuse
+   */
+  public static boolean isMacFuse() {
+    return compareVersion(SystemUtils.OS_VERSION, MACFUSE_SUPPORT_MINIMUM_OS_VERSION) >= 0;
+  }
+
+  /**
+   * Compares two version.
+   *
+   * @param version1 the first os version to compare
+   * @param version2 the second os version to compare
+   * @return the value 0 if version1 == version2; a value less than 0 if version1 < version2;
+   * and a value greater than 0 if version1 > version2
+   */
+  public static int compareVersion(String version1, String version2) {
+    String[] versionParts1 = version1.split("\\.");
+    String[] versionParts2 = version2.split("\\.");
+    int idx = 0;
+    int minLength = Math.min(versionParts1.length, versionParts2.length);
+    int diff = 0;
+    while (idx < minLength
+        && (diff = Integer.parseInt(versionParts1[idx])
+            - Integer.parseInt(versionParts2[idx])) == 0) {
+      ++idx;
+    }
+    diff = (diff != 0) ? diff : versionParts1.length - versionParts2.length;
+    return diff;
   }
 
   /**
