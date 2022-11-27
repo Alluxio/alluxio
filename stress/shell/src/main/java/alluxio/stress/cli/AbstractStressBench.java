@@ -36,8 +36,6 @@ public abstract class AbstractStressBench<T extends TaskResult, P extends FileSy
 
   @Override
   public String run(String[] args) throws Exception {
-    parseParameters(args);
-
     // if the benchmark execute multiple tasks
     if (mParameters.mWriteType.equals("ALL")) {
       List<String> writeTypes = ImmutableList.of("MUST_CACHE", "CACHE_THROUGH",

@@ -30,6 +30,7 @@ import com.beust.jcommander.ParametersDelegate;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import com.google.common.base.Preconditions;
 import org.HdrHistogram.Histogram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,6 +87,8 @@ public abstract class Benchmark<T extends TaskResult> {
 
   protected static void mainInternal(String[] args, Benchmark benchmark) {
     int exitCode = 0;
+    JCommander jc = new JCommander(benchmark);
+    benchmark.parseParameters(jc, args);
     try {
       String result = benchmark.run(args);
       System.out.println(result);
@@ -129,25 +132,32 @@ public abstract class Benchmark<T extends TaskResult> {
    * @return the string result output
    */
   public String run(String[] args) throws Exception {
-    parseParameters(args);
     return runSingleTask(args);
   }
 
-  protected void parseParameters(String[] args) {
-    JCommander jc = new JCommander(this);
-    jc.setProgramName(this.getClass().getSimpleName());
+  /**
+   * Parses arguments from command line.
+   * Exits the program on {@code --help} flag and invalid arguments.
+   *
+   * @param jc the {@link JCommander} object that has been configured with this benchmark
+   * @param args arguments from command line
+   */
+  protected void parseParameters(JCommander jc, String[] args) {
+    Preconditions.checkArgument(jc.getObjects().size() > 0, "JCommander parser is not configured");
+
+    jc.setProgramName(getClass().getSimpleName());
     try {
       jc.parse(args);
-      if (mBaseParameters.mHelp) {
-        System.out.println(getBenchDescription());
-        jc.usage();
-        System.exit(0);
-      }
     } catch (Exception e) {
       LOG.error("Failed to parse command: ", e);
       System.out.println(getBenchDescription());
       jc.usage();
-      throw e;
+      System.exit(-1);
+    }
+    if (mBaseParameters.mHelp) {
+      System.out.println(getBenchDescription());
+      jc.usage();
+      System.exit(0);
     }
   }
 
