@@ -32,6 +32,7 @@ import alluxio.stress.master.MasterBenchTaskResultStatistics;
 import alluxio.stress.master.Operation;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
+import alluxio.util.ShellUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
@@ -114,6 +115,17 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     ));
   }
 
+  protected String extractHostName(String mId) {
+    String hostName = "";
+    String[] splited_mid = mId.split("-");
+    hostName += splited_mid[0];
+    for (int i = 1; i < splited_mid.length-1; i++) {
+      hostName += "-";
+      hostName += splited_mid[i];
+    }
+    return hostName;
+  }
+
   @Override
   @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public void prepare() throws Exception {
@@ -138,9 +150,13 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       // the base path depends on the operation
       Path basePath;
       if (mParameters.mOperation == Operation.CREATE_DIR) {
-        basePath = new Path(path, "dirs");
-      } else {
-        basePath = new Path(path, "files");
+        basePath = new Path(path, mDirsDir);
+      } else if (mParameters.mOperation == Operation.CREATE_TREE || mParameters.mOperation == Operation.LOAD_METADATA) {
+        // tbh in CREATE_TREE and LOAD_METADATA basePath was not used
+        // here need extract host name from mId since worker ID in random number, need fixed hostname as path
+        basePath = new Path(path, extractHostName(mBaseParameters.mId));
+      }else {
+        basePath = new Path(path, mFilesDir);
       }
 
       if (mParameters.mOperation == Operation.CREATE_FILE
@@ -151,6 +167,8 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
         long end = CommonUtils.getCurrentMs();
         LOG.info("Cleanup took: {} s", (end - start) / 1000.0);
         prepareFs.mkdirs(basePath);
+      } else if (mParameters.mOperation == Operation.CREATE_TREE || mParameters.mOperation == Operation.LOAD_METADATA) {
+        // Do nothing
       } else {
         // these are read operations. the directory must exist
         if (!prepareFs.exists(basePath)) {
@@ -159,10 +177,12 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
                   mParameters.mOperation));
         }
       }
-      if (!prepareFs.getFileStatus(basePath).isDirectory()) {
-        throw new IllegalStateException(String
-            .format("base path (%s) must be a directory for operation (%s)", basePath,
-                mParameters.mOperation));
+      if (mParameters.mOperation != Operation.CREATE_TREE && mParameters.mOperation != Operation.LOAD_METADATA) {
+        if (!prepareFs.getFileStatus(basePath).isDirectory()) {
+          throw new IllegalStateException(String
+                  .format("base path (%s) must be a directory for operation (%s)", basePath,
+                          mParameters.mOperation));
+        }
       }
     }
 
@@ -353,6 +373,12 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       if (mParameters.mOperation == Operation.CREATE_DIR) {
         mBasePath =
             new Path(PathUtils.concatPath(mParameters.mBasePath, mDirsDir, mBaseParameters.mId));
+      } else if (mParameters.mOperation == Operation.CREATE_TREE || mParameters.mOperation == Operation.LOAD_METADATA) {
+        /*
+         mId is composed by worker hostname and workerId, and workerId is a random number change when master rebooted.
+         thus extract hostname as permanent path which can survive as master formated
+        */
+        mBasePath = new Path(PathUtils.concatPath(mParameters.mBasePath, extractHostName(mBaseParameters.mId)));
       } else {
         mBasePath =
             new Path(PathUtils.concatPath(mParameters.mBasePath, mFilesDir, mBaseParameters.mId));
@@ -434,6 +460,10 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     protected final Path mBasePath;
     protected final Path mFixedBasePath;
 
+    // vars for createTestTree
+    protected int[] mPathRecord;
+    protected int[] mTreeLevelQuant;
+    protected int mTreeTotalCount;
     private final MasterBenchTaskResult mResult = new MasterBenchTaskResult();
 
     private BenchThread(BenchContext context) {
@@ -442,6 +472,32 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
           StressConstants.TIME_HISTOGRAM_PRECISION);
       mBasePath = mContext.getBasePath();
       mFixedBasePath = mContext.getFixedBasePath();
+
+      // prepare createTree parameter
+      /* PathRecord[] can be used to generate file path
+       * it's length equals to mTreeDepth + 1 since the file(mTreeFiles) level
+       * was not included in the mTreeDepth
+       */
+      // mPathRecord = new int[mParameters.mTreeDepth + 1];
+      mPathRecord = new int[mParameters.mTreeDepth];
+      /*
+        mTreeLevelQuant record total file number for each level in the file tree
+       */
+      // mTreeLevelQuant = new int[mParameters.mTreeDepth + 1];
+      mTreeLevelQuant = new int[mParameters.mTreeDepth];
+
+      // init tree related var
+      // mTreeLevelQuant[mParameters.mTreeDepth] = mParameters.mTreeFiles;
+      mTreeLevelQuant[mParameters.mTreeDepth - 1] = mParameters.mTreeWidth;
+      for (int i = mTreeLevelQuant.length - 2; i >= 0; i--) {
+        mTreeLevelQuant[i] = mTreeLevelQuant[i+1] * mParameters.mTreeWidth;
+      }
+      // Total number of files in the tree, equals to thread count plus file number in single thread tree
+      mTreeTotalCount = mTreeLevelQuant[0] * mParameters.mTreeThreads;
+      // for (int i = 0; i < mParameters.mTreeDepth; i++) {
+      //   System.out.println(mTreeLevelQuant[i]);
+      //   System.out.println(mPathRecord[i]);
+      // }
     }
 
     @Override
@@ -485,14 +541,28 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       CommonUtils.sleepMs(waitMs);
 
       long localCounter;
+
       while (true) {
         if (Thread.currentThread().isInterrupted()) {
           break;
         }
-        if (!useStopCount && CommonUtils.getCurrentMs() >= mContext.getEndMs()) {
+        if (mParameters.mOperation != Operation.LOAD_METADATA && mParameters.mOperation != Operation.CREATE_TREE && !useStopCount && CommonUtils.getCurrentMs() >= mContext.getEndMs()) {
           break;
         }
         localCounter = mContext.getCounter().getAndIncrement();
+
+        // stop count for createTree operation
+        // for me one problem of stressMasterBench is one parameter has different function in different context, need better insulate
+        // thus here is trying to disable useStopCount and use generated mTreeCount instead
+        // if you use createTree mStopCount should be -1
+        if (mParameters.mOperation == Operation.CREATE_TREE && localCounter >= mTreeTotalCount) {
+          break;
+        }
+
+        if (mParameters.mOperation == Operation.LOAD_METADATA && localCounter >= mParameters.mThreads) {
+          break;
+        }
+
         if (useStopCount && localCounter >= mParameters.mStopCount) {
           break;
         }
@@ -513,6 +583,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
 
           // track max response time
           long[] maxResponseTimeNs = mResult.getStatistics().mMaxResponseTimeNs;
+          // if you use createTree StopCount should be -1
           int bucket =
               Math.min(maxResponseTimeNs.length - 1, (int) ((currentMs - recordMs) / bucketSize));
           if (responseTimeNs > maxResponseTimeNs[bucket]) {
@@ -617,6 +688,15 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
             throw new IOException(String.format("Failed to delete (%s)", path));
           }
           break;
+        case LOAD_METADATA:
+          // mFs.loadmetadata();
+          files = mFs.listStatus(mFixedBasePath);
+          if (files.length != mParameters.mFixedCount) {
+            throw new IOException(String
+                    .format("listing `%s` expected %d files but got %d files", mFixedBasePath,
+                            mParameters.mFixedCount, files.length));
+          }
+          break;
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
       }
@@ -625,7 +705,6 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
 
   private final class AlluxioNativeBenchThread extends BenchThread {
     private final alluxio.client.file.FileSystem mFs;
-
     private AlluxioNativeBenchThread(BenchContext context, alluxio.client.file.FileSystem fs) {
       super(context);
       mFs = fs;
@@ -705,6 +784,42 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
 
           mFs.delete(new AlluxioURI(path.toString()),
               DeletePOptions.newBuilder().setRecursive(false).build());
+          break;
+        case LOAD_METADATA:
+          // ShellUtils.execCommand("/bin/alluxio LoadMetadata");
+          mFs.loadMetadata(new AlluxioURI(mBasePath + "/" + counter), ListStatusPOptions.newBuilder()
+                  .setLoadMetadataType(LoadMetadataPType.ALWAYS)
+                  .setRecursive(true)
+                  .setLoadMetadataOnly(true).build());
+          // List<alluxio.client.file.URIStatus> files
+          //         = mFs.listStatus(new AlluxioURI(mFixedBasePath.toString()));
+          // if (files.size() != mParameters.mFixedCount) {
+          //   throw new IOException(String
+          //           .format("listing `%s` expected %d files but got %d files", mFixedBasePath,
+          //                   mParameters.mFixedCount, files.size()));
+          // }
+          break;
+        case CREATE_TREE:
+          String p = "";
+          // record value for following path
+          int redundent = (int)counter;
+          // the thread that file exist
+          // for (int i = 0; i < mParameters.mTreeDepth + 1; i++) {
+          for (int i = 0; i < mParameters.mTreeDepth; i++) {
+            mPathRecord[i] = redundent / mTreeLevelQuant[i];
+            redundent = redundent % mTreeLevelQuant[i];
+            p += "/";
+            p += mPathRecord[i];
+          }
+
+          // int mFileIndex = redundent % mParameters.mTreeFiles;
+          // here create tree
+          // System.out.println(mBasePath + p + "/" + redundent + ".txt");
+          // mFs.createFile(new AlluxioURI((mBasePath + p + "/" + redundent + ".txt").toString()), CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
+          for (int i = 0; i < mParameters.mTreeFiles; i++) {
+            // System.out.println(mBasePath + p + "/" + redundent + "/" + i + ".txt");
+            mFs.createFile(new AlluxioURI((mBasePath + p + "/" + redundent + "/" + i + ".txt").toString()), CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
+          }
           break;
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);

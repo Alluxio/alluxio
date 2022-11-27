@@ -3918,6 +3918,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     return sync.sync();
   }
 
+
   @Override
   public void update() {
     if (mReplicationCheckHeartbeatThread != null) {

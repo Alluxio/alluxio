@@ -37,6 +37,8 @@ public final class BaseParameters {
   public static final String AGENT_OUTPUT_PATH = "/tmp/stress_client.log";
   public static final String DEFAULT_TASK_ID = "local-task-0";
 
+  public static final String SIMPLE_ID = "--simple-id";
+
   // Public flags
   @Parameter(names = {CLUSTER_FLAG},
       description = "If true, runs the benchmark via the job service cluster. Otherwise, runs "

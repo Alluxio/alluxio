@@ -34,6 +34,14 @@ public final class MasterBenchParameters extends MasterBenchBaseParameters {
   public static final String CONF_OPTION_NAME = "--conf";
   public static final String SKIP_PREPARE_OPTION_NAME = "--skip-prepare";
 
+  public static final String TREE_THREADS = "--tree-threads";
+
+  public static final String TREE_DEPTH = "--tree-depth";
+
+  public static final String TREE_WIDTH = "--tree-width";
+
+  public static final String TREE_FILES = "--tree-files";
+
   @Parameter(names = {OPERATION_OPTION_NAME},
       description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
           + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
@@ -70,6 +78,22 @@ public final class MasterBenchParameters extends MasterBenchBaseParameters {
           + "directory with exactly 1000 paths. A task such as OpenFile will repeatedly read the "
           + "1000 files so that the task will not end before the desired duration time.")
   public int mFixedCount = 100;
+
+  @Parameter(names = {TREE_THREADS},
+          description = "The Tree Threads number")
+  public int mTreeThreads = 100;
+
+  @Parameter(names = {TREE_DEPTH},
+          description = "The Tree Depth number")
+  public int mTreeDepth = 100;
+
+  @Parameter(names = {TREE_WIDTH},
+          description = "The Tree Depth number")
+  public int mTreeWidth = 100;
+
+  @Parameter(names = {TREE_FILES},
+          description = "The Tree Depth number")
+  public int mTreeFiles = 100;
 
   @DynamicParameter(names = CONF_OPTION_NAME,
       description = "Any HDFS client configuration key=value. Can repeat to provide multiple "
