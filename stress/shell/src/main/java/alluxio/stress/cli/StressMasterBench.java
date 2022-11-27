@@ -14,14 +14,18 @@ package alluxio.stress.cli;
 import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.PMode;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
@@ -144,7 +148,8 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       }
 
       if (mParameters.mOperation == Operation.CREATE_FILE
-          || mParameters.mOperation == Operation.CREATE_DIR) {
+          || mParameters.mOperation == Operation.CREATE_DIR
+          || mParameters.mOperation == Operation.CRURD) {
         LOG.info("Cleaning base path: {}", basePath);
         long start = CommonUtils.getCurrentMs();
         deletePaths(prepareFs, basePath);
@@ -705,6 +710,39 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
 
           mFs.delete(new AlluxioURI(path.toString()),
               DeletePOptions.newBuilder().setRecursive(false).build());
+          break;
+        case CRURD:
+          if (counter < mParameters.mFixedCount) {
+            path = new Path(mFixedBasePath, Long.toString(counter));
+          } else {
+            path = new Path(mBasePath, Long.toString(counter));
+          }
+          PMode mode = PMode.newBuilder()
+              .setOwnerBits(Bits.READ_WRITE)
+              .setGroupBits(Bits.READ_WRITE)
+              .setGroupBits(Bits.READ_WRITE)
+              .setOtherBits(Bits.READ_WRITE).build();
+          mFs.createFile(new AlluxioURI(path.toString()),
+              CreateFilePOptions.newBuilder().setRecursive(true).setMode(mode).build()).close();
+          URIStatus us = mFs.getStatus(new AlluxioURI(path.toString()));
+          if (us.getMode() != 438) {
+            throw new IOException("file inconstancy");
+          }
+          mode = PMode.newBuilder()
+              .setOwnerBits(Bits.ALL)
+              .setGroupBits(Bits.ALL)
+              .setGroupBits(Bits.ALL)
+              .setOtherBits(Bits.ALL).build();
+          mFs.setAttribute(new AlluxioURI(path.toString()),
+              SetAttributePOptions.newBuilder().setMode(mode).build());
+          us = mFs.getStatus(new AlluxioURI(path.toString()));
+          if (us.getMode() != 511) {
+            throw new IOException("file inconstancy");
+          }
+          mFs.delete(new AlluxioURI(path.toString()));
+          if (mFs.exists(new AlluxioURI(path.toString()))) {
+            throw new IOException("file inconstancy");
+          }
           break;
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
