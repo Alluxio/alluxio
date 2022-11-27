@@ -26,6 +26,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -40,6 +41,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,6 +156,7 @@ public class AlluxioFileOutStream extends FileOutStream {
     if (mClosed) {
       return;
     }
+    boolean completed = false;
     try {
       if (mCurrentBlockOutStream != null) {
         mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
@@ -204,6 +207,7 @@ public class AlluxioFileOutStream extends FileOutStream {
         try (CloseableResource<FileSystemMasterClient> masterClient = mContext
             .acquireMasterClientResource()) {
           masterClient.get().completeFile(mUri, optionsBuilder.build());
+          completed = true;
         }
       }
     } catch (Throwable e) { // must catch Throwable
@@ -211,31 +215,69 @@ public class AlluxioFileOutStream extends FileOutStream {
     } finally {
       mClosed = true;
       mCloser.close();
+      if (!completed) {
+        try (CloseableResource<FileSystemMasterClient> masterClient = mContext
+            .acquireMasterClientResource()) {
+          masterClient.get().delete(mUri, DeletePOptions.getDefaultInstance());
+        } catch (Exception e) {
+          LOG.error("Error when trying to delete uncompleted file {}", mUri, e);
+        }
+      }
     }
+  }
+
+  /**
+   * On exception during write or flush the stream will be canceled and file will be deleted.
+   */
+  private void cancelAndRethrow(Throwable e) throws IOException {
+    Preconditions.checkNotNull(e);
+    try {
+      cancel();
+    } catch (Throwable ex) {
+      e.addSuppressed(ex);
+    }
+    Throwables.propagateIfPossible(e, IOException.class);
+    throw new RuntimeException(e);
   }
 
   @Override
   public void flush() throws IOException {
     // TODO(yupeng): Handle flush for Alluxio storage stream as well.
     if (mUnderStorageType.isSyncPersist()) {
-      mUnderStorageOutputStream.flush();
+      try {
+        mUnderStorageOutputStream.flush();
+      } catch (Throwable e) {
+        cancelAndRethrow(e);
+      }
     }
   }
 
   @Override
   public void write(int b) throws IOException {
-    writeInternal(b);
+    try {
+      writeInternal(b);
+    } catch (Throwable e) {
+      cancelAndRethrow(e);
+    }
   }
 
   @Override
   public void write(byte[] b) throws IOException {
-    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
-    writeInternal(b, 0, b.length);
+    try {
+      Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
+      writeInternal(b, 0, b.length);
+    } catch (Throwable e) {
+      cancelAndRethrow(e);
+    }
   }
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    writeInternal(b, off, len);
+    try {
+      writeInternal(b, off, len);
+    } catch (Throwable e) {
+      cancelAndRethrow(e);
+    }
   }
 
   private void writeInternal(int b) throws IOException {
