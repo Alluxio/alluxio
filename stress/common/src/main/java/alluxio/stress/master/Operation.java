@@ -29,6 +29,9 @@ public enum Operation {
 
   // Create dirs
   CREATE_DIR("CreateDir"), // create fixed-N, create more in extra
+
+  // Create K-Tree dirs
+  CREATE_K_ARY_TREE("CreateKAryTree")
   ;
 
   private final String mName;
