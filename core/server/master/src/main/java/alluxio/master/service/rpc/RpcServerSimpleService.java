@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.service;
+package alluxio.master.service.rpc;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -21,6 +21,7 @@ import alluxio.master.AlluxioExecutorService;
 import alluxio.master.MasterProcess;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
+import alluxio.master.service.SimpleService;
 import alluxio.network.RejectingServer;
 
 import io.grpc.Status;
