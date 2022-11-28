@@ -16,7 +16,6 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.resource.CloseableIterator;
 
-import com.esotericsoftware.minlog.Log;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.io.Closeable;
@@ -28,11 +27,9 @@ import java.util.Optional;
  * Read-only access to the inode store.
  */
 public interface KVReadOnlyInodeStore extends Closeable {
-  Optional<Inode> get(long pid, String name, ReadOption option)
-      throws InvalidProtocolBufferException;
+  Optional<Inode> get(long pid, String name, ReadOption option);
 
-  default Optional<Inode> get(long id, String name)
-      throws InvalidProtocolBufferException {
+  default Optional<Inode> get(long id, String name) {
     return get(id, name, ReadOption.defaults());
   }
 
@@ -44,8 +41,7 @@ public interface KVReadOnlyInodeStore extends Closeable {
    * @return an iterator of the children starting from fromName
    */
   default CloseableIterator<? extends Inode> getChildrenFrom(
-      final long parentId, final String fromName)
-      throws InvalidProtocolBufferException {
+      final long parentId, final String fromName) {
     return getChildren(parentId,
         ReadOption.newBuilder().setReadFrom(fromName).build());
   }
@@ -58,8 +54,7 @@ public interface KVReadOnlyInodeStore extends Closeable {
    * @return an iterator of the children starting from fromName
    */
   default CloseableIterator<? extends Inode> getChildrenPrefix(
-      final long parentId, final String prefix)
-      throws InvalidProtocolBufferException {
+      final long parentId, final String prefix) {
     return getChildren(parentId,
         ReadOption.newBuilder().setPrefix(prefix).build());
   }
@@ -73,8 +68,7 @@ public interface KVReadOnlyInodeStore extends Closeable {
    * @return an iterator of the children starting from fromName
    */
   default CloseableIterator<? extends Inode> getChildrenPrefixFrom(
-      final long parentId, final String prefix, final String fromName)
-      throws InvalidProtocolBufferException {
+      final long parentId, final String prefix, final String fromName)  {
     return getChildren(parentId,
         ReadOption.newBuilder().setPrefix(prefix).setReadFrom(fromName).build());
   }
@@ -114,11 +108,7 @@ public interface KVReadOnlyInodeStore extends Closeable {
       private Inode mNext = null;
       @Override
       public boolean hasNext() {
-        try {
-          advance();
-        } catch (InvalidProtocolBufferException e) {
-          Log.debug("Found exception {}",e);
-        }
+        advance();
         return mNext != null;
       }
 
@@ -133,7 +123,7 @@ public interface KVReadOnlyInodeStore extends Closeable {
         return next;
       }
 
-      void advance() throws InvalidProtocolBufferException {
+      void advance() {
         while (mNext == null && it.hasNext()) {
           Pair<Long, String> nextId = it.next();
           // Make sure the inode metadata still exists

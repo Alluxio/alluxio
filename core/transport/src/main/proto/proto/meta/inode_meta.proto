@@ -56,3 +56,31 @@ message Inode {
     // comparatively large amount of memory to other fields
     map<string, bytes> xAttr = 29;
 }
+
+message InodeCacheAttri {
+    optional int64 id = 1;
+    optional bool is_directory = 2;
+
+    optional int64 ttl = 3;
+    optional grpc.TtlAction ttl_action = 4;
+
+    optional string name = 5;
+    optional int64 parent_id = 6;
+    optional string persistence_state = 7;
+    optional bool is_pinned = 8;
+    optional string ufs_fingerprint = 9;
+    optional int64 last_modified_ms = 10;
+    optional int64 last_accessed_ms = 11;
+
+    // file only
+    optional bool is_cacheable = 12;
+    optional bool is_completed = 13;
+    optional int32 replication_durable = 14;
+    optional int32 replication_max = 15;
+    optional int32 replication_min = 16;
+    optional int64 should_persist_time = 17;
+
+    // Used for recovering in-progress file persist jobs on master start.
+    optional int64 persist_job_id = 18;
+    optional string persist_job_temp_ufs_path = 19;
+}

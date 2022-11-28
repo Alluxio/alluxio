@@ -504,11 +504,7 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
                 mBackingStore.removeChild(edge.getId(), edge.getName());
               }
             } else {
-              if (useBatch) {
-                batch.addChild(edge.getId(), edge.getName(), value);
-              } else {
-                mBackingStore.addChild(edge.getId(), edge.getName(), value);
-              }
+              // Edge is no longer added independently
             }
             entry.mDirty = false;
           }

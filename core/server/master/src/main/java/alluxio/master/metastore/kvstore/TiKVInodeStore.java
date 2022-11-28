@@ -29,7 +29,6 @@ import alluxio.proto.kvstore.KVEntryType;
 import alluxio.proto.kvstore.KVStoreTable;
 import alluxio.resource.CloseableIterator;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tikv.shade.com.google.protobuf.ByteString;
@@ -96,6 +95,7 @@ public class TiKVInodeStore implements KVInodeStore {
 
   @Override
   public void clear() {
+    LOG.info("clearing the whole inode store");
     FileEntryKey fileEntryKeyStart = FileEntryKey.newBuilder()
         .setTableType(KVStoreTable.FILE_ENTRY)
         .setParentID(0)
@@ -105,10 +105,15 @@ public class TiKVInodeStore implements KVInodeStore {
         .setParentID(Long.MAX_VALUE)
         .build();
     mKVStoreMetaInterface.deleteFileEntryRange(fileEntryKeyStart, fileEntryKeyEnd);
+    LOG.info("clear the whole inode store done!");
   }
 
   @Override
   public void addChild(long parentId, String childName, Long childId) {
+    LOG.info("addChild is called, will throw exception");
+    throw new NotSupportedException("KV store doesn't support add child");
+
+    /*
     FileEntryKey fileEntryKey = FileEntryKey.newBuilder()
         .setTableType(KVStoreTable.FILE_ENTRY)
         .setParentID(parentId)
@@ -122,6 +127,7 @@ public class TiKVInodeStore implements KVInodeStore {
     // mKVStoreMetaInterface.createFileEntry(fileEntryKey, fileEntryValue);
     // So far only update, the caller should make sure the key not existing
     mKVStoreMetaInterface.updateFileEntry(fileEntryKey, fileEntryValue);
+     */
   }
 
   @Override
@@ -263,11 +269,6 @@ public class TiKVInodeStore implements KVInodeStore {
     @Override
     public void writeInode(MutableInode<?> inode) {
       addToMap(inode, mBatchAdd);
-    }
-
-    @Override
-    public void addChild(Long parentId, String childName, Long childId) {
-      throw new NotSupportedException("Not supported");
     }
 
     @Override

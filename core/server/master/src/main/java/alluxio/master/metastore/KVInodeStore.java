@@ -71,17 +71,6 @@ public interface KVInodeStore extends KVReadOnlyInodeStore, Closeable {
   }
 
   /**
-   * Removes an inode and the edge leading to it from the inode store.
-   *
-   * This method requires an inode lock manager read or write locks on the removed inode and edge.
-   *
-   * @param inode an inode to remove
-   */
-  default void removeInodeAndParentEdge(InodeView inode) {
-    removeChild(inode.getParentId(), inode.getName());
-  }
-
-  /**
    * Adds the given inode, or overwrites it if it already exists.
    *
    * If it is known that the inode is new, prefer {@link #writeNewInode(MutableInode)}.
@@ -177,14 +166,6 @@ public interface KVInodeStore extends KVReadOnlyInodeStore, Closeable {
      * @param inode the inode to add
      */
     void writeInode(MutableInode<?> inode);
-
-    /**
-     * Adds an edge to the write batch.
-     *
-     * @param parentId the parent id
-     * @param childName the child name
-     */
-    void addChild(Long parentId, String childName, Long childId);
 
     /**
      * Adds an edge removal operation to the write batch.
