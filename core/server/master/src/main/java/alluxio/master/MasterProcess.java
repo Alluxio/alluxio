@@ -110,12 +110,16 @@ public abstract class MasterProcess implements Process {
   }
 
   /**
-   * @return a fully configured rpc server except for the executor option and the rpc services
+   * @return a fully configured rpc server except for the executor option (provided by the
+   * {@link #createRpcExecutorService()}) and the rpc services (provided by {@link #mRegistry}
    */
   public abstract GrpcServerBuilder createBaseRpcServer();
 
   /**
-   * @return a custom executor service if needed
+   * This method is decoupled from {@link #createBaseRpcServer()} because the
+   * {@link AlluxioExecutorService} needs to be managed (i.e. started and stopped) independently
+   * of the rpc server that uses it
+   * @return a custom executor service to be used in the rpc server
    */
   public Optional<AlluxioExecutorService> createRpcExecutorService() {
     return Optional.empty();
