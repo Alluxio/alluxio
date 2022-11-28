@@ -2847,43 +2847,11 @@ public class DefaultFileSystemMaster extends CoreMaster
           ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(dstInodePath.getUri()));
     }
 
-    // Make sure destination path does not exist
+    // Make sure destination path does not exist, or check if there's overwrite syntax involved
     if (dstInodePath.fullPathExists()) {
-      boolean failOnExist = true;
-      if (context.getOptions().hasS3SyntaxOptions()) {
-        // For object overwrite
-        String mpUploadIdDst = new String(dstInodePath.getInodeFile().getXAttr() != null ?
-                dstInodePath.getInodeFile().getXAttr().getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0])
-                : new byte[0]);
-        String mpUploadIdSrc = new String(srcInodePath.getInodeFile().getXAttr() != null ?
-                srcInodePath.getInodeFile().getXAttr().getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0])
-                : new byte[0]);
-        if (StringUtils.isNotEmpty(mpUploadIdSrc) && StringUtils.isNotEmpty(mpUploadIdDst)
-                && StringUtils.equals(mpUploadIdSrc, mpUploadIdDst)) {
-          LOG.info("Object with same upload exists, bail and claim success.");
-        /* This is a rename operation as part of complete a CompleteMultipartUpload call
-         and there's concurrent attempt on the same multipart upload succeeded */
-          return;
-        }
-        //we need to overwrite, delete existing destination path
-        if (context.getOptions().getS3SyntaxOptions().getOverwrite()) {
-          failOnExist = false;
-          LOG.info("Encountered S3 Overwrite syntax, "
-                  + "deleting existing file and then start renaming.");
-          try {
-            deleteInternal(rpcContext, dstInodePath, DeleteContext
-                    .mergeFrom(DeletePOptions.newBuilder()
-                            .setRecursive(true).setAlluxioOnly(context.getPersist())), true);
-            dstInodePath.removeLastInode();
-          } catch (DirectoryNotEmptyException ex) {
-            // IGNORE, this will never happen
-          }
-        }
-      }
-      if (failOnExist) {
-        throw new FileAlreadyExistsException(String
-                .format("Cannot rename because destination already exists. src: %s dst: %s",
-                        srcInodePath.getUri(), dstInodePath.getUri()));
+      boolean proceed = checkForOverwriteSyntax(rpcContext, srcInodePath, dstInodePath, context);
+      if (!proceed) {
+        return;
       }
     }
 
@@ -3051,6 +3019,56 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     Metrics.PATHS_RENAMED.inc();
+  }
+
+  /**
+   * If destination path exists, check if we are using rename for overwrite syntax.
+   * Such as objectstore client.
+   * If not, a FileAlreadyExistsException should be thrown,
+   * Else, return if the caller should proceed or not.
+   * @return should the caller proceed or not
+   */
+  private boolean checkForOverwriteSyntax(RpcContext rpcContext,
+                                          LockedInodePath srcInodePath,
+                                          LockedInodePath dstInodePath,
+                                          RenameContext context)
+          throws FileDoesNotExistException, FileAlreadyExistsException,
+          IOException, InvalidPathException {
+    if (context.getOptions().hasS3SyntaxOptions()) {
+      // For object overwrite
+      String mpUploadIdDst = new String(dstInodePath.getInodeFile().getXAttr() != null
+              ? dstInodePath.getInodeFile().getXAttr()
+              .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0])
+              : new byte[0]);
+      String mpUploadIdSrc = new String(srcInodePath.getInodeFile().getXAttr() != null
+              ? srcInodePath.getInodeFile().getXAttr()
+              .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0])
+              : new byte[0]);
+      if (StringUtils.isNotEmpty(mpUploadIdSrc) && StringUtils.isNotEmpty(mpUploadIdDst)
+              && StringUtils.equals(mpUploadIdSrc, mpUploadIdDst)) {
+        LOG.info("Object with same upload exists, bail and claim success.");
+        /* This is a rename operation as part of complete a CompleteMultipartUpload call
+         and there's concurrent attempt on the same multipart upload succeeded */
+        return false;
+      }
+      //we need to overwrite, delete existing destination path
+      if (context.getOptions().getS3SyntaxOptions().getOverwrite()) {
+        LOG.info("Encountered S3 Overwrite syntax, "
+                + "deleting existing file and then start renaming.");
+        try {
+          deleteInternal(rpcContext, dstInodePath, DeleteContext
+                  .mergeFrom(DeletePOptions.newBuilder()
+                          .setRecursive(true).setAlluxioOnly(context.getPersist())), true);
+          dstInodePath.removeLastInode();
+        } catch (DirectoryNotEmptyException ex) {
+          // IGNORE, this will never happen
+        }
+        return true;
+      }
+    }
+    throw new FileAlreadyExistsException(String
+            .format("Cannot rename because destination already exists. src: %s dst: %s",
+                    srcInodePath.getUri(), dstInodePath.getUri()));
   }
 
   /**

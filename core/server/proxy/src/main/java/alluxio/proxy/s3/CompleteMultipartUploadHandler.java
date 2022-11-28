@@ -208,7 +208,6 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     private final String mBody;
     private final boolean mMultipartCleanerEnabled = Configuration.getBoolean(
         PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED);
-    private AlluxioURI mMultipartTemporaryDir;
 
     /**
      * Creates a new instance of {@link CompleteMultipartUploadTask}.
@@ -438,7 +437,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     }
 
     /**
-     * On any exception, check with Master on if the there's a object file.
+     * On any exception, check with Master on if the there's an object file.
      * bearing the same upload id already got completed.
      * @param objectPath
      * @return the status of the existing object through CompleteMultipartUpload call
@@ -453,6 +452,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         }
       } catch (IOException | AlluxioException ex) {
         // can't validate if any previous attempt has succeeded
+        LOG.warn("Check for objectPath:{} failed:{}, unsure if the complete status.",
+                objectPath, ex.getMessage());
         return null;
       }
       return null;
