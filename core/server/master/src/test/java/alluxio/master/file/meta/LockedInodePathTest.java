@@ -23,7 +23,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.file.meta.InodeTreeInterface.LockPattern;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournalContext;
 
@@ -61,7 +61,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
   public void pathExistsReadLock() throws Exception {
     AlluxioURI uri = new AlluxioURI("/a/b/c");
     mPath =
-        new LockedInodePath(
+        new LockedInodePathV1(
             uri, mInodeStore, mInodeLockManager, mRootDir,
             LockPattern.READ, false, NoopJournalContext.INSTANCE
         );
@@ -652,7 +652,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
   private LockedInodePath create(
       String path, LockPattern lockPattern, JournalContext journalContext
   ) throws InvalidPathException {
-    LockedInodePath lockedPath = new LockedInodePath(new AlluxioURI(path), mInodeStore,
+    LockedInodePath lockedPath = new LockedInodePathV1(new AlluxioURI(path), mInodeStore,
         mInodeLockManager, mRootDir, lockPattern, false, journalContext);
     lockedPath.traverse();
     return lockedPath;

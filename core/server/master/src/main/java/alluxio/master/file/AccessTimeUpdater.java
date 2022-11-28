@@ -15,7 +15,8 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.Inode;
-import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.InodeKVTree;
+import alluxio.master.file.meta.InodeTreeInterface;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.sink.JournalSink;
@@ -50,7 +51,7 @@ final class AccessTimeUpdater implements JournalSink {
   private final long mShutdownTimeout;
 
   private final FileSystemMaster mFileSystemMaster;
-  private final InodeTree mInodeTree;
+  private final InodeTreeInterface mInodeTree;
 
   /** Keep track of all inodes that need access time update. */
   private final ConcurrentHashMap<Long, Long> mAccessTimeUpdates;
@@ -60,7 +61,7 @@ final class AccessTimeUpdater implements JournalSink {
   /**
    * Constructs a new {@link AccessTimeUpdater}.
    */
-  public AccessTimeUpdater(FileSystemMaster fileSystemMaster, InodeTree inodeTree,
+  public AccessTimeUpdater(FileSystemMaster fileSystemMaster, InodeTreeInterface inodeTree,
       JournalSystem journalSystem) {
     this(fileSystemMaster, inodeTree, journalSystem,
         Configuration.getMs(PropertyKey.MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL),
@@ -72,7 +73,7 @@ final class AccessTimeUpdater implements JournalSink {
    * Constructs a new {@link AccessTimeUpdater} with time configurations.
    */
   @VisibleForTesting
-  public AccessTimeUpdater(FileSystemMaster fileSystemMaster, InodeTree inodeTree,
+  public AccessTimeUpdater(FileSystemMaster fileSystemMaster, InodeTreeInterface inodeTree,
       JournalSystem journalSystem, long flushInterval, long updatePrecision, long shutdownTimeout) {
     mFileSystemMaster = fileSystemMaster;
     mInodeTree = inodeTree;
@@ -121,10 +122,14 @@ final class AccessTimeUpdater implements JournalSink {
     if (opTimeMs - inode.getLastAccessTimeMs() > mUpdatePrecision) {
       try (LockResource lr = mInodeTree.getInodeLockManager().lockUpdate(inode.getId())) {
         if (mExecutorService != null) {
-          // journal update asynchronously
-          UpdateInodeEntry entry = mInodeTree.updateInodeAccessTimeNoJournal(inode.getId(),
-              opTimeMs);
-          scheduleJournalUpdate(entry);
+          if (mInodeTree instanceof InodeKVTree) {
+            ((InodeKVTree)mInodeTree).updateInodeAccessTimeNoJournal(inode.getParentId(), inode.getName(), opTimeMs);
+          } else {
+            // journal update asynchronously
+            UpdateInodeEntry entry = mInodeTree.updateInodeAccessTimeNoJournal(inode.getId(),
+                opTimeMs);
+            scheduleJournalUpdate(entry);
+          }
         } else {
           mInodeTree.updateInode(context, UpdateInodeEntry.newBuilder()
                   .setId(inode.getId())

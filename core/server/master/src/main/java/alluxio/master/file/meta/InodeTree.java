@@ -85,7 +85,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 // TODO(jiri): Make this class thread-safe.
-public class InodeTree implements DelegatingJournaled {
+public class InodeTree implements InodeTreeInterface, DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(InodeTree.class);
   /** The base amount (exponential backoff) to sleep before retrying persisting an inode. */
   private static final int PERSIST_WAIT_BASE_SLEEP_MS = 2;
@@ -96,79 +96,6 @@ public class InodeTree implements DelegatingJournaled {
 
   /** Value to be used for an inode with no parent. */
   public static final long NO_PARENT = -1;
-
-  /**
-   * Patterns of inode path locking.
-   */
-  public enum LockPattern {
-    /**
-     * Read lock every existing inode and edge along the path. Useful when we want to read an inode
-     * without modifying anything.
-     *
-     * Examples
-     *
-     * path to lock: /a/b/c
-     * existing inodes: /a/b
-     * result: Read locks on [a, a->b, b]
-     *
-     * path to lock: /a/b/c
-     * existing inodes: /a/b/c
-     * result: Read locks on [a, a->b, b, b->c, c]
-     *
-     * path to lock: /a/b/c
-     * existing inodes: /a
-     * result: Read locks on [a]
-     */
-    READ,
-    /**
-     * Read lock every existing inode and edge along the path, but write lock the final inode if it
-     * exists. If the inode does not exist, read lock the edge leading out of the final existing
-     * ancestor. Useful when we want to modify an inode's metadata without changing the structure
-     * of the inode tree (no create/rename/delete).
-     *
-     * Examples
-     *
-     * path to lock: /a/b/c
-     * existing inodes: /a/b
-     * result: Read locks on [a, a->b, b, b->c]
-     *
-     * path to lock: /a/b/c
-     * existing inodes: /a/b/c
-     * result: Read locks on [a, a->b, b, b->c], Write locks on [c]
-     *
-     * path to lock: /a/b/c
-     * existing inodes: /a
-     * result: Read locks on [a, a->b]
-     */
-    WRITE_INODE,
-    /**
-     * Read lock every existing inode and edge along the path, but write lock the edge leading out
-     * of the last existing ancestor. Useful when we want to modify the structure of the inode tree,
-     * e.g. when creating, deleting, or renaming inodes.
-     *
-     * Examples
-     *
-     * path to lock: /a/b/c
-     * existing inodes: /a/b
-     * result: Read locks on [a, a->b, b], Write locks on [b->c]
-     *
-     * path to lock: /a/b/c
-     * existing inodes: /a/b/c
-     * result: Read locks on [a, a->b, b], Write locks on [b->c, c]
-     *
-     * path to lock: /a/b/c
-     * existing inodes: /a
-     * result: Read locks on [a], Write locks [a->b]
-     */
-    WRITE_EDGE;
-
-    /**
-     * @return whether the lock pattern is one of the write-type patterns
-     */
-    public boolean isWrite() {
-      return this == WRITE_INODE || this == WRITE_EDGE;
-    }
-  }
 
   /** Only the root inode should have the empty string as its name. */
   public static final String ROOT_INODE_NAME = "";
@@ -440,7 +367,7 @@ public class InodeTree implements DelegatingJournaled {
       AlluxioURI uri, LockPattern lockPattern, boolean tryLock, JournalContext journalContext)
       throws InvalidPathException {
     LockedInodePath inodePath =
-        new LockedInodePath(
+        new LockedInodePathV1(
             uri, mInodeStore, mInodeLockManager, getRoot(), lockPattern, tryLock, journalContext
         );
     try {
@@ -839,7 +766,7 @@ public class InodeTree implements DelegatingJournaled {
     }
     LOG.debug("createPath {}", path);
 
-    String[] pathComponents = inodePath.mPathComponents;
+    String[] pathComponents = ((LockedInodePathV1) inodePath).mPathComponents;
     String name = path.getName();
 
     // pathIndex is the index into pathComponents where we start filling in the path from the inode.

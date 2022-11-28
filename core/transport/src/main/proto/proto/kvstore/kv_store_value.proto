@@ -1,0 +1,58 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.proto.kvstore";
+
+package alluxio.proto.kvstore;
+
+enum KVStoreTable {
+  MOUNT = 1;
+  FILE_ENTRY = 2;
+  FILE_CACHE_STATUS = 3;
+  JOURNAL = 4;
+}
+
+enum PersistenceState {
+  NOT_PERSISTED = 1; // file not persisted in the under FS
+  TO_BE_PERSISTED = 2; // the file is to be persisted in the under FS
+  PERSISTED = 3; // the file is persisted in the under FS
+  LOST = 4; // the file is lost but not persisted in the under FS
+}
+
+enum KVEntryType {
+  FILE = 1;
+  DIRECTORY = 2;
+}
+
+message MountTableKey {
+  required KVStoreTable tableType = 1;
+  required int64 mountOrder = 2;
+}
+
+message MountEntryValue {
+  required string source = 1;
+  required string target = 2;
+}
+
+message FileEntryKey {
+  required KVStoreTable tableType = 1;
+  required int64 parentID = 2;
+  optional string name = 3;
+}
+
+message FileCacheStatusKey {
+  required KVStoreTable tableType = 1;
+  required int64 parentID = 2;
+  optional string name = 3;
+}
+
+message FileEntryValue {
+  required int64 mID = 1;
+  required KVEntryType mEntryType = 2;
+  optional bytes mEV = 3;
+}
+
+message FileCacheStatus {
+  optional int64 mTTL = 1;
+  optional PersistenceState persistenceState = 2;
+}

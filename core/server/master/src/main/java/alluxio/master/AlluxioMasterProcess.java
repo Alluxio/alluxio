@@ -352,6 +352,8 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   protected void takeEmergencyBackup() throws AlluxioException, InterruptedException,
       TimeoutException {
+    return;
+    /*
     LOG.warn("Emergency backup triggered");
     DefaultMetaMaster metaMaster = (DefaultMetaMaster) mRegistry.get(MetaMaster.class);
     BackupStatus backup = metaMaster.takeEmergencyBackup();
@@ -369,6 +371,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       }
       // no need for timeout on shutdown, we must wait until the backup is complete
     }, WaitForOptions.defaults().setInterval(requestIntervalMs).setTimeoutMs(Integer.MAX_VALUE));
+    */
   }
 
   /**

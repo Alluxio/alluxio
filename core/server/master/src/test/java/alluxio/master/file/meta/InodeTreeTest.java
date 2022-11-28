@@ -41,7 +41,7 @@ import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.CreatePathContext;
-import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.file.meta.InodeTreeInterface.LockPattern;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;

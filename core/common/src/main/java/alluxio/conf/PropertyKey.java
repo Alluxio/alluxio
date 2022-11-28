@@ -1854,6 +1854,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * Master related properties.
    */
+  public static final PropertyKey MASTER_KV_PERSIST =
+      booleanBuilder("master.kv.persist")
+          .setDefaultValue(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_ASYNC_PERSIST_SIZE_VALIDATION =
       booleanBuilder(Name.MASTER_ASYNC_PERSIST_SIZE_VALIDATION)
           .setDefaultValue(true)
@@ -2300,7 +2306,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE =
       enumBuilder(Name.MASTER_METASTORE, MetastoreType.class)
-          .setDefaultValue(MetastoreType.ROCKS)
+          .setDefaultValue(MetastoreType.KVSTORE)
           .setDescription("The type of metastore to use, either HEAP or ROCKS. The heap metastore "
               + "keeps all metadata on-heap, while the rocks metastore stores some metadata on "
               + "heap and some metadata on disk. The rocks metastore has the advantage of being "

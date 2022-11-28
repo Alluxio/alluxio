@@ -12,20 +12,30 @@
 package alluxio.master;
 
 import alluxio.Constants;
+import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeDirectoryView;
+import alluxio.master.file.meta.MutableInode;
 import alluxio.master.metastore.BlockMetaStore;
 import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.KVInodeStore;
 import alluxio.master.metastore.MetastoreType;
+import alluxio.master.metastore.ReadOption;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
+import alluxio.master.metastore.kvstore.TiKVInodeStore;
+import alluxio.master.metastore.kvstorecaching.KVCachingInodeStore;
 import alluxio.master.metastore.rocks.RocksBlockMetaStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
+import alluxio.resource.CloseableIterator;
 import alluxio.util.CommonUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 
 /**
@@ -68,6 +78,7 @@ public final class MasterUtils {
       case HEAP:
         return HeapBlockMetaStore::new;
       case ROCKS:
+      case KVSTORE:
         return () -> new RocksBlockMetaStore(baseDir);
       default:
         throw new IllegalStateException("Unknown metastore type: " + type);
@@ -90,6 +101,9 @@ public final class MasterUtils {
         } else {
           return lockManager -> new CachingInodeStore(new RocksInodeStore(baseDir), lockManager);
         }
+      case KVSTORE:
+        return lockManager -> new KVCachingInodeStore(new TiKVInodeStore(), lockManager);
+        // TODO(yyong) add the creation here
       default:
         throw new IllegalStateException("Unknown metastore type: " + type);
     }

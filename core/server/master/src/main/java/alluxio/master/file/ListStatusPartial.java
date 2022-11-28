@@ -18,7 +18,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.meta.Inode;
-import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.InodeTreeInterface;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.resource.CloseableIterator;
@@ -41,7 +41,7 @@ class ListStatusPartial {
    * @return the components of the path to the offset
    */
   static List<String> checkPartialListingOffset(
-      InodeTree inodeTree,  AlluxioURI path, ListStatusContext context)
+      InodeTreeInterface inodeTree,  AlluxioURI path, ListStatusContext context)
       throws FileDoesNotExistException, InvalidPathException {
     Optional<ListStatusPartialPOptions.Builder> pOptions = context.getPartialOptions();
     if (!pOptions.isPresent()) {

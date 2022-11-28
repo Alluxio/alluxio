@@ -29,7 +29,7 @@ import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.file.meta.InodeTreeInterface.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.journal.NoopJournalContext;

@@ -22,8 +22,8 @@ import alluxio.master.ProtobufUtils;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.meta.Inode;
-import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.file.meta.InodeTreeInterface.LockPattern;
+import alluxio.master.file.meta.InodeTreeInterface;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
@@ -45,13 +45,13 @@ final class InodeTtlChecker implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(InodeTtlChecker.class);
 
   private final FileSystemMaster mFileSystemMaster;
-  private final InodeTree mInodeTree;
+  private final InodeTreeInterface mInodeTree;
   private final TtlBucketList mTtlBuckets;
 
   /**
    * Constructs a new {@link InodeTtlChecker}.
    */
-  public InodeTtlChecker(FileSystemMaster fileSystemMaster, InodeTree inodeTree) {
+  public InodeTtlChecker(FileSystemMaster fileSystemMaster, InodeTreeInterface inodeTree) {
     mFileSystemMaster = fileSystemMaster;
     mInodeTree = inodeTree;
     mTtlBuckets = inodeTree.getTtlBuckets();

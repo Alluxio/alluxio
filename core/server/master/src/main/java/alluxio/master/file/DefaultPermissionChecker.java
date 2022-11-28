@@ -18,6 +18,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.InodeTreeInterface;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -38,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public class DefaultPermissionChecker implements PermissionChecker {
   /** The file system inode structure. */
-  private final InodeTree mInodeTree;
+  private final InodeTreeInterface mInodeTree;
 
   /** Whether the permission check is enabled. */
   private final boolean mPermissionCheckEnabled;
@@ -51,7 +52,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
    *
    * @param inodeTree inode tree of the file system master
    */
-  public DefaultPermissionChecker(InodeTree inodeTree) {
+  public DefaultPermissionChecker(InodeTreeInterface inodeTree) {
     mInodeTree = Preconditions.checkNotNull(inodeTree, "inodeTree");
     mPermissionCheckEnabled =
         Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);

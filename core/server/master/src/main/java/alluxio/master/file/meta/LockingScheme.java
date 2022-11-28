@@ -17,7 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.file.meta.InodeTreeInterface.LockPattern;
 
 import com.google.common.base.MoreObjects;
 

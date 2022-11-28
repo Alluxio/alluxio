@@ -102,7 +102,7 @@ import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.file.meta.InodeTreeInterface.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockedInodePathList;
 import alluxio.master.file.meta.LockingScheme;

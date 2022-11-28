@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
@@ -21,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
+
+import static alluxio.conf.PropertyKey.MASTER_KV_PERSIST;
 
 /**
  * Factory to create a {@link FileSystemMaster} instance.
@@ -48,6 +51,12 @@ public final class FileSystemMasterFactory implements MasterFactory<CoreMasterCo
   public FileSystemMaster create(MasterRegistry registry, CoreMasterContext context) {
     LOG.info("Creating {} ", FileSystemMaster.class.getName());
     BlockMaster blockMaster = registry.get(BlockMaster.class);
+    if (Configuration.global().getBoolean(MASTER_KV_PERSIST)) {
+      FileSystemMaster fileSystemMaster = new DefaultFileSystemKVMaster(blockMaster, context);
+      registry.add(FileSystemMaster.class, fileSystemMaster);
+      return fileSystemMaster;
+
+    }
     FileSystemMaster fileSystemMaster = new DefaultFileSystemMaster(blockMaster, context);
     registry.add(FileSystemMaster.class, fileSystemMaster);
     return fileSystemMaster;

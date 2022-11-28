@@ -372,6 +372,7 @@ message FileInfo {
   optional int64 lastAccessTimeMs = 31;
   map<string, bytes> xattr = 32;
   repeated string mediumType = 33;
+  optional int64 parentId = 34;
 }
 
 message GetFilePathPResponse {

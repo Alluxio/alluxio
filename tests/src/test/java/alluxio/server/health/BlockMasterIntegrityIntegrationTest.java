@@ -22,7 +22,7 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.file.meta.InodeTreeInterface.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;

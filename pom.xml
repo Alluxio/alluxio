@@ -180,6 +180,7 @@
     <module>microbench</module>
     <module>minicluster</module>
     <module>job</module>
+    <module>kvstore</module>
     <module>shaded</module>
     <module>shell</module>
     <module>stress</module>

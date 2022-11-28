@@ -107,6 +107,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
 
   @Override
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
+    LOG.debug("Create path:{}, options:{}", path, options);
     path = stripPath(path);
     if (options.getCreateParent()) {
       File parent = new File(path).getParentFile();
@@ -317,6 +318,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
 
   @Override
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
+    LOG.debug("mkdir path:{}, options:{}", path, options);
     path = stripPath(path);
     File file = new File(path);
     if (!options.getCreateParent()) {

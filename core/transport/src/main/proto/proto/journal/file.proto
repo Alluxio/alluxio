@@ -121,6 +121,8 @@ message UpdateInodeDirectoryEntry {
   optional bool mount_point = 2;
   optional bool direct_children_loaded = 3;
   optional alluxio.proto.shared.AccessControlList defaultAcl = 4;
+  optional int64 parent_id = 5;
+  optional string name = 6;
 }
 
 // next available id: 13
@@ -253,6 +255,8 @@ message SetAclEntry {
   optional PSetAclAction action = 3;
   repeated alluxio.proto.shared.AclEntry entries = 4;
   optional bool recursive = 5;
+  optional int64 parentId = 6;
+  optional string name = 7;
 }
 
 // next available id: 15
