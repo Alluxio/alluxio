@@ -17,8 +17,6 @@ import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NodeState;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.service.SimpleService;
-import alluxio.master.service.rpc.RpcServerSimpleService;
-import alluxio.master.service.web.WebServerSimpleService;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -71,8 +69,6 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
       LOG.error("Failed to create {} master", mMasterName, e);
       throw new RuntimeException(String.format("Failed to create %s master", mMasterName), e);
     }
-    mServices.add(WebServerSimpleService.Factory.create(mWebBindAddress, this));
-    mServices.add(RpcServerSimpleService.Factory.create(mRpcBindAddress, this, mRegistry));
   }
 
   @Override

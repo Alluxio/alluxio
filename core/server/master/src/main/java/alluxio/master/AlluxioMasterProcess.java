@@ -119,11 +119,6 @@ public class AlluxioMasterProcess extends MasterProcess {
     if (Configuration.getBoolean(PropertyKey.MASTER_THROTTLE_ENABLED)) {
       mRegistry.get(alluxio.master.throttle.DefaultThrottleMaster.class).setMaster(this);
     }
-    // add simple services
-    mServices.add(RpcServerSimpleService.Factory.create(mRpcBindAddress, this, mRegistry));
-    mServices.add(WebServerSimpleService.Factory.create(mWebBindAddress, this));
-    mServices.add(MetricsSimpleService.Factory.create());
-    mServices.add(JvmMonitorSimpleService.Factory.create());
     LOG.info("New process created.");
   }
 
@@ -450,7 +445,14 @@ public class AlluxioMasterProcess extends MasterProcess {
       } else {
         primarySelector = new UfsJournalSingleMasterPrimarySelector();
       }
-      return new AlluxioMasterProcess(journalSystem, primarySelector);
+      AlluxioMasterProcess amp = new AlluxioMasterProcess(journalSystem, primarySelector);
+      amp.registerSimpleService(
+          RpcServerSimpleService.Factory.create(amp.getRpcBindAddress(), amp, amp.getRegistry()));
+      amp.registerSimpleService(
+          WebServerSimpleService.Factory.create(amp.getWebBindAddress(), amp));
+      amp.registerSimpleService(MetricsSimpleService.Factory.create());
+      amp.registerSimpleService(JvmMonitorSimpleService.Factory.create());
+      return amp;
     }
 
     private Factory() {} // prevent instantiation
