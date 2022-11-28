@@ -44,6 +44,10 @@ public class RpcServerSimpleService implements SimpleService {
   protected final MasterProcess mMasterProcess;
   protected final MasterRegistry mMasterRegistry;
 
+  /**
+   * The grpc server and its executor service ({@link #mRpcExecutor}) need to be managed
+   * independently (i.e. stopping the grpc server will not automatically stop the rpc executor)
+   */
   @Nullable @GuardedBy("this")
   protected GrpcServer mGrpcServer = null;
   @Nullable @GuardedBy("this")
