@@ -22,7 +22,7 @@ public class GetWorkerReportOptionsTest {
    * Check whether WorkerInfoField class and WorkerInfoField in proto file has identical fields.
    */
   @Test
-  public void GetWorkerReportOptionsMapTest() {
+  public void identicalFieldsForWorkerInfoAndRange() {
     for (GetWorkerReportOptions.WorkerInfoField field :
             GetWorkerReportOptions.WorkerInfoField.values()) {
       Assert.assertEquals(field, GetWorkerReportOptions
