@@ -17,6 +17,7 @@ import alluxio.master.block.meta.MasterWorkerInfoLongHashSet;
 import alluxio.master.block.meta.MasterWorkerInfoUnifiedSet;
 import alluxio.wire.WorkerNetAddress;
 
+import org.apache.lucene.util.RamUsageEstimator;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -39,9 +40,9 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import java.util.concurrent.TimeUnit;
 
-@Fork(value = 5)
-@Warmup(iterations = 0)
-@Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
+// @Fork(value = 5)
+// @Warmup(iterations = 0)
+// @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
 public class MasterWorkerInfoBench {
 
 //     public class HashSetMasterWorkerInfo extends MasterWorkerInfo {
@@ -61,7 +62,7 @@ public class MasterWorkerInfoBench {
 
   @State(Scope.Benchmark)
   public static class AddBenchState {
-    @Param("0")
+    @Param({"100000", "500000", "1000000", "5000000", "10000000"})
     long mTest;
     public MasterWorkerInfo mMasterWorkerInfo;
 
@@ -82,7 +83,7 @@ public class MasterWorkerInfoBench {
 
   @State(Scope.Benchmark)
   public static class AddHashBenchState {
-    @Param("0")
+    @Param({"100000", "500000", "1000000", "5000000", "10000000"})
     long mTest;
     public MasterWorkerInfoHashSet mMasterWorkerInfo;
 
@@ -103,7 +104,7 @@ public class MasterWorkerInfoBench {
 
   @State(Scope.Benchmark)
   public static class AddUnifiedBenchState {
-    @Param("0")
+    @Param({"100000", "500000", "1000000", "5000000", "10000000"})
     long mTest;
     public MasterWorkerInfoUnifiedSet mMasterWorkerInfo;
 
@@ -124,7 +125,7 @@ public class MasterWorkerInfoBench {
 
   @State(Scope.Benchmark)
   public static class AddLongHashSetBenchState {
-    @Param("0")
+    @Param({"100000", "500000", "1000000", "5000000", "10000000"})
     long mTest;
     public MasterWorkerInfoLongHashSet mMasterWorkerInfo;
 
@@ -145,7 +146,7 @@ public class MasterWorkerInfoBench {
 
   @State(Scope.Benchmark)
   public static class RemoveBenchState {
-    @Param("1000000")
+    @Param({"100000", "500000", "1000000", "5000000", "10000000"})
     long mTest;
     public MasterWorkerInfo mMasterWorkerInfo;
 
@@ -169,7 +170,7 @@ public class MasterWorkerInfoBench {
 
   @State(Scope.Benchmark)
   public static class RemoveHashBenchState {
-    @Param("1000000")
+    @Param({"100000", "500000", "1000000", "5000000", "10000000"})
     long mTest;
     public MasterWorkerInfoHashSet mMasterWorkerInfo;
 
@@ -193,7 +194,7 @@ public class MasterWorkerInfoBench {
 
   @State(Scope.Benchmark)
   public static class RemoveUnifiedBenchState {
-    @Param("1000000")
+    @Param({"100000", "500000", "1000000", "5000000", "10000000"})
     long mTest;
     public MasterWorkerInfoUnifiedSet mMasterWorkerInfo;
 
@@ -217,7 +218,7 @@ public class MasterWorkerInfoBench {
 
   @State(Scope.Benchmark)
   public static class RemoveLongHashSetBenchState {
-    @Param("1000000")
+    @Param({"100000", "500000", "1000000", "5000000", "10000000"})
     long mTest;
     public MasterWorkerInfoLongHashSet mMasterWorkerInfo;
 
@@ -235,42 +236,77 @@ public class MasterWorkerInfoBench {
 
     @TearDown
     public void after() {
+      System.out.println("shallowSize: " + RamUsageEstimator.shallowSizeOf(mMasterWorkerInfo));
+      System.out.println("Object size" + RamUsageEstimator.sizeOfObject(mMasterWorkerInfo));
       mMasterWorkerInfo = null;
     }
   }
 
+  @Fork(value = 3)
+  @Warmup(iterations = 0)
+  @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
+  @BenchmarkMode(Mode.AverageTime)
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Benchmark
   public long LongOpenHashSetAddBlockTest(AddBenchState bs) {
     // System.out.println("hello world");
-    bs.mMasterWorkerInfo.addBlock(bs.mCounter);
-    bs.mCounter += 1;
+    long i = bs.mTest;
+    for (; i > 0; i--) {
+      bs.mMasterWorkerInfo.addBlock(bs.mCounter);
+      bs.mCounter += 1;
+    }
     return bs.mCounter;
   }
 
+  @Fork(value = 3)
+  @Warmup(iterations = 0)
+  @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
+  @BenchmarkMode(Mode.AverageTime)
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Benchmark
   public long LongOpenHashSetAddBlockHashTest(AddHashBenchState bs) {
-    // System.out.println("hello world");
-    bs.mMasterWorkerInfo.addBlock(bs.mCounter);
-    bs.mCounter += 1;
+    long i = bs.mTest;
+    for (; i > 0; i--) {
+      bs.mMasterWorkerInfo.addBlock(bs.mCounter);
+      bs.mCounter += 1;
+    }
     return bs.mCounter;
   }
 
+  @Fork(value = 3)
+  @Warmup(iterations = 0)
+  @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
+  @BenchmarkMode(Mode.AverageTime)
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Benchmark
   public long LongOpenUnifiedSetAddBlockHashTest(AddUnifiedBenchState bs) {
-    // System.out.println("hello world");
-    bs.mMasterWorkerInfo.addBlock(bs.mCounter);
-    bs.mCounter += 1;
+    long i = bs.mTest;
+    for (; i > 0; i--) {
+      bs.mMasterWorkerInfo.addBlock(bs.mCounter);
+      bs.mCounter += 1;
+    }
     return bs.mCounter;
   }
 
+  @Fork(value = 3)
+  @Warmup(iterations = 0)
+  @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
+  @BenchmarkMode(Mode.AverageTime)
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Benchmark
   public long LongHashSetAddBlockTest(AddLongHashSetBenchState bs) {
     // System.out.println("hello world");
-    bs.mMasterWorkerInfo.addBlock(bs.mCounter);
-    bs.mCounter += 1;
+    long i = bs.mTest;
+    for (; i > 0; i--) {
+      bs.mMasterWorkerInfo.addBlock(bs.mCounter);
+      bs.mCounter += 1;
+    }
     return bs.mCounter;
   }
 
+  @Fork(value = 3)
+  @Warmup(iterations = 0)
+  @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
   @Benchmark
   public long LongOpenHashSetAddBlockZeroTest(AddBenchState bs) {
     // System.out.println("hello world");
@@ -279,6 +315,9 @@ public class MasterWorkerInfoBench {
     return bs.mCounter;
   }
 
+  @Fork(value = 3)
+  @Warmup(iterations = 0)
+  @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
   @BenchmarkMode(Mode.AverageTime)
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Benchmark
@@ -290,6 +329,9 @@ public class MasterWorkerInfoBench {
     return i;
   }
 
+  @Fork(value = 3)
+  @Warmup(iterations = 0)
+  @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
   @BenchmarkMode(Mode.AverageTime)
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Benchmark
@@ -301,6 +343,9 @@ public class MasterWorkerInfoBench {
     return i;
   }
 
+  @Fork(value = 3)
+  @Warmup(iterations = 0)
+  @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
   @BenchmarkMode(Mode.AverageTime)
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Benchmark
@@ -312,6 +357,9 @@ public class MasterWorkerInfoBench {
     return i;
   }
 
+  @Fork(value = 3)
+  @Warmup(iterations = 0)
+  @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
   @BenchmarkMode(Mode.AverageTime)
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Benchmark
@@ -323,6 +371,9 @@ public class MasterWorkerInfoBench {
     return i;
   }
 
+  @Fork(value = 3)
+  @Warmup(iterations = 0)
+  @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
   @BenchmarkMode(Mode.AverageTime)
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Benchmark
@@ -335,6 +386,9 @@ public class MasterWorkerInfoBench {
     return t;
   }
 
+  @Fork(value = 3)
+  @Warmup(iterations = 0)
+  @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
   @BenchmarkMode(Mode.AverageTime)
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Benchmark
@@ -347,6 +401,9 @@ public class MasterWorkerInfoBench {
     return t;
   }
 
+  @Fork(value = 3)
+  @Warmup(iterations = 0)
+  @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
   @BenchmarkMode(Mode.AverageTime)
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Benchmark
@@ -359,6 +416,9 @@ public class MasterWorkerInfoBench {
     return t;
   }
 
+  @Fork(value = 3)
+  @Warmup(iterations = 0)
+  @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
   @BenchmarkMode(Mode.AverageTime)
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Benchmark

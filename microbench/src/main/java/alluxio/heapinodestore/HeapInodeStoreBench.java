@@ -16,6 +16,7 @@ import alluxio.master.metastore.ReadOption;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.heap.HeapInodeStoreEclipseHashMap;
 
+import org.apache.lucene.util.RamUsageEstimator;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -36,6 +37,7 @@ import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Fork(value = 3)
@@ -59,12 +61,18 @@ public class HeapInodeStoreBench {
 
     @TearDown
     public void after() {
+      System.out.println("");
+      System.out.println("ShallowSize: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore));
+      System.out.println("Object size: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore));
+      System.out.print("Throughput: ");
       mHeapInodeStore = null;
     }
   }
 
   @State(Scope.Benchmark)
   public static class HeapInodeStoreWriteState {
+    @Param("1000000")
+    public long mTest;
     public long mCounter = 0;
     public HeapInodeStore mHeapInodeStore;
 
@@ -75,6 +83,10 @@ public class HeapInodeStoreBench {
 
     @TearDown
     public void after() {
+      System.out.println("");
+      System.out.println("ShallowSize: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore));
+      System.out.println("Object size: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore));
+      System.out.print("Throughput: ");
       mHeapInodeStore = null;
     }
   }
@@ -97,6 +109,10 @@ public class HeapInodeStoreBench {
 
     @TearDown
     public void after() {
+      System.out.println("");
+      System.out.println("ShallowSize: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore));
+      System.out.println("Object size: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore));
+      System.out.print("Throughput: ");
       mHeapInodeStore = null;
     }
   }
@@ -118,6 +134,10 @@ public class HeapInodeStoreBench {
 
     @TearDown
     public void after() {
+      System.out.println("");
+      System.out.println("ShallowSize: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore));
+      System.out.println("Object size: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore));
+      System.out.print("Throughput: ");
       mHeapInodeStore = null;
     }
   }
@@ -153,7 +173,7 @@ public class HeapInodeStoreBench {
 
   @Benchmark
   public void HeapInodeStoreAllBench(HeapInodeStoreAllState hb) {
-    hb.mHeapInodeStore.allInodes();
+    Set tmp = hb.mHeapInodeStore.allInodes();
   }
 
   @State(Scope.Benchmark)
@@ -173,22 +193,33 @@ public class HeapInodeStoreBench {
 
     @TearDown
     public void after() {
+      System.out.println("");
+      System.out.println("ShallowSize: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore));
+      System.out.println("Object size: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore));
+      System.out.print("Throughput: ");
       mHeapInodeStore = null;
     }
   }
 
   @State(Scope.Benchmark)
   public static class HeapInodeStoreEclipseWriteState {
+    @Param("1000000")
+    public long mTest;
     public long mCounter = 0;
     public HeapInodeStoreEclipseHashMap mHeapInodeStore;
 
     @Setup
     public void before() {
+      mHeapInodeStore = null;
       mHeapInodeStore = new HeapInodeStoreEclipseHashMap();
     }
 
     @TearDown
     public void after() {
+      System.out.println("");
+      System.out.println("ShallowSize: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore));
+      System.out.println("Object size: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore));
+      System.out.print("Throughput: ");
       mHeapInodeStore = null;
     }
   }
@@ -211,6 +242,10 @@ public class HeapInodeStoreBench {
 
     @TearDown
     public void after() {
+      System.out.println("");
+      System.out.println("ShallowSize: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore));
+      System.out.println("Object size: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore));
+      System.out.print("Throughput: ");
       mHeapInodeStore = null;
     }
   }
@@ -232,6 +267,10 @@ public class HeapInodeStoreBench {
 
     @TearDown
     public void after() {
+      System.out.println("");
+      System.out.println("ShallowSize: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore));
+      System.out.println("Object size: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore));
+      System.out.print("Throughput: ");
       mHeapInodeStore = null;
     }
   }
@@ -267,7 +306,7 @@ public class HeapInodeStoreBench {
 
   @Benchmark
   public void HeapInodeStoreEclipseAllBench(HeapInodeStoreEclipseAllState hb) {
-    hb.mHeapInodeStore.allInodes();
+    Set tmp = hb.mHeapInodeStore.allInodes();
   }
 
   public static void main(String[] args) throws RunnerException, CommandLineOptionException {
