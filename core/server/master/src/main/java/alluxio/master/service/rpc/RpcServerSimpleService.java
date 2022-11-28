@@ -40,18 +40,18 @@ import javax.annotation.concurrent.GuardedBy;
 public class RpcServerSimpleService implements SimpleService {
   private static final Logger LOG = LoggerFactory.getLogger(RpcServerSimpleService.class);
 
-  private final InetSocketAddress mBindAddress;
-  private final MasterProcess mMasterProcess;
-  private final MasterRegistry mMasterRegistry;
+  protected final InetSocketAddress mBindAddress;
+  protected final MasterProcess mMasterProcess;
+  protected final MasterRegistry mMasterRegistry;
 
   @Nullable @GuardedBy("this")
-  private GrpcServer mGrpcServer = null;
+  protected GrpcServer mGrpcServer = null;
   @Nullable @GuardedBy("this")
-  private AlluxioExecutorService mRpcExecutor = null;
+  protected AlluxioExecutorService mRpcExecutor = null;
   @Nullable @GuardedBy("this")
-  private RejectingServer mRejectingGrpcServer = null;
+  protected RejectingServer mRejectingGrpcServer = null;
 
-  private RpcServerSimpleService(InetSocketAddress bindAddress, MasterProcess masterProcess,
+  protected RpcServerSimpleService(InetSocketAddress bindAddress, MasterProcess masterProcess,
       MasterRegistry masterRegistry) {
     mBindAddress = bindAddress;
     mMasterRegistry = masterRegistry;
