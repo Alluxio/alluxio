@@ -186,7 +186,8 @@ public class PollingMasterInquireClient implements MasterInquireClient {
                 TimeUnit.MILLISECONDS);
     ServiceType serviceType = mServiceType;
     if (serviceType == null) {
-      List<InetSocketAddress> addresses = ConfigurationUtils.getJobMasterRpcAddresses(mConfiguration);
+      List<InetSocketAddress> addresses =
+          ConfigurationUtils.getJobMasterRpcAddresses(mConfiguration);
       serviceType = addresses.contains(address)
           ? ServiceType.JOB_MASTER_CLIENT_SERVICE : ServiceType.META_MASTER_CLIENT_SERVICE;
     }
