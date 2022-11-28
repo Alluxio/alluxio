@@ -66,8 +66,7 @@ public class RpcServerSimpleService implements SimpleService {
 
   @Override
   public synchronized void start() {
-    mRejectingGrpcServer = new RejectingServer(mBindAddress);
-    mRejectingGrpcServer.start();
+    startRejectingServer();
   }
 
   @Override
@@ -98,7 +97,7 @@ public class RpcServerSimpleService implements SimpleService {
   public synchronized void demote() {
     stopGrpcServer();
     stopRpcExecutor();
-    start(); // start rejecting server again
+    startRejectingServer();
   }
 
   @Override
@@ -108,14 +107,14 @@ public class RpcServerSimpleService implements SimpleService {
     stopRpcExecutor();
   }
 
-  private void stopGrpcServer() {
+  protected void stopGrpcServer() {
     if (mGrpcServer != null) {
       mGrpcServer.shutdown();
       mGrpcServer.awaitTermination();
     }
   }
 
-  private void stopRpcExecutor() {
+  protected void stopRpcExecutor() {
     if (mRpcExecutor != null) {
       mRpcExecutor.shutdown();
       try {
@@ -128,7 +127,12 @@ public class RpcServerSimpleService implements SimpleService {
     }
   }
 
-  private void stopRejectingServer() {
+  protected void startRejectingServer() {
+    mRejectingGrpcServer = new RejectingServer(mBindAddress);
+    mRejectingGrpcServer.start();
+  }
+
+  protected void stopRejectingServer() {
     if (mRejectingGrpcServer != null) {
       mRejectingGrpcServer.stopAndJoin();
       mRejectingGrpcServer = null;

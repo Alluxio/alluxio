@@ -82,7 +82,6 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
     // the leader selector is created in state STANDBY. Once mLeaderSelector.start is called, it
     // can transition to PRIMARY at any point.
     mLeaderSelector.start(getRpcAddress());
-    startMasters(false);
 
     while (!Thread.interrupted()) {
       // We are in standby mode. Nothing to do until we become the primary.
