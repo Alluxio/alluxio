@@ -23,6 +23,9 @@ import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
+import alluxio.master.service.metrics.MetricsSimpleService;
+import alluxio.master.service.rpc.RpcServerSimpleService;
+import alluxio.master.service.web.WebServerSimpleService;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
@@ -112,6 +115,12 @@ public final class AlluxioMasterProcessTest {
   public void startStopPrimary() throws Exception {
     AlluxioMasterProcess master = new AlluxioMasterProcess(new NoopJournalSystem(),
         new UfsJournalSingleMasterPrimarySelector());
+    master.registerSimpleService(
+        RpcServerSimpleService.Factory.create(master.getRpcBindAddress(), master,
+            master.getRegistry()));
+    master.registerSimpleService(
+        WebServerSimpleService.Factory.create(master.getWebBindAddress(), master));
+    master.registerSimpleService(MetricsSimpleService.Factory.create());
     Thread t = new Thread(() -> {
       try {
         master.start();
@@ -127,6 +136,12 @@ public final class AlluxioMasterProcessTest {
   public void startStopStandby() throws Exception {
     AlluxioMasterProcess master = new AlluxioMasterProcess(
         new NoopJournalSystem(), new AlwaysStandbyPrimarySelector());
+    master.registerSimpleService(
+        RpcServerSimpleService.Factory.create(master.getRpcBindAddress(), master,
+            master.getRegistry()));
+    master.registerSimpleService(
+        WebServerSimpleService.Factory.create(master.getWebBindAddress(), master));
+    master.registerSimpleService(MetricsSimpleService.Factory.create());
     Thread t = new Thread(() -> {
       try {
         master.start();
@@ -176,6 +191,11 @@ public final class AlluxioMasterProcessTest {
     Configuration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, true);
     AlluxioMasterProcess master = new AlluxioMasterProcess(
         new NoopJournalSystem(), primarySelector);
+    master.registerSimpleService(
+        RpcServerSimpleService.Factory.create(master.getRpcBindAddress(), master,
+            master.getRegistry()));
+    master.registerSimpleService(
+        WebServerSimpleService.Factory.create(master.getWebBindAddress(), master));
     Thread t = new Thread(() -> {
       try {
         master.start();
@@ -227,6 +247,12 @@ public final class AlluxioMasterProcessTest {
     AlluxioMasterProcess master = new AlluxioMasterProcess(
         new RaftJournalSystem(JournalUtils.getJournalLocation(), ServiceType.MASTER_RAFT),
         new UfsJournalSingleMasterPrimarySelector());
+    master.registerSimpleService(
+        RpcServerSimpleService.Factory.create(master.getRpcBindAddress(), master,
+            master.getRegistry()));
+    master.registerSimpleService(
+        WebServerSimpleService.Factory.create(master.getWebBindAddress(), master));
+    master.registerSimpleService(MetricsSimpleService.Factory.create());
     Thread t = new Thread(() -> {
       try {
         master.start();

@@ -69,7 +69,8 @@ public abstract class MasterProcess implements Process {
 
   /** The start time for when the master started. */
   final long mStartTimeMs;
-
+  // holds the simple services registered with the master, should only be accessed through
+  // #registerSimpleService
   Set<SimpleService> mServices = new HashSet<>();
 
   /**
@@ -110,6 +111,16 @@ public abstract class MasterProcess implements Process {
   }
 
   /**
+   * Use in master factory after instantiating the master process and before starting the master
+   * process. This allows you to define with services are necessary for the operation of the
+   * master process.
+   * @param service a service to register for the functioning of the master process
+   */
+  public void registerSimpleService(SimpleService service) {
+    mServices.add(service);
+  }
+
+  /**
    * @return a fully configured rpc server except for the executor option (provided by the
    * {@link #createRpcExecutorService()}) and the rpc services (provided by {@link #mRegistry}
    */
@@ -133,7 +144,14 @@ public abstract class MasterProcess implements Process {
   }
 
   /**
-   * @return this master's rpc address
+   * @return this master's rpc bind address
+   */
+  public final InetSocketAddress getRpcBindAddress() {
+    return mRpcBindAddress;
+  }
+
+  /**
+   * @return this master's rpc connect address
    */
   public final InetSocketAddress getRpcAddress() {
     return mRpcConnectAddress;
@@ -146,6 +164,14 @@ public abstract class MasterProcess implements Process {
    */
   public final <T extends Master> T getMaster(Class<T> clazz) {
     return mRegistry.get(clazz);
+  }
+
+  /**
+   * Use only to instantiate {@link SimpleService}s.
+   * @return the master registry
+   */
+  public final MasterRegistry getRegistry() {
+    return mRegistry;
   }
 
   /**
@@ -168,7 +194,14 @@ public abstract class MasterProcess implements Process {
   public abstract WebServer createWebServer();
 
   /**
-   * @return the master's web address
+   * @return the master's web bind address
+   */
+  public final InetSocketAddress getWebBindAddress() {
+    return mWebBindAddress;
+  }
+
+  /**
+   * @return the master's web connect address
    */
   public final InetSocketAddress getWebAddress() {
     return mWebConnectAddress;
