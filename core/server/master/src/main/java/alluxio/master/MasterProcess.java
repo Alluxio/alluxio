@@ -16,8 +16,6 @@ import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.Process;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.service.RpcServerSimpleService;
@@ -40,7 +38,6 @@ import java.net.ServerSocket;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
@@ -111,24 +108,7 @@ public abstract class MasterProcess implements Process {
   /**
    * @return a fully configured rpc server except for the executor option and the rpc services
    */
-  public GrpcServerBuilder createBaseRpcServer() {
-    return GrpcServerBuilder
-        .forAddress(GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
-            Configuration.global())
-        .flowControlWindow(
-            (int) Configuration.getBytes(PropertyKey.MASTER_NETWORK_FLOWCONTROL_WINDOW))
-        .keepAliveTime(
-            Configuration.getMs(PropertyKey.MASTER_NETWORK_KEEPALIVE_TIME_MS),
-            TimeUnit.MILLISECONDS)
-        .keepAliveTimeout(
-            Configuration.getMs(PropertyKey.MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS),
-            TimeUnit.MILLISECONDS)
-        .permitKeepAlive(
-            Configuration.getMs(PropertyKey.MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS),
-            TimeUnit.MILLISECONDS)
-        .maxInboundMessageSize((int) Configuration.getBytes(
-            PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
-  }
+  public abstract GrpcServerBuilder createBaseRpcServer();
 
   /**
    * @return a custom executor service if needed

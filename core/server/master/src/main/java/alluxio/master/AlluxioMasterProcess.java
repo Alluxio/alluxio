@@ -21,6 +21,8 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.grpc.BackupStatusPRequest;
+import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.NodeState;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalSystem;
@@ -59,6 +61,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -127,6 +130,26 @@ public class AlluxioMasterProcess extends MasterProcess {
   @Override
   public WebServer createWebServer() {
     return new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(), mWebBindAddress, this);
+  }
+
+  @Override
+  public GrpcServerBuilder createBaseRpcServer() {
+    return GrpcServerBuilder
+        .forAddress(GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
+            Configuration.global())
+        .flowControlWindow(
+            (int) Configuration.getBytes(PropertyKey.MASTER_NETWORK_FLOWCONTROL_WINDOW))
+        .keepAliveTime(
+            Configuration.getMs(PropertyKey.MASTER_NETWORK_KEEPALIVE_TIME_MS),
+            TimeUnit.MILLISECONDS)
+        .keepAliveTimeout(
+            Configuration.getMs(PropertyKey.MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS),
+            TimeUnit.MILLISECONDS)
+        .permitKeepAlive(
+            Configuration.getMs(PropertyKey.MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS),
+            TimeUnit.MILLISECONDS)
+        .maxInboundMessageSize((int) Configuration.getBytes(
+            PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
   }
 
   @Override
@@ -374,9 +397,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       LOG.info("Closing all masters.");
       mRegistry.close();
       LOG.info("Closed all masters.");
-      if (mLeaderSelector != null) {
-        mLeaderSelector.stop();
-      }
+      mLeaderSelector.stop();
       mIsStopped.set(true);
       LOG.info("Stopped.");
     }
