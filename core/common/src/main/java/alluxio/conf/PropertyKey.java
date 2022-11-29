@@ -1865,7 +1865,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_AUDIT_LOGGING_ENABLED =
       booleanBuilder(Name.MASTER_AUDIT_LOGGING_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Set to true to enable file system master audit.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)

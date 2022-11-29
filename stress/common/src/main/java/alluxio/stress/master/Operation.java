@@ -26,10 +26,12 @@ public enum Operation {
   // Dependent on CreateFile
   RENAME_FILE("RenameFile"), // rename fixed-N, then rename in extra, need plenty of extra
   DELETE_FILE("DeleteFile"), // delete fixed-N, then delete from extra, need plenty of extra
+  SET_ATTRIBUTE("SetAttribute"), // update the attribute for a file
+  CRURD("CRURD"), // create -> read -> update -> read -> delete a file
+  CREATE_DELETE_FILE("CreateDeleteFile"), // create and delete a file
 
   // Create dirs
-  CREATE_DIR("CreateDir"), // create fixed-N, create more in extra
-  ;
+  CREATE_DIR("CreateDir"); // create fixed-N, create more in extra
 
   private final String mName;
 
