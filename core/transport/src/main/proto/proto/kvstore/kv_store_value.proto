@@ -53,6 +53,5 @@ message FileEntryValue {
 }
 
 message FileCacheStatus {
-  optional int64 mTTL = 1;
-  optional PersistenceState persistenceState = 2;
+  optional bytes mCacheValue = 1;
 }

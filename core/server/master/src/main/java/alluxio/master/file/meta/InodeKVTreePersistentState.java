@@ -11,7 +11,10 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.collections.Pair;
+import static alluxio.conf.PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED;
+import static alluxio.conf.PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE;
+import static alluxio.conf.PropertyKey.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS;
+
 import alluxio.conf.Configuration;
 import alluxio.grpc.SetAclAction;
 import alluxio.master.file.RpcContext;
@@ -24,10 +27,8 @@ import alluxio.proto.journal.File.DeleteFileEntry;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.File.InodeLastModificationTimeEntry;
-import alluxio.proto.journal.File.NewBlockEntry;
 import alluxio.proto.journal.File.PersistDirectoryEntry;
 import alluxio.proto.journal.File.RenameEntry;
-import alluxio.proto.journal.File.SetAclEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
 import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry;
@@ -40,9 +41,8 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.BucketCounter;
 import alluxio.util.FormatUtils;
-import alluxio.util.StreamUtils;
-import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.OperationId;
+
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -62,10 +62,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static alluxio.conf.PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED;
-import static alluxio.conf.PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE;
-import static alluxio.conf.PropertyKey.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS;
-
 /**
  * Class for managing persistent inode tree state.
  *
@@ -76,7 +72,7 @@ import static alluxio.conf.PropertyKey.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUC
 public class InodeKVTreePersistentState {
   private static final Logger LOG = LoggerFactory.getLogger(InodeKVTreePersistentState.class);
 
-  private final InodeStore mInodeStore;
+  private final KVCachingInodeStore mInodeStore;
   private final InodeLockManager mInodeLockManager;
 
   private final boolean mRetryCacheEnabled;
@@ -121,7 +117,7 @@ public class InodeKVTreePersistentState {
    */
   public InodeKVTreePersistentState(InodeStore inodeStore, InodeLockManager lockManager,
       TtlBucketList ttlBucketList) {
-    mInodeStore = inodeStore;
+    mInodeStore = (KVCachingInodeStore)inodeStore;
     mInodeLockManager = lockManager;
     mTtlBuckets = ttlBucketList;
     mBucketCounter = new BucketCounter(
@@ -165,7 +161,7 @@ public class InodeKVTreePersistentState {
    * @return the root of the inode tree
    */
   public InodeDirectory getRoot() {
-    return ((KVCachingInodeStore) mInodeStore).get(0, "").map(Inode::asDirectory).orElse(null);
+    return mInodeStore.get(0, "").map(Inode::asDirectory).orElse(null);
   }
 
   /**
@@ -294,7 +290,7 @@ public class InodeKVTreePersistentState {
     long parentId = getIdFromPath(path.getParent());
     String pathName = path.getFileName().toString();
 
-    Inode inode = ((KVCachingInodeStore)mInodeStore).getChild(parentId, pathName).get();
+    Inode inode = mInodeStore.getChild(parentId, pathName).get();
 
     // The recursive option is only used by old versions.
     if (inode.isDirectory() && entry.getRecursive()) {
@@ -344,8 +340,7 @@ public class InodeKVTreePersistentState {
 
   public void setAcl(Supplier<JournalContext> context, long parentId, String name,
       SetAclAction action, List<AclEntry> values) {
-    MutableInode<?> inode = ((KVCachingInodeStore)mInodeStore)
-        .getMutable(parentId, name).get();
+    MutableInode<?> inode = mInodeStore.getMutable(parentId, name).get();
     switch (action) {
       case REPLACE:
         // fully replace the acl for the path
@@ -370,7 +365,7 @@ public class InodeKVTreePersistentState {
   }
 
   private void applyUpdateInode(UpdateInodeEntry entry) {
-    Optional<MutableInode<?>> inodeOpt = ((KVCachingInodeStore)mInodeStore)
+    Optional<MutableInode<?>> inodeOpt = mInodeStore
         .getMutable(entry.getParentId(), entry.getName());
     if (!inodeOpt.isPresent()) {
       if (isJournalUpdateAsync(entry)) {
@@ -438,7 +433,7 @@ public class InodeKVTreePersistentState {
   }
 
   private void applyUpdateInodeDirectory(UpdateInodeDirectoryEntry entry) {
-    MutableInode<?> inode = ((KVCachingInodeStore)mInodeStore)
+    MutableInode<?> inode = mInodeStore
         .getMutable(entry.getParentId(), entry.getName()).get();
     Preconditions.checkState(inode.isDirectory(),
         "Encountered non-directory id in update directory entry %s", entry);
@@ -452,7 +447,7 @@ public class InodeKVTreePersistentState {
     Path parentPath = path.getParent();
     String name = path.getFileName().toString();
     long parentId = getIdFromPath(parentPath);
-    MutableInode<?> inode = ((KVCachingInodeStore)mInodeStore)
+    MutableInode<?> inode = mInodeStore
         .getMutable(parentId, name).get();
     Preconditions.checkState(inode.isFile(), "Encountered non-file id in update file entry %s",
         entry);
@@ -586,20 +581,30 @@ public class InodeKVTreePersistentState {
     Path srcPath = Paths.get(entry.getPath());
     Path fileName = srcPath.getFileName();
     long oldParentId = getIdFromPath(srcPath.getParent());
-    MutableInode<?> inode = ((KVCachingInodeStore)mInodeStore)
+    MutableInode<?> inode = mInodeStore
         .getMutable(oldParentId, fileName.toString()).get();
     long oldParent = inode.getParentId();
     long newParent = entry.getNewParentId();
 
-    String oldParentName = srcPath.getParent().getFileName().toString();
-    long oldGrandpaId = getIdFromPath(srcPath.getParent().getParent());
-    Path path = Paths.get(entry.getDstPath());
-    long newGrandpaId = getIdFromPath(path.getParent().getParent());
-    String newParentName = path.getParent().getFileName().toString();
+    String oldParentName = "";
+    long oldGrandpaId = 0;
+    if (oldParent != 0) {
+      // Old parent is not root
+      oldParentName = srcPath.getParent().getFileName().toString();
+      oldGrandpaId = getIdFromPath(srcPath.getParent().getParent());
+    }
 
+    Path path = Paths.get(entry.getDstPath());
+    long newGrandpaId = 0;
+    String newParentName = "";
+    if (newParent != 0) {
+      newGrandpaId = getIdFromPath(path.getParent().getParent());
+      newParentName = path.getParent().getFileName().toString();
+    }
+
+    // TODO(yyong) to keep atomic, the journal required here.
     mInodeStore.removeChild(oldParent, inode.getName());
     inode.setName(entry.getNewName());
-    mInodeStore.addChild(newParent, inode);
     inode.setParentId(newParent);
     mInodeStore.writeInode(inode);
 
@@ -611,8 +616,9 @@ public class InodeKVTreePersistentState {
     }
   }
 
-  private void updateTimestampsAndChildCount(long parentId, String name, long opTimeMs, long deltaChildCount) {
-    MutableInodeDirectory inode = ((KVCachingInodeStore)mInodeStore)
+  private void updateTimestampsAndChildCount(long parentId, String name,
+      long opTimeMs, long deltaChildCount) {
+    MutableInodeDirectory inode = mInodeStore
         .getMutable(parentId, name).get().asDirectory();
     try (LockResource lr = mInodeLockManager.lockUpdate(inode.getId())) {
       boolean madeUpdate = false;
@@ -629,6 +635,7 @@ public class InodeKVTreePersistentState {
         madeUpdate = true;
       }
       if (madeUpdate) {
+        // TODO(yyong) need to split the inode if the cache related attribute is changed
         mInodeStore.writeInode(inode);
       }
     }

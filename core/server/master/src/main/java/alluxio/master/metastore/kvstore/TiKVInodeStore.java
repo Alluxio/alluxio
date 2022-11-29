@@ -22,11 +22,13 @@ import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.metastore.KVInodeStore;
 import alluxio.master.metastore.ReadOption;
+import alluxio.proto.kvstore.FileCacheStatus;
 import alluxio.proto.kvstore.FileCacheStatusKey;
 import alluxio.proto.kvstore.FileEntryKey;
 import alluxio.proto.kvstore.FileEntryValue;
 import alluxio.proto.kvstore.KVEntryType;
 import alluxio.proto.kvstore.KVStoreTable;
+import alluxio.proto.meta.InodeMeta;
 import alluxio.resource.CloseableIterator;
 
 import org.slf4j.Logger;
@@ -34,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import org.tikv.shade.com.google.protobuf.ByteString;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.ws.rs.NotSupportedException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -89,13 +90,31 @@ public class TiKVInodeStore implements KVInodeStore {
   }
 
   @Override
+  public void writeInodeCacheAttri(InodeMeta.InodeCacheAttri inodeCacheAttri) {
+    FileCacheStatusKey fileEntryKey = FileCacheStatusKey.newBuilder()
+        .setTableType(KVStoreTable.FILE_CACHE_STATUS)
+        .setParentID(inodeCacheAttri.getParentId())
+        .setName(inodeCacheAttri.getName())
+        .build();
+    // fill in the values
+    FileCacheStatus fileEntryValue = FileCacheStatus.newBuilder()
+        .setMCacheValue(KVStoreUtils.convertInodeCacheAttrToByteString(inodeCacheAttri))
+        .build();
+    // TODO(yyong) figure out the format of metadata part
+    // Need to check if the entry exists.
+    // mKVStoreMetaInterface.createFileEntry(fileEntryKey, fileEntryValue);
+    // So far only update, the caller should make sure the key not existing
+    mKVStoreMetaInterface.updateFileCacheStatus(fileEntryKey, fileEntryValue);
+  }
+
+  @Override
   public WriteBatch createWriteBatch() {
     return new KVWriteBatch();
   }
 
   @Override
   public void clear() {
-    LOG.info("clearing the whole inode store");
+    LOG.info("Clearing the whole inode store");
     FileEntryKey fileEntryKeyStart = FileEntryKey.newBuilder()
         .setTableType(KVStoreTable.FILE_ENTRY)
         .setParentID(0)
@@ -105,33 +124,12 @@ public class TiKVInodeStore implements KVInodeStore {
         .setParentID(Long.MAX_VALUE)
         .build();
     mKVStoreMetaInterface.deleteFileEntryRange(fileEntryKeyStart, fileEntryKeyEnd);
-    LOG.info("clear the whole inode store done!");
-  }
-
-  @Override
-  public void addChild(long parentId, String childName, Long childId) {
-    LOG.info("addChild is called, will throw exception");
-    throw new NotSupportedException("KV store doesn't support add child");
-
-    /*
-    FileEntryKey fileEntryKey = FileEntryKey.newBuilder()
-        .setTableType(KVStoreTable.FILE_ENTRY)
-        .setParentID(parentId)
-        .setName(childName)
-        .build();
-    FileEntryValue fileEntryValue = FileEntryValue.newBuilder()
-        .setMID(childId)
-        .build();
-    // TODO(yyong) figure out the format of metadata part
-    // Need to check if the entry exists.
-    // mKVStoreMetaInterface.createFileEntry(fileEntryKey, fileEntryValue);
-    // So far only update, the caller should make sure the key not existing
-    mKVStoreMetaInterface.updateFileEntry(fileEntryKey, fileEntryValue);
-     */
+    LOG.info("Clears the whole inode store done!");
   }
 
   @Override
   public void removeChild(long parentId, String name) {
+    LOG.debug("Removing child({}, {})", parentId, name);
     mKVStoreMetaInterface.deleteFileEntry(FileEntryKey.newBuilder()
         .setTableType(KVStoreTable.FILE_ENTRY)
         .setParentID(parentId)

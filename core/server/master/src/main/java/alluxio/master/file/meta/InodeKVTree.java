@@ -59,7 +59,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.interfaces.Scoped;
-import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.OperationId;
 
 import com.google.common.base.Preconditions;
@@ -82,7 +81,6 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * Represents the tree of Inodes.

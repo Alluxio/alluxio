@@ -9,8 +9,9 @@ import java.util.List;
 
 class KVStoreTest {
   public static Pair<FileEntryKey, FileEntryValue> createFileEntryKey(long pid, String name, long cid) {
-    FileEntryKey key = FileEntryKey.newBuilder().setParentID(pid)
+    FileEntryKey key = FileEntryKey.newBuilder()
         .setTableType(KVStoreTable.FILE_ENTRY)
+        .setParentID(pid)
         .setName(name).build();
     FileEntryValue value = FileEntryValue.newBuilder().setMID(cid).build();
     return new Pair<>(key, value);

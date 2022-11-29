@@ -11,8 +11,6 @@
 
 package alluxio.master.metastore.kvstorecaching;
 
-import static alluxio.master.metastore.heap.HeapInodeStore.sortedMapToIterator;
-
 import alluxio.collections.Pair;
 import alluxio.collections.TwoKeyConcurrentSortedMap;
 import alluxio.concurrent.LockMode;
@@ -175,6 +173,7 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
 
   @Override
   public void writeInode(MutableInode<?> inode) {
+    mEdgeCache.put(new Edge(inode.getParentId(), inode.getName()), inode.getId());
     mInodeCache.put(new Pair<Long, String>(inode.getId(), inode.getName()), inode);
   }
 

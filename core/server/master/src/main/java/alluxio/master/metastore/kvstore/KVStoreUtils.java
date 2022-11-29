@@ -43,24 +43,18 @@ public class KVStoreUtils {
     } catch (InvalidProtocolBufferException e) {
       throw new RuntimeException(e);
     }
-    /*
-    switch (value.getMEntryType()) {
-      case FILE:
-        InodeMeta.Inode.newBuilder();
-        InodeMeta.Inode.parseFrom(value.getMEV());
-        CreateFileContext createFileContext = CreateFileContext.defaults();
-        // createFileContext.getOptions().setMode();
-        MutableInodeFile.fromProto(value.getMEV())
-        return MutableInodeFile.create(key.getParentID(), value.getMID(),
-            key.getName(), System.currentTimeMillis(), createFileContext);
-      case DIRECTORY:
-        CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
-        // createDirectoryContext.getOptions().set
-        return MutableInodeDirectory.create(key.getParentID(), value.getMID(),
-            key.getName(), createDirectoryContext);
-      default:
-        return null;
+  }
+
+  public static InodeMeta.InodeCacheAttri convertToInodeCacheAttr(FileCacheStatus value) {
+    try {
+      return InodeMeta.InodeCacheAttri.parseFrom(value.getMCacheValue());
+    } catch (InvalidProtocolBufferException e) {
+      throw new RuntimeException(e);
     }
-    */
+  }
+
+  public static ByteString convertInodeCacheAttrToByteString(
+      InodeMeta.InodeCacheAttri inodeCacheAttri) {
+    return inodeCacheAttri.toByteString();
   }
 }

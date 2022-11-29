@@ -15,8 +15,7 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.MutableInode;
-import alluxio.master.journal.checkpoint.Checkpointed;
-import com.google.protobuf.InvalidProtocolBufferException;
+import alluxio.proto.meta.InodeMeta;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.Closeable;
@@ -81,6 +80,8 @@ public interface KVInodeStore extends KVReadOnlyInodeStore, Closeable {
    */
   void writeInode(MutableInode<?> inode);
 
+  void writeInodeCacheAttri(InodeMeta.InodeCacheAttri inodeCacheAttri);
+
   /**
    * Adds a new inode.
    *
@@ -117,28 +118,6 @@ public interface KVInodeStore extends KVReadOnlyInodeStore, Closeable {
    * Removes all inodes and edges.
    */
   void clear();
-
-  /**
-   * Makes an inode the child of the specified parent.
-   *
-   * This method requires an inode lock manager read or write locks on the added edge.
-   *
-   * @param parentId the parent id
-   * @param childName the child name
-   */
-  void addChild(long parentId, String childName, Long childId);
-
-  /**
-   * Makes an inode the child of the specified parent.
-   *
-   * This method requires an inode lock manager read or write locks on the added edge.
-   *
-   * @param parentId the parent id
-   * @param child the child inode
-   */
-  default void addChild(long parentId, InodeView child) {
-    // addChild(parentId, child.getName(), child.getId());
-  }
 
   /**
    * Removes a child from a parent inode.

@@ -33,7 +33,7 @@ class KVStoreListTest {
         .setTableType(KVStoreTable.FILE_ENTRY)
         .setName("").build();
     FileEntryKey keyEnd = FileEntryKey.newBuilder()
-        .setParentID(0XFFFFFF)
+        .setParentID(0XFFFFFFFF)
         .setTableType(KVStoreTable.FILE_ENTRY)
         .setName("").build();
     List<Pair<FileEntryKey, FileEntryValue>> list = tiKVStoreMetaRaw.scanFileEntryKV(keyStart, keyEnd);
