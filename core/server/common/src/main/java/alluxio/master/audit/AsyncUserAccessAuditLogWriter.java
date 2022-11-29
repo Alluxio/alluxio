@@ -97,7 +97,6 @@ public final class AsyncUserAccessAuditLogWriter {
   public boolean append(AuditContext context) {
     try {
       mAuditLogEntries.put(context);
-      LOG.info(context.toString());
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return false;

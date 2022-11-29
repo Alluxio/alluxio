@@ -31,7 +31,8 @@ public enum Operation {
   CREATE_DELETE_FILE("CreateDeleteFile"), // create and delete a file
 
   // Create dirs
-  CREATE_DIR("CreateDir"); // create fixed-N, create more in extra
+  CREATE_DIR("CreateDir"), // create fixed-N, create more in extra
+  ;
 
   private final String mName;
 
