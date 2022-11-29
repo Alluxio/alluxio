@@ -250,7 +250,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
           metaStatus = S3RestUtils.checkStatusesForUploadId(mMetaFs, mUserFs,
                   multipartTemporaryDir, mUploadId).get(1);
         } catch (Exception e) {
-            LOG.warn("checkStatusesForUploadId uploadId:{} failed. {}", mUploadId,
+          LOG.warn("checkStatusesForUploadId uploadId:{} failed. {}", mUploadId,
                   ThreadUtils.formatStackTrace(e));
           throw new S3Exception(objectPath, S3ErrorCode.NO_SUCH_UPLOAD);
         }
@@ -288,7 +288,10 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         AlluxioURI objectUri = new AlluxioURI(objectPath);
         mUserFs.rename(objectTempUri, objectUri, RenamePOptions.newBuilder()
                 .setPersist(WriteType.fromProto(createFileOption.getWriteType()).isThrough())
-                .setS3SyntaxOptions(S3SyntaxOptions.newBuilder().setOverwrite(true).build())
+                .setS3SyntaxOptions(S3SyntaxOptions.newBuilder()
+                        .setOverwrite(true)
+                        .setIsMultipartUpload(true)
+                        .build())
                 .build());
 
         // Remove the temporary directory containing the uploaded parts and the

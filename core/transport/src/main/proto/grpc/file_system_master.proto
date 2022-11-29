@@ -434,6 +434,7 @@ message FileSystemCommand {
 
 message S3SyntaxOptions {
   optional bool overwrite = 1;
+  optional bool isMultipartUpload = 2;
 }
 
 message RenamePResponse {}

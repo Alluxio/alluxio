@@ -3035,22 +3035,28 @@ public class DefaultFileSystemMaster extends CoreMaster
           throws FileDoesNotExistException, FileAlreadyExistsException,
           IOException, InvalidPathException {
     if (context.getOptions().hasS3SyntaxOptions()) {
-      // For object overwrite
-      String mpUploadIdDst = new String(dstInodePath.getInodeFile().getXAttr() != null
-              ? dstInodePath.getInodeFile().getXAttr()
-              .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0])
-              : new byte[0]);
-      String mpUploadIdSrc = new String(srcInodePath.getInodeFile().getXAttr() != null
-              ? srcInodePath.getInodeFile().getXAttr()
-              .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0])
-              : new byte[0]);
-      if (StringUtils.isNotEmpty(mpUploadIdSrc) && StringUtils.isNotEmpty(mpUploadIdDst)
-              && StringUtils.equals(mpUploadIdSrc, mpUploadIdDst)) {
-        LOG.info("Object with same upload exists, bail and claim success.");
+      // For possible object overwrite
+      if (context.getOptions().getS3SyntaxOptions().getIsMultipartUpload()) {
+        String mpUploadIdDst = new String(dstInodePath.getInodeFile().getXAttr() != null
+                ? dstInodePath.getInodeFile().getXAttr()
+                .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0])
+                : new byte[0]);
+        String mpUploadIdSrc = new String(srcInodePath.getInodeFile().getXAttr() != null
+                ? srcInodePath.getInodeFile().getXAttr()
+                .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0])
+                : new byte[0]);
+        if (StringUtils.isNotEmpty(mpUploadIdSrc) && StringUtils.isNotEmpty(mpUploadIdDst)
+                && StringUtils.equals(mpUploadIdSrc, mpUploadIdDst)) {
+          LOG.info("Object with same upload exists, bail and claim success.");
         /* This is a rename operation as part of complete a CompleteMultipartUpload call
          and there's concurrent attempt on the same multipart upload succeeded */
-        return false;
+          return false;
+        }
       }
+      /*
+       TODO(lucy) same logic could apply for create normal object instead of multipart upload,
+        check other object related property for a no-op rename
+       */
       //we need to overwrite, delete existing destination path
       if (context.getOptions().getS3SyntaxOptions().getOverwrite()) {
         LOG.info("Encountered S3 Overwrite syntax, "
