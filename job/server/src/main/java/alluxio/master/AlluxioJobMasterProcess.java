@@ -116,17 +116,17 @@ public class AlluxioJobMasterProcess extends AlluxioSimpleMasterProcess {
       JournalSystem journalSystem = new JournalSystem.Builder()
           .setLocation(URIUtils.appendPathOrDie(journalLocation, Constants.JOB_JOURNAL_NAME))
           .build(ProcessType.JOB_MASTER);
+      final PrimarySelector primarySelector;
       if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
             "Raft journal cannot be used with Zookeeper enabled");
-        PrimarySelector primarySelector = PrimarySelector.Factory.createZkJobPrimarySelector();
-        return new AlluxioJobMasterProcess(journalSystem, primarySelector);
+        primarySelector = PrimarySelector.Factory.createZkJobPrimarySelector();
       } else if (journalSystem instanceof RaftJournalSystem) {
-        PrimarySelector primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
-        return new AlluxioJobMasterProcess(journalSystem, primarySelector);
+        primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
+      } else {
+        primarySelector = new UfsJournalSingleMasterPrimarySelector();
       }
-      AlluxioJobMasterProcess ajmp = new AlluxioJobMasterProcess(journalSystem,
-          new UfsJournalSingleMasterPrimarySelector());
+      AlluxioJobMasterProcess ajmp = new AlluxioJobMasterProcess(journalSystem, primarySelector);
       ajmp.registerSimpleService(
           RpcServerSimpleService.Factory.create(ajmp.getRpcBindAddress(), ajmp, ajmp.getRegistry())
       );
