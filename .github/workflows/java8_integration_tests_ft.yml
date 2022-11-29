@@ -11,19 +11,9 @@ jobs:
       matrix:
         modules:
           - >-
-            alluxio.client.cli.**,!alluxio.client.cli.fs.**
+            alluxio.server.ft.**,!alluxio.server.ft.journal.raft.**,!alluxio.server.ft.journal.ufs.**
           - >-
-            alluxio.client.cli.fs.**
-          - >-
-            alluxio.client.fs.**,!alluxio.client.fs.concurrent.**,!alluxio.client.fs.io.**
-          - >-
-            alluxio.client.fs.concurrent.**,alluxio.client.fs.io.**
-          - >-
-            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**,!alluxio.client.fuse.**
-          - >-
-            alluxio.job.**,alluxio.master.**,alluxio.stress.**
-          - >-
-            alluxio.server.**,!alluxio.server.ft.**
+            alluxio.server.ft.journal.raft.**,alluxio.server.ft.journal.ufs.**
 
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.title, 'DOCFIX') &&
@@ -54,6 +44,7 @@ jobs:
         id: test0
         run: |
           mkdir -p ~/.m2
+          ALLUXIO_DOCKER_FORK_COUNT=1 \
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
