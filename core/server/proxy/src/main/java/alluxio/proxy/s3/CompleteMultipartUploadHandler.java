@@ -27,9 +27,12 @@ import alluxio.grpc.PMode;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.S3SyntaxOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
 
+import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Stopwatch;
@@ -242,7 +245,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         AlluxioURI multipartTemporaryDir = new AlluxioURI(
             S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, mObject, mUploadId));
         URIStatus metaStatus;
-        try {
+        try (Timer.Context ctx = MetricsSystem
+                .uniformTimer(MetricKey.PROXY_CHECK_UPLOADID_STATUS_LATENCY.getName()).time()) {
           metaStatus = S3RestUtils.checkStatusesForUploadId(mMetaFs, mUserFs,
                   multipartTemporaryDir, mUploadId).get(1);
         } catch (Exception e) {
@@ -250,6 +254,9 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
                   ThreadUtils.formatStackTrace(e));
           throw new S3Exception(objectPath, S3ErrorCode.NO_SUCH_UPLOAD);
         }
+
+
+
         // Parse the HTTP request body to get the intended list of parts
         CompleteMultipartUploadRequest request = parseCompleteMultipartUploadRequest(objectPath);
 
@@ -265,7 +272,9 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         FileOutStream os = mUserFs.createFile(objectTempUri, createFileOption);
         MessageDigest md5 = MessageDigest.getInstance("MD5");
 
-        try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
+        try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5);
+             Timer.Context ctx = MetricsSystem
+                     .uniformTimer(MetricKey.PROXY_COMPLETE_MP_UPLOAD_MERGE_LATENCY.getName()).time()) {
           for (URIStatus part : uploadedParts) {
             try (FileInStream is = mUserFs.openFile(new AlluxioURI(part.getPath()))) {
               ByteStreams.copy(is, digestOutputStream);
@@ -285,7 +294,10 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
 
         // Remove the temporary directory containing the uploaded parts and the
         // corresponding Alluxio S3 API metadata file
-        removePartsDirAndMPMetaFile(multipartTemporaryDir);
+        try (Timer.Context ctx = MetricsSystem
+                .uniformTimer(MetricKey.PROXY_CLEANUP_MULTIPART_UPLOAD_LATENCY.getName()).time()) {
+          removePartsDirAndMPMetaFile(multipartTemporaryDir);
+        }
         return new CompleteMultipartUploadResult(objectPath, mBucket, mObject, entityTag);
       } catch (Exception e) {
         /* On exception we always check if someone completes the multipart object before us to
@@ -428,7 +440,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
      */
     public void cleanupTempPath(String objTempPath) {
       if (objTempPath != null) {
-        try {
+        try (Timer.Context ctx = MetricsSystem
+                .uniformTimer(MetricKey.PROXY_CLEANUP_TEMP_MULTIPART_UPLOAD_OBJ_LATENCY.getName()).time()) {
           mUserFs.delete(new AlluxioURI(objTempPath), DeletePOptions.newBuilder().build());
         } catch (Exception e) {
           LOG.warn("Failed to clean up temp path:{}, {}", objTempPath, e.getMessage());

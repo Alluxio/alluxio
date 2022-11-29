@@ -26,6 +26,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.UniformReservoir;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.jvm.CachedThreadStatesGaugeSet;
 import com.codahale.metrics.jvm.ClassLoadingGaugeSet;
@@ -624,6 +625,14 @@ public final class MetricsSystem {
    */
   public static Timer timer(String name) {
     return METRIC_REGISTRY.timer(getMetricName(name));
+  }
+
+  public static Timer uniformTimer(String name) {
+    return METRIC_REGISTRY.timer(getMetricName(name),
+            () -> {
+              Timer timer = new Timer(new UniformReservoir());
+              return timer;
+            });
   }
 
   /**
