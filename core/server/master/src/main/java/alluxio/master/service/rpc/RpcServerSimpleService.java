@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -78,10 +79,11 @@ public class RpcServerSimpleService implements SimpleService {
   public synchronized void promote() {
     stopRejectingServer();
     GrpcServerBuilder builder = mMasterProcess.createBaseRpcServer();
-    mMasterProcess.createRpcExecutorService().ifPresent(executor -> {
-      builder.executor(executor);
-      mRpcExecutor = executor;
-    });
+    Optional<AlluxioExecutorService> executorService = mMasterProcess.createRpcExecutorService();
+    if (executorService.isPresent()) {
+      builder.executor(executorService.get());
+      mRpcExecutor = executorService.get();
+    }
     mMasterRegistry.getServers().forEach(master -> {
       master.getServices().forEach((type, service) -> {
         builder.addService(type, service);
