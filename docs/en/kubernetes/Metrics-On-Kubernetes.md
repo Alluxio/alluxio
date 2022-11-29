@@ -21,7 +21,7 @@ This documentation focus on how to configure and get metrics of different metric
 
 The metrics are exposed through the web ports of different components.
 
-* Alluxio masters and workers web ports are opened by default.
+* The web ports of Alluxio masters and workers are opened by default.
 * Alluxio standalone Fuse web port is not opened by default. It can be opened by setting `alluxio.fuse.web.enabled` to true.
 
 #### Get Metrics Snapshot
@@ -53,7 +53,7 @@ Alluxio leading master.
 
 ![Master Metrics]({{ '/img/screenshot_generalMetrics.png' | relativize_url }})
 
-To access the wbe UI of the leading master, you need to forward a port on a physical machine to the master web port.
+To access the web UI of the leading master, you need to forward a port on a physical machine to the master web port.
 For example, if your leading master is running in pod `alluxio-master-0` and you want to serve the Alluxio master web UI at 
 node `master-node-1` on port `8080`, you can run the following command on your control plane:
 ```console
@@ -70,7 +70,8 @@ Refer to [Access the Web UI]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.ht
 [Prometheus](https://prometheus.io/) is a monitoring tool that can help to monitor Alluxio metrics changes.
 
 #### Alluxio Helm Chart Configuration
-`PrometheusMetricsServlet` needs to be enabled for Prometheus in Alluxio. In the helm chart `values.yaml` file, set the following properties:
+
+`PrometheusMetricsServlet` needs to be enabled for Prometheus in Alluxio. Set the following properties in helm chart `value.yaml` to enable Prometheus metrics sink:
 
 ```yaml
 metrics:
@@ -90,7 +91,8 @@ Note that similar to HTTP JSON Sink, fuse web port needs to be opened for access
 `alluxio.fuse.web.enabled` to true.
 
 #### Prometheus Client Configuration
-To read the endpoints, configure the `prometheus.yml` of your Prometheus client. For example, to read the master metrics:
+
+For a Prometheus client to get the metrics from Alluxio, configure the `prometheus.yml` of the client. For example, to read the master metrics:
 
 ```yaml
 scrape_configs:
