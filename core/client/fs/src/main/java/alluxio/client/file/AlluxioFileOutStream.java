@@ -156,7 +156,7 @@ public class AlluxioFileOutStream extends FileOutStream {
       return;
     }
     try (Timer.Context ctx = MetricsSystem
-            .uniformTimer(MetricKey.CLOSE_ALLUXIO_OUTSTREAM_LATENCY.getName()).time()){
+            .uniformTimer(MetricKey.CLOSE_ALLUXIO_OUTSTREAM_LATENCY.getName()).time()) {
       if (mCurrentBlockOutStream != null) {
         mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
       }

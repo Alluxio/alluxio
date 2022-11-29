@@ -668,19 +668,22 @@ public final class MetricKey implements Comparable<MetricKey> {
                   .build();
   public static final MetricKey PROXY_COMPLETE_MP_UPLOAD_MERGE_LATENCY =
           new Builder("Proxy.CompleteMPUploadMergeLatency")
-                  .setDescription("Latency of merging parts into one object in CompleteMultipartUpload")
+                  .setDescription("Latency of merging parts into one object"
+                          + "in CompleteMultipartUpload")
                   .setMetricType(MetricType.TIMER)
                   .build();
 
   public static final MetricKey PROXY_CLEANUP_MULTIPART_UPLOAD_LATENCY =
           new Builder("Proxy.CleanupMultipartUploadLatency")
-                  .setDescription("Latency of cleaning up temp folder and meta file from CompleteMultipartUpload")
+                  .setDescription("Latency of cleaning up temp folder and meta"
+                          + "file from CompleteMultipartUpload")
                   .setMetricType(MetricType.TIMER)
                   .build();
 
   public static final MetricKey PROXY_CLEANUP_TEMP_MULTIPART_UPLOAD_OBJ_LATENCY =
           new Builder("Proxy.CleanupTempMultipartUploadObjectLatency")
-                  .setDescription("Latency of cleaning up temp target obj during CompleteMultipartUpload")
+                  .setDescription("Latency of cleaning up temp target obj during"
+                          + "CompleteMultipartUpload")
                   .setMetricType(MetricType.TIMER)
                   .build();
 

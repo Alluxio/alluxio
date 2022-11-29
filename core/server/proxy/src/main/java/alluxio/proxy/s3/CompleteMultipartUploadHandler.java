@@ -250,12 +250,10 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
           metaStatus = S3RestUtils.checkStatusesForUploadId(mMetaFs, mUserFs,
                   multipartTemporaryDir, mUploadId).get(1);
         } catch (Exception e) {
-          LOG.warn("checkStatusesForUploadId uploadId:{} failed. {}", mUploadId,
+            LOG.warn("checkStatusesForUploadId uploadId:{} failed. {}", mUploadId,
                   ThreadUtils.formatStackTrace(e));
           throw new S3Exception(objectPath, S3ErrorCode.NO_SUCH_UPLOAD);
         }
-
-
 
         // Parse the HTTP request body to get the intended list of parts
         CompleteMultipartUploadRequest request = parseCompleteMultipartUploadRequest(objectPath);
@@ -274,7 +272,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
 
         try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5);
              Timer.Context ctx = MetricsSystem
-                     .uniformTimer(MetricKey.PROXY_COMPLETE_MP_UPLOAD_MERGE_LATENCY.getName()).time()) {
+                     .uniformTimer(MetricKey.PROXY_COMPLETE_MP_UPLOAD_MERGE_LATENCY
+                             .getName()).time()) {
           for (URIStatus part : uploadedParts) {
             try (FileInStream is = mUserFs.openFile(new AlluxioURI(part.getPath()))) {
               ByteStreams.copy(is, digestOutputStream);
@@ -441,7 +440,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     public void cleanupTempPath(String objTempPath) {
       if (objTempPath != null) {
         try (Timer.Context ctx = MetricsSystem
-                .uniformTimer(MetricKey.PROXY_CLEANUP_TEMP_MULTIPART_UPLOAD_OBJ_LATENCY.getName()).time()) {
+                .uniformTimer(MetricKey.PROXY_CLEANUP_TEMP_MULTIPART_UPLOAD_OBJ_LATENCY
+                        .getName()).time()) {
           mUserFs.delete(new AlluxioURI(objTempPath), DeletePOptions.newBuilder().build());
         } catch (Exception e) {
           LOG.warn("Failed to clean up temp path:{}, {}", objTempPath, e.getMessage());
