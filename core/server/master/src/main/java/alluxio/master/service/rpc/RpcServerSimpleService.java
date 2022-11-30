@@ -23,6 +23,8 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.service.SimpleService;
 import alluxio.network.RejectingServer;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import io.grpc.Status;
 import org.slf4j.Logger;
@@ -30,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
@@ -72,12 +75,15 @@ public class RpcServerSimpleService implements SimpleService {
 
   @Override
   public synchronized void start() {
-    startRejectingServer();
+    mRejectingGrpcServer = new RejectingServer(mBindAddress);
+    mRejectingGrpcServer.start();
+    waitForBound();
   }
 
   @Override
   public synchronized void promote() {
     stopRejectingServer();
+    waitForFree();
     GrpcServerBuilder builder = mMasterProcess.createBaseRpcServer();
     Optional<AlluxioExecutorService> executorService = mMasterProcess.createRpcExecutorService();
     if (executorService.isPresent()) {
@@ -104,7 +110,8 @@ public class RpcServerSimpleService implements SimpleService {
   public synchronized void demote() {
     stopGrpcServer();
     stopRpcExecutor();
-    startRejectingServer();
+    waitForFree();
+    start(); // rejecting server again
   }
 
   @Override
@@ -134,15 +141,39 @@ public class RpcServerSimpleService implements SimpleService {
     }
   }
 
-  protected void startRejectingServer() {
-    mRejectingGrpcServer = new RejectingServer(mBindAddress);
-    mRejectingGrpcServer.start();
-  }
-
   protected void stopRejectingServer() {
     if (mRejectingGrpcServer != null) {
       mRejectingGrpcServer.stopAndJoin();
       mRejectingGrpcServer = null;
+    }
+  }
+
+  private void waitForFree() {
+    waitFor(false, mBindAddress);
+  }
+
+  private void waitForBound() {
+    waitFor(true, mBindAddress);
+  }
+
+  /**
+   * Creates a buffer between rejecting server and regular serving server of at most 1 second.
+   * @param freeOrBound determines if it prematurely returns when the port if free (false) or
+   *                    bound (true)
+   * @param address the address to test
+   */
+  public static void waitFor(boolean freeOrBound, InetSocketAddress address) {
+    try {
+      CommonUtils.waitFor("wait for the address to be " + (freeOrBound ? "bound" : "free"),
+          () -> {
+            try (ServerSocket ignored = new ServerSocket(address.getPort())) {
+              return !freeOrBound;
+            } catch (Exception e) {
+              return freeOrBound;
+            }
+          }, WaitForOptions.defaults().setInterval(10).setTimeoutMs(1_000));
+    } catch (Exception e) {
+      // do nothing
     }
   }
 
