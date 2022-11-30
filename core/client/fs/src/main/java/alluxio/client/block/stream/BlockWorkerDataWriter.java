@@ -88,7 +88,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
   }
 
   @Override
-  public Optional<String> getContentHash() {
+  public Optional<String> getUfsContentHash() {
     return Optional.empty();
   }
 

@@ -99,9 +99,10 @@ public interface DataWriter extends Closeable, Cancelable {
   }
 
   /**
-   * @return the fingerprint
+   * @return the content hash of the file if it is written to the UFS. Will only
+   * return a non-empty value after the data writer has been closed.
    */
-  Optional<String> getContentHash();
+  Optional<String> getUfsContentHash();
 
   /**
    * Writes a chunk. This method takes the ownership of this chunk even if it fails to write

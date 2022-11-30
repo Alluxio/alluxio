@@ -182,7 +182,7 @@ public final class GrpcDataWriter implements DataWriter {
   }
 
   @Override
-  public Optional<String> getContentHash() {
+  public Optional<String> getUfsContentHash() {
     return Optional.ofNullable(mContentHash);
   }
 
@@ -248,7 +248,9 @@ public final class GrpcDataWriter implements DataWriter {
             writeRequest, mAddress));
       }
       posWritten = response.getOffset();
-      mContentHash = response.getContentHash();
+      if (response.hasContentHash()) {
+        mContentHash = response.getContentHash();
+      }
     } while (mPosToQueue != posWritten);
   }
 
@@ -259,8 +261,9 @@ public final class GrpcDataWriter implements DataWriter {
         return;
       }
       mStream.close();
-      Optional<WriteResponse> response = mStream.waitForComplete(mWriterCloseTimeoutMs);
-      response.ifPresent(writeResponse -> mContentHash = writeResponse.getContentHash());
+      mStream.waitForComplete(mWriterCloseTimeoutMs)
+          .ifPresent(writeResponse -> mContentHash = writeResponse.hasContentHash()
+              ? writeResponse.getContentHash() : null);
     } finally {
       mClient.close();
     }

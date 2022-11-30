@@ -84,8 +84,8 @@ public final class UfsFallbackLocalFileDataWriter implements DataWriter {
   }
 
   @Override
-  public Optional<String> getContentHash() {
-    return mGrpcDataWriter.getContentHash();
+  public Optional<String> getUfsContentHash() {
+    return mGrpcDataWriter.getUfsContentHash();
   }
 
   @Override
