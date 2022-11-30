@@ -1,4 +1,4 @@
-name: Java 8 Integration Tests
+name: Java 8 Fault Tolerant Integration Tests
 
 on: [pull_request]
 
@@ -44,6 +44,7 @@ jobs:
         id: test0
         run: |
           mkdir -p ~/.m2
+          # Set fork count to 1 so that fault tolerant tests are run sequentially as these tests have high overhead, starting and stopping multiple Alluxio processes
           ALLUXIO_DOCKER_FORK_COUNT=1 \
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
