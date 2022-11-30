@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
@@ -166,10 +166,10 @@ public class RpcServerSimpleService implements SimpleService {
     try {
       CommonUtils.waitFor("wait for the address to be " + (freeOrBound ? "bound" : "free"),
           () -> {
-            try (ServerSocket ignored = new ServerSocket(address.getPort())) {
-              return !freeOrBound;
-            } catch (Exception e) {
+            try (Socket ignored = new Socket(address.getAddress(), address.getPort())) {
               return freeOrBound;
+            } catch (Exception e) {
+              return !freeOrBound;
             }
           }, WaitForOptions.defaults().setInterval(10).setTimeoutMs(1_000));
     } catch (Exception e) {

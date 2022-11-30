@@ -27,9 +27,9 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.net.BindException;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Optional;
 
 /**
@@ -78,11 +78,10 @@ public class RpcServerSimpleServiceTest {
   }
 
   private boolean isBound() {
-    try (ServerSocket socket = new ServerSocket(mRpcAddress.getPort())) {
-      socket.setReuseAddress(true);
-      return false;
-    } catch (BindException e) {
+    try (Socket socket = new Socket(mRpcAddress.getAddress(), mRpcAddress.getPort())) {
       return true;
+    } catch (ConnectException e) {
+      return false;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
