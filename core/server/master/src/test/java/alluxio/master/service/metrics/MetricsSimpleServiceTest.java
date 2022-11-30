@@ -47,7 +47,6 @@ public class MetricsSimpleServiceTest {
     MetricsSimpleService service = MetricsSimpleService.Factory.create();
     Assert.assertTrue(service instanceof WhenLeadingMetricsSimpleService);
 
-
     Assert.assertFalse(MetricsSystem.isStarted());
     service.start();
     Assert.assertFalse(MetricsSystem.isStarted());
