@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.function.Function;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -104,10 +105,9 @@ public class GrpcDataMessageBlockingStream<ReqT, ResT> extends GrpcBlockingStrea
   }
 
   @Override
-  public void waitForComplete(long timeoutMs) throws IOException {
+  public Optional<ResT> waitForComplete(long timeoutMs) throws IOException {
     if (mResponseMarshaller == null) {
-      super.waitForComplete(timeoutMs);
-      return;
+      return super.waitForComplete(timeoutMs);
     }
     DataMessage<ResT, DataBuffer> message;
     while (!isCanceled() && (message = receiveDataMessage(timeoutMs)) != null) {
@@ -115,6 +115,6 @@ public class GrpcDataMessageBlockingStream<ReqT, ResT> extends GrpcBlockingStrea
         message.getBuffer().release();
       }
     }
-    super.waitForComplete(timeoutMs);
+    return super.waitForComplete(timeoutMs);
   }
 }

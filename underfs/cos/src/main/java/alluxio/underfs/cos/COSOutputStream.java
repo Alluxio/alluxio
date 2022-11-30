@@ -11,6 +11,7 @@
 
 package alluxio.underfs.cos;
 
+import alluxio.underfs.UnderFileSystemOutputStream;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -33,6 +34,7 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -42,7 +44,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * local disk and copied as a complete file when the {@link #close()} method is called.
  */
 @NotThreadSafe
-public final class COSOutputStream extends OutputStream {
+public final class COSOutputStream extends OutputStream implements UnderFileSystemOutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(COSOutputStream.class);
 
   /** Bucket name of the Alluxio COS bucket. */
@@ -61,6 +63,8 @@ public final class COSOutputStream extends OutputStream {
 
   /** Flag to indicate this stream has been closed, to ensure close is only done once. */
   private AtomicBoolean mClosed = new AtomicBoolean(false);
+
+  private String mContentHash;
 
   /**
    * Creates a name instance of {@link COSOutputStream}.
@@ -155,7 +159,7 @@ public final class COSOutputStream extends OutputStream {
         byte[] hashBytes = mHash.digest();
         meta.setContentMD5(new String(Base64.encodeBase64(hashBytes)));
       }
-      mCosClient.putObject(mBucketName, mKey, in, meta);
+      mContentHash = mCosClient.putObject(mBucketName, mKey, in, meta).getETag();
     } catch (CosClientException e) {
       LOG.error("Failed to upload {}. ", mKey);
       throw new IOException(e);
@@ -167,5 +171,10 @@ public final class COSOutputStream extends OutputStream {
       }
     }
     return;
+  }
+
+  @Override
+  public Optional<String> getContentHash() {
+    return Optional.ofNullable(mContentHash);
   }
 }

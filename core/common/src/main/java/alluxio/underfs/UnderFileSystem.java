@@ -434,6 +434,19 @@ public interface UnderFileSystem extends Closeable {
   }
 
   /**
+   * Same as {@link #getParsedFingerprint(String)} except, will use the given content hash
+   * as the {@link alluxio.underfs.Fingerprint.Tag#CONTENT_HASH} field of the fingerprint
+   * if non-null. This is intended to be used when the file is already in Alluxio and
+   * a fingerprint is being created based on that file where the content hash has already
+   * been computed.
+   * @param path the path to compute the fingerprint for
+   * @param contentHash is used as the {@link alluxio.underfs.Fingerprint.Tag#CONTENT_HASH}
+   *                    field when creating the fingerprint if non-null.
+   * @return the string representing the fingerprint
+   */
+  Fingerprint getParsedFingerprint(String path, @Nullable String contentHash);
+
+  /**
    * An {@link UnderFileSystem} may be composed of one or more "physical UFS"s. This method is used
    * to determine the operation mode based on the physical UFS operation modes. For example, if this
    * {@link UnderFileSystem} is composed of physical UFS hdfs://ns1/ and hdfs://ns2/ with read

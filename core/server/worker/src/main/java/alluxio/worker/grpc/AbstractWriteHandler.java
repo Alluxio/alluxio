@@ -409,6 +409,9 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    */
   private void replySuccess() {
     mContext.setDoneUnsafe(true);
+    mContext.getContentHash().ifPresent(contentHash -> mResponseObserver.onNext(
+        WriteResponse.newBuilder().setContentHash(contentHash).setOffset(
+            mContext.getPos()).build()));
     mResponseObserver.onCompleted();
   }
 

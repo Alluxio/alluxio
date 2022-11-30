@@ -26,6 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class UnderFileSystemFileOutStream extends BlockOutStream {
   private static final int ID_UNUSED = -1;
+  private final DataWriter mDataWriter;
 
   /**
    * Creates an instance of {@link UnderFileSystemFileOutStream} that writes to a UFS file.
@@ -48,5 +49,13 @@ public class UnderFileSystemFileOutStream extends BlockOutStream {
    */
   protected UnderFileSystemFileOutStream(DataWriter dataWriter, WorkerNetAddress address) {
     super(dataWriter, Long.MAX_VALUE, address);
+    mDataWriter = dataWriter;
+  }
+
+  /**
+   * @return the data writer for the stream
+   */
+  public DataWriter getDataWriter() {
+    return mDataWriter;
   }
 }

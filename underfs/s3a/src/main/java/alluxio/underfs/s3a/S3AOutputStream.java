@@ -11,6 +11,7 @@
 
 package alluxio.underfs.s3a;
 
+import alluxio.underfs.UnderFileSystemOutputStream;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -32,6 +33,7 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -42,7 +44,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * multipart upload.
  */
 @NotThreadSafe
-public class S3AOutputStream extends OutputStream {
+public class S3AOutputStream extends OutputStream implements UnderFileSystemOutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(S3AOutputStream.class);
 
   private final boolean mSseEnabled;
@@ -75,6 +77,8 @@ public class S3AOutputStream extends OutputStream {
 
   /** The MD5 hash of the file. */
   private MessageDigest mHash;
+
+  private String mContentHash;
 
   /**
    * Constructs a new stream for writing a file.
@@ -147,7 +151,7 @@ public class S3AOutputStream extends OutputStream {
 
       // Generate the put request and wait for the transfer manager to complete the upload
       PutObjectRequest putReq = new PutObjectRequest(mBucketName, path, mFile).withMetadata(meta);
-      getTransferManager().upload(putReq).waitForUploadResult();
+      mContentHash = getTransferManager().upload(putReq).waitForUploadResult().getETag();
     } catch (Exception e) {
       LOG.error("Failed to upload {}", path, e);
       throw new IOException(e);
@@ -174,5 +178,10 @@ public class S3AOutputStream extends OutputStream {
    */
   protected TransferManager getTransferManager() {
     return mManager;
+  }
+
+  @Override
+  public Optional<String> getContentHash() {
+    return Optional.ofNullable(mContentHash);
   }
 }

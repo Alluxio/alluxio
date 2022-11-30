@@ -105,10 +105,11 @@ message WriteRequest {
 }
 
 // The write response.
-// next available id: 2
+// next available id: 3
 message WriteResponse {
   optional int64 offset = 1;
   // Errors will be handled by standard gRPC stream APIs.
+  optional string contentHash = 2;
 }
 
 // Request for caching a block asynchronously

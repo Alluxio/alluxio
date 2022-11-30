@@ -120,14 +120,19 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   @Override
   public Fingerprint getParsedFingerprint(String path) {
+    return getParsedFingerprint(path, null);
+  }
+
+  @Override
+  public Fingerprint getParsedFingerprint(String path, @Nullable String contentHash) {
     try {
       UfsStatus status = getStatus(path);
       Pair<AccessControlList, DefaultAccessControlList> aclPair = getAclPair(path);
 
       if (aclPair == null || aclPair.getFirst() == null || !aclPair.getFirst().hasExtended()) {
-        return Fingerprint.create(getUnderFSType(), status);
+        return Fingerprint.create(getUnderFSType(), status, null, contentHash);
       } else {
-        return Fingerprint.create(getUnderFSType(), status, aclPair.getFirst());
+        return Fingerprint.create(getUnderFSType(), status, aclPair.getFirst(), contentHash);
       }
     } catch (IOException e) {
       return Fingerprint.INVALID_FINGERPRINT;

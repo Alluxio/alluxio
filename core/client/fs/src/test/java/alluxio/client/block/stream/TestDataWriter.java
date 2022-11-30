@@ -15,6 +15,7 @@ import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 
 /**
  * A {@link DataWriter} which writes data to a bytebuffer.
@@ -24,6 +25,11 @@ public class TestDataWriter implements DataWriter {
 
   public TestDataWriter(ByteBuffer buffer) {
     mBuffer = buffer;
+  }
+
+  @Override
+  public Optional<String> getContentHash() {
+    return Optional.empty();
   }
 
   @Override

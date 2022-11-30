@@ -1699,7 +1699,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
         if (ufsStatus == null) {
-          ufsFingerprint = ufs.getParsedFingerprint(ufsPath).serialize();
+          ufsFingerprint = ufs.getParsedFingerprint(ufsPath, context.getOptions().hasContentHash()
+              ? context.getOptions().getContentHash() : null).serialize();
         } else {
           ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
         }

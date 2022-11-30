@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Optional;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -96,6 +97,11 @@ public interface DataWriter extends Closeable, Cancelable {
       }
     }
   }
+
+  /**
+   * @return the fingerprint
+   */
+  Optional<String> getContentHash();
 
   /**
    * Writes a chunk. This method takes the ownership of this chunk even if it fails to write

@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -80,6 +81,11 @@ public final class UfsFallbackLocalFileDataWriter implements DataWriter {
     mBlockSize = blockSize;
     mOutStreamOptions = options;
     mIsWritingToLocal = mLocalFileDataWriter != null;
+  }
+
+  @Override
+  public Optional<String> getContentHash() {
+    return mGrpcDataWriter.getContentHash();
   }
 
   @Override

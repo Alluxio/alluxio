@@ -610,6 +610,31 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  public Fingerprint getParsedFingerprint(String path, @Nullable String contentHash) {
+    try {
+      return call(new UfsCallable<Fingerprint>() {
+        @Override
+        public Fingerprint call() throws IOException {
+          return mUnderFileSystem.getParsedFingerprint(path, contentHash);
+        }
+
+        @Override
+        public String methodName() {
+          return "GetParsedFingerprint";
+        }
+
+        @Override
+        public String toString() {
+          return String.format("path=%s", path);
+        }
+      });
+    } catch (IOException e) {
+      // This is not possible.
+      return Fingerprint.INVALID_FINGERPRINT;
+    }
+  }
+
+  @Override
   public UfsMode getOperationMode(Map<String, UfsMode> physicalUfsState) {
     return mUnderFileSystem.getOperationMode(physicalUfsState);
   }

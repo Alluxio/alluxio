@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Optional;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -28,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * that writing to the stream is atomic, i.e., all writes become readable only after a close.
  */
 @NotThreadSafe
-public class AtomicFileOutputStream extends OutputStream {
+public class AtomicFileOutputStream extends OutputStream implements UnderFileSystemOutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(AtomicFileOutputStream.class);
 
   private AtomicFileOutputStreamCallback mUfs;
@@ -37,6 +38,7 @@ public class AtomicFileOutputStream extends OutputStream {
   private String mTemporaryPath;
   private OutputStream mTemporaryOutputStream;
   private boolean mClosed = false;
+  private String mContentHash;
 
   /**
    * Constructs a new {@link AtomicFileOutputStream}.
@@ -83,6 +85,7 @@ public class AtomicFileOutputStream extends OutputStream {
       throw new IOException(
           ExceptionMessage.FAILED_UFS_RENAME.getMessage(mTemporaryPath, mPermanentPath));
     }
+    mContentHash = mUfs.getFileStatus(mPermanentPath).getContentHash();
 
     // Preserve owner and group in case delegation was used to create the path
     if (mOptions.getOwner() != null || mOptions.getGroup() != null) {
@@ -94,6 +97,11 @@ public class AtomicFileOutputStream extends OutputStream {
     }
     // TODO(chaomin): consider setMode of the ufs file.
     mClosed = true;
+  }
+
+  @Override
+  public Optional<String> getContentHash() {
+    return Optional.ofNullable(mContentHash);
   }
 }
 

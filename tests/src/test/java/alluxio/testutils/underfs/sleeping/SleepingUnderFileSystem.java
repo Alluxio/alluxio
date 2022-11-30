@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * An under file system for testing that sleeps a predefined amount of time before executing an
@@ -153,6 +154,12 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   public Fingerprint getParsedFingerprint(String path) {
     sleepIfNecessary(mOptions.getGetFingerprintMs());
     return super.getParsedFingerprint(cleanPath(path));
+  }
+
+  @Override
+  public Fingerprint getParsedFingerprint(String path, @Nullable String contentHash) {
+    sleepIfNecessary(mOptions.getGetFingerprintMs());
+    return super.getParsedFingerprint(cleanPath(path), contentHash);
   }
 
   @Override

@@ -24,6 +24,7 @@ import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemOutputStream;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.proto.ProtoUtils;
 
@@ -83,6 +84,10 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
     }
     Preconditions.checkState(context.getOutputStream() != null);
     context.getOutputStream().close();
+    if (context.getOutputStream() instanceof UnderFileSystemOutputStream) {
+      ((UnderFileSystemOutputStream) context.getOutputStream()).getContentHash()
+          .ifPresent(context::setContentHash);
+    }
     CreateOptions createOptions = context.getCreateOptions();
     if (createOptions != null) {
       try {

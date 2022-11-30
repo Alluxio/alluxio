@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.underfs.UnderFileSystemOutputStream;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -45,6 +46,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -81,12 +83,14 @@ import javax.annotation.concurrent.NotThreadSafe;
  * older than {@link PropertyKey#UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE} will be cleaned.
  */
 @NotThreadSafe
-public class S3ALowLevelOutputStream extends OutputStream {
+public class S3ALowLevelOutputStream extends OutputStream implements UnderFileSystemOutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(S3ALowLevelOutputStream.class);
 
   private final boolean mSseEnabled;
 
   private final List<String> mTmpDirs;
+
+  private String mContentHash;
 
   /**
    * Only parts bigger than 5MB could be uploaded through S3A low-level multipart upload,
@@ -422,7 +426,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
         mKey, uploadId, mTags);
     do {
       try {
-        s3Client.completeMultipartUpload(completeRequest);
+        mContentHash = s3Client.completeMultipartUpload(completeRequest).getETag();
         LOG.debug("Completed multipart upload for key {} and id '{}' with {} partitions.",
             mKey, uploadId, mTags.size());
         return;
@@ -485,5 +489,10 @@ public class S3ALowLevelOutputStream extends OutputStream {
    */
   protected AmazonS3 getClient() {
     return mClient;
+  }
+
+  @Override
+  public Optional<String> getContentHash() {
+    return Optional.ofNullable(mContentHash);
   }
 }

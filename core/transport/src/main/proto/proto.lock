@@ -1061,6 +1061,11 @@
                 "id": 1,
                 "name": "offset",
                 "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "contentHash",
+                "type": "string"
               }
             ]
           },
@@ -2195,6 +2200,11 @@
                 "id": 3,
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
+              },
+              {
+                "id": 4,
+                "name": "contentHash",
+                "type": "string"
               }
             ]
           },

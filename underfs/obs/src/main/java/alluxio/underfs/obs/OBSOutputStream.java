@@ -11,6 +11,7 @@
 
 package alluxio.underfs.obs;
 
+import alluxio.underfs.UnderFileSystemOutputStream;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -33,6 +34,7 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -42,7 +44,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * local disk and copied as a complete file when the {@link #close()} method is called.
  */
 @NotThreadSafe
-public final class OBSOutputStream extends OutputStream {
+public final class OBSOutputStream extends OutputStream implements UnderFileSystemOutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(OBSOutputStream.class);
 
   /**
@@ -75,6 +77,8 @@ public final class OBSOutputStream extends OutputStream {
    * Flag to indicate this stream has been closed, to ensure close is only done once.
    */
   private AtomicBoolean mClosed = new AtomicBoolean(false);
+
+  private String mContentHash;
 
   /**
    * Creates a name instance of {@link OBSOutputStream}.
@@ -172,7 +176,7 @@ public final class OBSOutputStream extends OutputStream {
         byte[] hashBytes = mHash.digest();
         objMeta.setContentMd5(new String(Base64.encodeBase64(hashBytes)));
       }
-      mObsClient.putObject(mBucketName, mKey, in, objMeta);
+      mContentHash = mObsClient.putObject(mBucketName, mKey, in, objMeta).getEtag();
     } catch (ObsException e) {
       LOG.error("Failed to upload {}. Temporary file @ {}", mKey, mFile.getPath());
       throw new IOException(e);
@@ -183,5 +187,10 @@ public final class OBSOutputStream extends OutputStream {
         LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
       }
     }
+  }
+
+  @Override
+  public Optional<String> getContentHash() {
+    return Optional.ofNullable(mContentHash);
   }
 }
