@@ -27,9 +27,9 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.net.BindException;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
+import java.net.Socket;
 
 /**
  * Tests for the different implementations of WebServerSimpleService.
@@ -100,11 +100,10 @@ public class WebServerSimpleServiceTest {
   }
 
   private boolean isBound() {
-    try (ServerSocket socket = new ServerSocket(mWebAddress.getPort())) {
-      socket.setReuseAddress(true);
-      return false;
-    } catch (BindException e) {
+    try (Socket socket = new Socket(mWebAddress.getAddress(), mWebAddress.getPort())) {
       return true;
+    } catch (ConnectException e) {
+      return false;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
