@@ -37,7 +37,6 @@ import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
-import alluxio.master.metastore.kvstorecaching.KVCachingInodeStore;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.DeleteFileEntry;
 import alluxio.proto.journal.File.RenameEntry;
@@ -224,7 +223,7 @@ public class InodeKVTree implements InodeTreeInterface {
    * @param dir the inode directory
    */
   public void setDirectChildrenLoaded(Supplier<JournalContext> context, InodeDirectory dir) {
-    mINodeKVTreePersistentState.applyAndJournal(context, UpdateInodeDirectoryEntry.newBuilder()
+    mINodeKVTreePersistentState.setDirectChildrenLoaded(UpdateInodeDirectoryEntry.newBuilder()
         .setId(dir.getId())
         .setParentId(dir.getParentId())
         .setName(dir.getName())
@@ -246,7 +245,7 @@ public class InodeKVTree implements InodeTreeInterface {
    * @param entry an entry representing an update inode file operation
    */
   public void updateInodeFile(Supplier<JournalContext> context, UpdateInodeFileEntry entry) {
-    mINodeKVTreePersistentState.applyAndJournal(context, entry);
+    mINodeKVTreePersistentState.applyAndJournal(entry);
   }
 
   /**
@@ -254,7 +253,7 @@ public class InodeKVTree implements InodeTreeInterface {
    * @param entry an entry representing an update inode operation
    */
   public void updateInode(Supplier<JournalContext> context, UpdateInodeEntry entry) {
-    mINodeKVTreePersistentState.applyAndJournal(context, entry);
+    mINodeKVTreePersistentState.updateInodeEntry(entry);
   }
 
   @Override
@@ -283,9 +282,9 @@ public class InodeKVTree implements InodeTreeInterface {
     throw new NotSupportedException();
   }
 
-  public void setAcl(Supplier<JournalContext> context, long parentId, String name,
+  public void setAcl(long parentId, String name,
       SetAclAction action, List<AclEntry> values) {
-    mINodeKVTreePersistentState.setAcl(context, parentId, name, action, values);
+    mINodeKVTreePersistentState.setAcl(parentId, name, action, values);
   }
 
   /**
@@ -382,8 +381,7 @@ public class InodeKVTree implements InodeTreeInterface {
       throws InvalidPathException {
     LockedInodePath inodePath =
         new LockedInodePathV2(
-            uri, mInodeStore, mInodeLockManager, getRoot(), lockPattern, tryLock, journalContext
-        );
+            uri, mInodeStore, mInodeLockManager, getRoot(), lockPattern, tryLock);
     try {
       inodePath.traverse();
     } catch (Throwable t) {
@@ -835,7 +833,7 @@ public class InodeKVTree implements InodeTreeInterface {
             // TODO(czhu): determine if xAttr update strategy is required for this
             updateInodeEntry.putAllXAttr(CommonUtils.convertToByteString(context.getXAttr()));
           }
-          mINodeKVTreePersistentState.applyAndJournal(rpcContext, updateInodeEntry.build());
+          mINodeKVTreePersistentState.updateInodeEntry(updateInodeEntry.build());
         }
       }
     }
@@ -1107,7 +1105,7 @@ public class InodeKVTree implements InodeTreeInterface {
     Preconditions.checkState(checkPinningValidity(mediumSet));
 
     Inode inode = inodePath.getInode();
-    mINodeKVTreePersistentState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
+    mINodeKVTreePersistentState.updateInodeEntry(UpdateInodeEntry.newBuilder()
         .setId(inode.getId())
         .setPinned(pinned)
         .addAllMediumType(mediumSet)
@@ -1164,12 +1162,12 @@ public class InodeKVTree implements InodeTreeInterface {
               + "min replication must be smaller or equal than max replication",
           newMin, newMax);
 
-      mINodeKVTreePersistentState.applyAndJournal(rpcContext, UpdateInodeFileEntry.newBuilder()
+      mINodeKVTreePersistentState.applyAndJournal(UpdateInodeFileEntry.newBuilder()
           .setId(inode.getId())
           .setReplicationMax(newMax)
           .setReplicationMin(newMin)
           .build());
-      mINodeKVTreePersistentState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
+      mINodeKVTreePersistentState.updateInodeEntry(UpdateInodeEntry.newBuilder()
           .setId(inode.getId())
           .setPinned(newMin > 0)
           .addAllMediumType(inode.getMediumTypes())
@@ -1259,7 +1257,7 @@ public class InodeKVTree implements InodeTreeInterface {
           // The directory is persisted
           return;
         }
-        mINodeKVTreePersistentState.applyAndJournal(context, UpdateInodeEntry.newBuilder()
+        mINodeKVTreePersistentState.updateInodeEntry(UpdateInodeEntry.newBuilder()
             .setId(dir.getId())
             .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
             .build());
@@ -1289,7 +1287,7 @@ public class InodeKVTree implements InodeTreeInterface {
             isMetadataLoad);
         entry.setPersistenceState(PersistenceState.PERSISTED.name());
 
-        mINodeKVTreePersistentState.applyAndJournal(context, entry.build());
+        mINodeKVTreePersistentState.updateInodeEntry(entry.build());
         return;
       }
     }

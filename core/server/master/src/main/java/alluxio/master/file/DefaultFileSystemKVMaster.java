@@ -3585,7 +3585,7 @@ public class DefaultFileSystemKVMaster extends CoreMaster
       }
     }
 
-    mInodeTree.setAcl(rpcContext, inode.getParentId(), inode.getName(), action, entries);
+    mInodeTree.setAcl(inode.getParentId(), inode.getName(), action, entries);
 
     try {
       if (!replay && inode.isPersisted()) {

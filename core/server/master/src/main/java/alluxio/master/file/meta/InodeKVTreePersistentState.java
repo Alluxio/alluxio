@@ -231,30 +231,18 @@ public class InodeKVTreePersistentState {
   /**
    * Updates an inode's state. This is used for state common to both files and directories.
    *
-   * @param context journal context supplier
    * @param entry update inode entry
    */
-  public void applyAndJournal(Supplier<JournalContext> context, UpdateInodeEntry entry) {
+  public void updateInodeEntry(UpdateInodeEntry entry) {
     applyUpdateInode(entry);
-  }
-
-  /**
-   * Updates an inode directory's state.
-   *
-   * @param context journal context supplier
-   * @param entry update inode directory entry
-   */
-  public void applyAndJournal(Supplier<JournalContext> context, UpdateInodeDirectoryEntry entry) {
-    applyUpdateInodeDirectory(entry);
   }
 
   /**
    * Updates an inode file's state.
    *
-   * @param context journal context supplier
    * @param entry update inode file entry
    */
-  public void applyAndJournal(Supplier<JournalContext> context, UpdateInodeFileEntry entry) {
+  public void applyAndJournal(UpdateInodeFileEntry entry) {
     applyUpdateInodeFile(entry);
   }
 
@@ -338,7 +326,7 @@ public class InodeKVTreePersistentState {
     applyCreateInode(MutableInodeFile.fromJournalEntry(entry), entry.getPath());
   }
 
-  public void setAcl(Supplier<JournalContext> context, long parentId, String name,
+  public void setAcl(long parentId, String name,
       SetAclAction action, List<AclEntry> values) {
     MutableInode<?> inode = mInodeStore.getMutable(parentId, name).get();
     switch (action) {
@@ -432,7 +420,7 @@ public class InodeKVTreePersistentState {
     return entry.getAllFields().size() == 2 && entry.hasId() && entry.hasLastAccessTimeMs();
   }
 
-  private void applyUpdateInodeDirectory(UpdateInodeDirectoryEntry entry) {
+  public void setDirectChildrenLoaded(UpdateInodeDirectoryEntry entry) {
     MutableInode<?> inode = mInodeStore
         .getMutable(entry.getParentId(), entry.getName()).get();
     Preconditions.checkState(inode.isDirectory(),
@@ -690,8 +678,6 @@ public class InodeKVTreePersistentState {
       applyRename(entry.getRename());
     } else if (entry.hasUpdateInode()) {
       applyUpdateInode(entry.getUpdateInode());
-    } else if (entry.hasUpdateInodeDirectory()) {
-      applyUpdateInodeDirectory(entry.getUpdateInodeDirectory());
     } else if (entry.hasUpdateInodeFile()) {
       applyUpdateInodeFile(entry.getUpdateInodeFile());
       // Deprecated entries
