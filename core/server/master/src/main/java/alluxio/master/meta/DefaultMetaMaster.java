@@ -64,7 +64,6 @@ import alluxio.wire.Address;
 import alluxio.wire.BackupStatus;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigHash;
-import alluxio.wire.MasterInfo;
 
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
@@ -94,11 +93,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
 
   // Master metadata management.
-  private static final IndexDefinition<MetaMasterInfo, Long> ID_INDEX =
-      IndexDefinition.ofUnique(MetaMasterInfo::getId);
+  private static final IndexDefinition<MasterInfo, Long> ID_INDEX =
+      IndexDefinition.ofUnique(MasterInfo::getId);
 
-  private static final IndexDefinition<MetaMasterInfo, Address> ADDRESS_INDEX =
-      IndexDefinition.ofUnique(MetaMasterInfo::getAddress);
+  private static final IndexDefinition<MasterInfo, Address> ADDRESS_INDEX =
+      IndexDefinition.ofUnique(MasterInfo::getAddress);
 
   /** Core master context. */
   private final CoreMasterContext mCoreMasterContext;
@@ -115,10 +114,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       new ConfigurationChecker(mMasterConfigStore, mWorkerConfigStore);
 
   /** Keeps track of standby masters which are in communication with the leader master. */
-  private final IndexedSet<MetaMasterInfo> mMasters =
+  private final IndexedSet<MasterInfo> mMasters =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
   /** Keeps track of standby masters which are no longer in communication with the leader master. */
-  private final IndexedSet<MetaMasterInfo> mLostMasters =
+  private final IndexedSet<MasterInfo> mLostMasters =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
   /** The connect address for the rpc server. */
@@ -490,20 +489,20 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public List<MasterInfo> getMasterInfoList() {
-    List<MasterInfo> masterInfoList = new ArrayList<>(mMasters.size());
-    for (MetaMasterInfo master : mMasters) {
-      masterInfoList.add(new MasterInfo(master.getId(),
+  public List<alluxio.wire.MasterInfo> getMasterInfoList() {
+    List<alluxio.wire.MasterInfo> masterInfoList = new ArrayList<>(mMasters.size());
+    for (MasterInfo master : mMasters) {
+      masterInfoList.add(new alluxio.wire.MasterInfo(master.getId(),
           master.getAddress(), master.getLastUpdatedTimeMs()));
     }
     return masterInfoList;
   }
 
   @Override
-  public List<MasterInfo> getLostMasterInfoList() {
-    List<MasterInfo> masterInfoList = new ArrayList<>(mLostMasters.size());
-    for (MetaMasterInfo master : mLostMasters) {
-      masterInfoList.add(new MasterInfo(master.getId(),
+  public List<alluxio.wire.MasterInfo> getLostMasterInfoList() {
+    List<alluxio.wire.MasterInfo> masterInfoList = new ArrayList<>(mLostMasters.size());
+    for (MasterInfo master : mLostMasters) {
+      masterInfoList.add(new alluxio.wire.MasterInfo(master.getId(),
           master.getAddress(), master.getLastUpdatedTimeMs()));
     }
     return masterInfoList;
@@ -511,7 +510,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public long getMasterId(Address address) {
-    MetaMasterInfo existingMaster = mMasters.getFirstByField(ADDRESS_INDEX, address);
+    MasterInfo existingMaster = mMasters.getFirstByField(ADDRESS_INDEX, address);
     if (existingMaster != null) {
       // This master address is already mapped to a master id.
       long oldMasterId = existingMaster.getId();
@@ -519,7 +518,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       return oldMasterId;
     }
 
-    MetaMasterInfo lostMaster = mLostMasters.getFirstByField(ADDRESS_INDEX, address);
+    MasterInfo lostMaster = mLostMasters.getFirstByField(ADDRESS_INDEX, address);
     if (lostMaster != null) {
       // This is one of the lost masters
       mMasterConfigStore.lostNodeFound(lostMaster.getAddress());
@@ -537,7 +536,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
     // Generate a new master id.
     long masterId = IdUtils.getRandomNonNegativeLong();
-    while (!mMasters.add(new MetaMasterInfo(masterId, address))) {
+    while (!mMasters.add(new MasterInfo(masterId, address))) {
       masterId = IdUtils.getRandomNonNegativeLong();
     }
 
@@ -572,7 +571,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public MetaCommand masterHeartbeat(long masterId) {
-    MetaMasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
+    MasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
     if (master == null) {
       LOG.warn("Could not find master id: {} for heartbeat.", masterId);
       return MetaCommand.MetaCommand_Register;
@@ -585,7 +584,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   @Override
   public void masterRegister(long masterId, RegisterMasterPOptions options)
       throws NotFoundException {
-    MetaMasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
+    MasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
     if (master == null) {
       throw new NotFoundException(
           MessageFormat.format("No master with masterId {0,number,#} is found", masterId));
@@ -668,7 +667,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     @Override
     public void heartbeat() {
       long masterTimeoutMs = Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT);
-      for (MetaMasterInfo master : mMasters) {
+      for (MasterInfo master : mMasters) {
         synchronized (master) {
           final long lastUpdate = mClock.millis() - master.getLastUpdatedTimeMs();
           if (lastUpdate > masterTimeoutMs) {

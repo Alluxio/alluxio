@@ -22,7 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Master information.
  */
 @NotThreadSafe
-public final class MetaMasterInfo {
+public final class MasterInfo {
   /** Master's address. */
   private final Address mAddress;
   /** The id of the master. */
@@ -31,12 +31,12 @@ public final class MetaMasterInfo {
   private long mLastUpdatedTimeMs;
 
   /**
-   * Creates a new instance of {@link MetaMasterInfo}.
+   * Creates a new instance of {@link MasterInfo}.
    *
    * @param id the master id to use
    * @param address the master address to use
    */
-  public MetaMasterInfo(long id, Address address) {
+  public MasterInfo(long id, Address address) {
     mAddress = Preconditions.checkNotNull(address, "address");
     mId = id;
     mLastUpdatedTimeMs = System.currentTimeMillis();
