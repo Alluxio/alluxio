@@ -27,7 +27,7 @@ import javax.annotation.concurrent.GuardedBy;
  */
 public class JvmMonitorSimpleService implements SimpleService {
   @Nullable @GuardedBy("this")
-  private JvmPauseMonitor mJvmPauseMonitor;
+  private JvmPauseMonitor mJvmPauseMonitor = null;
 
   private JvmMonitorSimpleService() {}
 
