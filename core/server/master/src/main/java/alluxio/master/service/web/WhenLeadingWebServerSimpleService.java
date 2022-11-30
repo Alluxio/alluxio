@@ -12,6 +12,7 @@
 package alluxio.master.service.web;
 
 import alluxio.master.MasterProcess;
+import alluxio.master.service.rpc.RpcServerSimpleService;
 import alluxio.network.RejectingServer;
 
 import java.net.InetSocketAddress;
@@ -32,17 +33,20 @@ class WhenLeadingWebServerSimpleService extends WebServerSimpleService {
   public synchronized void start() {
     mRejectingServer = new RejectingServer(mBindAddress);
     mRejectingServer.start();
+    waitForBound();
   }
 
   @Override
   public synchronized void promote() {
     stopRejectingServer();
+    waitForFree();
     startWebServer();
   }
 
   @Override
   public synchronized void demote() {
     stopWebServer();
+    waitForFree();
     start(); // start rejecting server again
   }
 
@@ -57,5 +61,13 @@ class WhenLeadingWebServerSimpleService extends WebServerSimpleService {
       mRejectingServer.stopAndJoin();
       mRejectingServer = null;
     }
+  }
+
+  private void waitForFree() {
+    RpcServerSimpleService.waitFor(false, mBindAddress);
+  }
+
+  private void waitForBound() {
+    RpcServerSimpleService.waitFor(true, mBindAddress);
   }
 }
