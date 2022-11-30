@@ -1,9 +1,9 @@
 ---
 layout: global
-title: FUSE-based POSIX API
-nickname: POSIX API
+title: FUSE-based POSIX API with Alluxio Distributed Cache
+nickname: POSIX API with Alluxio Distributed Cache
 group: Client APIs
-priority: 3
+priority: 4
 ---
 
 * Table of Contents
