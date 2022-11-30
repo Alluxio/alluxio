@@ -26,6 +26,7 @@ import io.netty.buffer.Unpooled;
 
 import java.io.IOException;
 import java.io.InputStream;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -99,7 +100,7 @@ public class WriteRequestMarshaller extends DataMessageMarshaller<WriteRequest> 
   }
 
   @Override
-  public WriteRequest combineData(DataMessage<WriteRequest, DataBuffer> message) {
+  public WriteRequest combineData(@Nullable DataMessage<WriteRequest, DataBuffer> message) {
     if (message == null) {
       return null;
     }

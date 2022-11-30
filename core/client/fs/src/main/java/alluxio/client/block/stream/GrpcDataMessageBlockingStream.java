@@ -110,11 +110,14 @@ public class GrpcDataMessageBlockingStream<ReqT, ResT> extends GrpcBlockingStrea
       return super.waitForComplete(timeoutMs);
     }
     DataMessage<ResT, DataBuffer> message;
+    DataMessage<ResT, DataBuffer> prevMessage = null;
     while (!isCanceled() && (message = receiveDataMessage(timeoutMs)) != null) {
-      if (message.getBuffer() != null) {
-        message.getBuffer().release();
+      if (prevMessage != null && prevMessage.getBuffer() != null) {
+        prevMessage.getBuffer().release();
       }
+      prevMessage = message;
     }
-    return super.waitForComplete(timeoutMs);
+    ResT result = mResponseMarshaller.combineData(prevMessage);
+    return Optional.ofNullable(super.waitForComplete(timeoutMs).orElse(result));
   }
 }

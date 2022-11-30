@@ -16,6 +16,7 @@ import static alluxio.grpc.GrpcSerializationUtils.addBuffersToStream;
 import alluxio.collections.ConcurrentIdentityHashMap;
 import alluxio.network.protocol.databuffer.DataBuffer;
 
+import javax.annotation.Nullable;
 import io.grpc.Drainable;
 import io.grpc.MethodDescriptor;
 import io.grpc.internal.CompositeReadableBuffer;
@@ -104,7 +105,7 @@ public abstract class DataMessageMarshaller<T> implements MethodDescriptor.Marsh
    * @param message the message to be combined
    * @return the message with the combined buffer
    */
-  public abstract T combineData(DataMessage<T, DataBuffer> message);
+  public abstract T combineData(@Nullable DataMessage<T, DataBuffer> message);
 
   /**
    * Serialize the message to buffers.
