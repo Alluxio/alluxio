@@ -39,7 +39,6 @@ public final class FileInfo implements Serializable {
   private static final long serialVersionUID = 3086599355791696602L;
 
   private long mFileId;
-  private long mParentId;
   private String mName = "";
   private String mPath = "";
   private String mUfsPath = "";
@@ -85,10 +84,6 @@ public final class FileInfo implements Serializable {
    */
   public long getFileId() {
     return mFileId;
-  }
-
-  public long getParentId() {
-    return mParentId;
   }
 
   /**
@@ -376,11 +371,6 @@ public final class FileInfo implements Serializable {
   public FileInfo setUfsPath(String ufsPath) {
     Preconditions.checkNotNull(ufsPath, "ufsPath");
     mUfsPath = ufsPath;
-    return this;
-  }
-
-  public FileInfo setParentId(long parentId) {
-    mParentId = parentId;
     return this;
   }
 
