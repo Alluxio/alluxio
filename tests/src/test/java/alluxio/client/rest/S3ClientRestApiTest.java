@@ -1579,9 +1579,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
     HttpURLConnection connection = completeMultipartUploadRestCallWithResponse(objectKey, uploadId1,
             new CompleteMultipartUploadRequest(partList1));
     Assert.assertEquals(404, connection.getResponseCode());
-    S3Error response =
-            new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
-    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_UPLOAD, response.getCode());
+    CompleteMultipartUploadResult completeMPResult =
+            new XmlMapper().readerFor(CompleteMultipartUploadResult.class)
+                    .readValue(connection.getErrorStream());
+    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_UPLOAD, completeMPResult.getCode());
   }
 
   @Test
