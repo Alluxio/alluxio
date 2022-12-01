@@ -19,6 +19,13 @@ import java.net.InetSocketAddress;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
+/**
+ * Created through {@link WebServerSimpleService.Factory}.
+ * This service differs from {@link AlwaysOnWebServerSimpleService} because it deploys a web
+ * server only after being promoted. It stops said web server after being demoted or stopped.
+ * When a web server is not deployed, a rejecting server is deployed instead (after the service
+ * has been started).
+ */
 class WhenLeadingWebServerSimpleService extends WebServerSimpleService {
   private final InetSocketAddress mBindAddress;
   @Nullable @GuardedBy("this")

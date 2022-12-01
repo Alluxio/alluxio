@@ -23,7 +23,9 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
- * Simple service to manage the behavior of the {@link alluxio.util.JvmPauseMonitor}.
+ * Created by {@link JvmMonitorSimpleService.Factory}.
+ * This service creates and starts a {@link JvmPauseMonitor} upon being started and stops said
+ * pause monitor upon being stopped.
  */
 public class JvmMonitorSimpleService implements SimpleService {
   @Nullable @GuardedBy("this")

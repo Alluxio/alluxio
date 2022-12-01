@@ -39,7 +39,10 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
- * Manages the behavior of the master's simple service.
+ * Created by {@link RpcServerSimpleService.Factory}.
+ * Manages the behavior of the master's rpc service. It deploys a rpc server only after being
+ * promoted. It stops said rpc web server after being demoted or stopped. When a rpc server is not
+ * deployed, a rejecting server is deployed instead (after the service has been started).
  */
 public class RpcServerSimpleService implements SimpleService {
   private static final Logger LOG = LoggerFactory.getLogger(RpcServerSimpleService.class);
