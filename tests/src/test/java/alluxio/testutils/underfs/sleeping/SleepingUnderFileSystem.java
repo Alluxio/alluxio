@@ -26,6 +26,7 @@ import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.FileInfo;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -157,9 +158,10 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
-  public Fingerprint getParsedFingerprint(String path, @Nullable String contentHash) {
+  public Fingerprint getParsedFingerprint(String path, FileInfo fileInfo,
+      @Nullable String contentHash) {
     sleepIfNecessary(mOptions.getGetFingerprintMs());
-    return super.getParsedFingerprint(cleanPath(path), contentHash);
+    return super.getParsedFingerprint(cleanPath(path), fileInfo, contentHash);
   }
 
   @Override

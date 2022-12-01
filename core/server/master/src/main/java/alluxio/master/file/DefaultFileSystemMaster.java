@@ -1699,8 +1699,15 @@ public class DefaultFileSystemMaster extends CoreMaster
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
         if (ufsStatus == null) {
-          ufsFingerprint = ufs.getParsedFingerprint(ufsPath, context.getOptions().hasContentHash()
-              ? context.getOptions().getContentHash() : null).serialize();
+          AlluxioURI uri = inodePath.getUri();
+          FileInfo fileInfo = inode.generateClientFileInfo(uri.toString()).setLength(length);
+          String contentHash = context.getOptions().hasContentHash()
+              ? context.getOptions().getContentHash() : null;
+          ufsFingerprint = ufs.getParsedFingerprint(ufsPath, fileInfo, contentHash).serialize();
+          String ufsFingerprint2 = ufs.getParsedFingerprint(ufsPath).serialize();
+          if (!ufsFingerprint.equals(ufsFingerprint2)) {
+            LOG.warn("fingerprint mismatch local {}, ufs {}", ufsFingerprint, ufsFingerprint2);
+          }
         } else {
           ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
         }

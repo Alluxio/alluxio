@@ -85,6 +85,11 @@ public class AtomicFileOutputStream extends OutputStream implements UnderFileSys
       throw new IOException(
           ExceptionMessage.FAILED_UFS_RENAME.getMessage(mTemporaryPath, mPermanentPath));
     }
+    // get the content hash immediately after the file has completed writing
+    // which will be used for generating the fingerprint of the file in Alluxio
+    // ideally this value would be received as a result from the close call
+    // so that we would be sure to have the hash relating to the file uploaded
+    // (but such an API is not available for the UFSs that use this stream type)
     mContentHash = mUfs.getFileStatus(mPermanentPath).getContentHash();
 
     // Preserve owner and group in case delegation was used to create the path

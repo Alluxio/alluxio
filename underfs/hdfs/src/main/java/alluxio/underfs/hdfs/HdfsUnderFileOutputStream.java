@@ -18,8 +18,6 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -34,7 +32,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class HdfsUnderFileOutputStream extends OutputStream implements UnderFileSystemOutputStream {
-  private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileOutputStream.class);
   /** Underlying output stream. */
   private final FSDataOutputStream mOut;
   private final FileSystem mFs;
@@ -62,6 +59,7 @@ public class HdfsUnderFileOutputStream extends OutputStream implements UnderFile
     // which will be used for generating the fingerprint of the file in Alluxio
     // ideally this value would be received as a result from the close call
     // so that we would be sure to have the hash relating to the file uploaded
+    // (but such an API is not available for HDFS)
     mContentHash = UnderFileSystemUtils.approximateContentHash(
         fs.getLen(), fs.getModificationTime());
   }

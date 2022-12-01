@@ -30,6 +30,7 @@ import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.wire.FileInfo;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -185,8 +186,9 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public Fingerprint getParsedFingerprint(String path, @Nullable String contentHash) {
-    return mUfs.getParsedFingerprint(path, contentHash);
+  public Fingerprint getParsedFingerprint(String path, FileInfo fileInfo,
+      @Nullable String contentHash) {
+    return mUfs.getParsedFingerprint(path, fileInfo, contentHash);
   }
 
   @Override

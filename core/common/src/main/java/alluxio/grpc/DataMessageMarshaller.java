@@ -16,7 +16,6 @@ import static alluxio.grpc.GrpcSerializationUtils.addBuffersToStream;
 import alluxio.collections.ConcurrentIdentityHashMap;
 import alluxio.network.protocol.databuffer.DataBuffer;
 
-import javax.annotation.Nullable;
 import io.grpc.Drainable;
 import io.grpc.MethodDescriptor;
 import io.grpc.internal.CompositeReadableBuffer;
@@ -28,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * Marshaller for data messages.
