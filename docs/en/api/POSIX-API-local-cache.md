@@ -43,23 +43,27 @@ $ cd alluxio-fuse-{{site.ALLUXIO_VERSION_STRING}}
 ## Mount Under Storage Dataset
 
 Alluxio POSIX API allows accessing data from under storage as local directories.
-This is enabled by using the `mount` command to mount a UFS address to local mount point:
+This is enabled by using the `mount` command to mount a dataset from under storage to local mount point:
 ```console
-$ bin/alluxio-fuse mount ufs_path mount_point -o alluxio_property_key=value
+$ bin/alluxio-fuse mount under_storage_dataset mount_point -o option
 ```
-`ufs_path`: The full UFS path
-`mount_point`: The local mount point to mount the UFS path to. Note that the `<mount_point>` must be an existing and empty path in your local file system hierarchy
-and that the user that runs the `mount` command must own the mount point and have read and write permissions on it.
-`-o alluxio_property_key=value`: All the under storage credentials and configuration can be provided using this format.
-The available under storage configuration and their detail documentation can be found under the `Storage Integrations` tap of the left of the doc page.
+- `under_storage_dataset`: The full under storage dataset address. e.g. `s3://bucket_name/path/to/dataset`, `hdfs://namenode_address:port/path/to/dataset`
+- `mount_point`: The local mount point to mount the under storage dataset to.
+Note that the `<mount_point>` must be an existing and empty path in your local file system hierarchy.
+User that runs the `mount` command must own the mount point and have read and write permissions on it.
+- `-o option`: All the `alluxio-fuse mount` options are provided using this format. Options include
+  - Alluxio property key value pair in `-o alluxio_property_key=value` format
+    - Under storage credentials and configuration. Detailed configuration can be found under the `Storage Integrations` tap of the left of the doc page.
+  - Local cache configuration. Detailed usage can be found in the [local cache section](#local-cache)
+  - Generic mount options. Detailed supported mount options information can be found in the [FUSE mount options section](#fuse-mount-options)
 
-After mounting, `alluxio-fuse` mount can be found
+After mounting, `alluxio-fuse` mount can be found locally
 ```console
 $ mount | grep "alluxio-fuse"
 alluxio-fuse on mount_point type fuse.alluxio-fuse (rw,nosuid,nodev,relatime,user_id=1000,group_id=1000)
 ```
 
-AlluxioFuse process is launched
+`AlluxioFuse` process will be launched
 ```console
 $ jps
 34884 AlluxioFuse
@@ -72,7 +76,7 @@ useful for troubleshooting when errors happen on operations under the filesystem
 
 Mounts the dataset in target S3 bucket to a local folder:
 ```console
-$ bin/alluxio-fuse mount s3://my_bucket/directory/ /mnt/alluxio-fuse -o s3a.accessKeyId=<S3 ACCESS KEY> -o s3a.secretKey=<S3 SECRET KEY>
+$ bin/alluxio-fuse mount s3://bucket_name/path/to/dataset/ /path/to/mount_point -o s3a.accessKeyId=<S3 ACCESS KEY> -o s3a.secretKey=<S3 SECRET KEY>
 ```
 Other [S3 configuration]({{ '/en/ufs/S3.html' | relativize_url }}#advanced-setup) (e.g. `-o alluxio.underfs.s3.region=<region>`) can also be set via the `-o alluxio_property_key=value` format.
 
@@ -80,42 +84,42 @@ Other [S3 configuration]({{ '/en/ufs/S3.html' | relativize_url }}#advanced-setup
 
 Mounts the dataset in target google cloud storage to a local folder:
 ```console
-$ bin/alluxio-fuse mount gs://my_bucket/directory/ /mnt/alluxio-fuse -o fs.gcs.credential.path=/path/to/<google_application_credentials>.json
+$ bin/alluxio-fuse mount gs://bucket_name/path/to/dataset/ /path/to/mount_point -o fs.gcs.credential.path=/path/to/<google_application_credentials>.json
 ```
 
 ## Example: Run operations
 
 After mounting the dataset from under storage to local mount point,
-standard tools (for example, `ls`, `cat` or `mkdir`) will have basic access
+standard tools (for example, `ls`, `cat` or `mkdir`) have basic access
 to the under storage. With the POSIX API integration, applications can interact with the remote under storage no
 matter what language (C, C++, Python, Ruby, Perl, or Java) they are written in without any under storage
 library integrations.
 
 ### Write Through to Mounted Under Storage Dataset
 
-All the local mount point write will be directly write through to the underlying mounted under storage dataset:
+All the write operations happening inside the local mount point will be directly
+translated to write operations against the mounted under storage dataset
 ```console
-$ cd /mnt/alluxio-fuse
+$ cd /path/to/mount_point
 $ mkdir testfolder
 $ dd if=/dev/zero of=testfolder/testfile bs=5MB count=1
 ```
 
-`folder` will be directly created at `ufs_path/testfolder` (e.g. `s3://my_bucket/directory/testfolder`
-`testfolder/testfile` will be directly written to `ufs_path/testfolder/testfile` (e.g. `s3://my_bucket/directory/testfolder/testfile`
+`folder` will be directly created at `under_storage_dataset/testfolder` (e.g. `s3://bucket_name/path/to/dataset/testfolder`
+`testfolder/testfile` will be directly written to `under_storage_dataset/testfolder/testfile` (e.g. `s3://bucket_name/path/to/dataset/testfolder/testfile`
 
 ### Read Through from Mounted Under Storage Dataset
 
 Without the [local cache](#local-cache) functionalities that we will talk about later, all the read operations
 via the local mount point will be translated to read operations against the underlying data storage:
-
 ```console
-$ cd /mnt/alluxio-fuse
-$ cp -r /mnt/alluxio-fuse/testfolder /tmp/
+$ cd /path/to/mount_point
+$ cp -r /path/to/mount_point/testfolder /tmp/
 $ ls /tmp/testfolder
 -rwx------.  1 ec2-user ec2-user 5000000 Nov 22 00:27 testfile
 ```
-The read from `/mnt/alluxio-fuse/testfolder` will be translated to a read targeting `ufs_path/testfolder/testfile` (e.g. `s3://my_bucket/directory/testfolder/testfile`.
-Data will be read from remote under storage directly.
+The read from `/path/to/mount_point/testfolder` will be translated to a read targeting `under_storage_dataset/testfolder/testfile` (e.g. `s3://bucket_name/path/to/dataset/testfolder/testfile`.
+Data will be read from the under storage dataset directly.
 
 ## Unmount
 
@@ -126,7 +130,7 @@ $ bin/alluxio-fuse unmount mount_point
 After unmounting the FUSE mount point, the corresponding `AlluxioFuse` process should be killed 
 and the mount point should be removed. For example:
 ```console
-$ bin/alluxio-fuse unmount /mnt/alluxio-fuse
+$ bin/alluxio-fuse unmount /path/to/mount_point
 $ mount | grep "alluxio-fuse"
 $ jps | grep "AlluxioFuse"
 ```
@@ -239,7 +243,7 @@ FUSE has the following I/O modes controlling whether data will be cached and the
 
 Set up to one of the data cache option via mount command:
 ```console
-$ bin/alluxio-fuse mount ufs_path mount_point -o direct_io
+$ bin/alluxio-fuse mount under_storage_dataset mount_point -o direct_io
 ```
 
 Kernel data cache will significantly improve the I/O performance but is easy to consume a large amount of node memory.
@@ -256,7 +260,7 @@ To avoid this circumstances, use `direct_io` mode or use a script to cleanup the
 
 Userspace data cache can be enabled via 
 ```console
-$ bin/alluxio-fuse mount ufs_path mount_point -o data_cache=<local_cache_directory> -o data_cache_size=<size>
+$ bin/alluxio-fuse mount under_storage_dataset mount_point -o data_cache=<local_cache_directory> -o data_cache_size=<size>
 ```
 `data_cache` (Default = "" which means disabled): Local folder to use for local data cache
 `data_cache_size` (Default = `512MB`): Maximum cache size for local data cache directory
@@ -266,13 +270,13 @@ Data can be cached on ramdisk or disk based on the type of the cache directory.
 Example of mounting S3 bucket with local userspace cache enabled:
 ```console
 $ mkdir /tmp/local_cache
-$ bin/alluxio-fuse mount s3://my_bucket/directory/ /mnt/alluxio-fuse -o s3a.accessKeyId=<S3 ACCESS KEY> -o s3a.secretKey=<S3 SECRET KEY> -o data_cache=/tmp/local_cache -o data_cache_size=5GB
-# Assume s3://my_bucket/directory/ already has a test file with 1GB size
-$ time cat /mnt/alluxio-fuse/testfile > /dev/null
+$ bin/alluxio-fuse mount s3://bucket_name/path/to/dataset/ /path/to/mount_point -o s3a.accessKeyId=<S3 ACCESS KEY> -o s3a.secretKey=<S3 SECRET KEY> -o data_cache=/tmp/local_cache -o data_cache_size=5GB
+# Assume s3://bucket_name/path/to/dataset/ already has a test file with 1GB size
+$ time cat /path/to/mount_point/testfile > /dev/null
 read 0m44.817s
 user 0m0.016s
 sys  0m0.293s
-$ time cat /mnt/alluxio-fuse/testfile > /dev/null
+$ time cat /path/to/mount_point/testfile > /dev/null
 read 0m0.522s
 user 0m0.010s
 sys  0m0.346s
@@ -320,3 +324,74 @@ Most basic file system operations are supported. However, some operations are un
 </table>
 
 Note that all file/dir permissions are checked against the user launching the AlluxioFuse process instead of the end user running the operations.
+
+## Advanced Configuration
+
+#### Select Libfuse Version
+
+Alluxio now supports both libfuse2 and libfuse3. Alluxio FUSE on libfuse2 is more stable and has been tested in production.
+Alluxio FUSE on libfuse3 is currently experimental but under active development. Alluxio will focus more on libfuse3 and utilize new features provided.
+
+**libfuse2** will is used by default.
+
+Set to use **libfuse3** via:
+```console
+$ sudo yum install fuse3
+$ bin/alluxio-fuse mount under_storage_dataset mount_point -o alluxio.fuse.jnifuse.libfuse.version=3
+```
+
+See `logs/fuse.out` for which version is used.
+```
+INFO  NativeLibraryLoader - Loaded libjnifuse with libfuse version 2(or 3).
+```
+
+#### FUSE Mount Options
+
+You can use `alluxio-fuse mount -o mount_option_a -o mount_option_b=value` to set mount options when launching the standalone Fuse process.
+
+Different versions of `libfuse` and `osxfuse` may support different mount options.
+The available Linux mount options are listed [here](http://man7.org/linux/man-pages/man8/mount.fuse3.8.html).
+The mount options of MacOS with osxfuse are listed [here](https://github.com/osxfuse/osxfuse/wiki/Mount-options) .
+Some mount options (e.g. `allow_other` and `allow_root`) need additional set-up
+and the set-up process may be different depending on the platform.
+
+```console
+$ bin/alluxio-fuse mount under_storage_dataset mount_point -o mount_option
+```
+{% accordion example %}
+{% collapsible Example: `allow_other` and `allow_root` %}
+By default, Alluxio-FUSE mount point can only be accessed by the user
+mounting the Alluxio namespace to the local filesystem.
+
+For Linux, add the following line to file `/etc/fuse.conf` to allow other users
+or allow root to access the mounted directory:
+```
+user_allow_other
+```
+Only after this step that non-root users have the permission to specify the `allow_other` or `allow_root` mount options.
+
+For MacOS, follow the [osxfuse allow_other instructions](https://github.com/osxfuse/osxfuse/wiki/Mount-options)
+to allow other users to use the `allow_other` and `allow_root` mount options.
+
+After setting up, pass the `allow_other` or `allow_root` mount options when mounting Alluxio-FUSE:
+```console
+# All users (including root) can access the files.
+$ bin/alluxio-fuse mount under_storage_dataset mount_point -o allow_other
+# The user mounting the filesystem and root can access the files.
+$ bin/alluxio-fuse mount under_storage_dataset mount_point -o allow_root
+```
+Note that only one of the `allow_other` or `allow_root` could be set.
+{% endcollapsible %}
+{% endaccordion %}
+
+## Troubleshooting
+
+This section talks about how to troubleshoot issues related to Alluxio POSIX API.
+
+### Out of Direct Memory
+
+When encountering the out of direct memory issue, add the following JVM opts to `${ALLUXIO_HOME}/conf/alluxio-env.sh` to increase the max amount of direct memory.
+
+```bash
+ALLUXIO_FUSE_JAVA_OPTS+=" -XX:MaxDirectMemorySize=8G"
+```
