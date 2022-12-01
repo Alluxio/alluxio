@@ -7149,6 +7149,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
                   .setScope(Scope.SERVER)
                   .build();
+
+  public static final PropertyKey DORA_CLIENT_READ_LOCATION_POLICY_ENABLED =
+      booleanBuilder(Name.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to use client side location policy for reading")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .build();
+
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -8591,6 +8600,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL =
         "alluxio.hadoop.kerberos.keytab.login.autorenewal";
+
+    public static final String DORA_CLIENT_READ_LOCATION_POLICY_ENABLED =
+        "alluxio.dora.client.read.location.policy.enabled";
 
     private Name() {} // prevent instantiation
   }
