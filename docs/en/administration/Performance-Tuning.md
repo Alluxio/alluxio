@@ -182,7 +182,7 @@ alive if the journal writing location is unavailable for an extended duration.
 When using the embedded journal, before each update operation in Alluxio is committed, a journal
 entry corresponding to the operation must be written and flushed to disk in a write-ahead-log (WAL) at all masters.
 If the WAL is located on a disk that is frequently accessed by other processes, the performance of
-update operations in Alluxio may suffer. This may be the case if, for example, if the WAL shares a disk with the
+update operations in Alluxio may suffer. This may be the case if, for example, the WAL shares a disk with the
 [basic logging]({{ '/en/administration/Basic-Logging.html' | relativize_url }}) operations.
 
 For optimal performance it may be useful to dedicate a disk specifically to the journal.
