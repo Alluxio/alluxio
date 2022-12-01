@@ -27,10 +27,12 @@ import java.util.zip.DataFormatException;
 public final class MultiOperationMasterBenchSummary
     extends GeneralBenchSummary<MultiOperationMasterBenchTaskResult> {
   private long mDurationMs;
-  long mEndTimeMs;
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
+  private long mEndTimeMs;
   private MultiOperationMasterBenchParameters mParameters;
 
-  List<SummaryStatistics> mStatistics;
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
+  private List<SummaryStatistics> mStatistics;
 
   private Map<String, SummaryStatistics> mStatisticsPerMethod;
 
