@@ -1908,8 +1908,7 @@ public class DefaultFileSystemKVMaster extends CoreMaster
       }
       Metrics.NEW_BLOCKS_GOT.inc();
 
-      long blockId = mInodeTree.newBlock(rpcContext, inodePath.getInode().getParentId(),
-          inodePath.getInode().getName());
+      long blockId = mInodeTree.newBlock(rpcContext, inodePath.getInode().getId());
       auditContext.setSucceeded(true);
       return blockId;
     }
@@ -3586,7 +3585,7 @@ public class DefaultFileSystemKVMaster extends CoreMaster
       }
     }
 
-    mInodeTree.setAcl(inode.getParentId(), inode.getName(), action, entries);
+    mInodeTree.setAcl(inode.getId(), action, entries);
 
     try {
       if (!replay && inode.isPersisted()) {

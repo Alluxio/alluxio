@@ -212,8 +212,8 @@ public class InodeKVTreePersistentState {
     delete(entry);
   }
 
-  public long newBlock(Supplier<JournalContext> context, long parentId, String name) {
-    MutableInodeFile inode = ((KVCachingInodeStore)mInodeStore).getMutable(parentId, name).get().asFile();
+  public long newBlock(Supplier<JournalContext> context, long id) {
+    MutableInodeFile inode = mInodeStore.getMutable(id).get().asFile();
     long newBlockId = inode.getNewBlockId();
     mInodeStore.writeInode(inode);
     return newBlockId;
@@ -256,13 +256,11 @@ public class InodeKVTreePersistentState {
    */
   public void applyAndJournal(Supplier<JournalContext> context, MutableInode<?> inode,
       String path) {
-    createInode(inode, path);
+    createInode(inode);
   }
 
-
-  public UpdateInodeEntry applyInodeAccessTime(long parentId, String name, long accessTime) {
-    UpdateInodeEntry entry = UpdateInodeEntry.newBuilder().setParentId(parentId)
-        .setName(name)
+  public UpdateInodeEntry applyInodeAccessTime(long nodeId, long accessTime) {
+    UpdateInodeEntry entry = UpdateInodeEntry.newBuilder().setId(nodeId)
         .setLastAccessTimeMs(accessTime).build();
     applyUpdateInode(entry);
     return entry;
@@ -275,11 +273,7 @@ public class InodeKVTreePersistentState {
 
   private void delete(DeleteFileEntry entry) {
     long id = entry.getId();
-    Path path = Paths.get(entry.getPath());
-    long parentId = getIdFromPath(path.getParent());
-    String pathName = path.getFileName().toString();
-
-    Inode inode = mInodeStore.getChild(parentId, pathName).get();
+    Inode inode = mInodeStore.get(id).get();
 
     // The recursive option is only used by old versions.
     if (inode.isDirectory() && entry.getRecursive()) {
@@ -308,11 +302,7 @@ public class InodeKVTreePersistentState {
     if (inode.isFile()) {
       mBucketCounter.remove(inode.asFile().getLength());
     }
-
-    String parentName = path.getParent().getFileName().toString();
-    long grandpaId = getIdFromPath(path.getParent().getParent());
-
-    updateTimestampsAndChildCount(grandpaId, parentName, entry.getOpTimeMs(), -1);
+    updateTimestampsAndChildCount(inode.getParentId(), entry.getOpTimeMs(), -1);
     mPinnedInodeFileIds.remove(id);
     mReplicationLimitedFileIds.remove(id);
     mToBePersistedIds.remove(id);
@@ -320,16 +310,16 @@ public class InodeKVTreePersistentState {
   }
 
   private void createDirectory(InodeDirectoryEntry entry) {
-    createInode(MutableInodeDirectory.fromJournalEntry(entry), entry.getPath());
+    createInode(MutableInodeDirectory.fromJournalEntry(entry));
   }
 
   private void createFile(InodeFileEntry entry) {
-    createInode(MutableInodeFile.fromJournalEntry(entry), entry.getPath());
+    createInode(MutableInodeFile.fromJournalEntry(entry));
   }
 
-  public void setAcl(long parentId, String name,
+  public void setAcl(long id,
       SetAclAction action, List<AclEntry> values) {
-    MutableInode<?> inode = mInodeStore.getMutable(parentId, name).get();
+    MutableInode<?> inode = mInodeStore.getMutable(id).get();
     switch (action) {
       case REPLACE:
         // fully replace the acl for the path
@@ -421,8 +411,7 @@ public class InodeKVTreePersistentState {
   }
 
   public void setDirectChildrenLoaded(UpdateInodeDirectoryEntry entry) {
-    MutableInode<?> inode = mInodeStore
-        .getMutable(entry.getParentId(), entry.getName()).get();
+    MutableInode<?> inode = mInodeStore.getMutable(entry.getId()).get();
     Preconditions.checkState(inode.isDirectory(),
         "Encountered non-directory id in update directory entry %s", entry);
 
@@ -431,12 +420,7 @@ public class InodeKVTreePersistentState {
   }
 
   private void applyUpdateInodeFile(UpdateInodeFileEntry entry) {
-    Path path = Paths.get(entry.getPath());
-    Path parentPath = path.getParent();
-    String name = path.getFileName().toString();
-    long parentId = getIdFromPath(parentPath);
-    MutableInode<?> inode = mInodeStore
-        .getMutable(parentId, name).get();
+    MutableInode<?> inode = mInodeStore.getMutable(entry.getId()).get();
     Preconditions.checkState(inode.isFile(), "Encountered non-file id in update file entry %s",
         entry);
     if (entry.hasReplicationMax()) {
@@ -522,7 +506,7 @@ public class InodeKVTreePersistentState {
   // Helper methods
   ////
 
-  private void createInode(MutableInode<?> inode, String path) {
+  private void createInode(MutableInode<?> inode) {
     if (inode.isDirectory() && inode.getName().equals(InodeTree.ROOT_INODE_NAME)) {
       // This is the root inode. Clear all the state, and set the root.
       mInodeStore.clear();
@@ -541,15 +525,8 @@ public class InodeKVTreePersistentState {
     mInodeStore.writeNewInode(inode);
     mInodeCounter.increment();
     mInodeStore.addChild(inode.getParentId(), inode);
-    Path parentPath = Paths.get(path).getParent();
-    String parentName = InodeTree.ROOT_INODE_NAME;
-    long grandpaId = 0;
-    if (!parentPath.toString().equals(InodeTree.ROOT_PATH)) {
-      parentName = parentPath.getFileName().toString();
-      grandpaId = getIdFromPath(parentPath.getParent());
-    }
     // Only update size, last modified time is updated separately.
-    updateTimestampsAndChildCount(grandpaId, parentName, Long.MIN_VALUE, 1);
+    updateTimestampsAndChildCount(inode.getParentId(), Long.MIN_VALUE, 1);
     if (inode.isFile()) {
       boolean pinned = inode.asFile().isPinned() || inode.asFile().getReplicationMin() > 0;
       setReplicationForPin(inode, pinned);
@@ -566,48 +543,28 @@ public class InodeKVTreePersistentState {
     if (entry.hasDstPath()) {
       entry = rewriteDeprecatedRenameEntry(entry);
     }
-    Path srcPath = Paths.get(entry.getPath());
-    Path fileName = srcPath.getFileName();
-    long oldParentId = getIdFromPath(srcPath.getParent());
-    MutableInode<?> inode = mInodeStore
-        .getMutable(oldParentId, fileName.toString()).get();
+
+    MutableInode<?> inode = mInodeStore.getMutable(entry.getId()).get();
     long oldParent = inode.getParentId();
     long newParent = entry.getNewParentId();
 
-    String oldParentName = "";
-    long oldGrandpaId = 0;
-    if (oldParent != 0) {
-      // Old parent is not root
-      oldParentName = srcPath.getParent().getFileName().toString();
-      oldGrandpaId = getIdFromPath(srcPath.getParent().getParent());
-    }
-
-    Path path = Paths.get(entry.getDstPath());
-    long newGrandpaId = 0;
-    String newParentName = "";
-    if (newParent != 0) {
-      newGrandpaId = getIdFromPath(path.getParent().getParent());
-      newParentName = path.getParent().getFileName().toString();
-    }
-
-    // TODO(yyong) to keep atomic, the journal required here.
     mInodeStore.removeChild(oldParent, inode.getName());
     inode.setName(entry.getNewName());
+    mInodeStore.addChild(newParent, inode);
     inode.setParentId(newParent);
     mInodeStore.writeInode(inode);
 
     if (oldParent == newParent) {
-      updateTimestampsAndChildCount(oldGrandpaId, oldParentName, entry.getOpTimeMs(), 0);
+      updateTimestampsAndChildCount(oldParent, entry.getOpTimeMs(), 0);
     } else {
-      updateTimestampsAndChildCount(oldGrandpaId, oldParentName, entry.getOpTimeMs(), -1);
-      updateTimestampsAndChildCount(newGrandpaId, newParentName, entry.getOpTimeMs(), 1);
+      updateTimestampsAndChildCount(oldParent, entry.getOpTimeMs(), -1);
+      updateTimestampsAndChildCount(newParent, entry.getOpTimeMs(), 1);
     }
   }
 
-  private void updateTimestampsAndChildCount(long parentId, String name,
-      long opTimeMs, long deltaChildCount) {
+  private void updateTimestampsAndChildCount(long id, long opTimeMs, long deltaChildCount) {
     MutableInodeDirectory inode = mInodeStore
-        .getMutable(parentId, name).get().asDirectory();
+        .getMutable(id).get().asDirectory();
     try (LockResource lr = mInodeLockManager.lockUpdate(inode.getId())) {
       boolean madeUpdate = false;
       if (inode.getLastModificationTimeMs() < opTimeMs) {

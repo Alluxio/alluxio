@@ -225,8 +225,6 @@ public class InodeKVTree implements InodeTreeInterface {
   public void setDirectChildrenLoaded(Supplier<JournalContext> context, InodeDirectory dir) {
     mINodeKVTreePersistentState.setDirectChildrenLoaded(UpdateInodeDirectoryEntry.newBuilder()
         .setId(dir.getId())
-        .setParentId(dir.getParentId())
-        .setName(dir.getName())
         .setDirectChildrenLoaded(true)
         .build());
   }
@@ -236,8 +234,8 @@ public class InodeKVTree implements InodeTreeInterface {
     return 0;
   }
 
-  public long newBlock(Supplier<JournalContext> context, long parentId, String name) {
-    return mINodeKVTreePersistentState.newBlock(context, parentId, name);
+  public long newBlock(Supplier<JournalContext> context, long id) {
+    return mINodeKVTreePersistentState.newBlock(context, id);
   }
 
   /**
@@ -258,12 +256,7 @@ public class InodeKVTree implements InodeTreeInterface {
 
   @Override
   public UpdateInodeEntry updateInodeAccessTimeNoJournal(long inodeId, long accessTime) {
-    throw new NotSupportedException();
-  }
-
-  public UpdateInodeEntry updateInodeAccessTimeNoJournal(long parentId, String name,
-      long accessTime) {
-    return mINodeKVTreePersistentState.applyInodeAccessTime(parentId, name, accessTime);
+    return mINodeKVTreePersistentState.applyInodeAccessTime(inodeId, accessTime);
   }
 
   /**
@@ -282,9 +275,9 @@ public class InodeKVTree implements InodeTreeInterface {
     throw new NotSupportedException();
   }
 
-  public void setAcl(long parentId, String name,
+  public void setAcl(long id,
       SetAclAction action, List<AclEntry> values) {
-    mINodeKVTreePersistentState.setAcl(parentId, name, action, values);
+    mINodeKVTreePersistentState.setAcl(id, action, values);
   }
 
   /**

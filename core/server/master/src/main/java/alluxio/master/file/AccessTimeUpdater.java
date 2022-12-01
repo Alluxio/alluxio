@@ -123,7 +123,7 @@ final class AccessTimeUpdater implements JournalSink {
       try (LockResource lr = mInodeTree.getInodeLockManager().lockUpdate(inode.getId())) {
         if (mExecutorService != null) {
           if (mInodeTree instanceof InodeKVTree) {
-            ((InodeKVTree)mInodeTree).updateInodeAccessTimeNoJournal(inode.getParentId(), inode.getName(), opTimeMs);
+            ((InodeKVTree)mInodeTree).updateInodeAccessTimeNoJournal(inode.getId(), opTimeMs);
           } else {
             // journal update asynchronously
             UpdateInodeEntry entry = mInodeTree.updateInodeAccessTimeNoJournal(inode.getId(),

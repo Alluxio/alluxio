@@ -490,7 +490,6 @@ public final class GrpcUtils {
         .setInMemoryPercentage(fileInfo.getInMemoryPercentage())
         .setUfsFingerprint(fileInfo.getUfsFingerprint())
         .setReplicationMax(fileInfo.getReplicationMax())
-        .setParentId(fileInfo.getParentId())
         .setReplicationMin(fileInfo.getReplicationMin());
 
     if (!fileInfo.getAcl().equals(AccessControlList.EMPTY_ACL)) {
