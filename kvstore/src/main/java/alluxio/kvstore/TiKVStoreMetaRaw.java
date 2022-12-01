@@ -6,6 +6,8 @@ import alluxio.proto.kvstore.FileCacheStatusKey;
 import alluxio.proto.kvstore.FileEntryKey;
 import alluxio.proto.kvstore.FileEntryValue;
 
+import alluxio.proto.kvstore.InodeTreeEdgeKey;
+import alluxio.proto.kvstore.InodeTreeEdgeValue;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.tikv.common.TiConfiguration;
 import org.tikv.common.TiSession;
@@ -70,7 +72,7 @@ public class TiKVStoreMetaRaw implements KVStoreMetaInterface, Closeable {
       map.put(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(fileEntry.getFirst().toByteArray()),
           org.tikv.shade.com.google.protobuf.ByteString.copyFrom(fileEntry.getSecond().toByteArray()));
     }
-    mRawKVClient.batchPut(map);
+    mRawKVClient.batchPutAtomic(map);
     return true;
   }
 
@@ -199,6 +201,48 @@ public class TiKVStoreMetaRaw implements KVStoreMetaInterface, Closeable {
       for (Kvrpcpb.KvPair kvPair : kvPairs) {
         list.add(new Pair<>(FileCacheStatusKey.parseFrom(kvPair.getKey().toByteArray()),
             FileCacheStatus.parseFrom(kvPair.getValue().toByteArray())));
+      }
+
+      return list;
+    } catch (InvalidProtocolBufferException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public Optional<InodeTreeEdgeValue> getInodeTreeEdge(InodeTreeEdgeKey key) {
+    try {
+      ByteString bytes = mRawKVClient.get(
+          org.tikv.shade.com.google.protobuf.ByteString.copyFrom(key.toByteArray()));
+      if (bytes.size() == 0) {
+        return Optional.empty();
+      }
+
+      return Optional.of(InodeTreeEdgeValue.parseFrom(bytes.toByteArray()));
+    } catch (InvalidProtocolBufferException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public void deleteInodeTreeEdge(InodeTreeEdgeKey key) {
+    mRawKVClient.delete(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(
+        key.toByteArray()));
+  }
+
+  @Override
+  public List<Pair<InodeTreeEdgeKey, InodeTreeEdgeValue>> scanEdge(InodeTreeEdgeKey startKey,
+      InodeTreeEdgeKey endKey, int limit) {
+    try {
+      List<org.tikv.kvproto.Kvrpcpb.KvPair> kvPairs = mRawKVClient
+          .scan(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(startKey.toByteArray()),
+              org.tikv.shade.com.google.protobuf.ByteString.copyFrom(endKey.toByteArray()), limit);
+
+      List<Pair<InodeTreeEdgeKey, InodeTreeEdgeValue>> list
+          = new LinkedList<Pair<InodeTreeEdgeKey, InodeTreeEdgeValue>>();
+      for (Kvrpcpb.KvPair kvPair : kvPairs) {
+        list.add(new Pair<>(InodeTreeEdgeKey.parseFrom(kvPair.getKey().toByteArray()),
+            InodeTreeEdgeValue.parseFrom(kvPair.getValue().toByteArray())));
       }
 
       return list;

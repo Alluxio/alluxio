@@ -11,6 +11,7 @@
 
 package alluxio.master.metastore;
 
+import alluxio.collections.Pair;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodeView;
@@ -66,7 +67,7 @@ public interface KVInodeStore extends KVReadOnlyInodeStore, Closeable {
    * @param inode an inode to remove
    */
   default void remove(InodeView inode) {
-    removeChild(inode.getParentId(), inode.getName());
+    removeChild(inode.getParentId(), inode.getName(), inode.getId());
   }
 
   /**
@@ -95,6 +96,10 @@ public interface KVInodeStore extends KVReadOnlyInodeStore, Closeable {
   default void writeNewInode(MutableInode<?> inode) {
     writeInode(inode);
   }
+
+  Optional<Pair<Long, String>> getEdgeToParent(long childId);
+
+  void removeEdge(long childId);
 
   /**
    * Creates a write batch. Not all implementations support this, so callers should first check
@@ -127,6 +132,9 @@ public interface KVInodeStore extends KVReadOnlyInodeStore, Closeable {
    * @param parentId the parent inode id
    * @param name the child name
    */
+  void removeChild(long parentId, String name, long id);
+
+
   void removeChild(long parentId, String name);
 
   @Override
@@ -152,7 +160,7 @@ public interface KVInodeStore extends KVReadOnlyInodeStore, Closeable {
      * @param parentId the parent id
      * @param childName the child id
      */
-    void removeChild(Long parentId, String childName);
+    void removeChild(Long parentId, String childName, Long childId);
 
     /**
      * Performs the batched write.

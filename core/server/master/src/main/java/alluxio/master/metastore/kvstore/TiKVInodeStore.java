@@ -26,6 +26,8 @@ import alluxio.proto.kvstore.FileCacheStatus;
 import alluxio.proto.kvstore.FileCacheStatusKey;
 import alluxio.proto.kvstore.FileEntryKey;
 import alluxio.proto.kvstore.FileEntryValue;
+import alluxio.proto.kvstore.InodeTreeEdgeKey;
+import alluxio.proto.kvstore.InodeTreeEdgeValue;
 import alluxio.proto.kvstore.KVEntryType;
 import alluxio.proto.kvstore.KVStoreTable;
 import alluxio.proto.meta.InodeMeta;
@@ -82,11 +84,25 @@ public class TiKVInodeStore implements KVInodeStore {
         .setMEntryType(inode.isDirectory() ? KVEntryType.DIRECTORY : KVEntryType.FILE)
         .setMEV(KVStoreUtils.convertMutableInodeToByteString(inode))
         .build();
+    InodeTreeEdgeKey inodeTreeEdgeKey = InodeTreeEdgeKey.newBuilder()
+        .setTableType(KVStoreTable.INODE_EDGE)
+        .setId(inode.getId())
+        .build();
+    InodeTreeEdgeValue inodeTreeEdgeValue = InodeTreeEdgeValue.newBuilder()
+        .setParentId(inode.getParentId())
+        .setChildName(inode.getName())
+        .build();
     // TODO(yyong) figure out the format of metadata part
     // Need to check if the entry exists.
     // mKVStoreMetaInterface.createFileEntry(fileEntryKey, fileEntryValue);
     // So far only update, the caller should make sure the key not existing
-    mKVStoreMetaInterface.updateFileEntry(fileEntryKey, fileEntryValue);
+    // mKVStoreMetaInterface.updateFileEntry(fileEntryKey, fileEntryValue);
+    Map<ByteString, ByteString> map = new HashMap<ByteString, ByteString>();
+    map.put(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(fileEntryKey.toByteArray()),
+        org.tikv.shade.com.google.protobuf.ByteString.copyFrom(fileEntryValue.toByteArray()));
+    map.put(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(inodeTreeEdgeKey.toByteArray()),
+        org.tikv.shade.com.google.protobuf.ByteString.copyFrom((inodeTreeEdgeValue.toByteArray())));
+    mKVStoreMetaInterface.putEntryBatchAtomic(map);
   }
 
   @Override
@@ -108,6 +124,28 @@ public class TiKVInodeStore implements KVInodeStore {
   }
 
   @Override
+  public Optional<Pair<Long, String>> getEdgeToParent(long childId) {
+    Optional<InodeTreeEdgeValue> inodeTreeEdgeValue
+        = mKVStoreMetaInterface.getInodeTreeEdge(InodeTreeEdgeKey.newBuilder()
+        .setTableType(KVStoreTable.INODE_EDGE)
+        .setId(childId).build());
+    if (inodeTreeEdgeValue.isPresent()) {
+      return Optional.of(new Pair<Long, String>(inodeTreeEdgeValue.get().getParentId(),
+          inodeTreeEdgeValue.get().getChildName()));
+    }
+    return Optional.empty();
+  }
+
+  @Override
+  public void removeEdge(long childId) {
+    InodeTreeEdgeKey inodeTreeEdgeKey = InodeTreeEdgeKey.newBuilder()
+        .setTableType(KVStoreTable.INODE_EDGE)
+        .setId(childId)
+        .build();
+    mKVStoreMetaInterface.deleteInodeTreeEdge(inodeTreeEdgeKey);
+  }
+
+  @Override
   public WriteBatch createWriteBatch() {
     return new KVWriteBatch();
   }
@@ -125,6 +163,25 @@ public class TiKVInodeStore implements KVInodeStore {
         .build();
     mKVStoreMetaInterface.deleteFileEntryRange(fileEntryKeyStart, fileEntryKeyEnd);
     LOG.info("Clears the whole inode store done!");
+  }
+
+  @Override
+  public void removeChild(long parentId, String name, long id) {
+    LOG.debug("Removing child({}, {})", parentId, name);
+    mKVStoreMetaInterface.deleteFileEntry(FileEntryKey.newBuilder()
+        .setTableType(KVStoreTable.FILE_ENTRY)
+        .setParentID(parentId)
+        .setName(name)
+        .build());
+    mKVStoreMetaInterface.deleteFileCacheStatus(FileCacheStatusKey.newBuilder()
+        .setTableType(KVStoreTable.FILE_CACHE_STATUS)
+        .setParentID(parentId)
+        .setName(name)
+        .build());
+    mKVStoreMetaInterface.deleteInodeTreeEdge(InodeTreeEdgeKey.newBuilder()
+        .setTableType(KVStoreTable.INODE_EDGE)
+        .setId(id)
+        .build());
   }
 
   @Override
@@ -270,7 +327,7 @@ public class TiKVInodeStore implements KVInodeStore {
     }
 
     @Override
-    public void removeChild(Long parentId, String childName) {
+    public void removeChild(Long parentId, String childName, Long childId) {
       FileEntryKey key = FileEntryKey.newBuilder()
           .setTableType(KVStoreTable.FILE_ENTRY)
           .setName(childName).setParentID(parentId).build();
@@ -279,9 +336,15 @@ public class TiKVInodeStore implements KVInodeStore {
           .setParentID(parentId)
           .setName(childName)
           .build();
+      InodeTreeEdgeKey inodeTreeEdgeKey = InodeTreeEdgeKey.newBuilder()
+          .setTableType(KVStoreTable.INODE_EDGE)
+          .setId(childId)
+          .build();
       mBatchRemove.add(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(key.toByteArray()));
       mBatchRemove.add(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(
           cacheStatusKey.toByteArray()));
+      mBatchRemove.add(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(
+          inodeTreeEdgeKey.toByteArray()));
     }
 
     @Override

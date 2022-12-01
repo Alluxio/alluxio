@@ -190,6 +190,7 @@ public class InodeKVTreePersistentState {
    *         {@link PersistenceState#TO_BE_PERSISTED}
    */
   public Set<Long> getToBePersistedIds() {
+    // TODO(yyong) it is supposed to read from the db
     return Collections.unmodifiableSet(mToBePersistedIds);
   }
 
@@ -208,7 +209,7 @@ public class InodeKVTreePersistentState {
     // name. The opposite order is safe. We will never append the delete entry for a file before its
     // creation entry because delete requires a write lock on the deleted file, but the create
     // operation holds that lock until after it has appended to the journal.
-    applyDelete(entry);
+    delete(entry);
   }
 
   public long newBlock(Supplier<JournalContext> context, long parentId, String name) {
@@ -255,7 +256,7 @@ public class InodeKVTreePersistentState {
    */
   public void applyAndJournal(Supplier<JournalContext> context, MutableInode<?> inode,
       String path) {
-    applyCreateInode(inode, path);
+    createInode(inode, path);
   }
 
 
@@ -272,7 +273,7 @@ public class InodeKVTreePersistentState {
   /// fail. They are also used when making metadata changes during regular operation.
   ////
 
-  private void applyDelete(DeleteFileEntry entry) {
+  private void delete(DeleteFileEntry entry) {
     long id = entry.getId();
     Path path = Paths.get(entry.getPath());
     long parentId = getIdFromPath(path.getParent());
@@ -318,12 +319,12 @@ public class InodeKVTreePersistentState {
     mTtlBuckets.remove(inode);
   }
 
-  private void applyCreateDirectory(InodeDirectoryEntry entry) {
-    applyCreateInode(MutableInodeDirectory.fromJournalEntry(entry), entry.getPath());
+  private void createDirectory(InodeDirectoryEntry entry) {
+    createInode(MutableInodeDirectory.fromJournalEntry(entry), entry.getPath());
   }
 
-  private void applyCreateFile(InodeFileEntry entry) {
-    applyCreateInode(MutableInodeFile.fromJournalEntry(entry), entry.getPath());
+  private void createFile(InodeFileEntry entry) {
+    createInode(MutableInodeFile.fromJournalEntry(entry), entry.getPath());
   }
 
   public void setAcl(long parentId, String name,
@@ -483,7 +484,7 @@ public class InodeKVTreePersistentState {
         .setPersistenceState(PersistenceState.PERSISTED.name()).build());
   }
 
-  private void applySetAttribute(SetAttributeEntry entry) {
+  private void setAttribute(SetAttributeEntry entry) {
     Builder builder = UpdateInodeEntry.newBuilder();
     builder.setId(entry.getId());
     if (entry.hasGroup()) {
@@ -522,7 +523,7 @@ public class InodeKVTreePersistentState {
   // Helper methods
   ////
 
-  private void applyCreateInode(MutableInode<?> inode, String path) {
+  private void createInode(MutableInode<?> inode, String path) {
     if (inode.isDirectory() && inode.getName().equals(InodeTree.ROOT_INODE_NAME)) {
       // This is the root inode. Clear all the state, and set the root.
       mInodeStore.clear();
@@ -669,11 +670,11 @@ public class InodeKVTreePersistentState {
   public boolean processJournalEntry(JournalEntry entry) {
     // Apply entry.
     if (entry.hasDeleteFile()) {
-      applyDelete(entry.getDeleteFile());
+      delete(entry.getDeleteFile());
     } else if (entry.hasInodeDirectory()) {
-      applyCreateDirectory(entry.getInodeDirectory());
+      createDirectory(entry.getInodeDirectory());
     } else if (entry.hasInodeFile()) {
-      applyCreateFile(entry.getInodeFile());
+      createFile(entry.getInodeFile());
     } else if (entry.hasRename()) {
       applyRename(entry.getRename());
     } else if (entry.hasUpdateInode()) {
@@ -690,7 +691,7 @@ public class InodeKVTreePersistentState {
     } else if (entry.hasPersistDirectory()) {
       applyPersistDirectory(entry.getPersistDirectory());
     } else if (entry.hasSetAttribute()) {
-      applySetAttribute(entry.getSetAttribute());
+      setAttribute(entry.getSetAttribute());
     } else {
       return false;
     }

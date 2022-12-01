@@ -3,6 +3,8 @@ package alluxio.kvstore;
 import alluxio.collections.Pair;
 import alluxio.proto.kvstore.FileEntryKey;
 import alluxio.proto.kvstore.FileEntryValue;
+import alluxio.proto.kvstore.InodeTreeEdgeKey;
+import alluxio.proto.kvstore.InodeTreeEdgeValue;
 import alluxio.proto.kvstore.KVStoreTable;
 
 import javax.crypto.spec.OAEPParameterSpec;
@@ -18,8 +20,16 @@ class KVStoreListTest {
     return new Pair<>(key, value);
   }
 
-  public static void printResults(List<Pair<FileEntryKey, FileEntryValue>> results) {
+  public static void printFileEntryResults(List<Pair<FileEntryKey, FileEntryValue>> results) {
     for (Pair<FileEntryKey, FileEntryValue> p : results) {
+      System.out.println(String.format("result : %s----\n%s",
+          p.getFirst().toString(),
+          p.getSecond().toString()));
+    }
+  }
+
+  public static void printResults(List<Pair<InodeTreeEdgeKey, InodeTreeEdgeValue>> results) {
+    for (Pair<InodeTreeEdgeKey, InodeTreeEdgeValue> p : results) {
       System.out.println(String.format("result : %s----\n%s",
           p.getFirst().toString(),
           p.getSecond().toString()));
@@ -37,7 +47,19 @@ class KVStoreListTest {
         .setTableType(KVStoreTable.FILE_ENTRY)
         .setName("").build();
     List<Pair<FileEntryKey, FileEntryValue>> list = tiKVStoreMetaRaw.scanFileEntryKV(keyStart, keyEnd);
-    printResults(list);
+    printFileEntryResults(list);
+
+    InodeTreeEdgeKey inodeTreeEdgeKeyStart = InodeTreeEdgeKey.newBuilder()
+        .setTableType(KVStoreTable.INODE_EDGE)
+        .setId(0)
+        .build();
+    InodeTreeEdgeKey inodeTreeEdgeKeyEnd = InodeTreeEdgeKey.newBuilder()
+        .setTableType(KVStoreTable.INODE_EDGE)
+        .setId(0XFFFFFFFF)
+        .build();
+    List<Pair<InodeTreeEdgeKey, InodeTreeEdgeValue>> listEdge
+        = tiKVStoreMetaRaw.scanEdge(inodeTreeEdgeKeyStart, inodeTreeEdgeKeyEnd, 1000);
+    printResults(listEdge);
 
     Optional<FileEntryValue> entryValue = tiKVStoreMetaRaw.getFileEntry(keyEnd);
     tiKVStoreMetaRaw.close();

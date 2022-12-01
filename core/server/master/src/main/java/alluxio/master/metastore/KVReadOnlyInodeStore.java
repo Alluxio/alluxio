@@ -157,8 +157,7 @@ public interface KVReadOnlyInodeStore extends Closeable {
    * @param inode an inode directory
    * @return the result of {@link #getChildren(InodeDirectoryView, ReadOption)} with default option
    */
-  default CloseableIterator<? extends Inode> getChildren(InodeDirectoryView inode)
-      throws InvalidProtocolBufferException {
+  default CloseableIterator<? extends Inode> getChildren(InodeDirectoryView inode) {
     return getChildren(inode.getId(), ReadOption.defaults());
   }
 

@@ -150,7 +150,11 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
 
   @Override
   public Optional<MutableInode<?>> getMutable(long id, ReadOption option) {
-    throw new NotSupportedException();
+    Optional<Edge> edge = mEdgeCache.get(id);
+    if (!edge.isPresent()) {
+      return Optional.empty();
+    }
+    return getMutable(edge.get().getId(), edge.get().getName());
   }
 
   public Optional<MutableInode<?>> getMutable(long id, String name) {
@@ -173,7 +177,7 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
 
   @Override
   public void writeInode(MutableInode<?> inode) {
-    mEdgeCache.put(new Edge(inode.getParentId(), inode.getName()), inode.getId());
+    mEdgeCache.put(inode.getId(), new Edge(inode.getParentId(), inode.getName()));
     mInodeCache.put(new Pair<Long, String>(inode.getId(), inode.getName()), inode);
   }
 
@@ -194,12 +198,16 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
 
   @Override
   public void addChild(long parentId, String childName, Long childId) {
-    mEdgeCache.put(new Edge(parentId, childName), childId);
+    mEdgeCache.put(childId, new Edge(parentId, childName));
   }
 
   @Override
   public void removeChild(long parentId, String name) {
-    mEdgeCache.remove(new Edge(parentId, name));
+    Optional<? extends MutableInode> mutableInode = mInodeCache.get(new Pair<Long, String>(parentId, name));
+    if (!mutableInode.isPresent()) {
+      return;
+    }
+    mEdgeCache.remove(mutableInode.get().getId());
   }
 
   public CloseableIterator<String> getChildNames(Long inodeId, ReadOption option) {
@@ -214,7 +222,11 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
 
   @Override
   public Optional<Long> getChildId(Long inodeId, String name, ReadOption option) {
-    return mEdgeCache.get(new Edge(inodeId, name), option);
+    Optional<MutableInode<?>> optional = mInodeCache.get(new Pair<Long, String>(inodeId, name));
+    if (optional.isPresent()) {
+      return Optional.of(optional.get().getId());
+    }
+    return Optional.empty();
   }
 
   @Override
@@ -330,7 +342,7 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
           try (LockResource lr = lockOpt.get()) {
             if (entry.mValue == null) {
               if (useBatch) {
-                batch.removeChild(entry.mKey.getFirst(), entry.mKey.getSecond());
+                batch.removeChild(entry.mKey.getFirst(), entry.mKey.getSecond(), entry.mValue.getId());
               } else {
                 mBackingStore.removeChild(entry.mKey.getFirst(), entry.mKey.getSecond());
               }
@@ -397,7 +409,7 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
    * removed from the backing store.
    */
   @VisibleForTesting
-  class EdgeCache extends Cache<Edge, Long> {
+  class EdgeCache extends Cache<Long, Edge> {
     // Indexes non-removed cache entries by parent id. The inner map is from child name to child id
     @VisibleForTesting
     TwoKeyConcurrentSortedMap<Long, String, Long, SortedMap<String, Long>>
@@ -458,27 +470,35 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
     }
 
     @Override
-    protected Optional<Long> load(Edge edge) {
+    protected Optional<Edge> load(Long childId) {
       if (mBackingStoreEmpty) {
         return Optional.empty();
       }
-      return mBackingStore.getChildId(edge.getId(), edge.getName());
+      Optional<Pair<Long, String>> optional
+          = mBackingStore.getEdgeToParent(childId);
+      if (!optional.isPresent()) {
+        return Optional.empty();
+      }
+
+      return Optional.of(new Edge(optional.get().getFirst(),
+          optional.get().getSecond()));
     }
 
     @Override
-    protected void writeToBackingStore(Edge key, Long value) {
+    protected void writeToBackingStore(Long key, Edge value) {
       mBackingStoreEmpty = false;
       // mBackingStore.addChild(key.getId(), key.getName(), value);
     }
 
     @Override
-    protected void removeFromBackingStore(Edge key) throws InvalidProtocolBufferException {
+    protected void removeFromBackingStore(Long key) {
       if (!mBackingStoreEmpty) {
         // TODO(yyong) fetch and remove can be optimized
-        Optional<Inode> optional = mBackingStore.get(key.getId(), key.getName());
-        if (optional.isPresent()) {
-          mBackingStore.remove(optional.get());
+        Optional<Edge> edge = get(key);
+        if (!edge.isPresent()) {
+          return;
         }
+        mBackingStore.removeEdge(key);
       }
     }
 
@@ -489,18 +509,18 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
       try (alluxio.master.metastore.KVInodeStore.WriteBatch batch
                = useBatch ? mBackingStore.createWriteBatch() : null) {
         for (Entry entry : entries) {
-          Edge edge = entry.mKey;
+          Edge edge = entry.mValue;
           Optional<RWLockResource> lockOpt = mLockManager.tryLockEdge(edge, LockMode.WRITE);
           if (!lockOpt.isPresent()) {
             continue;
           }
           try (LockResource lr = lockOpt.get()) {
-            Long value = entry.mValue;
-            if (value == null) {
+            Long key = entry.mKey;
+            if (key == null) {
               if (useBatch) {
-                batch.removeChild(edge.getId(), edge.getName());
+                batch.removeChild(edge.getId(), edge.getName(), key);
               } else {
-                mBackingStore.removeChild(edge.getId(), edge.getName());
+                mBackingStore.removeChild(edge.getId(), edge.getName(), key);
               }
             } else {
               // Edge is no longer added independently
@@ -515,7 +535,7 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
     }
 
     @Override
-    protected void onCacheUpdate(Edge edge, Long childId) {
+    protected void onCacheUpdate(Long childId, Edge edge) {
       if (childId == null) {
         mIdToChildMap.removeInnerValue(edge.getId(), edge.getName());
         addToUnflushedDeletes(edge.getId(), edge.getName());
@@ -526,19 +546,27 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
     }
 
     @Override
-    protected void onCacheRemove(Edge edge) {
-      mIdToChildMap.removeInnerValue(edge.getId(), edge.getName());
-      removeFromUnflushedDeletes(edge.getId(), edge.getName());
+    protected void onCacheRemove(Long id) {
+      Optional<Edge> edge = get(id);
+      if (!edge.isPresent()) {
+        return;
+      }
+      mIdToChildMap.removeInnerValue(edge.get().getId(), edge.get().getName());
+      removeFromUnflushedDeletes(edge.get().getId(), edge.get().getName());
     }
 
     @Override
-    protected void onPut(Edge edge, Long childId) {
+    protected void onPut(Long childId, Edge edge) {
       mListingCache.addEdge(edge, childId);
     }
 
     @Override
-    protected void onRemove(Edge edge) {
-      mListingCache.removeEdge(edge);
+    protected void onRemove(Long key) {
+      Optional<Edge> edge = get(key);
+      if (!edge.isPresent()) {
+        return;
+      }
+      mListingCache.removeEdge(edge.get());
     }
 
     private void addToUnflushedDeletes(long parentId, String childName) {
@@ -565,12 +593,12 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
     void verifyIndices() {
       mMap.forEachValue(1, entry -> {
         if (entry.mValue == null) {
-          if (!mUnflushedDeletes.get(entry.mKey.getId()).contains(entry.mKey.getName())) {
+          if (!mUnflushedDeletes.get(entry.mValue.getId()).contains(entry.mValue.getName())) {
             throw new IllegalStateException(
                 "Missing entry " + entry.mKey + " in unflushed deletes index");
           }
         } else {
-          if (!mIdToChildMap.get(entry.mKey.getId()).get(entry.mKey.getName())
+          if (!mIdToChildMap.get(entry.mValue.getId()).get(entry.mValue.getName())
               .equals(entry.mValue)) {
             throw new IllegalStateException(String
                 .format("Missing entry %s=%s from id to child map", entry.mKey, entry.mValue));

@@ -2211,9 +2211,10 @@ public class DefaultFileSystemKVMaster extends CoreMaster
           if (inodeToDelete.isFile()) {
             long fileId = inodeToDelete.getId();
             // Remove the file from the set of files to persist.
-            mPersistRequests.remove(fileId);
+            mPersistRequests.remove(new Pair<Long, String>(inodeToDelete.getParentId(), inodeToDelete.getName()));
             // Cancel any ongoing jobs.
-            PersistJob job = mPersistJobs.get(fileId);
+            PersistJob job = mPersistJobs.get(new Pair<Long, String>(
+                inodeToDelete.getParentId(), inodeToDelete.getName()));
             if (job != null) {
               job.setCancelState(PersistJob.CancelState.TO_BE_CANCELED);
             }
@@ -4382,7 +4383,7 @@ public class DefaultFileSystemKVMaster extends CoreMaster
       LOG.debug("Async Persist heartbeat start");
       TimeUnit.SECONDS.sleep(mQuietPeriodSeconds);
       // Process persist requests.
-      for (long fileId : mPersistRequests.keySet()) {
+      for (Long fileId : mPersistRequests.keySet()) {
         // Throw if interrupted.
         if (Thread.interrupted()) {
           throw new InterruptedException("PersistenceScheduler interrupted.");

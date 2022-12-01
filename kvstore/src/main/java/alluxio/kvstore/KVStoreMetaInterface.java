@@ -6,6 +6,8 @@ import alluxio.proto.kvstore.FileCacheStatusKey;
 import alluxio.proto.kvstore.FileEntryKey;
 import alluxio.proto.kvstore.FileEntryValue;
 
+import alluxio.proto.kvstore.InodeTreeEdgeKey;
+import alluxio.proto.kvstore.InodeTreeEdgeValue;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.tikv.shade.com.google.protobuf.ByteString;
 
@@ -37,6 +39,9 @@ public interface KVStoreMetaInterface extends Closeable {
   List<Pair<FileEntryKey, FileEntryValue>> scanFileEntryKV(FileEntryKey startKey,
       FileEntryKey endKey);
 
+  List<Pair<InodeTreeEdgeKey, InodeTreeEdgeValue>> scanEdge(InodeTreeEdgeKey startKey,
+      InodeTreeEdgeKey endKey, int limit);
+
   boolean updateFileCacheStatus(FileCacheStatusKey key, FileCacheStatus value);
 
   Optional<FileCacheStatus> getFileCacheStatus(FileCacheStatusKey key);
@@ -45,6 +50,10 @@ public interface KVStoreMetaInterface extends Closeable {
 
   List<Pair<FileCacheStatusKey, FileCacheStatus>> scanFileCacheStatus(FileCacheStatusKey startKey,
       FileCacheStatusKey endKey, int limit);
+
+  Optional<InodeTreeEdgeValue> getInodeTreeEdge(InodeTreeEdgeKey key);
+
+  void deleteInodeTreeEdge(InodeTreeEdgeKey key);
 
   boolean checkAndRecover();
 }

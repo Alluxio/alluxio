@@ -825,6 +825,8 @@ public class InodeKVTree implements InodeTreeInterface {
         if (updatedLastModified < context.getOperationTimeMs()) {
           UpdateInodeEntry.Builder updateInodeEntry = UpdateInodeEntry.newBuilder()
               .setId(currentId)
+              .setParentId(currentInodeDirectory.getParentId())
+              .setName(currentInodeDirectory.getName())
               .setLastModificationTimeMs(context.getOperationTimeMs())
               .setLastAccessTimeMs(context.getOperationTimeMs());
           if (context.getXAttr() != null

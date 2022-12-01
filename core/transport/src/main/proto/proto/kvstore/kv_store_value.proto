@@ -7,9 +7,10 @@ package alluxio.proto.kvstore;
 
 enum KVStoreTable {
   MOUNT = 1;
-  FILE_ENTRY = 2;
-  FILE_CACHE_STATUS = 3;
-  JOURNAL = 4;
+  JOURNAL = 2;
+  FILE_ENTRY = 3;
+  FILE_CACHE_STATUS = 4;
+  INODE_EDGE = 5;
 }
 
 enum PersistenceState {
@@ -44,6 +45,16 @@ message FileCacheStatusKey {
   required KVStoreTable tableType = 1;
   required int64 parentID = 2;
   optional string name = 3;
+}
+
+message InodeTreeEdgeKey {
+  required KVStoreTable tableType = 1;
+  required int64 id = 2;
+}
+
+message InodeTreeEdgeValue {
+  required int64 parentId = 1;
+  required string childName = 2;
 }
 
 message FileEntryValue {
