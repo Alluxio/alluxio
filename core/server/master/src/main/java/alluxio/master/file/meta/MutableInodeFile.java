@@ -86,7 +86,6 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     // note: in-Alluxio percentage is NOT calculated here, because it needs blocks info stored in
     // block master
     ret.setFileId(getId());
-    ret.setParentId(getParentId());
     ret.setName(getName());
     ret.setPath(path);
     ret.setLength(getLength());

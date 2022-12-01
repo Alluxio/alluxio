@@ -121,7 +121,6 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
   public FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
     ret.setFileId(getId());
-    ret.setParentId(getParentId());
     ret.setName(getName());
     ret.setPath(path);
     ret.setBlockSizeBytes(0);
