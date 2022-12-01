@@ -354,8 +354,7 @@ public class InodeKVTreePersistentState {
   }
 
   private void applyUpdateInode(UpdateInodeEntry entry) {
-    Optional<MutableInode<?>> inodeOpt = mInodeStore
-        .getMutable(entry.getParentId(), entry.getName());
+    Optional<MutableInode<?>> inodeOpt = mInodeStore.getMutable(entry.getId());
     if (!inodeOpt.isPresent()) {
       if (isJournalUpdateAsync(entry)) {
         // do not throw if the entry is journaled asynchronously
