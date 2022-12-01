@@ -279,7 +279,7 @@ Alluxio FUSE can provide two kinds of metadata/data cache, the kernel cache and 
 The following illustration shows the layers of cache — FUSE kernel cache, FUSE userspace cache, Alluxio system cache.
 
 <p align="center">
-<img src="{{ '/img/posix-cache.png' | relativize_url }}" alt="Alluxio stack with its POSIX API"/>
+<img src="{{ '/img/posix-distributed-cache.png' | relativize_url }}" alt="Alluxio stack with its POSIX API"/>
 </p>
 
 Since FUSE kernel cache and userspace cache both provide caching capability, although they can be enabled at the same time,
