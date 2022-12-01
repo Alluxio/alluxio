@@ -4290,7 +4290,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "automatically fall back to NIO.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
-          .setDefaultValue(ChannelType.EPOLL)
+          .setDefaultValue(ChannelType.NIO)
           .build();
 
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
@@ -4669,7 +4669,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The hostname of Alluxio worker data service.").build();
   public static final PropertyKey WORKER_DATA_PORT =
       intBuilder(Name.WORKER_DATA_PORT)
-          .setDefaultValue(29998)
+          .setDefaultValue(29997)
           .setDescription("The port Alluxio's worker's data server runs on.")
           .build();
   public static final PropertyKey WORKER_DATA_SERVER_CLASS =
@@ -6259,7 +6259,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "automatically fall back to NIO.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
-          .setDefaultValue(ChannelType.EPOLL)
+          .setDefaultValue(ChannelType.NIO)
           .build();
   /**
    * @deprecated use {@link #USER_NETWORK_STREAMING_NETTY_WORKER_THREADS} instead
