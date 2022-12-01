@@ -62,8 +62,8 @@ public class HeapInodeStoreBench {
     @TearDown
     public void after() {
       System.out.println("");
-      System.out.println("ShallowSize: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore));
-      System.out.println("Object size: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore));
+      System.out.println("Shallow: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore.mInodes));
+      System.out.println("Object: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore.mInodes));
       System.out.print("Throughput: ");
       mHeapInodeStore = null;
     }
@@ -84,8 +84,9 @@ public class HeapInodeStoreBench {
     @TearDown
     public void after() {
       System.out.println("");
-      System.out.println("ShallowSize: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore));
-      System.out.println("Object size: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore));
+      System.out.println("Counter: " + mCounter);
+      System.out.println("Shallow: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore.mInodes));
+      System.out.println("Object: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore.mInodes));
       System.out.print("Throughput: ");
       mHeapInodeStore = null;
     }
@@ -110,8 +111,8 @@ public class HeapInodeStoreBench {
     @TearDown
     public void after() {
       System.out.println("");
-      System.out.println("ShallowSize: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore));
-      System.out.println("Object size: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore));
+      System.out.println("Shallow: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore.mInodes));
+      System.out.println("Object: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore.mInodes));
       System.out.print("Throughput: ");
       mHeapInodeStore = null;
     }
@@ -135,8 +136,8 @@ public class HeapInodeStoreBench {
     @TearDown
     public void after() {
       System.out.println("");
-      System.out.println("ShallowSize: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore));
-      System.out.println("Object size: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore));
+      System.out.println("Shallow: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore.mInodes));
+      System.out.println("Object: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore.mInodes));
       System.out.print("Throughput: ");
       mHeapInodeStore = null;
     }
@@ -155,8 +156,11 @@ public class HeapInodeStoreBench {
 
   @Benchmark
   public long HeapInodeStoreWriteBench(HeapInodeStoreWriteState hb) {
-    hb.mHeapInodeStore.writeInode(new MutableInodeFile(hb.mCounter));
-    hb.mCounter += 1;
+    long i = hb.mTest;
+    for (; i > 0; i--) {
+      hb.mHeapInodeStore.writeInode(new MutableInodeFile(hb.mCounter));
+      hb.mCounter += 1;
+    }
     return hb.mCounter;
   }
 
@@ -194,8 +198,8 @@ public class HeapInodeStoreBench {
     @TearDown
     public void after() {
       System.out.println("");
-      System.out.println("ShallowSize: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore));
-      System.out.println("Object size: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore));
+      System.out.println("Shallow: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore.mInodes));
+      System.out.println("Object: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore.mInodes));
       System.out.print("Throughput: ");
       mHeapInodeStore = null;
     }
@@ -217,8 +221,9 @@ public class HeapInodeStoreBench {
     @TearDown
     public void after() {
       System.out.println("");
-      System.out.println("ShallowSize: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore));
-      System.out.println("Object size: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore));
+      System.out.println("Counter: " + mCounter);
+      System.out.println("Shallow: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore.mInodes));
+      System.out.println("Object: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore.mInodes));
       System.out.print("Throughput: ");
       mHeapInodeStore = null;
     }
@@ -243,8 +248,8 @@ public class HeapInodeStoreBench {
     @TearDown
     public void after() {
       System.out.println("");
-      System.out.println("ShallowSize: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore));
-      System.out.println("Object size: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore));
+      System.out.println("Shallow: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore.mInodes));
+      System.out.println("Object: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore.mInodes));
       System.out.print("Throughput: ");
       mHeapInodeStore = null;
     }
@@ -268,8 +273,8 @@ public class HeapInodeStoreBench {
     @TearDown
     public void after() {
       System.out.println("");
-      System.out.println("ShallowSize: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore));
-      System.out.println("Object size: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore));
+      System.out.println("Shallow: " + RamUsageEstimator.shallowSizeOf(mHeapInodeStore.mInodes));
+      System.out.println("Object: " + RamUsageEstimator.sizeOfObject(mHeapInodeStore.mInodes));
       System.out.print("Throughput: ");
       mHeapInodeStore = null;
     }

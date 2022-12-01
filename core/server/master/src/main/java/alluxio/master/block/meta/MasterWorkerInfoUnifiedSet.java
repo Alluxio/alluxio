@@ -143,7 +143,7 @@ public final class MasterWorkerInfoUnifiedSet {
 
   /** Ids of blocks the worker contains. */
   @GuardedBy("mBlockListLock")
-  private Set<Long> mBlocks;
+  public Set<Long> mBlocks;
   /** Ids of blocks the worker should remove. */
   @GuardedBy("mBlockListLock")
   private final Set<Long> mToRemoveBlocks;

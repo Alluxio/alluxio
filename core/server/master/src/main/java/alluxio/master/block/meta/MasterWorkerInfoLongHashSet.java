@@ -144,7 +144,7 @@ public final class MasterWorkerInfoLongHashSet {
 
     /** Ids of blocks the worker contains. */
     @GuardedBy("mBlockListLock")
-    private LongHashSet mBlocks;
+    public LongHashSet mBlocks;
     /** Ids of blocks the worker should remove. */
     @GuardedBy("mBlockListLock")
     private final LongHashSet mToRemoveBlocks;

@@ -56,7 +56,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class HeapInodeStoreEclipseHashMap implements InodeStore {
-    private final Map<Long, MutableInode<?>> mInodes = new ConcurrentHashMap<>();
+    public final Map<Long, MutableInode<?>> mInodes = new ConcurrentHashMap<>();
     // Map from inode id to ids of children of that inode. The inner maps are ordered by child name.
     private final TwoKeyConcurrentSortedMap<Long, String, Long, SortedMap<String, Long>> mEdges =
             new TwoKeyConcurrentSortedMap<>(ConcurrentSkipListMap::new);

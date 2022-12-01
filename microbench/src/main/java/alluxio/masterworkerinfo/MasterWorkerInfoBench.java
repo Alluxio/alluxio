@@ -77,6 +77,11 @@ public class MasterWorkerInfoBench {
 
     @TearDown
     public void after() {
+      System.out.println(" ");
+      System.out.println("Counter: " + mCounter);
+      System.out.println("shallow: " + RamUsageEstimator.shallowSizeOf(mMasterWorkerInfo.mBlocks));
+      System.out.println("Object: " + RamUsageEstimator.sizeOfObject(mMasterWorkerInfo.mBlocks));
+      System.out.print("Throughput: ");
       mMasterWorkerInfo = null;
     }
   }
@@ -98,6 +103,11 @@ public class MasterWorkerInfoBench {
 
     @TearDown
     public void after() {
+      System.out.println(" ");
+      System.out.println("Counter: " + mCounter);
+      System.out.println("shallow: " + RamUsageEstimator.shallowSizeOf(mMasterWorkerInfo.mBlocks));
+      System.out.println("Object: " + RamUsageEstimator.sizeOfObject(mMasterWorkerInfo.mBlocks));
+      System.out.print("Throughput: ");
       mMasterWorkerInfo = null;
     }
   }
@@ -119,6 +129,11 @@ public class MasterWorkerInfoBench {
 
     @TearDown
     public void after() {
+      System.out.println(" ");
+      System.out.println("Counter: " + mCounter);
+      System.out.println("shallow: " + RamUsageEstimator.shallowSizeOf(mMasterWorkerInfo.mBlocks));
+      System.out.println("Object: " + RamUsageEstimator.sizeOfObject(mMasterWorkerInfo.mBlocks));
+      System.out.print("Throughput: ");
       mMasterWorkerInfo = null;
     }
   }
@@ -140,6 +155,11 @@ public class MasterWorkerInfoBench {
 
     @TearDown
     public void after() {
+      System.out.println(" ");
+      System.out.println("Counter: " + mCounter);
+      System.out.println("shallow: " + RamUsageEstimator.shallowSizeOf(mMasterWorkerInfo.mBlocks));
+      System.out.println("Object: " + RamUsageEstimator.sizeOfObject(mMasterWorkerInfo.mBlocks));
+      System.out.print("Throughput: ");
       mMasterWorkerInfo = null;
     }
   }
@@ -164,6 +184,11 @@ public class MasterWorkerInfoBench {
 
     @TearDown
     public void after() {
+      System.out.println(" ");
+      System.out.println("Counter: " + mCounter);
+      System.out.println("shallow: " + RamUsageEstimator.shallowSizeOf(mMasterWorkerInfo.mBlocks));
+      System.out.println("Object: " + RamUsageEstimator.sizeOfObject(mMasterWorkerInfo.mBlocks));
+      System.out.print("Throughput: ");
       mMasterWorkerInfo = null;
     }
   }
@@ -188,6 +213,11 @@ public class MasterWorkerInfoBench {
 
     @TearDown
     public void after() {
+      System.out.println(" ");
+      System.out.println("Counter: " + mCounter);
+      System.out.println("shallow: " + RamUsageEstimator.shallowSizeOf(mMasterWorkerInfo.mBlocks));
+      System.out.println("Object: " + RamUsageEstimator.sizeOfObject(mMasterWorkerInfo.mBlocks));
+      System.out.print("Throughput: ");
       mMasterWorkerInfo = null;
     }
   }
@@ -212,6 +242,11 @@ public class MasterWorkerInfoBench {
 
     @TearDown
     public void after() {
+      System.out.println(" ");
+      System.out.println("Counter: " + mCounter);
+      System.out.println("shallow: " + RamUsageEstimator.shallowSizeOf(mMasterWorkerInfo.mBlocks));
+      System.out.println("Object: " + RamUsageEstimator.sizeOfObject(mMasterWorkerInfo.mBlocks));
+      System.out.print("Throughput: ");
       mMasterWorkerInfo = null;
     }
   }
@@ -236,8 +271,11 @@ public class MasterWorkerInfoBench {
 
     @TearDown
     public void after() {
-      System.out.println("shallowSize: " + RamUsageEstimator.shallowSizeOf(mMasterWorkerInfo));
-      System.out.println("Object size" + RamUsageEstimator.sizeOfObject(mMasterWorkerInfo));
+      System.out.println(" ");
+      System.out.println("Counter: " + mCounter);
+      System.out.println("shallow: " + RamUsageEstimator.shallowSizeOf(mMasterWorkerInfo.mBlocks));
+      System.out.println("Object: " + RamUsageEstimator.sizeOfObject(mMasterWorkerInfo.mBlocks));
+      System.out.print("Throughput: ");
       mMasterWorkerInfo = null;
     }
   }
