@@ -57,7 +57,7 @@ public final class MultiOperationMasterBenchParameters extends MasterBenchBasePa
   @Parameter(names = {OPERATIONS_RATIO_OPTION_NAME},
       description = "A set of integers specifying the throughput ratio of each operation. "
           + " Numbers are separated by comma (e.g., 3,7) and no extra whitespace is allowed. "
-          + " E.g. if you want 70% of your operations to be the first operation and the rest 30% "
+          + " E.g. if you want 30% of your operations to be the first operation and the rest 70% "
           + " to be the second operation. You can specify this param to be (3,7) or (0.3, 0.7) "
           + " Numbers will be normalized so only the ratio matters."
           + " Cannot be set together with " + TARGET_THROUGHPUTS_OPTION_NAME

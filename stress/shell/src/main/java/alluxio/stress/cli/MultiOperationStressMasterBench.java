@@ -11,6 +11,12 @@
 
 package alluxio.stress.cli;
 
+import static alluxio.stress.master.MultiOperationMasterBenchParameters.BASES_OPTION_NAME;
+import static alluxio.stress.master.MultiOperationMasterBenchParameters.OPERATIONS_OPTION_NAME;
+import static alluxio.stress.master.MultiOperationMasterBenchParameters.OPERATIONS_RATIO_OPTION_NAME;
+import static alluxio.stress.master.MultiOperationMasterBenchParameters.TARGET_THROUGHPUTS_OPTION_NAME;
+import static alluxio.stress.master.MultiOperationMasterBenchParameters.THREADS_RATIO_OPTION_NAME;
+
 import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.InstancedConfiguration;
@@ -29,6 +35,7 @@ import alluxio.stress.master.MultiOperationMasterBenchTaskResult;
 import alluxio.stress.master.Operation;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.RateLimiter;
@@ -59,6 +66,7 @@ public class MultiOperationStressMasterBench
   /**
    * Creates instance.
    */
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public MultiOperationStressMasterBench() {
     super(new MultiOperationMasterBenchParameters());
   }
@@ -79,16 +87,16 @@ public class MultiOperationStressMasterBench
         "each operations.",
         "",
         "Example:",
-        "# this would continuously run `GetFileStatus` and CreateFile",
-        "for 30s and record the throughput after 5s warmup.",
-        "The CreateFile throughput will be 4x more than GetFileStatus.",
+        "# this would continuously run `GetFileStatus` and CreateFile "
+        + "for 30s and record the throughput after 5s warmup. "
+        + "The CreateFile throughput will be 4x more than GetFileStatus.",
         "$ bin/alluxio runClass alluxio.stress.cli.MultiOperationStressMasterBench \\",
         "--operations GetFileStatus,CreateFile --operations-ratio 1,4  --fixed-counts 100,1 \\",
         "--warmup 1s  --duration 10s --in-process --client-type AlluxioNative --threads 16 ",
         "",
         "Use the following command to prepare the test directory to list with before running test:",
         "$ bin/alluxio runClass alluxio.stress.cli.StressMasterBench \\",
-        "--base alluxio:/stress-master-base-0 --fixed-count 100 --stop-count 100 --warmup 5s \\",
+        "--base alluxio://stress-master-base-0 --fixed-count 100 --stop-count 100 --warmup 5s \\",
         "--operation CreateFile --duration 30s --in-process --client-type AlluxioNative"
     ));
   }
@@ -97,25 +105,27 @@ public class MultiOperationStressMasterBench
   public void validateParams() throws Exception {
     int numOperations = mParameters.mOperations.length;
     if (numOperations < 2) {
-      throw new InvalidArgumentException("--operations must contain at least two operations.");
+      throw new InvalidArgumentException(String.format(
+          "%s operations must contain at least two operations.", OPERATIONS_OPTION_NAME));
     }
 
     if (mParameters.mBasePaths.length != mParameters.mOperations.length) {
       throw new InvalidArgumentException(
-          "--base must contain the same number of params as --operations.");
+          String.format("%s must contain the same number of params as %s .",
+              BASES_OPTION_NAME, OPERATIONS_OPTION_NAME));
     }
 
     InvalidArgumentException duplicatedModeSpecifiedException = new InvalidArgumentException(
-        "Exact one of the following params "
-            + "--target-throughputs, --threads-ratio, --operations-ratio must be specified"
-    );
+        String.format("Exact one of the following params %s, %s, %s must be specified",
+            TARGET_THROUGHPUTS_OPTION_NAME, THREADS_RATIO_OPTION_NAME,
+            OPERATIONS_RATIO_OPTION_NAME));
 
     boolean modeSpecified = false;
     if (mParameters.mTargetThroughputs != null) {
       if (mParameters.mTargetThroughputs.length != numOperations) {
         throw new InvalidArgumentException(
-            "If specified, --target-throughputs "
-                + "must contain the same number of args as --operations.");
+            String.format("If specified, %s must contain the same number of args as %s.",
+                TARGET_THROUGHPUTS_OPTION_NAME, OPERATIONS_OPTION_NAME));
       }
       modeSpecified = true;
     }
@@ -123,8 +133,8 @@ public class MultiOperationStressMasterBench
     if (mParameters.mThreadsRatio != null) {
       if (mParameters.mThreadsRatio.length != numOperations) {
         throw new InvalidArgumentException(
-            "If specified, --threads-ratio "
-                + "must contain the same number of args as --operations.");
+            String.format("If specified, %s must contain the same number of args as %s.",
+                THREADS_RATIO_OPTION_NAME, OPERATIONS_OPTION_NAME));
       }
       if (modeSpecified) {
         throw duplicatedModeSpecifiedException;
@@ -135,8 +145,8 @@ public class MultiOperationStressMasterBench
     if (mParameters.mOperationsRatio != null) {
       if (mParameters.mOperationsRatio.length != numOperations) {
         throw new InvalidArgumentException(
-            "If specified, --operations-ratio "
-                + "must contain the same number of args as --operations.");
+            String.format("If specified, %s must contain the same number of args as %s.",
+                OPERATIONS_RATIO_OPTION_NAME, OPERATIONS_OPTION_NAME));
       }
       if (modeSpecified) {
         throw duplicatedModeSpecifiedException;
@@ -214,22 +224,31 @@ public class MultiOperationStressMasterBench
       mCachedNativeFs[i] = alluxio.client.file.FileSystem.Factory
           .create(alluxioProperties);
     }
+
+    for (int i = 0; i < mParameters.mOperations.length; ++i) {
+      if (mParameters.mOperations[i] == Operation.CRURD
+          || mParameters.mOperations[i] == Operation.CREATE_DELETE_FILE) {
+        AlluxioURI uri = new AlluxioURI(
+            PathUtils.concatPath(mParameters.mBasePaths[i], mFilesDir, mBaseParameters.mId));
+        if (mCachedNativeFs[0].exists(uri)) {
+          mCachedNativeFs[0].delete(uri, DeletePOptions.newBuilder().setRecursive(true).build());
+        }
+        mCachedNativeFs[0].createDirectory(uri, CreateDirectoryPOptions.getDefaultInstance());
+      }
+    }
+
+    // caonima
   }
 
   @Override
   @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   protected BenchThread getBenchThread(BenchContext context, int index) {
-    switch (mParameters.mClientType) {
-      case ALLUXIO_HDFS:
-        throw new RuntimeException(
-            "ALLUXIO HDFS API is not support for multi operations stress master bench");
-      case ALLUXIO_POSIX:
-        throw new RuntimeException(
-            "ALLUXIO POSIX API is not support for multi operations stress master bench");
-      default:
-        return new AlluxioNativeBenchThread(context,
-            mCachedNativeFs[index % mCachedNativeFs.length], index);
+    if (mParameters.mClientType == FileSystemClientType.ALLUXIO_NATIVE) {
+      return new AlluxioNativeBenchThread(context,
+          mCachedNativeFs[index % mCachedNativeFs.length], index);
     }
+    throw new RuntimeException(
+        "ALLUXIO HDFS and POSIX API is not support for multi operations stress master bench");
   }
 
   private RateLimiter createUnlimitedRateLimiter() {
@@ -243,30 +262,23 @@ public class MultiOperationStressMasterBench
     final BenchContext benchContext;
     if (mParameters.mTargetThroughputs == null) {
       RateLimiter[] rateLimiters = new RateLimiter[mParameters.mOperations.length];
+      for (int i = 0; i < mParameters.mTargetThroughputs.length; i++) {
+        rateLimiters[i] = createUnlimitedRateLimiter();
+      }
       Arrays.fill(rateLimiters, createUnlimitedRateLimiter());
       benchContext = new BenchContext(
           createUnlimitedRateLimiter(), rateLimiters,
           mParameters.mOperations, mParameters.mBasePaths, mParameters.mDuration);
     } else {
       int sum = 0;
-      RateLimiter[] rateLimits = new RateLimiter[mParameters.mOperations.length];
+      RateLimiter[] rateLimiters = new RateLimiter[mParameters.mOperations.length];
       for (int i = 0; i < mParameters.mTargetThroughputs.length; i++) {
-        rateLimits[i] = RateLimiter.create(mParameters.mTargetThroughputs[i]);
+        rateLimiters[i] = RateLimiter.create(mParameters.mTargetThroughputs[i]);
         sum += mParameters.mTargetThroughputs[i];
       }
       benchContext = new BenchContext(
-          RateLimiter.create(sum), rateLimits, mParameters.mOperations, mParameters.mBasePaths,
+          RateLimiter.create(sum), rateLimiters, mParameters.mOperations, mParameters.mBasePaths,
           mParameters.mDuration);
-    }
-    for (int i = 0; i < mParameters.mOperations.length; ++i) {
-      if (mParameters.mOperations[i] == Operation.CRURD
-          || mParameters.mOperations[i] == Operation.CREATE_DELETE_FILE) {
-        AlluxioURI uri = new AlluxioURI(benchContext.getBasePath(i).toString());
-        if (mCachedNativeFs[0].exists(uri)) {
-          mCachedNativeFs[0].delete(uri, DeletePOptions.newBuilder().setRecursive(true).build());
-        }
-        mCachedNativeFs[0].createDirectory(uri, CreateDirectoryPOptions.getDefaultInstance());
-      }
     }
     return benchContext;
   }
@@ -386,24 +398,34 @@ public class MultiOperationStressMasterBench
       }
     }
 
-    //Each thread will randomly pick an operation to do by operations ratio.
-    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
-    private void runOperationsRatioBased() throws Exception {
+    /**
+     * Gets the ratio array and normalizes it into probability distribution
+     * e.g. [4,6,10] will be normalized into [0.2, 0.3, 0.5]
+     * @return the probability distribution array
+     */
+    private double[] getProbabilityDistribution(double[] ratios) {
       double ratioSum = 0;
       double last = 0;
-      double[] ratioArray = new double[mParameters.mOperations.length];
+      double[] probabilities = new double[ratios.length];
       for (int i = 0; i < mParameters.mOperations.length; i++) {
         ratioSum += mParameters.mOperationsRatio[i];
       }
       for (int i = 0; i < mParameters.mOperations.length; i++) {
-        ratioArray[i] = last + mParameters.mOperationsRatio[i] / ratioSum;
-        last = ratioArray[i];
+        probabilities[i] = last + mParameters.mOperationsRatio[i] / ratioSum;
+        last = probabilities[i];
       }
+      return probabilities;
+    }
+
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
+    private void runOperationsRatioBased() throws Exception {
+      double[] probabilities = getProbabilityDistribution(mParameters.mOperationsRatio);
+      //Each run randomly picks an operation based on the probability array
       runInternal(lastOperationIndex -> {
         double r = mRandom.nextDouble();
         int operationIndex = 0;
         for (int i = 0; i < mParameters.mOperations.length; i++) {
-          if (ratioArray[i] >= r) {
+          if (probabilities[i] >= r) {
             operationIndex = i;
             break;
           }
@@ -415,19 +437,11 @@ public class MultiOperationStressMasterBench
 
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private void runThreadsRatioBased() throws Exception {
-      double ratioSum = 0;
-      double last = 0;
-      double[] ratioArray = new double[mParameters.mOperations.length];
-      for (int i = 0; i < mParameters.mOperations.length; i++) {
-        ratioSum += mParameters.mThreadsRatio[i];
-      }
-      for (int i = 0; i < mParameters.mOperations.length; i++) {
-        ratioArray[i] = last + (mParameters.mThreadsRatio[i] / ratioSum) * mParameters.mThreads;
-        last = ratioArray[i];
-      }
+      double[] probabilities = getProbabilityDistribution(mParameters.mThreadsRatio);
       int operationIndex = 0;
+      //Each thread randomly picks an operation to do based on the probability array
       for (int i = 0; i < mParameters.mOperations.length; i++) {
-        if (ratioArray[i] >= mThreadIndex) {
+        if (probabilities[i] >= mThreadIndex) {
           operationIndex = i;
           break;
         }
@@ -442,6 +456,10 @@ public class MultiOperationStressMasterBench
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private void runInternalTargetThroughputBased() throws Exception {
       RateLimiter[] rls = mContext.getRateLimiters();
+      // Each run picks the next available operation with the following 2 constraints:
+      // 1. the overall throughput should not exceed the user specified limit
+      // 2. the throughput of the operation to execute should not exceed the user specified limit,
+      //    otherwise, try the next eligible one.
       runInternal((lastOperationIndex) -> {
         int operationIndex = (lastOperationIndex + 1) % mParameters.mOperations.length;
         mContext.getGrandRateLimiter().acquire();

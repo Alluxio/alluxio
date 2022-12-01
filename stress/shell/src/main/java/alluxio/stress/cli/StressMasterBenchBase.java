@@ -438,7 +438,6 @@ public abstract class StressMasterBenchBase
                 .setMode(PMode.newBuilder()
                     .setOwnerBits(Bits.ALL)
                     .setGroupBits(Bits.ALL)
-                    .setGroupBits(Bits.ALL)
                     .setOtherBits(Bits.ALL).build()).build());
         break;
       case CRURD:
@@ -452,10 +451,9 @@ public abstract class StressMasterBenchBase
             .setMode(PMode.newBuilder()
                 .setOwnerBits(Bits.ALL)
                 .setGroupBits(Bits.ALL)
-                .setGroupBits(Bits.ALL)
                 .setOtherBits(Bits.ALL).build()).build());
         URIStatus us = fs.getStatus(uri);
-        if (us.getMode() != 511) {
+        if (us.getMode() != 0777) {
           throw new IOException("[INCONSISTENCY] file update doesn't reflect");
         }
         fs.delete(uri);

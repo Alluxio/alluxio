@@ -11,6 +11,7 @@
 
 package alluxio.stress.master;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.common.SummaryStatistics;
 
@@ -26,10 +27,10 @@ import java.util.zip.DataFormatException;
 public final class MultiOperationMasterBenchSummary
     extends GeneralBenchSummary<MultiOperationMasterBenchTaskResult> {
   private long mDurationMs;
-  private long mEndTimeMs;
+  long mEndTimeMs;
   private MultiOperationMasterBenchParameters mParameters;
 
-  private List<SummaryStatistics> mStatistics;
+  List<SummaryStatistics> mStatistics;
 
   private Map<String, SummaryStatistics> mStatisticsPerMethod;
 
@@ -46,6 +47,7 @@ public final class MultiOperationMasterBenchSummary
    * @param mergedTaskResults the merged task result
    * @param nodes the map storing the nodes' result
    */
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public MultiOperationMasterBenchSummary(
       MultiOperationMasterBenchTaskResult mergedTaskResults,
       Map<String, MultiOperationMasterBenchTaskResult> nodes) throws DataFormatException {
