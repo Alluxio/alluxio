@@ -7318,6 +7318,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "reads and block writes) to wait for a response from the data server.")
           .build();
 
+  public static final PropertyKey DORA_CLIENT_READ_LOCATION_POLICY_ENABLED =
+      booleanBuilder(Name.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to use client side location policy for reading")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .build();
+
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -8811,6 +8819,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
         "alluxio.user.network.netty.reader.buffer.size.packets";
+
+    public static final String DORA_CLIENT_READ_LOCATION_POLICY_ENABLED =
+        "alluxio.dora.client.read.location.policy.enabled";
 
     private Name() {} // prevent instantiation
   }
