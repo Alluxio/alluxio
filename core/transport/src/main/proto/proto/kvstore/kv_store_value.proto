@@ -11,6 +11,7 @@ enum KVStoreTable {
   FILE_ENTRY = 3;
   FILE_CACHE_STATUS = 4;
   INODE_EDGE = 5;
+  BLOCK_LOCATION = 6;
 }
 
 enum PersistenceState {
@@ -52,17 +53,27 @@ message InodeTreeEdgeKey {
   required int64 id = 2;
 }
 
+message BlockLocation {
+  required KVStoreTable tableType = 1;
+  required int64 fileId = 2;
+  required int64 workerId = 3; // -1 means the basic
+}
+
 message InodeTreeEdgeValue {
   required int64 parentId = 1;
   required string childName = 2;
 }
 
 message FileEntryValue {
-  required int64 mID = 1;
-  required KVEntryType mEntryType = 2;
-  optional bytes mEV = 3;
+  required int64 id = 1;
+  required KVEntryType entryType = 2;
+  optional bytes entryValue = 3;
 }
 
 message FileCacheStatus {
-  optional bytes mCacheValue = 1;
+  optional bytes cacheValue = 1;
+}
+
+message BlockLocationValue {
+  optional bytes value = 1;
 }

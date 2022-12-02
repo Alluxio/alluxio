@@ -15,17 +15,17 @@ import com.google.protobuf.InvalidProtocolBufferException;
 public class KVStoreUtils {
   public static MutableInode<?> convertToMutableInode(FileEntryKey key, FileEntryValue value,
       FileCacheStatus cacheStatus) {
-    switch (value.getMEntryType()) {
+    switch (value.getEntryType()) {
       case FILE:
         InodeMeta.Inode.newBuilder();
         CreateFileContext createFileContext = CreateFileContext.defaults();
         // createFileContext.getOptions().setMode();
-        return MutableInodeFile.create(key.getParentID(), value.getMID(),
+        return MutableInodeFile.create(key.getParentID(), value.getId(),
             key.getName(), System.currentTimeMillis(), createFileContext);
       case DIRECTORY:
         CreateDirectoryContext createDirectoryContext = CreateDirectoryContext.defaults();
         // createDirectoryContext.getOptions().set
-        return MutableInodeDirectory.create(key.getParentID(), value.getMID(),
+        return MutableInodeDirectory.create(key.getParentID(), value.getId(),
             key.getName(), createDirectoryContext);
       default:
         return null;
@@ -38,7 +38,8 @@ public class KVStoreUtils {
 
   public static MutableInode<?> convertToMutableInode(FileEntryKey key, FileEntryValue value) {
     try {
-      MutableInode<?> inode = MutableInode.fromProto(InodeMeta.Inode.parseFrom(value.getMEV()));
+      MutableInode<?> inode = MutableInode.fromProto(
+          InodeMeta.Inode.parseFrom(value.getEntryValue()));
       return inode;
     } catch (InvalidProtocolBufferException e) {
       throw new RuntimeException(e);
@@ -47,7 +48,7 @@ public class KVStoreUtils {
 
   public static InodeMeta.InodeCacheAttri convertToInodeCacheAttr(FileCacheStatus value) {
     try {
-      return InodeMeta.InodeCacheAttri.parseFrom(value.getMCacheValue());
+      return InodeMeta.InodeCacheAttri.parseFrom(value.getCacheValue());
     } catch (InvalidProtocolBufferException e) {
       throw new RuntimeException(e);
     }

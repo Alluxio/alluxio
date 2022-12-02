@@ -134,7 +134,6 @@ public interface KVInodeStore extends KVReadOnlyInodeStore, Closeable {
    */
   void removeChild(long parentId, String name, long id);
 
-
   void removeChild(long parentId, String name);
 
   @Override

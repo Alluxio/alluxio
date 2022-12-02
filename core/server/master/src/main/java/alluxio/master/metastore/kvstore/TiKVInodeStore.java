@@ -80,9 +80,9 @@ public class TiKVInodeStore implements KVInodeStore {
         .build();
     // fill in the values
     FileEntryValue fileEntryValue = FileEntryValue.newBuilder()
-        .setMID(inode.getId())
-        .setMEntryType(inode.isDirectory() ? KVEntryType.DIRECTORY : KVEntryType.FILE)
-        .setMEV(KVStoreUtils.convertMutableInodeToByteString(inode))
+        .setId(inode.getId())
+        .setEntryType(inode.isDirectory() ? KVEntryType.DIRECTORY : KVEntryType.FILE)
+        .setEntryValue(KVStoreUtils.convertMutableInodeToByteString(inode))
         .build();
     InodeTreeEdgeKey inodeTreeEdgeKey = InodeTreeEdgeKey.newBuilder()
         .setTableType(KVStoreTable.INODE_EDGE)
@@ -114,7 +114,7 @@ public class TiKVInodeStore implements KVInodeStore {
         .build();
     // fill in the values
     FileCacheStatus fileEntryValue = FileCacheStatus.newBuilder()
-        .setMCacheValue(KVStoreUtils.convertInodeCacheAttrToByteString(inodeCacheAttri))
+        .setCacheValue(KVStoreUtils.convertInodeCacheAttrToByteString(inodeCacheAttri))
         .build();
     // TODO(yyong) figure out the format of metadata part
     // Need to check if the entry exists.
@@ -244,7 +244,7 @@ public class TiKVInodeStore implements KVInodeStore {
         .build();
     Optional<FileEntryValue> value
         = mKVStoreMetaInterface.getFileEntry(key);
-    return value.isPresent() ? Optional.of(value.get().getMID()) : Optional.empty();
+    return value.isPresent() ? Optional.of(value.get().getId()) : Optional.empty();
   }
 
   static class KVStoreIter implements Iterator<Pair<Long, String>> {
@@ -309,7 +309,7 @@ public class TiKVInodeStore implements KVInodeStore {
           .setName(inode.getName())
           .build();
       FileEntryValue.Builder valueBuilder = FileEntryValue.newBuilder()
-          .setMID(inode.getId());
+          .setId(inode.getId());
 
       if (inode instanceof MutableInodeDirectory) {
         return;
