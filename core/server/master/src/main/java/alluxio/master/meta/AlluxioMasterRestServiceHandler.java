@@ -870,7 +870,7 @@ public final class AlluxioMasterRestServiceHandler {
 
       MasterInfo[] failedMasterInfos = mMetaMaster.getLostMasterInfos();
       response.setFailedMasterInfos(failedMasterInfos);
-      
+
       MasterInfo[] normalMasterInfos = mMetaMaster.getMasterInfos();
       response.setNormalMasterInfos(normalMasterInfos);
 
