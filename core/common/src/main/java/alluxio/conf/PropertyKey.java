@@ -3514,6 +3514,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_IGNORE_TTL =
+      booleanBuilder(Name.MASTER_METADATA_SYNC_IGNORE_TTL)
+          .setDefaultValue(false)
+          .setDescription("Whether files created from metadata sync will ignore the TTL from the "
+              + "command/path conf and have no TTL.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_TYPE =
       enumBuilder(Name.MASTER_RPC_EXECUTOR_TYPE, RpcExecutorType.class)
           .setDefaultValue(RpcExecutorType.TPE)
@@ -7624,6 +7632,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.ufs.prefetch.status";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
         "alluxio.master.metadata.sync.ufs.prefetch.timeout";
+    public static final String MASTER_METADATA_SYNC_IGNORE_TTL =
+        "alluxio.master.metadata.sync.ignore.ttl";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_INODE = "alluxio.master.metastore.inode";
     public static final String MASTER_METASTORE_BLOCK = "alluxio.master.metastore.block";
