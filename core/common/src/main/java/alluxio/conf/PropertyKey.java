@@ -2187,6 +2187,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_UNSAFE_FLUSH_ENABLED =
+      booleanBuilder(Name.MASTER_EMBEDDED_JOURNAL_UNSAFE_FLUSH_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If true, embedded journal entries will be committed without "
+              + "waiting for the entry to be flushed to disk. This may improve performance "
+              + "of write operations on the Alluxio master if the journal is written to a "
+              + "slow or contested disk. WARNING: enabling this property may result in metadata "
+              + "loss if half or more of the master nodes fail. See Ratis property "
+              + "raft.server.log.unsafe-flush.enabled at "
+              + "https://github.com/apache/ratis/blob/master/ratis-docs/src/site/markdown/configuraions.md.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED =
       booleanBuilder(Name.MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED)
           .setDefaultValue(false)
@@ -7564,6 +7577,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.port";
     public static final String MASTER_EMBEDDED_JOURNAL_RETRY_CACHE_EXPIRY_TIME =
         "alluxio.master.embedded.journal.retry.cache.expiry.time";
+    public static final String MASTER_EMBEDDED_JOURNAL_UNSAFE_FLUSH_ENABLED =
+        "alluxio.master.embedded.journal.unsafe.flush.enabled";
     public static final String MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED =
         "alluxio.master.embedded.journal.write.local.first.enabled";
     public static final String MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED =
