@@ -48,14 +48,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 
 /**
- * Single node stress test.
+ * A stress master bench that benchmark a set of combined operations.
  */
 // TODO(jiacheng): avoid the implicit casts and @SuppressFBWarnings
 public class MultiOperationStressMasterBench
@@ -92,12 +91,12 @@ public class MultiOperationStressMasterBench
         + "The CreateFile throughput will be 4x more than GetFileStatus.",
         "$ bin/alluxio runClass alluxio.stress.cli.MultiOperationStressMasterBench \\",
         "--operations GetFileStatus,CreateFile --operations-ratio 1,4  --fixed-counts 100,1 \\",
-        "--warmup 1s  --duration 10s --in-process --client-type AlluxioNative --threads 16 ",
+        "--warmup 1s  --duration 10s -client-type AlluxioNative --threads 16 ",
         "",
         "Use the following command to prepare the test directory to list with before running test:",
         "$ bin/alluxio runClass alluxio.stress.cli.StressMasterBench \\",
-        "--base alluxio://stress-master-base-0 --fixed-count 100 --stop-count 100 --warmup 5s \\",
-        "--operation CreateFile --duration 30s --in-process --client-type AlluxioNative"
+        "--base alluxio:///stress-master-base-0 --fixed-count 100 --stop-count 100 --warmup 5s \\",
+        "--operation CreateFile --duration 30s --client-type AlluxioNative"
     ));
   }
 
@@ -237,8 +236,6 @@ public class MultiOperationStressMasterBench
         mCachedNativeFs[0].createDirectory(uri, CreateDirectoryPOptions.getDefaultInstance());
       }
     }
-
-    // caonima
   }
 
   @Override
@@ -267,7 +264,6 @@ public class MultiOperationStressMasterBench
       for (int i = 0; i < mParameters.mTargetThroughputs.length; i++) {
         rateLimiters[i] = createUnlimitedRateLimiter();
       }
-      Arrays.fill(rateLimiters, createUnlimitedRateLimiter());
       benchContext = new BenchContext(
           createUnlimitedRateLimiter(), rateLimiters,
           mParameters.mOperations, mParameters.mBasePaths, mParameters.mDuration);
@@ -403,7 +399,7 @@ public class MultiOperationStressMasterBench
 
     /**
      * Gets the ratio array and normalizes it into probability distribution
-     * e.g. [4,6,10] will be normalized into [0.2, 0.3, 0.5]
+     * e.g. [4,6,10] will be normalized into [0.2, 0.5, 1.0]
      * @return the probability distribution array
      */
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
@@ -445,7 +441,7 @@ public class MultiOperationStressMasterBench
       int operationIndex = 0;
       //Each thread randomly picks an operation to do based on the probability array
       for (int i = 0; i < mParameters.mOperations.length; i++) {
-        if (probabilities[i] >= mThreadIndex) {
+        if (probabilities[i] >= (double) mThreadIndex / mParameters.mThreads) {
           operationIndex = i;
           break;
         }
