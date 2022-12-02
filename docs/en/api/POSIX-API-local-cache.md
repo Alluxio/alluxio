@@ -13,6 +13,9 @@ The Alluxio POSIX API is a feature that allows mounting the training dataset
 in a specific storage service (e.g. S3, HDFS) to the local filesystem
 and provides local caching capabilities to speed up I/O access to frequently used data.
 
+Support under storage includes [S3A]({{ '/en/ufs/S3.html' | relativize_url }}) and [HDFS (Version 2.7 and 3.3)]({{ '/en/ufs/HDFS.html' | relativize_url }})
+Contact our [community slack channel](https://slackin.alluxio.io/) if you want to use POSIX API local cache with other under storage.
+
 ## Prerequisites
 
 The followings are the basic requirements running ALLUXIO POSIX API.
@@ -80,12 +83,14 @@ $ bin/alluxio-fuse mount s3://bucket_name/path/to/dataset/ /path/to/mount_point 
 ```
 Other [S3 configuration]({{ '/en/ufs/S3.html' | relativize_url }}#advanced-setup) (e.g. `-o alluxio.underfs.s3.region=<region>`) can also be set via the `-o alluxio_property_key=value` format.
 
-### Example: Mounts a GCS dataset
+### Example: Mounts a HDFS dataset
 
-Mounts the dataset in target google cloud storage to a local folder:
+Mounts the dataset in target HDFS cluster to a local folder:
 ```console
-$ bin/alluxio-fuse mount gs://bucket_name/path/to/dataset/ /path/to/mount_point -o fs.gcs.credential.path=/path/to/<google_application_credentials>.json
+$ bin/alluxio-fuse mount hdfs://nameservice/path/to/dataset /path/to/mount_point -o alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml
 ```
+The supported versions of HDFS can be specified via `-o alluxio.underfs.version=2.7` or `-o alluxio.underfs.version=3.3`.
+Other [HDFS configuration]({{ '/en/ufs/HDFS.html' | relativize_url }}#advanced-setup) can also be set via the `-o alluxio_property_key=value` format.
 
 ## Example: Run operations
 
@@ -332,7 +337,7 @@ Note that all file/dir permissions are checked against the user launching the Al
 Alluxio now supports both libfuse2 and libfuse3. Alluxio FUSE on libfuse2 is more stable and has been tested in production.
 Alluxio FUSE on libfuse3 is currently experimental but under active development. Alluxio will focus more on libfuse3 and utilize new features provided.
 
-**libfuse2** will is used by default.
+**libfuse2** is used by default.
 
 Set to use **libfuse3** via:
 ```console
