@@ -102,6 +102,7 @@ public class MultiOperationStressMasterBench
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public void validateParams() throws Exception {
     int numOperations = mParameters.mOperations.length;
     if (numOperations < 2) {
@@ -256,6 +257,7 @@ public class MultiOperationStressMasterBench
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   protected StressMasterBenchBase<
       MultiOperationMasterBenchTaskResult, MultiOperationMasterBenchParameters>.BenchContext
       getContext() throws IOException, AlluxioException {
@@ -292,6 +294,7 @@ public class MultiOperationStressMasterBench
     private final int mThreadIndex;
     private final Random mRandom = new Random();
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private BenchThread(
         BenchContext context, int threadIndex) {
       mContext = context;
@@ -403,6 +406,7 @@ public class MultiOperationStressMasterBench
      * e.g. [4,6,10] will be normalized into [0.2, 0.3, 0.5]
      * @return the probability distribution array
      */
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private double[] getProbabilityDistribution(double[] ratios) {
       double ratioSum = 0;
       double last = 0;
@@ -486,6 +490,7 @@ public class MultiOperationStressMasterBench
     }
 
     @Override
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected void applyOperation(int operationIndex, long operationCounter)
         throws IOException, AlluxioException {
       MultiOperationStressMasterBench.this.applyNativeOperation(
