@@ -24,24 +24,24 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Sets direct children loaded command.
+ * Sync direct children next time command.
  */
 @ThreadSafe
 @PublicApi
-public final class SetDirectChildrenLoadedCommand extends AbstractFileSystemCommand {
+public final class SyncNextTimeCommand extends AbstractFileSystemCommand {
 
   private boolean mLoaded;
 
   /**
    * @param fsContext the filesystem of Alluxio
    */
-  public SetDirectChildrenLoadedCommand(FileSystemContext fsContext) {
+  public SyncNextTimeCommand(FileSystemContext fsContext) {
     super(fsContext);
   }
 
   @Override
   public String getCommandName() {
-    return "setDirectChildrenLoaded";
+    return "syncNextTime";
   }
 
   @Override
@@ -53,7 +53,7 @@ public final class SetDirectChildrenLoadedCommand extends AbstractFileSystemComm
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     FileSystemCommandUtils.setDirectChildrenLoaded(mFileSystem, path, mLoaded);
-    System.out.println("Path '" + path + "' was successfully set DirectChildrenLoaded to "
+    System.out.println("Path '" + path + "' was successfully set sync direct children to "
         + mLoaded);
   }
 
@@ -67,11 +67,11 @@ public final class SetDirectChildrenLoadedCommand extends AbstractFileSystemComm
 
   @Override
   public String getUsage() {
-    return "setDirectChildrenLoaded <true|false> <path>";
+    return "syncNextTime <true|false> <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Sets DirectChildrenLoaded of a specific path to true or false";
+    return "Sets sync direct children next time for a specific directory to true or false";
   }
 }
