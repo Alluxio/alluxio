@@ -248,18 +248,16 @@ public interface LocalBlockStore
   void removeInaccessibleStorage();
 
   /**
-   * Get {@link BlockMetadataManager}
+   * Get {@link BlockMetadataManager}.
    *
    * @return BlockMetadataManager
    */
   BlockMetadataManager getMetadataManager();
 
   /**
-   * Get {@link BlockLockManager}
+   * Get {@link BlockLockManager}.
    *
    * @return BlockLockManager
    */
   BlockLockManager getLockManager();
-
-
 }

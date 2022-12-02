@@ -11,10 +11,10 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.DeadlineExceededException;
@@ -29,12 +29,7 @@ import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
-import javax.annotation.concurrent.GuardedBy;
-import javax.annotation.concurrent.NotThreadSafe;
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
@@ -47,19 +42,26 @@ import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * A netty packet writer that streams a full block or a UFS file to a netty data server.
- *
+ * <p>
  * Protocol:
  * 1. The client streams packets (start from pos 0) to the server. The client pauses if the client
- *    buffer is full, resumes if the buffer is not full.
+ * buffer is full, resumes if the buffer is not full.
  * 2. The server reads packets from the channel and writes them to the block worker. See the server
- *    side implementation for details.
+ * side implementation for details.
  * 3. The client can either send an EOF packet or a CANCEL packet to end the write request. The
- *    client has to wait for the response from the data server for the EOF or CANCEL packet to make
- *    sure that the server has cleaned its states.
+ * client has to wait for the response from the data server for the EOF or CANCEL packet to make
+ * sure that the server has cleaned its states.
  * 4. To make it simple to handle errors, the channel is closed if any error occurs.
- *
+ * <p>
  * NOTE: this class is NOT threadsafe. Do not call cancel/close while some other threads are
  * writing.
  */
@@ -84,7 +86,9 @@ public final class NettyDataWriter implements DataWriter {
   private boolean mClosed;
 
   private final ReentrantLock mLock = new ReentrantLock();
-  /** The next pos to write to the channel. */
+  /**
+   * The next pos to write to the channel.
+   */
   @GuardedBy("mLock")
   private long mPosToWrite;
   /**
@@ -101,25 +105,31 @@ public final class NettyDataWriter implements DataWriter {
   private boolean mEOFSent;
   @GuardedBy("mLock")
   private boolean mCancelSent;
-  /** This condition is met if mPacketWriteException != null or mDone = true. */
+  /**
+   * This condition is met if mPacketWriteException != null or mDone = true.
+   */
   private final Condition mDoneOrFailed = mLock.newCondition();
-  /** This condition is met if mPacketWriteException != null or the buffer is not full. */
+  /**
+   * This condition is met if mPacketWriteException != null or the buffer is not full.
+   */
   private final Condition mBufferNotFullOrFailed = mLock.newCondition();
-  /** This condition is met if there is nothing in the netty buffer. */
+  /**
+   * This condition is met if there is nothing in the netty buffer.
+   */
   private final Condition mBufferEmptyOrFailed = mLock.newCondition();
 
   /**
    * @param context the file system context
    * @param address the data server address
-   * @param id the block or UFS ID
-   * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
-   * @param type type of the write request
+   * @param id      the block or UFS ID
+   * @param length  the length of the block or file to write, set to Long.MAX_VALUE if unknown
+   * @param type    type of the write request
    * @param options the options of the output stream
    * @return an instance of {@link NettyDataWriter}
    */
   public static NettyDataWriter create(FileSystemContext context, WorkerNetAddress address,
-                                       long id, long length, RequestType type, OutStreamOptions options)
-      throws IOException {
+                                       long id, long length, RequestType type,
+                                       OutStreamOptions options) throws IOException {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
     Channel nettyChannel = context.acquireNettyChannel(address);
@@ -143,14 +153,14 @@ public final class NettyDataWriter implements DataWriter {
   /**
    * Creates an instance of {@link NettyDataWriter}.
    *
-   * @param context the file system context
-   * @param address the data server address
-   * @param id the block or UFS file Id
-   * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
+   * @param context    the file system context
+   * @param address    the data server address
+   * @param id         the block or UFS file Id
+   * @param length     the length of the block or file to write, set to Long.MAX_VALUE if unknown
    * @param packetSize the packet size
-   * @param type type of the write request
-   * @param options details of the write request which are constant for all requests
-   * @param channel netty channel
+   * @param type       type of the write request
+   * @param options    details of the write request which are constant for all requests
+   * @param channel    netty channel
    */
   private NettyDataWriter(FileSystemContext context, final WorkerNetAddress address, long id,
                           long length, long packetSize, RequestType type, OutStreamOptions options,
@@ -159,8 +169,8 @@ public final class NettyDataWriter implements DataWriter {
     mAddress = address;
     mLength = length;
     Protocol.WriteRequest.Builder builder =
-        Protocol.WriteRequest.newBuilder().setId(id).setTier(options.getWriteTier()).
-            setType(getRequestType(type));
+        Protocol.WriteRequest.newBuilder().setId(id).setTier(options.getWriteTier())
+            .setType(getRequestType(type));
     if (type == RequestType.UFS_FILE) {
       Protocol.CreateUfsFileOptions ufsFileOptions =
           Protocol.CreateUfsFileOptions.newBuilder().setUfsPath(options.getUfsPath())
@@ -383,7 +393,8 @@ public final class NettyDataWriter implements DataWriter {
     /**
      * Default constructor.
      */
-    PacketWriteResponseHandler() {}
+    PacketWriteResponseHandler() {
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
@@ -497,7 +508,8 @@ public final class NettyDataWriter implements DataWriter {
     /**
      * Constructor.
      */
-    EofOrCancelListener() {}
+    EofOrCancelListener() {
+    }
 
     @Override
     public void operationComplete(ChannelFuture future) {
