@@ -42,6 +42,12 @@ var hadoopDistributions = map[string]version{
 	"default": parseVersion("2.7.3"),
 }
 
+type GenerateTarballOpts struct {
+	SkipUI   bool
+	SkipHelm bool
+	Fuse     bool
+}
+
 type module struct {
 	name      string // the name used in the generated tarball
 	ufsType   string // the source module type
@@ -65,27 +71,37 @@ var ufsModules = map[string]module{
 	"ufs-hadoop-3.2":  {"hadoop-3.2", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.2.1 -PhdfsActiveSync"},
 	"ufs-hadoop-3.3":  {"hadoop-3.3", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1 -PhdfsActiveSync"},
 
-	"ufs-hadoop-ozone-1.2.1": {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
-	"ufs-hadoop-cosn-3.1.0-5.8.5":  {"hadoop-cosn-3.1.0-5.8.5", "cosn", true, "-pl underfs/cosn -Dufs.cosn.version=3.1.0-5.8.5"},
+	"ufs-hadoop-ozone-1.2.1":      {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
+	"ufs-hadoop-cosn-3.1.0-5.8.5": {"hadoop-cosn-3.1.0-5.8.5", "cosn", true, "-pl underfs/cosn -Dufs.cosn.version=3.1.0-5.8.5"},
 }
 
-var libJars = map[string]struct{}{
-	"integration-tools-hms":        {},
-	"integration-tools-validation": {},
-	"underfs-abfs":                 {},
-	"underfs-adl":                  {},
-	"underfs-gcs":                  {},
-	"underfs-local":                {},
-	"underfs-s3a":                  {},
-	"underfs-obs":                  {},
-	"underfs-wasb":                 {},
+var fuseUfsModuleNames = []string{
+	"ufs-hadoop-2.10",
+	"ufs-hadoop-3.2",
+	"ufs-hadoop-ozone-1.2.1",
+}
 
+var coreLibJars = map[string]struct{}{
+	"underfs-abfs":          {},
+	"underfs-adl":           {},
 	"underfs-cephfs":        {},
 	"underfs-cephfs-hadoop": {},
+	"underfs-gcs":           {},
+	"underfs-local":         {},
 	"underfs-cos":           {},
 	"underfs-oss":           {},
-	"underfs-swift":         {},
-	"underfs-web":           {},
+	"underfs-s3a":           {},
+}
+
+var additionalLibJars = map[string]struct{}{
+	"integration-tools-hms":        {},
+	"integration-tools-validation": {},
+
+	"underfs-cos":   {},
+	"underfs-obs":   {},
+	"underfs-swift": {},
+	"underfs-wasb":  {},
+	"underfs-web":   {},
 }
 
 func validModules(modules map[string]module) []string {

@@ -33,7 +33,11 @@ var (
 func Single(args []string) error {
 	singleCmd := flag.NewFlagSet("single", flag.ExitOnError)
 	// flags
-	generateFlags(singleCmd)
+	addCommonFlags(singleCmd, &FlagsOpts{
+		TargetName: fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker),
+		UfsModules: strings.Join(defaultModules(ufsModules), ","),
+		LibJars:    libJarsAll,
+	})
 	singleCmd.StringVar(&customUfsModuleFlag, "custom-ufs-module", "",
 		"a percent-separated list of custom ufs modules which has the form of a pipe-separated triplet of module name, ufs type, and its comma-separated maven arguments."+
 			" e.g. hadoop-a.b|hdfs|-pl,underfs/hdfs,-Pufs-hadoop-A,-Dufs.hadoop.version=a.b.c%hadoop-x.y|hdfs|-pl,underfs/hdfs,-Pufs-hadoop-X,-Dufs.hadoop.version=x.y.z")
@@ -73,7 +77,11 @@ func Single(args []string) error {
 			fmt.Fprintf(os.Stdout, "ufsModule=: %s\n", ufsModule)
 		}
 	}
-	if err := generateTarball(skipUIFlag, skipHelmFlag); err != nil {
+	if err := generateTarball(&GenerateTarballOpts{
+		SkipUI:   skipUIFlag,
+		SkipHelm: skipHelmFlag,
+		Fuse:     false,
+	}); err != nil {
 		return err
 	}
 	return nil
@@ -172,51 +180,55 @@ func buildModules(srcPath, name, moduleFlag, version string, modules map[string]
 	}
 }
 
-func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version string) {
+func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version string, fuse bool) {
 	chdir(srcPath)
 	pathsToCopy := []string{
-		"bin/alluxio",
-		"bin/alluxio-common.sh",
-		"bin/alluxio-masters.sh",
-		"bin/alluxio-monitor.sh",
-		"bin/alluxio-mount.sh",
-		"bin/alluxio-start.sh",
-		"bin/alluxio-stop.sh",
-		"bin/alluxio-workers.sh",
-		"bin/launch-process",
-		fmt.Sprintf("client/alluxio-%v-client.jar", version),
 		"conf/alluxio-env.sh.template",
 		"conf/alluxio-site.properties.template",
 		"conf/core-site.xml.template",
 		"conf/log4j.properties",
-		"conf/rocks-inode-bloom.ini.template",
-		"conf/rocks-block-bloom.ini.template",
-		"conf/rocks-inode.ini.template",
-		"conf/rocks-block.ini.template",
-		"conf/masters",
 		"conf/metrics.properties.template",
-		"conf/workers",
-		"integration/docker/.dockerignore",
-		"integration/docker/conf/alluxio-env.sh.template",
-		"integration/docker/conf/alluxio-site.properties.template",
-		"integration/docker/csi/alluxio/controllerserver.go",
-		"integration/docker/csi/alluxio/driver.go",
-		"integration/docker/csi/alluxio/nodeserver.go",
-		"integration/docker/csi/go.mod",
-		"integration/docker/csi/go.sum",
-		"integration/docker/csi/main.go",
-		"integration/docker/Dockerfile",
-		"integration/docker/Dockerfile-dev",
-		"integration/docker/entrypoint.sh",
-		"integration/fuse/bin/alluxio-fuse",
-		"integration/metrics/docker-compose-master.yaml",
-		"integration/metrics/docker-compose-worker.yaml",
-		"integration/metrics/otel-agent-config.yaml",
-		"integration/metrics/otel-agent-config-worker.yaml",
-		"integration/metrics/otel-collector-config.yaml",
-		"integration/metrics/prometheus.yaml",
 		"libexec/alluxio-config.sh",
 		"LICENSE",
+	}
+	if !fuse {
+		pathsToCopy = append(pathsToCopy,
+			"bin/alluxio",
+			"bin/alluxio-common.sh",
+			"bin/alluxio-masters.sh",
+			"bin/alluxio-monitor.sh",
+			"bin/alluxio-mount.sh",
+			"bin/alluxio-start.sh",
+			"bin/alluxio-stop.sh",
+			"bin/alluxio-workers.sh",
+			"bin/launch-process",
+			fmt.Sprintf("client/alluxio-%v-client.jar", version),
+			"conf/rocks-inode-bloom.ini.template",
+			"conf/rocks-block-bloom.ini.template",
+			"conf/rocks-inode.ini.template",
+			"conf/rocks-block.ini.template",
+			"conf/masters",
+			"conf/workers",
+			"integration/docker/.dockerignore",
+			"integration/docker/conf/alluxio-env.sh.template",
+			"integration/docker/conf/alluxio-site.properties.template",
+			"integration/docker/csi/alluxio/controllerserver.go",
+			"integration/docker/csi/alluxio/driver.go",
+			"integration/docker/csi/alluxio/nodeserver.go",
+			"integration/docker/csi/go.mod",
+			"integration/docker/csi/go.sum",
+			"integration/docker/csi/main.go",
+			"integration/docker/Dockerfile",
+			"integration/docker/Dockerfile-dev",
+			"integration/docker/entrypoint.sh",
+			"integration/fuse/bin/alluxio-fuse",
+			"integration/metrics/docker-compose-master.yaml",
+			"integration/metrics/docker-compose-worker.yaml",
+			"integration/metrics/otel-agent-config.yaml",
+			"integration/metrics/otel-agent-config-worker.yaml",
+			"integration/metrics/otel-collector-config.yaml",
+			"integration/metrics/prometheus.yaml",
+		)
 	}
 
 	for _, jar := range strings.Split(includedLibJarsFlag, ",") {
@@ -228,15 +240,27 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		run(fmt.Sprintf("adding %v", path), "cp", path, filepath.Join(dstPath, path))
 	}
 
-	// Create empty directories for default UFS and Docker integration.
-	mkdir(filepath.Join(dstPath, "underFSStorage"))
-	mkdir(filepath.Join(dstPath, "integration/docker/conf"))
+	modulesToAdd := map[string]module{}
+	if fuse {
+		for _, fuseModuleName := range fuseUfsModuleNames {
+			m, ok := ufsModules[fuseModuleName]
+			if !ok {
+				panic(fmt.Sprintf("unknown fuse module named %v", fuseModuleName))
+			}
+			modulesToAdd[fuseModuleName] = m
+		}
+	} else {
+		modulesToAdd = ufsModules
+		// Create empty directories for default UFS and Docker integration.
+		mkdir(filepath.Join(dstPath, "underFSStorage"))
+		mkdir(filepath.Join(dstPath, "integration/docker/conf"))
 
-	mkdir(filepath.Join(dstPath, "lib"))
-	addModules(srcPath, dstPath, "underfs", ufsModulesFlag, version, ufsModules)
+		mkdir(filepath.Join(dstPath, "lib"))
+	}
+	addModules(srcPath, dstPath, "underfs", ufsModulesFlag, version, modulesToAdd)
 }
 
-func generateTarball(skipUI, skipHelm bool) error {
+func generateTarball(opts *GenerateTarballOpts) error {
 	hadoopVersion, ok := hadoopDistributions[hadoopDistributionFlag]
 	if !ok {
 		hadoopVersion = parseVersion(hadoopDistributionFlag)
@@ -277,7 +301,7 @@ func generateTarball(skipUI, skipHelm bool) error {
 	replace("integration/fuse/bin/alluxio-fuse", "target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar", "alluxio-fuse-${VERSION}.jar")
 
 	mvnArgs := getCommonMvnArgs(hadoopVersion)
-	if skipUI {
+	if opts.SkipUI || opts.Fuse {
 		mvnArgsNoUI := append(mvnArgs, "-pl", "!webui")
 		run("compiling repo without UI", "mvn", mvnArgsNoUI...)
 	} else {
@@ -288,10 +312,10 @@ func generateTarball(skipUI, skipHelm bool) error {
 	buildModules(srcPath, "underfs", ufsModulesFlag, version, ufsModules, mvnArgs)
 
 	versionString := version
-	if skipUI {
+	if opts.SkipUI {
 		versionString = versionString + "-noUI"
 	}
-	if skipHelm {
+	if opts.SkipHelm {
 		versionString = versionString + "-noHelm"
 	}
 	tarball := strings.Replace(targetFlag, versionMarker, versionString, 1)
@@ -302,38 +326,48 @@ func generateTarball(skipUI, skipHelm bool) error {
 	run(fmt.Sprintf("removing any existing %v", dstPath), "rm", "-rf", dstPath)
 	fmt.Printf("Creating %s:\n", tarball)
 
-	for _, dir := range []string{
-		"assembly", "client", "logs", "integration/fuse", "integration/kubernetes", "logs/user",
-	} {
+	toCreateDirs := []string{"logs", "lib", "bin"}
+	if !opts.Fuse {
+		toCreateDirs = append(toCreateDirs, "assembly", "client", "integration/fuse", "integration/kubernetes", "logs/user")
+	}
+	for _, dir := range toCreateDirs {
 		mkdir(filepath.Join(dstPath, dir))
 	}
 
-	if err := os.Chmod(filepath.Join(dstPath, "logs/user"), 0777); err != nil {
-		return err
+	if opts.Fuse {
+		run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "lib", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
+		fuseDstPath := filepath.Join(dstPath, "bin", "alluxio-fuse")
+		run("adding Alluxio fuse script", "mv", "integration/fuse/bin/alluxio-fuse-sdk", fuseDstPath)
+		replace(fuseDstPath, "alluxio-fuse-sdk", "alluxio-fuse")
+		replace(fuseDstPath, "target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar", "lib/alluxio-fuse-${VERSION}.jar")
+		replace(fuseDstPath, "/../../../libexec", "/../libexec")
+	} else {
+		if err := os.Chmod(filepath.Join(dstPath, "logs/user"), 0777); err != nil {
+			return err
+		}
+		run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
+		run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
+		run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
+		// Generate Helm templates in the dstPath
+		run("adding Helm chart", "cp", "-r", filepath.Join(srcPath, "integration/kubernetes/helm-chart"), filepath.Join(dstPath, "integration/kubernetes/helm-chart"))
+		if !opts.SkipHelm {
+			chdir(filepath.Join(dstPath, "integration/kubernetes/helm-chart/alluxio/"))
+			run("generate Helm templates", "bash", "helm-generate.sh", "all")
+			chdir(srcPath)
+		}
+
+		if !opts.SkipUI {
+			masterWebappDir := "webui/master"
+			run("creating webui master webapp directory", "mkdir", "-p", filepath.Join(dstPath, masterWebappDir))
+			run("copying webui master webapp build directory", "cp", "-r", filepath.Join(masterWebappDir, "build"), filepath.Join(dstPath, masterWebappDir))
+
+			workerWebappDir := "webui/worker"
+			run("creating webui worker webapp directory", "mkdir", "-p", filepath.Join(dstPath, workerWebappDir))
+			run("copying webui worker webapp build directory", "cp", "-r", filepath.Join(workerWebappDir, "build"), filepath.Join(dstPath, workerWebappDir))
+		}
 	}
 
-	run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
-	run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
-	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
-	// Generate Helm templates in the dstPath
-	run("adding Helm chart", "cp", "-r", filepath.Join(srcPath, "integration/kubernetes/helm-chart"), filepath.Join(dstPath, "integration/kubernetes/helm-chart"))
-	if !skipHelm {
-		chdir(filepath.Join(dstPath, "integration/kubernetes/helm-chart/alluxio/"))
-		run("generate Helm templates", "bash", "helm-generate.sh", "all")
-		chdir(srcPath)
-	}
-
-	if !skipUI {
-		masterWebappDir := "webui/master"
-		run("creating webui master webapp directory", "mkdir", "-p", filepath.Join(dstPath, masterWebappDir))
-		run("copying webui master webapp build directory", "cp", "-r", filepath.Join(masterWebappDir, "build"), filepath.Join(dstPath, masterWebappDir))
-
-		workerWebappDir := "webui/worker"
-		run("creating webui worker webapp directory", "mkdir", "-p", filepath.Join(dstPath, workerWebappDir))
-		run("copying webui worker webapp build directory", "cp", "-r", filepath.Join(workerWebappDir, "build"), filepath.Join(dstPath, workerWebappDir))
-	}
-
-	addAdditionalFiles(srcPath, dstPath, hadoopVersion, version)
+	addAdditionalFiles(srcPath, dstPath, hadoopVersion, version, opts.Fuse)
 
 	chdir(cwd)
 	os.Setenv("COPYFILE_DISABLE", "1")

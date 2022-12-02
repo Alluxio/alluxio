@@ -37,8 +37,8 @@ import java.util.Optional;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AlluxioFuseUtils.class)
 public class CustomAuthPolicyTest extends AbstractAuthPolicyTest {
-  private static final long UID = 123;
-  private static final long GID = 456;
+  private static final long UID = 1000;
+  private static final long GID = 1000;
   private static final String USER = "customUser";
   private static final String GROUP = "customGroup";
 
