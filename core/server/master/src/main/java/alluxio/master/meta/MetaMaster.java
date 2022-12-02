@@ -133,14 +133,14 @@ public interface MetaMaster extends BackupOps, Master {
   int getWebPort();
 
   /**
-   * @return a list of {@link MasterInfo}s of masters
+   * @return a array of {@link MasterInfo}s of masters
    */
-  List<MasterInfo> getMasterInfoList();
+  MasterInfo[] getMasterInfos();
 
   /**
-   * @return a list of {@link MasterInfo}s of lost masters
+   * @return a array of {@link MasterInfo}s of lost masters
    */
-  List<MasterInfo> getLostMasterInfoList();
+  MasterInfo[] getLostMasterInfos();
 
   /**
    * @return the addresses of live workers

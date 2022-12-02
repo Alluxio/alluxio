@@ -489,23 +489,27 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public List<alluxio.wire.MasterInfo> getMasterInfoList() {
-    List<alluxio.wire.MasterInfo> masterInfoList = new ArrayList<>(mMasters.size());
+  public alluxio.wire.MasterInfo[] getMasterInfos() {
+    alluxio.wire.MasterInfo[] masterInfos = new alluxio.wire.MasterInfo[mMasters.size()];
+    int indexNum = 0;
     for (MasterInfo master : mMasters) {
-      masterInfoList.add(new alluxio.wire.MasterInfo(master.getId(),
-          master.getAddress(), master.getLastUpdatedTimeMs()));
+      masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(),
+          master.getAddress(), master.getLastUpdatedTimeMs());
+      indexNum++;
     }
-    return masterInfoList;
+    return masterInfos;
   }
 
   @Override
-  public List<alluxio.wire.MasterInfo> getLostMasterInfoList() {
-    List<alluxio.wire.MasterInfo> masterInfoList = new ArrayList<>(mLostMasters.size());
+  public alluxio.wire.MasterInfo[] getLostMasterInfos() {
+    alluxio.wire.MasterInfo[] masterInfos = new alluxio.wire.MasterInfo[mLostMasters.size()];
+    int indexNum = 0;
     for (MasterInfo master : mLostMasters) {
-      masterInfoList.add(new alluxio.wire.MasterInfo(master.getId(),
-          master.getAddress(), master.getLastUpdatedTimeMs()));
+      masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(),
+          master.getAddress(), master.getLastUpdatedTimeMs());
+      indexNum++;
     }
-    return masterInfoList;
+    return masterInfos;
   }
 
   @Override
