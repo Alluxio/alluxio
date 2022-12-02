@@ -7297,6 +7297,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "threshold.")
           .build();
 
+  public static final PropertyKey USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
+      dataSizeBuilder(Name.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES)
+          .setDefaultValue("64KB")
+          .setDescription("When a client writes to a remote worker, the maximum packet size.")
+          .build();
+
+  public static final PropertyKey USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
+      intBuilder(Name.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS)
+          .setDefaultValue(16)
+          .setDescription("When a client writes to a remote worker, the maximum number of packets "
+              + "to buffer by the client.")
+          .build();
   public static final PropertyKey USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
       intBuilder(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS)
           .setDefaultValue(16)
@@ -7308,6 +7320,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("Disable netty channel pool. This should be turned on if the client "
               + "version is >= 1.3.0 but server version is <= 1.2.x.")
+          .build();
+
+  public static final PropertyKey USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
+      durationBuilder(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.user.network.netty.writer.close.timeout.ms"})
+          .setDefaultValue("30min")
+          .setDescription("The timeout to close a netty writer client.")
           .build();
 
   public static final PropertyKey USER_NETWORK_NETTY_TIMEOUT_MS =
@@ -8183,6 +8202,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
         "alluxio.worker.network.netty.file.transfer";
+    public static final String USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
+        "alluxio.user.network.netty.writer.close.timeout";
     public static final String USER_NETWORK_NETTY_TIMEOUT_MS =
         "alluxio.user.network.netty.timeout";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
@@ -8817,6 +8838,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED =
         "alluxio.user.network.netty.channel.pool.disabled";
 
+    public static final String USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
+        "alluxio.user.network.netty.writer.packet.size.bytes";
+
+    public static final String USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
+        "alluxio.user.network.netty.writer.buffer.size.packets";
     public static final String USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
         "alluxio.user.network.netty.reader.buffer.size.packets";
 

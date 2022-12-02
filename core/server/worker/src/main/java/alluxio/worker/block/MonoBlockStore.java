@@ -112,8 +112,8 @@ public class MonoBlockStore implements BlockStore {
     mUnderFileSystemBlockStore =
         new UnderFileSystemBlockStore(localBlockStore, requireNonNull(ufsManager));
     mWorkerId = workerId;
-    mMetaManager = BlockMetadataManager.createBlockMetadataManager();
-    mLockManager = new BlockLockManager();
+    mMetaManager = localBlockStore.getMetadataManager();
+    mLockManager = localBlockStore.getLockManager();
   }
 
   @Override
@@ -456,7 +456,11 @@ public class MonoBlockStore implements BlockStore {
     if (mMetaManager.hasBlockMeta(blockId)) {
       throw new BlockAlreadyExistsException(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED, blockId);
     }
-    TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId).get();
+    Optional<TempBlockMeta> tempBlockMetaOptional = mMetaManager.getTempBlockMeta(blockId);
+    if (null == tempBlockMetaOptional || !tempBlockMetaOptional.isPresent()) {
+      throw new BlockDoesNotExistException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
+    }
+    TempBlockMeta tempBlockMeta = tempBlockMetaOptional.get();
     long ownerSessionId = tempBlockMeta.getSessionId();
     if (ownerSessionId != sessionId) {
       throw new InvalidWorkerStateException(ExceptionMessage.BLOCK_ID_FOR_DIFFERENT_SESSION,
