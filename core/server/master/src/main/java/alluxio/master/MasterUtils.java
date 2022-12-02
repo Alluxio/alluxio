@@ -26,6 +26,7 @@ import alluxio.master.metastore.ReadOption;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
+import alluxio.master.metastore.kvstore.TiKVBlockStore;
 import alluxio.master.metastore.kvstore.TiKVInodeStore;
 import alluxio.master.metastore.kvstorecaching.KVCachingInodeStore;
 import alluxio.master.metastore.rocks.RocksBlockMetaStore;
@@ -78,8 +79,9 @@ public final class MasterUtils {
       case HEAP:
         return HeapBlockMetaStore::new;
       case ROCKS:
-      case KVSTORE:
         return () -> new RocksBlockMetaStore(baseDir);
+      case KVSTORE:
+        return () -> new TiKVBlockStore();
       default:
         throw new IllegalStateException("Unknown metastore type: " + type);
     }
