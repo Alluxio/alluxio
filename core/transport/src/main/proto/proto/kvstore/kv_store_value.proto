@@ -53,10 +53,10 @@ message InodeTreeEdgeKey {
   required int64 id = 2;
 }
 
-message BlockLocation {
+message BlockLocationKey {
   required KVStoreTable tableType = 1;
   required int64 fileId = 2;
-  required int64 workerId = 3; // -1 means the basic
+  optional int64 workerId = 3; // null means the length, otherwise the location
 }
 
 message InodeTreeEdgeValue {

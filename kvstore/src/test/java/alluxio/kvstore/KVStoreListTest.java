@@ -16,7 +16,7 @@ class KVStoreListTest {
     FileEntryKey key = FileEntryKey.newBuilder().setParentID(pid)
         .setTableType(KVStoreTable.FILE_ENTRY)
         .setName(name).build();
-    FileEntryValue value = FileEntryValue.newBuilder().setMID(cid).build();
+    FileEntryValue value = FileEntryValue.newBuilder().setId(cid).build();
     return new Pair<>(key, value);
   }
 

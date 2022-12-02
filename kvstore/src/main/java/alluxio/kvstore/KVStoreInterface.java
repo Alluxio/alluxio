@@ -6,4 +6,6 @@ public interface KVStoreInterface extends Closeable {
   KVStoreMetaInterface getMetaKVStore();
 
   KVStoreMountInterface getMountKVStore();
+
+  KVStoreBlockMeta getBlockKVStore();
 }
