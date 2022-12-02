@@ -979,7 +979,7 @@ public class InodeSyncStream {
     }
 
     FileSystemMasterCommonPOptions option = NO_TTL_OPTION;
-    if (Configuration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_USE_CLIENT_OPTION)) {
+    if (!Configuration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_IGNORE_TTL)) {
       option = mSyncOptions;
     }
 

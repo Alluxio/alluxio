@@ -88,7 +88,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE, 2)
-          .setProperty(PropertyKey.MASTER_METADATA_SYNC_USE_CLIENT_OPTION, false).build();
+          .setProperty(PropertyKey.MASTER_METADATA_SYNC_IGNORE_TTL, true).build();
 
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
@@ -427,7 +427,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
         LoadMetadataType.ONCE.toString());
     Configuration.set(PropertyKey.USER_FILE_CREATE_TTL, "11000");
     Configuration.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.FREE.toString());
-    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_USE_CLIENT_OPTION, false);
+    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_IGNORE_TTL, true);
     // Set TTL related arguments from client side
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true)
         .setCommonOptions(
@@ -452,7 +452,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
         LoadMetadataType.ONCE.toString());
     Configuration.set(PropertyKey.USER_FILE_CREATE_TTL, "11000");
     Configuration.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.FREE.toString());
-    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_USE_CLIENT_OPTION, true);
+    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_IGNORE_TTL, false);
     // Set TTL related arguments from client side
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true)
         .setCommonOptions(
