@@ -320,6 +320,13 @@ public final class S3RestServiceHandler {
         }
         // Otherwise, this is ListObjects(v2)
         int maxKeys = maxKeysParam == null ? ListBucketOptions.DEFAULT_MAX_KEYS : maxKeysParam;
+        if (encodingTypeParam != null
+            && !StringUtils.equals(encodingTypeParam, ListBucketOptions.DEFAULT_ENCODING_TYPE)) {
+          throw new S3Exception(bucket, new S3ErrorCode(
+                  S3ErrorCode.INVALID_ARGUMENT.getCode(),
+                  "Invalid Encoding Method specified in Request.",
+                  S3ErrorCode.INVALID_ARGUMENT.getStatus()));
+        }
         ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
             .setMarker(markerParam)
             .setPrefix(prefixParam)
@@ -1239,6 +1246,14 @@ public final class S3RestServiceHandler {
           Response.ResponseBuilder res = Response.ok(ris)
               .lastModified(new Date(status.getLastModificationTimeMs()))
               .header(S3Constants.S3_CONTENT_LENGTH_HEADER, s3Range.getLength(status.getLength()));
+
+          // Check range
+          if (s3Range.isValid()) {
+            res.status(Response.Status.PARTIAL_CONTENT)
+                .header(S3Constants.S3_ACCEPT_RANGES_HEADER, S3Constants.S3_ACCEPT_RANGES_VALUE)
+                .header(S3Constants.S3_CONTENT_RANGE_HEADER,
+                    s3Range.getRealRange(status.getLength()));
+          }
 
           // Check for the object's ETag
           String entityTag = S3RestUtils.getEntityTag(status);

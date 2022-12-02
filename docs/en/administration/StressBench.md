@@ -371,7 +371,8 @@ The cluster testing is similar to single node testing except that
 
 ## Client IO Stress Bench
 
-The Client IO Stress Bench is a tool to measure the IO performance of Alluxio through the client.
+The Client IO Stress Bench is a tool to measure the IO performance of Alluxio through the client and compare the 
+performance between Alluxio Native API and HDFS API and POSIX API.
 
 ### Parameters
 The parameters for the Client IO Stress Bench are (other than common parameters for any stress bench):
@@ -390,7 +391,7 @@ The parameters for the Client IO Stress Bench are (other than common parameters 
     <tr>
         <td>client-type</td>
         <td>AlluxioHDFS</td>
-        <td>The client API type. Alluxio native or hadoop compatible client</td>
+        <td>The client API type. Options are [AlluxioHDFS, AlluxioNative, AlluxioPOSIX]</td>
     </tr>
     <tr>
         <td>read-type</td>

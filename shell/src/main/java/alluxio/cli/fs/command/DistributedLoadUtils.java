@@ -331,19 +331,19 @@ public final class DistributedLoadUtils {
 
     System.out.println("Please wait for command submission to finish..");
 
-    Long jobControlId;
+    long jobControlId;
     if (!cl.hasOption(INDEX_FILE.getLongOpt())) {
       AlluxioURI path = new AlluxioURI(pathStr);
       jobControlId = DistributedLoadUtils.runDistLoad(command, path, replication, batchSize,
           workerSet, excludedWorkerSet, localityIds, excludedLocalityIds, directCache);
       if (!async) {
         System.out.format("Submitted successfully, jobControlId = %s%n"
-            + "Waiting for the command to finish ...%n", jobControlId.toString());
+            + "Waiting for the command to finish ...%n", jobControlId);
         command.waitForCmd(jobControlId);
         command.postProcessing(jobControlId);
       } else {
         System.out.format("Submitted distLoad job successfully, jobControlId = %s%n",
-            jobControlId.toString());
+            jobControlId);
       }
     } else {
       try (BufferedReader reader = new BufferedReader(new FileReader(pathStr))) {
@@ -353,12 +353,12 @@ public final class DistributedLoadUtils {
               workerSet, excludedWorkerSet, localityIds, excludedLocalityIds, directCache);
           if (!async) {
             System.out.format("Submitted successfully, jobControlId = %s%n"
-                + "Waiting for the command to finish ...%n", jobControlId.toString());
+                + "Waiting for the command to finish ...%n", jobControlId);
             command.waitForCmd(jobControlId);
             command.postProcessing(jobControlId);
           } else {
             System.out.format("Submitted distLoad job successfully, jobControlId = %s%n",
-                jobControlId.toString());
+                jobControlId);
           }
         }
       }
@@ -384,7 +384,7 @@ public final class DistributedLoadUtils {
    * @param directCache use direct cache request or cache through read
    * @return job Control ID
    */
-  public static Long runDistLoad(AbstractDistributedJobCommand command, AlluxioURI filePath,
+  public static long runDistLoad(AbstractDistributedJobCommand command, AlluxioURI filePath,
                                      int replication, int batchSize, Set<String> workerSet,
                                      Set<String> excludedWorkerSet, Set<String> localityIds,
                                      Set<String> excludedLocalityIds, boolean directCache) {

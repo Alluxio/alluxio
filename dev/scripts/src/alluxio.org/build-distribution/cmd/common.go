@@ -72,6 +72,7 @@ var ufsModules = map[string]module{
 	"ufs-hadoop-3.3":  {"hadoop-3.3", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1 -PhdfsActiveSync"},
 
 	"ufs-hadoop-ozone-1.2.1": {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
+	"ufs-hadoop-cosn-3.1.0-5.8.5":  {"hadoop-cosn-3.1.0-5.8.5", "cosn", true, "-pl underfs/cosn -Dufs.cosn.version=3.1.0-5.8.5"},
 }
 
 var fuseUfsModuleNames = []string{
@@ -85,9 +86,16 @@ var coreLibJars = map[string]struct{}{
 	"underfs-adl":           {},
 	"underfs-cephfs":        {},
 	"underfs-cephfs-hadoop": {},
+<<<<<<< HEAD
 	"underfs-cosn":          {},
 	"underfs-gcs":           {},
 	"underfs-local":         {},
+||||||| 82d1f5d694
+	"underfs-cos":           {},
+	"underfs-cosn":          {},
+=======
+	"underfs-cos":           {},
+>>>>>>> d90eef7d2d379bc1ec9a6ad28ddc572c1b019c9f
 	"underfs-oss":           {},
 	"underfs-s3a":           {},
 }

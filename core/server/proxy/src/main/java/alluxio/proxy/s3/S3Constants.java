@@ -33,6 +33,9 @@ public final class S3Constants {
   // standard headers
   public static final String S3_CONTENT_TYPE_HEADER = "Content-Type";
   public static final String S3_CONTENT_LENGTH_HEADER = "Content-Length";
+  public static final String S3_CONTENT_RANGE_HEADER = "Content-Range";
+  public static final String S3_ACCEPT_RANGES_HEADER = "accept-ranges";
+  public static final String S3_ACCEPT_RANGES_VALUE = "bytes";
 
   // AWS headers
   public static final String S3_ACL_HEADER = "x-amz-acl";

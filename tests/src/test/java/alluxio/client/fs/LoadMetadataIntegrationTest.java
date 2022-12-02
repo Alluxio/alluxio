@@ -87,7 +87,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE, 2).build();
+          .setProperty(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE, 2)
+          .setProperty(PropertyKey.MASTER_METADATA_SYNC_IGNORE_TTL, true).build();
 
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
@@ -419,12 +420,15 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void testNoTtlOnLoadedFiles() throws Exception {
+  public void noTtlOnLoadedFiles() throws Exception {
     int created = createUfsFiles(2);
+    // Set cluster default configuration related TTL
     Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
         LoadMetadataType.ONCE.toString());
     Configuration.set(PropertyKey.USER_FILE_CREATE_TTL, "11000");
     Configuration.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.FREE.toString());
+    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_IGNORE_TTL, true);
+    // Set TTL related arguments from client side
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true)
         .setCommonOptions(
             FileSystemMasterCommonPOptions.newBuilder()
@@ -436,6 +440,33 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     assertEquals(created + EXTRA_DIR_FILES, list.size());
     list.forEach(stat -> {
       assertEquals(-1, stat.getTtl());
+    });
+  }
+
+  @Test
+  public void hasTtlOnLoadedFiles() throws Exception {
+    int created = createUfsFiles(2);
+    long expectedTtl = 1000000;
+    // Set cluster default configuration related TTL
+    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
+        LoadMetadataType.ONCE.toString());
+    Configuration.set(PropertyKey.USER_FILE_CREATE_TTL, "11000");
+    Configuration.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.FREE.toString());
+    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_IGNORE_TTL, false);
+    // Set TTL related arguments from client side
+    ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true)
+        .setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder()
+                .setTtl(expectedTtl)
+                .setTtlAction(TtlAction.FREE)
+                .build())
+        .build();
+    List<URIStatus> list = mFileSystem.listStatus(new AlluxioURI("/mnt"), options);
+    assertEquals(created + EXTRA_DIR_FILES, list.size());
+    list.forEach(stat -> {
+      if (stat.getPath().startsWith("/mnt/dir")) {
+        assertEquals(expectedTtl, stat.getTtl());
+      }
     });
   }
 

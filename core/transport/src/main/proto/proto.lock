@@ -104,6 +104,14 @@
               {
                 "name": "WORKER_USED_BYTES_ON_TIERS",
                 "integer": 9
+              },
+              {
+                "name": "BLOCK_COUNT",
+                "integer": 10
+              },
+              {
+                "name": "BUILD_VERSION",
+                "integer": 11
               }
             ]
           }
@@ -274,6 +282,11 @@
                 "id": 7,
                 "name": "startTimeMs",
                 "type": "int64"
+              },
+              {
+                "id": 10,
+                "name": "buildVersion",
+                "type": "BuildVersion"
               }
             ],
             "maps": [
@@ -654,6 +667,21 @@
             ]
           },
           {
+            "name": "BuildVersion",
+            "fields": [
+              {
+                "id": 1,
+                "name": "version",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "revision",
+                "type": "string"
+              }
+            ]
+          },
+          {
             "name": "RegisterWorkerPOptions",
             "fields": [
               {
@@ -661,6 +689,11 @@
                 "name": "configs",
                 "type": "grpc.ConfigProperty",
                 "is_repeated": true
+              },
+              {
+                "id": 2,
+                "name": "buildVersion",
+                "type": "BuildVersion"
               }
             ]
           },

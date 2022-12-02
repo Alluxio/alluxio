@@ -87,6 +87,7 @@ public class FileSystemMasterSyncMetadataTestBase {
 
     Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mUfsUri);
+    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_INSTRUMENT_EXECUTOR, true);
     String journalFolderUri = mTempDir.newFolder().getAbsolutePath();
 
     mFileSystemExecutorService = Executors

@@ -391,6 +391,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     mCluster.updateMasterConf(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP,
         backup.getBackupUri().getPath());
     mCluster.startMasters();
+    mCluster.waitForAllNodesRegistered(WAIT_NODES_REGISTERED_MS);
 
     try (FileInStream inStream = mCluster.getFileSystemClient().openFile(f)) {
       byte[] bytes = new byte[modifiedData.length()];

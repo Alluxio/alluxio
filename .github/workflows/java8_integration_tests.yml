@@ -1,9 +1,6 @@
 name: Java 8 Integration Tests
 
-on:
-  pull_request:
-  schedule:
-    - cron: 0 0 * * *
+on: [pull_request]
 
 jobs:
   build:
@@ -25,10 +22,6 @@ jobs:
             alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**,!alluxio.client.fuse.**
           - >-
             alluxio.job.**,alluxio.master.**,alluxio.stress.**
-          - >-
-            alluxio.server.ft.**,!alluxio.server.ft.journal.raft.**,!alluxio.server.ft.journal.ufs.**
-          - >-
-            alluxio.server.ft.journal.raft.**,alluxio.server.ft.journal.ufs.**
           - >-
             alluxio.server.**,!alluxio.server.ft.**
 

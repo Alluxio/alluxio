@@ -9,15 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.job.command;
+package alluxio;
 
 /**
- * {@link JobWorkerHealthReporter} that always reports that the worker is healthy.
+ * Ufs constants from compilation time by maven.
  */
-public class AlwaysHealthyJobWorkerHealthReporter extends JobWorkerHealthReporter {
+public final class CosnUfsConstants {
+  /* COSN version, specified in maven property. **/
+  public static final String UFS_COSN_VERSION = "${ufs.cosn.version}";
 
-  @Override
-  public boolean isHealthy() {
-    return true;
-  }
+  private CosnUfsConstants() {} // prevent instantiation
 }
