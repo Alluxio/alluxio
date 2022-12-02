@@ -57,7 +57,7 @@ import java.util.function.Function;
  * A stress master bench that benchmark a set of combined operations.
  */
 // TODO(jiacheng): avoid the implicit casts and @SuppressFBWarnings
-public class MultiOperationStressMasterBench
+public class  MultiOperationStressMasterBench
     extends StressMasterBenchBase<MultiOperationMasterBenchTaskResult,
     MultiOperationMasterBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(MultiOperationStressMasterBench.class);
@@ -261,7 +261,7 @@ public class MultiOperationStressMasterBench
     final BenchContext benchContext;
     if (mParameters.mTargetThroughputs == null) {
       RateLimiter[] rateLimiters = new RateLimiter[mParameters.mOperations.length];
-      for (int i = 0; i < mParameters.mTargetThroughputs.length; i++) {
+      for (int i = 0; i < mParameters.mOperations.length; i++) {
         rateLimiters[i] = createUnlimitedRateLimiter();
       }
       benchContext = new BenchContext(
@@ -408,10 +408,10 @@ public class MultiOperationStressMasterBench
       double last = 0;
       double[] probabilities = new double[ratios.length];
       for (int i = 0; i < mParameters.mOperations.length; i++) {
-        ratioSum += mParameters.mOperationsRatio[i];
+        ratioSum += ratios[i];
       }
       for (int i = 0; i < mParameters.mOperations.length; i++) {
-        probabilities[i] = last + mParameters.mOperationsRatio[i] / ratioSum;
+        probabilities[i] = last + ratios[i] / ratioSum;
         last = probabilities[i];
       }
       return probabilities;
@@ -441,7 +441,7 @@ public class MultiOperationStressMasterBench
       int operationIndex = 0;
       //Each thread randomly picks an operation to do based on the probability array
       for (int i = 0; i < mParameters.mOperations.length; i++) {
-        if (probabilities[i] >= (double) mThreadIndex / mParameters.mThreads) {
+        if (probabilities[i] > (double) mThreadIndex / mParameters.mThreads) {
           operationIndex = i;
           break;
         }
