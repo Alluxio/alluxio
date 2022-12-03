@@ -26,7 +26,7 @@ Tensorflow使开发人员可以快速轻松地开始使用深度学习。
 ## 设置Alluxio POSIX API
 
 在本节中，我们将按照
-[POSIX API部分]({{ '/en/api/POSIX-API.html' | relativize_url}})中的介绍来设置Alluxio POSIX API
+[POSIX API部分]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}})中的介绍来设置Alluxio POSIX API
 和允许Tensorflow应用程序通过Alluxio POSIX API来访问数据。
 
 运行以下命令在Linux上安装FUSE
@@ -59,7 +59,7 @@ $ ./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
 ```
 
 以上CLI命令产生了一个后台用户空间Java进程(`AlluxioFuse`)，该进程将在指定挂载点`/mnt/alluxio`把在`/training-data`中指定的Alluxio路径挂载到本地文件系统。 
-请参阅[POSIX API文档]({{ '/en/api/POSIX-API.html' | relativize_url}})， 
+请参阅[POSIX API文档]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}}),
 以获取有关如何安装Alluxio-FUSE以及设置fuse相关选项的详细信息。 
 
 检查FUSE进程的状态

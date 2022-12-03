@@ -713,7 +713,7 @@ $ kubectl get pvc
 
 ### POSIX API
 
-一旦Alluxio部署到Kubernetes上，客户端应用程序可以通过多种方式连接。对于使用[POSIX API]({{ '/en/api/POSIX-API.html' | relativize_url}})的应用程序，应用程序容器可以通过挂载Alluxio FileSystem方式连接。
+一旦Alluxio部署到Kubernetes上，客户端应用程序可以通过多种方式连接。对于使用[POSIX API]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}})的应用程序，应用程序容器可以通过挂载Alluxio FileSystem方式连接。
 
 为了使用POSIX API，首先部署Alluxio FUSE守护程序。
 

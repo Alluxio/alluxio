@@ -30,7 +30,7 @@ on top of Alluxio POSIX API.
 ## Setting up Alluxio POSIX API
 
 In this section, we will follow the instructions in the
-[POSIX API section]({{ '/en/api/POSIX-API.html' | relativize_url }}) to set up Alluxio POSIX API
+[POSIX API section]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}}) to set up Alluxio POSIX API
 and allow Tensorflow applications to access the data through Alluxio POSIX API.
 
 Run the following command to install FUSE on Linux:
@@ -65,7 +65,7 @@ $ ./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
 
 The above CLI spawns a background user-space java process (`AlluxioFuse`) that mounts the Alluxio path specified at `/training-data` 
 to the local file system on the specified mount point `/mnt/fuse`.
-Please refer to [POSIX API documentation]({{ '/en/api/POSIX-API.html' | relativize_url }}) 
+Please refer to [POSIX API documentation]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}})
 for details about how to mount Alluxio-FUSE and set up fuse related options. 
 
 Check the status of the FUSE process with:

@@ -412,7 +412,7 @@ You can find more details about the worker storage [here]({{ '/en/core-services/
 
 Alluxio POSIX access is implemented via FUSE.
 There are two options to enable POSIX accesses to Alluxio in a docker environment.
-[POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}#fuse-on-worker-process) provides more details about how to configure Alluxio POSIX API.
+[POSIX API docs]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}}#fuse-on-worker-process) provides more details about how to configure Alluxio POSIX API.
 
 + Option1: Run a standalone Alluxio FUSE container, or
 + Option2: Enable FUSE support when running a worker container.
@@ -483,7 +483,7 @@ Notes
 - `--device /dev/fuse` shares host device `/dev/fuse` with the container.
 - Property `alluxio.worker.fuse.enabled=true` enables FUSE support on this worker.
   The default fuse mount point is `/mnt/alluxio-fuse` in the worker container which will be created at runtime if not exist.
-  See [Fuse on worker process]({{ '/en/api/POSIX-API.html' | relativize_url }}#fuse-on-worker-process)
+  See [Fuse on worker process]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}}#fuse-on-worker-process)
   for more details about how to modify the mount configuration.
 
 Once this container is launched successfully, one can access Alluxio via host path `/tmp/mnt/alluxio-fuse`.
@@ -494,8 +494,8 @@ and mount point of Alluxio service is `/mnt/alluxio-fuse`, mapped to host path
 {% endnavtab %}
 {% endnavtabs %}
 
-See [Fuse configuration]({{ '/en/api/POSIX-API.html' | relativize_url }}#configure-alluxio-fuse-options)
-and [Fuse mount options]({{ '/en/api/POSIX-API.html' | relativize_url }}#configure-mount-point-options)
+See [Fuse configuration]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}}#configure-alluxio-fuse-options)
+and [Fuse mount options]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}}#configure-mount-point-options)
 for more details about how to modify the Fuse mount configuration.
 
 ### Set up Alluxio Proxy

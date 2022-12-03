@@ -177,7 +177,7 @@ The parameters for the Fuse IO Stress Bench are (other than common parameters fo
 ### Single node testing
 #### Prerequisite
 * A running Alluxio cluster with one master, and one worker.
-* A Fuse mount point. See [FUSE-based POSIX API](https://docs.alluxio.io/os/user/stable/en/api/POSIX-API.html) for more details on mounting.
+* A Fuse mount point. See [FUSE-based POSIX API]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}}) for more details on mounting.
 * (Optional) To prevent operating system cache and Fuse cache from affecting benchmark accuracy, using different mount points for writing and reading test files. 
 
 #### Write test files
@@ -230,7 +230,7 @@ and client (standalone Fuse) are co-located on one machine:
 
 By tweaking the setups, the reading performance under more scenarios can also be tested:
 * By using Fuse in worker process for reading, which needs to be configured in `${ALLUXIO_HOME}/conf/alluxio-site.properties`
-  (see [FUSE-based POSIX API](https://docs.alluxio.io/os/user/stable/en/api/POSIX-API.html#fuse-on-worker-process)), the local read
+  (see [FUSE-based POSIX API]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}}#fuse-on-worker-process), the local read
   throughput can be benchmarked. Not gRPC or network is involved in the local read.
 * By writing to worker on one machine and reading from the Fuse mount point on another machine, remote read throughput can be benchmarked.
   Remote read introduces extra gRPC and network overhead compared to local read.
