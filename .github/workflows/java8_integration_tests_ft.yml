@@ -1,0 +1,66 @@
+name: Java 8 Fault Tolerant Integration Tests
+
+on: [pull_request]
+
+jobs:
+  build:
+    name: "modules: "
+
+    strategy:
+      fail-fast: false
+      matrix:
+        modules:
+          - >-
+            alluxio.server.ft.**,!alluxio.server.ft.journal.raft.**,!alluxio.server.ft.journal.ufs.**
+          - >-
+            alluxio.server.ft.journal.raft.**,alluxio.server.ft.journal.ufs.**
+
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.pull_request.title, 'DOCFIX') &&
+        !contains(github.event.pull_request.title, 'SKIPCI')"
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: '10.11.0'
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-java8-${{ hashFiles('**/pom.xml') }}
+
+      - name: Cache local Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.mod') }}
+
+      - name: Run tests
+        id: test0
+        run: |
+          mkdir -p ~/.m2
+          # Set fork count to 1 so that fault tolerant tests are run sequentially as these tests have high overhead, starting and stopping multiple Alluxio processes
+          ALLUXIO_DOCKER_FORK_COUNT=1 \
+          ALLUXIO_DOCKER_NO_TTY=true \
+          ALLUXIO_DOCKER_GIT_CLEAN=true \
+          ALLUXIO_DOCKER_MVN_RUNTOEND=true \
+          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!shaded/client,!integration/tools/hms,!integration/yarn,!assembly/client,!assembly/server,!table/server/underdb/glue,!underfs/hdfs,!underfs/ozone,!underfs/adl,!underfs/abfs,!underfs/cosn,!underfs/wasb,!underfs/cos,!underfs/kodo,!underfs/oss,!underfs/swift \
+          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
+        timeout-minutes: 60
+
+      - name: Archive artifacts
+        continue-on-error: true
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: artifact
+          path: |
+            **/target/surefire-reports/*
+            **/target/artifacts/*
+            **/target/logs/*
+          retention-days: 7

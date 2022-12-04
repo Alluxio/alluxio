@@ -12,6 +12,7 @@ DeleteObjectTagging,None,None
 GetBucketTagging,None,
 GetObject,Range,None
 GetObjectTagging,None,None
+HeadBucket,None,None
 HeadObject,None,None
 ListBuckets,,,
 ListMultipartUploads,None,None

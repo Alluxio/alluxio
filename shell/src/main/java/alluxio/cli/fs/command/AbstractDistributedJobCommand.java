@@ -16,6 +16,7 @@ import alluxio.cli.fs.command.job.JobAttempt;
 import alluxio.cli.util.DistributedCommandUtil;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.job.CmdConfig;
 import alluxio.job.wire.Status;
 import alluxio.util.CommonUtils;
@@ -83,14 +84,12 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
     }
   }
 
-  protected Long submit(CmdConfig cmdConfig) {
-    Long jobControlId = null;
+  protected long submit(CmdConfig cmdConfig) {
     try {
-      jobControlId = mClient.submit(cmdConfig);
+      return mClient.submit(cmdConfig);
     } catch (IOException e) {
-      e.printStackTrace();
+      throw AlluxioRuntimeException.from(e);
     }
-    return jobControlId;
   }
 
   /**

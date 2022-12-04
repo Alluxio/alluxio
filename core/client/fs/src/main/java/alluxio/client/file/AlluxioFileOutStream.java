@@ -39,6 +39,7 @@ import alluxio.wire.OperationId;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
@@ -154,7 +155,8 @@ public class AlluxioFileOutStream extends FileOutStream {
     if (mClosed) {
       return;
     }
-    try {
+    try (Timer.Context ctx = MetricsSystem
+            .uniformTimer(MetricKey.CLOSE_ALLUXIO_OUTSTREAM_LATENCY.getName()).time()) {
       if (mCurrentBlockOutStream != null) {
         mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
       }

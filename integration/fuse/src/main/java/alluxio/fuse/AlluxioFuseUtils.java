@@ -16,6 +16,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -36,9 +37,13 @@ import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.PermissionDeniedRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.fuse.auth.AuthPolicy;
+import alluxio.fuse.file.CreateFileStatus;
+import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.ErrorCodes;
+import alluxio.jnifuse.struct.FileStat;
+import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricKey;
@@ -49,7 +54,9 @@ import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.io.BufferUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -58,9 +65,11 @@ import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -75,7 +84,9 @@ public final class AlluxioFuseUtils {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseUtils.class);
   private static final long THRESHOLD = Configuration.global()
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
+
   private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
+  private static final int MAX_LOCK_WAIT_TIME = 20000;
   /** Most FileSystems on linux limit the length of file name beyond 255 characters. */
   public static final int MAX_NAME_LENGTH = 255;
 
@@ -108,19 +119,19 @@ public final class AlluxioFuseUtils {
    * @param fileSystem the file system
    * @param authPolicy the authentication policy
    * @param uri the alluxio uri
-   * @param mode the create mode
+   * @param fileStatus the create file status
    * @return a file out stream
    */
   public static FileOutStream createFile(FileSystem fileSystem, AuthPolicy authPolicy,
-      AlluxioURI uri, long mode) {
+      AlluxioURI uri, CreateFileStatus fileStatus) {
     CreateFilePOptions.Builder optionsBuilder = CreateFilePOptions.newBuilder();
-    if (mode != MODE_NOT_SET_VALUE) {
-      optionsBuilder.setMode(new Mode((short) mode).toProto());
+    if (fileStatus.getMode() != MODE_NOT_SET_VALUE) {
+      optionsBuilder.setMode(new Mode((short) fileStatus.getMode()).toProto());
     }
     try {
       FileOutStream out = fileSystem.createFile(uri,
           optionsBuilder.build());
-      authPolicy.setUserGroupIfNeeded(uri);
+      authPolicy.setUserGroup(uri, fileStatus.getUid(), fileStatus.getGid());
       return out;
     } catch (FileAlreadyExistsException e) {
       throw new AlreadyExistsRuntimeException(e);
@@ -205,6 +216,83 @@ public final class AlluxioFuseUtils {
           + "Proceed with local configuration for FUSE: {}", e.toString());
     }
     return fsContext.getClusterConf();
+  }
+
+  /**
+   * Fills the path status.
+   *
+   * @param policy auth policy
+   * @param stat file stat to fill
+   * @param status status
+   */
+  public static void fillStat(AuthPolicy policy, FileStat stat, URIStatus status) {
+    updateStatSize(stat, status.getLength());
+
+    final long ctime_sec = status.getLastModificationTimeMs() / 1000;
+    final long atime_sec = status.getLastAccessTimeMs() / 1000;
+    // Keeps only the "residual" nanoseconds not caputred in citme_sec
+    final long ctime_nsec = (status.getLastModificationTimeMs() % 1000) * 1_000_000L;
+    final long atime_nsec = (status.getLastAccessTimeMs() % 1000) * 1_000_000L;
+
+    stat.st_atim.tv_sec.set(atime_sec);
+    stat.st_atim.tv_nsec.set(atime_nsec);
+    stat.st_ctim.tv_sec.set(ctime_sec);
+    stat.st_ctim.tv_nsec.set(ctime_nsec);
+    stat.st_mtim.tv_sec.set(ctime_sec);
+    stat.st_mtim.tv_nsec.set(ctime_nsec);
+
+    stat.st_uid.set(policy.getUid(status.getOwner())
+        .orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE));
+    stat.st_gid.set(policy.getGid(status.getGroup())
+        .orElse(AlluxioFuseUtils.ID_NOT_SET_VALUE));
+
+    int mode = status.getMode();
+    if (status.isFolder()) {
+      mode |= FileStat.S_IFDIR;
+    } else {
+      mode |= FileStat.S_IFREG;
+    }
+    stat.st_mode.set(mode);
+    stat.st_nlink.set(1);
+  }
+
+  /**
+   * Fills the path status.
+   *
+   * @param stat file stat to fill
+   * @param status the create file status
+   */
+  public static void fillStat(FileStat stat, CreateFileStatus status) {
+    stat.st_mode.set(status.getMode() | FileStat.S_IFREG);
+    stat.st_uid.set(status.getUid());
+    stat.st_gid.set(status.getGid());
+    stat.st_nlink.set(1);
+    updateStatSize(stat, status.getFileLength());
+    // TODO(lu) return accurate atime and mtime?
+    long timeSec = System.currentTimeMillis() / 1000;
+    stat.st_atim.tv_sec.set(timeSec);
+    stat.st_atim.tv_nsec.set(timeSec);
+    stat.st_ctim.tv_sec.set(timeSec);
+    stat.st_ctim.tv_nsec.set(timeSec);
+    stat.st_mtim.tv_sec.set(timeSec);
+    stat.st_mtim.tv_nsec.set(timeSec);
+  }
+
+  /**
+   * Updates file status size.
+   *
+   * @param stat stat to file
+   * @param size size
+   */
+  public static void updateStatSize(FileStat stat, long size) {
+    stat.st_size.set(size);
+
+    // Sets block number to fulfill du command needs
+    // `st_blksize` is ignored in `getattr` according to
+    // https://github.com/libfuse/libfuse/blob/d4a7ba44b022e3b63fc215374d87ed9e930d9974/include/fuse.h#L302
+    // According to http://man7.org/linux/man-pages/man2/stat.2.html,
+    // `st_blocks` is the number of 512B blocks allocated
+    stat.st_blocks.set((int) Math.ceil((double) size / 512));
   }
 
   /**
@@ -485,7 +573,8 @@ public final class AlluxioFuseUtils {
   public static Optional<URIStatus> getPathStatus(FileSystem fileSystem, AlluxioURI uri) {
     try {
       return Optional.of(fileSystem.getStatus(uri));
-    } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
+    } catch (InvalidPathException | FileNotFoundException
+        | FileDoesNotExistException | NotFoundRuntimeException e) {
       return Optional.empty();
     } catch (AccessControlException e) {
       throw new PermissionDeniedRuntimeException(e);
@@ -579,16 +668,32 @@ public final class AlluxioFuseUtils {
   }
 
   /**
+   * Gets the path be mounted to local fuse mount point.
+   *
+   * @param conf the configuration to get path from
+   * @param fuseOptions the fuse options
+   * @return the mounted root path
+   */
+  public static String getMountedRootPath(AlluxioConfiguration conf, FuseOptions fuseOptions) {
+    Optional<UfsFileSystemOptions> options
+        = fuseOptions.getFileSystemOptions().getUfsFileSystemOptions();
+    return options.isPresent() ? options.get().getUfsAddress()
+        : conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
+  }
+
+  /**
    * Gets the cache for resolving FUSE path into {@link AlluxioURI}.
    *
    * @param conf the configuration
+   * @param options the FUSE options
    * @return the cache
    */
-  public static LoadingCache<String, AlluxioURI> getPathResolverCache(AlluxioConfiguration conf) {
+  public static LoadingCache<String, AlluxioURI> getPathResolverCache(
+      AlluxioConfiguration conf, FuseOptions options) {
     return CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new AlluxioFuseUtils.PathCacheLoader(
-            new AlluxioURI(conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH))));
+            new AlluxioURI(getMountedRootPath(conf, options))));
   }
 
   /**
@@ -611,6 +716,39 @@ public final class AlluxioFuseUtils {
       // fusePath is guaranteed to always be an absolute path (i.e., starts
       // with a fwd slash) - relative to the FUSE mount point
       return mRootURI.join(fusePath);
+    }
+  }
+
+  /**
+   * Creates a closeable fuse file info.
+   */
+  @VisibleForTesting
+  public static class CloseableFuseFileInfo implements Closeable {
+    private final FuseFileInfo mInfo;
+    private final ByteBuffer mBuffer;
+
+    /**
+     * Constructor.
+     */
+    public CloseableFuseFileInfo() {
+      mBuffer = ByteBuffer.allocateDirect(36);
+      mBuffer.clear();
+      mInfo =  FuseFileInfo.of(mBuffer);
+    }
+
+    /**
+     * @return the fuse file info
+     */
+    public FuseFileInfo get() {
+      return mInfo;
+    }
+
+    /**
+     * Closes the underlying resources.
+     */
+    @Override
+    public void close() throws IOException {
+      BufferUtils.cleanDirectBuffer(mBuffer);
     }
   }
 }

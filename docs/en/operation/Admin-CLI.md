@@ -211,14 +211,44 @@ The above command updates the value of `property1` from `value1` to `value2` for
 
 #### remove
 
-`pathConf remove` removes properties from path defaults for a path.
+`pathConf remove` removes path-specific configurations for a path.
+
+```shell
+$ ./bin/alluxio fsadmin pathConf remove [-R/--recursive] [--keys property1,property2] PATH
+```
+
+**Options:**
+
+- `--keys`: specifies which configuration properties are to be removed for PATH
+  (and all child paths if `-R` is specified). If omitted, all properties will be removed.
+- `-R` or `--recursive`: recursively removes configuration properties from PATH and all its
+  children.
+
+**Examples:**
 
 ```shell
 $ ./bin/alluxio fsadmin pathConf remove --keys property1,property2 /tmp
 ```
 
-The above command removes properties with key `property1` and `property2` from path
-defaults for paths with prefix `/tmp`.
+The above command removes configuration with key `property1` and `property2` from path
+defaults for `/tmp`.
+
+```shell
+$ ./bin/alluxio fsadmin pathConf remove -R --keys property1,property2 /tmp
+```
+
+The above command removes configuration with key `property1` and `property2` from path
+defaults for `/tmp` and all its children.
+
+The difference between the two commands is that if a child path `/tmp/a` has an overridden
+configuration for `property1` and the removal is recursive, then `property1` will be 
+removed for `/tmp/a`, too.
+
+```shell
+$ ./bin/alluxio fsadmin pathConf remove -R /
+```
+
+This command removes all path-specific configurations for all paths on any level in Alluxio.
 
 ### report
 
