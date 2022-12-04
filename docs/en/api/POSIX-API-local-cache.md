@@ -9,11 +9,47 @@ priority: 3
 * Table of Contents
   {:toc}
 
-The Alluxio POSIX API is a feature that allows mounting the training dataset
-in a specific storage service (e.g. S3, HDFS) to the local filesystem
-and provides local caching capabilities to speed up I/O access to frequently used data.
+The Alluxio POSIX API is a feature that allows mounting training datasets
+in specific storage services (e.g. S3, HDFS) to the local filesystem
+and provides caching capabilities to speed up I/O access to frequently used data.
 
-Support under storage includes [S3A]({{ '/en/ufs/S3.html' | relativize_url }}) and [HDFS (Version 2.7 and 3.3)]({{ '/en/ufs/HDFS.html' | relativize_url }})
+## Local Cache vs Distributed Cache
+
+There are two kinds of caching capabilities: 1. local caching only 2. local caching + distributed caching.
+This doc will only talk about the local caching only solution.
+Please refer to [POSIX API with Alluxio distributed cache]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}})
+for more details about the solution with distributed caching.
+
+Differences between the two solutions are listed below, choose your desired solution based on training requirements and available resources.
+<table class="table table-striped">
+    <tr>
+        <td>Category</td>
+        <td>Local Caching</td>
+        <td>Distributed Caching</td>
+    </tr>
+    <tr>
+        <td>Prerequisite</td>
+        <td>N/A</td>
+        <td>Require a running Alluxio cluster (master + worker)</td>
+    </tr>
+    <tr>
+        <td>Caching Capability</td>
+        <td>Bounded by local storage size</td>
+        <td>Bounded by Alluxio cluster storage size</td>
+    </tr>
+    <tr>
+        <td>Suited Workloads</td>
+        <td>Single node training with large dataset. Distributed training with no data shuffle between nodes</td>
+        <td>Multiple training nodes or training tasks share the same dataset</td>
+    </tr>
+    <tr>
+        <td>Storage</td>
+        <td>Only supports one storage. Only support S3A and HDFS (2.7/3.3) now</td>
+        <td>Supports multiple storage services including all listed Alluxio under storage</td>
+    </tr>
+</table>
+
+Local caching solution supports under storage [S3A]({{ '/en/ufs/S3.html' | relativize_url }}) and [HDFS (Version 2.7 and 3.3)]({{ '/en/ufs/HDFS.html' | relativize_url }}).
 Contact our [community slack channel](https://slackin.alluxio.io/) if you want to use POSIX API local cache with other under storage.
 
 ## Prerequisites
