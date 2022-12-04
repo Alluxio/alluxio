@@ -92,7 +92,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /** The jvm monitor.*/
   private JvmPauseMonitor mJvmPauseMonitor;
 
-  private boolean nettyDataTransmissionEnable;
+  private boolean mNettyDataTransmissionEnable;
 
   /**
    * Creates a new instance of {@link AlluxioWorkerProcess}.
@@ -146,9 +146,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mDataServer = new GrpcDataServer(mRpcConnectAddress.getHostName(), mRpcBindAddress, this);
 
       // Setup Netty Data Server
-      nettyDataTransmissionEnable =
+      mNettyDataTransmissionEnable =
           Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
-      if (nettyDataTransmissionEnable) {
+      if (mNettyDataTransmissionEnable) {
         mNettyDataServerAddress =
             NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, Configuration.global());
         mNettyDataServer = new NettyDataServer(mNettyDataServerAddress, this);
@@ -193,7 +193,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public int getDataLocalPort() {
-    if (nettyDataTransmissionEnable) {
+    if (mNettyDataTransmissionEnable) {
       return ((InetSocketAddress) mNettyDataServer.getBindAddress()).getPort();
     }
     return ((InetSocketAddress) mDataServer.getBindAddress()).getPort();
@@ -297,7 +297,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   private boolean isServing() {
     boolean dataServerStart = mDataServer != null && !mDataServer.isClosed();
-    if (nettyDataTransmissionEnable) {
+    if (mNettyDataTransmissionEnable) {
       boolean nettyDataServerStart = mNettyDataServer != null && !mNettyDataServer.isClosed();
       return dataServerStart && nettyDataServerStart;
     }
@@ -366,7 +366,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         .setDomainSocketPath(getDataDomainSocketPath())
         .setWebPort(mWebServer.getLocalPort())
         .setTieredIdentity(mTieredIdentitiy);
-    if (nettyDataTransmissionEnable) {
+    if (mNettyDataTransmissionEnable) {
       workerNetAddress.setNettyDataPort(getNettyDataLocalPort());
     }
     return workerNetAddress;
