@@ -12,34 +12,28 @@
 package alluxio.underfs.s3a;
 
 import alluxio.retry.RetryPolicy;
+import alluxio.underfs.SeekableUnderFileInputStream;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A wrapper around an {@link S3ObjectInputStream} which handles skips efficiently.
  */
 @NotThreadSafe
-public class S3AInputStream extends InputStream {
-  private static final Logger LOG = LoggerFactory.getLogger(S3AInputStream.class);
-
+public class S3AInputStream extends SeekableUnderFileInputStream {
   /** Client for operations with s3. */
   protected AmazonS3 mClient;
   /** Name of the bucket the object resides in. */
   protected final String mBucketName;
   /** The path of the object to read. */
   protected final String mKey;
-
-  /** The backing input stream from s3. */
-  protected S3ObjectInputStream mIn;
   /** The current position of the stream. */
   protected long mPos;
 
@@ -50,19 +44,6 @@ public class S3AInputStream extends InputStream {
   protected final RetryPolicy mRetryPolicy;
 
   /**
-   * Constructor for an input stream of an object in s3 using the aws-sdk implementation to read
-   * the data. The stream will be positioned at the start of the file.
-   *
-   * @param bucketName the bucket the object resides in
-   * @param key the path of the object to read
-   * @param client the s3 client to use for operations
-   * @param retryPolicy retry policy in case the key does not exist
-   */
-  public S3AInputStream(String bucketName, String key, AmazonS3 client, RetryPolicy retryPolicy) {
-    this(bucketName, key, client, 0L, retryPolicy);
-  }
-
-  /**
    * Constructor for an input stream of an object in s3 using the aws-sdk implementation to read the
    * data. The stream will be positioned at the specified position.
    *
@@ -71,9 +52,42 @@ public class S3AInputStream extends InputStream {
    * @param client the s3 client to use for operations
    * @param position the position to begin reading from
    * @param retryPolicy retry policy in case the key does not exist
+   * @return a S3A input stream
    */
-  public S3AInputStream(String bucketName, String key, AmazonS3 client,
+  public static S3AInputStream create(String bucketName, String key, AmazonS3 client,
       long position, RetryPolicy retryPolicy) {
+    S3Object object = getObject(bucketName, key, client, position, retryPolicy);
+    S3ObjectInputStream stream = object.getObjectContent();
+    return new S3AInputStream(stream, bucketName, key, client, position, retryPolicy);
+  }
+
+  private static S3Object getObject(String bucketName, String key, AmazonS3 client,
+      long position, RetryPolicy retryPolicy) {
+    GetObjectRequest getReq = new GetObjectRequest(bucketName, key);
+    // If the position is 0, setting range is redundant and causes an error if the file is 0 length
+    if (position > 0) {
+      getReq.setRange(position);
+    }
+    AlluxioS3Exception lastException;
+    do {
+      try {
+        return client.getObject(getReq);
+      } catch (AmazonS3Exception e) {
+        String errorMessage = String
+            .format("Failed to get object: %s bucket: %s attempts: %d error: %s", key, bucketName,
+                retryPolicy.getAttemptCount(), e.getMessage());
+        lastException = AlluxioS3Exception.from(errorMessage, e);
+        if (!lastException.isRetryable()) {
+          throw lastException;
+        }
+      }
+    } while (retryPolicy.attempt());
+    throw lastException;
+  }
+
+  private S3AInputStream(S3ObjectInputStream stream, String bucketName, String key, AmazonS3 client,
+      long position, RetryPolicy retryPolicy) {
+    super(stream);
     mBucketName = bucketName;
     mKey = key;
     mClient = client;
@@ -82,16 +96,8 @@ public class S3AInputStream extends InputStream {
   }
 
   @Override
-  public void close() {
-    closeStream();
-  }
-
-  @Override
   public int read() throws IOException {
-    if (mIn == null) {
-      openStream();
-    }
-    int value = mIn.read();
+    int value = in.read();
     if (value != -1) { // valid data read
       mPos++;
     }
@@ -108,10 +114,7 @@ public class S3AInputStream extends InputStream {
     if (length == 0) {
       return 0;
     }
-    if (mIn == null) {
-      openStream();
-    }
-    int read = mIn.read(b, offset, length);
+    int read = in.read(b, offset, length);
     if (read != -1) {
       mPos += read;
     }
@@ -123,56 +126,40 @@ public class S3AInputStream extends InputStream {
     if (n <= 0) {
       return 0;
     }
-    closeStream();
-    mPos += n;
-    openStream();
-    return n;
+    long skipped = in.skip(n);
+    mPos += skipped;
+    return skipped;
   }
 
-  /**
-   * Opens a new stream at mPos if the wrapped stream mIn is null.
-   */
-  private void openStream() throws IOException {
-    if (mIn != null) { // stream is already open
+  @Override
+  public long getPos() {
+    return mPos;
+  }
+
+  @Override
+  public void seek(long pos) throws IOException {
+    if (pos == mPos) {
       return;
     }
-    GetObjectRequest getReq = new GetObjectRequest(mBucketName, mKey);
-    // If the position is 0, setting range is redundant and causes an error if the file is 0 length
-    if (mPos > 0) {
-      getReq.setRange(mPos);
-    }
-    AmazonS3Exception lastException = null;
-    String errorMessage = String.format("Failed to open key: %s bucket: %s, left retry:%d",
-        mKey, mBucketName, mRetryPolicy.getAttemptCount());
-    while (mRetryPolicy.attempt()) {
-      try {
-        mIn = getClient().getObject(getReq).getObjectContent();
-        return;
-      } catch (AmazonS3Exception e) {
-        errorMessage = String
-            .format("Failed to open key: %s bucket: %s attempts: %d error: %s", mKey, mBucketName,
-                mRetryPolicy.getAttemptCount(), e.getMessage());
-        throw AlluxioS3Exception.from(errorMessage, e);
-      }
-    }
-  }
-
-  /**
-   * @return the client
-   */
-  protected AmazonS3 getClient() {
-    return mClient;
-  }
-
-  /**
-   * Closes the current stream.
-   */
-  // TODO(calvin): Investigate if close instead of abort will bring performance benefits.
-  private void closeStream() {
-    if (mIn == null) {
+    if (pos < mPos) {
+      mPos = pos;
+      reopenStream();
       return;
     }
-    mIn.abort();
-    mIn = null;
+    do {
+      skip(pos - mPos);
+    } while (pos > mPos && in.available() > 0);
+    if (mPos != pos) {
+      throw new IOException(String.format("Failed to seek to pos %s but at %s", pos, mPos));
+    }
+  }
+
+  /**
+   * Reopen the stream at new position.
+   */
+  private void reopenStream() throws IOException {
+    in.close();
+    S3Object object = getObject(mBucketName, mKey, mClient, mPos, mRetryPolicy);
+    in = object.getObjectContent();
   }
 }

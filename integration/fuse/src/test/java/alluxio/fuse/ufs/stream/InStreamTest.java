@@ -64,6 +64,11 @@ public class InStreamTest extends AbstractStreamTest {
     try (FuseFileStream inStream = createStream(alluxioURI)) {
       ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_FILE_LEN / 2);
       Assert.assertEquals(DEFAULT_FILE_LEN / 2,
+          inStream.read(buffer, DEFAULT_FILE_LEN / 2, DEFAULT_FILE_LEN / 2));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(
+          DEFAULT_FILE_LEN / 2, DEFAULT_FILE_LEN / 2, buffer));
+      buffer.clear();
+      Assert.assertEquals(DEFAULT_FILE_LEN / 2,
           inStream.read(buffer, DEFAULT_FILE_LEN / 2, DEFAULT_FILE_LEN / 3));
       Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(
           DEFAULT_FILE_LEN / 3, DEFAULT_FILE_LEN / 2, buffer));
