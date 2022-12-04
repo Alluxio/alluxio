@@ -7165,12 +7165,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   public static final PropertyKey HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL =
-<<<<<<< HEAD
-          booleanBuilder(Name.HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL)
-                  .setDescription("Kerberos authentication keytab login auto renew.")
-                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-                  .setScope(Scope.SERVER)
-                  .build();
+      booleanBuilder(Name.HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL)
+          .setDescription("Kerberos authentication keytab login auto renew.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
 
   public static final PropertyKey DORA_CLIENT_READ_LOCATION_POLICY_ENABLED =
       booleanBuilder(Name.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED)
@@ -7180,19 +7179,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
 
-||||||| 4b83faac2e
-          booleanBuilder(Name.HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL)
-                  .setDescription("Kerberos authentication keytab login auto renew.")
-                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-                  .setScope(Scope.SERVER)
-                  .build();
-=======
-      booleanBuilder(Name.HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL)
-          .setDescription("Kerberos authentication keytab login auto renew.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.SERVER)
-          .build();
->>>>>>> 7052240f8f4d1cb99a00e4d70a6f40083d7d9cfa
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
