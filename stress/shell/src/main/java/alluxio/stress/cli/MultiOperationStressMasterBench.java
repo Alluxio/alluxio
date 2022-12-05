@@ -57,7 +57,7 @@ import java.util.function.Function;
  * A stress master bench that benchmark a set of combined operations.
  */
 // TODO(jiacheng): avoid the implicit casts and @SuppressFBWarnings
-public class  MultiOperationStressMasterBench
+public class MultiOperationStressMasterBench
     extends StressMasterBenchBase<MultiOperationMasterBenchTaskResult,
     MultiOperationMasterBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(MultiOperationStressMasterBench.class);

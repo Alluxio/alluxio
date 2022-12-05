@@ -149,8 +149,7 @@ public final class MultiOperationMasterBenchSummary
   /**
    * @param statisticsPerMethod the statistics per method map
    */
-  public void setStatisticsPerMethod(Map<String, SummaryStatistics>
-                                         statisticsPerMethod) {
+  public void setStatisticsPerMethod(Map<String, SummaryStatistics> statisticsPerMethod) {
     mStatisticsPerMethod = statisticsPerMethod;
   }
 
