@@ -15,6 +15,8 @@ import alluxio.master.MasterProcess;
 import alluxio.master.service.rpc.RpcServerSimpleService;
 import alluxio.network.RejectingServer;
 
+import com.google.common.base.Preconditions;
+
 import java.net.InetSocketAddress;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -26,18 +28,19 @@ import javax.annotation.concurrent.GuardedBy;
  * When a web server is not deployed, a rejecting server is deployed instead (after the service
  * has been started).
  */
-class WhenLeadingWebServerSimpleService extends WebServerSimpleService {
+class PrimaryOnlyWebServerSimpleService extends WebServerSimpleService {
   private final InetSocketAddress mBindAddress;
   @Nullable @GuardedBy("this")
   private RejectingServer mRejectingServer = null;
 
-  WhenLeadingWebServerSimpleService(InetSocketAddress bindAddress, MasterProcess masterProcess) {
+  PrimaryOnlyWebServerSimpleService(InetSocketAddress bindAddress, MasterProcess masterProcess) {
     super(masterProcess);
     mBindAddress = bindAddress;
   }
 
   @Override
   public synchronized void start() {
+    Preconditions.checkState(mRejectingServer == null, "rejecting server must not be running");
     mRejectingServer = new RejectingServer(mBindAddress);
     mRejectingServer.start();
     waitForBound();

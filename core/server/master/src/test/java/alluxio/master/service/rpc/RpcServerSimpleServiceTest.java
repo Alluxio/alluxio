@@ -55,7 +55,7 @@ public class RpcServerSimpleServiceTest {
   }
 
   @Test
-  public void whenLeadingTest() {
+  public void primaryOnlyTest() {
     RpcServerSimpleService service =
         RpcServerSimpleService.Factory.create(mRpcAddress, mMasterProcess, mRegistry);
     Assert.assertTrue(waitForFree());
@@ -75,6 +75,27 @@ public class RpcServerSimpleServiceTest {
     service.stop();
     Assert.assertFalse(service.isServing());
     Assert.assertFalse(isBound());
+  }
+
+  @Test
+  public void doubleStartRejectingServer() {
+    RpcServerSimpleService service =
+        RpcServerSimpleService.Factory.create(mRpcAddress, mMasterProcess, mRegistry);
+
+    service.start();
+    Assert.assertThrows("rejecting server must not be running",
+        IllegalStateException.class, service::start);
+  }
+
+  @Test
+  public void doubleStartRpcServer() {
+    RpcServerSimpleService service =
+        RpcServerSimpleService.Factory.create(mRpcAddress, mMasterProcess, mRegistry);
+
+    service.start();
+    service.promote();
+    Assert.assertThrows("rpc server must not be running",
+        IllegalStateException.class, service::promote);
   }
 
   private boolean isBound() {

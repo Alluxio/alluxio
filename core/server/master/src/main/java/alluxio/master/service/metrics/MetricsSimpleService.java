@@ -46,7 +46,7 @@ public abstract class MetricsSimpleService implements SimpleService {
       if (Configuration.getBoolean(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED)) {
         return new AlwaysOnMetricsSimpleService();
       }
-      return new WhenLeadingMetricsSimpleService();
+      return new PrimaryOnlyMetricsSimpleService();
     }
   }
 }

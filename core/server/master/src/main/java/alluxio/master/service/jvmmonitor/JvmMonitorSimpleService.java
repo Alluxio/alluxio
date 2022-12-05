@@ -19,6 +19,8 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.JvmPauseMonitor;
 
+import com.google.common.base.Preconditions;
+
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
@@ -35,6 +37,7 @@ public class JvmMonitorSimpleService implements SimpleService {
 
   @Override
   public synchronized void start() {
+    Preconditions.checkState(mJvmPauseMonitor == null, "JVM pause monitor must not already exist");
     mJvmPauseMonitor = new JvmPauseMonitor(
         Configuration.getMs(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS),
         Configuration.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS),

@@ -35,9 +35,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
@@ -71,7 +71,7 @@ public abstract class MasterProcess implements Process {
   final long mStartTimeMs;
   // holds the simple services registered with the master, should only be accessed through
   // #registerSimpleService
-  Set<SimpleService> mServices = new HashSet<>();
+  List<SimpleService> mServices = new ArrayList<>();
 
   /**
    * Prepares a {@link MasterProcess} journal, rpc and web server using the given sockets.

@@ -26,6 +26,7 @@ import alluxio.network.RejectingServer;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
+import com.google.common.base.Preconditions;
 import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +79,7 @@ public class RpcServerSimpleService implements SimpleService {
 
   @Override
   public synchronized void start() {
+    Preconditions.checkState(mRejectingGrpcServer == null, "rejecting server must not be running");
     mRejectingGrpcServer = new RejectingServer(mBindAddress);
     mRejectingGrpcServer.start();
     waitForBound();
@@ -85,6 +87,7 @@ public class RpcServerSimpleService implements SimpleService {
 
   @Override
   public synchronized void promote() {
+    Preconditions.checkState(mGrpcServer == null, "rpc server must not be running");
     stopRejectingServer();
     waitForFree();
     GrpcServerBuilder builder = mMasterProcess.createBaseRpcServer();
@@ -128,6 +131,7 @@ public class RpcServerSimpleService implements SimpleService {
     if (mGrpcServer != null) {
       mGrpcServer.shutdown();
       mGrpcServer.awaitTermination();
+      mGrpcServer = null;
     }
   }
 
@@ -141,6 +145,7 @@ public class RpcServerSimpleService implements SimpleService {
       } catch (InterruptedException e) {
         LOG.warn("rpc executor was interrupted while terminating", e);
       }
+      mRpcExecutor = null;
     }
   }
 

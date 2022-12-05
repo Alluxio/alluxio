@@ -164,7 +164,7 @@ public final class AlluxioMasterProcessTest {
         new NoopJournalSystem(), primarySelector);
     AlluxioMasterProcess spy = Mockito.spy(master);
     Mockito.doAnswer(invocation -> { throw new UnavailableException("unavailable"); })
-        .when(spy).startMasters(true);
+        .when(spy).startMasterComponents(true);
 
     AtomicBoolean success = new AtomicBoolean(true);
     Thread t = new Thread(() -> {

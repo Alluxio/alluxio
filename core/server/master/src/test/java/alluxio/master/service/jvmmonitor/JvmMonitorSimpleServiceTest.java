@@ -53,6 +53,17 @@ public class JvmMonitorSimpleServiceTest {
     MetricsSystem.stopSinks();
   }
 
+  @Test
+  public void doubleStart() {
+    Configuration.set(PropertyKey.MASTER_JVM_MONITOR_ENABLED, true);
+    SimpleService service = JvmMonitorSimpleService.Factory.create();
+    Assert.assertTrue(service instanceof JvmMonitorSimpleService);
+
+    service.start();
+    Assert.assertThrows("JVM pause monitor must not already exist",
+        IllegalStateException.class, service::start);
+  }
+
   private void checkMetrics(int expected) {
     // the jvm monitor metrics are under the
     long count =

@@ -45,7 +45,7 @@ public class MetricsSimpleServiceTest {
   public void whenLeadingTest() {
     Configuration.set(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, false);
     MetricsSimpleService service = MetricsSimpleService.Factory.create();
-    Assert.assertTrue(service instanceof WhenLeadingMetricsSimpleService);
+    Assert.assertTrue(service instanceof PrimaryOnlyMetricsSimpleService);
 
     Assert.assertFalse(MetricsSystem.isStarted());
     service.start();

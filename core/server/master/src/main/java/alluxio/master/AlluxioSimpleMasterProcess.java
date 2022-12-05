@@ -86,7 +86,7 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
       mJournalSystem.gainPrimacy();
       stopMasters();
       LOG.info("Secondary stopped");
-      startMasters(true);
+      startMasterComponents(true);
       mServices.forEach(SimpleService::promote);
       LOG.info("Primary started");
       // We are in primary mode. Nothing to do until we become the standby.
@@ -96,7 +96,7 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
       stopMasters();
       mJournalSystem.losePrimacy();
       LOG.info("Primary stopped");
-      startMasters(false);
+      startMasterComponents(false);
       LOG.info("Standby started");
     }
   }
@@ -114,7 +114,7 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
     mLeaderSelector.stop();
   }
 
-  protected void startMasters(boolean isLeader) {
+  protected void startMasterComponents(boolean isLeader) {
     try {
       mRegistry.start(isLeader);
     } catch (IOException e) {

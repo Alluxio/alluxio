@@ -18,6 +18,7 @@ import alluxio.master.MasterProcess;
 import alluxio.master.service.SimpleService;
 import alluxio.web.WebServer;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +50,7 @@ public abstract class WebServerSimpleService implements SimpleService {
 
   protected synchronized void startWebServer() {
     LOG.info("Starting web server.");
+    Preconditions.checkState(mWebServer == null, "web server must not already exist");
     mWebServer = mMasterProcess.createWebServer();
     mWebServer.start();
   }
@@ -81,7 +83,7 @@ public abstract class WebServerSimpleService implements SimpleService {
           && Configuration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED)) {
         return new AlwaysOnWebServerSimpleService(masterProcess);
       }
-      return new WhenLeadingWebServerSimpleService(bindAddress, masterProcess);
+      return new PrimaryOnlyWebServerSimpleService(bindAddress, masterProcess);
     }
   }
 }

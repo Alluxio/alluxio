@@ -181,7 +181,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     mRunning = true;
     mServices.forEach(SimpleService::start);
     mJournalSystem.start();
-    startMasters(false);
+    startMasterComponents(false);
 
     // Perform the initial catchup before joining leader election,
     // to avoid potential delay if this master is selected as leader
@@ -264,7 +264,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       }
     }
     try {
-      startMasters(true);
+      startMasterComponents(true);
     } catch (UnavailableException e) {
       LOG.warn("Error starting masters: {}", e.toString());
       mJournalSystem.losePrimacy();
@@ -286,7 +286,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     mJournalSystem.losePrimacy();
     stopMasters();
     LOG.info("Primary stopped");
-    startMasters(false);
+    startMasterComponents(false);
     LOG.info("Standby started");
   }
 
@@ -345,7 +345,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    *
    * @param isLeader if the Master is leader
    */
-  protected void startMasters(boolean isLeader) throws IOException {
+  protected void startMasterComponents(boolean isLeader) throws IOException {
     LOG.info("Starting all masters as: {}.", (isLeader) ? "leader" : "follower");
     if (isLeader) {
       if (Configuration.isSet(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {

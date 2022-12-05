@@ -50,11 +50,11 @@ public class WebServerSimpleServiceTest {
   }
 
   @Test
-  public void whenLeadingTest() {
+  public void primaryOnlyTest() {
     Configuration.set(PropertyKey.STANDBY_MASTER_WEB_ENABLED, false);
     WebServerSimpleService webService =
         WebServerSimpleService.Factory.create(mWebAddress, mMasterProcess);
-    Assert.assertTrue(webService instanceof WhenLeadingWebServerSimpleService);
+    Assert.assertTrue(webService instanceof PrimaryOnlyWebServerSimpleService);
     Assert.assertTrue(waitForFree());
 
     Assert.assertFalse(webService.isServing());
@@ -72,6 +72,18 @@ public class WebServerSimpleServiceTest {
     webService.stop();
     Assert.assertFalse(webService.isServing());
     Assert.assertFalse(isBound());
+  }
+
+  @Test
+  public void doubleStartRejectingServer() {
+    Configuration.set(PropertyKey.STANDBY_MASTER_WEB_ENABLED, false);
+    WebServerSimpleService webService =
+        WebServerSimpleService.Factory.create(mWebAddress, mMasterProcess);
+    Assert.assertTrue(webService instanceof PrimaryOnlyWebServerSimpleService);
+
+    webService.start();
+    Assert.assertThrows("rejecting server must not be running",
+        IllegalStateException.class, webService::start);
   }
 
   @Test
@@ -97,6 +109,18 @@ public class WebServerSimpleServiceTest {
     webService.stop();
     Assert.assertTrue(waitForFree());
     Assert.assertFalse(webService.isServing());
+  }
+
+  @Test
+  public void doubleStartWebServer() {
+    Configuration.set(PropertyKey.STANDBY_MASTER_WEB_ENABLED, true);
+    WebServerSimpleService webService =
+        WebServerSimpleService.Factory.create(mWebAddress, mMasterProcess);
+    Assert.assertTrue(webService instanceof AlwaysOnWebServerSimpleService);
+
+    webService.start();
+    Assert.assertThrows("web server must not already exist",
+        IllegalStateException.class, webService::start);
   }
 
   private boolean isBound() {
