@@ -136,6 +136,7 @@ import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry.Builder;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.recorder.Recorder;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
@@ -3368,6 +3369,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException {
     Metrics.MOUNT_OPS.inc();
+    Recorder recorder = context.getRecorder();
+    recorder.record("mount command: alluxio fs mount {} {} option {}",
+        alluxioPath, ufsPath, context);
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("mount", alluxioPath, null, null)) {
@@ -3425,6 +3429,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       long mountId = mMountTable.createUnusedMountId();
       mMountTable.validateMountPoint(inodePath.getUri(), ufsPath, mountId,
           context.getOptions().build());
+      Recorder recorder = context.getRecorder();
+      recorder.record("Acquired mount ID for the new mount point: {}", mountId);
       // get UfsManager prepared
       mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
           new UnderFileSystemConfiguration(
@@ -3439,6 +3445,8 @@ public class DefaultFileSystemMaster extends CoreMaster
                 LoadMetadataPOptions.newBuilder().setCreateAncestors(false)), getMountTable(),
             mountId, context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
             this);
+        recorder.record("Mount point {} created successfully",
+            inodePath.getUri().getPath());
         // As we have verified the mount operation by calling MountTable.verifyMount, there won't
         // be any error thrown when doing MountTable.add
         mMountTable.addValidated(rpcContext, inodePath.getUri(), ufsPath, mountId,
@@ -3446,6 +3454,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       } catch (Exception e) {
         // if exception happens, it indicates the failure of loadMetadata
         LOG.error("Failed to mount {} at {}: ", ufsPath, inodePath.getUri(), e);
+        recorder.record("Failed to mount {} at {}: ",
+            ufsPath, inodePath.getUri(), e.getMessage());
         mUfsManager.removeMount(mountId);
         throw e;
       }

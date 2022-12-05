@@ -15,6 +15,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.extensions.ExtensionFactoryRegistry;
+import alluxio.recorder.Recorder;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -87,7 +88,8 @@ public final class UnderFileSystemFactoryRegistry {
   @Nullable
   public static UnderFileSystemFactory find(
       String path, UnderFileSystemConfiguration ufsConf) {
-    List<UnderFileSystemFactory> factories = findAll(path, ufsConf);
+    List<UnderFileSystemFactory> factories = findAllWithRecorder(path, ufsConf,
+        Recorder.noopRecorder());
     if (factories.isEmpty()) {
       LOG.warn("No Under File System Factory implementation supports the path {}. Please check if "
           + "the under storage path is valid.", path);
@@ -99,22 +101,28 @@ public final class UnderFileSystemFactoryRegistry {
   }
 
   /**
-   * Finds all the Under File System factories that support the given path.
+   * Finds all the Under File System factories that support the given path
+   * and record the execution process.
    *
    * @param path path
    * @param ufsConf configuration of the UFS
+   * @param recorder recorder used to record the detailed execution process
    * @return list of factories that support the given path which may be an empty list
    */
-  public static List<UnderFileSystemFactory> findAll(String path,
-      UnderFileSystemConfiguration ufsConf) {
-    List<UnderFileSystemFactory> eligibleFactories = sRegistryInstance.findAll(path, ufsConf);
+  public static List<UnderFileSystemFactory> findAllWithRecorder(String path,
+      UnderFileSystemConfiguration ufsConf, Recorder recorder) {
+    List<UnderFileSystemFactory> eligibleFactories =
+        sRegistryInstance.findAllWithRecorder(path, ufsConf, recorder);
     if (eligibleFactories.isEmpty() && ufsConf.isSet(PropertyKey.UNDERFS_VERSION)) {
       String configuredVersion = ufsConf.getString(PropertyKey.UNDERFS_VERSION);
       List<String> supportedVersions = getSupportedVersions(path, ufsConf);
       if (!supportedVersions.isEmpty()) {
-        LOG.warn("Versions [{}] are supported for path {} but you have configured version: {}",
+        String message = String.format(
+            "Versions [%s] are supported for path %s but you have configured version: %s",
             StringUtils.join(supportedVersions, ","), path,
             configuredVersion);
+        recorder.record(message);
+        LOG.warn(message);
       }
     } else if (ufsConf.getBoolean(PropertyKey.UNDERFS_STRICT_VERSION_MATCH_ENABLED)
         && !eligibleFactories.isEmpty()
@@ -146,7 +154,8 @@ public final class UnderFileSystemFactoryRegistry {
     confCopy.unset(PropertyKey.UNDERFS_VERSION);
     // Check if any versioned factory supports the default configuration
     List<UnderFileSystemFactory> factories = sRegistryInstance
-        .findAll(path, UnderFileSystemConfiguration.defaults(confCopy));
+        .findAllWithRecorder(path, UnderFileSystemConfiguration.defaults(confCopy),
+             new Recorder());
     List<String> supportedVersions = new ArrayList<>();
     for (UnderFileSystemFactory factory : factories) {
       if (!factory.getVersion().isEmpty()) {
