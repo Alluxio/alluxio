@@ -74,7 +74,7 @@ public final class MasterWebUIMasters implements Serializable {
    * Sets debug.
    *
    * @param debug the debug
-   * @return the debug
+   * @return the debug master infos
    */
   public MasterWebUIMasters setDebug(boolean debug) {
     mDebug = debug;
