@@ -62,7 +62,7 @@ public final class MasterUfsManager extends AbstractUfsManager implements Delega
   @Override
   public synchronized void addMount(long mountId, final AlluxioURI ufsUri,
       final UnderFileSystemConfiguration ufsConf) {
-    addMountWithRecorder(mountId, ufsUri, ufsConf, Recorder.createNoopRecorder());
+    addMountWithRecorder(mountId, ufsUri, ufsConf, Recorder.noopRecorder());
   }
 
   @Override

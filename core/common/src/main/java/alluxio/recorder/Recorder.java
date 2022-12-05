@@ -36,8 +36,8 @@ public class Recorder {
   }
 
   /**
-   * Record a message.
-   * @param message options builder
+   * Records a message.
+   * @param message message
    */
   public void record(String message) {
     mRecords.add(message);
@@ -47,7 +47,7 @@ public class Recorder {
   }
 
   /**
-   * Record a message.
+   * Records a message with a format template and arguments.
    * @param format the message format string
    * @param arguments the message string to be recorded
    */
@@ -56,7 +56,7 @@ public class Recorder {
   }
 
   /**
-   * Get and clear records.
+   * Gets and clears the records recorded so far. After this, the recorder is empty.
    * @return the records
    */
   public List<String> takeRecords() {
@@ -66,10 +66,10 @@ public class Recorder {
   }
 
   /**
-   * Create a {@link NoopRecorder} instance.
+   * Gets a {@link NoopRecorder} that does not actually record anything.
    * @return a NoopRecorder instance
    */
-  public static Recorder createNoopRecorder() {
+  public static Recorder noopRecorder() {
     return NoopRecorder.INSTANCE;
   }
 }

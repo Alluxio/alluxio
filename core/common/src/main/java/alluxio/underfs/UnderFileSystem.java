@@ -87,7 +87,7 @@ public interface UnderFileSystem extends Closeable {
      * @return client for the under file system
      */
     public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
-      return createWithRecorder(path, ufsConf, Recorder.createNoopRecorder());
+      return createWithRecorder(path, ufsConf, Recorder.noopRecorder());
     }
 
     /**

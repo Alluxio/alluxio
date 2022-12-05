@@ -89,7 +89,7 @@ public final class UnderFileSystemFactoryRegistry {
   public static UnderFileSystemFactory find(
       String path, UnderFileSystemConfiguration ufsConf) {
     List<UnderFileSystemFactory> factories = findAllWithRecorder(path, ufsConf,
-        Recorder.createNoopRecorder());
+        Recorder.noopRecorder());
     if (factories.isEmpty()) {
       LOG.warn("No Under File System Factory implementation supports the path {}. Please check if "
           + "the under storage path is valid.", path);

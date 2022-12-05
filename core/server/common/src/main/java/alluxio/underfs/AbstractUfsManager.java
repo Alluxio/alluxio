@@ -119,7 +119,7 @@ public abstract class AbstractUfsManager implements UfsManager {
    * @return the UFS instance
    */
   private UnderFileSystem getOrAdd(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
-    return getOrAddWithRecorder(ufsUri, ufsConf, Recorder.createNoopRecorder());
+    return getOrAddWithRecorder(ufsUri, ufsConf, Recorder.noopRecorder());
   }
 
   /**
@@ -188,7 +188,7 @@ public abstract class AbstractUfsManager implements UfsManager {
   @Override
   public void addMount(long mountId, final AlluxioURI ufsUri,
       final UnderFileSystemConfiguration ufsConf) {
-    addMountWithRecorder(mountId, ufsUri, ufsConf, Recorder.createNoopRecorder());
+    addMountWithRecorder(mountId, ufsUri, ufsConf, Recorder.noopRecorder());
   }
 
   @Override

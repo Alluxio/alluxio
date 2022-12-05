@@ -11,14 +11,14 @@
 
 package alluxio.recorder;
 
-import java.util.LinkedList;
+import com.google.common.collect.ImmutableList;
+
 import java.util.List;
 
 /**
  * A Recorder which does nothing.
  */
 public class NoopRecorder extends Recorder {
-  private final LinkedList<String> mRecords;
   static final Recorder INSTANCE = new NoopRecorder();
 
   /**
@@ -26,17 +26,20 @@ public class NoopRecorder extends Recorder {
    */
   private NoopRecorder() {
     super();
-    mRecords = new LinkedList<>();
   }
 
   @Override
-  public void record(String message) {}
+  public void record(String message) {
+    // no-op
+  }
 
   @Override
-  public void record(String format, Object... arguments) {}
+  public void record(String format, Object... arguments) {
+    // no-op
+  }
 
   @Override
   public List<String> takeRecords() {
-    return mRecords;
+    return ImmutableList.of();
   }
 }
