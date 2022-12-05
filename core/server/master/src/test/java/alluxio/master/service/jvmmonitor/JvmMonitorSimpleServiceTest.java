@@ -17,13 +17,26 @@ import alluxio.master.service.NoopSimpleService;
 import alluxio.master.service.SimpleService;
 import alluxio.metrics.MetricsSystem;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Test for Jvm pause monitor simple service.
  */
 public class JvmMonitorSimpleServiceTest {
+  @Before
+  public void before() {
+    MetricsSystem.startSinks(Configuration.getString(PropertyKey.METRICS_CONF_FILE));
+  }
+
+  @After
+  public void after() {
+    MetricsSystem.clearAllMetrics();
+    MetricsSystem.stopSinks();
+  }
+
   @Test
   public void disabledServiceTest() {
     Configuration.set(PropertyKey.MASTER_JVM_MONITOR_ENABLED, false);
@@ -36,7 +49,6 @@ public class JvmMonitorSimpleServiceTest {
     Configuration.set(PropertyKey.MASTER_JVM_MONITOR_ENABLED, true);
     SimpleService service = JvmMonitorSimpleService.Factory.create();
     Assert.assertTrue(service instanceof JvmMonitorSimpleService);
-    MetricsSystem.startSinks(Configuration.getString(PropertyKey.METRICS_CONF_FILE));
 
     checkMetrics(0);
     service.start();
@@ -49,8 +61,6 @@ public class JvmMonitorSimpleServiceTest {
     }
     service.stop();
     checkMetrics(3);
-    MetricsSystem.clearAllMetrics();
-    MetricsSystem.stopSinks();
   }
 
   @Test
