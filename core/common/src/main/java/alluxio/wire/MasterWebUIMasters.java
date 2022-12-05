@@ -73,44 +73,44 @@ public final class MasterWebUIMasters implements Serializable {
   /**
    * Sets debug.
    *
-   * @param Debug the debug
+   * @param debug the debug
    * @return the debug
    */
-  public MasterWebUIMasters setDebug(boolean Debug) {
-    mDebug = Debug;
+  public MasterWebUIMasters setDebug(boolean debug) {
+    mDebug = debug;
     return this;
   }
 
   /**
    * Sets failed master infos.
    *
-   * @param FailedMasterInfos the failed master infos
+   * @param failedMasterInfos the failed master infos
    * @return the failed master infos
    */
-  public MasterWebUIMasters setFailedMasterInfos(MasterInfo[] FailedMasterInfos) {
-    mFailedMasterInfos = FailedMasterInfos.clone();
+  public MasterWebUIMasters setFailedMasterInfos(MasterInfo[] failedMasterInfos) {
+    mFailedMasterInfos = failedMasterInfos.clone();
     return this;
   }
 
   /**
    * Sets normal master infos.
    *
-   * @param NormalMasterInfos the normal master infos
+   * @param normalMasterInfos the normal master infos
    * @return the normal master infos
    */
-  public MasterWebUIMasters setNormalMasterInfos(MasterInfo[] NormalMasterInfos) {
-    mNormalMasterInfos = NormalMasterInfos.clone();
+  public MasterWebUIMasters setNormalMasterInfos(MasterInfo[] normalMasterInfos) {
+    mNormalMasterInfos = normalMasterInfos.clone();
     return this;
   }
 
   /**
    * Sets leader master info.
    *
-   * @param LeaderMasterInfo the normal master info
+   * @param leaderMasterInfo the normal master info
    * @return the leader master info
    */
-  public MasterWebUIMasters setLeaderMasterInfo(MasterInfo LeaderMasterInfo) {
-    mLeaderMasterInfo = LeaderMasterInfo;
+  public MasterWebUIMasters setLeaderMasterInfo(MasterInfo leaderMasterInfo) {
+    mLeaderMasterInfo = leaderMasterInfo;
     return this;
   }
 
