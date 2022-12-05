@@ -49,7 +49,7 @@ priority: 2
 
 10. Alluxio可以以集群模式运行吗？
 
-    是的，Alluxio可以以集群模式运行。[以本地模式运行Alluxio文档]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }})是相关操作指南。
+    是的，Alluxio可以以集群模式运行。[以集群模式运行Alluxio文档]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }})是相关操作指南。
 
 11. Alluxio必须在HDFS上运行吗？
 

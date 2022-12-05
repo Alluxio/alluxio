@@ -25,6 +25,8 @@ import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.FreeWorkerRequest;
+import alluxio.grpc.FreeWorkerResponse;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
@@ -208,6 +210,15 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
                   BlockStoreLocation.anyDirInAnyTierWithMedium(request.getMediumType())));
       return MoveBlockResponse.getDefaultInstance();
     }, "moveBlock", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void freeWorker(FreeWorkerRequest request,
+       StreamObserver<FreeWorkerResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mBlockWorker.freeWorker();
+      return FreeWorkerResponse.getDefaultInstance();
+    }, "freeWorker", "request=%s", responseObserver, request);
   }
 
   @Override

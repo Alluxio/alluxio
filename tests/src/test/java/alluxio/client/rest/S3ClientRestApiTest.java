@@ -802,6 +802,24 @@ public final class S3ClientRestApiTest extends RestApiTest {
         .runAndCheckResult(expected);
   }
 
+  @Test
+  public void headBucket() throws Exception {
+    final String bucket = "bucket-to-head";
+    final String nonExistingBucket = "non-existing-bucket";
+    createBucketRestCall(bucket);
+    // Verify the directory is created for the new bucket
+    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
+    Assert.assertTrue(mFileSystemMaster
+        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
+
+    HttpURLConnection connection = headBucketRestCall(bucket);
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), connection.getResponseCode());
+
+    // Verify 404 status will be returned by head none existing bucket.
+    connection = headBucketRestCall(nonExistingBucket);
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), connection.getResponseCode());
+  }
+
   private void putBucket(String bucket) throws Exception {
     putBucket(bucket, TEST_USER_NAME);
   }
@@ -1482,6 +1500,12 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void duplicateMultipartUpload() throws Exception {
+    /*
+    1) Test for two mp uploads with diff upload id for creating same object,
+    one should overwrite the other
+    2) Test for CompleteMultipartUpload call should be idempotent, AKA
+    CompleteMultipartUpload made for the same uploadId should return the same result.
+     */
     final String bucketName = "bucket";
     createBucketRestCall(bucketName);
 
@@ -1524,6 +1548,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     partList1.add(new CompleteMultipartUploadRequest.Part("", 2));
     result1 = completeMultipartUploadRestCall(objectKey, uploadId1,
         new CompleteMultipartUploadRequest(partList1));
+    String result1Retry = completeMultipartUploadRestCall(objectKey, uploadId1,
+            new CompleteMultipartUploadRequest(partList1));
 
     // Verify that the response is expected.
     String expectedCombinedObject = object1 + object2;
@@ -1537,6 +1563,9 @@ public final class S3ClientRestApiTest extends RestApiTest {
         result1.trim());
     Assert.assertEquals(XML_MAPPER.readValue(result1, CompleteMultipartUploadResult.class),
         completeMultipartUploadResult1);
+
+    // Verify the response is idempotent for upload1
+    Assert.assertEquals(result1, result1Retry);
 
     // Verify that only the corresponding temporary directory is deleted.
     Assert.assertFalse(mFileSystem.exists(tmpDir1));
@@ -1553,6 +1582,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     partList2.add(new CompleteMultipartUploadRequest.Part("", 1));
     result2 = completeMultipartUploadRestCall(objectKey, uploadId2,
         new CompleteMultipartUploadRequest(partList2));
+    String result2Retry = completeMultipartUploadRestCall(objectKey, uploadId2,
+            new CompleteMultipartUploadRequest(partList2));
+
+    // Verify the response is idempotent for upload2
+    Assert.assertEquals(result2, result2Retry);
 
     // Verify that the response is expected.
     digest = md5.digest(object3.getBytes());
@@ -1572,6 +1606,15 @@ public final class S3ClientRestApiTest extends RestApiTest {
       String newObject = IOUtils.toString(is);
       Assert.assertEquals(object3, newObject);
     }
+
+    // Now if CompleteMultipartUpload is called for upload1
+    // It should say NoSuchUpload
+    HttpURLConnection connection = completeMultipartUploadRestCallWithResponse(objectKey, uploadId1,
+            new CompleteMultipartUploadRequest(partList1));
+    Assert.assertEquals(404, connection.getResponseCode());
+    S3Error response =
+            new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_UPLOAD, response.getCode());
   }
 
   @Test
@@ -2048,6 +2091,12 @@ public final class S3ClientRestApiTest extends RestApiTest {
         getDefaultOptionsWithAuth()).executeAndAssertSuccess();
   }
 
+  private HttpURLConnection headBucketRestCall(String bucketUri) throws Exception {
+    return new TestCase(mHostname, mPort, mBaseUri,
+        bucketUri, NO_PARAMS, HttpMethod.HEAD,
+        getDefaultOptionsWithAuth()).execute();
+  }
+
   private String computeObjectChecksum(byte[] objectContent) throws Exception {
     MessageDigest md5Hash = MessageDigest.getInstance("MD5");
     byte[] md5Digest = md5Hash.digest(objectContent);
@@ -2072,16 +2121,28 @@ public final class S3ClientRestApiTest extends RestApiTest {
         options).runAndGetResponse();
   }
 
-  private String completeMultipartUploadRestCall(
-      String objectUri, String uploadId, CompleteMultipartUploadRequest request)
-      throws Exception {
+  private TestCase getCompleteMultipartUploadReadCallTestCase(
+          String objectUri, String uploadId, CompleteMultipartUploadRequest request) {
     Map<String, String> params = ImmutableMap.of("uploadId", uploadId);
     return new TestCase(mHostname, mPort, mBaseUri,
-        objectUri, params, HttpMethod.POST,
-        getDefaultOptionsWithAuth()
-            .setBody(request)
-            .setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndGetResponse();
+            objectUri, params, HttpMethod.POST,
+            getDefaultOptionsWithAuth()
+                    .setBody(request)
+                    .setContentType(TestCaseOptions.XML_CONTENT_TYPE));
+  }
+
+  private String completeMultipartUploadRestCall(
+          String objectUri, String uploadId, CompleteMultipartUploadRequest request)
+          throws Exception {
+    TestCase testCase = getCompleteMultipartUploadReadCallTestCase(objectUri, uploadId, request);
+    return testCase.runAndGetResponse();
+  }
+
+  private HttpURLConnection completeMultipartUploadRestCallWithResponse(
+          String objectUri, String uploadId, CompleteMultipartUploadRequest request)
+          throws Exception {
+    TestCase testCase = getCompleteMultipartUploadReadCallTestCase(objectUri, uploadId, request);
+    return testCase.execute();
   }
 
   private HttpURLConnection abortMultipartUploadRestCall(String objectUri, String uploadId)

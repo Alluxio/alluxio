@@ -27,12 +27,8 @@ import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
-import alluxio.grpc.GrpcService;
-import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NodeState;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.journal.DefaultJournalMaster;
-import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
@@ -118,13 +114,15 @@ public class AlluxioMasterProcess extends MasterProcess {
           String.format("Journal %s has not been formatted!", mJournalSystem));
     }
     // Create masters.
-    String baseDir = Configuration.getString(PropertyKey.MASTER_METASTORE_DIR);
+    String inodeStoreBaseDir = Configuration.getString(PropertyKey.MASTER_METASTORE_DIR_INODE);
+    String blockStoreBaseDir = Configuration.getString(PropertyKey.MASTER_METASTORE_DIR_BLOCK);
     mContext = CoreMasterContext.newBuilder()
         .setJournalSystem(mJournalSystem)
+        .setPrimarySelector(mLeaderSelector)
         .setSafeModeManager(mSafeModeManager)
         .setBackupManager(mBackupManager)
-        .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))
-        .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(baseDir))
+        .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(blockStoreBaseDir))
+        .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(inodeStoreBaseDir))
         .setStartTimeMs(mStartTimeMs)
         .setPort(NetworkAddressUtils
             .getPort(ServiceType.MASTER_RPC, Configuration.global()))
@@ -343,10 +341,13 @@ public class AlluxioMasterProcess extends MasterProcess {
     }
     // When restoring from backup, some fs modifications exist only in UFS. We invalidate the root
     // to force new accesses to sync with UFS first to update our picture of the UFS.
-    try {
-      mRegistry.get(FileSystemMaster.class).needsSync(new AlluxioURI("/"));
-    } catch (InvalidPathException e) {
-      LOG.warn("Failed to mark root as needing syncing after backup restore");
+    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_SYNC_ROOT_AFTER_INIT_FROM_BACKUP)) {
+      try {
+        mRegistry.get(FileSystemMaster.class).needsSync(new AlluxioURI("/"));
+        LOG.info("Marked root as needing sync after backup restore");
+      } catch (InvalidPathException e) {
+        LOG.warn("Failed to mark root as needing syncing after backup restore");
+      }
     }
   }
 
@@ -558,21 +559,11 @@ public class AlluxioMasterProcess extends MasterProcess {
             TimeUnit.MILLISECONDS)
         .maxInboundMessageSize((int) Configuration.getBytes(
             PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
-    addGrpcServices(builder);
-    // Builds a server that is not started yet.
-    return builder.build();
-  }
-
-  protected void addGrpcServices(GrpcServerBuilder builder) {
-    // Bind manifests of each Alluxio master to RPC server.
     for (Master master : mRegistry.getServers()) {
       registerServices(builder, master.getServices());
     }
-    // Bind manifest of Alluxio JournalMaster service.
-    // TODO(ggezer) Merge this with registerServices() logic.
-    builder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
-        new GrpcService(new JournalMasterClientServiceHandler(
-            new DefaultJournalMaster(JournalDomain.MASTER, mJournalSystem, mLeaderSelector))));
+    // Builds a server that is not started yet.
+    return builder.build();
   }
 
   protected void stopServingGrpc() {

@@ -17,7 +17,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
@@ -46,7 +45,7 @@ public final class GetWorkerReportOptions implements Serializable {
    */
   private GetWorkerReportOptions() {
     mAddresses = new HashSet<>();
-    mFieldRange = new HashSet<>(Arrays.asList(WorkerInfoField.values()));
+    mFieldRange = EnumSet.allOf(WorkerInfoField.class);
     mWorkerRange = WorkerRange.ALL;
   }
 
@@ -164,6 +163,7 @@ public final class GetWorkerReportOptions implements Serializable {
     ALL, // All workers
     LIVE, // Live workers
     LOST, // Lost workers
+    DECOMMISSIONED, // Decommissioned workers
     SPECIFIED; // Combine with mAddresses to define worker range
 
     /**
@@ -187,7 +187,6 @@ public final class GetWorkerReportOptions implements Serializable {
    */
   public enum WorkerInfoField {
     ADDRESS,
-    BLOCK_COUNT,
     WORKER_CAPACITY_BYTES,
     WORKER_CAPACITY_BYTES_ON_TIERS,
     ID,
@@ -195,7 +194,9 @@ public final class GetWorkerReportOptions implements Serializable {
     START_TIME_MS,
     STATE,
     WORKER_USED_BYTES,
-    WORKER_USED_BYTES_ON_TIERS;
+    WORKER_USED_BYTES_ON_TIERS,
+    BLOCK_COUNT,
+    BUILD_VERSION;
 
     public static final Set<WorkerInfoField> ALL = EnumSet.allOf(WorkerInfoField.class);
 

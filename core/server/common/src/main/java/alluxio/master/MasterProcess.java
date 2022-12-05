@@ -47,8 +47,9 @@ import javax.annotation.concurrent.GuardedBy;
 /**
  * Defines a set of methods which any {@link MasterProcess} should implement.
  *
- * This class serves as a common implementation for functions that both the AlluxioMasterProcess and
- * AlluxioJobMasterProcess use. Each master should have an RPC server, web server, and journaling
+ * This class serves as a common implementation for functions that both the
+ * {@link AlluxioMasterProcess} and {@link AlluxioJobMasterProcess} use.
+ * Each master should have an RPC server, web server, and journaling
  * system which can serve client requests.
  */
 public abstract class MasterProcess implements Process {

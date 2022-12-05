@@ -313,6 +313,11 @@ public class StressClientIOBench extends AbstractStressBench
         responseTime99Percentile, maxResponseTimesMs);
   }
 
+  @Override
+  public void validateParams() throws Exception {
+    // no-op
+  }
+
   private static final class BenchContext {
     private final long mStartMs;
     private final long mEndMs;

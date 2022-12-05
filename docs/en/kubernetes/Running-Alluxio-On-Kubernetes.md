@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Deploy Alluxio on Kubernetes
-nickname: Kubernetes
+nickname: Deploy
 group: Kubernetes
 priority: 0
 ---
@@ -1638,6 +1638,46 @@ spec:
 
 For more information on how to configure a pod to use a persistent volume for storage in Kubernetes,
 please refer to [here](https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/).
+
+### Start Alluxio Proxy server
+
+One can use either `helm` or `kubectl`  to set up Alluxio proxy servers inside a kubernetes cluster.
+
+{% navtabs proxySetup %}
+{% navtab helm %}
+
+By default, proxy uses daemonset, so every node would spawn a pod running proxy server. 
+To start proxy server when deploying Alluxio, set the following property in the helm chart configuration file:
+
+```properties
+proxy:
+  enabled: true
+```
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+#### Configuration
+In the sample YAML directory (e.g. `singleMaster-localJournal`), the `proxy/` directory
+contains the daemonset configuration file for the proxy. Users can modify the configurations
+according to the needs.
+
+#### Deploy proxy server
+Run the following commands to deploy proxy daemonset:
+
+```console
+$ cp alluxio-proxy-daemonset.yaml.template alluxio-proxy-daemonset.yaml
+$ kubectl create -f alluxio-proxy-daemonset.yaml
+```
+
+#### Stop proxy server
+Run the following command to stop proxy daemonset:
+```console
+$ kubectl delete daemonset alluxio-proxy
+```
+
+{% endnavtab %}
+{% endnavtabs %}
 
 ### Toggle Master or Worker in Helm chart
 In use cases where you wish to install Alluxio masters and workers separately

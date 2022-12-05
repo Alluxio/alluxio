@@ -144,6 +144,11 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       }
       Protocol.OpenUfsBlockOptions openUfsBlockOptions =
           new InStreamOptions(status, options, conf, mFsContext).getOpenUfsBlockOptions(blockId);
+      if (openUfsBlockOptions.getNoCache()) {
+        // ignore "NO_CACHE" setting for "load"
+        openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder(openUfsBlockOptions)
+            .setNoCache(false).build();
+      }
       cacheBlock(blockId, dataSource, status, openUfsBlockOptions);
     }
   }

@@ -34,6 +34,10 @@
               {
                 "name": "USED_BYTES_ON_TIERS",
                 "integer": 7
+              },
+              {
+                "name": "DECOMMISSIONED_WORKER_NUM",
+                "integer": 8
               }
             ]
           },
@@ -55,6 +59,10 @@
               {
                 "name": "SPECIFIED",
                 "integer": 4
+              },
+              {
+                "name": "DECOMMISSIONED",
+                "integer": 5
               }
             ]
           },
@@ -96,6 +104,14 @@
               {
                 "name": "WORKER_USED_BYTES_ON_TIERS",
                 "integer": 9
+              },
+              {
+                "name": "BLOCK_COUNT",
+                "integer": 10
+              },
+              {
+                "name": "BUILD_VERSION",
+                "integer": 11
               }
             ]
           }
@@ -128,6 +144,11 @@
                 "id": 6,
                 "name": "usedBytes",
                 "type": "int64"
+              },
+              {
+                "id": 8,
+                "name": "decommissionedWorkerNum",
+                "type": "int32"
               }
             ],
             "maps": [
@@ -261,6 +282,11 @@
                 "id": 7,
                 "name": "startTimeMs",
                 "type": "int64"
+              },
+              {
+                "id": 10,
+                "name": "buildVersion",
+                "type": "BuildVersion"
               }
             ],
             "maps": [
@@ -337,6 +363,19 @@
                 }
               }
             ]
+          },
+          {
+            "name": "RemoveDecommissionedWorkerPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "RemoveDecommissionedWorkerPResponse"
           },
           {
             "name": "GetWorkerLostStoragePOptions"
@@ -628,6 +667,21 @@
             ]
           },
           {
+            "name": "BuildVersion",
+            "fields": [
+              {
+                "id": 1,
+                "name": "version",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "revision",
+                "type": "string"
+              }
+            ]
+          },
+          {
             "name": "RegisterWorkerPOptions",
             "fields": [
               {
@@ -635,6 +689,11 @@
                 "name": "configs",
                 "type": "grpc.ConfigProperty",
                 "is_repeated": true
+              },
+              {
+                "id": 2,
+                "name": "buildVersion",
+                "type": "BuildVersion"
               }
             ]
           },
@@ -731,6 +790,11 @@
                 "name": "GetWorkerInfoList",
                 "in_type": "GetWorkerInfoListPOptions",
                 "out_type": "GetWorkerInfoListPResponse"
+              },
+              {
+                "name": "RemoveDecommissionedWorker",
+                "in_type": "RemoveDecommissionedWorkerPOptions",
+                "out_type": "RemoveDecommissionedWorkerPResponse"
               },
               {
                 "name": "GetWorkerReport",
@@ -1148,6 +1212,12 @@
             ]
           },
           {
+            "name": "FreeWorkerRequest"
+          },
+          {
+            "name": "FreeWorkerResponse"
+          },
+          {
             "name": "BlockStatus",
             "fields": [
               {
@@ -1352,6 +1422,11 @@
                 "name": "ClearMetrics",
                 "in_type": "ClearMetricsRequest",
                 "out_type": "ClearMetricsResponse"
+              },
+              {
+                "name": "FreeWorker",
+                "in_type": "FreeWorkerRequest",
+                "out_type": "FreeWorkerResponse"
               }
             ]
           }

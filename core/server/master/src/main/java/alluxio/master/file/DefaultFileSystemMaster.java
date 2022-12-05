@@ -2795,7 +2795,8 @@ public class DefaultFileSystemMaster extends CoreMaster
    */
   private void renameInternal(RpcContext rpcContext, LockedInodePath srcInodePath,
       LockedInodePath dstInodePath, RenameContext context) throws InvalidPathException,
-      FileDoesNotExistException, FileAlreadyExistsException, IOException, AccessControlException {
+          FileDoesNotExistException, FileAlreadyExistsException,
+          IOException, AccessControlException {
     if (!srcInodePath.fullPathExists()) {
       throw new FileDoesNotExistException(
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcInodePath.getUri()));
@@ -2847,11 +2848,12 @@ public class DefaultFileSystemMaster extends CoreMaster
           ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(dstInodePath.getUri()));
     }
 
-    // Make sure destination path does not exist
+    // Make sure destination path does not exist, or check if there's overwrite syntax involved
     if (dstInodePath.fullPathExists()) {
-      throw new FileAlreadyExistsException(String
-          .format("Cannot rename because destination already exists. src: %s dst: %s",
-              srcInodePath.getUri(), dstInodePath.getUri()));
+      boolean proceed = checkForOverwriteSyntax(rpcContext, srcInodePath, dstInodePath, context);
+      if (!proceed) {
+        return;
+      }
     }
 
     // Now we remove srcInode from its parent and insert it into dstPath's parent
@@ -3018,6 +3020,62 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     Metrics.PATHS_RENAMED.inc();
+  }
+
+  /**
+   * If destination path exists, check if we are using rename for overwrite syntax.
+   * Such as objectstore client.
+   * If not, a FileAlreadyExistsException should be thrown,
+   * Else, return if the caller should proceed or not.
+   * @return should the caller proceed or not
+   */
+  private boolean checkForOverwriteSyntax(RpcContext rpcContext,
+                                          LockedInodePath srcInodePath,
+                                          LockedInodePath dstInodePath,
+                                          RenameContext context)
+          throws FileDoesNotExistException, FileAlreadyExistsException,
+          IOException, InvalidPathException {
+    if (context.getOptions().hasS3SyntaxOptions()) {
+      // For possible object overwrite
+      if (context.getOptions().getS3SyntaxOptions().getIsMultipartUpload()) {
+        String mpUploadIdDst = new String(dstInodePath.getInodeFile().getXAttr() != null
+                ? dstInodePath.getInodeFile().getXAttr()
+                .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0])
+                : new byte[0]);
+        String mpUploadIdSrc = new String(srcInodePath.getInodeFile().getXAttr() != null
+                ? srcInodePath.getInodeFile().getXAttr()
+                .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0])
+                : new byte[0]);
+        if (StringUtils.isNotEmpty(mpUploadIdSrc) && StringUtils.isNotEmpty(mpUploadIdDst)
+                && StringUtils.equals(mpUploadIdSrc, mpUploadIdDst)) {
+          LOG.info("Object with same upload exists, bail and claim success.");
+        /* This is a rename operation as part of complete a CompleteMultipartUpload call
+         and there's concurrent attempt on the same multipart upload succeeded */
+          return false;
+        }
+      }
+      /*
+       TODO(lucy) same logic could apply for create normal object instead of multipart upload,
+        check other object related property for a no-op rename
+       */
+      //we need to overwrite, delete existing destination path
+      if (context.getOptions().getS3SyntaxOptions().getOverwrite()) {
+        LOG.info("Encountered S3 Overwrite syntax, "
+                + "deleting existing file and then start renaming.");
+        try {
+          deleteInternal(rpcContext, dstInodePath, DeleteContext
+                  .mergeFrom(DeletePOptions.newBuilder()
+                          .setRecursive(true).setAlluxioOnly(context.getPersist())), true);
+          dstInodePath.removeLastInode();
+        } catch (DirectoryNotEmptyException ex) {
+          // IGNORE, this will never happen
+        }
+        return true;
+      }
+    }
+    throw new FileAlreadyExistsException(String
+            .format("Cannot rename because destination already exists. src: %s dst: %s",
+                    srcInodePath.getUri(), dstInodePath.getUri()));
   }
 
   /**

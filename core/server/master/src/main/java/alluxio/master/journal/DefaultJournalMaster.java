@@ -11,35 +11,44 @@
 
 package alluxio.master.journal;
 
+import alluxio.Constants;
+import alluxio.clock.SystemClock;
 import alluxio.grpc.GetNodeStatePResponse;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.GetTransferLeaderMessagePResponse;
+import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NetAddress;
+import alluxio.grpc.ServiceType;
+import alluxio.master.AbstractMaster;
+import alluxio.master.MasterContext;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.util.executor.ExecutorServiceFactories;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Default implementation for {@link JournalMaster}. This is used by both master and job_master
  * processes.
  */
-public class DefaultJournalMaster implements JournalMaster {
+public class DefaultJournalMaster extends AbstractMaster implements JournalMaster, NoopJournaled {
   private final JournalDomain mJournalDomain;
   private final JournalSystem mJournalSystem;
   private final PrimarySelector mPrimarySelector;
 
   /**
    * @param journalDomain domain for the journal
-   * @param journalSystem internal {@link JournalSystem} reference
-   * @param primarySelector the primary selector to get the node state
+   * @param masterContext the context for Alluxio master
    */
-  public DefaultJournalMaster(
-      JournalDomain journalDomain, JournalSystem journalSystem, PrimarySelector primarySelector) {
+  public DefaultJournalMaster(JournalDomain journalDomain, MasterContext masterContext) {
+    super(masterContext, new SystemClock(),
+        ExecutorServiceFactories.cachedThreadPool(Constants.JOURNAL_MASTER_NAME));
     mJournalDomain = journalDomain;
-    mJournalSystem = journalSystem;
-    mPrimarySelector = primarySelector;
+    mJournalSystem = masterContext.getJournalSystem();
+    mPrimarySelector = masterContext.getPrimarySelector();
   }
 
   private void checkQuorumOpSupported() {
@@ -91,5 +100,18 @@ public class DefaultJournalMaster implements JournalMaster {
     return GetNodeStatePResponse.newBuilder()
         .setNodeState(mPrimarySelector.getState())
         .build();
+  }
+
+  @Override
+  public String getName() {
+    return Constants.JOURNAL_MASTER_NAME;
+  }
+
+  @Override
+  public Map<ServiceType, GrpcService> getServices() {
+    Map<ServiceType, GrpcService> services = new HashMap<>();
+    services.put(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
+        new GrpcService(new JournalMasterClientServiceHandler(this)));
+    return services;
   }
 }
