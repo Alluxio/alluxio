@@ -45,9 +45,13 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
-import java.util.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.UUID;
+import java.util.Date;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 public class S3ObjectTask extends S3BaseTask {
@@ -87,17 +91,15 @@ public class S3ObjectTask extends S3BaseTask {
                     }
                     return new PutObjectTask(handler, OpType.PutObject);
                 }
-                break;
             case "POST":
                 if (handler.getQueryParameter("uploads") != null) {
                     return new CreateMultipartUploadTask(handler, OpType.CreateMultipartUpload);
                 } else if (handler.getQueryParameter("uploadId") != null) {
-                    return new CreateMultipartUploadTask(handler, OpType.CompleteMultipartUpload);
+                    return new CompleteMultipartUploadTask(handler, OpType.CompleteMultipartUpload);
                 }
                 break;
             case "HEAD":
                 return new HeadObjectTask(handler, OpType.HeadObject);
-                break;
             case "DELETE":
                 if (handler.getQueryParameter("uploadId") != null) {
                     return new AbortMultipartUploadTask(handler, OpType.AbortMultipartUpload);
@@ -106,10 +108,10 @@ public class S3ObjectTask extends S3BaseTask {
                 } else {
                     return new DeleteObjectTask(handler, OpType.DeleteObject);
                 }
-                break;
             default:
                 return new S3ObjectTask(handler, OpType.Unsupported);
         }
+        return new S3ObjectTask(handler, OpType.Unsupported);
     }
 
     public String getObjectTaskResource() {
@@ -677,100 +679,6 @@ public class S3ObjectTask extends S3BaseTask {
                                     .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
                                     .build();
                     return createObject(objectPath, userFs, filePOptions, auditContext);
-
-//                    else { // CopyObject or UploadPartCopy
-//                        String copySource = !copySourceParam.startsWith(AlluxioURI.SEPARATOR)
-//                                ? AlluxioURI.SEPARATOR + copySourceParam : copySourceParam;
-//                        try {
-//                            copySource = URLDecoder.decode(copySource, "UTF-8");
-//                        } catch (UnsupportedEncodingException ex) {
-//                            throw S3RestUtils.toObjectS3Exception(ex, objectPath, auditContext);
-//                        }
-//                        URIStatus status = null;
-//                        CreateFilePOptions.Builder copyFilePOptionsBuilder = CreateFilePOptions.newBuilder()
-//                                .setRecursive(true)
-//                                .setMode(PMode.newBuilder()
-//                                        .setOwnerBits(Bits.ALL)
-//                                        .setGroupBits(Bits.ALL)
-//                                        .setOtherBits(Bits.NONE).build());
-//                        // Handle metadata directive
-//                        if (metadataDirective == S3Constants.Directive.REPLACE
-//                                && filePOptions.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
-//                            copyFilePOptionsBuilder.putXattr(S3Constants.CONTENT_TYPE_XATTR_KEY,
-//                                    filePOptions.getXattrMap().get(S3Constants.CONTENT_TYPE_XATTR_KEY));
-//                        } else { // defaults to COPY
-//                            try {
-//                                status = userFs.getStatus(new AlluxioURI(copySource));
-//                                if (status.getFileInfo().getXAttr() != null) {
-//                                    copyFilePOptionsBuilder.putXattr(S3Constants.CONTENT_TYPE_XATTR_KEY,
-//                                            ByteString.copyFrom(status.getFileInfo().getXAttr().getOrDefault(
-//                                                    S3Constants.CONTENT_TYPE_XATTR_KEY,
-//                                                    MediaType.APPLICATION_OCTET_STREAM.getBytes(S3Constants.HEADER_CHARSET))));
-//                                }
-//                            } catch (Exception e) {
-//                                throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
-//                            }
-//                        }
-//                        // Handle tagging directive
-//                        if (taggingDirective == S3Constants.Directive.REPLACE
-//                                && filePOptions.getXattrMap().containsKey(S3Constants.TAGGING_XATTR_KEY)) {
-//                            copyFilePOptionsBuilder.putXattr(S3Constants.TAGGING_XATTR_KEY,
-//                                    filePOptions.getXattrMap().get(S3Constants.TAGGING_XATTR_KEY));
-//                        } else { // defaults to COPY
-//                            try {
-//                                if (status == null) {
-//                                    status = userFs.getStatus(new AlluxioURI(copySource));
-//                                }
-//                                if (status.getFileInfo().getXAttr() != null
-//                                        && status.getFileInfo().getXAttr()
-//                                        .containsKey(S3Constants.TAGGING_XATTR_KEY)) {
-//                                    copyFilePOptionsBuilder.putXattr(S3Constants.TAGGING_XATTR_KEY,
-//                                            TaggingData.serialize(S3RestUtils.deserializeTags(status.getXAttr())));
-//                                }
-//                            } catch (Exception e) {
-//                                throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
-//                            }
-//                        }
-//                        if (copySource.equals(objectPath)) {
-//                            // do not need to copy a file to itself, unless we are changing file attributes
-//                            // TODO(czhu): support changing metadata via CopyObject to self,
-//                            //  verify for UploadPartCopy
-//                            auditContext.setSucceeded(false);
-//                            throw new S3Exception("Copying an object to itself invalid.",
-//                                    objectPath, S3ErrorCode.INVALID_REQUEST);
-//                        }
-//                        try {
-//                            S3RestUtils.deleteExistObject(userFs, objectUri);
-//                        } catch (IOException | AlluxioException e) {
-//                            throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath(), auditContext);
-//                        }
-//                        try (FileInStream in = userFs.openFile(new AlluxioURI(copySource));
-//                             FileOutStream out = userFs.createFile(objectUri, copyFilePOptionsBuilder.build())) {
-//                            MessageDigest md5 = MessageDigest.getInstance("MD5");
-//                            try (DigestOutputStream digestOut = new DigestOutputStream(out, md5)) {
-//                                IOUtils.copyLarge(in, digestOut, new byte[8 * Constants.MB]);
-//                                byte[] digest = md5.digest();
-//                                String entityTag = Hex.encodeHexString(digest);
-//                                // persist the ETag via xAttr
-//                                // TODO(czhu): compute the ETag prior to creating the file to reduce total RPC RTT
-//                                S3RestUtils.setEntityTag(userFs, objectUri, entityTag);
-//                                if (partNumber != null) { // UploadPartCopy
-//                                    return new CopyPartResult(entityTag);
-//                                }
-//                                // CopyObject
-//                                return new CopyObjectResult(entityTag, System.currentTimeMillis());
-//                            } catch (IOException e) {
-//                                try {
-//                                    out.cancel();
-//                                } catch (Throwable t2) {
-//                                    e.addSuppressed(t2);
-//                                }
-//                                throw e;
-//                            }
-//                        } catch (Exception e) {
-//                            throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
-//                        }
-//                    }
                 }
 
             });
@@ -966,6 +874,8 @@ public class S3ObjectTask extends S3BaseTask {
     public static final class CompleteMultipartUploadTask extends S3ObjectTask {
         private String mUploadId;
         private FileSystem mUserFs;
+        private String mBucket;
+        private String mObject;
         private final boolean mKeepAliveEnabled = Configuration.getBoolean(
         PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED);
         private final Long mKeepAliveTime = Configuration.getMs(
@@ -979,11 +889,11 @@ public class S3ObjectTask extends S3BaseTask {
         public void handleTaskAsync() {
             try {
                 final String user = mHandler.getUser();
-                final String bucket = mHandler.getBucket();
-                final String object = mHandler.getObject();
+                mBucket = mHandler.getBucket();
+                mObject = mHandler.getObject();
                 final String uploadId = mHandler.getQueryParameter("uploadId");
                 LOG.debug("(bucket: {}, object: {}, uploadId: {}) queuing task...",
-                        bucket, object, uploadId);
+                        mBucket, mObject, uploadId);
                 HttpServletResponse httpServletResponse = mHandler.mServletResponse;
 
                 // Set headers before getting committed when flushing whitespaces
@@ -1000,7 +910,7 @@ public class S3ObjectTask extends S3BaseTask {
                     long sleepMs = 1000;
                     while (!respFut.isDone()) {
                         LOG.debug("(bucket: {}, object: {}, uploadId: {}) sleeping for {}ms...",
-                                bucket, object, uploadId, sleepMs);
+                                mBucket, mObject, uploadId, sleepMs);
                         try {
                             Thread.sleep(sleepMs);
                         } catch (InterruptedException e) {
@@ -1012,7 +922,7 @@ public class S3ObjectTask extends S3BaseTask {
                         // - https://docs.oracle.com/javaee/7/api/javax/servlet/ServletResponse.html#getWriter--
                         // periodically sends white space characters to keep the connection from timing out
                         LOG.debug("(bucket: {}, object: {}, uploadId: {}) sending whitespace...",
-                                bucket, object, uploadId);
+                                mBucket, mObject, uploadId);
                         httpServletResponse.getWriter().print(" ");
                         httpServletResponse.getWriter().flush();
                         sleepMs = Math.min(2 * sleepMs, mKeepAliveTime);
@@ -1088,11 +998,11 @@ public class S3ObjectTask extends S3BaseTask {
 
                     // (re)create the merged object to a temporary object path
                     LOG.debug("CompleteMultipartUploadTask (bucket: {}, object: {}, uploadId: {}) "
-                            + "combining {} parts...", bucket, object, uploadId, uploadedParts.size());
+                            + "combining {} parts...", bucket, object, mUploadId, uploadedParts.size());
                     CreateFilePOptions createFileOption = prepareForCreateTempFile(metaStatus);
                     objTempPath = objectPath + ".temp." + UUID.randomUUID();
                     AlluxioURI objectTempUri = new AlluxioURI(objTempPath);
-                    FileOutStream os = userFs.createFile(objectTempUri, createFileOption);
+                    FileOutStream os = mUserFs.createFile(objectTempUri, createFileOption);
                     MessageDigest md5 = MessageDigest.getInstance("MD5");
 
                     try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5);
@@ -1100,7 +1010,7 @@ public class S3ObjectTask extends S3BaseTask {
                                  .uniformTimer(MetricKey.PROXY_COMPLETE_MP_UPLOAD_MERGE_LATENCY
                                          .getName()).time()) {
                         for (URIStatus part : uploadedParts) {
-                            try (FileInStream is = userFs.openFile(new AlluxioURI(part.getPath()))) {
+                            try (FileInStream is = mUserFs.openFile(new AlluxioURI(part.getPath()))) {
                                 ByteStreams.copy(is, digestOutputStream);
                             }
                         }
@@ -1108,7 +1018,7 @@ public class S3ObjectTask extends S3BaseTask {
                     // persist the ETag via xAttr
                     String entityTag = Hex.encodeHexString(md5.digest());
                     // TODO(czhu): try to compute the ETag prior to creating the file to reduce total RPC RTT
-                    S3RestUtils.setEntityTag(userFs, objectTempUri, entityTag);
+                    S3RestUtils.setEntityTag(mUserFs, objectTempUri, entityTag);
                     // rename the temp file to the target object file path
                     AlluxioURI objectUri = new AlluxioURI(objectPath);
                     mUserFs.rename(objectTempUri, objectUri, RenamePOptions.newBuilder()
@@ -1138,11 +1048,11 @@ public class S3ObjectTask extends S3BaseTask {
                             String etag = new String(objStatus.getXAttr()
                                     .getOrDefault(S3Constants.ETAG_XATTR_KEY, new byte[0]));
                             if (!etag.isEmpty()) {
-                                LOG.info("Check for idempotency, uploadId:{} idempotency check passed.", uploadId);
+                                LOG.info("Check for idempotency, uploadId:{} idempotency check passed.", mUploadId);
                                 return new CompleteMultipartUploadResult(objectPath, bucket, object, etag);
                             }
                             LOG.info("Check for idempotency, uploadId:{} object path exists but no etag found.",
-                                    uploadId);
+                                    mUploadId);
                         }
                     }
                     throw S3RestUtils.toObjectS3Exception(e, object);
@@ -1194,8 +1104,8 @@ public class S3ObjectTask extends S3BaseTask {
             CompleteMultipartUploadRequest request;
             try {
                 request = new XmlMapper().readerFor(CompleteMultipartUploadRequest.class)
-                        .readValue(mBody);
-            } catch (IllegalArgumentException | JsonProcessingException e) {
+                        .readValue(mHandler.getInputStream());
+            } catch (IllegalArgumentException | IOException e) {
                 LOG.error("Failed parsing CompleteMultipartUploadRequest:{}",
                         ThreadUtils.formatStackTrace(e));
                 Throwable cause = e.getCause();
@@ -1255,11 +1165,12 @@ public class S3ObjectTask extends S3BaseTask {
                 throws IOException, AlluxioException {
             mUserFs.delete(multipartTemporaryDir,
                     DeletePOptions.newBuilder().setRecursive(true).build());
-            mMetaFs.delete(new AlluxioURI(
+            mHandler.getMetaFS().delete(new AlluxioURI(
                             S3RestUtils.getMultipartMetaFilepathForUploadId(mUploadId)),
                     DeletePOptions.newBuilder().build());
-            if (mMultipartCleanerEnabled) {
-                MultipartUploadCleaner.cancelAbort(mMetaFs, mUserFs, mBucket, mObject, mUploadId);
+            if (S3Handler.mMultipartCleanerEnabled) {
+                MultipartUploadCleaner.cancelAbort(mHandler.getMetaFS(), mUserFs,
+                        mBucket, mObject, mUploadId);
             }
         }
 

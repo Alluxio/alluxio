@@ -633,6 +633,11 @@ public final class S3RestUtils {
     return user;
   }
 
+  /**
+   * Populate xattr with content type info from header.
+   * @param xattrMap
+   * @param contentTypeHeader
+   */
   public static void populateContentTypeInXAttr(Map<String, ByteString> xattrMap, String contentTypeHeader) {
     if (contentTypeHeader != null) {
       xattrMap.put(S3Constants.CONTENT_TYPE_XATTR_KEY,
@@ -640,6 +645,14 @@ public final class S3RestUtils {
     }
   }
 
+  /**
+   * Populate xattr map with tagging info from tagging header.
+   * @param xattrMap
+   * @param taggingHeader
+   * @param auditContext
+   * @param objectPath
+   * @throws S3Exception
+   */
   public static void populateTaggingInXAttr(Map<String, ByteString> xattrMap, String taggingHeader,
                                             S3AuditContext auditContext, String objectPath)
     throws S3Exception{
@@ -656,10 +669,7 @@ public final class S3RestUtils {
       }
     }
     LOG.debug("tagData={}", tagData);
-
     // Populate the xattr Map with the metadata tags if provided
-    Map<String, ByteString> xattrMap = new HashMap<>();
-
     if (tagData != null) {
       try {
         xattrMap.put(S3Constants.TAGGING_XATTR_KEY, TaggingData.serialize(tagData));
