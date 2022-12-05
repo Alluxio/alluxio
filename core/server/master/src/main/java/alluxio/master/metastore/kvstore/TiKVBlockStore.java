@@ -20,6 +20,7 @@ import alluxio.master.metastore.BlockMetaStore;
 import alluxio.proto.kvstore.BlockLocationKey;
 import alluxio.proto.kvstore.BlockLocationValue;
 import alluxio.proto.kvstore.KVStoreTable;
+import alluxio.proto.meta.Block;
 import alluxio.resource.CloseableIterator;
 
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -59,7 +60,19 @@ public class TiKVBlockStore implements BlockMetaStore {
 
   @Override
   public Optional<alluxio.proto.meta.Block.BlockMeta> getBlock(long id) {
-    return Optional.empty();
+    Optional<BlockLocationValue> result = mKVStoreBLockMeta.getBlock(BlockLocationKey
+        .newBuilder()
+        .setTableType(KVStoreTable.BLOCK_LOCATION)
+        .setFileId(id).build());
+    if (!result.isPresent()) {
+      return Optional.empty();
+    }
+
+    try {
+      return Optional.of(alluxio.proto.meta.Block.BlockMeta.parseFrom(result.get().getValue()));
+    } catch (InvalidProtocolBufferException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override

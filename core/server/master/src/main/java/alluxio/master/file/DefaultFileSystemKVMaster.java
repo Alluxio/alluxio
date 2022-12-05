@@ -11,6 +11,11 @@
 
 package alluxio.master.file;
 
+import static alluxio.master.file.InodeSyncStreamKV.SyncStatus.FAILED;
+import static alluxio.master.file.InodeSyncStreamKV.SyncStatus.NOT_NEEDED;
+import static alluxio.master.file.InodeSyncStreamKV.SyncStatus.OK;
+import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
+
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
@@ -226,10 +231,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static alluxio.master.file.InodeSyncStreamKV.SyncStatus.FAILED;
-import static alluxio.master.file.InodeSyncStreamKV.SyncStatus.NOT_NEEDED;
-import static alluxio.master.file.InodeSyncStreamKV.SyncStatus.OK;
-import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
 
 /**
  * The master that handles all file system metadata management.
@@ -2210,10 +2211,9 @@ public class DefaultFileSystemKVMaster extends CoreMaster
           if (inodeToDelete.isFile()) {
             long fileId = inodeToDelete.getId();
             // Remove the file from the set of files to persist.
-            mPersistRequests.remove(new Pair<Long, String>(inodeToDelete.getParentId(), inodeToDelete.getName()));
+            mPersistRequests.remove(fileId);
             // Cancel any ongoing jobs.
-            PersistJob job = mPersistJobs.get(new Pair<Long, String>(
-                inodeToDelete.getParentId(), inodeToDelete.getName()));
+            PersistJob job = mPersistJobs.get(fileId);
             if (job != null) {
               job.setCancelState(PersistJob.CancelState.TO_BE_CANCELED);
             }

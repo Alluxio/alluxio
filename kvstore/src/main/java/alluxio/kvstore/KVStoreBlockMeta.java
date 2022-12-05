@@ -2,7 +2,6 @@ package alluxio.kvstore;
 
 import alluxio.proto.kvstore.BlockLocationKey;
 import alluxio.proto.kvstore.BlockLocationValue;
-import alluxio.resource.CloseableIterator;
 
 import java.util.List;
 import java.util.Optional;

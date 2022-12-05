@@ -10,7 +10,7 @@ import alluxio.proto.kvstore.KVStoreTable;
 import java.util.List;
 import java.util.Optional;
 
-class KVStoreListTest {
+class KVStoreCleartTest {
   public static Pair<FileEntryKey, FileEntryValue> createFileEntryKey(long pid, String name, long cid) {
     FileEntryKey key = FileEntryKey.newBuilder().setParentID(pid)
         .setTableType(KVStoreTable.FILE_ENTRY)
@@ -39,13 +39,14 @@ class KVStoreListTest {
     TiKVStoreMetaRaw tiKVStoreMetaRaw = new TiKVStoreMetaRaw();
 
     FileEntryKey keyStart = FileEntryKey.newBuilder().setParentID(0)
-        .setTableType(KVStoreTable.FILE_ENTRY).build();
+        .setTableType(KVStoreTable.FILE_ENTRY)
+        .setName("").build();
     FileEntryKey keyEnd = FileEntryKey.newBuilder()
         .setParentID(0XFFFFFFFF)
         .setTableType(KVStoreTable.FILE_ENTRY)
         .setName("").build();
-    List<Pair<FileEntryKey, FileEntryValue>> list = tiKVStoreMetaRaw.scanFileEntryKV(keyStart);
-    printFileEntryResults(list);
+    tiKVStoreMetaRaw.deleteFileEntryRange(keyStart, keyEnd);
+
 
     InodeTreeEdgeKey inodeTreeEdgeKeyStart = InodeTreeEdgeKey.newBuilder()
         .setTableType(KVStoreTable.INODE_EDGE)
@@ -55,11 +56,7 @@ class KVStoreListTest {
         .setTableType(KVStoreTable.INODE_EDGE)
         .setId(0XFFFFFFFF)
         .build();
-    List<Pair<InodeTreeEdgeKey, InodeTreeEdgeValue>> listEdge
-        = tiKVStoreMetaRaw.scanEdge(inodeTreeEdgeKeyStart, inodeTreeEdgeKeyEnd, 1000);
-    printResults(listEdge);
-
-    Optional<FileEntryValue> entryValue = tiKVStoreMetaRaw.getFileEntry(keyEnd);
+    tiKVStoreMetaRaw.deleteInodeTreeEdge(inodeTreeEdgeKeyStart, inodeTreeEdgeKeyEnd);
     tiKVStoreMetaRaw.close();
   }
 }

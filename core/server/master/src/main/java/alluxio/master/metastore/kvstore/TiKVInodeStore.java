@@ -220,15 +220,9 @@ public class TiKVInodeStore implements KVInodeStore {
     FileEntryKey keyStart = FileEntryKey.newBuilder()
         .setTableType(KVStoreTable.FILE_ENTRY)
         .setParentID(inodeId)
-        .setName("")
-        .build();
-    FileEntryKey keyEnd = FileEntryKey.newBuilder()
-        .setTableType(KVStoreTable.FILE_ENTRY)
-        .setParentID(inodeId + 1)
-        .setName("")
         .build();
     List<Pair<FileEntryKey, FileEntryValue>> keys
-        = mKVStoreMetaInterface.scanFileEntryKV(keyStart, keyEnd);
+        = mKVStoreMetaInterface.scanFileEntryKV(keyStart);
     KVStoreIter rocksIter = new KVStoreIter(keys.iterator());
     Stream<Pair<Long, String>> idStream = StreamSupport.stream(Spliterators
         .spliteratorUnknownSize(rocksIter, Spliterator.ORDERED), false);

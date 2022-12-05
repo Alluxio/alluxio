@@ -102,7 +102,7 @@ public class TiKVStoreMetaRaw implements KVStoreMetaInterface, Closeable {
     mRawKVClient.deleteRange(org.tikv.shade.com.google.protobuf.ByteString
         .copyFrom(keyStart.toByteArray()), org.tikv.shade.com.google.protobuf.ByteString
         .copyFrom(keyEnd.toByteArray()));
-    return false;
+    return true;
   }
 
   @Override
@@ -139,12 +139,10 @@ public class TiKVStoreMetaRaw implements KVStoreMetaInterface, Closeable {
   }
 
   @Override
-  public List<Pair<FileEntryKey, FileEntryValue>> scanFileEntryKV(FileEntryKey startKey,
-      FileEntryKey endKey) {
+  public List<Pair<FileEntryKey, FileEntryValue>> scanFileEntryKV(FileEntryKey startKey) {
     try {
       List<org.tikv.kvproto.Kvrpcpb.KvPair> kvPairs = mRawKVClient
-          .scan(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(startKey.toByteArray()),
-              org.tikv.shade.com.google.protobuf.ByteString.copyFrom(endKey.toByteArray()));
+          .scanPrefix(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(startKey.toByteArray()));
 
       List<Pair<FileEntryKey, FileEntryValue>> list
           = new LinkedList<Pair<FileEntryKey, FileEntryValue>>();
@@ -228,6 +226,14 @@ public class TiKVStoreMetaRaw implements KVStoreMetaInterface, Closeable {
   public void deleteInodeTreeEdge(InodeTreeEdgeKey key) {
     mRawKVClient.delete(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(
         key.toByteArray()));
+  }
+
+  @Override
+  public boolean deleteInodeTreeEdge(InodeTreeEdgeKey keyStart, InodeTreeEdgeKey keyEnd) {
+    mRawKVClient.deleteRange(org.tikv.shade.com.google.protobuf.ByteString
+        .copyFrom(keyStart.toByteArray()), org.tikv.shade.com.google.protobuf.ByteString
+        .copyFrom(keyEnd.toByteArray()));
+    return true;
   }
 
   @Override

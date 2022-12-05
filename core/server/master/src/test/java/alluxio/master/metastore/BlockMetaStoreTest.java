@@ -128,6 +128,8 @@ public class BlockMetaStoreTest {
     final int blockCount = 3;
     for (int i = 0; i < blockCount; i++) {
       mBlockMetaStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
+      mBlockMetaStore
+          .addLocation(i, Block.BlockLocation.newBuilder().setWorkerId(2 + i).build());
     }
 
     try (CloseableIterator<BlockMetaStore.Block> iter = mBlockMetaStore.getCloseableIterator()) {
@@ -178,6 +180,8 @@ public class BlockMetaStoreTest {
     for (int i = 0; i < blockCount; i++) {
       mBlockMetaStore.removeBlock(i);
     }
+
+    List<Block.BlockLocation> locations = mBlockMetaStore.getLocations(3);
 
     assertEquals(0, mBlockMetaStore.size());
     mBlockMetaStore.clear();
