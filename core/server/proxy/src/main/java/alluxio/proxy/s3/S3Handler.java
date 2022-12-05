@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -68,7 +67,7 @@ public class S3Handler {
     public static final Pattern mBucketInvalidPrefixPattern = Pattern.compile("^xn--.*");
     public static final Pattern mBucketInvalidSuffixPattern = Pattern.compile(".*-s3alias$");
     public static final Pattern mBucketValidNamePattern = Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
-    public static final Pattern mBasePathPattern = Pattern.compile("^" + S3RequstServlet.S3_SERVICE_PATH_PREFIX + "$");
+    public static final Pattern mBasePathPattern = Pattern.compile("^" + S3RequestServlet.S3_SERVICE_PATH_PREFIX + "$");
     public static final Pattern mBucketPathPattern = Pattern.compile("^/api/v1/s3/[^/]*$");
     public static final Pattern mObjectPathPattern = Pattern.compile("^/api/v1/s3/[^/]*/[^/]*$");
     private FileSystem mMetaFS;
@@ -129,10 +128,10 @@ public class S3Handler {
         String object = null;
 
         if (bucketMatcher.matches()) {
-            pathStr = path.substring(S3RequstServlet.S3_SERVICE_PATH_PREFIX.length() + 1);
+            pathStr = path.substring(S3RequestServlet.S3_SERVICE_PATH_PREFIX.length() + 1);
             bucket = pathStr.substring(0, pathStr.indexOf(AlluxioURI.SEPARATOR));
         } else if (objectMatcher.matches()) {
-            pathStr = path.substring(S3RequstServlet.S3_SERVICE_PATH_PREFIX.length() + 1);
+            pathStr = path.substring(S3RequestServlet.S3_SERVICE_PATH_PREFIX.length() + 1);
             bucket = pathStr.substring(0, pathStr.indexOf(AlluxioURI.SEPARATOR));
             object = pathStr.substring(pathStr.indexOf(AlluxioURI.SEPARATOR) + 1);
         }
@@ -173,14 +172,17 @@ public class S3Handler {
         return mServletRequest.getInputStream();
     }
 
-    ThreadLocal<ByteBuffer> tlsBuffer_ = ThreadLocal.withInitial(() -> ByteBuffer.allocate(8*1024));
-    ThreadLocal<byte[]> tlsBytes_ = ThreadLocal.withInitial(() -> new byte[8*1024]);
+    private static final ThreadLocal<ByteBuffer> tlsBuffer_ =
+            ThreadLocal.withInitial(() -> ByteBuffer.allocate(8*1024));
+    private static final ThreadLocal<byte[]> tlsBytes_ =
+            ThreadLocal.withInitial(() -> new byte[8*1024]);
 
-    public void processResponse(Response response) throws IOException {
-        mServletResponse.setStatus(response.getStatus(), response.getStatusInfo().getReasonPhrase());
+    public static void processResponse(HttpServletResponse servletResponse, Response response)
+            throws IOException {
+        servletResponse.setStatus(response.getStatus(), response.getStatusInfo().getReasonPhrase());
         for (MultivaluedMap.Entry<String,List<Object>> entry : response.getHeaders().entrySet()) {
             for (Object obj : entry.getValue())
-                mServletResponse.addHeader(entry.getKey(), obj.toString());
+                servletResponse.addHeader(entry.getKey(), obj.toString());
         }
         if (response.hasEntity()) {
             Object entity = response.getEntity();
@@ -190,9 +192,9 @@ public class S3Handler {
                 buffer.clear();
                 is.read(buffer);
                 buffer.flip();
-                ((HttpOutput) mServletResponse.getOutputStream()).write(buffer);
+                ((HttpOutput) servletResponse.getOutputStream()).write(buffer);
             } else {
-                mServletResponse.getOutputStream().write(entity.toString().getBytes());
+                servletResponse.getOutputStream().write(entity.toString().getBytes());
             }
         }
     }

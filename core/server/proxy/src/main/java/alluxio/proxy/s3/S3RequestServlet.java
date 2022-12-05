@@ -4,6 +4,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.web.ProxyWebServer;
 import com.google.common.base.Stopwatch;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +16,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 
@@ -47,6 +49,13 @@ public class S3RequestServlet extends HttpServlet {
         }
     }
 
+    public static ExecutorService esLight_ = new ThreadPoolExecutor(8, 64, 0,
+                                 TimeUnit.SECONDS, new ArrayBlockingQueue<>(64 * 1024),
+            new ThreadFactoryBuilder().setNameFormat("S3-LIGHQ-%d").build());
+    public static ExecutorService esHeavy_ = new ThreadPoolExecutor(8, 64, 0,
+            TimeUnit.SECONDS, new ArrayBlockingQueue<>(64 * 1024),
+            new ThreadFactoryBuilder().setNameFormat("S3-HEAVYQ-%d").build());
+
     @Override
     public void service(HttpServletRequest request,
                         HttpServletResponse response)  throws ServletException, IOException {
@@ -55,16 +64,20 @@ public class S3RequestServlet extends HttpServlet {
         if (!target.startsWith(S3_SERVICE_PATH_PREFIX)) {
             return;
         }
-        Response resp;
-        S3Handler s3Handler = null;
+        Response resp = null;
         try {
-            s3Handler = S3Handler.createHandler(target, request, response);
+            S3Handler s3Handler = S3Handler.createHandler(target, request, response);
+            if (s3Handler.getS3Task().mOPType == S3BaseTask.OpType.CompleteMultipartUpload) {
+                s3Handler.getS3Task().handleTaskAsync();
+                return;
+            }
             resp = s3Handler.getS3Task().continueTask();
         } catch (S3Exception e) {
             resp = S3ErrorResponse.createErrorResponse(e, "");
         }
-        s3Handler.processResponse(resp);
+        S3Handler.processResponse(response, resp);
         ProxyWebServer.logAccess(request, response, stopWatch);
     }
 
 }
+

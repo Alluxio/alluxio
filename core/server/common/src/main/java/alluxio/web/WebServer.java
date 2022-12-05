@@ -92,6 +92,8 @@ public abstract class WebServer {
     }
   }
 
+  public ThreadPoolExecutor mThreadPoolExecutor_;
+
   /**
    * Creates a new instance of {@link WebServer}. It pairs URLs with servlets and sets the webapp
    * folder.
@@ -110,10 +112,10 @@ public abstract class WebServer {
     threadPool.setName(mServiceName.replace(" ", "-").toUpperCase());
     int webThreadCount = Configuration.getInt(PropertyKey.WEB_THREADS);
 
-    ThreadPoolExecutor tpe = new ThreadPoolExecutor(8, 64, 0,
+    mThreadPoolExecutor_ = new ThreadPoolExecutor(8, 64, 0,
             TimeUnit.SECONDS, new ArrayBlockingQueue<>(64 * 1024),
             new ThreadFactoryBuilder().setNameFormat("S3-HANDLER-%d").build());
-    ExecutorThreadPool etp = new ExecutorThreadPool(tpe);
+    ExecutorThreadPool etp = new ExecutorThreadPool(mThreadPoolExecutor_);
     etp.setName("S3-HANDLER");
     mServer = new Server(etp);
 

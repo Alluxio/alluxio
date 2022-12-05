@@ -633,9 +633,45 @@ public final class S3RestUtils {
     return user;
   }
 
-  /**
-   * Comparator based on uri name， treat uri name as a Long number.
-   */
+  public static void populateContentTypeInXAttr(Map<String, ByteString> xattrMap, String contentTypeHeader) {
+    if (contentTypeHeader != null) {
+      xattrMap.put(S3Constants.CONTENT_TYPE_XATTR_KEY,
+              ByteString.copyFrom(contentTypeHeader, S3Constants.HEADER_CHARSET));
+    }
+  }
+
+  public static void populateTaggingInXAttr(Map<String, ByteString> xattrMap, String taggingHeader,
+                                            S3AuditContext auditContext, String objectPath)
+    throws S3Exception{
+    TaggingData tagData = null;
+    if (taggingHeader != null) { // Parse the tagging header if it exists for PutObject
+      try {
+        tagData = S3RestUtils.deserializeTaggingHeader(taggingHeader, S3Handler.mMaxHeaderMetadataSize);
+      } catch (IllegalArgumentException e) {
+        if (e.getCause() instanceof S3Exception) {
+          throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath,
+                  auditContext);
+        }
+        throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
+      }
+    }
+    LOG.debug("tagData={}", tagData);
+
+    // Populate the xattr Map with the metadata tags if provided
+    Map<String, ByteString> xattrMap = new HashMap<>();
+
+    if (tagData != null) {
+      try {
+        xattrMap.put(S3Constants.TAGGING_XATTR_KEY, TaggingData.serialize(tagData));
+      } catch (Exception e) {
+        throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
+      }
+    }
+  }
+
+    /**
+     * Comparator based on uri name， treat uri name as a Long number.
+     */
   public static class URIStatusNameComparator implements Comparator<URIStatus>, Serializable {
 
     private static final long serialVersionUID = 733270188584155565L;

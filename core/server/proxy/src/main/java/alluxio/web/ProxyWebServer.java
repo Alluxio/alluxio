@@ -21,6 +21,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proxy.ProxyProcess;
 import alluxio.proxy.s3.CompleteMultipartUploadHandler;
+import alluxio.proxy.s3.S3RequestServlet;
 import alluxio.proxy.s3.S3RequstServlet;
 import alluxio.proxy.s3.S3RestExceptionMapper;
 import alluxio.util.io.PathUtils;

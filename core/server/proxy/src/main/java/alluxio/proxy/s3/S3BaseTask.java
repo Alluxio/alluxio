@@ -19,6 +19,7 @@ public abstract class S3BaseTask {
         UploadPartCopy,
         CreateMultipartUpload,
         AbortMultipartUpload,
+        CompleteMultipartUpload,
         // Bucket Task
         ListBuckets,
         GetBucketTagging,
@@ -43,5 +44,7 @@ public abstract class S3BaseTask {
     }
 
     public abstract Response continueTask();
+
+    public void handleTaskAsync() {};
 
 }
