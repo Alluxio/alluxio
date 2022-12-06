@@ -208,18 +208,18 @@ public final class RocksStore implements Closeable {
       throw new IOException(e);
     }
 
+    int compressLevel = Configuration.getInt(
+        PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
     if (Configuration.getBoolean(PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP)) {
       CheckpointOutputStream out = new CheckpointOutputStream(output,
           CheckpointType.ROCKS_PARALLEL);
       LOG.info("Checkpoint complete, compressing with {} threads", mParallelBackupPoolSize);
-      int compressLevel = Configuration.getInt(
-          PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL);
       ParallelZipUtils.compress(Paths.get(mDbCheckpointPath), out,
           mParallelBackupPoolSize, compressLevel);
     } else {
       CheckpointOutputStream out = new CheckpointOutputStream(output, CheckpointType.ROCKS_SINGLE);
       LOG.info("Checkpoint complete, compressing with one thread");
-      TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out);
+      TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out, compressLevel);
     }
 
     LOG.info("Completed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
