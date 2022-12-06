@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -70,7 +71,7 @@ public class S3Handler {
     public static final Pattern mBucketValidNamePattern = Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
     public static final Pattern mBasePathPattern = Pattern.compile("^" + S3RequestServlet.S3_SERVICE_PATH_PREFIX + "$");
     public static final Pattern mBucketPathPattern = Pattern.compile("^/api/v1/s3/[^/]*$");
-    public static final Pattern mObjectPathPattern = Pattern.compile("^/api/v1/s3/[^/]*/[^/]*$");
+    public static final Pattern mObjectPathPattern = Pattern.compile("^/api/v1/s3/[^/]*/.*$");
     private FileSystem mMetaFS;
     public AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
     public S3Handler(String bucket, String object,
@@ -127,25 +128,29 @@ public class S3Handler {
         String pathStr = path;
         String bucket = null;
         String object = null;
-
-        if (bucketMatcher.matches()) {
-            pathStr = path.substring(S3RequestServlet.S3_SERVICE_PATH_PREFIX.length() + 1);
-            bucket = pathStr;
-        } else if (objectMatcher.matches()) {
-            pathStr = path.substring(S3RequestServlet.S3_SERVICE_PATH_PREFIX.length() + 1);
-            bucket = pathStr.substring(0, pathStr.indexOf(AlluxioURI.SEPARATOR));
-            object = pathStr.substring(pathStr.indexOf(AlluxioURI.SEPARATOR) + 1);
+        S3Handler handler = null;
+        try {
+            if (bucketMatcher.matches()) {
+                pathStr = path.substring(S3RequestServlet.S3_SERVICE_PATH_PREFIX.length() + 1);
+                bucket = URLDecoder.decode(pathStr, "UTF-8");
+            } else if (objectMatcher.matches()) {
+                pathStr = path.substring(S3RequestServlet.S3_SERVICE_PATH_PREFIX.length() + 1);
+                bucket = URLDecoder.decode(pathStr.substring(0, pathStr.indexOf(AlluxioURI.SEPARATOR)), "UTF-8");
+                object = URLDecoder.decode(pathStr.substring(pathStr.indexOf(AlluxioURI.SEPARATOR) + 1), "UTF-8");
+            }
+            handler = new S3Handler(bucket, object, request, response);
+            handler.init();
+            S3BaseTask task = null;
+            if (object != null && !object.isEmpty()) {
+                task = S3ObjectTask.allocateTask(handler);
+            } else {
+                task = S3BucketTask.allocateTask(handler);
+            }
+            handler.setS3Task(task);
+            return handler;
+        } catch (Exception ex) {
+            throw S3RestUtils.toObjectS3Exception(ex, "");
         }
-        S3Handler handler = new S3Handler(bucket, object, request, response);
-        handler.init();
-        S3BaseTask task = null;
-        if (object != null && !object.isEmpty()) {
-            task = S3ObjectTask.allocateTask(handler);
-        } else {
-            task = S3BucketTask.allocateTask(handler);
-        }
-        handler.setS3Task(task);
-        return handler;
     }
 
 

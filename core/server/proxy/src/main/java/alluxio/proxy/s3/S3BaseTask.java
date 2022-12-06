@@ -30,7 +30,8 @@ public abstract class S3BaseTask {
         DeleteObjects,
         HeadBucket,
         DeleteBucket,
-        Unsupported
+        Unsupported,
+        Unknown
     }
     protected S3Handler mHandler;
     protected OpType mOPType;

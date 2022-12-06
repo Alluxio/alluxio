@@ -21,6 +21,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proxy.ProxyProcess;
 import alluxio.proxy.s3.CompleteMultipartUploadHandler;
+import alluxio.proxy.s3.S3BaseTask;
 import alluxio.proxy.s3.S3RequestServlet;
 import alluxio.proxy.s3.S3RestExceptionMapper;
 import alluxio.util.io.PathUtils;
@@ -125,7 +126,7 @@ public final class ProxyWebServer extends WebServer {
           if (req instanceof org.eclipse.jetty.server.Request) {
             isHandled = ((Request) req).isHandled();
           }
-          logAccess(httpReq, httpRes, stopWatch);
+          logAccess(httpReq, httpRes, stopWatch, S3BaseTask.OpType.Unsupported);
         }
       }
 
@@ -163,16 +164,16 @@ public final class ProxyWebServer extends WebServer {
    * @param stopWatch
    */
   public static void logAccess(HttpServletRequest request, HttpServletResponse response,
-                               Stopwatch stopWatch) {
+                               Stopwatch stopWatch, S3BaseTask.OpType opType) {
     String contentLenStr = "None";
     if (request.getHeader("x-amz-decoded-content-length") != null) {
       contentLenStr = request.getHeader("x-amz-decoded-content-length");
     } else if (request.getHeader("Content-Length") != null) {
       contentLenStr = request.getHeader("Content-Length");
     }
-    String accessLog = String.format("[ACCESSLOG] Request:%s - Status:%d "
+    String accessLog = String.format("[ACCESSLOG] %s Request:%s - Status:%d "
                     + "- ContentLength:%s - Elapsed(ms):%d",
-            request, response.getStatus(),
+            opType, request, response.getStatus(),
             contentLenStr, stopWatch.elapsed(TimeUnit.MILLISECONDS));
     if (LOG.isDebugEnabled()) {
       String requestHeaders = Collections.list(request.getHeaderNames()).stream()
