@@ -13,7 +13,6 @@ package alluxio.collections;
 
 import com.google.common.base.Objects;
 
-import java.io.Serializable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -23,7 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @param <T2> the second element of the Pair
  */
 @NotThreadSafe
-public class Pair<T1, T2> implements Serializable {
+public class Pair<T1, T2> {
   private T1 mFirst;
   private T2 mSecond;
 
