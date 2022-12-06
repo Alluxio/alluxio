@@ -107,7 +107,7 @@ public class TiKVStoreMetaRaw implements KVStoreMetaInterface, Closeable {
 
   @Override
   public boolean putEntryBatchAtomic(Map<ByteString, ByteString> kvPairs) {
-    mRawKVClient.batchPut(kvPairs);
+    mRawKVClient.batchPutAtomic(kvPairs);
     return true;
   }
 
