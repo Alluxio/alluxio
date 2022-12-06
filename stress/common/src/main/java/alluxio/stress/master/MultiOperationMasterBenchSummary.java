@@ -12,9 +12,11 @@
 package alluxio.stress.master;
 
 import alluxio.annotation.SuppressFBWarnings;
+import alluxio.collections.Pair;
 import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.common.SummaryStatistics;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,14 +29,13 @@ import java.util.zip.DataFormatException;
 public final class MultiOperationMasterBenchSummary
     extends GeneralBenchSummary<MultiOperationMasterBenchTaskResult> {
   private long mDurationMs;
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private long mEndTimeMs;
   private MultiOperationMasterBenchParameters mParameters;
 
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private List<SummaryStatistics> mStatistics;
 
   private Map<String, SummaryStatistics> mStatisticsPerMethod;
+  private List<Pair<Operation, Float>> mOperationThroughputs;
 
   /**
    * Creates an instance.
@@ -73,6 +74,11 @@ public final class MultiOperationMasterBenchSummary
     mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
     mThroughput = ((float) mergedTaskResults.getNumSuccessOperations() / mDurationMs) * 1000.0f;
+    mOperationThroughputs = new ArrayList<>();
+    for (MasterBenchTaskResultStatistics statistics : mergedTaskResults.getAllStatistics()) {
+      float throughput = ((float) statistics.mNumSuccess / mDurationMs) * 1000.0f;
+      mOperationThroughputs.add(new Pair<>(statistics.mOperation, throughput));
+    }
     mParameters = mergedTaskResults.getParameters();
     mNodeResults = nodes;
   }
@@ -103,6 +109,62 @@ public final class MultiOperationMasterBenchSummary
    */
   public void setParameters(MultiOperationMasterBenchParameters parameters) {
     mParameters = parameters;
+  }
+
+  /**
+   * @return the end time (in ms)
+   */
+  public long getEndTimeMs() {
+    return mEndTimeMs;
+  }
+
+  /**
+   * @param endTimeMs the end time (in ms)
+   */
+  public void setEndTimeMs(long endTimeMs) {
+    mEndTimeMs = endTimeMs;
+  }
+
+  /**
+   * @return the statistics
+   */
+  public List<SummaryStatistics> getStatistics() {
+    return mStatistics;
+  }
+
+  /**
+   * @param statistics the statistics
+   */
+  public void setStatistics(List<SummaryStatistics> statistics) {
+    mStatistics = statistics;
+  }
+
+  /**
+   * @return statistics per method map
+   */
+  public Map<String, SummaryStatistics> getStatisticsPerMethod() {
+    return mStatisticsPerMethod;
+  }
+
+  /**
+   * @param statisticsPerMethod the statistics per method map
+   */
+  public void setStatisticsPerMethod(Map<String, SummaryStatistics> statisticsPerMethod) {
+    mStatisticsPerMethod = statisticsPerMethod;
+  }
+
+  /**
+   * @return the operation throughputs
+   */
+  public List<Pair<Operation, Float>> getOperationThroughputs() {
+    return mOperationThroughputs;
+  }
+
+  /**
+   * @param operationThroughputs the operation throughputs
+   */
+  public void setOperationThroughputs(List<Pair<Operation, Float>> operationThroughputs) {
+    mOperationThroughputs = operationThroughputs;
   }
 
   @Override
