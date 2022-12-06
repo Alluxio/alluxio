@@ -7648,8 +7648,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.rocks.checkpoint.compression.level";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
         "alluxio.master.metastore.rocks.parallel.backup";
-    public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL =
-        "alluxio.master.metastore.rocks.parallel.backup.compression.level";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =
         "alluxio.master.metastore.rocks.parallel.backup.threads";
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
