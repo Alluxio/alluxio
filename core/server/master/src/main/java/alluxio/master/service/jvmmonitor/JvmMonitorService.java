@@ -64,6 +64,7 @@ public class JvmMonitorService implements SimpleService {
   public synchronized void stop() {
     if (mJvmPauseMonitor != null) {
       mJvmPauseMonitor.stop();
+      mJvmPauseMonitor = null;
     }
   }
 

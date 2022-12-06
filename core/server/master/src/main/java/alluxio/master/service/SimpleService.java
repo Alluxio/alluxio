@@ -17,23 +17,33 @@ package alluxio.master.service;
  */
 public interface SimpleService {
   /**
-   * Starts the service. Leaves the service in {@link alluxio.grpc.NodeState#STANDBY} mode.
+   * Starts the service. Leaves the service in {@link alluxio.grpc.NodeState#STANDBY} state.
    * Leaves the service in the same state as {@link #demote()}.
+   * Can only be called once.
    */
   void start();
 
   /**
-   * Promotes the service to act as in {@link alluxio.grpc.NodeState#PRIMARY}.
+   * Promotes the service to {@link alluxio.grpc.NodeState#PRIMARY} state.
+   * Can only be called on a started service (i.e. {@link #start()} must precede this method).
+   * Can only be called in {@link alluxio.grpc.NodeState#STANDBY} state.
+   * Can be called multiple times.
    */
   void promote();
 
   /**
-   * Demotes the service back to {@link alluxio.grpc.NodeState#STANDBY}.
+   * Demotes the service back to {@link alluxio.grpc.NodeState#STANDBY} state.
+   * Can only be called on a started service (i.e. {@link #start()} must precede this method).
+   * Can only be called in {@link alluxio.grpc.NodeState#PRIMARY} state (i.e. {@link #promote()}
+   * must precede this method).
+   * Can be called multiple times.
    */
   void demote();
 
   /**
    * Stops the service altogether and cleans up any state left.
+   * If {@link #start()} has not been called on this service this method should be a noop.
+   * Can only be called once.
    */
   void stop();
 }
