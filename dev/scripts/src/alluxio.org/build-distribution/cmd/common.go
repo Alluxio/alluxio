@@ -76,32 +76,32 @@ var ufsModules = map[string]module{
 }
 
 var fuseUfsModuleNames = []string{
-	"ufs-hadoop-2.10",
-	"ufs-hadoop-3.2",
-	"ufs-hadoop-ozone-1.2.1",
+	"ufs-hadoop-2.7",
+	"ufs-hadoop-3.3",
 }
 
-var coreLibJars = map[string]struct{}{
+var libJars = map[string]struct{}{
+	"integration-tools-hms":        {},
+	"integration-tools-validation": {},
+
 	"underfs-abfs":          {},
 	"underfs-adl":           {},
+	"underfs-cos":           {},
 	"underfs-cephfs":        {},
 	"underfs-cephfs-hadoop": {},
 	"underfs-gcs":           {},
 	"underfs-local":         {},
-	"underfs-cos":           {},
+	"underfs-obs":           {},
 	"underfs-oss":           {},
 	"underfs-s3a":           {},
+	"underfs-swift":         {},
+	"underfs-wasb":          {},
+	"underfs-web":           {},
 }
 
-var additionalLibJars = map[string]struct{}{
-	"integration-tools-hms":        {},
-	"integration-tools-validation": {},
-
-	"underfs-cos":   {},
-	"underfs-obs":   {},
-	"underfs-swift": {},
-	"underfs-wasb":  {},
-	"underfs-web":   {},
+var fuseLibJars = map[string]struct{}{
+	"underfs-s3a":   {},
+	"underfs-local": {},
 }
 
 func validModules(modules map[string]module) []string {

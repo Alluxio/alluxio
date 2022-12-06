@@ -23,7 +23,7 @@ const (
 
 	// enums for identifying gropus of lib jars
 	libJarsAll  = "all"
-	libJarsCore = "core"
+	libJarsFuse = "fuse"
 )
 
 var (
@@ -73,24 +73,19 @@ func handleUfsModulesAndLibJars() error {
 	switch strings.ToLower(includedLibJarsFlag) {
 	case libJarsAll:
 		var allLibJars []string
-		for jar := range coreLibJars {
-			allLibJars = append(allLibJars, jar)
-		}
-		for jar := range additionalLibJars {
+		for jar := range libJars {
 			allLibJars = append(allLibJars, jar)
 		}
 		includedLibJarsFlag = strings.Join(allLibJars, ",")
-	case libJarsCore:
-		var coreJars []string
-		for jar := range coreLibJars {
-			coreJars = append(coreJars, jar)
+	case libJarsFuse:
+		var fuseJars []string
+		for jar := range fuseLibJars {
+			fuseJars = append(fuseJars, jar)
 		}
-		includedLibJarsFlag = strings.Join(coreJars, ",")
+		includedLibJarsFlag = strings.Join(fuseJars, ",")
 	default:
 		for _, jar := range strings.Split(includedLibJarsFlag, ",") {
-			_, isCore := coreLibJars[jar]
-			_, isAdditional := additionalLibJars[jar]
-			if !isCore && !isAdditional {
+			if _, ok := libJars[jar]; !ok {
 				return fmt.Errorf("lib jar %v not recognized", jar)
 			}
 		}
