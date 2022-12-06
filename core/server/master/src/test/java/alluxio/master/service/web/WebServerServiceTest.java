@@ -34,7 +34,7 @@ import java.net.Socket;
 /**
  * Tests for the different implementations of WebServerSimpleService.
  */
-public class WebServerSimpleServiceTest {
+public class WebServerServiceTest {
   @Rule
   public PortReservationRule mPort = new PortReservationRule();
 
@@ -52,9 +52,9 @@ public class WebServerSimpleServiceTest {
   @Test
   public void primaryOnlyTest() {
     Configuration.set(PropertyKey.STANDBY_MASTER_WEB_ENABLED, false);
-    WebServerSimpleService webService =
-        WebServerSimpleService.Factory.create(mWebAddress, mMasterProcess);
-    Assert.assertTrue(webService instanceof PrimaryOnlyWebServerSimpleService);
+    WebServerService webService =
+        WebServerService.Factory.create(mWebAddress, mMasterProcess);
+    Assert.assertTrue(webService instanceof PrimaryOnlyWebServerService);
     Assert.assertTrue(waitForFree());
 
     Assert.assertFalse(webService.isServing());
@@ -77,9 +77,9 @@ public class WebServerSimpleServiceTest {
   @Test
   public void doubleStartRejectingServer() {
     Configuration.set(PropertyKey.STANDBY_MASTER_WEB_ENABLED, false);
-    WebServerSimpleService webService =
-        WebServerSimpleService.Factory.create(mWebAddress, mMasterProcess);
-    Assert.assertTrue(webService instanceof PrimaryOnlyWebServerSimpleService);
+    WebServerService webService =
+        WebServerService.Factory.create(mWebAddress, mMasterProcess);
+    Assert.assertTrue(webService instanceof PrimaryOnlyWebServerService);
 
     webService.start();
     Assert.assertThrows("rejecting server must not be running",
@@ -89,9 +89,9 @@ public class WebServerSimpleServiceTest {
   @Test
   public void alwaysOnTest() {
     Configuration.set(PropertyKey.STANDBY_MASTER_WEB_ENABLED, true);
-    WebServerSimpleService webService =
-        WebServerSimpleService.Factory.create(mWebAddress, mMasterProcess);
-    Assert.assertTrue(webService instanceof AlwaysOnWebServerSimpleService);
+    WebServerService webService =
+        WebServerService.Factory.create(mWebAddress, mMasterProcess);
+    Assert.assertTrue(webService instanceof AlwaysOnWebServerService);
     Assert.assertTrue(waitForFree());
 
     Assert.assertFalse(webService.isServing());
@@ -114,9 +114,9 @@ public class WebServerSimpleServiceTest {
   @Test
   public void doubleStartWebServer() {
     Configuration.set(PropertyKey.STANDBY_MASTER_WEB_ENABLED, true);
-    WebServerSimpleService webService =
-        WebServerSimpleService.Factory.create(mWebAddress, mMasterProcess);
-    Assert.assertTrue(webService instanceof AlwaysOnWebServerSimpleService);
+    WebServerService webService =
+        WebServerService.Factory.create(mWebAddress, mMasterProcess);
+    Assert.assertTrue(webService instanceof AlwaysOnWebServerService);
 
     webService.start();
     Assert.assertThrows("web server must not already exist",

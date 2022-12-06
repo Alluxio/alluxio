@@ -12,7 +12,7 @@
 package alluxio.master.service.web;
 
 import alluxio.master.MasterProcess;
-import alluxio.master.service.rpc.RpcServerSimpleService;
+import alluxio.master.service.rpc.RpcServerService;
 import alluxio.network.RejectingServer;
 
 import com.google.common.base.Preconditions;
@@ -22,18 +22,18 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
- * Created through {@link WebServerSimpleService.Factory}.
- * This service differs from {@link AlwaysOnWebServerSimpleService} because it deploys a web
+ * Created through {@link WebServerService.Factory}.
+ * This service differs from {@link AlwaysOnWebServerService} because it deploys a web
  * server only after being promoted. It stops said web server after being demoted or stopped.
  * When a web server is not deployed, a rejecting server is deployed instead (after the service
  * has been started).
  */
-class PrimaryOnlyWebServerSimpleService extends WebServerSimpleService {
+class PrimaryOnlyWebServerService extends WebServerService {
   private final InetSocketAddress mBindAddress;
   @Nullable @GuardedBy("this")
   private RejectingServer mRejectingServer = null;
 
-  PrimaryOnlyWebServerSimpleService(InetSocketAddress bindAddress, MasterProcess masterProcess) {
+  PrimaryOnlyWebServerService(InetSocketAddress bindAddress, MasterProcess masterProcess) {
     super(masterProcess);
     mBindAddress = bindAddress;
   }
@@ -74,10 +74,10 @@ class PrimaryOnlyWebServerSimpleService extends WebServerSimpleService {
   }
 
   private void waitForFree() {
-    RpcServerSimpleService.waitFor(false, mBindAddress);
+    RpcServerService.waitFor(false, mBindAddress);
   }
 
   private void waitForBound() {
-    RpcServerSimpleService.waitFor(true, mBindAddress);
+    RpcServerService.waitFor(true, mBindAddress);
   }
 }

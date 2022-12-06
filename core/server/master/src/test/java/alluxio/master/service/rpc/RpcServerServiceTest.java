@@ -35,7 +35,7 @@ import java.util.Optional;
 /**
  * Test for RpcSimpleService.
  */
-public class RpcServerSimpleServiceTest {
+public class RpcServerServiceTest {
   @Rule
   public PortReservationRule mPort = new PortReservationRule();
 
@@ -56,8 +56,8 @@ public class RpcServerSimpleServiceTest {
 
   @Test
   public void primaryOnlyTest() {
-    RpcServerSimpleService service =
-        RpcServerSimpleService.Factory.create(mRpcAddress, mMasterProcess, mRegistry);
+    RpcServerService service =
+        RpcServerService.Factory.create(mRpcAddress, mMasterProcess, mRegistry);
     Assert.assertTrue(waitForFree());
 
     Assert.assertFalse(service.isServing());
@@ -79,8 +79,8 @@ public class RpcServerSimpleServiceTest {
 
   @Test
   public void doubleStartRejectingServer() {
-    RpcServerSimpleService service =
-        RpcServerSimpleService.Factory.create(mRpcAddress, mMasterProcess, mRegistry);
+    RpcServerService service =
+        RpcServerService.Factory.create(mRpcAddress, mMasterProcess, mRegistry);
 
     service.start();
     Assert.assertThrows("rejecting server must not be running",
@@ -89,8 +89,8 @@ public class RpcServerSimpleServiceTest {
 
   @Test
   public void doubleStartRpcServer() {
-    RpcServerSimpleService service =
-        RpcServerSimpleService.Factory.create(mRpcAddress, mMasterProcess, mRegistry);
+    RpcServerService service =
+        RpcServerService.Factory.create(mRpcAddress, mMasterProcess, mRegistry);
 
     service.start();
     service.promote();

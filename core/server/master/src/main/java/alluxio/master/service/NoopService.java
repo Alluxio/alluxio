@@ -9,29 +9,21 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.service.metrics;
+package alluxio.master.service;
 
 /**
- * Created by {@link MetricsSimpleService.Factory}.
- * This service differs from {@link AlwaysOnMetricsSimpleService} because it reports metrics after
- * being promoted and stops reporting metrics after being demoted or stopped.
+ * Simple service that does nothing.
  */
-class PrimaryOnlyMetricsSimpleService extends MetricsSimpleService {
+public class NoopService implements SimpleService {
   @Override
   public void start() {}
 
   @Override
-  public void promote() {
-    startMetricsSystem();
-  }
+  public void promote() {}
 
   @Override
-  public void demote() {
-    stopMetricsSystem();
-  }
+  public void demote() {}
 
   @Override
-  public void stop() {
-    stopMetricsSystem();
-  }
+  public void stop() {}
 }

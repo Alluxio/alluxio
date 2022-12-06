@@ -29,15 +29,15 @@ import javax.annotation.concurrent.GuardedBy;
 /**
  * Defines common interface for the two difference web server behavior.
  */
-public abstract class WebServerSimpleService implements SimpleService {
-  private static final Logger LOG = LoggerFactory.getLogger(WebServerSimpleService.class);
+public abstract class WebServerService implements SimpleService {
+  private static final Logger LOG = LoggerFactory.getLogger(WebServerService.class);
 
   private final MasterProcess mMasterProcess;
 
   @Nullable @GuardedBy("this")
   private WebServer mWebServer = null;
 
-  protected WebServerSimpleService(MasterProcess masterProcess) {
+  protected WebServerService(MasterProcess masterProcess) {
     mMasterProcess = masterProcess;
   }
 
@@ -74,16 +74,16 @@ public abstract class WebServerSimpleService implements SimpleService {
     /**
      * @param bindAddress the address the web server will bind to
      * @param masterProcess the master process referenced inside the web server
-     * @return a {@link WebServerSimpleService} that behaves according to
+     * @return a {@link WebServerService} that behaves according to
      * {@link alluxio.conf.PropertyKey#STANDBY_MASTER_WEB_ENABLED}
      */
-    public static WebServerSimpleService create(InetSocketAddress bindAddress,
+    public static WebServerService create(InetSocketAddress bindAddress,
         MasterProcess masterProcess) {
       if (masterProcess instanceof AlluxioMasterProcess
           && Configuration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED)) {
-        return new AlwaysOnWebServerSimpleService(masterProcess);
+        return new AlwaysOnWebServerService(masterProcess);
       }
-      return new PrimaryOnlyWebServerSimpleService(bindAddress, masterProcess);
+      return new PrimaryOnlyWebServerService(bindAddress, masterProcess);
     }
   }
 }

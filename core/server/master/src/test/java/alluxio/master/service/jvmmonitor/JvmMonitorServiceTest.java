@@ -13,7 +13,7 @@ package alluxio.master.service.jvmmonitor;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.service.NoopSimpleService;
+import alluxio.master.service.NoopService;
 import alluxio.master.service.SimpleService;
 import alluxio.metrics.MetricsSystem;
 
@@ -25,7 +25,7 @@ import org.junit.Test;
 /**
  * Test for Jvm pause monitor simple service.
  */
-public class JvmMonitorSimpleServiceTest {
+public class JvmMonitorServiceTest {
   @Before
   public void before() {
     MetricsSystem.startSinks(Configuration.getString(PropertyKey.METRICS_CONF_FILE));
@@ -40,15 +40,15 @@ public class JvmMonitorSimpleServiceTest {
   @Test
   public void disabledServiceTest() {
     Configuration.set(PropertyKey.MASTER_JVM_MONITOR_ENABLED, false);
-    SimpleService service = JvmMonitorSimpleService.Factory.create();
-    Assert.assertTrue(service instanceof NoopSimpleService);
+    SimpleService service = JvmMonitorService.Factory.create();
+    Assert.assertTrue(service instanceof NoopService);
   }
 
   @Test
   public void enabledServiceTest() {
     Configuration.set(PropertyKey.MASTER_JVM_MONITOR_ENABLED, true);
-    SimpleService service = JvmMonitorSimpleService.Factory.create();
-    Assert.assertTrue(service instanceof JvmMonitorSimpleService);
+    SimpleService service = JvmMonitorService.Factory.create();
+    Assert.assertTrue(service instanceof JvmMonitorService);
 
     checkMetrics(0);
     service.start();
@@ -66,8 +66,8 @@ public class JvmMonitorSimpleServiceTest {
   @Test
   public void doubleStart() {
     Configuration.set(PropertyKey.MASTER_JVM_MONITOR_ENABLED, true);
-    SimpleService service = JvmMonitorSimpleService.Factory.create();
-    Assert.assertTrue(service instanceof JvmMonitorSimpleService);
+    SimpleService service = JvmMonitorService.Factory.create();
+    Assert.assertTrue(service instanceof JvmMonitorService);
 
     service.start();
     Assert.assertThrows("JVM pause monitor must not already exist",

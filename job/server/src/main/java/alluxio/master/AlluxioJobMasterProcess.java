@@ -26,8 +26,8 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
-import alluxio.master.service.rpc.RpcServerSimpleService;
-import alluxio.master.service.web.WebServerSimpleService;
+import alluxio.master.service.rpc.RpcServerService;
+import alluxio.master.service.web.WebServerService;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils.ProcessType;
@@ -127,11 +127,9 @@ public class AlluxioJobMasterProcess extends AlluxioSimpleMasterProcess {
         primarySelector = new UfsJournalSingleMasterPrimarySelector();
       }
       AlluxioJobMasterProcess ajmp = new AlluxioJobMasterProcess(journalSystem, primarySelector);
-      ajmp.registerSimpleService(
-          RpcServerSimpleService.Factory.create(ajmp.getRpcBindAddress(), ajmp, ajmp.getRegistry())
-      );
-      ajmp.registerSimpleService(
-          WebServerSimpleService.Factory.create(ajmp.getWebBindAddress(), ajmp));
+      ajmp.registerService(
+          RpcServerService.Factory.create(ajmp.getRpcBindAddress(), ajmp, ajmp.getRegistry()));
+      ajmp.registerService(WebServerService.Factory.create(ajmp.getWebBindAddress(), ajmp));
       return ajmp;
     }
 

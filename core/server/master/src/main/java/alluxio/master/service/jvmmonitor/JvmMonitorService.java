@@ -13,7 +13,7 @@ package alluxio.master.service.jvmmonitor;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.service.NoopSimpleService;
+import alluxio.master.service.NoopService;
 import alluxio.master.service.SimpleService;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -25,15 +25,15 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
- * Created by {@link JvmMonitorSimpleService.Factory}.
+ * Created by {@link JvmMonitorService.Factory}.
  * This service creates and starts a {@link JvmPauseMonitor} upon being started and stops said
  * pause monitor upon being stopped.
  */
-public class JvmMonitorSimpleService implements SimpleService {
+public class JvmMonitorService implements SimpleService {
   @Nullable @GuardedBy("this")
   private JvmPauseMonitor mJvmPauseMonitor = null;
 
-  private JvmMonitorSimpleService() {}
+  private JvmMonitorService() {}
 
   @Override
   public synchronized void start() {
@@ -68,7 +68,7 @@ public class JvmMonitorSimpleService implements SimpleService {
   }
 
   /**
-   * Factory that returns the appropriate {@link JvmMonitorSimpleService} based on configuration.
+   * Factory that returns the appropriate {@link JvmMonitorService} based on configuration.
    */
   public static class Factory {
     /**
@@ -76,9 +76,9 @@ public class JvmMonitorSimpleService implements SimpleService {
      */
     public static SimpleService create() {
       if (!Configuration.getBoolean(PropertyKey.MASTER_JVM_MONITOR_ENABLED)) {
-        return new NoopSimpleService();
+        return new NoopService();
       }
-      return new JvmMonitorSimpleService();
+      return new JvmMonitorService();
     }
   }
 }

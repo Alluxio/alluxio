@@ -40,13 +40,13 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
- * Created by {@link RpcServerSimpleService.Factory}.
+ * Created by {@link RpcServerService.Factory}.
  * Manages the behavior of the master's rpc service. It deploys a rpc server only after being
  * promoted. It stops said rpc web server after being demoted or stopped. When a rpc server is not
  * deployed, a rejecting server is deployed instead (after the service has been started).
  */
-public class RpcServerSimpleService implements SimpleService {
-  private static final Logger LOG = LoggerFactory.getLogger(RpcServerSimpleService.class);
+public class RpcServerService implements SimpleService {
+  private static final Logger LOG = LoggerFactory.getLogger(RpcServerService.class);
 
   protected final InetSocketAddress mBindAddress;
   protected final MasterProcess mMasterProcess;
@@ -63,7 +63,7 @@ public class RpcServerSimpleService implements SimpleService {
   @Nullable @GuardedBy("this")
   protected RejectingServer mRejectingGrpcServer = null;
 
-  protected RpcServerSimpleService(InetSocketAddress bindAddress, MasterProcess masterProcess,
+  protected RpcServerService(InetSocketAddress bindAddress, MasterProcess masterProcess,
       MasterRegistry masterRegistry) {
     mBindAddress = bindAddress;
     mMasterRegistry = masterRegistry;
@@ -186,7 +186,7 @@ public class RpcServerSimpleService implements SimpleService {
   }
 
   /**
-   * Factory to create an {@link RpcServerSimpleService}.
+   * Factory to create an {@link RpcServerService}.
    */
   public static class Factory {
     /**
@@ -197,11 +197,11 @@ public class RpcServerSimpleService implements SimpleService {
      * @param bindAddress the address where the rpc server will bind
      * @return a simple service that manages the behavior of the rpc server
      */
-    public static RpcServerSimpleService create(
+    public static RpcServerService create(
         InetSocketAddress bindAddress,
         MasterProcess masterProcess,
         MasterRegistry masterRegistry) {
-      return new RpcServerSimpleService(bindAddress, masterProcess, masterRegistry);
+      return new RpcServerService(bindAddress, masterProcess, masterRegistry);
     }
   }
 }

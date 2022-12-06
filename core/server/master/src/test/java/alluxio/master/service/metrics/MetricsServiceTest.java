@@ -21,12 +21,12 @@ import org.junit.Test;
 /**
  * Tests for Metrics simple service.
  */
-public class MetricsSimpleServiceTest {
+public class MetricsServiceTest {
   @Test
   public void alwaysOnTest() {
     Configuration.set(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, true);
-    MetricsSimpleService service = MetricsSimpleService.Factory.create();
-    Assert.assertTrue(service instanceof AlwaysOnMetricsSimpleService);
+    MetricsService service = MetricsService.Factory.create();
+    Assert.assertTrue(service instanceof AlwaysOnMetricsService);
 
     Assert.assertFalse(MetricsSystem.isStarted());
     service.start();
@@ -44,8 +44,8 @@ public class MetricsSimpleServiceTest {
   @Test
   public void whenLeadingTest() {
     Configuration.set(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, false);
-    MetricsSimpleService service = MetricsSimpleService.Factory.create();
-    Assert.assertTrue(service instanceof PrimaryOnlyMetricsSimpleService);
+    MetricsService service = MetricsService.Factory.create();
+    Assert.assertTrue(service instanceof PrimaryOnlyMetricsService);
 
     Assert.assertFalse(MetricsSystem.isStarted());
     service.start();

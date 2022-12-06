@@ -19,8 +19,8 @@ import alluxio.conf.Configuration;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.service.SimpleService;
-import alluxio.master.service.rpc.RpcServerSimpleService;
-import alluxio.master.service.web.WebServerSimpleService;
+import alluxio.master.service.rpc.RpcServerService;
+import alluxio.master.service.web.WebServerService;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -70,7 +70,7 @@ public abstract class MasterProcess implements Process {
   /** The start time for when the master started. */
   final long mStartTimeMs;
   // holds the simple services registered with the master, should only be accessed through
-  // #registerSimpleService
+  // #registerService
   List<SimpleService> mServices = new ArrayList<>();
 
   /**
@@ -116,7 +116,7 @@ public abstract class MasterProcess implements Process {
    * master process.
    * @param service a service to register for the functioning of the master process
    */
-  public void registerSimpleService(SimpleService service) {
+  public void registerService(SimpleService service) {
     mServices.add(service);
   }
 
@@ -211,16 +211,16 @@ public abstract class MasterProcess implements Process {
    * @return true if the system is the leader (serving the rpc server), false otherwise
    */
   public boolean isGrpcServing() {
-    return mServices.stream().anyMatch(service -> service instanceof RpcServerSimpleService
-        && ((RpcServerSimpleService) service).isServing());
+    return mServices.stream().anyMatch(service -> service instanceof RpcServerService
+        && ((RpcServerService) service).isServing());
   }
 
   /**
    * @return true if the system is serving the web server, false otherwise
    */
   public boolean isWebServing() {
-    return mServices.stream().anyMatch(service -> service instanceof WebServerSimpleService
-        && ((WebServerSimpleService) service).isServing());
+    return mServices.stream().anyMatch(service -> service instanceof WebServerService
+        && ((WebServerService) service).isServing());
   }
 
   /**

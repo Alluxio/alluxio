@@ -32,10 +32,10 @@ import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
 import alluxio.master.meta.DefaultMetaMaster;
 import alluxio.master.meta.MetaMaster;
 import alluxio.master.service.SimpleService;
-import alluxio.master.service.jvmmonitor.JvmMonitorSimpleService;
-import alluxio.master.service.metrics.MetricsSimpleService;
-import alluxio.master.service.rpc.RpcServerSimpleService;
-import alluxio.master.service.web.WebServerSimpleService;
+import alluxio.master.service.jvmmonitor.JvmMonitorService;
+import alluxio.master.service.metrics.MetricsService;
+import alluxio.master.service.rpc.RpcServerService;
+import alluxio.master.service.web.WebServerService;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
@@ -446,12 +446,11 @@ public class AlluxioMasterProcess extends MasterProcess {
         primarySelector = new UfsJournalSingleMasterPrimarySelector();
       }
       AlluxioMasterProcess amp = new AlluxioMasterProcess(journalSystem, primarySelector);
-      amp.registerSimpleService(
-          RpcServerSimpleService.Factory.create(amp.getRpcBindAddress(), amp, amp.getRegistry()));
-      amp.registerSimpleService(
-          WebServerSimpleService.Factory.create(amp.getWebBindAddress(), amp));
-      amp.registerSimpleService(MetricsSimpleService.Factory.create());
-      amp.registerSimpleService(JvmMonitorSimpleService.Factory.create());
+      amp.registerService(
+          RpcServerService.Factory.create(amp.getRpcBindAddress(), amp, amp.getRegistry()));
+      amp.registerService(WebServerService.Factory.create(amp.getWebBindAddress(), amp));
+      amp.registerService(MetricsService.Factory.create());
+      amp.registerService(JvmMonitorService.Factory.create());
       return amp;
     }
 

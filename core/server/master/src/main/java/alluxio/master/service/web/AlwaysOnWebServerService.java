@@ -14,12 +14,12 @@ package alluxio.master.service.web;
 import alluxio.master.MasterProcess;
 
 /**
- * Created through {@link WebServerSimpleService.Factory}.
- * This service differs from {@link PrimaryOnlyWebServerSimpleService} because it deploys a web
+ * Created through {@link WebServerService.Factory}.
+ * This service differs from {@link PrimaryOnlyWebServerService} because it deploys a web
  * server after being started. It stops said web server after being stopped.
  */
-class AlwaysOnWebServerSimpleService extends WebServerSimpleService {
-  AlwaysOnWebServerSimpleService(MasterProcess masterProcess) {
+class AlwaysOnWebServerService extends WebServerService {
+  AlwaysOnWebServerService(MasterProcess masterProcess) {
     super(masterProcess);
   }
 

@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Simple service that manages the behavior of the metrics system.
  */
-public abstract class MetricsSimpleService implements SimpleService {
-  private static final Logger LOG = LoggerFactory.getLogger(MetricsSimpleService.class);
+public abstract class MetricsService implements SimpleService {
+  private static final Logger LOG = LoggerFactory.getLogger(MetricsService.class);
 
   protected void startMetricsSystem() {
     LOG.info("Start metric sinks.");
@@ -42,11 +42,11 @@ public abstract class MetricsSimpleService implements SimpleService {
     /**
      * @return a simple service that manages the behavior of the metrics system
      */
-    public static MetricsSimpleService create() {
+    public static MetricsService create() {
       if (Configuration.getBoolean(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED)) {
-        return new AlwaysOnMetricsSimpleService();
+        return new AlwaysOnMetricsService();
       }
-      return new PrimaryOnlyMetricsSimpleService();
+      return new PrimaryOnlyMetricsService();
     }
   }
 }

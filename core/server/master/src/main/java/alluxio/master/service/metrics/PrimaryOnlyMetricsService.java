@@ -12,21 +12,23 @@
 package alluxio.master.service.metrics;
 
 /**
- * Created by {@link MetricsSimpleService.Factory}.
- * This service differs from {@link PrimaryOnlyMetricsSimpleService} because it reports metrics
- * after being started and stops reporting metrics after being stopped.
+ * Created by {@link MetricsService.Factory}.
+ * This service differs from {@link AlwaysOnMetricsService} because it reports metrics after
+ * being promoted and stops reporting metrics after being demoted or stopped.
  */
-class AlwaysOnMetricsSimpleService extends MetricsSimpleService {
+class PrimaryOnlyMetricsService extends MetricsService {
   @Override
-  public void start() {
+  public void start() {}
+
+  @Override
+  public void promote() {
     startMetricsSystem();
   }
 
   @Override
-  public void promote() {}
-
-  @Override
-  public void demote() {}
+  public void demote() {
+    stopMetricsSystem();
+  }
 
   @Override
   public void stop() {
