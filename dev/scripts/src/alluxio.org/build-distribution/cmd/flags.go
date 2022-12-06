@@ -78,14 +78,14 @@ func handleUfsModulesAndLibJars() error {
 		}
 		includedLibJarsFlag = strings.Join(allLibJars, ",")
 	case libJarsFuse:
-		var coreJars []string
+		var fuseJars []string
 		for jar := range fuseLibJars {
-			coreJars = append(coreJars, jar)
+			fuseJars = append(fuseJars, jar)
 		}
-		includedLibJarsFlag = strings.Join(coreJars, ",")
+		includedLibJarsFlag = strings.Join(fuseJars, ",")
 	default:
 		for _, jar := range strings.Split(includedLibJarsFlag, ",") {
-			if !libJars[jar] {
+			if _, ok := libJars[jar]; !ok {
 				return fmt.Errorf("lib jar %v not recognized", jar)
 			}
 		}
