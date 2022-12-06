@@ -72,7 +72,7 @@ public class ListBucketResult {
   // Otherwise it is set to be an empty string.
   // Note that the Marker does not include the bucket path.
   @JsonInclude(JsonInclude.Include.NON_NULL)
-  private String mMarker;
+  private String mMarker = "";
 
   // If only partial results are returned, this value is set as the nextMarker.
   // This element is returned only if you have delimiter request parameter specified.
@@ -84,7 +84,7 @@ public class ListBucketResult {
   // Otherwise it is set to be an empty string.
   // @JsonInclude: Adding the ALWAYS annotation to overwrite Class-level NON_EMPTY
   @JsonInclude(JsonInclude.Include.ALWAYS)
-  private String mPrefix;
+  private String mPrefix = "";
 
   // List of files.
   private List<Content> mContents;

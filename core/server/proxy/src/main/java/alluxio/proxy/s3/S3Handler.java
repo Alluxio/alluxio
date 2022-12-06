@@ -129,7 +129,7 @@ public class S3Handler {
 
         if (bucketMatcher.matches()) {
             pathStr = path.substring(S3RequestServlet.S3_SERVICE_PATH_PREFIX.length() + 1);
-            bucket = pathStr.substring(0, pathStr.indexOf(AlluxioURI.SEPARATOR));
+            bucket = pathStr;
         } else if (objectMatcher.matches()) {
             pathStr = path.substring(S3RequestServlet.S3_SERVICE_PATH_PREFIX.length() + 1);
             bucket = pathStr.substring(0, pathStr.indexOf(AlluxioURI.SEPARATOR));
