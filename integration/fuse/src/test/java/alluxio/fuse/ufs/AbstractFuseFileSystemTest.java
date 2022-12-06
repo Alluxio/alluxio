@@ -19,6 +19,8 @@ import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.jnifuse.struct.FileStat;
+import alluxio.jnifuse.struct.FuseFileInfo;
+import alluxio.resource.CloseableResource;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
@@ -29,16 +31,16 @@ import java.util.Optional;
 
 public abstract class AbstractFuseFileSystemTest extends AbstractTest {
   protected AlluxioJniFuseFileSystem mFuseFs;
-  protected AlluxioFuseUtils.CloseableFuseFileInfo mFileInfo;
+  protected CloseableResource<FuseFileInfo> mFileInfo;
   protected FileStat mFileStat;
 
   @Override
   public void beforeActions() {
     mFuseFs = new AlluxioJniFuseFileSystem(mContext, mFileSystem,
-        FuseOptions.create(Configuration.global(), FileSystemOptions.create(
-            mContext.getClusterConf(), Optional.of(mUfsOptions)), false));
+        FuseOptions.create(mLibfuseVersion, FileSystemOptions.create(
+            mContext.getClusterConf(), Optional.of(mUfsOptions)), false, Configuration.global()));
     mFileStat = FileStat.of(ByteBuffer.allocateDirect(256));
-    mFileInfo = new AlluxioFuseUtils.CloseableFuseFileInfo();
+    mFileInfo = AlluxioFuseUtils.createTestFuseFileInfo(mFuseFs);
   }
 
   @Override

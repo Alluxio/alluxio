@@ -6491,7 +6491,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey FUSE_JNIFUSE_LIBFUSE_VERSION =
       intBuilder(Name.FUSE_JNIFUSE_LIBFUSE_VERSION)
-          .setDefaultValue(2)
           .setDescription("The version of libfuse used by libjnifuse. "
               + "Libfuse2 and Libfuse3 are supported.")
           .setScope(Scope.ALL)

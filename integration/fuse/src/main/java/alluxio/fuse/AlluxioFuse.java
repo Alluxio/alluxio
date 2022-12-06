@@ -30,6 +30,7 @@ import alluxio.fuse.options.FuseOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.jnifuse.LibFuse;
+import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.user.UserState;
@@ -156,7 +157,10 @@ public final class AlluxioFuse {
     LOG.info("Alluxio version: {}-{}", RuntimeConstants.VERSION, ProjectConstants.REVISION);
     setConfigurationFromInput(cli, Configuration.modifiableGlobal());
     AlluxioConfiguration conf = Configuration.global();
-    FuseOptions fuseOptions = getFuseOptions(cli, conf);
+    LibfuseVersion loadedLibfuseVersion = LibFuse.loadLibrary(
+        AlluxioFuseUtils.getLibfuseLoadStrategy(conf));
+
+    FuseOptions fuseOptions = getFuseOptions(loadedLibfuseVersion, cli, conf);
 
     FileSystemContext fsContext = FileSystemContext.create(conf);
     if (!fuseOptions.getFileSystemOptions().getUfsFileSystemOptions().isPresent()) {
@@ -206,8 +210,6 @@ public final class AlluxioFuse {
        FuseOptions fuseOptions, boolean blocking) {
     AlluxioConfiguration conf = fsContext.getClusterConf();
     validateFuseConfAndOptions(conf, fuseOptions);
-
-    LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(conf));
 
     String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
     Path mountPath = Paths.get(mountPoint);
@@ -325,7 +327,8 @@ public final class AlluxioFuse {
     }
   }
 
-  private static FuseOptions getFuseOptions(CommandLine cli, AlluxioConfiguration conf) {
+  private static FuseOptions getFuseOptions(LibfuseVersion libfuseVersion,
+      CommandLine cli, AlluxioConfiguration conf) {
     boolean updateCheckEnabled = false;
     if (cli.hasOption(UPDATE_CHECK_OPTION_NAME)) {
       updateCheckEnabled = Boolean.parseBoolean(cli.getOptionValue(UPDATE_CHECK_OPTION_NAME));
@@ -333,9 +336,9 @@ public final class AlluxioFuse {
       updateCheckEnabled = true;
     }
     return cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)
-        ? FuseOptions.create(conf, FileSystemOptions.create(conf,
+        ? FuseOptions.create(libfuseVersion, FileSystemOptions.create(conf,
         Optional.of(new UfsFileSystemOptions(cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME)))),
-        updateCheckEnabled) : FuseOptions.create(conf, updateCheckEnabled);
+        updateCheckEnabled, conf) : FuseOptions.create(libfuseVersion, updateCheckEnabled, conf);
   }
 
   private static void validateFuseConfAndOptions(AlluxioConfiguration conf, FuseOptions options) {

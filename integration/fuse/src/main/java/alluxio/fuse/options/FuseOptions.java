@@ -15,7 +15,6 @@ import alluxio.client.file.options.FileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
-import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.utils.LibfuseVersion;
 
 import com.google.common.base.Preconditions;
@@ -32,47 +31,51 @@ public class FuseOptions {
   private static final Logger LOG = LoggerFactory.getLogger(FuseOptions.class);
   private final FileSystemOptions mFileSystemOptions;
   private final Set<String> mFuseMountOptions;
+  private final LibfuseVersion mLibfuseVersion;
   private final boolean mUpdateCheckEnabled;
 
   /**
    * Creates the FUSE options.
    *
+   * @param libfuseVersion the loaded libfuse version
    * @param conf alluxio configuration
    * @return the file system options
    */
-  public static FuseOptions create(AlluxioConfiguration conf) {
-    return create(conf, FileSystemOptions.create(conf), false);
+  public static FuseOptions create(LibfuseVersion libfuseVersion, AlluxioConfiguration conf) {
+    return create(libfuseVersion, FileSystemOptions.create(conf), false, conf);
   }
 
   /**
    * Creates the FUSE options.
    *
-   * @param conf alluxio configuration
+   * @param libfuseVersion the loaded libfuse version
    * @param updateCheckEnabled whether to enable update check
+   * @param conf alluxio configuration
    * @return the file system options
    */
-  public static FuseOptions create(AlluxioConfiguration conf, boolean updateCheckEnabled) {
-    return create(conf, FileSystemOptions.create(conf), updateCheckEnabled);
+  public static FuseOptions create(LibfuseVersion libfuseVersion,
+      boolean updateCheckEnabled, AlluxioConfiguration conf) {
+    return create(libfuseVersion, FileSystemOptions.create(conf), updateCheckEnabled, conf);
   }
 
   /**
    * Creates the FUSE options.
    *
-   * @param conf alluxio configuration
+   * @param libfuseVersion the loaded libfuse version
    * @param fileSystemOptions the file system options
    * @param updateCheckEnabled whether to enable update check
+   * @param conf alluxio configuration
    * @return the file system options
    */
-  public static FuseOptions create(AlluxioConfiguration conf,
-      FileSystemOptions fileSystemOptions, boolean updateCheckEnabled) {
+  public static FuseOptions create(LibfuseVersion libfuseVersion,
+      FileSystemOptions fileSystemOptions, boolean updateCheckEnabled, AlluxioConfiguration conf) {
     Set<String> mountOptions = conf.getList(PropertyKey.FUSE_MOUNT_OPTIONS)
         .stream().filter(a -> !a.isEmpty()).collect(Collectors.toSet());
-    LibfuseVersion version = AlluxioFuseUtils.getLibfuseVersion(conf);
     if (!conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)
-        && version == LibfuseVersion.VERSION_3) {
+        && libfuseVersion == LibfuseVersion.VERSION_3) {
       throw new InvalidArgumentRuntimeException("Cannot use JNR-FUSE with libfuse 3");
     }
-    if (version == LibfuseVersion.VERSION_2) {
+    if (libfuseVersion == LibfuseVersion.VERSION_2) {
       // Without option big_write, the kernel limits a single writing request to 4k.
       // With option big_write, maximum of a single writing request is 128k.
       // See https://github.com/libfuse/libfuse/blob/fuse_2_9_3/ChangeLog#L655-L659,
@@ -100,7 +103,7 @@ public class FuseOptions {
         LOG.info("Added fuse mount option {} for FUSE 3", idleThreadsOption);
       }
     }
-    return new FuseOptions(fileSystemOptions, mountOptions, updateCheckEnabled);
+    return new FuseOptions(fileSystemOptions, mountOptions, libfuseVersion, updateCheckEnabled);
   }
 
   /**
@@ -108,12 +111,14 @@ public class FuseOptions {
    *
    * @param fileSystemOptions the file system options
    * @param fuseMountOptions the FUSE mount options
+   * @param libfuseVersion the loaded libfuse version
    * @param updateCheckEnabled whether to enable update check
    */
   private FuseOptions(FileSystemOptions fileSystemOptions,
-      Set<String> fuseMountOptions, boolean updateCheckEnabled) {
+      Set<String> fuseMountOptions, LibfuseVersion libfuseVersion, boolean updateCheckEnabled) {
     mFileSystemOptions = Preconditions.checkNotNull(fileSystemOptions);
     mFuseMountOptions = Preconditions.checkNotNull(fuseMountOptions);
+    mLibfuseVersion = Preconditions.checkNotNull(libfuseVersion);
     mUpdateCheckEnabled = updateCheckEnabled;
   }
 
@@ -129,6 +134,13 @@ public class FuseOptions {
    */
   public Set<String> getFuseMountOptions() {
     return mFuseMountOptions;
+  }
+
+  /**
+   * @return the loaded actual libfuse version
+   */
+  public LibfuseVersion getLibfuseVersion() {
+    return mLibfuseVersion;
   }
 
   /**

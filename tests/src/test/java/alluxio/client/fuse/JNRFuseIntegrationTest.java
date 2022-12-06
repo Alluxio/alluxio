@@ -15,8 +15,11 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.AlluxioJnrFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
+import alluxio.jnifuse.LibFuse;
+import alluxio.jnifuse.utils.LibfuseVersion;
 
 import org.junit.Assume;
 
@@ -40,8 +43,10 @@ public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
     Configuration.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, alluxioRoot);
     Configuration.set(PropertyKey.FUSE_MOUNT_POINT, mountPoint);
     Configuration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
+    LibfuseVersion loadedLibfuseVersion = LibFuse.loadLibrary(
+        AlluxioFuseUtils.getLibfuseLoadStrategy(Configuration.global()));
     mFuseFileSystem = new AlluxioJnrFuseFileSystem(fileSystem, Configuration.global(),
-        FuseOptions.create(Configuration.global()));
+        FuseOptions.create(loadedLibfuseVersion, Configuration.global()));
     mFuseFileSystem.mount(Paths.get(mountPoint), false, false, new String[] {"-odirect_io"});
   }
 

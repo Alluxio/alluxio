@@ -42,12 +42,13 @@ import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.ErrorCodes;
+import alluxio.jnifuse.LibFuse.LibfuseLoadStrategy;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.utils.Environment;
-import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.resource.CloseableResource;
 import alluxio.retry.RetryUtils;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
@@ -56,7 +57,6 @@ import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -65,7 +65,6 @@ import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -177,22 +176,26 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Gets the libjnifuse version preference set by user.
+   * Gets the libjnifuse version load strategy set by user.
    *
    * @param conf the configuration object
-   * @return the version preference
+   * @return the libjnifuse load strategy
    */
-  public static LibfuseVersion getLibfuseVersion(AlluxioConfiguration conf) {
+  public static LibfuseLoadStrategy getLibfuseLoadStrategy(AlluxioConfiguration conf) {
     if (Environment.isMac()) {
       LOG.info("osxfuse doesn't support libfuse3 api. Using libfuse version 2.");
-      return LibfuseVersion.VERSION_2;
+      return LibfuseLoadStrategy.LOAD_FUSE2_ONLY;
+    }
+
+    if (!conf.isSet(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION)) {
+      return LibfuseLoadStrategy.FUSE3_THEN_FUSE2;
     }
 
     final int val = conf.getInt(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION);
     if (val == 2) {
-      return LibfuseVersion.VERSION_2;
+      return LibfuseLoadStrategy.LOAD_FUSE2_ONLY;
     } else if (val == 3) {
-      return LibfuseVersion.VERSION_3;
+      return LibfuseLoadStrategy.LOAD_FUSE3_ONLY;
     }
     throw new InvalidArgumentRuntimeException(String.format("Libfuse version %d is invalid", val));
   }
@@ -720,35 +723,20 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Creates a closeable fuse file info.
+   * Creates a new {@link FuseFileInfo} for testing.
+   *
+   * @param fuseFileSystem the fuse file system
+   * @return a closeable fuse file info
    */
-  @VisibleForTesting
-  public static class CloseableFuseFileInfo implements Closeable {
-    private final FuseFileInfo mInfo;
-    private final ByteBuffer mBuffer;
-
-    /**
-     * Constructor.
-     */
-    public CloseableFuseFileInfo() {
-      mBuffer = ByteBuffer.allocateDirect(36);
-      mBuffer.clear();
-      mInfo =  FuseFileInfo.of(mBuffer);
-    }
-
-    /**
-     * @return the fuse file info
-     */
-    public FuseFileInfo get() {
-      return mInfo;
-    }
-
-    /**
-     * Closes the underlying resources.
-     */
-    @Override
-    public void close() throws IOException {
-      BufferUtils.cleanDirectBuffer(mBuffer);
-    }
+  public static CloseableResource<FuseFileInfo> createTestFuseFileInfo(
+      AlluxioJniFuseFileSystem fuseFileSystem) {
+    ByteBuffer buffer = ByteBuffer.allocateDirect(36);
+    return new CloseableResource<FuseFileInfo>(fuseFileSystem
+        .createFuseFileInfo(buffer)) {
+      @Override
+      public void closeResource() {
+        BufferUtils.cleanDirectBuffer(buffer);
+      }
+    };
   }
 }

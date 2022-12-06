@@ -14,6 +14,7 @@ package alluxio.jnifuse.struct;
 import jnr.ffi.NativeType;
 import jnr.ffi.Runtime;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -41,5 +42,18 @@ public class Fuse2FuseFileInfo extends FuseFileInfo {
     new Padding(NativeType.UCHAR, 4); // unused flags and paddings
     this.fh = new u_int64_t();
     new u_int64_t(); // lock_owner
+  }
+
+  /**
+   * Factory class to create {@link Fuse2FuseFileInfo}s.
+   */
+  public static class Factory implements FuseFileInfo.Factory {
+    @Override
+    public FuseFileInfo create(ByteBuffer buffer) {
+      Runtime runtime = Runtime.getSystemRuntime();
+      FuseFileInfo info = new Fuse2FuseFileInfo(runtime, buffer);
+      info.useMemory(jnr.ffi.Pointer.wrap(runtime, buffer));
+      return info;
+    }
   }
 }

@@ -123,7 +123,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    */
   public AlluxioJniFuseFileSystem(FileSystemContext fsContext, FileSystem fs,
       FuseOptions fuseOptions) {
-    super(Paths.get(fsContext.getClusterConf().getString(PropertyKey.FUSE_MOUNT_POINT)));
+    super(Paths.get(fsContext.getClusterConf().getString(PropertyKey.FUSE_MOUNT_POINT)),
+        fuseOptions.getLibfuseVersion());
     mFileSystemContext = fsContext;
     mFileSystem = fs;
     mConf = fsContext.getClusterConf();

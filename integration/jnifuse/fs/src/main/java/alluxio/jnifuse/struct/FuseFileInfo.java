@@ -11,11 +11,10 @@
 
 package alluxio.jnifuse.struct;
 
-import alluxio.jnifuse.utils.NativeLibraryLoader;
-
 import jnr.ffi.Runtime;
 import jnr.ffi.Struct;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -31,20 +30,16 @@ public class FuseFileInfo extends Struct {
     this.buffer.order(ByteOrder.LITTLE_ENDIAN);
   }
 
-  public static FuseFileInfo of(ByteBuffer buffer) {
-    Runtime runtime = Runtime.getSystemRuntime();
-    // select the actual FuseFileInfo by loaded version
-    NativeLibraryLoader.LoadState state = NativeLibraryLoader.getLoadState();
-
-    // Ensure the lib has been loaded in testing
-    // This is not possible when running a real cluster
-    if (state == NativeLibraryLoader.LoadState.NOT_LOADED) {
-      throw new RuntimeException("NativeLibraryLoader is not loaded");
-    }
-    FuseFileInfo fi = state == NativeLibraryLoader.LoadState.LOADED_2
-        ? new Fuse2FuseFileInfo(runtime, buffer)
-        : new Fuse3FuseFileInfo(runtime, buffer);
-    fi.useMemory(jnr.ffi.Pointer.wrap(runtime, buffer));
-    return fi;
+  /**
+   * The factory interface to create {@link FuseFileInfo}s.
+   */
+  public interface Factory {
+    /**
+     * Creates an instance of {@link FuseFileInfo}.
+     *
+     * @param buffer the byte buffer to wrap around
+     * @return the created object
+     */
+    FuseFileInfo create(ByteBuffer buffer);
   }
 }

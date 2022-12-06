@@ -27,32 +27,11 @@ import java.util.concurrent.atomic.AtomicReference;
  * The shared library is extracted to a temp folder and loaded from there.
  */
 public class NativeLibraryLoader {
-
-  public enum LoadState {
-    NOT_LOADED,
-    LOADED_2,
-    LOADED_3,
-  }
-
   private static final Logger LOG = LoggerFactory.getLogger(NativeLibraryLoader.class);
   //singleton
   private static final NativeLibraryLoader INSTANCE = new NativeLibraryLoader();
-  private static final AtomicReference<LoadState> LOAD_STATE =
-      new AtomicReference<>(LoadState.NOT_LOADED);
-
   private static final String TEMP_FILE_PREFIX = "libjnifuse";
   private static final String TEMP_FILE_SUFFIX = Environment.getJniLibraryExtension();
-
-  /**
-   * @return the load state
-   */
-  public static LoadState getLoadState() {
-    return LOAD_STATE.get();
-  }
-
-  private static void setLoadState(LoadState loadState) {
-    LOAD_STATE.set(loadState);
-  }
 
   /**
    * Get a reference to the NativeLibraryLoader.
@@ -69,7 +48,7 @@ public class NativeLibraryLoader {
    * @see Runnable interface cannot have checked exception
    */
   interface Load {
-    void load() throws IOException;
+    void load() ;
   }
 
   /**
@@ -77,9 +56,8 @@ public class NativeLibraryLoader {
    *
    * @param load the function to load library
    * @return the error if UnsatisfiedLinkError is encountered, empty if it completes successfully
-   * @throws IOException if a filesystem operation fails
    */
-  private Optional<UnsatisfiedLinkError> tryLoad(Load load) throws IOException {
+  private Optional<UnsatisfiedLinkError> tryLoad(Load load) {
     try {
       load.load();
       return Optional.empty();
@@ -101,7 +79,7 @@ public class NativeLibraryLoader {
   private Optional<UnsatisfiedLinkError> load(
       final String sharedLibraryName, final String jniLibraryName,
       final String sharedLibraryFileName, final String jniLibraryFileName,
-      final String tmpDir) throws IOException {
+      final String tmpDir) {
 
     Optional<UnsatisfiedLinkError> err = tryLoad(() -> {
       System.loadLibrary(sharedLibraryName);
@@ -126,7 +104,7 @@ public class NativeLibraryLoader {
     return tryLoad(() -> loadLibraryFromJar(sharedLibraryFileName, jniLibraryFileName, tmpDir));
   }
 
-  private Optional<UnsatisfiedLinkError> load2(final String tmpDir) throws IOException {
+  private Optional<UnsatisfiedLinkError> load2(final String tmpDir) {
     final String SHARED_LIBRARY_NAME =
         Environment.getSharedLibraryName("jnifuse");
     final String SHARED_LIBRARY_FILE_NAME =
@@ -143,13 +121,12 @@ public class NativeLibraryLoader {
 
     if (!err.isPresent()) {
       LOG.info("Loaded libjnifuse with libfuse version 2.");
-      setLoadState(LoadState.LOADED_2);
     }
 
     return err;
   }
 
-  private Optional<UnsatisfiedLinkError> load3(final String tmpDir) throws IOException {
+  private Optional<UnsatisfiedLinkError> load3(final String tmpDir) {
     final String SHARED_LIBRARY_NAME =
         Environment.getSharedLibraryName("jnifuse3");
     final String SHARED_LIBRARY_FILE_NAME =
@@ -166,7 +143,6 @@ public class NativeLibraryLoader {
 
     if (!err.isPresent()) {
       LOG.info("Loaded libjnifuse with libfuse version 3.");
-      setLoadState(LoadState.LOADED_3);
     }
 
     return err;
@@ -183,11 +159,9 @@ public class NativeLibraryLoader {
    *               function to provide a temporary location.
    *               The temporary file will be registered for deletion
    *               on exit.
-   * @throws IOException if a filesystem operation fails
    */
   public synchronized void loadLibrary(
-      final LibfuseVersion version, final String tmpDir) throws IOException {
-
+      final LibfuseVersion version, final String tmpDir) {
     Optional<UnsatisfiedLinkError> err;
     switch (version) {
       case VERSION_2:
@@ -203,7 +177,6 @@ public class NativeLibraryLoader {
     if (err.isPresent()) {
       throw err.get();
     }
-    return;
   }
 
   /**
@@ -221,51 +194,52 @@ public class NativeLibraryLoader {
    *                              function to provide a temporary location.
    *                              The temporary file will be registered for deletion
    *                              on exit.
-   * @throws IOException if a filesystem operation fails
    */
   void loadLibraryFromJar(final String sharedLibraryFileName,
-      final String jniLibraryFileName, final String tmpDir) throws IOException {
-    if (LOAD_STATE.get() == LoadState.NOT_LOADED) {
-      String libPath = loadLibraryFromJarToTemp(
-          sharedLibraryFileName, jniLibraryFileName, tmpDir).getAbsolutePath();
-      System.load(libPath);
-      LOG.info("Loaded lib by jar from path {}.", libPath);
-    }
+    final String jniLibraryFileName, final String tmpDir) {
+    String libPath = loadLibraryFromJarToTemp(
+        sharedLibraryFileName, jniLibraryFileName, tmpDir).getAbsolutePath();
+    System.load(libPath);
+    LOG.info("Loaded lib by jar from path {}.", libPath);
   }
 
   File loadLibraryFromJarToTemp(final String sharedLibraryFileName,
-      final String jniLibraryFileName, final String tmpDir) throws IOException {
+      final String jniLibraryFileName, final String tmpDir) {
     final File temp;
-    if (tmpDir == null || tmpDir.isEmpty()) {
-      temp = File.createTempFile(TEMP_FILE_PREFIX, TEMP_FILE_SUFFIX);
-    } else {
-      temp = new File(tmpDir, jniLibraryFileName);
-      if (temp.exists() && !temp.delete()) {
-        throw new RuntimeException("File: " + temp.getAbsolutePath()
-            + " already exists and cannot be removed.");
-      }
-      if (!temp.createNewFile()) {
-        throw new RuntimeException("File: " + temp.getAbsolutePath()
-            + " could not be created.");
-      }
-    }
-
-    if (!temp.exists()) {
-      throw new RuntimeException(
-          "File " + temp.getAbsolutePath() + " does not exist.");
-    } else {
-      temp.deleteOnExit();
-    }
-
-    // attempt to copy the library from the Jar file to the temp destination
-    try (final InputStream is = getClass().getClassLoader()
-        .getResourceAsStream(sharedLibraryFileName)) {
-      if (is == null) {
-        throw new RuntimeException(
-            sharedLibraryFileName + " was not found inside JAR.");
+    try {
+      if (tmpDir == null || tmpDir.isEmpty()) {
+        temp = File.createTempFile(TEMP_FILE_PREFIX, TEMP_FILE_SUFFIX);
       } else {
-        Files.copy(is, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        temp = new File(tmpDir, jniLibraryFileName);
+        if (temp.exists() && !temp.delete()) {
+          throw new RuntimeException("File: " + temp.getAbsolutePath()
+              + " already exists and cannot be removed.");
+        }
+        if (!temp.createNewFile()) {
+          throw new RuntimeException("File: " + temp.getAbsolutePath()
+              + " could not be created.");
+        }
       }
+
+      if (!temp.exists()) {
+        throw new RuntimeException(
+            "File " + temp.getAbsolutePath() + " does not exist.");
+      } else {
+        temp.deleteOnExit();
+      }
+
+      // attempt to copy the library from the Jar file to the temp destination
+      try (final InputStream is = getClass().getClassLoader()
+          .getResourceAsStream(sharedLibraryFileName)) {
+        if (is == null) {
+          throw new RuntimeException(
+              sharedLibraryFileName + " was not found inside JAR.");
+        } else {
+          Files.copy(is, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
 
     return temp;

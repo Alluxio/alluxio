@@ -12,9 +12,12 @@
 package alluxio.jnifuse;
 
 import alluxio.jnifuse.struct.FileStat;
+import alluxio.jnifuse.struct.Fuse2FuseFileInfo;
+import alluxio.jnifuse.struct.Fuse3FuseFileInfo;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
+import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.jnifuse.utils.SecurityUtils;
 
 import org.apache.commons.lang3.SystemUtils;
@@ -51,14 +54,18 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   private final LibFuse mLibFuse = new LibFuse();
   private final AtomicBoolean mMounted = new AtomicBoolean();
   private final Path mMountPoint;
+  private final FuseFileInfo.Factory mFuseFileInfoFactory;
 
   /**
    * Constructs an {@link AbstractFuseFileSystem}.
    *
-   * @param mountPoint
+   * @param mountPoint the fuse mount point
+   * @param version the libfuse loaded version
    */
-  public AbstractFuseFileSystem(Path mountPoint) {
+  public AbstractFuseFileSystem(Path mountPoint, LibfuseVersion version) {
     mMountPoint = mountPoint.toAbsolutePath();
+    mFuseFileInfoFactory = version == LibfuseVersion.VERSION_2 ?
+        new Fuse2FuseFileInfo.Factory() : new Fuse3FuseFileInfo.Factory();
   }
 
   /**
@@ -182,7 +189,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public int openCallback(String path, ByteBuffer buf) {
     try {
-      return open(path, FuseFileInfo.of(buf));
+      return open(path, mFuseFileInfoFactory.create(buf));
     } catch (Exception e) {
       LOG.error("Failed to open {}: ", path, e);
       return -ErrorCodes.EIO();
@@ -191,7 +198,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public int readCallback(String path, ByteBuffer buf, long size, long offset, ByteBuffer fibuf) {
     try {
-      return read(path, buf, size, offset, FuseFileInfo.of(fibuf));
+      return read(path, buf, size, offset, mFuseFileInfoFactory.create(fibuf));
     } catch (Exception e) {
       LOG.error("Failed to read {}, size {}, offset {}: ", path, size, offset, e);
       return -ErrorCodes.EIO();
@@ -210,7 +217,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   public int readdirCallback(String path, long bufaddr, long filter, long offset,
       ByteBuffer fi) {
     try {
-      return readdir(path, bufaddr, filter, offset, FuseFileInfo.of(fi));
+      return readdir(path, bufaddr, filter, offset, mFuseFileInfoFactory.create(fi));
     } catch (Exception e) {
       LOG.error("Failed to readdir {}, offset {}: ", path, offset, e);
       return -ErrorCodes.EIO();
@@ -228,7 +235,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public int flushCallback(String path, ByteBuffer fi) {
     try {
-      return flush(path, FuseFileInfo.of(fi));
+      return flush(path, mFuseFileInfoFactory.create(fi));
     } catch (Exception e) {
       LOG.error("Failed to flush {}: ", path, e);
       return -ErrorCodes.EIO();
@@ -237,7 +244,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public int releaseCallback(String path, ByteBuffer fi) {
     try {
-      return release(path, FuseFileInfo.of(fi));
+      return release(path, mFuseFileInfoFactory.create(fi));
     } catch (Exception e) {
       LOG.error("Failed to release {}: ", path, e);
       return -ErrorCodes.EIO();
@@ -264,7 +271,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public int createCallback(String path, long mode, ByteBuffer fi) {
     try {
-      return create(path, mode, FuseFileInfo.of(fi));
+      return create(path, mode, mFuseFileInfoFactory.create(fi));
     } catch (Exception e) {
       LOG.error("Failed to create {}, mode {}: ", path, mode, e);
       return -ErrorCodes.EIO();
@@ -337,7 +344,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   public int writeCallback(String path, ByteBuffer buf, long size, long offset, ByteBuffer fi) {
     try {
-      return write(path, buf, size, offset, FuseFileInfo.of(fi));
+      return write(path, buf, size, offset, mFuseFileInfoFactory.create(fi));
     } catch (Exception e) {
       LOG.error("Failed to write {}, size {}, offset {}: ", path, size, offset, e);
       return -ErrorCodes.EIO();
@@ -364,5 +371,15 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   public FuseContext getContext() {
     ByteBuffer buffer = mLibFuse.fuse_get_context();
     return FuseContext.of(buffer);
+  }
+
+  /**
+   * Creates a new {@link FuseFileInfo}.
+   *
+   * @param buffer the buffer to wrap around
+   * @return the created {@link FuseFileInfo}
+   */
+  public FuseFileInfo createFuseFileInfo(ByteBuffer buffer) {
+    return mFuseFileInfoFactory.create(buffer);
   }
 }

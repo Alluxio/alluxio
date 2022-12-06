@@ -14,8 +14,11 @@ package alluxio.worker.block;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.fuse.AlluxioFuse;
+import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.FuseUmountable;
 import alluxio.fuse.options.FuseOptions;
+import alluxio.jnifuse.LibFuse;
+import alluxio.jnifuse.utils.LibfuseVersion;
 
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
@@ -53,8 +56,11 @@ public class FuseManager implements Closeable {
       // TODO(lu) consider launching fuse in a separate thread as blocking operation
       // so that we can know about the fuse application status
       FileSystem fileSystem = mResourceCloser.register(FileSystem.Factory.create(mFsContext));
+      LibfuseVersion loadedLibfuseVersion = LibFuse.loadLibrary(
+          AlluxioFuseUtils.getLibfuseLoadStrategy(mFsContext.getClusterConf()));
+      FuseOptions options = FuseOptions.create(loadedLibfuseVersion, mFsContext.getClusterConf());
       mFuseUmountable = AlluxioFuse.launchFuse(
-          mFsContext, fileSystem, FuseOptions.create(mFsContext.getClusterConf()), false);
+          mFsContext, fileSystem, options, false);
     } catch (Throwable throwable) {
       // TODO(lu) for already mounted application, unmount first and then remount
       LOG.error("Failed to launch worker internal Fuse application", throwable);

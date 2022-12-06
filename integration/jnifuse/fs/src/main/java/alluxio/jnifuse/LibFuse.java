@@ -13,52 +13,56 @@ package alluxio.jnifuse;
 
 import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.jnifuse.utils.NativeLibraryLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * Load the libfuse library.
+ */
 public class LibFuse {
+  private static final Logger LOG = LoggerFactory.getLogger(LibFuse.class);
 
-  private enum LibraryState {
-    NOT_LOADED,
-    LOADING,
-    LOADED
+  /**
+   * The libfuse load strategy.
+   */
+  public enum LibfuseLoadStrategy {
+    LOAD_FUSE2_ONLY,
+    LOAD_FUSE3_ONLY,
+    FUSE3_THEN_FUSE2,
   }
-
-  private static AtomicReference<LibraryState> libraryLoaded =
-      new AtomicReference<>(LibraryState.NOT_LOADED);
 
   public native int fuse_main_real(AbstractFuseFileSystem fs, int argc, String[] argv);
 
   public native ByteBuffer fuse_get_context();
 
-  public static void loadLibrary(LibfuseVersion version) {
-    if (libraryLoaded.get() == LibraryState.LOADED) {
-      return;
+  /**
+   * Load the Libfuse library with the target load strategy.
+   *
+   * @param strategy the load strategy
+   * @return the loaded libfuse version
+   */
+  public static LibfuseVersion loadLibrary(LibfuseLoadStrategy strategy) {
+    String tmpDir = System.getenv("JNIFUSE_SHAREDLIB_DIR");
+    LibfuseVersion versionToLoad = strategy == LibfuseLoadStrategy.LOAD_FUSE2_ONLY
+        ? LibfuseVersion.VERSION_2 : LibfuseVersion.VERSION_3;
+    RuntimeException runtimeException;
+    try {
+      NativeLibraryLoader.getInstance().loadLibrary(versionToLoad, tmpDir);
+      return versionToLoad;
+    } catch (RuntimeException re) {
+      runtimeException = re;
     }
-
-    if (libraryLoaded.compareAndSet(LibraryState.NOT_LOADED,
-        LibraryState.LOADING)) {
-      String tmpDir = System.getenv("JNIFUSE_SHAREDLIB_DIR");
+    if (strategy == LibfuseLoadStrategy.FUSE3_THEN_FUSE2) {
+      LOG.error("Failed to load jnifuse with libfuse 3");
       try {
-        NativeLibraryLoader.getInstance().loadLibrary(version, tmpDir);
-      } catch (IOException e) {
-        libraryLoaded.set(LibraryState.NOT_LOADED);
-        throw new RuntimeException("Unable to load the jni-fuse shared library"
-            + e);
-      }
-
-      libraryLoaded.set(LibraryState.LOADED);
-      return;
-    }
-
-    while (libraryLoaded.get() == LibraryState.LOADING) {
-      try {
-        Thread.sleep(10);
-      } catch (InterruptedException e) {
-        //ignore
+        NativeLibraryLoader.getInstance().loadLibrary(versionToLoad, tmpDir);
+        return LibfuseVersion.VERSION_2;
+      } catch (RuntimeException re) {
+        runtimeException = re;
       }
     }
+    throw runtimeException;
   }
 }

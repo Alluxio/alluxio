@@ -18,6 +18,7 @@ import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
+import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.FileUtils;
 
@@ -66,9 +67,10 @@ public class StackFS extends AbstractFuseFileSystem {
   /**
    * @param root root
    * @param mountPoint mount point
+   * @param loadedLibfuseVersion the libfuse loaded version
    */
-  public StackFS(Path root, Path mountPoint) {
-    super(mountPoint);
+  public StackFS(Path root, Path mountPoint, LibfuseVersion loadedLibfuseVersion) {
+    super(mountPoint, loadedLibfuseVersion);
     mRoot = root;
   }
 

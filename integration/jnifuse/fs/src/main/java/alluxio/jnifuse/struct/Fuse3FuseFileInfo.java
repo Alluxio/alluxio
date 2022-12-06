@@ -12,7 +12,9 @@
 package alluxio.jnifuse.struct;
 
 import jnr.ffi.NativeType;
+import jnr.ffi.Runtime;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -41,5 +43,18 @@ public class Fuse3FuseFileInfo extends FuseFileInfo {
     this.fh = new u_int64_t();
     new u_int64_t(); // lock_owner
     new u_int32_t(); // poll_events
+  }
+
+  /**
+   * Factory class to create {@link Fuse3FuseFileInfo}s.
+   */
+  public static class Factory implements FuseFileInfo.Factory {
+    @Override
+    public FuseFileInfo create(ByteBuffer buffer) {
+      Runtime runtime = Runtime.getSystemRuntime();
+      FuseFileInfo info = new Fuse3FuseFileInfo(runtime, buffer);
+      info.useMemory(jnr.ffi.Pointer.wrap(runtime, buffer));
+      return info;
+    }
   }
 }

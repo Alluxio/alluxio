@@ -24,6 +24,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.LibFuse;
+import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
@@ -50,6 +51,7 @@ public abstract class AbstractTest {
 
   protected AlluxioURI mRootUfs;
   protected FileSystem mFileSystem;
+  protected LibfuseVersion mLibfuseVersion;
   protected FileSystemContext mContext;
   protected UfsFileSystemOptions mUfsOptions;
 
@@ -62,7 +64,8 @@ public abstract class AbstractTest {
     LocalUnderFileSystemFactory localUnderFileSystemFactory = new LocalUnderFileSystemFactory();
     UnderFileSystemFactoryRegistry.register(localUnderFileSystemFactory);
     mContext = FileSystemContext.create(ClientContext.create(conf));
-    LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
+    mLibfuseVersion = LibFuse.loadLibrary(
+        AlluxioFuseUtils.getLibfuseLoadStrategy(conf));
     mUfsOptions = new UfsFileSystemOptions(ufs);
     mFileSystem = new UfsBaseFileSystem(mContext, mUfsOptions);
     beforeActions();

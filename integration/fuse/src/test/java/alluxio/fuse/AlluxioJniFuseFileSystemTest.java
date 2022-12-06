@@ -52,6 +52,7 @@ import alluxio.jnifuse.LibFuse;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
+import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.BlockMasterInfo;
@@ -102,10 +103,11 @@ public class AlluxioJniFuseFileSystemTest {
     mFileSystemContext = mock(FileSystemContext.class);
     mFileSystem = mock(FileSystem.class);
     when(mFileSystemContext.getClusterConf()).thenReturn(mConf);
-    LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
+    LibfuseVersion loadedLibfuseVersion = LibFuse.loadLibrary(
+        AlluxioFuseUtils.getLibfuseLoadStrategy(mConf));
     try {
       mFuseFs = new AlluxioJniFuseFileSystem(
-          mFileSystemContext, mFileSystem, FuseOptions.create(mConf));
+          mFileSystemContext, mFileSystem, FuseOptions.create(loadedLibfuseVersion, mConf));
     } catch (UnsatisfiedLinkError e) {
       // stop test and ignore if FuseFileSystem fails to create due to missing libfuse library
       Assume.assumeNoException(e);
@@ -556,7 +558,7 @@ public class AlluxioJniFuseFileSystemTest {
   private FuseFileInfo allocateNativeFileInfo() {
     ByteBuffer buffer = ByteBuffer.allocateDirect(36);
     buffer.clear();
-    return FuseFileInfo.of(buffer);
+    return mFuseFs.createFuseFileInfo(buffer);
   }
 
   /**
