@@ -6492,7 +6492,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey FUSE_JNIFUSE_LIBFUSE_VERSION =
       intBuilder(Name.FUSE_JNIFUSE_LIBFUSE_VERSION)
           .setDescription("The version of libfuse used by libjnifuse. "
-              + "Libfuse2 and Libfuse3 are supported.")
+              + "Libfuse2 (set by value \"2\") and Libfuse3 (set by value \"3\") are supported. "
+              + "If not configured, libfuse will be loaded dynamically. "
+              + "If both libfuse2 and libfuse3 are available, libfuse 3 will be loaded first.")
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey FUSE_SHARED_CACHING_READER_ENABLED =

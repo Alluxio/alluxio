@@ -55,7 +55,7 @@ public class LibFuse {
       runtimeException = re;
     }
     if (strategy == LibfuseLoadStrategy.FUSE3_THEN_FUSE2) {
-      LOG.error("Failed to load jnifuse with libfuse 3");
+      LOG.error("Failed to load jnifuse with libfuse 3, try loading libfuse 2", runtimeException);
       try {
         NativeLibraryLoader.getInstance().loadLibrary(versionToLoad, tmpDir);
         return LibfuseVersion.VERSION_2;

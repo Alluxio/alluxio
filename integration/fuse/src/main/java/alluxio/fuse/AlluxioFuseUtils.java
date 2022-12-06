@@ -182,22 +182,32 @@ public final class AlluxioFuseUtils {
    * @return the libjnifuse load strategy
    */
   public static LibfuseLoadStrategy getLibfuseLoadStrategy(AlluxioConfiguration conf) {
+    Optional<Integer> libfuseVersion = conf.isSet(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION)
+        ? Optional.of(conf.getInt(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION)) : Optional.empty();
     if (Environment.isMac()) {
-      LOG.info("osxfuse doesn't support libfuse3 api. Using libfuse version 2.");
+      if (libfuseVersion.isPresent() && libfuseVersion.get() == 3) {
+        throw new InvalidArgumentRuntimeException("Osxfuse does not support libfuse 3");
+      }
+      return LibfuseLoadStrategy.LOAD_FUSE2_ONLY;
+    }
+    if (!conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
+      if (libfuseVersion.isPresent() && libfuseVersion.get() == 3) {
+        throw new InvalidArgumentRuntimeException("JNR-FUSE does not support libfuse 3");
+      }
       return LibfuseLoadStrategy.LOAD_FUSE2_ONLY;
     }
 
-    if (!conf.isSet(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION)) {
+    if (!libfuseVersion.isPresent()) {
       return LibfuseLoadStrategy.FUSE3_THEN_FUSE2;
     }
 
-    final int val = conf.getInt(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION);
-    if (val == 2) {
+    if (libfuseVersion.get() == 2) {
       return LibfuseLoadStrategy.LOAD_FUSE2_ONLY;
-    } else if (val == 3) {
+    } else if (libfuseVersion.get() == 3) {
       return LibfuseLoadStrategy.LOAD_FUSE3_ONLY;
     }
-    throw new InvalidArgumentRuntimeException(String.format("Libfuse version %d is invalid", val));
+    throw new InvalidArgumentRuntimeException(
+        String.format("Libfuse version %d is invalid", libfuseVersion.get()));
   }
 
   /**

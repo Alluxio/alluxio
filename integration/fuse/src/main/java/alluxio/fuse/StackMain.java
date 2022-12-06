@@ -15,7 +15,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.jnifuse.LibFuse;
-import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 
@@ -40,9 +39,8 @@ public class StackMain {
     Path root = Paths.get(args[1]);
     Path mountPoint = Paths.get(args[0]);
     AlluxioConfiguration conf = Configuration.global();
-    LibfuseVersion loadedLibfuseVersion = LibFuse.loadLibrary(
-        AlluxioFuseUtils.getLibfuseLoadStrategy(conf));
-    StackFS fs = new StackFS(root, mountPoint, loadedLibfuseVersion);
+    StackFS fs = new StackFS(root, mountPoint, LibFuse.loadLibrary(
+        AlluxioFuseUtils.getLibfuseLoadStrategy(conf)));
     Set<String> fuseOpts = new HashSet<>();
     for (int i = 2; i < args.length; i++) {
       fuseOpts.add(args[i].substring(2)); // remove -o
