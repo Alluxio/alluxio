@@ -495,7 +495,7 @@ public class S3ObjectTask extends S3BaseTask {
                 throws S3Exception {
             AlluxioURI objectUri = new AlluxioURI(objectPath);
             final String decodedLengthHeader = mHandler.getHeader("x-amz-decoded-content-length");
-
+            final String contentLength = mHandler.getHeader("Content-Length");
             try {
                 MessageDigest md5 = MessageDigest.getInstance("MD5");
 
@@ -509,7 +509,7 @@ public class S3ObjectTask extends S3BaseTask {
                     toRead = Long.parseLong(decodedLengthHeader);
                     readStream = new ChunkedEncodingInputStream(readStream);
                 } else {
-                    toRead = Long.parseLong(decodedLengthHeader);
+                    toRead = Long.parseLong(contentLength);
                 }
                 try {
                     S3RestUtils.deleteExistObject(userFs, objectUri);

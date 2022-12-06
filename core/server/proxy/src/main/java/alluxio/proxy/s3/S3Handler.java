@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -105,8 +106,8 @@ public class S3Handler {
                 );
             }
         } catch (Exception ex) {
-            S3RestUtils.toBucketS3Exception(ex, mBucket);
             LOG.info(WebServer.logStackTrace(ex));
+            throw S3RestUtils.toBucketS3Exception(ex, mBucket);
         }
     }
 
@@ -186,13 +187,13 @@ public class S3Handler {
         }
         if (response.hasEntity()) {
             Object entity = response.getEntity();
-            if (entity instanceof AlluxioFileInStream) {
-                AlluxioFileInStream is = (AlluxioFileInStream)entity;
-                ByteBuffer buffer = tlsBuffer_.get();
-                buffer.clear();
-                is.read(buffer);
-                buffer.flip();
-                ((HttpOutput) servletResponse.getOutputStream()).write(buffer);
+            if (entity instanceof InputStream) {
+                InputStream is = (InputStream)entity;
+                byte[] bytesArray = tlsBytes_.get();
+                int read;
+                while ((read = is.read(bytesArray)) != -1) {
+                    servletResponse.getOutputStream().write(bytesArray, 0, read);
+                }
             } else {
                 servletResponse.getOutputStream().write(entity.toString().getBytes());
             }
@@ -270,7 +271,7 @@ public class S3Handler {
         java.util.Enumeration<String> parameterNamesIt = mServletRequest.getParameterNames();
         while (parameterNamesIt.hasMoreElements()) {
             if (unsupportedSubResourcesSet_.contains(parameterNamesIt.nextElement())) {
-                throw new S3Exception("", S3ErrorCode.INTERNAL_ERROR);
+                throw new S3Exception("", S3ErrorCode.NOT_IMPLEMENTED);
             }
         }
     }
