@@ -178,8 +178,8 @@ $ jps | grep "AlluxioFuse"
 
 ## Local Cache
 
-When an application runs an operation against the local FUSE mount point.
-The request will be processed by FUSE kernel, Alluxio Fuse process, and under storage sequentially.
+When an application runs an operation against the local FUSE mount point,
+the request will be processed by FUSE kernel, Alluxio Fuse process, and under storage sequentially.
 If at any level, cache is enabled and there is a hit, cached metadata/data will be returned to the application without going through the whole process to improve the overall read performance.
 
 Alluxio FUSE provides local metadata/data cache on the application nodes to speed up the repeated metadata/data access.
