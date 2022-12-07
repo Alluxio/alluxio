@@ -27,7 +27,7 @@ public interface SimpleService {
    * Promotes the service to {@link alluxio.grpc.NodeState#PRIMARY} state.
    * Can only be called on a started service (i.e. {@link #start()} must precede this method).
    * Can only be called in {@link alluxio.grpc.NodeState#STANDBY} state.
-   * Can be called multiple times.
+   * Can be called multiple times (e.g. a service is promoted, then demoted, then promoted again).
    */
   void promote();
 
@@ -36,7 +36,8 @@ public interface SimpleService {
    * Can only be called on a started service (i.e. {@link #start()} must precede this method).
    * Can only be called in {@link alluxio.grpc.NodeState#PRIMARY} state (i.e. {@link #promote()}
    * must precede this method).
-   * Can be called multiple times.
+   * Can be called multiple times (e.g. a service is promoted, then demoted, then promoted again,
+   * and demoted again).
    */
   void demote();
 

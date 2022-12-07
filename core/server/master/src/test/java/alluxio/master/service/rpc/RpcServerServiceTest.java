@@ -62,6 +62,8 @@ public class RpcServerServiceTest {
 
     Assert.assertFalse(service.isServing());
     service.start();
+    // after start and before stop the rpc port is always bound as either the rpc server or the
+    // rejecting server is bound to is (depending on whether it is in PRIMARY or STANDBY state)
     Assert.assertTrue(isBound());
     Assert.assertFalse(service.isServing());
     for (int i = 0; i < 5; i++) {

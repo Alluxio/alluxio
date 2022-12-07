@@ -59,6 +59,8 @@ public class WebServerServiceTest {
 
     Assert.assertFalse(webService.isServing());
     webService.start();
+    // after start and before stop the web port is always bound as either the web server or the
+    // rejecting server is bound to is (depending on whether it is in PRIMARY or STANDBY state)
     Assert.assertTrue(isBound());
     Assert.assertFalse(webService.isServing());
     for (int i = 0; i < 5; i++) {

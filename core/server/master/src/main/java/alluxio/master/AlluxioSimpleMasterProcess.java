@@ -84,7 +84,7 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
       mLeaderSelector.waitForState(NodeState.PRIMARY);
       LOG.info("Transitioning from standby to primary");
       mJournalSystem.gainPrimacy();
-      stopMasters();
+      stopMasterComponents();
       LOG.info("Secondary stopped");
       startMasterComponents(true);
       mServices.forEach(SimpleService::promote);
@@ -93,7 +93,7 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
       mLeaderSelector.waitForState(NodeState.STANDBY);
       LOG.info("Transitioning from primary to standby");
       mServices.forEach(SimpleService::demote);
-      stopMasters();
+      stopMasterComponents();
       mJournalSystem.losePrimacy();
       LOG.info("Primary stopped");
       startMasterComponents(false);
@@ -110,7 +110,7 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
   public void stop() throws Exception {
     mServices.forEach(SimpleService::stop);
     mJournalSystem.stop();
-    stopMasters();
+    stopMasterComponents();
     mLeaderSelector.stop();
   }
 
@@ -123,7 +123,7 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
     }
   }
 
-  protected void stopMasters() {
+  protected void stopMasterComponents() {
     try {
       mRegistry.stop();
     } catch (IOException e) {

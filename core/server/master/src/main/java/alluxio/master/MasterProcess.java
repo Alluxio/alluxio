@@ -111,7 +111,7 @@ public abstract class MasterProcess implements Process {
   }
 
   /**
-   * Use in master factory after instantiating the master process and before starting the master
+   * Used in master factory after instantiating the master process and before starting the master
    * process. This allows you to define with services are necessary for the operation of the
    * master process.
    * @param service a service to register for the functioning of the master process

@@ -52,6 +52,7 @@ public class JvmMonitorServiceTest {
 
     checkMetrics(0);
     service.start();
+    // the expected number is 3 because the JvmMonitorService registers 3 metrics during #start()
     checkMetrics(3);
     for (int i = 0; i < 5; i++) {
       service.promote();

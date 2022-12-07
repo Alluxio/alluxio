@@ -246,7 +246,7 @@ public class AlluxioMasterProcess extends MasterProcess {
         LOG.info("Lost leadership while becoming a leader.");
         unstable.set(true);
       }
-      stopMasters();
+      stopMasterComponents();
       LOG.info("Standby stopped");
       try (Timer.Context ctx = MetricsSystem
           .timer(MetricKey.MASTER_JOURNAL_GAIN_PRIMACY_TIMER.getName()).time()) {
@@ -268,7 +268,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     } catch (UnavailableException e) {
       LOG.warn("Error starting masters: {}", e.toString());
       mJournalSystem.losePrimacy();
-      stopMasters();
+      stopMasterComponents();
       return false;
     }
     mServices.forEach(SimpleService::promote);
@@ -284,7 +284,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     // which could cause NPEs for outstanding RPC threads. We need to first close all client
     // sockets in stopServing so that clients don't see NPEs.
     mJournalSystem.losePrimacy();
-    stopMasters();
+    stopMasterComponents();
     LOG.info("Primary stopped");
     startMasterComponents(false);
     LOG.info("Standby started");
@@ -346,7 +346,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    * @param isLeader if the Master is leader
    */
   protected void startMasterComponents(boolean isLeader) throws IOException {
-    LOG.info("Starting all masters as: {}.", (isLeader) ? "leader" : "follower");
+    LOG.info("Starting all master components as: {}.", (isLeader) ? "leader" : "follower");
     if (isLeader) {
       if (Configuration.isSet(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {
         AlluxioURI backup =
@@ -369,11 +369,11 @@ public class AlluxioMasterProcess extends MasterProcess {
   /**
    * Stops all masters, including block master, fileSystem master and additional masters.
    */
-  protected void stopMasters() {
+  protected void stopMasterComponents() {
     try {
-      LOG.info("Stopping all masters.");
+      LOG.info("Stopping all masters components.");
       mRegistry.stop();
-      LOG.info("All masters stopped.");
+      LOG.info("All master components stopped.");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -389,9 +389,9 @@ public class AlluxioMasterProcess extends MasterProcess {
       mRunning = false;
       mServices.forEach(SimpleService::stop);
       mJournalSystem.stop();
-      LOG.info("Closing all masters.");
+      LOG.info("Closing all master components.");
       mRegistry.close();
-      LOG.info("Closed all masters.");
+      LOG.info("Closed all master components.");
       mLeaderSelector.stop();
       mIsStopped.set(true);
       LOG.info("Stopped.");

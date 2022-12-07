@@ -32,6 +32,7 @@ public class MetricsServiceTest {
     service.start();
     Assert.assertTrue(MetricsSystem.isStarted());
     for (int i = 0; i < 5; i++) {
+      // the metrics should always be on, regardless of being in PRIMARY or STANDBY state
       service.promote();
       Assert.assertTrue(MetricsSystem.isStarted());
       service.demote();
