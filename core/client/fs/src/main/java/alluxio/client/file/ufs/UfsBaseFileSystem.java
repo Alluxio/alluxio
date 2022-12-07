@@ -51,7 +51,6 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
-import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.io.PathUtils;
@@ -295,13 +294,8 @@ public class UfsBaseFileSystem implements FileSystem {
   public FileInStream openFile(URIStatus status, OpenFilePOptions options) {
     return callWithReturn(() -> {
       // TODO(lu) deal with other options e.g. maxUfsReadConcurrency
-      return new UfsFileInStream(offset -> {
-        try {
-          return mUfs.get().open(status.getPath(), OpenOptions.defaults().setOffset(offset));
-        } catch (IOException e) {
-          throw AlluxioRuntimeException.from(e);
-        }
-      }, status.getLength());
+      return new UfsFileInStream(mUfs.get().open(status.getPath()),
+          status.getLength());
     });
   }
 

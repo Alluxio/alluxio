@@ -18,17 +18,14 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioTestDirectory;
 import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -397,10 +394,8 @@ public class UfsFileInStreamTest {
     Random random = new Random();
     try (UfsFileInStream inStream = getStream(ufsPath)) {
       for (int i = 0; i < 10; i++) {
-        if (inStream.remaining() <= 0) {
-          break;
-        }
-        int skip = random.nextInt((int) inStream.remaining());
+        inStream.seek(0);
+        int skip = random.nextInt(CHUNK_SIZE);
         assertEquals(skip, inStream.skip(skip));
         assertEquals(skip, inStream.getPos());
         int len = CHUNK_SIZE - skip;
@@ -428,7 +423,6 @@ public class UfsFileInStreamTest {
     createFile(ufsPath, CHUNK_SIZE);
     try (UfsFileInStream inStream = getStream(ufsPath)) {
       assertEquals(CHUNK_SIZE, inStream.skip(CHUNK_SIZE + 1));
-      Assert.assertEquals(-1, inStream.read());
     }
   }
 
@@ -438,7 +432,6 @@ public class UfsFileInStreamTest {
     createFile(ufsPath, CHUNK_SIZE);
     try (UfsFileInStream inStream = getStream(ufsPath)) {
       assertEquals(0, inStream.skip(-1));
-      Assert.assertEquals(0, inStream.read());
     }
   }
 
@@ -481,13 +474,8 @@ public class UfsFileInStreamTest {
   }
 
   private UfsFileInStream getStream(String ufsPath) throws IOException {
-    return new UfsFileInStream(offset -> {
-      try {
-        return mUfs.open(ufsPath, OpenOptions.defaults().setOffset(offset));
-      } catch (IOException e) {
-        throw AlluxioRuntimeException.from(e);
-      }
-    }, ((UfsFileStatus) mUfs.getStatus(ufsPath)).getContentLength());
+    return new UfsFileInStream(mUfs.open(ufsPath),
+        ((UfsFileStatus) mUfs.getStatus(ufsPath)).getContentLength());
   }
 
   private void createFile(String ufsPath, int len) throws IOException {
