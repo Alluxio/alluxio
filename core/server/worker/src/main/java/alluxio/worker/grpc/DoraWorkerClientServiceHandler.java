@@ -18,13 +18,10 @@ import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
-import alluxio.grpc.PAcl;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
-import alluxio.grpc.TtlAction;
 import alluxio.underfs.UfsFileStatus;
-import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.worker.DoraWorker;
@@ -107,7 +104,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
         throw new IOException(String.format("Unable to get status for under file system path %s. ",
             ufsFilePath));
       }
-      GetStatusPResponse mResponse = GetStatusPResponse.newBuilder()
+      GetStatusPResponse response = GetStatusPResponse.newBuilder()
           .setFileInfo(
               FileInfo.newBuilder()
                   .setName(status.getName())
@@ -122,7 +119,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
                   .setGroup(status.getGroup())
                   .build()
           ).build();
-      responseObserver.onNext(mResponse);
+      responseObserver.onNext(response);
       responseObserver.onCompleted();
     } catch (IOException e) {
       LOG.error(String.format("Failed to get status of %s: ", request.getPath()), e);
