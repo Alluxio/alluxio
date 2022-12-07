@@ -4642,6 +4642,7 @@ public class DefaultFileSystemMaster extends CoreMaster
                 .setPersistenceState(PersistenceState.PERSISTED.name())
                 .build());
             propagatePersistedInternal(journalContext, inodePath);
+            mUfsAbsentPathCache.processExisting(inodePath.getUri());
             Metrics.FILES_PERSISTED.inc();
 
             // Save state for possible cleanup
