@@ -142,8 +142,7 @@ public class S3AInputStream extends SeekableUnderFileInputStream {
       return;
     }
     if (pos < mPos) {
-      mPos = pos;
-      reopenStream();
+      reopenStream(pos);
       return;
     }
     do {
@@ -156,10 +155,13 @@ public class S3AInputStream extends SeekableUnderFileInputStream {
 
   /**
    * Reopen the stream at new position.
+   *
+   * @param newPos the new position to reopen the stream to
    */
-  private void reopenStream() throws IOException {
+  private void reopenStream(long newPos) throws IOException {
     in.close();
-    S3Object object = getObject(mBucketName, mKey, mClient, mPos, mRetryPolicy);
+    S3Object object = getObject(mBucketName, mKey, mClient, newPos, mRetryPolicy);
     in = object.getObjectContent();
+    mPos = newPos;
   }
 }
