@@ -20,18 +20,10 @@ import (
 const (
 	// The version of the hadoop client that the Alluxio client will be built for
 	defaultHadoopClient = "hadoop-3.3"
-<<<<<<< HEAD
-
-	// enums for identifying gropus of lib jars
-	libJarsAll  = "all"
-	libJarsCore = "core"
-||||||| d90eef7d2d
-=======
 
 	// enums for identifying gropus of lib jars
 	libJarsAll  = "all"
 	libJarsFuse = "fuse"
->>>>>>> d3d81fc363bd24558bbba881490490eb74143503
 )
 
 var (
@@ -88,17 +80,6 @@ func handleUfsModulesAndLibJars() error {
 			allLibJars = append(allLibJars, jar)
 		}
 		includedLibJarsFlag = strings.Join(allLibJars, ",")
-<<<<<<< HEAD
-	case libJarsCore:
-		var coreJars []string
-		for jar := range coreLibJars {
-			coreJars = append(coreJars, jar)
-		}
-		includedLibJarsFlag = strings.Join(coreJars, ",")
-	default:
-||||||| d90eef7d2d
-	} else {
-=======
 	case libJarsFuse:
 		var fuseJars []string
 		for jar := range fuseLibJars {
@@ -106,7 +87,6 @@ func handleUfsModulesAndLibJars() error {
 		}
 		includedLibJarsFlag = strings.Join(fuseJars, ",")
 	default:
->>>>>>> d3d81fc363bd24558bbba881490490eb74143503
 		for _, jar := range strings.Split(includedLibJarsFlag, ",") {
 			_, isCore := coreLibJars[jar]
 			_, isAdditional := additionalLibJars[jar]
