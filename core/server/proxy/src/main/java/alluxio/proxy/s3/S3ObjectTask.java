@@ -655,7 +655,7 @@ public class S3ObjectTask extends S3BaseTask {
                     String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
 
                     if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
-                        createDirectory(objectPath, userFs, auditContext);
+                        return createDirectory(objectPath, userFs, auditContext);
                     }
                     AlluxioURI objectUri = new AlluxioURI(objectPath);
 

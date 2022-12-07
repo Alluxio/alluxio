@@ -186,7 +186,7 @@ public class S3BucketTask extends S3BaseTask {
                     String startAfterParam = mHandler.getQueryParameter("start-after");
 
                     int maxKeys = maxKeysParam == null ? ListBucketOptions.DEFAULT_MAX_KEYS : Integer.parseInt(maxKeysParam);
-                    int listType = listTypeParam == null ? 0 : Integer.parseInt(listTypeParam);
+                    Integer listType = listTypeParam == null ? null : Integer.parseInt(listTypeParam);
                     ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
                             .setMarker(markerParam)
                             .setPrefix(prefixParam)
