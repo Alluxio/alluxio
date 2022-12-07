@@ -1337,6 +1337,11 @@
             "name": "BlockWorker",
             "rpcs": [
               {
+                "name": "GetStatus",
+                "in_type": "grpc.file.GetStatusPRequest",
+                "out_type": "grpc.file.GetStatusPResponse"
+              },
+              {
                 "name": "ReadBlock",
                 "in_type": "ReadRequest",
                 "out_type": "ReadResponse",
@@ -1408,6 +1413,9 @@
           },
           {
             "path": "grpc/common.proto"
+          },
+          {
+            "path": "grpc/file_system_master.proto"
           }
         ],
         "package": {
@@ -7887,9 +7895,6 @@
         ],
         "imports": [
           {
-            "path": "grpc/common.proto"
-          },
-          {
             "path": "grpc/job_master.proto"
           }
         ],
@@ -9338,9 +9343,6 @@
           }
         ],
         "imports": [
-          {
-            "path": "grpc/common.proto"
-          },
           {
             "path": "proto/shared/acl.proto"
           }

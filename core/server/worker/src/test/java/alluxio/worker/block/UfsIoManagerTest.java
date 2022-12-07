@@ -24,6 +24,7 @@ import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.UfsReadOptions;
+import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager.UfsClient;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -69,6 +70,9 @@ public final class UfsIoManagerTest {
     UfsClient client = new UfsClient(() -> UnderFileSystem.Factory.create(mTestFilePath,
         UnderFileSystemConfiguration.defaults(Configuration.global())),
         new AlluxioURI(mTestFilePath));
+
+    UfsFileStatus status = client.acquireUfsResource().get().getFileStatus("/");
+
     mUfsIOManager = spy(new UfsIOManager(client));
     doReturn(3d * Constants.MB).when(mUfsIOManager).getUsedThroughput(any(Meter.class));
     mUfsIOManager.start();

@@ -2,7 +2,6 @@ syntax = "proto2";
 
 package alluxio.proto.journal;
 
-import "grpc/common.proto";
 import "proto/shared/acl.proto";
 
 // Journal entry messages for the file master.
