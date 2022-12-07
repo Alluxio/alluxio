@@ -71,25 +71,71 @@ var ufsModules = map[string]module{
 	"ufs-hadoop-3.2":  {"hadoop-3.2", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.2.1 -PhdfsActiveSync"},
 	"ufs-hadoop-3.3":  {"hadoop-3.3", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1 -PhdfsActiveSync"},
 
+<<<<<<< HEAD
+	"ufs-hadoop-ozone-1.2.1":      {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
+	"ufs-hadoop-cosn-3.1.0-5.8.5": {"hadoop-cosn-3.1.0-5.8.5", "cosn", true, "-pl underfs/cosn -Dufs.cosn.version=3.1.0-5.8.5"},
+||||||| d90eef7d2d
+	"ufs-hadoop-ozone-1.2.1": {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
+	"ufs-hadoop-cosn-3.1.0-5.8.5":  {"hadoop-cosn-3.1.0-5.8.5", "cosn", true, "-pl underfs/cosn -Dufs.cosn.version=3.1.0-5.8.5"},
+=======
 	"ufs-hadoop-ozone-1.2.1":      {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
 	"ufs-hadoop-cosn-3.1.0-5.8.5": {"hadoop-cosn-3.1.0-5.8.5", "cosn", true, "-pl underfs/cosn -Dufs.cosn.version=3.1.0-5.8.5"},
 }
 
 var fuseUfsModuleNames = []string{
+	"ufs-hadoop-2.7",
+	"ufs-hadoop-3.3",
+>>>>>>> d3d81fc363bd24558bbba881490490eb74143503
+}
+
+<<<<<<< HEAD
+var fuseUfsModuleNames = []string{
 	"ufs-hadoop-2.10",
 	"ufs-hadoop-3.2",
 	"ufs-hadoop-ozone-1.2.1",
 }
+||||||| d90eef7d2d
+var libJars = map[string]struct{}{
+	"integration-tools-hms":        {},
+	"integration-tools-validation": {},
+	"underfs-abfs":                 {},
+	"underfs-adl":                  {},
+	"underfs-gcs":                  {},
+	"underfs-local":                {},
+	"underfs-s3a":                  {},
+	"underfs-obs":                  {},
+	"underfs-wasb":                 {},
+=======
+var libJars = map[string]struct{}{
+	"integration-tools-hms":        {},
+	"integration-tools-validation": {},
+>>>>>>> d3d81fc363bd24558bbba881490490eb74143503
 
+<<<<<<< HEAD
 var coreLibJars = map[string]struct{}{
 	"underfs-abfs":          {},
 	"underfs-adl":           {},
+||||||| d90eef7d2d
+=======
+	"underfs-abfs":          {},
+	"underfs-adl":           {},
+	"underfs-cos":           {},
+>>>>>>> d3d81fc363bd24558bbba881490490eb74143503
 	"underfs-cephfs":        {},
 	"underfs-cephfs-hadoop": {},
+<<<<<<< HEAD
 	"underfs-gcs":           {},
 	"underfs-local":         {},
 	"underfs-cos":           {},
+||||||| d90eef7d2d
+	"underfs-cos":           {},
+=======
+	"underfs-gcs":           {},
+	"underfs-local":         {},
+	"underfs-obs":           {},
+>>>>>>> d3d81fc363bd24558bbba881490490eb74143503
 	"underfs-oss":           {},
+<<<<<<< HEAD
 	"underfs-s3a":           {},
 }
 
@@ -102,6 +148,20 @@ var additionalLibJars = map[string]struct{}{
 	"underfs-swift": {},
 	"underfs-wasb":  {},
 	"underfs-web":   {},
+||||||| d90eef7d2d
+	"underfs-swift":         {},
+	"underfs-web":           {},
+=======
+	"underfs-s3a":           {},
+	"underfs-swift":         {},
+	"underfs-wasb":          {},
+	"underfs-web":           {},
+>>>>>>> d3d81fc363bd24558bbba881490490eb74143503
+}
+
+var fuseLibJars = map[string]struct{}{
+	"underfs-s3a":   {},
+	"underfs-local": {},
 }
 
 func validModules(modules map[string]module) []string {

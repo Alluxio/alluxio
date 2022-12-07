@@ -66,7 +66,7 @@ public abstract class MasterProcess implements Process {
   final InetSocketAddress mWebBindAddress;
 
   /** The start time for when the master started. */
-  final long mStartTimeMs = System.currentTimeMillis();
+  final long mStartTimeMs;
 
   /**
    * Rejecting servers for used by backup masters to reserve ports but reject connection requests.
@@ -102,6 +102,7 @@ public abstract class MasterProcess implements Process {
     mLeaderSelector = Preconditions.checkNotNull(leaderSelector, "leaderSelector");
     mRpcBindAddress = configureAddress(rpcService);
     mWebBindAddress = configureAddress(webService);
+    mStartTimeMs = System.currentTimeMillis();
   }
 
   private static InetSocketAddress configureAddress(ServiceType service) {

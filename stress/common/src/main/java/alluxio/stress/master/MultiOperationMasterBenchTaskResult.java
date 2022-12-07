@@ -13,6 +13,7 @@ package alluxio.stress.master;
 
 import alluxio.stress.TaskResult;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
@@ -40,6 +41,15 @@ public final class MultiOperationMasterBenchTaskResult
     for (int i = 0; i < operations.length; ++i) {
       mStatistics.add(new MasterBenchTaskResultStatistics(operations[i]));
     }
+  }
+
+  /**
+   * Empty constructor for json deserialization.
+   */
+  public MultiOperationMasterBenchTaskResult() {
+    super();
+    mStatisticsPerMethod = new HashMap<>();
+    mStatistics = new ArrayList<>();
   }
 
   @Override
@@ -111,6 +121,7 @@ public final class MultiOperationMasterBenchTaskResult
   /**
    * @return the number of success operations from all statistics
    */
+  @JsonIgnore
   public long getNumSuccessOperations() {
     long throughput = 0;
     for (MasterBenchTaskResultStatistics statistic: mStatistics) {
