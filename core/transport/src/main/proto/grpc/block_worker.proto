@@ -8,9 +8,15 @@ package alluxio.grpc.block;
 
 import "proto/dataserver/protocol.proto";
 import "grpc/common.proto";
+import "grpc/file_system_master.proto";
 
 // The block worker service
 service BlockWorker {
+  /**
+   * Returns the status of the file or directory.
+   */
+  rpc GetStatus (grpc.file.GetStatusPRequest) returns (grpc.file.GetStatusPResponse);
+
   rpc ReadBlock (stream ReadRequest) returns (stream ReadResponse);
   rpc WriteBlock (stream WriteRequest) returns (stream WriteResponse);
 
