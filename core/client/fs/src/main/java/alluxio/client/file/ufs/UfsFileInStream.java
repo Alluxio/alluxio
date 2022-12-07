@@ -13,13 +13,15 @@ package alluxio.client.file.ufs;
 
 import alluxio.client.file.FileInStream;
 import alluxio.exception.PreconditionMessage;
+import alluxio.underfs.SeekableUnderFileInputStream;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Optional;
+import java.util.function.Function;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -27,28 +29,29 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class UfsFileInStream extends FileInStream {
-  /** Used to manage closeable resources. */
-  private final Closer mCloser = Closer.create();
-  private final InputStream mUfsInStream;
   private final long mLength;
-  private long mPosition;
+  private final Function<Long, InputStream> mFileOpener;
+  private Optional<InputStream> mUfsInStream = Optional.empty();
+  private long mPosition = 0L;
 
   /**
    * Creates a new {@link UfsFileInStream}.
    *
-   * @param stream the embedded input stream
+   * @param fileOpener the file opener to open an ufs in stream with offset
    * @param fileLength the file length
    */
-  public UfsFileInStream(InputStream stream, long fileLength) {
-    mUfsInStream = Preconditions.checkNotNull(stream);
+  public UfsFileInStream(Function<Long, InputStream> fileOpener, long fileLength) {
+    mFileOpener = Preconditions.checkNotNull(fileOpener);
     mLength = fileLength;
-    mCloser.register(mUfsInStream);
-    mUfsInStream.mark(0);
   }
 
   @Override
   public int read() throws IOException {
-    int res = mUfsInStream.read();
+    if (mPosition == mLength) { // at end of file
+      return -1;
+    }
+    updateStreamIfNeeded();
+    int res = mUfsInStream.get().read();
     if (res == -1) {
       return -1;
     }
@@ -72,10 +75,14 @@ public class UfsFileInStream extends FileInStream {
   public int read(byte[] b, int off, int len) throws IOException {
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
         PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
+    if (mPosition == mLength) { // at end of file
+      return -1;
+    }
+    updateStreamIfNeeded();
     int currentRead = 0;
     int totalRead = 0;
     while (totalRead < len) {
-      currentRead = mUfsInStream.read(b, off + totalRead, len - totalRead);
+      currentRead = mUfsInStream.get().read(b, off + totalRead, len - totalRead);
       if (currentRead <= 0) {
         break;
       }
@@ -90,16 +97,16 @@ public class UfsFileInStream extends FileInStream {
     if (n <= 0) {
       return 0;
     }
-    long res = mUfsInStream.skip(n);
+    long toBeSkipped = Math.min(n, mLength - mPosition);
+    if (!mUfsInStream.isPresent()) {
+      mPosition += toBeSkipped;
+      return toBeSkipped;
+    }
+    long res = mUfsInStream.get().skip(toBeSkipped);
     if (res > 0) {
       mPosition += res;
     }
     return res;
-  }
-
-  @Override
-  public void close() throws IOException {
-    mCloser.close();
   }
 
   @Override
@@ -127,15 +134,34 @@ public class UfsFileInStream extends FileInStream {
     if (mPosition == pos) {
       return;
     }
-    if (mPosition < pos) {
-      mPosition += mUfsInStream.skip(pos - mPosition);
+    if (!mUfsInStream.isPresent()) {
+      mPosition = pos;
+      return;
+    }
+    if (mUfsInStream.get() instanceof SeekableUnderFileInputStream) {
+      ((SeekableUnderFileInputStream) mUfsInStream.get()).seek(pos);
+    } else if (mPosition < pos) {
+      while (mPosition < pos) {
+        mPosition += mUfsInStream.get().skip(pos - mPosition);
+      }
     } else {
-      mUfsInStream.reset();
-      mPosition = mUfsInStream.skip(pos);
+      close();
     }
-    if (mPosition != pos) {
-      throw new IOException(String.format("Failed to seek to position %s but at %s",
-          pos, mPosition));
+    mPosition = pos;
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (mUfsInStream.isPresent()) {
+      mUfsInStream.get().close();
+      mUfsInStream = Optional.empty();
     }
+  }
+
+  private void updateStreamIfNeeded() {
+    if (mUfsInStream.isPresent()) {
+      return;
+    }
+    mUfsInStream = Optional.of(mFileOpener.apply(mPosition));
   }
 }
