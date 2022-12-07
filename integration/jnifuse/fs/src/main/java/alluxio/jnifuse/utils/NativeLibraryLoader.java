@@ -165,9 +165,15 @@ public class NativeLibraryLoader {
     Optional<UnsatisfiedLinkError> err;
     switch (version) {
       case VERSION_2:
+        if (!loadToCheckLibraryExistence("libfuse")) {
+          throw new RuntimeException("Failed to find libfuse 2. Please install fuse");
+        }
         err = load2(tmpDir);
         break;
       case VERSION_3:
+        if (!loadToCheckLibraryExistence("libfuse3")) {
+          throw new RuntimeException("Failed to find libfuse 3. Please install fuse3");
+        }
         err = load3(tmpDir);
         break;
       default:
@@ -243,6 +249,13 @@ public class NativeLibraryLoader {
     }
 
     return temp;
+  }
+
+  private boolean loadToCheckLibraryExistence(String libraryName) {
+    return !tryLoad(() -> {
+      System.loadLibrary(libraryName);
+      LOG.info("Loaded {} by System.loadLibrary.", libraryName);
+    }).isPresent();
   }
 
   /**
