@@ -25,6 +25,7 @@ class AlwaysOnWebServerService extends WebServerService {
 
   @Override
   public synchronized void start() {
+    LOG.info("Starting {}", this.getClass().getSimpleName());
     startWebServer();
   }
 
@@ -36,6 +37,7 @@ class AlwaysOnWebServerService extends WebServerService {
 
   @Override
   public synchronized void stop() {
+    LOG.info("Stopping {}", this.getClass().getSimpleName());
     stopWebServer();
   }
 }

@@ -20,6 +20,8 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.util.JvmPauseMonitor;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -30,6 +32,8 @@ import javax.annotation.concurrent.GuardedBy;
  * pause monitor upon being stopped.
  */
 public class JvmMonitorService implements SimpleService {
+  protected static final Logger LOG = LoggerFactory.getLogger(JvmMonitorService.class);
+
   @Nullable @GuardedBy("this")
   private JvmPauseMonitor mJvmPauseMonitor = null;
 
@@ -37,6 +41,7 @@ public class JvmMonitorService implements SimpleService {
 
   @Override
   public synchronized void start() {
+    LOG.info("Starting {}", this.getClass().getSimpleName());
     Preconditions.checkState(mJvmPauseMonitor == null, "JVM pause monitor must not already exist");
     mJvmPauseMonitor = new JvmPauseMonitor(
         Configuration.getMs(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS),
@@ -62,6 +67,7 @@ public class JvmMonitorService implements SimpleService {
 
   @Override
   public synchronized void stop() {
+    LOG.info("Stopping {}", this.getClass().getSimpleName());
     if (mJvmPauseMonitor != null) {
       mJvmPauseMonitor.stop();
       mJvmPauseMonitor = null;

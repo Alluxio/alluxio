@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * Simple service that manages the behavior of the metrics system.
  */
 public abstract class MetricsService implements SimpleService {
-  private static final Logger LOG = LoggerFactory.getLogger(MetricsService.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MetricsService.class);
 
   protected void startMetricsSystem() {
     LOG.info("Start metric sinks.");

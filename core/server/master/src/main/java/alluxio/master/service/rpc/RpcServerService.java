@@ -79,6 +79,7 @@ public class RpcServerService implements SimpleService {
 
   @Override
   public synchronized void start() {
+    LOG.info("Starting {}", this.getClass().getSimpleName());
     Preconditions.checkState(mRejectingGrpcServer == null, "rejecting server must not be running");
     mRejectingGrpcServer = new RejectingServer(mBindAddress);
     mRejectingGrpcServer.start();
@@ -87,6 +88,7 @@ public class RpcServerService implements SimpleService {
 
   @Override
   public synchronized void promote() {
+    LOG.info("Promoting {}", this.getClass().getSimpleName());
     Preconditions.checkState(mGrpcServer == null, "rpc server must not be running");
     stopRejectingServer();
     waitForFree();
@@ -114,6 +116,7 @@ public class RpcServerService implements SimpleService {
 
   @Override
   public synchronized void demote() {
+    LOG.info("Demoting {}", this.getClass().getSimpleName());
     stopGrpcServer();
     stopRpcExecutor();
     waitForFree();
@@ -122,6 +125,7 @@ public class RpcServerService implements SimpleService {
 
   @Override
   public synchronized void stop() {
+    LOG.info("Stopping {}", this.getClass().getSimpleName());
     stopRejectingServer();
     stopGrpcServer();
     stopRpcExecutor();

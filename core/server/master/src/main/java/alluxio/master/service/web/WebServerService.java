@@ -30,7 +30,7 @@ import javax.annotation.concurrent.GuardedBy;
  * Defines common interface for the two difference web server behavior.
  */
 public abstract class WebServerService implements SimpleService {
-  private static final Logger LOG = LoggerFactory.getLogger(WebServerService.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(WebServerService.class);
 
   private final MasterProcess mMasterProcess;
 

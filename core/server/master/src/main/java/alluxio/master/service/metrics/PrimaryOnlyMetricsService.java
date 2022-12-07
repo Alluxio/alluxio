@@ -18,20 +18,25 @@ package alluxio.master.service.metrics;
  */
 class PrimaryOnlyMetricsService extends MetricsService {
   @Override
-  public void start() {}
+  public void start() {
+    LOG.info("Starting {}", this.getClass().getSimpleName());
+  }
 
   @Override
   public void promote() {
+    LOG.info("Promoting {}", this.getClass().getSimpleName());
     startMetricsSystem();
   }
 
   @Override
   public void demote() {
+    LOG.info("Demoting {}", this.getClass().getSimpleName());
     stopMetricsSystem();
   }
 
   @Override
   public void stop() {
+    LOG.info("Stopping {}", this.getClass().getSimpleName());
     stopMetricsSystem();
   }
 }

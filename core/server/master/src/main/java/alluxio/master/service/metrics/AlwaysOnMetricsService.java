@@ -19,6 +19,7 @@ package alluxio.master.service.metrics;
 class AlwaysOnMetricsService extends MetricsService {
   @Override
   public void start() {
+    LOG.info("Starting {}", this.getClass().getSimpleName());
     startMetricsSystem();
   }
 
@@ -30,6 +31,7 @@ class AlwaysOnMetricsService extends MetricsService {
 
   @Override
   public void stop() {
+    LOG.info("Stopping {}", this.getClass().getSimpleName());
     stopMetricsSystem();
   }
 }
