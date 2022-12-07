@@ -678,6 +678,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected InputStream openObject(String key, OpenOptions options,
       RetryPolicy retryPolicy) {
-    return new S3AInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy);
+    return S3AInputStream.create(mBucketName, key, mClient, options.getOffset(), retryPolicy);
+  }
+
+  @Override
+  public boolean isSeekable() {
+    return true;
   }
 }
