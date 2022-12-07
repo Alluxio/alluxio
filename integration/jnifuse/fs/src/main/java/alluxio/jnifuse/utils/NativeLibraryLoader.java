@@ -165,9 +165,6 @@ public class NativeLibraryLoader {
     Optional<UnsatisfiedLinkError> err;
     switch (version) {
       case VERSION_2:
-        if (!loadToCheckLibraryExistence("libfuse")) {
-          throw new RuntimeException("Failed to find libfuse 2. Please install fuse");
-        }
         err = load2(tmpDir);
         break;
       case VERSION_3:
