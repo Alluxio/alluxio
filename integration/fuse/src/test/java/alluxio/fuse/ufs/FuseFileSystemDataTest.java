@@ -384,6 +384,7 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
     Assert.assertEquals(DEFAULT_FILE_LEN * 2, mFileStat.st_size.intValue());
     Assert.assertEquals(0, mFuseFs.release(FILE, mFileInfo.get()));
     Assert.assertEquals(DEFAULT_FILE_LEN * 2, mFileStat.st_size.intValue());
+    Assert.assertEquals(0, mFuseFs.unlink(FILE));
   }
 
   private void createOpenTest(Consumer<Function<Integer, Integer>> testCase,

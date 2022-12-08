@@ -27,6 +27,7 @@ import alluxio.jnifuse.LibFuse;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
+import alluxio.underfs.s3a.S3AUnderFileSystemFactory;
 import alluxio.util.io.FileUtils;
 
 import org.junit.After;
@@ -34,6 +35,7 @@ import org.junit.Before;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.UUID;
 
 /**
  * The abstract test for testing {@link alluxio.fuse.AlluxioJniFuseFileSystem}
@@ -47,20 +49,29 @@ public abstract class AbstractTest {
   protected static final int DEFAULT_FILE_LEN = 64;
   protected static final Mode DEFAULT_MODE = new Mode(
       Mode.Bits.ALL, Mode.Bits.READ, Mode.Bits.READ);
+  private static final String TEST_S3A_PATH_CONF = "alluxio.test.s3a.path";
 
   protected AlluxioURI mRootUfs;
   protected FileSystem mFileSystem;
   protected FileSystemContext mContext;
   protected UfsFileSystemOptions mUfsOptions;
+  protected boolean mIsLocalUFS;
 
   @Before
   public void before() throws Exception {
     InstancedConfiguration conf = Configuration.copyGlobal();
-    String ufs = AlluxioTestDirectory.createTemporaryDirectory("ufs").toString();
-    conf.set(PropertyKey.FUSE_MOUNT_POINT, "/t/mountPoint", Source.RUNTIME);
+    String s3Path = System.getProperty(TEST_S3A_PATH_CONF);
+    String ufs;
+    if (s3Path != null) { // test against S3
+      ufs = new AlluxioURI(s3Path).join(UUID.randomUUID().toString()).toString();
+      UnderFileSystemFactoryRegistry.register(new S3AUnderFileSystemFactory());
+    } else { // test against local
+      ufs = AlluxioTestDirectory.createTemporaryDirectory("ufs").toString();
+      UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
+      mIsLocalUFS = true;
+    }
     mRootUfs = new AlluxioURI(ufs);
-    LocalUnderFileSystemFactory localUnderFileSystemFactory = new LocalUnderFileSystemFactory();
-    UnderFileSystemFactoryRegistry.register(localUnderFileSystemFactory);
+    conf.set(PropertyKey.FUSE_MOUNT_POINT, "/t/mountPoint", Source.RUNTIME);
     mContext = FileSystemContext.create(ClientContext.create(conf));
     LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
     mUfsOptions = new UfsFileSystemOptions(ufs);
