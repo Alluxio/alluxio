@@ -5945,6 +5945,16 @@
                 "id": 2,
                 "name": "startTimeMs",
                 "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "version",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "revision",
+                "type": "string"
               }
             ]
           },

@@ -44,6 +44,9 @@ public final class MetaMasterSync implements HeartbeatExecutor {
   /** Client for communication with the leader master. */
   private final RetryHandlingMetaMasterMasterClient mMasterClient;
 
+  /** The master instance this sync belongs to. */
+  private final MetaMaster mMaster;
+
   /** The ID of this standby master. */
   private final AtomicReference<Long> mMasterId = new AtomicReference<>(UNINITIALIZED_MASTER_ID);
 
@@ -52,10 +55,13 @@ public final class MetaMasterSync implements HeartbeatExecutor {
    *
    * @param masterAddress the master address
    * @param masterClient the meta master client
+   * @param master the master instance this sync belongs to
    */
-  public MetaMasterSync(Address masterAddress, RetryHandlingMetaMasterMasterClient masterClient) {
+  public MetaMasterSync(Address masterAddress, RetryHandlingMetaMasterMasterClient masterClient,
+      MetaMaster master) {
     mMasterAddress = masterAddress;
     mMasterClient = masterClient;
+    mMaster = master;
   }
 
   /**
@@ -112,7 +118,8 @@ public final class MetaMasterSync implements HeartbeatExecutor {
   private void setIdAndRegister() throws IOException {
     mMasterId.set(mMasterClient.getId(mMasterAddress));
     mMasterClient.register(mMasterId.get(),
-        Configuration.getConfiguration(Scope.MASTER));
+        Configuration.getConfiguration(Scope.MASTER),
+        mMaster.getStartTimeMs());
   }
 
   @Override

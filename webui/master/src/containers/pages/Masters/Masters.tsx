@@ -50,6 +50,8 @@ export class MastersPresenter extends React.Component<AllProps> {
                     <th>Master Host</th>
                     <th>Master Port</th>
                     <th>Started</th>
+                    <th>Version</th>
+                    <th>Revision</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -57,6 +59,8 @@ export class MastersPresenter extends React.Component<AllProps> {
                     <td>{mastersData.leaderMasterInfo.address.host}</td>
                     <td>{mastersData.leaderMasterInfo.address.rpcPort}</td>
                     <td>{mastersData.leaderMasterInfo.startTime}</td>
+                    <td>{mastersData.leaderMasterInfo.version}</td>
+                    <td>{mastersData.leaderMasterInfo.revision}</td>
                   </tr>
                 </tbody>
               </Table>
@@ -73,6 +77,8 @@ export class MastersPresenter extends React.Component<AllProps> {
                     <th>Master Port</th>
                     <th>Last Heartbeat</th>
                     <th>Started</th>
+                    <th>Version</th>
+                    <th>Revision</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -83,6 +89,8 @@ export class MastersPresenter extends React.Component<AllProps> {
                       <td>{masterInfo.address.rpcPort}</td>
                       <td>{masterInfo.lastUpdatedTime}</td>
                       <td>{masterInfo.startTime}</td>
+                      <td>{masterInfo.version}</td>
+                      <td>{masterInfo.revision}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -100,6 +108,8 @@ export class MastersPresenter extends React.Component<AllProps> {
                     <th>Master Port</th>
                     <th>Last Heartbeat</th>
                     <th>Started</th>
+                    <th>Version</th>
+                    <th>Revision</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -110,6 +120,8 @@ export class MastersPresenter extends React.Component<AllProps> {
                       <td>{masterInfo.address.rpcPort}</td>
                       <td>{masterInfo.lastUpdatedTime}</td>
                       <td>{masterInfo.startTime}</td>
+                      <td>{masterInfo.version}</td>
+                      <td>{masterInfo.revision}</td>
                     </tr>
                   ))}
                 </tbody>

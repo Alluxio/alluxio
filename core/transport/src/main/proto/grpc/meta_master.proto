@@ -238,6 +238,8 @@ enum MetaCommand {
 message RegisterMasterPOptions {
   repeated grpc.ConfigProperty configs = 1;
   optional int64 startTimeMs = 2;
+  optional string version = 3;
+  optional string revision = 4;
 }
 message RegisterMasterPRequest {
   optional int64 masterId = 1;

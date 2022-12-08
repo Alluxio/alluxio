@@ -32,6 +32,12 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
               <th>
                 Started
               </th>
+              <th>
+                Version
+              </th>
+              <th>
+                Revision
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -40,6 +46,8 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
               <td>
                 0
               </td>
+              <td />
+              <td />
               <td />
             </tr>
           </tbody>
@@ -74,6 +82,12 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
               <th>
                 Started
               </th>
+              <th>
+                Version
+              </th>
+              <th>
+                Revision
+              </th>
             </tr>
           </thead>
           <tbody />
@@ -107,6 +121,12 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
               </th>
               <th>
                 Started
+              </th>
+              <th>
+                Version
+              </th>
+              <th>
+                Revision
               </th>
             </tr>
           </thead>

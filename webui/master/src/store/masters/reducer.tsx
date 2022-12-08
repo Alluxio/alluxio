@@ -26,6 +26,8 @@ export const initialMastersState: IMastersState = {
       id: '',
       lastUpdatedTime: '',
       startTime: '',
+      version: '',
+      revision: '',
     },
   },
   errors: undefined,

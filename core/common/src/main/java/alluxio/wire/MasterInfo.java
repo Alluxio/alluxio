@@ -30,6 +30,10 @@ public final class MasterInfo {
   private String mStartTime = "";
   /** Master's last updated time. */
   private String mLastUpdatedTime = "";
+  /** Master's version. */
+  private String mVersion = "";
+  /** Master's revision. */
+  private String mRevision = "";
 
   /**
    * Creates a new instance of {@link MasterInfo}.
@@ -43,12 +47,17 @@ public final class MasterInfo {
    * @param address the master's address
    * @param lastUpdatedTime the master's last updated time
    * @param startTime the master's start time
+   * @param version the master's version
+   * @param revision the master's revision
    */
-  public MasterInfo(long id, Address address, String lastUpdatedTime, String startTime) {
+  public MasterInfo(long id, Address address, String lastUpdatedTime, String startTime,
+      String version, String revision) {
     mAddress = Preconditions.checkNotNull(address, "address");
     mId = id;
     mLastUpdatedTime = lastUpdatedTime;
     mStartTime = startTime;
+    mVersion = version;
+    mRevision = revision;
   }
 
   /**
@@ -91,11 +100,43 @@ public final class MasterInfo {
   }
 
   /**
+   * @return the version of the master
+   */
+  public String getVersion() {
+    return mVersion;
+  }
+
+  /**
+   * @return the revision of the master
+   */
+  public String getRevision() {
+    return mRevision;
+  }
+
+  /**
    * @param startTime the start time of the master
    * @return the master information
    */
   public MasterInfo setStartTime(String startTime) {
     mStartTime = startTime;
+    return this;
+  }
+
+  /**
+   * @param version the version of the master
+   * @return the master information
+   */
+  public MasterInfo setVersion(String version) {
+    mVersion = version;
+    return this;
+  }
+
+  /**
+   * @param revision the revision of the master
+   * @return the master information
+   */
+  public MasterInfo setRevision(String revision) {
+    mRevision = revision;
     return this;
   }
 
@@ -130,7 +171,9 @@ public final class MasterInfo {
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
         .add("lastUpdatedTime", mLastUpdatedTime)
-        .add("startTime", mStartTime).toString();
+        .add("startTime", mStartTime)
+        .add("version", mVersion)
+        .add("revision", mRevision).toString();
   }
 
   @Override
@@ -144,11 +187,13 @@ public final class MasterInfo {
     MasterInfo that = (MasterInfo) o;
     return mId == that.mId && Objects.equal(mAddress, that.mAddress)
         && mLastUpdatedTime.equals(that.mLastUpdatedTime)
-        && mStartTime.equals(that.mStartTime);
+        && mStartTime.equals(that.mStartTime)
+        && mVersion.equals(that.mVersion)
+        && mRevision.equals(that.mRevision);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mId, mAddress, mLastUpdatedTime, mStartTime);
+    return Objects.hashCode(mId, mAddress, mLastUpdatedTime, mStartTime, mVersion, mRevision);
   }
 }

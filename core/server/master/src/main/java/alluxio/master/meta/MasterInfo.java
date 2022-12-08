@@ -30,7 +30,11 @@ public final class MasterInfo {
   /** Master's last updated time in ms. */
   private long mLastUpdatedTimeMs;
   /** Master's start time in ms. */
-  private long mStartTimeMs;
+  private long mStartTimeMs = 0;
+  /** Master's version. */
+  private String mVersion = "";
+  /** Master's revision. */
+  private String mRevision = "";
 
   /**
    * Creates a new instance of {@link MasterInfo}.
@@ -42,7 +46,6 @@ public final class MasterInfo {
     mAddress = Preconditions.checkNotNull(address, "address");
     mId = id;
     mLastUpdatedTimeMs = System.currentTimeMillis();
-    mStartTimeMs = mLastUpdatedTimeMs;
   }
 
   /**
@@ -73,6 +76,20 @@ public final class MasterInfo {
     return mStartTimeMs;
   }
 
+  /**
+   * @return the version of the master
+   */
+  public String getVersion() {
+    return mVersion;
+  }
+
+  /**
+   * @return the revision of the master
+   */
+  public String getRevision() {
+    return mRevision;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
@@ -84,6 +101,20 @@ public final class MasterInfo {
    */
   public void setStartTimeMs(long startTimeMs) {
     mStartTimeMs = startTimeMs;
+  }
+
+  /**
+   * @param version the version of the master
+   */
+  public void setVersion(String version) {
+    mVersion = version;
+  }
+
+  /**
+   * @param revision the revision of the master
+   */
+  public void setRevision(String revision) {
+    mRevision = revision;
   }
 
   /**

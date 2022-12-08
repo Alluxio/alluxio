@@ -14,7 +14,9 @@ package alluxio.wire;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,6 +39,8 @@ public class MasterInfoTest {
     Assert.assertEquals(a.getAddress(), b.getAddress());
     Assert.assertEquals(a.getLastUpdatedTime(), b.getLastUpdatedTime());
     Assert.assertEquals(a.getStartTime(), b.getStartTime());
+    Assert.assertEquals(a.getVersion(), b.getVersion());
+    Assert.assertEquals(a.getRevision(), b.getRevision());
     Assert.assertEquals(a, b);
   }
 
@@ -44,8 +48,13 @@ public class MasterInfoTest {
     Random random = new Random();
     long id = random.nextLong();
     Address address = new Address(RandomStringUtils.randomAlphanumeric(10), random.nextInt());
+    String lastUpdatedTime = CommonUtils.convertMsToClockTime(CommonUtils.getCurrentMs());
+    String startTime = CommonUtils.convertMsToClockTime(CommonUtils.getCurrentMs());
+    String version = String.format("%d.%d.%d", random.nextInt(10),
+        random.nextInt(20), random.nextInt(10));
+    String revision = DigestUtils.sha1Hex(RandomStringUtils.random(10));
 
-    MasterInfo result = new MasterInfo(id, address);
+    MasterInfo result = new MasterInfo(id, address, lastUpdatedTime, startTime, version, revision);
     result.setLastUpdatedTime(CommonUtils.convertMsToDate(System.currentTimeMillis(),
         Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
     return result;

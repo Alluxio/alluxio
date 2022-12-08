@@ -336,7 +336,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
             new RetryHandlingMetaMasterMasterClient(MasterClientContext
                 .newBuilder(ClientContext.create(Configuration.global())).build());
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
-            new MetaMasterSync(mMasterAddress, metaMasterClient),
+            new MetaMasterSync(mMasterAddress, metaMasterClient, this),
             (int) Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
             Configuration.global(), mMasterContext.getUserState()));
         LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
@@ -498,7 +498,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           CommonUtils.convertMsToDate(master.getLastUpdatedTimeMs(),
               Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)),
           CommonUtils.convertMsToDate(master.getStartTimeMs(),
-              Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
+              Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)),
+          master.getVersion(), master.getRevision());
       indexNum++;
     }
     return masterInfos;
@@ -513,7 +514,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           CommonUtils.convertMsToDate(master.getLastUpdatedTimeMs(),
               Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)),
           CommonUtils.convertMsToDate(master.getStartTimeMs(),
-              Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
+              Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)),
+          master.getVersion(), master.getRevision());
       indexNum++;
     }
     return masterInfos;
@@ -612,6 +614,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private MasterInfo updateMasterInfo(MasterInfo info, RegisterMasterPOptions options) {
     if (options.hasStartTimeMs()) {
       info.setStartTimeMs(options.getStartTimeMs());
+    }
+    if (options.hasVersion()) {
+      info.setVersion(options.getVersion());
+    }
+    if (options.hasRevision()) {
+      info.setRevision(options.getRevision());
     }
     return info;
   }

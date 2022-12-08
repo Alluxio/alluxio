@@ -16,6 +16,7 @@ import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
@@ -880,7 +881,8 @@ public final class AlluxioMasterRestServiceHandler {
           CommonUtils.convertMsToDate(System.currentTimeMillis(),
               Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)),
           CommonUtils.convertMsToDate(mMasterProcess.getStartTimeMs(),
-              Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
+              Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)),
+          ProjectConstants.VERSION, ProjectConstants.REVISION);
       response.setLeaderMasterInfo(leaderMasterInfo);
       return response;
     }, Configuration.global());

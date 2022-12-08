@@ -13,6 +13,7 @@ package alluxio.master.meta;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetMasterIdPRequest;
 import alluxio.grpc.MasterHeartbeatPRequest;
@@ -100,12 +101,16 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    *
    * @param masterId the master id of the standby master registering
    * @param configList the configuration of this master
+   * @param startTimeMs the start time of this master in ms
    */
-  public void register(final long masterId, final List<ConfigProperty> configList)
-      throws IOException {
+  public void register(final long masterId, final List<ConfigProperty> configList,
+      final long startTimeMs) throws IOException {
     retryRPC(() -> {
       mClient.registerMaster(RegisterMasterPRequest.newBuilder().setMasterId(masterId)
-          .setOptions(RegisterMasterPOptions.newBuilder().addAllConfigs(configList).build())
+          .setOptions(RegisterMasterPOptions.newBuilder().addAllConfigs(configList)
+              .setStartTimeMs(startTimeMs)
+              .setVersion(ProjectConstants.VERSION)
+              .setRevision(ProjectConstants.REVISION).build())
           .build());
       return null;
     }, LOG, "Register", "masterId=%d,configList=%s", masterId, configList);

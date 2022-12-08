@@ -17,4 +17,6 @@ export interface IMasterInfo {
   id: string;
   lastUpdatedTime: string;
   startTime: string;
+  version: string;
+  revision: string;
 }
