@@ -491,25 +491,18 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public alluxio.wire.MasterInfo[] getMasterInfos() {
-    alluxio.wire.MasterInfo[] masterInfos = new alluxio.wire.MasterInfo[mMasters.size()];
-    int indexNum = 0;
-    for (MasterInfo master : mMasters) {
-      masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(), master.getAddress(),
-          CommonUtils.convertMsToDate(master.getLastUpdatedTimeMs(),
-              Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)),
-          CommonUtils.convertMsToDate(master.getStartTimeMs(),
-              Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)),
-          master.getVersion(), master.getRevision());
-      indexNum++;
-    }
-    return masterInfos;
+    return toWire(mMasters);
   }
 
   @Override
   public alluxio.wire.MasterInfo[] getLostMasterInfos() {
-    alluxio.wire.MasterInfo[] masterInfos = new alluxio.wire.MasterInfo[mLostMasters.size()];
+    return toWire(mLostMasters);
+  }
+
+  private static alluxio.wire.MasterInfo[] toWire(final IndexedSet<MasterInfo> masters) {
+    alluxio.wire.MasterInfo[] masterInfos = new alluxio.wire.MasterInfo[masters.size()];
     int indexNum = 0;
-    for (MasterInfo master : mLostMasters) {
+    for (MasterInfo master : masters) {
       masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(), master.getAddress(),
           CommonUtils.convertMsToDate(master.getLastUpdatedTimeMs(),
               Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)),
