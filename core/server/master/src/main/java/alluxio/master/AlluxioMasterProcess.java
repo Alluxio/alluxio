@@ -102,9 +102,18 @@ public class AlluxioMasterProcess extends MasterProcess {
           String.format("Journal %s has not been formatted!", mJournalSystem));
     }
     // Create masters.
+    mContext = createBaseMasterContext().build();
+    MasterUtils.createMasters(mRegistry, mContext);
+    if (Configuration.getBoolean(PropertyKey.MASTER_THROTTLE_ENABLED)) {
+      mRegistry.get(alluxio.master.throttle.DefaultThrottleMaster.class).setMaster(this);
+    }
+    LOG.info("New process created.");
+  }
+
+  protected CoreMasterContext.Builder createBaseMasterContext() {
     String inodeStoreBaseDir = Configuration.getString(PropertyKey.MASTER_METASTORE_DIR_INODE);
     String blockStoreBaseDir = Configuration.getString(PropertyKey.MASTER_METASTORE_DIR_BLOCK);
-    mContext = CoreMasterContext.newBuilder()
+    return CoreMasterContext.newBuilder()
         .setJournalSystem(mJournalSystem)
         .setPrimarySelector(mLeaderSelector)
         .setSafeModeManager(mSafeModeManager)
@@ -113,13 +122,7 @@ public class AlluxioMasterProcess extends MasterProcess {
         .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(inodeStoreBaseDir))
         .setStartTimeMs(mStartTimeMs)
         .setPort(NetworkAddressUtils.getPort(ServiceType.MASTER_RPC, Configuration.global()))
-        .setUfsManager(mUfsManager)
-        .build();
-    MasterUtils.createMasters(mRegistry, mContext);
-    if (Configuration.getBoolean(PropertyKey.MASTER_THROTTLE_ENABLED)) {
-      mRegistry.get(alluxio.master.throttle.DefaultThrottleMaster.class).setMaster(this);
-    }
-    LOG.info("New process created.");
+        .setUfsManager(mUfsManager);
   }
 
   @Override

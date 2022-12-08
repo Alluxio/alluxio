@@ -46,7 +46,7 @@ import javax.annotation.concurrent.GuardedBy;
  * deployed, a rejecting server is deployed instead (after the service has been started).
  */
 public class RpcServerService implements SimpleService {
-  private static final Logger LOG = LoggerFactory.getLogger(RpcServerService.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(RpcServerService.class);
 
   protected final InetSocketAddress mBindAddress;
   protected final MasterProcess mMasterProcess;
@@ -164,11 +164,11 @@ public class RpcServerService implements SimpleService {
     }
   }
 
-  private void waitForFree() {
+  protected void waitForFree() {
     waitFor(false, mBindAddress);
   }
 
-  private void waitForBound() {
+  protected void waitForBound() {
     waitFor(true, mBindAddress);
   }
 
