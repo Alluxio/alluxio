@@ -563,9 +563,8 @@ public class InodeKVTreePersistentState {
   }
 
   private void updateTimestampsAndChildCount(long id, long opTimeMs, long deltaChildCount) {
-    MutableInodeDirectory inode = mInodeStore
-        .getMutable(id).get().asDirectory();
-    try (LockResource lr = mInodeLockManager.lockUpdate(inode.getId())) {
+    try (LockResource lr = mInodeLockManager.lockUpdate(id)) {
+      MutableInodeDirectory inode = mInodeStore.getMutable(id).get().asDirectory();
       boolean madeUpdate = false;
       if (inode.getLastModificationTimeMs() < opTimeMs) {
         inode.setLastModificationTimeMs(opTimeMs);

@@ -303,9 +303,7 @@ public class InodeKVTree implements InodeTreeInterface {
    * @return whether the inode exists
    */
   public boolean inodeIdExists(long id) {
-    // return mInodeStore.get(id).isPresent();
-    // TODO(yyong) always return true
-    return true;
+    return mInodeStore.get(id).isPresent();
   }
 
   /**
