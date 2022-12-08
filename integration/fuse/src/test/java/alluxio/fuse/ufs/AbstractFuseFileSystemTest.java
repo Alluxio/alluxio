@@ -37,7 +37,7 @@ public abstract class AbstractFuseFileSystemTest extends AbstractTest {
   @Override
   public void beforeActions() {
     mFuseFs = new AlluxioJniFuseFileSystem(mContext, mFileSystem,
-        FuseOptions.create(LIBFUSE_VERSION, FileSystemOptions.create(
+        FuseOptions.create(FileSystemOptions.create(
             mContext.getClusterConf(), Optional.of(mUfsOptions)), false, Configuration.global()));
     mFileStat = FileStat.of(ByteBuffer.allocateDirect(256));
     mFileInfo = AlluxioFuseUtils.createTestFuseFileInfo(mFuseFs);

@@ -18,7 +18,6 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.fuse.FuseConstants;
 import alluxio.fuse.options.FuseOptions;
-import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricsSystem;
 
 import org.junit.Assert;
@@ -35,7 +34,7 @@ public class UpdateCheckerTest {
   @Test
   public void UnderFileSystemAlluxio() {
     try (UpdateChecker checker = UpdateChecker
-        .create(FuseOptions.create(LibfuseVersion.VERSION_2, Configuration.global()))) {
+        .create(FuseOptions.create(Configuration.global()))) {
       Assert.assertTrue(containsTargetInfo(checker.getUnchangeableFuseInfo(),
           UpdateChecker.ALLUXIO_FS));
     }
@@ -93,7 +92,7 @@ public class UpdateCheckerTest {
   @Test
   public void FuseOpsCalled() {
     try (UpdateChecker checker = UpdateChecker.create(FuseOptions.create(
-        LibfuseVersion.VERSION_2, Configuration.global()))) {
+        Configuration.global()))) {
       MetricsSystem.timer(FuseConstants.FUSE_READ).update(5, TimeUnit.MILLISECONDS);
       Assert.assertTrue(containsTargetInfo(checker.getFuseCheckInfo(), FuseConstants.FUSE_READ));
       MetricsSystem.timer(FuseConstants.FUSE_WRITE).update(5, TimeUnit.MILLISECONDS);
@@ -104,16 +103,15 @@ public class UpdateCheckerTest {
   }
 
   private UpdateChecker getUpdateCheckerWithUfs(String ufsAddress) {
-    return UpdateChecker.create(FuseOptions.create(LibfuseVersion.VERSION_2,
-        FileSystemOptions.create(Configuration.global(),
-            Optional.of(new UfsFileSystemOptions(ufsAddress))), false, Configuration.global()));
+    return UpdateChecker.create(FuseOptions.create(FileSystemOptions.create(Configuration.global(),
+        Optional.of(new UfsFileSystemOptions(ufsAddress))), false, Configuration.global()));
   }
 
   private UpdateChecker getUpdateCheckerWithMountOptions(String mountOptions) {
     InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.FUSE_MOUNT_OPTIONS,
         PropertyKey.FUSE_MOUNT_OPTIONS.formatValue(mountOptions));
-    return UpdateChecker.create(FuseOptions.create(LibfuseVersion.VERSION_2, conf));
+    return UpdateChecker.create(FuseOptions.create(conf));
   }
 
   private boolean containsTargetInfo(List<String> list, String targetInfo) {

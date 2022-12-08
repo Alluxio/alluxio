@@ -42,10 +42,10 @@ import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.ErrorCodes;
-import alluxio.jnifuse.LibFuse.LibfuseLoadStrategy;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.utils.Environment;
+import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
@@ -181,33 +181,28 @@ public final class AlluxioFuseUtils {
    * @param conf the configuration object
    * @return the libjnifuse load strategy
    */
-  public static LibfuseLoadStrategy getLibfuseLoadStrategy(AlluxioConfiguration conf) {
-    Optional<Integer> libfuseVersion = conf.isSet(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION)
-        ? Optional.of(conf.getInt(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION)) : Optional.empty();
+  public static LibfuseVersion getAndCheckLibfuseVersion(AlluxioConfiguration conf) {
+    int libfuseVersion = conf.getInt(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION);
     if (Environment.isMac()) {
-      if (libfuseVersion.isPresent() && libfuseVersion.get() == 3) {
+      if (libfuseVersion == 3) {
         throw new InvalidArgumentRuntimeException("Osxfuse does not support libfuse 3");
       }
-      return LibfuseLoadStrategy.LOAD_FUSE2_ONLY;
+      return LibfuseVersion.VERSION_2;
     }
     if (!conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
-      if (libfuseVersion.isPresent() && libfuseVersion.get() == 3) {
+      if (libfuseVersion == 3) {
         throw new InvalidArgumentRuntimeException("JNR-FUSE does not support libfuse 3");
       }
-      return LibfuseLoadStrategy.LOAD_FUSE2_ONLY;
+      return LibfuseVersion.VERSION_2;
     }
 
-    if (!libfuseVersion.isPresent()) {
-      return LibfuseLoadStrategy.FUSE3_THEN_FUSE2;
-    }
-
-    if (libfuseVersion.get() == 2) {
-      return LibfuseLoadStrategy.LOAD_FUSE2_ONLY;
-    } else if (libfuseVersion.get() == 3) {
-      return LibfuseLoadStrategy.LOAD_FUSE3_ONLY;
+    if (libfuseVersion == 2) {
+      return LibfuseVersion.VERSION_2;
+    } else if (libfuseVersion == 3) {
+      return LibfuseVersion.VERSION_3;
     }
     throw new InvalidArgumentRuntimeException(
-        String.format("Libfuse version %d is invalid", libfuseVersion.get()));
+        String.format("Libfuse version %d is invalid", libfuseVersion));
   }
 
   /**

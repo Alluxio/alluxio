@@ -23,8 +23,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.fuse.AlluxioFuseUtils;
-import alluxio.jnifuse.LibFuse;
-import alluxio.jnifuse.utils.LibfuseVersion;
+import alluxio.jnifuse.utils.NativeLibraryLoader;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
@@ -48,13 +47,16 @@ public abstract class AbstractTest {
   protected static final int DEFAULT_FILE_LEN = 64;
   protected static final Mode DEFAULT_MODE = new Mode(
       Mode.Bits.ALL, Mode.Bits.READ, Mode.Bits.READ);
-  protected static final LibfuseVersion LIBFUSE_VERSION = LibFuse.loadLibrary(
-      AlluxioFuseUtils.getLibfuseLoadStrategy(Configuration.global()));
 
   protected AlluxioURI mRootUfs;
   protected FileSystem mFileSystem;
   protected FileSystemContext mContext;
   protected UfsFileSystemOptions mUfsOptions;
+
+  static {
+    NativeLibraryLoader.getInstance().loadLibfuse(
+        AlluxioFuseUtils.getAndCheckLibfuseVersion(Configuration.global()));
+  }
 
   @Before
   public void before() throws Exception {

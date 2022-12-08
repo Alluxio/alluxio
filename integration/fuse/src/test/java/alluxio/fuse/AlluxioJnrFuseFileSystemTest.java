@@ -46,8 +46,7 @@ import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.jnifuse.LibFuse;
-import alluxio.jnifuse.utils.LibfuseVersion;
+import alluxio.jnifuse.utils.NativeLibraryLoader;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.FileInfo;
@@ -86,6 +85,11 @@ public class AlluxioJnrFuseFileSystemTest {
   private static final AlluxioURI BASE_EXPECTED_URI = new AlluxioURI(TEST_ROOT_PATH);
   private static final String MOUNT_POINT = "/t/mountPoint";
 
+  static {
+    NativeLibraryLoader.getInstance().loadLibfuse(
+        AlluxioFuseUtils.getAndCheckLibfuseVersion(Configuration.global()));
+  }
+
   private AlluxioJnrFuseFileSystem mFuseFs;
   private FileSystem mFileSystem;
   private FuseFileInfo mFileInfo;
@@ -102,10 +106,7 @@ public class AlluxioJnrFuseFileSystemTest {
   public void before() throws Exception {
     mFileSystem = mock(FileSystem.class);
     try {
-      LibFuse.loadLibrary(
-          LibFuse.LibfuseLoadStrategy.LOAD_FUSE2_ONLY);
-      mFuseFs = new AlluxioJnrFuseFileSystem(mFileSystem, mConf,
-          FuseOptions.create(LibfuseVersion.VERSION_2, mConf));
+      mFuseFs = new AlluxioJnrFuseFileSystem(mFileSystem, mConf, FuseOptions.create(mConf));
     } catch (UnsatisfiedLinkError e) {
       // stop test and ignore if FuseFileSystem fails to create due to missing libfuse library
       Assume.assumeNoException(e);

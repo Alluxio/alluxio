@@ -15,6 +15,7 @@ import alluxio.client.file.options.FileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
+import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.utils.LibfuseVersion;
 
 import com.google.common.base.Preconditions;
@@ -37,40 +38,38 @@ public class FuseOptions {
   /**
    * Creates the FUSE options.
    *
-   * @param libfuseVersion the loaded libfuse version
    * @param conf alluxio configuration
    * @return the file system options
    */
-  public static FuseOptions create(LibfuseVersion libfuseVersion, AlluxioConfiguration conf) {
-    return create(libfuseVersion, FileSystemOptions.create(conf), false, conf);
+  public static FuseOptions create(AlluxioConfiguration conf) {
+    return create(FileSystemOptions.create(conf), false, conf);
   }
 
   /**
    * Creates the FUSE options.
    *
-   * @param libfuseVersion the loaded libfuse version
    * @param updateCheckEnabled whether to enable update check
    * @param conf alluxio configuration
    * @return the file system options
    */
-  public static FuseOptions create(LibfuseVersion libfuseVersion,
+  public static FuseOptions create(
       boolean updateCheckEnabled, AlluxioConfiguration conf) {
-    return create(libfuseVersion, FileSystemOptions.create(conf), updateCheckEnabled, conf);
+    return create(FileSystemOptions.create(conf), updateCheckEnabled, conf);
   }
 
   /**
    * Creates the FUSE options.
    *
-   * @param libfuseVersion the loaded libfuse version
    * @param fileSystemOptions the file system options
    * @param updateCheckEnabled whether to enable update check
    * @param conf alluxio configuration
    * @return the file system options
    */
-  public static FuseOptions create(LibfuseVersion libfuseVersion,
+  public static FuseOptions create(
       FileSystemOptions fileSystemOptions, boolean updateCheckEnabled, AlluxioConfiguration conf) {
     Set<String> mountOptions = conf.getList(PropertyKey.FUSE_MOUNT_OPTIONS)
         .stream().filter(a -> !a.isEmpty()).collect(Collectors.toSet());
+    LibfuseVersion libfuseVersion = AlluxioFuseUtils.getAndCheckLibfuseVersion(conf);
     if (!conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)
         && libfuseVersion == LibfuseVersion.VERSION_3) {
       throw new InvalidArgumentRuntimeException("Cannot use JNR-FUSE with libfuse 3");

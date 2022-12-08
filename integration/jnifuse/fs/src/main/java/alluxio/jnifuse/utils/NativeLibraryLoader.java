@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * This class is used to load the shared library from within the jar.
@@ -149,28 +148,23 @@ public class NativeLibraryLoader {
   }
 
   /**
-   * Load the library.
+   * Load the libfuse library.
+   * This function should be called only one per process.
    *
    * @param version     the version of libfuse to load
-   * @param tmpDir A temporary directory to use
-   *               to copy the native library to when loading from the classpath.
-   *               If null, or the empty string, we rely on Java's
-   *               {@link File#createTempFile(String, String)}
-   *               function to provide a temporary location.
-   *               The temporary file will be registered for deletion
-   *               on exit.
    */
-  public synchronized void loadLibrary(
-      final LibfuseVersion version, final String tmpDir) {
+  public void loadLibfuse(final LibfuseVersion version) {
+    // A temporary directory to use to copy the native library to when loading from the classpath.
+    // If null, or the empty string, we rely on Java's {@link File#createTempFile(String, String)}
+    // function to provide a temporary location.
+    // The temporary file will be registered for deletion on exit.
+    String tmpDir = System.getenv("JNIFUSE_SHAREDLIB_DIR");
     Optional<UnsatisfiedLinkError> err;
     switch (version) {
       case VERSION_2:
         err = load2(tmpDir);
         break;
       case VERSION_3:
-        if (!loadToCheckLibraryExistence("libfuse3")) {
-          throw new RuntimeException("Failed to find libfuse 3. Please install fuse3");
-        }
         err = load3(tmpDir);
         break;
       default:
@@ -246,17 +240,6 @@ public class NativeLibraryLoader {
     }
 
     return temp;
-  }
-
-  private boolean loadToCheckLibraryExistence(String libraryName) {
-    Optional<UnsatisfiedLinkError> error = tryLoad(() -> {
-      System.loadLibrary(libraryName);
-      LOG.info("Loaded {} by System.loadLibrary.", libraryName);
-    });
-    if (error.isPresent()) {
-      throw error.get();
-    }
-    return true;
   }
 
   /**

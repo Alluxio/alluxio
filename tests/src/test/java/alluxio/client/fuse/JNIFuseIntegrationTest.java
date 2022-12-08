@@ -19,9 +19,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
-import alluxio.jnifuse.LibFuse;
 import alluxio.jnifuse.struct.FuseFileInfo;
-import alluxio.jnifuse.utils.LibfuseVersion;
+import alluxio.jnifuse.utils.NativeLibraryLoader;
 import alluxio.resource.CloseableResource;
 import alluxio.util.io.BufferUtils;
 
@@ -38,6 +37,12 @@ import java.util.HashSet;
  */
 public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   private static final int FILE_LEN = 128;
+
+  static {
+    NativeLibraryLoader.getInstance().loadLibfuse(
+        AlluxioFuseUtils.getAndCheckLibfuseVersion(Configuration.global()));
+  }
+
   private AlluxioJniFuseFileSystem mFuseFileSystem;
 
   @Override
@@ -51,10 +56,8 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
     Configuration.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, alluxioRoot);
     Configuration.set(PropertyKey.FUSE_MOUNT_POINT, mountPoint);
     AlluxioConfiguration conf = Configuration.global();
-    LibfuseVersion loadedLibfuseVersion = LibFuse.loadLibrary(
-        AlluxioFuseUtils.getLibfuseLoadStrategy(conf));
     mFuseFileSystem = new AlluxioJniFuseFileSystem(context, fileSystem,
-        FuseOptions.create(loadedLibfuseVersion, conf));
+        FuseOptions.create(conf));
     mFuseFileSystem.mount(false, false, new HashSet<>());
   }
 
