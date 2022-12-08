@@ -29,8 +29,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class S3AInputStream extends InputStream {
-  private static final Logger LOG = LoggerFactory.getLogger(S3AInputStream.class);
-
   /** Client for operations with s3. */
   protected AmazonS3 mClient;
   /** Name of the bucket the object resides in. */
@@ -144,12 +142,16 @@ public class S3AInputStream extends InputStream {
       return;
     }
     if (mIn != null && mPos > mInPos) { // stream is already open but the caller is seeking forward
-      long skip = mPos - mInPos;
-      if (skip < mIn.available()) {
+      if (mPos - mInPos < mIn.available()) {
         try {
-          //TODO(beinan): we might need check the max skip length
-          if (skip == mIn.skip(skip)) {
-            mInPos += skip;
+          while (mPos - mInPos > 0) {
+            long actualSkipped = mIn.skip(mPos - mInPos);
+            if (actualSkipped <= 0) {
+              break;
+            }
+            mInPos += actualSkipped;
+          }
+          if (mPos == mInPos) {
             return; //able to reuse the existing stream
           }
         } catch (IOException e) {
