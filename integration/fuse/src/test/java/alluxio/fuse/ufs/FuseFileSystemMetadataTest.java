@@ -22,6 +22,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
@@ -162,11 +163,10 @@ public class FuseFileSystemMetadataTest extends AbstractFuseFileSystemTest {
     Assert.assertEquals(0, mFuseFs.mkdir(DIR, DEFAULT_MODE.toShort()));
   }
 
-  /**
-   * S3 does not have mode concept and mode will always be 700.
-   */
   @Test
-  public void chmodLocalUfsOnly() {
+  public void chmod() {
+    // S3 does not have mode concept and mode will always be 700.
+    Assume.assumeTrue(mIsLocalUFS);
     createEmptyFile(FILE);
     Mode mode = new Mode(Mode.Bits.EXECUTE, Mode.Bits.WRITE, Mode.Bits.READ);
     mFuseFs.chmod(FILE, mode.toShort());
