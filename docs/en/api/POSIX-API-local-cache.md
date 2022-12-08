@@ -278,7 +278,7 @@ For example, if AlluxioFuse is launched with `-Xmx=16GB` and metadata cache can 
 {% navtab Kernel Data Cache Configuration %}
 
 FUSE has the following I/O modes controlling whether data will be cached and the cache invalidation policy:
-- `direct_io`: disables the kernel data cache. Does not support in AlluxioFuse with libfuse3 yet.
+- `direct_io`: disables the kernel data cache. Supported in both libfuse 2 and libfuse 3, but is not supported by Alluxio FUSE libfuse 3 implementation yet.
 - `kernel_cache`: always cache data in kernel and no cache invalidation is happening. This should only be enabled on filesystem where the file data is never changed externally (not through the current FUSE mount point)
 - `auto_cache`: cache data in kernel and invalidate cache if the modification time or the size of the file has changed
 
