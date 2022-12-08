@@ -374,7 +374,7 @@ public class S3ObjectTask extends S3BaseTask {
                 Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
                 Preconditions.checkNotNull(object, "required 'object' parameter is missing");
                 String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
-                String objectPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
+                String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
 
                 final String copySourceParam = mHandler.getHeader(S3Constants.S3_COPY_SOURCE_HEADER);
                 String copySource = !copySourceParam.startsWith(AlluxioURI.SEPARATOR)

@@ -10,6 +10,7 @@ import alluxio.exception.*;
 import alluxio.grpc.*;
 import alluxio.proto.journal.File;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.base.Preconditions;
 import com.google.common.net.InetAddresses;
 import com.google.protobuf.ByteString;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +43,8 @@ public class S3BucketTask extends S3BaseTask {
                     return new ListBucketsTask(handler, OpType.ListBuckets);
                 } else if (handler.getQueryParameter("tagging") != null) {
                     return new GetBucketTaggingTask(handler, OpType.GetBucketTagging);
+                } else if (handler.getQueryParameter("uploads") != null) {
+                    return new ListMultipartUploadsTask(handler, OpType.ListMultipartUploads);
                 } else {
                     return new ListObjectsTask(handler, OpType.ListObjects);
                 }
@@ -134,6 +137,39 @@ public class S3BucketTask extends S3BaseTask {
         }
     } // end of GetBucketTaggingTask
 
+    private static class ListMultipartUploadsTask extends S3BucketTask {
+
+        protected ListMultipartUploadsTask(S3Handler handler, OpType opType) {
+            super(handler, opType);
+        }
+
+        public Response continueTask() {
+            return S3RestUtils.call(mHandler.getBucket(), () -> {
+                final String bucket = mHandler.getBucket();
+                Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
+
+                String path = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
+                final String user = mHandler.getUser();
+                final FileSystem userFs = S3RestUtils.createFileSystemForUser(user, mHandler.getMetaFS());
+
+                try (S3AuditContext auditContext = mHandler.createAuditContext(
+                        this.mOPType.name(), user, mHandler.getBucket(), null)) {
+                    S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext);
+                    try {
+                        List<URIStatus> children = mHandler.getMetaFS().listStatus(new AlluxioURI(
+                                S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR));
+                        final List<URIStatus> uploadIds = children.stream()
+                                .filter((uri) -> uri.getOwner().equals(user))
+                                .collect(Collectors.toList());
+                        return ListMultipartUploadsResult.buildFromStatuses(bucket, uploadIds);
+                    } catch (Exception e) {
+                        throw S3RestUtils.toBucketS3Exception(e, bucket, auditContext);
+                    }
+                }
+            });
+        }
+    } // end of ListMultipartUploadsTask
+
     private static class ListObjectsTask extends S3BucketTask {
         protected ListObjectsTask(S3Handler handler, OpType opType) {
             super(handler, opType);
@@ -176,6 +212,7 @@ public class S3BucketTask extends S3BaseTask {
 
                 try (S3AuditContext auditContext = mHandler.createAuditContext(
                         this.mOPType.name(), user, mHandler.getBucket(), null)) {
+                    S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext);
                     String markerParam = mHandler.getQueryParameter("marker");
                     String maxKeysParam = mHandler.getQueryParameter("max-keys");
                     String prefixParam = mHandler.getQueryParameter("prefix");

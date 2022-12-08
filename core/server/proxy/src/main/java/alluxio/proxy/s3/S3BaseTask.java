@@ -22,6 +22,7 @@ public abstract class S3BaseTask {
         CompleteMultipartUpload,
         // Bucket Task
         ListBuckets,
+        ListMultipartUploads,
         GetBucketTagging,
         PutBucketTagging,
         DeleteBucketTagging,

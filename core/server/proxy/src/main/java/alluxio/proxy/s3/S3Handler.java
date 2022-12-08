@@ -38,7 +38,7 @@ public class S3Handler {
 
     String[] unsupportedSubResources_ = {
             "acl", "policy", "versioning", "cors", "encryption", "intelligent-tiering", "inventory",
-            "lifecycle", "metrics", "ownershipControls", "replication", "website","accelerate","location",
+            "lifecycle", "metrics", "ownershipControls", "replication", "website","accelerate", "location",
             "logging", "metrics", "notification", "ownershipControls", "policyStatus", "requestPayment",
             "attributes", "legal-hold", "object-lock", "retention", "torrent", "publicAccessBlock","restore",
             "select"
