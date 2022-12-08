@@ -3270,21 +3270,6 @@
             ]
           },
           {
-            "name": "S3SyntaxOptions",
-            "fields": [
-              {
-                "id": 1,
-                "name": "overwrite",
-                "type": "bool"
-              },
-              {
-                "id": 2,
-                "name": "isMultipartUpload",
-                "type": "bool"
-              }
-            ]
-          },
-          {
             "name": "RenamePResponse"
           },
           {
@@ -3299,11 +3284,6 @@
                 "id": 2,
                 "name": "persist",
                 "type": "bool"
-              },
-              {
-                "id": 3,
-                "name": "s3SyntaxOptions",
-                "type": "S3SyntaxOptions"
               }
             ]
           },
