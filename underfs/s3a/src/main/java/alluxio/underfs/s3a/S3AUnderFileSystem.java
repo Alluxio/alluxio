@@ -65,6 +65,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -678,6 +679,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected InputStream openObject(String key, OpenOptions options,
       RetryPolicy retryPolicy) {
-    return new S3AInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy);
+    return new BufferedInputStream(new S3AInputStream(
+        mBucketName, key, mClient, options.getOffset(), retryPolicy),
+        (int) mUfsConf.getBytes(PropertyKey.UNDERFS_S3_IN_STREAM_BUFFER_SIZE));
   }
 }

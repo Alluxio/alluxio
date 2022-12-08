@@ -16,9 +16,8 @@ import alluxio.retry.RetryPolicy;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,15 +34,13 @@ public class S3AInputStream extends InputStream {
   protected final String mBucketName;
   /** The path of the object to read. */
   protected final String mKey;
+  protected final byte[] mSingleByteHolder = new byte[1];
+  protected final GetObjectRequest mReadRequest;
 
   /** The backing input stream from s3. */
   protected S3ObjectInputStream mIn;
   /** The current position of the stream. */
   protected long mPos;
-  /** The current position of the S3 http source stream. */
-  private long mInPos;
-  /** The end(inclusive) of the range of the S3 http source stream. */
-  private long mInPosEnd;
 
   /**
    * Policy determining the retry behavior in case the key does not exist. The key may not exist
@@ -81,25 +78,15 @@ public class S3AInputStream extends InputStream {
     mClient = client;
     mPos = position;
     mRetryPolicy = retryPolicy;
-  }
-
-  @Override
-  public void close() {
-    closeStream();
+    mReadRequest = new GetObjectRequest(bucketName, key);
   }
 
   @Override
   public int read() throws IOException {
-    seekStream(1);
-    int value = mIn.read();
-    if (value != -1) { // valid data read
-      mPos++;
-      mInPos++;
+    if (read(mSingleByteHolder) == -1) {
+      return -1;
     }
-    if (mPos > mInPosEnd) {
-      closeStream();
-    }
-    return value;
+    return mSingleByteHolder[0];
   }
 
   @Override
@@ -109,23 +96,54 @@ public class S3AInputStream extends InputStream {
 
   @Override
   public int read(byte[] b, int offset, int length) throws IOException {
-    if (length == 0) {
-      return 0;
+    S3Object object = getObject(mPos, mPos + length);
+    if (object == null) {
+      // range request cannot meet
+      object = getObject(mPos);
     }
-    seekStream(length);
-    int read = mIn.read(b, offset, length);
-    if (read != -1) {
-      mPos += read;
-      mInPos += read;
+    if (object == null) {
+      // mPos already pass file end
+      return -1;
     }
-    if (mPos > mInPosEnd) {
-      closeStream();
+    try (S3ObjectInputStream in = object.getObjectContent()) {
+      int ret = in.read(b, offset, length);
+      if (ret == -1) {
+        return ret;
+      }
+      mPos += ret;
+      return ret;
     }
-    return read;
+  }
+
+  private S3Object getObject(long start) {
+    return getObject(start, Long.MAX_VALUE - 1);
+  }
+
+  private S3Object getObject(long start, long end) {
+    // If the position is 0, setting range is redundant and causes an error if the file is 0 length
+    if (start > 0 || end > 0) {
+      // end is inclusive, so minus one here
+      mReadRequest.setRange(start, end - 1);
+    }
+    AlluxioS3Exception lastException;
+    do {
+      try {
+        return getClient().getObject(mReadRequest);
+      } catch (AmazonS3Exception e) {
+        String errorMessage = String
+            .format("Failed to get object: %s bucket: %s attempts: %d error: %s", mKey, mBucketName,
+                mRetryPolicy.getAttemptCount(), e.getMessage());
+        lastException = AlluxioS3Exception.from(errorMessage, e);
+        if (!lastException.isRetryable()) {
+          throw lastException;
+        }
+      }
+    } while (mRetryPolicy.attempt());
+    throw lastException;
   }
 
   @Override
-  public long skip(long n) throws IOException {
+  public long skip(long n) {
     if (n <= 0) {
       return 0;
     }
@@ -134,80 +152,9 @@ public class S3AInputStream extends InputStream {
   }
 
   /**
-   * Seek if we could reuse the existing stream or create a new one.
-   * @param length the content length to be read
-   */
-  private void seekStream(int length) throws IOException {
-    if (mIn != null && mPos == mInPos) { // stream is already open and at the expected position
-      return;
-    }
-    if (mIn != null && mPos > mInPos) { // stream is already open but the caller is seeking forward
-      if (mPos - mInPos < mIn.available()) {
-        try {
-          while (mPos - mInPos > 0) {
-            long actualSkipped = mIn.skip(mPos - mInPos);
-            if (actualSkipped <= 0) {
-              break;
-            }
-            mInPos += actualSkipped;
-          }
-          if (mPos == mInPos) {
-            return; //able to reuse the existing stream
-          }
-        } catch (IOException e) {
-          //ignore to create a new stream
-        }
-      }
-    }
-    closeStream();
-    openStream(length);
-  }
-
-  /**
-   * Opens a new stream at mPos.
-   */
-  private void openStream(int length) throws IOException {
-    GetObjectRequest getReq = new GetObjectRequest(mBucketName, mKey);
-    //mInPosEnd is inclusive, so minus one here
-    mInPosEnd = mPos + length - 1;
-    // If the position is 0, setting range is redundant and causes an error if the file is 0 length
-    if (mPos > 0 || mInPosEnd > 0) {
-      // TODO(beinan): what if pos is 0 but length is not 0 when the file is 0 length, we need check
-      getReq.setRange(mPos, mInPosEnd);
-    }
-    AmazonS3Exception lastException = null;
-    String errorMessage = String.format("Failed to open key: %s bucket: %s, left retry:%d",
-        mKey, mBucketName, mRetryPolicy.getAttemptCount());
-    while (mRetryPolicy.attempt()) {
-      try {
-        mIn = getClient().getObject(getReq).getObjectContent();
-        mInPos = mPos;
-        return;
-      } catch (AmazonS3Exception e) {
-        errorMessage = String
-            .format("Failed to open key: %s bucket: %s attempts: %d error: %s", mKey, mBucketName,
-                mRetryPolicy.getAttemptCount(), e.getMessage());
-        throw AlluxioS3Exception.from(errorMessage, e);
-      }
-    }
-  }
-
-  /**
    * @return the client
    */
   protected AmazonS3 getClient() {
     return mClient;
-  }
-
-  /**
-   * Closes the current stream.
-   */
-  // TODO(calvin): Investigate if close instead of abort will bring performance benefits.
-  private void closeStream() {
-    if (mIn == null) {
-      return;
-    }
-    mIn.abort();
-    mIn = null;
   }
 }
