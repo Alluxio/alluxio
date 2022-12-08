@@ -48,10 +48,11 @@ public abstract class AbstractTest {
   protected static final int DEFAULT_FILE_LEN = 64;
   protected static final Mode DEFAULT_MODE = new Mode(
       Mode.Bits.ALL, Mode.Bits.READ, Mode.Bits.READ);
+  protected static final LibfuseVersion LIBFUSE_VERSION = LibFuse.loadLibrary(
+      AlluxioFuseUtils.getLibfuseLoadStrategy(Configuration.global()));
 
   protected AlluxioURI mRootUfs;
   protected FileSystem mFileSystem;
-  protected LibfuseVersion mLibfuseVersion;
   protected FileSystemContext mContext;
   protected UfsFileSystemOptions mUfsOptions;
 
@@ -64,8 +65,6 @@ public abstract class AbstractTest {
     LocalUnderFileSystemFactory localUnderFileSystemFactory = new LocalUnderFileSystemFactory();
     UnderFileSystemFactoryRegistry.register(localUnderFileSystemFactory);
     mContext = FileSystemContext.create(ClientContext.create(conf));
-    mLibfuseVersion = LibFuse.loadLibrary(
-        AlluxioFuseUtils.getLibfuseLoadStrategy(conf));
     mUfsOptions = new UfsFileSystemOptions(ufs);
     mFileSystem = new UfsBaseFileSystem(mContext, mUfsOptions);
     beforeActions();

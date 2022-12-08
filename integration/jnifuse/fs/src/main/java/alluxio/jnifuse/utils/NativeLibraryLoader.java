@@ -249,10 +249,14 @@ public class NativeLibraryLoader {
   }
 
   private boolean loadToCheckLibraryExistence(String libraryName) {
-    return !tryLoad(() -> {
+    Optional<UnsatisfiedLinkError> error = tryLoad(() -> {
       System.loadLibrary(libraryName);
       LOG.info("Loaded {} by System.loadLibrary.", libraryName);
-    }).isPresent();
+    });
+    if (error.isPresent()) {
+      throw error.get();
+    }
+    return true;
   }
 
   /**
