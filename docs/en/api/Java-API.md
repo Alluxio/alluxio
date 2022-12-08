@@ -16,7 +16,7 @@ Another common option is through Alluxio
 Users can interact with Alluxio using the same S3 clients used for AWS S3 operations. 
 This makes it easy to change existing S3 workloads to use Alluxio.
 
-Alluxio also provides a [POSIX API]({{ '/en/api/POSIX-API.html' | relativize_url }}) after mounting
+Alluxio also provides a [POSIX API]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}}) after mounting
 Alluxio as a local FUSE volume. Right now Alluxio POSIX API mainly targets the ML/AI workloads (especially read heavy workloads).
 
 By setting up an Alluxio Proxy, users can also interact with Alluxio through 

@@ -1318,7 +1318,7 @@ drwxr-sr-x    2 alluxio  bin           4096 Jan 12 03:14 job_worker
 ### POSIX API
 
 Once Alluxio is deployed on Kubernetes, there are multiple ways in which a client application can
-connect to it. For applications using the [POSIX API]({{ '/en/api/POSIX-API.html' | relativize_url }}),
+connect to it. For applications using the [POSIX API]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}}),
 application containers can simply mount the Alluxio FileSystem.
 
 #### FUSE daemon
@@ -1339,7 +1339,7 @@ To modify the default Fuse mount configuration, one can set
 - `mountPath`: The container path to be mounted. Default to `/mnt/alluxio-fuse`
 - `alluxioPath`: The alluxio path to be mounted to container `mountPath`. Default to `/`
 - `mountOptions`: The Fuse mount options. Default to `allow_other`.
-See [Fuse mount options]({{ '/en/api/POSIX-API.html' | relativize_url }}#configure-mount-point-options) for more details.
+See [Fuse mount options]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}}#configure-mount-point-options) for more details.
 
 ```properties
 fuse:
@@ -1388,7 +1388,7 @@ fuse:
     MAX_IDLE_THREADS: "64"
 ```
 
-[POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
+[POSIX API docs]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}}) provides more details about how to configure Alluxio POSIX API.
   {% endcollapsible %}
 {% endaccordion %}
 
@@ -1436,7 +1436,7 @@ containers:
         value: "64"
 ```
 
-[POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
+[POSIX API docs]({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}}) provides more details about how to configure Alluxio POSIX API.
   {% endcollapsible %}
 {% endaccordion %}
 {% endnavtab %}

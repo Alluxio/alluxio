@@ -52,7 +52,7 @@ for training to be performed on all data from any data source, which can lead to
 performance.
 
 Alluxio also includes a FUSE interface for a convenient and familiar use experience. With [Alluxio
-FUSE]({{ '/en/api/POSIX-API.html' | relativize_url }}), an Alluxio instance can
+FUSE](({{ '/en/api/POSIX-API-Distributed-Cache.html' | relativize_url}}), an Alluxio instance can
 be mounted to the local file system, so interacting with Alluxio is as simple as interacting with
 local files and directories. This enables users to continue to use familiar tools and paradigms to
 interact with their data. Since Alluxio can connect to multiple disparate storages, data from any
