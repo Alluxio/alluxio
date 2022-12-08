@@ -29,6 +29,9 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
               <th>
                 Master Port
               </th>
+              <th>
+                Started
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -37,6 +40,7 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
               <td>
                 0
               </td>
+              <td />
             </tr>
           </tbody>
         </Table>
@@ -66,6 +70,9 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
               </th>
               <th>
                 Last Heartbeat
+              </th>
+              <th>
+                Started
               </th>
             </tr>
           </thead>
@@ -97,6 +104,9 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
               </th>
               <th>
                 Last Heartbeat
+              </th>
+              <th>
+                Started
               </th>
             </tr>
           </thead>

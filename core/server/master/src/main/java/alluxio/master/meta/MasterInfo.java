@@ -29,6 +29,8 @@ public final class MasterInfo {
   private final long mId;
   /** Master's last updated time in ms. */
   private long mLastUpdatedTimeMs;
+  /** Master's start time in ms. */
+  private long mStartTimeMs;
 
   /**
    * Creates a new instance of {@link MasterInfo}.
@@ -40,6 +42,7 @@ public final class MasterInfo {
     mAddress = Preconditions.checkNotNull(address, "address");
     mId = id;
     mLastUpdatedTimeMs = System.currentTimeMillis();
+    mStartTimeMs = mLastUpdatedTimeMs;
   }
 
   /**
@@ -63,10 +66,24 @@ public final class MasterInfo {
     return mLastUpdatedTimeMs;
   }
 
+  /**
+   * @return the start time of the master in ms
+   */
+  public long getStartTimeMs() {
+    return mStartTimeMs;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
-        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).toString();
+        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("startTimeMs", mStartTimeMs).toString();
+  }
+
+  /**
+   * @param startTimeMs the start time of the master in ms
+   */
+  public void setStartTimeMs(long startTimeMs) {
+    mStartTimeMs = startTimeMs;
   }
 
   /**

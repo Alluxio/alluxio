@@ -5940,6 +5940,11 @@
                 "name": "configs",
                 "type": "grpc.ConfigProperty",
                 "is_repeated": true
+              },
+              {
+                "id": 2,
+                "name": "startTimeMs",
+                "type": "int64"
               }
             ]
           },

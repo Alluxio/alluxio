@@ -11,8 +11,6 @@
 
 package alluxio.wire;
 
-import alluxio.util.CommonUtils;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -28,8 +26,10 @@ public final class MasterInfo {
   private Address mAddress;
   /** The id of the master. */
   private long mId;
-  /** Master's last updated time in ms. */
-  private long mLastUpdatedTimeMs;
+  /** Master's start time. */
+  private String mStartTime = "";
+  /** Master's last updated time. */
+  private String mLastUpdatedTime = "";
 
   /**
    * Creates a new instance of {@link MasterInfo}.
@@ -39,14 +39,16 @@ public final class MasterInfo {
   /**
    * Creates a new instance of {@link MasterInfo}.
    *
-   * @param id the master id to use
-   * @param address the master address to use
-   * @param lastUpdatedTimeMs the master lastUpdatedTimeMs to use
+   * @param id the master id
+   * @param address the master's address
+   * @param lastUpdatedTime the master's last updated time
+   * @param startTime the master's start time
    */
-  public MasterInfo(long id, Address address, long lastUpdatedTimeMs) {
+  public MasterInfo(long id, Address address, String lastUpdatedTime, String startTime) {
     mAddress = Preconditions.checkNotNull(address, "address");
     mId = id;
-    mLastUpdatedTimeMs = lastUpdatedTimeMs;
+    mLastUpdatedTime = lastUpdatedTime;
+    mStartTime = startTime;
   }
 
   /**
@@ -58,7 +60,6 @@ public final class MasterInfo {
   public MasterInfo(long id, Address address) {
     mAddress = Preconditions.checkNotNull(address, "address");
     mId = id;
-    mLastUpdatedTimeMs = System.currentTimeMillis();
   }
 
   /**
@@ -76,10 +77,26 @@ public final class MasterInfo {
   }
 
   /**
-   * @return the last updated time of the master in ms
+   * @return the last updated time of the master
    */
-  public long getLastUpdatedTimeMs() {
-    return mLastUpdatedTimeMs;
+  public String getLastUpdatedTime() {
+    return mLastUpdatedTime;
+  }
+
+  /**
+   * @return the start time of the master
+   */
+  public String getStartTime() {
+    return mStartTime;
+  }
+
+  /**
+   * @param startTime the start time of the master
+   * @return the master information
+   */
+  public MasterInfo setStartTime(String startTime) {
+    mStartTime = startTime;
+    return this;
   }
 
   /**
@@ -101,26 +118,19 @@ public final class MasterInfo {
   }
 
   /**
-   * @param lastUpdatedTimeMs the last update time in ms
+   * @param lastUpdatedTime the last update time
    * @return the master information
    */
-  public MasterInfo setLastUpdatedTimeMs(long lastUpdatedTimeMs) {
-    mLastUpdatedTimeMs = lastUpdatedTimeMs;
+  public MasterInfo setLastUpdatedTime(String lastUpdatedTime) {
+    mLastUpdatedTime = lastUpdatedTime;
     return this;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
-        .add("lastUpdatedTime", CommonUtils.convertMsToClockTime(mLastUpdatedTimeMs))
-        .toString();
-  }
-
-  /**
-   * Updates the last updated time of the master (in milliseconds).
-   */
-  public void updateLastUpdatedTimeMs() {
-    mLastUpdatedTimeMs = System.currentTimeMillis();
+        .add("lastUpdatedTime", mLastUpdatedTime)
+        .add("startTime", mStartTime).toString();
   }
 
   @Override
@@ -133,11 +143,12 @@ public final class MasterInfo {
     }
     MasterInfo that = (MasterInfo) o;
     return mId == that.mId && Objects.equal(mAddress, that.mAddress)
-            && mLastUpdatedTimeMs == that.mLastUpdatedTimeMs;
+        && mLastUpdatedTime.equals(that.mLastUpdatedTime)
+        && mStartTime.equals(that.mStartTime);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mId, mAddress, mLastUpdatedTimeMs);
+    return Objects.hashCode(mId, mAddress, mLastUpdatedTime, mStartTime);
   }
 }

@@ -53,6 +53,7 @@ import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Meta;
 import alluxio.resource.CloseableIterator;
 import alluxio.underfs.UfsManager;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.OSUtils;
@@ -493,8 +494,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     alluxio.wire.MasterInfo[] masterInfos = new alluxio.wire.MasterInfo[mMasters.size()];
     int indexNum = 0;
     for (MasterInfo master : mMasters) {
-      masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(),
-          master.getAddress(), master.getLastUpdatedTimeMs());
+      masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(), master.getAddress(),
+          CommonUtils.convertMsToDate(master.getLastUpdatedTimeMs(),
+              Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)),
+          CommonUtils.convertMsToDate(master.getStartTimeMs(),
+              Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
       indexNum++;
     }
     return masterInfos;
@@ -505,8 +509,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     alluxio.wire.MasterInfo[] masterInfos = new alluxio.wire.MasterInfo[mLostMasters.size()];
     int indexNum = 0;
     for (MasterInfo master : mLostMasters) {
-      masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(),
-          master.getAddress(), master.getLastUpdatedTimeMs());
+      masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(), master.getAddress(),
+          CommonUtils.convertMsToDate(master.getLastUpdatedTimeMs(),
+              Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)),
+          CommonUtils.convertMsToDate(master.getStartTimeMs(),
+              Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
       indexNum++;
     }
     return masterInfos;
@@ -595,10 +602,18 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     }
 
     master.updateLastUpdatedTimeMs();
+    updateMasterInfo(master, options);
 
     mMasterConfigStore.registerNewConf(master.getAddress(), options.getConfigsList());
 
     LOG.info("registerMaster(): master: {}", master);
+  }
+
+  private MasterInfo updateMasterInfo(MasterInfo info, RegisterMasterPOptions options) {
+    if (options.hasStartTimeMs()) {
+      info.setStartTimeMs(options.getStartTimeMs());
+    }
+    return info;
   }
 
   @Override

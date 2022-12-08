@@ -49,12 +49,14 @@ export class MastersPresenter extends React.Component<AllProps> {
                   <tr>
                     <th>Master Host</th>
                     <th>Master Port</th>
+                    <th>Started</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td>{mastersData.leaderMasterInfo.address.host}</td>
                     <td>{mastersData.leaderMasterInfo.address.rpcPort}</td>
+                    <td>{mastersData.leaderMasterInfo.startTime}</td>
                   </tr>
                 </tbody>
               </Table>
@@ -70,6 +72,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                     <th>Master Host</th>
                     <th>Master Port</th>
                     <th>Last Heartbeat</th>
+                    <th>Started</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -78,7 +81,8 @@ export class MastersPresenter extends React.Component<AllProps> {
                       {initData.debug ? <td>{masterInfo.id}</td> : null}
                       <td>{masterInfo.address.host}</td>
                       <td>{masterInfo.address.rpcPort}</td>
-                      <td>{new Date(masterInfo.lastUpdatedTimeMs).toTimeString()}</td>
+                      <td>{masterInfo.lastUpdatedTime}</td>
+                      <td>{masterInfo.startTime}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -95,6 +99,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                     <th>Master Host</th>
                     <th>Master Port</th>
                     <th>Last Heartbeat</th>
+                    <th>Started</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -103,7 +108,8 @@ export class MastersPresenter extends React.Component<AllProps> {
                       {initData.debug ? <td>{masterInfo.id}</td> : null}
                       <td>{masterInfo.address.host}</td>
                       <td>{masterInfo.address.rpcPort}</td>
-                      <td>{new Date(masterInfo.lastUpdatedTimeMs).toTimeString()}</td>
+                      <td>{masterInfo.lastUpdatedTime}</td>
+                      <td>{masterInfo.startTime}</td>
                     </tr>
                   ))}
                 </tbody>

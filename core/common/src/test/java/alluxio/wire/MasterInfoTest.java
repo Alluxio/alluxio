@@ -11,6 +11,9 @@
 
 package alluxio.wire;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.CommonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
@@ -32,7 +35,8 @@ public class MasterInfoTest {
   public void checkEquality(MasterInfo a, MasterInfo b) {
     Assert.assertEquals(a.getId(), b.getId());
     Assert.assertEquals(a.getAddress(), b.getAddress());
-    Assert.assertEquals(a.getLastUpdatedTimeMs(), b.getLastUpdatedTimeMs());
+    Assert.assertEquals(a.getLastUpdatedTime(), b.getLastUpdatedTime());
+    Assert.assertEquals(a.getStartTime(), b.getStartTime());
     Assert.assertEquals(a, b);
   }
 
@@ -42,7 +46,8 @@ public class MasterInfoTest {
     Address address = new Address(RandomStringUtils.randomAlphanumeric(10), random.nextInt());
 
     MasterInfo result = new MasterInfo(id, address);
-    result.updateLastUpdatedTimeMs();
+    result.setLastUpdatedTime(CommonUtils.convertMsToDate(System.currentTimeMillis(),
+        Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
     return result;
   }
 }

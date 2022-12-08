@@ -15,5 +15,6 @@ export interface IMasterInfo {
     host: string;
   };
   id: string;
-  lastUpdatedTimeMs: number;
+  lastUpdatedTime: string;
+  startTime: string;
 }
