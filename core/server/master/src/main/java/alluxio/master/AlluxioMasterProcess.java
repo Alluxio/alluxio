@@ -212,6 +212,8 @@ public class AlluxioMasterProcess extends MasterProcess {
         if (!promote()) {
           continue;
         }
+        mServices.forEach(SimpleService::promote);
+        LOG.info("Primary started");
       } catch (Throwable t) {
         if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED)) {
           takeEmergencyBackup();
@@ -225,6 +227,8 @@ public class AlluxioMasterProcess extends MasterProcess {
         if (!mRunning) {
           break;
         }
+        LOG.info("Losing the leadership.");
+        mServices.forEach(SimpleService::demote);
         demote();
       }
     }
@@ -271,14 +275,10 @@ public class AlluxioMasterProcess extends MasterProcess {
       stopMasterComponents();
       return false;
     }
-    mServices.forEach(SimpleService::promote);
-    LOG.info("Primary started");
     return true;
   }
 
   private void demote() throws Exception {
-    LOG.info("Losing the leadership.");
-    mServices.forEach(SimpleService::demote);
     // Put the journal in standby mode ASAP to avoid interfering with the new primary. This must
     // happen after stopServing because downgrading the journal system will reset master state,
     // which could cause NPEs for outstanding RPC threads. We need to first close all client

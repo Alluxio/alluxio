@@ -41,10 +41,7 @@ class PrimaryOnlyWebServerService extends WebServerService {
   @Override
   public synchronized void start() {
     LOG.info("Starting {}", this.getClass().getSimpleName());
-    Preconditions.checkState(mRejectingServer == null, "rejecting server must not be running");
-    mRejectingServer = new RejectingServer(mBindAddress);
-    mRejectingServer.start();
-    waitForBound();
+    startRejectingServer();
   }
 
   @Override
@@ -60,7 +57,7 @@ class PrimaryOnlyWebServerService extends WebServerService {
     LOG.info("Demoting {}", this.getClass().getSimpleName());
     stopWebServer();
     waitForFree();
-    start(); // start rejecting server again
+    startRejectingServer();
   }
 
   @Override
@@ -68,6 +65,13 @@ class PrimaryOnlyWebServerService extends WebServerService {
     LOG.info("Stopping {}", this.getClass().getSimpleName());
     stopWebServer();
     stopRejectingServer();
+  }
+
+  private synchronized void startRejectingServer() {
+    Preconditions.checkState(mRejectingServer == null, "rejecting server must not be running");
+    mRejectingServer = new RejectingServer(mBindAddress);
+    mRejectingServer.start();
+    waitForBound();
   }
 
   private synchronized void stopRejectingServer() {

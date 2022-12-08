@@ -80,10 +80,7 @@ public class RpcServerService implements SimpleService {
   @Override
   public synchronized void start() {
     LOG.info("Starting {}", this.getClass().getSimpleName());
-    Preconditions.checkState(mRejectingGrpcServer == null, "rejecting server must not be running");
-    mRejectingGrpcServer = new RejectingServer(mBindAddress);
-    mRejectingGrpcServer.start();
-    waitForBound();
+    startRejectingServer();
   }
 
   @Override
@@ -120,7 +117,7 @@ public class RpcServerService implements SimpleService {
     stopGrpcServer();
     stopRpcExecutor();
     waitForFree();
-    start(); // rejecting server again
+    startRejectingServer();
   }
 
   @Override
@@ -131,7 +128,7 @@ public class RpcServerService implements SimpleService {
     stopRpcExecutor();
   }
 
-  protected void stopGrpcServer() {
+  protected synchronized void stopGrpcServer() {
     if (mGrpcServer != null) {
       mGrpcServer.shutdown();
       mGrpcServer.awaitTermination();
@@ -139,7 +136,7 @@ public class RpcServerService implements SimpleService {
     }
   }
 
-  protected void stopRpcExecutor() {
+  protected synchronized void stopRpcExecutor() {
     if (mRpcExecutor != null) {
       mRpcExecutor.shutdown();
       try {
@@ -153,7 +150,14 @@ public class RpcServerService implements SimpleService {
     }
   }
 
-  protected void stopRejectingServer() {
+  protected synchronized void startRejectingServer() {
+    Preconditions.checkState(mRejectingGrpcServer == null, "rejecting server must not be running");
+    mRejectingGrpcServer = new RejectingServer(mBindAddress);
+    mRejectingGrpcServer.start();
+    waitForBound();
+  }
+
+  protected synchronized void stopRejectingServer() {
     if (mRejectingGrpcServer != null) {
       mRejectingGrpcServer.stopAndJoin();
       mRejectingGrpcServer = null;
