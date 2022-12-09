@@ -15,13 +15,14 @@ import alluxio.grpc.GetNodeStatePResponse;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
+import alluxio.master.Master;
 
 import java.io.IOException;
 
 /**
  * Interface for journal master implementations.
  */
-public interface JournalMaster {
+public interface JournalMaster extends Master {
   /**
    * Quorum information for participating servers in journal. This method is supported only for
    * {@link alluxio.master.journal.JournalType#EMBEDDED} journal.

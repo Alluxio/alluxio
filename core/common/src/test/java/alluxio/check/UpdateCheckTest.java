@@ -17,6 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.MetastoreType;
 import alluxio.util.EnvironmentUtils;
+import alluxio.util.OSUtils;
 import alluxio.worker.block.BlockStoreType;
 
 import com.amazonaws.SdkClientException;
@@ -61,7 +62,9 @@ public class UpdateCheckTest {
     Mockito.when(EC2MetadataUtils.getUserData())
         .thenThrow(new SdkClientException("Unable to contact EC2 metadata service."));
     UpdateCheck.addUserAgentEnvironments(info);
-    Assert.assertEquals(0, info.size());
+    Assert.assertEquals(1, info.size());
+    Assert.assertEquals(String.format(UpdateCheck.OS_FORMAT, OSUtils.OS_NAME),
+        info.get(0));
   }
 
   @Test
@@ -71,8 +74,10 @@ public class UpdateCheckTest {
         .thenThrow(new SdkClientException("Unable to contact EC2 metadata service."));
     List<String> info = new ArrayList<>();
     UpdateCheck.addUserAgentEnvironments(info);
-    Assert.assertEquals(1, info.size());
-    Assert.assertEquals(UpdateCheck.DOCKER_KEY, info.get(0));
+    Assert.assertEquals(2, info.size());
+    Assert.assertEquals(String.format(UpdateCheck.OS_FORMAT, OSUtils.OS_NAME),
+        info.get(0));
+    Assert.assertEquals(UpdateCheck.DOCKER_KEY, info.get(1));
   }
 
   @Test
@@ -83,9 +88,11 @@ public class UpdateCheckTest {
         .thenThrow(new SdkClientException("Unable to contact EC2 metadata service."));
     List<String> info = new ArrayList<>();
     UpdateCheck.addUserAgentEnvironments(info);
-    Assert.assertEquals(2, info.size());
-    Assert.assertEquals(UpdateCheck.DOCKER_KEY, info.get(0));
-    Assert.assertEquals(UpdateCheck.KUBERNETES_KEY, info.get(1));
+    Assert.assertEquals(3, info.size());
+    Assert.assertEquals(String.format(UpdateCheck.OS_FORMAT, OSUtils.OS_NAME),
+        info.get(0));
+    Assert.assertEquals(UpdateCheck.DOCKER_KEY, info.get(1));
+    Assert.assertEquals(UpdateCheck.KUBERNETES_KEY, info.get(2));
   }
 
   @Test
@@ -95,8 +102,10 @@ public class UpdateCheckTest {
         .thenThrow(new SdkClientException("Unable to contact EC2 metadata service."));
     List<String> info = new ArrayList<>();
     UpdateCheck.addUserAgentEnvironments(info);
-    Assert.assertEquals(1, info.size());
-    Assert.assertEquals(UpdateCheck.GCE_KEY, info.get(0));
+    Assert.assertEquals(2, info.size());
+    Assert.assertEquals(String.format(UpdateCheck.OS_FORMAT, OSUtils.OS_NAME),
+        info.get(0));
+    Assert.assertEquals(UpdateCheck.GCE_KEY, info.get(1));
   }
 
   @Test
@@ -108,10 +117,12 @@ public class UpdateCheckTest {
     Mockito.when(EC2MetadataUtils.getUserData()).thenReturn(null);
     List<String> info = new ArrayList<>();
     UpdateCheck.addUserAgentEnvironments(info);
-    Assert.assertEquals(2, info.size());
-    Assert.assertEquals(String.format(UpdateCheck.PRODUCT_CODE_FORMAT, randomProductCode),
+    Assert.assertEquals(3, info.size());
+    Assert.assertEquals(String.format(UpdateCheck.OS_FORMAT, OSUtils.OS_NAME),
         info.get(0));
-    Assert.assertEquals(UpdateCheck.EC2_KEY, info.get(1));
+    Assert.assertEquals(String.format(UpdateCheck.PRODUCT_CODE_FORMAT, randomProductCode),
+        info.get(1));
+    Assert.assertEquals(UpdateCheck.EC2_KEY, info.get(2));
   }
 
   @Test
@@ -124,11 +135,11 @@ public class UpdateCheckTest {
 
     List<String> info = new ArrayList<>();
     UpdateCheck.addUserAgentEnvironments(info);
-    Assert.assertEquals(3, info.size());
+    Assert.assertEquals(4, info.size());
     Assert.assertEquals(String.format(UpdateCheck.PRODUCT_CODE_FORMAT, randomProductCode),
-        info.get(0));
-    Assert.assertEquals(UpdateCheck.CFT_KEY, info.get(1));
-    Assert.assertEquals(UpdateCheck.EC2_KEY, info.get(2));
+        info.get(1));
+    Assert.assertEquals(UpdateCheck.CFT_KEY, info.get(2));
+    Assert.assertEquals(UpdateCheck.EC2_KEY, info.get(3));
   }
 
   @Test
@@ -140,11 +151,11 @@ public class UpdateCheckTest {
     Mockito.when(EC2MetadataUtils.getUserData()).thenReturn("emr_apps");
     List<String> info = new ArrayList<>();
     UpdateCheck.addUserAgentEnvironments(info);
-    Assert.assertEquals(3, info.size());
+    Assert.assertEquals(4, info.size());
     Assert.assertEquals(String.format(UpdateCheck.PRODUCT_CODE_FORMAT, randomProductCode),
-        info.get(0));
-    Assert.assertEquals(UpdateCheck.EMR_KEY, info.get(1));
-    Assert.assertEquals(UpdateCheck.EC2_KEY, info.get(2));
+        info.get(1));
+    Assert.assertEquals(UpdateCheck.EMR_KEY, info.get(2));
+    Assert.assertEquals(UpdateCheck.EC2_KEY, info.get(3));
   }
 
   @Test

@@ -34,6 +34,10 @@ export const headerNavigationData: INavigationData[] = [
     url: routePaths.config,
   },
   {
+    innerText: 'Masters',
+    url: routePaths.masters,
+  },
+  {
     innerText: 'Workers',
     url: routePaths.workers,
   },

@@ -16,13 +16,12 @@ import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.Process;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
-import alluxio.grpc.GrpcService;
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.service.SimpleService;
+import alluxio.master.service.rpc.RpcServerService;
+import alluxio.master.service.web.WebServerService;
 import alluxio.metrics.MetricsSystem;
-import alluxio.network.RejectingServer;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.WaitForOptions;
@@ -36,19 +35,18 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
 
 /**
  * Defines a set of methods which any {@link MasterProcess} should implement.
  *
- * This class serves as a common implementation for functions that both the AlluxioMasterProcess and
- * AlluxioJobMasterProcess use. Each master should have an RPC server, web server, and journaling
+ * This class serves as a common implementation for functions that both the
+ * {@link AlluxioMasterProcess} and {@link AlluxioJobMasterProcess} use.
+ * Each master should have an RPC server, web server, and journaling
  * system which can serve client requests.
  */
 public abstract class MasterProcess implements Process {
@@ -57,35 +55,23 @@ public abstract class MasterProcess implements Process {
   /** The journal system for writing journal entries and restoring master state. */
   protected final JournalSystem mJournalSystem;
   protected final PrimarySelector mLeaderSelector;
+  /** The master registry. */
+  protected final MasterRegistry mRegistry = new MasterRegistry();
 
   /** Rpc server bind address. **/
   final InetSocketAddress mRpcBindAddress;
-
   /** Web server bind address. **/
   final InetSocketAddress mWebBindAddress;
+  /** The connection address for the rpc server. */
+  final InetSocketAddress mRpcConnectAddress;
+  /** The connection address for the web service. */
+  final InetSocketAddress mWebConnectAddress;
 
   /** The start time for when the master started. */
-  final long mStartTimeMs = System.currentTimeMillis();
-
-  /**
-   * Rejecting servers for used by backup masters to reserve ports but reject connection requests.
-   */
-  private RejectingServer mRejectingRpcServer;
-  private RejectingServer mRejectingWebServer;
-
-  /** The RPC server. */
-  @Nullable @GuardedBy("mGrpcServerLock")
-  protected GrpcServer mGrpcServer;
-  protected final Lock mGrpcServerLock = new ReentrantLock();
-
-  /** The web ui server. */
-  @Nullable @GuardedBy("mWebServerLock")
-  protected WebServer mWebServer;
-  protected final Lock mWebServerLock = new ReentrantLock();
-
-  protected final long mServingThreadTimeoutMs =
-      Configuration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
-  protected Thread mServingThread = null;
+  final long mStartTimeMs;
+  // holds the simple services registered with the master, should only be accessed through
+  // #registerService
+  List<SimpleService> mServices = new ArrayList<>();
 
   /**
    * Prepares a {@link MasterProcess} journal, rpc and web server using the given sockets.
@@ -101,6 +87,9 @@ public abstract class MasterProcess implements Process {
     mLeaderSelector = Preconditions.checkNotNull(leaderSelector, "leaderSelector");
     mRpcBindAddress = configureAddress(rpcService);
     mWebBindAddress = configureAddress(webService);
+    mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(rpcService, Configuration.global());
+    mWebConnectAddress = NetworkAddressUtils.getConnectAddress(webService, Configuration.global());
+    mStartTimeMs = System.currentTimeMillis();
   }
 
   private static InetSocketAddress configureAddress(ServiceType service) {
@@ -122,18 +111,68 @@ public abstract class MasterProcess implements Process {
   }
 
   /**
-   * @return this master's rpc address
+   * Used in master factory after instantiating the master process and before starting the master
+   * process. This allows you to define with services are necessary for the operation of the
+   * master process.
+   * @param service a service to register for the functioning of the master process
    */
-  public abstract InetSocketAddress getRpcAddress();
+  public void registerService(SimpleService service) {
+    mServices.add(service);
+  }
 
   /**
-   * Gets the registered class from the master registry.
-   *
-   * @param clazz the class of the master to get
-   * @param <T> the type of the master to get
-   * @return the given master
+   * @return a fully configured rpc server except for the executor option (provided by the
+   * {@link #createRpcExecutorService()}) and the rpc services (provided by {@link #mRegistry}
    */
-  public abstract <T extends Master> T getMaster(Class<T> clazz);
+  public abstract GrpcServerBuilder createBaseRpcServer();
+
+  /**
+   * This method is decoupled from {@link #createBaseRpcServer()} because the
+   * {@link AlluxioExecutorService} needs to be managed (i.e. started and stopped) independently
+   * of the rpc server that uses it
+   * @return a custom executor service to be used in the rpc server
+   */
+  public Optional<AlluxioExecutorService> createRpcExecutorService() {
+    return Optional.empty();
+  }
+
+  /**
+   * @return the {@link SafeModeManager} if you have one
+   */
+  public Optional<SafeModeManager> getSafeModeManager() {
+    return Optional.empty();
+  }
+
+  /**
+   * @return this master's rpc bind address
+   */
+  public final InetSocketAddress getRpcBindAddress() {
+    return mRpcBindAddress;
+  }
+
+  /**
+   * @return this master's rpc connect address
+   */
+  public final InetSocketAddress getRpcAddress() {
+    return mRpcConnectAddress;
+  }
+
+  /**
+   * @param clazz the class of the master to retrieve
+   * @return the desired master from the registry if it exists
+   * @param <T> parameterized class of the desired master
+   */
+  public final <T extends Master> T getMaster(Class<T> clazz) {
+    return mRegistry.get(clazz);
+  }
+
+  /**
+   * Use only to instantiate {@link SimpleService}s.
+   * @return the master registry
+   */
+  public final MasterRegistry getRegistry() {
+    return mRegistry;
+  }
 
   /**
    * @return the start time of the master in milliseconds
@@ -141,12 +180,6 @@ public abstract class MasterProcess implements Process {
   public long getStartTimeMs() {
     return mStartTimeMs;
   }
-
-  protected void startServing() {
-    startServing("", "");
-  }
-
-  abstract void startServing(String startMessage, String stopMessage);
 
   /**
    * @return the uptime of the master in milliseconds
@@ -156,26 +189,38 @@ public abstract class MasterProcess implements Process {
   }
 
   /**
-   * @return the master's web address
+   * @return a newly created web server for this master
    */
-  public abstract InetSocketAddress getWebAddress();
+  public abstract WebServer createWebServer();
+
+  /**
+   * @return the master's web bind address
+   */
+  public final InetSocketAddress getWebBindAddress() {
+    return mWebBindAddress;
+  }
+
+  /**
+   * @return the master's web connect address
+   */
+  public final InetSocketAddress getWebAddress() {
+    return mWebConnectAddress;
+  }
 
   /**
    * @return true if the system is the leader (serving the rpc server), false otherwise
    */
   public boolean isGrpcServing() {
-    synchronized (mGrpcServerLock) {
-      return mGrpcServer != null && mGrpcServer.isServing();
-    }
+    return mServices.stream().anyMatch(service -> service instanceof RpcServerService
+        && ((RpcServerService) service).isServing());
   }
 
   /**
    * @return true if the system is serving the web server, false otherwise
    */
   public boolean isWebServing() {
-    synchronized (mWebServerLock) {
-      return mWebServer != null && mWebServer.getServer().isRunning();
-    }
+    return mServices.stream().anyMatch(service -> service instanceof WebServerService
+        && ((WebServerService) service).isServing());
   }
 
   /**
@@ -183,14 +228,6 @@ public abstract class MasterProcess implements Process {
    */
   public boolean isMetricSinkServing() {
     return MetricsSystem.isStarted();
-  }
-
-  void registerServices(GrpcServerBuilder serverBuilder,
-      Map<alluxio.grpc.ServiceType, GrpcService> services) {
-    for (Map.Entry<alluxio.grpc.ServiceType, GrpcService> serviceEntry : services.entrySet()) {
-      serverBuilder.addService(serviceEntry.getKey(), serviceEntry.getValue());
-      LOG.info("registered service {}", serviceEntry.getKey().name());
-    }
   }
 
   /**
@@ -238,35 +275,5 @@ public abstract class MasterProcess implements Process {
   @Override
   public boolean waitForReady(int timeoutMs) {
     return waitForGrpcServerReady(timeoutMs);
-  }
-
-  protected void startRejectingServers() {
-    if (mRejectingRpcServer == null) {
-      mRejectingRpcServer = new RejectingServer(mRpcBindAddress);
-      mRejectingRpcServer.start();
-    }
-    if (!isWebServing() && mRejectingWebServer == null) {
-      mRejectingWebServer = new RejectingServer(mWebBindAddress);
-      mRejectingWebServer.start();
-    }
-  }
-
-  protected void stopRejectingRpcServer() {
-    if (mRejectingRpcServer != null) {
-      mRejectingRpcServer.stopAndJoin();
-      mRejectingRpcServer = null;
-    }
-  }
-
-  protected void stopRejectingWebServer() {
-    if (mRejectingWebServer != null) {
-      mRejectingWebServer.stopAndJoin();
-      mRejectingWebServer = null;
-    }
-  }
-
-  protected void stopRejectingServers() {
-    stopRejectingRpcServer();
-    stopRejectingWebServer();
   }
 }

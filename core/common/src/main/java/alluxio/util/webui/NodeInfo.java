@@ -33,6 +33,8 @@ public final class NodeInfo implements Comparable<NodeInfo> {
   private final String mUptimeClockTime;
   private final long mWorkerId;
   private final long mBlockCount;
+  private final String mVersion;
+  private final String mRevision;
 
   /**
    * Instantiates a new Node info.
@@ -62,6 +64,8 @@ public final class NodeInfo implements Comparable<NodeInfo> {
             System.currentTimeMillis() - workerInfo.getStartTimeMs());
     mWorkerId = workerInfo.getId();
     mBlockCount = workerInfo.getBlockCount();
+    mVersion = workerInfo.getVersion();
+    mRevision = workerInfo.getRevision();
   }
 
   /**
@@ -161,6 +165,24 @@ public final class NodeInfo implements Comparable<NodeInfo> {
    */
   public long getBlockCount() {
     return mBlockCount;
+  }
+
+  /**
+   * Gets worker version.
+   *
+   * @return the worker version
+   */
+  public String getVersion() {
+    return mVersion;
+  }
+
+  /**
+   * Gets worker revision.
+   *
+   * @return the worker revision
+   */
+  public String getRevision() {
+    return mRevision;
   }
 
   /**

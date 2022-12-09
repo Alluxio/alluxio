@@ -375,6 +375,10 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // snapshot retention
     RaftServerConfigKeys.Snapshot.setRetentionFileNum(properties, 3);
 
+    // unsafe flush
+    RaftServerConfigKeys.Log.setUnsafeFlushEnabled(properties,
+        Configuration.getBoolean(PropertyKey.MASTER_EMBEDDED_JOURNAL_UNSAFE_FLUSH_ENABLED));
+
     // snapshot interval
     RaftServerConfigKeys.Snapshot.setAutoTriggerEnabled(
         properties, true);

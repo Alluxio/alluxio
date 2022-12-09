@@ -26,6 +26,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.exception.OpenDirectoryException;
+import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -123,14 +124,16 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
    *
    * @param fs Alluxio file system
    * @param conf the Alluxio configuration containing Fuse options
+   * @param fuseOptions the FUSE options
    */
-  public AlluxioJnrFuseFileSystem(FileSystem fs, AlluxioConfiguration conf) {
+  public AlluxioJnrFuseFileSystem(FileSystem fs, AlluxioConfiguration conf,
+      FuseOptions fuseOptions) {
     super();
     mFsName = conf.getString(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
     mOpenFiles = new IndexedSet<>(ID_INDEX, PATH_INDEX);
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
-    mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(conf);
+    mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(conf, fuseOptions);
   }
 
   /**

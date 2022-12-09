@@ -20,10 +20,14 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.JournalDomain;
 import alluxio.master.job.JobMaster;
+import alluxio.master.journal.DefaultJournalMaster;
+import alluxio.master.journal.JournalMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
+import alluxio.master.service.rpc.RpcServerService;
+import alluxio.master.service.web.WebServerService;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils.ProcessType;
@@ -48,9 +52,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public class AlluxioJobMasterProcess extends AlluxioSimpleMasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobMasterProcess.class);
 
-  /** The master managing all job related metadata. */
-  protected JobMaster mJobMaster;
-
   AlluxioJobMasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector) {
     super("job", JournalDomain.JOB_MASTER, journalSystem, leaderSelector,
         ServiceType.JOB_MASTER_WEB, ServiceType.JOB_MASTER_RPC, PropertyKey.JOB_MASTER_HOSTNAME);
@@ -58,27 +59,15 @@ public class AlluxioJobMasterProcess extends AlluxioSimpleMasterProcess {
     FileSystem fileSystem = FileSystem.Factory.create(fsContext);
     UfsManager ufsManager = new JobUfsManager();
     try {
+      MasterContext<UfsManager> context =
+          new MasterContext<>(mJournalSystem, leaderSelector, null, ufsManager);
       // Create master.
-      mJobMaster = new JobMaster(
-          new MasterContext<>(mJournalSystem, null, ufsManager), fileSystem, fsContext,
-          ufsManager);
+      mRegistry.add(JobMaster.class, new JobMaster(context, fileSystem, fsContext, ufsManager));
+      mRegistry.add(JournalMaster.class,
+          new DefaultJournalMaster(JournalDomain.JOB_MASTER, context));
     } catch (Exception e) {
       LOG.error("Failed to create job master", e);
       throw new RuntimeException("Failed to create job master", e);
-    }
-  }
-
-  @Override
-  AbstractMaster getAbstractMaster() {
-    return mJobMaster;
-  }
-
-  @Override
-  public <T extends Master> T getMaster(Class<T> clazz) {
-    if (clazz == JobMaster.class) {
-      return (T) mJobMaster;
-    } else {
-      throw new RuntimeException(String.format("Could not find the master: %s", clazz));
     }
   }
 
@@ -86,17 +75,17 @@ public class AlluxioJobMasterProcess extends AlluxioSimpleMasterProcess {
    * @return the {@link JobMaster} for this process
    */
   public JobMaster getJobMaster() {
-    return mJobMaster;
+    return mRegistry.get(JobMaster.class);
   }
 
   @Override
-  WebServer createWebServer() {
+  public WebServer createWebServer() {
     return new JobMasterWebServer(ServiceType.JOB_MASTER_WEB.getServiceName(), mWebBindAddress,
               this);
   }
 
   @Override
-  GrpcServerBuilder createBaseRPCServer() {
+  public GrpcServerBuilder createBaseRpcServer() {
     return GrpcServerBuilder
         .forAddress(GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
             Configuration.global())
@@ -127,17 +116,21 @@ public class AlluxioJobMasterProcess extends AlluxioSimpleMasterProcess {
       JournalSystem journalSystem = new JournalSystem.Builder()
           .setLocation(URIUtils.appendPathOrDie(journalLocation, Constants.JOB_JOURNAL_NAME))
           .build(ProcessType.JOB_MASTER);
+      final PrimarySelector primarySelector;
       if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
             "Raft journal cannot be used with Zookeeper enabled");
-        PrimarySelector primarySelector = PrimarySelector.Factory.createZkJobPrimarySelector();
-        return new AlluxioJobMasterProcess(journalSystem, primarySelector);
+        primarySelector = PrimarySelector.Factory.createZkJobPrimarySelector();
       } else if (journalSystem instanceof RaftJournalSystem) {
-        PrimarySelector primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
-        return new AlluxioJobMasterProcess(journalSystem, primarySelector);
+        primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
+      } else {
+        primarySelector = new UfsJournalSingleMasterPrimarySelector();
       }
-      return new AlluxioJobMasterProcess(journalSystem,
-          new UfsJournalSingleMasterPrimarySelector());
+      AlluxioJobMasterProcess ajmp = new AlluxioJobMasterProcess(journalSystem, primarySelector);
+      ajmp.registerService(
+          RpcServerService.Factory.create(ajmp.getRpcBindAddress(), ajmp, ajmp.getRegistry()));
+      ajmp.registerService(WebServerService.Factory.create(ajmp.getWebBindAddress(), ajmp));
+      return ajmp;
     }
 
     private Factory() {} // prevent instantiation

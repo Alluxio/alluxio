@@ -68,6 +68,7 @@ message WorkerInfo {
   optional int64 startTimeMs = 7;
   map<string, int64> capacityBytesOnTiers = 8;
   map<string, int64> usedBytesOnTiers = 9;
+  optional BuildVersion buildVersion = 10;
 }
 
 enum WorkerRange {
@@ -89,6 +90,7 @@ enum WorkerInfoField {
   WORKER_USED_BYTES = 8;
   WORKER_USED_BYTES_ON_TIERS = 9;
   BLOCK_COUNT = 10;
+  BUILD_VERSION = 11;
 }
 
 message GetWorkerReportPOptions {
@@ -261,8 +263,16 @@ message GetRegisterLeasePResponse {
   optional GetRegisterLeasePOptions options = 4;
 }
 
+message BuildVersion {
+  /** the project version of the worker */
+  optional string version = 1;
+  /** the git revision at the time of building the worker */
+  optional string revision = 2;
+}
 message RegisterWorkerPOptions {
   repeated grpc.ConfigProperty configs = 1;
+  /** the worker version to display in info pages (useful for rolling upgrades) */
+  optional BuildVersion buildVersion = 2;
 }
 message RegisterWorkerPRequest {
   /** the id of the worker */

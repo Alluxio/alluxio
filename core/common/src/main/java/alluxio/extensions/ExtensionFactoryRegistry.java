@@ -15,6 +15,8 @@ import static java.util.stream.Collectors.toList;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.recorder.Recorder;
+import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.util.ExtensionUtils;
 import alluxio.util.io.PathUtils;
 
@@ -33,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -79,6 +82,7 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
     S extends AlluxioConfiguration> {
   private static final Logger LOG = LoggerFactory.getLogger(ExtensionFactoryRegistry.class);
 
+  public static final String UNKNOWN_VERSION = "unknown";
   /**
    * The base list of factories, which does not include any lib or extension factories. The only
    * factories in the base list will be built-in factories, and any additional factories
@@ -122,13 +126,14 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
   }
 
   /**
-   * Finds all the factories that support the given path.
+   * Finds all the factories that support the given path and record the detailed execution process.
    *
    * @param path path
    * @param conf configuration of the extension
+   * @param recorder recorder used to record the detailed execution process
    * @return list of factories that support the given path which may be an empty list
    */
-  public List<T> findAll(String path, S conf) {
+  public List<T> findAllWithRecorder(String path, S conf, Recorder recorder) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     List<T> eligibleFactories = scanRegistered(path, conf);
@@ -142,17 +147,41 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
     String libDir = PathUtils.concatPath(conf.getString(PropertyKey.HOME), "lib");
     String extensionDir = conf.getString(PropertyKey.EXTENSIONS_DIR);
     scanLibs(factories, libDir);
+    recorder.record("Loaded {} factory core jars from {}", factories.size(), libDir);
     scanExtensions(factories, extensionDir);
+    recorder.record("Loaded extension jars from {}.%n"
+        + "The total number of loaded factory core jars is {}", extensionDir, factories.size());
 
-    for (T factory : factories) {
-      if (factory.supportsPath(path, conf)) {
-        LOG.debug("Factory implementation {} is eligible for path {}", factory, path);
-        eligibleFactories.add(factory);
-      }
+    if (conf.isSetByUser(PropertyKey.UNDERFS_VERSION)) {
+      recorder.record("alluxio.underfs.version is set by user, target version is {}",
+          conf.getString(PropertyKey.UNDERFS_VERSION));
+    } else {
+      recorder.record("alluxio.underfs.version is not set by user");
     }
 
+    for (T factory : factories) {
+      // if `getVersion` returns null set the version to "unknown"
+      String version = UNKNOWN_VERSION;
+      if (factory instanceof UnderFileSystemFactory) {
+        version = Optional.ofNullable(((UnderFileSystemFactory) factory)
+            .getVersion()).orElse(UNKNOWN_VERSION);
+      }
+      if (factory.supportsPath(path, conf)) {
+        String message =
+            String.format("Adding factory %s of version %s which supports path %s",
+                factory.getClass().getSimpleName(), version, path);
+        recorder.record(message);
+        LOG.debug(message);
+        eligibleFactories.add(factory);
+      } else {
+        recorder.record("Factory implementation {} of version {} "
+            + "isn't eligible for path {}", factory.getClass().getSimpleName(), version, path);
+      }
+    }
     if (eligibleFactories.isEmpty()) {
-      LOG.warn("No factory implementation supports the path {}", path);
+      String message = String.format("No factory implementation supports the path %s", path);
+      recorder.record(message);
+      LOG.warn(message);
     }
     return eligibleFactories;
   }

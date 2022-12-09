@@ -23,6 +23,9 @@ import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
+import alluxio.master.service.metrics.MetricsService;
+import alluxio.master.service.rpc.RpcServerService;
+import alluxio.master.service.web.WebServerService;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
@@ -112,6 +115,10 @@ public final class AlluxioMasterProcessTest {
   public void startStopPrimary() throws Exception {
     AlluxioMasterProcess master = new AlluxioMasterProcess(new NoopJournalSystem(),
         new UfsJournalSingleMasterPrimarySelector());
+    master.registerService(
+        RpcServerService.Factory.create(master.getRpcBindAddress(), master, master.getRegistry()));
+    master.registerService(WebServerService.Factory.create(master.getWebBindAddress(), master));
+    master.registerService(MetricsService.Factory.create());
     Thread t = new Thread(() -> {
       try {
         master.start();
@@ -127,6 +134,10 @@ public final class AlluxioMasterProcessTest {
   public void startStopStandby() throws Exception {
     AlluxioMasterProcess master = new AlluxioMasterProcess(
         new NoopJournalSystem(), new AlwaysStandbyPrimarySelector());
+    master.registerService(
+        RpcServerService.Factory.create(master.getRpcBindAddress(), master, master.getRegistry()));
+    master.registerService(WebServerService.Factory.create(master.getWebBindAddress(), master));
+    master.registerService(MetricsService.Factory.create());
     Thread t = new Thread(() -> {
       try {
         master.start();
@@ -149,7 +160,7 @@ public final class AlluxioMasterProcessTest {
         new NoopJournalSystem(), primarySelector);
     AlluxioMasterProcess spy = Mockito.spy(master);
     Mockito.doAnswer(invocation -> { throw new UnavailableException("unavailable"); })
-        .when(spy).startMasters(true);
+        .when(spy).startMasterComponents(true);
 
     AtomicBoolean success = new AtomicBoolean(true);
     Thread t = new Thread(() -> {
@@ -176,6 +187,9 @@ public final class AlluxioMasterProcessTest {
     Configuration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, true);
     AlluxioMasterProcess master = new AlluxioMasterProcess(
         new NoopJournalSystem(), primarySelector);
+    master.registerService(
+        RpcServerService.Factory.create(master.getRpcBindAddress(), master, master.getRegistry()));
+    master.registerService(WebServerService.Factory.create(master.getWebBindAddress(), master));
     Thread t = new Thread(() -> {
       try {
         master.start();
@@ -227,6 +241,10 @@ public final class AlluxioMasterProcessTest {
     AlluxioMasterProcess master = new AlluxioMasterProcess(
         new RaftJournalSystem(JournalUtils.getJournalLocation(), ServiceType.MASTER_RAFT),
         new UfsJournalSingleMasterPrimarySelector());
+    master.registerService(
+        RpcServerService.Factory.create(master.getRpcBindAddress(), master, master.getRegistry()));
+    master.registerService(WebServerService.Factory.create(master.getWebBindAddress(), master));
+    master.registerService(MetricsService.Factory.create());
     Thread t = new Thread(() -> {
       try {
         master.start();
