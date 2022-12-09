@@ -53,6 +53,7 @@ Each instance can report to zero or more sinks.
 The metrics system is configured via a configuration file that Alluxio expects to be present at `${ALLUXIO_HOME}/conf/metrics.properties`.
 A custom file location can be specified via the `alluxio.metrics.conf.file` configuration property.
 Refer to `${ALLUXIO_HOME}/conf/metrics.properties.template` for all possible sink specific configurations.
+To configure the metrics system on Kubernetes, refer to [Metrics On Kubernetes]({{ '/en/kubernetes/Metrics-On-Kubernetes.html' | relativize_url }}#metrics-sink-configuration)
 
 The Alluxio leading master emits both its instance metrics and a summary of the cluster-wide aggregated metrics.
 

@@ -14,7 +14,6 @@ package alluxio.client.fuse.file;
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
-import alluxio.fuse.file.FuseFileInOrOutStream;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.util.io.BufferUtils;
@@ -25,7 +24,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
 
 /**
  * Integration test for {@link alluxio.fuse.file.FuseFileInOrOutStream}.
@@ -37,7 +35,8 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    mStreamFactory.create(alluxioURI, OpenFlags.O_RDWR.intValue(), MODE).close();
+    mStreamFactory.create(alluxioURI,
+        OpenFlags.O_RDWR.intValue() | OpenFlags.O_CREAT.intValue(), MODE).close();
     URIStatus status = mFileSystem.getStatus(alluxioURI);
     Assert.assertNotNull(status);
     Assert.assertTrue(status.isCompleted());
@@ -106,11 +105,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
-    URIStatus uriStatus = mFileSystem.getStatus(alluxioURI);
     int newFileLength = 30;
-    try (FuseFileInOrOutStream stream = FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy,
-        alluxioURI, OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue(),
-        MODE, Optional.of(uriStatus))) {
+    try (FuseFileStream stream = mStreamFactory.create(
+        alluxioURI, OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(0, newFileLength);
       stream.write(buffer, newFileLength, 0);
     }
@@ -126,12 +123,12 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     int newFileLength = 45;
     try (FuseFileStream stream
         = mStreamFactory.create(alluxioURI, OpenFlags.O_RDWR.intValue(), MODE)) {
-      Assert.assertEquals(DEFAULT_FILE_LEN, stream.getFileLength());
+      Assert.assertEquals(DEFAULT_FILE_LEN, stream.getFileStatus().getFileLength());
       stream.truncate(0);
-      Assert.assertEquals(0, stream.getFileLength());
+      Assert.assertEquals(0, stream.getFileStatus().getFileLength());
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(0, newFileLength);
       stream.write(buffer, newFileLength, 0);
-      Assert.assertEquals(newFileLength, stream.getFileLength());
+      Assert.assertEquals(newFileLength, stream.getFileStatus().getFileLength());
     }
     checkFileInAlluxio(alluxioURI, newFileLength, 0);
   }
@@ -143,11 +140,11 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     URIStatus uriStatus = mFileSystem.getStatus(alluxioURI);
     try (FuseFileStream stream = mStreamFactory
         .create(alluxioURI, OpenFlags.O_RDWR.intValue(), MODE)) {
-      Assert.assertEquals(uriStatus.getLength(), stream.getFileLength());
+      Assert.assertEquals(uriStatus.getLength(), stream.getFileStatus().getFileLength());
       ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_FILE_LEN);
       Assert.assertEquals(DEFAULT_FILE_LEN, stream.read(buffer, DEFAULT_FILE_LEN, 0));
       Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, DEFAULT_FILE_LEN, buffer));
-      Assert.assertEquals(uriStatus.getLength(), stream.getFileLength());
+      Assert.assertEquals(uriStatus.getLength(), stream.getFileStatus().getFileLength());
     }
   }
 
@@ -174,16 +171,16 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
         = mStreamFactory.create(alluxioURI, OpenFlags.O_RDWR.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
       stream.write(buffer, DEFAULT_FILE_LEN, 0);
-      Assert.assertEquals(DEFAULT_FILE_LEN, stream.getFileLength());
+      Assert.assertEquals(DEFAULT_FILE_LEN, stream.getFileStatus().getFileLength());
       buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN, DEFAULT_FILE_LEN);
       stream.write(buffer, DEFAULT_FILE_LEN, DEFAULT_FILE_LEN);
-      Assert.assertEquals(DEFAULT_FILE_LEN * 2, stream.getFileLength());
+      Assert.assertEquals(DEFAULT_FILE_LEN * 2, stream.getFileStatus().getFileLength());
     }
     checkFileInAlluxio(alluxioURI, DEFAULT_FILE_LEN * 2, 0);
   }
 
   @Test
-  public void truncateZeroOrDEFAULT_FILE_LENgth() throws Exception {
+  public void truncateZeroOrDefault() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
@@ -191,14 +188,14 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
         = mStreamFactory.create(alluxioURI, OpenFlags.O_RDWR.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
       stream.write(buffer, DEFAULT_FILE_LEN, 0);
-      Assert.assertEquals(DEFAULT_FILE_LEN, stream.getFileLength());
+      Assert.assertEquals(DEFAULT_FILE_LEN, stream.getFileStatus().getFileLength());
       stream.truncate(0);
-      Assert.assertEquals(0, stream.getFileLength());
+      Assert.assertEquals(0, stream.getFileStatus().getFileLength());
       buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN * 2);
       stream.write(buffer, DEFAULT_FILE_LEN * 2,  0);
-      Assert.assertEquals(DEFAULT_FILE_LEN * 2, stream.getFileLength());
+      Assert.assertEquals(DEFAULT_FILE_LEN * 2, stream.getFileStatus().getFileLength());
       stream.truncate(DEFAULT_FILE_LEN * 2);
-      Assert.assertEquals(DEFAULT_FILE_LEN * 2, stream.getFileLength());
+      Assert.assertEquals(DEFAULT_FILE_LEN * 2, stream.getFileStatus().getFileLength());
     }
     checkFileInAlluxio(alluxioURI, DEFAULT_FILE_LEN * 2, 0);
   }
@@ -261,7 +258,7 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
         = mStreamFactory.create(alluxioURI, OpenFlags.O_RDWR.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
       stream.write(buffer, DEFAULT_FILE_LEN, 0);
-      Assert.assertEquals(DEFAULT_FILE_LEN, stream.getFileLength());
+      Assert.assertEquals(DEFAULT_FILE_LEN, stream.getFileStatus().getFileLength());
       stream.truncate(DEFAULT_FILE_LEN / 2);
     }
   }

@@ -9,10 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block;
-
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+package alluxio.concurrent;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -29,22 +26,23 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ClientRWLock implements ReadWriteLock {
-  /** Total number of permits. This value decides the max number of concurrent readers. */
-  private static final int MAX_AVAILABLE =
-          Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCK_READERS);
-  /**
-   * Uses the unfair lock to prevent a read lock that fails to release from locking the block
-   * forever and thus blocking all the subsequent write access.
-   * See https://alluxio.atlassian.net/browse/ALLUXIO-2636.
-   */
-  private final Semaphore mAvailable = new Semaphore(MAX_AVAILABLE, false);
+  private final Semaphore mAvailable;
   /** Reference count. */
   private final AtomicInteger mReferences = new AtomicInteger();
+  private final int mMaxReaders;
 
   /**
    * Constructs a new {@link ClientRWLock}.
+   *
+   * @param maxReaders total number of permits, decides the max number of concurrent readers
    */
-  public ClientRWLock() {}
+  public ClientRWLock(int maxReaders) {
+    mMaxReaders = maxReaders;
+    // Uses the unfair lock to prevent a read lock
+    // that fails to release from locking the block forever
+    // and thus blocking all the subsequent write access.
+    mAvailable = new Semaphore(maxReaders, false);
+  }
 
   @Override
   public Lock readLock() {
@@ -53,7 +51,7 @@ public final class ClientRWLock implements ReadWriteLock {
 
   @Override
   public Lock writeLock() {
-    return new SessionLock(MAX_AVAILABLE);
+    return new SessionLock(mMaxReaders);
   }
 
   /**

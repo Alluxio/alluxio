@@ -59,8 +59,18 @@ public final class SystemUserGroupAuthPolicy extends LaunchUserGroupAuthPolicy {
   }
 
   @Override
+  public Optional<Long> getUid() {
+    return Optional.of(mFuseFileSystem.get().getContext().uid.get());
+  }
+
+  @Override
   public Optional<Long> getUid(String owner) {
     return AlluxioFuseUtils.getUid(owner);
+  }
+
+  @Override
+  public Optional<Long> getGid() {
+    return Optional.of(mFuseFileSystem.get().getContext().gid.get());
   }
 
   @Override

@@ -67,6 +67,10 @@ public class AbstractStressBenchTest {
     public List<String[]> getArgsList() {
       return mArgsList;
     }
+
+    @Override
+    public void validateParams() throws Exception {
+    }
   }
 
   @Test

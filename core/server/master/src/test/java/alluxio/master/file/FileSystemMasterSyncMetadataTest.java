@@ -328,7 +328,8 @@ public final class FileSystemMasterSyncMetadataTest {
 
     mUfs = Mockito.mock(UnderFileSystem.class);
     PowerMockito.mockStatic(UnderFileSystem.Factory.class);
-    Mockito.when(UnderFileSystem.Factory.create(anyString(), any())).thenReturn(mUfs);
+    Mockito.when(UnderFileSystem.Factory.createWithRecorder(anyString(), any(), any()))
+        .thenReturn(mUfs);
   }
 
   private void stopServices() throws Exception {

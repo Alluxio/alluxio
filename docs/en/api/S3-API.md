@@ -1130,6 +1130,27 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
+#### [HeadBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadBucket.html)
+{% navtabs head_bucket %}
+{% navtab AWS CLI %}
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api head-bucket \
+  --bucket=testbucket
+```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  --head http://localhost:39999/api/v1/s3/testbucket
+HTTP/1.1 200 OK
+Date: Tue, 15 Nov 2022 04:49:12 GMT
+Content-Type: application/xml
+Content-Length: 0
+Server: Jetty(9.4.43.v20210629)
+```
+{% endnavtab %}
+{% endnavtabs %}
+
 #### [HeadObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadObject.html)
 {% navtabs head_object %}
 {% navtab AWS CLI %}

@@ -104,6 +104,7 @@ public final class Constants {
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
   public static final String META_MASTER_NAME = "MetaMaster";
   public static final String METRICS_MASTER_NAME = "MetricsMaster";
+  public static final String JOURNAL_MASTER_NAME = "JournalMaster";
   public static final String BLOCK_WORKER_NAME = "BlockWorker";
   public static final String FILE_SYSTEM_WORKER_NAME = "FileSystemWorker";
 
@@ -120,7 +121,7 @@ public final class Constants {
   public static final String METRICS_MASTER_CLIENT_SERVICE_NAME = "MetricsMasterClient";
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
   public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
-  public static final String JOURNAL_MASTER_CLIENT_SERVICE_NAME = "JournalMaster";
+  public static final String JOURNAL_MASTER_CLIENT_SERVICE_NAME = "JournalMasterClient";
   public static final String RAFT_JOURNAL_SERVICE_NAME = "RaftJournal";
 
   public static final String UFS_INPUT_STREAM_CACHE_EXPIRATION = "UfsInputStreamCacheExpiration";

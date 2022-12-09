@@ -579,7 +579,7 @@ Usage: alluxio fs [generic options]
 For `fs` subcommands that take Alluxio URIs as argument (e.g. `ls`, `mkdir`), the argument should
 be either a complete Alluxio URI, such as `alluxio://<master-hostname>:<master-port>/<path>`,
 or a path without its header, such as `/<path>`, to use the default hostname and port set in the
-`conf/allluxio-site.properties`.
+`conf/alluxio-site.properties`.
 
 > Note: This command requires the Alluxio cluster to be running.
 

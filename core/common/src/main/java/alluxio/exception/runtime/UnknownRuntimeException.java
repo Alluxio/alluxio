@@ -33,6 +33,7 @@ public class UnknownRuntimeException extends AlluxioRuntimeException {
   public UnknownRuntimeException(Throwable t) {
     super(STATUS, t.getMessage(), t, ERROR_TYPE, RETRYABLE);
   }
+<<<<<<< HEAD
 
   /**
    * Constructor.
@@ -41,4 +42,16 @@ public class UnknownRuntimeException extends AlluxioRuntimeException {
   public UnknownRuntimeException(String message) {
     super(STATUS, message, null, ERROR_TYPE, RETRYABLE);
   }
+||||||| 2795075ef3
+=======
+
+  /**
+   * Constructor.
+   *
+   * @param message error message
+   */
+  public UnknownRuntimeException(String message) {
+    super(STATUS, message, null, ERROR_TYPE, RETRYABLE);
+  }
+>>>>>>> 83ac5690a217b0944f68fe7fc18d56f3bd02dc86
 }

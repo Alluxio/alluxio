@@ -178,6 +178,21 @@ increase the latency for those update/write RPCs.
 Setting a larger timeout value for `alluxio.master.journal.flush.timeout` helps keep the master
 alive if the journal writing location is unavailable for an extended duration.
 
+### Embedded journal write performance
+When using the embedded journal, before each update operation in Alluxio is committed, a journal
+entry corresponding to the operation must be written and flushed to disk in a write-ahead-log (WAL) at all masters.
+If the WAL is located on a disk that is frequently accessed by other processes, the performance of
+update operations in Alluxio may suffer. This may be the case if, for example, the WAL shares a disk with the
+[basic logging]({{ '/en/administration/Basic-Logging.html' | relativize_url }}) operations.
+
+For optimal performance it may be useful to dedicate a disk specifically to the journal.
+The location of the journal folder can be set by the property key `alluxio.master.journal.folder`.
+
+Alternatively, by setting the property key `alluxio.master.embedded.journal.unsafe.flush.enabled`
+to true, operations will be committed without waiting for the flush to disk to complete.
+> Warning: enabling this property may lead to metadata loss on the Alluxio masters if half
+or more of the master nodes fail.
+
 ### Journal garbage collection
 
 <table class="table table-striped">

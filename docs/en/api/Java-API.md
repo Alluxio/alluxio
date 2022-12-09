@@ -217,20 +217,27 @@ Using Alluxio's Java API, users can set the policy in `CreateFilePOptions` for w
 `OpenFilePOptions` for reading files into Alluxio.
 
 Users can override the default policy class in the
-[configuration file]({{ '/en/operation/Configuration.html' | relativize_url }}) at property
-`alluxio.user.block.write.location.policy.class`. The built-in policies include:
+[configuration file]({{ '/en/operation/Configuration.html' | relativize_url }}).
+Two configuration properties are available:
+
+1. `alluxio.user.ufs.block.read.location.policy`
+   This controls which worker is selected to cache a block that is not currently cached in Alluxio and will be
+   read from UFS.
+2. `alluxio.user.block.write.location.policy.class`
+   This controls which worker is selected to cache a block generated from the client, and possibly persist it to the 
+   UFS.
+
+The built-in policies include:
 
 * [LocalFirstPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/LocalFirstPolicy.html)
 
   **This is the default policy.**
 
   > A policy that returns the local worker first, and if the local worker doesn't
-  > exist or doesn't have enough availability, will select the nearest worker from the active
-  > workers list with sufficient availability.
-  >
-  > The calculation of which worker gets selected is done for each block write.
+  > exist or doesn't have enough capacity, will select the nearest worker from the active
+  > workers list with sufficient capacity.
 
-  * If no worker meets availability criteria, will randomly select a worker from the list of all workers.
+  * If no worker meets capacity criteria, will randomly select a worker from the list of all workers.
 
 * [LocalFirstAvoidEvictionPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/LocalFirstAvoidEvictionPolicy.html)
 
