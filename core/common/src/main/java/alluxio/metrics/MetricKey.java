@@ -1367,6 +1367,18 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The number of active write-RPCs managed by workers")
           .setMetricType(MetricType.COUNTER)
           .build();
+  public static final MetricKey CLUSTER_BLOCK_READER_THREAD_ACTIVE_COUNT =
+      new Builder("Cluster.BlockReaderThreadActiveCount")
+          .setDescription("The total number of block read threads "
+              + "that are actively executing tasks in reader thread pool by workers")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey CLUSTER_BLOCK_WRITER_THREAD_ACTIVE_COUNT =
+      new Builder("Cluster.BlockWriterThreadActiveCount")
+          .setDescription("The total number of block write threads "
+              + "that are actively executing tasks in writer thread pool by workers")
+          .setMetricType(MetricType.COUNTER)
+          .build();
   public static final MetricKey CLUSTER_BYTES_READ_DIRECT =
       new Builder("Cluster.BytesReadDirect")
           .setDescription("Total number of bytes read from all workers "
@@ -1913,7 +1925,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The approximate number of block read "
               + "threads that are actively executing tasks in reader thread pool")
           .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BLOCK_READER_THREAD_CURRENT_COUNT =
       new Builder("Worker.BlockReaderThreadCurrentCount")
@@ -1967,7 +1979,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The approximate number of block write "
               + "threads that are actively executing tasks in writer thread pool")
           .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BLOCK_WRITER_THREAD_CURRENT_COUNT =
       new Builder("Worker.BlockWriterThreadCurrentCount")

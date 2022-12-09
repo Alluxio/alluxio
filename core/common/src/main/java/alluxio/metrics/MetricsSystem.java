@@ -778,8 +778,17 @@ public final class MetricsSystem {
               entry.getKey(), gauge.getValue().getClass().getSimpleName());
           continue;
         }
-        rpcMetrics.add(Metric.from(entry.getKey(),
-            ((Number) gauge.getValue()).longValue(), MetricType.GAUGE).toProto());
+        // As the value is a number, it can also be reported to master as "COUNTER" type.
+        // Then it can also be aggregated in the same way as "COUNTER" at master side.
+        long value = ((Number) gauge.getValue()).longValue();
+        Long prev = LAST_REPORTED_METRICS.replace(entry.getKey(), value);
+        if (prev == null) {
+          LAST_REPORTED_METRICS.put(entry.getKey(), value);
+        }
+        double diff = prev != null ? value - prev : value;
+        if (diff != 0) { // Only report non-zero counter values
+          rpcMetrics.add(Metric.from(entry.getKey(), diff, MetricType.COUNTER).toProto());
+        }
       } else if (metric instanceof Meter) {
         Meter meter = (Meter) metric;
         // Note that one minute rate may return 0 in the first several seconds
