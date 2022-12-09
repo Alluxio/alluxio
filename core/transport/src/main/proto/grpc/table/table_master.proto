@@ -6,7 +6,6 @@ option java_outer_classname = "TableMasterProto";
 
 package alluxio.grpc.table;
 
-import "grpc/common.proto";
 import "grpc/job_master.proto";
 
 message FieldSchema {
