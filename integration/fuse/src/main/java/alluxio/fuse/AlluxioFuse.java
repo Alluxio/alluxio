@@ -312,6 +312,10 @@ public final class AlluxioFuse {
           conf.set(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME,
               PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME.parseValue(value), Source.RUNTIME);
           LOG.info("Set metadata cache expiration time as {} from command line input", value);
+        } else if (key.equals("fuse")) {
+          conf.set(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION,
+              PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION.parseValue(value), Source.RUNTIME);
+          LOG.info("Set fuse(libfuse) version as {} from command line input", value);
         } else {
           fuseOptions.add(trimedOpt);
         }
