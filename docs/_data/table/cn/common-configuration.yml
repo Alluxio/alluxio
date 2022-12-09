@@ -128,6 +128,20 @@ alluxio.underfs.s3a.signer.algorithm:
   签名算法，用于向s3服务签名请求。这是可选的，如果没有设置，客户端将自动确定它。若要与仅支持v2签名的S3端点交互，请将其设置为"S3SignerType"。
 alluxio.underfs.s3a.socket.timeout:
   与S3通信时socket超时的时间长度。
+alluxio.web.cors.allow.credential:
+  是否可以将对请求的响应暴露给页面。
+alluxio.web.cors.allow.headers:
+  哪些头部信息是允许的，使用 * 允许所有的任何头部信息。
+alluxio.web.cors.allow.methods:
+  哪些方法是允许的，使用 * 允许所有的任何方法。
+alluxio.web.cors.allow.origins:
+  哪些 Origin 是允许的，使用 * 允许所有的任何 Origin。
+alluxio.web.cors.enabled:
+  启用 Web 用户界面的 CORS 配置
+alluxio.web.cors.exposed.headers:
+  在访问跨源资源时，允许在响应中设置哪些头部信息。 使用 * 允许所有头部信息。
+alluxio.web.cors.max.age:
+  在访问跨源资源时，结果可以被缓存的最大秒数。"-1表示不缓存。
 alluxio.web.resources:
   web应用资源路径。
 alluxio.web.threads:
