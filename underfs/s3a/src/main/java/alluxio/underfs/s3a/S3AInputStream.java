@@ -11,6 +11,7 @@
 
 package alluxio.underfs.s3a;
 
+import alluxio.Seekable;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.runtime.UnknownRuntimeException;
 import alluxio.retry.RetryPolicy;
@@ -27,10 +28,11 @@ import java.io.InputStream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A wrapper around an {@link S3ObjectInputStream} which handles skips efficiently.
+ * An S3A input stream that supports skip and seek efficiently.
+ * Recommended wrap around an BufferedInputStream to improve performance.
  */
 @NotThreadSafe
-public class S3AInputStream extends InputStream {
+public class S3AInputStream extends InputStream implements Seekable {
   /** Client for operations with s3. */
   protected AmazonS3 mClient;
   /** Name of the bucket the object resides in. */
@@ -39,9 +41,6 @@ public class S3AInputStream extends InputStream {
   protected final String mKey;
   protected final byte[] mSingleByteHolder = new byte[1];
   protected final GetObjectRequest mReadRequest;
-
-  /** The backing input stream from s3. */
-  protected S3ObjectInputStream mIn;
   /** The current position of the stream. */
   protected long mPos;
 
@@ -50,19 +49,6 @@ public class S3AInputStream extends InputStream {
    * because of eventual consistency.
    */
   protected final RetryPolicy mRetryPolicy;
-
-  /**
-   * Constructor for an input stream of an object in s3 using the aws-sdk implementation to read
-   * the data. The stream will be positioned at the start of the file.
-   *
-   * @param bucketName the bucket the object resides in
-   * @param key the path of the object to read
-   * @param client the s3 client to use for operations
-   * @param retryPolicy retry policy in case the key does not exist
-   */
-  public S3AInputStream(String bucketName, String key, AmazonS3 client, RetryPolicy retryPolicy) {
-    this(bucketName, key, client, 0L, retryPolicy);
-  }
 
   /**
    * Constructor for an input stream of an object in s3 using the aws-sdk implementation to read the
@@ -116,7 +102,7 @@ public class S3AInputStream extends InputStream {
         //      if start <= end < file length, read from start to end
         //      if end >= file length, read from start to file length - 1
         mReadRequest.setRange(mPos, mPos + length - 1);
-        object = getClient().getObject((mReadRequest);
+        object = getClient().getObject((mReadRequest));
         break;
       } catch (AmazonS3Exception e) {
         if (e.getStatusCode() == 416) {
@@ -156,6 +142,17 @@ public class S3AInputStream extends InputStream {
     }
     mPos += n;
     return n;
+  }
+
+  @Override
+  public long getPos() {
+    return mPos;
+  }
+
+  @Override
+  public void seek(long pos) {
+    Preconditions.checkArgument(pos >= 0, "Seek position is negative: %s", pos);
+    mPos = pos;
   }
 
   /**
