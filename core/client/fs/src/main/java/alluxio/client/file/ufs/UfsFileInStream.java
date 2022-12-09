@@ -11,6 +11,7 @@
 
 package alluxio.client.file.ufs;
 
+import alluxio.Seekable;
 import alluxio.client.file.FileInStream;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.SeekableUnderFileInputStream;
@@ -138,8 +139,8 @@ public class UfsFileInStream extends FileInStream {
       mPosition = pos;
       return;
     }
-    if (mUfsInStream.get() instanceof SeekableUnderFileInputStream) {
-      ((SeekableUnderFileInputStream) mUfsInStream.get()).seek(pos);
+    if (mUfsInStream.get() instanceof Seekable) {
+      ((Seekable) mUfsInStream.get()).seek(pos);
     } else if (mPosition < pos) {
       while (mPosition < pos) {
         mPosition += mUfsInStream.get().skip(pos - mPosition);
