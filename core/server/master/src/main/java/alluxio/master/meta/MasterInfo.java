@@ -93,7 +93,8 @@ public final class MasterInfo {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
-        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("startTimeMs", mStartTimeMs).toString();
+        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("startTimeMs", mStartTimeMs)
+        .add("Version", mVersion).add("Revision", mRevision).toString();
   }
 
   /**
