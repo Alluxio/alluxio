@@ -14,7 +14,6 @@ package alluxio.client.file.ufs;
 import alluxio.Seekable;
 import alluxio.client.file.FileInStream;
 import alluxio.exception.PreconditionMessage;
-import alluxio.underfs.SeekableUnderFileInputStream;
 
 import com.google.common.base.Preconditions;
 
