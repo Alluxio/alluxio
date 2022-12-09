@@ -45,6 +45,9 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -273,8 +276,12 @@ public class S3ObjectTask extends S3BaseTask {
                         S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
                         RangeFileInStream ris = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
 
+                        Instant instant = Instant.ofEpochMilli(status.getLastModificationTimeMs());
+                        String formattedDate = DateTimeFormatter.RFC_1123_DATE_TIME
+                                .withZone(ZoneOffset.UTC)
+                                .format(instant);
                         Response.ResponseBuilder res = Response.ok(ris, MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                                .lastModified(new Date(status.getLastModificationTimeMs()))
+                                .header("Last-Modified", formattedDate)
                                 .header(S3Constants.S3_CONTENT_LENGTH_HEADER, s3Range.getLength(status.getLength()));
 
                         // Check for the object's ETag
