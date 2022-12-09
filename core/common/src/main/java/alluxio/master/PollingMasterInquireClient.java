@@ -30,7 +30,6 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
 import alluxio.uri.MultiMasterAuthority;
-import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.Lists;
 import io.grpc.StatusRuntimeException;
@@ -58,30 +57,6 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   private final AlluxioConfiguration mConfiguration;
   private final UserState mUserState;
   private final ServiceType mServiceType;
-
-  /**
-   * @param masterAddresses the potential master addresses
-   * @param alluxioConf Alluxio configuration
-   * @param userState user state
-   */
-  public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
-      AlluxioConfiguration alluxioConf,
-      UserState userState) {
-    this(masterAddresses, RetryUtils::defaultClientRetry,
-        alluxioConf, userState, null);
-  }
-
-  /**
-   * @param masterAddresses the potential master addresses
-   * @param retryPolicySupplier the retry policy supplier
-   * @param alluxioConf Alluxio configuration
-   */
-  public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
-      Supplier<RetryPolicy> retryPolicySupplier,
-      AlluxioConfiguration alluxioConf) {
-    this(masterAddresses, retryPolicySupplier, alluxioConf,
-        UserState.Factory.create(alluxioConf), null);
-  }
 
   /**
    * @param masterAddresses the potential master addresses
@@ -184,17 +159,9 @@ public class PollingMasterInquireClient implements MasterInquireClient {
         ServiceVersionClientServiceGrpc.newBlockingStub(channel)
             .withDeadlineAfter(mConfiguration.getMs(PropertyKey.USER_MASTER_POLLING_TIMEOUT),
                 TimeUnit.MILLISECONDS);
-    ServiceType serviceType = mServiceType;
-    if (serviceType == null) {
-      List<InetSocketAddress> addresses =
-          ConfigurationUtils.getJobMasterRpcAddresses(mConfiguration);
-      serviceType = addresses.contains(address)
-          ? ServiceType.JOB_MASTER_CLIENT_SERVICE : ServiceType.META_MASTER_CLIENT_SERVICE;
-    }
-
     try {
       versionClient.getServiceVersion(GetServiceVersionPRequest.newBuilder()
-          .setServiceType(serviceType).build());
+          .setServiceType(mServiceType).build());
     } catch (StatusRuntimeException e) {
       throw AlluxioStatusException.fromThrowable(e);
     } finally {
