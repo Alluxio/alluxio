@@ -874,7 +874,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WEB_CORS_MAX_AGE =
       intBuilder(Name.WEB_CORS_MAX_AGE)
-          .setDefaultValue("-1")
+          .setDefaultValue(-1)
           .setDescription("Maximum number of seconds the results can be cached. "
               + "-1 means no cache.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
