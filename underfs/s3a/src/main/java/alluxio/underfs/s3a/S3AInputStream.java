@@ -29,8 +29,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class S3AInputStream extends InputStream {
-  private static final Logger LOG = LoggerFactory.getLogger(S3AInputStream.class);
-
   /** Client for operations with s3. */
   protected AmazonS3 mClient;
   /** Name of the bucket the object resides in. */
@@ -42,6 +40,10 @@ public class S3AInputStream extends InputStream {
   protected S3ObjectInputStream mIn;
   /** The current position of the stream. */
   protected long mPos;
+  /** The current position of the S3 http source stream. */
+  private long mInPos;
+  /** The end(inclusive) of the range of the S3 http source stream. */
+  private long mInPosEnd;
 
   /**
    * Policy determining the retry behavior in case the key does not exist. The key may not exist
@@ -88,12 +90,14 @@ public class S3AInputStream extends InputStream {
 
   @Override
   public int read() throws IOException {
-    if (mIn == null) {
-      openStream();
-    }
+    seekStream(1);
     int value = mIn.read();
     if (value != -1) { // valid data read
       mPos++;
+      mInPos++;
+    }
+    if (mPos > mInPosEnd) {
+      closeStream();
     }
     return value;
   }
@@ -108,12 +112,14 @@ public class S3AInputStream extends InputStream {
     if (length == 0) {
       return 0;
     }
-    if (mIn == null) {
-      openStream();
-    }
+    seekStream(length);
     int read = mIn.read(b, offset, length);
     if (read != -1) {
       mPos += read;
+      mInPos += read;
+    }
+    if (mPos > mInPosEnd) {
+      closeStream();
     }
     return read;
   }
@@ -123,23 +129,51 @@ public class S3AInputStream extends InputStream {
     if (n <= 0) {
       return 0;
     }
-    closeStream();
     mPos += n;
-    openStream();
     return n;
   }
 
   /**
-   * Opens a new stream at mPos if the wrapped stream mIn is null.
+   * Seek if we could reuse the existing stream or create a new one.
+   * @param length the content length to be read
    */
-  private void openStream() throws IOException {
-    if (mIn != null) { // stream is already open
+  private void seekStream(int length) throws IOException {
+    if (mIn != null && mPos == mInPos) { // stream is already open and at the expected position
       return;
     }
+    if (mIn != null && mPos > mInPos) { // stream is already open but the caller is seeking forward
+      if (mPos - mInPos < mIn.available()) {
+        try {
+          while (mPos - mInPos > 0) {
+            long actualSkipped = mIn.skip(mPos - mInPos);
+            if (actualSkipped <= 0) {
+              break;
+            }
+            mInPos += actualSkipped;
+          }
+          if (mPos == mInPos) {
+            return; //able to reuse the existing stream
+          }
+        } catch (IOException e) {
+          //ignore to create a new stream
+        }
+      }
+    }
+    closeStream();
+    openStream(length);
+  }
+
+  /**
+   * Opens a new stream at mPos.
+   */
+  private void openStream(int length) throws IOException {
     GetObjectRequest getReq = new GetObjectRequest(mBucketName, mKey);
+    //mInPosEnd is inclusive, so minus one here
+    mInPosEnd = mPos + length - 1;
     // If the position is 0, setting range is redundant and causes an error if the file is 0 length
-    if (mPos > 0) {
-      getReq.setRange(mPos);
+    if (mPos > 0 || mInPosEnd > 0) {
+      // TODO(beinan): what if pos is 0 but length is not 0 when the file is 0 length, we need check
+      getReq.setRange(mPos, mInPosEnd);
     }
     AmazonS3Exception lastException = null;
     String errorMessage = String.format("Failed to open key: %s bucket: %s, left retry:%d",
@@ -147,6 +181,7 @@ public class S3AInputStream extends InputStream {
     while (mRetryPolicy.attempt()) {
       try {
         mIn = getClient().getObject(getReq).getObjectContent();
+        mInPos = mPos;
         return;
       } catch (AmazonS3Exception e) {
         errorMessage = String
