@@ -11,6 +11,8 @@
 
 package alluxio.underfs.s3a;
 
+import alluxio.exception.PreconditionMessage;
+import alluxio.exception.runtime.UnknownRuntimeException;
 import alluxio.retry.RetryPolicy;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -18,6 +20,7 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -96,40 +99,30 @@ public class S3AInputStream extends InputStream {
 
   @Override
   public int read(byte[] b, int offset, int length) throws IOException {
-    S3Object object = getObject(mPos, mPos + length);
-    if (object == null) {
-      // range request cannot meet
-      object = getObject(mPos);
+    Preconditions.checkArgument(offset >= 0 && length >= 0 && offset + length <= b.length,
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, offset, length);
+    if (length == 0) {
+      return 0;
     }
-    if (object == null) {
-      // mPos already pass file end
-      return -1;
-    }
-    try (S3ObjectInputStream in = object.getObjectContent()) {
-      int ret = in.read(b, offset, length);
-      if (ret == -1) {
-        return ret;
-      }
-      mPos += ret;
-      return ret;
-    }
-  }
-
-  private S3Object getObject(long start) {
-    return getObject(start, Long.MAX_VALUE - 1);
-  }
-
-  private S3Object getObject(long start, long end) {
-    // If the position is 0, setting range is redundant and causes an error if the file is 0 length
-    if (start > 0 || end > 0) {
-      // end is inclusive, so minus one here
-      mReadRequest.setRange(start, end - 1);
-    }
-    AlluxioS3Exception lastException;
+    S3Object object = null;
+    AlluxioS3Exception lastException = null;
     do {
       try {
-        return getClient().getObject(mReadRequest);
+        // Range check approach: set range (inclusive start, inclusive end)
+        // start: should be < file length, error out otherwise
+        //        e.g. error out when start == 0 && fileLength == 0
+        //        start < 0, read all
+        // end: if start > end, read all
+        //      if start <= end < file length, read from start to end
+        //      if end >= file length, read from start to file length - 1
+        mReadRequest.setRange(mPos, mPos + length - 1);
+        object = getClient().getObject((mReadRequest);
+        break;
       } catch (AmazonS3Exception e) {
+        if (e.getStatusCode() == 416) {
+          // InvalidRange exception when mPos >= file length
+          return -1;
+        }
         String errorMessage = String
             .format("Failed to get object: %s bucket: %s attempts: %d error: %s", mKey, mBucketName,
                 mRetryPolicy.getAttemptCount(), e.getMessage());
@@ -139,7 +132,21 @@ public class S3AInputStream extends InputStream {
         }
       }
     } while (mRetryPolicy.attempt());
-    throw lastException;
+    if (object == null) {
+      if (lastException != null) {
+        throw lastException;
+      }
+      // should not reach here
+      throw new UnknownRuntimeException("Failed to get S3 object and no exception thrown");
+    }
+    try (S3ObjectInputStream in = object.getObjectContent()) {
+      int ret = in.read(b, offset, length);
+      if (ret == -1) {
+        return ret;
+      }
+      mPos += ret;
+      return ret;
+    }
   }
 
   @Override
