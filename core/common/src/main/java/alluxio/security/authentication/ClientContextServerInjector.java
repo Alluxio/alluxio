@@ -38,6 +38,7 @@ public class ClientContextServerInjector implements ServerInterceptor {
    */
   private static final ThreadLocal<String> CLIENT_VERSION_THREAD_LOCAL =
       new ThreadLocal<>();
+
   /**
    * @return IP address of the gRPC client that is making the call
    */
@@ -53,6 +54,7 @@ public class ClientContextServerInjector implements ServerInterceptor {
   public static String getClientVersion() {
     return CLIENT_VERSION_THREAD_LOCAL.get();
   }
+
   @Override
   public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> call,
       Metadata headers, ServerCallHandler<ReqT, RespT> next) {

@@ -389,7 +389,8 @@ public class SnapshotReplicationManager {
   public StreamObserver<DownloadSnapshotPRequest> sendSnapshotToFollower(
       StreamObserver<DownloadSnapshotPResponse> responseObserver) {
     SnapshotInfo snapshot = mStorage.getLatestSnapshot();
-    LOG.debug("Received snapshot download request from {}", ClientContextServerInjector.getIpAddress());
+    LOG.debug("Received snapshot download request from {}",
+        ClientContextServerInjector.getIpAddress());
     SnapshotUploader<DownloadSnapshotPResponse, DownloadSnapshotPRequest> requestStreamObserver =
         SnapshotUploader.forLeader(mStorage, snapshot, responseObserver);
     if (snapshot == null) {
