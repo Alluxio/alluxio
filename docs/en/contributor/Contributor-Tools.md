@@ -158,7 +158,7 @@ action from the `Navigate > Search Everywhere` dialog.
     $ ls /tmp/alluxio-fuse
     $ bin/alluxio fs ls /
     ```
-   You should be able see the file is created and listed by both `ls` commands.
+   You should be able to see the file is created and listed by both `ls` commands.
 
 ##### Starting multiple processes in IntelliJ at once
 IntelliJ is capable of creating groups of processes that all be launched simultaneously. To do so go to 
