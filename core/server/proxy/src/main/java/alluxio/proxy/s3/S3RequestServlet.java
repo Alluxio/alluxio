@@ -69,7 +69,7 @@ public class S3RequestServlet extends HttpServlet {
         try {
             S3Handler s3Handler = S3Handler.createHandler(target, request, response);
             opType = s3Handler.getS3Task().mOPType;
-            if (s3Handler.getS3Task().mOPType == S3BaseTask.OpType.CompleteMultipartUpload) {
+            if (opType == S3BaseTask.OpType.CompleteMultipartUpload) {
                 s3Handler.getS3Task().handleTaskAsync();
                 return;
             }
@@ -80,6 +80,5 @@ public class S3RequestServlet extends HttpServlet {
         S3Handler.processResponse(response, resp);
         ProxyWebServer.logAccess(request, response, stopWatch, opType);
     }
-
 }
 

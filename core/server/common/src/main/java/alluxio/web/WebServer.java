@@ -111,13 +111,11 @@ public abstract class WebServer {
     QueuedThreadPool threadPool = new QueuedThreadPool();
     threadPool.setName(mServiceName.replace(" ", "-").toUpperCase());
     int webThreadCount = Configuration.getInt(PropertyKey.WEB_THREADS);
+    // Jetty needs at least (1 + selectors + acceptors) threads.
+    threadPool.setMinThreads(webThreadCount * 2 + 1);
+    threadPool.setMaxThreads(webThreadCount * 2 + 100);
 
-    mThreadPoolExecutor_ = new ThreadPoolExecutor(8, 64, 0,
-            TimeUnit.SECONDS, new ArrayBlockingQueue<>(64 * 1024),
-            new ThreadFactoryBuilder().setNameFormat("S3-HANDLER-%d").build());
-    ExecutorThreadPool etp = new ExecutorThreadPool(mThreadPoolExecutor_);
-    etp.setName("S3-HANDLER");
-    mServer = new Server(etp);
+    mServer = new Server(threadPool);
 
     mServerConnector = new ServerConnector(mServer);
     mServerConnector.setPort(mAddress.getPort());

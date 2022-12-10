@@ -82,11 +82,6 @@ public final class ProxyWebServer extends WebServer {
         .register(JacksonProtobufObjectMapperProvider.class)
         .register(S3RestExceptionMapper.class);
 
-//    ResourceConfig config = new ResourceConfig()
-//            .register(S3AuthenticationFilter.class)
-//            .register(JacksonProtobufObjectMapperProvider.class)
-//            .register(S3RestExceptionMapper.class);;
-
     ProxyWebServer.mFileSystem = FileSystem.Factory.create(Configuration.global());
 
     if (Configuration.getBoolean(PropertyKey.PROXY_AUDIT_LOGGING_ENABLED)) {
@@ -143,8 +138,7 @@ public final class ProxyWebServer extends WebServer {
     mServletContextHandler
         .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
     // TODO(czhu): Move S3 API logging out of CompleteMultipartUploadHandler into a logging handler
-    addHandler(new CompleteMultipartUploadHandler(mFileSystem, Constants.REST_API_PREFIX));
-//    addHandler(S3RequstHandler.getInstance());
+//    addHandler(new CompleteMultipartUploadHandler(mFileSystem, Constants.REST_API_PREFIX));
   }
 
   @Override
