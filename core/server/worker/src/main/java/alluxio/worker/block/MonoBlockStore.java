@@ -31,6 +31,7 @@ import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
+import alluxio.underfs.UfsIOManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.io.BlockReader;

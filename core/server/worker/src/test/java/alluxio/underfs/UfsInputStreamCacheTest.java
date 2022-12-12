@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block;
+package alluxio.underfs;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
@@ -24,8 +24,6 @@ import alluxio.ConfigurationRule;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.test.util.ConcurrencyUtils;
-import alluxio.underfs.SeekableUnderFileInputStream;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 
 import org.junit.Assert;

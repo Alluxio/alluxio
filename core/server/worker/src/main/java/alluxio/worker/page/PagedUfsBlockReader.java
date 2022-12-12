@@ -14,11 +14,11 @@ package alluxio.worker.page;
 import alluxio.conf.PropertyKey;
 import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
-import alluxio.worker.block.UfsInputStreamCache;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
 

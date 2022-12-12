@@ -18,6 +18,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;

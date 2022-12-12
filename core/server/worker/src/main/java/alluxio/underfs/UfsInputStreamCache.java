@@ -9,14 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block;
+package alluxio.underfs;
 
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.underfs.SeekableUnderFileInputStream;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;

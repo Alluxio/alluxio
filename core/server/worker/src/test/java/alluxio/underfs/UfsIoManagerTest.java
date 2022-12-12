@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block;
+package alluxio.underfs;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -25,8 +25,6 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.underfs.UfsManager.UfsClient;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.BufferUtils;
 
 import com.codahale.metrics.Meter;

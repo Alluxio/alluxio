@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block;
+package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
@@ -22,8 +22,6 @@ import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
-import alluxio.underfs.UfsManager;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;

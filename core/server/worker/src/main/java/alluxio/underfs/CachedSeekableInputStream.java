@@ -9,9 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block;
-
-import alluxio.underfs.SeekableUnderFileInputStream;
+package alluxio.underfs;
 
 import com.google.common.base.Preconditions;
 

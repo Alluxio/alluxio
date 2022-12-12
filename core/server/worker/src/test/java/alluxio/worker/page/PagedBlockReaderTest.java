@@ -24,9 +24,9 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.NoopUfsManager;
+import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.BufferUtils;
-import alluxio.worker.block.UfsInputStreamCache;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
