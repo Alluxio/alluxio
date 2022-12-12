@@ -236,7 +236,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     mCoreMasterContext = masterContext;
     mMasterAddress =
         new Address().setHost(Configuration.getOrDefault(PropertyKey.MASTER_HOSTNAME,
-            "localhost"))
+            mRpcConnectAddress.getHostName()))
             .setRpcPort(mPort);
     /* Handle to the block master. */
     blockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);

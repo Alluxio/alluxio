@@ -34,6 +34,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.MasterInfo;
+import alluxio.grpc.ServiceType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
@@ -770,7 +771,7 @@ public final class MultiProcessCluster {
                 InetSocketAddress.createUnresolved(address.getHostname(), address.getRpcPort()));
           }
           return new PollingMasterInquireClient(addresses, Configuration.global(),
-              ServerUserState.global());
+              ServerUserState.global(), ServiceType.META_MASTER_CLIENT_SERVICE);
         } else {
           return new SingleMasterInquireClient(InetSocketAddress.createUnresolved(
               mMasterAddresses.get(0).getHostname(), mMasterAddresses.get(0).getRpcPort()));

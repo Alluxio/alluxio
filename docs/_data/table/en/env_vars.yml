@@ -51,6 +51,8 @@
   description: Additional classpath entries for Alluxio processes. Empty by default.
 - name: ALLUXIO_MASTER_ATTACH_OPTS
   description: Additional Java VM options to apply when attaching a debugger to Alluxio master.
+- name: ALLUXIO_SECONDARY_MASTER_ATTACH_OPTS
+  description: Additional Java VM options to apply when attaching a debugger to Alluxio secondary master.
 - name: ALLUXIO_JOB_MASTER_ATTACH_OPTS
   description: Additional Java VM options to apply when attaching a debugger to Alluxio job master.
 - name: ALLUXIO_WORKER_ATTACH_OPTS
