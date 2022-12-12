@@ -175,6 +175,11 @@ public class InodeTreePersistentState implements Journaled {
   public InodeDirectory getRoot() {
     if (mRoot == null) {
       mRoot = mInodeStore.get(0).map(Inode::asDirectory).orElse(null);
+      synchronized (this) {
+        if (mRoot == null) {
+          mRoot = mInodeStore.get(0).map(Inode::asDirectory).orElse(null);
+        }
+      }
     }
     return mRoot;
   }
@@ -657,9 +662,7 @@ public class InodeTreePersistentState implements Journaled {
       mToBePersistedIds.clear();
 
       updateToBePersistedIds(inode);
-      if (mRoot == null) {
-        mRoot = mInodeStore.get(0).map(Inode::asDirectory).orElse(null);
-      }
+      getRoot();
       return;
     }
     // inode should be added to the inode store before getting added to its parent list, because it
