@@ -49,6 +49,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                   <tr>
                     <th>Master Host</th>
                     <th>Master Port</th>
+                    <th>Elected</th>
                     <th>Started</th>
                     <th>Version</th>
                     <th>Revision</th>
@@ -58,6 +59,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                   <tr>
                     <td>{mastersData.leaderMasterInfo.address.host}</td>
                     <td>{mastersData.leaderMasterInfo.address.rpcPort}</td>
+                    <td>{mastersData.leaderMasterInfo.electionTime}</td>
                     <td>{mastersData.leaderMasterInfo.startTime}</td>
                     <td>{mastersData.leaderMasterInfo.version}</td>
                     <td>{mastersData.leaderMasterInfo.revision}</td>

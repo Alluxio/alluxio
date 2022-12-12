@@ -123,6 +123,11 @@ public interface MetaMaster extends BackupOps, Master {
   long getStartTimeMs();
 
   /**
+   * @return the start time of the master service in milliseconds
+   */
+  long getElectionTimeMs();
+
+  /**
    * @return the uptime of the master in milliseconds
    */
   long getUptimeMs();

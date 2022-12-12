@@ -883,6 +883,9 @@ public final class AlluxioMasterRestServiceHandler {
           CommonUtils.convertMsToDate(mMasterProcess.getStartTimeMs(),
               Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)),
           ProjectConstants.VERSION, ProjectConstants.REVISION);
+      leaderMasterInfo.setElectionTime(
+          CommonUtils.convertMsToDate(mMetaMaster.getElectionTimeMs(),
+          Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
       response.setLeaderMasterInfo(leaderMasterInfo);
       return response;
     }, Configuration.global());

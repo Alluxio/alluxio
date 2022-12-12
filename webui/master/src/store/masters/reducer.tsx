@@ -26,6 +26,7 @@ export const initialMastersState: IMastersState = {
       id: '1',
       lastUpdatedTime: '12-08-2022 23:38:04:639',
       startTime: '12-08-2022 23:37:50:222',
+      electionTime: '12-08-2022 23:37:53:984',
       version: '2.10.0-SNAPSHOT',
       revision: 'a55b99ad3a72321c251f9934662dcc1979c9cb7',
     },

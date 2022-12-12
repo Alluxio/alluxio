@@ -30,6 +30,9 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
                 Master Port
               </th>
               <th>
+                Elected
+              </th>
+              <th>
                 Started
               </th>
               <th>
@@ -47,6 +50,9 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
               </td>
               <td>
                 19998
+              </td>
+              <td>
+                12-08-2022 23:37:53:984
               </td>
               <td>
                 12-08-2022 23:37:50:222

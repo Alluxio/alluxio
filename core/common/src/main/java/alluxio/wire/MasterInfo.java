@@ -28,6 +28,8 @@ public final class MasterInfo {
   private long mId;
   /** Master's start time. */
   private String mStartTime = "";
+  /** Master's latest election time. */
+  private String mElectionTime = "";
   /** Master's last updated time. */
   private String mLastUpdatedTime = "";
   /** Master's version. */
@@ -100,6 +102,13 @@ public final class MasterInfo {
   }
 
   /**
+   * @return the latest election time of the master
+   */
+  public String getElectionTime() {
+    return mElectionTime;
+  }
+
+  /**
    * @return the version of the master
    */
   public String getVersion() {
@@ -119,6 +128,15 @@ public final class MasterInfo {
    */
   public MasterInfo setStartTime(String startTime) {
     mStartTime = startTime;
+    return this;
+  }
+
+  /**
+   * @param electionTime the latest election time of the master
+   * @return the master information
+   */
+  public MasterInfo setElectionTime(String electionTime) {
+    mElectionTime = electionTime;
     return this;
   }
 

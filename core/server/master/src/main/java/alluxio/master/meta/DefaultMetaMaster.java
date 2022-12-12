@@ -149,6 +149,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** Used to manage backup role. */
   private BackupRole mBackupRole;
 
+  /** The timestamp of last election in ms. */
+  private long mElectionTimeMs = 0;
+
   @Nullable
   private final JournalSpaceMonitor mJournalSpaceMonitor;
 
@@ -281,6 +284,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   @Override
   public void start(Boolean isPrimary) throws IOException {
     super.start(isPrimary);
+    mElectionTimeMs = CommonUtils.getCurrentMs();
     mWorkerConfigStore.reset();
     mMasterConfigStore.reset();
     if (isPrimary) {
@@ -558,6 +562,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   @Override
   public long getStartTimeMs() {
     return mStartTimeMs;
+  }
+
+  @Override
+  public long getElectionTimeMs() {
+    return mElectionTimeMs;
   }
 
   @Override
