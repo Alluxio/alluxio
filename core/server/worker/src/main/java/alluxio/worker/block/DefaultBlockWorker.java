@@ -485,8 +485,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       // NOTE(cc): assumes that Configuration is read-only when master is running, otherwise,
       // the following hash might not correspond to the above cluster configuration.
       builder.setClusterConfHash(Configuration.hash());
+      builder.setClusterConfLastUpdateTime(Configuration.getLastUpdateTime());
     }
-
     return builder.build();
   }
 

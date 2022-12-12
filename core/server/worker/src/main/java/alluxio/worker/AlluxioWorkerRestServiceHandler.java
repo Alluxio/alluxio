@@ -29,6 +29,7 @@ import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.master.block.BlockId;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
@@ -42,6 +43,7 @@ import alluxio.util.webui.WebUtils;
 import alluxio.web.WorkerWebServer;
 import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
+import alluxio.wire.MasterWebUIConfiguration;
 import alluxio.wire.WorkerWebUIBlockInfo;
 import alluxio.wire.WorkerWebUIConfiguration;
 import alluxio.wire.WorkerWebUIInit;
@@ -533,24 +535,31 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(WEBUI_CONFIG)
   public Response getWebUIConfiguration() {
     return RestUtils.call(() -> {
-      WorkerWebUIConfiguration response = new WorkerWebUIConfiguration();
-      response.setWhitelist(mBlockWorker.getWhiteList());
+      MasterWebUIConfiguration response = new MasterWebUIConfiguration();
 
+      response.setWhitelist(mBlockWorker.getWhiteList());
+      alluxio.wire.Configuration conf = mBlockWorker.getConfiguration(
+          GetConfigurationPOptions.newBuilder().setRawValue(true).build());
       TreeSet<Triple<String, String, String>> sortedProperties = new TreeSet<>();
-      Set<String> alluxioConfExcludes = Sets.newHashSet(PropertyKey.WORKER_WHITELIST.toString());
-      for (ConfigProperty configProperty : mBlockWorker
-              .getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
-              .toProto().getClusterConfigsList()) {
+      Set<String> alluxioConfExcludes = Sets.newHashSet(PropertyKey.MASTER_WHITELIST.toString());
+      for (ConfigProperty configProperty : conf.toProto().getClusterConfigsList()) {
         String confName = configProperty.getName();
         if (!alluxioConfExcludes.contains(confName)) {
           sortedProperties.add(new ImmutableTriple<>(confName,
-                  ConfigurationUtils.valueAsString(configProperty.getValue()),
-                  configProperty.getSource()));
+              ConfigurationUtils.valueAsString(configProperty.getValue()),
+              configProperty.getSource()));
         }
       }
 
       response.setConfiguration(sortedProperties);
-
+      response.setClusterConfigHash(conf.getClusterConfHash());
+      response.setPathConfigHash(conf.getPathConfHash());
+      response.setClusterConfigLastUpdateTime(
+          CommonUtils.convertMsToDate(conf.getClusterConfLastUpdateTime(),
+              alluxio.conf.Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
+      response.setPathConfigLastUpdateTime(
+          CommonUtils.convertMsToDate(conf.getPathConfLastUpdateTime(),
+              alluxio.conf.Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
       return response;
     }, Configuration.global());
   }

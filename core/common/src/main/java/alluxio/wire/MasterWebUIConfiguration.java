@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Alluxio WebUI configuration information.
  */
 @NotThreadSafe
-public final class MasterWebUIConfiguration implements Serializable {
+public class MasterWebUIConfiguration implements Serializable {
   private static final long serialVersionUID = -2277858633604882055L;
 
   private List<String> mWhitelist;
