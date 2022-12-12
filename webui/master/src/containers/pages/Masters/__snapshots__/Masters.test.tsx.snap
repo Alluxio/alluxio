@@ -14,7 +14,7 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
         className="col-12"
       >
         <h5>
-          Leader Master
+          Primary Master
         </h5>
         <Table
           hover={true}
@@ -24,10 +24,10 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
           <thead>
             <tr>
               <th>
-                Master Host
+                Host
               </th>
               <th>
-                Master Port
+                Port
               </th>
               <th>
                 Elected
@@ -85,10 +85,10 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
           <thead>
             <tr>
               <th>
-                Master Host
+                Host
               </th>
               <th>
-                Master Port
+                Port
               </th>
               <th>
                 Last Heartbeat
@@ -125,10 +125,10 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
           <thead>
             <tr>
               <th>
-                Master Host
+                Host
               </th>
               <th>
-                Master Port
+                Port
               </th>
               <th>
                 Last Heartbeat

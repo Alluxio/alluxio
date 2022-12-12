@@ -43,12 +43,12 @@ export class MastersPresenter extends React.Component<AllProps> {
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
-              <h5>Leader Master</h5>
+              <h5>Primary Master</h5>
               <Table hover={true}>
                 <thead>
                   <tr>
-                    <th>Master Host</th>
-                    <th>Master Port</th>
+                    <th>Host</th>
+                    <th>Port</th>
                     <th>Elected</th>
                     <th>Started</th>
                     <th>Version</th>
@@ -75,8 +75,8 @@ export class MastersPresenter extends React.Component<AllProps> {
                 <thead>
                   <tr>
                     {initData.debug ? <th>[D]Master Id</th> : null}
-                    <th>Master Host</th>
-                    <th>Master Port</th>
+                    <th>Host</th>
+                    <th>Port</th>
                     <th>Last Heartbeat</th>
                     <th>Started</th>
                     <th>Version</th>
@@ -106,8 +106,8 @@ export class MastersPresenter extends React.Component<AllProps> {
                 <thead>
                   <tr>
                     {initData.debug ? <th>[D]Master Id</th> : null}
-                    <th>Master Host</th>
-                    <th>Master Port</th>
+                    <th>Host</th>
+                    <th>Port</th>
                     <th>Last Heartbeat</th>
                     <th>Started</th>
                     <th>Version</th>
