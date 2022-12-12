@@ -82,7 +82,7 @@ RUN \
     cd .. && \
     rm -rf libfuse && \
     yum remove -y gcc gcc-c++ make cmake gettext-devel libtool autoconf wget git && \
-    yum install -y fuse3 fuse3-devel fuse3-lib && \
+    yum install -y fuse3 fuse3-devel fuse3-lib krb5-workstation krb5-libs && \
     yum clean all
 
 # Configuration for the modified libfuse2
