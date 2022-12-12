@@ -18,6 +18,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
+import alluxio.underfs.FileId;
 import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -312,7 +313,7 @@ public final class UnderFileSystemBlockReader extends BlockReader {
       UnderFileSystem ufs = mUfsResource.get();
       mUnderFileSystemInputStream = mUfsInstreamCache
           .acquire(ufs, mBlockMeta.getUnderFileSystemPath(),
-              IdUtils.fileIdFromBlockId(mBlockMeta.getBlockId()),
+              FileId.of(IdUtils.fileIdFromBlockId(mBlockMeta.getBlockId())),
               OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset)
                   .setPositionShort(mIsPositionShort));
       mInStreamPos = offset;

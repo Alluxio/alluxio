@@ -58,7 +58,7 @@ public final class UfsInputStreamCache {
    * A map from the ufs file id to the metadata of the input streams. Synchronization on this map
    * before access.
    */
-  private final Map<Long, StreamIdSet> mFileIdToStreamIds;
+  private final Map<FileId, StreamIdSet> mFileIdToStreamIds;
   /** Cache of the input streams, from the input stream id to the input stream. */
   private final Cache<Long, CachedSeekableInputStream> mStreamCache;
 
@@ -76,7 +76,7 @@ public final class UfsInputStreamCache {
     RemovalListener<Long, CachedSeekableInputStream> listener =
         (RemovalNotification<Long, CachedSeekableInputStream> removal) -> {
           CachedSeekableInputStream inputStream = removal.getValue();
-          final long fileId = inputStream.getFileId();
+          final FileId fileId = inputStream.getFileId();
           final long resourceId = removal.getKey();
           boolean shouldClose = false;
 
@@ -136,8 +136,9 @@ public final class UfsInputStreamCache {
       return;
     }
 
+
     CachedSeekableInputStream cachedStream = (CachedSeekableInputStream) inputStream;
-    long fileId = cachedStream.getFileId();
+    FileId fileId = cachedStream.getFileId();
     long resourceId = cachedStream.getResourceId();
     StreamIdSet streamIds = mFileIdToStreamIds.get(fileId);
 
@@ -176,8 +177,8 @@ public final class UfsInputStreamCache {
    * @return the acquired input stream
    * @throws IOException if the input stream fails to open
    */
-  public InputStream acquire(UnderFileSystem ufs, String path, long fileId, OpenOptions openOptions)
-      throws IOException {
+  public InputStream acquire(UnderFileSystem ufs, String path, FileId fileId,
+      OpenOptions openOptions) throws IOException {
     if (!ufs.isSeekable() || !CACHE_ENABLED) {
       // only seekable UFSes are cachable/reusable, always return a new input stream
       return ufs.openExistingFile(path, openOptions);

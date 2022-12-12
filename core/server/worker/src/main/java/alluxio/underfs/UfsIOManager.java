@@ -201,7 +201,7 @@ public class UfsIOManager implements Closeable {
       int bytesRead = 0;
       InputStream inStream = null;
       try (CloseableResource<UnderFileSystem> ufsResource = mUfsClient.acquireUfsResource()) {
-        inStream = mUfsInstreamCache.acquire(ufsResource.get(), mUfsPath, mFileId,
+        inStream = mUfsInstreamCache.acquire(ufsResource.get(), mUfsPath, FileId.of(mFileId),
             OpenOptions.defaults().setOffset(mOffset)
                 .setPositionShort(mOptions.getPositionShort()));
         while (bytesRead < mLength) {

@@ -24,7 +24,7 @@ class CachedSeekableInputStream extends SeekableUnderFileInputStream {
   /** The file path of the input stream. */
   private final String mFilePath;
   /** The file Id. */
-  private final long mFileId;
+  private final FileId mFileId;
 
   /**
    * Creates a new {@link CachedSeekableInputStream}.
@@ -34,8 +34,8 @@ class CachedSeekableInputStream extends SeekableUnderFileInputStream {
    * @param fileId the file id
    * @param filePath the file path
    */
-  CachedSeekableInputStream(SeekableUnderFileInputStream inputStream, long resourceId, long fileId,
-      String filePath) {
+  CachedSeekableInputStream(SeekableUnderFileInputStream inputStream, long resourceId,
+      FileId fileId, String filePath) {
     super(inputStream);
     Preconditions.checkArgument(resourceId >= 0, "resource id should be positive");
     mResourceId = resourceId;
@@ -60,7 +60,7 @@ class CachedSeekableInputStream extends SeekableUnderFileInputStream {
   /**
    * @return the file id
    */
-  Long getFileId() {
+  FileId getFileId() {
     return mFileId;
   }
 
