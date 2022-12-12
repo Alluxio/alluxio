@@ -422,6 +422,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       // NOTE(cc): assumes that Configuration is read-only when master is running, otherwise,
       // the following hash might not correspond to the above cluster configuration.
       builder.setClusterConfHash(Configuration.hash());
+      builder.setClusterConfLastUpdateTime(Configuration.getLastUpdateTime());
     }
 
     if (!options.getIgnorePathConf()) {
@@ -430,6 +431,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           properties.forEach((key, value) ->
               builder.addPathProperty(path, key, value)));
       builder.setPathConfHash(pathProperties.getHash());
+      builder.setPathConfLastUpdateTime(pathProperties.getLastUpdateTime());
     }
 
     return builder.build();

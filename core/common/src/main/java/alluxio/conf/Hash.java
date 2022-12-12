@@ -29,6 +29,7 @@ public final class Hash {
   private final Supplier<Stream<byte[]>> mProperties;
   private final AtomicBoolean mShouldUpdate;
   private volatile String mVersion;
+  private long mLastUpdateTime;
 
   /**
    * @param properties a stream of encoded properties
@@ -50,6 +51,7 @@ public final class Hash {
    */
   public void markOutdated() {
     mShouldUpdate.set(true);
+    mLastUpdateTime = System.currentTimeMillis();
   }
 
   private String compute() {
@@ -75,5 +77,12 @@ public final class Hash {
       }
     }
     return mVersion;
+  }
+
+  /**
+   * @return the latest update time
+   */
+  public long getLastUpdateTime() {
+    return mLastUpdateTime;
   }
 }

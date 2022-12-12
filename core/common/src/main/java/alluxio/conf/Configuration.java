@@ -641,4 +641,11 @@ public final class Configuration
     }
     return Optional.of(properties);
   }
+
+  /**
+   * @return the last update time
+   */
+  public static long getLastUpdateTime() {
+    return SERVER_CONFIG_REFERENCE.get().getLastUpdateTime();
+  }
 }

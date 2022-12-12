@@ -40,6 +40,10 @@ public final class Configuration {
   private final String mClusterConfHash;
   /** Path configuration hash. */
   private final String mPathConfHash;
+  /** Cluster configuration last update time. */
+  private final long mClusterConfLastUpdateTime;
+  /** Path configuration last update time. */
+  private final long mPathConfLastUpdateTime;
 
   /**
    * @return new configuration builder
@@ -57,6 +61,8 @@ public final class Configuration {
     private Map<String, List<Property>> mPathConf = new HashMap<>();
     private String mClusterConfHash;
     private String mPathConfHash;
+    private long mClusterConfLastUpdateTime;
+    private long mPathConfLastUpdateTime;
 
     /**
      * Adds a cluster level property.
@@ -102,19 +108,41 @@ public final class Configuration {
     }
 
     /**
+     * Sets cluster config last update time.
+     *
+     * @param lastUpdateTime the last update time
+     */
+    public void setClusterConfLastUpdateTime(long lastUpdateTime) {
+      mClusterConfLastUpdateTime = lastUpdateTime;
+    }
+
+    /**
+     * Sets path config last update time.
+     *
+     * @param lastUpdateTime the last update time
+     */
+    public void setPathConfLastUpdateTime(long lastUpdateTime) {
+      mPathConfLastUpdateTime = lastUpdateTime;
+    }
+
+    /**
      * @return a newly constructed configuration
      */
     public Configuration build() {
-      return new Configuration(mClusterConf, mPathConf, mClusterConfHash, mPathConfHash);
+      return new Configuration(mClusterConf, mPathConf, mClusterConfHash, mPathConfHash,
+          mClusterConfLastUpdateTime, mPathConfLastUpdateTime);
     }
   }
 
   private Configuration(List<Property> clusterConf, Map<String, List<Property>> pathConf,
-      String clusterConfHash, String pathConfHash) {
+      String clusterConfHash, String pathConfHash,
+      long clusterConfLastUpdateTime, long pathConfLastUpdateTime) {
     mClusterConf = clusterConf;
     mPathConf = pathConf;
     mClusterConfHash = clusterConfHash;
     mPathConfHash = pathConfHash;
+    mClusterConfLastUpdateTime = clusterConfLastUpdateTime;
+    mPathConfLastUpdateTime = pathConfLastUpdateTime;
   }
 
   private Configuration(GetConfigurationPResponse conf) {
@@ -131,6 +159,8 @@ public final class Configuration {
 
     mClusterConfHash = conf.getClusterConfigHash();
     mPathConfHash = conf.getPathConfigHash();
+    mClusterConfLastUpdateTime = conf.getClusterConfigLastUpdateTime();
+    mPathConfLastUpdateTime = conf.getPathConfigLastUpdateTime();
   }
 
   /**
@@ -164,6 +194,8 @@ public final class Configuration {
     if (mPathConfHash != null) {
       response.setPathConfigHash(mPathConfHash);
     }
+    response.setClusterConfigLastUpdateTime(mClusterConfLastUpdateTime);
+    response.setPathConfigLastUpdateTime(mPathConfLastUpdateTime);
     return response.build();
   }
 
@@ -193,5 +225,19 @@ public final class Configuration {
    */
   public String getPathConfHash() {
     return mPathConfHash;
+  }
+
+  /**
+   * @return cluster conf last update time
+   */
+  public long getClusterConfLastUpdateTime() {
+    return mClusterConfLastUpdateTime;
+  }
+
+  /**
+   * @return path conf last update time
+   */
+  public long getPathConfLastUpdateTime() {
+    return mPathConfLastUpdateTime;
   }
 }

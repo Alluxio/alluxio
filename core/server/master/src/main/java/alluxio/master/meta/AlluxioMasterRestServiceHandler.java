@@ -810,12 +810,11 @@ public final class AlluxioMasterRestServiceHandler {
       MasterWebUIConfiguration response = new MasterWebUIConfiguration();
 
       response.setWhitelist(mFileSystemMaster.getWhiteList());
-
+      alluxio.wire.Configuration conf = mMetaMaster.getConfiguration(
+          GetConfigurationPOptions.newBuilder().setRawValue(true).build());
       TreeSet<Triple<String, String, String>> sortedProperties = new TreeSet<>();
       Set<String> alluxioConfExcludes = Sets.newHashSet(PropertyKey.MASTER_WHITELIST.toString());
-      for (ConfigProperty configProperty : mMetaMaster
-          .getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
-          .toProto().getClusterConfigsList()) {
+      for (ConfigProperty configProperty : conf.toProto().getClusterConfigsList()) {
         String confName = configProperty.getName();
         if (!alluxioConfExcludes.contains(confName)) {
           sortedProperties.add(new ImmutableTriple<>(confName,
@@ -825,7 +824,14 @@ public final class AlluxioMasterRestServiceHandler {
       }
 
       response.setConfiguration(sortedProperties);
-
+      response.setClusterConfigHash(conf.getClusterConfHash());
+      response.setPathConfigHash(conf.getPathConfHash());
+      response.setClusterConfigLastUpdateTime(
+          CommonUtils.convertMsToDate(conf.getClusterConfLastUpdateTime(),
+              alluxio.conf.Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
+      response.setPathConfigLastUpdateTime(
+          CommonUtils.convertMsToDate(conf.getPathConfLastUpdateTime(),
+              alluxio.conf.Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
       return response;
     }, Configuration.global());
   }
