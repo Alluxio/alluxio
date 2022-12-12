@@ -30,7 +30,6 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.DoraWorker;
-import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.page.UfsBlockReadOptions;
 
@@ -50,7 +49,6 @@ public class PagedDoraWorker implements DoraWorker {
   // and assumes all UFS paths belong to the same UFS.
   private static final int MOUNT_POINT = 1;
   private final Closer mResourceCloser = Closer.create();
-  private final BlockMasterClientPool mBlockMasterClientPool;
   private final AtomicReference<Long> mWorkerId;
   private final CacheManager mCacheManager;
   private final DoraUfsManager mUfsManager;
@@ -60,15 +58,11 @@ public class PagedDoraWorker implements DoraWorker {
 
   /**
    * Constructor.
-   * @param blockMasterClientPool
    * @param workerId
    */
-  public PagedDoraWorker(BlockMasterClientPool blockMasterClientPool,
-      AtomicReference<Long> workerId, AlluxioConfiguration conf) {
-    mBlockMasterClientPool = mResourceCloser.register(blockMasterClientPool);
+  public PagedDoraWorker(AtomicReference<Long> workerId, AlluxioConfiguration conf) {
     mWorkerId = workerId;
     mConf = conf;
-    mBlockMasterClientPool.acquire(); //todo: remove this line
     mUfsManager = mResourceCloser.register(new DoraUfsManager());
     mUfsStreamCache = new UfsInputStreamCache();
     mPageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
