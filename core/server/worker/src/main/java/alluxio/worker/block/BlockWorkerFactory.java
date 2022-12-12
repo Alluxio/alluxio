@@ -55,7 +55,7 @@ public final class BlockWorkerFactory implements WorkerFactory {
     BlockMasterClientPool blockMasterClientPool = new BlockMasterClientPool();
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
     if (DORA_WORKER_ENABLED) {
-      Worker worker = new PagedDoraWorker(blockMasterClientPool, workerId);
+      Worker worker = new PagedDoraWorker(blockMasterClientPool, workerId, Configuration.global());
       registry.add(Worker.class, worker);
       return worker;
     } else {
