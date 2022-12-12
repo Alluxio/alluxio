@@ -40,7 +40,8 @@ import java.util.concurrent.CompletableFuture;
 
 public final class UfsIoManagerTest {
   private static final long TEST_BLOCK_SIZE = 5 * Constants.MB;
-  private static final long FIRST_BLOCK_ID = 0;
+  private static final FileId FIRST_BLOCK_ID = FileId.of(0L);
+  private static final FileId SECOND_BLOCK_ID = FileId.of(1L);
   private static final ByteBuffer TEST_BUF = ByteBuffer.allocate((int) TEST_BLOCK_SIZE);
   private UfsIOManager mUfsIOManager;
 
@@ -91,7 +92,7 @@ public final class UfsIoManagerTest {
 
   @Test
   public void readSecondBlock() throws Exception {
-    mUfsIOManager.read(TEST_BUF, TEST_BLOCK_SIZE, TEST_BLOCK_SIZE, 1, mTestFilePath,
+    mUfsIOManager.read(TEST_BUF, TEST_BLOCK_SIZE, TEST_BLOCK_SIZE, SECOND_BLOCK_ID, mTestFilePath,
         UfsReadOptions.getDefaultInstance()).get();
     assertTrue(checkBuf((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE, TEST_BUF));
     TEST_BUF.clear();
@@ -111,12 +112,12 @@ public final class UfsIoManagerTest {
         UfsReadOptions.getDefaultInstance()).get();
     assertTrue(checkBuf(2, (int) TEST_BLOCK_SIZE - 2, TEST_BUF));
     TEST_BUF.clear();
-    mUfsIOManager.read(TEST_BUF, TEST_BLOCK_SIZE, TEST_BLOCK_SIZE, 1, mTestFilePath,
+    mUfsIOManager.read(TEST_BUF, TEST_BLOCK_SIZE, TEST_BLOCK_SIZE, SECOND_BLOCK_ID, mTestFilePath,
         UfsReadOptions.getDefaultInstance()).get();
     assertTrue(checkBuf((int) TEST_BLOCK_SIZE, (int) TEST_BLOCK_SIZE, TEST_BUF));
     TEST_BUF.clear();
-    mUfsIOManager.read(TEST_BUF, 2 + TEST_BLOCK_SIZE, TEST_BLOCK_SIZE - 2, 1, mTestFilePath,
-        UfsReadOptions.getDefaultInstance()).get();
+    mUfsIOManager.read(TEST_BUF, 2 + TEST_BLOCK_SIZE, TEST_BLOCK_SIZE - 2, SECOND_BLOCK_ID,
+        mTestFilePath, UfsReadOptions.getDefaultInstance()).get();
     assertTrue(checkBuf((int) TEST_BLOCK_SIZE + 2, (int) TEST_BLOCK_SIZE - 2, TEST_BUF));
     TEST_BUF.clear();
   }

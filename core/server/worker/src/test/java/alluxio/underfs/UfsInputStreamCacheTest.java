@@ -40,7 +40,7 @@ import java.util.List;
 
 public final class UfsInputStreamCacheTest {
   private static final String FILE_NAME = "/test";
-  private static final long FILE_ID = 1;
+  private static final FileId FILE_ID = FileId.of(1L);
 
   private UnderFileSystem mUfs;
   private SeekableUnderFileInputStream[] mSeekableInStreams;
@@ -168,7 +168,7 @@ public final class UfsInputStreamCacheTest {
       // wait a bit for a stream to be expired
       Thread.sleep(100);
       // check out another stream should trigger the timeout
-      mManager.acquire(mUfs, FILE_NAME + "2", FILE_ID + 1, OpenOptions.defaults().setOffset(4));
+      mManager.acquire(mUfs, FILE_NAME + "2", FileId.of(2L), OpenOptions.defaults().setOffset(4));
 
       // wait a bit so release occurs after removal listener
       Thread.sleep(100);

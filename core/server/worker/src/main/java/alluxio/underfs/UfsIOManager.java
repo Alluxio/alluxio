@@ -23,7 +23,6 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.options.OpenOptions;
-import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.codahale.metrics.Meter;
@@ -132,7 +131,7 @@ public class UfsIOManager implements Closeable {
    * @param buf bytebuffer
    * @param offset  offset in ufs file
    * @param len  length to read
-   * @param blockId block id
+   * @param fileId file id
    * @param ufsPath ufs path
    * @param options read ufs options
    * @return content read
@@ -140,7 +139,7 @@ public class UfsIOManager implements Closeable {
    * @throws OutOfRangeRuntimeException offset is negative, len is negative, or len > buf remaining
    * @throws AlluxioRuntimeException future complete exceptionally when having exception from ufs
    */
-  public CompletableFuture<Integer> read(ByteBuffer buf, long offset, long len, long blockId,
+  public CompletableFuture<Integer> read(ByteBuffer buf, long offset, long len, FileId fileId,
       String ufsPath, UfsReadOptions options) {
     Objects.requireNonNull(buf);
     if (offset < 0 || len < 0 || len > buf.remaining()) {
@@ -162,7 +161,7 @@ public class UfsIOManager implements Closeable {
             MetricsSystem.escape(mUfsClient.getUfsMountPointUri()), MetricInfo.TAG_USER,
             options.getTag()));
 
-    mReadQueue.add(new ReadTask(buf, ufsPath, IdUtils.fileIdFromBlockId(blockId), offset,
+    mReadQueue.add(new ReadTask(buf, ufsPath, fileId, offset,
         len, options, future, meter));
     return future;
   }
@@ -174,10 +173,10 @@ public class UfsIOManager implements Closeable {
     private final String mUfsPath;
     private final UfsReadOptions mOptions;
     private final Meter mMeter;
-    private final long mFileId;
+    private final FileId mFileId;
     private final ByteBuffer mBuffuer;
 
-    private ReadTask(ByteBuffer buf, String ufsPath, long fileId, long offset, long length,
+    private ReadTask(ByteBuffer buf, String ufsPath, FileId fileId, long offset, long length,
         UfsReadOptions options, CompletableFuture<Integer> future, Meter meter) {
       mOptions = options;
       mUfsPath = ufsPath;
@@ -201,7 +200,7 @@ public class UfsIOManager implements Closeable {
       int bytesRead = 0;
       InputStream inStream = null;
       try (CloseableResource<UnderFileSystem> ufsResource = mUfsClient.acquireUfsResource()) {
-        inStream = mUfsInstreamCache.acquire(ufsResource.get(), mUfsPath, FileId.of(mFileId),
+        inStream = mUfsInstreamCache.acquire(ufsResource.get(), mUfsPath, mFileId,
             OpenOptions.defaults().setOffset(mOffset)
                 .setPositionShort(mOptions.getPositionShort()));
         while (bytesRead < mLength) {
