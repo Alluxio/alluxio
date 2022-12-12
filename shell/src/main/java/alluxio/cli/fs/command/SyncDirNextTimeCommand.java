@@ -28,14 +28,14 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 @PublicApi
-public final class SyncNextTimeCommand extends AbstractFileSystemCommand {
+public final class SyncDirNextTimeCommand extends AbstractFileSystemCommand {
 
   private boolean mLoaded;
 
   /**
    * @param fsContext the filesystem of Alluxio
    */
-  public SyncNextTimeCommand(FileSystemContext fsContext) {
+  public SyncDirNextTimeCommand(FileSystemContext fsContext) {
     super(fsContext);
   }
 
@@ -53,8 +53,9 @@ public final class SyncNextTimeCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     FileSystemCommandUtils.setDirectChildrenLoaded(mFileSystem, path, mLoaded);
-    System.out.println("Path '" + path + "' was successfully set sync direct children to "
-        + mLoaded);
+    System.out.println("Successfully marked the dir {} to "
+        + (mLoaded ? "trigger metadata sync on next access"
+        : "skip metadata sync on next access"));
   }
 
   @Override
@@ -72,6 +73,7 @@ public final class SyncNextTimeCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getDescription() {
-    return "Sets sync direct children next time for a specific directory to true or false";
+    return "Marks a directory to either trigger a metadata sync or skip the "
+        + "metadata sync on next access.";
   }
 }
