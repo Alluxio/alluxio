@@ -12,6 +12,7 @@
 package alluxio.worker.dora;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.Server;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.AlluxioConfiguration;
@@ -36,6 +37,7 @@ import alluxio.worker.page.UfsBlockReadOptions;
 import com.google.common.io.Closer;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -79,17 +81,17 @@ public class PagedDoraWorker implements DoraWorker {
 
   @Override
   public Set<Class<? extends Server>> getDependencies() {
-    return null;
+    return Collections.emptySet();
   }
 
   @Override
   public String getName() {
-    return null;
+    return Constants.BLOCK_WORKER_NAME;
   }
 
   @Override
   public Map<ServiceType, GrpcService> getServices() {
-    return null;
+    return Collections.emptyMap();
   }
 
   @Override
