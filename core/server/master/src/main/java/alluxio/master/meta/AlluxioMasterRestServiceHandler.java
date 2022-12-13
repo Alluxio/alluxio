@@ -875,15 +875,15 @@ public final class AlluxioMasterRestServiceHandler {
       MasterInfo[] normalMasterInfos = mMetaMaster.getMasterInfos();
       response.setNormalMasterInfos(normalMasterInfos);
 
-      InetSocketAddress primaryMasterAddress = mMasterProcess.getRpcAddress();
-      MasterInfo primaryMasterInfo = new MasterInfo(MASTER_ID_NULL,
-          new Address(primaryMasterAddress.getHostString(), primaryMasterAddress.getPort()))
+      InetSocketAddress leaderMasterAddress = mMasterProcess.getRpcAddress();
+      MasterInfo leaderMasterInfo = new MasterInfo(MASTER_ID_NULL,
+          new Address(leaderMasterAddress.getHostString(), leaderMasterAddress.getPort()))
           .setLastUpdatedTimeMs(System.currentTimeMillis())
           .setStartTimeMs(mMasterProcess.getStartTimeMs())
           .setPrimacyChangeTimeMs(mMetaMaster.getGainPrimacyTimeMs())
           .setVersion(ProjectConstants.VERSION)
           .setRevision(ProjectConstants.REVISION);
-      response.setPrimaryMasterInfo(primaryMasterInfo);
+      response.setLeaderMasterInfo(leaderMasterInfo);
       return response;
     }, Configuration.global());
   }

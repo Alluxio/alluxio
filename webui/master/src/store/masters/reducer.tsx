@@ -18,7 +18,7 @@ export const initialMastersState: IMastersState = {
     debug: false,
     failedMasterInfos: [],
     normalMasterInfos: [],
-    primaryMasterInfo: {
+    leaderMasterInfo: {
       address: {
         rpcPort: 19998,
         host: '127.0.0.1',

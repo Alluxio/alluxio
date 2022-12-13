@@ -17,7 +17,7 @@ export interface IMasters {
   debug: boolean;
   failedMasterInfos: IMasterInfo[];
   normalMasterInfos: IMasterInfo[];
-  primaryMasterInfo: IMasterInfo;
+  leaderMasterInfo: IMasterInfo;
 }
 
 export enum MastersActionTypes {
