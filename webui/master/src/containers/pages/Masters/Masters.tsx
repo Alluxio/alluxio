@@ -57,12 +57,12 @@ export class MastersPresenter extends React.Component<AllProps> {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>{mastersData.leaderMasterInfo.address.host}</td>
-                    <td>{mastersData.leaderMasterInfo.address.rpcPort}</td>
-                    <td>{mastersData.leaderMasterInfo.primacyChangeTime}</td>
-                    <td>{mastersData.leaderMasterInfo.startTime}</td>
-                    <td>{mastersData.leaderMasterInfo.version}</td>
-                    <td>{mastersData.leaderMasterInfo.revision}</td>
+                    <td>{mastersData.primaryMasterInfo.address.host}</td>
+                    <td>{mastersData.primaryMasterInfo.address.rpcPort}</td>
+                    <td>{mastersData.primaryMasterInfo.primacyChangeTime}</td>
+                    <td>{mastersData.primaryMasterInfo.startTime}</td>
+                    <td>{mastersData.primaryMasterInfo.version}</td>
+                    <td>{mastersData.primaryMasterInfo.revision}</td>
                   </tr>
                 </tbody>
               </Table>

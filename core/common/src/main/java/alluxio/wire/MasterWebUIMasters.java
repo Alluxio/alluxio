@@ -26,7 +26,7 @@ public final class MasterWebUIMasters implements Serializable {
   private boolean mDebug;
   private MasterInfo[] mFailedMasterInfos;
   private MasterInfo[] mNormalMasterInfos;
-  private MasterInfo mLeaderMasterInfo;
+  private MasterInfo mPrimaryMasterInfo;
 
   /**
    * Creates a new instance of {@link MasterWebUIMasters}.
@@ -66,8 +66,8 @@ public final class MasterWebUIMasters implements Serializable {
    *
    * @return the master info [ ]
    */
-  public MasterInfo getLeaderMasterInfo() {
-    return mLeaderMasterInfo;
+  public MasterInfo getPrimaryMasterInfo() {
+    return mPrimaryMasterInfo;
   }
 
   /**
@@ -106,11 +106,11 @@ public final class MasterWebUIMasters implements Serializable {
   /**
    * Sets leader master info.
    *
-   * @param leaderMasterInfo the normal master info
+   * @param primaryMasterInfo the normal master info
    * @return the leader master info
    */
-  public MasterWebUIMasters setLeaderMasterInfo(MasterInfo leaderMasterInfo) {
-    mLeaderMasterInfo = leaderMasterInfo;
+  public MasterWebUIMasters setPrimaryMasterInfo(MasterInfo primaryMasterInfo) {
+    mPrimaryMasterInfo = primaryMasterInfo;
     return this;
   }
 
@@ -119,6 +119,6 @@ public final class MasterWebUIMasters implements Serializable {
     return MoreObjects.toStringHelper(this).add("debug", mDebug)
         .add("failedMasterInfos", mFailedMasterInfos)
         .add("normalMasterInfos", mNormalMasterInfos)
-        .add("leaderMasterInfo", mLeaderMasterInfo).toString();
+        .add("primaryMasterInfo", mPrimaryMasterInfo).toString();
   }
 }
