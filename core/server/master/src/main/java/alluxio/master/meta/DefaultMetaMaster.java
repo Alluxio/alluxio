@@ -492,13 +492,17 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     return mNewerVersionAvailable;
   }
 
+  /**
+   * Get the address of this meta master.
+   * @return the meta master address
+   */
+  public Address getMasterAddress() {
+    return mMasterAddress;
+  }
+
   @Override
   public List<Address> getMasterAddresses() {
     return mMasterConfigStore.getLiveNodeAddresses();
-  }
-
-  public Address getMasterAddress() {
-    return mMasterAddress;
   }
 
   @Override

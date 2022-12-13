@@ -58,7 +58,6 @@ import alluxio.util.webui.UIFileBlockInfo;
 import alluxio.util.webui.UIFileInfo;
 import alluxio.util.webui.WebUtils;
 import alluxio.web.MasterWebServer;
-import alluxio.wire.Address;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.Capacity;
