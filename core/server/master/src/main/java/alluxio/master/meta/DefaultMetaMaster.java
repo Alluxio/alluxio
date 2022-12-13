@@ -343,9 +343,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         // Standby master should setup MetaMasterSync to communicate with the leader master
         RetryHandlingMetaMasterMasterClient metaMasterClient =
             new RetryHandlingMetaMasterMasterClient(MasterClientContext
-                .newBuilder(ClientContext.create(Configuration.global())).build());
+                .newBuilder(ClientContext.create(Configuration.global())).build(),
+                mStartTimeMs, mLosePrimacyTimeMs);
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
-            new MetaMasterSync(mMasterAddress, metaMasterClient, this),
+            new MetaMasterSync(mMasterAddress, metaMasterClient),
             (int) Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
             Configuration.global(), mMasterContext.getUserState()));
         LOG.info("Standby master with address {} starts sending heartbeat to leader master.",

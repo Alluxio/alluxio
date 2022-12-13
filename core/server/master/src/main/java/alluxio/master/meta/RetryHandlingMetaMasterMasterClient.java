@@ -42,13 +42,24 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
       LoggerFactory.getLogger(RetryHandlingMetaMasterMasterClient.class);
   private MetaMasterMasterServiceGrpc.MetaMasterMasterServiceBlockingStub mClient = null;
 
+  /** The start time of the master. */
+  private final long mStartTimeMs;
+
+  /** The last time this master loses primacy. */
+  private final long mLosePrimacyTimeMs;
+
   /**
    * Creates a instance of {@link RetryHandlingMetaMasterMasterClient}.
    *
    * @param conf master client configuration
+   * @param startTimeMs the start time of the master
+   * @param losePrimacyTimeMs the last time this master loses primacy
    */
-  public RetryHandlingMetaMasterMasterClient(MasterClientContext conf) {
+  public RetryHandlingMetaMasterMasterClient(MasterClientContext conf,
+      long startTimeMs, long losePrimacyTimeMs) {
     super(conf);
+    mStartTimeMs = startTimeMs;
+    mLosePrimacyTimeMs = losePrimacyTimeMs;
   }
 
   @Override
@@ -101,16 +112,14 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    *
    * @param masterId the master id of the standby master registering
    * @param configList the configuration of this master
-   * @param startTimeMs the start time of this master in ms
-   * @param primacyChangeTimeMs the primacy state change time of this master in ms
    */
-  public void register(final long masterId, final List<ConfigProperty> configList,
-      final long startTimeMs, final long primacyChangeTimeMs) throws IOException {
+  public void register(final long masterId, final List<ConfigProperty> configList)
+      throws IOException {
     retryRPC(() -> {
       mClient.registerMaster(RegisterMasterPRequest.newBuilder().setMasterId(masterId)
           .setOptions(RegisterMasterPOptions.newBuilder().addAllConfigs(configList)
-              .setStartTimeMs(startTimeMs)
-              .setPrimacyChangeTimeMs(primacyChangeTimeMs)
+              .setStartTimeMs(mStartTimeMs)
+              .setPrimacyChangeTimeMs(mLosePrimacyTimeMs)
               .setVersion(ProjectConstants.VERSION)
               .setRevision(ProjectConstants.REVISION).build())
           .build());
