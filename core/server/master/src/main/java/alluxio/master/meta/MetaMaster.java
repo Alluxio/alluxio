@@ -100,6 +100,11 @@ public interface MetaMaster extends BackupOps, Master {
   boolean getNewerVersionAvailable();
 
   /**
+   * @return the address of this master
+   */
+  Address getMasterAddress();
+
+  /**
    * @return the addresses of live masters
    */
   List<Address> getMasterAddresses();
@@ -143,12 +148,12 @@ public interface MetaMaster extends BackupOps, Master {
   int getWebPort();
 
   /**
-   * @return a array of {@link MasterInfo}s of masters
+   * @return an array of {@link MasterInfo} of standby masters
    */
-  MasterInfo[] getMasterInfos();
+  MasterInfo[] getStandbyMasterInfos();
 
   /**
-   * @return a array of {@link MasterInfo}s of lost masters
+   * @return an array of {@link MasterInfo} of lost masters
    */
   MasterInfo[] getLostMasterInfos();
 

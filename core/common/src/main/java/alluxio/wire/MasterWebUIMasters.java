@@ -24,9 +24,9 @@ public final class MasterWebUIMasters implements Serializable {
   private static final long serialVersionUID = -2709466215687255197L;
 
   private boolean mDebug;
-  private MasterInfo[] mFailedMasterInfos;
-  private MasterInfo[] mNormalMasterInfos;
-  private MasterInfo mLeaderMasterInfo;
+  private MasterInfo[] mLostMasterInfos;
+  private MasterInfo[] mStandbyMasterInfos;
+  private MasterInfo mPrimaryMasterInfo;
 
   /**
    * Creates a new instance of {@link MasterWebUIMasters}.
@@ -44,37 +44,37 @@ public final class MasterWebUIMasters implements Serializable {
   }
 
   /**
-   * Get failed master infos master info [ ].
+   * Get info of lost masters.
    *
-   * @return the master info [ ]
+   * @return an array of lost {@link MasterInfo}
    */
-  public MasterInfo[] getFailedMasterInfos() {
-    return mFailedMasterInfos;
+  public MasterInfo[] getLostMasterInfos() {
+    return mLostMasterInfos;
   }
 
   /**
-   * Get leader master info master info.
+   * Get info of standby masters.
    *
-   * @return the master info
+   * @return an array of standby {@link MasterInfo}
    */
-  public MasterInfo[] getNormalMasterInfos() {
-    return mNormalMasterInfos;
+  public MasterInfo[] getStandbyMasterInfos() {
+    return mStandbyMasterInfos;
   }
 
   /**
-   * Get normal master infos master info [ ].
+   * Get info of the primary master.
    *
-   * @return the master info [ ]
+   * @return the primary {@link MasterInfo}
    */
-  public MasterInfo getLeaderMasterInfo() {
-    return mLeaderMasterInfo;
+  public MasterInfo getPrimaryMasterInfo() {
+    return mPrimaryMasterInfo;
   }
 
   /**
    * Sets debug.
    *
    * @param debug the debug
-   * @return the debug master infos
+   * @return the {@link MasterWebUIMasters} instance
    */
   public MasterWebUIMasters setDebug(boolean debug) {
     mDebug = debug;
@@ -82,43 +82,43 @@ public final class MasterWebUIMasters implements Serializable {
   }
 
   /**
-   * Sets failed master infos.
+   * Sets lost master infos.
    *
-   * @param failedMasterInfos the failed master infos
-   * @return the failed master infos
+   * @param lostMasterInfos an array of lost {@link MasterInfo}
+   * @return the {@link MasterWebUIMasters} instance
    */
-  public MasterWebUIMasters setFailedMasterInfos(MasterInfo[] failedMasterInfos) {
-    mFailedMasterInfos = failedMasterInfos.clone();
+  public MasterWebUIMasters setLostMasterInfos(MasterInfo[] lostMasterInfos) {
+    mLostMasterInfos = lostMasterInfos.clone();
     return this;
   }
 
   /**
-   * Sets normal master infos.
+   * Sets standby master infos.
    *
-   * @param normalMasterInfos the normal master infos
-   * @return the normal master infos
+   * @param standbyMasterInfos an array of standby {@link MasterInfo}
+   * @return the {@link MasterWebUIMasters} instance
    */
-  public MasterWebUIMasters setNormalMasterInfos(MasterInfo[] normalMasterInfos) {
-    mNormalMasterInfos = normalMasterInfos.clone();
+  public MasterWebUIMasters setStandbyMasterInfos(MasterInfo[] standbyMasterInfos) {
+    mStandbyMasterInfos = standbyMasterInfos.clone();
     return this;
   }
 
   /**
-   * Sets leader master info.
+   * Sets primary master info.
    *
-   * @param leaderMasterInfo the normal master info
-   * @return the leader master info
+   * @param primaryMasterInfo the primary {@link MasterInfo}
+   * @return the {@link MasterWebUIMasters} instance
    */
-  public MasterWebUIMasters setLeaderMasterInfo(MasterInfo leaderMasterInfo) {
-    mLeaderMasterInfo = leaderMasterInfo;
+  public MasterWebUIMasters setPrimaryMasterInfo(MasterInfo primaryMasterInfo) {
+    mPrimaryMasterInfo = primaryMasterInfo;
     return this;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("debug", mDebug)
-        .add("failedMasterInfos", mFailedMasterInfos)
-        .add("normalMasterInfos", mNormalMasterInfos)
-        .add("leaderMasterInfo", mLeaderMasterInfo).toString();
+        .add("lostMasterInfos", mLostMasterInfos)
+        .add("standbyMasterInfos", mStandbyMasterInfos)
+        .add("primaryMasterInfo", mPrimaryMasterInfo).toString();
   }
 }

@@ -16,9 +16,9 @@ import { IMastersState, MastersActionTypes } from './types';
 export const initialMastersState: IMastersState = {
   data: {
     debug: false,
-    failedMasterInfos: [],
-    normalMasterInfos: [],
-    leaderMasterInfo: {
+    lostMasterInfos: [],
+    standbyMasterInfos: [],
+    primaryMasterInfo: {
       address: {
         rpcPort: 19998,
         host: '127.0.0.1',

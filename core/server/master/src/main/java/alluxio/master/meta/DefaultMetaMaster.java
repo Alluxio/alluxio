@@ -497,13 +497,17 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     return mMasterConfigStore.getLiveNodeAddresses();
   }
 
+  public Address getMasterAddress() {
+    return mMasterAddress;
+  }
+
   @Override
   public List<Address> getWorkerAddresses() {
     return mWorkerConfigStore.getLiveNodeAddresses();
   }
 
   @Override
-  public alluxio.wire.MasterInfo[] getMasterInfos() {
+  public alluxio.wire.MasterInfo[] getStandbyMasterInfos() {
     return toWire(mMasters);
   }
 

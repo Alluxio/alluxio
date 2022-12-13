@@ -99,7 +99,6 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -864,28 +863,17 @@ public final class AlluxioMasterRestServiceHandler {
   @GET
   @Path(WEBUI_MASTERS)
   public Response getWebUIMasters() {
-    return RestUtils.call(() -> {
-      MasterWebUIMasters response = new MasterWebUIMasters();
-
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG));
-
-      MasterInfo[] failedMasterInfos = mMetaMaster.getLostMasterInfos();
-      response.setFailedMasterInfos(failedMasterInfos);
-
-      MasterInfo[] normalMasterInfos = mMetaMaster.getMasterInfos();
-      response.setNormalMasterInfos(normalMasterInfos);
-
-      InetSocketAddress leaderMasterAddress = mMasterProcess.getRpcAddress();
-      MasterInfo leaderMasterInfo = new MasterInfo(MASTER_ID_NULL,
-          new Address(leaderMasterAddress.getHostString(), leaderMasterAddress.getPort()))
-          .setLastUpdatedTimeMs(System.currentTimeMillis())
-          .setStartTimeMs(mMasterProcess.getStartTimeMs())
-          .setPrimacyChangeTimeMs(mMetaMaster.getGainPrimacyTimeMs())
-          .setVersion(ProjectConstants.VERSION)
-          .setRevision(ProjectConstants.REVISION);
-      response.setLeaderMasterInfo(leaderMasterInfo);
-      return response;
-    }, Configuration.global());
+    return RestUtils.call(() -> new MasterWebUIMasters()
+        .setDebug(Configuration.getBoolean(PropertyKey.DEBUG))
+        .setLostMasterInfos(mMetaMaster.getLostMasterInfos())
+        .setStandbyMasterInfos(mMetaMaster.getStandbyMasterInfos())
+        .setPrimaryMasterInfo(new MasterInfo(MASTER_ID_NULL, mMetaMaster.getMasterAddress())
+            .setLastUpdatedTimeMs(System.currentTimeMillis())
+            .setStartTimeMs(mMasterProcess.getStartTimeMs())
+            .setPrimacyChangeTimeMs(mMetaMaster.getGainPrimacyTimeMs())
+            .setVersion(ProjectConstants.VERSION)
+            .setRevision(ProjectConstants.REVISION)),
+        Configuration.global());
   }
 
   /**
