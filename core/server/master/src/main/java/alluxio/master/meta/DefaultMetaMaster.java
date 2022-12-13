@@ -361,7 +361,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   @Override
   public void stop() throws IOException {
     if (isPrimary()) {
-      mGainPrimacyTimeMs = CommonUtils.getCurrentMs();
+      mLosePrimacyTimeMs = CommonUtils.getCurrentMs();
     }
     if (mDailyBackup != null) {
       mDailyBackup.stop();
