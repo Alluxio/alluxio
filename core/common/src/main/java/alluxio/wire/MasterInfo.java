@@ -108,6 +108,41 @@ public final class MasterInfo {
   }
 
   /**
+   * @param address the master address information
+   * @return the master information
+   */
+  public MasterInfo setAddress(Address address) {
+    mAddress = address;
+    return this;
+  }
+
+  /**
+   * @param id the master id
+   * @return the master information
+   */
+  public MasterInfo setId(long id) {
+    mId = id;
+    return this;
+  }
+
+  /**
+   * @param lastUpdatedTime the last update time
+   * @return the master information
+   */
+  public MasterInfo setLastUpdatedTime(String lastUpdatedTime) {
+    mLastUpdatedTime = lastUpdatedTime;
+    return this;
+  }
+
+  /**
+   * @param lastUpdatedTime the last update time in ms
+   * @return the master information
+   */
+  public MasterInfo setLastUpdatedTimeMs(long lastUpdatedTime) {
+    return this.setLastUpdatedTime(convertMsToDate(lastUpdatedTime));
+  }
+
+  /**
    * @param startTime the start time of the master
    * @return the master information
    */
@@ -157,41 +192,6 @@ public final class MasterInfo {
   public MasterInfo setRevision(String revision) {
     mRevision = revision;
     return this;
-  }
-
-  /**
-   * @param address the master address information
-   * @return the master information
-   */
-  public MasterInfo setAddress(Address address) {
-    mAddress = address;
-    return this;
-  }
-
-  /**
-   * @param id the master id
-   * @return the master information
-   */
-  public MasterInfo setId(long id) {
-    mId = id;
-    return this;
-  }
-
-  /**
-   * @param lastUpdatedTime the last update time
-   * @return the master information
-   */
-  public MasterInfo setLastUpdatedTime(String lastUpdatedTime) {
-    mLastUpdatedTime = lastUpdatedTime;
-    return this;
-  }
-
-  /**
-   * @param lastUpdatedTime the last update time in ms
-   * @return the master information
-   */
-  public MasterInfo setLastUpdatedTimeMs(long lastUpdatedTime) {
-    return this.setLastUpdatedTime(convertMsToDate(lastUpdatedTime));
   }
 
   @Override
