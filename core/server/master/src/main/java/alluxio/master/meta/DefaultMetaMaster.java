@@ -149,8 +149,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** Used to manage backup role. */
   private BackupRole mBackupRole;
 
-  /** The timestamp of last election in ms. */
-  private long mElectionTimeMs = 0;
+  /** The last gain primacy time of this node in ms. */
+  private long mGainPrimacyTimeMs = 0;
+
+  /** The last lose primacy time of this node in ms. */
+  private long mLosePrimacyTimeMs = 0;
 
   @Nullable
   private final JournalSpaceMonitor mJournalSpaceMonitor;
@@ -283,8 +286,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public void start(Boolean isPrimary) throws IOException {
+    if (isPrimary) {
+      mGainPrimacyTimeMs = CommonUtils.getCurrentMs();
+    }
     super.start(isPrimary);
-    mElectionTimeMs = CommonUtils.getCurrentMs();
     mWorkerConfigStore.reset();
     mMasterConfigStore.reset();
     if (isPrimary) {
@@ -355,6 +360,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public void stop() throws IOException {
+    if (isPrimary()) {
+      mGainPrimacyTimeMs = CommonUtils.getCurrentMs();
+    }
     if (mDailyBackup != null) {
       mDailyBackup.stop();
       mDailyBackup = null;
@@ -507,12 +515,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     alluxio.wire.MasterInfo[] masterInfos = new alluxio.wire.MasterInfo[masters.size()];
     int indexNum = 0;
     for (MasterInfo master : masters) {
-      masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(), master.getAddress(),
-          CommonUtils.convertMsToDate(master.getLastUpdatedTimeMs(),
-              Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)),
-          CommonUtils.convertMsToDate(master.getStartTimeMs(),
-              Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)),
-          master.getVersion(), master.getRevision());
+      masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(), master.getAddress())
+          .setLastUpdatedTime(master.getLastUpdatedTimeMs())
+          .setStartTime(master.getStartTimeMs())
+          .setPrimacyChangeTime(master.getPrimacyChangeTimeMs())
+          .setVersion(master.getVersion())
+          .setRevision(master.getRevision());
       indexNum++;
     }
     return masterInfos;
@@ -565,8 +573,13 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public long getElectionTimeMs() {
-    return mElectionTimeMs;
+  public long getGainPrimacyTimeMs() {
+    return mGainPrimacyTimeMs;
+  }
+
+  @Override
+  public long getLosePrimacyTimeMs() {
+    return mLosePrimacyTimeMs;
   }
 
   @Override
@@ -616,6 +629,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private MasterInfo updateMasterInfo(MasterInfo info, RegisterMasterPOptions options) {
     if (options.hasStartTimeMs()) {
       info.setStartTimeMs(options.getStartTimeMs());
+    }
+    if (options.hasPrimacyChangeTimeMs()) {
+      info.setPrimacyChangeTimeMs(options.getPrimacyChangeTimeMs());
     }
     if (options.hasVersion()) {
       info.setVersion(options.getVersion());

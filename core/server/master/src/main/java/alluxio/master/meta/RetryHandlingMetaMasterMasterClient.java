@@ -102,13 +102,15 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    * @param masterId the master id of the standby master registering
    * @param configList the configuration of this master
    * @param startTimeMs the start time of this master in ms
+   * @param primacyChangeTimeMs the primacy state change time of this master in ms
    */
   public void register(final long masterId, final List<ConfigProperty> configList,
-      final long startTimeMs) throws IOException {
+      final long startTimeMs, final long primacyChangeTimeMs) throws IOException {
     retryRPC(() -> {
       mClient.registerMaster(RegisterMasterPRequest.newBuilder().setMasterId(masterId)
           .setOptions(RegisterMasterPOptions.newBuilder().addAllConfigs(configList)
               .setStartTimeMs(startTimeMs)
+              .setPrimacyChangeTimeMs(primacyChangeTimeMs)
               .setVersion(ProjectConstants.VERSION)
               .setRevision(ProjectConstants.REVISION).build())
           .build());

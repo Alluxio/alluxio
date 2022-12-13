@@ -97,6 +97,9 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
                 Started
               </th>
               <th>
+                Step-down Time
+              </th>
+              <th>
                 Version
               </th>
               <th>
@@ -135,6 +138,9 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
               </th>
               <th>
                 Started
+              </th>
+              <th>
+                Step-down Time
               </th>
               <th>
                 Version

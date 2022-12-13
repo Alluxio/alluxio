@@ -877,15 +877,12 @@ public final class AlluxioMasterRestServiceHandler {
 
       InetSocketAddress leaderMasterAddress = mMasterProcess.getRpcAddress();
       MasterInfo leaderMasterInfo = new MasterInfo(MASTER_ID_NULL,
-          new Address(leaderMasterAddress.getHostString(), leaderMasterAddress.getPort()),
-          CommonUtils.convertMsToDate(System.currentTimeMillis(),
-              Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)),
-          CommonUtils.convertMsToDate(mMasterProcess.getStartTimeMs(),
-              Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)),
-          ProjectConstants.VERSION, ProjectConstants.REVISION);
-      leaderMasterInfo.setElectionTime(
-          CommonUtils.convertMsToDate(mMetaMaster.getElectionTimeMs(),
-          Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
+          new Address(leaderMasterAddress.getHostString(), leaderMasterAddress.getPort()))
+          .setLastUpdatedTime(System.currentTimeMillis())
+          .setStartTime(mMasterProcess.getStartTimeMs())
+          .setPrimacyChangeTime(mMetaMaster.getGainPrimacyTimeMs())
+          .setVersion(ProjectConstants.VERSION)
+          .setRevision(ProjectConstants.REVISION);
       response.setLeaderMasterInfo(leaderMasterInfo);
       return response;
     }, Configuration.global());

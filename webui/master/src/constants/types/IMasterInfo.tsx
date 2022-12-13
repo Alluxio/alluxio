@@ -17,7 +17,7 @@ export interface IMasterInfo {
   id: string;
   lastUpdatedTime: string;
   startTime: string;
-  electionTime: string;
+  primacyChangeTime: string;
   version: string;
   revision: string;
 }

@@ -119,7 +119,8 @@ public final class MetaMasterSync implements HeartbeatExecutor {
     mMasterId.set(mMasterClient.getId(mMasterAddress));
     mMasterClient.register(mMasterId.get(),
         Configuration.getConfiguration(Scope.MASTER),
-        mMaster.getStartTimeMs());
+        mMaster.getStartTimeMs(),
+        mMaster.getLosePrimacyTimeMs());
   }
 
   @Override

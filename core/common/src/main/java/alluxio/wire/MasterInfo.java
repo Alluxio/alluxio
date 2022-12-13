@@ -11,6 +11,10 @@
 
 package alluxio.wire;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.CommonUtils;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -22,45 +26,26 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterInfo {
+  private static final String NONE = "N/A";
   /** Master's address. */
   private Address mAddress;
   /** The id of the master. */
   private long mId;
   /** Master's start time. */
-  private String mStartTime = "";
-  /** Master's latest election time. */
-  private String mElectionTime = "";
+  private String mStartTime = NONE;
+  /** Master's last primacy state change time. */
+  private String mPrimacyChangeTime = NONE;
   /** Master's last updated time. */
-  private String mLastUpdatedTime = "";
+  private String mLastUpdatedTime = NONE;
   /** Master's version. */
-  private String mVersion = "";
+  private String mVersion = NONE;
   /** Master's revision. */
-  private String mRevision = "";
+  private String mRevision = NONE;
 
   /**
    * Creates a new instance of {@link MasterInfo}.
    */
   public MasterInfo() {}
-
-  /**
-   * Creates a new instance of {@link MasterInfo}.
-   *
-   * @param id the master id
-   * @param address the master's address
-   * @param lastUpdatedTime the master's last updated time
-   * @param startTime the master's start time
-   * @param version the master's version
-   * @param revision the master's revision
-   */
-  public MasterInfo(long id, Address address, String lastUpdatedTime, String startTime,
-      String version, String revision) {
-    mAddress = Preconditions.checkNotNull(address, "address");
-    mId = id;
-    mLastUpdatedTime = lastUpdatedTime;
-    mStartTime = startTime;
-    mVersion = version;
-    mRevision = revision;
-  }
 
   /**
    * Creates a new instance of {@link MasterInfo}.
@@ -102,10 +87,10 @@ public final class MasterInfo {
   }
 
   /**
-   * @return the latest election time of the master
+   * @return the last primacy state change time of the master
    */
-  public String getElectionTime() {
-    return mElectionTime;
+  public String getPrimacyChangeTime() {
+    return mPrimacyChangeTime;
   }
 
   /**
@@ -132,12 +117,28 @@ public final class MasterInfo {
   }
 
   /**
-   * @param electionTime the latest election time of the master
+   * @param startTime the start time of the master in ms
    * @return the master information
    */
-  public MasterInfo setElectionTime(String electionTime) {
-    mElectionTime = electionTime;
+  public MasterInfo setStartTime(long startTime) {
+    return this.setStartTime(convertMsToDate(startTime));
+  }
+
+  /**
+   * @param primacyChangeTime the last primacy state change time of the master
+   * @return the master information
+   */
+  public MasterInfo setPrimacyChangeTime(String primacyChangeTime) {
+    mPrimacyChangeTime = primacyChangeTime;
     return this;
+  }
+
+  /**
+   * @param primacyChangeTime the last primacy state change time of the master in ms
+   * @return the master information
+   */
+  public MasterInfo setPrimacyChangeTime(long primacyChangeTime) {
+    return this.setPrimacyChangeTime(convertMsToDate(primacyChangeTime));
   }
 
   /**
@@ -185,11 +186,20 @@ public final class MasterInfo {
     return this;
   }
 
+  /**
+   * @param lastUpdatedTime the last update time in ms
+   * @return the master information
+   */
+  public MasterInfo setLastUpdatedTime(long lastUpdatedTime) {
+    return this.setLastUpdatedTime(convertMsToDate(lastUpdatedTime));
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
         .add("lastUpdatedTime", mLastUpdatedTime)
         .add("startTime", mStartTime)
+        .add("primacyChangeTime", mPrimacyChangeTime)
         .add("version", mVersion)
         .add("revision", mRevision).toString();
   }
@@ -206,12 +216,22 @@ public final class MasterInfo {
     return mId == that.mId && Objects.equal(mAddress, that.mAddress)
         && mLastUpdatedTime.equals(that.mLastUpdatedTime)
         && mStartTime.equals(that.mStartTime)
+        && mPrimacyChangeTime.equals(that.mPrimacyChangeTime)
         && mVersion.equals(that.mVersion)
         && mRevision.equals(that.mRevision);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mId, mAddress, mLastUpdatedTime, mStartTime, mVersion, mRevision);
+    return Objects.hashCode(mId, mAddress, mLastUpdatedTime, mStartTime,
+        mPrimacyChangeTime, mVersion, mRevision);
+  }
+
+  private static String convertMsToDate(long timeMs) {
+    if (timeMs == 0) {
+      return NONE;
+    }
+    return CommonUtils.convertMsToDate(timeMs,
+        Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN));
   }
 }

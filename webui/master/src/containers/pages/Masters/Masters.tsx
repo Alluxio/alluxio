@@ -59,7 +59,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                   <tr>
                     <td>{mastersData.leaderMasterInfo.address.host}</td>
                     <td>{mastersData.leaderMasterInfo.address.rpcPort}</td>
-                    <td>{mastersData.leaderMasterInfo.electionTime}</td>
+                    <td>{mastersData.leaderMasterInfo.primacyChangeTime}</td>
                     <td>{mastersData.leaderMasterInfo.startTime}</td>
                     <td>{mastersData.leaderMasterInfo.version}</td>
                     <td>{mastersData.leaderMasterInfo.revision}</td>
@@ -79,6 +79,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                     <th>Port</th>
                     <th>Last Heartbeat</th>
                     <th>Started</th>
+                    <th>Step-down Time</th>
                     <th>Version</th>
                     <th>Revision</th>
                   </tr>
@@ -91,6 +92,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                       <td>{masterInfo.address.rpcPort}</td>
                       <td>{masterInfo.lastUpdatedTime}</td>
                       <td>{masterInfo.startTime}</td>
+                      <td>{masterInfo.primacyChangeTime}</td>
                       <td>{masterInfo.version}</td>
                       <td>{masterInfo.revision}</td>
                     </tr>
@@ -110,6 +112,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                     <th>Port</th>
                     <th>Last Heartbeat</th>
                     <th>Started</th>
+                    <th>Step-down Time</th>
                     <th>Version</th>
                     <th>Revision</th>
                   </tr>
@@ -122,6 +125,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                       <td>{masterInfo.address.rpcPort}</td>
                       <td>{masterInfo.lastUpdatedTime}</td>
                       <td>{masterInfo.startTime}</td>
+                      <td>{masterInfo.primacyChangeTime}</td>
                       <td>{masterInfo.version}</td>
                       <td>{masterInfo.revision}</td>
                     </tr>

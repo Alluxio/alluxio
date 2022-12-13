@@ -31,6 +31,8 @@ public final class MasterInfo {
   private long mLastUpdatedTimeMs;
   /** Master's start time in ms. */
   private long mStartTimeMs = 0;
+  /** Master's last primacy state change time in ms. */
+  private long mPrimacyChangeTimeMs = 0;
   /** Master's version. */
   private String mVersion = "";
   /** Master's revision. */
@@ -77,6 +79,13 @@ public final class MasterInfo {
   }
 
   /**
+   * @return the last primacy state change time of the master in ms
+   */
+  public long getPrimacyChangeTimeMs() {
+    return mPrimacyChangeTimeMs;
+  }
+
+  /**
    * @return the version of the master
    */
   public String getVersion() {
@@ -94,7 +103,8 @@ public final class MasterInfo {
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("startTimeMs", mStartTimeMs)
-        .add("Version", mVersion).add("Revision", mRevision).toString();
+        .add("primacyChangeTimeMs", mPrimacyChangeTimeMs)
+        .add("version", mVersion).add("revision", mRevision).toString();
   }
 
   /**
@@ -102,6 +112,13 @@ public final class MasterInfo {
    */
   public void setStartTimeMs(long startTimeMs) {
     mStartTimeMs = startTimeMs;
+  }
+
+  /**
+   * @param primacyChangeTimeMs the last primacy state change time of the master in ms
+   */
+  public void setPrimacyChangeTimeMs(long primacyChangeTimeMs) {
+    mPrimacyChangeTimeMs = primacyChangeTimeMs;
   }
 
   /**
