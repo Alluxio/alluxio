@@ -55,9 +55,9 @@ public class MasterInfoTest {
     String revision = DigestUtils.sha1Hex(RandomStringUtils.random(10));
 
     MasterInfo result = new MasterInfo(id, address);
-    result.setLastUpdatedTime(lastUpdatedTimeMs);
-    result.setStartTime(startTimeMs);
-    result.setPrimacyChangeTime(primacyChangeTimeMs);
+    result.setLastUpdatedTimeMs(lastUpdatedTimeMs);
+    result.setStartTimeMs(startTimeMs);
+    result.setPrimacyChangeTimeMs(primacyChangeTimeMs);
     result.setVersion(version);
     result.setRevision(revision);
     return result;

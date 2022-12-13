@@ -516,9 +516,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     int indexNum = 0;
     for (MasterInfo master : masters) {
       masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(), master.getAddress())
-          .setLastUpdatedTime(master.getLastUpdatedTimeMs())
-          .setStartTime(master.getStartTimeMs())
-          .setPrimacyChangeTime(master.getPrimacyChangeTimeMs())
+          .setLastUpdatedTimeMs(master.getLastUpdatedTimeMs())
+          .setStartTimeMs(master.getStartTimeMs())
+          .setPrimacyChangeTimeMs(master.getPrimacyChangeTimeMs())
           .setVersion(master.getVersion())
           .setRevision(master.getRevision());
       indexNum++;

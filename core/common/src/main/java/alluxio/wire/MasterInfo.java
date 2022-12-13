@@ -120,7 +120,7 @@ public final class MasterInfo {
    * @param startTime the start time of the master in ms
    * @return the master information
    */
-  public MasterInfo setStartTime(long startTime) {
+  public MasterInfo setStartTimeMs(long startTime) {
     return this.setStartTime(convertMsToDate(startTime));
   }
 
@@ -137,7 +137,7 @@ public final class MasterInfo {
    * @param primacyChangeTime the last primacy state change time of the master in ms
    * @return the master information
    */
-  public MasterInfo setPrimacyChangeTime(long primacyChangeTime) {
+  public MasterInfo setPrimacyChangeTimeMs(long primacyChangeTime) {
     return this.setPrimacyChangeTime(convertMsToDate(primacyChangeTime));
   }
 
@@ -190,7 +190,7 @@ public final class MasterInfo {
    * @param lastUpdatedTime the last update time in ms
    * @return the master information
    */
-  public MasterInfo setLastUpdatedTime(long lastUpdatedTime) {
+  public MasterInfo setLastUpdatedTimeMs(long lastUpdatedTime) {
     return this.setLastUpdatedTime(convertMsToDate(lastUpdatedTime));
   }
 

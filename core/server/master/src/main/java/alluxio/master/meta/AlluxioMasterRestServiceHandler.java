@@ -878,9 +878,9 @@ public final class AlluxioMasterRestServiceHandler {
       InetSocketAddress leaderMasterAddress = mMasterProcess.getRpcAddress();
       MasterInfo leaderMasterInfo = new MasterInfo(MASTER_ID_NULL,
           new Address(leaderMasterAddress.getHostString(), leaderMasterAddress.getPort()))
-          .setLastUpdatedTime(System.currentTimeMillis())
-          .setStartTime(mMasterProcess.getStartTimeMs())
-          .setPrimacyChangeTime(mMetaMaster.getGainPrimacyTimeMs())
+          .setLastUpdatedTimeMs(System.currentTimeMillis())
+          .setStartTimeMs(mMasterProcess.getStartTimeMs())
+          .setPrimacyChangeTimeMs(mMetaMaster.getGainPrimacyTimeMs())
           .setVersion(ProjectConstants.VERSION)
           .setRevision(ProjectConstants.REVISION);
       response.setLeaderMasterInfo(leaderMasterInfo);
