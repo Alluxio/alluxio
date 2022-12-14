@@ -46,18 +46,13 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
       LoggerFactory.getLogger(RetryHandlingMetaMasterMasterClient.class);
   private MetaMasterMasterServiceGrpc.MetaMasterMasterServiceBlockingStub mClient = null;
 
-  /** The start time of the master. */
-  private final long mStartTimeMs;
-
   /**
    * Creates a instance of {@link RetryHandlingMetaMasterMasterClient}.
    *
    * @param conf master client configuration
-   * @param startTimeMs the start time of the master
    */
-  public RetryHandlingMetaMasterMasterClient(MasterClientContext conf, long startTimeMs) {
+  public RetryHandlingMetaMasterMasterClient(MasterClientContext conf) {
     super(conf);
-    mStartTimeMs = startTimeMs;
   }
 
   @Override
@@ -126,6 +121,9 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    */
   public void register(final long masterId, final List<ConfigProperty> configList)
       throws IOException {
+    Gauge startTimeGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
+        .get(MetricKey.MASTER_START_TIME.getName());
+    long startTime = startTimeGauge == null ? 0 : (long) startTimeGauge.getValue();
     Gauge lastLosePrimacyGuage = MetricsSystem.METRIC_REGISTRY.getGauges()
         .get(MetricKey.MASTER_LAST_LOSE_PRIMACY_TIME.getName());
     long lastLosePrimacyTime = lastLosePrimacyGuage == null ? 0
@@ -133,7 +131,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
     retryRPC(() -> {
       mClient.registerMaster(RegisterMasterPRequest.newBuilder().setMasterId(masterId)
           .setOptions(RegisterMasterPOptions.newBuilder().addAllConfigs(configList)
-              .setStartTimeMs(mStartTimeMs)
+              .setStartTimeMs(startTime)
               .setPrimacyChangeTimeMs(lastLosePrimacyTime)
               .setVersion(ProjectConstants.VERSION)
               .setRevision(ProjectConstants.REVISION).build())
