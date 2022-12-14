@@ -129,16 +129,6 @@ public interface MetaMaster extends BackupOps, Master {
   long getStartTimeMs();
 
   /**
-   * @return the last gain primacy time of this node in milliseconds
-   */
-  long getGainPrimacyTimeMs();
-
-  /**
-   * @return the last lose primacy time of this node in milliseconds
-   */
-  long getLosePrimacyTimeMs();
-
-  /**
    * @return the uptime of the master in milliseconds
    */
   long getUptimeMs();

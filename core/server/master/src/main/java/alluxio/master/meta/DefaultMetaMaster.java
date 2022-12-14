@@ -54,7 +54,6 @@ import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Meta;
 import alluxio.resource.CloseableIterator;
 import alluxio.underfs.UfsManager;
-import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.OSUtils;
@@ -149,12 +148,6 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   /** Used to manage backup role. */
   private BackupRole mBackupRole;
-
-  /** The last gain primacy time of this node in ms. */
-  private long mGainPrimacyTimeMs = 0;
-
-  /** The last lose primacy time of this node in ms. */
-  private long mLosePrimacyTimeMs = 0;
 
   @Nullable
   private final JournalSpaceMonitor mJournalSpaceMonitor;
@@ -287,9 +280,6 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public void start(Boolean isPrimary) throws IOException {
-    if (isPrimary) {
-      mGainPrimacyTimeMs = CommonUtils.getCurrentMs();
-    }
     super.start(isPrimary);
     mWorkerConfigStore.reset();
     mMasterConfigStore.reset();
@@ -345,7 +335,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         RetryHandlingMetaMasterMasterClient metaMasterClient =
             new RetryHandlingMetaMasterMasterClient(MasterClientContext
                 .newBuilder(ClientContext.create(Configuration.global())).build(),
-                mStartTimeMs, mLosePrimacyTimeMs);
+                mStartTimeMs);
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
             new MetaMasterSync(mMasterAddress, metaMasterClient),
             (int) Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
@@ -362,9 +352,6 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public void stop() throws IOException {
-    if (isPrimary()) {
-      mLosePrimacyTimeMs = CommonUtils.getCurrentMs();
-    }
     if (mDailyBackup != null) {
       mDailyBackup.stop();
       mDailyBackup = null;
@@ -582,16 +569,6 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   @Override
   public long getStartTimeMs() {
     return mStartTimeMs;
-  }
-
-  @Override
-  public long getGainPrimacyTimeMs() {
-    return mGainPrimacyTimeMs;
-  }
-
-  @Override
-  public long getLosePrimacyTimeMs() {
-    return mLosePrimacyTimeMs;
   }
 
   @Override

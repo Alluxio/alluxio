@@ -886,6 +886,16 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Display master role id")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_LAST_GAIN_PRIMACY_TIME =
+      new Builder("Master.LastGainPrimacyTime")
+          .setDescription("Last time the master gains primacy")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_LAST_LOSE_PRIMACY_TIME =
+      new Builder("Master.LastLosePrimacyTime")
+          .setDescription("Last time the master loses primacy")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
       new Builder("Master.JournalFlushFailure")
           .setDescription("Total number of failed journal flush")

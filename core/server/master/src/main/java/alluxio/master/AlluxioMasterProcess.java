@@ -92,6 +92,12 @@ public class AlluxioMasterProcess extends MasterProcess {
   /** See {@link #isRunning()}. */
   private volatile boolean mRunning = false;
 
+  /** last time this process gain primacy in ms. */
+  private long mLastGainPrimacyTime = 0;
+
+  /** last time this process lose primacy in ms. */
+  private long mLastLosePrimacyTime = 0;
+
   /**
    * Creates a new {@link AlluxioMasterProcess}.
    */
@@ -107,6 +113,12 @@ public class AlluxioMasterProcess extends MasterProcess {
     if (Configuration.getBoolean(PropertyKey.MASTER_THROTTLE_ENABLED)) {
       mRegistry.get(alluxio.master.throttle.DefaultThrottleMaster.class).setMaster(this);
     }
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_LAST_GAIN_PRIMACY_TIME.getName(),
+        () -> mLastGainPrimacyTime);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_LAST_LOSE_PRIMACY_TIME.getName(),
+        () -> mLastLosePrimacyTime);
     LOG.info("New process created.");
   }
 
@@ -208,6 +220,7 @@ public class AlluxioMasterProcess extends MasterProcess {
 
       LOG.info("Started in stand-by mode.");
       mLeaderSelector.waitForState(NodeState.PRIMARY);
+      mLastGainPrimacyTime = CommonUtils.getCurrentMs();
       if (!mRunning) {
         break;
       }
@@ -224,6 +237,7 @@ public class AlluxioMasterProcess extends MasterProcess {
         throw t;
       }
       mLeaderSelector.waitForState(NodeState.STANDBY);
+      mLastLosePrimacyTime = CommonUtils.getCurrentMs();
       if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
         stop();
       } else {

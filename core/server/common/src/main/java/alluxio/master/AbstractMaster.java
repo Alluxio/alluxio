@@ -77,10 +77,6 @@ public abstract class AbstractMaster implements Master {
     return Collections.emptySet();
   }
 
-  protected boolean isPrimary() {
-    return mIsPrimary;
-  }
-
   @Override
   public void start(Boolean isPrimary) throws IOException {
     Preconditions.checkState(mExecutorService == null);

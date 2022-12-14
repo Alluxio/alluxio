@@ -870,6 +870,12 @@ public final class AlluxioMasterRestServiceHandler {
         .get(MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName());
     long journalEntriesSinceCheckpoint = journalEntriesGauge == null ? 0
         : (long) journalEntriesGauge.getValue();
+
+    Gauge lastGainPrimacyGuage = MetricsSystem.METRIC_REGISTRY.getGauges()
+        .get(MetricKey.MASTER_LAST_GAIN_PRIMACY_TIME.getName());
+    long lastGainPrimacyTime = lastGainPrimacyGuage == null ? 0
+        : (long) lastGainPrimacyGuage.getValue();
+
     return RestUtils.call(() -> new MasterWebUIMasters()
         .setDebug(Configuration.getBoolean(PropertyKey.DEBUG))
         .setLostMasterInfos(mMetaMaster.getLostMasterInfos())
@@ -877,7 +883,7 @@ public final class AlluxioMasterRestServiceHandler {
         .setPrimaryMasterInfo(new MasterInfo(MASTER_ID_NULL, mMetaMaster.getMasterAddress())
             .setLastUpdatedTimeMs(System.currentTimeMillis())
             .setStartTimeMs(mMasterProcess.getStartTimeMs())
-            .setPrimacyChangeTimeMs(mMetaMaster.getGainPrimacyTimeMs())
+            .setPrimacyChangeTimeMs(lastGainPrimacyTime)
             .setLastCheckpointTimeMs(lastCheckpointTime)
             .setJournalEntriesSinceCheckpoint(journalEntriesSinceCheckpoint)
             .setVersion(ProjectConstants.VERSION)
