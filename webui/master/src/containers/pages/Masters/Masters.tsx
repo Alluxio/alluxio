@@ -52,7 +52,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                     <th>Elected</th>
                     <th>Started</th>
                     <th>Last Checkpoint</th>
-                    <th>Journal Entries Since Checkpoint</th>
+                    <th>Journal Entries</th>
                     <th>Version</th>
                     <th>Revision</th>
                   </tr>
@@ -85,7 +85,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                     <th>Started</th>
                     <th>Step-down Time</th>
                     <th>Last Checkpoint</th>
-                    <th>Journal Entries Since Checkpoint</th>
+                    <th>Journal Entries</th>
                     <th>Version</th>
                     <th>Revision</th>
                   </tr>
@@ -122,7 +122,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                     <th>Started</th>
                     <th>Step-down Time</th>
                     <th>Last Checkpoint</th>
-                    <th>Journal Entries Since Checkpoint</th>
+                    <th>Journal Entries</th>
                     <th>Version</th>
                     <th>Revision</th>
                   </tr>

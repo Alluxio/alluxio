@@ -39,7 +39,7 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
                 Last Checkpoint
               </th>
               <th>
-                Journal Entries Since Checkpoint
+                Journal Entries
               </th>
               <th>
                 Version
@@ -103,7 +103,7 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
                 Last Checkpoint
               </th>
               <th>
-                Journal Entries Since Checkpoint
+                Journal Entries
               </th>
               <th>
                 Version
@@ -152,7 +152,7 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
                 Last Checkpoint
               </th>
               <th>
-                Journal Entries Since Checkpoint
+                Journal Entries
               </th>
               <th>
                 Version
