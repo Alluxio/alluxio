@@ -8,7 +8,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.AlluxioFileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -18,9 +17,9 @@ import alluxio.grpc.PMode;
 import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.util.CommonUtils;
+import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
-import alluxio.web.WebServer;
-import org.eclipse.jetty.server.HttpOutput;
+import com.google.common.base.Stopwatch;
 import org.eclipse.jetty.server.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,16 +43,15 @@ public class S3Handler {
             "select"
     };
 
+    private Stopwatch mStopwatch;
     private String mBucket;
     private String mObject;
-
     private String mUser;
-
     Set<String> unsupportedSubResourcesSet_ = new HashSet<>(Arrays.asList(unsupportedSubResources_));
     Map<String, String> amzHeaderMap_ = new HashMap<>();
     Request mBaseRequest;
-    HttpServletRequest mServletRequest;
-    HttpServletResponse mServletResponse;
+    private HttpServletRequest mServletRequest;
+    private HttpServletResponse mServletResponse;
     private S3BaseTask mS3Task;
 
     public static final boolean mBucketNamingRestrictionsEnabled = Configuration.getBoolean(
@@ -107,7 +105,7 @@ public class S3Handler {
                 );
             }
         } catch (Exception ex) {
-            LOG.info(WebServer.logStackTrace(ex));
+            LOG.info(ThreadUtils.formatStackTrace(ex));
             throw S3RestUtils.toBucketS3Exception(ex, mBucket);
         }
     }
@@ -121,6 +119,7 @@ public class S3Handler {
     public static S3Handler createHandler(String path,
                                        HttpServletRequest request,
                                        HttpServletResponse response) throws S3Exception {
+        Stopwatch stopwatch = Stopwatch.createStarted();
         Matcher baseMatcher = mBasePathPattern.matcher(path);
         Matcher bucketMatcher = mBucketPathPattern.matcher(path);
         Matcher objectMatcher = mObjectPathPattern.matcher(path);
@@ -139,6 +138,7 @@ public class S3Handler {
                 object = URLDecoder.decode(pathStr.substring(pathStr.indexOf(AlluxioURI.SEPARATOR) + 1), "UTF-8");
             }
             handler = new S3Handler(bucket, object, request, response);
+            handler.setStopwatch(stopwatch);
             handler.init();
             S3BaseTask task = null;
             if (object != null && !object.isEmpty()) {
@@ -168,6 +168,14 @@ public class S3Handler {
             headerVal = defaultHeaderValue;
         }
         return headerVal;
+    }
+
+    public HttpServletResponse getServletResponse() {
+        return mServletResponse;
+    }
+
+    public HttpServletRequest getServletRequest() {
+        return mServletRequest;
     }
 
     public String getQueryParameter(String queryParam) {
@@ -310,6 +318,14 @@ public class S3Handler {
 
     public FileSystem getMetaFS() {
         return mMetaFS;
+    }
+
+    public Stopwatch getStopwatch() {
+        return mStopwatch;
+    }
+
+    public void setStopwatch(Stopwatch stopwatch) {
+        mStopwatch = stopwatch;
     }
 
 }

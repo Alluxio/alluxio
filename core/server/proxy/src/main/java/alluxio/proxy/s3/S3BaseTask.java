@@ -45,6 +45,10 @@ public abstract class S3BaseTask {
         mOPType = opType;
     }
 
+    public OpType getOPType() {
+        return mOPType;
+    }
+
     public abstract Response continueTask();
 
     public void handleTaskAsync() {};

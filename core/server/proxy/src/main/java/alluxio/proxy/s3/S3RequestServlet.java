@@ -5,6 +5,7 @@ import alluxio.Constants;
 import alluxio.web.ProxyWebServer;
 import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.eclipse.jetty.server.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,8 @@ public class S3RequestServlet extends HttpServlet {
     @Context
     HttpServletRequest mServletRequest;
 
+    public ConcurrentHashMap<Request, S3Handler> s3HandlerMap = new ConcurrentHashMap<>();
+
 
     public static S3RequestServlet getInstance() {
         if (mInstance != null)
@@ -59,7 +62,6 @@ public class S3RequestServlet extends HttpServlet {
     @Override
     public void service(HttpServletRequest request,
                         HttpServletResponse response)  throws ServletException, IOException {
-        Stopwatch stopWatch = Stopwatch.createStarted();
         String target = request.getRequestURI();
         if (!target.startsWith(S3_SERVICE_PATH_PREFIX)) {
             return;
@@ -68,6 +70,7 @@ public class S3RequestServlet extends HttpServlet {
         S3BaseTask.OpType opType = S3BaseTask.OpType.Unknown;
         try {
             S3Handler s3Handler = S3Handler.createHandler(target, request, response);
+            s3HandlerMap.put((Request)request, s3Handler);
             opType = s3Handler.getS3Task().mOPType;
             if (opType == S3BaseTask.OpType.CompleteMultipartUpload) {
                 s3Handler.getS3Task().handleTaskAsync();
@@ -78,7 +81,6 @@ public class S3RequestServlet extends HttpServlet {
             resp = S3ErrorResponse.createErrorResponse(e, "");
         }
         S3Handler.processResponse(response, resp);
-        ProxyWebServer.logAccess(request, response, stopWatch, opType);
     }
 }
 

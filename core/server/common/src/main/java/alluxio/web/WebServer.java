@@ -21,7 +21,6 @@ import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
 
 import com.google.common.base.Preconditions;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.*;
@@ -62,37 +61,9 @@ public abstract class WebServer {
   private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
       MetricsSystem.METRIC_REGISTRY);
 
-
-  public static String logStackTrace(Throwable th) {
-    StringBuilder sb = new StringBuilder();
-    for (StackTraceElement ste : th.getStackTrace()) {
-      sb.append(ste + "\n");
-    }
-    return sb.toString();
+  protected ServerConnector getServerConnector() {
+    return mServerConnector;
   }
-  class AListener implements HttpChannel.Listener {
-
-    public void onRequestFailure(Request request, Throwable failure)
-    {
-      LOG.info("LUCYDEBUG Request{} onRequestFailure. {}",request, logStackTrace(failure));
-    }
-
-    public void onResponseFailure(Request request, Throwable failure)
-    {
-      LOG.info("LUCYDEBUG Request{} onResponseFailure. {}",request, logStackTrace(failure));
-    }
-    public void onDispatchFailure(Request request, Throwable failure)
-    {
-      LOG.info("LUCYDEBUG Request{} onDispatchFailure.",request, logStackTrace(failure));
-    }
-
-    public void onComplete(Request request)
-    {
-      LOG.info("LUCYDEBUG Request{} onComplete.",request);
-    }
-  }
-
-  public ThreadPoolExecutor mThreadPoolExecutor_;
 
   /**
    * Creates a new instance of {@link WebServer}. It pairs URLs with servlets and sets the webapp
@@ -121,7 +92,6 @@ public abstract class WebServer {
     mServerConnector.setPort(mAddress.getPort());
     mServerConnector.setHost(mAddress.getAddress().getHostAddress());
     mServerConnector.setReuseAddress(true);
-    mServerConnector.addBean(new AListener());
 
     mServer.addConnector(mServerConnector);
 

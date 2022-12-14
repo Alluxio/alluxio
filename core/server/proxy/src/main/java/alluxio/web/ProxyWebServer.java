@@ -20,13 +20,14 @@ import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proxy.ProxyProcess;
-import alluxio.proxy.s3.CompleteMultipartUploadHandler;
 import alluxio.proxy.s3.S3BaseTask;
 import alluxio.proxy.s3.S3RequestServlet;
 import alluxio.proxy.s3.S3RestExceptionMapper;
+import alluxio.proxy.s3.S3Handler;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Stopwatch;
+import org.eclipse.jetty.server.HttpChannel;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -65,6 +66,21 @@ public final class ProxyWebServer extends WebServer {
 
   public static AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
+  class AListener implements HttpChannel.Listener {
+
+    public void onComplete(Request request)
+    {
+      S3Handler s3Hdlr = S3RequestServlet.getInstance().s3HandlerMap.get(request);
+      if (s3Hdlr != null) {
+        ProxyWebServer.logAccess(s3Hdlr.getServletRequest(), s3Hdlr.getServletResponse(),
+                s3Hdlr.getStopwatch(),
+                s3Hdlr.getS3Task() != null ? s3Hdlr.getS3Task().getOPType() : S3BaseTask.OpType.Unknown);
+      } else {
+        LOG.info("[ACCESSLOG] Request{} onComplete.", request);
+      }
+    }
+  }
+
   /**
    * Creates a new instance of {@link ProxyWebServer}.
    *
@@ -92,6 +108,7 @@ public final class ProxyWebServer extends WebServer {
               () -> mAsyncAuditLogWriter != null
                   ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
     }
+    super.getServerConnector().addBean(new AListener());
 
     ServletContainer servlet = new ServletContainer(config) {
       private static final long serialVersionUID = 7756010860672831556L;

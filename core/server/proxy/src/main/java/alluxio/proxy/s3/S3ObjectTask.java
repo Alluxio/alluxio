@@ -14,17 +14,13 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.*;
-import alluxio.master.audit.AuditContext;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
 import alluxio.util.ThreadUtils;
-import alluxio.web.ProxyWebServer;
 import com.codahale.metrics.Timer;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Stopwatch;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
 import com.google.common.primitives.Longs;
@@ -35,6 +31,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -901,7 +898,7 @@ public class S3ObjectTask extends S3BaseTask {
                 final String uploadId = mHandler.getQueryParameter("uploadId");
                 LOG.debug("(bucket: {}, object: {}, uploadId: {}) queuing task...",
                         mBucket, mObject, uploadId);
-                HttpServletResponse httpServletResponse = mHandler.mServletResponse;
+                HttpServletResponse httpServletResponse = mHandler.getServletResponse();
 
                 // Set headers before getting committed when flushing whitespaces
                 httpServletResponse.setContentType(MediaType.APPLICATION_XML);
@@ -939,9 +936,12 @@ public class S3ObjectTask extends S3BaseTask {
                 XmlMapper mapper = new XmlMapper();
                 try {
                     Response result = respFut.get();
-                    httpServletResponse.getWriter().write(mapper.writeValueAsString(result));
                     if (!mKeepAliveEnabled) {
-                        httpServletResponse.setStatus(HttpServletResponse.SC_OK);
+                        S3Handler.processResponse(httpServletResponse, result);
+                    } else {
+                        // entity is already a String from a serialized CompleteMultipartUploadResult
+                        String entityStr = result.getEntity().toString();
+                        httpServletResponse.getWriter().write(entityStr);
                     }
                 } catch (Exception e) {
                     Throwable cause = e.getCause();
@@ -956,14 +956,11 @@ public class S3ObjectTask extends S3BaseTask {
                     }
                     LOG.error(ThreadUtils.formatStackTrace(cause));
                 }
-                httpServletResponse.getWriter().flush();
-                mHandler.mBaseRequest.setHandled(true);
             } catch (Exception e) {
                 // This try-catch is not intended to handle any exceptions, it is purely
                 // to ensure that encountered exceptions get logged.
                 LOG.error("Unhandled exception for {}/{}. {}", mHandler.getBucket(),
                         mHandler.getObject(), ThreadUtils.formatStackTrace(e));
-                mHandler.mBaseRequest.setHandled(true); // (?) throw servletexception?
 //                throw e;
             }
         }
@@ -985,12 +982,13 @@ public class S3ObjectTask extends S3BaseTask {
                     objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
                     // Check for existing multipart info files and dirs
                     AlluxioURI multipartTemporaryDir = new AlluxioURI(
-                            S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, object));
+                            S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, mUploadId));
                     URIStatus metaStatus;
+
                     try (com.codahale.metrics.Timer.Context ctx = MetricsSystem
                             .uniformTimer(MetricKey.PROXY_CHECK_UPLOADID_STATUS_LATENCY.getName()).time()) {
                         metaStatus = S3RestUtils.checkStatusesForUploadId(mHandler.getMetaFS(), mUserFs,
-                                multipartTemporaryDir, object).get(1);
+                                multipartTemporaryDir, mUploadId).get(1);
                     } catch (Exception e) {
                         LOG.warn("checkStatusesForUploadId uploadId:{} failed. {}", object,
                                 ThreadUtils.formatStackTrace(e));
