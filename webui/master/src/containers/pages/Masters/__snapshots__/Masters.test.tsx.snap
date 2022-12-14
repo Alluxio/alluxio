@@ -45,24 +45,14 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
           </thead>
           <tbody>
             <tr>
+              <td />
               <td>
-                127.0.0.1
+                0
               </td>
-              <td>
-                19998
-              </td>
-              <td>
-                12-08-2022 23:37:53:984
-              </td>
-              <td>
-                12-08-2022 23:37:50:222
-              </td>
-              <td>
-                2.10.0-SNAPSHOT
-              </td>
-              <td>
-                a55b99ad3a72321c251f9934662dcc1979c9cb7
-              </td>
+              <td />
+              <td />
+              <td />
+              <td />
             </tr>
           </tbody>
         </Table>
