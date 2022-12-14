@@ -29,6 +29,7 @@ import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.MasterHeartbeatPOptions;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.Scope;
@@ -528,6 +529,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           .setLastUpdatedTimeMs(master.getLastUpdatedTimeMs())
           .setStartTimeMs(master.getStartTimeMs())
           .setPrimacyChangeTimeMs(master.getPrimacyChangeTimeMs())
+          .setLastCheckpointTimeMs(master.getLastCheckpointTimeMs())
+          .setJournalEntriesSinceCheckpoint(master.getJournalEntriesSinceCheckpoint())
           .setVersion(master.getVersion())
           .setRevision(master.getRevision());
       indexNum++;
@@ -607,7 +610,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public MetaCommand masterHeartbeat(long masterId) {
+  public MetaCommand masterHeartbeat(long masterId, MasterHeartbeatPOptions options) {
     MasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
     if (master == null) {
       LOG.warn("Could not find master id: {} for heartbeat.", masterId);
@@ -615,6 +618,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     }
 
     master.updateLastUpdatedTimeMs();
+    if (options.hasLastCheckpointTime()) {
+      master.setLastCheckpointTimeMs(options.getLastCheckpointTime());
+    }
+    if (options.hasJournalEntriesSinceCheckpoint()) {
+      master.setJournalEntriesSinceCheckpoint(options.getJournalEntriesSinceCheckpoint());
+    }
     return MetaCommand.MetaCommand_Nothing;
   }
 
@@ -628,27 +637,22 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     }
 
     master.updateLastUpdatedTimeMs();
-    updateMasterInfo(master, options);
+    if (options.hasStartTimeMs()) {
+      master.setStartTimeMs(options.getStartTimeMs());
+    }
+    if (options.hasPrimacyChangeTimeMs()) {
+      master.setPrimacyChangeTimeMs(options.getPrimacyChangeTimeMs());
+    }
+    if (options.hasVersion()) {
+      master.setVersion(options.getVersion());
+    }
+    if (options.hasRevision()) {
+      master.setRevision(options.getRevision());
+    }
 
     mMasterConfigStore.registerNewConf(master.getAddress(), options.getConfigsList());
 
     LOG.info("registerMaster(): master: {}", master);
-  }
-
-  private MasterInfo updateMasterInfo(MasterInfo info, RegisterMasterPOptions options) {
-    if (options.hasStartTimeMs()) {
-      info.setStartTimeMs(options.getStartTimeMs());
-    }
-    if (options.hasPrimacyChangeTimeMs()) {
-      info.setPrimacyChangeTimeMs(options.getPrimacyChangeTimeMs());
-    }
-    if (options.hasVersion()) {
-      info.setVersion(options.getVersion());
-    }
-    if (options.hasRevision()) {
-      info.setRevision(options.getRevision());
-    }
-    return info;
   }
 
   @Override

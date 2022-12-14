@@ -18,6 +18,8 @@ export interface IMasterInfo {
   lastUpdatedTime: string;
   startTime: string;
   primacyChangeTime: string;
+  lastCheckpointTime: string;
+  journalEntriesSinceCheckpoint: number;
   version: string;
   revision: string;
 }

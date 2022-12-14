@@ -68,8 +68,8 @@ public final class MetaMasterMasterServiceHandler
   @Override
   public void masterHeartbeat(MasterHeartbeatPRequest request,
       StreamObserver<MasterHeartbeatPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> MasterHeartbeatPResponse.newBuilder()
-        .setCommand(mMetaMaster.masterHeartbeat(request.getMasterId())).build(),
+    RpcUtils.call(LOG, () -> MasterHeartbeatPResponse.newBuilder().setCommand(
+        mMetaMaster.masterHeartbeat(request.getMasterId(), request.getOptions())).build(),
         "masterHeartbeat", "request=%s", responseObserver, request);
   }
 }

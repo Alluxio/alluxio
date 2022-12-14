@@ -37,6 +37,10 @@ public final class MasterInfo {
   private String mVersion = "";
   /** Master's revision. */
   private String mRevision = "";
+  /** Master's last checkpoint time in ms. */
+  private long mLastCheckpointTimeMs = 0;
+  /** Number of journal entries since last checkpoint. */
+  private long mJournalEntriesSinceCheckpoint = 0;
 
   /**
    * Creates a new instance of {@link MasterInfo}.
@@ -99,6 +103,20 @@ public final class MasterInfo {
     return mRevision;
   }
 
+  /**
+   * @return the time of last checkpoint
+   */
+  public long getLastCheckpointTimeMs() {
+    return mLastCheckpointTimeMs;
+  }
+
+  /**
+   * @return number of journal entries since last checkpoint
+   */
+  public long getJournalEntriesSinceCheckpoint() {
+    return mJournalEntriesSinceCheckpoint;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
@@ -140,5 +158,19 @@ public final class MasterInfo {
    */
   public void updateLastUpdatedTimeMs() {
     mLastUpdatedTimeMs = System.currentTimeMillis();
+  }
+
+  /**
+   * @param lastCheckpointTimeMs the time of last checkpoint
+   */
+  public void setLastCheckpointTimeMs(long lastCheckpointTimeMs) {
+    mLastCheckpointTimeMs = lastCheckpointTimeMs;
+  }
+
+  /**
+   * @param journalEntriesSinceCheckpoint number of journal entries since last checkpoint
+   */
+  public void setJournalEntriesSinceCheckpoint(long journalEntriesSinceCheckpoint) {
+    mJournalEntriesSinceCheckpoint = journalEntriesSinceCheckpoint;
   }
 }

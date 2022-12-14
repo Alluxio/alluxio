@@ -38,6 +38,8 @@ public class MasterInfoTest {
     Assert.assertEquals(a.getLastUpdatedTime(), b.getLastUpdatedTime());
     Assert.assertEquals(a.getStartTime(), b.getStartTime());
     Assert.assertEquals(a.getPrimacyChangeTime(), b.getPrimacyChangeTime());
+    Assert.assertEquals(a.getLastCheckpointTime(), b.getLastCheckpointTime());
+    Assert.assertEquals(a.getJournalEntriesSinceCheckpoint(), b.getJournalEntriesSinceCheckpoint());
     Assert.assertEquals(a.getVersion(), b.getVersion());
     Assert.assertEquals(a.getRevision(), b.getRevision());
     Assert.assertEquals(a, b);
@@ -53,11 +55,15 @@ public class MasterInfoTest {
     String version = String.format("%d.%d.%d", random.nextInt(10),
         random.nextInt(20), random.nextInt(10));
     String revision = DigestUtils.sha1Hex(RandomStringUtils.random(10));
+    long lastCheckpointTime = startTimeMs + (lastUpdatedTimeMs - startTimeMs) / 2;
+    long journalEntriesSinceCheckpoint = random.nextInt(1000);
 
     MasterInfo result = new MasterInfo(id, address);
     result.setLastUpdatedTimeMs(lastUpdatedTimeMs);
     result.setStartTimeMs(startTimeMs);
     result.setPrimacyChangeTimeMs(primacyChangeTimeMs);
+    result.setLastCheckpointTimeMs(lastCheckpointTime);
+    result.setJournalEntriesSinceCheckpoint(journalEntriesSinceCheckpoint);
     result.setVersion(version);
     result.setRevision(revision);
     return result;

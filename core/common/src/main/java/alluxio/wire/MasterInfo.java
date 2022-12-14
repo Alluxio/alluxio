@@ -41,6 +41,10 @@ public final class MasterInfo {
   private String mVersion = NONE;
   /** Master's revision. */
   private String mRevision = NONE;
+  /** Master's last checkpoint time. */
+  private String mLastCheckpointTime = NONE;
+  /** Master's journal entries since last checkpoint. */
+  private long mJournalEntriesSinceCheckpoint = 0;
 
   /**
    * Creates a new instance of {@link MasterInfo}.
@@ -105,6 +109,20 @@ public final class MasterInfo {
    */
   public String getRevision() {
     return mRevision;
+  }
+
+  /**
+   * @return the last checkpoint time
+   */
+  public String getLastCheckpointTime() {
+    return mLastCheckpointTime;
+  }
+
+  /**
+   * @return journal entries since last checkpoint
+   */
+  public long getJournalEntriesSinceCheckpoint() {
+    return mJournalEntriesSinceCheckpoint;
   }
 
   /**
@@ -194,12 +212,40 @@ public final class MasterInfo {
     return this;
   }
 
+  /**
+   * @param lastCheckpointTime the last checkpoint time
+   * @return the master information
+   */
+  public MasterInfo setLastCheckpointTime(String lastCheckpointTime) {
+    mLastCheckpointTime = lastCheckpointTime;
+    return this;
+  }
+
+  /**
+   * @param lastCheckpointTime the last checkpoint time in ms
+   * @return the master information
+   */
+  public MasterInfo setLastCheckpointTimeMs(long lastCheckpointTime) {
+    return this.setLastCheckpointTime(convertMsToDate(lastCheckpointTime));
+  }
+
+  /**
+   * @param journalEntriesSinceCheckpoint journal entries since last checkpoint
+   * @return the master information
+   */
+  public MasterInfo setJournalEntriesSinceCheckpoint(long journalEntriesSinceCheckpoint) {
+    mJournalEntriesSinceCheckpoint = journalEntriesSinceCheckpoint;
+    return this;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
         .add("lastUpdatedTime", mLastUpdatedTime)
         .add("startTime", mStartTime)
         .add("primacyChangeTime", mPrimacyChangeTime)
+        .add("lastCheckpointTime", mLastCheckpointTime)
+        .add("journalEntriesSinceCheckpoint", mJournalEntriesSinceCheckpoint)
         .add("version", mVersion)
         .add("revision", mRevision).toString();
   }
@@ -217,18 +263,20 @@ public final class MasterInfo {
         && mLastUpdatedTime.equals(that.mLastUpdatedTime)
         && mStartTime.equals(that.mStartTime)
         && mPrimacyChangeTime.equals(that.mPrimacyChangeTime)
+        && mLastCheckpointTime.equals(that.mLastCheckpointTime)
+        && mJournalEntriesSinceCheckpoint == that.mJournalEntriesSinceCheckpoint
         && mVersion.equals(that.mVersion)
         && mRevision.equals(that.mRevision);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mId, mAddress, mLastUpdatedTime, mStartTime,
-        mPrimacyChangeTime, mVersion, mRevision);
+    return Objects.hashCode(mId, mAddress, mLastUpdatedTime, mStartTime, mPrimacyChangeTime,
+        mLastCheckpointTime, mJournalEntriesSinceCheckpoint, mVersion, mRevision);
   }
 
   private static String convertMsToDate(long timeMs) {
-    if (timeMs == 0) {
+    if (timeMs <= 0) {
       return NONE;
     }
     return CommonUtils.convertMsToDate(timeMs,

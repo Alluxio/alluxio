@@ -248,7 +248,10 @@ message RegisterMasterPRequest {
 }
 message RegisterMasterPResponse {}
 
-message MasterHeartbeatPOptions {}
+message MasterHeartbeatPOptions {
+  optional int64 lastCheckpointTime = 1;
+  optional int64 journalEntriesSinceCheckpoint = 2;
+}
 message MasterHeartbeatPRequest {
   optional int64 masterId = 1;
   optional MasterHeartbeatPOptions options = 2;

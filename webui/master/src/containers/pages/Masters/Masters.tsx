@@ -51,6 +51,8 @@ export class MastersPresenter extends React.Component<AllProps> {
                     <th>Port</th>
                     <th>Elected</th>
                     <th>Started</th>
+                    <th>Last Checkpoint</th>
+                    <th>Journal Entries Since Checkpoint</th>
                     <th>Version</th>
                     <th>Revision</th>
                   </tr>
@@ -61,6 +63,8 @@ export class MastersPresenter extends React.Component<AllProps> {
                     <td>{mastersData.primaryMasterInfo.address.rpcPort}</td>
                     <td>{mastersData.primaryMasterInfo.primacyChangeTime}</td>
                     <td>{mastersData.primaryMasterInfo.startTime}</td>
+                    <td>{mastersData.primaryMasterInfo.lastCheckpointTime}</td>
+                    <td>{mastersData.primaryMasterInfo.journalEntriesSinceCheckpoint}</td>
                     <td>{mastersData.primaryMasterInfo.version}</td>
                     <td>{mastersData.primaryMasterInfo.revision}</td>
                   </tr>
@@ -80,6 +84,8 @@ export class MastersPresenter extends React.Component<AllProps> {
                     <th>Last Heartbeat</th>
                     <th>Started</th>
                     <th>Step-down Time</th>
+                    <th>Last Checkpoint</th>
+                    <th>Journal Entries Since Checkpoint</th>
                     <th>Version</th>
                     <th>Revision</th>
                   </tr>
@@ -93,6 +99,8 @@ export class MastersPresenter extends React.Component<AllProps> {
                       <td>{masterInfo.lastUpdatedTime}</td>
                       <td>{masterInfo.startTime}</td>
                       <td>{masterInfo.primacyChangeTime}</td>
+                      <td>{masterInfo.lastCheckpointTime}</td>
+                      <td>{masterInfo.journalEntriesSinceCheckpoint}</td>
                       <td>{masterInfo.version}</td>
                       <td>{masterInfo.revision}</td>
                     </tr>
@@ -113,6 +121,8 @@ export class MastersPresenter extends React.Component<AllProps> {
                     <th>Last Heartbeat</th>
                     <th>Started</th>
                     <th>Step-down Time</th>
+                    <th>Last Checkpoint</th>
+                    <th>Journal Entries Since Checkpoint</th>
                     <th>Version</th>
                     <th>Revision</th>
                   </tr>
@@ -126,6 +136,8 @@ export class MastersPresenter extends React.Component<AllProps> {
                       <td>{masterInfo.lastUpdatedTime}</td>
                       <td>{masterInfo.startTime}</td>
                       <td>{masterInfo.primacyChangeTime}</td>
+                      <td>{masterInfo.lastCheckpointTime}</td>
+                      <td>{masterInfo.journalEntriesSinceCheckpoint}</td>
                       <td>{masterInfo.version}</td>
                       <td>{masterInfo.revision}</td>
                     </tr>

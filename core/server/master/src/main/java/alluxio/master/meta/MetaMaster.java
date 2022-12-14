@@ -15,6 +15,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.MasterHeartbeatPOptions;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.master.Master;
@@ -171,9 +172,10 @@ public interface MetaMaster extends BackupOps, Master {
    * A standby master periodically heartbeats with the leader master.
    *
    * @param masterId the master id
+   * @param options the options that contains optional master info
    * @return an optional command for the standby master to execute
    */
-  MetaCommand masterHeartbeat(long masterId);
+  MetaCommand masterHeartbeat(long masterId, MasterHeartbeatPOptions options);
 
   /**
    * A standby master registers with the leader master.

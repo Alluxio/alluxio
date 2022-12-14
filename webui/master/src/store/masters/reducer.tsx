@@ -27,6 +27,8 @@ export const initialMastersState: IMastersState = {
       lastUpdatedTime: '',
       startTime: '',
       primacyChangeTime: '',
+      lastCheckpointTime: '',
+      journalEntriesSinceCheckpoint: 0,
       version: '',
       revision: '',
     },
