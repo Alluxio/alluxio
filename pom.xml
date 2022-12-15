@@ -149,7 +149,7 @@
     <prometheus.version>0.8.0</prometheus.version>
     <guava.version>31.0.1-jre</guava.version>
     <parquet.version>1.11.0</parquet.version>
-    <protobuf.version>3.19.2</protobuf.version>
+    <protobuf.version>3.19.6</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.30</slf4j.version>
     <jackson.version>2.13.3</jackson.version>
