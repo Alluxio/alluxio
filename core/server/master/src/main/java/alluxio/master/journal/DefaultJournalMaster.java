@@ -24,7 +24,10 @@ import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.util.executor.ExecutorServiceFactories;
+
+import io.grpc.ServerInterceptors;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -111,7 +114,9 @@ public class DefaultJournalMaster extends AbstractMaster implements JournalMaste
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
-        new GrpcService(new JournalMasterClientServiceHandler(this)));
+        new GrpcService(ServerInterceptors.intercept(
+            new JournalMasterClientServiceHandler(this),
+            new ClientIpAddressInjector())));
     return services;
   }
 }

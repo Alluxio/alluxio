@@ -21,6 +21,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authentication.ClientIpAddressInjector;
 
 import com.codahale.metrics.Timer;
 import io.grpc.StatusException;
@@ -121,7 +122,8 @@ public final class RpcUtils {
         MetricsSystem.timer(MetricKey.MASTER_TOTAL_RPCS.getName()),
         MetricsSystem.timer(getQualifiedMetricName(methodName)))) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
-      logger.debug("Enter: {}: {}", methodName, debugDesc);
+      logger.debug("Enter: {} from {}: {}", methodName, ClientIpAddressInjector.getIpAddress(),
+          debugDesc);
       T res = callable.call();
       logger.debug("Exit: {}: {}", methodName, debugDesc);
       return res;
