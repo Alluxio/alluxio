@@ -479,10 +479,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     return mNewerVersionAvailable;
   }
 
-  /**
-   * Get the address of this meta master.
-   * @return the meta master address
-   */
+  @Override
   public Address getMasterAddress() {
     return mMasterAddress;
   }
