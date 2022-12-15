@@ -34,11 +34,13 @@ import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.table.transform.TransformJobInfo;
 import alluxio.master.table.transform.TransformManager;
+import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import io.grpc.ServerInterceptors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -178,7 +180,9 @@ public class DefaultTableMaster extends CoreMaster
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(ServiceType.TABLE_MASTER_CLIENT_SERVICE,
-        new GrpcService(new TableMasterClientServiceHandler(this)));
+        new GrpcService(ServerInterceptors.intercept(
+            new TableMasterClientServiceHandler(this),
+            new ClientIpAddressInjector())));
     return services;
   }
 
