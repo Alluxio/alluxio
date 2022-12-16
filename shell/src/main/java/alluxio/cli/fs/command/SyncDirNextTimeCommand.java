@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class SyncDirNextTimeCommand extends AbstractFileSystemCommand {
 
-  private boolean mLoaded;
+  private boolean mSyncNextTime;
 
   /**
    * @param fsContext the filesystem of Alluxio
@@ -41,7 +41,7 @@ public final class SyncDirNextTimeCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getCommandName() {
-    return "syncNextTime";
+    return "syncDirNextTime";
   }
 
   @Override
@@ -52,23 +52,25 @@ public final class SyncDirNextTimeCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
-    FileSystemCommandUtils.setDirectChildrenLoaded(mFileSystem, path, mLoaded);
-    System.out.println("Successfully marked the dir {} to "
-        + (mLoaded ? "trigger metadata sync on next access"
-        : "skip metadata sync on next access"));
+    FileSystemCommandUtils.setDirectChildrenLoaded(mFileSystem, path, mSyncNextTime);
+    System.out.format("Successfully marked the dir %s to %s%n", path,
+        mSyncNextTime ? "trigger metadata sync on next access"
+            : "skip metadata sync on next access");
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    mLoaded = Boolean.parseBoolean(args[0]);
+    mSyncNextTime = Boolean.parseBoolean(args[0]);
     runWildCardCmd(new AlluxioURI(args[1]), cl);
     return 0;
   }
 
   @Override
   public String getUsage() {
-    return "syncNextTime <true|false> <path>";
+    return "syncDirNextTime <true|false> <path>\n"
+        + "\ttrue means the next access will trigger a metadata sync on the dir"
+        + "\tfalse means the next metadata sync is disabled";
   }
 
   @Override
