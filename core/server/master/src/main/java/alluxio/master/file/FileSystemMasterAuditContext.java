@@ -199,9 +199,9 @@ public final class FileSystemMasterAuditContext implements AuditContext {
     } else {
       return String.format(
           "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
-              + "perm=null\texecutionTimeUs=%d\tclientVersion=%s\tclientRevision=%s",
+              + "perm=null\texecutionTimeUs=%d",
           mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
-          mExecutionTimeNs / 1000, mClientVersion, mClientRevision);
+          mExecutionTimeNs / 1000);
     }
     if (Configuration.global().getBoolean(PropertyKey.USER_CLIENT_REPORT_VERSION)) {
       auditLog.append(
