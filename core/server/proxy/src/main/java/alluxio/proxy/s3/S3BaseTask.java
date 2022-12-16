@@ -4,35 +4,49 @@ import javax.ws.rs.core.Response;
 
 public abstract class S3BaseTask {
 
+    public enum OpTag {
+        LIGHT,
+        HEAVY
+    }
+
     public enum OpType {
         // Object Task
-        ListParts,
-        GetObjectTagging,
-        PutObjectTagging,
-        DeleteObjectTagging,
-        GetObject,
-        PutObject,
-        CopyObject,
-        DeleteObject,
-        HeadObject,
-        UploadPart,
-        UploadPartCopy,
-        CreateMultipartUpload,
-        AbortMultipartUpload,
-        CompleteMultipartUpload,
+        ListParts(OpTag.LIGHT),
+        GetObjectTagging(OpTag.LIGHT),
+        PutObjectTagging(OpTag.LIGHT),
+        DeleteObjectTagging(OpTag.LIGHT),
+        GetObject(OpTag.HEAVY),
+        PutObject(OpTag.HEAVY),
+        CopyObject(OpTag.HEAVY),
+        DeleteObject(OpTag.LIGHT),
+        HeadObject(OpTag.LIGHT),
+        UploadPart(OpTag.LIGHT),
+        UploadPartCopy(OpTag.HEAVY),
+        CreateMultipartUpload(OpTag.LIGHT),
+        AbortMultipartUpload(OpTag.LIGHT),
+        CompleteMultipartUpload(OpTag.HEAVY),
         // Bucket Task
-        ListBuckets,
-        ListMultipartUploads,
-        GetBucketTagging,
-        PutBucketTagging,
-        DeleteBucketTagging,
-        CreateBucket,
-        ListObjects, // as well as ListObjectsV2
-        DeleteObjects,
-        HeadBucket,
-        DeleteBucket,
-        Unsupported,
-        Unknown
+        ListBuckets(OpTag.LIGHT),
+        ListMultipartUploads(OpTag.LIGHT),
+        GetBucketTagging(OpTag.LIGHT),
+        PutBucketTagging(OpTag.LIGHT),
+        DeleteBucketTagging(OpTag.LIGHT),
+        CreateBucket(OpTag.LIGHT),
+        ListObjects(OpTag.LIGHT), // as well as ListObjectsV2
+        DeleteObjects(OpTag.LIGHT),
+        HeadBucket(OpTag.LIGHT),
+        DeleteBucket(OpTag.LIGHT),
+        Unsupported(OpTag.LIGHT),
+        Unknown(OpTag.LIGHT);
+
+        private final OpTag opTag;
+        OpType(OpTag opTag) {
+            this.opTag = opTag;
+        }
+
+        OpTag getOpTag() {
+            return this.opTag;
+        }
     }
     protected S3Handler mHandler;
     protected OpType mOPType;

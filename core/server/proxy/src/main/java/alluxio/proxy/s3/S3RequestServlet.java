@@ -2,6 +2,7 @@ package alluxio.proxy.s3;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.retry.RetryUtils;
 import alluxio.web.ProxyWebServer;
 import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -9,6 +10,7 @@ import org.eclipse.jetty.server.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -66,20 +68,23 @@ public class S3RequestServlet extends HttpServlet {
         if (!target.startsWith(S3_SERVICE_PATH_PREFIX)) {
             return;
         }
-        Response resp = null;
+        S3Handler s3Handler = null;
         S3BaseTask.OpType opType = S3BaseTask.OpType.Unknown;
         try {
-            S3Handler s3Handler = S3Handler.createHandler(target, request, response);
-            s3HandlerMap.put((Request)request, s3Handler);
+            s3Handler = S3Handler.createHandler(target, request, response);
+            s3HandlerMap.put((Request) request, s3Handler);
             opType = s3Handler.getS3Task().mOPType;
-            if (opType == S3BaseTask.OpType.CompleteMultipartUpload) {
-                s3Handler.getS3Task().handleTaskAsync();
-                return;
-            }
-            resp = s3Handler.getS3Task().continueTask();
         } catch (S3Exception e) {
-            resp = S3ErrorResponse.createErrorResponse(e, "");
+            Response errorResponse = S3ErrorResponse.createErrorResponse(e, "");
+            S3Handler.processResponse(response, errorResponse);
+            return;
         }
+
+        if (opType == S3BaseTask.OpType.CompleteMultipartUpload) {
+            s3Handler.getS3Task().handleTaskAsync();
+            return;
+        }
+        Response resp = s3Handler.getS3Task().continueTask();
         S3Handler.processResponse(response, resp);
     }
 }

@@ -108,7 +108,6 @@ public final class ProxyWebServer extends WebServer {
               () -> mAsyncAuditLogWriter != null
                   ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
     }
-    super.getServerConnector().addBean(new AListener());
 
     ServletContainer servlet = new ServletContainer(config) {
       private static final long serialVersionUID = 7756010860672831556L;
@@ -141,21 +140,13 @@ public final class ProxyWebServer extends WebServer {
           logAccess(httpReq, httpRes, stopWatch, S3BaseTask.OpType.Unsupported);
         }
       }
-
-      @Override
-      public void doFilter(final HttpServletRequest request, final HttpServletResponse response,
-                           final FilterChain chain)
-      {
-        LOG.info("doFilter called");
-      }
-
     };
 //    ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
+//    addHandler(new CompleteMultipartUploadHandler(mFileSystem, Constants.REST_API_PREFIX));
+    super.getServerConnector().addBean(new AListener());
     ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", S3RequestServlet.getInstance());
     mServletContextHandler
         .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
-    // TODO(czhu): Move S3 API logging out of CompleteMultipartUploadHandler into a logging handler
-//    addHandler(new CompleteMultipartUploadHandler(mFileSystem, Constants.REST_API_PREFIX));
   }
 
   @Override
