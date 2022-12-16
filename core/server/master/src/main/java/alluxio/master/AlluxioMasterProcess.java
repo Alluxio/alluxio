@@ -93,10 +93,10 @@ public class AlluxioMasterProcess extends MasterProcess {
   private volatile boolean mRunning = false;
 
   /** last time this process gain primacy in ms. */
-  private long mLastGainPrimacyTime = 0;
+  private volatile long mLastGainPrimacyTime = 0;
 
   /** last time this process lose primacy in ms. */
-  private long mLastLosePrimacyTime = 0;
+  private volatile long mLastLosePrimacyTime = 0;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
