@@ -74,8 +74,8 @@ public class S3Handler {
     public static final Pattern mBucketInvalidSuffixPattern = Pattern.compile(".*-s3alias$");
     public static final Pattern mBucketValidNamePattern = Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
     public static final Pattern mBasePathPattern = Pattern.compile("^" + S3RequestServlet.S3_SERVICE_PATH_PREFIX + "$");
-    public static final Pattern mBucketPathPattern = Pattern.compile("^/api/v1/s3/[^/]*$");
-    public static final Pattern mObjectPathPattern = Pattern.compile("^/api/v1/s3/[^/]*/.*$");
+    public static final Pattern mBucketPathPattern = Pattern.compile("^" + S3RequestServlet.S3_SERVICE_PATH_PREFIX + "/[^/]*$");
+    public static final Pattern mObjectPathPattern = Pattern.compile("^" + S3RequestServlet.S3_SERVICE_PATH_PREFIX + "/[^/]*/.*$");
     private FileSystem mMetaFS;
     public AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
     private static final ThreadLocal<byte[]> tlsBytes_ =
