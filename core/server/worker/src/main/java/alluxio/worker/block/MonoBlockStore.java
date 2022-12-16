@@ -76,10 +76,10 @@ public class MonoBlockStore implements BlockStore {
   /**
    * Constructor of MonoBlockStore.
    *
-   * @param localBlockStore
-   * @param blockMasterClientPool
-   * @param ufsManager
-   * @param workerId
+   * @param localBlockStore the local block store
+   * @param blockMasterClientPool a client pool for talking to the block master
+   * @param ufsManager the UFS manager
+   * @param workerId the worker id
    */
   public MonoBlockStore(LocalBlockStore localBlockStore,
       BlockMasterClientPool blockMasterClientPool,
