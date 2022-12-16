@@ -58,6 +58,14 @@ exports[`Overview Shallow component Matches snapshot 1`] = `
           <th
             scope="row"
           >
+            Revision
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
             Running Workers
           </th>
           <td>
