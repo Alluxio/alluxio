@@ -672,6 +672,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
           .setAuthType(authType)
           .setIp(ClientContextServerInjector.getIpAddress())
           .setClientVersion(ClientContextServerInjector.getClientVersion())
+          .setClientRevision(ClientContextServerInjector.getClientRevision())
           .setCommand(command)
           .setAllowed(true)
           .setCreationTimeNs(System.nanoTime());

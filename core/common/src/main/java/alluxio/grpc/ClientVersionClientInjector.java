@@ -12,6 +12,7 @@
 package alluxio.grpc;
 
 import alluxio.ProjectConstants;
+import alluxio.RuntimeConstants;
 
 import io.grpc.CallOptions;
 import io.grpc.Channel;
@@ -27,17 +28,9 @@ import io.grpc.MethodDescriptor;
  */
 public class ClientVersionClientInjector implements ClientInterceptor {
   public static final Metadata.Key<String> S_CLIENT_VERSION_KEY =
-      Metadata.Key.of("alluxio-version", new Metadata.AsciiMarshaller<String>() {
-        @Override
-        public String toAsciiString(String value) {
-          return value;
-        }
-
-        @Override
-        public String parseAsciiString(String serialized) {
-          return serialized;
-        }
-      });
+      Metadata.Key.of("alluxio-version", Metadata.ASCII_STRING_MARSHALLER);
+  public static final Metadata.Key<String> S_CLIENT_REVISION_KEY =
+      Metadata.Key.of("alluxio-revision", Metadata.ASCII_STRING_MARSHALLER);
 
   @Override
   public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(MethodDescriptor<ReqT, RespT> method,
@@ -48,6 +41,7 @@ public class ClientVersionClientInjector implements ClientInterceptor {
       public void start(Listener<RespT> responseListener, Metadata headers) {
         // Put version to headers.
         headers.put(S_CLIENT_VERSION_KEY, ProjectConstants.VERSION);
+        headers.put(S_CLIENT_REVISION_KEY, RuntimeConstants.SHORT_REVISION);
         super.start(new ForwardingClientCallListener.SimpleForwardingClientCallListener<RespT>(
             responseListener) {
           @Override

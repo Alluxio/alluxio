@@ -24,7 +24,7 @@ import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.raft.RaftJournalSystem;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import io.grpc.ServerInterceptors;
@@ -116,7 +116,7 @@ public class DefaultJournalMaster extends AbstractMaster implements JournalMaste
     services.put(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
         new GrpcService(ServerInterceptors.intercept(
             new JournalMasterClientServiceHandler(this),
-            new ClientIpAddressInjector())));
+            new ClientContextServerInjector())));
     return services;
   }
 }

@@ -5225,6 +5225,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           .setAuthType(authType)
           .setIp(ClientContextServerInjector.getIpAddress())
           .setClientVersion(ClientContextServerInjector.getClientVersion())
+          .setClientRevision(ClientContextServerInjector.getClientRevision())
           .setCommand(command).setSrcPath(srcPath).setDstPath(dstPath)
           .setSrcInode(srcInode).setAllowed(true)
           .setCreationTimeNs(System.nanoTime());

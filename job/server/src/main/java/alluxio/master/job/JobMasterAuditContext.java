@@ -11,6 +11,8 @@
 
 package alluxio.master.job;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
 import alluxio.security.authentication.AuthType;
@@ -34,6 +36,7 @@ public class JobMasterAuditContext implements AuditContext {
   private long mCreationTimeNs;
   private long mExecutionTimeNs;
   private String mClientVersion;
+  private String mClientRevision;
 
   @Override
   public JobMasterAuditContext setAllowed(boolean allowed) {
@@ -137,6 +140,16 @@ public class JobMasterAuditContext implements AuditContext {
   }
 
   /**
+   * set client revision.
+   * @param revision client revision
+   * @return this {@link AuditContext} instance
+   */
+  public JobMasterAuditContext setClientRevision(String revision) {
+    mClientRevision = revision;
+    return this;
+  }
+
+  /**
    * Constructor of {@link JobMasterAuditContext}.
    *
    * @param asyncAuditLogWriter async audit log writer
@@ -157,10 +170,16 @@ public class JobMasterAuditContext implements AuditContext {
 
   @Override
   public String toString() {
-    return String.format(
+    StringBuilder auditLog = new StringBuilder();
+    auditLog.append(String.format(
         "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tjobId=%d\tjobName=%s\t"
-            + "perm=null\texecutionTimeUs=%d\tclientVersion=%s",
+            + "perm=null\texecutionTimeUs=%d",
         mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mJobId, mJobName,
-        mExecutionTimeNs / 1000, mClientVersion);
+        mExecutionTimeNs / 1000));
+    if (Configuration.global().getBoolean(PropertyKey.USER_CLIENT_REPORT_VERSION)) {
+      auditLog.append(
+          String.format("\tclientVersion=%s\tclientRevision=%s", mClientVersion, mClientRevision));
+    }
+    return auditLog.toString();
   }
 }
