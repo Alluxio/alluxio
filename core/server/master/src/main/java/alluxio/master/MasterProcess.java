@@ -39,7 +39,6 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
@@ -92,8 +91,7 @@ public abstract class MasterProcess implements Process {
     mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(rpcService, Configuration.global());
     mWebConnectAddress = NetworkAddressUtils.getConnectAddress(webService, Configuration.global());
     mStartTimeMs = System.currentTimeMillis();
-    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_START_TIME.getName(),
-        () -> mStartTimeMs, 1, TimeUnit.DAYS);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_START_TIME.getName(), () -> mStartTimeMs);
   }
 
   private static InetSocketAddress configureAddress(ServiceType service) {
