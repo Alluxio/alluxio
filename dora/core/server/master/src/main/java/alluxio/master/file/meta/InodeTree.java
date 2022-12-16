@@ -293,9 +293,21 @@ public class InodeTree implements DelegatingJournaled {
    * @param dir the inode directory
    */
   public void setDirectChildrenLoaded(Supplier<JournalContext> context, InodeDirectory dir) {
+    setDirectChildrenLoaded(context, dir, true);
+  }
+
+  /**
+   * Marks an inode directory as having its direct children loaded or not.
+   *
+   * @param context journal context supplier
+   * @param dir the inode directory
+   * @param directChildrenLoaded whether to load the direct children if they were not loaded before
+   */
+  public void setDirectChildrenLoaded(Supplier<JournalContext> context, InodeDirectory dir,
+      boolean directChildrenLoaded) {
     mState.applyAndJournal(context, UpdateInodeDirectoryEntry.newBuilder()
         .setId(dir.getId())
-        .setDirectChildrenLoaded(true)
+        .setDirectChildrenLoaded(directChildrenLoaded)
         .build());
   }
 
