@@ -15,6 +15,7 @@ import alluxio.client.file.FileInStream;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 /**
  * This class is use {@link FileInStream} underlying, and implement range read.
@@ -63,6 +64,10 @@ public class RangeFileInStream extends InputStream {
       mReadBytes += n;
     }
     return n;
+  }
+
+  public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
+    return this.mUnderlyingStream.read(byteBuffer, off, len);
   }
 
   @Override

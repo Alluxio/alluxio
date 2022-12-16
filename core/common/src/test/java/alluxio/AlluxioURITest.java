@@ -962,5 +962,4 @@ public class AlluxioURITest {
     assertEquals("/",
         new AlluxioURI("/tmp/folder").getRootPath());
   }
-
 }

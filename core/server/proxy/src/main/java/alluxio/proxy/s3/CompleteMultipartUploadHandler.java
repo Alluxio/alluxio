@@ -120,7 +120,6 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         XmlMapper mapper = new XmlMapper();
         S3Error errorResponse = new S3Error("Authorization", e.getErrorCode());
         httpServletResponse.setStatus(e.getErrorCode().getStatus().getStatusCode());
-        httpServletResponse.getOutputStream();
         httpServletResponse.getOutputStream().print(mapper.writeValueAsString(errorResponse));
         request.setHandled(true); // Prevent other handlers from processing this request
         return;

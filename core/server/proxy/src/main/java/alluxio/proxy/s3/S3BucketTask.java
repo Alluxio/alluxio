@@ -82,7 +82,7 @@ public class S3BucketTask extends S3BaseTask {
 
         @Override
         public Response continueTask() {
-            return S3RestUtils.call("", () -> {
+            return S3RestUtils.call(S3Constants.EMPTY, () -> {
                 final String user = mHandler.getUser();
 
                 List<URIStatus> objects = new ArrayList<>();
@@ -181,7 +181,7 @@ public class S3BucketTask extends S3BaseTask {
                     return prefix.substring(0, pos + 1);
                 }
             }
-            return "";
+            return S3Constants.EMPTY;
         }
         private String parsePathWithDelimiter(String bucketPath, String prefix, String delimiter)
                 throws S3Exception {
@@ -241,7 +241,7 @@ public class S3BucketTask extends S3BaseTask {
                         //             only list the direct children if delimiter is not null
                         if (StringUtils.isNotEmpty(delimiterParam)) {
                             if (prefixParam == null) {
-                                path = parsePathWithDelimiter(path, "", delimiterParam);
+                                path = parsePathWithDelimiter(path, S3Constants.EMPTY, delimiterParam);
                             } else {
                                 path = parsePathWithDelimiter(path, prefixParam, delimiterParam);
                             }

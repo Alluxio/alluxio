@@ -27,8 +27,14 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
-import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,6 +78,9 @@ public class S3Handler {
     public static final Pattern mObjectPathPattern = Pattern.compile("^/api/v1/s3/[^/]*/.*$");
     private FileSystem mMetaFS;
     public AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+    private static final ThreadLocal<byte[]> tlsBytes_ =
+            ThreadLocal.withInitial(() -> new byte[8*1024]);
+
     public S3Handler(String bucket, String object,
                      HttpServletRequest request,
                      HttpServletResponse response) {
@@ -83,8 +92,11 @@ public class S3Handler {
 
     public void init() throws S3Exception{
         try {
-            doFilter();  // Auth
+            // Do Authentication of the request.
+            doAuthorization();
+            // Extract x-amz- headers.
             extractAMZHeaders();
+            // Reject unsupported subresources.
             rejectUnsupportedResources();
             // Init utils
             mMetaFS = ProxyWebServer.mFileSystem;
@@ -105,7 +117,7 @@ public class S3Handler {
                 );
             }
         } catch (Exception ex) {
-            LOG.info(ThreadUtils.formatStackTrace(ex));
+            LOG.error(ThreadUtils.formatStackTrace(ex));
             throw S3RestUtils.toBucketS3Exception(ex, mBucket);
         }
     }
@@ -185,11 +197,6 @@ public class S3Handler {
     public ServletInputStream getInputStream() throws IOException {
         return mServletRequest.getInputStream();
     }
-
-    private static final ThreadLocal<ByteBuffer> tlsBuffer_ =
-            ThreadLocal.withInitial(() -> ByteBuffer.allocate(8*1024));
-    private static final ThreadLocal<byte[]> tlsBytes_ =
-            ThreadLocal.withInitial(() -> new byte[8*1024]);
 
     public static void processResponse(HttpServletResponse servletResponse, Response response)
             throws IOException {
@@ -284,12 +291,12 @@ public class S3Handler {
         java.util.Enumeration<String> parameterNamesIt = mServletRequest.getParameterNames();
         while (parameterNamesIt.hasMoreElements()) {
             if (unsupportedSubResourcesSet_.contains(parameterNamesIt.nextElement())) {
-                throw new S3Exception("", S3ErrorCode.NOT_IMPLEMENTED);
+                throw new S3Exception(S3Constants.EMPTY, S3ErrorCode.NOT_IMPLEMENTED);
             }
         }
     }
 
-    public void doFilter() throws S3Exception {
+    public void doAuthorization() throws S3Exception {
         try {
             String authorization = mServletRequest.getHeader("Authorization");
             String user = S3RestUtils.getUser(authorization, mServletRequest);
