@@ -354,11 +354,10 @@ public class InodeTree implements DelegatingJournaled {
    */
   @Nullable
   public String getRootUserName() {
-    InodeDirectory root = mState.getRoot();
-    if (root == null) {
+    if (mState.getRoot() == null) {
       return null;
     }
-    return root.getOwner();
+    return mState.getRoot().getOwner();
   }
 
   /**

@@ -53,6 +53,8 @@ import alluxio.wire.OperationId;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.apache.commons.lang3.concurrent.ConcurrentException;
+import org.apache.commons.lang3.concurrent.LazyInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,7 +121,13 @@ public class InodeTreePersistentState implements Journaled {
 
   private final BucketCounter mBucketCounter;
 
-  private InodeDirectory mRoot;
+  private final LazyInitializer<InodeDirectory> mRootInitializer =
+      new LazyInitializer<InodeDirectory>() {
+    @Override
+    protected InodeDirectory initialize() {
+      return mInodeStore.get(0).map(Inode::asDirectory).orElse(null);
+    }
+  };
 
   /**
    * @param inodeStore file store which holds inode metadata
@@ -173,15 +181,11 @@ public class InodeTreePersistentState implements Journaled {
    * @return the root of the inode tree
    */
   public InodeDirectory getRoot() {
-    if (mRoot == null) {
-      mRoot = mInodeStore.get(0).map(Inode::asDirectory).orElse(null);
-      synchronized (this) {
-        if (mRoot == null) {
-          mRoot = mInodeStore.get(0).map(Inode::asDirectory).orElse(null);
-        }
-      }
+    try {
+      return mRootInitializer.get();
+    } catch (ConcurrentException e) {
+      throw new RuntimeException(e);
     }
-    return mRoot;
   }
 
   /**
@@ -662,7 +666,6 @@ public class InodeTreePersistentState implements Journaled {
       mToBePersistedIds.clear();
 
       updateToBePersistedIds(inode);
-      getRoot();
       return;
     }
     // inode should be added to the inode store before getting added to its parent list, because it
