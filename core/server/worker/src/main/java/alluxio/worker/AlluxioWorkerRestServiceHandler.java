@@ -45,7 +45,6 @@ import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
 import alluxio.wire.MasterWebUIConfiguration;
 import alluxio.wire.WorkerWebUIBlockInfo;
-import alluxio.wire.WorkerWebUIConfiguration;
 import alluxio.wire.WorkerWebUIInit;
 import alluxio.wire.WorkerWebUILogs;
 import alluxio.wire.WorkerWebUIMetrics;
