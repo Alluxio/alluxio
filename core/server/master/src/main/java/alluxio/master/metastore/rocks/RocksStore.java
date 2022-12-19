@@ -12,6 +12,8 @@
 package alluxio.master.metastore.rocks;
 
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
@@ -55,6 +57,9 @@ public final class RocksStore implements Closeable {
   private final String mDbCheckpointPath;
   private final Collection<ColumnFamilyDescriptor> mColumnFamilyDescriptors;
   private final DBOptions mDbOpts;
+
+  private final int mCompressLevel = ServerConfiguration.getInt(
+      PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
 
   private RocksDB mDb;
   private Checkpoint mCheckpoint;
@@ -195,7 +200,7 @@ public final class RocksStore implements Closeable {
       throw new IOException(e);
     }
     LOG.info("Checkpoint complete, creating tarball");
-    TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out);
+    TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out, mCompressLevel);
     LOG.info("Completed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
     // Checkpoint is no longer needed, delete to save space.
     FileUtils.deletePathRecursively(mDbCheckpointPath);

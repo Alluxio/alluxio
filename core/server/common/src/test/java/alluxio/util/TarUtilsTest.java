@@ -16,7 +16,10 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.util.io.FileUtils;
+
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -116,7 +119,7 @@ public final class TarUtilsTest {
 
   private void tarUntarTest(Path path) throws Exception {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    TarUtils.writeTarGz(path, baos);
+    TarUtils.writeTarGz(path, baos, -1);
     Path reconstructed = mFolder.newFolder("untarred").toPath();
     reconstructed.toFile().delete();
     TarUtils.readTarGz(reconstructed, new ByteArrayInputStream(baos.toByteArray()));
@@ -138,5 +141,32 @@ public final class TarUtilsTest {
         }
       }
     });
+  }
+
+  @Test
+  public void compressionTest() throws Exception {
+    final String toCompress = "Some string that should be compressed."
+        + "AbAAbAAAAbAAAAAAAAbAAAAAAAAAAAAAAAAAA";
+    Path dir = mFolder.newFolder("emptySubDir").toPath();
+    Path file = dir.resolve("file");
+    Files.write(file, toCompress.getBytes());
+    long nonCompressedSize = 0;
+    long maxCompressedSize = 0;
+
+    for (int compressionLevel = 0; compressionLevel < 10; compressionLevel++) {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      TarUtils.writeTarGz(dir, baos, compressionLevel);
+      if (compressionLevel == 0) {
+        nonCompressedSize = baos.size();
+      } else {
+        maxCompressedSize = baos.size();
+      }
+      Path reconstructed = mFolder.newFolder("untarred").toPath();
+      reconstructed.toFile().delete();
+      TarUtils.readTarGz(reconstructed, new ByteArrayInputStream(baos.toByteArray()));
+      FileUtil.assertDirectoriesEqual(dir, reconstructed);
+      FileUtils.deletePathRecursively(reconstructed.toString());
+    }
+    Assert.assertTrue(nonCompressedSize > maxCompressedSize);
   }
 }
