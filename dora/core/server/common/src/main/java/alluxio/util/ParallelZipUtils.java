@@ -22,7 +22,10 @@ import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.compress.parallel.FileBasedScatterGatherBackingStore;
 import org.apache.commons.compress.parallel.InputStreamSupplier;
+import org.apache.commons.compress.parallel.ScatterGatherBackingStore;
+import org.apache.commons.compress.parallel.ScatterGatherBackingStoreSupplier;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.slf4j.Logger;
@@ -42,6 +45,7 @@ import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 /**
@@ -49,6 +53,17 @@ import java.util.stream.Stream;
  */
 public class ParallelZipUtils {
   private static final Logger LOG = LoggerFactory.getLogger(ParallelZipUtils.class);
+
+  private static class BasicBackingStoreSupplier implements ScatterGatherBackingStoreSupplier {
+    final AtomicInteger mStoreNum = new AtomicInteger(0);
+
+    @Override
+    public ScatterGatherBackingStore get() throws IOException {
+      final File tempFile = File.createTempFile("zipUtilsParallelScatter", "n"
+          + mStoreNum.incrementAndGet());
+      return new FileBasedScatterGatherBackingStore(tempFile);
+    }
+  }
 
   /**
    * Creates a zipped archive from the given path in parallel, streaming the data
@@ -67,10 +82,11 @@ public class ParallelZipUtils {
     LOG.info("compress in parallel for path {}", dirPath);
     ExecutorService executor = ExecutorServiceFactories.fixedThreadPool(
         "parallel-zip-compress-pool", poolSize).create();
-    ParallelScatterZipCreator parallelScatterZipCreator = new ParallelScatterZipCreator(executor);
+
+    ParallelScatterZipCreator parallelScatterZipCreator = new ParallelScatterZipCreator(executor,
+        new BasicBackingStoreSupplier(), compressionLevel);
     ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputStream);
     zipArchiveOutputStream.setUseZip64(Zip64Mode.Always);
-    zipArchiveOutputStream.setLevel(compressionLevel);
 
     try {
       try (final Stream<Path> stream = Files.walk(dirPath)) {
