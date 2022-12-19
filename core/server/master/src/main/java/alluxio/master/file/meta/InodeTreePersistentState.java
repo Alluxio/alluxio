@@ -123,10 +123,10 @@ public class InodeTreePersistentState implements Journaled {
 
   private final LazyInitializer<InodeDirectory> mRootInitializer =
       new LazyInitializer<InodeDirectory>() {
-    @Override
-    protected InodeDirectory initialize() {
-      return mInodeStore.get(0).map(Inode::asDirectory).orElse(null);
-    }
+        @Override
+        protected InodeDirectory initialize() {
+          return mInodeStore.get(0).map(Inode::asDirectory).orElse(null);
+        }
   };
 
   /**
