@@ -71,6 +71,12 @@ public final class RaftJournalSystemMetricsTest {
     assertEquals(-1, getClusterLeaderIndex());
     assertEquals(RaftProtos.RaftPeerRole.FOLLOWER_VALUE, getMasterRoleId());
     assertEquals("PSEUDO_LEADER", getClusterLeaderId());
+
+    system.gainPrimacy();
+    Mockito.doReturn(leaderInfo).when(system).getRaftRoleInfo();
+    assertEquals(0, getClusterLeaderIndex());
+    assertEquals(RaftProtos.RaftPeerRole.LEADER_VALUE, getMasterRoleId());
+    assertEquals(system.getLocalPeerId().toString(), getClusterLeaderId());
   }
 
   private static int getClusterLeaderIndex() {
