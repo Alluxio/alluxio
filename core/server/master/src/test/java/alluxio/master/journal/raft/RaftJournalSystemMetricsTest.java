@@ -14,6 +14,7 @@ package alluxio.master.journal.raft;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -41,6 +42,10 @@ public final class RaftJournalSystemMetricsTest {
 
   @Test
   public void testMetrics() throws Exception {
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
+        "localhost:19200,localhost:19201,localhost:19202");
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, 19200);
     RaftJournalSystem raftJournalSystem =
         new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.MASTER_RAFT);
     RaftJournalSystem system = Mockito.spy(raftJournalSystem);
@@ -51,7 +56,7 @@ public final class RaftJournalSystemMetricsTest {
         .setFollowerInfo(RaftProtos.FollowerInfoProto.newBuilder()
             .setLeaderInfo(RaftProtos.ServerRpcProto.newBuilder()
                 .setId(RaftProtos.RaftPeerProto.newBuilder()
-                    .setId(ByteString.copyFromUtf8("PSEUDO_LEADER")))))
+                    .setId(ByteString.copyFromUtf8("localhost_19201")))))
         .build();
 
     system.startInternal();
@@ -68,9 +73,9 @@ public final class RaftJournalSystemMetricsTest {
 
     system.losePrimacy();
     Mockito.doReturn(followerInfo).when(system).getRaftRoleInfo();
-    assertEquals(-1, getClusterLeaderIndex());
+    assertEquals(1, getClusterLeaderIndex());
     assertEquals(RaftProtos.RaftPeerRole.FOLLOWER_VALUE, getMasterRoleId());
-    assertEquals("PSEUDO_LEADER", getClusterLeaderId());
+    assertEquals("localhost_19201", getClusterLeaderId());
 
     system.gainPrimacy();
     Mockito.doReturn(leaderInfo).when(system).getRaftRoleInfo();
