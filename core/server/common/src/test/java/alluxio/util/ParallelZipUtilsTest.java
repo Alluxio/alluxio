@@ -11,11 +11,15 @@
 
 package alluxio.util;
 
+import alluxio.util.io.FileUtils;
+
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.FileOutputStream;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -77,10 +81,40 @@ public final class ParallelZipUtilsTest {
     zipUnzipTest(dir);
   }
 
+  @Test
+  public void compressionTest() throws Exception {
+    final String toCompress = "Some string that should be compressed."
+        + "AbAAbAAAAbAAAAAAAAbAAAAAAAAAAAAAAAAAA";
+    Path dir = mFolder.newFolder("emptySubDir").toPath();
+    Path file = dir.resolve("file");
+    Files.write(file, toCompress.getBytes());
+    long nonCompressedSize = 0;
+    long maxCompressedSize = 0;
+
+    for (int compressionLevel = 0; compressionLevel < 10; compressionLevel++) {
+      String zippedPath = mFolder.newFile("zipped").getPath();
+      try (FileOutputStream fos = new FileOutputStream(zippedPath)) {
+        ParallelZipUtils.compress(dir, fos, 5, compressionLevel);
+      }
+      if (compressionLevel == 0) {
+        nonCompressedSize = Files.size(FileSystems.getDefault().getPath(zippedPath));
+      } else {
+        maxCompressedSize = Files.size(FileSystems.getDefault().getPath(zippedPath));
+      }
+      Path reconstructed = mFolder.newFolder("unzipped").toPath();
+      reconstructed.toFile().delete();
+      ParallelZipUtils.decompress(reconstructed, zippedPath, 5);
+      FileUtil.assertDirectoriesEqual(dir, reconstructed);
+      FileUtils.deletePathRecursively(reconstructed.toString());
+      FileUtils.delete(zippedPath);
+    }
+    Assert.assertTrue(nonCompressedSize > maxCompressedSize);
+  }
+
   private void zipUnzipTest(Path path) throws Exception {
     String zippedPath = mFolder.newFile("zipped").getPath();
     try (FileOutputStream fos = new FileOutputStream(zippedPath)) {
-      ParallelZipUtils.compress(path, fos, 5, 5);
+      ParallelZipUtils.compress(path, fos, 5, -1);
     }
 
     Path reconstructed = mFolder.newFolder("unzipped").toPath();
