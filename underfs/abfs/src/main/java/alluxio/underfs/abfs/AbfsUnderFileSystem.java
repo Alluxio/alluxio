@@ -74,7 +74,7 @@ public class AbfsUnderFileSystem extends HdfsUnderFileSystem {
     if (!clientCredentials && !sharedKey) {
       abfsConf.set("fs.azure.account.auth.type", "OAuth");
       abfsConf.set("fs.azure.account.oauth.provider.type",
-              "org.apache.hadoop.fs.azurebfs.oauth2.MsiTokenProvider<");
+              "org.apache.hadoop.fs.azurebfs.oauth2.MsiTokenProvider");
       if (conf.isSet(PropertyKey.ABFS_MSI_ENDPOINT)) {
         abfsConf.set(PropertyKey.ABFS_MSI_ENDPOINT.getName(),
             conf.getString(PropertyKey.ABFS_MSI_ENDPOINT));
