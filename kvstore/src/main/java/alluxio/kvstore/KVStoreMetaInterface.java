@@ -40,6 +40,8 @@ public interface KVStoreMetaInterface extends Closeable {
   List<Pair<InodeTreeEdgeKey, InodeTreeEdgeValue>> scanEdge(InodeTreeEdgeKey startKey,
       InodeTreeEdgeKey endKey, int limit);
 
+  List<Pair<InodeTreeEdgeKey, InodeTreeEdgeValue>> scanEdgePrefix(InodeTreeEdgeKey prefixKey);
+
   boolean updateFileCacheStatus(FileCacheStatusKey key, FileCacheStatus value);
 
   Optional<FileCacheStatus> getFileCacheStatus(FileCacheStatusKey key);
@@ -50,6 +52,8 @@ public interface KVStoreMetaInterface extends Closeable {
       FileCacheStatusKey endKey, int limit);
 
   Optional<InodeTreeEdgeValue> getInodeTreeEdge(InodeTreeEdgeKey key);
+
+  void updateInodeTreeEdge(InodeTreeEdgeKey key, InodeTreeEdgeValue value);
 
   void deleteInodeTreeEdge(InodeTreeEdgeKey key);
 
