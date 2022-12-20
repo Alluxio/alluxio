@@ -5824,8 +5824,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
 
-  public static final PropertyKey USER_CLIENT_REPORT_VERSION =
-      booleanBuilder(Name.USER_CLIENT_REPORT_VERSION)
+  public static final PropertyKey USER_CLIENT_REPORT_VERSION_ENABLED =
+      booleanBuilder(Name.USER_CLIENT_REPORT_VERSION_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether the client reports version information to the server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -8331,8 +8331,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.timeout.duration";
     public static final String USER_CLIENT_CACHE_TIMEOUT_THREADS =
         "alluxio.user.client.cache.timeout.threads";
-    public static final String USER_CLIENT_REPORT_VERSION =
-        "alluxio.user.client.report.version";
+    public static final String USER_CLIENT_REPORT_VERSION_ENABLED =
+        "alluxio.user.client.report.version.enabled";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";

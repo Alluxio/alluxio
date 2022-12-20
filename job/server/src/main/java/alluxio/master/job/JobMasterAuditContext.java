@@ -176,7 +176,7 @@ public class JobMasterAuditContext implements AuditContext {
             + "perm=null\texecutionTimeUs=%d",
         mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mJobId, mJobName,
         mExecutionTimeNs / 1000));
-    if (Configuration.global().getBoolean(PropertyKey.USER_CLIENT_REPORT_VERSION)) {
+    if (Configuration.global().getBoolean(PropertyKey.USER_CLIENT_REPORT_VERSION_ENABLED)) {
       auditLog.append(
           String.format("\tclientVersion=%s\tclientRevision=%s", mClientVersion, mClientRevision));
     }

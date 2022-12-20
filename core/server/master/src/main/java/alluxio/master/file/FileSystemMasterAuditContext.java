@@ -203,7 +203,7 @@ public final class FileSystemMasterAuditContext implements AuditContext {
           mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
           mExecutionTimeNs / 1000);
     }
-    if (Configuration.global().getBoolean(PropertyKey.USER_CLIENT_REPORT_VERSION)) {
+    if (Configuration.global().getBoolean(PropertyKey.USER_CLIENT_REPORT_VERSION_ENABLED)) {
       auditLog.append(
           String.format("\tclientVersion=%s\tclientRevision=%s", mClientVersion, mClientRevision));
     }
