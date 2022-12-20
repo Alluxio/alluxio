@@ -22,6 +22,7 @@ public class TiKVStoreBlockMetaRaw implements KVStoreBlockMeta {
     String pdAddrsStr = getEnv("TXNKV_PD_ADDRESSES");
     pdAddrsStr = pdAddrsStr == null ? "localhost:2379" : pdAddrsStr;
     TiConfiguration conf = TiConfiguration.createRawDefault(pdAddrsStr);
+    conf.setEnableAtomicForCAS(true);
     mTiSession = TiSession.create(conf);
     mRawKVClient = mTiSession.createRawClient();
   }
@@ -42,13 +43,14 @@ public class TiKVStoreBlockMetaRaw implements KVStoreBlockMeta {
 
   @Override
   public Optional<BlockLocationValue> getBlock(BlockLocationKey id) {
-    ByteString bytes = mRawKVClient.get(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(id.toByteArray()));
-    if (bytes.size() == 0) {
+    Optional<ByteString> bytes
+        = mRawKVClient.get(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(id.toByteArray()));
+    if (!bytes.isPresent()) {
       return Optional.empty();
     }
 
     try {
-      return Optional.of(BlockLocationValue.parseFrom(bytes.toByteArray()));
+      return Optional.of(BlockLocationValue.parseFrom(bytes.get().toByteArray()));
     } catch (InvalidProtocolBufferException e) {
       throw new RuntimeException(e);
     }

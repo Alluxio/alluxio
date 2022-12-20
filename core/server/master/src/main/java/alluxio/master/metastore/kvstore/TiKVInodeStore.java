@@ -96,13 +96,14 @@ public class TiKVInodeStore implements KVInodeStore {
     // Need to check if the entry exists.
     // mKVStoreMetaInterface.createFileEntry(fileEntryKey, fileEntryValue);
     // So far only update, the caller should make sure the key not existing
-    // mKVStoreMetaInterface.updateFileEntry(fileEntryKey, fileEntryValue);
-    Map<ByteString, ByteString> map = new HashMap<ByteString, ByteString>();
-    map.put(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(fileEntryKey.toByteArray()),
-        org.tikv.shade.com.google.protobuf.ByteString.copyFrom(fileEntryValue.toByteArray()));
-    map.put(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(inodeTreeEdgeKey.toByteArray()),
-        org.tikv.shade.com.google.protobuf.ByteString.copyFrom((inodeTreeEdgeValue.toByteArray())));
-    mKVStoreMetaInterface.putEntryBatchAtomic(map);
+    mKVStoreMetaInterface.updateFileEntry(fileEntryKey, fileEntryValue);
+    mKVStoreMetaInterface.updateInodeTreeEdge(inodeTreeEdgeKey, inodeTreeEdgeValue);
+    // Map<ByteString, ByteString> map = new HashMap<ByteString, ByteString>();
+    // map.put(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(fileEntryKey.toByteArray()),
+    //     org.tikv.shade.com.google.protobuf.ByteString.copyFrom(fileEntryValue.toByteArray()));
+    // map.put(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(inodeTreeEdgeKey.toByteArray()),
+    //     org.tikv.shade.com.google.protobuf.ByteString.copyFrom((inodeTreeEdgeValue.toByteArray())));
+    // mKVStoreMetaInterface.putEntryBatchAtomic(map);
   }
 
   @Override
@@ -200,6 +201,19 @@ public class TiKVInodeStore implements KVInodeStore {
   }
 
   @Override
+  public void addChild(long parentId, String childName, long childId) {
+    InodeTreeEdgeKey inodeTreeEdgeKey = InodeTreeEdgeKey.newBuilder()
+        .setTableType(KVStoreTable.INODE_EDGE)
+        .setId(childId)
+        .build();
+    InodeTreeEdgeValue inodeTreeEdgeValue = InodeTreeEdgeValue.newBuilder()
+        .setParentId(parentId)
+        .setChildName(childName)
+        .build();
+    mKVStoreMetaInterface.updateInodeTreeEdge(inodeTreeEdgeKey, inodeTreeEdgeValue);
+  }
+
+  @Override
   public Optional<MutableInode<?>> getMutable(long parentId, String name, ReadOption option) {
     FileEntryKey key = FileEntryKey.newBuilder()
         .setTableType(KVStoreTable.FILE_ENTRY)
@@ -294,6 +308,7 @@ public class TiKVInodeStore implements KVInodeStore {
 
   private class KVWriteBatch implements WriteBatch {
     private final Map<ByteString, ByteString> mBatchAdd = new HashMap<>();
+    private final Map<Long, Pair<Long, String>> mBatchEdge = new HashMap<>();
     private final List<ByteString> mBatchRemove = new LinkedList<>();
 
     private void addToMap(MutableInode<?> inode, Map<ByteString, ByteString> batch) {
@@ -305,11 +320,11 @@ public class TiKVInodeStore implements KVInodeStore {
       FileEntryValue.Builder valueBuilder = FileEntryValue.newBuilder()
           .setId(inode.getId());
 
-      if (inode instanceof MutableInodeDirectory) {
-        return;
+      if (inode.isDirectory()) {
+        valueBuilder.setEntryType(KVEntryType.DIRECTORY);
+      } else {
+        valueBuilder.setEntryType(KVEntryType.FILE);
       }
-
-      // File
 
       batch.put(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(key.toByteArray()),
           org.tikv.shade.com.google.protobuf.ByteString.copyFrom(valueBuilder.build().toByteArray()));
@@ -342,6 +357,11 @@ public class TiKVInodeStore implements KVInodeStore {
     }
 
     @Override
+    public void addChild(long parentId, String childName, long childId) {
+      mBatchEdge.put(childId, new Pair<>(parentId, childName));
+    }
+
+    @Override
     public void commit() {
       if (mBatchRemove.size() > 0) {
         mKVStoreMetaInterface.deleteEntryBatchAtomic(mBatchRemove);
@@ -349,6 +369,23 @@ public class TiKVInodeStore implements KVInodeStore {
 
       if (mBatchAdd.size() > 0) {
         mKVStoreMetaInterface.putEntryBatchAtomic(mBatchAdd);
+      }
+
+      if (mBatchEdge.size() > 0) {
+        Map<ByteString, ByteString> map = new HashMap<>();
+        for (Map.Entry<Long, Pair<Long, String>> entry : mBatchEdge.entrySet()) {
+          InodeTreeEdgeKey key = InodeTreeEdgeKey.newBuilder()
+              .setTableType(KVStoreTable.INODE_EDGE)
+              .setId(entry.getKey())
+              .build();
+          InodeTreeEdgeValue value = InodeTreeEdgeValue.newBuilder()
+              .setChildName(entry.getValue().getSecond())
+              .setParentId(entry.getValue().getFirst())
+              .build();
+          map.put(org.tikv.shade.com.google.protobuf.ByteString.copyFrom(key.toByteArray()),
+              org.tikv.shade.com.google.protobuf.ByteString.copyFrom(value.toByteArray()));
+        }
+        mKVStoreMetaInterface.putEntryBatchAtomic(map);
       }
     }
 
