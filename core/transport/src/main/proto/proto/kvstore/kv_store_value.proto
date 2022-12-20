@@ -28,7 +28,7 @@ enum KVEntryType {
 
 message MountTableKey {
   required KVStoreTable tableType = 1;
-  required int64 mountOrder = 2;
+  optional int64 mountOrder = 2;
 }
 
 message MountEntryValue {
@@ -38,19 +38,19 @@ message MountEntryValue {
 
 message FileEntryKey {
   required KVStoreTable tableType = 1;
-  required int64 parentID = 2;
+  optional int64 parentID = 2;
   optional string name = 3;
 }
 
 message FileCacheStatusKey {
   required KVStoreTable tableType = 1;
-  required int64 parentID = 2;
+  optional int64 parentID = 2;
   optional string name = 3;
 }
 
 message InodeTreeEdgeKey {
   required KVStoreTable tableType = 1;
-  required int64 id = 2;
+  optional int64 id = 2;
 }
 
 message BlockLocationKey {

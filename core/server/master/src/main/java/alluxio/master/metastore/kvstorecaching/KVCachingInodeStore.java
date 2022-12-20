@@ -45,7 +45,6 @@ import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Closer;
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -177,8 +176,23 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
 
   @Override
   public void writeInode(MutableInode<?> inode) {
-    mEdgeCache.put(inode.getId(), new Edge(inode.getParentId(), inode.getName()));
-    mInodeCache.put(new Pair<Long, String>(inode.getId(), inode.getName()), inode);
+    mEdgeCache.putInCacheOnly(inode.getId(), new Edge(inode.getParentId(), inode.getName()));
+    mInodeCache.putInCacheOnly(new Pair<Long, String>(inode.getId(), inode.getName()), inode);
+  }
+
+  public void writeInodeToBackend(MutableInode<?> inode) {
+    mBackingStore.writeInode(inode);
+    mEdgeCache.putInCacheAsClean(inode.getId(), new Edge(inode.getParentId(), inode.getName()));
+    mInodeCache.putInCacheAsClean(new Pair<Long, String>(inode.getId(), inode.getName()), inode);
+  }
+
+  public void writeNewInodeToBackend(MutableInode<?> inode) {
+    mBackingStore.writeInode(inode);
+    if (inode.isDirectory()) {
+      mListingCache.addEmptyDirectory(inode.getId());
+    }
+    mInodeCache.putInCacheAsClean(new Pair<Long, String>(inode.getParentId(), inode.getName()), inode);
+    mEdgeCache.putInCacheAsClean(inode.getId(), new Edge(inode.getParentId(), inode.getName()));
   }
 
   @Override
@@ -186,7 +200,8 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
     if (inode.isDirectory()) {
       mListingCache.addEmptyDirectory(inode.getId());
     }
-    mInodeCache.put(new Pair<Long, String>(inode.getParentId(), inode.getName()), inode);
+    mInodeCache.putInCacheOnly(new Pair<Long, String>(inode.getParentId(), inode.getName()), inode);
+    mEdgeCache.putInCacheOnly(inode.getId(), new Edge(inode.getParentId(), inode.getName()));
   }
 
   @Override
@@ -198,7 +213,7 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
 
   @Override
   public void addChild(long parentId, String childName, Long childId) {
-    mEdgeCache.put(childId, new Edge(parentId, childName));
+    mEdgeCache.putInCacheOnly(childId, new Edge(parentId, childName));
   }
 
   @Override
@@ -316,11 +331,12 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
     @Override
     protected void writeToBackingStore(Pair<Long, String> key, MutableInode<?> value) {
       mBackingStoreEmpty = false;
-      mBackingStore.writeInode(value);
+      // TODO(yyong) so far disable this write
+      // mBackingStore.writeInode(value);
     }
 
     @Override
-    protected void removeFromBackingStore(Pair<Long, String> key) throws InvalidProtocolBufferException {
+    protected void removeFromBackingStore(Pair<Long, String> key) {
       // TODO(yyong)  should also remove the cache attribute map
       if (!mBackingStoreEmpty) {
         mBackingStore.removeChild(key.getFirst(), key.getSecond());
@@ -340,6 +356,7 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
             continue;
           }
           try (LockResource lr = lockOpt.get()) {
+            LOG.info("Evict inode key: {}", entry.mKey);
             if (entry.mValue == null) {
               if (useBatch) {
                 batch.removeChild(entry.mKey.getFirst(), entry.mKey.getSecond(), entry.mValue.getId());
@@ -516,6 +533,7 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
           }
           try (LockResource lr = lockOpt.get()) {
             Long key = entry.mKey;
+            LOG.info("Evict edge key: {}", key);
             if (key == null) {
               if (useBatch) {
                 batch.removeChild(edge.getId(), edge.getName(), key);
@@ -523,7 +541,11 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
                 mBackingStore.removeChild(edge.getId(), edge.getName(), key);
               }
             } else {
-              // Edge is no longer added independently
+              if (useBatch) {
+                batch.addChild(edge.getId(), edge.getName(), key);
+              } else {
+                mBackingStore.addChild(edge.getId(), edge.getName(), key);
+              }
             }
             entry.mDirty = false;
           }
@@ -622,7 +644,6 @@ public final class KVCachingInodeStore implements InodeStore, Closeable {
       });
     }
   }
-
 
   public static Iterator<String> sortedMapToIterator(
       SortedMap<String, Long> childrenMap, ReadOption option) {

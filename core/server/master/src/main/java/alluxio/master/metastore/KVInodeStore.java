@@ -136,6 +136,8 @@ public interface KVInodeStore extends KVReadOnlyInodeStore, Closeable {
 
   void removeChild(long parentId, String name);
 
+  void addChild(long parentId, String childName, long childId);
+
   @Override
   default void close() {}
 
@@ -160,6 +162,8 @@ public interface KVInodeStore extends KVReadOnlyInodeStore, Closeable {
      * @param childName the child id
      */
     void removeChild(Long parentId, String childName, Long childId);
+
+    void addChild(long parentId, String childName, long childId);
 
     /**
      * Performs the batched write.
