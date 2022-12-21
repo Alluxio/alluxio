@@ -126,12 +126,17 @@ public class S3AInputStream extends InputStream implements Seekable {
       throw new UnknownRuntimeException("Failed to get S3 object and no exception thrown");
     }
     try (S3ObjectInputStream in = object.getObjectContent()) {
-      int ret = in.read(b, offset, length);
-      if (ret == -1) {
-        return ret;
+      int currentRead = 0;
+      int totalRead = 0;
+      while (totalRead < length) {
+        currentRead = in.read(b, offset + totalRead, length - totalRead);
+        if (currentRead <= 0) {
+          break;
+        }
+        totalRead += currentRead;
       }
-      mPos += ret;
-      return ret;
+      mPos += totalRead;
+      return totalRead == 0 ? currentRead : totalRead;
     }
   }
 
