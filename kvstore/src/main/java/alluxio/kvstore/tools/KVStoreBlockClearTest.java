@@ -1,6 +1,7 @@
-package alluxio.kvstore;
+package alluxio.kvstore.tools;
 
 import alluxio.collections.Pair;
+import alluxio.kvstore.TiKVStoreBlockMetaRaw;
 import alluxio.proto.kvstore.BlockLocationKey;
 import alluxio.proto.kvstore.BlockLocationValue;
 import alluxio.proto.kvstore.FileEntryKey;

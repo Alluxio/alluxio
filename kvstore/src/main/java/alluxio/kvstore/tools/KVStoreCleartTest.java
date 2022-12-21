@@ -1,6 +1,7 @@
-package alluxio.kvstore;
+package alluxio.kvstore.tools;
 
 import alluxio.collections.Pair;
+import alluxio.kvstore.TiKVStoreMetaRaw;
 import alluxio.proto.kvstore.FileEntryKey;
 import alluxio.proto.kvstore.FileEntryValue;
 import alluxio.proto.kvstore.InodeTreeEdgeKey;

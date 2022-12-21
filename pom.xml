@@ -152,7 +152,7 @@
     <protobuf.version>3.19.2</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.30</slf4j.version>
-    <jackson.version>2.13.3</jackson.version>
+    <jackson.version>2.14.0</jackson.version>
     <hadoop-cos.version>3.1.0-5.8.5</hadoop-cos.version>
     <cos_api.version>5.6.19</cos_api.version>
     <surefire.forkCount>2</surefire.forkCount>

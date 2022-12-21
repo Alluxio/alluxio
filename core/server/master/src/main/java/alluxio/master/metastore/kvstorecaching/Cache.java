@@ -13,11 +13,9 @@ package alluxio.master.metastore.kvstorecaching;
 
 import alluxio.Constants;
 import alluxio.master.metastore.ReadOption;
-import alluxio.master.metastore.kvstorecaching.CacheConfiguration;
-import alluxio.master.metastore.kvstorecaching.StatsCounter;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.logging.SamplingLogger;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -180,14 +178,9 @@ public abstract class Cache<K, V> implements Closeable {
    * @param key the key
    * @param value the value
    */
-  public void put(K key, V value) {
+  public void putInCacheOnly(K key, V value) {
     mMap.compute(key, (k, entry) -> {
       onPut(key, value);
-      writeToBackingStore(key, value);
-      if (entry == null && cacheIsFull()) {
-        // writeToBackingStore(key, value);
-        return null;
-      }
       if (entry == null || entry.mValue == null) {
         onCacheUpdate(key, value);
         return new Entry(key, value);
@@ -195,6 +188,23 @@ public abstract class Cache<K, V> implements Closeable {
       entry.mValue = value;
       entry.mReferenced = true;
       entry.mDirty = true;
+      return entry;
+    });
+    wakeEvictionThreadIfNecessary();
+  }
+
+  public void putInCacheAsClean(K key, V value) {
+    mMap.compute(key, (k, entry) -> {
+      onPut(key, value);
+      if (entry == null || entry.mValue == null) {
+        onCacheUpdate(key, value);
+        Entry newEntry = new Entry(key, value);
+        newEntry.mDirty = false;
+        return newEntry;
+      }
+      entry.mValue = value;
+      entry.mReferenced = true;
+      entry.mDirty = false;
       return entry;
     });
     wakeEvictionThreadIfNecessary();
@@ -315,7 +325,6 @@ public abstract class Cache<K, V> implements Closeable {
     // to keep re-allocating the list.
     private final List<Entry> mEvictionCandidates = new ArrayList<>(mEvictBatchSize);
     private final List<Entry> mDirtyEvictionCandidates = new ArrayList<>(mEvictBatchSize);
-    private final Logger mCacheFullLogger = new SamplingLogger(LOG, 10L * Constants.SECOND_MS);
 
     private Iterator<Entry> mEvictionHead = Collections.emptyIterator();
 
@@ -341,7 +350,7 @@ public abstract class Cache<K, V> implements Closeable {
           }
         }
         if (cacheIsFull()) {
-          mCacheFullLogger.warn(
+          LOG.warn(
               "Metastore {} cache is full. Consider increasing the cache size or lowering the "
                   + "high water mark. size:{} lowWaterMark:{} highWaterMark:{} maxSize:{}",
               mName, mMap.size(), mLowWaterMark, mHighWaterMark, mMaxSize);
@@ -354,6 +363,8 @@ public abstract class Cache<K, V> implements Closeable {
       long evictionStart = System.nanoTime();
       int toEvict = mMap.size() - mLowWaterMark;
       int evictionCount = 0;
+      // TODO(yyong) 1000 at most in each time
+      toEvict = toEvict > 5000 ? 5000 : toEvict;
       while (evictionCount < toEvict) {
         if (!mEvictionHead.hasNext()) {
           mEvictionHead = mMap.values().iterator();
@@ -363,7 +374,7 @@ public abstract class Cache<K, V> implements Closeable {
       }
       if (evictionCount > 0) {
         mStatsCounter.recordEvictions(evictionCount);
-        LOG.debug("{}: Evicted {} entries in {}ms", mName, evictionCount,
+        LOG.info("{}: Evicted {} entries in {}ms", mName, evictionCount,
             (System.nanoTime() - evictionStart) / Constants.MS_NANO);
       }
     }
@@ -382,6 +393,10 @@ public abstract class Cache<K, V> implements Closeable {
           candidate.mReferenced = false;
           continue;
         }
+        if (candidate.mDirty) {
+          continue;
+        }
+
         mEvictionCandidates.add(candidate);
         if (candidate.mDirty) {
           mDirtyEvictionCandidates.add(candidate);

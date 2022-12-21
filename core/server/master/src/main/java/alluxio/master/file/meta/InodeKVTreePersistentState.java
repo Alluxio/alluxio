@@ -273,7 +273,12 @@ public class InodeKVTreePersistentState {
 
   private void delete(DeleteFileEntry entry) {
     long id = entry.getId();
-    Inode inode = mInodeStore.get(id).get();
+    Optional<Inode> optional = mInodeStore.get(id);
+    if (!optional.isPresent()) {
+      LOG.info("Deleting the entry {}-{}", entry.getPath(), entry.getId());
+      return;
+    }
+    Inode inode = optional.get();
 
     // The recursive option is only used by old versions.
     if (inode.isDirectory() && entry.getRecursive()) {
@@ -340,7 +345,7 @@ public class InodeKVTreePersistentState {
       default:
         LOG.warn("Unrecognized acl action: " + action);
     }
-    mInodeStore.writeInode(inode);
+    mInodeStore.writeInodeToBackend(inode);
   }
 
   private void applyUpdateInode(UpdateInodeEntry entry) {
@@ -365,7 +370,13 @@ public class InodeKVTreePersistentState {
     if (inode.isFile() && entry.hasPinned()) {
       setReplicationForPin(inode, entry.getPinned());
     }
-    mInodeStore.writeInode(inode);
+    // TODO(yyong) this the last call for creation complete
+    if (inode.isDirectory()) {
+      mInodeStore.writeInodeToBackend(inode);
+    } else {
+      // This is not the last step to complete a file
+      mInodeStore.writeInode(inode);
+    }
     updateToBePersistedIds(inode);
   }
 
@@ -434,7 +445,7 @@ public class InodeKVTreePersistentState {
       mBucketCounter.remove(inode.asFile().getLength());
     }
     inode.asFile().updateFromEntry(entry);
-    mInodeStore.writeInode(inode);
+    mInodeStore.writeInodeToBackend(inode);
     mBucketCounter.insert(inode.asFile().getLength());
   }
 
@@ -510,7 +521,7 @@ public class InodeKVTreePersistentState {
     if (inode.isDirectory() && inode.getName().equals(InodeTree.ROOT_INODE_NAME)) {
       // This is the root inode. Clear all the state, and set the root.
       mInodeStore.clear();
-      mInodeStore.writeNewInode(inode);
+      mInodeStore.writeInodeToBackend(inode);
       mInodeCounter.reset();
       mInodeCounter.increment();
       mPinnedInodeFileIds.clear();
@@ -522,11 +533,16 @@ public class InodeKVTreePersistentState {
     }
     // inode should be added to the inode store before getting added to its parent list, because it
     // becomes visible at this point.
-    mInodeStore.writeNewInode(inode);
+    if (inode.isDirectory()) {
+      mInodeStore.writeNewInodeToBackend(inode);
+    } else {
+      mInodeStore.writeNewInode(inode);
+    }
     mInodeCounter.increment();
     mInodeStore.addChild(inode.getParentId(), inode);
     // Only update size, last modified time is updated separately.
-    updateTimestampsAndChildCount(inode.getParentId(), Long.MIN_VALUE, 1);
+    // TODO(yyong) temporarily disable this update
+    // updateTimestampsAndChildCount(inode.getParentId(), Long.MIN_VALUE, 1);
     if (inode.isFile()) {
       boolean pinned = inode.asFile().isPinned() || inode.asFile().getReplicationMin() > 0;
       setReplicationForPin(inode, pinned);
@@ -563,6 +579,7 @@ public class InodeKVTreePersistentState {
   }
 
   private void updateTimestampsAndChildCount(long id, long opTimeMs, long deltaChildCount) {
+    // TODO(yyong) since this is heavily race contention, comment it out for perf test temporarily
     try (LockResource lr = mInodeLockManager.lockUpdate(id)) {
       MutableInodeDirectory inode = mInodeStore.getMutable(id).get().asDirectory();
       boolean madeUpdate = false;

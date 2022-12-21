@@ -212,7 +212,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -2122,7 +2124,9 @@ public class DefaultFileSystemKVMaster extends CoreMaster
     // Inodes for which deletion will be attempted
     List<Pair<AlluxioURI, LockedInodePath>> inodesToDelete;
     if (inode.isDirectory()) {
-      inodesToDelete = new ArrayList<>((int) inode.asDirectory().getChildCount());
+      // TODO(yyong) since the child count is not tracked correctly, use linkedlist
+      // inodesToDelete = new ArrayList<>((int) inode.asDirectory().getChildCount());
+      inodesToDelete = new LinkedList<>();
     } else {
       inodesToDelete = new ArrayList<>(1);
     }
@@ -2143,6 +2147,7 @@ public class DefaultFileSystemKVMaster extends CoreMaster
       // then the sibling trees one by one.
       // Therefore, we first see a parent, then all its children.
       for (LockedInodePath childPath : descendants) {
+        LOG.debug("Delete child path {}", childPath);
         if (bypassPermCheck) {
           inodesToDelete.add(new Pair<>(mInodeTree.getPath(childPath.getInode()), childPath));
         } else {
@@ -2178,9 +2183,13 @@ public class DefaultFileSystemKVMaster extends CoreMaster
 
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
-      for (int i = inodesToDelete.size() - 1; i >= 0; i--) {
+      // for (int i = inodesToDelete.size() - 1; i >= 0; i--) {
+      for (ListIterator listIterator = inodesToDelete.listIterator(inodesToDelete.size());
+      listIterator.hasPrevious(); ) {
         rpcContext.throwIfCancelled();
-        Pair<AlluxioURI, LockedInodePath> inodePairToDelete = inodesToDelete.get(i);
+        // Pair<AlluxioURI, LockedInodePath> inodePairToDelete = inodesToDelete.get(i);
+        Pair<AlluxioURI, LockedInodePath> inodePairToDelete
+            = (Pair<AlluxioURI, LockedInodePath>) listIterator.previous();
         AlluxioURI alluxioUriToDelete = inodePairToDelete.getFirst();
         Inode inodeToDelete = inodePairToDelete.getSecond().getInode();
 
@@ -2226,7 +2235,10 @@ public class DefaultFileSystemKVMaster extends CoreMaster
 
           // Something went wrong with this path so it cannot be removed normally
           // Remove the path from further processing
-          inodesToDelete.set(i, null);
+
+          // TODO(yyong) temporarily switch
+          // inodesToDelete.set(i, null);
+          inodePairToDelete = null;
         }
       }
 
@@ -2236,8 +2248,12 @@ public class DefaultFileSystemKVMaster extends CoreMaster
 
       // Delete Inodes from children to parents
       int journalFlushCounter = 0;
-      for (int i = inodesToDelete.size() - 1; i >= 0; i--) {
-        Pair<AlluxioURI, LockedInodePath> delInodePair = inodesToDelete.get(i);
+      // for (int i = inodesToDelete.size() - 1; i >= 0; i--) {
+      for (ListIterator listIterator = inodesToDelete.listIterator(inodesToDelete.size());
+           listIterator.hasPrevious(); ) {
+        // Pair<AlluxioURI, LockedInodePath> delInodePair = inodesToDelete.get(i);
+        Pair<AlluxioURI, LockedInodePath> delInodePair
+            = (Pair<AlluxioURI, LockedInodePath>) listIterator.previous();
         // The entry is null because an error is met from the pre-processing
         if (delInodePair == null) {
           continue;

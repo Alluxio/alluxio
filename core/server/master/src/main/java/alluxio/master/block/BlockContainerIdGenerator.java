@@ -26,7 +26,7 @@ public final class BlockContainerIdGenerator implements ContainerIdGenerable {
    * Creates a new instance of {@link BlockContainerIdGenerator}.
    */
   public BlockContainerIdGenerator() {
-    mNextContainerId = new AtomicLong(0);
+    mNextContainerId = new AtomicLong(1);
   }
 
   @Override

@@ -809,7 +809,8 @@ public class InodeKVTree implements InodeTreeInterface {
       // In these two cases, the last traversed Inode will be modified if the new timestamp is after
       // the existing last modified time.
       long currentId = currentInodeDirectory.getId();
-      try (LockResource lr = mInodeLockManager.lockUpdate(currentId)) {
+      // TODO(yyong) temporarily disable this one
+      // try (LockResource lr = mInodeLockManager.lockUpdate(currentId)) {
         long updatedLastModified = mInodeStore
             .getChild(currentInodeDirectory.getParentId(), currentInodeDirectory.getName()).map(Inode::wrap)
             .get().getLastModificationTimeMs();
@@ -826,8 +827,8 @@ public class InodeKVTree implements InodeTreeInterface {
             // TODO(czhu): determine if xAttr update strategy is required for this
             updateInodeEntry.putAllXAttr(CommonUtils.convertToByteString(context.getXAttr()));
           }
-          mINodeKVTreePersistentState.updateInodeEntry(updateInodeEntry.build());
-        }
+          // mINodeKVTreePersistentState.updateInodeEntry(updateInodeEntry.build());
+        // }
       }
     }
 
@@ -1214,9 +1215,9 @@ public class InodeKVTree implements InodeTreeInterface {
    * @return true if the given file id is the root id
    */
   public boolean isRootId(long fileId) {
-    Preconditions.checkNotNull(mINodeKVTreePersistentState.getRoot(),
-        "Cannot call isRootId() before initializeRoot()");
-    return fileId == mINodeKVTreePersistentState.getRoot().getId();
+    // Preconditions.checkNotNull(mINodeKVTreePersistentState.getRoot(),
+    //     "Cannot call isRootId() before initializeRoot()");
+    return fileId == 0; // mINodeKVTreePersistentState.getRoot().getId();
   }
 
   /**

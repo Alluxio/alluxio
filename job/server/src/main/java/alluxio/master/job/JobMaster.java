@@ -96,6 +96,11 @@ import javax.annotation.concurrent.ThreadSafe;
 public class JobMaster extends AbstractMaster implements NoopJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(JobMaster.class);
 
+  static {
+    com.fasterxml.jackson.annotation.JsonTypeInfo.Id jsonTypeInfoId
+        = com.fasterxml.jackson.annotation.JsonTypeInfo.Id.DEDUCTION;
+  }
+
   // Worker metadata management.
   private final IndexDefinition<MasterWorkerInfo, Long> mIdIndex =
       IndexDefinition.ofUnique(MasterWorkerInfo::getId);
