@@ -22,6 +22,7 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.ExtendedACLEntries;
+import alluxio.security.authorization.Mode;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -87,6 +88,35 @@ public final class ProtoUtils {
   }
 
   /**
+   * @param acl {@link AccessControlList} to convert to protobuf
+   * @return new protobuf representation of the ACL
+   */
+  public static Acl.NewAccessControlList toProtoNew(AccessControlList acl) {
+    Acl.NewAccessControlList.Builder builder = Acl.NewAccessControlList.newBuilder();
+    builder.setOwningGroup(acl.getOwningGroup());
+    builder.setOwningUser(acl.getOwningUser());
+    builder.setMode(acl.getMode());
+
+    ExtendedACLEntries extended = acl.getExtendedEntries();
+    if (extended != null) {
+      builder.setMaskActions(extended.getMask().toModeBits().toProto());
+      builder.addAllNamedActions(() -> extended.getNamedUserActions().entrySet().stream().map(
+          entry -> Acl.ExtendedAclAction.newBuilder().setName(entry.getKey())
+              .setModeBits(entry.getValue().toModeBits().toProto()).build()).iterator());
+      builder.addAllGroupedActions(() -> extended.getNamedGroupActions().entrySet().stream().map(
+          entry -> Acl.ExtendedAclAction.newBuilder().setName(entry.getKey())
+              .setModeBits(entry.getValue().toModeBits().toProto()).build()).iterator());
+    }
+
+    if (acl instanceof DefaultAccessControlList) {
+      DefaultAccessControlList defaultAcl = (DefaultAccessControlList) acl;
+      builder.setIsDefault(true);
+      builder.setIsEmpty(defaultAcl.isEmpty());
+    }
+    return builder.build();
+  }
+
+  /**
    * @param acl {@link AccessControlList}
    * @return protobuf representation
    */
@@ -129,12 +159,13 @@ public final class ProtoUtils {
    * @return the protobuf representation of {@link AclActions}
    */
   public static Acl.AclActions toProto(AclActions actions) {
-    Acl.AclActions.Builder builder = Acl.AclActions.newBuilder();
-    for (AclAction action : actions.getActions()) {
-      Acl.AclAction pAction = toProto(action);
-      builder.addActions(pAction);
-    }
-    return builder.build();
+    return Acl.AclActions.newBuilder().setModeBits(actions.toModeBits().toProto()).build();
+//    Acl.AclActions.Builder builder = Acl.AclActions.newBuilder();
+//    for (AclAction action : actions.getActions()) {
+//      Acl.AclAction pAction = toProto(action);
+//      builder.addActions(pAction);
+//    }
+//    return builder.build();
   }
 
   /**
@@ -266,6 +297,49 @@ public final class ProtoUtils {
    * @param acl the protobuf representation
    * @return {@link AccessControlList}
    */
+  public static AccessControlList fromProto(Acl.NewAccessControlList acl) {
+    AccessControlList ret;
+    if (acl.hasIsDefault() && acl.getIsDefault()) {
+      ret = new DefaultAccessControlList();
+    } else {
+      ret = new AccessControlList();
+    }
+    // ret.setOwningUser(acl.getOwningUser().intern());
+    // ret.setOwningGroup(acl.getOwningGroup().intern());
+    ret.setOwningUser(acl.getOwningUser());
+    ret.setOwningGroup(acl.getOwningGroup());
+
+    if (acl.getIsEmpty()) {
+      return ret;
+    }
+    // Preconditions.checkState(acl.getMode() <= 7);
+    ret.setMode((short) acl.getMode());
+
+    // true if there are any extended entries (named user or named group)
+    boolean hasExtended = false;
+    for (int i = 0; i < acl.getNamedActionsCount(); i++) {
+      hasExtended = true;
+      Acl.ExtendedAclAction nxt = acl.getNamedActions(i);
+      ret.getOrInitializeExtendedEntries().setNamedActions(nxt.getName(),
+              new AclActions(Mode.Bits.fromProto(nxt.getModeBits())));
+    }
+    for (int i = 0; i < acl.getGroupedActionsCount(); i++) {
+      hasExtended = true;
+      Acl.ExtendedAclAction nxt = acl.getGroupedActions(i);
+      ret.getOrInitializeExtendedEntries().setGroupActions(nxt.getName(),
+          new AclActions(Mode.Bits.fromProto(nxt.getModeBits())));
+    }
+    if (hasExtended) {
+      ret.getOrInitializeExtendedEntries().setMask(new AclActions(
+          Mode.Bits.fromProto(acl.getMaskActions())));
+    }
+    return ret;
+  }
+
+  /**
+   * @param acl the protobuf representation
+   * @return {@link AccessControlList}
+   */
   public static AccessControlList fromProto(Acl.AccessControlList acl) {
     AccessControlList ret;
     if (acl.hasIsDefault() && acl.getIsDefault()) {
@@ -273,8 +347,10 @@ public final class ProtoUtils {
     } else {
       ret = new AccessControlList();
     }
-    ret.setOwningUser(acl.getOwningUser().intern());
-    ret.setOwningGroup(acl.getOwningGroup().intern());
+    // ret.setOwningUser(acl.getOwningUser().intern());
+    // ret.setOwningGroup(acl.getOwningGroup().intern());
+    ret.setOwningUser(acl.getOwningUser());
+    ret.setOwningGroup(acl.getOwningGroup());
 
     if (acl.getIsEmpty()) {
       return ret;
@@ -334,6 +410,9 @@ public final class ProtoUtils {
    * @return the {@link AclActions} decoded from the protobuf representation
    */
   public static AclActions fromProto(Acl.AclActions actions) {
+    if (actions.hasModeBits()) {
+      return new AclActions(Mode.Bits.fromProto(actions.getModeBits()));
+    }
     AclActions ret = new AclActions();
     for (Acl.AclAction action : actions.getActionsList()) {
       ret.add(fromProto(action));

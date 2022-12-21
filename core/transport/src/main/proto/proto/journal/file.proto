@@ -113,6 +113,8 @@ message UpdateInodeEntry {
   optional int64 last_access_time_ms = 18;
   optional bool overwrite_access_time = 19;
   optional XAttrUpdateStrategy xAttr_update_strategy = 20 [default = TRUNCATE];
+
+  optional alluxio.proto.shared.NewAccessControlList new_acl = 21;
 }
 
 // next available id: 5
@@ -121,6 +123,8 @@ message UpdateInodeDirectoryEntry {
   optional bool mount_point = 2;
   optional bool direct_children_loaded = 3;
   optional alluxio.proto.shared.AccessControlList defaultAcl = 4;
+
+  optional alluxio.proto.shared.AccessControlList newDefaultAcl = 5;
 }
 
 // next available id: 13
@@ -161,6 +165,9 @@ message InodeDirectoryEntry {
   repeated string medium_type = 18;
   map<string, bytes> xAttr = 19;
   optional int64 last_access_time_ms = 20;
+
+  optional alluxio.proto.shared.NewAccessControlList newAcl = 21;
+  optional alluxio.proto.shared.NewAccessControlList newDefaultAcl = 22;
 }
 
 // next available id: 3
@@ -205,6 +212,8 @@ message InodeFileEntry {
   optional int64 should_persist_time = 27;
   map<string, bytes> xAttr = 28;
   optional int64 last_access_time_ms = 29;
+
+  optional alluxio.proto.shared.NewAccessControlList newAcl = 30;
 }
 
 // next available id: 3

@@ -184,6 +184,18 @@ public class ExtendedACLEntries {
     return mMaskActions;
   }
 
+  public void setMask(AclActions actions) {
+    mMaskActions = actions;
+  }
+
+  public void setNamedActions(String subject, AclActions actions) {
+    mNamedUserActions.put(subject, actions);
+  }
+
+  public void setGroupActions(String subject, AclActions actions) {
+    mNamedGroupActions.put(subject, actions);
+  }
+
   /**
    * Update the mask to be the union of owning group entry, named user entry and named group entry.
    * @param groupActions the group entry to be integrated into the mask

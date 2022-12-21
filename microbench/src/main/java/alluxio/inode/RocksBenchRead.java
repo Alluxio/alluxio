@@ -19,6 +19,8 @@ import static alluxio.inode.RocksBenchBase.genInode;
 
 import alluxio.BaseFileStructure;
 import alluxio.BaseThreadState;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.file.meta.MutableInode;
 
 import org.junit.Assert;
@@ -79,6 +81,8 @@ public class RocksBenchRead {
     public void setup() throws IOException {
       Assert.assertEquals("mDepth is not used in this benchmark", 0, mDepth);
       Assert.assertTrue("mFileCount must be > 0", mFileCount > 0);
+      Configuration.set(PropertyKey.MASTER_METASTORE_ACL_NEW, false);
+
       MutableInode<?> inode = genInode(mIsDirectory);
       mBase = new RocksBenchBase(mRocksConfig);
       for (long i = 0; i < mFileCount; i++) {

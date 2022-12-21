@@ -11,7 +11,7 @@ import "proto/shared/acl.proto";
  * General inode metadata. This includes most inode metadata, but does not include the inode's
  * children or time of last modification.
  *
- * next available id: 31
+ * next available id: 32
  */
 message Inode {
     optional int64 id = 1;
@@ -24,7 +24,7 @@ message Inode {
     optional int64 last_modified_ms = 25;
     optional string name = 6;
     optional int64 parent_id = 7;
-    optional string persistence_state = 8;
+    optional string persistence_state = 8 [deprecated = true];
     optional bool is_pinned = 9;
     optional alluxio.proto.shared.AccessControlList access_acl = 10;
     optional string ufs_fingerprint = 11;
@@ -55,4 +55,9 @@ message Inode {
     // Extended attributes, general purpose. Should be used with care as long string identifiers will use a
     // comparatively large amount of memory to other fields
     map<string, bytes> xAttr = 29;
+
+    optional grpc.PersistenceState persistence_state_enum = 31;
+
+    optional alluxio.proto.shared.NewAccessControlList new_access_acl = 32;
+    optional alluxio.proto.shared.NewAccessControlList new_default_acl = 33;
 }

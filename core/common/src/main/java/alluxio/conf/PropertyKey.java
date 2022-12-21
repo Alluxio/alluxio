@@ -2362,6 +2362,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE_ACL_NEW =
+      booleanBuilder(Name.MASTER_METASTORE_ACL_NEW)
+          .setDefaultValue(true)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METASTORE_DIR_INODE =
       stringBuilder(Name.MASTER_METASTORE_DIR_INODE)
           .setDefaultValue(String.format("${%s}", Name.MASTER_METASTORE_DIR))
@@ -7638,6 +7643,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_METASTORE_INODE = "alluxio.master.metastore.inode";
     public static final String MASTER_METASTORE_BLOCK = "alluxio.master.metastore.block";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
+    public static final String MASTER_METASTORE_ACL_NEW = "alluxio.metastore.acl.new";
     public static final String MASTER_METASTORE_DIR_INODE =
         "alluxio.master.metastore.dir.inode";
     public static final String MASTER_METASTORE_DIR_BLOCK =
