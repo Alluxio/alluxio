@@ -16,6 +16,7 @@ import alluxio.Seekable;
 import alluxio.client.file.FileInStream;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.runtime.InternalRuntimeException;
+import alluxio.file.SeekableBufferedInputStream;
 
 import com.google.common.base.Preconditions;
 
@@ -171,7 +172,9 @@ public class UfsFileInStream extends FileInStream {
     }
     InputStream ufsInStream = mFileOpener.apply(mPosition);
     if (mLength - mPosition >= BUFFER_SIZE) {
-      ufsInStream = new BufferedInputStream(ufsInStream, BUFFER_SIZE);
+      ufsInStream = ufsInStream instanceof Seekable
+          ? new SeekableBufferedInputStream(ufsInStream, BUFFER_SIZE)
+          : new BufferedInputStream(ufsInStream, BUFFER_SIZE);
     }
     mUfsInStream = Optional.of(ufsInStream);
   }
