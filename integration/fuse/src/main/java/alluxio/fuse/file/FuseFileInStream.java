@@ -110,19 +110,19 @@ public class FuseFileInStream implements FuseFileStream {
     }
     final int sz = (int) size;
     int totalRead = 0;
-    int currentRead = 0;
+    int currentRead;
     try {
       mInStream.seek(offset);
-      while (currentRead >= 0 && totalRead < sz) {
+      do {
         currentRead = mInStream.read(buf, totalRead, sz - totalRead);
         if (currentRead > 0) {
           totalRead += currentRead;
         }
-      }
+      } while (currentRead > 0 && totalRead < sz);
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
     }
-    return totalRead;
+    return totalRead == 0 ? currentRead : totalRead;
   }
 
   @Override
