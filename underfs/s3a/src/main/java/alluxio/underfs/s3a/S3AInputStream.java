@@ -29,7 +29,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * An S3A input stream that supports skip and seek efficiently.
- * Recommended wrap around an BufferedInputStream to improve performance.
+ * Recommended wrap around an BufferedInputStream or
+ * {@link alluxio.file.SeekableBufferedInputStream} to improve performance.
  */
 @NotThreadSafe
 public class S3AInputStream extends InputStream implements Seekable {
