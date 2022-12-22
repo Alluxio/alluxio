@@ -136,7 +136,6 @@ public final class UfsInputStreamCache {
       return;
     }
 
-
     CachedSeekableInputStream cachedStream = (CachedSeekableInputStream) inputStream;
     FileId fileId = cachedStream.getFileId();
     long resourceId = cachedStream.getResourceId();
