@@ -75,6 +75,15 @@ public final class MetadataCache {
 
   /**
    * @param maxSize the max size of the cache
+   */
+  public MetadataCache(int maxSize) {
+    mCache = CacheBuilder.newBuilder()
+        .maximumSize(maxSize)
+        .build();
+  }
+
+  /**
+   * @param maxSize the max size of the cache
    * @param expirationTimeMs the expiration time (in milliseconds) of the cached item
    */
   public MetadataCache(int maxSize, long expirationTimeMs) {

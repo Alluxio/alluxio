@@ -36,6 +36,7 @@ import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,12 +73,17 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
    */
   public MetadataCachingFileSystem(FileSystem fileSystem, FileSystemContext context) {
     super(fileSystem);
-
     mFsContext = context;
     int maxSize = mFsContext.getClusterConf().getInt(PropertyKey.USER_METADATA_CACHE_MAX_SIZE);
-    long expirationTimeMs = mFsContext.getClusterConf()
-        .getMs(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME);
-    mMetadataCache = new MetadataCache(maxSize, expirationTimeMs);
+    Preconditions.checkArgument(maxSize != 0,
+        "%s should not be zero to enable metadata caching file system",
+        PropertyKey.USER_METADATA_CACHE_MAX_SIZE.getName());
+
+    mMetadataCache = mFsContext.getClusterConf()
+        .isSet(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME)
+        ? new MetadataCache(maxSize, mFsContext.getClusterConf()
+            .getMs(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME))
+        : new MetadataCache(maxSize);
     int masterClientThreads = mFsContext.getClusterConf()
         .getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX);
     mDisableUpdateFileAccessTime = mFsContext.getClusterConf()

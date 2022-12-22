@@ -302,10 +302,6 @@ public final class AlluxioFuse {
               PropertyKey.USER_CLIENT_CACHE_SIZE.parseValue(value), Source.RUNTIME);
           LOG.info("Set data cache size as {} from command line input", value);
         } else if (key.equals("metadata_cache_size")) {
-          if (value.equals("0")) {
-            continue;
-          }
-          conf.set(PropertyKey.USER_METADATA_CACHE_ENABLED, true, Source.RUNTIME);
           conf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE,
               PropertyKey.USER_METADATA_CACHE_MAX_SIZE.parseValue(value), Source.RUNTIME);
           LOG.info("Set metadata cache size as {} from command line input", value);
@@ -321,6 +317,13 @@ public final class AlluxioFuse {
         conf.set(PropertyKey.FUSE_MOUNT_OPTIONS, fuseOptions, Source.RUNTIME);
         LOG.info("Set fuse mount point options as {} from command line input",
             String.join(",", fuseOptions));
+      }
+      Source metadataCacheSizeSource = conf.getSource(PropertyKey.USER_METADATA_CACHE_MAX_SIZE);
+      if (metadataCacheSizeSource == Source.DEFAULT
+          || metadataCacheSizeSource == Source.CLUSTER_DEFAULT) {
+        conf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 20000, Source.RUNTIME);
+        LOG.info("Set default metadata cache size to 20,000 entries "
+            + "with around 40MB memory consumption for FUSE");
       }
     }
   }

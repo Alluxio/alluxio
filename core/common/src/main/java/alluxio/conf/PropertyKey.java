@@ -5859,30 +5859,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_METADATA_CACHE_ENABLED =
-      booleanBuilder(Name.USER_METADATA_CACHE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("If this is enabled, metadata of paths will be cached. "
-              + "The cached metadata will be evicted when it expires after "
-              + Name.USER_METADATA_CACHE_EXPIRATION_TIME
-              + " or the cache size is over the limit of "
-              + Name.USER_METADATA_CACHE_MAX_SIZE + ".")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_METADATA_CACHE_MAX_SIZE =
       intBuilder(Name.USER_METADATA_CACHE_MAX_SIZE)
-          .setDefaultValue(100000)
-          .setDescription("Maximum number of paths with cached metadata. Only valid if "
-              + "alluxio.user.metadata.cache.enabled is set to true.")
+          .setDefaultValue(0)
+          .setDescription(String.format("Maximum number of paths with cached metadata."
+              + "The cached metadata will be evicted when it expires after %s "
+              + "or the cache size is over the limit of %s. "
+              + "Each 1000 entries cost around 2MB memory. "
+              + "Recommend using 20,000 entries are cached "
+              + "with around 40MB memory consumption for FUSE client.",
+              Name.USER_METADATA_CACHE_EXPIRATION_TIME,
+              Name.USER_METADATA_CACHE_MAX_SIZE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_METADATA_CACHE_EXPIRATION_TIME =
       durationBuilder(Name.USER_METADATA_CACHE_EXPIRATION_TIME)
-          .setDefaultValue("10min")
           .setDescription("Metadata will expire and be evicted after being cached for this time "
-              + "period. Only valid if alluxio.user.metadata.cache.enabled is set to true.")
+              + "period. If the value is not set, metadata will not be expired "
+              + "and will only be evicted after reaching the " + Name.USER_METADATA_CACHE_MAX_SIZE)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
