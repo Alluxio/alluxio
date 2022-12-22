@@ -55,6 +55,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.LogUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.wire.BlockMasterInfo;
+import alluxio.wire.MountPointInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;
@@ -69,6 +70,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -93,6 +95,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final FileSystemContext mFileSystemContext;
   // Caches the filesystem statistics for Fuse.statfs
   private final Supplier<BlockMasterInfo> mFsStatCache;
+  // Caches the mountPointInfo statistics for Fuse.statfs
+  private final Supplier<Map<String, MountPointInfo>> mMountPointInfoCache;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
@@ -132,6 +136,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mFsStatCache = statCacheTimeout > 0 ? Suppliers.memoizeWithExpiration(
         this::acquireBlockMasterInfo, statCacheTimeout, TimeUnit.MILLISECONDS)
         : this::acquireBlockMasterInfo;
+    mMountPointInfoCache = statCacheTimeout > 0 ? Suppliers.memoizeWithExpiration(
+        this::acquireMountPointInfo, statCacheTimeout, TimeUnit.MILLISECONDS)
+        : this::acquireMountPointInfo;
     mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(mConf, fuseOptions);
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, mConf, this);
     mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
@@ -640,11 +647,18 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     if (res != 0) {
       return res;
     }
+
+    if (mConf.getBoolean(PropertyKey.FUSE_DF_MOUNT_POINT_ENABLED)
+        && setFromMountInfo(path, stbuf, uri)) {
+      return 0;
+    }
+
     BlockMasterInfo info = mFsStatCache.get();
     if (info == null) {
       LOG.error("Failed to statfs {}: cannot get block master info", path);
       return -ErrorCodes.EIO();
     }
+
     long blockSize = 16L * Constants.KB;
     // fs block size
     // The size in bytes of the minimum unit of allocation on this file system
@@ -666,6 +680,40 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     return 0;
   }
 
+  private boolean setFromMountInfo(String path, Statvfs stbuf, AlluxioURI uri) {
+    Map<String, MountPointInfo> mountPointInfoMap = mMountPointInfoCache.get();
+    if (mountPointInfoMap == null) {
+      LOG.debug("Failed to statfs {}: cannot get mount point info", path);
+      return false;
+    }
+
+    MountPointInfo mountPointInfo = mountPointInfoMap.get(uri.getPath());
+
+    if (mountPointInfo != null) {
+      long blockSize = 16L * Constants.KB;
+      // fs block size
+      // The size in bytes of the minimum unit of allocation on this file system
+      stbuf.f_bsize.set(blockSize);
+      // The preferred length of I/O requests for files on this file system.
+      stbuf.f_frsize.set(blockSize);
+      // total data blocks in fs
+      stbuf.f_blocks.set(mountPointInfo.getUfsCapacityBytes() / blockSize);
+      // free blocks in fs
+      long freeBlocks =
+          (mountPointInfo.getUfsCapacityBytes() - mountPointInfo.getUfsUsedBytes()) / blockSize;
+      stbuf.f_bfree.set(freeBlocks);
+      stbuf.f_bavail.set(freeBlocks);
+      // inode info in fs
+      stbuf.f_files.set(UNKNOWN_INODES);
+      stbuf.f_ffree.set(UNKNOWN_INODES);
+      stbuf.f_favail.set(UNKNOWN_INODES);
+      // max file name length
+      stbuf.f_namemax.set(AlluxioFuseUtils.MAX_NAME_LENGTH);
+      return true;
+    }
+    return false;
+  }
+
   @Nullable
   private BlockMasterInfo acquireBlockMasterInfo() {
     try (CloseableResource<BlockMasterClient> masterClientResource =
@@ -678,6 +726,16 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return masterClientResource.get().getBlockMasterInfo(blockMasterInfoFilter);
     } catch (IOException e) {
       LOG.error("Failed to acquire block master information", e);
+      return null;
+    }
+  }
+
+  @Nullable
+  private Map<String, MountPointInfo> acquireMountPointInfo() {
+    try {
+      return mFileSystem.getMountTable();
+    } catch (IOException | AlluxioException e) {
+      LOG.error("Failed to retrieve mount point information", e);
       return null;
     }
   }

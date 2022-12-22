@@ -444,34 +444,38 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     // as Alluxio can load/store data out of entire HDFS cluster
     FileSystem hdfs = getFs();
     long space = -1;
-    if (hdfs instanceof DistributedFileSystem) {
-      // Note that, getDiskStatus() is an API from Hadoop 1, deprecated by getStatus() from
-      // Hadoop 2 and removed in Hadoop 3
-      switch (type) {
-        case SPACE_TOTAL:
-          //#ifdef HADOOP1
+    // Note that, getDiskStatus() is an API from Hadoop 1, deprecated by getStatus() from
+    // Hadoop 2 and removed in Hadoop 3
+    switch (type) {
+      case SPACE_TOTAL:
+        //#ifdef HADOOP1
+        if (hdfs instanceof DistributedFileSystem) {
           space = ((DistributedFileSystem) hdfs).getDiskStatus().getCapacity();
-          //#else
-          space = hdfs.getStatus().getCapacity();
-          //#endif
-          break;
-        case SPACE_USED:
-          //#ifdef HADOOP1
+        }
+        //#else
+        space = hdfs.getStatus().getCapacity();
+        //#endif
+        break;
+      case SPACE_USED:
+        //#ifdef HADOOP1
+        if (hdfs instanceof DistributedFileSystem) {
           space = ((DistributedFileSystem) hdfs).getDiskStatus().getDfsUsed();
-          //#else
-          space = hdfs.getStatus().getUsed();
-          //#endif
-          break;
-        case SPACE_FREE:
-          //#ifdef HADOOP1
+        }
+        //#else
+        space = hdfs.getStatus().getUsed();
+        //#endif
+        break;
+      case SPACE_FREE:
+        //#ifdef HADOOP1
+        if (hdfs instanceof DistributedFileSystem) {
           space = ((DistributedFileSystem) hdfs).getDiskStatus().getRemaining();
-          //#else
-          space = hdfs.getStatus().getRemaining();
-          //#endif
-          break;
-        default:
-          throw new IOException("Unknown space type: " + type);
-      }
+        }
+        //#else
+        space = hdfs.getStatus().getRemaining();
+        //#endif
+        break;
+      default:
+        throw new IOException("Unknown space type: " + type);
     }
     return space;
   }
