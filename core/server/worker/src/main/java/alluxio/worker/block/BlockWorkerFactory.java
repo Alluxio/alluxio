@@ -17,6 +17,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
 import alluxio.underfs.UfsManager;
+import alluxio.worker.DoraWorker;
 import alluxio.worker.Worker;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.WorkerRegistry;
@@ -55,8 +56,8 @@ public final class BlockWorkerFactory implements WorkerFactory {
     BlockMasterClientPool blockMasterClientPool = new BlockMasterClientPool();
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
     if (DORA_WORKER_ENABLED) {
-      Worker worker = new PagedDoraWorker(workerId, Configuration.global());
-      registry.add(Worker.class, worker);
+      DoraWorker worker = new PagedDoraWorker(workerId, Configuration.global());
+      registry.add(DoraWorker.class, worker);
       return worker;
     } else {
       BlockStore blockStore;

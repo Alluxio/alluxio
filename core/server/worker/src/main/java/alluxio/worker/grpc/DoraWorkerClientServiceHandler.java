@@ -25,7 +25,6 @@ import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.worker.DoraWorker;
-import alluxio.worker.Worker;
 import alluxio.worker.WorkerProcess;
 
 import com.google.common.collect.ImmutableMap;
@@ -59,7 +58,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
    * @param workerProcess the worker process
    */
   public DoraWorkerClientServiceHandler(WorkerProcess workerProcess) {
-    mWorker = (DoraWorker) workerProcess.getWorker(Worker.class);
+    mWorker = (DoraWorker) workerProcess.getWorker(DoraWorker.class);
   }
 
   /**

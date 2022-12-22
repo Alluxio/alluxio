@@ -112,7 +112,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mWebServer =
           new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
               Configuration.global()), this,
-              mRegistry.get(Worker.class));
+              mRegistry.get(DoraWorker.class));
 
       // Random port binding.
       int bindPort;
@@ -244,7 +244,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
     // Start serving RPC, this will block
     LOG.info("Alluxio worker started. id={}, bindHost={}, connectHost={}, rpcPort={}, webPort={}",
-        mRegistry.get(BlockWorker.class).getWorkerId(),
+        mRegistry.get(DoraWorker.class).getWorkerId(),
         NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, Configuration.global()),
         NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, Configuration.global()),
         NetworkAddressUtils.getPort(ServiceType.WORKER_RPC, Configuration.global()),

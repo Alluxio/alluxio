@@ -12,16 +12,23 @@
 package alluxio.worker.dora;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
+import alluxio.StorageTierAssoc;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
+import alluxio.master.MasterClientContext;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.retry.RetryPolicy;
+import alluxio.retry.RetryUtils;
 import alluxio.underfs.FileId;
 import alluxio.underfs.PagedUfsReader;
 import alluxio.underfs.UfsInputStreamCache;
@@ -30,9 +37,12 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.DoraWorker;
+import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.page.UfsBlockReadOptions;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Closer;
 
 import java.io.IOException;
@@ -89,7 +99,29 @@ public class PagedDoraWorker implements DoraWorker {
   }
 
   @Override
-  public void start(WorkerNetAddress options) throws IOException {
+  public void start(WorkerNetAddress address) throws IOException {
+    RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
+    MasterClientContext ctx = MasterClientContext.newBuilder(ClientContext.create()).build();
+    while (true) {
+      try (BlockMasterClient masterClient = new BlockMasterClient(ctx)) {
+        mWorkerId.set(masterClient.getId(address));
+        StorageTierAssoc storageTierAssoc =
+            new DefaultStorageTierAssoc(ImmutableList.of(Constants.MEDIUM_MEM));
+        masterClient.register(
+            mWorkerId.get(),
+            storageTierAssoc.getOrderedStorageAliases(),
+            ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.GB),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
+            ImmutableMap.of(),
+            ImmutableMap.of(),
+            Configuration.getConfiguration(Scope.WORKER));
+        break;
+      } catch (IOException ioe) {
+        if (!retry.attempt()) {
+          throw ioe;
+        }
+      }
+    }
   }
 
   @Override

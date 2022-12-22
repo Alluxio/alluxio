@@ -156,22 +156,38 @@ public class PagedFileReader extends BlockReader {
 
   @Override
   public long getLength() {
-    return 0;
+    return mFileSize;
   }
 
   @Override
   public ReadableByteChannel getChannel() {
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public int transferTo(ByteBuf buf) throws IOException {
-    return 0;
+    if (mFileSize <= mPos) {
+      return -1;
+    }
+    int bytesToTransfer =
+        (int) Math.min(buf.writableBytes(), mFileSize - mPos);
+    ensureReadable(mPos, bytesToTransfer);
+    long bytesRead = read(buf, mPos, bytesToTransfer);
+    mPos += bytesRead;
+    return (int) bytesRead;
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (!mClosed) {
+      super.close();
+      mClosed = true;
+    }
   }
 
   @Override
   public boolean isClosed() {
-    return false;
+    return mClosed;
   }
 
   @Override
