@@ -41,7 +41,7 @@ public class ClientVersionClientInjector implements ClientInterceptor {
       public void start(Listener<RespT> responseListener, Metadata headers) {
         // Put version to headers.
         headers.put(S_CLIENT_VERSION_KEY, ProjectConstants.VERSION);
-        headers.put(S_CLIENT_REVISION_KEY, RuntimeConstants.SHORT_REVISION);
+        headers.put(S_CLIENT_REVISION_KEY, RuntimeConstants.REVISION_SHORT);
         super.start(new ForwardingClientCallListener.SimpleForwardingClientCallListener<RespT>(
             responseListener) {
           @Override
