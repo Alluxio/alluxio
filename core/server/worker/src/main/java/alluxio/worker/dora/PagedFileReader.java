@@ -19,7 +19,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.NioDirectBufferPool;
-import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.FileId;
 import alluxio.underfs.PagedUfsReader;
 import alluxio.worker.block.io.BlockReader;
@@ -40,9 +39,7 @@ public class PagedFileReader extends BlockReader {
   private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocate(0);
   private final FileId mFileId;
   private final long mFileSize;
-  private final boolean mPosShort;
   private final long mPageSize;
-  private final Protocol.OpenUfsBlockOptions mOptions;
   private final CacheManager mCacheManager;
   private final AlluxioConfiguration mConf;
   private final PagedUfsReader mUfsReader;
@@ -51,17 +48,13 @@ public class PagedFileReader extends BlockReader {
 
   public PagedFileReader(AlluxioConfiguration conf, CacheManager cacheManager,
       PagedUfsReader pagedUfsReader, FileId fileId,
-      long fileSize, long startPosition,
-      boolean posShort, long pageSize, Protocol.OpenUfsBlockOptions options) {
+      long fileSize, long startPosition, long pageSize) {
     mConf = conf;
     mCacheManager = Preconditions.checkNotNull(cacheManager, "cacheManager");
     mFileId = Preconditions.checkNotNull(fileId, "fileId");
-    mOptions = Preconditions.checkNotNull(options, "options");
     mFileSize = fileSize;
     mPos = startPosition;
     mPageSize = pageSize;
-    mPosShort = posShort;
-    // todo(bowen): init ufs file reader
     mUfsReader = pagedUfsReader;
   }
 

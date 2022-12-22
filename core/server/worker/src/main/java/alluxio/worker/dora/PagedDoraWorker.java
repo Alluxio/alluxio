@@ -173,9 +173,7 @@ public class PagedDoraWorker implements DoraWorker {
         id,
         fileSize,
         offset,
-        /* posShort */ false,
-        mPageSize,
-        options);
+        mPageSize);
   }
 
   @Override
