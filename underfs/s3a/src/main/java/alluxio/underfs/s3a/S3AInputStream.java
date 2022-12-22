@@ -13,7 +13,6 @@ package alluxio.underfs.s3a;
 
 import alluxio.Seekable;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.runtime.UnknownRuntimeException;
 import alluxio.retry.RetryPolicy;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -120,11 +119,9 @@ public class S3AInputStream extends InputStream implements Seekable {
       }
     } while (mRetryPolicy.attempt());
     if (object == null) {
-      if (lastException != null) {
-        throw lastException;
-      }
-      // should not reach here
-      throw new UnknownRuntimeException("Failed to get S3 object and no exception thrown");
+      Preconditions.checkNotNull(lastException,
+          "s3 object must be achieved or exception is thrown");
+      throw lastException;
     }
     try (S3ObjectInputStream in = object.getObjectContent()) {
       int currentRead = 0;
