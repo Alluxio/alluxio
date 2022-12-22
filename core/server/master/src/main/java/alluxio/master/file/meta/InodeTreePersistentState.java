@@ -124,8 +124,12 @@ public class InodeTreePersistentState implements Journaled {
   private final LazyInitializer<InodeDirectory> mRootInitializer =
       new LazyInitializer<InodeDirectory>() {
         @Override
-        protected InodeDirectory initialize() {
-          return mInodeStore.get(0).map(Inode::asDirectory).orElse(null);
+        protected InodeDirectory initialize() throws ConcurrentException {
+          Optional<InodeDirectory> root = mInodeStore.get(0).map(Inode::asDirectory);
+          if (root.isPresent()) {
+            return root.get();
+          }
+          throw new ConcurrentException("root was not initialized.", new RuntimeException());
         }
   };
 
@@ -184,7 +188,7 @@ public class InodeTreePersistentState implements Journaled {
     try {
       return mRootInitializer.get();
     } catch (ConcurrentException e) {
-      throw new RuntimeException(e);
+      return null;
     }
   }
 
