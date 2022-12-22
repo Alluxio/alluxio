@@ -46,6 +46,7 @@ import alluxio.exception.FileIncompleteException;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.LibFuse;
@@ -432,7 +433,8 @@ public class AlluxioJniFuseFileSystemTest {
           return 4;
         });
 
-    when(mFileSystem.openFile(expectedPath)).thenReturn(fakeInStream);
+    when(mFileSystem.openFile(mFileSystem.getStatus(expectedPath),
+        OpenFilePOptions.getDefaultInstance())).thenReturn(fakeInStream);
     mFileInfo.flags.set(O_RDONLY.intValue());
 
     // prepare something to read to it
