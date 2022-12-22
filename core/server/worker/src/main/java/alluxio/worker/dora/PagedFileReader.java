@@ -46,6 +46,16 @@ public class PagedFileReader extends BlockReader {
   private long mPos;
   private boolean mClosed = false;
 
+  /**
+   * Constructor.
+   * @param conf
+   * @param cacheManager
+   * @param pagedUfsReader
+   * @param fileId
+   * @param fileSize
+   * @param startPosition
+   * @param pageSize
+   */
   public PagedFileReader(AlluxioConfiguration conf, CacheManager cacheManager,
       PagedUfsReader pagedUfsReader, FileId fileId,
       long fileSize, long startPosition, long pageSize) {
