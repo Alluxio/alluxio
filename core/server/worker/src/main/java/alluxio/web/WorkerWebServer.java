@@ -16,8 +16,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
+import alluxio.worker.Worker;
 import alluxio.worker.WorkerProcess;
-import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
 import org.eclipse.jetty.servlet.DefaultServlet;
@@ -53,12 +53,12 @@ public final class WorkerWebServer extends WebServer {
    *
    * @param webAddress the service address
    * @param workerProcess the Alluxio worker process
-   * @param blockWorker block worker to manage blocks
+   * @param worker block worker to manage blocks
    */
   public WorkerWebServer(InetSocketAddress webAddress, final WorkerProcess workerProcess,
-      BlockWorker blockWorker) {
+      Worker worker) {
     super("Alluxio worker web service", webAddress);
-    Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");
+    Preconditions.checkNotNull(worker, "Block worker cannot be null");
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block")
         .register(JacksonProtobufObjectMapperProvider.class);

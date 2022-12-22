@@ -112,7 +112,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mWebServer =
           new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
               Configuration.global()), this,
-              mRegistry.get(BlockWorker.class));
+              mRegistry.get(Worker.class));
 
       // Random port binding.
       int bindPort;
