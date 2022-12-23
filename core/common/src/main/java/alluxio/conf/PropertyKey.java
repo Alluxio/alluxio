@@ -6521,7 +6521,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey FUSE_DF_MOUNT_POINT_ENABLED =
-      new Builder(Name.FUSE_DF_MOUNT_POINT_ENABLED)
+      booleanBuilder(Name.FUSE_DF_MOUNT_POINT_ENABLED)
           .setDefaultValue(false)
           .setDescription("Run FUSE df in mount point mode, and will display the UFS size")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
