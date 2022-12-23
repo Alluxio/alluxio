@@ -131,7 +131,7 @@ public class InodeTreePersistentState implements Journaled {
           }
           throw new ConcurrentException("root was not initialized.", new RuntimeException());
         }
-     };
+      };
 
   /**
    * @param inodeStore file store which holds inode metadata
