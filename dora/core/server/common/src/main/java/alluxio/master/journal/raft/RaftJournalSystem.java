@@ -545,6 +545,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
     mTransferLeaderAllowed.set(true);
+    super.registerMetrics();
     LOG.info("Gained primacy.");
   }
 
@@ -1202,8 +1203,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
   }
 
+  @VisibleForTesting
   @Nullable
-  private RaftProtos.RoleInfoProto getRaftRoleInfo() {
+  RaftProtos.RoleInfoProto getRaftRoleInfo() {
     GroupInfoReply groupInfo = null;
     try {
       groupInfo = getGroupInfo();
