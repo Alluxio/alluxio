@@ -57,8 +57,6 @@ public class MultiProcessCheckpointTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "500")
         .addProperty(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL,
             compressionLevel)
-        .addProperty(PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP,
-            parallelCompression)
         .setNumMasters(2)
         .setNumWorkers(0)
         .build();
