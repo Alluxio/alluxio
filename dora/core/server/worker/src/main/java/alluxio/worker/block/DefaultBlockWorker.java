@@ -100,8 +100,6 @@ import javax.inject.Named;
 @NotThreadSafe
 public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockWorker.class);
-  private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
 
   /**
    * Used to close resources during stop.
