@@ -4862,14 +4862,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
-      durationBuilder(Name.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS)
-          .setAlias("alluxio.worker.ufs.block.open.timeout.ms")
-          .setDefaultValue("5min")
-          .setDescription("Timeout to open a block from UFS.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
   public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_ENABLED =
       booleanBuilder(Name.WORKER_UFS_INSTREAM_CACHE_ENABLED)
           .setDefaultValue(true)
@@ -8160,8 +8152,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
-    public static final String WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
-        "alluxio.worker.ufs.block.open.timeout";
     public static final String WORKER_UFS_INSTREAM_CACHE_EXPIRATION_TIME =
         "alluxio.worker.ufs.instream.cache.expiration.time";
     public static final String WORKER_UFS_INSTREAM_CACHE_ENABLED =
