@@ -20,15 +20,15 @@ Job Worker 将来自 Job Master 的任务排列（queue)，并通过管理可配
 
 ### 加载
 
-Load Job作为`fs distributedLoad` CLI 命令的一部分，会按特定的副本数将文件加载到 Alluxio。
+Load Job 作为`fs distributedLoad` CLI 命令的一部分，会按特定的副本数将文件加载到 Alluxio。
 
 ### 迁移
 
-Migrate Job 作为`fs distributedCp`  和 `fs distributedMv` CLI 命令的一部分，负责使用固定的 [WriteType]({{ '/cn/overview/Architecture.html#data-flow-write' | relativize_url }}) 进行数据复制/移动。
+Migrate Job 作为`fs distributedCp`  和 `fs distributedMv` CLI 命令的一部分，负责使用固定的 [WriteType]({{ '/en/overview/Architecture.html#data-flow-write' | relativize_url }}) 进行数据复制/移动。
 
 ### 持久化
 
-Persist Job 间接作为`fs persist` CLI 命令的一部分，在使用 ASYNC_THROUGH [WriteType]({{ '/cn/overview/Architecture.html#data-flow-write' | relativize_url }}) 写入 Alluxio 时在后台进行持久化。
+Persist Job 间接作为`fs persist` CLI 命令的一部分，在使用 ASYNC_THROUGH [WriteType]({{ '/en/overview/Architecture.html#data-flow-write' | relativize_url }}) 写入 Alluxio 时在后台进行持久化。
 
 该Job负责将 Alluxio 中的文件持久化到特定的 ufs 路径中。
 
