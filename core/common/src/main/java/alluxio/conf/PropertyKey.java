@@ -2426,19 +2426,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL =
+      intBuilder(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL)
+          .setDefaultValue(-1)
+          .setDescription("The zip compression level of checkpointing rocksdb, the zip"
+                  + " format defines ten levels of compression, ranging from 0"
+                  + " (no compression, but very fast) to 9 (best compression, but slow)."
+                  + " Or -1 for the system default compression level.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
       booleanBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP)
         .setDefaultValue(false)
-        .setDescription("Whether to backup rocksdb in parallel")
-        .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-        .setScope(Scope.MASTER)
-        .build();
-  public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL =
-      intBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL)
-        .setDefaultValue(6)
-        .setDescription("The zip compression level of backing up rocksdb in parallel, the zip"
-            + " format defines ten levels of compression, ranging from 0"
-            + " (no compression, but very fast) to 9 (best compression, but slow)")
+        .setDescription(format("Whether to checkpoint rocksdb in parallel using the number of"
+            + " threads set by %s.", Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS))
         .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
         .setScope(Scope.MASTER)
         .build();
@@ -4857,14 +4859,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.WORKER_WEB_PORT)
           .setDefaultValue(30000)
           .setDescription("The port Alluxio worker's web UI runs on.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
-      durationBuilder(Name.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS)
-          .setAlias("alluxio.worker.ufs.block.open.timeout.ms")
-          .setDefaultValue("5min")
-          .setDescription("Timeout to open a block from UFS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -7690,10 +7684,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.dir.inode";
     public static final String MASTER_METASTORE_DIR_BLOCK =
         "alluxio.master.metastore.dir.block";
+    public static final String MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL =
+        "alluxio.master.metastore.rocks.checkpoint.compression.level";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
         "alluxio.master.metastore.rocks.parallel.backup";
-    public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL =
-        "alluxio.master.metastore.rocks.parallel.backup.compression.level";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =
         "alluxio.master.metastore.rocks.parallel.backup.threads";
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
@@ -8158,8 +8152,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
-    public static final String WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
-        "alluxio.worker.ufs.block.open.timeout";
     public static final String WORKER_UFS_INSTREAM_CACHE_EXPIRATION_TIME =
         "alluxio.worker.ufs.instream.cache.expiration.time";
     public static final String WORKER_UFS_INSTREAM_CACHE_ENABLED =

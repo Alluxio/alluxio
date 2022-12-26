@@ -165,7 +165,7 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
-  public void createUnwriableRootDirSyncRestore() throws Exception {
+  public void createUnwritableRootDirSyncRestore() throws Exception {
     File root = mTemp.newFolder();
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, root.getAbsolutePath());
@@ -184,7 +184,7 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
-  public void createUnwriableRootDirAsyncRestore() throws Exception {
+  public void createUnwritableRootDirAsyncRestore() throws Exception {
     File root = mTemp.newFolder();
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, root.getAbsolutePath());
