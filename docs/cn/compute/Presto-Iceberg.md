@@ -12,7 +12,7 @@ Presto 在 0.256 版本中新增了对 [Iceberg 表](https://iceberg.apache.org/
 * Table of Contents
 {:toc}
 
-要使用 Presto 查询 Iceberg 表，请确保已设置好 Presto，Hive Metastore 和 Alluxio，并且 Presto 可以通过 Alluxio 的文件系统接口访问数据。否则，请参考 Presto 的通用安装和配置[指南]({{ '/en/compute/Presto.html' | relativize_url }}) 进行设置。该指南的大部分内容也适用于 Iceberg 流程，本文档包含了使用 Iceberg 表的详细说明。
+要使用 Presto 查询 Iceberg 表，请确保已设置好 Presto，Hive Metastore 和 Alluxio，并且 Presto 可以通过 Alluxio 的文件系统接口访问数据。否则，请参考 Presto 的通用安装和配置[指南]({{ '/en/compute/Presto.html' | relativize_url }})进行设置。该指南的大部分内容也适用于 Iceberg 流程，本文档包含了使用 Iceberg 表的详细说明。
 ## 部署条件
 
 * Presto 通用设置的所有[部署条件]({{ '/en/compute/Presto.html' | relativize_url }}#部署条件)
@@ -32,7 +32,7 @@ $ ${PRESTO_HOME}/bin/launcher restart
 
 ### 配置 Presto 来使用 Iceberg 连接器
 
-Presto 使用 [Iceberg 连接器](https://prestodb.io/docs/current/connector/iceberg.html) 读取和写入 Iceberg 表。要启用 Iceberg 连接器，在 Presto 的安装目录 `${PRESTO_HOME}/etc/catalog/iceberg.properties` 中为 Iceberg 连接器创建一个 catalog：
+Presto 使用 [Iceberg 连接器](https://prestodb.io/docs/current/connector/iceberg.html)读取和写入 Iceberg 表。要启用 Iceberg 连接器，在 Presto 的安装目录 `${PRESTO_HOME}/etc/catalog/iceberg.properties` 中为 Iceberg 连接器创建一个 catalog：
 
 ```properties
 connector.name=iceberg
