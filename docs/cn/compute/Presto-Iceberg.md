@@ -6,13 +6,13 @@ group: Compute Integrations
 priority: 2
 ---
 
-Presto 在 0.256 版本中新增了对 [Iceberg 表](https://iceberg.apache.org/) 支持的功能。
+Presto 在 0.256 版本中新增了对 [Iceberg 表](https://iceberg.apache.org/)支持的功能。
 
 本文档介绍如何通过 Alluxio 使用 Presto 查询 Iceberg 表。本文档目前处于实验性阶段，此处所述信息可能会发生变化。
 * Table of Contents
 {:toc}
 
-要使用 Presto 查询 Iceberg 表，请确保已设置好 Presto，Hive Metastore 和 Alluxio，并且 Presto 可以通过 Alluxio 的文件系统接口访问数据。否则，请参考 Presto 的通用安装和配置[指南] ({{ '/en/compute/Presto.html' | relativize_url }}) 进行设置。该指南的大部分内容也适用于 Iceberg 流程，本文档包含了使用 Iceberg 表的详细说明。
+要使用 Presto 查询 Iceberg 表，请确保已设置好 Presto，Hive Metastore 和 Alluxio，并且 Presto 可以通过 Alluxio 的文件系统接口访问数据。否则，请参考 Presto 的通用安装和配置[指南]({{ '/en/compute/Presto.html' | relativize_url }}) 进行设置。该指南的大部分内容也适用于 Iceberg 流程，本文档包含了使用 Iceberg 表的详细说明。
 ## 部署条件
 
 * Presto 通用设置的所有[部署条件]({{ '/en/compute/Presto.html' | relativize_url }}#部署条件)
@@ -28,7 +28,7 @@ Presto 在 0.256 版本中新增了对 [Iceberg 表](https://iceberg.apache.org/
 $ ${PRESTO_HOME}/bin/launcher restart
 ```
 
-这里需注意，相同的client jar 文件应位于 Hive 的类路径下。否则，请参阅共同部署 Hive 和 Alluxio 的[章节]({{ '/en/compute/Hive.html' | relativize_url }}#基本设置) 来设置 Hive。
+这里需注意，相同的 client jar 文件应位于 Hive 的类路径下。否则，请参阅共同部署 Hive 和 Alluxio 的[章节]({{ '/en/compute/Hive.html' | relativize_url }}#基本设置)来设置 Hive。
 
 ### 配置 Presto 来使用 Iceberg 连接器
 
@@ -51,7 +51,7 @@ hive.metastore.uri=thrift://localhost:9083
 ./presto --server localhost:8080 --catalog iceberg --debug
 ```
 
-有关 client 的更多信息，请参阅 [使用 Presto 查询表]({{ '/en/compute/Presto.html' | relativize_url }}#query-tables-using-presto) 章节。由于我们要处理的是 Iceberg 表，这里需将 catalog 设置为`iceberg` 。
+有关 client 的更多信息，请参阅[使用 Presto 查询表]({{ '/en/compute/Presto.html' | relativize_url }}#query-tables-using-presto)章节。由于我们要处理的是 Iceberg 表，这里需将 catalog 设置为`iceberg` 。
 在 client 运行以下语句：
 
 ```sql
