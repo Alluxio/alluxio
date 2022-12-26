@@ -659,24 +659,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return -ErrorCodes.EIO();
     }
 
-    long blockSize = 16L * Constants.KB;
-    // fs block size
-    // The size in bytes of the minimum unit of allocation on this file system
-    stbuf.f_bsize.set(blockSize);
-    // The preferred length of I/O requests for files on this file system.
-    stbuf.f_frsize.set(blockSize);
-    // total data blocks in fs
-    stbuf.f_blocks.set(info.getCapacityBytes() / blockSize);
-    // free blocks in fs
-    long freeBlocks = info.getFreeBytes() / blockSize;
-    stbuf.f_bfree.set(freeBlocks);
-    stbuf.f_bavail.set(freeBlocks);
-    // inode info in fs
-    stbuf.f_files.set(UNKNOWN_INODES);
-    stbuf.f_ffree.set(UNKNOWN_INODES);
-    stbuf.f_favail.set(UNKNOWN_INODES);
-    // max file name length
-    stbuf.f_namemax.set(AlluxioFuseUtils.MAX_NAME_LENGTH);
+    setSize(stbuf, info.getCapacityBytes(), info.getFreeBytes());
     return 0;
   }
 
@@ -690,28 +673,32 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     MountPointInfo mountPointInfo = mountPointInfoMap.get(uri.getPath());
 
     if (mountPointInfo != null) {
-      long blockSize = 16L * Constants.KB;
-      // fs block size
-      // The size in bytes of the minimum unit of allocation on this file system
-      stbuf.f_bsize.set(blockSize);
-      // The preferred length of I/O requests for files on this file system.
-      stbuf.f_frsize.set(blockSize);
-      // total data blocks in fs
-      stbuf.f_blocks.set(mountPointInfo.getUfsCapacityBytes() / blockSize);
-      // free blocks in fs
-      long freeBlocks =
-          (mountPointInfo.getUfsCapacityBytes() - mountPointInfo.getUfsUsedBytes()) / blockSize;
-      stbuf.f_bfree.set(freeBlocks);
-      stbuf.f_bavail.set(freeBlocks);
-      // inode info in fs
-      stbuf.f_files.set(UNKNOWN_INODES);
-      stbuf.f_ffree.set(UNKNOWN_INODES);
-      stbuf.f_favail.set(UNKNOWN_INODES);
-      // max file name length
-      stbuf.f_namemax.set(AlluxioFuseUtils.MAX_NAME_LENGTH);
+      setSize(stbuf, mountPointInfo.getUfsCapacityBytes(),
+          mountPointInfo.getUfsCapacityBytes() - mountPointInfo.getUfsUsedBytes());
       return true;
     }
     return false;
+  }
+
+  private void setSize(Statvfs stbuf, long capacityBytes, long freeBytes) {
+    long blockSize = 16L * Constants.KB;
+    // fs block size
+    // The size in bytes of the minimum unit of allocation on this file system
+    stbuf.f_bsize.set(blockSize);
+    // The preferred length of I/O requests for files on this file system.
+    stbuf.f_frsize.set(blockSize);
+    // total data blocks in fs
+    stbuf.f_blocks.set(capacityBytes / blockSize);
+    // free blocks in fs
+    long freeBlocks = freeBytes / blockSize;
+    stbuf.f_bfree.set(freeBlocks);
+    stbuf.f_bavail.set(freeBlocks);
+    // inode info in fs
+    stbuf.f_files.set(UNKNOWN_INODES);
+    stbuf.f_ffree.set(UNKNOWN_INODES);
+    stbuf.f_favail.set(UNKNOWN_INODES);
+    // max file name length
+    stbuf.f_namemax.set(AlluxioFuseUtils.MAX_NAME_LENGTH);
   }
 
   @Nullable
