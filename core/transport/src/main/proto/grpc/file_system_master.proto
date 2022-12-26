@@ -150,7 +150,7 @@ message DeletePOptions {
   optional bool alluxioOnly = 2;
   optional bool unchecked = 3;
   optional FileSystemMasterCommonPOptions commonOptions = 4;
-  optional bool directChildrenUnloaded = 5;
+  optional bool syncDirNextTime = 5;
   optional bool deleteMountPoint = 6;
 }
 message DeletePRequest {

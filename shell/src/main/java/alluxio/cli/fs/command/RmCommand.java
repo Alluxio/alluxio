@@ -70,12 +70,13 @@ public final class RmCommand extends AbstractFileSystemCommand {
           .hasArg(false)
           .desc("remove mount points in the directory")
           .build();
-  private static final Option RESET_DIRECT_CHILDREN_LOADED_STATE =
+  private static final Option SYNC_DIR_NEXT_TIME =
       Option.builder()
-          .longOpt("directChildrenUnloaded")
+          .longOpt("syncDirNextTime")
           .required(false)
           .hasArg(false)
-          .desc("reset data and metadata from Alluxio space only")
+          .desc("Marks a directory to either trigger a metadata sync or skip the "
+              + "metadata sync on next access.")
           .build();
 
   /**
@@ -98,7 +99,7 @@ public final class RmCommand extends AbstractFileSystemCommand {
         .addOption(REMOVE_UNCHECKED_OPTION)
         .addOption(REMOVE_ALLUXIO_ONLY)
         .addOption(DELETE_MOUNT_POINT)
-        .addOption(RESET_DIRECT_CHILDREN_LOADED_STATE);
+        .addOption(SYNC_DIR_NEXT_TIME);
   }
 
   @Override
@@ -119,8 +120,8 @@ public final class RmCommand extends AbstractFileSystemCommand {
     DeletePOptions options =
         DeletePOptions.newBuilder().setRecursive(recursive).setAlluxioOnly(isAlluxioOnly)
             .setDeleteMountPoint(isDeleteMountPoint)
-            .setDirectChildrenUnloaded(
-                cl.hasOption(RESET_DIRECT_CHILDREN_LOADED_STATE.getLongOpt()))
+            .setSyncDirNextTime(
+                cl.hasOption(SYNC_DIR_NEXT_TIME.getLongOpt()))
             .setUnchecked(cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)).build();
 
     mFileSystem.delete(path, options);
