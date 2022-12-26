@@ -17,6 +17,7 @@ import static alluxio.conf.PropertyKey.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUC
 
 import alluxio.ProcessUtils;
 import alluxio.conf.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.master.file.RpcContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalUtils;
@@ -129,7 +130,7 @@ public class InodeTreePersistentState implements Journaled {
           if (root.isPresent()) {
             return root.get();
           }
-          throw new ConcurrentException("root was not initialized.", new RuntimeException());
+          throw new ConcurrentException(new AlluxioException("root was not initialized."));
         }
       };
 
