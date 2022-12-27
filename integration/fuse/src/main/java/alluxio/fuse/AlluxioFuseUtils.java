@@ -74,6 +74,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.regex.Pattern;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -95,6 +96,9 @@ public final class AlluxioFuseUtils {
 
   public static final long MODE_NOT_SET_VALUE = -1;
   public static final String MACFUSE_SUPPORT_MINIMUM_OS_VERSION = "10.9";
+
+  private static final Pattern QUOTA_EXCEEDED_PATTERN =
+      Pattern.compile("(.*)The DiskSpace quota of(.*)exceeded([\\s\\S]*)");
 
   private AlluxioFuseUtils() {}
 
@@ -662,9 +666,29 @@ public final class AlluxioFuseUtils {
         errorMessage = "";
       }
       LOG.error("Failed to {}({}) with unexpected throwable: ", methodName, errorMessage, t);
-      return -ErrorCodes.EIO();
+      return checkExceptionCause(t.getCause());
     }
     return ret;
+  }
+
+  /**
+   * Check exception cause.
+   * @param t cause of throwable
+   * @return error code
+   */
+  public static int checkExceptionCause(Throwable t) {
+    if (t != null && isQuotaExceed(t.getMessage())) {
+      return -ErrorCodes.EDQUOT();
+    }
+    return -ErrorCodes.EIO();
+  }
+
+  /**
+   * @param message error message
+   * @return true if message match quota exceeded pattern
+   */
+  public static boolean isQuotaExceed(String message) {
+    return QUOTA_EXCEEDED_PATTERN.matcher(message).matches();
   }
 
   /**
