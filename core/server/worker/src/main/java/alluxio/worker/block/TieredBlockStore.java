@@ -576,7 +576,6 @@ public class TieredBlockStore implements LocalBlockStore
     BlockMetadataView allocatorView =
         new BlockMetadataAllocatorView(mMetaManager, options.canUseReservedSpace());
     // Convenient way to break on failure cases, no intention to loop
-    LOG.info("Count times");
     while (true) {
       if (options.isForceLocation()) {
         // Try allocating from given location. Skip the review because the location is forced.
