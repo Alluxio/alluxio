@@ -360,7 +360,7 @@ public class DefaultBlockWorkerTest {
 
   @Test
   public void getReport() {
-    BlockHeartbeatReport report = mBlockWorker.getReport();
+    BlockHeartbeatReport report = mBlockWorker.getReporter().generateReport();
     assertEquals(0, report.getAddedBlocks().size());
     assertEquals(0, report.getRemovedBlocks().size());
   }

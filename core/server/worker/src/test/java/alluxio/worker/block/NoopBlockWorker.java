@@ -72,11 +72,6 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public BlockHeartbeatReport getReport() {
-    return null;
-  }
-
-  @Override
   public BlockStoreMeta getStoreMeta() {
     return null;
   }

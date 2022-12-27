@@ -95,14 +95,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
       throws IOException;
 
   /**
-   * Gets a report for the periodic heartbeat to master. Contains the blocks added since the last
-   * heart beat and blocks removed since the last heartbeat.
-   *
-   * @return a block heartbeat report
-   */
-  BlockHeartbeatReport getReport();
-
-  /**
    * Gets the metadata for the entire block store. Contains the block mapping per storage dir and
    * the total capacity and used capacity of each tier. This function is cheap.
    *
