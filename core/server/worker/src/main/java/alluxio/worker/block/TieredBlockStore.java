@@ -310,10 +310,14 @@ public class TieredBlockStore implements LocalBlockStore
   public void updateReplicaInfo(Map<Long, Long> ReplicaInfo) {
     Map<Long, Pair<Long, BlockStoreLocation>> updateReplicaInfo = new HashMap<>();
     for (Map.Entry<Long, Long> entry : ReplicaInfo.entrySet()) {
-      BlockMeta meta = getVolatileBlockMeta(entry.getKey()).get();
-      BlockStoreLocation loc = meta.getBlockLocation();
-      updateReplicaInfo.put(entry.getKey(),
-          new Pair<Long, BlockStoreLocation>(entry.getValue(), loc));
+      try {
+        BlockMeta meta = getVolatileBlockMeta(entry.getKey()).get();
+        BlockStoreLocation loc = meta.getBlockLocation();
+        updateReplicaInfo.put(entry.getKey(),
+            new Pair<Long, BlockStoreLocation>(entry.getValue(), loc));
+      } catch (Exception e) {
+        LOG.warn("Lost Replica Block Id" + String.valueOf(entry.getKey()));
+      }
     }
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
