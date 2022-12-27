@@ -115,9 +115,16 @@ public class MonoBlockStore implements BlockStore {
     try (BlockLock lock = mLocalBlockStore.commitBlockLocked(sessionId, blockId, pinOnCreate)) {
       BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(blockId).get();
       BlockStoreLocation loc = meta.getBlockLocation();
-      blockMasterClient.commitBlock(mWorkerId.get(),
-          mLocalBlockStore.getBlockStoreMeta().getUsedBytesOnTiers().get(loc.tierAlias()),
-          loc.tierAlias(), loc.mediumType(), blockId, meta.getBlockSize());
+      try {
+        blockMasterClient.commitBlock(mWorkerId.get(),
+                mLocalBlockStore.getBlockStoreMeta().getUsedBytesOnTiers().get(loc.tierAlias()),
+                loc.tierAlias(), loc.mediumType(), blockId, meta.getBlockSize());
+      } catch (AlluxioStatusException e) {
+        // cancel sth
+        
+        throw e;
+      }
+      mLocalBlockStore.commitMasterEvent(blockId, loc);
     } catch (AlluxioStatusException e) {
       throw AlluxioRuntimeException.from(e);
     } finally {

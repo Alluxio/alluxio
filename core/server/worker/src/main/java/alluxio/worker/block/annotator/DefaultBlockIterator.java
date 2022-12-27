@@ -391,6 +391,16 @@ public class DefaultBlockIterator implements BlockIterator {
     }
 
     @Override
+    public void onCommitBlockToLocal(long blockId, BlockStoreLocation location) {
+      blockUpdated(blockId, location);
+    }
+
+    @Override
+    public void onCommitBlockToMaster(long blockId, BlockStoreLocation location) {
+      blockUpdated(blockId, location);
+    }
+
+    @Override
     public void onRemoveBlock(long blockId, BlockStoreLocation location) {
       blockRemoved(blockId, location);
     }

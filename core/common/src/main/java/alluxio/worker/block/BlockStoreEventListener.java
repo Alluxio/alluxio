@@ -49,6 +49,20 @@ public interface BlockStoreEventListener {
   void onCommitBlock(long blockId, BlockStoreLocation location);
 
   /**
+   * Actions when committing a temporary block to a {@link BlockStoreLocation} AT LOCAL.
+   * @param blockId the id of the block to commit
+   * @param location the location of the block to be committed
+   */
+  void onCommitBlockToLocal(long blockId, BlockStoreLocation location);
+
+  /**
+   * Actions when committing a temporary block to a {@link BlockStoreLocation} AT MASTER.
+   * @param blockId the id of the block to commit
+   * @param location the location of the block to be committed
+   */
+  void onCommitBlockToMaster(long blockId, BlockStoreLocation location);
+
+  /**
    * Actions when moving a block by a client from a {@link BlockStoreLocation} to another.
    * @param blockId the id of the block to be moved
    * @param oldLocation the source location of the block to be moved

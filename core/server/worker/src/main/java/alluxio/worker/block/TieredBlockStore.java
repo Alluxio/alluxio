@@ -251,13 +251,29 @@ public class TieredBlockStore implements LocalBlockStore {
       lock.close();
       throw e;
     }
-    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-      synchronized (listener) {
-        listener.onCommitBlock(blockId, loc);
-      }
-    }
+    commitLocalEvent(blockId, loc);
     return lock;
   }
+
+  @Override
+  public void commitLocalEvent(long blockId, BlockStoreLocation location) {
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      synchronized (listener) {
+        listener.onCommitBlockToLocal(blockId, location);
+      }
+    }
+  }
+
+  @Override
+  public void commitMasterEvent(long blockId, BlockStoreLocation location) {
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      synchronized (listener) {
+        listener.onCommitBlockToMaster(blockId, location);
+      }
+    }
+  }
+
+
 
   @Override
   public void abortBlock(long sessionId, long blockId) {
