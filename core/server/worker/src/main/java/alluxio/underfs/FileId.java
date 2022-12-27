@@ -52,8 +52,15 @@ public abstract class FileId {
     }
 
     @Override
-    public boolean equals(Object obj) {
-      return mFileId.equals(obj);
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      StringId stringId = (StringId) o;
+      return Objects.equals(mFileId, stringId.mFileId);
     }
 
     @Override
