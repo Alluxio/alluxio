@@ -310,10 +310,14 @@ public class TieredBlockStore implements LocalBlockStore
   public void updateReplicaInfo(Map<Long, Long> ReplicaInfo) {
     Map<Long, Pair<Long, BlockStoreLocation>> updateReplicaInfo = new HashMap<>();
     for (Map.Entry<Long, Long> entry : ReplicaInfo.entrySet()) {
-      BlockMeta meta = getVolatileBlockMeta(entry.getKey()).get();
-      BlockStoreLocation loc = meta.getBlockLocation();
-      updateReplicaInfo.put(entry.getKey(),
-          new Pair<Long, BlockStoreLocation>(entry.getValue(), loc));
+      try {
+        BlockMeta meta = getVolatileBlockMeta(entry.getKey()).get();
+        BlockStoreLocation loc = meta.getBlockLocation();
+        updateReplicaInfo.put(entry.getKey(),
+            new Pair<Long, BlockStoreLocation>(entry.getValue(), loc));
+      } catch (Exception e) {
+        LOG.warn("Lost Replica Block Id" + String.valueOf(entry.getKey()));
+      }
     }
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
@@ -572,6 +576,7 @@ public class TieredBlockStore implements LocalBlockStore
     BlockMetadataView allocatorView =
         new BlockMetadataAllocatorView(mMetaManager, options.canUseReservedSpace());
     // Convenient way to break on failure cases, no intention to loop
+    LOG.info("Count times");
     while (true) {
       if (options.isForceLocation()) {
         // Try allocating from given location. Skip the review because the location is forced.
