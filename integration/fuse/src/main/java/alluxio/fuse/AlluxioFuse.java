@@ -292,6 +292,10 @@ public final class AlluxioFuse {
           PropertyKey propertyKey = PropertyKey.fromString(key);
           conf.set(propertyKey, propertyKey.parseValue(value), Source.RUNTIME);
           LOG.info("Set Alluxio property key({}={}) from command line input", key, value);
+        } else if (key.equals("fuse")) {
+          conf.set(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION,
+              PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION.parseValue(value), Source.RUNTIME);
+          LOG.info("Set libfuse version to {} from command line input", value);
         } else if (key.equals("data_cache")) {
           conf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED, true, Source.RUNTIME);
           conf.set(PropertyKey.USER_CLIENT_CACHE_DIRS,
