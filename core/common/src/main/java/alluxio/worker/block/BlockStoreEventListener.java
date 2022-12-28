@@ -42,7 +42,7 @@ public interface BlockStoreEventListener {
   void onAbortBlock(long blockId);
 
   /**
-   * Actions when committing a temporary block to a {@link BlockStoreLocation} AT LOCAL.
+   * Actions when committing a temporary block to a {@link BlockStoreLocation} at local block store.
    * @param blockId the id of the block to commit
    * @param location the location of the block to be committed
    */
