@@ -94,6 +94,9 @@ public class LocalPageStore implements PageStore {
     try (RandomAccessFile localFile = new RandomAccessFile(pagePath.toString(), "r")) {
       int bytesSkipped = localFile.skipBytes(pageOffset);
       if (pageOffset != bytesSkipped) {
+        long pageLength = pagePath.toFile().length();
+        Preconditions.checkArgument(pageOffset <= pageLength,
+            "page offset %s exceeded page size %s", pageOffset, pageLength);
         throw new IOException(
             String.format("Failed to read page %s (%s) from offset %s: %s bytes skipped",
                 pageId, pagePath, pageOffset, bytesSkipped));
