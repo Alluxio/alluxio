@@ -183,12 +183,16 @@ public class InodeTreePersistentState implements Journaled {
   }
 
   /**
+   *
    * @return the root of the inode tree
    */
   public InodeDirectory getRoot() {
     try {
       return mRootInitializer.get();
     } catch (ConcurrentException e) {
+      // getRoot() will be called before the root is initialized and the value will be null
+      // We do not want the LazyInitializer to cache the null value forever
+      // Therefore we throw an exception on null and cache the real value
       return null;
     }
   }
