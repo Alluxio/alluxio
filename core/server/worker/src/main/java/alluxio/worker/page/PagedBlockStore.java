@@ -188,6 +188,7 @@ public class PagedBlockStore implements BlockStore {
     try {
       bmc.commitBlock(mWorkerId.get(), mPageMetaStore.getStoreMeta().getUsedBytes(), DEFAULT_TIER,
           DEFAULT_MEDIUM, blockId, blockMeta.getBlockSize());
+      triggerOnBlockCommitttedToLocalEvent(blockId);
     } catch (IOException e) {
       throw new AlluxioRuntimeException(Status.UNAVAILABLE,
           ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e, ErrorType.Internal,
@@ -195,16 +196,14 @@ public class PagedBlockStore implements BlockStore {
     } finally {
       mBlockMasterClientPool.release(bmc);
     }
-    BlockStoreLocation blockLocation =
-        new BlockStoreLocation(DEFAULT_TIER, getDirIndexOfBlock(blockId));
-
-    commitLocalEvent(blockId, blockLocation);
   }
 
-  public void commitLocalEvent(long blockId, BlockStoreLocation location) {
+  public void triggerOnBlockCommitttedToLocalEvent(long blockId) {
+    BlockStoreLocation blockLocation =
+            new BlockStoreLocation(DEFAULT_TIER, getDirIndexOfBlock(blockId));
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onCommitBlockToLocal(blockId, location);
+        listener.onCommitBlockToLocal(blockId, blockLocation);
       }
     }
   }
