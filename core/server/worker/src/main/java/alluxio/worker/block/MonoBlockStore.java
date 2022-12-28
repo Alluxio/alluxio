@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -70,6 +71,10 @@ public class MonoBlockStore implements BlockStore {
   private final UnderFileSystemBlockStore mUnderFileSystemBlockStore;
   private final BlockMasterClientPool mBlockMasterClientPool;
   private final AtomicReference<Long> mWorkerId;
+
+  private final List<BlockStoreEventListener> mBlockStoreEventListeners =
+          new CopyOnWriteArrayList<>();
+
   private final ScheduledExecutorService mDelayer =
       new ScheduledThreadPoolExecutor(1, ThreadFactoryUtils.build("LoadTimeOut", true));
 
@@ -118,12 +123,20 @@ public class MonoBlockStore implements BlockStore {
       blockMasterClient.commitBlock(mWorkerId.get(),
           mLocalBlockStore.getBlockStoreMeta().getUsedBytesOnTiers().get(loc.tierAlias()),
           loc.tierAlias(), loc.mediumType(), blockId, meta.getBlockSize());
-      mLocalBlockStore.commitMasterEvent(blockId, loc);
+      commitMasterEvent(blockId, loc);
     } catch (AlluxioStatusException e) {
       throw AlluxioRuntimeException.from(e);
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);
       DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.dec();
+    }
+  }
+
+  public void commitMasterEvent(long blockId, BlockStoreLocation location) {
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      synchronized (listener) {
+        listener.onCommitBlockToMaster(blockId, location);
+      }
     }
   }
 
@@ -267,6 +280,8 @@ public class MonoBlockStore implements BlockStore {
 
   @Override
   public void registerBlockStoreEventListener(BlockStoreEventListener listener) {
+    LOG.debug("registerBlockStoreEventListener: listener={}", listener);
+    mBlockStoreEventListeners.add(listener);
     mLocalBlockStore.registerBlockStoreEventListener(listener);
   }
 
