@@ -24,6 +24,7 @@ import io.grpc.ServerInterceptor;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.netty.NettyServerBuilder;
+import io.grpc.protobuf.services.ProtoReflectionService;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
@@ -51,10 +52,13 @@ public final class GrpcServerBuilder {
   /** Alluxio configuration.  */
   private final AlluxioConfiguration mConfiguration;
 
+  private final boolean mGrpcReflectionEnabled;
+
   private GrpcServerBuilder(GrpcServerAddress serverAddress,
       AuthenticationServer authenticationServer, AlluxioConfiguration conf) {
     mNettyServerBuilder = NettyServerBuilder.forAddress(serverAddress.getSocketAddress());
     mConfiguration = conf;
+    mGrpcReflectionEnabled = conf.getBoolean(PropertyKey.GRPC_REFLECTION_ENABLED);
 
     if (conf.getBoolean(alluxio.conf.PropertyKey.NETWORK_TLS_ENABLED)) {
       sslContext(SslContextProvider.Factory.create(mConfiguration).getServerSSLContext());
@@ -260,6 +264,9 @@ public final class GrpcServerBuilder {
   public GrpcServer build() {
     addService(new GrpcService(new ServiceVersionClientServiceHandler(mServices))
         .disableAuthentication());
+    if (mGrpcReflectionEnabled) {
+      addService(new GrpcService(ProtoReflectionService.newInstance()).disableAuthentication());
+    }
     return new GrpcServer(mNettyServerBuilder.build(), mAuthenticationServer, mCloser,
         mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT));
   }
