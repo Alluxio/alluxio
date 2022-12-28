@@ -209,6 +209,7 @@ public class PagedBlockStore implements BlockStore {
     }
   }
 
+  // The thing is the function above called 'commitBlockToMaster', but the commitEvent action is same to 'commitLocalEvent', is it necessary to solve such conflict🤔
   public void commitMasterEvent(long blockId, BlockStoreLocation location) {
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
