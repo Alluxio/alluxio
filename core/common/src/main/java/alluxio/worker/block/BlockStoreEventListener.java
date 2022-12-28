@@ -49,7 +49,7 @@ public interface BlockStoreEventListener {
   void onCommitBlockToLocal(long blockId, BlockStoreLocation location);
 
   /**
-   * Actions when committing a temporary block to a {@link BlockStoreLocation} AT MASTER.
+   * Actions when a temporary block has been committed to the alluxio master.
    * @param blockId the id of the block to commit
    * @param location the location of the block to be committed
    */
