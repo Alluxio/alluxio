@@ -260,18 +260,6 @@ public class TieredBlockStore implements LocalBlockStore {
     }
   }
 
-  // 'commitMasterEvent' also exist in 'MonoBlockStore' now since 'MonoBlockStore' has listeners. Maybe we should remove 'commitMasterEvent'
-  @Override
-  public void commitMasterEvent(long blockId, BlockStoreLocation location) {
-    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-      synchronized (listener) {
-        listener.onCommitBlockToMaster(blockId, location);
-      }
-    }
-  }
-
-
-
   @Override
   public void abortBlock(long sessionId, long blockId) {
     LOG.debug("abortBlock: sessionId={}, blockId={}", sessionId, blockId);
