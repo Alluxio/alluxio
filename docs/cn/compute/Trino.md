@@ -18,7 +18,7 @@ Alluxio 允许 Trino 从各种数据源获取数据，并将经常访问的数�
 ## 前置条件
 
 * Java 配置为 Java 11，版本不低于 11.0.7，64 位，与 Trino 要求一致
-* Python 版本为 2.6.x, 2.7.x, 或者 3.x, 与 Trino 要求一致
+* Python 版本为 2.6.x，2.7.x，或者 3.x，与 Trino 要求一致
 * [部署 Trino](https://trino.io/docs/current/installation/deployment.html)
 这篇指南用 `Trino-352` 进行测试
 * Alluxio 已经被配置好而且开始运行
@@ -58,7 +58,7 @@ $ ${Trino_HOME}/bin/launcher restart
 ### 在 Alluxio 上创建 Hive table
 
 下面是一个在Hive中创建一个由Alluxio中的文件支持的内部表的例子。
-你可以从 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/) 下载数据文件 (e.g. `ml-100k.zip`)。
+你可以从 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/) 下载数据文件（e.g. `ml-100k.zip`）。
 解压该文件然后将 `u.user` 上传至 Alluxio 中的 `/ml-100k/`:
 
 ```console
@@ -93,7 +93,7 @@ $ ${HIVE_HOME}/bin/hive --service metastore
 
 ### 启动 Trino 服务器
 
-启动你的 Trino 服务器。Trino 服务器默认情况下在端口 8080上运行 (在  `${Trino_HOME}/etc/config.properties`  中的 `http-server.http.port` 设置):
+启动你的 Trino 服务器。Trino 服务器默认情况下在端口 `8080` 上运行 (在 `${Trino_HOME}/etc/config.properties` 中的 `http-server.http.port` 设置):
 
 ```console
 $ ${Trino_HOME}/bin/launcher run
@@ -103,7 +103,7 @@ $ ${Trino_HOME}/bin/launcher run
 
 按照 [Trino CLI 说明](https://trino.io/docs/current/installation/cli.html)下载 `trino-cli-<Trino_VERSION>-executable.jar`，将其重命名为 `trino`，并使用 `chmod +x` 命令使其可执行（有时可执行文件 `trino` 存在于 `${trino_HOME}/bin/trino` 中，您可以直接使用）。
 
-运行单个查询（将`localhost:8080` 替换为实际的 Trino 服务器主机名和端口）：
+运行单个查询（将 `localhost:8080` 替换为实际的 Trino 服务器主机名和端口）：
 
 ```console
 $ ./trino --server localhost:8080 --execute "use default; select * from u_user limit 10;" \
@@ -121,13 +121,13 @@ $ ./trino --server localhost:8080 --execute "use default; select * from u_user l
 -Xbootclasspath/a:<path-to-alluxio-conf>
 ```
 
-或者，将 Alluxio 配置项添加到 Hadoop 配置文件（(`core-site.xml`，`hdfs-site.xml`）中，并在文件 `${Trino_HOME}/etc/catalog/hive.properties` 中将每一个 Trino worker的属性 `hive.config.resources` 指向 Hadoop 资源的位置。
+或者，将 Alluxio 配置项添加到 Hadoop 配置文件（`core-site.xml`，`hdfs-site.xml`）中，并在文件 `${Trino_HOME}/etc/catalog/hive.properties` 中将每一个 Trino worker的属性 `hive.config.resources` 指向 Hadoop 资源的位置。
 
 ```
 hive.config.resources=/<PATH_TO_CONF>/core-site.xml,/<PATH_TO_CONF>/hdfs-site.xml
 ```
 
-#### 示例: 连接高可用模式（HA）的 Alluxio 集群
+#### 示例：连接高可用模式（HA）的 Alluxio 集群
 
 如果 Alluxio HA 集群使用Embedded Journal模式的高可用，请在 classpath 上的 `alluxio-site.properties` 文件中适当设置 Alluxio 集群属性。
 
