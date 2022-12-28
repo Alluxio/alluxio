@@ -30,9 +30,6 @@ public abstract class AbstractBlockStoreEventListener implements BlockStoreEvent
   public void onAbortBlock(long blockId) {}
 
   @Override
-  public void onCommitBlock(long blockId, BlockStoreLocation location) {}
-
-  @Override
   public void onCommitBlockToLocal(long blockId, BlockStoreLocation location) {}
 
   @Override

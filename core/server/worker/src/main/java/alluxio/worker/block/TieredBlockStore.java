@@ -231,11 +231,7 @@ public class TieredBlockStore implements LocalBlockStore {
         sessionId, blockId, pinOnCreate);
     try (BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.WRITE)) {
       BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
-      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-        synchronized (listener) {
-          listener.onCommitBlock(blockId, loc);
-        }
-      }
+      commitLocalEvent(blockId, loc);
     }
   }
 

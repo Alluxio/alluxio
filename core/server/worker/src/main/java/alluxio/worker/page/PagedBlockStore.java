@@ -197,12 +197,26 @@ public class PagedBlockStore implements BlockStore {
     }
     BlockStoreLocation blockLocation =
         new BlockStoreLocation(DEFAULT_TIER, getDirIndexOfBlock(blockId));
+
+    commitLocalEvent(blockId, blockLocation);
+  }
+
+  public void commitLocalEvent(long blockId, BlockStoreLocation location) {
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onCommitBlock(blockId, blockLocation);
+        listener.onCommitBlockToLocal(blockId, location);
       }
     }
   }
+
+  public void commitMasterEvent(long blockId, BlockStoreLocation location) {
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      synchronized (listener) {
+        listener.onCommitBlockToMaster(blockId, location);
+      }
+    }
+  }
+
 
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
