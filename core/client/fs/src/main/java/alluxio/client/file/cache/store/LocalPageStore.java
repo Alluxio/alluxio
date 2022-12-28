@@ -22,6 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FileUtils;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -90,22 +91,18 @@ public class LocalPageStore implements PageStore {
       boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     Path pagePath = getPagePath(pageId, isTemporary);
-    if (!Files.exists(pagePath)) {
-      throw new PageNotFoundException(pagePath.toString());
-    }
-    long pageLength = pagePath.toFile().length();
-    Preconditions.checkArgument(pageOffset <= pageLength, "page offset %s exceeded page size %s",
-        pageOffset, pageLength);
     try (RandomAccessFile localFile = new RandomAccessFile(pagePath.toString(), "r")) {
       int bytesSkipped = localFile.skipBytes(pageOffset);
       if (pageOffset != bytesSkipped) {
+        long pageLength = pagePath.toFile().length();
+        Preconditions.checkArgument(pageOffset <= pageLength,
+            "page offset %s exceeded page size %s", pageOffset, pageLength);
         throw new IOException(
             String.format("Failed to read page %s (%s) from offset %s: %s bytes skipped",
                 pageId, pagePath, pageOffset, bytesSkipped));
       }
       int bytesRead = 0;
-      int bytesLeft = (int) Math.min(pageLength - pageOffset, target.remaining());
-      bytesLeft = Math.min(bytesLeft, bytesToRead);
+      int bytesLeft = Math.min((int) target.remaining(), bytesToRead);
       while (bytesLeft > 0) {
         int bytes = target.readFromFile(localFile, bytesLeft);
         if (bytes <= 0) {
@@ -115,6 +112,8 @@ public class LocalPageStore implements PageStore {
         bytesLeft -= bytes;
       }
       return bytesRead;
+    } catch (FileNotFoundException e) {
+      throw new PageNotFoundException(pagePath.toString());
     }
   }
 
