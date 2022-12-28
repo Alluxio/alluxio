@@ -123,20 +123,16 @@ public class MonoBlockStore implements BlockStore {
       blockMasterClient.commitBlock(mWorkerId.get(),
           mLocalBlockStore.getBlockStoreMeta().getUsedBytesOnTiers().get(loc.tierAlias()),
           loc.tierAlias(), loc.mediumType(), blockId, meta.getBlockSize());
-      commitMasterEvent(blockId, loc);
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        synchronized (listener) {
+          listener.onCommitBlockToMaster(blockId, loc);
+        }
+      }
     } catch (AlluxioStatusException e) {
       throw AlluxioRuntimeException.from(e);
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);
       DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.dec();
-    }
-  }
-
-  public void commitMasterEvent(long blockId, BlockStoreLocation location) {
-    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-      synchronized (listener) {
-        listener.onCommitBlockToMaster(blockId, location);
-      }
     }
   }
 
