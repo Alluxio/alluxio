@@ -401,9 +401,11 @@ public class AlluxioJniFuseFileSystemTest {
     setUpOpenMock(expectedPath);
 
     FileInStream is = mock(FileInStream.class);
-    when(mFileSystem.openFile(expectedPath)).thenReturn(is);
+    URIStatus status = mFileSystem.getStatus(expectedPath);
+    OpenFilePOptions options = OpenFilePOptions.getDefaultInstance();
+    when(mFileSystem.openFile(status, options)).thenReturn(is);
     mFuseFs.open("/foo/bar", mFileInfo);
-    verify(mFileSystem).openFile(expectedPath);
+    verify(mFileSystem).openFile(status, options);
   }
 
   @Test
