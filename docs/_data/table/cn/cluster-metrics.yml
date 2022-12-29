@@ -1,0 +1,66 @@
+Cluster.ActiveRpcReadCount:
+  '由 worker 管理的活跃 read-RPC 数量'
+Cluster.ActiveRpcWriteCount:
+  '由 worker 管理的活跃 write-RPC 数量'
+Cluster.BytesReadDirect:
+  'Total number of bytes read from all workers without external RPC involved. Data exists in worker storage or is fetched by workers from UFSes. This records data read by worker internal calls (e.g. clients embedded in workers).'
+Cluster.BytesReadDirectThroughput:
+  'Total number of bytes read from all workers without external RPC involved. Data exists in worker storage or is fetched by workers from UFSes. This records data read by worker internal calls (e.g. clients embedded in workers).'
+Cluster.BytesReadDomain:
+  'Total number of bytes read from all works via domain socket'
+Cluster.BytesReadDomainThroughput:
+  'Bytes read per minute throughput from all workers via domain socket'
+Cluster.BytesReadLocal:
+  'Total number of bytes short-circuit read reported by all clients. Each client reads data from the collocated worker data storage directly.'
+Cluster.BytesReadLocalThroughput:
+  'Bytes per minute throughput short-circuit read reported by all clients'
+Cluster.BytesReadPerUfs:
+  'Total number of bytes read from a specific UFS by all workers'
+Cluster.BytesReadRemote:
+  'Total number of bytes read from all workers via network (RPC). Data exists in worker storage or is fetched by workers from UFSes. This does not include short-circuit local reads and domain socket reads'
+Cluster.BytesReadRemoteThroughput:
+  'Bytes read per minute throughput from all workers via network (RPC calls). Data exists in worker storage or is fetched by workers from UFSes. This does not include short-circuit local reads and domain socket reads'
+Cluster.BytesReadUfsAll:
+  'Total number of bytes read from all Alluxio UFSes by all workers'
+Cluster.BytesReadUfsThroughput:
+  'Bytes read per minute throughput from all Alluxio UFSes by all workers'
+Cluster.BytesWrittenDomain:
+  'Total number of bytes written to all workers via domain socket'
+Cluster.BytesWrittenDomainThroughput:
+  'Throughput of bytes written per minute to all workers via domain socket'
+Cluster.BytesWrittenLocal:
+  'Total number of bytes short-circuit written to local worker data storage by all clients'
+Cluster.BytesWrittenLocalThroughput:
+  'Bytes per minute throughput written to local worker data storage by all clients'
+Cluster.BytesWrittenPerUfs:
+  'Total number of bytes written to a specific Alluxio UFS by all workers'
+Cluster.BytesWrittenRemote:
+  'Total number of bytes written to workers via network (RPC). Data is written to worker storage or is written by workers to underlying UFSes. This does not include short-circuit local writes and domain socket writes.'
+Cluster.BytesWrittenRemoteThroughput:
+  'Bytes write per minute throughput to workers via network (RPC). Data is written to worker storage or is written by workers to underlying UFSes. This does not include short-circuit local writes and domain socket writes.'
+Cluster.BytesWrittenUfsAll:
+  'Total number of bytes written to all Alluxio UFSes by all workers'
+Cluster.BytesWrittenUfsThroughput:
+  'Bytes write per minute throughput to all Alluxio UFSes by all workers'
+Cluster.CacheHitRate:
+  'Cache hit rate: (# bytes read from cache) / (# bytes requested)'
+Cluster.CapacityFree:
+  'Total free bytes on all tiers, on all workers of Alluxio'
+Cluster.CapacityTotal:
+  'Total capacity (in bytes) on all tiers, on all workers of Alluxio'
+Cluster.CapacityUsed:
+  'Total used bytes on all tiers, on all workers of Alluxio'
+Cluster.LeaderId:
+  'Display current leader id'
+Cluster.LeaderIndex:
+  'Index of current leader'
+Cluster.LostWorkers:
+  'Total number of lost workers inside the cluster'
+Cluster.RootUfsCapacityFree:
+  'Free capacity of the Alluxio root UFS in bytes'
+Cluster.RootUfsCapacityTotal:
+  'Total capacity of the Alluxio root UFS in bytes'
+Cluster.RootUfsCapacityUsed:
+  'Used capacity of the Alluxio root UFS in bytes'
+Cluster.Workers:
+  'Total number of active workers inside the cluster'
