@@ -3,64 +3,64 @@ Cluster.ActiveRpcReadCount:
 Cluster.ActiveRpcWriteCount:
   '由 worker 管理的活跃 write-RPC 数量'
 Cluster.BytesReadDirect:
-  'Total number of bytes read from all workers without external RPC involved. Data exists in worker storage or is fetched by workers from UFSes. This records data read by worker internal calls (e.g. clients embedded in workers).'
+  '从所有外部 RPC 的 worker 线程读取的字节数。数据存在于 worker 存储中或者由 worker 从 UFS 获取。这记录了 worker 内部调用（e.g. 嵌入在 worker 中的客户端）读取的数据'
 Cluster.BytesReadDirectThroughput:
-  'Total number of bytes read from all workers without external RPC involved. Data exists in worker storage or is fetched by workers from UFSes. This records data read by worker internal calls (e.g. clients embedded in workers).'
+  '从所有外部 RPC 的 worker 线程读取的字节数。数据存在于 worker 存储中或者由 worker 从 UFS 获取。这记录了 worker 内部调用（e.g. 嵌入在 worker 中的客户端）读取的数据。'
 Cluster.BytesReadDomain:
-  'Total number of bytes read from all works via domain socket'
+  '从所有 worker 通过域套接字读取的总字节数'
 Cluster.BytesReadDomainThroughput:
-  'Bytes read per minute throughput from all workers via domain socket'
+  '通过域套接字从所有 worker 每分钟读取字节的吞吐量'
 Cluster.BytesReadLocal:
-  'Total number of bytes short-circuit read reported by all clients. Each client reads data from the collocated worker data storage directly.'
+  '由所有客户端报告的短路读取的总字节数。每个客户端直接从与其配对的 worker 存储中读取数据'
 Cluster.BytesReadLocalThroughput:
-  'Bytes per minute throughput short-circuit read reported by all clients'
+  '由所有客户端报告的每分钟短路读取字节的吞吐量'
 Cluster.BytesReadPerUfs:
-  'Total number of bytes read from a specific UFS by all workers'
+  '所有 worker 从特定 UFS 读取的字节数总和'
 Cluster.BytesReadRemote:
-  'Total number of bytes read from all workers via network (RPC). Data exists in worker storage or is fetched by workers from UFSes. This does not include short-circuit local reads and domain socket reads'
+  '从所有 worker 通过网络（RPC）读取的总字节数。数据存在于 worker 存储中，或者由 worker 从 UFS 获取。这不包括本地短路读和域套接字读'
 Cluster.BytesReadRemoteThroughput:
-  'Bytes read per minute throughput from all workers via network (RPC calls). Data exists in worker storage or is fetched by workers from UFSes. This does not include short-circuit local reads and domain socket reads'
+  '从所有 worker 通过网络（RPC 调用）每分钟读取的字节数吞吐量。数据存在于 worker 存储中，或者由 worker 从 UFS 获取。这不包括短路本地读取和域套接字读取'
 Cluster.BytesReadUfsAll:
-  'Total number of bytes read from all Alluxio UFSes by all workers'
+  '所有 worker 从所有 Alluxio UFS 读取的字节数总和'
 Cluster.BytesReadUfsThroughput:
-  'Bytes read per minute throughput from all Alluxio UFSes by all workers'
+  '所有 worker 从所有 Alluxio UFS 每分钟读取的字节数吞吐量'
 Cluster.BytesWrittenDomain:
-  'Total number of bytes written to all workers via domain socket'
+  '通过域套接字写入所有 worker 的字节数总和'
 Cluster.BytesWrittenDomainThroughput:
-  'Throughput of bytes written per minute to all workers via domain socket'
+  '通过域套接字向所有 worker 每分钟写入字节的吞吐量'
 Cluster.BytesWrittenLocal:
-  'Total number of bytes short-circuit written to local worker data storage by all clients'
+  '所有客户端短路写入到本地 worker 数据存储的字节数总和'
 Cluster.BytesWrittenLocalThroughput:
-  'Bytes per minute throughput written to local worker data storage by all clients'
+  '所有客户端每分钟写入本地 worker 数据存储字节的吞吐量'
 Cluster.BytesWrittenPerUfs:
-  'Total number of bytes written to a specific Alluxio UFS by all workers'
+  '所有 worker 向特定的 Alluxio UFS 写入的字节数总和'
 Cluster.BytesWrittenRemote:
-  'Total number of bytes written to workers via network (RPC). Data is written to worker storage or is written by workers to underlying UFSes. This does not include short-circuit local writes and domain socket writes.'
+  '通过网络（RPC）写入 worker 的字节数总和。数据被写入 worker 存储，或者由 worker 写入底层 UFS。其中不包括短路本地写入和域套接字写入'
 Cluster.BytesWrittenRemoteThroughput:
-  'Bytes write per minute throughput to workers via network (RPC). Data is written to worker storage or is written by workers to underlying UFSes. This does not include short-circuit local writes and domain socket writes.'
+  '通过网络（RPC）每分钟向 worker 写入字节的吞吐量。数据被写入 worker 存储，或者由 worker 写入底层 UFS。其中不包括短路本地写入和域套接字写入'
 Cluster.BytesWrittenUfsAll:
-  'Total number of bytes written to all Alluxio UFSes by all workers'
+  '所有 worker 向所有 Alluxio UFS 写入的字节数总和'
 Cluster.BytesWrittenUfsThroughput:
-  'Bytes write per minute throughput to all Alluxio UFSes by all workers'
+  '所有 worker 每分钟向所有 Alluxio UFS 写入字节的吞吐量'
 Cluster.CacheHitRate:
-  'Cache hit rate: (# bytes read from cache) / (# bytes requested)'
+  '缓存命中率：（#从缓存读取的字节数）/（#请求的字节数）'
 Cluster.CapacityFree:
-  'Total free bytes on all tiers, on all workers of Alluxio'
+  'Alluxio 所有 worker 上所有层的总空闲字节数'
 Cluster.CapacityTotal:
-  'Total capacity (in bytes) on all tiers, on all workers of Alluxio'
+  'Alluxio 所有 worker 上所有层的总容量（以字节为单位）'
 Cluster.CapacityUsed:
-  'Total used bytes on all tiers, on all workers of Alluxio'
+  'Alluxio 所有 worker 上所有层的使用字节总数'
 Cluster.LeaderId:
-  'Display current leader id'
+  '展示当前 leader id'
 Cluster.LeaderIndex:
-  'Index of current leader'
+  '当前 leader 的 index'
 Cluster.LostWorkers:
-  'Total number of lost workers inside the cluster'
+  '集群内丢失的 worker 总数'
 Cluster.RootUfsCapacityFree:
-  'Free capacity of the Alluxio root UFS in bytes'
+  'Alluxio 根 UFS 的空闲容量（以字节为单位）'
 Cluster.RootUfsCapacityTotal:
-  'Total capacity of the Alluxio root UFS in bytes'
+  'Alluxio 根 UFS 的总容量（以字节为单位）'
 Cluster.RootUfsCapacityUsed:
-  'Used capacity of the Alluxio root UFS in bytes'
+  'Alluxio 根 UFS 的使用容量（以字节为单位）'
 Cluster.Workers:
-  'Total number of active workers inside the cluster'
+  '集群内活跃的 worker 总数'
