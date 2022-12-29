@@ -188,7 +188,13 @@ public class PagedBlockStore implements BlockStore {
     try {
       bmc.commitBlock(mWorkerId.get(), mPageMetaStore.getStoreMeta().getUsedBytes(), DEFAULT_TIER,
           DEFAULT_MEDIUM, blockId, blockMeta.getBlockSize());
-      triggerOnBlockCommitttedToLocalEvent(blockId);
+      BlockStoreLocation blockLocation =
+              new BlockStoreLocation(DEFAULT_TIER, getDirIndexOfBlock(blockId));
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        synchronized (listener) {
+          listener.onCommitBlockToLocal(blockId, blockLocation);
+        }
+      }
     } catch (IOException e) {
       throw new AlluxioRuntimeException(Status.UNAVAILABLE,
           ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e, ErrorType.Internal,
@@ -197,26 +203,6 @@ public class PagedBlockStore implements BlockStore {
       mBlockMasterClientPool.release(bmc);
     }
   }
-
-  public void triggerOnBlockCommitttedToLocalEvent(long blockId) {
-    BlockStoreLocation blockLocation =
-            new BlockStoreLocation(DEFAULT_TIER, getDirIndexOfBlock(blockId));
-    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-      synchronized (listener) {
-        listener.onCommitBlockToLocal(blockId, blockLocation);
-      }
-    }
-  }
-
-  // The thing is the function above called 'commitBlockToMaster', but the commitEvent action is same to 'commitLocalEvent', is it necessary to solve such conflict🤔
-  public void commitMasterEvent(long blockId, BlockStoreLocation location) {
-    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-      synchronized (listener) {
-        listener.onCommitBlockToMaster(blockId, location);
-      }
-    }
-  }
-
 
   @Override
   public String createBlock(long sessionId, long blockId, int tier,

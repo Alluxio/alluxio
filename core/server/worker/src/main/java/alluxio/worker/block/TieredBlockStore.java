@@ -231,7 +231,11 @@ public class TieredBlockStore implements LocalBlockStore {
         sessionId, blockId, pinOnCreate);
     try (BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.WRITE)) {
       BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
-      commitLocalEvent(blockId, loc);
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        synchronized (listener) {
+          listener.onCommitBlockToLocal(blockId, loc);
+        }
+      }
     }
   }
 
@@ -247,17 +251,12 @@ public class TieredBlockStore implements LocalBlockStore {
       lock.close();
       throw e;
     }
-    commitLocalEvent(blockId, loc);
-    return lock;
-  }
-
-  @Override
-  public void commitLocalEvent(long blockId, BlockStoreLocation location) {
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onCommitBlockToLocal(blockId, location);
+        listener.onCommitBlockToLocal(blockId, loc);
       }
     }
+    return lock;
   }
 
   @Override

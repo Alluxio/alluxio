@@ -97,8 +97,6 @@ public interface LocalBlockStore
    */
   BlockLock commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate);
 
-  void commitLocalEvent(long blockId, BlockStoreLocation location);
-
   /**
    * Aborts a temporary block. The metadata of this block will not be added, its data will be
    * deleted and the space will be reclaimed. Since a temp block is "private" to the writer, this
