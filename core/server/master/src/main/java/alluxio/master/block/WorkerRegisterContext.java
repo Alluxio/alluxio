@@ -67,15 +67,6 @@ public class WorkerRegisterContext implements Closeable {
   }
 
   /**
-   * Getter for worker ID.
-   *
-   * @return worker ID
-   */
-  public long getWorkerId() {
-    return mWorkerInfo.getId();
-  }
-
-  /**
    * Checks whether the stream is still open.
    * If not open, no more operation should be permitted on the stream,
    * and this stream has been closed and all the locks have been released.

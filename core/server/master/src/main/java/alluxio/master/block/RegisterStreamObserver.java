@@ -128,7 +128,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
       cleanup();
       mMasterResponseObserver.onError(new DeadlineExceededException(t).toGrpcStatusException());
       LOG.warn("Worker {} register stream has timed out. Error sent to the worker.",
-          mContext.getWorkerId());
+          mContext.getWorkerInfo().getId());
       return;
     }
     // Otherwise the exception is from the worker, we only log one line instead of the full trace.
@@ -174,7 +174,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
         mMasterResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
       }
     }, methodName, false, true, mMasterResponseObserver, "WorkerId=%s",
-            mContext == null ? "NONE" : mContext.getWorkerId());
+            mContext == null ? "NONE" : mContext.getWorkerInfo().getId());
   }
 
   // Only the 1st message in the stream has metadata.
@@ -189,9 +189,9 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
         LOG.debug("The stream is closed before the context is initialized. Nothing to clean up.");
         return;
       }
-      LOG.debug("Unlocking worker {}", mContext.getWorkerId());
+      LOG.debug("Unlocking worker {}", mContext.getWorkerInfo().getId());
       mContext.close();
-      LOG.debug("Context closed for worker {}", mContext.getWorkerId());
+      LOG.debug("Context closed for worker {}", mContext.getWorkerInfo().getId());
 
       Preconditions.checkState(!mContext.isOpen(),
           "Failed to properly close the WorkerRegisterContext!");

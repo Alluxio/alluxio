@@ -463,7 +463,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         } catch (Throwable t) {
           t.addSuppressed(e);
           LOG.error("Failed to close an open register stream for worker {}. "
-              + "The stream has been open for {}ms.", context.getWorkerId(), staleTime, t);
+              + "The stream has been open for {}ms.",
+              context.getWorkerInfo().getId(), staleTime, t);
           // Do not remove the entry so this will be retried
           return false;
         }
@@ -1210,7 +1211,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
         BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(
-            chunk.getCurrentBlocksList(), context.getWorkerId());
+            chunk.getCurrentBlocksList(), context.getWorkerInfo().getId());
     RegisterWorkerPOptions options = chunk.getOptions();
 
     MasterWorkerInfo workerInfo = context.getWorkerInfo();
@@ -1243,7 +1244,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   protected void workerRegisterBatch(WorkerRegisterContext context, RegisterWorkerPRequest chunk) {
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
             BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(
-                chunk.getCurrentBlocksList(), context.getWorkerId());
+                chunk.getCurrentBlocksList(), context.getWorkerInfo().getId());
     MasterWorkerInfo workerInfo = context.getWorkerInfo();
     Preconditions.checkState(workerInfo != null,
         "No workerInfo metadata found in the WorkerRegisterContext!");
