@@ -8,7 +8,7 @@ priority: 1
 * Table of Contents
 {:toc}
 
-在Alluxio中，有两种类型的指标，集群范围内的合计指标和每个进程的详细指标。
+在 Alluxio 中，有两种类型的指标，集群范围内的合计指标和每个进程的详细指标。
 
 
 * 合计指标由领头的 master 收集和计算的，并且在 web UI 下的指标标签下展示。
@@ -33,14 +33,14 @@ Alluxio 的非主节点指标具有以下格式
 [processType].[metricName].[tag1].[tag2]...[hostName] 
 ```
 
-通常情况下，Alluxio会为每一种 RPC 调用生成一个指标，无论是调用 Alluxio 还是调用下层存储。
+通常情况下，Alluxio 会为每一种 RPC 调用生成一个指标，无论是调用 Alluxio 还是调用下层存储。
 
 标签是指标的附加元数据，如用户名或存储位置。
 标签可用于进一步筛选或聚合各种特征。
 
 ## 集群指标
 
-Worker 和 client 通过心跳包将指标数据发送到 Alluxio master。心跳间隔由属性 `alluxio.master.worker.heartbeat.interval` 和 `alluxio.user.metrics.heartbeat.interval` 分别定义。
+Worker 和 client 通过心跳包将指标数据发送到 Alluxio master。心跳间隔分别由 `alluxio.master.worker.heartbeat.interval` 和 `alluxio.user.metrics.heartbeat.interval` 属性定义。
 
 字节指标是来自 worker 或 client 的聚合值。字节吞吐量指标是在 master 上计算的。
 字节吞吐量的值等于字节指标计数器值除以指标记录时间，并以字节/分钟的形式呈现。
@@ -51,7 +51,7 @@ Worker 和 client 通过心跳包将指标数据发送到 Alluxio master。心�
   <tr>
     <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
     <td>{{ item.metricType }}</td>
-    <td>{{ site.data.table.en.cluster-metrics[item.metricName] }}</td>
+    <td>{{ site.data.table.cn.cluster-metrics[item.metricName] }}</td>
   </tr>
 {% endfor %}
 </table>
