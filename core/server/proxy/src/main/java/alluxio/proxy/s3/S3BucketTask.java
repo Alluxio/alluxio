@@ -6,8 +6,17 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.*;
-import alluxio.grpc.*;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.grpc.Bits;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.PMode;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.proto.journal.File;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Preconditions;
@@ -19,7 +28,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
@@ -36,45 +49,51 @@ public class S3BucketTask extends S3BaseTask {
         });
     }
 
-    public static S3BucketTask allocateTask(S3Handler handler) {
-        switch (handler.getHTTPVerb()) {
-            case "GET":
-                if (StringUtils.isEmpty(handler.getBucket())) {
-                    return new ListBucketsTask(handler, OpType.ListBuckets);
-                } else if (handler.getQueryParameter("tagging") != null) {
-                    return new GetBucketTaggingTask(handler, OpType.GetBucketTagging);
-                } else if (handler.getQueryParameter("uploads") != null) {
-                    return new ListMultipartUploadsTask(handler, OpType.ListMultipartUploads);
-                } else {
-                    return new ListObjectsTask(handler, OpType.ListObjects);
-                }
-            case "PUT":
-                if (handler.getQueryParameter("tagging") != null) {
-                    return new PutBucketTaggingTask(handler, OpType.PutBucketTagging);
-                } else {
-                    return new CreateBucketTask(handler, OpType.CreateBucket);
-                }
-            case "POST":
-                if (handler.getQueryParameter("delete") != null) {
-                    return new DeleteObjectsTask(handler, OpType.DeleteObjects);
-                }
-                break;
-            case "HEAD":
-                if (!StringUtils.isEmpty(handler.getBucket())) {
-                    return new HeadBucketTask(handler, OpType.HeadBucket);
-                }
-                break;
-            case "DELETE":
-                if (handler.getQueryParameter("tagging") != null) {
-                    return new DeleteBucketTaggingTask(handler, OpType.DeleteBucketTagging);
-                } else {
-                    return new DeleteBucketTask(handler, OpType.DeleteBucket);
-                }
-            default:
-                break;
+    /**
+     * Factory for getting a S3BucketTask.
+     */
+    public static final class Factory {
+        public static S3BucketTask create(S3Handler handler) {
+            switch (handler.getHTTPVerb()) {
+                case "GET":
+                    if (StringUtils.isEmpty(handler.getBucket())) {
+                        return new ListBucketsTask(handler, OpType.ListBuckets);
+                    } else if (handler.getQueryParameter("tagging") != null) {
+                        return new GetBucketTaggingTask(handler, OpType.GetBucketTagging);
+                    } else if (handler.getQueryParameter("uploads") != null) {
+                        return new ListMultipartUploadsTask(handler, OpType.ListMultipartUploads);
+                    } else {
+                        return new ListObjectsTask(handler, OpType.ListObjects);
+                    }
+                case "PUT":
+                    if (handler.getQueryParameter("tagging") != null) {
+                        return new PutBucketTaggingTask(handler, OpType.PutBucketTagging);
+                    } else {
+                        return new CreateBucketTask(handler, OpType.CreateBucket);
+                    }
+                case "POST":
+                    if (handler.getQueryParameter("delete") != null) {
+                        return new DeleteObjectsTask(handler, OpType.DeleteObjects);
+                    }
+                    break;
+                case "HEAD":
+                    if (!StringUtils.isEmpty(handler.getBucket())) {
+                        return new HeadBucketTask(handler, OpType.HeadBucket);
+                    }
+                    break;
+                case "DELETE":
+                    if (handler.getQueryParameter("tagging") != null) {
+                        return new DeleteBucketTaggingTask(handler, OpType.DeleteBucketTagging);
+                    } else {
+                        return new DeleteBucketTask(handler, OpType.DeleteBucket);
+                    }
+                default:
+                    break;
+            }
+            return new S3BucketTask(handler, OpType.Unsupported);
         }
-        return new S3BucketTask(handler, OpType.Unsupported);
     }
+
     private static class ListBucketsTask extends S3BucketTask {
         protected ListBucketsTask(S3Handler handler, OpType opType) {
             super(handler, opType);

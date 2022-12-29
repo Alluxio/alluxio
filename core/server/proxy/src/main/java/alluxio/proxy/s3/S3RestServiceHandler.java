@@ -1245,7 +1245,7 @@ public final class S3RestServiceHandler {
           S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
           RangeFileInStream ris = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
 
-          Response.ResponseBuilder res = Response.ok(ris, MediaType.APPLICATION_OCTET_STREAM_TYPE)
+          Response.ResponseBuilder res = Response.ok(ris)
               .lastModified(new Date(status.getLastModificationTimeMs()))
               .header(S3Constants.S3_CONTENT_LENGTH_HEADER, s3Range.getLength(status.getLength()));
 

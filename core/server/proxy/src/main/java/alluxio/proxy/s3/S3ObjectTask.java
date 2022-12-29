@@ -14,6 +14,7 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.*;
+import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
@@ -67,51 +68,56 @@ public class S3ObjectTask extends S3BaseTask {
         });
     }
 
-    public static S3ObjectTask allocateTask(S3Handler handler) {
-        switch (handler.getHTTPVerb()) {
-            case "GET":
-                if (handler.getQueryParameter("uploadId") != null) {
-                    return new ListPartsTask(handler, OpType.ListParts);
-                } else if (handler.getQueryParameter("tagging") != null) {
-                    return new GetObjectTaggingTask(handler, OpType.GetObjectTagging);
-                } else {
-                    return new GetObjectTask(handler, OpType.GetObject);
-                }
-            case "PUT":
-                if (handler.getQueryParameter("tagging") != null) {
-                    return new PutObjectTaggingTask(handler, OpType.PutObjectTagging);
-                } else if (handler.getQueryParameter("uploadId") != null) {
-                    if (handler.getHeader(S3Constants.S3_COPY_SOURCE_HEADER) != null) {
-                        return new UploadPartTask(handler, OpType.UploadPartCopy);
+    /**
+     * Factory for getting a S3ObjectTask.
+     */
+    public static final class Factory {
+        public static S3ObjectTask create(S3Handler handler) {
+            switch (handler.getHTTPVerb()) {
+                case "GET":
+                    if (handler.getQueryParameter("uploadId") != null) {
+                        return new ListPartsTask(handler, OpType.ListParts);
+                    } else if (handler.getQueryParameter("tagging") != null) {
+                        return new GetObjectTaggingTask(handler, OpType.GetObjectTagging);
+                    } else {
+                        return new GetObjectTask(handler, OpType.GetObject);
                     }
-                    return new UploadPartTask(handler, OpType.UploadPart);
-                } else {
-                    if (handler.getHeader(S3Constants.S3_COPY_SOURCE_HEADER) != null) {
-                        return new CopyObjectTask(handler, OpType.CopyObject);
+                case "PUT":
+                    if (handler.getQueryParameter("tagging") != null) {
+                        return new PutObjectTaggingTask(handler, OpType.PutObjectTagging);
+                    } else if (handler.getQueryParameter("uploadId") != null) {
+                        if (handler.getHeader(S3Constants.S3_COPY_SOURCE_HEADER) != null) {
+                            return new UploadPartTask(handler, OpType.UploadPartCopy);
+                        }
+                        return new UploadPartTask(handler, OpType.UploadPart);
+                    } else {
+                        if (handler.getHeader(S3Constants.S3_COPY_SOURCE_HEADER) != null) {
+                            return new CopyObjectTask(handler, OpType.CopyObject);
+                        }
+                        return new PutObjectTask(handler, OpType.PutObject);
                     }
-                    return new PutObjectTask(handler, OpType.PutObject);
-                }
-            case "POST":
-                if (handler.getQueryParameter("uploads") != null) {
-                    return new CreateMultipartUploadTask(handler, OpType.CreateMultipartUpload);
-                } else if (handler.getQueryParameter("uploadId") != null) {
-                    return new CompleteMultipartUploadTask(handler, OpType.CompleteMultipartUpload);
-                }
-                break;
-            case "HEAD":
-                return new HeadObjectTask(handler, OpType.HeadObject);
-            case "DELETE":
-                if (handler.getQueryParameter("uploadId") != null) {
-                    return new AbortMultipartUploadTask(handler, OpType.AbortMultipartUpload);
-                } else if (handler.getQueryParameter("tagging") != null) {
-                    return new DeleteObjectTaggingTask(handler, OpType.DeleteObjectTagging);
-                } else {
-                    return new DeleteObjectTask(handler, OpType.DeleteObject);
-                }
-            default:
-                return new S3ObjectTask(handler, OpType.Unsupported);
+                case "POST":
+                    if (handler.getQueryParameter("uploads") != null) {
+                        return new CreateMultipartUploadTask(handler, OpType.CreateMultipartUpload);
+                    } else if (handler.getQueryParameter("uploadId") != null) {
+                        return new CompleteMultipartUploadTask(handler, OpType.CompleteMultipartUpload);
+                    }
+                    break;
+                case "HEAD":
+                    return new HeadObjectTask(handler, OpType.HeadObject);
+                case "DELETE":
+                    if (handler.getQueryParameter("uploadId") != null) {
+                        return new AbortMultipartUploadTask(handler, OpType.AbortMultipartUpload);
+                    } else if (handler.getQueryParameter("tagging") != null) {
+                        return new DeleteObjectTaggingTask(handler, OpType.DeleteObjectTagging);
+                    } else {
+                        return new DeleteObjectTask(handler, OpType.DeleteObject);
+                    }
+                default:
+                    return new S3ObjectTask(handler, OpType.Unsupported);
+            }
+            return new S3ObjectTask(handler, OpType.Unsupported);
         }
-        return new S3ObjectTask(handler, OpType.Unsupported);
     }
 
     public String getObjectTaskResource() {

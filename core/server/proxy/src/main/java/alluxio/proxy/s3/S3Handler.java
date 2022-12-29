@@ -154,9 +154,9 @@ public class S3Handler {
             handler.init();
             S3BaseTask task = null;
             if (object != null && !object.isEmpty()) {
-                task = S3ObjectTask.allocateTask(handler);
+                task = S3ObjectTask.Factory.create(handler);
             } else {
-                task = S3BucketTask.allocateTask(handler);
+                task = S3BucketTask.Factory.create(handler);
             }
             handler.setS3Task(task);
             return handler;
