@@ -13,6 +13,7 @@ package alluxio.underfs.oss;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.SyncInfo;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.retry.RetryPolicy;
@@ -59,6 +60,8 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
+  private final OSSActiveSyncProvider mOssActiveSyncProvider;
+
   /**
    * Constructs a new instance of {@link OSSUnderFileSystem}.
    *
@@ -81,8 +84,8 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
     ClientBuilderConfiguration ossClientConf = initializeOSSClientConfig(conf);
     OSS ossClient = new OSSClientBuilder().build(endPoint, accessId, accessKey, ossClientConf);
-
-    return new OSSUnderFileSystem(uri, ossClient, bucketName, conf);
+    return new OSSUnderFileSystem(uri, ossClient, bucketName, conf,
+            new OSSActiveSyncProvider(conf, ossClient));
   }
 
   /**
@@ -94,10 +97,11 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * @param conf configuration for this UFS
    */
   protected OSSUnderFileSystem(AlluxioURI uri, OSS ossClient, String bucketName,
-      UnderFileSystemConfiguration conf) {
+      UnderFileSystemConfiguration conf, OSSActiveSyncProvider ossActiveSyncProvider) {
     super(uri, conf);
     mClient = ossClient;
     mBucketName = bucketName;
+    mOssActiveSyncProvider = ossActiveSyncProvider;
   }
 
   @Override
@@ -291,5 +295,35 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     } catch (ServiceException e) {
       throw new IOException(e.getMessage());
     }
+  }
+
+  @Override
+  public boolean supportsActiveSync() {
+    return true;
+  }
+
+  @Override
+  public void startSync(AlluxioURI uri) {
+    mOssActiveSyncProvider.startSync(uri);
+  }
+
+  @Override
+  public void stopSync(AlluxioURI uri) {
+    mOssActiveSyncProvider.stopSync(uri);
+  }
+
+  @Override
+  public boolean startActiveSyncPolling(long txId) throws IOException {
+    return mOssActiveSyncProvider.startPolling(txId);
+  }
+
+  @Override
+  public boolean stopActiveSyncPolling() {
+    return mOssActiveSyncProvider.stopPolling();
+  }
+
+  @Override
+  public SyncInfo getActiveSyncInfo() {
+    return mOssActiveSyncProvider.getActivitySyncInfo();
   }
 }

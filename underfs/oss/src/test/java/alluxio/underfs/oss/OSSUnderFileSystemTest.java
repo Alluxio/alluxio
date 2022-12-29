@@ -47,9 +47,10 @@ public class OSSUnderFileSystemTest {
   @Before
   public void before() throws InterruptedException, ServiceException {
     mClient = Mockito.mock(OSSClient.class);
-
+    UnderFileSystemConfiguration conf = UnderFileSystemConfiguration.defaults(
+        Configuration.global());
     mOSSUnderFileSystem = new OSSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        UnderFileSystemConfiguration.defaults(Configuration.global()));
+            conf, new OSSActiveSyncProvider(conf, mClient));
   }
 
   /**
