@@ -1,0 +1,364 @@
+Master.AbsentCacheHits:
+  '缺失缓存的缓存命中次数'
+Master.AbsentCacheMisses:
+  '缺失缓存的缓存未命中次数'
+Master.AbsentCacheSize:
+  '缺失缓存的大小'
+Master.AbsentPathCacheQueueSize:
+  'Alluxio 维护了一个缺失 UFS 路径的缓存。这是正在处理的 UFS 路径数量。'
+Master.AsyncPersistCancel:
+  '已取消的 AsyncPersist 操作数量'
+Master.AsyncPersistFail:
+  '失败的 AsyncPersist 操作数量'
+Master.AsyncPersistFileCount:
+  'AsyncPersist 操作创建的文件数量'
+Master.AsyncPersistFileSize:
+  'AsyncPersist 操作创建的文件总大小'
+Master.AsyncPersistSuccess:
+  '成功的 AsyncPersist 操作数量'
+Master.AuditLogEntriesSize:
+  '审核日志条目阻塞队列的大小'
+Master.BlockHeapSize:
+  '块堆大小的估计值'
+Master.BlockReplicaCount:
+  'Alluxio 中块副本的总数'
+Master.CompleteFileOps:
+  'CompleteFile 操作的总数'
+Master.CompletedOperationRetryCount:
+  '已由客户端重试的完成操作总数'
+Master.CreateDirectoryOps:
+  'CreateDirectory 操作的总数'
+Master.CreateFileOps:
+  'CreateFile 操作的总数'
+Master.DeletePathOps:
+  'Delete 操作的总数'
+Master.DirectoriesCreated:
+  'CreateDirectory 操作的总数'
+Master.EdgeCacheEvictions:
+  '从缓存中删除的边（inode 元数据）总数。边缓存负责管理从（parentId，childName）到 childId 的映射'
+Master.EdgeCacheHits:
+  '边（inode 元数据）缓存的命中总数。边缓存负责管理从（parentId，childName）到 childId 的映射'
+Master.EdgeCacheLoadTimes:
+  '导致缓存未命中的边（inode 元数据）缓存的总加载时间。边缓存负责管理从（parentId，childName）到 childId 的映射'
+Master.EdgeCacheMisses:
+  '边（inode 元数据）缓存的未命中总数。边缓存负责管理从（parentId，childName）到 childId 的映射'
+Master.EdgeCacheSize:
+  '缓存的边（inode 元数据）总数。边缓存负责管理从（parentId，childName）到 childId 的映射'
+Master.EdgeLockPoolSize:
+  '主边锁池的大小'
+Master.EmbeddedJournalSnapshotDownloadGenerate:
+  '描述从集群中的其他主机下载日志快照所需的时间。只有在使用嵌入式日志时有效。使用此指标可以确定 Alluxio 主机之间是否存在潜在的通信瓶颈'
+Master.EmbeddedJournalSnapshotGenerateTimer:
+  '描述在此主机上生成本地日志快照所需的时间。只有在使用嵌入式日志时有效。使用此指标可以测量 Alluxio 快照生成的性能'
+Master.EmbeddedJournalSnapshotInstallTimer:
+  '描述从另一个主机安装下载的日志快照所需的时间。只有在使用嵌入式日志时有效。使用此指标可以确定 Alluxio 在从 leader 安装快照时的性能。较高的数字可能表明磁盘或 CPU 竞争较慢'
+Master.EmbeddedJournalSnapshotLastIndex:
+  '表示此主机在最近的本地快照或从集群中另一个主机下载的快照中记录的最新日志索引。只有在使用嵌入式日志时才有效'
+Master.EmbeddedJournalSnapshotReplayTimer:
+  '描述将日志快照重放到主机状态机所需的时间。只有在使用嵌入式日志时才有效。使用此指标确定 Alluxio 重放日志快照文件时的性能。较高的数字可能表示磁盘或 CPU 竞争较慢'
+Master.FileBlockInfosGot:
+  '成功的 GetFileBlockInfo 操作总数'
+Master.FileInfosGot:
+  '成功的 GetFileInfo 操作总数'
+Master.FileSize:
+  '文件大小分布'
+Master.FilesCompleted:
+  '成功的 CompleteFile 操作总数'
+Master.FilesCreated:
+  '成功的 CreateFile 操作总数'
+Master.FilesFreed:
+  '成功的 FreeFile 操作总数'
+Master.FilesPersisted:
+  '成功持久化的文件总数'
+Master.FilesPinned:
+  '当前固定的文件总数'
+Master.FilesToBePersisted:
+  '当前待持久化的文件总数'
+Master.FreeFileOps:
+  'FreeFile 操作总数'
+Master.GetFileBlockInfoOps:
+  'GetFileBlockInfo 操作总数'
+Master.GetFileInfoOps:
+  'GetFileInfo 操作总数'
+Master.GetNewBlockOps:
+  'GetNewBlock 操作总数'
+Master.InodeCacheEvictions:
+  '缓存逐出的 inode 总数'
+Master.InodeCacheHitRatio:
+  'Inode 缓存命中率'
+Master.InodeCacheHits:
+  'inode（inode 元数据）缓存的命中总数'
+Master.InodeCacheLoadTimes:
+  '缓存未命中导致的 inode（inode 元数据）加载次数总数'
+Master.InodeCacheMisses:
+  'inode（inode 元数据）缓存的 miss 总数'
+Master.InodeCacheSize:
+  'inode（inode 元数据）缓存的总数'
+Master.InodeHeapSize:
+  'inode 堆大小的估计值'
+Master.InodeLockPoolSize:
+  'master inode lock pool 大小'
+Master.JobCanceled:
+  '取消状态任务数'
+Master.JobCompleted:
+  '完成状态任务数'
+Master.JobCount:
+  '所有状态任务数'
+Master.JobCreated:
+  '创建状态任务数'
+Master.JobDistributedLoadCancel:
+  '取消的 DistributedLoad 操作数'
+Master.JobDistributedLoadFail:
+  '失败的 DistributedLoad 操作数'
+Master.JobDistributedLoadFileCount:
+  'DistributedLoad 操作的文件数'
+Master.JobDistributedLoadFileSizes:
+  'DistributedLoad 操作的文件大小'
+Master.JobDistributedLoadRate:
+  '平均 DistributedLoad 加载率'
+Master.JobDistributedLoadSuccess:
+  'DistributedLoad 操作成功数'
+Master.JobFailed:
+  '失败状态任务数'
+Master.JobRunning:
+  '运行中状态任务数'
+Master.JournalCheckpointWarn:
+  'alluxio.master.journal.checkpoint.period.entries，并且最后一个检查点超过了 alluxio.master.journal.checkpoint.warning.threshold.time，则返回 1 以指示需要警告，否则返回 0'
+Master.JournalEntriesSinceCheckPoint:
+  '自上次检查点以来的日志条目数'
+Master.JournalFlushFailure:
+  '日志刷新失败的总数'
+Master.JournalFlushTimer:
+  '日志刷新计时器统计'
+Master.JournalFreeBytes:
+  'Alluxio 主机的日志磁盘上剩余的字节。此指标仅在 Linux 上使用内置日志时有效。使用此指标监视日志是否耗尽磁盘空间'
+Master.JournalFreePercent:
+  'Alluxio 主机日志磁盘剩余字节。此指标仅在 Linux 上且使用内置日志时有效。使用此指标监控日志是否有剩余磁盘空间'
+Master.JournalGainPrimacyTimer:
+  '日志获得优先权的计时器统计信息'
+Master.JournalLastAppliedCommitIndex:
+  '最后一个被应用到状态机的 raft 日志索引'
+Master.JournalLastCheckPointTime:
+  '上一个日志检查点时间'
+Master.JournalSequenceNumber:
+  '当前日志序列号'
+Master.LastBackupEntriesCount:
+  '上次主元数据备份中写入的条目总数'
+Master.LastBackupRestoreCount:
+  '当 leading master 初始化元数据时，从备份还原的条目总数'
+Master.LastBackupRestoreTimeMs:
+  '最后一次从备份恢复的过程时间'
+Master.LastBackupTimeMs:
+  '上一次备份的处理时间'
+Master.ListingCacheEvictions:
+  'master 节点列表缓存中的总淘汰次数'
+Master.ListingCacheHits:
+  'master 列表缓存中的命中总数'
+Master.ListingCacheLoadTimes:
+  'master 列表缓存的总加载时间（以纳秒为单位），这是由缓存未命中所导致的'
+Master.ListingCacheMisses:
+  'master 列表缓存中的未命中总数'
+Master.ListingCacheSize:
+  'master 列表缓存大小'
+Master.LostBlockCount:
+  '丢失独特块计数'
+Master.LostFileCount:
+  '丢失文件的数量。这个数字是被缓存的，可能与 Master.LostBlockCount 不同步'
+Master.MetadataSyncActivePaths:
+  '所有 InodeSyncStream 实例中正在进行的路径数量'
+Master.MetadataSyncExecutor:
+  'master 元数据同步执行器线程的指标。Master.MetadataSyncExecutor.submitted 是提交给执行器的任务的计数器。Master.MetadataSyncExecutor.completed 是执行器完成的任务的计数器。Master.MetadataSyncExecutor.activeTaskQueue 是在执行器中每次添加新任务时计算的活动任务（运行或提交）的幂指数衰减随机容器的数量。最大值是执行过程中任何时候的活动任务的最大数量。Master.MetadataSyncExecutor.running 是执行器正在运行的任务数量。Master.MetadataSyncExecutor.idle 是提交的任务（即在执行前等待队列）闲置的时间。Master.MetadataSyncExecutor.duration 是运行提交的任务的时间。如果执行器是线程池执行器，则 Master.MetadataSyncExecutor.queueSize 是任务队列的大小'
+Master.MetadataSyncExecutorQueueSize:
+  '元数据同步线程池中排队的同步任务数，由 alluxio.master.metadata.sync.executor.pool.size 控制'
+Master.MetadataSyncFail:
+  'InodeSyncStream 失败的次数，无论是部分失败还是完全失败'
+Master.MetadataSyncNoChange:
+  '未更改 inodes 的 InodeSyncStream 完成数量'
+Master.MetadataSyncOpsCount:
+  '元数据同步操作的数量。每个同步操作对应于一个 InodeSyncStream 实例'
+Master.MetadataSyncPathsCancel:
+  '所有最终被忽略而没被处理的 InodeSyncStream 实例中未决路径的数量'
+Master.MetadataSyncPathsFail:
+  '在元数据同步所有 InodeSyncStream 实例期间失败的路径数量。'
+Master.MetadataSyncPathsSuccess:
+  '从所有 InodeSyncStream 实例同步的路径数量'
+Master.MetadataSyncPendingPaths:
+  '所有活跃 InodeSyncStream 实例中等待元数据同步的的待处理路径数量'
+Master.MetadataSyncPrefetchCancel:
+  '从元数据同步取消的预取任务数量'
+Master.MetadataSyncPrefetchExecutor:
+  '关于主元数据同步预取执行线程的指标。Master.MetadataSyncPrefetchExecutor.submitted 是提交给执行器的任务的计数器。Master.MetadataSyncPrefetchExecutor.completed 是由执行器完成的任务的计数器。Master.MetadataSyncPrefetchExecutor.activeTaskQueue 是在执行器上运行或提交的活动任务的指数衰减随机容器，每次向执行器添加新任务时计算。最大值是执行期间任意时间内的最大活动任务数。Master.MetadataSyncPrefetchExecutor.running 是执行器正在运行的任务数。Master.MetadataSyncPrefetchExecutor.idle 是提交的任务（即等待队列中之前执行的时间）的空闲时间。Master.MetadataSyncPrefetchExecutor.duration 是运行提交的任务的时间。如果执行器是线程池执行器，则 Master.MetadataSyncPrefetchExecutor.queueSize 是任务队列的大小。'
+Master.MetadataSyncPrefetchExecutorQueueSize:
+  '元数据同步线程池中排队的预取任务数，由 alluxio.master.metadata.sync.ufs.prefetch.pool.size 控制'
+Master.MetadataSyncPrefetchFail:
+  '元数据同步中失败的预取工作数量'
+Master.MetadataSyncPrefetchOpsCount:
+  '由预取线程池处理的预取操作数量'
+Master.MetadataSyncPrefetchPaths:
+  '元数据同步预取任务获取的 UFS 路径总数'
+Master.MetadataSyncPrefetchRetries:
+  '元数据同步预取任务的重试获取次数'
+Master.MetadataSyncPrefetchSuccess:
+  '元数据同步预取任务的成功获取次数'
+Master.MetadataSyncSkipped:
+  '由于 Alluxio 元数据比 alluxio.user.file.metadata.sync.interval 更新而跳过的 InodeSyncStream 数量'
+Master.MetadataSyncSuccess:
+  'InodeSyncStream 成功次数'
+Master.MetadataSyncTimeMs:
+  '所有 InodeSyncStream 实例存在总时间'
+Master.MetadataSyncUfsMount.:
+  '对给定 UFS 挂载点进行 UFS sync 操作的次数'
+Master.MigrateJobCancel:
+  'MigrateJob 取消次数'
+Master.MigrateJobFail:
+  'MigrateJob 失败次数'
+Master.MigrateJobFileCount:
+  'MigrateJob 文件数'
+Master.MigrateJobFileSize:
+  'MigrateJob 文件体积之和'
+Master.MigrateJobSuccess:
+  'MigrateJob 操作成功次数'
+Master.MountOps:
+  'Mount 操作次数'
+Master.NewBlocksGot:
+  'GetNewBlock 操作成功次数'
+Master.PathsDeleted:
+  'Delete 操作成功次数'
+Master.PathsMounted:
+  'Mount 操作成功次数'
+Master.PathsRenamed:
+  'Rename 操作成功次数'
+Master.PathsUnmounted:
+  'Unmount 操作成功次数'
+Master.RenamePathOps:
+  'Rename 操作次数'
+Master.ReplicaMgmtActiveJobSize:
+  '活跃块复制/逐出任务的数。这些任务由 master 创建，以维护块副本因子。该值带有一定延迟，是估计值'
+Master.RocksBlockBackgroundErrors:
+  'RocksDB 块表。背景错误累积数'
+Master.RocksBlockBlockCacheCapacity:
+  'RocksDB block table. Block cache capacity.'
+  'RocksDB 块表。块缓存容量'
+Master.RocksBlockBlockCachePinnedUsage:
+  'RocksDB 块表。固定条目内存体积'
+Master.RocksBlockBlockCacheUsage:
+  'RocksDB 块表。存储在块缓存中的条目的内存大小'
+Master.RocksBlockCompactionPending:
+  'RocksDB 块表。如果有至少一个压缩操作正在等待，则此指标为 1；否则，此指标为 0'
+Master.RocksBlockCurSizeActiveMemTable:
+  'RocksDB 块表。活跃 MemTable 的近似字节大小'
+Master.RocksBlockCurSizeAllMemTables:
+  'RocksDB 块表。活跃的、未刷新且不可变的，和固定住不可变的 MemTable 的以字节为单位的近似大小。固定不可变内存表是被保留在内存中的刷新内存表，用于在内存中保留写入历史记录'
+Master.RocksBlockEstimateNumKeys:
+  'RocksDB 块表。活跃和未刷新地不可变 MemTable 以及存储中总键数的估计值'
+Master.RocksBlockEstimatePendingCompactionBytes:
+  'RocksDB 块表。估计一次压缩需要在磁盘上重写的总字节数，以使所有层降到目标大小之下。换句话说，这个指标与层压缩中的写入放大率有关。因此，这个指标对层压缩以外的压缩是无效的。'
+Master.RocksBlockEstimateTableReadersMem:
+  'RocksDB inode 表。以字节为单位估计用于读取 SST 表的内存，不包括块缓存中使用的内存（e.g. 过滤器和索引块）。如果过滤器和索引不在块缓存中维护，此指标记录迭代器使用的内存以及过滤器和索引。此指标基本上反映了读取数据时块缓存外使用的内存'
+Master.RocksBlockEstimatedMemUsage:
+  'RocksDB块表。这个指标通过聚合 Master.RocksBlockBlockCacheUsage、Master.RocksBlockEstimateTableReadersMem、Master.RocksBlockCurSizeAllMemTables 和 Master.RocksBlockBlockCachePinnedUsage 的值来估计 RockDB 块表的内存使用情况。'
+Master.RocksBlockLiveSstFilesSize:
+  'RocksDB块表。属于最新 LSM 树的所有 SST 文件以字节为单位的总大小'
+Master.RocksBlockMemTableFlushPending:
+  'RocksDB 块表。如果 Memtable 刷新操作正在等待，则此指标为 1；否则为 0'
+Master.RocksBlockNumDeletesActiveMemTable:
+  'RocksDB 块表。活跃 Memtable 中的删除条目总数'
+Master.RocksBlockNumDeletesImmMemTables:
+  'RocksDB 块表。未刷新不可变 MemTable 中删除条目的总数'
+Master.RocksBlockNumEntriesActiveMemTable:
+  'RocksDB 块表。活跃 MemTable 中的条目总数'
+Master.RocksBlockNumEntriesImmMemTables:
+  'RocksDB 块表。未刷新不可变 MemTable 中的条目总数'
+Master.RocksBlockNumImmutableMemTable:
+  'RocksDB 块表。尚未刷新的不可变 MemTable 的数量'
+Master.RocksBlockNumLiveVersions:
+  'RocksDB inode 表。存活版本数。存活版本较多时，通常意味着更多 SST 文件被迭代器或未完成的压缩保留而未被删除'
+Master.RocksBlockNumRunningCompactions:
+  'RocksDB 块表。当前正在运行的压缩数量'
+Master.RocksBlockNumRunningFlushes:
+  'RocksDB 块表。当前正在运行的刷新数量。'
+Master.RocksBlockSizeAllMemTables:
+  'RocksDB 块表。所有 MemTable 的大小'
+Master.RocksBlockTotalSstFilesSize:
+  'RocksDB 块表。所有 SST 文件以字节为单位的总大小'
+Master.RocksInodeBackgroundErrors:
+  'RocksDB inode 表。后台错误累积数'
+Master.RocksInodeBlockCacheCapacity:
+  'RocksDB inode 表。 块缓存容量'
+Master.RocksInodeBlockCachePinnedUsage:
+  'RocksDB inode 表。固定键内存体积'
+Master.RocksInodeBlockCacheUsage:
+  'RocksDB inode 表。这是用来描述存储在块缓存中的条目内存大小的指标'
+Master.RocksInodeCompactionPending:
+  'RocksDB inode 表。 如果至少有一个压缩操作正在等待则该指标为 1；否则，该指标为 0'
+Master.RocksInodeCurSizeActiveMemTable:
+  'RocksDB inode 表。活跃 MemTable 以字节为单位的近似大小'
+Master.RocksInodeCurSizeAllMemTables:
+  'RocksDB inode 表。活跃和未刷新不可变 MemTable 以字节为单位的近似大小'
+Master.RocksInodeEstimateNumKeys:
+  'RocksDB inode 表。活跃和未刷新不可变 MemTable 以及存储中所有键的估计数量'
+Master.RocksInodeEstimatePendingCompactionBytes:
+  'RocksDB 块表。估计一次压缩为了将所有层降到目标大小以下需要在磁盘上重写的总字节数。换句话说，这个指标与层压缩中的写入放大率有关。因此，这个指标对层压缩以外的压缩是无效的'
+Master.RocksInodeEstimateTableReadersMem:
+  'RocksDB inode 表。估计用于读取SST表的字节数，不包括用于块缓存的内存（e.g. 过滤器和索引块）。如果过滤器和索引不在块缓存中维护，则这个指标记录了迭代器以及过滤器和索引所使用的内存。这个指标基本上反应了在块缓存之外用于读取数据的内存。'
+Master.RocksInodeEstimatedMemUsage:
+  'RocksDB 块表。这个指标通过聚合 Master.RocksInodeBlockCacheUsage、Master.RocksInodeEstimateTableReadersMem、Master.RocksInodeCurSizeAllMemTables 和 Master.RocksInodeBlockCachePinnedUsage 的值，估计了 RockDB Inode 表的内存使用情况'
+Master.RocksInodeLiveSstFilesSize:
+  'RocksDB inode 表。属于最新 LSM 树的所有 SST 文件以字节为单位的总大小'
+Master.RocksInodeMemTableFlushPending:
+  'RocksDB inode 表。如果 MemTable 刷新正在等待，则该指标为 1；否则，该指标为 0'
+Master.RocksInodeNumDeletesActiveMemTable:
+  'RocksDB inode 表。活跃 MemTable 中删除条目的总数'
+Master.RocksInodeNumDeletesImmMemTables:
+  'RocksDB inode table. 未刷新不可变 MemTable 中删除条目的总数'
+Master.RocksInodeNumEntriesActiveMemTable:
+  'RocksDB inode 表。活跃 MemTable 中的总条目数'
+Master.RocksInodeNumEntriesImmMemTables:
+  'RocksDB inode 表。未刷新不可变 MemTable 中的总条目数'
+Master.RocksInodeNumImmutableMemTable:
+  'RocksDB inode 表。尚未刷新的不可变 MemTable 的数量'
+Master.RocksInodeNumLiveVersions:
+  'RocksDB inode table. Number of live versions. More live versions often mean more SST files are held from being deleted, by iterators or unfinished compactions.'
+  'RocksDB inode 表。活跃版本的数量。更多的活跃版本通常意味着被迭代器或未完成的压缩保留的不被删除的 SST 文件更多'
+Master.RocksInodeNumRunningCompactions:
+  'RocksDB inode 表。当前正在进行的压缩数量'
+Master.RocksInodeNumRunningFlushes:
+  'RocksDB inode 表。当前正在进行的刷新数量'
+Master.RocksInodeSizeAllMemTables:
+  'RocksDB inode 表。当前活跃的，为刷新不变的，以及固定不变的 MemTable 以字节为单位的近似体积。固定不变的 MemTable 是保留在内存中用于维护内存写入历史更新过的 MemTable'
+Master.RocksInodeTotalSstFilesSize:
+  'RocksDB inode 表。所有 SST 文件以字节为单位的总体积。'
+Master.RocksTotalEstimatedMemUsage:
+  '这个指标通过汇总 Master.RocksBlockEstimatedMemUs age 和 Master.RocksInodeEstimatedMemUsage 的值，给出了 RocksDB 内存使用总量'
+Master.RoleId:
+  '展示 master role id'
+Master.RpcQueueLength:
+  'master RPC 队列的长度。使用这个指标来监控 master 上的 RPC 压力'
+Master.RpcThreadActiveCount:
+  '在 master RPC 执行器线程池中正在积极执行任务的线程数量。使用这个指标来监控 master 上的 RPC 压力'
+Master.RpcThreadCurrentCount:
+  '当前 master RPC 执行器线程池中的线程数。使用这个指标来监控主服务器上的 RPC 压力'
+Master.SetAclOps:
+  'SetAcl 操作总次数'
+Master.SetAttributeOps:
+  'SetAttribute 操作总次数'
+Master.ToRemoveBlockCount:
+  '要从 worker 中移除的块副本数量。如果 1 个块要从 2 个 worker 中移除，会被记为 2 个'
+Master.TotalPaths:
+  'Alluxio 命名空间中的文件和目录总数'
+Master.TotalRpcs:
+  'master RPC 调用的吞吐量。这个指标表明 master 服务客户端和 client 请求的繁忙程度'
+Master.UfsJournalCatchupTimer:
+  '日志追赶的定时器统计只在使用 Ufs 日志时有效。它提供了一个 standby master 赶上 master 所需时间的概要，如果 master 转换时间过长则应进行监控'
+Master.UfsJournalFailureRecoverTimer:
+  'UFS 日志故障恢复的定时器统计数据'
+Master.UfsJournalInitialReplayTimeMs:
+  'UFS 日志初始回放过程的持续时间。只在使用 UFS 日志时有效。它记录了第一次日志回放的持续时间。使用这个指标来监测你的 master 启动时间是否过长'
+Master.UfsStatusCacheChildrenSize:
+  'UFS 文件元数据缓存总量。该缓存在元数据同步期间使用'
+Master.UfsStatusCacheSize:
+  '正在由元数据同步预取线程池处理的 Alluxio 路径总数'
+Master.UniqueBlocks:
+  'Alluxio 中独特块总数'
+Master.UnmountOps:
+  'Unmount 操作总次数'
