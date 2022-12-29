@@ -237,7 +237,6 @@ Master.ReplicaMgmtActiveJobSize:
 Master.RocksBlockBackgroundErrors:
   'RocksDB 块表。背景错误累积数'
 Master.RocksBlockBlockCacheCapacity:
-  'RocksDB block table. Block cache capacity.'
   'RocksDB 块表。块缓存容量'
 Master.RocksBlockBlockCachePinnedUsage:
   'RocksDB 块表。固定条目内存体积'
@@ -318,7 +317,6 @@ Master.RocksInodeNumEntriesImmMemTables:
 Master.RocksInodeNumImmutableMemTable:
   'RocksDB inode 表。尚未刷新的不可变 MemTable 的数量'
 Master.RocksInodeNumLiveVersions:
-  'RocksDB inode table. Number of live versions. More live versions often mean more SST files are held from being deleted, by iterators or unfinished compactions.'
   'RocksDB inode 表。活跃版本的数量。更多的活跃版本通常意味着被迭代器或未完成的压缩保留的不被删除的 SST 文件更多'
 Master.RocksInodeNumRunningCompactions:
   'RocksDB inode 表。当前正在进行的压缩数量'
