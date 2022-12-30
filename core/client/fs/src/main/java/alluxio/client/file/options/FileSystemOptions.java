@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.client.file.FileSystemUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 
@@ -45,7 +46,7 @@ public class FileSystemOptions {
    */
   public static FileSystemOptions create(AlluxioConfiguration conf,
       Optional<UfsFileSystemOptions> ufsOptions) {
-    return new FileSystemOptions(conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED),
+    return new FileSystemOptions(FileSystemUtils.metadataEnabled(conf),
         conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED),
         ufsOptions);
   }
