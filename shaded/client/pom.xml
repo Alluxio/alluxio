@@ -354,8 +354,8 @@
               <executable>ln</executable>
               <arguments>
                 <argument>-fnsv</argument>
-                <argument>build/alluxio-${project.version}-client.jar</argument>
-                <argument>${project.parent.parent.basedir}/client/alluxio-${project.version}-hdfs2-client.jar</argument>
+                <argument>build/alluxio-${project.version}-hdfs2-client.jar</argument>
+                <argument>${project.parent.parent.basedir}/client/alluxio-${project.version}-client.jar</argument>
               </arguments>
             </configuration>
           </execution>
