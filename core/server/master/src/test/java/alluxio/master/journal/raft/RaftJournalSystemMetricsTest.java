@@ -48,9 +48,9 @@ public final class RaftJournalSystemMetricsTest {
   @Test
   public void journalStateMachineMetrics() throws Exception {
     Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
-        "localhost:19200,localhost:19201,localhost:19202");
+        "localhost:29200,localhost:29201,localhost:29202");
     Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
-    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, 19200);
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, 29200);
     RaftJournalSystem system =
         new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.MASTER_RAFT);
     String[] metricsNames = new String[] {
