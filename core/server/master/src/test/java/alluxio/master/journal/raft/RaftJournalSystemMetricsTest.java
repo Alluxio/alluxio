@@ -99,6 +99,8 @@ public final class RaftJournalSystemMetricsTest {
     assertEquals(RaftProtos.RaftPeerRole.LEADER_VALUE, getMasterRoleId());
     assertEquals(system.getLocalPeerId().toString(), getClusterLeaderId());
     assertEquals(sn2, getMasterJournalSequenceNumbers(system));
+
+    system.stop();
   }
 
   private static int getClusterLeaderIndex() {
