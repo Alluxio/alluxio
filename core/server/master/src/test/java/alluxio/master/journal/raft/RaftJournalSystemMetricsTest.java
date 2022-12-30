@@ -19,6 +19,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.ratis.proto.RaftProtos;
 import org.apache.ratis.thirdparty.com.google.protobuf.ByteString;
 import org.junit.After;
@@ -62,11 +63,7 @@ public final class RaftJournalSystemMetricsTest {
                     .setId(ByteString.copyFromUtf8("localhost_19201")))))
         .build();
 
-    Map<String, Long> sn1 = new HashMap<String, Long>() {
-      {
-        put("foo", 1L);
-      }
-    };
+    Map<String, Long> sn1 = ImmutableMap.of("DefaultBlockMaster", 1L, "DefaultMetaMaster", 2L);
     Mockito.doReturn(sn1).when(system).getCurrentSequenceNumbers();
     system.startInternal();
     Mockito.doReturn(null).when(system).getRaftRoleInfo();
@@ -75,50 +72,33 @@ public final class RaftJournalSystemMetricsTest {
     assertEquals("WAITING_FOR_ELECTION", getClusterLeaderId());
     assertEquals(sn1, getMasterJournalSequenceNumbers(system));
 
-    Map<String, Long> sn2 = new HashMap<String, Long>() {
-      {
-        put("foo", 1L);
-        put("bar", 2L);
-      }
-    };
+    system.gainPrimacy();
+    Mockito.doReturn(leaderInfo).when(system).getRaftRoleInfo();
+    assertEquals(0, getClusterLeaderIndex());
+    assertEquals(RaftProtos.RaftPeerRole.LEADER_VALUE, getMasterRoleId());
+    assertEquals(system.getLocalPeerId().toString(), getClusterLeaderId());
+    assertEquals(sn1, getMasterJournalSequenceNumbers(system));
+
+    Map<String, Long> sn2 = ImmutableMap.of(
+        "DefaultBlockMaster", 1L,
+        "DefaultMetaMaster", 2L,
+        "DefaultTableMaster", 3L,
+        "DefaultFileSystemMaster", 4L,
+        "DefaultMetricsMaster", 5L);
     Mockito.doReturn(sn2).when(system).getCurrentSequenceNumbers();
+    system.losePrimacy();
+    Mockito.doReturn(followerInfo).when(system).getRaftRoleInfo();
+    assertEquals(1, getClusterLeaderIndex());
+    assertEquals(RaftProtos.RaftPeerRole.FOLLOWER_VALUE, getMasterRoleId());
+    assertEquals("localhost_19201", getClusterLeaderId());
+    assertEquals(sn2, getMasterJournalSequenceNumbers(system));
+
     system.gainPrimacy();
     Mockito.doReturn(leaderInfo).when(system).getRaftRoleInfo();
     assertEquals(0, getClusterLeaderIndex());
     assertEquals(RaftProtos.RaftPeerRole.LEADER_VALUE, getMasterRoleId());
     assertEquals(system.getLocalPeerId().toString(), getClusterLeaderId());
     assertEquals(sn2, getMasterJournalSequenceNumbers(system));
-
-    Map<String, Long> sn3 = new HashMap<String, Long>() {
-      {
-        put("foo", 1L);
-        put("bar", 2L);
-        put("baz", 3L);
-      }
-    };
-    Mockito.doReturn(sn3).when(system).getCurrentSequenceNumbers();
-    system.losePrimacy();
-    Mockito.doReturn(followerInfo).when(system).getRaftRoleInfo();
-    assertEquals(1, getClusterLeaderIndex());
-    assertEquals(RaftProtos.RaftPeerRole.FOLLOWER_VALUE, getMasterRoleId());
-    assertEquals("localhost_19201", getClusterLeaderId());
-    assertEquals(sn3, getMasterJournalSequenceNumbers(system));
-
-    Map<String, Long> sn4 = new HashMap<String, Long>() {
-      {
-        put("foo", 1L);
-        put("bar", 2L);
-        put("baz", 3L);
-        put("qux", 4L);
-      }
-    };
-    Mockito.doReturn(sn4).when(system).getCurrentSequenceNumbers();
-    system.gainPrimacy();
-    Mockito.doReturn(leaderInfo).when(system).getRaftRoleInfo();
-    assertEquals(0, getClusterLeaderIndex());
-    assertEquals(RaftProtos.RaftPeerRole.LEADER_VALUE, getMasterRoleId());
-    assertEquals(system.getLocalPeerId().toString(), getClusterLeaderId());
-    assertEquals(sn4, getMasterJournalSequenceNumbers(system));
   }
 
   private static int getClusterLeaderIndex() {
@@ -138,7 +118,7 @@ public final class RaftJournalSystemMetricsTest {
 
   private static Map<String, Long> getMasterJournalSequenceNumbers(RaftJournalSystem system) {
     Map<String, Long> sequenceNumber = system.getCurrentSequenceNumbers();
-    Map<String, Long> result = new HashMap<String, Long>();
+    Map<String, Long> result = new HashMap<>();
     for (String masterName : sequenceNumber.keySet()) {
       long value = (long) MetricsSystem.METRIC_REGISTRY.getGauges()
           .get(MetricKey.MASTER_JOURNAL_SEQUENCE_NUMBER.getName() + "." + masterName).getValue();

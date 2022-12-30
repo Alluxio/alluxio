@@ -545,7 +545,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
     mTransferLeaderAllowed.set(true);
-    super.registerMetrics();
     LOG.info("Gained primacy.");
   }
 
