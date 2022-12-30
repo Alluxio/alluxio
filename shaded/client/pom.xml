@@ -334,7 +334,7 @@
             </goals>
             <configuration>
               <sourceFile>${basedir}/target/${project.artifactId}-${project.version}.jar</sourceFile>
-              <destinationFile>${project.parent.parent.basedir}/client/build/alluxio-${project.version}-hdfs2-client.jar</destinationFile>
+              <destinationFile>${project.parent.parent.basedir}/client/build/alluxio-${project.version}-hadoop2-client.jar</destinationFile>
             </configuration>
           </execution>
         </executions>
@@ -354,7 +354,7 @@
               <executable>ln</executable>
               <arguments>
                 <argument>-fnsv</argument>
-                <argument>build/alluxio-${project.version}-hdfs2-client.jar</argument>
+                <argument>build/alluxio-${project.version}-hadoop2-client.jar</argument>
                 <argument>${project.parent.parent.basedir}/client/alluxio-${project.version}-client.jar</argument>
               </arguments>
             </configuration>
