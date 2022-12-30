@@ -46,7 +46,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class Registry<T extends Server<U>, U> {
-  private final Map<Class<? extends Server>, T> mRegistry = new HashMap<>();
+  private final Map<Class<? extends Server<U>>, T> mRegistry = new HashMap<>();
+  private final Map<Class<? extends Server<U>>, T> mCanonicalMap = new HashMap<>();
   private final Lock mLock = new ReentrantLock();
 
   /**
@@ -79,7 +80,7 @@ public class Registry<T extends Server<U>, U> {
     try {
       CommonUtils.waitFor("server " + clazz.getName() + " to be created", () -> {
         try (LockResource r = new LockResource(mLock)) {
-          return mRegistry.get(clazz) != null;
+          return mRegistry.get(clazz) != null || mCanonicalMap.get(clazz) != null;
         }
       }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
     } catch (InterruptedException e) {
@@ -89,6 +90,9 @@ public class Registry<T extends Server<U>, U> {
       throw new RuntimeException(e);
     }
     T server = mRegistry.get(clazz);
+    if (server == null) {
+      server = mCanonicalMap.get(clazz);
+    }
     if (!(clazz.isInstance(server))) {
       throw new RuntimeException("Server is not an instance of " + clazz.getName());
     }
@@ -103,6 +107,31 @@ public class Registry<T extends Server<U>, U> {
   public <W extends T> void add(Class<W> clazz, T server) {
     try (LockResource r = new LockResource(mLock)) {
       mRegistry.put(clazz, server);
+    }
+  }
+
+  /**
+   * Registers a server instance under an alias type.
+   * <br>
+   * Typically, a server instance should be registered with only one type. When
+   * it's necessary to register the instance under a super type as well, an alias mapping
+   * should be used.
+   * The alias mappings are consulted when retrieving the server instances, but
+   * are not used to start or stop the server instances.
+   *
+   * @param clazz the canonical type
+   * @param server the {@link Server} to add
+   * @param <W> the type of the server
+   * @throws IllegalStateException when the server has not yet been registered under a canonical
+   * name with {@link #add(Class, Server)}
+   */
+  public <W extends T> void addAlias(Class<W> clazz, T server) {
+    try (LockResource r = new LockResource(mLock)) {
+      if (!mRegistry.containsValue(server)) {
+        throw new IllegalStateException(
+            "Cannot register alias before a canonical name is registered");
+      }
+      mCanonicalMap.put(clazz, server);
     }
   }
 

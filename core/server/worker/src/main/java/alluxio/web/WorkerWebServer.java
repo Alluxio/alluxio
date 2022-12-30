@@ -16,7 +16,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.Worker;
+import alluxio.worker.DataWorker;
 import alluxio.worker.WorkerProcess;
 
 import com.google.common.base.Preconditions;
@@ -56,7 +56,7 @@ public final class WorkerWebServer extends WebServer {
    * @param worker block worker to manage blocks
    */
   public WorkerWebServer(InetSocketAddress webAddress, final WorkerProcess workerProcess,
-      Worker worker) {
+      DataWorker worker) {
     super("Alluxio worker web service", webAddress);
     Preconditions.checkNotNull(worker, "Block worker cannot be null");
     // REST configuration

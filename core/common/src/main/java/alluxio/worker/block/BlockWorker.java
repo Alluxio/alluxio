@@ -21,8 +21,8 @@ import alluxio.grpc.UfsReadOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
+import alluxio.worker.DataWorker;
 import alluxio.worker.SessionCleanable;
-import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -30,17 +30,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A block worker in the Alluxio system.
  */
-public interface BlockWorker extends Worker, SessionCleanable {
-  /**
-   * @return the worker id
-   */
-  AtomicReference<Long> getWorkerId();
-
+public interface BlockWorker extends DataWorker, SessionCleanable {
   /**
    * Aborts the temporary block created by the session.
    *

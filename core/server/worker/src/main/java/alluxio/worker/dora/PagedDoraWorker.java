@@ -36,7 +36,6 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.DoraWorker;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.page.UfsBlockReadOptions;
