@@ -12,6 +12,8 @@
 package alluxio.master.journal.raft;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -41,6 +43,36 @@ public final class RaftJournalSystemMetricsTest {
   @After
   public void after() {
     Configuration.reloadProperties();
+  }
+
+  @Test
+  public void journalStateMachineMetrics() throws Exception {
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
+        "localhost:19200,localhost:19201,localhost:19202");
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, 19200);
+    RaftJournalSystem system =
+        new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.MASTER_RAFT);
+    String[] metricsNames = new String[] {
+        MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX.getName(),
+        MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName(),
+        MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName(),
+        MetricKey.MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX.getName(),
+        MetricKey.MASTER_JOURNAL_CHECKPOINT_WARN.getName(),
+    };
+    JournalStateMachine stateMachine = new JournalStateMachine(system.getJournals(), system);
+    for (String name : metricsNames) {
+      assertNotNull(MetricsSystem.METRIC_REGISTRY.getGauges().get(name));
+    }
+    stateMachine.close();
+    for (String name : metricsNames) {
+      assertNull(MetricsSystem.METRIC_REGISTRY.getGauges().get(name));
+    }
+    JournalStateMachine newStateMachine = new JournalStateMachine(system.getJournals(), system);
+    for (String name : metricsNames) {
+      assertNotNull(MetricsSystem.METRIC_REGISTRY.getGauges().get(name));
+    }
+    newStateMachine.close();
   }
 
   @Test
