@@ -202,7 +202,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 			"bin/alluxio-stop.sh",
 			"bin/alluxio-workers.sh",
 			"bin/launch-process",
-			fmt.Sprintf("client/build/alluxio-%v-client.jar", version),
+			fmt.Sprintf("client/build/alluxio-%v-hdfs2-client.jar", version),
 			"conf/rocks-inode-bloom.ini.template",
 			"conf/rocks-block-bloom.ini.template",
 			"conf/rocks-inode.ini.template",
@@ -242,7 +242,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 
 	if !fuse {
 		run("create symlink for client jar", "ln", "-s",
-			fmt.Sprintf("build/alluxio-%v-client.jar", version),
+			fmt.Sprintf("build/alluxio-%v-hdfs2-client.jar", version),
 			filepath.Join(dstPath, fmt.Sprintf("client/alluxio-%v-client.jar", version)),
 		)
 	}
