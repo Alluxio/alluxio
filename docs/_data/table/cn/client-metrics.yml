@@ -1,120 +1,120 @@
 Client.BlockMasterClientCount:
-  'Number of instances in the BlockMasterClientPool.'
+  'BlockMasterClientPool 中实例数量'
 Client.BlockReadChunkRemote:
-  'The timer statistics of reading block data in chunks from remote Alluxio workers via RPC framework. This metrics will only be recorded when alluxio.user.block.read.metrics.enabled is set to true'
+  '这是一项测量从远程 Alluxio worker 通过 RPC 框架以 chunk 的形式读取 block 数据的定时器统计信息。当 alluxio.user.block.read.metrics.enabled 设置为 true 时，才会记录此指标'
 Client.BlockWorkerClientCount:
-  'Number of instances in the BlockWorkerClientPool.'
+  'BlockWorkerClientPool 中实例数量'
 Client.BusyExceptionCount:
-  'Total number of BusyException observed'
+  '观察到的 BusyException 数量'
 Client.BytesReadLocal:
-  'Total number of bytes short-circuit read from worker data storage that collocates with the client'
+  '从与客户端相对应的 worker 数据存储短路读取的总字节数'
 Client.BytesReadLocalThroughput:
-  'Bytes throughput short-circuit read from worker data storage that collocated with this client'
+  '从与客户端相对应的 worker 数据存储短路读取的字节吞吐量'
 Client.BytesWrittenLocal:
-  'Total number of bytes short-circuit written to local storage by this client'
+  '这个客户端短路写入到本地存储的字节总数'
 Client.BytesWrittenLocalThroughput:
-  'Bytes throughput short-circuit written to local storage by this client'
+  '这个客户端短路写入到本地存储的字节吞吐量'
 Client.BytesWrittenUfs:
-  'Total number of bytes write to Alluxio UFS by this client'
+  '这个客户端写入到 Alluxio UFS 的字节数'
 Client.CacheBytesDiscarded:
-  'Total number of bytes discarded when restoring the page store.'
+  '恢复页面存储时丢弃的总字节数'
 Client.CacheBytesEvicted:
-  'Total number of bytes evicted from the client cache.'
+  '客户端缓存驱逐的总字节数'
 Client.CacheBytesReadCache:
-  'Total number of bytes read from the client cache.'
+  '从客户端缓存读的总字节数'
 Client.CacheBytesReadExternal:
-  'Total number of bytes read from external storage due to a cache miss on the client cache.'
+  '由于客户端缓存未命中从外部存储读取的总字节数'
 Client.CacheBytesReadInStreamBuffer:
-  'Total number of bytes read from the client cache''s in stream buffer.'
+  '从客户端缓存的输入流缓冲区中读取的总字节数'
 Client.CacheBytesRequestedExternal:
-  'Total number of bytes the user requested to read which resulted in a cache miss. This number may be smaller than Client.CacheBytesReadExternal due to chunk reads.'
+  '引起缓存未命中的用户读请求总字节数。这个数字可能会比 Client.CacheBytesReadExternal 小，因为它可能被分成多个块读取'
 Client.CacheBytesWrittenCache:
-  'Total number of bytes written to the client cache.'
+  '向客户端缓存写入的总字节数'
 Client.CacheCleanErrors:
-  'Number of failures when cleaning out the existing cache directory to initialize a new cache.'
+  '为了初始化新缓存时清理已存在缓存路径的失败总数'
 Client.CacheCleanupGetErrors:
-  'Number of failures when cleaning up a failed cache read.'
+  '清理失败内存读取失败总数'
 Client.CacheCleanupPutErrors:
-  'Number of failures when cleaning up a failed cache write.'
+  '清理失败内存写入失败总数'
 Client.CacheCreateErrors:
-  'Number of failures when creating a cache in the client cache.'
+  '在客户端缓存中创建缓存的失败总数'
 Client.CacheDeleteErrors:
-  'Number of failures when deleting cached data in the client cache.'
+  '在客户端缓存中删除缓存数据的失败总数'
 Client.CacheDeleteFromStoreErrors:
-  'Number of failures when deleting pages from page stores.'
+  '删除页的失败总数'
 Client.CacheDeleteNonExistingPageErrors:
-  'Number of failures when deleting pages due to absence.'
+  '由于页缺失导致删除页失败的总数'
 Client.CacheDeleteNotReadyErrors:
-  'Number of failures when cache is not ready to delete pages.'
+  '由于缓存未就绪删除页失败的总数'
 Client.CacheGetErrors:
-  'Number of failures when getting cached data in the client cache.'
+  '从客户端缓存中获取缓存数据失败总数'
 Client.CacheGetNotReadyErrors:
-  'Number of failures when cache is not ready to get pages.'
+  '由于缓存未就绪获取页失败的总数'
 Client.CacheGetStoreReadErrors:
-  'Number of failures when getting cached data in the client cache due to failed read from page stores.'
+  '由于从页存储读取失败导致客户端缓存中获取缓存数据失败的次数'
 Client.CacheHitRate:
-  'Cache hit rate: (# bytes read from cache) / (# bytes requested).'
+  '缓存命中率：（# 从缓存读取的字节数）/（# 请求的字节数）'
 Client.CachePageReadCacheTimeNanos:
-  'Time in nanoseconds taken to read a page from the client cache when the cache hits.'
+  '客户端缓存命中时读取页面以纳秒为单位的时间'
 Client.CachePageReadExternalTimeNanos:
-  'Time in nanoseconds taken to read a page from external source when the cache misses.'
+  '当缓存未命中时，从外部源读取数据所花费以纳秒为单位的时间'
 Client.CachePages:
-  'Total number of pages in the client cache.'
+  '客户端缓存中的总页数'
 Client.CachePagesDiscarded:
-  'Total number of pages discarded when restoring the page store.'
+  '恢复页存储时丢失页的总数'
 Client.CachePagesEvicted:
-  'Total number of pages evicted from the client cache.'
+  '从客户端缓存中驱逐页的总数'
 Client.CachePutAsyncRejectionErrors:
-  'Number of failures when putting cached data in the client cache due to failed injection to async write queue.'
+  '客户端缓存中放置缓存数据时，由于异步写队列注入失败而导致的失败次数'
 Client.CachePutBenignRacingErrors:
-  'Number of failures when adding pages due to racing eviction. This error is benign.'
+  '由于驱逐竞争而导致的缓存页添加失败的次数。这个错误是良性的'
 Client.CachePutErrors:
-  'Number of failures when putting cached data in the client cache.'
+  '向客户端缓存中防止缓存数据的失败次数'
 Client.CachePutEvictionErrors:
-  'Number of failures when putting cached data in the client cache due to failed eviction.'
+  '由于驱逐失败而导致的缓存页添加失败的次数。这个错误是良性的'
 Client.CachePutInsufficientSpaceErrors:
-  'Number of failures when putting cached data in the client cache due to insufficient space made after eviction.'
+  '由于在驱逐后空间不足导致的将缓存数据放入客户端缓存时的失败次数'
 Client.CachePutNotReadyErrors:
-  'Number of failures when cache is not ready to add pages.'
+  '由于缓存不能准备好添加页，添加页失败的次数'
 Client.CachePutStoreDeleteErrors:
-  'Number of failures when putting cached data in the client cache due to failed deletes in page store.'
+  '在页存储中删除失败导致的缓存数据放置失败的次数'
 Client.CachePutStoreWriteErrors:
-  'Number of failures when putting cached data in the client cache due to failed writes to page store.'
+  '由于向页面存储写入失败而导致的将缓存数据放入客户端缓存中失败的次数'
 Client.CachePutStoreWriteNoSpaceErrors:
-  'Number of failures when putting cached data in the client cache but getting disk is full while cache capacity is not achieved. This can happen if the storage overhead ratio to write data is underestimated.'
+  '未达到缓存容量上限但磁盘已满时将缓存数据放入客户端缓存时失败的次数。如果低估写入数据的存储开销比例，这种情况就可能会发生'
 Client.CacheShadowCacheBytes:
-  'Amount of bytes in the client shadow cache.'
+  '客户端 shadow cache 的字节数'
 Client.CacheShadowCacheBytesHit:
-  'Total number of bytes hit the client shadow cache.'
+  '客户端 shadow cache 命中的字节数'
 Client.CacheShadowCacheBytesRead:
-  'Total number of bytes read from the client shadow cache.'
+  '从客户端 shadow cache 读取的字节数'
 Client.CacheShadowCacheFalsePositiveRatio:
-  'Probability that the working set bloom filter makes an error. The value is 0-100. If too high, need to allocate more space'
+  '正在使用的工作集布隆过滤器犯错的概率。该值为 0-100。如果太高，则需要分配更多空间'
 Client.CacheShadowCachePages:
-  'Amount of pages in the client shadow cache.'
+  '客户端 shadow cache 中页的数量'
 Client.CacheShadowCachePagesHit:
-  'Total number of pages hit the client shadow cache.'
+  '客户端 shadow cache 中页的命中次数'
 Client.CacheShadowCachePagesRead:
-  'Total number of pages read from the client shadow cache.'
+  '从客户端 shadow cache 中读取页的数量'
 Client.CacheSpaceAvailable:
-  'Amount of bytes available in the client cache.'
+  '客户端缓存中可用字节数'
 Client.CacheSpaceUsed:
-  'Amount of bytes used by the client cache.'
+  '客户端缓存使用字节数'
 Client.CacheSpaceUsedCount:
-  'Amount of bytes used by the client cache as a counter.'
+  '客户端缓存用作计数器的字节数量'
 Client.CacheState:
-  'State of the cache: 0 (NOT_IN_USE), 1 (READ_ONLY) and 2 (READ_WRITE)'
+  '缓存状态：0（不在使用中），1（只读），2（读写）'
 Client.CacheStoreDeleteTimeout:
-  'Number of timeouts when deleting pages from page store.'
+  '从页存储中删除页超时次数'
 Client.CacheStoreGetTimeout:
-  'Number of timeouts when reading pages from page store.'
+  '从页存储中读取页超时次数'
 Client.CacheStorePutTimeout:
-  'Number of timeouts when writing new pages to page store.'
+  '向页存储中写入新页超时次数'
 Client.CacheStoreThreadsRejected:
-  'Number of rejection of I/O threads on submitting tasks to thread pool, likely due to unresponsive local file system.'
+  '向线程池提交任务时拒绝 I/O 线程的次数，可能是由于本地文件系统无响应。'
 Client.DefaultHiveClientCount:
-  'Number of instances in the DefaultHiveClientPool.'
+  'DefaultHiveClientPool 中实例数量'
 Client.FileSystemMasterClientCount:
-  'Number of instances in the FileSystemMasterClientPool.'
+  'FileSystemMasterClientPool 中实例数量'
 Client.MetadataCacheSize:
-  'The total number of files and directories whose metadata is cached on the client-side. Only valid if the filesystem is alluxio.client.file.MetadataCachingBaseFileSystem.'
+  '客户端被缓存的文件和目录的元数据总数。只在文件系统为 alluxio.client.file.MetadataCachingBaseFileSystem 时有效'
