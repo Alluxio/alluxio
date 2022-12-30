@@ -65,7 +65,7 @@ public final class RaftJournalSystemMetricsTest {
 
     Map<String, Long> sn1 = ImmutableMap.of("DefaultBlockMaster", 1L, "DefaultMetaMaster", 2L);
     Mockito.doReturn(sn1).when(system).getCurrentSequenceNumbers();
-    system.startInternal();
+    system.start();
     Mockito.doReturn(null).when(system).getRaftRoleInfo();
     assertEquals(-1, getClusterLeaderIndex());
     assertEquals(-1, getMasterRoleId());
