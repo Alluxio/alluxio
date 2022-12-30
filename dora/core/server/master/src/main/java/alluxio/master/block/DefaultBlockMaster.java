@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
-import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
 import alluxio.clock.SystemClock;
@@ -265,12 +264,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   /** Handle to the metrics master. */
   private final MetricsMaster mMetricsMaster;
-
-  /**
-   * The service that detects lost worker nodes, and tries to restart the failed workers.
-   * We store it here so that it can be accessed from tests.
-   */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
 
   /* The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
