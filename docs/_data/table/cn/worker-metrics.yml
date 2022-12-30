@@ -58,8 +58,8 @@ Worker.BlocksReadRemote:
   '此 worker 读的远端块总数'
 Worker.BlocksReadUfs:
   '此 worker 读的 UFS 块总数'
-  'Total number of bytes read from the this worker without external RPC involved. Data exists in worker storage or is fetched by this worker from underlying UFSes. This records data read by worker internal calls (e.g. a client embedded in this worker).'
-  '这个 worker 中没有外部 RPC 参与的总字节数。数据存在于 worker 存储中或者由这个 worker 从底层 UFS 获取。这个指标记录了 worker 内部调用读取的数据（e.g. 嵌入在这个 worker 中的客户端）'
+Worker.BytesReadDirect:
+  '此 worker 中没有外部 RPC 参与的总字节数。数据存在于 worker 存储中或者由此 worker 从底层 UFS 获取。此指标记录了 worker 内部调用读取的数据（e.g. 嵌入在此 worker 中的客户端）'
 Worker.BytesReadDirectThroughput:
   '此 worker 中没有涉及外部 RPC 的字节读取吞吐量。数据存在于 worker 存储中或由该 worker 从底层 UFS 中获取。这记录了 worker 内部调用（e.g. 位于此 worker 中的客户端）读取的数据'
 Worker.BytesReadDomain:
@@ -69,62 +69,62 @@ Worker.BytesReadDomainThroughput:
 Worker.BytesReadPerUfs:
   '此 worker 从特定 Alluxio UFS 读取的总字节数'
 Worker.BytesReadRemote:
-  '这个 worker 通过网络（RPC）读取的字节总数。数据存在于 worker 存储中或由该 worker 从底层 UFS 获取。这不包括短路本地读取和域套接字读取'
+  '此 worker 通过网络（RPC）读取的字节总数。数据存在于 worker 存储中或由该 worker 从底层 UFS 获取。这不包括短路本地读取和域套接字读取'
 Worker.BytesReadRemoteThroughput:
-  '这是一项衡量通过网络（RPC）从这个 worker 读取的字节数的吞吐量的指标。数据存在于 worker 存储中，或者由该 worker 从底层 UFS 中获取。这不包括短路本地读取和域套接字读取'
+  '这是一项衡量通过网络（RPC）从此 worker 读取的字节数的吞吐量的指标。数据存在于 worker 存储中，或者由该 worker 从底层 UFS 中获取。这不包括短路本地读取和域套接字读取'
 Worker.BytesReadUfsThroughput:
-  '由这个 worker 从 Alluxio UFS 读取字节的吞吐量'
+  '由此 worker 从 Alluxio UFS 读取字节的吞吐量'
 Worker.BytesWrittenDirect:
-  '不涉及外部 RPC写入这个 worker 的总字节数。数据写入 worker 存储或由这个 worker 写入下层 UFS。这记录了 worker 内部调用（e.g. 嵌入在 这个 worker 中的客户端）写入的数据'
+  '不涉及外部 RPC写入此 worker 的总字节数。数据写入 worker 存储或由此 worker 写入下层 UFS。这记录了 worker 内部调用（e.g. 嵌入在 此 worker 中的客户端）写入的数据'
 Worker.BytesWrittenDirectThroughput:
-  'Total number of bytes written to this worker without external RPC involved. Data is written to worker storage or is written by this worker to underlying UFSes. This records data written by worker internal calls (e.g. a client embedded in this worker).'
+  '不涉及外部 RPC 写入此 worker 的字节吞吐量。数据写入 worker 存储或由此 worker 写入下层 UFS。这记录了 worker 内部调用（e.g. 嵌入在此 worker 中的客户端）写入的数据'
 Worker.BytesWrittenDomain:
-  'Total number of bytes written to this worker via domain socket'
+  '此 worker 通过域套接字写入的总字节数'
 Worker.BytesWrittenDomainThroughput:
-  'Throughput of bytes written to this worker via domain socket'
+  '此 worker 通过域套接字写入字节的吞吐量'
 Worker.BytesWrittenPerUfs:
-  'Total number of bytes written to a specific Alluxio UFS by this worker'
+  '此 worker 向特定 Alluxio UFS 写入的总字节数'
 Worker.BytesWrittenRemote:
-  'Total number of bytes written to this worker via network (RPC). Data is written to worker storage or is written by this worker to underlying UFSes. This does not include short-circuit local writes and domain socket writes.'
+  '通过网络（RPC）写入此 worker 的总字节数。数据写入 worker 存储或由此 worker 写入下层 UFS。这不包括短路本地写入和域套接字写入'
 Worker.BytesWrittenRemoteThroughput:
-  'Bytes write throughput to this worker via network (RPC). Data is written to worker storage or is written by this worker to underlying UFSes. This does not include short-circuit local writes and domain socket writes.'
+  '通过网络（RPC）写入此 worker 的字节写入吞吐量。数据写入 worker 存储或由此 worker 写入下层 UFS。这不包括短路本地写入和域套接字写入'
 Worker.BytesWrittenUfsThroughput:
-  'Bytes write throughput to all Alluxio UFSes by this worker'
+  '此 worker 向所有 Alluxio UFS 写入字节的吞吐量'
 Worker.CacheBlocksSize:
-  'Total number of bytes that being cached through cache requests'
+  '通过缓存请求缓存的字节量'
 Worker.CacheFailedBlocks:
-  'Total number of failed cache blocks in this worker'
+  '此 worker 缓存块失败数量'
 Worker.CacheManagerCompleteTaskCount:
-  'The approximate total number of block cache tasks that have completed execution'
+  '已经完成执行的块缓存任务的近似量'
 Worker.CacheManagerThreadActiveCount:
-  'The approximate number of block cache threads that are actively executing tasks in the cache manager thread pool'
+  'cache manager 线程池中正在活跃执行任务的块缓存线程数量的近似值'
 Worker.CacheManagerThreadCurrentCount:
-  'The current number of cache threads in the cache manager thread pool'
+  '此 cache manager 线程池中的块缓存线程数'
 Worker.CacheManagerThreadMaxCount:
-  'The maximum allowed number of block cache thread in the cache manager thread pool'
+  'cache manager 线程池中块缓存线程允许的最大数量'
 Worker.CacheManagerThreadQueueWaitingTaskCount:
-  'The current number of tasks waiting in the work queue in the cache manager thread pool, bounded by alluxio.worker.network.async.cache.manager.queue.max'
+  '此 worker 中 cache manager 线程池中工作队列中等待的任务数，受 alluxio.worker.network.async.cache.manager.queue.max 的限制。'
 Worker.CacheRemoteBlocks:
-  'Total number of blocks that need to be cached from remote source'
+  '此 worker 需要从远程源缓存的块的总数'
 Worker.CacheRequests:
-  'Total number of cache request received by this worker'
+  '此 worker 收到的缓存请求总数'
 Worker.CacheRequestsAsync:
-  'Total number of async cache request received by this worker'
+  '此 worker 收到的异步缓存请求的总数'
 Worker.CacheRequestsSync:
-  'Total number of sync cache request received by this worker'
+  '此 worker 收到的同步缓存请求的总数'
 Worker.CacheSucceededBlocks:
-  'Total number of cache succeeded blocks in this worker'
+  '此 worker 中的缓存成功的块的总数'
 Worker.CacheUfsBlocks:
-  'Total number of blocks that need to be cached from local source'
+  '此 worker 中需要从本地源缓存的块的总数'
 Worker.CapacityFree:
-  'Total free bytes on all tiers of a specific Alluxio worker'
+  '在特定 Alluxio worker 的所有层级上的总空闲字节'
 Worker.CapacityTotal:
-  'Total capacity (in bytes) on all tiers of a specific Alluxio worker'
+  '在所有层次的特定 Alluxio worker 上以字节为单位的总容量'
 Worker.CapacityUsed:
-  'Total used bytes on all tiers of a specific Alluxio worker'
+  '特定 Alluxio worker 所有层级上使用的总字节数'
 Worker.RpcQueueLength:
-  'Length of the worker rpc queue. Use this metric to monitor the RPC pressure on worker.'
+  'worker RPC 队列的长度。用此指标监视 worker 的 RPC 压力'
 Worker.RpcThreadActiveCount:
-  'The number of threads that are actively executing tasks in the worker RPC executor thread pool. Use this metric to monitor the RPC pressure on worker.'
+  '此 worker RPC 执行程序线程池中正在执行任务的线程数。用此指标监视 worker 的 RPC 压力'
 Worker.RpcThreadCurrentCount:
-  'Current count of threads in the worker RPC executor thread pool. Use this metric to monitor the RPC pressure on worker.'
+  '此 worker RPC 执行器线程池中的线程数。用此指标监视 worker 的 RPC 压力'
