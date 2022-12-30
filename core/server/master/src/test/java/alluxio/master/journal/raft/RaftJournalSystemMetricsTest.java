@@ -73,6 +73,9 @@ public final class RaftJournalSystemMetricsTest {
       assertNotNull(MetricsSystem.METRIC_REGISTRY.getGauges().get(name));
     }
     newStateMachine.close();
+    for (String name : metricsNames) {
+      assertNull(MetricsSystem.METRIC_REGISTRY.getGauges().get(name));
+    }
   }
 
   @Test
