@@ -106,7 +106,7 @@ public class MasterBatchTask extends BatchTask {
         // add all base parameters
         command.addAll(mBaseParameter.toBatchTaskArgumentString());
 
-        commandList.add(command.toArray(new String[command.size()]));
+        commandList.add(command.toArray(new String[0]));
       }
     }
     return commandList;
