@@ -15,7 +15,7 @@ priority: 2
 
 ## 提交代码
 
--   我们鼓励你每次尽可能提交小的、单一目的的补丁包，因为要合并一个含有许多不相关的特性的大的改动十分困难。
+-   我们鼓励你每次尽可能提交小的、单一目的的补丁包，因为要合并一个含有许多不相关的特性的大大大大的改动十分困难。
 
 -   将你的修改作为一个GitHub pull request进行提交，可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行这些操作。
 
