@@ -100,7 +100,7 @@ Alluxio 位于存储和计算框架之间，可以作为数据读取的缓存层
 
 ### 本地缓存命中
 
-当应用程序需要读取的数据已经被缓存在本地 Alluxio worker 上时，即为本地缓存命中。应用程序通过 Alluxio client请求数据访问后，Alluxio client 会向 Alluxio master 检索储存该数据的 Alluxio  worker位置。如果本地Alluxio worker 存有该数据，Alluxio client 将使用“短路读”绕过 Alluxio worker，直接通过本地文件系统读取文件。短路读可避免通过 TCP socket 传输数据，并能提供内存级别的数据访问速度。短路读是从Alluxio读取数据最快的方式。
+当应用程序需要读取的数据已经被缓存在本地 Alluxio worker 上时，即为本地缓存命中。应用程序通过 Alluxio client请求数据访问后，Alluxio client 会向 Alluxio master 检索储存该数据的 Alluxio  worker位置。如果本地Alluxio worker 存有该数据，Alluxio client 将使用"短路读"绕过 Alluxio worker，直接通过本地文件系统读取文件。短路读可避免通过 TCP socket 传输数据，并能提供内存级别的数据访问速度。短路读是从Alluxio读取数据最快的方式。
 
 在默认情况下，短路读需要获得相应的本地文件系统操作权限。当Alluxio worker 和 client是在容器化的环境中运行时，可能会由于不正确的资源信息统计而无法实现短路读。在基于文件系统的短路读不可行的情况下，Alluxio可以基于domain socket的方式实现短路读，这时，Alluxio worker将通过预先指定的domain socket路径将数据传输到client。有关该主题的更多信息，请参见[在 Docker 上运行 Alluxio]({{ '/cn/deploy/Running-Alluxio-On-Docker.html' | relativize_url }})的文档。
 
@@ -139,7 +139,7 @@ Alluxio 位于存储和计算框架之间，可以作为数据读取的缓存层
 
 ### 仅写Alluxio缓存(`MUST_CACHE`) 
 
-如果使用写入类型MUST_CACHE，Alluxio client 仅将数据写入本地 Alluxio worker，不会将数据写入底层存储系统。在写入期间，如果“短路写”可用，Alluxio client将直接将数据写入本地RAM盘上的文件中，绕过 Alluxio worker，从而避免网络传输。由于数据没有持久化地写入底层存储，如果机器崩溃或需要通过释放缓存数据来进行较新的写入，则数据可能会丢失。因此，只有当可以容忍数据丢失的场景时（如写入临时数据），才考虑使用`MUST_CACHE` 类型的写入。
+如果使用写入类型MUST_CACHE，Alluxio client 仅将数据写入本地 Alluxio worker，不会将数据写入底层存储系统。在写入期间，如果"短路写"可用，Alluxio client将直接将数据写入本地RAM盘上的文件中，绕过 Alluxio worker，从而避免网络传输。由于数据没有持久化地写入底层存储，如果机器崩溃或需要通过释放缓存数据来进行较新的写入，则数据可能会丢失。因此，只有当可以容忍数据丢失的场景时（如写入临时数据），才考虑使用`MUST_CACHE` 类型的写入。
 
 <p align="center">
 <img src="{{ '/img/dataflow-must-cache.gif' | relativize_url }}" alt="MUST_CACHE data flow"/>
