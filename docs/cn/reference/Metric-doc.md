@@ -81,7 +81,7 @@ Alluxio 服务器共享的指标。
   <tr>
     <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
     <td>{{ item.metricType }}</td>
-    <td>{{ site.data.table.en.server-metrics[item.metricName] }}</td>
+    <td>{{ site.data.table.cn.server-metrics[item.metricName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -96,7 +96,7 @@ Alluxio 服务器共享的指标。
   <tr>
     <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
     <td>{{ item.metricType }}</td>
-    <td>{{ site.data.table.en.master-metrics[item.metricName] }}</td>
+    <td>{{ site.data.table.cn.master-metrics[item.metricName] }}</td>
   </tr>
 {% endfor %}
 </table>
