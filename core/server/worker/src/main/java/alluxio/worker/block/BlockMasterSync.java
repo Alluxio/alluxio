@@ -87,10 +87,10 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mMasterClientPool = masterClientPool;
     mMasterClient = mMasterClientPool.acquire();
     mAsyncBlockRemover = new AsyncBlockRemover(mBlockWorker);
+    mBlockMasterSyncHelper = new BlockMasterSyncHelper(mMasterClient);
 
     registerWithMaster();
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
-    mBlockMasterSyncHelper = new BlockMasterSyncHelper(mMasterClient);
   }
 
   /**
