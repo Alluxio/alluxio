@@ -47,9 +47,9 @@ public final class RaftJournalSystemMetricsTest {
   @Test
   public void metrics() throws Exception {
     Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
-        "localhost:19200,localhost:19201,localhost:19202");
+        "localhost:22200,localhost:22201,localhost:22202");
     Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
-    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, 19200);
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, 22200);
     RaftJournalSystem raftJournalSystem =
         new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.MASTER_RAFT);
     RaftJournalSystem system = Mockito.spy(raftJournalSystem);
@@ -60,7 +60,7 @@ public final class RaftJournalSystemMetricsTest {
         .setFollowerInfo(RaftProtos.FollowerInfoProto.newBuilder()
             .setLeaderInfo(RaftProtos.ServerRpcProto.newBuilder()
                 .setId(RaftProtos.RaftPeerProto.newBuilder()
-                    .setId(ByteString.copyFromUtf8("localhost_19201")))))
+                    .setId(ByteString.copyFromUtf8("localhost_22201")))))
         .build();
 
     Map<String, Long> sn1 = ImmutableMap.of("DefaultBlockMaster", 1L, "DefaultMetaMaster", 2L);
@@ -90,7 +90,7 @@ public final class RaftJournalSystemMetricsTest {
     Mockito.doReturn(followerInfo).when(system).getRaftRoleInfo();
     assertEquals(1, getClusterLeaderIndex());
     assertEquals(RaftProtos.RaftPeerRole.FOLLOWER_VALUE, getMasterRoleId());
-    assertEquals("localhost_19201", getClusterLeaderId());
+    assertEquals("localhost_22201", getClusterLeaderId());
     assertEquals(sn2, getMasterJournalSequenceNumbers(system));
 
     system.gainPrimacy();
