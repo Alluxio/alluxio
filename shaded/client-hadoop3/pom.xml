@@ -1,0 +1,373 @@
+<!--
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>alluxio-shaded</artifactId>
+    <groupId>org.alluxio</groupId>
+    <version>2.10.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>alluxio-shaded-hadoop3-client</artifactId>
+  <packaging>jar</packaging>
+  <name>Alluxio Shaded Libraries - Hadoop3 Client</name>
+  <description>Shaded Alluxio Client Module for hadoop 3</description>
+
+  <properties>
+    <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
+    <!-- run properly from sub-project directories -->
+    <build.path>${project.parent.parent.basedir}/build</build.path>
+    <failIfNoTests>false</failIfNoTests>
+    <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
+    <shading.prefix>alluxio.shaded.client</shading.prefix>
+  </properties>
+
+  <dependencies>
+    <!-- External dependencies -->
+    <!-- Have hadoop-client dependency in provided scope by default -->
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.rocksdb</groupId>
+      <artifactId>rocksdbjni</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- Runtime logging dependencies -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- Move log4j to optional, since it is mainly used in test-->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <scope>runtime</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <scope>runtime</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <scope>runtime</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Internal dependencies -->
+    <!-- This should include all Alluxio client implementations -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-hdfs3</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-fs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-table-client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <profile>
+      <id>includeHadoopClient</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <scope>compile</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>com.fasterxml.jackson.core</groupId>
+              <artifactId>jackson-core</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- Creates the client jar symlink pointing to the shaded hadoop3 client jar -->
+    <profile>
+      <id>hadoop-3</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>symlink-jar</id>
+                <phase>install</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>ln</executable>
+                  <arguments>
+                    <argument>-fnsv</argument>
+                    <argument>build/alluxio-${project.version}-hadoop3-client.jar</argument>
+                    <argument>${project.parent.parent.basedir}/client/alluxio-${project.version}-client.jar</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <forceCreation>true</forceCreation>
+        </configuration>
+        <executions>
+          <execution>
+            <id>empty-javadoc-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>javadoc</classifier>
+              <classesDirectory>${basedir}/javadoc</classesDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>sources-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>sources</classifier>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <configuration>
+          <forceCreation>true</forceCreation>
+        </configuration>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!--In the runtime client jar, dependencies are shaded to avoid version conflicts due to external-->
+      <!--dependencies introduced by applications. The protobuf dependency is already shaded in the internal protobuf-->
+      <!--module rather than in the runtime module, because it is also depended by other libraries included in-->
+      <!--the runtime module, thus shading protobuf during the runtime jar packaging will over-shade references of protobuf.-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>uber-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createSourcesJar>true</createSourcesJar>
+              <shadeSourcesContent>true</shadeSourcesContent>
+              <createDependencyReducedPom>${create.dependency.reduced.pom}</createDependencyReducedPom>
+              <artifactSet>
+                <excludes>
+                  <!-- Leave slf4j unshaded so downstream users can configure logging -->
+                  <exclude>org.slf4j:*</exclude>
+                  <!-- Leave commons-logging unshaded so downstream users can configure logging -->
+                  <exclude>commons-logging:commons-logging</exclude>
+                  <!-- Leave log4j unshaded so downstream users can configure logging -->
+                  <exclude>log4j:log4j</exclude>
+                  <exclude>org.apache.logging.log4j:log4j-api</exclude>
+                  <exclude>org.apache.logging.log4j:log4j-core</exclude>
+                  <exclude>org.apache.logging.log4j:log4j-slf4j-impl</exclude>
+                  <exclude>org.alluxio:alluxio-microbench</exclude>
+                  <exclude>org.openjdk.jmh:*</exclude>
+                </excludes>
+              </artifactSet>
+              <filters>
+                <!-- Exclude source code included in non-source jar -->
+                <filter>
+                  <artifact>org.apache.zookeeper:zookeeper-jute</artifact>
+                  <excludes>
+                    <exclude>**/*.java</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>LICENSE</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>mozilla/public-suffix-list.txt</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <relocations>
+                <!-- Relocate the native netty libraries to be prefixed with our shade prefix -->
+                <relocation>
+                  <pattern>META-INF/native/libnetty_transport_native_epoll_x86_64.so</pattern>
+                  <shadedPattern>META-INF/native/liballuxio_shaded_client_netty_transport_native_epoll_x86_64.so
+                  </shadedPattern>
+                  <rawString>true</rawString>
+                </relocation>
+                <relocation>
+                  <pattern>META-INF/native/libnetty_transport_native_epoll_aarch_64.so</pattern>
+                  <shadedPattern>META-INF/native/liballuxio_shaded_client_netty_transport_native_epoll_aarch_64.so
+                  </shadedPattern>
+                  <rawString>true</rawString>
+                </relocation>
+                <relocation>
+                  <pattern>com/</pattern>
+                  <shadedPattern>${shading.prefix}.com.</shadedPattern>
+                  <excludes>
+                    <exclude>**/pom.xml</exclude>
+                    <!-- Exclude the packages belonging to JDK -->
+                    <exclude>com/ibm/security/*</exclude>
+                    <exclude>com/ibm/security/**/*</exclude>
+                    <exclude>com/sun/tools/*</exclude>
+                    <exclude>com/sun/javadoc/*</exclude>
+                    <exclude>com/sun/security/*</exclude>
+                    <exclude>com/sun/jndi/*</exclude>
+                    <exclude>com/sun/management/*</exclude>
+                    <exclude>com/sun/tools/**/*</exclude>
+                    <exclude>com/sun/javadoc/**/*</exclude>
+                    <exclude>com/sun/security/**/*</exclude>
+                    <exclude>com/sun/jndi/**/*</exclude>
+                    <exclude>com/sun/management/**/*</exclude>
+                  </excludes>
+                </relocation>
+                <relocation>
+                  <pattern>io/</pattern>
+                  <shadedPattern>${shading.prefix}.io.</shadedPattern>
+                  <excludes>
+                    <exclude>**/pom.xml</exclude>
+                  </excludes>
+                </relocation>
+                <relocation>
+                  <pattern>javassist</pattern>
+                  <shadedPattern>${shading.prefix}.javassist</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>javax/annotation/</pattern>
+                  <shadedPattern>${shading.prefix}.javax.annotation.</shadedPattern>
+                  <excludes>
+                    <exclude>**/pom.xml</exclude>
+                  </excludes>
+                </relocation>
+                <relocation>
+                  <pattern>org/</pattern>
+                  <shadedPattern>${shading.prefix}.org.</shadedPattern>
+                  <excludes>
+                    <exclude>org/apache/hadoop/*</exclude>
+                    <exclude>org/apache/hadoop/**/*</exclude>
+                    <exclude>**/pom.xml</exclude>
+                    <!-- Exclude the logging packages-->
+                    <exclude>org/slf4j/*</exclude>
+                    <exclude>org/slf4j/**/*</exclude>
+                    <exclude>org/apache/commons/logging/*</exclude>
+                    <exclude>org/apache/commons/logging/**/*</exclude>
+                    <exclude>org/apache/log4j/*</exclude>
+                    <exclude>org/apache/log4j/**/*</exclude>
+                    <!-- Exclude the packages belonging to JDK -->
+                    <exclude>org/ietf/jgss/*</exclude>
+                    <exclude>org/omg/**/*</exclude>
+                    <exclude>org/w3c/dom/*</exclude>
+                    <exclude>org/w3c/dom/**/*</exclude>
+                    <exclude>org/xml/sax/*</exclude>
+                    <exclude>org/xml/sax/**/*</exclude>
+                    <!-- Exclude the rocksdb-jni package-->
+                    <exclude>org/rocksdb/**/*</exclude>
+                  </excludes>
+                </relocation>
+              </relocations>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                  <resources>
+                    <resource>NOTICE.txt</resource>
+                    <resource>NOTICE</resource>
+                    <resource>LICENSE</resource>
+                    <resource>Log4j-charsets.properties</resource>
+                    <resource>Log4j-config.xsd</resource>
+                    <resource>Log4j-events.dtd</resource>
+                    <resource>Log4j-events.xsd</resource>
+                    <resource>Log4j-levels.xsd</resource>
+                  </resources>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>META-INF/LICENSE</resource>
+                  <file>${basedir}/../../LICENSE</file>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>META-INF/NOTICE</resource>
+                  <file>${basedir}/../../NOTICE</file>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.coderplus.maven.plugins</groupId>
+        <artifactId>copy-rename-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-and-rename-file</id>
+            <phase>install</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <sourceFile>${basedir}/target/${project.artifactId}-${project.version}.jar</sourceFile>
+              <destinationFile>${project.parent.parent.basedir}/client/build/alluxio-${project.version}-hadoop3-client.jar
+              </destinationFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
