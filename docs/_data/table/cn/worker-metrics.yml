@@ -1,0 +1,130 @@
+Worker.ActiveClients:
+  '正在活跃地读取或写入此 worker 的客户端数量'
+Worker.ActiveRpcReadCount:
+  '此 worker 管理的读 RPC 数量'
+Worker.ActiveRpcWriteCount:
+  '此 worker 管理的写 RPC 数量'
+Worker.BlockReaderCompleteTaskCount:
+  '已经完成执行的读任务的近似值'
+Worker.BlockReaderThreadActiveCount:
+  'reader 线程池中正在活跃执行任务的读线程数量的近似值'
+Worker.BlockReaderThreadCurrentCount:
+  '此 reader 线程池中的读线程数'
+Worker.BlockReaderThreadMaxCount:
+  'reader 线程池中读线程允许的最大数量'
+Worker.BlockRemoverBlocksRemovedCount:
+  '此 worker 中被 asynchronous block remover 成功移除的块的总数量'
+Worker.BlockRemoverRemovingBlocksSize:
+  'asynchronous block remover 正在从此 worker 移除的块大小'
+Worker.BlockRemoverTryRemoveBlocksSize:
+  'asynchronous block remover 正要从此 worker 移除的块大小'
+Worker.BlockRemoverTryRemoveCount:
+  'asynchronous block remover 尝试从此 worker 移除的块大小'
+Worker.BlockSerializedCompleteTaskCount:
+  '完成执行的块序列化任务完成总量近似值'
+Worker.BlockSerializedThreadActiveCount:
+  'serialized 线程池中正在活跃执行任务的 block serialized 线程近似数量'
+Worker.BlockSerializedThreadCurrentCount:
+  '此 serialized 线程池中 block serialized 线程数量'
+Worker.BlockSerializedThreadMaxCount:
+  'serialized 线程池中 block serialized 线程允许的最大数量'
+Worker.BlockWriterCompleteTaskCount:
+  '已经完成执行的 block serialized 任务的近似值'
+Worker.BlockWriterThreadActiveCount:
+  'writer 线程池中正在活跃执行任务的写线程数量的近似值'
+Worker.BlockWriterThreadCurrentCount:
+  '此 writer 线程池中的写线程数'
+Worker.BlockWriterThreadMaxCount:
+  'writer 线程池中写线程允许的最大数量'
+Worker.BlocksAccessed:
+  '此 worker 中任意一个块可以被访问的总时间'
+Worker.BlocksCached:
+  '一个 Alluxio worker 中被用于缓存数据的块总数'
+Worker.BlocksCancelled:
+  '此 worker 中废弃的临时块总量'
+Worker.BlocksDeleted:
+  '此 worker 中被外部请求删除的块总量'
+Worker.BlocksEvicted:
+  '此 worker 中被驱逐的块总量'
+Worker.BlocksEvictionRate:
+  '此 worker 的块驱逐率'
+Worker.BlocksLost:
+  '此 worker 丢失块总量'
+Worker.BlocksPromoted:
+  '此 worker 中，任何一个块被移到新层的总次数'
+Worker.BlocksReadLocal:
+  '此 worker 读的本地块总数'
+Worker.BlocksReadRemote:
+  '此 worker 读的远端块总数'
+Worker.BlocksReadUfs:
+  '此 worker 读的 UFS 块总数'
+  'Total number of bytes read from the this worker without external RPC involved. Data exists in worker storage or is fetched by this worker from underlying UFSes. This records data read by worker internal calls (e.g. a client embedded in this worker).'
+  '这个 worker 中没有外部 RPC 参与的总字节数。数据存在于 worker 存储中或者由这个 worker 从底层 UFS 获取。这个指标记录了 worker 内部调用读取的数据（e.g. 嵌入在这个 worker 中的客户端）'
+Worker.BytesReadDirectThroughput:
+  '此 worker 中没有涉及外部 RPC 的字节读取吞吐量。数据存在于 worker 存储中或由该 worker 从底层 UFS 中获取。这记录了 worker 内部调用（e.g. 位于此 worker 中的客户端）读取的数据'
+Worker.BytesReadDomain:
+  '此 worker 通过域套接字读取的总字节数'
+Worker.BytesReadDomainThroughput:
+  '此 worker 通过域套接字读取字节的吞吐量'
+Worker.BytesReadPerUfs:
+  '此 worker 从特定 Alluxio UFS 读取的总字节数'
+Worker.BytesReadRemote:
+  '这个 worker 通过网络（RPC）读取的字节总数。数据存在于 worker 存储中或由该 worker 从底层 UFS 获取。这不包括短路本地读取和域套接字读取'
+Worker.BytesReadRemoteThroughput:
+  '这是一项衡量通过网络（RPC）从这个 worker 读取的字节数的吞吐量的指标。数据存在于 worker 存储中，或者由该 worker 从底层 UFS 中获取。这不包括短路本地读取和域套接字读取'
+Worker.BytesReadUfsThroughput:
+  '由这个 worker 从 Alluxio UFS 读取字节的吞吐量'
+Worker.BytesWrittenDirect:
+  '不涉及外部 RPC写入这个 worker 的总字节数。数据写入 worker 存储或由这个 worker 写入下层 UFS。这记录了 worker 内部调用（e.g. 嵌入在 这个 worker 中的客户端）写入的数据'
+Worker.BytesWrittenDirectThroughput:
+  'Total number of bytes written to this worker without external RPC involved. Data is written to worker storage or is written by this worker to underlying UFSes. This records data written by worker internal calls (e.g. a client embedded in this worker).'
+Worker.BytesWrittenDomain:
+  'Total number of bytes written to this worker via domain socket'
+Worker.BytesWrittenDomainThroughput:
+  'Throughput of bytes written to this worker via domain socket'
+Worker.BytesWrittenPerUfs:
+  'Total number of bytes written to a specific Alluxio UFS by this worker'
+Worker.BytesWrittenRemote:
+  'Total number of bytes written to this worker via network (RPC). Data is written to worker storage or is written by this worker to underlying UFSes. This does not include short-circuit local writes and domain socket writes.'
+Worker.BytesWrittenRemoteThroughput:
+  'Bytes write throughput to this worker via network (RPC). Data is written to worker storage or is written by this worker to underlying UFSes. This does not include short-circuit local writes and domain socket writes.'
+Worker.BytesWrittenUfsThroughput:
+  'Bytes write throughput to all Alluxio UFSes by this worker'
+Worker.CacheBlocksSize:
+  'Total number of bytes that being cached through cache requests'
+Worker.CacheFailedBlocks:
+  'Total number of failed cache blocks in this worker'
+Worker.CacheManagerCompleteTaskCount:
+  'The approximate total number of block cache tasks that have completed execution'
+Worker.CacheManagerThreadActiveCount:
+  'The approximate number of block cache threads that are actively executing tasks in the cache manager thread pool'
+Worker.CacheManagerThreadCurrentCount:
+  'The current number of cache threads in the cache manager thread pool'
+Worker.CacheManagerThreadMaxCount:
+  'The maximum allowed number of block cache thread in the cache manager thread pool'
+Worker.CacheManagerThreadQueueWaitingTaskCount:
+  'The current number of tasks waiting in the work queue in the cache manager thread pool, bounded by alluxio.worker.network.async.cache.manager.queue.max'
+Worker.CacheRemoteBlocks:
+  'Total number of blocks that need to be cached from remote source'
+Worker.CacheRequests:
+  'Total number of cache request received by this worker'
+Worker.CacheRequestsAsync:
+  'Total number of async cache request received by this worker'
+Worker.CacheRequestsSync:
+  'Total number of sync cache request received by this worker'
+Worker.CacheSucceededBlocks:
+  'Total number of cache succeeded blocks in this worker'
+Worker.CacheUfsBlocks:
+  'Total number of blocks that need to be cached from local source'
+Worker.CapacityFree:
+  'Total free bytes on all tiers of a specific Alluxio worker'
+Worker.CapacityTotal:
+  'Total capacity (in bytes) on all tiers of a specific Alluxio worker'
+Worker.CapacityUsed:
+  'Total used bytes on all tiers of a specific Alluxio worker'
+Worker.RpcQueueLength:
+  'Length of the worker rpc queue. Use this metric to monitor the RPC pressure on worker.'
+Worker.RpcThreadActiveCount:
+  'The number of threads that are actively executing tasks in the worker RPC executor thread pool. Use this metric to monitor the RPC pressure on worker.'
+Worker.RpcThreadCurrentCount:
+  'Current count of threads in the worker RPC executor thread pool. Use this metric to monitor the RPC pressure on worker.'
