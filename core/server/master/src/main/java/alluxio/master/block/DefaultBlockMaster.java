@@ -1565,10 +1565,22 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       }
       for (MasterWorkerInfo worker : mLostWorkers) {
         try (LockResource r = worker.lockWorkerMeta(
-                EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+            EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
           final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
           if ((lastUpdate - masterWorkerTimeoutMs) > masterWorkerDeleteTimeoutMs) {
             LOG.error("The worker {}({}) timed out after {}ms without a heartbeat! "
+                + "Master will forget about this worker.", worker.getId(),
+                worker.getWorkerAddress(), lastUpdate);
+            deleteWorkerMetadata(worker);
+          }
+        }
+      }
+      for (MasterWorkerInfo worker : mTempWorkers) {
+        try (LockResource r = worker.lockWorkerMeta(
+            EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+          final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
+          if ((lastUpdate - masterWorkerTimeoutMs) > masterWorkerDeleteTimeoutMs) {
+            LOG.error("The worker {}({}) did not register after {}ms! "
                 + "Master will forget about this worker.", worker.getId(),
                 worker.getWorkerAddress(), lastUpdate);
             deleteWorkerMetadata(worker);
@@ -1608,6 +1620,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private void processLostWorker(MasterWorkerInfo worker) {
     mLostWorkers.add(worker);
     mWorkers.remove(worker);
+    // If a worker is gone before registering, avoid it getting stuck in mTempWorker forever
+    mTempWorkers.remove(worker);
     WorkerNetAddress workerAddress = worker.getWorkerAddress();
     for (Consumer<Address> function : mWorkerLostListeners) {
       function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
@@ -1621,6 +1635,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private void deleteWorkerMetadata(MasterWorkerInfo worker) {
     mWorkers.remove(worker);
     mLostWorkers.remove(worker);
+    // If a worker is gone before registering, avoid it getting stuck in mTempWorker forever
     mTempWorkers.remove(worker);
     WorkerNetAddress workerAddress = worker.getWorkerAddress();
     for (Consumer<Address> function : mWorkerDeleteListeners) {
