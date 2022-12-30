@@ -156,6 +156,9 @@ public final class MasterWorkerInfo {
   /** Stores the mapping from WorkerMetaLockSection to the lock. */
   private final Map<WorkerMetaLockSection, ReadWriteLock> mLockTypeToLock;
 
+  /** Worker's throughput for reading from ufs. */
+  private long mReadUfsThroughput;
+
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
    *
@@ -729,5 +732,19 @@ public final class MasterWorkerInfo {
    */
   public BuildVersion getBuildVersion() {
     return mBuildVersion.get();
+  }
+
+  /**
+   * @param readUfsThroughput the read ufs throughput
+   */
+  public void setReadUfsThroughput(long readUfsThroughput) {
+    mReadUfsThroughput = readUfsThroughput;
+  }
+
+  /**
+   * @return the read ufs throughput
+   */
+  public long getReadUfsThroughput() {
+    return mReadUfsThroughput;
   }
 }

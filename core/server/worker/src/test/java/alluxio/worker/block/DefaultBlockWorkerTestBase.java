@@ -247,6 +247,7 @@ public class DefaultBlockWorkerTestBase {
             anyList(),
             anyMap(),
             anyMap(),
+            anyLong(),
             anyList()
         );
     return client;

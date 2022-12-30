@@ -18,6 +18,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -51,6 +52,10 @@ import java.util.Random;
 @BenchmarkMode(Mode.Throughput)
 public class BlockStoreSequentialReadBench {
   private static final int MAX_SIZE = 64 * 1024 * 1024;
+
+  private static final UnderFileSystemReadRateLimiter RATE_LIMITER =
+          new UnderFileSystemReadRateLimiter(Configuration.getBytes(
+                  PropertyKey.WORKER_UFS_READ_DEFAULT_THROUGHPUT));
 
   /**
    * A mock consumer of the data read from the store.
@@ -147,7 +152,7 @@ public class BlockStoreSequentialReadBench {
       throws Exception {
     try (BlockReader reader = store
         .createBlockReader(2L, blockId, 0, false,
-            Protocol.OpenUfsBlockOptions.newBuilder().build())) {
+            Protocol.OpenUfsBlockOptions.newBuilder().build(), RATE_LIMITER)) {
       ByteBuffer buffer = reader.read(0, blockSize);
       ByteBuf buf = Unpooled.wrappedBuffer(buffer);
       buf.readBytes(SINK, 0, (int) blockSize);
@@ -169,7 +174,7 @@ public class BlockStoreSequentialReadBench {
       throws Exception {
     try (BlockReader reader = store
         .createBlockReader(2L, blockId, 0, false,
-            Protocol.OpenUfsBlockOptions.newBuilder().build())) {
+            Protocol.OpenUfsBlockOptions.newBuilder().build(), RATE_LIMITER)) {
       ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer((int) blockSize, (int) blockSize);
       while (buf.writableBytes() > 0 && reader.transferTo(buf) > 0) {}
       buf.readBytes(SINK, 0, (int) blockSize);
@@ -223,7 +228,7 @@ public class BlockStoreSequentialReadBench {
                 .setUfsPath(ufsPath)
                 .setMountId(mountId)
                 .setBlockSize(blockSize)
-                .build())) {
+                .build(), RATE_LIMITER)) {
 
       ByteBuffer buffer = reader.read(0, blockSize);
       buffer.put(SINK, 0, (int) blockSize);
@@ -252,7 +257,7 @@ public class BlockStoreSequentialReadBench {
             .setUfsPath(ufsPath)
             .setMountId(mountId)
             .setBlockSize(blockSize)
-            .build())) {
+            .build(), RATE_LIMITER)) {
 
       ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer((int) blockSize, (int) blockSize);
       while (buf.writableBytes() > 0 && reader.transferTo(buf) > 0) {}

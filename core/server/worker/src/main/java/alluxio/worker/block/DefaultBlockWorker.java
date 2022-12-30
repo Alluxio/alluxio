@@ -55,6 +55,7 @@ import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.page.PagedBlockStore;
@@ -122,6 +123,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   private final CacheRequestManager mCacheManager;
   private final FuseManager mFuseManager;
+  private UnderFileSystemReadRateLimiter mRateLimiter;
 
   protected WorkerNetAddress mAddress;
 
@@ -159,7 +161,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, fsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(fsContext));
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
-
+    mRateLimiter = new UnderFileSystemReadRateLimiter(Configuration.getBytes(
+        PropertyKey.WORKER_UFS_READ_DEFAULT_THROUGHPUT));
     Metrics.registerGauges(this);
   }
 
@@ -361,7 +364,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
-    return mBlockStore.createUfsBlockReader(sessionId, blockId, offset, positionShort, options);
+    return mBlockStore.createUfsBlockReader(sessionId, blockId, offset,
+        positionShort, options, mRateLimiter);
   }
 
   @Override
@@ -464,7 +468,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
     BlockReader reader =
-        mBlockStore.createBlockReader(sessionId, blockId, offset, positionShort, options);
+        mBlockStore.createBlockReader(sessionId, blockId, offset,
+            positionShort, options, mRateLimiter);
     Metrics.WORKER_ACTIVE_CLIENTS.inc();
     return reader;
   }
@@ -558,6 +563,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     }
 
     private Metrics() {} // prevent instantiation
+  }
+
+  @Override
+  public UnderFileSystemReadRateLimiter getUfsReadRateLimiter() {
+    return mRateLimiter;
   }
 
   /**

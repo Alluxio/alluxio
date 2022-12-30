@@ -46,6 +46,7 @@ import alluxio.worker.block.UfsInputStreamCache;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.DelegatingBlockReader;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
@@ -221,7 +222,8 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public BlockReader createBlockReader(long sessionId, long blockId, long offset,
-                                       boolean positionShort, Protocol.OpenUfsBlockOptions options)
+      boolean positionShort, Protocol.OpenUfsBlockOptions options,
+      UnderFileSystemReadRateLimiter rateLimiter)
       throws IOException {
     BlockLock blockLock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.READ);
 
@@ -299,8 +301,8 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
-                                          boolean positionShort,
-                                          Protocol.OpenUfsBlockOptions options) throws IOException {
+      boolean positionShort, Protocol.OpenUfsBlockOptions options,
+      UnderFileSystemReadRateLimiter rateLimiter) throws IOException {
     PagedBlockMeta blockMeta = mPageMetaStore
         .getBlock(blockId)
         .orElseGet(() -> {

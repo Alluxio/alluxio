@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.master.NoopUfsManager;
@@ -24,6 +25,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -44,6 +46,7 @@ public final class UnderFileSystemBlockStoreTest {
   private LocalBlockStore mAlluxioBlockStore;
   private Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
   private UfsManager mUfsManager;
+  private UnderFileSystemReadRateLimiter mRateLimiter;
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -68,6 +71,8 @@ public final class UnderFileSystemBlockStoreTest {
     mOpenUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder().setMaxUfsReadConcurrency(5)
         .setBlockSize(TEST_BLOCK_SIZE).setOffsetInFile(TEST_BLOCK_SIZE)
         .setUfsPath(mTempFilePath).setMountId(MOUNT_ID).build();
+    mRateLimiter = new UnderFileSystemReadRateLimiter(Configuration.getBytes(
+        PropertyKey.WORKER_UFS_READ_DEFAULT_THROUGHPUT));
   }
 
   @Test
@@ -131,7 +136,7 @@ public final class UnderFileSystemBlockStoreTest {
         .build();
 
     BlockReader reader = blockStore
-        .createBlockReader(sessionId, BLOCK_ID, 0, false, options);
+        .createBlockReader(sessionId, BLOCK_ID, 0, false, options, mRateLimiter);
 
     assertArrayEquals(data, reader.read(0, TEST_BLOCK_SIZE).array());
   }
@@ -194,7 +199,7 @@ public final class UnderFileSystemBlockStoreTest {
         .build();
 
     BlockReader reader = blockStore
-        .createBlockReader(sessionId, BLOCK_ID, 0, false, options);
+        .createBlockReader(sessionId, BLOCK_ID, 0, false, options, mRateLimiter);
 
     blockStore.closeBlock(sessionId, BLOCK_ID);
     assertTrue(reader.isClosed());

@@ -206,10 +206,12 @@ message BlockHeartbeatPRequest {
   map<string, StorageList> lostStorage = 6;
   /** use repeated fields to represent mapping from BlockStoreLocationProto to TierList */
   repeated LocationBlockIdListEntry addedBlocks = 7;
+  optional int64 throughput = 8;
 }
 
 message BlockHeartbeatPResponse {
   optional grpc.Command command = 1;
+  optional int64 throughput = 2;
 }
 
 message CommitBlockPResponse {}

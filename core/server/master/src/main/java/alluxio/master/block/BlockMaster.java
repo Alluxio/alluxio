@@ -399,4 +399,13 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param workerNetAddress the worker address
    */
   void notifyWorkerId(long workerId, WorkerNetAddress workerNetAddress);
+
+  /**
+   * Recalculate the worker's maximum throughput.
+   *
+   * @param workerId the worker id
+   * @param throughput latest worker throughput
+   * @return new maximum throughput for the worker
+   */
+  long refreshWorkerThroughput(long workerId, long throughput);
 }

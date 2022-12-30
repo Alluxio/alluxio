@@ -15,12 +15,14 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.FailedToAcquireRegisterLeaseException;
+import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.Scope;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,17 +132,21 @@ public class BlockMasterSyncHelper {
    */
   boolean heartbeat(
       long workerId, BlockHeartbeatReport blockReport, BlockStoreMeta storeMeta,
-      MasterCommandHandler handler
-  ) {
+      MasterCommandHandler handler, UnderFileSystemReadRateLimiter rateLimiter) {
     // Send the heartbeat and execute the response
     Command cmdFromMaster = null;
     List<alluxio.grpc.Metric> metrics = MetricsSystem.reportWorkerMetrics();
 
     try {
-      cmdFromMaster = mMasterClient.heartbeat(workerId, storeMeta.getCapacityBytesOnTiers(),
-          storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
-          blockReport.getAddedBlocks(), blockReport.getLostStorage(), metrics);
+      long throughput = rateLimiter.hasRead() ? rateLimiter.getRate() : 0;
+      BlockHeartbeatPResponse response = mMasterClient.heartbeat(workerId,
+          storeMeta.getCapacityBytesOnTiers(), storeMeta.getUsedBytesOnTiers(),
+          blockReport.getRemovedBlocks(), blockReport.getAddedBlocks(),
+          blockReport.getLostStorage(), throughput, metrics);
+      cmdFromMaster = response.getCommand();
       handler.handle(cmdFromMaster);
+      cmdFromMaster = response.getCommand();
+      rateLimiter.setRate(response.getThroughput());
       return true;
     } catch (Exception e) {
       // An error occurred, log and ignore it or error if heartbeat timeout is reached

@@ -44,8 +44,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
-import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
@@ -505,14 +505,14 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     }
 
     @Override
-    public synchronized Command heartbeat(
+    public synchronized BlockHeartbeatPResponse heartbeat(
         final long workerId, final Map<String, Long> capacityBytesOnTiers,
         final Map<String, Long> usedBytesOnTiers,
         final List<Long> removedBlocks, final Map<BlockStoreLocation, List<Long>> addedBlocks,
-        final Map<String, List<String>> lostStorage, final List<Metric> metrics) {
+        final Map<String, List<String>> lostStorage, long throughput, final List<Metric> metrics) {
       assertEquals(mRemovedBlocks, removedBlocks);
       assertEquals(mAddedBlocks, addedBlocks);
-      return Command.getDefaultInstance();
+      return BlockHeartbeatPResponse.getDefaultInstance();
     }
 
     @Override

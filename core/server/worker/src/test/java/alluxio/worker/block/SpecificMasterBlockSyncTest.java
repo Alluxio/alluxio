@@ -19,6 +19,7 @@ import alluxio.ClientContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FailedToAcquireRegisterLeaseException;
+import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.ConfigProperty;
@@ -187,21 +188,26 @@ public class SpecificMasterBlockSyncTest {
     }
 
     @Override
-    public synchronized Command heartbeat(
+    public synchronized BlockHeartbeatPResponse heartbeat(
         long workerId, Map<String, Long> capacityBytesOnTiers,
         Map<String, Long> usedBytesOnTiers,
         List<Long> removedBlocks,
         Map<BlockStoreLocation, List<Long>> addedBlocks,
         Map<String, List<String>> lostStorage,
+        long throughput,
         List<Metric> metrics) throws IOException {
       mHeartbeatCallCount++;
       if (mHeartbeatFailed) {
         throw new IOException("heartbeat failed");
       }
       if (mReturnRegisterCommand) {
-        return Command.newBuilder().setCommandType(CommandType.Register).build();
+        return BlockHeartbeatPResponse.newBuilder()
+            .setCommand(Command.newBuilder().setCommandType(CommandType.Register).build())
+            .setThroughput(0).build();
       }
-      return Command.newBuilder().setCommandType(CommandType.Nothing).build();
+      return BlockHeartbeatPResponse.newBuilder()
+              .setCommand(Command.newBuilder().setCommandType(CommandType.Nothing).build())
+              .setThroughput(0).build();
     }
 
     @Override

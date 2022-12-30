@@ -206,7 +206,8 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
         beforeHeartbeat();
         success = mBlockMasterSyncHelper.heartbeat(
             mWorkerId.get(), report,
-            mBlockWorker.getStoreMeta(), this::handleMasterCommand);
+            mBlockWorker.getStoreMeta(), this::handleMasterCommand,
+            mBlockWorker.getUfsReadRateLimiter());
       } catch (Exception e) {
         LOG.error("Failed to receive master heartbeat command. worker id {}", mWorkerId, e);
       }

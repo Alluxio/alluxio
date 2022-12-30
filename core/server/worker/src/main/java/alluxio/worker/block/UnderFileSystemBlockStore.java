@@ -27,6 +27,7 @@ import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
 import com.codahale.metrics.Counter;
@@ -230,11 +231,13 @@ public final class UnderFileSystemBlockStore implements SessionCleanable, Closea
    * @param offset the read offset within the block (NOT the file)
    * @param positionShort whether the client op is a positioned read to a small buffer
    * @param options the open ufs options
+   * @param rateLimiter the rate limiter for reading from ufs
    * @return the block reader instance
    * {@link UnderFileSystemBlockStore}
    */
   public BlockReader createBlockReader(final long sessionId, long blockId, long offset,
-      boolean positionShort, Protocol.OpenUfsBlockOptions options)
+      boolean positionShort, Protocol.OpenUfsBlockOptions options,
+      UnderFileSystemReadRateLimiter rateLimiter)
       throws IOException, BlockAlreadyExistsException {
     if (!options.hasUfsPath() && options.getBlockInUfsTier()) {
       // This is a fallback UFS block read. Reset the UFS block path according to the UfsBlock
@@ -274,7 +277,8 @@ public final class UnderFileSystemBlockStore implements SessionCleanable, Closea
               MetricsSystem.escape(uri)));
     BlockReader reader =
         UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, positionShort,
-            mLocalBlockStore, ufsClient, mUfsInstreamCache, ufsBytesRead, ufsBytesReadThroughput);
+            mLocalBlockStore, ufsClient, mUfsInstreamCache, rateLimiter, ufsBytesRead,
+            ufsBytesReadThroughput);
     blockInfo.setBlockReader(reader);
     return reader;
   }

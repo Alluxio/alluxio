@@ -18,6 +18,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
@@ -88,11 +89,13 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @param offset the offset within the block
    * @param positionShort whether the operation is using positioned read to a small buffer size
    * @param options the options
+   * @param rateLimiter the rate limiter for reading from ufs
    * @return a block reader to read data from
    * @throws IOException if it fails to get block reader
    */
   BlockReader createBlockReader(long sessionId, long blockId, long offset,
-      boolean positionShort, Protocol.OpenUfsBlockOptions options)
+      boolean positionShort, Protocol.OpenUfsBlockOptions options,
+      UnderFileSystemReadRateLimiter rateLimiter)
       throws IOException;
 
   /**
@@ -104,11 +107,12 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @param offset the offset within the block
    * @param positionShort whether the operation is using positioned read to a small buffer size
    * @param options the options
+   * @param rateLimiter the rate limiter for reading from ufs
    * @return the block reader instance
    * @throws IOException if it fails to get block reader
    */
   BlockReader createUfsBlockReader(long sessionId, long blockId, long offset, boolean positionShort,
-      Protocol.OpenUfsBlockOptions options)
+      Protocol.OpenUfsBlockOptions options, UnderFileSystemReadRateLimiter rateLimiter)
       throws IOException;
 
   /**
