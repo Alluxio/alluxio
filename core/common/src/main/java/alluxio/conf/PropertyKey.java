@@ -589,8 +589,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey GRPC_REFLECTION_ENABLED =
       booleanBuilder(Name.GRPC_REFLECTION_ENABLED)
           .setDefaultValue(false)
-          .setDescription("If true, grpc reflection will be enabled on master so that "
-              + "debug tools such as grpcurl or grpcui can make grpc requests to "
+          .setDescription("If true, grpc reflection will be enabled on alluxio grpc servers, "
+              + "including masters, workers, job masters and job workers. "
+              + " This makes grpc tools such as grpcurl or grpcui can send grpc requests to "
               + "the master server easier without knowing the protobufs. "
               + "This is a debug option.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)

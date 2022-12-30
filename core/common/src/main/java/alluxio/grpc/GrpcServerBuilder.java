@@ -265,6 +265,8 @@ public final class GrpcServerBuilder {
     addService(new GrpcService(new ServiceVersionClientServiceHandler(mServices))
         .disableAuthentication());
     if (mGrpcReflectionEnabled) {
+      // authentication needs to be disabled so that the grpc command line tools can call
+      // this reflection endpoint and get the current grpc services and their interfaces.
       addService(new GrpcService(ProtoReflectionService.newInstance()).disableAuthentication());
     }
     return new GrpcServer(mNettyServerBuilder.build(), mAuthenticationServer, mCloser,
