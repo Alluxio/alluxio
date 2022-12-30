@@ -29,6 +29,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetStatusPOptions;
@@ -68,7 +69,7 @@ public class FuseShellTest {
 
   @Before
   public void before() throws Exception {
-    mConf.set(PropertyKey.USER_METADATA_CACHE_ENABLED, true);
+    mConf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 1000, Source.RUNTIME);
     ClientContext clientContext = ClientContext.create(mConf);
     FileSystemContext fileContext = PowerMockito.mock(FileSystemContext.class);
     mFileSystemMasterClient = new GetStatusFileSystemMasterClient();
@@ -112,7 +113,7 @@ public class FuseShellTest {
 
   @Test(expected = InvalidArgumentRuntimeException.class)
   public  void runMetadataCacheCommandWhenSpecialCommandDisable() {
-    mConf.set(PropertyKey.USER_METADATA_CACHE_ENABLED, false);
+    mConf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 0);
     AlluxioURI reservedPath = new AlluxioURI("/dir/.alluxiocli.metadatacache.drop");
     new FuseShell(mFileSystem, mConf).runCommand(reservedPath);
   }

@@ -20,6 +20,7 @@ import alluxio.ClientContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
@@ -68,6 +69,7 @@ public class MetadataCachingFileSystemTest {
 
   @Before
   public void before() throws Exception {
+    mConf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 1000, Source.RUNTIME);
     // Avoid async update file access time to call getStatus to mess up the test results
     mConf.set(PropertyKey.USER_UPDATE_FILE_ACCESSTIME_DISABLED, true);
     mClientContext = ClientContext.create(mConf);

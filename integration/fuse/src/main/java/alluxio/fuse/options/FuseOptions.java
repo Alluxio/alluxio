@@ -33,6 +33,7 @@ public class FuseOptions {
   private final FileSystemOptions mFileSystemOptions;
   private final Set<String> mFuseMountOptions;
   private final boolean mUpdateCheckEnabled;
+  private final boolean mSpecialCommandEnabled;
 
   /**
    * Creates the FUSE options.
@@ -100,7 +101,8 @@ public class FuseOptions {
         LOG.info("Added fuse mount option {} for FUSE 3", idleThreadsOption);
       }
     }
-    return new FuseOptions(fileSystemOptions, mountOptions, updateCheckEnabled);
+    return new FuseOptions(fileSystemOptions, mountOptions, updateCheckEnabled,
+        conf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED));
   }
 
   /**
@@ -109,12 +111,14 @@ public class FuseOptions {
    * @param fileSystemOptions the file system options
    * @param fuseMountOptions the FUSE mount options
    * @param updateCheckEnabled whether to enable update check
+   * @param specialCommandEnabled whether fuse special commands are enabled
    */
   private FuseOptions(FileSystemOptions fileSystemOptions,
-      Set<String> fuseMountOptions, boolean updateCheckEnabled) {
+      Set<String> fuseMountOptions, boolean updateCheckEnabled, boolean specialCommandEnabled) {
     mFileSystemOptions = Preconditions.checkNotNull(fileSystemOptions);
     mFuseMountOptions = Preconditions.checkNotNull(fuseMountOptions);
     mUpdateCheckEnabled = updateCheckEnabled;
+    mSpecialCommandEnabled = specialCommandEnabled;
   }
 
   /**
@@ -136,5 +140,12 @@ public class FuseOptions {
    */
   public boolean updateCheckEnabled() {
     return mUpdateCheckEnabled;
+  }
+
+  /**
+   * @return true if fuse special command is enabled
+   */
+  public boolean specialCommandEnabled() {
+    return mSpecialCommandEnabled;
   }
 }
