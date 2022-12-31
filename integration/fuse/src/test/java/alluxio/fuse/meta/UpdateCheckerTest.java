@@ -21,6 +21,7 @@ import alluxio.fuse.options.FuseOptions;
 import alluxio.metrics.MetricsSystem;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 
 import java.util.List;
@@ -71,6 +72,7 @@ public class UpdateCheckerTest {
 
   @Test
   public void localKernelDataCacheDisabled() {
+    Assume.assumeTrue(Configuration.getInt(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION) == 2);
     try (UpdateChecker checker = getUpdateCheckerWithMountOptions("direct_io")) {
       Assert.assertFalse(containsTargetInfo(checker.getUnchangeableFuseInfo(),
           UpdateChecker.LOCAL_KERNEL_DATA_CACHE));
