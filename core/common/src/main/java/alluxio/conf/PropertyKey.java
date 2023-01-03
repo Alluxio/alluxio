@@ -595,7 +595,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "the master server easier without knowing the protobufs. "
               + "This is a debug option.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey HOME =
       stringBuilder(Name.HOME)
