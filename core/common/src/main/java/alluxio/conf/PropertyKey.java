@@ -2316,19 +2316,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL =
+      intBuilder(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL)
+          .setDefaultValue(-1)
+          .setDescription("The zip compression level of checkpointing rocksdb, the zip"
+                  + " format defines ten levels of compression, ranging from 0"
+                  + " (no compression, but very fast) to 9 (best compression, but slow)."
+                  + " Or -1 for the system default compression level.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
       booleanBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP)
         .setDefaultValue(false)
-        .setDescription("Whether to backup rocksdb in parallel")
-        .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-        .setScope(Scope.MASTER)
-        .build();
-  public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL =
-      intBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL)
-        .setDefaultValue(6)
-        .setDescription("The zip compression level of backing up rocksdb in parallel, the zip"
-            + " format defines ten levels of compression, ranging from 0"
-            + " (no compression, but very fast) to 9 (best compression, but slow)")
+        .setDescription(format("Whether to checkpoint rocksdb in parallel using the number of"
+            + " threads set by %s.", Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS))
         .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
         .setScope(Scope.MASTER)
         .build();
@@ -7544,10 +7546,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.ufs.prefetch.timeout";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
+    public static final String MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL =
+        "alluxio.master.metastore.rocks.checkpoint.compression.level";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
         "alluxio.master.metastore.rocks.parallel.backup";
-    public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL =
-        "alluxio.master.metastore.rocks.parallel.backup.compression.level";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =
         "alluxio.master.metastore.rocks.parallel.backup.threads";
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =

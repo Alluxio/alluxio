@@ -390,6 +390,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     checkTieredLocality();
     checkTieredStorage();
     checkMasterThrottleThresholds();
+    checkCheckpointZipConfig();
   }
 
   @Override
@@ -594,6 +595,18 @@ public class InstancedConfiguration implements AlluxioConfiguration {
           "Alias \"%s\" on tier %s on worker (configured by %s) is not found in global tiered "
               + "storage setting: %s",
           alias, i, key, String.join(", ", globalTierAliasSet));
+    }
+  }
+
+  /**
+   * @throws IllegalStateException if invalid checkpoint zip configuration parameters are found
+   */
+  private void checkCheckpointZipConfig() {
+    int compression = getInt(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
+    if (compression < -1 || compression > 9) {
+      throw new IllegalStateException(String.format("Zip compression level for property key %s"
+          + " must be between -1 and 9 inclusive",
+          PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL.getName()));
     }
   }
 
