@@ -167,7 +167,7 @@ Master.LostFileCount:
 Master.MetadataSyncActivePaths:
   '所有 InodeSyncStream 实例中正在进行的路径数量'
 Master.MetadataSyncExecutor:
-  'master 元数据同步执行器线程的指标。Master.MetadataSyncExecutor.submitted 是提交给执行器的任务的计数器。Master.MetadataSyncExecutor.completed 是执行器完成的任务的计数器。Master.MetadataSyncExecutor.activeTaskQueue 是在执行器中每次添加新任务时计算的活动任务（运行或提交）的幂指数衰减随机容器的数量。最大值是执行过程中任何时候的活动任务的最大数量。Master.MetadataSyncExecutor.running 是执行器正在运行的任务数量。Master.MetadataSyncExecutor.idle 是提交的任务（即在执行前等待队列）闲置的时间。Master.MetadataSyncExecutor.duration 是运行提交的任务的时间。如果执行器是线程池执行器，则 Master.MetadataSyncExecutor.queueSize 是任务队列的大小'
+  'master 元数据同步执行器线程的指标。Master.MetadataSyncExecutor.submitted 是提交给执行器的任务的计数。Master.MetadataSyncExecutor.completed 是执行器完成的任务的计数。Master.MetadataSyncExecutor.activeTaskQueue 是在执行器中每次添加新任务时计算的活动任务（运行或提交）的幂指数衰减随机容器的数量。最大值是执行过程中任何时候的活动任务的最大数量。Master.MetadataSyncExecutor.running 是执行器正在运行的任务数量。Master.MetadataSyncExecutor.idle 是提交的任务（即在执行前等待队列）闲置的时间。Master.MetadataSyncExecutor.duration 是运行提交的任务的时间。如果执行器是线程池执行器，则 Master.MetadataSyncExecutor.queueSize 是任务队列的大小'
 Master.MetadataSyncExecutorQueueSize:
   '元数据同步线程池中排队的同步任务数，由 alluxio.master.metadata.sync.executor.pool.size 控制'
 Master.MetadataSyncFail:

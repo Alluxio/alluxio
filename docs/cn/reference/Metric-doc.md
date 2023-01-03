@@ -103,7 +103,7 @@ Alluxio 服务器共享的指标。
 
 动态生成的 Master 指标:
 
-| Metric Name | Description |
+| 名称 | 描述 |
 |-------------------------|-----------------------------------------------------|
 | Master.CapacityTotalTier{TIER_NAME} | Alluxio 文件系统中层 {TIER_NAME} 以字节为单位的总容量 |
 | Master.CapacityUsedTier{TIER_NAME}  | Alluxio 文件系统中层 {TIER_NAME} 以字节为单位已使用的容量 |
@@ -130,7 +130,7 @@ Alluxio 服务器共享的指标。
 
 动态的 worker 指标:
 
-| Metric Name | Description |
+| 名称 | 描述 |
 |-------------------------|-----------------------------------------------------|
 | Worker.UfsSessionCount-Ufs:{UFS_ADDRESS} | 当前打开并连接到给定 {UFS_ADDRESS} 的 UFS 会话数 |
 | Worker.{RPC_NAME}                        | worker 上暴露的 RPC 调用的持续时间统计信息 |
@@ -141,7 +141,7 @@ Alluxio 服务器共享的指标。
 如果配置了 `alluxio.user.app.id`，多个客户端可以组合成一个逻辑应用。
 
 <table class="table table-striped">
-<tr><th>Name</th><th>Type</th><th>Description</th></tr>
+<tr><th>名称</th><th>类型</th><th>描述</th></tr>
 {% for item in site.data.table.client-metrics %}
   <tr>
     <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
@@ -161,7 +161,7 @@ Fuse 是长期运行的 Alluxio 客户端。
 Fuse metrics includes:
 
 <table class="table table-striped">
-<tr><th>Name</th><th>Type</th><th>Description</th></tr>
+<tr><th>描述</th><th>类型</th><th>描述</th></tr>
 {% for item in site.data.table.fuse-metrics %}
   <tr>
     <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
@@ -179,7 +179,7 @@ Fuse 读/写文件数量可用作 Fuse 应用程序压力的指标。
 
 重要的 Fuse 指标包括：
 
-| Metric Name | Description |
+| 名称 | 描述 |
 |-------------------------|-----------------------------------------------------|
 | Fuse.readdir | 列出目录的持续时间指标 |
 | Fuse.getattr | 获取文件元数据的持续时间指标 |
@@ -210,7 +210,7 @@ Fuse相关的指标包括:
 
 ### JVM Attributes
 
-| Metric Name | Description |
+| 名称 | 描述 |
 |-------------------------|-----------------------------------------------------|
 | name | JVM 名称 |
 | uptime | JVM 的运行时间 |
@@ -218,7 +218,7 @@ Fuse相关的指标包括:
 
 ### GC 统计
 
-| Metric Name | Description |
+| 名称 | 描述 |
 |-------------------------|-----------------------------------------------------|
 | PS-MarkSweep.count | 标记和清除 old gen 的总数 |
 | PS-MarkSweep.time | 标记和清除 old gen 的总时间 |
@@ -232,7 +232,7 @@ Alluxio 提供整体和详细的内存使用信息。
 
 以下是内存使用指标的子集：
 
-| Metric Name | Description |
+| 名称 | 描述 |
 |------------------------------|-----------------------------------------------------|
 | total.committed | 保证可供 JVM 使用的以字节为单位的内存数量 |
 | total.init | 可供 JVM 使用的以字节为单位的内存数量 |
@@ -250,14 +250,14 @@ Alluxio 提供整体和详细的内存使用信息。
 
 ### 类加载统计
 
-| Metric Name | Description |
+| 名称 | 描述 |
 |-------------------------|-----------------------------------------------------|
 | loaded | 加载的类总数 |
 | unloaded | 未加载的类总量 |
 
 ### 线程统计
 
-| Metric Name | Description |
+| 名称 | 描述 |
 |-------------------------|-----------------------------------------------------|
 | count | 当前存活线程数 |
 | daemon.count | 当前守护线程的数量 |
