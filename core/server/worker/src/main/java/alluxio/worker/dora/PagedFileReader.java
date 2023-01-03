@@ -41,7 +41,6 @@ public class PagedFileReader extends BlockReader {
   private final long mFileSize;
   private final long mPageSize;
   private final CacheManager mCacheManager;
-  private final AlluxioConfiguration mConf;
   private final PagedUfsReader mUfsReader;
   private long mPos;
   private boolean mClosed = false;
@@ -59,7 +58,6 @@ public class PagedFileReader extends BlockReader {
   public PagedFileReader(AlluxioConfiguration conf, CacheManager cacheManager,
       PagedUfsReader pagedUfsReader, FileId fileId,
       long fileSize, long startPosition, long pageSize) {
-    mConf = conf;
     mCacheManager = Preconditions.checkNotNull(cacheManager, "cacheManager");
     mFileId = Preconditions.checkNotNull(fileId, "fileId");
     mFileSize = fileSize;

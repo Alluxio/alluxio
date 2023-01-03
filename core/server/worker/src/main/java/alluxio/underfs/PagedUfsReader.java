@@ -35,7 +35,6 @@ import java.nio.channels.ReadableByteChannel;
 public class PagedUfsReader extends BlockReader {
   private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocate(0);
   private final long mPageSize;
-  private final AlluxioConfiguration mConf;
   private final UfsManager.UfsClient mUfsClient;
   private final UfsInputStreamCache mUfsInStreamCache;
   private final FileId mFileId;
@@ -63,7 +62,6 @@ public class PagedUfsReader extends BlockReader {
     Preconditions.checkArgument(offset >= 0 && offset <= fileSize,
         "Attempt to read file %s which is %s bytes long at invalid byte offset %s",
         fileId, fileSize, offset);
-    mConf = conf;
     mUfsClient = ufsClient;
     mUfsInStreamCache = ufsInStreamCache;
     mFileId = fileId;
