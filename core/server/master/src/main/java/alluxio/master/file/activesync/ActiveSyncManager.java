@@ -262,7 +262,7 @@ public class ActiveSyncManager implements Journaled {
       ActiveSyncer syncer = new ActiveSyncer(mFileSystemMaster, this, mMountTable, mountId);
       Future<?> future = getExecutor().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_ACTIVE_UFS_SYNC,
-              syncer, (int) Configuration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_INTERVAL),
+              syncer, () -> Configuration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_INTERVAL),
               Configuration.global(), ServerUserState.global()));
       mPollerMap.put(mountId, future);
     }

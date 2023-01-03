@@ -109,7 +109,7 @@ public final class DefaultThrottleMaster extends AbstractMaster implements NoopJ
     LOG.info("Starting {}", getName());
     mThrottleService = getExecutorService().submit(
         new HeartbeatThread(HeartbeatContext.MASTER_THROTTLE, mThrottleExecutor,
-            Configuration.getMs(PropertyKey.MASTER_THROTTLE_HEARTBEAT_INTERVAL),
+            () -> Configuration.getMs(PropertyKey.MASTER_THROTTLE_HEARTBEAT_INTERVAL),
             Configuration.global(),
             mMasterContext.getUserState()));
     LOG.info("{} is started", getName());

@@ -299,12 +299,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
           new LostMasterDetectionHeartbeatExecutor(),
-          (int) Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
+          () -> Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
           Configuration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
               new LogConfigReportHeartbeatExecutor(),
-              (int) Configuration
+              () -> Configuration
                   .getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL),
               Configuration.global(), mMasterContext.getUserState()));
 
@@ -316,7 +316,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       if (mJournalSpaceMonitor != null) {
         getExecutorService().submit(new HeartbeatThread(
             HeartbeatContext.MASTER_JOURNAL_SPACE_MONITOR, mJournalSpaceMonitor,
-            Configuration.getMs(PropertyKey.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL),
+            () -> Configuration.getMs(PropertyKey.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL),
             Configuration.global(), mMasterContext.getUserState()));
       }
       if (mState.getClusterID().equals(INVALID_CLUSTER_ID)) {
@@ -329,7 +329,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
             && !Configuration.getBoolean(PropertyKey.TEST_MODE)) {
           getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_UPDATE_CHECK,
               new UpdateChecker(this),
-              (int) Configuration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL),
+              () -> Configuration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL),
               Configuration.global(), mMasterContext.getUserState()));
         }
       } else {
@@ -344,7 +344,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
                 .newBuilder(ClientContext.create(Configuration.global())).build());
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
             new MetaMasterSync(mMasterAddress, metaMasterClient),
-            (int) Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
+            () -> Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
             Configuration.global(), mMasterContext.getUserState()));
         LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
             mMasterAddress);

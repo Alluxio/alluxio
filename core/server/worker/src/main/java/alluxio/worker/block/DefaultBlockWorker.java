@@ -211,7 +211,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         .register(new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, blockMasterSync,
-            (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            () -> Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
             Configuration.global(), ServerUserState.global()));
 
     // Setup PinListSyncer
@@ -219,7 +219,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         new PinListSync(this, mFileSystemMasterClient));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, pinListSync,
-            (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            () -> Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
             Configuration.global(), ServerUserState.global()));
 
     // Setup session cleaner
@@ -232,7 +232,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       StorageChecker storageChecker = mResourceCloser.register(new StorageChecker());
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH, storageChecker,
-              (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+              () -> Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
                   Configuration.global(), ServerUserState.global()));
     }
 

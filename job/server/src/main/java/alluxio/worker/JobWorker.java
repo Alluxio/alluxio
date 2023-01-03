@@ -107,7 +107,7 @@ public final class JobWorker extends AbstractWorker {
         new HeartbeatThread(HeartbeatContext.JOB_WORKER_COMMAND_HANDLING,
             new CommandHandlingExecutor(mJobServerContext, taskExecutorManager, mJobMasterClient,
                 address),
-            (int) Configuration.getMs(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL),
+            () -> Configuration.getMs(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL),
             Configuration.global(), ServerUserState.global()));
   }
 

@@ -68,6 +68,11 @@ public final class SleepingTimer implements HeartbeatTimer {
     mIntervalMs = intervalMs;
   }
 
+  @Override
+  public long getIntervalMs() {
+    return mIntervalMs;
+  }
+
   /**
    * Enforces the thread waits for the given interval between consecutive ticks.
    *
