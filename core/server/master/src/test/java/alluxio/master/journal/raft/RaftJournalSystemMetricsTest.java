@@ -63,44 +63,48 @@ public final class RaftJournalSystemMetricsTest {
                     .setId(ByteString.copyFromUtf8("localhost_22201")))))
         .build();
 
-    Map<String, Long> sn1 = ImmutableMap.of("DefaultBlockMaster", 1L, "DefaultMetaMaster", 2L);
-    Mockito.doReturn(sn1).when(system).getCurrentSequenceNumbers();
-    system.start();
-    Mockito.doReturn(null).when(system).getRaftRoleInfo();
-    assertEquals(-1, getClusterLeaderIndex());
-    assertEquals(-1, getMasterRoleId());
-    assertEquals("WAITING_FOR_ELECTION", getClusterLeaderId());
-    assertEquals(sn1, getMasterJournalSequenceNumbers(system));
-
-    system.gainPrimacy();
-    Mockito.doReturn(leaderInfo).when(system).getRaftRoleInfo();
-    assertEquals(0, getClusterLeaderIndex());
-    assertEquals(RaftProtos.RaftPeerRole.LEADER_VALUE, getMasterRoleId());
-    assertEquals(system.getLocalPeerId().toString(), getClusterLeaderId());
-    assertEquals(sn1, getMasterJournalSequenceNumbers(system));
-
-    Map<String, Long> sn2 = ImmutableMap.of(
+    // RaftJournalSystem.getCurrentSequenceNumbers() should rarely change,
+    // because RaftJournalSystem.mJournals is only modified when AbstractMaster
+    // is constructed. Ideally, we should make sure every instance of
+    // AbstractMaster is created before RaftJournalSystem.start().
+    Map<String, Long> sequenceNumbers = ImmutableMap.of(
         "DefaultBlockMaster", 1L,
         "DefaultMetaMaster", 2L,
         "DefaultTableMaster", 3L,
         "DefaultFileSystemMaster", 4L,
         "DefaultMetricsMaster", 5L);
-    Mockito.doReturn(sn2).when(system).getCurrentSequenceNumbers();
-    system.losePrimacy();
-    Mockito.doReturn(followerInfo).when(system).getRaftRoleInfo();
-    assertEquals(1, getClusterLeaderIndex());
-    assertEquals(RaftProtos.RaftPeerRole.FOLLOWER_VALUE, getMasterRoleId());
-    assertEquals("localhost_22201", getClusterLeaderId());
-    assertEquals(sn2, getMasterJournalSequenceNumbers(system));
+    Mockito.doReturn(sequenceNumbers).when(system).getCurrentSequenceNumbers();
+    system.start();
+    try {
+      Mockito.doReturn(null).when(system).getRaftRoleInfo();
+      assertEquals(-1, getClusterLeaderIndex());
+      assertEquals(-1, getMasterRoleId());
+      assertEquals("WAITING_FOR_ELECTION", getClusterLeaderId());
+      assertEquals(sequenceNumbers, getMasterJournalSequenceNumbers(system));
 
-    system.gainPrimacy();
-    Mockito.doReturn(leaderInfo).when(system).getRaftRoleInfo();
-    assertEquals(0, getClusterLeaderIndex());
-    assertEquals(RaftProtos.RaftPeerRole.LEADER_VALUE, getMasterRoleId());
-    assertEquals(system.getLocalPeerId().toString(), getClusterLeaderId());
-    assertEquals(sn2, getMasterJournalSequenceNumbers(system));
+      system.gainPrimacy();
+      Mockito.doReturn(leaderInfo).when(system).getRaftRoleInfo();
+      assertEquals(0, getClusterLeaderIndex());
+      assertEquals(RaftProtos.RaftPeerRole.LEADER_VALUE, getMasterRoleId());
+      assertEquals(system.getLocalPeerId().toString(), getClusterLeaderId());
+      assertEquals(sequenceNumbers, getMasterJournalSequenceNumbers(system));
 
-    system.stop();
+      system.losePrimacy();
+      Mockito.doReturn(followerInfo).when(system).getRaftRoleInfo();
+      assertEquals(1, getClusterLeaderIndex());
+      assertEquals(RaftProtos.RaftPeerRole.FOLLOWER_VALUE, getMasterRoleId());
+      assertEquals("localhost_22201", getClusterLeaderId());
+      assertEquals(sequenceNumbers, getMasterJournalSequenceNumbers(system));
+
+      system.gainPrimacy();
+      Mockito.doReturn(leaderInfo).when(system).getRaftRoleInfo();
+      assertEquals(0, getClusterLeaderIndex());
+      assertEquals(RaftProtos.RaftPeerRole.LEADER_VALUE, getMasterRoleId());
+      assertEquals(system.getLocalPeerId().toString(), getClusterLeaderId());
+      assertEquals(sequenceNumbers, getMasterJournalSequenceNumbers(system));
+    } finally {
+      system.stop();
+    }
   }
 
   private static int getClusterLeaderIndex() {
