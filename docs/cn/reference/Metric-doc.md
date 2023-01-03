@@ -212,18 +212,18 @@ Fuse相关的指标包括:
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
-| name | The name of the JVM |
-| uptime | The uptime of the JVM |
-| vendor | The current JVM vendor |
+| name | JVM 名称 |
+| uptime | JVM 的运行时间 |
+| vendor | 当前的 JVM 供应商 |
 
 ### GC 统计
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
-| PS-MarkSweep.count | Total number of mark and sweep |
-| PS-MarkSweep.time | The time used to mark and sweep |
-| PS-Scavenge.count | Total number of scavenge |
-| PS-Scavenge.time | The time used to scavenge |
+| PS-MarkSweep.count | 标记和清除 old gen 的总数 |
+| PS-MarkSweep.time | 标记和清除 old gen 的总时间 |
+| PS-Scavenge.count | 清除 young gen 总数 |
+| PS-Scavenge.time | 清除 young gen 总时间 |
 
 ### 内存使用情况
 
@@ -234,16 +234,16 @@ Alluxio 提供整体和详细的内存使用信息。
 
 | Metric Name | Description |
 |------------------------------|-----------------------------------------------------|
-| total.committed | The amount of memory in bytes that is guaranteed to be available for use by the JVM |
-| total.init | The amount of the memory in bytes that is available for use by the JVM |
-| total.max | The maximum amount of memory in bytes that is available for use by the JVM |
-| total.used | The amount of memory currently used in bytes |
-| heap.committed | The amount of memory from heap area guaranteed to be available |
-| heap.init | The amount of memory from heap area available at initialization |
-| heap.max | The maximum amount of memory from heap area that is available |
-| heap.usage | The amount of memory from heap area currently used in GB|
-| heap.used | The amount of memory from heap area that has been used |
-| pools.Code-Cache.used | Used memory of collection usage from the pool from which memory is used for compilation and storage of native code |
+| total.committed | 保证可供 JVM 使用的以字节为单位的内存数量 |
+| total.init | 可供 JVM 使用的以字节为单位的内存数量 |
+| total.max | 以字节为单位的 JVM 可用的最大内存量 |
+| total.used | 以字节为单位当前使用的内存大小 |
+| heap.committed | 在堆上保证可用的内存大小 |
+| heap.init | 初始化时堆上可用的内存量 |
+| heap.max | 在堆上可用的最大内存量 |
+| heap.usage | 堆上当前正在使用的以 GB 为单位的内存量 |
+| heap.used | 堆上当前已经使用过的以 GB 为单位的内存量 |
+| pools.Code-Cache.used | 内存池中用于编译和存储本地代码的内存总量 |
 | pools.Compressed-Class-Space.used | Used memory of collection usage from the pool from which memory is use for class metadata |
 | pools.PS-Eden-Space.used | Used memory of collection usage from the pool from which memory is initially allocated for most objects |
 | pools.PS-Survivor-Space.used | Used memory of collection usage from the pool containing objects that have survived the garbage collection of the Eden space |
