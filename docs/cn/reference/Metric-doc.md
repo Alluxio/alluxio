@@ -66,7 +66,7 @@ Worker 和 client 通过心跳包将指标数据发送到 Alluxio master。心�
   <tr>
     <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
     <td>{{ item.metricType }}</td>
-    <td>{{ site.data.table.en.process-metrics[item.metricName] }}</td>
+    <td>{{ site.data.table.cn.process-metrics[item.metricName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -81,7 +81,7 @@ Alluxio 服务器共享的指标。
   <tr>
     <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
     <td>{{ item.metricType }}</td>
-    <td>{{ site.data.table.en.server-metrics[item.metricName] }}</td>
+    <td>{{ site.data.table.cn.server-metrics[item.metricName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -96,7 +96,7 @@ Alluxio 服务器共享的指标。
   <tr>
     <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
     <td>{{ item.metricType }}</td>
-    <td>{{ site.data.table.en.master-metrics[item.metricName] }}</td>
+    <td>{{ site.data.table.cn.master-metrics[item.metricName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -123,7 +123,7 @@ Alluxio 服务器共享的指标。
   <tr>
     <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
     <td>{{ item.metricType }}</td>
-    <td>{{ site.data.table.en.worker-metrics[item.metricName] }}</td>
+    <td>{{ site.data.table.cn.worker-metrics[item.metricName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -146,7 +146,7 @@ Alluxio 服务器共享的指标。
   <tr>
     <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
     <td>{{ item.metricType }}</td>
-    <td>{{ site.data.table.en.client-metrics[item.metricName] }}</td>
+    <td>{{ site.data.table.cn.client-metrics[item.metricName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -166,7 +166,7 @@ Fuse metrics includes:
   <tr>
     <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
     <td>{{ item.metricType }}</td>
-    <td>{{ site.data.table.en.fuse-metrics[item.metricName] }}</td>
+    <td>{{ site.data.table.cn.fuse-metrics[item.metricName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -244,29 +244,29 @@ Alluxio 提供整体和详细的内存使用信息。
 | heap.usage | 堆上当前正在使用的以 GB 为单位的内存量 |
 | heap.used | 堆上当前已经使用过的以 GB 为单位的内存量 |
 | pools.Code-Cache.used | 内存池中用于编译和存储本地代码的内存总量 |
-| pools.Compressed-Class-Space.used | Used memory of collection usage from the pool from which memory is use for class metadata |
-| pools.PS-Eden-Space.used | Used memory of collection usage from the pool from which memory is initially allocated for most objects |
-| pools.PS-Survivor-Space.used | Used memory of collection usage from the pool containing objects that have survived the garbage collection of the Eden space |
+| pools.Compressed-Class-Space.used | 内存池中用于类元数据的内存总量 |
+| pools.PS-Eden-Space.used | 内存池中用于大多数对象初始分配的内存总量 |
+| pools.PS-Survivor-Space.used | 从包含在 Eden space 的垃圾回收中幸存下来的对象的池中使用的内存总量 |
 
 ### 类加载统计
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
-| loaded | The total number of classes loaded |
-| unloaded | The total number of unloaded classes |
+| loaded | 加载的类总数 |
+| unloaded | 未加载的类总量 |
 
 ### 线程统计
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
-| count | The current number of live threads |
-| daemon.count | The current number of live daemon threads |
-| peak.count | The peak live thread count |
-| total_started.count | The total number of threads started |
-| deadlock.count | The number of deadlocked threads |
-| deadlock | The call stack of each thread related deadlock |
-| new.count | The number of threads with new state |
-| blocked.count | The number of threads with blocked state |
-| runnable.count | The number of threads with runnable state |
-| terminated.count | The number of threads with terminated state |
-| timed_waiting.count | The number of threads with timed_waiting state |
+| count | 当前存活线程数 |
+| daemon.count | 当前守护线程的数量 |
+| peak.count | 存活线程数峰值 |
+| total_started.count | 启动线程总数 |
+| deadlock.count | 死锁线程总数 |
+| deadlock | 与每个线程有关的死锁的调用栈 |
+| new.count | 有新状态的线程数 |
+| blocked.count | 阻塞态线程数 |
+| runnable.count | 可运行状态线程数 |
+| terminated.count | 终结态线程数 |
+| timed_waiting.count | 定时等待状态的线程数量 |
