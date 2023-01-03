@@ -459,7 +459,7 @@ public class ObjectSizeCalculator {
       }
       mFieldSize = fieldsSize;
       mObjectSize = roundTo(mObjectHeaderSize + fieldsSize, mObjectPadding);
-      mReferencedFields = referenceFields.toArray(new Field[referenceFields.size()]);
+      mReferencedFields = referenceFields.toArray(new Field[0]);
     }
 
     void visit(Object obj, ObjectSizeCalculator calc) {

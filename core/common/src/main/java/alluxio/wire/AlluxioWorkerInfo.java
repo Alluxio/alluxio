@@ -32,6 +32,7 @@ public class AlluxioWorkerInfo {
   private Map<String, List<String>> mTierPaths;
   private long mUptimeMs;
   private String mVersion;
+  private String mRevision;
 
   /**
    * Creates a new instance of {@link AlluxioWorkerInfo}.
@@ -99,6 +100,15 @@ public class AlluxioWorkerInfo {
    */
   public String getVersion() {
     return mVersion;
+  }
+
+  /**
+   * Gets revision.
+   *
+   * @return the revision
+   */
+  public String getRevision() {
+    return mRevision;
   }
 
   /**
@@ -182,6 +192,15 @@ public class AlluxioWorkerInfo {
     return this;
   }
 
+  /**
+   * @param revision the revision to use
+   * @return the Alluxio worker information
+   */
+  public AlluxioWorkerInfo setRevision(String revision) {
+    mRevision = revision;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -199,14 +218,15 @@ public class AlluxioWorkerInfo {
         && Objects.equal(mTierCapacity, that.mTierCapacity)
         && Objects.equal(mTierPaths, that.mTierPaths)
         && mUptimeMs == that.mUptimeMs
-        && Objects.equal(mVersion, that.mVersion);
+        && Objects.equal(mVersion, that.mVersion)
+        && Objects.equal(mRevision, that.mRevision);
   }
 
   @Override
   public int hashCode() {
     return Objects
         .hashCode(mCapacity, mConfiguration, mMetrics, mRpcAddress, mStartTimeMs, mTierCapacity,
-            mTierPaths, mUptimeMs, mVersion);
+            mTierPaths, mUptimeMs, mVersion, mRevision);
   }
 
   @Override
@@ -220,6 +240,8 @@ public class AlluxioWorkerInfo {
         .add("tier capacity", mTierCapacity)
         .add("tier paths", mTierPaths)
         .add("uptime", mUptimeMs)
-        .add("version", mVersion).toString();
+        .add("version", mVersion)
+        .add("revision", mRevision)
+        .toString();
   }
 }
