@@ -105,13 +105,13 @@ Alluxio 服务器共享的指标。
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
-| Master.CapacityTotalTier{TIER_NAME} | Total capacity in tier {TIER_NAME} of the Alluxio file system in bytes |
-| Master.CapacityUsedTier{TIER_NAME}  | Used capacity in tier {TIER_NAME} of the Alluxio file system in bytes |
-| Master.CapacityFreeTier{TIER_NAME}  | Free capacity in tier {TIER_NAME} of the Alluxio file system in bytes |
-| Master.UfsSessionCount-Ufs:{UFS_ADDRESS} | The total number of currently opened UFS sessions to connect to the given {UFS_ADDRESS} |
-| Master.{UFS_RPC_NAME}.UFS:{UFS_ADDRESS}.UFS_TYPE:{UFS_TYPE}.User:{USER} | The details UFS rpc operation done by the current master |
-| Master.PerUfsOp{UFS_RPC_NAME}.UFS:{UFS_ADDRESS} | The aggregated number of UFS operation {UFS_RPC_NAME} ran on UFS {UFS_ADDRESS} by leading master |  
-| Master.{LEADING_MASTER_RPC_NAME} | The duration statistics of RPC calls exposed on leading master |
+| Master.CapacityTotalTier{TIER_NAME} | Alluxio 文件系统中层 {TIER_NAME} 以字节为单位的总容量 |
+| Master.CapacityUsedTier{TIER_NAME}  | Alluxio 文件系统中层 {TIER_NAME} 以字节为单位已使用的容量 |
+| Master.CapacityFreeTier{TIER_NAME}  | Alluxio 文件系统中层 {TIER_NAME} 以字节为单位未使用的容量 |
+| Master.UfsSessionCount-Ufs:{UFS_ADDRESS} | 当前打开并连接到给定 {UFS_ADDRESS} 的 UFS 会话数 |
+| Master.{UFS_RPC_NAME}.UFS:{UFS_ADDRESS}.UFS_TYPE:{UFS_TYPE}.User:{USER} | 当前 master 完成的 UFS RPC 操作细节 |
+| Master.PerUfsOp{UFS_RPC_NAME}.UFS:{UFS_ADDRESS} | 当前主 master 在 UFS {UFS_ADDRESS} 上运行的 UFS 操作 {UFS_RPC_NAME} 的总数 | 
+| Master.{LEADING_MASTER_RPC_NAME} | 主 master 上暴露的 RPC 调用的持续时间统计信息 |
 
 ## Worker 指标
 
