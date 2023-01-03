@@ -181,18 +181,18 @@ Fuse 读/写文件数量可用作 Fuse 应用程序压力的指标。
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
-| Fuse.readdir | The duration metrics of listing a directory |
-| Fuse.getattr | The duration metrics of getting the metadata of a file |
-| Fuse.open | The duration metrics of opening a file for read or overwrite |
-| Fuse.read | The duration metrics of reading a part of a file |
-| Fuse.create | The duration metrics of creating a file for write |
-| Fuse.write | The duration metrics of writing a file |
-| Fuse.release | The duration metrics of closing a file after read or write. Note that release is async so fuse threads will not wait for release to finish |
-| Fuse.mkdir | The duration metrics of creating a directory |
-| Fuse.unlink | The duration metrics of removing a file or a directory |
-| Fuse.rename | The duration metrics of renaming a file or a directory |
-| Fuse.chmod | The duration metrics of modifying the mode of a file or a directory |
-| Fuse.chown | The duration metrics of modifying the user and/or group ownership of a file or a directory |
+| Fuse.readdir | 列出目录的持续时间指标 |
+| Fuse.getattr | 获取文件元数据的持续时间指标 |
+| Fuse.open | 打开文件进行读或覆写的持续时间指标 |
+| Fuse.read | 读取文件的一部分的持续时间指标 |
+| Fuse.create | 为了写入创建文件的持续时间指标 |
+| Fuse.write | 写入文件的持续时间指标 |
+| Fuse.release | 在读取或写入后关闭文件的持续时间指标。请注意，释放是异步的，因此 FUSE 线程不会等待释放完成 |
+| Fuse.mkdir | 创建目录的持续时间指标 |
+| Fuse.unlink | 删除文件或目录的持续时间指标 |
+| Fuse.rename | 重命名文件或目录的持续时间指标 |
+| Fuse.chmod | 更改文件或目录模式的持续时间指标 |
+| Fuse.chown | 修改文件或目录的用户和/或组所有权的持续时间指标 |
 
 Fuse相关的指标包括:
 * `Client.TotalRPCClients` 显示用于连接到或可连接到 master 或 worker 进行操作的 RPC 客户端的总数。
