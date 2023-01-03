@@ -9,7 +9,7 @@ priority: 2
 * Table of Contents
 {:toc}
 
-本指南介绍如何配置Alluxio，使其与底层存储系统 [Azure Data Lake Storage Gen1](https://docs.microsoft.com/en-in/azure/data-lake-store/data-lake-store-overview) 一起运行。
+本指南介绍如何配置Alluxio，使其与底层存储系统 [Azure Data Lake Storage Gen1](https://docs.microsoft.com/en-in/azure/data-lake-store/data-lake-store-overview) 一起运行。 
 
 ## 部署条件
 
