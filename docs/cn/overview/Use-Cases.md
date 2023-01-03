@@ -47,17 +47,16 @@ Alluxio 通过提供缓存和 API 转换功能来解决这些问题。在应用�
 
 本应用场景案例参见 [DBS](https://www.alluxio.io/resources/presentations/enabling-big-data-ai-workloads-on-the-object-store-at-dbs/)（新加坡星展银行）。
 
-## 应用场景3：“零拷贝”混合云迁移
+## 应用场景3："零拷贝"混合云迁移
 
 <p align="center"> <img style="text-align: center" width="200" src="https://d39kqat1wpn1o5.cloudfront.net/app/uploads/2021/10/overview-case-3-hybrid.png"/> </p>
 
 随着越来越多的企业迁移上云，其中一种常见的过渡做法是利用云上的计算资源，同时从本地数据源读取数据。但是，这种混合架构带来了下列问题：
-
 - 远程读取数据速度慢且不稳定
 - 将数据拷贝到云存储耗时，复杂且易出错
 - 合规性和数据主权相关规定不允许将数据拷贝上云
 
-Alluxio提供“零拷贝”上云功能，使得云上的计算引擎能够访问本地数据，而无需持久化的数据复制或定期同步。这一功能可带来以下益处：
+Alluxio提供"零拷贝"上云功能，使得云上的计算引擎能够访问本地数据，而无需持久化的数据复制或定期同步。这一功能可带来以下益处：
 - 性能等同于数据位于云计算集群上
 - 不影响终端用户体验和安全模式
 - 普通数据访问层采用基于访问和策略的数据移动
