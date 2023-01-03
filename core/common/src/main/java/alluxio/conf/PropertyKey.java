@@ -586,6 +586,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .setIsHidden(true)
           .build();
+  public static final PropertyKey GRPC_REFLECTION_ENABLED =
+      booleanBuilder(Name.GRPC_REFLECTION_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If true, grpc reflection will be enabled on alluxio grpc servers, "
+              + "including masters, workers, job masters and job workers. "
+              + " This makes grpc tools such as grpcurl or grpcui can send grpc requests to "
+              + "the master server easier without knowing the protobufs. "
+              + "This is a debug option.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey HOME =
       stringBuilder(Name.HOME)
           .setDefaultValue("/opt/alluxio")
@@ -7239,6 +7250,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String CONF_VALIDATION_ENABLED = "alluxio.conf.validation.enabled";
     public static final String DEBUG = "alluxio.debug";
     public static final String EXTENSIONS_DIR = "alluxio.extensions.dir";
+    public static final String GRPC_REFLECTION_ENABLED =
+        "alluxio.grpc.reflection.enabled";
     public static final String HOME = "alluxio.home";
     public static final String INTEGRATION_MASTER_RESOURCE_CPU =
         "alluxio.integration.master.resource.cpu";
