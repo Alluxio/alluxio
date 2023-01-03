@@ -132,8 +132,8 @@ Alluxio 服务器共享的指标。
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
-| Worker.UfsSessionCount-Ufs:{UFS_ADDRESS} | The total number of currently opened UFS sessions to connect to the given {UFS_ADDRESS} |
-| Worker.{RPC_NAME}                        | The duration statistics of RPC calls exposed on workers |
+| Worker.UfsSessionCount-Ufs:{UFS_ADDRESS} | 当前打开并连接到给定 {UFS_ADDRESS} 的 UFS 会话数 |
+| Worker.{RPC_NAME}                        | worker 上暴露的 RPC 调用的持续时间统计信息 |
 
 ## Client 指标
 
