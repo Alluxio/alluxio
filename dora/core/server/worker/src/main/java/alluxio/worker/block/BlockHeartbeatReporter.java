@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Represents the delta of the block store within one heartbeat period. For now, newly committed
  * blocks do not pass through this master communication mechanism, instead it is synchronized
- * through {@link alluxio.worker.block.BlockWorker#commitBlock(long, long)}.
+ * through {@link alluxio.worker.block.BlockWorker#commitBlock(long, long, boolean)}.
  */
 @ThreadSafe
 public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListener {
