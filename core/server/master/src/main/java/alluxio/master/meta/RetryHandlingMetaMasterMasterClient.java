@@ -121,21 +121,23 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    */
   public void register(final long masterId, final List<ConfigProperty> configList)
       throws IOException {
+    RegisterMasterPOptions.Builder optionsBuilder = RegisterMasterPOptions.newBuilder()
+        .addAllConfigs(configList)
+        .setVersion(ProjectConstants.VERSION)
+        .setRevision(ProjectConstants.REVISION);
     Gauge startTimeGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
         .get(MetricKey.MASTER_START_TIME.getName());
-    long startTime = startTimeGauge == null ? 0 : (long) startTimeGauge.getValue();
+    if (startTimeGauge != null) {
+      optionsBuilder.setStartTimeMs((long) startTimeGauge.getValue());
+    }
     Gauge lastLosePrimacyGuage = MetricsSystem.METRIC_REGISTRY.getGauges()
         .get(MetricKey.MASTER_LAST_LOSE_PRIMACY_TIME.getName());
-    long lastLosePrimacyTime = lastLosePrimacyGuage == null ? 0
-        : (long) lastLosePrimacyGuage.getValue();
+    if (lastLosePrimacyGuage != null) {
+      optionsBuilder.setLosePrimacyTimeMs((long) lastLosePrimacyGuage.getValue());
+    }
     retryRPC(() -> {
       mClient.registerMaster(RegisterMasterPRequest.newBuilder().setMasterId(masterId)
-          .setOptions(RegisterMasterPOptions.newBuilder().addAllConfigs(configList)
-              .setStartTimeMs(startTime)
-              .setLosePrimacyTimeMs(lastLosePrimacyTime)
-              .setVersion(ProjectConstants.VERSION)
-              .setRevision(ProjectConstants.REVISION).build())
-          .build());
+          .setOptions(optionsBuilder).build());
       return null;
     }, LOG, "Register", "masterId=%d,configList=%s", masterId, configList);
   }
