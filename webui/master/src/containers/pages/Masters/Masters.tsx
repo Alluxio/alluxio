@@ -61,7 +61,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                   <tr>
                     <td>{mastersData.primaryMasterInfo.address.host}</td>
                     <td>{mastersData.primaryMasterInfo.address.rpcPort}</td>
-                    <td>{mastersData.primaryMasterInfo.primacyChangeTime}</td>
+                    <td>{mastersData.primaryMasterInfo.gainPrimacyTime}</td>
                     <td>{mastersData.primaryMasterInfo.startTime}</td>
                     <td>{mastersData.primaryMasterInfo.lastCheckpointTime}</td>
                     <td>{mastersData.primaryMasterInfo.journalEntriesSinceCheckpoint}</td>
@@ -98,7 +98,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                       <td>{masterInfo.address.rpcPort}</td>
                       <td>{masterInfo.lastUpdatedTime}</td>
                       <td>{masterInfo.startTime}</td>
-                      <td>{masterInfo.primacyChangeTime}</td>
+                      <td>{masterInfo.losePrimacyTime}</td>
                       <td>{masterInfo.lastCheckpointTime}</td>
                       <td>{masterInfo.journalEntriesSinceCheckpoint}</td>
                       <td>{masterInfo.version}</td>
@@ -135,7 +135,7 @@ export class MastersPresenter extends React.Component<AllProps> {
                       <td>{masterInfo.address.rpcPort}</td>
                       <td>{masterInfo.lastUpdatedTime}</td>
                       <td>{masterInfo.startTime}</td>
-                      <td>{masterInfo.primacyChangeTime}</td>
+                      <td>{masterInfo.losePrimacyTime}</td>
                       <td>{masterInfo.lastCheckpointTime}</td>
                       <td>{masterInfo.journalEntriesSinceCheckpoint}</td>
                       <td>{masterInfo.version}</td>

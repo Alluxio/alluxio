@@ -883,7 +883,7 @@ public final class AlluxioMasterRestServiceHandler {
         .setPrimaryMasterInfo(new MasterInfo(MASTER_ID_NULL, mMetaMaster.getMasterAddress())
             .setLastUpdatedTimeMs(System.currentTimeMillis())
             .setStartTimeMs(mMasterProcess.getStartTimeMs())
-            .setPrimacyChangeTimeMs(lastGainPrimacyTime)
+            .setGainPrimacyTimeMs(lastGainPrimacyTime)
             .setLastCheckpointTimeMs(lastCheckpointTime)
             .setJournalEntriesSinceCheckpoint(journalEntriesSinceCheckpoint)
             .setVersion(ProjectConstants.VERSION)

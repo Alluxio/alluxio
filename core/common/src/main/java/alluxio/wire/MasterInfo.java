@@ -33,8 +33,10 @@ public final class MasterInfo {
   private long mId;
   /** Master's start time. */
   private String mStartTime = NONE;
-  /** Master's last primacy state change time. */
-  private String mPrimacyChangeTime = NONE;
+  /** Master's last gain primacy time. */
+  private String mGainPrimacyTime = NONE;
+  /** Master's last lose primacy time. */
+  private String mLosePrimacyTime = NONE;
   /** Master's last updated time. */
   private String mLastUpdatedTime = NONE;
   /** Master's version. */
@@ -91,10 +93,17 @@ public final class MasterInfo {
   }
 
   /**
-   * @return the last primacy state change time of the master
+   * @return the last gain primacy time of the master
    */
-  public String getPrimacyChangeTime() {
-    return mPrimacyChangeTime;
+  public String getGainPrimacyTime() {
+    return mGainPrimacyTime;
+  }
+
+  /**
+   * @return the last lose primacy time of the master
+   */
+  public String getLosePrimacyTime() {
+    return mLosePrimacyTime;
   }
 
   /**
@@ -178,20 +187,37 @@ public final class MasterInfo {
   }
 
   /**
-   * @param primacyChangeTime the last primacy state change time of the master
+   * @param gainPrimacyTime the last gain primacy time of the master
    * @return the master information
    */
-  public MasterInfo setPrimacyChangeTime(String primacyChangeTime) {
-    mPrimacyChangeTime = primacyChangeTime;
+  public MasterInfo setGainPrimacyTime(String gainPrimacyTime) {
+    mGainPrimacyTime = gainPrimacyTime;
     return this;
   }
 
   /**
-   * @param primacyChangeTime the last primacy state change time of the master in ms
+   * @param gainPrimacyTimeMs the last gain primacy time of the master in ms
    * @return the master information
    */
-  public MasterInfo setPrimacyChangeTimeMs(long primacyChangeTime) {
-    return this.setPrimacyChangeTime(convertMsToDate(primacyChangeTime));
+  public MasterInfo setGainPrimacyTimeMs(long gainPrimacyTimeMs) {
+    return this.setGainPrimacyTime(convertMsToDate(gainPrimacyTimeMs));
+  }
+
+  /**
+   * @param losePrimacyTime the last lose primacy time of the master
+   * @return the master information
+   */
+  public MasterInfo setLosePrimacyTime(String losePrimacyTime) {
+    mLosePrimacyTime = losePrimacyTime;
+    return this;
+  }
+
+  /**
+   * @param losePrimacyTimeMs the last lose primacy time of the master in ms
+   * @return the master information
+   */
+  public MasterInfo setLosePrimacyTimeMs(long losePrimacyTimeMs) {
+    return this.setLosePrimacyTime(convertMsToDate(losePrimacyTimeMs));
   }
 
   /**
@@ -243,7 +269,8 @@ public final class MasterInfo {
     return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
         .add("lastUpdatedTime", mLastUpdatedTime)
         .add("startTime", mStartTime)
-        .add("primacyChangeTime", mPrimacyChangeTime)
+        .add("gainPrimacyTime", mGainPrimacyTime)
+        .add("losePrimacyTime", mLosePrimacyTime)
         .add("lastCheckpointTime", mLastCheckpointTime)
         .add("journalEntriesSinceCheckpoint", mJournalEntriesSinceCheckpoint)
         .add("version", mVersion)
@@ -262,7 +289,8 @@ public final class MasterInfo {
     return mId == that.mId && Objects.equal(mAddress, that.mAddress)
         && mLastUpdatedTime.equals(that.mLastUpdatedTime)
         && mStartTime.equals(that.mStartTime)
-        && mPrimacyChangeTime.equals(that.mPrimacyChangeTime)
+        && mGainPrimacyTime.equals(that.mGainPrimacyTime)
+        && mLosePrimacyTime.equals(that.mLosePrimacyTime)
         && mLastCheckpointTime.equals(that.mLastCheckpointTime)
         && mJournalEntriesSinceCheckpoint == that.mJournalEntriesSinceCheckpoint
         && mVersion.equals(that.mVersion)
@@ -271,8 +299,9 @@ public final class MasterInfo {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mId, mAddress, mLastUpdatedTime, mStartTime, mPrimacyChangeTime,
-        mLastCheckpointTime, mJournalEntriesSinceCheckpoint, mVersion, mRevision);
+    return Objects.hashCode(mId, mAddress, mLastUpdatedTime, mStartTime, mGainPrimacyTime,
+        mLosePrimacyTime, mLastCheckpointTime, mJournalEntriesSinceCheckpoint,
+        mVersion, mRevision);
   }
 
   private static String convertMsToDate(long timeMs) {

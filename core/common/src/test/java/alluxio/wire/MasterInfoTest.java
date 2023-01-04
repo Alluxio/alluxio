@@ -37,7 +37,8 @@ public class MasterInfoTest {
     Assert.assertEquals(a.getAddress(), b.getAddress());
     Assert.assertEquals(a.getLastUpdatedTime(), b.getLastUpdatedTime());
     Assert.assertEquals(a.getStartTime(), b.getStartTime());
-    Assert.assertEquals(a.getPrimacyChangeTime(), b.getPrimacyChangeTime());
+    Assert.assertEquals(a.getGainPrimacyTime(), b.getGainPrimacyTime());
+    Assert.assertEquals(a.getLosePrimacyTime(), b.getLosePrimacyTime());
     Assert.assertEquals(a.getLastCheckpointTime(), b.getLastCheckpointTime());
     Assert.assertEquals(a.getJournalEntriesSinceCheckpoint(), b.getJournalEntriesSinceCheckpoint());
     Assert.assertEquals(a.getVersion(), b.getVersion());
@@ -50,8 +51,9 @@ public class MasterInfoTest {
     long id = random.nextLong();
     Address address = new Address(RandomStringUtils.randomAlphanumeric(10), random.nextInt());
     long lastUpdatedTimeMs = CommonUtils.getCurrentMs();
-    long primacyChangeTimeMs = lastUpdatedTimeMs - random.nextInt(10000);
-    long startTimeMs = primacyChangeTimeMs - random.nextInt(10000);
+    long gainPrimacyTimeMs = lastUpdatedTimeMs - random.nextInt(10000);
+    long losePrimacyTimeMs = lastUpdatedTimeMs - random.nextInt(10000);
+    long startTimeMs = gainPrimacyTimeMs - random.nextInt(10000);
     String version = String.format("%d.%d.%d", random.nextInt(10),
         random.nextInt(20), random.nextInt(10));
     String revision = DigestUtils.sha1Hex(RandomStringUtils.random(10));
@@ -61,7 +63,8 @@ public class MasterInfoTest {
     MasterInfo result = new MasterInfo(id, address);
     result.setLastUpdatedTimeMs(lastUpdatedTimeMs);
     result.setStartTimeMs(startTimeMs);
-    result.setPrimacyChangeTimeMs(primacyChangeTimeMs);
+    result.setGainPrimacyTimeMs(gainPrimacyTimeMs);
+    result.setLosePrimacyTimeMs(losePrimacyTimeMs);
     result.setLastCheckpointTimeMs(lastCheckpointTime);
     result.setJournalEntriesSinceCheckpoint(journalEntriesSinceCheckpoint);
     result.setVersion(version);

@@ -511,7 +511,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(), master.getAddress())
           .setLastUpdatedTimeMs(master.getLastUpdatedTimeMs())
           .setStartTimeMs(master.getStartTimeMs())
-          .setPrimacyChangeTimeMs(master.getPrimacyChangeTimeMs())
+          .setLosePrimacyTimeMs(master.getLosePrimacyTimeMs())
           .setLastCheckpointTimeMs(master.getLastCheckpointTimeMs())
           .setJournalEntriesSinceCheckpoint(master.getJournalEntriesSinceCheckpoint())
           .setVersion(master.getVersion())
@@ -614,7 +614,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       master.setStartTimeMs(options.getStartTimeMs());
     }
     if (options.hasLosePrimacyTimeMs()) {
-      master.setPrimacyChangeTimeMs(options.getLosePrimacyTimeMs());
+      master.setLosePrimacyTimeMs(options.getLosePrimacyTimeMs());
     }
     if (options.hasVersion()) {
       master.setVersion(options.getVersion());
