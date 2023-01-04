@@ -34,6 +34,8 @@ import alluxio.util.ObjectSizeCalculator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -56,6 +58,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class HeapInodeStore implements InodeStore {
+  private static final Logger LOG = LoggerFactory.getLogger(HeapInodeStore.class);
   private final Map<Long, MutableInode<?>> mInodes = new ConcurrentHashMap<>();
   // Map from inode id to ids of children of that inode. The inner maps are ordered by child name.
   private final TwoKeyConcurrentSortedMap<Long, String, Long, SortedMap<String, Long>> mEdges =
@@ -76,6 +79,25 @@ public class HeapInodeStore implements InodeStore {
   @Override
   public void remove(Long inodeId) {
     mInodes.remove(inodeId);
+  }
+
+  @Override
+  public void writeNewInode(MutableInode<?> inode) {
+    mInodes.compute(inode.getId(), (k, existingInode) -> {
+      if (existingInode != null && !existingInode.getName().equals(inode.getName())) {
+        LOG.error(
+            "[InodeTreeCorruption] writing inode {} with id {}, parent id {} "
+                + "but a different inode name {} parent id {} already exists. "
+                + "Your journal files are probably corrupted!",
+            inode.getName(), inode.getId(), inode.getParentId(),
+            existingInode.getName(), existingInode.getParentId());
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("[InodeTreeCorruption] Existing inode: {}, new written inode: {}",
+              getInodePathString(existingInode), getInodePathString(inode));
+        }
+      }
+      return existingInode == null ? inode : existingInode;
+    });
   }
 
   @Override

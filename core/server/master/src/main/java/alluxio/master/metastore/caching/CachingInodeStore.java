@@ -189,7 +189,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     if (inode.isDirectory()) {
       mListingCache.addEmptyDirectory(inode.getId());
     }
-    mInodeCache.put(inode.getId(), inode);
+    mInodeCache.putNew(inode.getId(), inode);
   }
 
   @Override
@@ -297,6 +297,23 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       super(conf, "inode-cache", MetricKey.MASTER_INODE_CACHE_EVICTIONS,
           MetricKey.MASTER_INODE_CACHE_HITS, MetricKey.MASTER_INODE_CACHE_LOAD_TIMES,
           MetricKey.MASTER_INODE_CACHE_MISSES, MetricKey.MASTER_INODE_CACHE_SIZE);
+    }
+
+    @Override
+    protected void onPut(
+        Long id, @Nullable MutableInode<?> existingInode, MutableInode<?> inode, boolean newEntry) {
+      if (newEntry && existingInode != null && !existingInode.getName().equals(inode.getName())) {
+        LOG.error(
+            "[InodeTreeCorruption] writing inode {} with id {}, parent id {} "
+                + "but a different inode name {} parent id {} already exists. "
+                + "Your journal files are probably corrupted!",
+            inode.getName(), inode.getId(), inode.getParentId(),
+            existingInode.getName(), existingInode.getParentId());
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("[InodeTreeCorruption] Existing inode: {}, new written inode: {}",
+              getInodePathString(existingInode), getInodePathString(inode));
+        }
+      }
     }
 
     @Override
@@ -511,7 +528,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     }
 
     @Override
-    protected void onPut(Edge edge, Long childId) {
+    protected void onPut(Edge edge, Long ignored, Long childId, boolean newEntry) {
       mListingCache.addEdge(edge, childId);
     }
 
