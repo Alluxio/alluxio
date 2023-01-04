@@ -1,8 +1,9 @@
 # Introduction
 
-This chart bootstraps a monitoring system on a [Kubernetes]() cluster using the [Helm]() package manager, this chart is used to monitor alluxio cluster.
+This chart bootstraps a monitoring system on a [Kubernetes]() cluster using the [Helm]() package manager. This monitor system can be used to 
+monitor an alluxio cluster started on [Kubernetes]() cluster.
 
-## Prerequisites
+## Pre-requisites
 
 ### Kubernetes
 Kubernetes 1.11+ with Beta APIs enabled
@@ -12,13 +13,13 @@ Kubernetes 1.11+ with Beta APIs enabled
 To install the Monitor Chart into your Kubernetes cluster :
 
 ```
-helm install --namespace "alluxio" --name "monitor" monitor
+$ helm install --namespace "alluxio" "alluxio-monitor" monitor
 ```
 
 After installation succeeds, you can get a status of Chart
 
 ```
-helm status "monitor"
+$ helm status "alluxio-monitor"
 ```
 
 ## Uninstall the Chart
@@ -26,43 +27,68 @@ helm status "monitor"
 If you want to delete your Chart, use this command:
 
 ```
-helm delete  --purge "monitor"
+$ helm delete --purge "alluxio-monitor"
 ```
 
 ## Configuration
-The monitor chart contains a source directory, some grafana and prometheus config are placed in this directory.
+The monitor system is implemented based on Prometheus + Grafana, the resource files are placed in the `monitor/source` directory.
 Before installing monitor, make some appropriate modifications.
 ### 1. source/grafana/datasource.yaml
-This grafana datasource url domain name is `[monitor name]-prometheus`, for example: our monitor installation name is alluxio-monitor, then it will be 'alluxio-monitor-prometheus'  
+This grafana datasource url domain name is `[MONITORNAME]-prometheus`, for example: our monitor installation name is `alluxio-monitor`, then it will be 'alluxio-monitor-prometheus'  
 ```
-http://alluxio-monitor-prometheus:8081  
+datasources:
+  - name: Prometheus
+    ...
+    url: http://alluxio-monitor-prometheus:9090 
 ```
 ### 2. source/prometheus/prometheus.yaml
-Change each prometheus job's namespace, For example, our alluxio cluster is installed in `alluxio` namespace, then edit the prometheus.yml part:
+Change each prometheus job's namespace, For example, if the alluxio cluster we want to monitor is installed in `alluxio` namespace, then edit the prometheus.yaml:
 ```
-namespaces:
-  names:
-    - alluio
+scrape_configs:
+  - job_name: 'alluxio master'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - alluxio
 ```
 ### 3. Enable the alluxio metrics
 To use the monitor, we need the alluxio prometheus podAnnotations defined in the '../alluxio/values.yaml' metrics part, so it is necessary to set metrics enable true before installing alluxio.
 After that, the monitor can keep track of the target alluxio cluster.
+```
+metrics:
+  enabled: true
+  ...
+  PrometheusMetricsServlet:
+    enabled: true
+  # Pod annotations for Prometheus
+  podAnnotations:
+     prometheus.io/scrape: "true"
+     prometheus.io/port: "19999"
+     prometheus.io/jobPort: "20002"
+     prometheus.io/workerPort: "30000"
+     prometheus.io/path: "/metrics/prometheus/"
+```
+### 4. Download the alluxio dashboard
+Download the alluxio dashboard from [Alluxio grafana dashboard V1](https://grafana.com/grafana/dashboards/17763-alluxio-prometheus-grafana-monitor-v1/), then
+move the dashboard file to `monitor/source/grafana/dashboard` directory.
+
 ## Helm Chart Values
 
 Full documentation can be found in the comments of the `values.yaml` file, but a high level overview is provided here.
 
 __Common Values:__
 
-| Parameter               | Description                    | Default                                 |
-|-------------------------|--------------------------------|-----------------------------------------|
-| `fullnameOverride`      | To replace the generated name  | `alluxio-monitor`                       |
-| `imagePullPolicy`       | Docker image pull policy       | `IfNotPresent`                          |
-| `grafanaConfig.name[0]` | Grafana dashboard config name  | `grafana-dashboard-config`              |
-| `grafanaConfig.path[0]` | Grafana dashboard config path  | `/etc/grafana/provisioning/dashboards`  |
-| `grafanaConfig.name[1]` | Grafana datasource config name | `grafana-datasource-config`             |
-| `grafanaConfig.path[1]` | Grafana datasource config path | `/etc/grafana/provisioning/datasources` |
-| `prometheusConfig.name` | Prometheus config name         | `prometheus-config`                     |
-| `prometheusConfig.path` | Prometheus config path         | `/etc/prometheus`                       |
+| Parameter               | Description                                            | Default                                 |
+|-------------------------|--------------------------------------------------------|-----------------------------------------|
+| `fullnameOverride`      | To replace the generated name                          | `alluxio-monitor`                       |
+| `imagePullPolicy`       | Docker image pull policy                               | `IfNotPresent`                          |
+| `grafanaConfig.name[0]` | Grafana dashboard config name                          | `grafana-dashboard-config`              |
+| `grafanaConfig.path[0]` | Grafana dashboard config path in the image container   | `/etc/grafana/provisioning/dashboards`  |
+| `grafanaConfig.name[1]` | Grafana datasource config name                         | `grafana-datasource-config`             |
+| `grafanaConfig.path[1]` | Grafana datasource config path in the image container  | `/etc/grafana/provisioning/datasources` |
+| `prometheusConfig.name` | Prometheus config name                                 | `prometheus-config`                     |
+| `prometheusConfig.path` | Prometheus config  path in the image container         | `/etc/prometheus`                       |
 
 __Prometheus values:__
 
@@ -70,8 +96,8 @@ __Prometheus values:__
 |-----------------------------|-----------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
 | `imageInfo.image`           | The prometheus docker image                                                                                     | `prom/prometheus`                                                                                                                      |
 | `imageInfo.tag`             | The prometheus image tag                                                                                        | `latest`                                                                                                                               |
-| `port.TCP`                  | The prometheus listen address                                                                                   | `9090`                                                                                                                                 |
-| `args`                      | The prometheus args                                                                                             | `--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --storage.tsdb.retention=72h --web.listen-address=:9090` |
+| `port.TCP`                  | The prometheus default listen address                                                                           | `9090`                                                                                                                                 |
+| `args`                      | The prometheus config args, see values.yaml for detail explanation                                              | `--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --storage.tsdb.retention=72h --web.listen-address=:9090` |
 | `hostNetwork`               | Controls whether the pod may use the node network namespace                                                     | `false`                                                                                                                                |
 | `dnsPolicy`                 | `dnsPolicy` will be `ClusterFirstWithHostNet` if `hostNetwork: true` and `ClusterFirst` if `hostNetwork: false` | `ClusterFirst`                                                                                                                         |
 | `resources.limits.cpu`      | CPU Limit                                                                                                       | `4`                                                                                                                                    |

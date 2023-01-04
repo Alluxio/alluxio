@@ -20,7 +20,7 @@ grafanaConfig:
 - name: grafana-datasource-config
   path: /etc/grafana/provisioning/datasources
 
-# The prometheus.yml file path.
+# The prometheus.yaml file path.
 prometheusConfig:
   - name: prometheus-config
     path: /etc/prometheus
@@ -35,12 +35,16 @@ prometheus:
   port:
     TCP: 9090
   args:
-    - "--config.file=/etc/prometheus/prometheus.yml"
+    - "--config.file=/etc/prometheus/prometheus.yaml" # the prometheus config file path
     - "--storage.tsdb.path=/prometheus" # Where prometheus writes its database.
     - "--storage.tsdb.retention=72h" # When to remove old data
     - "--web.listen-address=:9090" # Listen address
-  hostNetwork: true
-  dnsPolicy: ClusterFirstWithHostNet
+  hostPID: false
+  hostNetwork: false
+  # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
+  # and ClusterFirst if hostNetwork: false
+  # You can specify dnsPolicy here to override this inference
+  # dnsPolicy: ClusterFirst
   resources:
     limits:
       cpu: "4"
@@ -61,9 +65,13 @@ grafana:
   # Use nodeIp:hostPort visit the grafana web
   port:
     web: 3000
-    hostPort: 8081
-  hostNetwork: true
-  dnsPolicy: ClusterFirstWithHostNet
+    hostPort: 8080
+  hostPID: false
+  hostNetwork: false
+  # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
+  # and ClusterFirst if hostNetwork: false
+  # You can specify dnsPolicy here to override this inference
+  # dnsPolicy: ClusterFirst
   resources:
     limits:
       cpu: "2"

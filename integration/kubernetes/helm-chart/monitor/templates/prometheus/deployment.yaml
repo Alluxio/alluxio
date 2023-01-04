@@ -12,6 +12,7 @@
 {{ if .Values.prometheus.enabled -}}
 {{- $hostNetwork := .Values.prometheus.hostNetwork }}
 {{- $fullName := include "monitor.fullname" . }}
+{{- $hostPID := .Values.prometheus.hostPID }}
 {{- $name := include "monitor.name" . }}
 {{- $chart := include "monitor.chart" . }}
 
@@ -43,6 +44,7 @@ spec:
         release: {{ .Release.Name }}
         heritage: {{ .Release.Service }}
     spec:
+      hostPID: {{ $hostPID }}
       hostNetwork: {{ $hostNetwork }}
       dnsPolicy: {{ .Values.prometheus.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
       containers:

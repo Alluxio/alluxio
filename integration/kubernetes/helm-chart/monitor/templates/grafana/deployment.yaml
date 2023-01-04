@@ -10,6 +10,8 @@
 #
 
 {{- $fullName := include "monitor.fullname" . }}
+{{- $hostNetwork := .Values.grafana.hostNetwork }}
+{{- $hostPID := .Values.grafana.hostPID }}
 {{- $name := include "monitor.name" . }}
 {{- $chart := include "monitor.chart" . }}
 
@@ -41,6 +43,9 @@ spec:
         release: {{ .Release.Name }}
         heritage: {{ .Release.Service }}
     spec:
+      hostPID: {{ $hostPID }}
+      hostNetwork: {{ $hostNetwork }}
+      dnsPolicy: {{ .Values.grafana.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
       containers:
       - image: {{ .Values.grafana.imageInfo.image }}:{{ .Values.grafana.imageInfo.imageTag }}
         name: {{ $fullName }}-grafana

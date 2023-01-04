@@ -12,7 +12,7 @@
 apiVersion: 1
 providers:
   # <string> an unique provider name. Required
-  - name: Alluxio-Prometheus-Grafana-Monitor
+  - name: Alluxio-Prometheus-Grafana-Monitor-V1
     # <int> Org id. Default to 1
     orgId: 1
     # <string> name of the dashboard folder.

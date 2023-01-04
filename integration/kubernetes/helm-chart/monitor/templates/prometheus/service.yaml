@@ -24,10 +24,10 @@ metadata:
     heritage: {{ .Release.Service }}
   name: {{ $fullName }}-prometheus
 spec:
-  type: NodePort
   ports:
-    - port: 8081
+    - port: {{int .Values.prometheus.port.TCP}}
       name: web
+  clusterIP: None
   selector:
     app: {{ $name }}
     name: {{ $fullName }}-prometheus
