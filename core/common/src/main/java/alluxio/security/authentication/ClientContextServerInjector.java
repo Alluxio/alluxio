@@ -38,12 +38,6 @@ public class ClientContextServerInjector implements ServerInterceptor {
    */
   private static final ThreadLocal<String> CLIENT_VERSION_THREAD_LOCAL =
       new ThreadLocal<>();
-  /**
-   * A {@link ThreadLocal} variable to maintain the client's revision along with a specific
-   * thread.
-   */
-  private static final ThreadLocal<String> CLIENT_REVISION_THREAD_LOCAL =
-      new ThreadLocal<>();
 
   /**
    * @return IP address of the gRPC client that is making the call
@@ -59,14 +53,6 @@ public class ClientContextServerInjector implements ServerInterceptor {
   @Nullable
   public static String getClientVersion() {
     return CLIENT_VERSION_THREAD_LOCAL.get();
-  }
-
-  /**
-   * @return the client revision
-   */
-  @Nullable
-  public static String getClientRevision() {
-    return CLIENT_REVISION_THREAD_LOCAL.get();
   }
 
   @Override
@@ -102,7 +88,5 @@ public class ClientContextServerInjector implements ServerInterceptor {
   private void setClientVersion(Metadata headers) {
     String version = headers.get(ClientVersionClientInjector.S_CLIENT_VERSION_KEY);
     CLIENT_VERSION_THREAD_LOCAL.set(version);
-    String revision = headers.get(ClientVersionClientInjector.S_CLIENT_REVISION_KEY);
-    CLIENT_REVISION_THREAD_LOCAL.set(revision);
   }
 }

@@ -11,7 +11,6 @@
 
 package alluxio.grpc;
 
-import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
 
 import io.grpc.CallOptions;
@@ -29,8 +28,6 @@ import io.grpc.MethodDescriptor;
 public class ClientVersionClientInjector implements ClientInterceptor {
   public static final Metadata.Key<String> S_CLIENT_VERSION_KEY =
       Metadata.Key.of("alluxio-version", Metadata.ASCII_STRING_MARSHALLER);
-  public static final Metadata.Key<String> S_CLIENT_REVISION_KEY =
-      Metadata.Key.of("alluxio-revision", Metadata.ASCII_STRING_MARSHALLER);
 
   @Override
   public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(MethodDescriptor<ReqT, RespT> method,
@@ -40,8 +37,7 @@ public class ClientVersionClientInjector implements ClientInterceptor {
       @Override
       public void start(Listener<RespT> responseListener, Metadata headers) {
         // Put version to headers.
-        headers.put(S_CLIENT_VERSION_KEY, ProjectConstants.VERSION);
-        headers.put(S_CLIENT_REVISION_KEY, RuntimeConstants.REVISION_SHORT);
+        headers.put(S_CLIENT_VERSION_KEY, RuntimeConstants.VERSION_AND_REVISION_SHORT);
         super.start(new ForwardingClientCallListener.SimpleForwardingClientCallListener<RespT>(
             responseListener) {
           @Override

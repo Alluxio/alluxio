@@ -122,10 +122,9 @@ public final class RpcUtils {
         MetricsSystem.timer(MetricKey.MASTER_TOTAL_RPCS.getName()),
         MetricsSystem.timer(getQualifiedMetricName(methodName)))) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
-      logger.debug("Enter: {} from {}: {} client version: {}, revision: {}", methodName,
+      logger.debug("Enter: {} from {}: {} client version: {}", methodName,
           ClientContextServerInjector.getIpAddress(),
           ClientContextServerInjector.getClientVersion(),
-          ClientContextServerInjector.getClientRevision(),
           debugDesc);
       T res = callable.call();
       logger.debug("Exit: {}: {}", methodName, debugDesc);

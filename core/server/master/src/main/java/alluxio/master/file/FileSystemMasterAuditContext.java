@@ -40,7 +40,6 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   private long mCreationTimeNs;
   private long mExecutionTimeNs;
   private String mClientVersion;
-  private String mClientRevision;
 
   @Override
   public FileSystemMasterAuditContext setAllowed(boolean allowed) {
@@ -155,17 +154,6 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   }
 
   /**
-   * set client revision.
-   *
-   * @param revision client revision
-   * @return this {@link AuditContext} instance
-   */
-  public FileSystemMasterAuditContext setClientRevision(String revision) {
-    mClientRevision = revision;
-    return this;
-  }
-
-  /**
    * Constructor of {@link FileSystemMasterAuditContext}.
    *
    * @param asyncAuditLogWriter async audit log writer
@@ -197,15 +185,15 @@ public final class FileSystemMasterAuditContext implements AuditContext {
           Mode.extractOwnerBits(mode), Mode.extractGroupBits(mode), Mode.extractOtherBits(mode),
           mExecutionTimeNs / 1000));
     } else {
-      return String.format(
+      auditLog.append(String.format(
           "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
               + "perm=null\texecutionTimeUs=%d",
           mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
-          mExecutionTimeNs / 1000);
+          mExecutionTimeNs / 1000));
     }
     if (Configuration.global().getBoolean(PropertyKey.USER_CLIENT_REPORT_VERSION_ENABLED)) {
       auditLog.append(
-          String.format("\tclientVersion=%s\tclientRevision=%s", mClientVersion, mClientRevision));
+          String.format("\tclientVersion=%s\t", mClientVersion));
     }
     auditLog.append("\tproto=rpc");
     return auditLog.toString();
