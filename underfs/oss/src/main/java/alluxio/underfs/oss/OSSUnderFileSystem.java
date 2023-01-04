@@ -140,6 +140,12 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
+    if (mUfsConf.getBoolean(PropertyKey.UNDERFS_OSS_MULTIPART_UPLOAD_ENABLED)) {
+      return new MultipartOSSOutputStream(mBucketName, key, mClient,
+          mUfsConf.getList(PropertyKey.TMP_DIRS),
+          mUfsConf.getBytes(PropertyKey.UNDERFS_OSS_MULTIPART_UPLOAD_PARTITION_SIZE),
+          mUfsConf.getInt(PropertyKey.UNDERFS_OSS_MULTIPART_UPLOAD_POOL_SIZE));
+    }
     return new OSSOutputStream(mBucketName, key, mClient,
         mUfsConf.getList(PropertyKey.TMP_DIRS));
   }

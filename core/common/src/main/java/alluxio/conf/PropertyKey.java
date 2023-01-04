@@ -1330,6 +1330,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OSS_MULTIPART_UPLOAD_ENABLED =
+      booleanBuilder(Name.UNDERFS_OSS_MULTIPART_UPLOAD_ENABLED)
+          .setAlias("alluxio.underfs.oss.multipart.upload.enabled")
+          .setDefaultValue(false)
+          .setDescription("Whether to enable OSS multipart upload")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_MULTIPART_UPLOAD_PARTITION_SIZE =
+      dataSizeBuilder(Name.UNDERFS_OSS_MULTIPART_UPLOAD_PARTITION_SIZE)
+          .setAlias("alluxio.underfs.oss.multipart.upload.partition.size")
+          .setDefaultValue("64MB")
+          .setDescription("The partition size when use OSS multipart upload")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_MULTIPART_UPLOAD_POOL_SIZE =
+      intBuilder(Name.UNDERFS_OSS_MULTIPART_UPLOAD_POOL_SIZE)
+          .setAlias("alluxio.underfs.oss.multipart.upload.pool.size")
+          .setDefaultValue(5)
+          .setDescription("The pool size of each file when use OSS multipart upload")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_S3_ADMIN_THREADS_MAX =
       intBuilder(Name.UNDERFS_S3_ADMIN_THREADS_MAX)
           .setDefaultValue(20)
@@ -7387,6 +7411,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.oss.connection.timeout";
     public static final String UNDERFS_OSS_CONNECT_TTL = "alluxio.underfs.oss.connection.ttl";
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout";
+    public static final String UNDERFS_OSS_MULTIPART_UPLOAD_ENABLED =
+            "alluxio.underfs.oss.multipart.upload.enabled";
+    public static final String UNDERFS_OSS_MULTIPART_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.oss.multipart.upload.partition.size";
+    public static final String UNDERFS_OSS_MULTIPART_UPLOAD_POOL_SIZE =
+        "alluxio.underfs.oss.multipart.upload.pool.size";
     public static final String UNDERFS_S3_BULK_DELETE_ENABLED =
         "alluxio.underfs.s3.bulk.delete.enabled";
     public static final String UNDERFS_S3_DEFAULT_MODE = "alluxio.underfs.s3.default.mode";
