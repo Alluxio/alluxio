@@ -28,7 +28,7 @@ public interface HeartbeatTimer {
   /**
    * Get the interval of HeartbeatTimer.
    *
-   * @Return the interval of this HeartbeatTimer
+   * @return the interval of this HeartbeatTimer
    */
   default long getIntervalMs() {
     throw new UnsupportedOperationException("Getting interval is not supported");
