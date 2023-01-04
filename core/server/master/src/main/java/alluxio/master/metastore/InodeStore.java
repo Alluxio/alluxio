@@ -17,7 +17,6 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.MutableInode;
 import alluxio.master.journal.checkpoint.Checkpointed;
-import alluxio.master.metastore.heap.HeapInodeStore;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +41,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public interface InodeStore extends ReadOnlyInodeStore, Checkpointed, Closeable {
-  Logger LOG = LoggerFactory.getLogger(HeapInodeStore.class);
+  Logger LOG = LoggerFactory.getLogger(InodeStore.class);
 
   /**
    * Gets a mutable representation of the specified inode.

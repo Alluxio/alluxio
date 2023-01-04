@@ -302,13 +302,14 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     @Override
     protected void onPut(
         Long id, @Nullable MutableInode<?> existingInode, MutableInode<?> inode, boolean newEntry) {
-      if (newEntry && existingInode != null && !existingInode.getName().equals(inode.getName())) {
+      if (newEntry && existingInode != null && inode != null
+          && !existingInode.getName().equals(inode.getName())) {
         LOG.error(
-            "[InodeTreeCorruption] writing inode {} with id {}, parent id {} "
-                + "but a different inode name {} parent id {} already exists. "
+            "[InodeTreeCorruption] trying writing the inode name {} id {}, parent id {}, "
+                + "but a different inode name {} id {} parent id {} already exists. "
                 + "Your journal files are probably corrupted!",
             inode.getName(), inode.getId(), inode.getParentId(),
-            existingInode.getName(), existingInode.getParentId());
+            existingInode.getName(), existingInode.getId(), existingInode.getParentId());
         if (LOG.isDebugEnabled()) {
           LOG.debug("[InodeTreeCorruption] Existing inode: {}, new written inode: {}",
               getInodePathString(existingInode), getInodePathString(inode));
