@@ -46,6 +46,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -171,7 +172,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, root.getAbsolutePath());
     mCacheManagerOptions = CacheManagerOptions.create(mConf);
     try {
-      root.setWritable(false);
+      Assume.assumeTrue(root.setWritable(false));
       mPageMetaStore =
           new DefaultPageMetaStore(PageStoreDir.createPageStoreDirs(mCacheManagerOptions));
       LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
@@ -190,7 +191,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, root.getAbsolutePath());
     mCacheManagerOptions = CacheManagerOptions.create(mConf);
     try {
-      root.setWritable(false);
+      Assume.assumeTrue(root.setWritable(false));
       mPageMetaStore =
           new DefaultPageMetaStore(PageStoreDir.createPageStoreDirs(mCacheManagerOptions));
       mCacheManager =
@@ -712,7 +713,7 @@ public final class LocalCacheManagerTest {
     FileUtils.deletePathRecursively(rootDir);
     File rootParent = new File(rootDir).getParentFile();
     try {
-      rootParent.setWritable(false);
+      Assume.assumeTrue(rootParent.setWritable(false));
       mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
       LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
     } catch (Exception e) {
@@ -734,7 +735,7 @@ public final class LocalCacheManagerTest {
     String rootDir = mPageStoreOptions.getRootDir().toString();
     FileUtils.deletePathRecursively(rootDir);
     File rootParent = new File(rootDir).getParentFile();
-    rootParent.setWritable(false);
+    Assume.assumeTrue(rootParent.setWritable(false));
     try {
       mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
       mCacheManager = LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
