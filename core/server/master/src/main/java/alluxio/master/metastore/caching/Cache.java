@@ -180,13 +180,13 @@ public abstract class Cache<K, V> implements Closeable {
    * @param key the key
    * @param value the value
    */
-  public void putNew(K key, V value) {
+  public void putNewEntry(K key, V value) {
     putInternal(key, value, true);
   }
 
   /**
    * Writes a key/value pair to the cache.
-   * If it is known that the entry is new, prefer {@link #putNew(Object, Object)}.
+   * If it is known that the entry is new, prefer {@link #putNewEntry(Object, Object)}.
    *
    * @param key the key
    * @param value the value

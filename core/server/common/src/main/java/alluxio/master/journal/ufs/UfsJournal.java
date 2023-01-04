@@ -641,7 +641,7 @@ public class UfsJournal implements Journal {
   public synchronized void close() {
     if (mState.get() == State.PRIMARY && mWriter != null) {
       LOG.info("Closing journal {}, state {} last journal location {}, next sequence number {}",
-          this, this.mState, this.mWriter.currentLogName(), mWriter.getNextSequenceNumber());
+          this, mState, mWriter.currentLogName(), mWriter.getNextSequenceNumber());
     }
     if (mAsyncWriter != null) {
       mAsyncWriter.close();

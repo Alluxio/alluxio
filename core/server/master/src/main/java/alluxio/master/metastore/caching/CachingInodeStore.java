@@ -189,7 +189,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     if (inode.isDirectory()) {
       mListingCache.addEmptyDirectory(inode.getId());
     }
-    mInodeCache.putNew(inode.getId(), inode);
+    mInodeCache.putNewEntry(inode.getId(), inode);
   }
 
   @Override
