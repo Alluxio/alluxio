@@ -171,8 +171,8 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, root.getAbsolutePath());
     mCacheManagerOptions = CacheManagerOptions.create(mConf);
+    Assume.assumeTrue(root.setWritable(false));
     try {
-      Assume.assumeTrue(root.setWritable(false));
       mPageMetaStore =
           new DefaultPageMetaStore(PageStoreDir.createPageStoreDirs(mCacheManagerOptions));
       LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
@@ -190,8 +190,8 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, root.getAbsolutePath());
     mCacheManagerOptions = CacheManagerOptions.create(mConf);
+    Assume.assumeTrue(root.setWritable(false));
     try {
-      Assume.assumeTrue(root.setWritable(false));
       mPageMetaStore =
           new DefaultPageMetaStore(PageStoreDir.createPageStoreDirs(mCacheManagerOptions));
       mCacheManager =
@@ -712,8 +712,8 @@ public final class LocalCacheManagerTest {
     String rootDir = mPageStoreOptions.getRootDir().toString();
     FileUtils.deletePathRecursively(rootDir);
     File rootParent = new File(rootDir).getParentFile();
+    Assume.assumeTrue(rootParent.setWritable(false));
     try {
-      Assume.assumeTrue(rootParent.setWritable(false));
       mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
       LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
     } catch (Exception e) {
