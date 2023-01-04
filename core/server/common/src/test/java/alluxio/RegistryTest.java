@@ -9,10 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio;
 
-import alluxio.Registry;
-import alluxio.Server;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 
@@ -119,12 +117,46 @@ public final class RegistryTest {
   }
 
   @Test
+  public void aliases() {
+    Registry<TestServer, Void> registry = new Registry<>();
+    ServerA serverA = new ServerA();
+    registry.add(ServerA.class, serverA);
+    registry.addAlias(TestServer.class, serverA);
+
+    Assert.assertEquals(serverA, registry.get(ServerA.class));
+    Assert.assertEquals(serverA, registry.get(TestServer.class));
+    Assert.assertEquals(serverA, registry.getInternal(ServerA.class, true));
+    Assert.assertNull(registry.getInternal(TestServer.class, false));
+    Assert.assertNull(registry.getInternal(ServerB.class, true));
+  }
+
+  @Test
+  public void cannotAddAliasBeforeCanonical() {
+    Registry<TestServer, Void> registry = new Registry<>();
+    ServerA serverA = new ServerA();
+    Assert.assertThrows(IllegalArgumentException.class,
+        () -> registry.addAlias(TestServer.class, serverA));
+    registry.add(ServerA.class, serverA);
+    registry.addAlias(TestServer.class, serverA);
+    Assert.assertEquals(serverA, registry.get(TestServer.class));
+  }
+
+  @Test
+  public void cannotAddAliasSameAsCanonical() {
+    Registry<TestServer, Void> registry = new Registry<>();
+    ServerA serverA = new ServerA();
+    registry.add(ServerA.class, serverA);
+    Assert.assertThrows(IllegalArgumentException.class,
+        () -> registry.addAlias(ServerA.class, serverA));
+  }
+
+  @Test
   public void cycle() {
     Registry<TestServer, Void> registry = new Registry<>();
     registry.add(ServerA.class, new ServerA());
     registry.add(ServerB.class, new ServerB());
     registry.add(ServerC.class, new ServerC());
-    registry.add(ServerC.class, new ServerD());
+    registry.add(ServerD.class, new ServerD());
 
     Assert.assertThrows(RuntimeException.class, registry::getServers);
   }
