@@ -59,7 +59,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
    *
    * @param blockContainerId the block container id to use
    */
-  private MutableInodeFile(long blockContainerId) {
+  public MutableInodeFile(long blockContainerId) {
     super(BlockId.createBlockId(blockContainerId, BlockId.getMaxSequenceNumber()), false);
     mBlocks = new ArrayList<>(1);
     mBlockContainerId = blockContainerId;

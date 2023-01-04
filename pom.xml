@@ -471,6 +471,7 @@
         <artifactId>curator-recipes</artifactId>
         <version>${apache.curator.version}</version>
       </dependency>
+
       <!-- We do not use dependent management for hadoop-common, hadoop-hdfs, as it is unavailable in hadoop-1 -->
       <!-- We do not use dependent management for hadoop-core, as it is unavailable in hadoop-2.x -->
       <dependency>
@@ -822,6 +823,18 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.collections</groupId>
+      <artifactId>eclipse-collections-api</artifactId>
+      <version>11.1.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.collections</groupId>
+      <artifactId>eclipse-collections</artifactId>
+      <version>11.1.0</version>
     </dependency>
 
     <!-- Dependencies in the test scope. -->
