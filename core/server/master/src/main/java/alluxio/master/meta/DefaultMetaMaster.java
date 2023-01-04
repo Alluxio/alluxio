@@ -613,8 +613,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     if (options.hasStartTimeMs()) {
       master.setStartTimeMs(options.getStartTimeMs());
     }
-    if (options.hasPrimacyChangeTimeMs()) {
-      master.setPrimacyChangeTimeMs(options.getPrimacyChangeTimeMs());
+    if (options.hasLosePrimacyTimeMs()) {
+      master.setPrimacyChangeTimeMs(options.getLosePrimacyTimeMs());
     }
     if (options.hasVersion()) {
       master.setVersion(options.getVersion());

@@ -5948,7 +5948,7 @@
               },
               {
                 "id": 3,
-                "name": "primacyChangeTimeMs",
+                "name": "losePrimacyTimeMs",
                 "type": "int64"
               },
               {

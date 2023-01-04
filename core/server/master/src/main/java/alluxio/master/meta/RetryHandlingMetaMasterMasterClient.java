@@ -132,7 +132,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
       mClient.registerMaster(RegisterMasterPRequest.newBuilder().setMasterId(masterId)
           .setOptions(RegisterMasterPOptions.newBuilder().addAllConfigs(configList)
               .setStartTimeMs(startTime)
-              .setPrimacyChangeTimeMs(lastLosePrimacyTime)
+              .setLosePrimacyTimeMs(lastLosePrimacyTime)
               .setVersion(ProjectConstants.VERSION)
               .setRevision(ProjectConstants.REVISION).build())
           .build());
