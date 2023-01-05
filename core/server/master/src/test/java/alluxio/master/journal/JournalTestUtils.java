@@ -11,18 +11,43 @@
 
 package alluxio.master.journal;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils.ProcessType;
 
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Utility methods for testing against a journal system.
  */
 public class JournalTestUtils {
+
+  public static List<Integer> createEmbeddedJournalTestPorts(int count) throws IOException {
+    List<Integer> ports = new ArrayList<>();
+    StringBuilder addresses = new StringBuilder();
+    for (int i = 0; i < count; i++) {
+      if (i != 0) {
+        addresses.append(",");
+      }
+      ServerSocket socket = new ServerSocket(0);
+      socket.setReuseAddress(true);
+      int port = socket.getLocalPort();
+      ports.add(port);
+      socket.close();
+      addresses.append(String.format("localhost:%d", port));
+    }
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, addresses.toString());
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, ports.get(0));
+    return ports;
+  }
 
   public static JournalSystem createJournalSystem(TemporaryFolder folder) {
     try {
