@@ -19,7 +19,6 @@ import alluxio.util.CommonUtils.ProcessType;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
