@@ -17,6 +17,8 @@ import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.GetStatusPRequest;
+import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
@@ -43,6 +45,7 @@ import java.io.IOException;
  * gRPC client for worker communication.
  */
 public interface BlockWorkerClient extends Closeable {
+
   /**
    * Factory for block worker client.
    */
@@ -161,4 +164,12 @@ public interface BlockWorkerClient extends Closeable {
    * @throws StatusRuntimeException if any error occurs
    */
   ListenableFuture<LoadResponse> load(LoadRequest request);
+
+  /**
+   * get file status.
+   *
+   * @param request
+   * @return status
+   */
+  GetStatusPResponse getStatus(GetStatusPRequest request);
 }
