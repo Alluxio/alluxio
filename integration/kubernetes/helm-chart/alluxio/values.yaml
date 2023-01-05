@@ -448,7 +448,7 @@ shortCircuit:
   policy: uuid
   # volumeType controls the type of shortCircuit volume.
   # It can be "persistentVolumeClaim" or "hostPath"
-  volumeType: persistentVolumeClaim
+  volumeType: hostPath
   size: 1Mi
   # Attributes to use if the domain socket volume is PVC
   pvcName: alluxio-worker-domain-socket

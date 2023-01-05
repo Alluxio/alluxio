@@ -88,6 +88,18 @@ spec:
       {{- if .Values.imagePullSecrets }}
 {{ include "alluxio.imagePullSecrets" . | indent 6 }}
       {{- end}}
+      {{- if and (eq .Values.shortCircuit.enabled true) (eq .Values.shortCircuit.volumeType "hostPath") }}
+      initContainers:
+        - name: alluxio-domain-permission
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          command: ["sh", "-c", "chmod -R 777 /opt/domain"]
+          volumeMounts:
+          - name: alluxio-domain
+            mountPath: /opt/domain
+      {{- end }}
       containers:
         {{- if .Values.worker.extraContainers }}
 {{ include "alluxio.extraContainers" (dict "extraContainers" .Values.worker.extraContainers) | indent 8 }}
