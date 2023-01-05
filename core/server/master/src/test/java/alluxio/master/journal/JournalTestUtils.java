@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.master.PortRegistry;
 import alluxio.util.CommonUtils.ProcessType;
 
 import org.junit.rules.TemporaryFolder;
@@ -36,11 +37,8 @@ public class JournalTestUtils {
       if (i != 0) {
         addresses.append(",");
       }
-      ServerSocket socket = new ServerSocket(0);
-      socket.setReuseAddress(true);
-      int port = socket.getLocalPort();
+      int port = PortRegistry.getFreePort();
       ports.add(port);
-      socket.close();
       addresses.append(String.format("localhost:%d", port));
     }
     Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, addresses.toString());
