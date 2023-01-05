@@ -72,22 +72,6 @@
 # E.g. "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"
 # ALLUXIO_USER_JAVA_OPTS
 
-# Config properties for the monitoring service used by Alluxio shell to monitor the healthiness of Alluxio master process. (Default: "-Xms256M -Xmx256M")
-# E.g. "-Xms256M -Xmx256M"
-# ALLUXIO_MASTER_MONITOR_JAVA_OPTS
-
-# Config properties for the monitoring service used by Alluxio shell to monitor the healthiness of Alluxio worker process. (Default: "-Xms256M -Xmx256M")
-# E.g. "-Xms256M -Xmx256M"
-# ALLUXIO_WORKER_MONITOR_JAVA_OPTS
-
-# Config properties for the monitoring service used by Alluxio shell to monitor the healthiness of Alluxio job master process. (Default: "-Xms256M -Xmx256M")
-# E.g. "-Xms256M -Xmx256M"
-# ALLUXIO_JOB_MASTER_MONITOR_JAVA_OPTS
-
-# Config properties for the monitoring service used by Alluxio shell to monitor the healthiness of Alluxio job worker process. (Default: "-Xms256M -Xmx256M")
-# E.g. "-Xms256M -Xmx256M"
-# ALLUXIO_JOB_WORKER_MONITOR_JAVA_OPTS
-
 # Additional classpath entries for Alluxio processes. (Default: "")
 # E.g. "/path/to/library1/:/path/to/library2/"
 # ALLUXIO_CLASSPATH
