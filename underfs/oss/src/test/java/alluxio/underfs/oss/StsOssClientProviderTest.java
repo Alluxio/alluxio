@@ -55,7 +55,7 @@ public class StsOssClientProviderTest {
 
   @Test
   public void testInitAndRefresh() throws Exception {
-    Date dateExpiration = toUtcDateString(System.currentTimeMillis() + 21600000);
+    Date dateExpiration = toUtcDateString(System.currentTimeMillis() +  6 * Constants.HOUR_MS);
     Date dateLastUpdated = toUtcDateString(System.currentTimeMillis());
     String expiration = toUtcString(dateExpiration);
     String lastUpdated = toUtcString(dateLastUpdated);
