@@ -14,6 +14,7 @@ package alluxio.underfs.oss;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -27,7 +28,6 @@ import org.junit.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -55,10 +55,8 @@ public class StsOssClientProviderTest {
 
   @Test
   public void testInitAndRefresh() throws Exception {
-    Date dateExpiration = toUtcDateString(System.currentTimeMillis() +  6 * Constants.HOUR_MS);
-    Date dateLastUpdated = toUtcDateString(System.currentTimeMillis());
-    String expiration = toUtcString(dateExpiration);
-    String lastUpdated = toUtcString(dateLastUpdated);
+    String expiration = toUtcString(new Date(System.currentTimeMillis() +  6 * Constants.HOUR_MS));
+    String lastUpdated = toUtcString(new Date(System.currentTimeMillis()));
 
     mConf.set(PropertyKey.OSS_ENDPOINT_KEY, "http://oss-cn-qingdao.aliyuncs.com");
     mConf.set(PropertyKey.UNDERFS_OSS_ECS_RAM_ROLE, ECS_RAM_ROLE);
@@ -93,13 +91,6 @@ public class StsOssClientProviderTest {
         assertFalse(clientProvider.tokenWillExpiredAfter(0));
       }
     }
-  }
-
-  private Date toUtcDateString(long dateInMills) throws ParseException {
-    TimeZone zeroTimeZone = TimeZone.getTimeZone("ETC/GMT-0");
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-    sdf.setTimeZone(zeroTimeZone);
-    return sdf.parse(sdf.format(new Date(dateInMills)));
   }
 
   private String toUtcString(Date date) {
