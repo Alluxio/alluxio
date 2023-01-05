@@ -138,7 +138,6 @@ public class JobMasterAuditContext implements AuditContext {
     return this;
   }
 
-
   /**
    * Constructor of {@link JobMasterAuditContext}.
    *
