@@ -30,8 +30,8 @@ import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import alluxio.resource.LockResource;
 import alluxio.util.LogUtils;
 import alluxio.wire.BlockReadRequest;
-import alluxio.worker.DoraWorker;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.dora.DoraWorker;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;

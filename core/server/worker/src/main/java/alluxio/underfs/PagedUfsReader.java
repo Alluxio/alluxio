@@ -9,19 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.page;
+package alluxio.underfs;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.resource.CloseableResource;
-import alluxio.underfs.FileId;
-import alluxio.underfs.UfsInputStreamCache;
-import alluxio.underfs.UfsManager;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
-import alluxio.util.IdUtils;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.page.UfsBlockReadOptions;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -36,12 +32,13 @@ import java.nio.channels.ReadableByteChannel;
 /**
  * Block reader that reads from UFS.
  */
-public class PagedUfsBlockReader extends BlockReader {
+public class PagedUfsReader extends BlockReader {
   private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocate(0);
   private final long mPageSize;
-  private final UfsManager mUfsManager;
+  private final UfsManager.UfsClient mUfsClient;
   private final UfsInputStreamCache mUfsInStreamCache;
-  private final BlockMeta mBlockMeta;
+  private final FileId mFileId;
+  private final long mFileSize;
   private final UfsBlockReadOptions mUfsBlockOptions;
   private final long mInitialOffset;
   private final ByteBuffer mLastPage;
@@ -50,22 +47,25 @@ public class PagedUfsBlockReader extends BlockReader {
   private long mPosition;
 
   /**
-   * @param ufsManager
+   * @param conf
+   * @param ufsClient
    * @param ufsInStreamCache
-   * @param blockMeta
+   * @param fileId
+   * @param fileSize
    * @param offset
    * @param ufsBlockReadOptions
    * @param pageSize
    */
-  public PagedUfsBlockReader(UfsManager ufsManager,
-      UfsInputStreamCache ufsInStreamCache, BlockMeta blockMeta,
+  public PagedUfsReader(AlluxioConfiguration conf, UfsManager.UfsClient ufsClient,
+      UfsInputStreamCache ufsInStreamCache, FileId fileId, long fileSize,
       long offset, UfsBlockReadOptions ufsBlockReadOptions, long pageSize) {
-    Preconditions.checkArgument(offset >= 0 && offset <= blockMeta.getBlockSize(),
-        "Attempt to read block %s which is %s bytes long at invalid byte offset %s",
-        blockMeta.getBlockId(), blockMeta.getBlockSize(), offset);
-    mUfsManager = ufsManager;
+    Preconditions.checkArgument(offset >= 0 && offset <= fileSize,
+        "Attempt to read file %s which is %s bytes long at invalid byte offset %s",
+        fileId, fileSize, offset);
+    mUfsClient = ufsClient;
     mUfsInStreamCache = ufsInStreamCache;
-    mBlockMeta = blockMeta;
+    mFileId = fileId;
+    mFileSize = fileSize;
     mUfsBlockOptions = ufsBlockReadOptions;
     mPageSize = pageSize;
     mInitialOffset = offset;
@@ -79,11 +79,11 @@ public class PagedUfsBlockReader extends BlockReader {
     Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(offset >= 0, "offset should be non-negative");
 
-    if (length == 0 || offset >= mBlockMeta.getBlockSize()) {
+    if (length == 0 || offset >= mFileSize) {
       return EMPTY_BYTE_BUFFER;
     }
 
-    length = Math.min(length, mBlockMeta.getBlockSize() - offset);
+    length = Math.min(length, mFileSize - offset);
     // todo(bowen): this pooled buffer will likely not get released, so will still be GCed instead
     //  of reused.
     ByteBuffer buffer = NioDirectBufferPool.acquire((int) length);
@@ -95,7 +95,7 @@ public class PagedUfsBlockReader extends BlockReader {
         if (bytesRead < 0) {
           throw new IOException(String.format(
               "Unexpected EOF when reading %d bytes from offset %d of block %d",
-              length, offset, mBlockMeta.getBlockId()));
+              length, offset, mFileId));
         }
         totalBytesRead += bytesRead;
       }
@@ -120,7 +120,7 @@ public class PagedUfsBlockReader extends BlockReader {
     Preconditions.checkArgument(buffer.remaining() >= mPageSize,
         "%s bytes available in buffer, not enough for a page of size %s",
         buffer.remaining(), mPageSize);
-    Preconditions.checkArgument(pageIndex >= 0 && pageIndex * mPageSize < mBlockMeta.getBlockSize(),
+    Preconditions.checkArgument(pageIndex >= 0 && pageIndex * mPageSize < mFileSize,
         "page index (%s) is out of bound", pageIndex);
 
     if (pageIndex == mLastPageIndex) {
@@ -173,7 +173,7 @@ public class PagedUfsBlockReader extends BlockReader {
 
   @Override
   public long getLength() {
-    return mBlockMeta.getBlockSize();
+    return mFileSize;
   }
 
   @Override
@@ -256,15 +256,15 @@ public class PagedUfsBlockReader extends BlockReader {
       if (mClosed) {
         throw new ClosedChannelException();
       }
+      String ufsPath = mUfsBlockOptions.getUfsPath();
       if (mUfsInStream == null) {
         synchronized (this) {
           if (mUfsInStream == null) {
-            UfsManager.UfsClient ufsClient = mUfsManager.get(mUfsBlockOptions.getMountId());
-            try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
+            try (CloseableResource<UnderFileSystem> ufsResource = mUfsClient.acquireUfsResource()) {
               mUfsInStream = mUfsInStreamCache.acquire(
                   ufsResource.get(),
-                  mUfsBlockOptions.getUfsPath(),
-                  FileId.of(IdUtils.fileIdFromBlockId(mBlockMeta.getBlockId())),
+                  ufsPath,
+                  mFileId,
                   OpenOptions.defaults()
                       .setOffset(mUfsBlockOptions.getOffsetInFile() + mOffset)
                       .setPositionShort(true));

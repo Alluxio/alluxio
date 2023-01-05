@@ -15,6 +15,8 @@ import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import java.io.IOException;
@@ -26,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
@@ -46,7 +49,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class Registry<T extends Server<U>, U> {
-  private final Map<Class<? extends Server>, T> mRegistry = new HashMap<>();
+  private final Map<Class<? extends Server<U>>, T> mRegistry = new HashMap<>();
+  private final Map<Class<? extends Server<U>>, T> mAlias = new HashMap<>();
   private final Lock mLock = new ReentrantLock();
 
   /**
@@ -74,35 +78,116 @@ public class Registry<T extends Server<U>, U> {
    * @param timeoutMs timeout for looking up the server
    * @param <W> the type of the {@link Server} to get
    * @return the {@link Server} instance
+   * @see #getCanonical(Class, int) if alias mappings should be ignored
    */
   public <W extends T> W get(final Class<W> clazz, int timeoutMs) {
+    return getInternal(clazz, WaitForOptions.defaults().setTimeoutMs(timeoutMs), true);
+  }
+
+  /**
+   * Convenience method for {@link #getCanonical(Class, int)} with default timeout.
+   *
+   * @param type canonical type
+   * @return server instance
+   * @param <W> server type
+   */
+  public <W extends T> W getCanonical(final Class<W> type) {
+    return getCanonical(type, Constants.DEFAULT_REGISTRY_GET_TIMEOUT_MS);
+  }
+
+  /**
+   * Gets the server registered with the canonical type.
+   * Aliases added via {@link #addAlias(Class, Server)} are not considered.
+   *
+   * @param type the canonical type
+   * @param timeoutMs time before giving up the lookup
+   * @return the server instance
+   * @param <W> the type
+   * @see #get(Class, int)
+   */
+  public <W extends T> W getCanonical(final Class<W> type, int timeoutMs) {
+    return getInternal(type, WaitForOptions.defaults().setTimeoutMs(timeoutMs), false);
+  }
+
+  private <W extends T> W getInternal(Class<W> type, WaitForOptions options, boolean includeAlias) {
     try {
-      CommonUtils.waitFor("server " + clazz.getName() + " to be created", () -> {
-        try (LockResource r = new LockResource(mLock)) {
-          return mRegistry.get(clazz) != null;
-        }
-      }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      return CommonUtils.waitForResult(
+          "server " + type.getName() + " to be created",
+          () -> getInternal(type, includeAlias),
+          Objects::nonNull,
+          options);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     } catch (TimeoutException e) {
       throw new RuntimeException(e);
     }
-    T server = mRegistry.get(clazz);
-    if (!(clazz.isInstance(server))) {
-      throw new RuntimeException("Server is not an instance of " + clazz.getName());
+  }
+
+  @VisibleForTesting
+  <W extends T> W getInternal(Class<W> clazz, boolean includeAlias) {
+    try (LockResource r = new LockResource(mLock)) {
+      T server = mRegistry.get(clazz);
+      if (server == null && includeAlias) {
+        server = mAlias.get(clazz);
+      }
+      try {
+        return clazz.cast(server);
+      } catch (ClassCastException e) {
+        return null;
+      }
     }
-    return clazz.cast(server);
   }
 
   /**
+   * Registers a canonical mapping of the type to the server instance. Overrides any existing
+   * mappings.
+   *
    * @param clazz the class of the {@link Server} to add
    * @param server the {@link Server} to add
    * @param <W> the type of the {@link Server} to add
+   * @see #addAlias(Class, Server)
    */
   public <W extends T> void add(Class<W> clazz, T server) {
+    Preconditions.checkArgument(clazz.isInstance(server),
+        "Server %s is not an instance of %s", server.getClass(), clazz.getName());
     try (LockResource r = new LockResource(mLock)) {
       mRegistry.put(clazz, server);
+    }
+  }
+
+  /**
+   * Registers a server instance under an alias type.
+   * <br>
+   * Typically, a server instance should be registered with only one type. When
+   * it's necessary to register the instance under a super type as well, an alias mapping
+   * should be used.
+   * The alias mappings are consulted when retrieving the server instances, but
+   * are not used to start or stop the server instances.
+   *
+   * @param clazz the alias type
+   * @param server the {@link Server} to add
+   * @param <W> the type of the server
+   * @throws IllegalArgumentException when the server has not yet been registered under a canonical
+   * name with {@link #add(Class, Server)}, or a canonical mapping already exists for the same type
+   * @see #add(Class, Server)
+   */
+  public <W extends T> void addAlias(Class<W> clazz, T server) {
+    Preconditions.checkArgument(clazz.isInstance(server),
+        "Server %s is not an instance of %s", server.getClass(), clazz.getName());
+    try (LockResource r = new LockResource(mLock)) {
+      if (mRegistry.containsKey(clazz)) {
+        throw new IllegalArgumentException(String.format(
+            "Cannot add %s as alias for server %s as the type is already registered as its "
+                + "canonical type",
+            clazz.getSimpleName(), server.getClass().getSimpleName()));
+      }
+      if (!mRegistry.containsValue(server)) {
+        throw new IllegalArgumentException(String.format(
+            "Cannot register alias %s before a canonical name is registered",
+            clazz.getSimpleName()));
+      }
+      mAlias.put(clazz, server);
     }
   }
 

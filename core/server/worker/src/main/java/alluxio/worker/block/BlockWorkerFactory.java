@@ -17,10 +17,10 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
 import alluxio.underfs.UfsManager;
+import alluxio.worker.DataWorker;
 import alluxio.worker.Worker;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.WorkerRegistry;
-import alluxio.worker.dora.PagedDoraWorker;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.page.PagedBlockStore;
 
@@ -37,9 +37,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockWorkerFactory implements WorkerFactory {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerFactory.class);
 
-  private static final boolean DORA_WORKER_ENABLED =
-      Configuration.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
-
   /**
    * Constructs a new {@link BlockWorkerFactory}.
    */
@@ -47,40 +44,35 @@ public final class BlockWorkerFactory implements WorkerFactory {
 
   @Override
   public boolean isEnabled() {
-    return true;
+    return !Configuration.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
   }
 
   @Override
   public Worker create(WorkerRegistry registry, UfsManager ufsManager) {
     BlockMasterClientPool blockMasterClientPool = new BlockMasterClientPool();
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
-    if (DORA_WORKER_ENABLED) {
-      Worker worker = new PagedDoraWorker(blockMasterClientPool, workerId);
-      registry.add(Worker.class, worker);
-      return worker;
-    } else {
-      BlockStore blockStore;
-      switch (Configuration.global()
-          .getEnum(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
-        case PAGE:
-          LOG.info("Creating PagedBlockWorker");
-          blockStore = PagedBlockStore.create(ufsManager, blockMasterClientPool, workerId);
-          break;
-        case FILE:
-          LOG.info("Creating DefaultBlockWorker");
-          blockStore =
-              new MonoBlockStore(new TieredBlockStore(), blockMasterClientPool, ufsManager,
-                  workerId);
-          break;
-        default:
-          throw new UnsupportedOperationException("Unsupported block store type.");
-      }
-      BlockWorker blockWorker = new DefaultBlockWorker(blockMasterClientPool,
-          new FileSystemMasterClient(
-              MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build()),
-          new Sessions(), blockStore, workerId);
-      registry.add(BlockWorker.class, blockWorker);
-      return blockWorker;
+    BlockStore blockStore;
+    switch (Configuration.global()
+        .getEnum(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
+      case PAGE:
+        LOG.info("Creating PagedBlockWorker");
+        blockStore = PagedBlockStore.create(ufsManager, blockMasterClientPool, workerId);
+        break;
+      case FILE:
+        LOG.info("Creating DefaultBlockWorker");
+        blockStore =
+            new MonoBlockStore(new TieredBlockStore(), blockMasterClientPool, ufsManager,
+                workerId);
+        break;
+      default:
+        throw new UnsupportedOperationException("Unsupported block store type.");
     }
+    BlockWorker blockWorker = new DefaultBlockWorker(blockMasterClientPool,
+        new FileSystemMasterClient(
+            MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build()),
+        new Sessions(), blockStore, workerId);
+    registry.add(BlockWorker.class, blockWorker);
+    registry.addAlias(DataWorker.class, blockWorker);
+    return blockWorker;
   }
 }

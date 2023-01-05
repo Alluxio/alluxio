@@ -9,24 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker;
+package alluxio.worker.dora;
 
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.FileInfo;
+import alluxio.worker.DataWorker;
+import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A block worker in the Alluxio system.
  */
-public interface DoraWorker extends Worker, SessionCleanable {
-  /**
-   * @return the worker id
-   */
-  AtomicReference<Long> getWorkerId();
-
+public interface DoraWorker extends DataWorker, SessionCleanable {
   /**
    * Gets the file information.
    *
