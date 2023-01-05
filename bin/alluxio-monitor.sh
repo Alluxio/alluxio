@@ -53,19 +53,13 @@ get_env() {
   CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
   ALLUXIO_TASK_LOG="${ALLUXIO_LOGS_DIR}/task.log"
 
-  ALLUXIO_MONITOR_JAVA_OPTS_DEFAULT="-Xms256M -Xmx256M"
-  if [ -z ${ALLUXIO_MASTER_MONITOR_JAVA_OPTS} ]; then
-    ALLUXIO_MASTER_MONITOR_JAVA_OPTS=${ALLUXIO_MONITOR_JAVA_OPTS_DEFAULT}
-  fi
-  if [ -z ${ALLUXIO_WORKER_MONITOR_JAVA_OPTS} ]; then
-    ALLUXIO_WORKER_MONITOR_JAVA_OPTS=${ALLUXIO_MONITOR_JAVA_OPTS_DEFAULT}
-  fi
-  if [ -z ${ALLUXIO_JOB_MASTER_MONITOR_JAVA_OPTS} ]; then
-    ALLUXIO_JOB_MASTER_MONITOR_JAVA_OPTS=${ALLUXIO_MONITOR_JAVA_OPTS_DEFAULT}
-  fi
-  if [ -z ${ALLUXIO_JOB_WORKER_MONITOR_JAVA_OPTS} ]; then
-    ALLUXIO_JOB_WORKER_MONITOR_JAVA_OPTS=${ALLUXIO_MONITOR_JAVA_OPTS_DEFAULT}
-  fi
+  # Remove the remote debug configuration to avoid the error: "transport error 20: bind failed: Address already in use."
+  # See https://github.com/Alluxio/alluxio/issues/10958
+  # See https://github.com/Alluxio/alluxio/issues/15168
+  ALLUXIO_MASTER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_MASTER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//' | sed 's/-Dcom.sun.management.jmxremote.port=[0-9]*//')
+  ALLUXIO_WORKER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_WORKER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//' | sed 's/-Dcom.sun.management.jmxremote.port=[0-9]*//')
+  ALLUXIO_JOB_MASTER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_JOB_MASTER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//' | sed 's/-Dcom.sun.management.jmxremote.port=[0-9]*//')
+  ALLUXIO_JOB_WORKER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_JOB_WORKER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//'| sed 's/-Dcom.sun.management.jmxremote.port=[0-9]*//')
 }
 
 prepare_monitor() {
