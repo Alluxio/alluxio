@@ -615,6 +615,10 @@ public class UfsJournal implements Journal {
 
   @Override
   public synchronized void close() throws IOException {
+    if (mState.get() == State.PRIMARY && mWriter != null) {
+      LOG.info("Closing journal {}, state {} last journal location {}, next sequence number {}",
+          this, mState, mWriter.currentLogName(), mWriter.getNextSequenceNumber());
+    }
     if (mAsyncWriter != null) {
       mAsyncWriter.close();
       mAsyncWriter = null;
@@ -626,6 +630,10 @@ public class UfsJournal implements Journal {
     if (mTailerThread != null) {
       try {
         mTailerThread.awaitTermination(false);
+        if (mState.get() == State.SECONDARY) {
+          LOG.info("Closing journal {}, state {}, next sequence number {}",
+              this, this.mState, mTailerThread.getNextSequenceNumber());
+        }
       } catch (Throwable t) {
         // We want to let the thread finish normally, however this call might throw if it already
         // finished exceptionally. We do not rethrow as we want the shutdown sequence to be smooth

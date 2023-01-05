@@ -397,6 +397,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public void stop() throws IOException {
+    LOG.info("Next container id before close: {}", mBlockContainerIdGenerator.peekNewContainerId());
     super.stop();
   }
 
