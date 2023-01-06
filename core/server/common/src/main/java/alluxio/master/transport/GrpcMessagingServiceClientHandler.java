@@ -13,7 +13,7 @@ package alluxio.master.transport;
 
 import alluxio.grpc.MessagingServiceGrpc;
 import alluxio.grpc.TransportMessage;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 
 import com.google.common.base.MoreObjects;
 import io.grpc.stub.StreamObserver;
@@ -74,7 +74,7 @@ public class GrpcMessagingServiceClientHandler
     // Transport level identifier for this connection.
     String transportId = MoreObjects.toStringHelper(this)
         .add("ServerAddress", mServerAddress)
-        .add("ClientAddress", ClientIpAddressInjector.getIpAddress())
+        .add("ClientAddress", ClientContextServerInjector.getIpAddress())
         .toString();
     LOG.debug("Creating a messaging server connection: {}", transportId);
 

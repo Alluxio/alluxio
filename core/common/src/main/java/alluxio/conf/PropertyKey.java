@@ -5863,6 +5863,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+
+  public static final PropertyKey USER_CLIENT_REPORT_VERSION_ENABLED =
+      booleanBuilder(Name.USER_CLIENT_REPORT_VERSION_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether the client reports version information to the server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       enumBuilder(Name.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
           .setDefaultValue(WriteType.ASYNC_THROUGH)
@@ -8369,6 +8378,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.timeout.duration";
     public static final String USER_CLIENT_CACHE_TIMEOUT_THREADS =
         "alluxio.user.client.cache.timeout.threads";
+    public static final String USER_CLIENT_REPORT_VERSION_ENABLED =
+        "alluxio.user.client.report.version.enabled";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";

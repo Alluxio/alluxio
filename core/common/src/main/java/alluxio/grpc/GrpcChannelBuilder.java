@@ -104,6 +104,9 @@ public final class GrpcChannelBuilder {
       }
       throw AlluxioStatusException.fromThrowable(t);
     }
+    if (mConfiguration.getBoolean(PropertyKey.USER_CLIENT_REPORT_VERSION_ENABLED)) {
+      channel.intercept(new ClientVersionClientInjector());
+    }
     return channel;
   }
 }
