@@ -33,7 +33,7 @@ import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.table.transform.TransformJobInfo;
 import alluxio.master.table.transform.TransformManager;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.util.executor.ExecutorServiceFactories;
 
@@ -181,7 +181,7 @@ public class DefaultTableMaster extends AbstractMaster
     services.put(ServiceType.TABLE_MASTER_CLIENT_SERVICE,
         new GrpcService(ServerInterceptors.intercept(
             new TableMasterClientServiceHandler(this),
-            new ClientIpAddressInjector())));
+            new ClientContextServerInjector())));
     return services;
   }
 

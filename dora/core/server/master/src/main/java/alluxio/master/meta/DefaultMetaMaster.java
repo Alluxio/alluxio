@@ -52,7 +52,7 @@ import alluxio.master.meta.checkconf.ConfigurationStore;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Meta;
 import alluxio.resource.CloseableIterator;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
@@ -260,15 +260,15 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     services.put(ServiceType.META_MASTER_CONFIG_SERVICE,
         new GrpcService(ServerInterceptors.intercept(
             new MetaMasterConfigurationServiceHandler(this),
-            new ClientIpAddressInjector())).disableAuthentication());
+            new ClientContextServerInjector())).disableAuthentication());
     services.put(ServiceType.META_MASTER_CLIENT_SERVICE,
         new GrpcService(ServerInterceptors.intercept(
             new MetaMasterClientServiceHandler(this),
-            new ClientIpAddressInjector())));
+            new ClientContextServerInjector())));
     services.put(ServiceType.META_MASTER_MASTER_SERVICE,
         new GrpcService(ServerInterceptors.intercept(
             new MetaMasterMasterServiceHandler(this),
-            new ClientIpAddressInjector())));
+            new ClientContextServerInjector())));
     // Add backup role services.
     services.putAll(mBackupRole.getRoleServices());
     services.putAll(mJournalSystem.getJournalServices());
