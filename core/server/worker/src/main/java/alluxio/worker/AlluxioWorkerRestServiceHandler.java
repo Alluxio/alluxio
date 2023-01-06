@@ -43,8 +43,8 @@ import alluxio.util.webui.WebUtils;
 import alluxio.web.WorkerWebServer;
 import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
-import alluxio.wire.MasterWebUIConfiguration;
 import alluxio.wire.WorkerWebUIBlockInfo;
+import alluxio.wire.WorkerWebUIConfiguration;
 import alluxio.wire.WorkerWebUIInit;
 import alluxio.wire.WorkerWebUILogs;
 import alluxio.wire.WorkerWebUIMetrics;
@@ -534,7 +534,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(WEBUI_CONFIG)
   public Response getWebUIConfiguration() {
     return RestUtils.call(() -> {
-      MasterWebUIConfiguration response = new MasterWebUIConfiguration();
+      WorkerWebUIConfiguration response = new WorkerWebUIConfiguration();
 
       response.setWhitelist(mBlockWorker.getWhiteList());
       alluxio.wire.Configuration conf = mBlockWorker.getConfiguration(

@@ -29,7 +29,7 @@ public final class Hash {
   private final Supplier<Stream<byte[]>> mProperties;
   private final AtomicBoolean mShouldUpdate;
   private volatile String mVersion;
-  private long mLastUpdateTime;
+  private volatile long mLastUpdateTime;
 
   /**
    * @param properties a stream of encoded properties
