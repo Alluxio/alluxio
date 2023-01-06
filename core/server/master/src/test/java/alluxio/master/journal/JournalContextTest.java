@@ -11,6 +11,7 @@
 
 package alluxio.master.journal;
 
+import static alluxio.master.journal.JournalTestUtils.createEmbeddedJournalTestPorts;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -88,6 +89,7 @@ public class JournalContextTest {
   @Before
   public void before() throws Exception {
     Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, mJournalType);
+    createEmbeddedJournalTestPorts(1);
 
     mRegistry = new MasterRegistry();
     mJournalSystem = JournalTestUtils.createJournalSystem(mTemporaryFolder);
