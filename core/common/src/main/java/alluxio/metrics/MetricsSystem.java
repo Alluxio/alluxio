@@ -787,6 +787,8 @@ public final class MetricsSystem {
         }
         double diff = prev != null ? value - prev : value;
         if (diff != 0) { // Only report non-zero counter values
+          // Convert type to Counter as other types are ignored at master side,
+          // and we can reuse the existing aggregation mechanism through this
           rpcMetrics.add(Metric.from(entry.getKey(), diff, MetricType.COUNTER).toProto());
         }
       } else if (metric instanceof Meter) {
