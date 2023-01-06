@@ -1330,6 +1330,46 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OSS_ECS_RAM_ROLE =
+      stringBuilder(Name.UNDERFS_OSS_ECS_RAM_ROLE)
+          .setAlias("alluxio.underfs.oss.ecs.ram.role")
+          .setDescription("The RAM role of current owner of ECS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_RETRY_MAX =
+      intBuilder(Name.UNDERFS_OSS_RETRY_MAX)
+          .setAlias("alluxio.underfs.oss.retry.max")
+          .setDefaultValue(3)
+          .setDescription("The maximum number of OSS error retry.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT =
+      stringBuilder(Name.UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT)
+          .setAlias("alluxio.underfs.oss.sts.ecs.metadata.service.endpoint")
+          .setDefaultValue("http://100.100.100.200/latest/meta-data/ram/security-credentials/")
+          .setDescription("The ECS metadata service endpoint for Aliyun STS")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_STS_ENABLED =
+      booleanBuilder(Name.UNDERFS_OSS_STS_ENABLED)
+          .setAlias("alluxio.underfs.oss.sts.enabled")
+          .setDefaultValue(false)
+          .setDescription("Whether to enable oss STS(Security Token Service).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_STS_TOKEN_REFRESH_INTERVAL_MS =
+      durationBuilder(Name.UNDERFS_OSS_STS_TOKEN_REFRESH_INTERVAL_MS)
+          .setAlias("alluxio.underfs.oss.sts.token.refresh.interval.ms")
+          .setDefaultValue("30m")
+          .setDescription("Time before an OSS Security Token is considered expired "
+              + "and will be automatically renewed")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_S3_ADMIN_THREADS_MAX =
       intBuilder(Name.UNDERFS_S3_ADMIN_THREADS_MAX)
           .setDefaultValue(20)
@@ -5823,6 +5863,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+
+  public static final PropertyKey USER_CLIENT_REPORT_VERSION_ENABLED =
+      booleanBuilder(Name.USER_CLIENT_REPORT_VERSION_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether the client reports version information to the server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       enumBuilder(Name.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
           .setDefaultValue(WriteType.ASYNC_THROUGH)
@@ -7387,6 +7436,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.oss.connection.timeout";
     public static final String UNDERFS_OSS_CONNECT_TTL = "alluxio.underfs.oss.connection.ttl";
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout";
+    public static final String UNDERFS_OSS_ECS_RAM_ROLE = "alluxio.underfs.oss.ecs.ram.role";
+    public static final String UNDERFS_OSS_RETRY_MAX = "alluxio.underfs.oss.retry.max";
+    public static final String UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT =
+        "alluxio.underfs.oss.sts.ecs.metadata.service.endpoint";
+    public static final String UNDERFS_OSS_STS_ENABLED = "alluxio.underfs.oss.sts.enabled";
+    public static final String UNDERFS_OSS_STS_TOKEN_REFRESH_INTERVAL_MS =
+        "alluxio.underfs.oss.sts.token.refresh.interval.ms";
     public static final String UNDERFS_S3_BULK_DELETE_ENABLED =
         "alluxio.underfs.s3.bulk.delete.enabled";
     public static final String UNDERFS_S3_DEFAULT_MODE = "alluxio.underfs.s3.default.mode";
@@ -8322,6 +8378,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.timeout.duration";
     public static final String USER_CLIENT_CACHE_TIMEOUT_THREADS =
         "alluxio.user.client.cache.timeout.threads";
+    public static final String USER_CLIENT_REPORT_VERSION_ENABLED =
+        "alluxio.user.client.report.version.enabled";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
