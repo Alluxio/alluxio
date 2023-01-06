@@ -588,8 +588,8 @@ metrics:
   # podAnnotations:
   #   prometheus.io/scrape: "true"
   #   prometheus.io/port: "19999"
-  #   prometheus.io/jobPort: 20002
-  #   prometheus.io/workerPort: 30000
+  #   prometheus.io/jobPort: "20002"
+  #   prometheus.io/workerPort: "30000"
   #   prometheus.io/path: "/metrics/prometheus/"
   podAnnotations: {}
 

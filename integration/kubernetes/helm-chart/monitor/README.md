@@ -1,7 +1,7 @@
 # Introduction
 
-This chart bootstraps a monitoring system on a [Kubernetes]() cluster using the [Helm]() package manager. This monitor system can be used to 
-monitor an alluxio cluster started on [Kubernetes]() cluster.
+This chart bootstraps a monitoring system on a Kubernetes cluster using the [Helm](https://helm.sh/docs/using_helm/#installing-helm) package manager. This monitor system can be used to 
+monitor an [Alluxio](https://www.alluxio.io/) cluster started on Kubernetes cluster.
 
 ## Pre-requisites
 
@@ -10,7 +10,7 @@ Kubernetes 1.11+ with Beta APIs enabled
 
 ## Install the Chart
 
-To install the Monitor Chart into your Kubernetes cluster :
+To install the Monitor Chart into your Kubernetes cluster:
 
 ```
 $ helm install --namespace "alluxio" "alluxio-monitor" monitor
@@ -32,7 +32,7 @@ $ helm delete --purge "alluxio-monitor"
 
 ## Configuration
 The monitor system is implemented based on Prometheus + Grafana, the resource files are placed in the `monitor/source` directory.
-Before installing monitor, make some appropriate modifications.
+Before installing the monitor chart, you may make some appropriate modifications to the configuration.
 ### 1. source/grafana/datasource.yaml
 This grafana datasource url domain name is `[MONITORNAME]-prometheus`, for example: our monitor installation name is `alluxio-monitor`, then it will be 'alluxio-monitor-prometheus'  
 ```
@@ -53,7 +53,7 @@ scrape_configs:
             - alluxio
 ```
 ### 3. Enable the alluxio metrics
-To use the monitor, we need the alluxio prometheus podAnnotations defined in the '../alluxio/values.yaml' metrics part, so it is necessary to set metrics enable true before installing alluxio.
+To use the monitor, we need the alluxio prometheus podAnnotations defined in the '../alluxio/values.yaml' metrics part, so it is necessary to enable metrics before installing the alluxio chart.
 After that, the monitor can keep track of the target alluxio cluster.
 ```
 metrics:
