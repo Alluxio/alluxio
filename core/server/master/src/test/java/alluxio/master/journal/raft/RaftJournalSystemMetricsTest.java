@@ -11,12 +11,12 @@
 
 package alluxio.master.journal.raft;
 
+import static alluxio.master.journal.JournalTestUtils.createEmbeddedJournalTestPorts;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -30,6 +30,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -45,12 +46,17 @@ public final class RaftJournalSystemMetricsTest {
     Configuration.reloadProperties();
   }
 
+  private void resetMetrics() {
+    MetricsSystem.resetAllMetrics();
+    MetricsSystem.METRIC_REGISTRY.remove(MetricKey.CLUSTER_LEADER_INDEX.getName());
+    MetricsSystem.METRIC_REGISTRY.remove(MetricKey.MASTER_ROLE_ID.getName());
+    MetricsSystem.METRIC_REGISTRY.remove(MetricKey.CLUSTER_LEADER_ID.getName());
+  }
+
   @Test
   public void journalStateMachineMetrics() throws Exception {
-    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
-        "localhost:29200,localhost:29201,localhost:29202");
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
-    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, 29200);
+    resetMetrics();
+    createEmbeddedJournalTestPorts(3);
     RaftJournalSystem system =
         new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.MASTER_RAFT);
     String[] metricsNames = new String[] {
@@ -80,10 +86,9 @@ public final class RaftJournalSystemMetricsTest {
 
   @Test
   public void metrics() throws Exception {
-    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
-        "localhost:19200,localhost:19201,localhost:19202");
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
-    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, 19200);
+    resetMetrics();
+    List<Integer> ports = createEmbeddedJournalTestPorts(3);
+
     RaftJournalSystem raftJournalSystem =
         new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.MASTER_RAFT);
     RaftJournalSystem system = Mockito.spy(raftJournalSystem);
@@ -94,7 +99,7 @@ public final class RaftJournalSystemMetricsTest {
         .setFollowerInfo(RaftProtos.FollowerInfoProto.newBuilder()
             .setLeaderInfo(RaftProtos.ServerRpcProto.newBuilder()
                 .setId(RaftProtos.RaftPeerProto.newBuilder()
-                    .setId(ByteString.copyFromUtf8("localhost_19201")))))
+                    .setId(ByteString.copyFromUtf8(String.format("localhost_%d", ports.get(1)))))))
         .build();
 
     Map<String, Long> sn1 = new HashMap<String, Long>() {
@@ -136,7 +141,7 @@ public final class RaftJournalSystemMetricsTest {
     Mockito.doReturn(followerInfo).when(system).getRaftRoleInfo();
     assertEquals(1, getClusterLeaderIndex());
     assertEquals(RaftProtos.RaftPeerRole.FOLLOWER_VALUE, getMasterRoleId());
-    assertEquals("localhost_19201", getClusterLeaderId());
+    assertEquals(String.format("localhost_%d", ports.get(1)), getClusterLeaderId());
     assertEquals(sn3, getMasterJournalSequenceNumbers(system));
 
     Map<String, Long> sn4 = new HashMap<String, Long>() {
