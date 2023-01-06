@@ -479,7 +479,15 @@ public final class UnderFileSystemBlockStore implements SessionCleanable, Closea
       }
 
       BytesReadMetricKey that = (BytesReadMetricKey) o;
-      return mUri.equals(that.mUri) && mUser.equals(that.mUser);
+      if (mUri.equals(that.mUri)) {
+        if (null == mUser) {
+          return null == that.mUser;
+        } else {
+          return mUser.equals(that.mUser);
+        }
+      } else {
+        return false;
+      }
     }
 
     @Override

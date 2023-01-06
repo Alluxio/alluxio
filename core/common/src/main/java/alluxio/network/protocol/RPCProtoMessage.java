@@ -94,6 +94,7 @@ public final class RPCProtoMessage extends RPCMessage {
         .checkArgument((data instanceof NettyDataBuffer) || (data instanceof DataFileChannel),
             "Only NettyDataBuffer and DataFileChannel are allowed.");
     mMessage = ProtoMessage.parseFrom(serialized, prototype);
+    // TODO(JiamingMai): there is a copy operation here, check if we can remove this
     mMessageEncoded = Arrays.copyOf(serialized, serialized.length);
     if (data != null && data.getLength() > 0) {
       mData = data;

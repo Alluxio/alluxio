@@ -57,7 +57,7 @@ public final class RPCMessageEncoder extends MessageToMessageEncoder<RPCMessage>
     long frameBytes = headerBytes + bodyBytes;
 
     // Write the header info into a buffer.
-    // The format is: [frame length][message type][message][(optional) data]
+    // The format is: [frame length][message type][message length][message content][(optional) data]
     ByteBuf buffer = ctx.alloc().buffer();
     buffer.writeLong(frameBytes);
     type.encode(buffer);
