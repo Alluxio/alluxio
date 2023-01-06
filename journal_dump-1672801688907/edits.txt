@@ -1,0 +1,861 @@
+--------------------------------------------------------------------------------
+sequence_number: 0
+inode_directory_id_generator {
+  container_id: 0
+  sequence_number: 0
+}
+--------------------------------------------------------------------------------
+sequence_number: 1
+inode_directory_id_generator {
+  container_id: 0
+  sequence_number: 1
+}
+--------------------------------------------------------------------------------
+sequence_number: 2
+inode_directory {
+  id: 0
+  parent_id: -1
+  name: ""
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1672798196327
+  last_modification_time_ms: 1672798196327
+  mount_point: false
+  direct_children_loaded: false
+  ttl: -1
+  ttlAction: DELETE
+  acl {
+    owningUser: "dengxinyu"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+        actions: EXECUTE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: EXECUTE
+      }
+    }
+    otherActions {
+      actions: READ
+      actions: EXECUTE
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  defaultAcl {
+    owningUser: "dengxinyu"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+      }
+    }
+    otherActions {
+    }
+    isDefault: true
+    isEmpty: true
+  }
+  path: "/"
+  last_access_time_ms: 1672798196327
+}
+--------------------------------------------------------------------------------
+sequence_number: 3
+inode_directory_id_generator {
+  container_id: 1001
+  sequence_number: 0
+}
+--------------------------------------------------------------------------------
+sequence_number: 4
+inode_directory_id_generator {
+  container_id: 1001
+  sequence_number: 1
+}
+--------------------------------------------------------------------------------
+sequence_number: 5
+inode_directory {
+  id: 16793993216
+  parent_id: 0
+  name: "journal"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1672798338395
+  last_modification_time_ms: 1672736210000
+  mount_point: false
+  direct_children_loaded: false
+  ttl: -1
+  ttlAction: DELETE
+  acl {
+    owningUser: "dengxinyu"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+        actions: EXECUTE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: EXECUTE
+      }
+    }
+    otherActions {
+      actions: READ
+      actions: EXECUTE
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  defaultAcl {
+    owningUser: "dengxinyu"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+      }
+    }
+    otherActions {
+    }
+    isDefault: true
+    isEmpty: true
+  }
+  path: "/journal"
+  last_access_time_ms: 1672736210000
+}
+--------------------------------------------------------------------------------
+sequence_number: 6
+inode_file {
+  id: 16827547647
+  parent_id: 0
+  name: ".DS_Store"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1672798338404
+  last_modification_time_ms: 1665651555000
+  block_size_bytes: 67108864
+  length: 6148
+  completed: true
+  cacheable: true
+  blocks: 16810770432
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|dengxinyu GROUP|staff MODE|420 CONTENT_HASH|(len:6148,_modtime:1665651555000) "
+  acl {
+    owningUser: "dengxinyu"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/.DS_Store"
+  last_access_time_ms: 1665651555000
+}
+--------------------------------------------------------------------------------
+sequence_number: 7
+inode_directory_id_generator {
+  container_id: 1001
+  sequence_number: 2
+}
+--------------------------------------------------------------------------------
+sequence_number: 8
+inode_directory {
+  id: 16793993217
+  parent_id: 0
+  name: "test"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1672798338419
+  last_modification_time_ms: 1661758979000
+  mount_point: false
+  direct_children_loaded: false
+  ttl: -1
+  ttlAction: DELETE
+  acl {
+    owningUser: "dengxinyu"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+        actions: EXECUTE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: EXECUTE
+      }
+    }
+    otherActions {
+      actions: READ
+      actions: EXECUTE
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  defaultAcl {
+    owningUser: "dengxinyu"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+      }
+    }
+    otherActions {
+    }
+    isDefault: true
+    isEmpty: true
+  }
+  path: "/test"
+  last_access_time_ms: 1661758979000
+}
+--------------------------------------------------------------------------------
+sequence_number: 9
+inode_file {
+  id: 16844324863
+  parent_id: 0
+  name: "journal-first"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1672798338420
+  last_modification_time_ms: 1672737245000
+  block_size_bytes: 67108864
+  length: 0
+  completed: true
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|dengxinyu GROUP|staff MODE|420 CONTENT_HASH|(len:0,_modtime:1672737245000) "
+  acl {
+    owningUser: "dengxinyu"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/journal-first"
+  last_access_time_ms: 1672737245000
+}
+--------------------------------------------------------------------------------
+sequence_number: 10
+inode_file {
+  id: 16861102079
+  parent_id: 0
+  name: "1.txt"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1672798338421
+  last_modification_time_ms: 1657700259000
+  block_size_bytes: 67108864
+  length: 0
+  completed: true
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|dengxinyu GROUP|staff MODE|420 CONTENT_HASH|(len:0,_modtime:1657700259000) "
+  acl {
+    owningUser: "dengxinyu"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/1.txt"
+  last_access_time_ms: 1657700259000
+}
+--------------------------------------------------------------------------------
+sequence_number: 11
+inode_directory_id_generator {
+  container_id: 1001
+  sequence_number: 3
+}
+--------------------------------------------------------------------------------
+sequence_number: 12
+inode_directory {
+  id: 16793993218
+  parent_id: 0
+  name: ".alluxio_ufs_persistence"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1672798338422
+  last_modification_time_ms: 1672733027000
+  mount_point: false
+  direct_children_loaded: false
+  ttl: -1
+  ttlAction: DELETE
+  acl {
+    owningUser: "dengxinyu"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+        actions: EXECUTE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: EXECUTE
+      }
+    }
+    otherActions {
+      actions: READ
+      actions: EXECUTE
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  defaultAcl {
+    owningUser: "dengxinyu"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+      }
+    }
+    otherActions {
+    }
+    isDefault: true
+    isEmpty: true
+  }
+  path: "/.alluxio_ufs_persistence"
+  last_access_time_ms: 1672733027000
+}
+--------------------------------------------------------------------------------
+sequence_number: 13
+inode_file {
+  id: 16877879295
+  parent_id: 0
+  name: "iphone"
+  persistence_state: "PERSISTED"
+  pinned: false
+  creation_time_ms: 1672798338423
+  last_modification_time_ms: 1672797236000
+  block_size_bytes: 67108864
+  length: 0
+  completed: true
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|dengxinyu GROUP|staff MODE|420 CONTENT_HASH|(len:0,_modtime:1672797236000) "
+  acl {
+    owningUser: "dengxinyu"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/iphone"
+  last_access_time_ms: 1672797236000
+}
+--------------------------------------------------------------------------------
+sequence_number: 14
+update_inode_directory {
+  id: 0
+  direct_children_loaded: true
+}
+--------------------------------------------------------------------------------
+sequence_number: 15
+update_inode {
+  id: 0
+  last_modification_time_ms: 1672800339470
+  last_access_time_ms: 1672800339470
+}
+operationId {
+  mostSignificantBits: 8280499244279349267
+  leastSignificantBits: -8637278716795110559
+}
+--------------------------------------------------------------------------------
+sequence_number: 16
+inode_file {
+  id: 33604763647
+  parent_id: 0
+  name: "andriod"
+  persistence_state: "TO_BE_PERSISTED"
+  pinned: false
+  creation_time_ms: 1672800339518
+  last_modification_time_ms: 1672800339470
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "dengxinyu"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/andriod"
+  last_access_time_ms: 1672800339470
+}
+operationId {
+  mostSignificantBits: 8280499244279349267
+  leastSignificantBits: -8637278716795110559
+}
+--------------------------------------------------------------------------------
+sequence_number: 17
+update_inode {
+  id: 33604763647
+  last_modification_time_ms: 1672800339592
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1672800339592
+}
+operationId {
+  mostSignificantBits: -4758245693957910774
+  leastSignificantBits: -6100594391948470022
+}
+--------------------------------------------------------------------------------
+sequence_number: 18
+update_inode_file {
+  id: 33604763647
+  length: 0
+  completed: true
+  path: "/andriod"
+}
+--------------------------------------------------------------------------------
+sequence_number: 19
+update_inode {
+  id: 33604763647
+  persistence_state: "TO_BE_PERSISTED"
+}
+operationId {
+  mostSignificantBits: -4758245693957910774
+  leastSignificantBits: -6100594391948470022
+}
+--------------------------------------------------------------------------------
+sequence_number: 20
+update_inode_file {
+  id: 33604763647
+  persist_job_id: 1672799894049
+  temp_ufs_path: "/Users/dengxinyu/alluxio-2.8.0/tmp/.alluxio_ufs_persistence/andriod.alluxio.1672800340246.e5a4aaba-01aa-4794-ba68-88e55a9a53e7.tmp"
+}
+--------------------------------------------------------------------------------
+sequence_number: 21
+update_inode_file {
+  id: 33604763647
+  persist_job_id: -1
+  temp_ufs_path: ""
+}
+--------------------------------------------------------------------------------
+sequence_number: 22
+update_inode {
+  id: 33604763647
+  persistence_state: "PERSISTED"
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|dengxinyu GROUP|staff MODE|420 CONTENT_HASH|(len:0,_modtime:1672800341000) "
+}
+--------------------------------------------------------------------------------
+sequence_number: 23
+update_inode {
+  id: 0
+  last_modification_time_ms: 1672800849582
+  last_access_time_ms: 1672800849582
+}
+operationId {
+  mostSignificantBits: -3935054234921251410
+  leastSignificantBits: -7397563971387189681
+}
+--------------------------------------------------------------------------------
+sequence_number: 24
+inode_file {
+  id: 33621540863
+  parent_id: 0
+  name: "andriod-test"
+  persistence_state: "TO_BE_PERSISTED"
+  pinned: false
+  creation_time_ms: 1672800849586
+  last_modification_time_ms: 1672800849582
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "dengxinyu"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/andriod-test"
+  last_access_time_ms: 1672800849582
+}
+operationId {
+  mostSignificantBits: -3935054234921251410
+  leastSignificantBits: -7397563971387189681
+}
+--------------------------------------------------------------------------------
+sequence_number: 25
+update_inode {
+  id: 33621540863
+  last_modification_time_ms: 1672800849647
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1672800849647
+}
+operationId {
+  mostSignificantBits: -4067553218270510001
+  leastSignificantBits: -7617213999664099567
+}
+--------------------------------------------------------------------------------
+sequence_number: 26
+update_inode_file {
+  id: 33621540863
+  length: 0
+  completed: true
+  path: "/andriod-test"
+}
+--------------------------------------------------------------------------------
+sequence_number: 27
+update_inode {
+  id: 33621540863
+  persistence_state: "TO_BE_PERSISTED"
+}
+operationId {
+  mostSignificantBits: -4067553218270510001
+  leastSignificantBits: -7617213999664099567
+}
+--------------------------------------------------------------------------------
+sequence_number: 28
+update_inode_file {
+  id: 33621540863
+  persist_job_id: 1672799894050
+  temp_ufs_path: "/Users/dengxinyu/alluxio-2.8.0/tmp/.alluxio_ufs_persistence/andriod-test.alluxio.1672800849935.3cc9ffd8-adc9-4102-b614-d57d9390f69b.tmp"
+}
+--------------------------------------------------------------------------------
+sequence_number: 29
+update_inode_file {
+  id: 33621540863
+  persist_job_id: -1
+  temp_ufs_path: ""
+}
+--------------------------------------------------------------------------------
+sequence_number: 30
+update_inode {
+  id: 33621540863
+  persistence_state: "PERSISTED"
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|dengxinyu GROUP|staff MODE|420 CONTENT_HASH|(len:0,_modtime:1672800850000) "
+}
+--------------------------------------------------------------------------------
+sequence_number: 31
+delete_file {
+  id: 33621540863
+  recursive: false
+  op_time_ms: 1672800883758
+  path: "/andriod-test"
+}
+operationId {
+  mostSignificantBits: 1090090071734439004
+  leastSignificantBits: -8314485778795985197
+}
+--------------------------------------------------------------------------------
+sequence_number: 32
+update_inode {
+  id: 0
+  last_modification_time_ms: 1672801065148
+  last_access_time_ms: 1672801065148
+}
+operationId {
+  mostSignificantBits: -1404237646281029772
+  leastSignificantBits: -5145094590220055269
+}
+--------------------------------------------------------------------------------
+sequence_number: 33
+inode_file {
+  id: 33638318079
+  parent_id: 0
+  name: "andriod-test"
+  persistence_state: "TO_BE_PERSISTED"
+  pinned: false
+  creation_time_ms: 1672801065149
+  last_modification_time_ms: 1672801065148
+  block_size_bytes: 67108864
+  length: 0
+  completed: false
+  cacheable: true
+  ttl: -1
+  ttlAction: DELETE
+  ufs_fingerprint: ""
+  acl {
+    owningUser: "dengxinyu"
+    owningGroup: "staff"
+    userActions {
+      name: ""
+      actions {
+        actions: READ
+        actions: WRITE
+      }
+    }
+    groupActions {
+      name: ""
+      actions {
+        actions: READ
+      }
+    }
+    otherActions {
+      actions: READ
+    }
+    isDefault: false
+    isEmpty: false
+  }
+  replication_max: -1
+  replication_min: 0
+  persist_job_id: -1
+  temp_ufs_path: ""
+  replication_durable: 1
+  path: "/andriod-test"
+  last_access_time_ms: 1672801065148
+}
+operationId {
+  mostSignificantBits: -1404237646281029772
+  leastSignificantBits: -5145094590220055269
+}
+--------------------------------------------------------------------------------
+sequence_number: 34
+update_inode {
+  id: 33638318079
+  last_modification_time_ms: 1672801065200
+  overwrite_modification_time: true
+  ufs_fingerprint: ""
+  last_access_time_ms: 1672801065200
+}
+operationId {
+  mostSignificantBits: -5676329043034815879
+  leastSignificantBits: -7830690054925061741
+}
+--------------------------------------------------------------------------------
+sequence_number: 35
+update_inode_file {
+  id: 33638318079
+  length: 0
+  completed: true
+  path: "/andriod-test"
+}
+--------------------------------------------------------------------------------
+sequence_number: 36
+update_inode {
+  id: 33638318079
+  persistence_state: "TO_BE_PERSISTED"
+}
+operationId {
+  mostSignificantBits: -5676329043034815879
+  leastSignificantBits: -7830690054925061741
+}
+--------------------------------------------------------------------------------
+sequence_number: 37
+update_inode_file {
+  id: 33638318079
+  persist_job_id: 1672799894051
+  temp_ufs_path: "/Users/dengxinyu/alluxio-2.8.0/tmp/.alluxio_ufs_persistence/andriod-test.alluxio.1672801065534.b31071e3-87f6-4c65-9020-d94d45f58c3f.tmp"
+}
+--------------------------------------------------------------------------------
+sequence_number: 38
+update_inode_file {
+  id: 33638318079
+  persist_job_id: -1
+  temp_ufs_path: ""
+}
+--------------------------------------------------------------------------------
+sequence_number: 39
+update_inode {
+  id: 33638318079
+  persistence_state: "PERSISTED"
+  ufs_fingerprint: "TYPE|FILE UFS|local OWNER|dengxinyu GROUP|staff MODE|420 CONTENT_HASH|(len:0,_modtime:1672801066000) "
+}
+--------------------------------------------------------------------------------
+sequence_number: 40
+delete_file {
+  id: 33638318079
+  recursive: false
+  op_time_ms: 1672801136809
+  path: "/andriod-test"
+}
+operationId {
+  mostSignificantBits: -6897248327794081591
+  leastSignificantBits: -6952165282200110129
+}
+--------------------------------------------------------------------------------
+sequence_number: 41
+delete_file {
+  id: 16877879295
+  recursive: false
+  op_time_ms: 1672801499591
+  path: "/iphone"
+}
+operationId {
+  mostSignificantBits: -785517362508512343
+  leastSignificantBits: -8398679371085313617
+}
+--------------------------------------------------------------------------------
+sequence_number: 42
+delete_file {
+  id: 33604763647
+  recursive: false
+  op_time_ms: 1672801579766
+  path: "/andriod"
+}
+operationId {
+  mostSignificantBits: 2603113373779053865
+  leastSignificantBits: -8684414049200306620
+}

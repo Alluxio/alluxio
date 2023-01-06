@@ -174,6 +174,11 @@ public class PagedBlockStore implements BlockStore {
           }
         }
         commitBlockToMaster(committed);
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          synchronized (listener) {
+            listener.onCommitBlockToMaster(blockId, blockLocation);
+          }
+        }
       } catch (IOException e) {
         throw AlluxioRuntimeException.from(e);
       } finally {
