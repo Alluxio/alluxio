@@ -46,6 +46,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -108,6 +109,11 @@ public final class LocalCacheManagerTest {
     mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore, mEvictor);
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));
     mCacheManager = createLocalCacheManager();
+  }
+
+  @After
+  public void after() throws Exception {
+    mCacheManager.close();
   }
 
   private byte[] page(int i, int pageLen) {
@@ -830,6 +836,7 @@ public final class LocalCacheManagerTest {
       PageId pageId = new PageId("6", i);
       assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES)));
     }
+    pageStore.setPutHanging(false);
   }
 
   @Test
@@ -853,6 +860,7 @@ public final class LocalCacheManagerTest {
     }
     pageStore.setPutHanging(true);
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
+    pageStore.setPutHanging(false);
   }
 
   @Test
