@@ -10,8 +10,7 @@ priority: 1
 
 在 Alluxio 中，有两种类型的指标，集群范围内的合计指标和每个进程的详细指标。
 
-
-* 合计指标由领头的 master 收集和计算的，并且在 web UI 下的指标标签下展示。
+* 合计指标由 leading master 收集和计算的，并且在 web UI 下的指标标签下展示。
    这些指标旨在提供 Alluxio 服务的集群状态以及数据与元数据总量的快照。
 
 * 进程指标由每个 Alluxio 进程收集，并通过任何配置的接收器以机器可读的格式暴露出来。
@@ -20,7 +19,6 @@ priority: 1
   用户可以通过细粒度的数据面板查看每个指标的时间序列图。
   比如数据传输量或 RPC 调用次数。
 
-Metrics in Alluxio have the following format for master node metrics:
 Alluxio 的主节点指标具有以下格式：
 
 ```
@@ -137,7 +135,7 @@ Alluxio 服务器共享的指标。
 
 ## Client 指标
 
-每个客户端度量将使用其本地主机名或配置的 alluxio.user.app.id 进行记录。
+每个客户端度量将使用其本地主机名或配置的 `alluxio.user.app.id` 进行记录。
 如果配置了 `alluxio.user.app.id`，多个客户端可以组合成一个逻辑应用。
 
 <table class="table table-striped">
