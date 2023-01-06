@@ -1,6 +1,6 @@
 ---
 layout: global
-title: 作业服务
+title: 作业服务器
 group: Overview
 priority: 3
 ---
@@ -10,41 +10,41 @@ priority: 3
 
 ## 架构概览
 
-Alluxio 作业服务是负责将各种不同类型的操作分配给 Job Worker的任务调度框架。
+Alluxio 作业服务是负责将各种不同类型的操作分配给Job Worker的任务调度框架。
 
-Master 负责将Job分配为更小的任务，供 Job Worker 执行并管理Job的完成状态。
+Master负责将作业分配为更小的任务，供Job Worker执行并管理作业的完成状态。
 
-Job Worker 将来自 Job Master 的任务排列（queue)，并通过管理可配置的固定线程池(`alluxio.job.worker.threadpool.size`)来完成这些任务。
+Job Worker将来自Job Master的任务排列（queue)，并通过管理可配置的固定线程池(`alluxio.job.worker.threadpool.size`)来完成这些任务。
 
 ## 不同类型的作业
 
 ### 加载
 
-Load Job 作为`fs distributedLoad` CLI 命令的一部分，会按特定的副本数将文件加载到 Alluxio。
+`fs distributedLoad`CLI命令中使用了加载作业，按特定的副本数将文件加载到Alluxio。
 
 ### 迁移
 
-Migrate Job 作为`fs distributedCp`  和 `fs distributedMv` CLI 命令的一部分，负责使用固定的 [WriteType]({{ '/en/overview/Architecture.html#data-flow-write' | relativize_url }}) 进行数据复制/移动。
+`fs distributedCp`和`fs distributedMv`CLI命令中使用了迁移作业，使用固定的[写入类型]({{ '/en/overview/Architecture.html#data-flow-write' | relativize_url }})进行数据复制/移动。
 
 ### 持久化
 
-Persist Job 间接作为`fs persist` CLI 命令的一部分，在使用 ASYNC_THROUGH [WriteType]({{ '/en/overview/Architecture.html#data-flow-write' | relativize_url }}) 写入 Alluxio 时在后台进行持久化。
+`fs persist` CLI命令间接使用了持久化作业，以ASYNC_THROUGH[写入类型]({{ '/en/overview/Architecture.html#data-flow-write' | relativize_url }})写入Alluxio时使用持久化作业在后台进行持久化。
 
-该Job负责将 Alluxio 中的文件持久化到特定的 ufs 路径中。
+该作业负责将Alluxio中的文件持久化到特定的ufs路径中。
 
 ### 驱逐
 
-Evict Job 由 `fs free` CLI 命令和后台复制进程间接使用。
+`fs free` CLI命令和后台复制进程间接使用了驱逐作业。
 
-该Job负责从 Alluxio 中驱逐出特定数量的数据块副本。
+该作业负责从Alluxio中驱逐出特定数量的数据块副本。
 
 ### 移动
 
-复制后台进程使用 Move Job 将数据块从一个 worker 移动到另一个 worker。
+复制后台进程使用移动作业将数据块从一个worker移动到另一个worker。
 
 ### 复制
 
-后台复制进程使用Replicate Job将数据块从一个worker复制到特定数量的其他worker上。
+后台复制进程使用复制作业将数据块从一个worker复制到特定数量的其他worker上。
 
 ## 巡检命令
 
@@ -92,7 +92,7 @@ $ ./bin/alluxio job ls
 
 ### job stat -v <job_id> 
 
-`job stat -v <job_id>` 会列出某个Job的详细信息。 （加 -v 表示包含worker 上指定任务的信息）
+`job stat -v <job_id>` 会列出某个作业的详细信息。（加 -v 表示包含worker上指定任务的信息）
 
 ```console
 bin/alluxio job stat -v 1613673433929
