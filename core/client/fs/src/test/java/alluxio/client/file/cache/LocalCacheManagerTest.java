@@ -816,10 +816,13 @@ public final class LocalCacheManagerTest {
       PageId pageId = new PageId("5", i);
       assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES)));
     }
-    pageStore.setPutHanging(false);
-    //fallback to caller's thread when queue is full
+    // by setting the following line the hanging will only be stopped by the current thread
+    pageStore.setStopHangingThread(Thread.currentThread().getId());
+    // fallback to caller's thread (the current here) when queue is full
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
-    while (pageStore.getPuts() < threads) {
+    // Wait for all tasks to complete
+    // one for each thread worker thread, and one on the main thread
+    while (pageStore.getPuts() < threads + 1) {
       Thread.sleep(1000);
     }
     pageStore.setPutHanging(true);
