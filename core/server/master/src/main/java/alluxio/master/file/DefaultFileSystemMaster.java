@@ -2083,8 +2083,8 @@ public class DefaultFileSystemMaster extends CoreMaster
 
         deleteInternal(rpcContext, inodePath, context, false);
         if (context.getOptions().getAlluxioOnly()
-            && context.getOptions().hasSyncDirNextTime()
-            && context.getOptions().getSyncDirNextTime()) {
+            && context.getOptions().hasSyncParentNextTime()
+            && context.getOptions().getSyncParentNextTime()) {
           mInodeTree.setDirectChildrenLoaded(
               rpcContext, inodePath.getParentInodeDirectory(), false);
         }
