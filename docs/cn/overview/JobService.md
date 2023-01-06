@@ -10,7 +10,7 @@ priority: 3
 
 ## 架构概览
 
-Alluxio 作业服务是负责将各种不同类型的操作分配给Job Worker的任务调度框架。
+Alluxio 作业服务器是负责将各种不同类型的操作分配给Job Worker的任务调度框架。
 
 Master负责将作业分配为更小的任务，供Job Worker执行并管理作业的完成状态。
 
@@ -48,11 +48,11 @@ Job Worker将来自Job Master的任务排列（queue)，并通过管理可配置
 
 ## 巡检命令
 
-作业服务提供大量的巡检命令。
+作业服务器提供大量的巡检命令。
 
 ### fsadmin report jobservice
 
-`fsadmin report jobservice` 会报告作业服务摘要。
+`fsadmin report jobservice` 会报告作业服务器摘要。
 
 ```console
 $ ./bin/alluxio fsadmin report jobservice
@@ -79,7 +79,7 @@ Timestamp: 10-24-2019 17:15:22:946       Id: 1603922372008       Name: Persist  
 
 ### job ls
 
-`job ls` 会列出正在作业服务上运行或运行过的job。
+`job ls` 会列出正在作业服务器上运行或运行过的作业。
 
 ```console
 $ ./bin/alluxio job ls
