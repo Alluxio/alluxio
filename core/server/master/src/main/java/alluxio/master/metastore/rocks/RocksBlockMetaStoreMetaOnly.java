@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -35,6 +36,7 @@ public class RocksBlockMetaStoreMetaOnly extends RocksBlockMetaStore {
   // Map from block id to block locations.
   public final TwoKeyConcurrentMap<Long, Long, BlockLocation, Map<Long, BlockLocation>>
       mBlockLocations = new TwoKeyConcurrentMap<>(() -> new HashMap<>(4));
+  private final Map<BlockLocation, BlockLocation> mLocationCacheMap = new ConcurrentHashMap<>();
 
   /**
    * Creates and initializes a rocks block store.
@@ -57,7 +59,10 @@ public class RocksBlockMetaStoreMetaOnly extends RocksBlockMetaStore {
 
   @Override
   public void addLocation(long blockId, BlockLocation location) {
-    mBlockLocations.addInnerValue(blockId, location.getWorkerId(), location);
+    // NOTICE(maobaolong): mLocationCacheMap can be increase to WOKRER_COUNT X TIER_COUNT
+    mLocationCacheMap.putIfAbsent(location, location);
+    BlockLocation wrapLocation = mLocationCacheMap.get(location);
+    mBlockLocations.addInnerValue(blockId, wrapLocation.getWorkerId(), wrapLocation);
   }
 
   @Override
