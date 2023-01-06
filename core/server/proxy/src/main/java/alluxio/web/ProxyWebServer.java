@@ -24,6 +24,7 @@ import alluxio.proxy.s3.S3BaseTask;
 import alluxio.proxy.s3.S3RequestServlet;
 import alluxio.proxy.s3.S3RestExceptionMapper;
 import alluxio.proxy.s3.S3Handler;
+import alluxio.proxy.s3.CompleteMultipartUploadHandler;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Stopwatch;
@@ -65,8 +66,7 @@ public final class ProxyWebServer extends WebServer {
   public static FileSystem mFileSystem = null;
 
   public static AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
-
-  class AListener implements HttpChannel.Listener {
+  class ProxyListener implements HttpChannel.Listener {
 
     public void onComplete(Request request)
     {
@@ -141,12 +141,17 @@ public final class ProxyWebServer extends WebServer {
         }
       }
     };
-//    ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
-//    addHandler(new CompleteMultipartUploadHandler(mFileSystem, Constants.REST_API_PREFIX));
-    super.getServerConnector().addBean(new AListener());
-    ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", S3RequestServlet.getInstance());
+    ServletHolder servletHolder;
+    if (Configuration.getBoolean(PropertyKey.PROXY_S3_OPTIMIZED_VERSION_ENABLED)) {
+      servletHolder = new ServletHolder("Alluxio Proxy Web Service", S3RequestServlet.getInstance());
+    } else {
+      servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
+      addHandler(new CompleteMultipartUploadHandler(mFileSystem, Constants.REST_API_PREFIX));
+    }
     mServletContextHandler
-        .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+            .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+    super.getServerConnector().addBean(new ProxyListener());
+
   }
 
   @Override

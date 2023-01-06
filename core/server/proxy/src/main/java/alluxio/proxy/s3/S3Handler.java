@@ -200,23 +200,30 @@ public class S3Handler {
 
     public static void processResponse(HttpServletResponse servletResponse, Response response)
             throws IOException {
-        servletResponse.setStatus(response.getStatus(), response.getStatusInfo().getReasonPhrase());
-        for (MultivaluedMap.Entry<String,List<Object>> entry : response.getHeaders().entrySet()) {
-            for (Object obj : entry.getValue())
-                servletResponse.addHeader(entry.getKey(), obj.toString());
-        }
-        if (response.hasEntity()) {
-            Object entity = response.getEntity();
-            if (entity instanceof InputStream) {
-                InputStream is = (InputStream)entity;
-                byte[] bytesArray = tlsBytes_.get();
-                int read;
-                while ((read = is.read(bytesArray)) != -1) {
-                    servletResponse.getOutputStream().write(bytesArray, 0, read);
-                }
-            } else {
-                servletResponse.getOutputStream().write(entity.toString().getBytes());
+        try {
+            servletResponse.setStatus(response.getStatus());
+            for (MultivaluedMap.Entry<String, List<Object>> entry : response.getHeaders().entrySet()) {
+                for (Object obj : entry.getValue())
+                    servletResponse.addHeader(entry.getKey(), obj.toString());
             }
+            if (response.hasEntity()) {
+                Object entity = response.getEntity();
+                if (entity instanceof InputStream) {
+                    InputStream is = (InputStream) entity;
+                    byte[] bytesArray = tlsBytes_.get();
+                    int read;
+                    while ((read = is.read(bytesArray)) != -1) {
+                        servletResponse.getOutputStream().write(bytesArray, 0, read);
+                    }
+                } else {
+                    String contentStr = entity.toString();
+                    int contentLen = contentStr.length();
+                    servletResponse.setContentLength(contentLen);
+                    servletResponse.getOutputStream().write(contentStr.getBytes());
+                }
+            }
+        } finally {
+            response.close();
         }
     }
 

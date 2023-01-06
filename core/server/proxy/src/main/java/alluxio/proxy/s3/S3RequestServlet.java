@@ -65,27 +65,28 @@ public class S3RequestServlet extends HttpServlet {
     public void service(HttpServletRequest request,
                         HttpServletResponse response)  throws ServletException, IOException {
         String target = request.getRequestURI();
-        if (!target.startsWith(S3_SERVICE_PATH_PREFIX)) {
-            return;
-        }
-        S3Handler s3Handler = null;
-        S3BaseTask.OpType opType = S3BaseTask.OpType.Unknown;
         try {
+            if (!target.startsWith(S3_SERVICE_PATH_PREFIX)) {
+                return;
+            }
+            S3Handler s3Handler = null;
+            S3BaseTask.OpType opType = S3BaseTask.OpType.Unknown;
             s3Handler = S3Handler.createHandler(target, request, response);
             s3HandlerMap.put((Request) request, s3Handler);
             opType = s3Handler.getS3Task().mOPType;
-        } catch (S3Exception e) {
-            Response errorResponse = S3ErrorResponse.createErrorResponse(e, "");
-            S3Handler.processResponse(response, errorResponse);
-            return;
-        }
 
-        if (opType == S3BaseTask.OpType.CompleteMultipartUpload) {
-            s3Handler.getS3Task().handleTaskAsync();
-            return;
+            if (opType == S3BaseTask.OpType.CompleteMultipartUpload) {
+                s3Handler.getS3Task().handleTaskAsync();
+                return;
+            }
+            Response resp = s3Handler.getS3Task().continueTask();
+            S3Handler.processResponse(response, resp);
+        } catch ( Throwable th ) {
+            Response errorResponse = S3ErrorResponse.createErrorResponse(th, "");
+            S3Handler.processResponse(response, errorResponse);
         }
-        Response resp = s3Handler.getS3Task().continueTask();
-        S3Handler.processResponse(response, resp);
     }
+
+
 }
 
