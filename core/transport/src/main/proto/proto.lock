@@ -3522,6 +3522,11 @@
                 "id": 12,
                 "name": "xattrUpdateStrategy",
                 "type": "alluxio.proto.journal.XAttrUpdateStrategy"
+              },
+              {
+                "id": 13,
+                "name": "directChildrenLoaded",
+                "type": "bool"
               }
             ],
             "maps": [

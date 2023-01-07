@@ -25,6 +25,7 @@ import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ErrorType;
 import alluxio.grpc.ExistsPOptions;
@@ -59,6 +60,7 @@ import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -187,6 +189,13 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public void free(AlluxioURI path, final FreePOptions options) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void decommissionWorker(WorkerNetAddress workerNetAddress,
+                   DecommissionWorkerPOptions options)
+          throws IOException, AlluxioException, InterruptedException {
     throw new UnsupportedOperationException();
   }
 
