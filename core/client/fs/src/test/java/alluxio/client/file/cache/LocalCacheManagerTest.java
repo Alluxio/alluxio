@@ -839,6 +839,7 @@ public final class LocalCacheManagerTest {
     do {
       callerPageId = new PageId("0L", nxtIdx);
       pageLockId = mCacheManager.getPageLockId(callerPageId);
+      nxtIdx++;
     } while (lockedPages.contains(pageLockId));
     // this page will be inserted by the current thread and not a worker thread
     assertTrue(mCacheManager.put(callerPageId, PAGE1));
