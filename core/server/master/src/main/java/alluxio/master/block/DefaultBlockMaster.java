@@ -1363,8 +1363,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   // TODO(Tony Sun): May need a new method instead of using processWorkerRemovedBlocks
   private void processDecommissionedWorkerBlocks(MasterWorkerInfo workerInfo) {
-    // TODO(Tony Sun): Add proper lock.
-    // The parameter 'sendCommand' should be set to 'false'.
     processWorkerRemovedBlocks(workerInfo, workerInfo.getBlocks(), false);
   }
 
