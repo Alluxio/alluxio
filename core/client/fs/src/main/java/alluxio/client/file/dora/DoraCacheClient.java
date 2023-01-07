@@ -79,10 +79,8 @@ public class DoraCacheClient {
    * @return uri status
    */
   public URIStatus getStatus(String path, GetStatusPOptions options) {
-    try {
-      WorkerNetAddress workerNetAddress = getWorkerNetAddress(path);
-      CloseableResource<BlockWorkerClient> client =
-          mContext.acquireBlockWorkerClient(workerNetAddress);
+    try (CloseableResource<BlockWorkerClient> client =
+          mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       GetStatusPRequest request = GetStatusPRequest.newBuilder()
           .setPath(path)
           .setOptions(options)

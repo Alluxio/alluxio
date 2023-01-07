@@ -33,14 +33,32 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collection;
 
+@RunWith(Parameterized.class)
 public class DoraReadIntegrationTest extends BaseIntegrationTest {
-  private static final int TEST_FILE_LENGTH = 50 * Constants.KB;
 
   private static final String UFS_ROOT =
       AlluxioTestDirectory.createTemporaryDirectory("ufs_root").getAbsolutePath();
+
+  @Parameterized.Parameters(name = "{index}_FileLength_{0}")
+  public static Collection testParams() {
+    return Arrays.asList(new Object[][] {
+        { 0},
+        { 1},
+        { 1 * Constants.KB - 1},
+        { 1 * Constants.KB},
+        { 1 * Constants.KB + 1},
+        { 64 * Constants.KB - 1},
+        { 64 * Constants.KB},
+        { 64 * Constants.KB + 1},
+    });
+  }
 
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
@@ -49,6 +67,7 @@ public class DoraReadIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.DORA_CLIENT_UFS_ROOT, UFS_ROOT)
           .setProperty(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false)
           .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
+          .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
           .build();
 
   @Rule
@@ -57,6 +76,12 @@ public class DoraReadIntegrationTest extends BaseIntegrationTest {
   private FileSystemContext mFsContext;
   private FileSystem mFileSystem;
   private String mFilePath;
+
+  private int mFileLength;
+
+  public DoraReadIntegrationTest(int fileLength) {
+    mFileLength = fileLength;
+  }
 
   @Before
   public void before() throws Exception {
@@ -69,15 +94,15 @@ public class DoraReadIntegrationTest extends BaseIntegrationTest {
   public void read() throws Exception {
     AlluxioURI path = new AlluxioURI(mFilePath);
     FileSystemTestUtils.createByteFile(
-        mFileSystem, mFilePath, WritePType.MUST_CACHE, TEST_FILE_LENGTH);
+        mFileSystem, mFilePath, WritePType.MUST_CACHE, mFileLength);
     // read a file to populate the cache
     try (FileInStream stream = mFileSystem.openFile(path)) {
       assertTrue(BufferUtils.equalIncreasingByteArray(
-          TEST_FILE_LENGTH, ByteStreams.toByteArray(stream)));
+          mFileLength, ByteStreams.toByteArray(stream)));
     }
     try (InputStream stream = mFileSystem.openFile(path)) {
       assertTrue(BufferUtils.equalIncreasingByteArray(
-          TEST_FILE_LENGTH, ByteStreams.toByteArray(stream)));
+          mFileLength, ByteStreams.toByteArray(stream)));
     }
   }
 
@@ -85,18 +110,18 @@ public class DoraReadIntegrationTest extends BaseIntegrationTest {
   public void positionedRead() throws Exception {
     AlluxioURI path = new AlluxioURI(mFilePath);
     FileSystemTestUtils.createByteFile(
-        mFileSystem, mFilePath, WritePType.MUST_CACHE, TEST_FILE_LENGTH);
+        mFileSystem, mFilePath, WritePType.MUST_CACHE, mFileLength);
     try (FileInStream stream = mFileSystem.openFile(path)) {
-      byte[] buffer = new byte[TEST_FILE_LENGTH / 4];
-      int bytesRead = stream.positionedRead(TEST_FILE_LENGTH / 10, buffer, 0, buffer.length);
+      byte[] buffer = new byte[mFileLength / 4];
+      int bytesRead = stream.positionedRead(mFileLength / 10, buffer, 0, buffer.length);
       assertEquals(buffer.length, bytesRead);
-      assertTrue(BufferUtils.equalIncreasingByteArray(TEST_FILE_LENGTH / 10,
+      assertTrue(BufferUtils.equalIncreasingByteArray(mFileLength / 10,
           buffer.length, buffer));
     }
     // verify reading whole page from local cache
     try (InputStream stream = mFileSystem.openFile(path)) {
       assertTrue(BufferUtils.equalIncreasingByteArray(
-          TEST_FILE_LENGTH, ByteStreams.toByteArray(stream)));
+          mFileLength, ByteStreams.toByteArray(stream)));
     }
   }
 }

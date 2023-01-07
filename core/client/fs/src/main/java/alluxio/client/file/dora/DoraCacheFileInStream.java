@@ -112,7 +112,10 @@ public class DoraCacheFileInStream extends FileInStream {
           if (dataBuffer == null) {
             break;
           }
-          int bytesRead = dataBuffer.readableBytes();
+          int bytesRead = Math.min(dataBuffer.readableBytes(), buffer.length - offset);
+          if (bytesRead == 0) {
+            break;
+          }
           dataBuffer.readBytes(buffer, offset, bytesRead);
           totalBytesRead += bytesRead;
           offset += bytesRead;
@@ -154,8 +157,7 @@ public class DoraCacheFileInStream extends FileInStream {
       return 0;
     }
     long toSkip = Math.min(remaining(), n);
-    mPos += toSkip;
-    closeDataReader();
+    seek(mPos + toSkip);
     return toSkip;
   }
 
