@@ -184,10 +184,10 @@ public final class PermissionCheckTest {
     Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mTestFolder.newFolder());
     GroupMappingServiceTestUtils.resetCache();
     mRegistry = new MasterRegistry();
-    mRegistry.add(MetricsMaster.class, mMetricsMaster);
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(new NoopJournalSystem(),
         new TestUserState(TEST_USER_ADMIN.getUser(), Configuration.global()));
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
+    mRegistry.add(MetricsMaster.class, mMetricsMaster);
     new BlockMasterFactory().create(mRegistry, masterContext);
     mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);
     mRegistry.start(true);
