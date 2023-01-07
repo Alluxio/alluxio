@@ -68,4 +68,21 @@ public final class FileSystemCommandUtils {
         .build();
     fs.setAttribute(path, options);
   }
+
+  /**
+   * Sets direct children loaded.
+   *
+   * @param fs The {@link FileSystem} client
+   * @param path The {@link AlluxioURI} path as the input of the command
+   * @param directChildrenLoaded true or false
+   */
+  public static void setDirectChildrenLoaded(FileSystem fs, AlluxioURI path,
+      boolean directChildrenLoaded)
+      throws AlluxioException, IOException {
+    SetAttributePOptions options = SetAttributePOptions.newBuilder()
+        .setRecursive(false)
+        .setDirectChildrenLoaded(directChildrenLoaded)
+        .build();
+    fs.setAttribute(path, options);
+  }
 }

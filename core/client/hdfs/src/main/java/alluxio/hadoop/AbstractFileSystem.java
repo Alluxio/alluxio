@@ -81,8 +81,6 @@ import javax.security.auth.Subject;
 public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystem.class);
 
-  public static final String FIRST_COM_PATH = "alluxio_dep/";
-
   protected AlluxioConfiguration mAlluxioConf = null;
   protected FileSystem mFileSystem = null;
 
@@ -327,7 +325,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
               info.getBlockInfo().getLength()));
         }
       });
-      BlockLocation[] ret = blockLocations.toArray(new BlockLocation[blockLocations.size()]);
+      BlockLocation[] ret = blockLocations.toArray(new BlockLocation[0]);
       if (LOG.isDebugEnabled()) {
         LOG.debug("getFileBlockLocations({}, {}, {}) returned {}",
             file.getPath().getName(), start, len, Arrays.toString(ret));

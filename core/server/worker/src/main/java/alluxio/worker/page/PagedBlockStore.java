@@ -88,9 +88,9 @@ public class PagedBlockStore implements BlockStore {
 
   /**
    * Create an instance of PagedBlockStore.
-   * @param ufsManager
-   * @param pool
-   * @param workerId
+   * @param ufsManager the UFS manager
+   * @param pool a client pool for talking to the block master
+   * @param workerId the worker id
    * @return an instance of PagedBlockStore
    */
   public static PagedBlockStore create(UfsManager ufsManager, BlockMasterClientPool pool,

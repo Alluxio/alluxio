@@ -19,12 +19,12 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.GetNodeStatePRequest;
+import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
-import alluxio.grpc.JournalMasterClientServiceGrpc;
-import alluxio.grpc.NodeState;
+import alluxio.grpc.ServiceType;
+import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
@@ -45,8 +45,9 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 /**
- * PollingMasterInquireClient finds the address of the primary master by
- * polling a list of master addresses to see if they respond as the leader.
+ * PollingMasterInquireClient finds the address of the primary master by polling a list of master
+ * addresses to see if their RPC servers are serving. This works because only primary masters serve
+ * RPCs.
  */
 public class PollingMasterInquireClient implements MasterInquireClient {
   private static final Logger LOG = LoggerFactory.getLogger(PollingMasterInquireClient.class);
@@ -55,28 +56,32 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
   private final AlluxioConfiguration mConfiguration;
   private final UserState mUserState;
+  private final ServiceType mServiceType;
 
   /**
    * @param masterAddresses the potential master addresses
    * @param alluxioConf Alluxio configuration
    * @param userState user state
+   * @param serviceType service type
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
       AlluxioConfiguration alluxioConf,
-      UserState userState) {
+      UserState userState, ServiceType serviceType) {
     this(masterAddresses, RetryUtils::defaultClientRetry,
-        alluxioConf, userState);
+        alluxioConf, userState, serviceType);
   }
 
   /**
    * @param masterAddresses the potential master addresses
    * @param retryPolicySupplier the retry policy supplier
    * @param alluxioConf Alluxio configuration
+   * @param serviceType service type
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
       Supplier<RetryPolicy> retryPolicySupplier,
-      AlluxioConfiguration alluxioConf) {
-    this(masterAddresses, retryPolicySupplier, alluxioConf, UserState.Factory.create(alluxioConf));
+      AlluxioConfiguration alluxioConf, ServiceType serviceType) {
+    this(masterAddresses, retryPolicySupplier, alluxioConf,
+        UserState.Factory.create(alluxioConf), serviceType);
   }
 
   /**
@@ -84,15 +89,17 @@ public class PollingMasterInquireClient implements MasterInquireClient {
    * @param retryPolicySupplier the retry policy supplier
    * @param alluxioConf Alluxio configuration
    * @param userState user state
+   * @param serviceType service type
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
       Supplier<RetryPolicy> retryPolicySupplier,
       AlluxioConfiguration alluxioConf,
-      UserState userState) {
+      UserState userState, ServiceType serviceType) {
     mConnectDetails = new MultiMasterConnectDetails(masterAddresses);
     mRetryPolicySupplier = retryPolicySupplier;
     mConfiguration = alluxioConf;
     mUserState = userState;
+    mServiceType = serviceType;
   }
 
   @Override
@@ -124,10 +131,9 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     for (InetSocketAddress address : addresses) {
       try {
         LOG.debug("Checking whether {} is listening for RPCs", address);
-        if (pingJournalMasterService(address)) {
-          LOG.debug("Successfully connected to {}", address);
-          return address;
-        }
+        pingMetaService(address);
+        LOG.debug("Successfully connected to {}", address);
+        return address;
       } catch (UnavailableException e) {
         LOG.debug("Failed to connect to {}", address);
       } catch (DeadlineExceededException e) {
@@ -143,20 +149,19 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     return null;
   }
 
-  private boolean pingJournalMasterService(InetSocketAddress address)
-      throws AlluxioStatusException {
+  private void pingMetaService(InetSocketAddress address) throws AlluxioStatusException {
+    // disable authentication in the channel since version service does not require authentication
     GrpcChannel channel =
         GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), mConfiguration)
             .setSubject(mUserState.getSubject())
-            .build();
-    JournalMasterClientServiceGrpc.JournalMasterClientServiceBlockingStub journalMasterClient =
-        JournalMasterClientServiceGrpc.newBlockingStub(channel)
+            .disableAuthentication().build();
+    ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
+        ServiceVersionClientServiceGrpc.newBlockingStub(channel)
             .withDeadlineAfter(mConfiguration.getMs(PropertyKey.USER_MASTER_POLLING_TIMEOUT),
                 TimeUnit.MILLISECONDS);
     try {
-      return journalMasterClient
-          .getNodeState(GetNodeStatePRequest.getDefaultInstance())
-          .getNodeState() == NodeState.PRIMARY;
+      versionClient.getServiceVersion(GetServiceVersionPRequest.newBuilder()
+          .setServiceType(mServiceType).build());
     } catch (StatusRuntimeException e) {
       throw AlluxioStatusException.fromThrowable(e);
     } finally {

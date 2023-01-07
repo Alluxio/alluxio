@@ -60,7 +60,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -70,6 +70,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.grpc.Context;
+import io.grpc.ServerInterceptors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -220,7 +221,9 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = Maps.newHashMap();
     services.put(ServiceType.JOB_MASTER_CLIENT_SERVICE,
-        new GrpcService(new JobMasterClientServiceHandler(this)));
+        new GrpcService(ServerInterceptors
+            .intercept(new JobMasterClientServiceHandler(this),
+                new ClientContextServerInjector())));
     services.put(ServiceType.JOB_MASTER_WORKER_SERVICE,
         new GrpcService(new JobMasterWorkerServiceHandler(this)));
     return services;
@@ -264,6 +267,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     try (JobMasterAuditContext auditContext =
         createAuditContext("run")) {
       auditContext.setJobId(jobId);
+      auditContext.setJobName(jobConfig.getName());
       if (jobConfig instanceof PlanConfig) {
         mPlanTracker.run((PlanConfig) jobConfig, mCommandManager, mJobServerContext,
             getWorkerInfoList(), jobId);
@@ -666,7 +670,8 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
           Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
       auditContext.setUgi(ugi)
           .setAuthType(authType)
-          .setIp(ClientIpAddressInjector.getIpAddress())
+          .setIp(ClientContextServerInjector.getIpAddress())
+          .setClientVersion(ClientContextServerInjector.getClientVersion())
           .setCommand(command)
           .setAllowed(true)
           .setCreationTimeNs(System.nanoTime());

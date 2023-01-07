@@ -31,6 +31,7 @@ import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.CoreMasterContext;
+import alluxio.master.MasterProcess;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
@@ -61,7 +62,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -77,6 +82,8 @@ import javax.ws.rs.core.Response;
 /**
  * Unit tests for {@link AlluxioMasterRestServiceHandler}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(MasterProcess.class)
 public final class AlluxioMasterRestServiceHandlerTest {
   private static final WorkerNetAddress NET_ADDRESS_1 = new WorkerNetAddress().setHost("localhost")
       .setRpcPort(80).setDataPort(81).setWebPort(82);
@@ -123,7 +130,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
   @Before
   public void before() throws Exception {
-    mMasterProcess = mock(AlluxioMasterProcess.class);
+    mMasterProcess = PowerMockito.mock(AlluxioMasterProcess.class);
     ServletContext context = mock(ServletContext.class);
     mRegistry = new MasterRegistry();
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
@@ -275,7 +282,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
     FileSystemMaster mockMaster = mock(FileSystemMaster.class);
     when(mockMaster.getMountPointInfoSummary(false)).thenReturn(mountTable);
 
-    AlluxioMasterProcess masterProcess = mock(AlluxioMasterProcess.class);
+    AlluxioMasterProcess masterProcess = PowerMockito.mock(AlluxioMasterProcess.class);
     when(masterProcess.getMaster(FileSystemMaster.class)).thenReturn(mockMaster);
 
     ServletContext context = mock(ServletContext.class);

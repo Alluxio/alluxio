@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.RpcUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -95,6 +96,7 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.recorder.Recorder;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -309,10 +311,19 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void mount(MountPRequest request, StreamObserver<MountPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.mount(new AlluxioURI(request.getAlluxioPath()),
-          new AlluxioURI(request.getUfsPath()),
-          MountContext.create(request.getOptions().toBuilder())
-              .withTracker(new GrpcCallTracker(responseObserver)));
+      MountContext mountContext = MountContext.create(request.getOptions().toBuilder())
+          .withTracker(new GrpcCallTracker(responseObserver));
+      // the mount execution process is recorded so that
+      // when an exception occurs during mounting, the user can get detailed debugging messages
+      try {
+        mFileSystemMaster.mount(new AlluxioURI(request.getAlluxioPath()),
+            new AlluxioURI(request.getUfsPath()), mountContext);
+      } catch (Exception e) {
+        Recorder recorder = mountContext.getRecorder();
+        recorder.record(e.getMessage());
+        // put the messages in an exception and let it carry over to the user
+        throw new AlluxioException(String.join("\n", recorder.takeRecords()), e);
+      }
       return MountPResponse.newBuilder().build();
     }, "Mount", "request=%s", responseObserver, request);
   }

@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
-import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
 import alluxio.clock.SystemClock;
@@ -64,6 +63,7 @@ import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -83,6 +83,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Striped;
+import io.grpc.ServerInterceptors;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -253,18 +255,15 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /** Listeners to call when workers are lost. */
   private final List<Consumer<Address>> mWorkerLostListeners = new ArrayList<>();
 
+  /** Listeners to call when workers are delete. */
+  private final List<Consumer<Address>> mWorkerDeleteListeners = new ArrayList<>();
+
   /** Listeners to call when a new worker registers. */
   private final List<BiConsumer<Address, List<ConfigProperty>>> mWorkerRegisteredListeners
       = new ArrayList<>();
 
   /** Handle to the metrics master. */
   private final MetricsMaster mMetricsMaster;
-
-  /**
-   * The service that detects lost worker nodes, and tries to restart the failed workers.
-   * We store it here so that it can be accessed from tests.
-   */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
 
   /* The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
@@ -340,9 +339,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(ServiceType.BLOCK_MASTER_CLIENT_SERVICE,
-        new GrpcService(new BlockMasterClientServiceHandler(this)));
+        new GrpcService(ServerInterceptors
+            .intercept(new BlockMasterClientServiceHandler(this),
+                new ClientContextServerInjector())));
     services.put(ServiceType.BLOCK_MASTER_WORKER_SERVICE,
-        new GrpcService(new BlockMasterWorkerServiceHandler(this)));
+        new GrpcService(ServerInterceptors
+            .intercept(new BlockMasterWorkerServiceHandler(this),
+                new ClientContextServerInjector())));
     return services;
   }
 
@@ -491,6 +494,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public void stop() throws IOException {
+    LOG.info("Next container id before close: {}", mBlockContainerIdGenerator.peekNewContainerId());
     super.stop();
   }
 
@@ -1137,9 +1141,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
 
+    worker.setBuildVersion(options.getBuildVersion());
+
     // Gather all blocks on this worker.
     int totalSize = currentBlocksOnLocation.values().stream().mapToInt(List::size).sum();
-    HashSet<Long> blocks = new HashSet<>(totalSize);
+    Set<Long> blocks = new LongOpenHashSet(totalSize);
     for (List<Long> blockIds : currentBlocksOnLocation.values()) {
       blocks.addAll(blockIds);
     }
@@ -1194,6 +1200,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void workerRegisterStream(WorkerRegisterContext context,
                                   RegisterWorkerPRequest chunk, boolean isFirstMsg) {
+    // TODO(jiacheng): find a place to check the lease
     if (isFirstMsg) {
       workerRegisterStart(context, chunk);
     } else {
@@ -1228,6 +1235,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     processWorkerAddedBlocks(workerInfo, currentBlocksOnLocation);
     processWorkerOrphanedBlocks(workerInfo);
     workerInfo.addLostStorage(lostStorage);
+    workerInfo.setBuildVersion(options.getBuildVersion());
 
     // TODO(jiacheng): This block can be moved to a non-locked section
     if (options.getConfigsCount() > 0) {
@@ -1560,6 +1568,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     @Override
     public void heartbeat() {
       long masterWorkerTimeoutMs = Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
+      long masterWorkerDeleteTimeoutMs =
+          Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
         try (LockResource r = worker.lockWorkerMeta(
             EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
@@ -1569,6 +1579,18 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             LOG.error("The worker {}({}) timed out after {}ms without a heartbeat!", worker.getId(),
                 worker.getWorkerAddress(), lastUpdate);
             processLostWorker(worker);
+          }
+        }
+      }
+      for (MasterWorkerInfo worker : mLostWorkers) {
+        try (LockResource r = worker.lockWorkerMeta(
+                EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+          final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
+          if ((lastUpdate - masterWorkerTimeoutMs) > masterWorkerDeleteTimeoutMs) {
+            LOG.error("The worker {}({}) timed out after {}ms without a heartbeat! "
+                + "Master will forget about this worker.", worker.getId(),
+                worker.getWorkerAddress(), lastUpdate);
+            deleteWorkerMetadata(worker);
           }
         }
       }
@@ -1633,6 +1655,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     processDecommissionedWorkerBlocks(worker);
   }
 
+  private void deleteWorkerMetadata(MasterWorkerInfo worker) {
+    mWorkers.remove(worker);
+    mLostWorkers.remove(worker);
+    mTempWorkers.remove(worker);
+    WorkerNetAddress workerAddress = worker.getWorkerAddress();
+    for (Consumer<Address> function : mWorkerDeleteListeners) {
+      function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
+    }
+  }
+
   private void processFreedWorker(MasterWorkerInfo worker) {
     mDecommissionedWorkers.remove(worker);
   }
@@ -1686,6 +1718,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void registerWorkerLostListener(Consumer<Address> function) {
     mWorkerLostListeners.add(function);
+  }
+
+  @Override
+  public void registerWorkerDeleteListener(Consumer<Address> function) {
+    mWorkerDeleteListeners.add(function);
   }
 
   @Override

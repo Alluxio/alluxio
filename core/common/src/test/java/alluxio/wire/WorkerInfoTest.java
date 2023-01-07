@@ -15,6 +15,8 @@ import alluxio.Constants;
 import alluxio.grpc.GrpcUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -86,7 +88,10 @@ public class WorkerInfoTest {
     capacityBytesOnTiers.put(Constants.MEDIUM_MEM, capacityBytes);
     Map<String, Long> usedBytesOnTiers = new HashMap<>();
     usedBytesOnTiers.put(Constants.MEDIUM_MEM, usedBytes);
-    String state = random.nextInt(1) == 1 ? "In Service" : "Out of Service";
+    String state = random.nextInt(2) == 1 ? "In Service" : "Out of Service";
+    String version = String.format("%d.%d.%d", random.nextInt(10),
+        random.nextInt(20), random.nextInt(10));
+    String revision = DigestUtils.sha1Hex(RandomStringUtils.random(10));
 
     result.setId(id);
     result.setAddress(address);
@@ -97,6 +102,8 @@ public class WorkerInfoTest {
     result.setState(state);
     result.setCapacityBytesOnTiers(capacityBytesOnTiers);
     result.setUsedBytesOnTiers(usedBytesOnTiers);
+    result.setVersion(version);
+    result.setRevision(revision);
     return result;
   }
 }

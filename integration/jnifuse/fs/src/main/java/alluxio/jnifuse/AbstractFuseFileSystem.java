@@ -24,13 +24,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 /**
  * Abstract class for other File System to extend and integrate with Fuse.
@@ -68,29 +68,27 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
    * @param debug whether to show debug information
    * @param fuseOpts the fuse mount options
    */
-  public void mount(boolean blocking, boolean debug, String[] fuseOpts) {
+  public void mount(boolean blocking, boolean debug, Set<String> fuseOpts) {
     if (!mMounted.compareAndSet(false, true)) {
       throw new FuseException("Fuse File System already mounted!");
     }
     LOG.info("Mounting {}: blocking={}, debug={}, fuseOpts=\"{}\"",
-        mMountPoint, blocking, debug, Arrays.toString(fuseOpts));
-    String[] arg;
+        mMountPoint, blocking, debug, String.join(",", fuseOpts));
+    List<String> args = new ArrayList<>();
+    args.add(getFileSystemName());
+    args.add("-f");
+    if (debug) {
+      args.add("-d");
+    }
     String mountPointStr = mMountPoint.toString();
     if (mountPointStr.endsWith("\\")) {
       mountPointStr = mountPointStr.substring(0, mountPointStr.length() - 1);
     }
-    if (!debug) {
-      arg = new String[] {getFileSystemName(), "-f", mountPointStr};
-    } else {
-      arg = new String[] {getFileSystemName(), "-f", "-d", mountPointStr};
+    args.add(mountPointStr);
+    if (fuseOpts.size() != 0) {
+      fuseOpts.stream().map(opt -> "-o" + opt).forEach(args::add);
     }
-    if (fuseOpts.length != 0) {
-      int argLen = arg.length;
-      arg = Arrays.copyOf(arg, argLen + fuseOpts.length);
-      System.arraycopy(fuseOpts, 0, arg, argLen, fuseOpts.length);
-    }
-
-    final String[] args = arg;
+    final String[] argsArray = args.toArray(new String[0]);
     try {
       if (SecurityUtils.canHandleShutdownHooks()) {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -100,10 +98,10 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
       }
       int res;
       if (blocking) {
-        res = execMount(args);
+        res = execMount(argsArray);
       } else {
         try {
-          res = CompletableFuture.supplyAsync(() -> execMount(args)).get(MOUNT_TIMEOUT_MS,
+          res = CompletableFuture.supplyAsync(() -> execMount(argsArray)).get(MOUNT_TIMEOUT_MS,
               TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
           // ok

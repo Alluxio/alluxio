@@ -658,7 +658,7 @@ public class TieredBlockStore implements LocalBlockStore {
    * TODO(ggezer): Remove synchronized.
    *
    * @param sessionId the session id
-   * @param minContiguousBytes the minimum amount of contigious free space in bytes
+   * @param minContiguousBytes the minimum amount of contiguous free space in bytes
    * @param minAvailableBytes the minimum amount of free space in bytes
    * @param location the location to free space
    */

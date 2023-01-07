@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.StorageList;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.resource.LockResource;
@@ -26,6 +27,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,11 +35,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.StampedLock;
@@ -125,6 +127,8 @@ public final class MasterWorkerInfo {
 
   /** Worker's last updated time in ms. */
   private final AtomicLong mLastUpdatedTimeMs;
+  /** Worker's build version (including version and revision). */
+  private final AtomicReference<BuildVersion> mBuildVersion;
   /** Worker metadata, this field is thread safe. */
   private final StaticWorkerMeta mMeta;
 
@@ -161,9 +165,10 @@ public final class MasterWorkerInfo {
   public MasterWorkerInfo(long id, WorkerNetAddress address) {
     mMeta = new StaticWorkerMeta(id, address);
     mUsage = new WorkerUsageMeta();
-    mBlocks = new HashSet<>();
-    mToRemoveBlocks = new HashSet<>();
+    mBlocks = new LongOpenHashSet();
+    mToRemoveBlocks = new LongOpenHashSet();
     mLastUpdatedTimeMs = new AtomicLong(CommonUtils.getCurrentMs());
+    mBuildVersion = new AtomicReference<>(BuildVersion.getDefaultInstance());
 
     // Init all locks
     mStatusLock = new StampedLock().asReadWriteLock();
@@ -338,6 +343,11 @@ public final class MasterWorkerInfo {
         case WORKER_USED_BYTES_ON_TIERS:
           info.setUsedBytesOnTiers(mUsage.mUsedBytesOnTiers);
           break;
+        case BUILD_VERSION:
+          BuildVersion v = mBuildVersion.get();
+          info.setVersion(v.getVersion());
+          info.setRevision(v.getRevision());
+          break;
         default:
           LOG.warn("Unrecognized worker info field: " + field);
       }
@@ -375,7 +385,7 @@ public final class MasterWorkerInfo {
    * @return ids of all blocks the worker contains
    */
   public Set<Long> getBlocks() {
-    return new HashSet<>(mBlocks);
+    return new LongOpenHashSet(mBlocks);
   }
 
   /**
@@ -426,7 +436,7 @@ public final class MasterWorkerInfo {
    * @return ids of blocks the worker should remove
    */
   public Set<Long> getToRemoveBlocks() {
-    return new HashSet<>(mToRemoveBlocks);
+    return new LongOpenHashSet(mToRemoveBlocks);
   }
 
   /**
@@ -521,6 +531,7 @@ public final class MasterWorkerInfo {
   @Override
   // TODO(jiacheng): Read lock on the conversion
   public String toString() {
+    BuildVersion buildVersion = mBuildVersion.get();
     return MoreObjects.toStringHelper(this)
         .add("id", mMeta.mId)
         .add("workerAddress", mMeta.mWorkerAddress)
@@ -529,7 +540,9 @@ public final class MasterWorkerInfo {
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs.get())
         // We only show the number of blocks unless it is for DEBUG logs
         .add("blocks", LOG.isDebugEnabled() ? mBlocks : CommonUtils.summarizeCollection(mBlocks))
-        .add("lostStorage", mUsage.mLostStorage).toString();
+        .add("lostStorage", mUsage.mLostStorage)
+        .add("version", buildVersion.getVersion())
+        .add("revision", buildVersion.getRevision()).toString();
   }
 
   /**
@@ -696,5 +709,25 @@ public final class MasterWorkerInfo {
       lockTypes.add(WorkerMetaLockSection.USAGE);
     }
     return lockWorkerMeta(lockTypes, true);
+  }
+
+  /**
+   * Sets the build version of the worker.
+   * BuildVersion is reported by the worker in the register request.
+   *
+   * @param buildVersion the {@link BuildVersion} of the worker
+   */
+  public void setBuildVersion(BuildVersion buildVersion) {
+    mBuildVersion.set(buildVersion);
+  }
+
+  /**
+   * Get the build version of the worker.
+   * This is used to monitor cluster status when performing rolling upgrades.
+   *
+   * @return the {@link BuildVersion} of the worker
+   */
+  public BuildVersion getBuildVersion() {
+    return mBuildVersion.get();
   }
 }

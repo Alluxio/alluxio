@@ -108,30 +108,6 @@ public final class FileUtils {
   }
 
   /**
-   * Gets local file's owner.
-   *
-   * @param filePath the file path
-   * @return the owner of the local file
-   */
-  public static String getLocalFileOwner(String filePath) throws IOException {
-    PosixFileAttributes attr =
-        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class);
-    return attr.owner().getName();
-  }
-
-  /**
-   * Gets local file's group.
-   *
-   * @param filePath the file path
-   * @return the group of the local file
-   */
-  public static String getLocalFileGroup(String filePath) throws IOException {
-    PosixFileAttributes attr =
-        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class);
-    return attr.group().getName();
-  }
-
-  /**
    * Gets local file's permission mode.
    *
    * @param filePath the file path

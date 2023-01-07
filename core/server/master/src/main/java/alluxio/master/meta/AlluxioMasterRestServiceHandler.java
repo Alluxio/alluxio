@@ -16,6 +16,7 @@ import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
@@ -57,17 +58,20 @@ import alluxio.util.webui.UIFileBlockInfo;
 import alluxio.util.webui.UIFileInfo;
 import alluxio.util.webui.WebUtils;
 import alluxio.web.MasterWebServer;
+import alluxio.wire.Address;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.Capacity;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterWebUIBrowse;
 import alluxio.wire.MasterWebUIConfiguration;
 import alluxio.wire.MasterWebUIData;
 import alluxio.wire.MasterWebUIInit;
 import alluxio.wire.MasterWebUILogs;
+import alluxio.wire.MasterWebUIMasters;
 import alluxio.wire.MasterWebUIMetrics;
 import alluxio.wire.MasterWebUIMountTable;
 import alluxio.wire.MasterWebUIOverview;
@@ -95,6 +99,7 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -146,6 +151,7 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String WEBUI_WORKERS = "webui_workers";
   public static final String WEBUI_METRICS = "webui_metrics";
   public static final String WEBUI_MOUNTTABLE = "webui_mounttable";
+  public static final String WEBUI_MASTERS = "webui_masters";
 
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
@@ -160,6 +166,8 @@ public final class AlluxioMasterRestServiceHandler {
   private final FileSystemMaster mFileSystemMaster;
   private final MetaMaster mMetaMaster;
   private final FileSystem mFsClient;
+
+  private static final int MASTER_ID_NULL = -1;
 
   /**
    * Constructs a new {@link AlluxioMasterRestServiceHandler}.
@@ -202,7 +210,8 @@ public final class AlluxioMasterRestServiceHandler {
           .setRpcAddress(mMasterProcess.getRpcAddress().toString())
           .setStartTimeMs(mMasterProcess.getStartTimeMs())
           .setTierCapacity(getTierCapacityInternal()).setUfsCapacity(getUfsCapacityInternal())
-          .setUptimeMs(mMasterProcess.getUptimeMs()).setVersion(RuntimeConstants.VERSION)
+          .setUptimeMs(mMasterProcess.getUptimeMs())
+          .setVersion(RuntimeConstants.VERSION).setRevision(ProjectConstants.REVISION)
           .setWorkers(mBlockMaster.getWorkerInfoList());
     }, Configuration.global());
   }
@@ -255,6 +264,7 @@ public final class AlluxioMasterRestServiceHandler {
           .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs(),
               Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)))
           .setVersion(RuntimeConstants.VERSION)
+          .setRevision(ProjectConstants.REVISION)
           .setLiveWorkerNodes(Integer.toString(mBlockMaster.getWorkerCount()))
           .setCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes()))
           .setClusterId(mMetaMaster.getClusterID())
@@ -844,6 +854,34 @@ public final class AlluxioMasterRestServiceHandler {
       NodeInfo[] failedNodeInfos = WebUtils.generateOrderedNodeInfos(lostWorkerInfos);
       response.setFailedNodeInfos(failedNodeInfos);
 
+      return response;
+    }, Configuration.global());
+  }
+
+  /**
+   * Gets Web UI Master page data.
+   *
+   * @return the response object
+   */
+  @GET
+  @Path(WEBUI_MASTERS)
+  public Response getWebUIMasters() {
+    return RestUtils.call(() -> {
+      MasterWebUIMasters response = new MasterWebUIMasters();
+
+      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG));
+
+      MasterInfo[] failedMasterInfos = mMetaMaster.getLostMasterInfos();
+      response.setFailedMasterInfos(failedMasterInfos);
+
+      MasterInfo[] normalMasterInfos = mMetaMaster.getMasterInfos();
+      response.setNormalMasterInfos(normalMasterInfos);
+
+      InetSocketAddress leaderMasterAddress = mMasterProcess.getRpcAddress();
+      MasterInfo leaderMasterInfo = new MasterInfo(MASTER_ID_NULL,
+              new Address(leaderMasterAddress.getHostString(), leaderMasterAddress.getPort()),
+              System.currentTimeMillis());
+      response.setLeaderMasterInfo(leaderMasterInfo);
       return response;
     }, Configuration.global());
   }

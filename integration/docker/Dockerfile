@@ -30,7 +30,7 @@ RUN cd /alluxio-csi && \
 #   See - https://github.com/moby/moby/issues/35525
 FROM alpine:3.10.2 AS alluxio-extractor
 # Note that downloads for *-SNAPSHOT tarballs are not available.
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.9.0-SNAPSHOT/alluxio-2.9.0-SNAPSHOT-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.10.0-SNAPSHOT/alluxio-2.10.0-SNAPSHOT-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
 ARG ENABLE_DYNAMIC_USER=false
 
@@ -97,10 +97,7 @@ ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 
 # For dev image to know the user
-ENV ALLUXIO_USERNAME=${ALLUXIO_USERNAME}
-ENV ALLUXIO_GROUP=${ALLUXIO_GROUP}
-ENV ALLUXIO_UID=${ALLUXIO_UID}
-ENV ALLUXIO_GID=${ALLUXIO_GID}
+ENV ALLUXIO_DEV_UID=${ALLUXIO_UID}
 
 ARG ENABLE_DYNAMIC_USER=true
 

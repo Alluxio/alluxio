@@ -61,7 +61,7 @@ public class RocksBenchBase {
   }
 
   static MutableInode<?> genInode(boolean mIsDirectory) {
-    if (mIsDirectory) {
+    if (!mIsDirectory) {
       return MutableInodeFile.create(0, 1, "testFile", System.currentTimeMillis(),
           CreateFileContext.defaults());
     } else {

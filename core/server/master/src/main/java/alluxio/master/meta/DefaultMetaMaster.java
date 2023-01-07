@@ -52,6 +52,7 @@ import alluxio.master.meta.checkconf.ConfigurationStore;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Meta;
 import alluxio.resource.CloseableIterator;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
@@ -66,6 +67,7 @@ import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigHash;
 
 import com.google.common.collect.ImmutableSet;
+import io.grpc.ServerInterceptors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -232,12 +234,13 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     mCoreMasterContext = masterContext;
     mMasterAddress =
         new Address().setHost(Configuration.getOrDefault(PropertyKey.MASTER_HOSTNAME,
-            "localhost"))
+            mRpcConnectAddress.getHostName()))
             .setRpcPort(mPort);
     /* Handle to the block master. */
     blockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
     blockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
     blockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
+    blockMaster.registerWorkerDeleteListener(mWorkerConfigStore::handleNodeDelete);
 
     mUfsManager = masterContext.getUfsManager();
 
@@ -255,11 +258,17 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(ServiceType.META_MASTER_CONFIG_SERVICE,
-        new GrpcService(new MetaMasterConfigurationServiceHandler(this)).disableAuthentication());
+        new GrpcService(ServerInterceptors.intercept(
+            new MetaMasterConfigurationServiceHandler(this),
+            new ClientContextServerInjector())).disableAuthentication());
     services.put(ServiceType.META_MASTER_CLIENT_SERVICE,
-        new GrpcService(new MetaMasterClientServiceHandler(this)));
+        new GrpcService(ServerInterceptors.intercept(
+            new MetaMasterClientServiceHandler(this),
+            new ClientContextServerInjector())));
     services.put(ServiceType.META_MASTER_MASTER_SERVICE,
-        new GrpcService(new MetaMasterMasterServiceHandler(this)));
+        new GrpcService(ServerInterceptors.intercept(
+            new MetaMasterMasterServiceHandler(this),
+            new ClientContextServerInjector())));
     // Add backup role services.
     services.putAll(mBackupRole.getRoleServices());
     services.putAll(mJournalSystem.getJournalServices());
@@ -485,6 +494,30 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   @Override
   public List<Address> getWorkerAddresses() {
     return mWorkerConfigStore.getLiveNodeAddresses();
+  }
+
+  @Override
+  public alluxio.wire.MasterInfo[] getMasterInfos() {
+    alluxio.wire.MasterInfo[] masterInfos = new alluxio.wire.MasterInfo[mMasters.size()];
+    int indexNum = 0;
+    for (MasterInfo master : mMasters) {
+      masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(),
+          master.getAddress(), master.getLastUpdatedTimeMs());
+      indexNum++;
+    }
+    return masterInfos;
+  }
+
+  @Override
+  public alluxio.wire.MasterInfo[] getLostMasterInfos() {
+    alluxio.wire.MasterInfo[] masterInfos = new alluxio.wire.MasterInfo[mLostMasters.size()];
+    int indexNum = 0;
+    for (MasterInfo master : mLostMasters) {
+      masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(),
+          master.getAddress(), master.getLastUpdatedTimeMs());
+      indexNum++;
+    }
+    return masterInfos;
   }
 
   @Override

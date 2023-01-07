@@ -12,7 +12,6 @@
 package alluxio;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
@@ -119,10 +118,6 @@ public final class RestUtils {
       headers.forEach(rb::header);
     }
 
-    if (alluxioConf.getBoolean(PropertyKey.WEB_CORS_ENABLED)) {
-      return makeCORS(rb).build();
-    }
-
     return rb.build();
   }
 
@@ -175,41 +170,8 @@ public final class RestUtils {
     ErrorResponse response = new ErrorResponse(se.getStatus().getCode(), se.getMessage());
 
     Response.ResponseBuilder rb = Response.serverError().entity(response);
-    if (alluxioConf.getBoolean(PropertyKey.WEB_CORS_ENABLED)) {
-      return makeCORS(rb).build();
-    }
 
     return rb.build();
-  }
-
-  /**
-   * Makes the responseBuilder CORS compatible.
-   *
-   * @param responseBuilder the response builder
-   * @param returnMethod the modified response builder
-   * @return response builder
-   */
-  public static Response.ResponseBuilder makeCORS(Response.ResponseBuilder responseBuilder,
-      String returnMethod) {
-    // TODO(william): Make origin, methods, and headers configurable.
-    Response.ResponseBuilder rb = responseBuilder.header("Access-Control-Allow-Origin", "*")
-        .header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-
-    if (!"".equals(returnMethod)) {
-      rb.header("Access-Control-Allow-Headers", returnMethod);
-    }
-
-    return rb;
-  }
-
-  /**
-   *  Makes the responseBuilder CORS compatible, assumes default methods.
-   *
-   * @param responseBuilder the modified response builder
-   * @return response builder
-   */
-  public static Response.ResponseBuilder makeCORS(Response.ResponseBuilder responseBuilder) {
-    return makeCORS(responseBuilder, "");
   }
 
   private RestUtils() {

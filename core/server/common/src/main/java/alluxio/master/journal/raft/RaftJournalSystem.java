@@ -375,6 +375,10 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // snapshot retention
     RaftServerConfigKeys.Snapshot.setRetentionFileNum(properties, 3);
 
+    // unsafe flush
+    RaftServerConfigKeys.Log.setUnsafeFlushEnabled(properties,
+        Configuration.getBoolean(PropertyKey.MASTER_EMBEDDED_JOURNAL_UNSAFE_FLUSH_ENABLED));
+
     // snapshot interval
     RaftServerConfigKeys.Snapshot.setAutoTriggerEnabled(
         properties, true);
@@ -427,6 +431,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         SizeInBytes.valueOf(messageSize));
     RatisDropwizardExports.registerRatisMetricReporters(mRatisMetricsMap);
 
+    mergeAlluxioRatisConfig(properties);
+
     // TODO(feng): clean up embedded journal configuration
     // build server
     mServer = RaftServer.newBuilder()
@@ -441,6 +447,19 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         this::getLeaderIndex);
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ROLE_ID.getName(), this::getRoleId);
     MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_LEADER_ID.getName(), this::getLeaderId);
+  }
+
+  @VisibleForTesting
+  void mergeAlluxioRatisConfig(RaftProperties properties) {
+    Map<String, Object> ratisConf =
+        Configuration.getNestedProperties(PropertyKey.MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG);
+
+    for (Map.Entry<String, Object> entry : ratisConf.entrySet()) {
+      if (entry.getValue() != null) {
+        properties.set(entry.getKey(), entry.getValue().toString());
+        LOG.info("set ratis config {}={}", entry.getKey(), entry.getValue());
+      }
+    }
   }
 
   /**
@@ -526,6 +545,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
     mTransferLeaderAllowed.set(true);
+    super.registerMetrics();
     LOG.info("Gained primacy.");
   }
 
@@ -1172,6 +1192,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     return mServer;
   }
 
+  @VisibleForTesting
+  ConcurrentHashMap<String, RaftJournal> getJournals() {
+    return mJournals;
+  }
+
   /**
    * Updates raft group with the current values from raft server.
    */
@@ -1183,8 +1208,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
   }
 
+  @VisibleForTesting
   @Nullable
-  private RaftProtos.RoleInfoProto getRaftRoleInfo() {
+  RaftProtos.RoleInfoProto getRaftRoleInfo() {
     GroupInfoReply groupInfo = null;
     try {
       groupInfo = getGroupInfo();

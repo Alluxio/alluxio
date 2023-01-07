@@ -61,6 +61,16 @@ public final class AlluxioFuseOpenUtils {
   }
 
   /**
+   * Checks if the open flag contains create open flag.
+   *
+   * @param flag the open flag to check
+   * @return true if contains create open flag, false otherwise
+   */
+  public static boolean containsCreate(int flag) {
+    return (flag & OpenFlags.O_CREAT.intValue()) != 0;
+  }
+
+  /**
    * Alluxio Fuse open action.
    * Defines what operation Alluxio should perform in the Fuse.open().
    */

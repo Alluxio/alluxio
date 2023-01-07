@@ -316,6 +316,13 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   void registerWorkerLostListener(Consumer<Address> function);
 
   /**
+   * Registers callback functions to use when detecting lost workers.
+   *
+   * @param function the function to register
+   */
+  void registerWorkerDeleteListener(Consumer<Address> function);
+
+  /**
    * Registers callback functions to use when workers register with configuration.
    *
    * @param function the function to register

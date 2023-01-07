@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Deploy Alluxio on Kubernetes
-nickname: Kubernetes
+nickname: Deploy
 group: Kubernetes
 priority: 0
 ---

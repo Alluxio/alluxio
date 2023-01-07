@@ -141,6 +141,7 @@ import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry.Builder;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.recorder.Recorder;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
@@ -148,7 +149,7 @@ import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.Mode;
@@ -574,11 +575,14 @@ public class DefaultFileSystemMaster extends CoreMaster
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE, new GrpcService(ServerInterceptors
-        .intercept(new FileSystemMasterClientServiceHandler(this), new ClientIpAddressInjector())));
-    services.put(ServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE,
-        new GrpcService(new FileSystemMasterJobServiceHandler(this)));
-    services.put(ServiceType.FILE_SYSTEM_MASTER_WORKER_SERVICE,
-        new GrpcService(new FileSystemMasterWorkerServiceHandler(this)));
+        .intercept(new FileSystemMasterClientServiceHandler(this),
+            new ClientContextServerInjector())));
+    services.put(ServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE, new GrpcService(ServerInterceptors
+        .intercept(new FileSystemMasterJobServiceHandler(this),
+            new ClientContextServerInjector())));
+    services.put(ServiceType.FILE_SYSTEM_MASTER_WORKER_SERVICE, new GrpcService(ServerInterceptors
+        .intercept(new FileSystemMasterWorkerServiceHandler(this),
+            new ClientContextServerInjector())));
     return services;
   }
 
@@ -764,6 +768,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public void stop() throws IOException {
+    LOG.info("Next directory id before close: {}", mDirectoryIdGenerator.peekDirectoryId());
     if (mAsyncAuditLogWriter != null) {
       mAsyncAuditLogWriter.stop();
       mAsyncAuditLogWriter = null;
@@ -2808,7 +2813,8 @@ public class DefaultFileSystemMaster extends CoreMaster
    */
   private void renameInternal(RpcContext rpcContext, LockedInodePath srcInodePath,
       LockedInodePath dstInodePath, RenameContext context) throws InvalidPathException,
-      FileDoesNotExistException, FileAlreadyExistsException, IOException, AccessControlException {
+          FileDoesNotExistException, FileAlreadyExistsException,
+          IOException, AccessControlException {
     if (!srcInodePath.fullPathExists()) {
       throw new FileDoesNotExistException(
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcInodePath.getUri()));
@@ -2860,11 +2866,12 @@ public class DefaultFileSystemMaster extends CoreMaster
           ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(dstInodePath.getUri()));
     }
 
-    // Make sure destination path does not exist
+    // Make sure destination path does not exist, or check if there's overwrite syntax involved
     if (dstInodePath.fullPathExists()) {
-      throw new FileAlreadyExistsException(String
-          .format("Cannot rename because destination already exists. src: %s dst: %s",
-              srcInodePath.getUri(), dstInodePath.getUri()));
+      boolean proceed = checkForOverwriteSyntax(rpcContext, srcInodePath, dstInodePath, context);
+      if (!proceed) {
+        return;
+      }
     }
 
     // Now we remove srcInode from its parent and insert it into dstPath's parent
@@ -3031,6 +3038,62 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     Metrics.PATHS_RENAMED.inc();
+  }
+
+  /**
+   * If destination path exists, check if we are using rename for overwrite syntax.
+   * Such as objectstore client.
+   * If not, a FileAlreadyExistsException should be thrown,
+   * Else, return if the caller should proceed or not.
+   * @return should the caller proceed or not
+   */
+  private boolean checkForOverwriteSyntax(RpcContext rpcContext,
+                                          LockedInodePath srcInodePath,
+                                          LockedInodePath dstInodePath,
+                                          RenameContext context)
+          throws FileDoesNotExistException, FileAlreadyExistsException,
+          IOException, InvalidPathException {
+    if (context.getOptions().hasS3SyntaxOptions()) {
+      // For possible object overwrite
+      if (context.getOptions().getS3SyntaxOptions().getIsMultipartUpload()) {
+        String mpUploadIdDst = new String(dstInodePath.getInodeFile().getXAttr() != null
+                ? dstInodePath.getInodeFile().getXAttr()
+                .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0])
+                : new byte[0]);
+        String mpUploadIdSrc = new String(srcInodePath.getInodeFile().getXAttr() != null
+                ? srcInodePath.getInodeFile().getXAttr()
+                .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0])
+                : new byte[0]);
+        if (StringUtils.isNotEmpty(mpUploadIdSrc) && StringUtils.isNotEmpty(mpUploadIdDst)
+                && StringUtils.equals(mpUploadIdSrc, mpUploadIdDst)) {
+          LOG.info("Object with same upload exists, bail and claim success.");
+        /* This is a rename operation as part of complete a CompleteMultipartUpload call
+         and there's concurrent attempt on the same multipart upload succeeded */
+          return false;
+        }
+      }
+      /*
+       TODO(lucy) same logic could apply for create normal object instead of multipart upload,
+        check other object related property for a no-op rename
+       */
+      //we need to overwrite, delete existing destination path
+      if (context.getOptions().getS3SyntaxOptions().getOverwrite()) {
+        LOG.info("Encountered S3 Overwrite syntax, "
+                + "deleting existing file and then start renaming.");
+        try {
+          deleteInternal(rpcContext, dstInodePath, DeleteContext
+                  .mergeFrom(DeletePOptions.newBuilder()
+                          .setRecursive(true).setAlluxioOnly(context.getPersist())), true);
+          dstInodePath.removeLastInode();
+        } catch (DirectoryNotEmptyException ex) {
+          // IGNORE, this will never happen
+        }
+        return true;
+      }
+    }
+    throw new FileAlreadyExistsException(String
+            .format("Cannot rename because destination already exists. src: %s dst: %s",
+                    srcInodePath.getUri(), dstInodePath.getUri()));
   }
 
   /**
@@ -3463,6 +3526,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException {
     Metrics.MOUNT_OPS.inc();
+    Recorder recorder = context.getRecorder();
+    recorder.record("mount command: alluxio fs mount {} {} option {}",
+        alluxioPath, ufsPath, context);
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("mount", alluxioPath, null, null)) {
@@ -3520,6 +3586,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       long mountId = mMountTable.createUnusedMountId();
       mMountTable.validateMountPoint(inodePath.getUri(), ufsPath, mountId,
           context.getOptions().build());
+      Recorder recorder = context.getRecorder();
+      recorder.record("Acquired mount ID for the new mount point: {}", mountId);
       // get UfsManager prepared
       mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
           new UnderFileSystemConfiguration(
@@ -3534,6 +3602,8 @@ public class DefaultFileSystemMaster extends CoreMaster
                 LoadMetadataPOptions.newBuilder().setCreateAncestors(false)), getMountTable(),
             mountId, context.getOptions().getShared(), ufsPath, mUfsManager.get(mountId),
             this);
+        recorder.record("Mount point {} created successfully",
+            inodePath.getUri().getPath());
         // As we have verified the mount operation by calling MountTable.verifyMount, there won't
         // be any error thrown when doing MountTable.add
         mMountTable.addValidated(rpcContext, inodePath.getUri(), ufsPath, mountId,
@@ -3541,6 +3611,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       } catch (Exception e) {
         // if exception happens, it indicates the failure of loadMetadata
         LOG.error("Failed to mount {} at {}: ", ufsPath, inodePath.getUri(), e);
+        recorder.record("Failed to mount {} at {}: ",
+            ufsPath, inodePath.getUri(), e.getMessage());
         mUfsManager.removeMount(mountId);
         throw e;
       }
@@ -4156,6 +4228,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     Inode inode = inodePath.getInode();
     SetAttributePOptions.Builder protoOptions = context.getOptions();
+    if (inode.isDirectory() && protoOptions.hasDirectChildrenLoaded()) {
+      mInodeTree.setDirectChildrenLoaded(
+          rpcContext, inode.asDirectory(), protoOptions.getDirectChildrenLoaded());
+    }
     if (protoOptions.hasPinned()) {
       mInodeTree.setPinned(rpcContext, inodePath, context.getOptions().getPinned(),
           context.getOptions().getPinnedMediaList(), opTimeMs);
@@ -4727,6 +4803,7 @@ public class DefaultFileSystemMaster extends CoreMaster
                 .setPersistenceState(PersistenceState.PERSISTED.name())
                 .build());
             propagatePersistedInternal(journalContext, inodePath);
+            mUfsAbsentPathCache.processExisting(inodePath.getUri());
             Metrics.FILES_PERSISTED.inc();
 
             // Save state for possible cleanup
@@ -5300,7 +5377,8 @@ public class DefaultFileSystemMaster extends CoreMaster
           Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
       auditContext.setUgi(ugi)
           .setAuthType(authType)
-          .setIp(ClientIpAddressInjector.getIpAddress())
+          .setIp(ClientContextServerInjector.getIpAddress())
+          .setClientVersion(ClientContextServerInjector.getClientVersion())
           .setCommand(command).setSrcPath(srcPath).setDstPath(dstPath)
           .setSrcInode(srcInode).setAllowed(true)
           .setCreationTimeNs(System.nanoTime());

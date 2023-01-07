@@ -11,6 +11,7 @@
 
 package alluxio.stress.master;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.collections.Pair;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
@@ -55,6 +56,7 @@ public final class MasterBenchSummary extends GeneralBenchSummary<MasterBenchTas
    * @param mergedTaskResults the merged task result
    * @param nodes the map storing the nodes' result
    */
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public MasterBenchSummary(MasterBenchTaskResult mergedTaskResults,
        Map<String, MasterBenchTaskResult> nodes) throws DataFormatException {
     mStatistics = mergedTaskResults.getStatistics().toBenchSummaryStatistics();

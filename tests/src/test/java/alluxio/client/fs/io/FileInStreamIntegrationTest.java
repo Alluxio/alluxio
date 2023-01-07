@@ -514,7 +514,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
 
   @Test(timeout = 10000)
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "1000"})
+      confParams = {PropertyKey.Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "2000"})
   public void asyncCacheFirstBlock() throws Exception {
     String filename = mTestPath + "/file_" + MAX_LEN + "_" + mWriteUnderStore.hashCode();
     AlluxioURI uri = new AlluxioURI(filename);
@@ -565,6 +565,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test(timeout = 10000)
+  @LocalAlluxioClusterResource.Config(
+          confParams = {PropertyKey.Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "2000"})
   public void asyncCacheAfterSeek() throws Exception {
     String filename = mTestPath + "/file_" + MAX_LEN + "_" + mWriteUnderStore.hashCode();
     AlluxioURI uri = new AlluxioURI(filename);

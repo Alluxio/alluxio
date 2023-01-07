@@ -579,7 +579,7 @@ Usage: alluxio fs [generic options]
 For `fs` subcommands that take Alluxio URIs as argument (e.g. `ls`, `mkdir`), the argument should
 be either a complete Alluxio URI, such as `alluxio://<master-hostname>:<master-port>/<path>`,
 or a path without its header, such as `/<path>`, to use the default hostname and port set in the
-`conf/allluxio-site.properties`.
+`conf/alluxio-site.properties`.
 
 > Note: This command requires the Alluxio cluster to be running.
 
@@ -1239,6 +1239,21 @@ $ ./bin/alluxio fs mount \
   /mnt/s3 s3://data-bucket/
 ```
 
+To connect to the UFS for a mount point, Alluxio looks for the corresponding connector under
+`${ALLUXIO_HOME}/lib/` and will use the first one that supports the path.
+The connector jars look like `lib/alluxio-underfs-hdfs-2.7.1.jar`.
+The logic to decide whether a connector supports a path depends on the `UnderFileSystemFactory` implementation.
+When there are multiple connectors for the same UFS, like 
+`lib/alluxio-underfs-hdfs-2.7.1.jar`, `lib/alluxio-underfs-hdfs-2.7.1-patch1.jar`, `lib/alluxio-underfs-hdfs-2.7.1-patch2.jar`, 
+option `alluxio.underfs.strict.version.match.enabled` can be used to make sure the correct one is picked up.
+For example, if the HDFS is running with 2.7.1-patch1, you can use `alluxio.underfs.version`
+and `alluxio.underfs.strict.version.match.enabled=true` to ensure `lib/alluxio-underfs-hdfs-2.7.1-patch1.jar`
+is used to connect to the target HDFS at `hdfs://ns1/`.
+```
+$ ./bin/alluxio fs mount --option alluxio.underfs.version=2.7.1-patch1 \
+  --option alluxio.underfs.strict.version.match.enabled=true /ns1 hdfs://ns1/
+```
+
 ### mv
 
 The `mv` command moves a file or directory to another path in Alluxio.
@@ -1441,6 +1456,7 @@ One can specify `-f <arg>` to display info in given format:
 * `%y` or `%Y`: modification time, where `%y` shows the UTC date in the form `yyyy-MM-dd HH:mm:ss`
  and `%Y` shows the number of milliseconds since January 1, 1970 UTC
 * `%b`: Number of blocks allocated for file
+* `%i`: file ID(inode ID) of the file
 
 For example, `stat` can be used to debug the block locations of a file.
 This is useful when trying to achieve locality for compute workloads.
@@ -1454,6 +1470,10 @@ $ ./bin/alluxio fs stat /data/2015
 
 # Displays the size of file
 $ ./bin/alluxio fs stat -f %z /data/2015/logs-1.txt
+
+# Finds the file by fileID/inodeID and displays the stat
+# Useful in troubleshooting
+$ ./bin/alluxio fs stat -fileId 12345678
 ```
 
 ### stopSync

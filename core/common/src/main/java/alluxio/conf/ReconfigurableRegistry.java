@@ -45,7 +45,7 @@ public class ReconfigurableRegistry {
    * @return false if no listener related to the given property, otherwise, return false
    */
   public static synchronized boolean update() {
-    for (Reconfigurable listener : LISTENER_LIST) {
+    for (Reconfigurable listener : new LinkedList<>(LISTENER_LIST)) {
       listener.update();
     }
     return true;
