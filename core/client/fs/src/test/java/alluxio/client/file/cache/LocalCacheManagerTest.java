@@ -57,8 +57,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -806,6 +808,7 @@ public final class LocalCacheManagerTest {
 
   @Test
   public void asyncCache() throws Exception {
+    // this must be smaller than the number of locks in the page store for the test to succeed
     final int threads = 16;
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, true);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS, threads);
@@ -819,14 +822,26 @@ public final class LocalCacheManagerTest {
     pageStore.setPutHanging(true);
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
     mCacheManager = createLocalCacheManager(mConf, mPageMetaStore);
+    Set<Integer> lockedPages = new HashSet<>();
     for (int i = 0; i < threads; i++) {
       PageId pageId = new PageId("5", i);
       assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES)));
+      lockedPages.add(mCacheManager.getPageLockId(pageId));
     }
-    // by setting the following line the hanging will only be stopped by the current thread
+    // by setting the following line the hanging will only be stopped when the current
+    // thread adds a page
     pageStore.setStopHangingThread(Thread.currentThread().getId());
     // fallback to caller's thread (the current here) when queue is full
-    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
+    // find a page id that is not already locked
+    int pageLockId;
+    long nxtIdx = 0;
+    PageId callerPageId;
+    do {
+      callerPageId = new PageId("0L", nxtIdx);
+      pageLockId = mCacheManager.getPageLockId(callerPageId);
+    } while (lockedPages.contains(pageLockId));
+    // this page will be inserted by the current thread and not a worker thread
+    assertTrue(mCacheManager.put(callerPageId, PAGE1));
     // Wait for all tasks to complete
     // one for each thread worker thread, and one on the main thread
     while (pageStore.getPuts() < threads + 1) {
