@@ -10,22 +10,21 @@ priority: 1
 
 在 Alluxio 中，有两种类型的指标，集群范围内的合计指标和每个进程的详细指标。
 
-* 合计指标由 leading master 收集和计算的，并且在 web UI 下的指标标签下展示。
-   这些指标旨在提供 Alluxio 服务的集群状态以及数据与元数据总量的快照。
+* 集群指标由 leading master 收集和计算的，并且在 web UI 下的指标标签下展示。
+  这些指标旨在提供 Alluxio 服务的集群状态以及数据与元数据总量的快照。
 
 * 进程指标由每个 Alluxio 进程收集，并通过任何配置的接收器以机器可读的格式暴露出来。
-
   进程指标高度详细，旨在被第三方监测工具使用。
   用户可以通过细粒度的数据面板查看每个指标的时间序列图。
   比如数据传输量或 RPC 调用次数。
 
-Alluxio 的主节点指标具有以下格式：
+Alluxio 的 master 节点指标具有以下格式：
 
 ```
 Master.[metricName].[tag1].[tag2]...
 ```
 
-Alluxio 的非主节点指标具有以下格式
+Alluxio 的非 master 节点指标具有以下格式
 
 ```
 [processType].[metricName].[tag1].[tag2]...[hostName] 
@@ -195,7 +194,6 @@ Fuse 读/写文件数量可用作 Fuse 应用程序压力的指标。
 Fuse相关的指标包括:
 * `Client.TotalRPCClients` 显示用于连接到或可连接到 master 或 worker 进行操作的 RPC 客户端的总数。
 * 带有 `Direct` 关键字的 worker 指标。当 Fuse 嵌入到 worker 进程中时，它可以通过 worker 内部 API 从该 worker 读取/写入。
-
 相关指标以 `Direct` 结尾。例如，`Worker.BytesReadDirect` 显示该 worker 为其嵌入的 Fuse 客户端提供读取的字节数。
 * 如果配置了 `alluxio.user.block.read.metrics.enabled=true`，则会记录 `Client.BlockReadChunkRemote`。 该指标显示通过 gRPC 从远程 worker 读取数据的持续时间统计。
 
