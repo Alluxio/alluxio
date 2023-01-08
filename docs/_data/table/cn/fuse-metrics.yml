@@ -1,6 +1,6 @@
 Fuse.CachedPathCount:
-  '正在缓存的 FUSE-to-Alluxio 路径映射的总数。这个值小于或等于 alluxio.fuse.cached.paths.max'
+  '缓存的 Alluxio 路径映射的总数。这个值小于或等于 alluxio.fuse.cached.paths.max'
 Fuse.ReadWriteFileCount:
-  '当前正在同时打开的读写文件数量'
+  '当前被打开的读写文件数量'
 Fuse.TotalCalls:
   'JNI FUSE 操作调用的吞吐量。此指标表明 Alluxio Fuse 应用处理请求的繁忙程度'
