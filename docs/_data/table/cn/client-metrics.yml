@@ -1,19 +1,19 @@
 Client.BlockMasterClientCount:
   'BlockMasterClientPool 中实例数量'
 Client.BlockReadChunkRemote:
-  '这是一项测量从远程 Alluxio worker 通过 RPC 框架以 chunk 的形式读取 block 数据的定时器统计信息。当 alluxio.user.block.read.metrics.enabled 设置为 true 时，才会记录此指标'
+  '这个客户端从远程Alluxio worker读取数据chunk数量'
 Client.BlockWorkerClientCount:
   'BlockWorkerClientPool 中实例数量'
 Client.BusyExceptionCount:
   '观察到的 BusyException 数量'
 Client.BytesReadLocal:
-  '从与客户端相对应的 worker 数据存储短路读取的总字节数'
+  '这个客户端短路读取的总字节数'
 Client.BytesReadLocalThroughput:
-  '从与客户端相对应的 worker 数据存储短路读取的字节吞吐量'
+  '这个客户端短路读取的字节吞吐量'
 Client.BytesWrittenLocal:
-  '这个客户端短路写入到本地存储的字节总数'
+  '客户端短路写入Alluxio缓存的字节总数'
 Client.BytesWrittenLocalThroughput:
-  '这个客户端短路写入到本地存储的字节吞吐量'
+  '客户端短路写入Alluxio缓存的字节吞吐量'
 Client.BytesWrittenUfs:
   '这个客户端写入到 Alluxio UFS 的字节数'
 Client.CacheBytesDiscarded:
