@@ -1,7 +1,7 @@
 Client.BlockMasterClientCount:
   'BlockMasterClientPool 中实例数量'
 Client.BlockReadChunkRemote:
-  '这个客户端从远程Alluxio worker读取数据chunk数量'
+  '这个客户端从远程 Alluxio worker 读取数据chunk数量'
 Client.BlockWorkerClientCount:
   'BlockWorkerClientPool 中实例数量'
 Client.BusyExceptionCount:
@@ -11,19 +11,20 @@ Client.BytesReadLocal:
 Client.BytesReadLocalThroughput:
   '这个客户端短路读取的字节吞吐量'
 Client.BytesWrittenLocal:
-  '客户端短路写入Alluxio缓存的字节总数'
+  '客户端短路写入 Alluxio 缓存的字节总数'
 Client.BytesWrittenLocalThroughput:
-  '客户端短路写入Alluxio缓存的字节吞吐量'
+  '客户端短路写入 Alluxio 缓存的字节吞吐量'
 Client.BytesWrittenUfs:
-  '这个客户端写入到 Alluxio UFS 的字节数'
+  '这个客户端写入 UFS 的字节数'
 Client.CacheBytesDiscarded:
-  '恢复页面存储时丢弃的总字节数'
+  '客户端缓存丢弃的总字节数'
 Client.CacheBytesEvicted:
   '客户端缓存驱逐的总字节数'
 Client.CacheBytesReadCache:
   '从客户端缓存读的总字节数'
 Client.CacheBytesReadExternal:
   '由于客户端缓存未命中从外部存储读取的总字节数'
+  '由于客户端缓存未命中从 Alluxio 集群读取的总字节数'
 Client.CacheBytesReadInStreamBuffer:
   '从客户端缓存的输入流缓冲区中读取的总字节数'
 Client.CacheBytesRequestedExternal:
@@ -55,9 +56,9 @@ Client.CacheGetStoreReadErrors:
 Client.CacheHitRate:
   '缓存命中率：（# 从缓存读取的字节数）/（# 请求的字节数）'
 Client.CachePageReadCacheTimeNanos:
-  '客户端缓存命中时读取页面以纳秒为单位的时间'
+  '客户端缓存命中时读取页面时间（ns）'
 Client.CachePageReadExternalTimeNanos:
-  '当缓存未命中时，从外部源读取数据所花费以纳秒为单位的时间'
+  '当缓存未命中时，从外部源读取数据所花费时间（ns）'
 Client.CachePages:
   '客户端缓存中的总页数'
 Client.CachePagesDiscarded:
@@ -69,7 +70,7 @@ Client.CachePutAsyncRejectionErrors:
 Client.CachePutBenignRacingErrors:
   '由于驱逐竞争而导致的缓存页添加失败的次数。这个错误是良性的'
 Client.CachePutErrors:
-  '向客户端缓存中防止缓存数据的失败次数'
+  '向客户端缓存中放置缓存数据的失败次数'
 Client.CachePutEvictionErrors:
   '由于驱逐失败而导致的缓存页添加失败的次数。这个错误是良性的'
 Client.CachePutInsufficientSpaceErrors:
