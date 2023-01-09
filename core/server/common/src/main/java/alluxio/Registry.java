@@ -149,6 +149,8 @@ public class Registry<T extends Server<U>, U> {
    * @see #addAlias(Class, Server)
    */
   public <W extends T> void add(Class<W> clazz, T server) {
+    Preconditions.checkNotNull(clazz, "clazz");
+    Preconditions.checkNotNull(server, "server");
     Preconditions.checkArgument(clazz.isInstance(server),
         "Server %s is not an instance of %s", server.getClass(), clazz.getName());
     try (LockResource r = new LockResource(mLock)) {
@@ -173,6 +175,8 @@ public class Registry<T extends Server<U>, U> {
    * @see #add(Class, Server)
    */
   public <W extends T> void addAlias(Class<W> clazz, T server) {
+    Preconditions.checkNotNull(clazz, "clazz");
+    Preconditions.checkNotNull(server, "server");
     Preconditions.checkArgument(clazz.isInstance(server),
         "Server %s is not an instance of %s", server.getClass(), clazz.getName());
     try (LockResource r = new LockResource(mLock)) {
