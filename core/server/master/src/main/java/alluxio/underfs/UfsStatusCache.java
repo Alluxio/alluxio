@@ -134,6 +134,7 @@ public class UfsStatusCache {
     // Update global counters for all InodeSyncStream
     int sizeChange = children.size() - (previousStatuses != null ? previousStatuses.size() : 0);
     DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.inc(sizeChange);
+    DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.inc(sizeChange);
     return previousStatuses;
   }
 
