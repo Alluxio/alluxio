@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.metastore.rocks;
+package alluxio.rocks;
 
 import alluxio.Constants;
 import alluxio.conf.Configuration;
@@ -84,10 +84,11 @@ public final class RocksStore implements Closeable {
    * @param dbOpts the configured RocksDB options
    * @param columnFamilyDescriptors columns to create within the rocks database
    * @param columnHandles column handle references to populate
+   * @param reset if true, the RocksDB will be cleaned up and then new DB will be created
    */
   public RocksStore(String name, String dbPath, String checkpointPath, DBOptions dbOpts,
       Collection<ColumnFamilyDescriptor> columnFamilyDescriptors,
-      List<AtomicReference<ColumnFamilyHandle>> columnHandles) {
+      List<AtomicReference<ColumnFamilyHandle>> columnHandles, boolean reset) {
     Preconditions.checkState(columnFamilyDescriptors.size() == columnHandles.size());
     mName = name;
     mDbPath = dbPath;
@@ -98,7 +99,11 @@ public final class RocksStore implements Closeable {
     mDbOpts = dbOpts;
     mColumnHandles = columnHandles;
     try {
-      resetDb();
+      if (reset) {
+        resetDb();
+      } else {
+        createDb();
+      }
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -158,10 +163,15 @@ public final class RocksStore implements Closeable {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    new File(mDbPath).mkdirs();
   }
 
+  /**
+   * Opens a RocksDB instance or creates a RocksDB if it does not exist.
+   *
+   * @throws RocksDBException
+   */
   private void createDb() throws RocksDBException {
+    new File(mDbPath).mkdirs();
     List<ColumnFamilyDescriptor> cfDescriptors = new ArrayList<>();
     cfDescriptors.add(new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY));
     cfDescriptors.addAll(mColumnFamilyDescriptors);
@@ -278,8 +288,18 @@ public final class RocksStore implements Closeable {
     LOG.info("Closed store at {}", mDbPath);
   }
 
-  // helper function to load RockDB configuration options based on property key configurations.
-  static Optional<BlockBasedTableConfig> checkSetTableConfig(
+  /**
+   * helper function to load RockDB configuration options based on property key configurations.
+   *
+   * @param cacheSize integer PropertyKey for cache size
+   * @param bloomFilter boolean PropertyKey for bloom filter
+   * @param indexType  enum PropertyKey for index type
+   * @param blockIndexType enum PropertyKey for block index type
+   * @param toClose the objects to be closed
+   *
+   * @return an Optional BlockBasedTableConfig
+   */
+  public static Optional<BlockBasedTableConfig> checkSetTableConfig(
       PropertyKey cacheSize, PropertyKey bloomFilter, PropertyKey indexType,
       PropertyKey blockIndexType, List<RocksObject> toClose) {
     // The following options are set by property keys as they are not able to be
