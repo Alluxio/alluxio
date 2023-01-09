@@ -18,37 +18,37 @@ Job Worker将来自Job Master的任务排列（queue)，并通过管理可配置
 
 ## 不同类型的作业
 
-### 加载
+### 加载 Load
 
 `fs distributedLoad`CLI命令中使用了加载作业，按特定的副本数将文件加载到Alluxio。
 
-### 迁移
+### 迁移 Migrate
 
 `fs distributedCp`和`fs distributedMv`CLI命令中使用了迁移作业，使用固定的[写入类型]({{ '/en/overview/Architecture.html#data-flow-write' | relativize_url }})进行数据复制/移动。
 
-### 持久化
+### 持久化 Persist
 
-`fs persist` CLI命令间接使用了持久化作业，以ASYNC_THROUGH[写入类型]({{ '/en/overview/Architecture.html#data-flow-write' | relativize_url }})写入Alluxio时使用持久化作业在后台进行持久化。
+`fs persist` CLI命令间接使用了持久化作业，以`ASYNC_THROUGH`[写入类型]({{ '/en/overview/Architecture.html#data-flow-write' | relativize_url }})写入Alluxio时使用持久化作业在后台进行持久化。
 
 该作业负责将Alluxio中的文件持久化到特定的ufs路径中。
 
-### 驱逐
+### 驱逐 Evict
 
 `fs free` CLI命令和后台复制进程间接使用了驱逐作业。
 
 该作业负责从Alluxio中驱逐出特定数量的数据块副本。
 
-### 移动
+### 移动 Move
 
 复制后台进程使用移动作业将数据块从一个worker移动到另一个worker。
 
-### 复制
+### 复制 Replicate
 
 后台复制进程使用复制作业将数据块从一个worker复制到特定数量的其他worker上。
 
 ## 巡检命令
 
-作业服务器提供大量的巡检命令。
+作业服务器提供以下一系列的巡检命令。
 
 ### fsadmin report jobservice
 
@@ -92,7 +92,7 @@ $ ./bin/alluxio job ls
 
 ### job stat -v <job_id> 
 
-`job stat -v <job_id>` 会列出某个作业的详细信息。（加 -v 表示包含worker上指定任务的信息）
+`job stat -v <job_id>` 会列出某个作业的详细信息。（加 `-v` 表示包含worker上指定任务的信息）
 
 ```console
 bin/alluxio job stat -v 1613673433929
