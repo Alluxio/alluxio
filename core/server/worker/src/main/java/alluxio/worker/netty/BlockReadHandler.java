@@ -157,8 +157,8 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         }
         if (lockId != BlockLockManager.INVALID_LOCK_ID) {
           try {
-            BlockReader reader =
-                mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
+            BlockReader reader = mWorker.createBlockReader(request.getSessionId(), request.getId(),
+                request.getStart(), false, request.getOpenUfsBlockOptions());
             String metricName = "BytesReadAlluxio";
             context.setBlockReader(reader);
             context.setCounter(MetricsSystem.counter(metricName));
