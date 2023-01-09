@@ -121,3 +121,4 @@ __Grafana values:__
 | `resources.limits.memory`       | Memory Limit                                                                                                    | `2G`              |
 | `resources.requests.cpu`        | CPU Request                                                                                                     | `0.5`             |
 | `resources.requests.memory`     | Memory Request                                                                                                  | `1G`              |
+
