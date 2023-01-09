@@ -67,7 +67,6 @@ public final class ProxyWebServer extends WebServer {
 
   public static AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
   class ProxyListener implements HttpChannel.Listener {
-
     public void onComplete(Request request)
     {
       S3Handler s3Hdlr = S3RequestServlet.getInstance().s3HandlerMap.get(request);
@@ -144,14 +143,13 @@ public final class ProxyWebServer extends WebServer {
     ServletHolder servletHolder;
     if (Configuration.getBoolean(PropertyKey.PROXY_S3_OPTIMIZED_VERSION_ENABLED)) {
       servletHolder = new ServletHolder("Alluxio Proxy Web Service", S3RequestServlet.getInstance());
+      super.getServerConnector().addBean(new ProxyListener());
     } else {
       servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
       addHandler(new CompleteMultipartUploadHandler(mFileSystem, Constants.REST_API_PREFIX));
     }
     mServletContextHandler
             .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
-    super.getServerConnector().addBean(new ProxyListener());
-
   }
 
   @Override

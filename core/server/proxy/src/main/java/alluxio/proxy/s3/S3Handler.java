@@ -201,11 +201,25 @@ public class S3Handler {
     public static void processResponse(HttpServletResponse servletResponse, Response response)
             throws IOException {
         try {
+            // Status
             servletResponse.setStatus(response.getStatus());
-            for (MultivaluedMap.Entry<String, List<Object>> entry : response.getHeaders().entrySet()) {
-                for (Object obj : entry.getValue())
-                    servletResponse.addHeader(entry.getKey(), obj.toString());
+            // Headers
+            final MultivaluedMap<String, String> headers = response.getStringHeaders();
+            for (final Map.Entry<String, List<String>> e : headers.entrySet()) {
+                final Iterator<String> it = e.getValue().iterator();
+                if (!it.hasNext()) {
+                    continue;
+                }
+                final String header = e.getKey();
+                if (servletResponse.containsHeader(header)) {
+                    // replace any headers previously set with values from Jersey container response.
+                    servletResponse.setHeader(header, it.next());
+                }
+                while (it.hasNext()) {
+                    servletResponse.addHeader(header, it.next());
+                }
             }
+            // Entity
             if (response.hasEntity()) {
                 Object entity = response.getEntity();
                 if (entity instanceof InputStream) {

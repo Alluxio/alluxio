@@ -906,7 +906,7 @@ public class S3ObjectTask extends S3BaseTask {
                 httpServletResponse.setContentType(MediaType.APPLICATION_XML);
 
                 CompletableFuture<Response> respFut = new CompletableFuture<>();
-                S3RequestServlet.esHeavy_.submit(() -> {
+                S3RequestServlet.getInstance().esHeavy_.submit(() -> {
                     Response completeMpUploadResponse = mHandler.getS3Task().continueTask();
                     respFut.complete(completeMpUploadResponse);
                 });
