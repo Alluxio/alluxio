@@ -7,11 +7,11 @@ Client.BlockWorkerClientCount:
 Client.BusyExceptionCount:
   'Total number of BusyException observed'
 Client.BytesReadLocal:
-  'Total number of bytes short-circuit read from worker data storage that collocates with the client'
+  'Total number of bytes read from all works via domain socket'
 Client.BytesReadLocalThroughput:
-  'Bytes throughput short-circuit read from worker data storage that collocated with this client'
+  'Bytes read per minute throughput from all workers via domain socket'
 Client.BytesWrittenLocal:
-  'Total number of bytes short-circuit written to local storage by this client'
+  'Total number of bytes short-circuit read reported by all clients. Each client reads data from the collocated worker data storage directly.'
 Client.BytesWrittenLocalThroughput:
   'Bytes throughput short-circuit written to local storage by this client'
 Client.BytesWrittenUfs:
