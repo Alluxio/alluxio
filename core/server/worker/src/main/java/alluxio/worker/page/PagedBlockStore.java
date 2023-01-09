@@ -93,8 +93,6 @@ public class PagedBlockStore implements BlockStore {
       new CopyOnWriteArrayList<>();
   private final long mPageSize;
 
-  private final BlockMetadataManager mMetaManager;
-
   /** Lock to guard metadata operations. */
   private final ReentrantReadWriteLock mMetadataLock = new ReentrantReadWriteLock();
 
@@ -145,7 +143,6 @@ public class PagedBlockStore implements BlockStore {
     mWorkerId = workerId;
     mPageMetaStore = pageMetaStore;
     mPageSize = pageSize;
-    mMetaManager = BlockMetadataManager.createBlockMetadataManager();
   }
 
   @Override
@@ -296,7 +293,7 @@ public class PagedBlockStore implements BlockStore {
       throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
     LOG.debug("getBlockReader: sessionId={}, blockId={}, lockId={}", sessionId, blockId, lockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
-      BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId).get();
+      BlockMeta blockMeta = mPageMetaStore.getBlock(blockId).get();
       return new LocalFileBlockReader(blockMeta.getPath());
     }
   }
@@ -382,7 +379,8 @@ public class PagedBlockStore implements BlockStore {
     LOG.debug("getBlockMeta: sessionId={}, blockId={}, lockId={}", sessionId, blockId, lockId);
     mLockManager.validateLock(sessionId, blockId, lockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
-      return mMetaManager.getBlockMeta(blockId).get();
+      Optional<PagedBlockMeta> pagedBlockMeta = mPageMetaStore.getBlock(blockId);
+      return pagedBlockMeta.get();
     }
   }
 
@@ -392,7 +390,7 @@ public class PagedBlockStore implements BlockStore {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
     boolean hasBlock;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
-      hasBlock = mMetaManager.hasBlockMeta(blockId);
+      hasBlock = mPageMetaStore.hasBlock(blockId);
     }
     if (hasBlock) {
       return lockId;
@@ -408,7 +406,7 @@ public class PagedBlockStore implements BlockStore {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
     boolean hasBlock;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
-      hasBlock = mMetaManager.hasBlockMeta(blockId);
+      hasBlock = mPageMetaStore.hasBlock(blockId);
     }
     if (hasBlock) {
       return lockId;
