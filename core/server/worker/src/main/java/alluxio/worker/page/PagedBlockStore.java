@@ -501,7 +501,7 @@ public class PagedBlockStore implements BlockStore {
         }
       }
     }
-    throw new UnsupportedOperationException();
+    //throw new UnsupportedOperationException();
   }
 
   @Override
