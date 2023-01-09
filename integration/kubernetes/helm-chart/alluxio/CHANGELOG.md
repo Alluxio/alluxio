@@ -320,3 +320,7 @@
 
 - Improve indentation in worker daemonset template
 - Configure ports in master service following values.yaml
+
+0.6.54
+
+- Replace PVC with hostPath for worker domain socket
