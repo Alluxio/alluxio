@@ -436,38 +436,7 @@ public class PagedBlockStore implements BlockStore {
       IOException {
     // TODO(JiamingMai): implement this method
     LOG.debug("getBlockWriter: sessionId={}, blockId={}", sessionId, blockId);
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
-      checkTempBlockOwnedBySession(sessionId, blockId);
-      TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId).get();
-      return new LocalFileBlockWriter(tempBlockMeta.getPath());
-    }
-  }
-
-  /**
-   * Checks if block id is a temporary block and owned by session id. This method must be enclosed
-   * by {@link #mMetadataLock}.
-   *
-   * @param sessionId the id of session
-   * @param blockId the id of block
-   * @throws BlockDoesNotExistException if block id can not be found in temporary blocks
-   * @throws BlockAlreadyExistsException if block id already exists in committed blocks
-   * @throws InvalidWorkerStateException if block id is not owned by session id
-   */
-  private void checkTempBlockOwnedBySession(long sessionId, long blockId)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException {
-    if (mMetaManager.hasBlockMeta(blockId)) {
-      throw new BlockAlreadyExistsException(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED, blockId);
-    }
-    Optional<TempBlockMeta> tempBlockMetaOptional = mMetaManager.getTempBlockMeta(blockId);
-    if (null == tempBlockMetaOptional || !tempBlockMetaOptional.isPresent()) {
-      throw new BlockDoesNotExistException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
-    }
-    TempBlockMeta tempBlockMeta = tempBlockMetaOptional.get();
-    long ownerSessionId = tempBlockMeta.getSessionId();
-    if (ownerSessionId != sessionId) {
-      throw new InvalidWorkerStateException(ExceptionMessage.BLOCK_ID_FOR_DIFFERENT_SESSION,
-          blockId, ownerSessionId, sessionId);
-    }
+    return createBlockWriter(sessionId, blockId);
   }
 
   @Override
