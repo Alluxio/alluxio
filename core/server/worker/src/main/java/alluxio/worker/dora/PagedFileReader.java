@@ -21,6 +21,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.underfs.FileId;
 import alluxio.underfs.PagedUfsReader;
+import alluxio.worker.block.io.BlockReadableChannel;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.page.NettyBufTargetBuffer;
 
@@ -162,7 +163,7 @@ public class PagedFileReader extends BlockReader {
 
   @Override
   public ReadableByteChannel getChannel() {
-    throw new UnsupportedOperationException();
+    return new BlockReadableChannel(this);
   }
 
   @Override

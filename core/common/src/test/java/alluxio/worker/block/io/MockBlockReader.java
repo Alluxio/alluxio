@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.io;
 
+import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 
 import java.io.ByteArrayInputStream;
@@ -24,6 +25,7 @@ import java.nio.channels.ReadableByteChannel;
 public final class MockBlockReader extends BlockReader {
   private final byte[] mBytes;
   private boolean mClosed;
+  private int mPosition = 0;
 
   /**
    * Constructs a mock block reader which will read the given data.
@@ -47,8 +49,15 @@ public final class MockBlockReader extends BlockReader {
 
   @Override
   public int transferTo(ByteBuf buf) {
+    if (mPosition == mBytes.length) {
+      return -1;
+    }
     int remaining = buf.readableBytes();
-    return buf.writeBytes(mBytes).readableBytes() - remaining;
+    int bytesToRead = Math.min(mBytes.length - mPosition, buf.writableBytes());
+    int bytesRead = buf.writeBytes(mBytes, mPosition, bytesToRead).readableBytes() - remaining;
+    Preconditions.checkState(bytesRead == bytesToRead, "bytes read mismatch");
+    mPosition += bytesRead;
+    return bytesRead;
   }
 
   @Override
