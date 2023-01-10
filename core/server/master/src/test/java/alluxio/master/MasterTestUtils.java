@@ -66,6 +66,7 @@ public final class MasterTestUtils {
       InodeStore.Factory inodeStoreFactory) {
     return CoreMasterContext.newBuilder()
         .setJournalSystem(journalSystem)
+        .setPrimarySelector(new AlwaysStandbyPrimarySelector())
         .setUserState(userState)
         .setSafeModeManager(new TestSafeModeManager())
         .setBackupManager(mock(BackupManager.class))

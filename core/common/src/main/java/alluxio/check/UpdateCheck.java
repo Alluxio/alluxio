@@ -15,6 +15,7 @@ import alluxio.ProjectConstants;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.util.EnvironmentUtils;
 import alluxio.util.FeatureUtils;
+import alluxio.util.OSUtils;
 
 import com.amazonaws.util.EC2MetadataUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -39,15 +40,23 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class UpdateCheck {
-  static final String BACKUP_DELEGATION_KEY = "backupDelegation";
+  public static final String USER_AGENT_SEPARATOR = ";";
+
+  static final String PRODUCT_CODE_FORMAT = "ProductCode:%s";
+  static final String OS_FORMAT = "OS:%s";
+
+  // Launch environment
   static final String CFT_KEY = "cft";
-  static final String DAILY_BACKUP_KEY = "dailyBackup";
   static final String DOCKER_KEY = "docker";
   static final String EC2_KEY = "ec2";
   static final String EMBEDDED_KEY = "embedded";
   static final String EMR_KEY = "emr";
   static final String GCE_KEY = "gce";
   static final String KUBERNETES_KEY = "kubernetes";
+
+  // Feature
+  static final String BACKUP_DELEGATION_KEY = "backupDelegation";
+  static final String DAILY_BACKUP_KEY = "dailyBackup";
   static final String MASTER_AUDIT_LOG_KEY = "masterAuditLog";
   static final String PERSIST_BLACK_LIST_KEY = "persistBlackList";
   static final String PAGE_STORE_KEY = "pageStore";
@@ -55,8 +64,6 @@ public final class UpdateCheck {
   static final String BLOCK_METASTORE_ROCKS_KEY = "blockRocks";
   static final String UNSAFE_PERSIST_KEY = "unsafePersist";
   static final String ZOOKEEPER_KEY = "zookeeper";
-
-  static final String PRODUCT_CODE_FORMAT = "ProductCode:%s";
 
   /**
    * @param id the id of the current Alluxio identity (e.g. cluster id, instance id)
@@ -115,7 +122,7 @@ public final class UpdateCheck {
     addUserAgentFeatures(info);
     info.addAll(additionalInfo);
     return String.format("Alluxio/%s (%s)", ProjectConstants.VERSION,
-        Joiner.on("; ").skipNulls().join(info));
+        Joiner.on(USER_AGENT_SEPARATOR + " ").skipNulls().join(info));
   }
 
   /**
@@ -125,6 +132,7 @@ public final class UpdateCheck {
    */
   @VisibleForTesting
   public static void addUserAgentEnvironments(List<String> info) {
+    info.add(String.format(OS_FORMAT, OSUtils.OS_NAME));
     if (EnvironmentUtils.isDocker()) {
       info.add(DOCKER_KEY);
     }
@@ -164,7 +172,7 @@ public final class UpdateCheck {
    * @param features feature list
    * @param featureName feature name
    */
-  private static void addIfTrue(boolean valid, List<String> features, String featureName) {
+  public static void addIfTrue(boolean valid, List<String> features, String featureName) {
     if (valid) {
       features.add(featureName);
     }

@@ -20,6 +20,7 @@ import alluxio.clock.ManualClock;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -129,6 +130,40 @@ public class BlockMasterTest {
   @After
   public void after() throws Exception {
     mRegistry.stop();
+  }
+
+  @Test
+  public void buildVersion() throws Exception {
+    long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
+
+    // Sequence to simulate worker upgrade and downgrade,
+    // with or without buildVersion in registerWorkerPOptions
+    BuildVersion[] buildVersions = new BuildVersion[]{
+        null,
+        BuildVersion.newBuilder().setVersion("1.0.0")
+            .setRevision("foobar").build(),
+        BuildVersion.newBuilder().setVersion("1.1.0")
+            .setRevision("fizzbuzz").build(),
+        null,
+    };
+
+    for (BuildVersion bv : buildVersions) {
+      RegisterWorkerPOptions options = (bv == null)
+          ? RegisterWorkerPOptions.getDefaultInstance()
+          : RegisterWorkerPOptions.newBuilder().setBuildVersion(bv).build();
+
+      mBlockMaster.workerRegister(worker1,
+          ImmutableList.of(Constants.MEDIUM_MEM),
+          ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
+          ImmutableMap.of(Constants.MEDIUM_MEM, 10L),
+          NO_BLOCKS_ON_LOCATION,
+          NO_LOST_STORAGE,
+          options);
+
+      BuildVersion actual = mBlockMaster.getWorker(worker1).getBuildVersion();
+      assertEquals(bv == null ? "" : bv.getVersion(), actual.getVersion());
+      assertEquals(bv == null ? "" : bv.getRevision(), actual.getRevision());
+    }
   }
 
   @Test

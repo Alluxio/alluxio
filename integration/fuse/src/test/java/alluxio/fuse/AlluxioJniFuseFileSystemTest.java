@@ -43,8 +43,10 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
+import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.LibFuse;
@@ -94,7 +96,8 @@ public class AlluxioJniFuseFileSystemTest {
   public ConfigurationRule mConfiguration =
       new ConfigurationRule(ImmutableMap.of(PropertyKey.FUSE_CACHED_PATHS_MAX, 0,
           PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, TEST_ROOT_PATH,
-          PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT), mConf);
+          PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT,
+          PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 0), mConf);
 
   @Before
   public void before() throws Exception {
@@ -104,7 +107,7 @@ public class AlluxioJniFuseFileSystemTest {
     LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
     try {
       mFuseFs = new AlluxioJniFuseFileSystem(
-          mFileSystemContext, mFileSystem);
+          mFileSystemContext, mFileSystem, FuseOptions.create(mConf));
     } catch (UnsatisfiedLinkError e) {
       // stop test and ignore if FuseFileSystem fails to create due to missing libfuse library
       Assume.assumeNoException(e);
@@ -399,9 +402,11 @@ public class AlluxioJniFuseFileSystemTest {
     setUpOpenMock(expectedPath);
 
     FileInStream is = mock(FileInStream.class);
-    when(mFileSystem.openFile(expectedPath)).thenReturn(is);
+    URIStatus status = mFileSystem.getStatus(expectedPath);
+    OpenFilePOptions options = OpenFilePOptions.getDefaultInstance();
+    when(mFileSystem.openFile(status, options)).thenReturn(is);
     mFuseFs.open("/foo/bar", mFileInfo);
-    verify(mFileSystem).openFile(expectedPath);
+    verify(mFileSystem).openFile(status, options);
   }
 
   @Test
@@ -411,7 +416,7 @@ public class AlluxioJniFuseFileSystemTest {
     fi.setCompleted(false);
 
     when(mFileSystem.openFile(expectedPath)).thenThrow(new FileIncompleteException(expectedPath));
-    assertEquals(-ErrorCodes.EIO(), mFuseFs.open("/foo/bar", mFileInfo));
+    assertEquals(-ErrorCodes.ENOSYS(), mFuseFs.open("/foo/bar", mFileInfo));
   }
 
   @Test
@@ -431,7 +436,8 @@ public class AlluxioJniFuseFileSystemTest {
           return 4;
         });
 
-    when(mFileSystem.openFile(expectedPath)).thenReturn(fakeInStream);
+    when(mFileSystem.openFile(mFileSystem.getStatus(expectedPath),
+        OpenFilePOptions.getDefaultInstance())).thenReturn(fakeInStream);
     mFileInfo.flags.set(O_RDONLY.intValue());
 
     // prepare something to read to it

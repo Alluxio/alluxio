@@ -108,6 +108,10 @@
               {
                 "name": "BLOCK_COUNT",
                 "integer": 10
+              },
+              {
+                "name": "BUILD_VERSION",
+                "integer": 11
               }
             ]
           }
@@ -278,6 +282,11 @@
                 "id": 7,
                 "name": "startTimeMs",
                 "type": "int64"
+              },
+              {
+                "id": 10,
+                "name": "buildVersion",
+                "type": "BuildVersion"
               }
             ],
             "maps": [
@@ -658,6 +667,21 @@
             ]
           },
           {
+            "name": "BuildVersion",
+            "fields": [
+              {
+                "id": 1,
+                "name": "version",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "revision",
+                "type": "string"
+              }
+            ]
+          },
+          {
             "name": "RegisterWorkerPOptions",
             "fields": [
               {
@@ -665,6 +689,11 @@
                 "name": "configs",
                 "type": "grpc.ConfigProperty",
                 "is_repeated": true
+              },
+              {
+                "id": 2,
+                "name": "buildVersion",
+                "type": "BuildVersion"
               }
             ]
           },
@@ -1337,6 +1366,11 @@
             "name": "BlockWorker",
             "rpcs": [
               {
+                "name": "GetStatus",
+                "in_type": "grpc.file.GetStatusPRequest",
+                "out_type": "grpc.file.GetStatusPResponse"
+              },
+              {
                 "name": "ReadBlock",
                 "in_type": "ReadRequest",
                 "out_type": "ReadResponse",
@@ -1408,6 +1442,9 @@
           },
           {
             "path": "grpc/common.proto"
+          },
+          {
+            "path": "grpc/file_system_master.proto"
           }
         ],
         "package": {
@@ -7887,9 +7924,6 @@
         ],
         "imports": [
           {
-            "path": "grpc/common.proto"
-          },
-          {
             "path": "grpc/job_master.proto"
           }
         ],
@@ -9569,9 +9603,6 @@
           }
         ],
         "imports": [
-          {
-            "path": "grpc/common.proto"
-          },
           {
             "path": "proto/shared/acl.proto"
           }

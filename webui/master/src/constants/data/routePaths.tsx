@@ -20,4 +20,5 @@ export const routePaths = {
   workers: '/workers',
   stacks: '/stacks',
   mounttable: '/mounttable',
+  masters: '/masters',
 };

@@ -46,6 +46,9 @@ import { mountTableSaga } from './mounttable/sagas';
 import { stackSaga } from '@alluxio/common-ui/src/store/stacks/sagas';
 import { IStacksState } from '@alluxio/common-ui/src/store/stacks/types';
 import { initialStacksState, stacksReducer } from '@alluxio/common-ui/src/store/stacks/reducer';
+import { initialMastersState, mastersReducer } from './masters/reducer';
+import { mastersSaga } from './masters/sagas';
+import { IMastersState } from './masters/types';
 
 export interface IApplicationState {
   browse: IBrowseState;
@@ -57,6 +60,7 @@ export interface IApplicationState {
   overview: IOverviewState;
   refresh: IRefreshState;
   router?: RouterState;
+  masters: IMastersState;
   workers: IWorkersState;
   stacks: IStacksState;
   mountTable: IMountTableState;
@@ -74,6 +78,7 @@ export const rootReducer = (history: History): Reducer<IApplicationState> =>
     refresh: refreshReducer,
     router: connectRouter(history),
     stacks: stacksReducer,
+    masters: mastersReducer,
     workers: workersReducer,
     mountTable: mountTableReducer,
   });
@@ -88,6 +93,7 @@ export const rootSaga = function*(): IterableIterator<AllEffect<ForkEffect>> {
     fork(metricsSaga),
     fork(overviewSaga),
     fork(stackSaga),
+    fork(mastersSaga),
     fork(workersSaga),
     fork(mountTableSaga),
   ]);
@@ -103,6 +109,7 @@ export const initialState: IApplicationState = {
   overview: initialOverviewState,
   refresh: initialRefreshState,
   stacks: initialStacksState,
+  masters: initialMastersState,
   workers: initialWorkersState,
   mountTable: initialMountTableState,
 };

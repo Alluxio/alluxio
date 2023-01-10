@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.collections.Pair;
+import alluxio.concurrent.ClientRWLock;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockDoesNotExistException;
@@ -58,6 +59,8 @@ public final class BlockLockManager {
    * The unique id of each lock.
    */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
+  private static final int MAX_READERS = Configuration.getInt(
+      PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCK_READERS);
 
   /**
    * A pool of read write locks.
@@ -70,7 +73,7 @@ public final class BlockLockManager {
 
     @Override
     public ClientRWLock createNewResource() {
-      return new ClientRWLock();
+      return new ClientRWLock(MAX_READERS);
     }
   };
 

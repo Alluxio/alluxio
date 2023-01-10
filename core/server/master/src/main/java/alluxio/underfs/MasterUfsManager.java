@@ -21,6 +21,7 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.recorder.Recorder;
 import alluxio.resource.CloseableIterator;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -61,7 +62,13 @@ public final class MasterUfsManager extends AbstractUfsManager implements Delega
   @Override
   public synchronized void addMount(long mountId, final AlluxioURI ufsUri,
       final UnderFileSystemConfiguration ufsConf) {
-    super.addMount(mountId, ufsUri, ufsConf);
+    addMountWithRecorder(mountId, ufsUri, ufsConf, Recorder.noopRecorder());
+  }
+
+  @Override
+  public synchronized void addMountWithRecorder(long mountId, final AlluxioURI ufsUri,
+      final UnderFileSystemConfiguration ufsConf, Recorder recorder) {
+    super.addMountWithRecorder(mountId, ufsUri, ufsConf, recorder);
     String root = ufsUri.getRootPath();
     mUfsRoots.add(root);
     mIdToRoot.put(mountId, root);

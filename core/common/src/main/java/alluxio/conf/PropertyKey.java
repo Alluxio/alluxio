@@ -667,9 +667,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.METRICS_EXECUTOR_TASK_WARN_SIZE)
           .setDefaultValue(1000)
           .setDescription(String.format("When instrumenting an executor with"
-                  + " InstrumentedExecutorService, if the number of"
-                  + " active tasks (queued or running) is greater than this value, a warning log"
-                  + " will be printed at the interval given by %s",
+              + " InstrumentedExecutorService, if the number of"
+              + " active tasks (queued or running) is greater than this value, a warning log"
+              + " will be printed at the interval given by %s",
               Name.METRICS_EXECUTOR_TASK_WARN_FREQUENCY))
           .setScope(Scope.ALL)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
@@ -678,9 +678,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       durationBuilder(Name.METRICS_EXECUTOR_TASK_WARN_FREQUENCY)
           .setDefaultValue("5sec")
           .setDescription(String.format("When instrumenting an executor with"
-                  + "InstrumentedExecutorService, if the number of"
-                  + " active tasks (queued or running) is greater than %s value, a warning log"
-                  + " will be printed at the given interval",
+              + "InstrumentedExecutorService, if the number of"
+              + " active tasks (queued or running) is greater than %s value, a warning log"
+              + " will be printed at the given interval",
               Name.METRICS_EXECUTOR_TASK_WARN_SIZE))
           .setScope(Scope.ALL)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
@@ -2226,6 +2226,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_UNSAFE_FLUSH_ENABLED =
+      booleanBuilder(Name.MASTER_EMBEDDED_JOURNAL_UNSAFE_FLUSH_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If true, embedded journal entries will be committed without "
+              + "waiting for the entry to be flushed to disk. This may improve performance "
+              + "of write operations on the Alluxio master if the journal is written to a "
+              + "slow or contested disk. WARNING: enabling this property may result in metadata "
+              + "loss if half or more of the master nodes fail. See Ratis property "
+              + "raft.server.log.unsafe-flush.enabled at "
+              + "https://github.com/apache/ratis/blob/master/ratis-docs/src/site/markdown/configuraions.md.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED =
       booleanBuilder(Name.MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED)
           .setDefaultValue(false)
@@ -3537,6 +3550,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("100ms")
           .setDescription("The timeout for a metadata fetch operation from the UFSes. "
               + "Adjust this timeout according to the expected UFS worst-case response time.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_IGNORE_TTL =
+      booleanBuilder(Name.MASTER_METADATA_SYNC_IGNORE_TTL)
+          .setDefaultValue(false)
+          .setDescription("Whether files created from metadata sync will ignore the TTL from the "
+              + "command/path conf and have no TTL.")
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
@@ -5744,7 +5765,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS)
           .setDefaultValue(6)
           .setDescription(
-                  "The number of bits of each item's clock field.")
+              "The number of bits of each item's clock field.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -5752,7 +5773,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS)
           .setDefaultValue(20)
           .setDescription(
-                  "The number of bits of each item's size field.")
+              "The number of bits of each item's size field.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -5760,7 +5781,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS)
           .setDefaultValue(8)
           .setDescription(
-                  "The number of bits of each item's scope field.")
+              "The number of bits of each item's scope field.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -5960,30 +5981,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_METADATA_CACHE_ENABLED =
-      booleanBuilder(Name.USER_METADATA_CACHE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("If this is enabled, metadata of paths will be cached. "
-              + "The cached metadata will be evicted when it expires after "
-              + Name.USER_METADATA_CACHE_EXPIRATION_TIME
-              + " or the cache size is over the limit of "
-              + Name.USER_METADATA_CACHE_MAX_SIZE + ".")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_METADATA_CACHE_MAX_SIZE =
       intBuilder(Name.USER_METADATA_CACHE_MAX_SIZE)
-          .setDefaultValue(100000)
-          .setDescription("Maximum number of paths with cached metadata. Only valid if "
-              + "alluxio.user.metadata.cache.enabled is set to true.")
+          .setDefaultValue(0)
+          .setDescription(String.format("Maximum number of paths with cached metadata."
+              + "The cached metadata will be evicted when it expires after %s "
+              + "or the cache size is over the limit of %s. "
+              + "Each 1000 entries cost around 2MB memory. "
+              + "Recommend using 20,000 entries are cached "
+              + "with around 40MB memory consumption for FUSE client.",
+              Name.USER_METADATA_CACHE_EXPIRATION_TIME,
+              Name.USER_METADATA_CACHE_MAX_SIZE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_METADATA_CACHE_EXPIRATION_TIME =
       durationBuilder(Name.USER_METADATA_CACHE_EXPIRATION_TIME)
-          .setDefaultValue("10min")
           .setDescription("Metadata will expire and be evicted after being cached for this time "
-              + "period. Only valid if alluxio.user.metadata.cache.enabled is set to true.")
+              + "period. If the value is not set, metadata will not be expired "
+              + "and will only be evicted after reaching the " + Name.USER_METADATA_CACHE_MAX_SIZE)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -6594,9 +6610,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey FUSE_JNIFUSE_LIBFUSE_VERSION =
       intBuilder(Name.FUSE_JNIFUSE_LIBFUSE_VERSION)
-          .setDefaultValue(2)
+          .setDefaultValue(3)
           .setDescription("The version of libfuse used by libjnifuse. "
-              + "Libfuse2 and Libfuse3 are supported.")
+              + "Libfuse2 (value=\"2\") and Libfuse3 (value=\"3\", default value) are supported.")
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey FUSE_SHARED_CACHING_READER_ENABLED =
@@ -6621,8 +6637,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setAlias(Name.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
           .setDefaultValue("/")
           .setDescription(format("The Alluxio path to mount to the given "
-                  + "Fuse mount point configured by %s in the worker when %s is enabled "
-                  + "or in the standalone Fuse process.",
+              + "Fuse mount point configured by %s in the worker when %s is enabled "
+              + "or in the standalone Fuse process.",
               Name.FUSE_MOUNT_POINT, Name.WORKER_FUSE_ENABLED))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
@@ -6630,7 +6646,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey FUSE_MOUNT_OPTIONS =
       listBuilder(Name.FUSE_MOUNT_OPTIONS)
           .setAlias(Name.WORKER_FUSE_MOUNT_OPTIONS)
-          .setDefaultValue("direct_io")
+          .setDefaultValue("attr_timeout=600,entry_timeout=600")
           .setDescription("The platform specific Fuse mount options "
               + "to mount the given Fuse mount point. "
               + "If multiple mount options are provided, separate them with comma.")
@@ -6812,8 +6828,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       durationBuilder(Name.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD)
           .setDefaultValue("3day")
           .setDescription("Interval for which client channels that have been inactive "
-                  + "will be regarded as unauthenticated. Such channels will reauthenticate with "
-                  + "their target master upon being used for new RPCs.")
+              + "will be regarded as unauthenticated. Such channels will reauthenticate with "
+              + "their target master upon being used for new RPCs.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
@@ -7050,11 +7066,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey JOB_MASTER_RPC_ADDRESSES =
       listBuilder(Name.JOB_MASTER_RPC_ADDRESSES)
           .setDescription(format("A list of comma-separated host:port RPC addresses where "
-                  + "the client should look for job masters when using multiple job masters "
-                  + "without Zookeeper. This property is not used "
-                  + "when Zookeeper is enabled, since Zookeeper already stores the job master "
-                  + "addresses. If property is not defined, clients will look for job masters "
-                  + "using [%s]:%s first, then for [%s]:%s.",
+              + "the client should look for job masters when using multiple job masters "
+              + "without Zookeeper. This property is not used "
+              + "when Zookeeper is enabled, since Zookeeper already stores the job master "
+              + "addresses. If property is not defined, clients will look for job masters "
+              + "using [%s]:%s first, then for [%s]:%s.",
               Name.MASTER_RPC_ADDRESSES, Name.JOB_MASTER_RPC_PORT,
               Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES, Name.JOB_MASTER_RPC_PORT))
           .setScope(Scope.ALL)
@@ -7253,26 +7269,26 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .build();
   public static final PropertyKey HADOOP_SECURITY_AUTHENTICATION =
-          stringBuilder(Name.HADOOP_SECURITY_AUTHENTICATION)
-                  .setDescription("HDFS authentication method.")
-                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-                  .setScope(Scope.SERVER)
-                  .build();
+      stringBuilder(Name.HADOOP_SECURITY_AUTHENTICATION)
+          .setDescription("HDFS authentication method.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
 
   public static final PropertyKey HADOOP_KRB5_CONF_FILE =
-          stringBuilder(Name.HADOOP_KRB5_CONF_KEY_FILE)
-                  .setDescription("Kerberos krb file for configuration of Kerberos.")
-                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-                  .setScope(Scope.SERVER)
-                  .setValueValidationFunction(CHECK_FILE_EXISTS)
-                  .build();
+      stringBuilder(Name.HADOOP_KRB5_CONF_KEY_FILE)
+          .setDescription("Kerberos krb file for configuration of Kerberos.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .setValueValidationFunction(CHECK_FILE_EXISTS)
+          .build();
 
   public static final PropertyKey HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL =
-          booleanBuilder(Name.HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL)
-                  .setDescription("Kerberos authentication keytab login auto renew.")
-                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-                  .setScope(Scope.SERVER)
-                  .build();
+      booleanBuilder(Name.HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL)
+          .setDescription("Kerberos authentication keytab login auto renew.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
 
   public static final PropertyKey USER_NETTY_DATA_TRANSMISSION_ENABLED =
       booleanBuilder(Name.USER_NETTY_DATA_TRANSMISSION_ENABLED)
@@ -7771,6 +7787,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.port";
     public static final String MASTER_EMBEDDED_JOURNAL_RETRY_CACHE_EXPIRY_TIME =
         "alluxio.master.embedded.journal.retry.cache.expiry.time";
+    public static final String MASTER_EMBEDDED_JOURNAL_UNSAFE_FLUSH_ENABLED =
+        "alluxio.master.embedded.journal.unsafe.flush.enabled";
     public static final String MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED =
         "alluxio.master.embedded.journal.write.local.first.enabled";
     public static final String MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED =
@@ -7816,6 +7834,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.ufs.prefetch.status";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
         "alluxio.master.metadata.sync.ufs.prefetch.timeout";
+    public static final String MASTER_METADATA_SYNC_IGNORE_TTL =
+        "alluxio.master.metadata.sync.ignore.ttl";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_INODE = "alluxio.master.metastore.inode";
     public static final String MASTER_METASTORE_BLOCK = "alluxio.master.metastore.block";
@@ -8371,6 +8391,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
     public static final String PROXY_AUDIT_LOGGING_ENABLED =
         "alluxio.proxy.audit.logging.enabled";
+    public static final String S3_UPLOADS_ID_XATTR_KEY = "s3_uploads_mulitpartupload_id";
 
     //
     // Locality related properties

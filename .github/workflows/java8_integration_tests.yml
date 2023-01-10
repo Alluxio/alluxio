@@ -23,10 +23,6 @@ jobs:
           - >-
             alluxio.job.**,alluxio.master.**,alluxio.stress.**
           - >-
-            alluxio.server.ft.**,!alluxio.server.ft.journal.raft.**,!alluxio.server.ft.journal.ufs.**
-          - >-
-            alluxio.server.ft.journal.raft.**,alluxio.server.ft.journal.ufs.**
-          - >-
             alluxio.server.**,!alluxio.server.ft.**
 
     runs-on: ubuntu-latest

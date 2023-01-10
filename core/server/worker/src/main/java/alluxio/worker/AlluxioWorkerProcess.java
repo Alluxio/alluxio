@@ -30,7 +30,6 @@ import alluxio.web.WebServer;
 import alluxio.web.WorkerWebServer;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.BlockWorker;
 import alluxio.worker.grpc.GrpcDataServer;
 import alluxio.worker.netty.NettyDataServer;
 
@@ -120,7 +119,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mWebServer =
           new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
               Configuration.global()), this,
-              mRegistry.get(BlockWorker.class));
+              mRegistry.get(DataWorker.class));
 
       // Random port binding.
       int bindPort;
@@ -273,7 +272,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
     // Start serving RPC, this will block
     LOG.info("Alluxio worker started. id={}, bindHost={}, connectHost={}, rpcPort={}, webPort={}",
-        mRegistry.get(BlockWorker.class).getWorkerId(),
+        mRegistry.get(DataWorker.class).getWorkerId(),
         NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, Configuration.global()),
         NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, Configuration.global()),
         NetworkAddressUtils.getPort(ServiceType.WORKER_RPC, Configuration.global()),
@@ -342,7 +341,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   public boolean waitForReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",
-          () -> isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
+          () -> isServing() && mRegistry.get(DataWorker.class).getWorkerId() != null
               && mWebServer != null && mWebServer.getServer().isRunning(),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;

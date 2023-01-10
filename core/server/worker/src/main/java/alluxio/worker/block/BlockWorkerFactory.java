@@ -17,6 +17,8 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
 import alluxio.underfs.UfsManager;
+import alluxio.worker.DataWorker;
+import alluxio.worker.Worker;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.WorkerRegistry;
 import alluxio.worker.file.FileSystemMasterClient;
@@ -42,11 +44,11 @@ public final class BlockWorkerFactory implements WorkerFactory {
 
   @Override
   public boolean isEnabled() {
-    return true;
+    return !Configuration.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
   }
 
   @Override
-  public BlockWorker create(WorkerRegistry registry, UfsManager ufsManager) {
+  public Worker create(WorkerRegistry registry, UfsManager ufsManager) {
     BlockMasterClientPool blockMasterClientPool = new BlockMasterClientPool();
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
     BlockStore blockStore;
@@ -59,7 +61,8 @@ public final class BlockWorkerFactory implements WorkerFactory {
       case FILE:
         LOG.info("Creating DefaultBlockWorker");
         blockStore =
-            new MonoBlockStore(new TieredBlockStore(), blockMasterClientPool, ufsManager, workerId);
+            new MonoBlockStore(new TieredBlockStore(), blockMasterClientPool, ufsManager,
+                workerId);
         break;
       default:
         throw new UnsupportedOperationException("Unsupported block store type.");
@@ -69,6 +72,7 @@ public final class BlockWorkerFactory implements WorkerFactory {
             MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build()),
         new Sessions(), blockStore, workerId);
     registry.add(BlockWorker.class, blockWorker);
+    registry.addAlias(DataWorker.class, blockWorker);
     return blockWorker;
   }
 }

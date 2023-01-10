@@ -36,7 +36,10 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
+import alluxio.underfs.FileId;
+import alluxio.underfs.UfsIOManager;
 import alluxio.underfs.UfsManager;
+import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -343,8 +346,8 @@ public class MonoBlockStore implements BlockStore {
       }
       ByteBuffer buf = NioDirectBufferPool.acquire((int) blockSize);
       CompletableFuture<Void> future = RetryUtils.retryCallable("read from ufs",
-              () -> manager.read(buf, block.getOffsetInFile(), blockSize, blockId,
-                  block.getUfsPath(), options),
+              () -> manager.read(buf, block.getOffsetInFile(), blockSize,
+                  FileId.of(IdUtils.fileIdFromBlockId(blockId)), block.getUfsPath(), options),
               new ExponentialBackoffRetry(1000, 5000, 5))
           // use orTimeout in java 11
           .applyToEither(timeoutAfter(LOAD_TIMEOUT, TimeUnit.MILLISECONDS), d -> d)

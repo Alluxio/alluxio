@@ -15,6 +15,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.executor.ExecutorServiceBuilder;
+import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
@@ -29,6 +30,7 @@ import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.WorkerProcess;
 
+import io.grpc.MethodDescriptor;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -42,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -65,6 +68,9 @@ public final class GrpcDataServer implements DataServer {
       Configuration.getBytes(PropertyKey.WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE);
   private static final long SHUTDOWN_QUIET_PERIOD =
       Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
+
+  private static final boolean DORA_WORKER_ENABLED =
+      Configuration.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
 
   private final SocketAddress mSocketAddress;
   private EventLoopGroup mBossGroup;
@@ -94,14 +100,26 @@ public final class GrpcDataServer implements DataServer {
       if (bindAddress instanceof DomainSocketAddress) {
         mDomainSocketAddress = (DomainSocketAddress) bindAddress;
       }
-      BlockWorkerClientServiceHandler blockWorkerService =
-          new BlockWorkerClientServiceHandler(
-              workerProcess, mDomainSocketAddress != null);
+      BlockWorkerGrpc.BlockWorkerImplBase blockWorkerService;
+      Map<MethodDescriptor, MethodDescriptor> overriddenMethods;
+      if (DORA_WORKER_ENABLED) {
+        blockWorkerService =
+            new DoraWorkerClientServiceHandler(
+                workerProcess);
+        overriddenMethods = ((DoraWorkerClientServiceHandler) blockWorkerService)
+            .getOverriddenMethodDescriptors();
+      } else {
+        blockWorkerService =
+            new BlockWorkerClientServiceHandler(
+                workerProcess, mDomainSocketAddress != null);
+        overriddenMethods = ((BlockWorkerClientServiceHandler) blockWorkerService)
+            .getOverriddenMethodDescriptors();
+      }
       mServer = createServerBuilder(hostName, bindAddress, NettyUtils.getWorkerChannel(
           Configuration.global()))
           .addService(ServiceType.BLOCK_WORKER_CLIENT_SERVICE, new GrpcService(
               GrpcSerializationUtils.overrideMethods(blockWorkerService.bindService(),
-                  blockWorkerService.getOverriddenMethodDescriptors())
+                  overriddenMethods)
           ))
           .flowControlWindow((int) FLOWCONTROL_WINDOW)
           .keepAliveTime(KEEPALIVE_TIME_MS, TimeUnit.MILLISECONDS)

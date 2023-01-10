@@ -11,12 +11,14 @@
 
 package alluxio.worker.block;
 
+import alluxio.ProjectConstants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.InternalException;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -125,7 +127,12 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     mTotalBytesOnTiers = totalBytesOnTiers;
     mUsedBytesOnTiers = usedBytesOnTiers;
 
-    mOptions = RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
+    final BuildVersion buildVersion = BuildVersion.newBuilder()
+        .setVersion(ProjectConstants.VERSION)
+        .setRevision(ProjectConstants.REVISION)
+        .build();
+    mOptions = RegisterWorkerPOptions.newBuilder().addAllConfigs(configList)
+        .setBuildVersion(buildVersion).build();
     mLostStorageMap = lostStorage.entrySet().stream()
         .collect(Collectors.toMap(Map.Entry::getKey,
             e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
