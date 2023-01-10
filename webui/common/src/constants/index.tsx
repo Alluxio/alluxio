@@ -17,3 +17,4 @@ export * from './types/IFileViewData';
 export * from './types/ICounter';
 export * from './types/IRequest';
 export * from './types/ICommonState';
+export * from './types/IConfigTriple';

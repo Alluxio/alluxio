@@ -14,10 +14,10 @@ package alluxio.client.fs.concurrent;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Before;
@@ -51,12 +51,12 @@ public final class ConcurrentFileSystemMasterLoadMetadataIntegrationTest {
 
   @Before
   public void before() {
-    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
+    mFileSystem = FileSystem.Factory.create();
   }
 
   @Test
   public void loadMetadataManyDirectories() throws Exception {
-    String ufsPath = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsPath = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     for (int i = 0; i < 5000; i++) {
       Files.createDirectory(Paths.get(ufsPath, "a" + i));
     }
@@ -66,13 +66,13 @@ public final class ConcurrentFileSystemMasterLoadMetadataIntegrationTest {
 
     List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.LIST_STATUS,
-            paths.toArray(new AlluxioURI[]{}), 60 * Constants.SECOND_MS);
+            paths.toArray(new AlluxioURI[0]), 60 * Constants.SECOND_MS);
     assertEquals(Collections.EMPTY_LIST, errors);
   }
 
   @Test
   public void loadMetadataManyFiles() throws Exception {
-    String ufsPath = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsPath = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     for (int i = 0; i < 5000; i++) {
       Files.createFile(Paths.get(ufsPath, "a" + i));
     }
@@ -82,7 +82,7 @@ public final class ConcurrentFileSystemMasterLoadMetadataIntegrationTest {
 
     List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.LIST_STATUS,
-            paths.toArray(new AlluxioURI[]{}), 60 * Constants.SECOND_MS);
+            paths.toArray(new AlluxioURI[0]), 60 * Constants.SECOND_MS);
     assertEquals(Collections.EMPTY_LIST, errors);
   }
 }

@@ -19,7 +19,6 @@ import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 import java.util.List;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -33,7 +32,9 @@ public final class WorkerWebUIOverview implements Serializable {
   private List<UIUsageOnTier> mUsageOnTiers;
   private String mCapacityBytes;
   private String mUsedBytes;
+  private String mBlockCount;
   private String mVersion;
+  private String mRevision;
   private UIWorkerInfo mWorkerInfo;
 
   /**
@@ -58,6 +59,15 @@ public final class WorkerWebUIOverview implements Serializable {
    */
   public List<UIStorageDir> getStorageDirs() {
     return mStorageDirs;
+  }
+
+  /**
+   * Gets block count.
+   *
+   * @return the block count
+   */
+  public String getBlockCount() {
+    return mBlockCount;
   }
 
   /**
@@ -88,6 +98,15 @@ public final class WorkerWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets revision.
+   *
+   * @return the revision
+   */
+  public String getRevision() {
+    return mRevision;
+  }
+
+  /**
    * Gets worker info.
    *
    * @return the worker info
@@ -100,7 +119,7 @@ public final class WorkerWebUIOverview implements Serializable {
    * Sets capacity bytes.
    *
    * @param CapacityBytes the capacity bytes
-   * @return the capacity bytes
+   * @return the worker webui overview
    */
   public WorkerWebUIOverview setCapacityBytes(String CapacityBytes) {
     mCapacityBytes = CapacityBytes;
@@ -111,7 +130,7 @@ public final class WorkerWebUIOverview implements Serializable {
    * Sets storage dirs.
    *
    * @param StorageDirs the storage dirs
-   * @return the storage dirs
+   * @return the worker webui overview
    */
   public WorkerWebUIOverview setStorageDirs(List<UIStorageDir> StorageDirs) {
     mStorageDirs = StorageDirs;
@@ -122,7 +141,7 @@ public final class WorkerWebUIOverview implements Serializable {
    * Sets usage on tiers.
    *
    * @param UsageOnTiers the usage on tiers
-   * @return the usage on tiers
+   * @return the worker webui overview
    */
   public WorkerWebUIOverview setUsageOnTiers(List<UIUsageOnTier> UsageOnTiers) {
     mUsageOnTiers = UsageOnTiers;
@@ -133,7 +152,7 @@ public final class WorkerWebUIOverview implements Serializable {
    * Sets used bytes.
    *
    * @param UsedBytes the used bytes
-   * @return the used bytes
+   * @return the worker webui overview
    */
   public WorkerWebUIOverview setUsedBytes(String UsedBytes) {
     mUsedBytes = UsedBytes;
@@ -141,13 +160,35 @@ public final class WorkerWebUIOverview implements Serializable {
   }
 
   /**
+   * Sets worker block count.
+   *
+   * @param blockCount the block count on this worker
+   * @return the worker webui overview
+   */
+  public WorkerWebUIOverview setBlockCount(String blockCount) {
+    mBlockCount = blockCount;
+    return this;
+  }
+
+  /**
    * Sets version.
    *
-   * @param Version the version
-   * @return the version
+   * @param version the version
+   * @return the worker webui overview
    */
-  public WorkerWebUIOverview setVersion(String Version) {
-    mVersion = Version;
+  public WorkerWebUIOverview setVersion(String version) {
+    mVersion = version;
+    return this;
+  }
+
+  /**
+   * Sets revision.
+   *
+   * @param revision the revision
+   * @return the worker webui overview
+   */
+  public WorkerWebUIOverview setRevision(String revision) {
+    mRevision = revision;
     return this;
   }
 
@@ -155,7 +196,7 @@ public final class WorkerWebUIOverview implements Serializable {
    * Sets worker info.
    *
    * @param WorkerInfo the worker info
-   * @return the worker info
+   * @return the worker webui overview
    */
   public WorkerWebUIOverview setWorkerInfo(UIWorkerInfo WorkerInfo) {
     mWorkerInfo = WorkerInfo;
@@ -166,7 +207,10 @@ public final class WorkerWebUIOverview implements Serializable {
   public String toString() {
     return MoreObjects.toStringHelper(this).add("capacityBytes", mCapacityBytes)
         .add("storageDirs", mStorageDirs).add("usageOnTiers", mUsageOnTiers)
-        .add("usedBytes", mUsedBytes).add("version", mVersion).add("workerInfo", mWorkerInfo)
-        .toString();
+        .add("usedBytes", mUsedBytes)
+        .add("version", mVersion)
+        .add("revision", mRevision)
+        .add("workerInfo", mWorkerInfo)
+        .add("blockCount", mBlockCount).toString();
   }
 }

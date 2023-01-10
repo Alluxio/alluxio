@@ -11,8 +11,10 @@
 
 package alluxio.web;
 
+import static alluxio.Constants.REST_API_PREFIX;
+
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
@@ -36,8 +38,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-
+import java.util.EnumSet;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.DispatcherType;
 
 /**
  * Class that bootstraps and starts a web server.
@@ -46,6 +49,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class WebServer {
   private static final Logger LOG = LoggerFactory.getLogger(WebServer.class);
   private static final String DISABLED_METHODS = "TRACE,OPTIONS";
+  private static final String THREAD_DUMP_PATH = REST_API_PREFIX + "/common/thread_dump";
+  private static final String JMX_PATH = "/metrics/jmx";
 
   private final Server mServer;
   private final String mServiceName;
@@ -72,7 +77,8 @@ public abstract class WebServer {
     mServiceName = serviceName;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    int webThreadCount = ServerConfiguration.getInt(PropertyKey.WEB_THREADS);
+    threadPool.setName(mServiceName.replace(" ", "-").toUpperCase());
+    int webThreadCount = Configuration.getInt(PropertyKey.WEB_THREADS);
 
     // Jetty needs at least (1 + selectors + acceptors) threads.
     threadPool.setMinThreads(webThreadCount * 2 + 1);
@@ -106,8 +112,11 @@ public abstract class WebServer {
     for (String s : DISABLED_METHODS.split(",")) {
       disableMethod(s);
     }
-
-    mServletContextHandler.addServlet(StacksServlet.class, "/stacks");
+    mServletContextHandler.addServlet(StacksServlet.class, THREAD_DUMP_PATH);
+    mServletContextHandler.addServlet(JmxServlet.class, JMX_PATH);
+    mServletContextHandler.addFilter(CORSFilter.class, "/*",
+        EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE,
+            DispatcherType.ASYNC, DispatcherType.ERROR));
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mMetricsServlet.getHandler(), mPMetricsServlet.getHandler(),
         mServletContextHandler, new DefaultHandler()});

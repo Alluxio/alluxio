@@ -55,7 +55,7 @@ public class JournalSpaceMonitor implements HeartbeatExecutor {
    * @param configuration the current alluxio configuration
    */
   public JournalSpaceMonitor(AlluxioConfiguration configuration) {
-    this(configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER), configuration.getLong(
+    this(configuration.getString(PropertyKey.MASTER_JOURNAL_FOLDER), configuration.getInt(
         PropertyKey.MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD));
   }
 
@@ -63,7 +63,7 @@ public class JournalSpaceMonitor implements HeartbeatExecutor {
   private final long mWarnCapacityPercentThreshold;
 
   // Used to store information for metrics gauges
-  private AtomicReference<Map<String, JournalDiskInfo>> mMetricInfo = new AtomicReference();
+  private final AtomicReference<Map<String, JournalDiskInfo>> mMetricInfo = new AtomicReference<>();
 
   /**
    *
@@ -88,7 +88,7 @@ public class JournalSpaceMonitor implements HeartbeatExecutor {
    */
   @VisibleForTesting
   CommandReturn getRawDiskInfo() throws IOException {
-    return ShellUtils.execCommandWithOutput("df", "-k", "-P", mJournalPath);
+    return ShellUtils.execCommandWithOutput("df", "-k", "-P", "-T", mJournalPath);
   }
 
   /**
@@ -112,18 +112,21 @@ public class JournalSpaceMonitor implements HeartbeatExecutor {
         .filter(data -> data.size() >= 6)
         .map(data -> {
           String diskPath = data.get(0);
+          String diskType = data.get(1);
           // total size is not necessarily (used size + available size)
-          long totalSize = Long.parseLong(data.get(1));
-          long usedSize = Long.parseLong(data.get(2));
-          long availableSize = Long.parseLong(data.get(3));
-          String mountedFs = data.get(5);
-          return new JournalDiskInfo(diskPath, totalSize, usedSize, availableSize, mountedFs);
+          long totalSize = Long.parseLong(data.get(2));
+          long usedSize = Long.parseLong(data.get(3));
+          long availableSize = Long.parseLong(data.get(4));
+          String mountedFs = data.get(6);
+          return new JournalDiskInfo(
+                  diskPath, diskType, totalSize, usedSize, availableSize, mountedFs);
         }).collect(Collectors.toList());
     mMetricInfo.set(infos.stream().collect(Collectors.toMap(JournalDiskInfo::getDiskPath, f -> f)));
     infos.forEach(info -> {
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
               MetricKey.MASTER_JOURNAL_SPACE_FREE_BYTES.getName()
-                  + "Device" + MetricsSystem.escape(new AlluxioURI(info.getDiskPath()))), () -> {
+                  + "Device" + MetricsSystem.escape(
+                          new AlluxioURI(info.getDiskPathWithSchema()))), () -> {
           JournalDiskInfo metricInfo = mMetricInfo.get().get(info.getDiskPath());
           if (metricInfo != null) {
             return metricInfo.getAvailableBytes();
@@ -133,7 +136,8 @@ public class JournalSpaceMonitor implements HeartbeatExecutor {
         });
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
           MetricKey.MASTER_JOURNAL_SPACE_FREE_PERCENT.getName()
-              + "Device" + MetricsSystem.escape(new AlluxioURI(info.getDiskPath()))), () -> {
+              + "Device" + MetricsSystem.escape(
+                      new AlluxioURI(info.getDiskPathWithSchema()))), () -> {
           JournalDiskInfo metricInfo = mMetricInfo.get().get(info.getDiskPath());
           if (metricInfo != null) {
             return metricInfo.getPercentAvailable();

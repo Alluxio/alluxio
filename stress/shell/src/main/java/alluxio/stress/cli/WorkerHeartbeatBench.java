@@ -16,7 +16,6 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.USED_MEM_EMPTY;
 
 import alluxio.ClientContext;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.Command;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.Metric;
@@ -54,16 +53,15 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
   private static final List<Long> EMPTY_REMOVED_BLOCKS = ImmutableList.of();
 
   @ParametersDelegate
-  private BlockMasterBenchParameters mParameters = new BlockMasterBenchParameters();
+  private final BlockMasterBenchParameters mParameters = new BlockMasterBenchParameters();
 
-  private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
   // Worker IDs to use in the testing stage
   private Deque<Long> mWorkerPool = new ArrayDeque<>();
   // The prepared RPC contents
   private List<LocationBlockIdListEntry> mLocationBlockIdList;
 
   @Override
-  public RpcTaskResult runRPC() throws Exception {
+  public RpcTaskResult runRPC() {
     RpcTaskResult result = new RpcTaskResult();
     if (mWorkerPool == null) {
       result.addError("Worker ID pool is null");
@@ -80,7 +78,7 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
     // Use a mocked client to save conversion
     CachingBlockMasterClient client =
             new CachingBlockMasterClient(MasterClientContext
-                    .newBuilder(ClientContext.create(mConf))
+                    .newBuilder(ClientContext.create())
                     .build(), mLocationBlockIdList);
 
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
@@ -166,13 +164,18 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
         RpcBenchPreparationUtils.generateBlockIdOnTiers(mParameters.mTiers);
     BlockMasterClient client =
             new BlockMasterClient(MasterClientContext
-                    .newBuilder(ClientContext.create(mConf))
+                    .newBuilder(ClientContext.create())
                     .build());
     mLocationBlockIdList = client.convertBlockListMapToProto(blockMap);
 
-    // Prepare these block IDs concurrently
-    LOG.info("Preparing block IDs at the master");
-    RpcBenchPreparationUtils.prepareBlocksInMaster(blockMap, getPool(), mParameters.mConcurrency);
+    // The preparation is done by the invoking shell process to ensure the preparation is only
+    // done once, so skip preparation when running in job worker
+    if (!mBaseParameters.mDistributed) {
+      // Prepare these block IDs concurrently
+      LOG.info("Preparing block IDs at the master");
+      RpcBenchPreparationUtils.prepareBlocksInMaster(blockMap);
+      LOG.info("Created all blocks at the master");
+    }
 
     // Prepare simulated workers
     int numWorkers = mParameters.mConcurrency;

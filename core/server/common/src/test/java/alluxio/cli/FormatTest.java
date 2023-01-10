@@ -11,12 +11,12 @@
 
 package alluxio.cli;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
@@ -55,23 +55,23 @@ public final class FormatTest {
     };
     for (File dir : dirs) {
       workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(),
-          ServerConfiguration.global());
+          Configuration.global());
       FileUtils.createDir(PathUtils.concatPath(workerDataFolder, "subdir"));
       FileUtils.createFile(PathUtils.concatPath(workerDataFolder, "file"));
     }
-    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, dirs[0].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, dirs[1].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, dirs[2].getPath());
-        put(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(storageLevels));
+        put(PropertyKey.WORKER_TIERED_STORE_LEVELS, storageLevels);
         put(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS, perms);
       }
-    }, ServerConfiguration.global()).toResource()) {
-      Format.format(Format.Mode.WORKER, ServerConfiguration.global());
+    }, Configuration.modifiableGlobal()).toResource()) {
+      Format.format(Format.Mode.WORKER, Configuration.global());
       for (File dir : dirs) {
         workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(),
-            ServerConfiguration.global());
+            Configuration.global());
         assertTrue(FileUtils.exists(dir.getPath()));
         assertTrue(FileUtils.exists(workerDataFolder));
         assertEquals(PosixFilePermissions.fromString(perms), Files.getPosixFilePermissions(Paths
@@ -98,22 +98,23 @@ public final class FormatTest {
     // Have files of same name as the target worker data dir in each tier
     for (File dir : dirs) {
       workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(),
-          ServerConfiguration.global());
+          Configuration.global());
       FileUtils.createFile(workerDataFolder);
     }
-    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, dirs[0].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, dirs[1].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, dirs[2].getPath());
-        put(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(storageLevels));
+        put(PropertyKey.WORKER_TIERED_STORE_LEVELS, storageLevels);
       }
-    }, ServerConfiguration.global()).toResource()) {
-      final String perms = ServerConfiguration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
-      Format.format(Format.Mode.WORKER, ServerConfiguration.global());
+    }, Configuration.modifiableGlobal()).toResource()) {
+      final String perms = Configuration.getString(
+          PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
+      Format.format(Format.Mode.WORKER, Configuration.global());
       for (File dir : dirs) {
         workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(),
-            ServerConfiguration.global());
+            Configuration.global());
         assertTrue(Files.isDirectory(Paths.get(workerDataFolder)));
         assertEquals(PosixFilePermissions.fromString(perms), Files.getPosixFilePermissions(Paths
             .get(workerDataFolder)));

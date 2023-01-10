@@ -12,11 +12,12 @@
 package alluxio.master.journal;
 
 import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.concurrent.ForkJoinPoolHelper;
 import alluxio.concurrent.jsr.ForkJoinPool;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.journal.sink.JournalSink;
@@ -30,7 +31,6 @@ import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.SettableFuture;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -60,9 +59,9 @@ public final class AsyncJournalWriter {
   /**
    * Used to manage and keep track of pending callers of ::flush.
    */
-  private class FlushTicket implements ForkJoinPool.ManagedBlocker {
+  private static class FlushTicket implements ForkJoinPool.ManagedBlocker {
     private final long mTargetCounter;
-    private SettableFuture<Void> mIsCompleted;
+    private final SettableFuture<Void> mIsCompleted;
     private Throwable mError;
 
     public FlushTicket(long targetCounter) {
@@ -87,10 +86,10 @@ public final class AsyncJournalWriter {
     /**
      * Waits until the ticket has been processed.
      *
-     * PS: Blocking on this method goes through FokrJoinPool's managed blocking
+     * PS: Blocking on this method goes through {@link ForkJoinPool}'s managed blocking
      * in order to compensate the pool with more workers while it is blocked.
      *
-     * @throws Throwable
+     * @throws Throwable error
      */
     public void waitCompleted() throws Throwable {
       ForkJoinPoolHelper.safeManagedBlock(this);
@@ -126,7 +125,7 @@ public final class AsyncJournalWriter {
    * This counter is only accessed by the dedicated journal thread.
    * Invariant: {@code mWriteCounter >= mFlushCounter}
    */
-  private Long mWriteCounter;
+  private long mWriteCounter;
   /** Maximum number of nanoseconds for a batch flush. */
   private final long mFlushBatchTimeNs;
 
@@ -175,7 +174,7 @@ public final class AsyncJournalWriter {
     mFlushCounter = new AtomicLong(0);
     mWriteCounter = 0L;
     mFlushBatchTimeNs = TimeUnit.NANOSECONDS.convert(
-        ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS),
+        Configuration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS),
         TimeUnit.MILLISECONDS);
     mJournalSinks = journalSinks;
     mFlushThread.start();
@@ -203,22 +202,22 @@ public final class AsyncJournalWriter {
   public long appendEntry(JournalEntry entry) {
     // TODO(gpang): handle bounding the queue if it becomes too large.
 
-    /**
-     * Protocol for appending entries
-     *
-     * This protocol is lock free, to reduce the overhead in critical sections. It uses
-     * {@link AtomicLong} and {@link ConcurrentLinkedQueue} which are both lock-free.
-     *
-     * The invariant that must be satisfied is that the 'counter' that is returned must be
-     * greater than or equal to the actual counter of the entry in the queue.
-     *
-     * In order to guarantee the invariant, the {@link #mCounter} is incremented before adding the
-     * entry to the {@link #mQueue}. AFTER the counter is incremented, whenever the counter is
-     * read, it is guaranteed to be greater than or equal to the counter for the queue entries.
-     *
-     * Therefore, the {@link #mCounter} must be read AFTER the entry is added to the queue. The
-     * resulting read of the counter AFTER the entry is added is guaranteed to be greater than or
-     * equal to the counter for the entries in the queue.
+    /*
+      Protocol for appending entries
+
+      This protocol is lock free, to reduce the overhead in critical sections. It uses
+      {@link AtomicLong} and {@link ConcurrentLinkedQueue} which are both lock-free.
+
+      The invariant that must be satisfied is that the 'counter' that is returned must be
+      greater than or equal to the actual counter of the entry in the queue.
+
+      In order to guarantee the invariant, the {@link #mCounter} is incremented before adding the
+      entry to the {@link #mQueue}. AFTER the counter is incremented, whenever the counter is
+      read, it is guaranteed to be greater than or equal to the counter for the queue entries.
+
+      Therefore, the {@link #mCounter} must be read AFTER the entry is added to the queue. The
+      resulting read of the counter AFTER the entry is added is guaranteed to be greater than or
+      equal to the counter for the entries in the queue.
      */
     mCounter.incrementAndGet();
     mQueue.offer(entry);
@@ -235,7 +234,7 @@ public final class AsyncJournalWriter {
   }
 
   @VisibleForTesting
-  protected void stop() {
+  void stop() {
     // Set termination flag.
     mStopFlushing = true;
     // Give a permit for flush thread to run, in case it was blocked on permit.
@@ -245,7 +244,6 @@ public final class AsyncJournalWriter {
       mFlushThread.join();
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
-      return;
     } finally {
       mFlushThread = null;
       // Try to reacquire the permit.
@@ -254,12 +252,12 @@ public final class AsyncJournalWriter {
   }
 
   @VisibleForTesting
-  protected void start() {
+  void start() {
     if (mFlushThread != null) {
       close();
     }
     // Create a new thread.
-    mFlushThread = new Thread(this::doFlush);
+    mFlushThread = new Thread(this::doFlush, "AsyncJournalWriterThread-" + mJournalName);
     // Reset termination flag before starting the new thread.
     mStopFlushing = false;
     mFlushThread.start();
@@ -273,12 +271,12 @@ public final class AsyncJournalWriter {
     // Runs the loop until ::stop() is called.
     while (!mStopFlushing) {
 
-      /**
-       * Stand still unless;
-       * - queue has items
-       * - permit is given by:
-       *   - clients
-       *   -::stop()
+      /*
+        Stand still unless;
+        - queue has items
+        - permit is given by:
+          - clients
+          -::stop()
        */
       while (mQueue.isEmpty() && !mStopFlushing) {
         try {
@@ -406,6 +404,9 @@ public final class AsyncJournalWriter {
    */
   @ThreadSafe
   private static final class Metrics {
+    // Note that only counter/guage can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
     private static final Counter JOURNAL_FLUSH_FAILURE =
         MetricsSystem.counter(MetricKey.MASTER_JOURNAL_FLUSH_FAILURE.getName());
 

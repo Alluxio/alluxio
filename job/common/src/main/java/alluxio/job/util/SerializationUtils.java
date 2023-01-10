@@ -22,7 +22,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -111,5 +110,28 @@ public final class SerializationUtils {
   public static <S, T extends Serializable> Map<S, ArrayList<T>> makeValuesSerializable(
       Map<S, Collection<T>> map) {
     return Maps.transformValues(map, ArrayList::new);
+  }
+
+  /**
+   * Parse the actual JSON result from the benchmark output. Output might contain interference logs
+   * (for example, some warn level logs indicating that the listing file time is too long).
+   * @param result the output of benchmark
+   * @return the actual result in JSON format
+   */
+  public static String parseBenchmarkResult(String result) {
+    String[] taskResults = result.split("\n");
+    boolean isActualResultStart = false;
+    StringBuilder actualResult = new StringBuilder();
+
+    for (String taskResult : taskResults) {
+      if (isActualResultStart) {
+        actualResult.append(taskResult);
+      } else if (taskResult.trim().equals("{")) {
+        isActualResultStart = true;
+        // We found the start of the JSON output
+        actualResult.append(taskResult);
+      }
+    }
+    return actualResult.toString();
   }
 }

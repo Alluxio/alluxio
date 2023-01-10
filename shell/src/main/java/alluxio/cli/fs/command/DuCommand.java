@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -128,8 +127,8 @@ public final class DuCommand extends AbstractFileSystemCommand {
         if (!status.isFolder()) {
           long size = status.getLength();
           totalSize.addAndGet(size);
-          sizeInMem.addAndGet(size * status.getInMemoryPercentage());
-          sizeInAlluxio.addAndGet(size * status.getInAlluxioPercentage());
+          sizeInMem.addAndGet(size * status.getInMemoryPercentage() / 100);
+          sizeInAlluxio.addAndGet(size * status.getInAlluxioPercentage() / 100);
         }
         if (groupByWorker) {
           fillDistributionMap(distributionMap, status);
@@ -137,11 +136,11 @@ public final class DuCommand extends AbstractFileSystemCommand {
       });
       String sizeMessage = readable ? FormatUtils.getSizeFromBytes(totalSize.get())
           : String.valueOf(totalSize);
-      String inAlluxioMessage = getFormattedValues(readable, sizeInAlluxio.get() / 100,
+      String inAlluxioMessage = getFormattedValues(readable, sizeInAlluxio.get(),
           totalSize.get());
       Optional<String> inMemMessage = addMemory
-          ? Optional.of(getFormattedValues(readable, sizeInMem.get() / 100, totalSize.get()))
-              : Optional.empty();
+          ? Optional.of(getFormattedValues(readable, sizeInMem.get(), totalSize.get()))
+          : Optional.empty();
 
       printInfo(sizeMessage, inAlluxioMessage, path.toString(), inMemMessage, workerHostName);
 

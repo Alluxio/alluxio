@@ -12,13 +12,15 @@
 package alluxio.resource;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.netty.util.ResourceLeakDetector;
+import io.netty.util.ResourceLeakTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
+import javax.annotation.Nullable;
 
 /**
  * A resource lock that makes it possible to acquire and release locks using the following idiom:
@@ -28,15 +30,23 @@ import java.util.concurrent.locks.LockSupport;
  *     ...
  *   }
  * </pre>
+ *
+ * The subclasses will be tracked by the leak detector.
+ * The subclasses should call super.close() in their close(), otherwise a leak will be reported.
  */
 // extends Closeable instead of AutoCloseable to enable usage with Guava's Closer.
 public class LockResource implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(LockResource.class);
 
+  private static final ResourceLeakDetector<LockResource> DETECTOR =
+      AlluxioResourceLeakDetectorFactory.instance().newResourceLeakDetector(LockResource.class);
+
   // The lock which represents the resource. It should only be written or modified by subclasses
   // attempting to downgrade locks (see RWLockResource).
   protected Lock mLock;
   private final Runnable mCloseAction;
+  @Nullable
+  private ResourceLeakTracker<LockResource> mTracker = DETECTOR.track(this);
 
   /**
    * Creates a new instance of {@link LockResource} using the given lock.
@@ -53,7 +63,7 @@ public class LockResource implements Closeable {
    * This method may use the {@link Lock#tryLock()} method to gain ownership of the locks. The
    * reason one might want to use this is to avoid the fairness heuristics within the
    * {@link java.util.concurrent.locks.ReentrantReadWriteLock}'s NonFairSync which may block reader
-   * threads if a writer if the first in the queue.
+   * threads if a writer is the first in the queue.
    *
    * @param lock the lock to acquire
    * @param acquireLock whether to lock the lock
@@ -69,7 +79,7 @@ public class LockResource implements Closeable {
    * This method may use the {@link Lock#tryLock()} method to gain ownership of the locks. The
    * reason one might want to use this is to avoid the fairness heuristics within the
    * {@link java.util.concurrent.locks.ReentrantReadWriteLock}'s NonFairSync which may block reader
-   * threads if a writer if the first in the queue.
+   * threads if a writer is the first in the queue.
    *
    * @param lock the lock to acquire
    * @param acquireLock whether to lock the lock
@@ -112,6 +122,9 @@ public class LockResource implements Closeable {
   public void close() {
     if (mCloseAction != null) {
       mCloseAction.run();
+    }
+    if (mTracker != null) {
+      mTracker.close(this);
     }
     mLock.unlock();
   }

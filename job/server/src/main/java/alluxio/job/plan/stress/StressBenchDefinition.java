@@ -13,19 +13,20 @@ package alluxio.job.plan.stress;
 
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.PlanDefinition;
+import alluxio.job.util.SerializationUtils;
 import alluxio.resource.CloseableResource;
 import alluxio.stress.BaseParameters;
+import alluxio.stress.TaskResult;
+import alluxio.stress.job.StressBenchConfig;
 import alluxio.stress.worker.UfsIOParameters;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.JsonSerializable;
-import alluxio.stress.TaskResult;
-import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ShellUtils;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
@@ -49,8 +50,8 @@ import java.util.stream.Collectors;
 /**
  * The definition for the stress bench job, which runs distributed benchmarks.
  *
- * {@link StressBenchConfig} is the configuration class, each task takes a List<String> as a list of
- * command-line arguments to the benchmark command, and each task returns the string output.
+ * {@link StressBenchConfig} is the configuration class, each task takes a List&lt;String&gt; as a
+ * list of command-line arguments to the benchmark command, and each task returns the string output.
  */
 public final class StressBenchDefinition
     implements PlanDefinition<StressBenchConfig, ArrayList<String>, String> {
@@ -99,7 +100,7 @@ public final class StressBenchDefinition
     return result;
   }
 
-  private Map<String, String> getUfsConf(String ufsUri, RunTaskContext runTaskContext)
+  private Map<String, Object> getUfsConf(String ufsUri, RunTaskContext runTaskContext)
       throws Exception {
     Map<String, MountPointInfo> mountTable = runTaskContext.getFileSystem().getMountTable();
     for (Map.Entry<String, MountPointInfo> entry : mountTable.entrySet()) {
@@ -120,7 +121,7 @@ public final class StressBenchDefinition
   public String runTask(StressBenchConfig config, ArrayList<String> args,
       RunTaskContext runTaskContext) throws Exception {
     List<String> command = new ArrayList<>(3 + config.getArgs().size());
-    command.add(ServerConfiguration.get(PropertyKey.HOME) + "/bin/alluxio");
+    command.add(Configuration.get(PropertyKey.HOME) + "/bin/alluxio");
     command.add("runClass");
     command.add(config.getClassName());
 
@@ -169,8 +170,7 @@ public final class StressBenchDefinition
 
     command.addAll(commandArgs);
     command.addAll(args);
-    String output = ShellUtils.execCommand(command.toArray(new String[0]));
-    return output;
+    return ShellUtils.execCommand(command.toArray(new String[0]));
   }
 
   @Override
@@ -185,7 +185,8 @@ public final class StressBenchDefinition
     List<TaskResult> results = taskResults.entrySet().stream().map(
         entry -> {
           try {
-            return JsonSerializable.fromJson(entry.getValue().trim(), new TaskResult[0]);
+            String result = SerializationUtils.parseBenchmarkResult(entry.getValue().trim());
+            return JsonSerializable.fromJson(result, new TaskResult[0]);
           } catch (IOException | ClassNotFoundException e) {
             // add log here because the exception details are lost at the client side
             LOG.warn("Failed to parse result into class {}", TaskResult.class, e);

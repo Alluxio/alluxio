@@ -18,8 +18,8 @@ import static org.junit.Assert.assertNotEquals;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -36,8 +36,10 @@ import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.journal.JournalType;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.security.authentication.AuthType;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -75,18 +77,19 @@ public final class JournalSinkTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Rule
-  public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
-    {
-      put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
-      put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "20");
-      put(PropertyKey.SECURITY_AUTHENTICATION_TYPE, "NOSASL");
-      put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false");
-      put(PropertyKey.WORK_DIR,
-          AlluxioTestDirectory.createTemporaryDirectory("workdir").getAbsolutePath());
-      put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
-          .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
-    }
-  }, ServerConfiguration.global());
+  public ConfigurationRule mConfigurationRule =
+      new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+        {
+          put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+          put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "20");
+          put(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
+          put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false);
+          put(PropertyKey.WORK_DIR,
+              AlluxioTestDirectory.createTemporaryDirectory("workdir").getAbsolutePath());
+          put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
+              .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
+        }
+      }, Configuration.modifiableGlobal());
 
   @Before
   public void before() throws Exception {

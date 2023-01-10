@@ -13,7 +13,7 @@ alluxio.user.block.master.client.pool.size.min:
 alluxio.user.block.read.metrics.enabled:
   'Whether detailed block read metrics will be recorded and sink.'
 alluxio.user.block.read.retry.max.duration:
-  'N/A'
+  'This duration controls for how long Alluxio clients should tryreading a single block. If a particular block can''t be read within this duration, then the I/O will timeout.'
 alluxio.user.block.read.retry.sleep.base:
   'N/A'
 alluxio.user.block.read.retry.sleep.max:
@@ -32,8 +32,8 @@ alluxio.user.client.cache.async.write.enabled:
   'If this is enabled, cache data asynchronously.'
 alluxio.user.client.cache.async.write.threads:
   'Number of threads to asynchronously cache data.'
-alluxio.user.client.cache.dir:
-  'The directory where client-side cache is stored.'
+alluxio.user.client.cache.dirs:
+  'A list of the directories where client-side cache is stored.'
 alluxio.user.client.cache.enabled:
   'If this is enabled, data will be cached on Alluxio client.'
 alluxio.user.client.cache.eviction.retries:
@@ -44,14 +44,42 @@ alluxio.user.client.cache.evictor.lfu.logbase:
   'The log base for client cache LFU evictor bucket index.'
 alluxio.user.client.cache.evictor.nondeterministic.enabled:
   'If this is enabled, the evictor picks uniformly from the worst k elements.Currently only LRU is supported.'
+alluxio.user.client.cache.filter.class:
+  'The default cache filter caches everything'
+alluxio.user.client.cache.filter.config-file:
+  'The alluxio cache filter config file'
+alluxio.user.client.cache.instream_buffer_size:
+  'Size of the reading buffer for tiny read.'
 alluxio.user.client.cache.local.store.file.buckets:
   'The number of file buckets for the local page store of the client-side cache. It is recommended to set this to a high value if the number of unique files is expected to be high (# files / file buckets &lt;= 100,000).'
 alluxio.user.client.cache.page.size:
   'Size of each page in client-side cache.'
 alluxio.user.client.cache.quota.enabled:
   'Whether to support cache quota.'
+alluxio.user.client.cache.shadow.bloomfilter.num:
+  'The number of bloom filters used for tracking. Each tracks a segment of window'
+alluxio.user.client.cache.shadow.cuckoo.clock.bits:
+  'The number of bits of each item''s clock field.'
+alluxio.user.client.cache.shadow.cuckoo.scope.bits:
+  'The number of bits of each item''s scope field.'
+alluxio.user.client.cache.shadow.cuckoo.size.bits:
+  'The number of bits of each item''s size field.'
+alluxio.user.client.cache.shadow.cuckoo.size.encoder.enabled:
+  'The flag to enable the size encoder for cuckoo filter.'
+alluxio.user.client.cache.shadow.cuckoo.size.prefix.bits:
+  'The prefix bits length of the size field.'
+alluxio.user.client.cache.shadow.cuckoo.size.suffix.bits:
+  'The suffix bits length of the size field.'
+alluxio.user.client.cache.shadow.enabled:
+  'If this is enabled, a shadow cache will be created to tracking the working set of a past time window, and measure the hit ratio if the working set fits the cache'
+alluxio.user.client.cache.shadow.memory.overhead:
+  'The total memory overhead for bloom filters used for tracking'
+alluxio.user.client.cache.shadow.type:
+  'The type of shadow cache to be used. Valid options are `MULTIPLE_BLOOM_FILTER` (which uses a chain of bloom filters), `CLOCK_CUCKOO_FILTER` (which uses cuckoo filter with extended field).'
+alluxio.user.client.cache.shadow.window:
+  'The past time window for the shadow cache to tracking the working set, and it is in the unit of second'
 alluxio.user.client.cache.size:
-  'The maximum size of the client-side cache.'
+  'A list of maximum cache size for each cache directory.'
 alluxio.user.client.cache.store.overhead:
   'A fraction value representing the storage overhead writing to disk. For example, with 1GB allocated cache space, and 10% storage overhead we expect no more than 1024MB / (1 + 10%) user data to store.'
 alluxio.user.client.cache.store.type:
@@ -76,6 +104,8 @@ alluxio.user.file.create.ttl.action:
   'When file''s ttl is expired, the action performs on it. Options: DELETE (default) or FREE'
 alluxio.user.file.delete.unchecked:
   'Whether to check if the UFS contents are in sync with Alluxio before attempting to delete persisted directories recursively.'
+alluxio.user.file.include.operation.id:
+  'Whether to send a unique operation id with designated filesystem operations.'
 alluxio.user.file.master.client.pool.gc.interval:
   'The interval at which file system master client GC checks occur.'
 alluxio.user.file.master.client.pool.gc.threshold:
@@ -112,6 +142,12 @@ alluxio.user.file.ufs.tier.enabled:
   'When workers run out of available memory, whether the client can skip writing data to Alluxio but fallback to write to UFS without stopping the application. This property only works when the write type is ASYNC_THROUGH.'
 alluxio.user.file.waitcompleted.poll:
   'The time interval to poll a file for its completion status when using waitCompleted.'
+alluxio.user.file.write.init.max.duration:
+  'Controls how long to retry initialization of a file write, when Alluxio workers are required but not ready.'
+alluxio.user.file.write.init.sleep.max:
+  'N/A'
+alluxio.user.file.write.init.sleep.min:
+  'N/A'
 alluxio.user.file.write.tier.default:
   'The default tier for choosing a where to write a block. Valid option is any integer. Non-negative values identify tiers starting from top going down (0 identifies the first tier, 1 identifies the second tier, and so on). If the provided value is greater than the number of tiers, it identifies the last tier. Negative values identify tiers starting from the bottom going up (-1 identifies the last tier, -2 identifies the second to last tier, and so on). If the absolute value of the provided value is greater than the number of tiers, it identifies the first tier.'
 alluxio.user.file.writetype.default:
@@ -124,16 +160,14 @@ alluxio.user.local.writer.chunk.size.bytes:
   'When a client writes to a local worker, the maximum data chunk size.'
 alluxio.user.logging.threshold:
   'Logging a client RPC when it takes more time than the threshold.'
-alluxio.user.logs.dir:
-  'The path to store logs of Alluxio shell. To change its value, one can  set environment variable $ALLUXIO_USER_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.user.logs.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.user.master.polling.timeout:
   'The maximum time for a rpc client to wait for master to respond.'
 alluxio.user.metadata.cache.enabled:
   'If this is enabled, metadata of paths will be cached. The cached metadata will be evicted when it expires after alluxio.user.metadata.cache.expiration.time or the cache size is over the limit of alluxio.user.metadata.cache.max.size.'
 alluxio.user.metadata.cache.expiration.time:
-  'Metadata will expire and be evicted after being cached for this time period. Only valid if the filesystem is alluxio.client.file.MetadataCachingBaseFileSystem.'
+  'Metadata will expire and be evicted after being cached for this time period. Only valid if alluxio.user.metadata.cache.enabled is set to true.'
 alluxio.user.metadata.cache.max.size:
-  'Maximum number of paths with cached metadata. Only valid if the filesystem is alluxio.client.file.MetadataCachingBaseFileSystem.'
+  'Maximum number of paths with cached metadata. Only valid if alluxio.user.metadata.cache.enabled is set to true.'
 alluxio.user.metrics.collection.enabled:
   'Enable collecting the client-side metrics and heartbeat them to master'
 alluxio.user.metrics.heartbeat.interval:
@@ -200,6 +234,8 @@ alluxio.user.rpc.retry.max.duration:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum duration to retry for before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.'
 alluxio.user.rpc.retry.max.sleep:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum wait time in the backoff.'
+alluxio.user.rpc.shuffle.masters.enabled:
+  'Shuffle the client-side configured master rpc addresses.'
 alluxio.user.short.circuit.enabled:
   'The short circuit read/write which allows the clients to read/write data without going through Alluxio workers if the data is local is enabled if set to true.'
 alluxio.user.short.circuit.preferred:
@@ -229,7 +265,11 @@ alluxio.user.ufs.block.location.all.fallback.enabled:
 alluxio.user.ufs.block.read.concurrency.max:
   'The maximum concurrent readers for one UFS block on one Block Worker.'
 alluxio.user.ufs.block.read.location.policy:
-  'When an Alluxio client reads a file from the UFS, it delegates the read to an Alluxio worker. The client uses this policy to choose which worker to read through. Built-in choices: [<a href="https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/DeterministicHashPolicy.html">alluxio.client.block.policy.DeterministicHashPolicy</a>, <a href="https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/LocalFirstAvoidEvictionPolicy.html">alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy</a>, <a href="https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/LocalFirstPolicy.html">alluxio.client.block.policy.LocalFirstPolicy</a>, <a href="https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/MostAvailableFirstPolicy.html">alluxio.client.block.policy.MostAvailableFirstPolicy</a>, <a href="https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/RoundRobinPolicy.html">alluxio.client.block.policy.RoundRobinPolicy</a>, <a href="https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/SpecificHostPolicy.html">alluxio.client.block.policy.SpecificHostPolicy</a>].'
+  'When an Alluxio client reads a file from the UFS, it delegates the read to an Alluxio worker. The client uses this policy to choose which worker to read through. Built-in choices: [&lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/DeterministicHashPolicy.html&quot;&gt;alluxio.client.block.policy.DeterministicHashPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/LocalFirstAvoidEvictionPolicy.html&quot;&gt;alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/LocalFirstPolicy.html&quot;&gt;alluxio.client.block.policy.LocalFirstPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/MostAvailableFirstPolicy.html&quot;&gt;alluxio.client.block.policy.MostAvailableFirstPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/RoundRobinPolicy.html&quot;&gt;alluxio.client.block.policy.RoundRobinPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/SpecificHostPolicy.html&quot;&gt;alluxio.client.block.policy.SpecificHostPolicy&lt;/a&gt;].'
+alluxio.user.ufs.block.read.location.policy.cache.expiration.time:
+  'Deprecated - When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.CapacityBaseRandomPolicy, this specifies cache expire time of block location.'
+alluxio.user.ufs.block.read.location.policy.cache.size:
+  'Deprecated - When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.CapacityBaseRandomPolicy, this specifies cache size of block location.'
 alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards:
   'When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of hash shards.'
 alluxio.user.worker.list.refresh.interval:

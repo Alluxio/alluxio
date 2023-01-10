@@ -11,8 +11,10 @@
 
 package alluxio.worker.block;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import alluxio.Constants;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
@@ -27,9 +29,8 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -52,7 +53,7 @@ public final class TieredBlockStoreTestUtils {
   public static final String WORKER_DATA_FOLDER = "/alluxioworker/";
 
   /**
-   * Sets up a {@link ServerConfiguration} for a {@link TieredBlockStore} with several tiers
+   * Sets up a {@link Configuration} for a {@link TieredBlockStore} with several tiers
    * configured by the parameters. For simplicity, you can use {@link #setupDefaultConf(String)}
    * which calls this method with default values.
    *
@@ -91,9 +92,9 @@ public final class TieredBlockStoreTestUtils {
 
     tierPath = createDirHierarchy(baseDir, tierPath);
     if (workerDataFolder != null) {
-      ServerConfiguration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
+      Configuration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
     }
-    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(nTier));
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, nTier);
 
     // sets up each tier in turn
     for (int i = 0; i < nTier; i++) {
@@ -102,7 +103,7 @@ public final class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Sets up a {@link ServerConfiguration} for a {@link TieredBlockStore} with only *one tier*
+   * Sets up a {@link Configuration} for a {@link TieredBlockStore} with only *one tier*
    * configured by the parameters. For simplicity, you can use {@link #setupDefaultConf(String)}
    * which sets up the tierBlockStore with default values.
    *
@@ -124,14 +125,14 @@ public final class TieredBlockStoreTestUtils {
       tierPath = createDirHierarchy(baseDir, tierPath);
     }
     if (workerDataFolder != null) {
-      ServerConfiguration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
+      Configuration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
     }
-    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(1));
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1);
     setupConfTier(tierOrdinal, tierAlias, tierPath, tierCapacity, tierMedia);
   }
 
   /**
-   * Sets up a specific tier's {@link ServerConfiguration} for a {@link TieredBlockStore}.
+   * Sets up a specific tier's {@link Configuration} for a {@link TieredBlockStore}.
    *
    * @param tierAlias alias of the tier
    * @param tierPath absolute path of the tier
@@ -145,24 +146,21 @@ public final class TieredBlockStoreTestUtils {
     Preconditions.checkArgument(tierPath.length == tierCapacity.length,
         "tierPath and tierCapacity should have the same length");
 
-    ServerConfiguration
+    Configuration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(ordinal),
             tierAlias);
 
-    String tierPathString = StringUtils.join(tierPath, ",");
-    ServerConfiguration
+    Configuration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(ordinal),
-            tierPathString);
+            Arrays.stream(tierPath).collect(toImmutableList()));
 
-    String tierCapacityString = StringUtils.join(ArrayUtils.toObject(tierCapacity), ",");
-    ServerConfiguration
+    Configuration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(ordinal),
-            tierCapacityString);
+            Arrays.stream(tierCapacity).boxed().map(String::valueOf).collect(toImmutableList()));
 
-    String tierMediumString = StringUtils.join(tierMediumType, ",");
-    ServerConfiguration
+    Configuration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(ordinal),
-            tierMediumString);
+            Arrays.stream(tierMediumType).collect(toImmutableList()));
   }
 
   /**
@@ -230,7 +228,7 @@ public final class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Sets up a {@link ServerConfiguration} with default values of {@link #TIER_ORDINAL},
+   * Sets up a {@link Configuration} with default values of {@link #TIER_ORDINAL},
    * {@link #TIER_ALIAS}, {@link #TIER_PATH} with the baseDir as path prefix,
    * {@link #TIER_CAPACITY_BYTES}.
    *
@@ -262,7 +260,7 @@ public final class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Caches bytes into {@link BlockStore} at specific location.
+   * Caches bytes into {@link LocalBlockStore} at specific location.
    *
    * @param sessionId session who caches the data
    * @param blockId id of the cached block
@@ -271,7 +269,7 @@ public final class TieredBlockStoreTestUtils {
    * @param location the location where the block resides
    * @param pinOnCreate whether to pin block on create
    */
-  public static void cache(long sessionId, long blockId, long bytes, BlockStore blockStore,
+  public static void cache(long sessionId, long blockId, long bytes, LocalBlockStore blockStore,
       BlockStoreLocation location, boolean pinOnCreate) throws Exception {
     TempBlockMeta tempBlockMeta = blockStore.createBlock(sessionId, blockId,
         AllocateOptions.forCreate(bytes, location));
@@ -285,7 +283,7 @@ public final class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Caches bytes into {@link BlockStore} at specific location.
+   * Caches bytes into {@link LocalBlockStore} at specific location.
    *
    * @param sessionId session who caches the data
    * @param blockId id of the cached block
@@ -294,7 +292,7 @@ public final class TieredBlockStoreTestUtils {
    * @param pinOnCreate whether to pin block on create
    */
   public static void cache(long sessionId, long blockId, AllocateOptions options,
-      BlockStore blockStore, boolean pinOnCreate) throws Exception {
+      LocalBlockStore blockStore, boolean pinOnCreate) throws Exception {
     TempBlockMeta tempBlockMeta = blockStore.createBlock(sessionId, blockId, options);
     // write data
     BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta.getPath());
@@ -337,7 +335,7 @@ public final class TieredBlockStoreTestUtils {
     cache2(sessionId, blockId, bytes, dir, meta, (BlockStoreEventListener) null);
     if (iterator != null) {
       for (BlockStoreEventListener listener : iterator.getListeners()) {
-        listener.onCommitBlock(sessionId, blockId, dir.toBlockStoreLocation());
+        listener.onCommitBlock(blockId, dir.toBlockStoreLocation());
       }
     }
   }
@@ -362,7 +360,7 @@ public final class TieredBlockStoreTestUtils {
 
     // update iterator if a listener.
     if (listener != null) {
-      listener.onCommitBlock(sessionId, blockId, dir.toBlockStoreLocation());
+      listener.onCommitBlock(blockId, dir.toBlockStoreLocation());
     }
   }
 
@@ -380,7 +378,6 @@ public final class TieredBlockStoreTestUtils {
     // prepare temp block
     TempBlockMeta tempBlockMeta = new DefaultTempBlockMeta(sessionId, blockId, bytes, dir);
     dir.addTempBlockMeta(tempBlockMeta);
-
     // write data
     FileUtils.createFile(tempBlockMeta.getPath());
     BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta.getPath());

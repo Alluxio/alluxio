@@ -29,11 +29,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import io.netty.buffer.ByteBuf;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -41,7 +38,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalFileDataWriter implements DataWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(LocalFileDataWriter.class);
 
   private final long mFileBufferBytes;
   private final long mDataTimeoutMs;
@@ -82,7 +78,7 @@ public final class LocalFileDataWriter implements DataWriter {
           conf.getInt(PropertyKey.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES);
       long fileBufferBytes = conf.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
       long dataTimeout = conf.getMs(PropertyKey.USER_STREAMING_DATA_WRITE_TIMEOUT);
-      // in cases we know precise block size, make more accurate reservation.
+      // in cases where we know precise block size, make more accurate reservation.
       long reservedBytes = Math.min(blockSize, conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES));
 
       CreateLocalBlockRequest.Builder builder =
@@ -141,7 +137,7 @@ public final class LocalFileDataWriter implements DataWriter {
 
   @Override
   public void cancel() throws IOException {
-    mCloser.register(() -> mStream.cancel());
+    mCloser.register(mStream::cancel);
     mCloser.close();
   }
 
@@ -195,9 +191,9 @@ public final class LocalFileDataWriter implements DataWriter {
     mStream.send(request, mDataTimeoutMs);
     CreateLocalBlockResponse response = mStream.receive(mDataTimeoutMs);
     Preconditions.checkState(response != null,
-        String.format("Stream closed while waiting for reserve request %s", request.toString()));
+        String.format("Stream closed while waiting for reserve request %s", request));
     Preconditions.checkState(!response.hasPath(),
-        String.format("Invalid response for reserve request %s", request.toString()));
+        String.format("Invalid response for reserve request %s", request));
     mPosReserved += toReserve;
   }
 }

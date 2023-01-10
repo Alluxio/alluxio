@@ -12,7 +12,6 @@
 package alluxio.master.journalv0;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

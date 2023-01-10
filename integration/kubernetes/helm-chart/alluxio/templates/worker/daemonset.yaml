@@ -9,6 +9,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+{{- if not (eq .Values.worker.enabled false) -}}
+
 {{- $shortCircuitEnabled := .Values.shortCircuit.enabled }}
 {{- $needDomainSocketVolume := and $shortCircuitEnabled (eq .Values.shortCircuit.policy "uuid") }}
 {{- $hostNetwork := .Values.worker.hostNetwork }}
@@ -61,6 +63,7 @@ spec:
       {{- else if .Values.nodeSelector }}
 {{ toYaml .Values.nodeSelector | trim | indent 8  }}
       {{- end }}
+      shareProcessNamespace: {{ .Values.worker.shareProcessNamespace | default false }}
       tolerations:
       {{- if .Values.worker.tolerations }}
 {{ toYaml .Values.worker.tolerations | trim | indent 8  }}
@@ -72,17 +75,23 @@ spec:
         runAsUser: {{ .Values.user }}
         runAsGroup: {{ .Values.group }}
         fsGroup: {{ .Values.fsGroup }}
-    {{- if eq .Values.worker.fuseEnabled true }}
-    {{- if or (or (ne .Values.user 0.0) (ne .Values.group 0.0)) (ne .Values.fsGroup 0.0) }}
-    {{- fail ".Values.{user, group, fsGroup} have to be 0 in order to launch Fuse in worker process" }}
-    {{- end }}
-    {{- end }}
-    {{- if .Values.worker.serviceAccount }}
+      {{- if eq .Values.worker.fuseEnabled true }}
+        {{- if or (or (ne .Values.user 0.0) (ne .Values.group 0.0)) (ne .Values.fsGroup 0.0) }}
+          {{- fail ".Values.{user, group, fsGroup} have to be 0 in order to launch Fuse in worker process" }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.worker.serviceAccount }}
       serviceAccountName: {{ .Values.worker.serviceAccount }}
-    {{- else if .Values.serviceAccount }}
+      {{- else if .Values.serviceAccount }}
       serviceAccountName: {{ .Values.serviceAccount }}
-    {{- end }}
+      {{- end }}
+      {{- if .Values.imagePullSecrets }}
+{{ include "alluxio.imagePullSecrets" . | indent 6 }}
+      {{- end}}
       containers:
+        {{- if .Values.worker.extraContainers }}
+{{ include "alluxio.extraContainers" (dict "extraContainers" .Values.worker.extraContainers) | indent 8 }}
+        {{- end }}
         - name: alluxio-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -130,6 +139,7 @@ spec:
             periodSeconds: {{ .Values.worker.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.worker.readinessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.worker.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.worker.readinessProbe.successThreshold }}
           livenessProbe:
             tcpSocket:
               port: rpc
@@ -137,12 +147,24 @@ spec:
             periodSeconds: {{ .Values.worker.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.worker.livenessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.worker.livenessProbe.failureThreshold }}
+          {{- if .Values.worker.startupProbe }}
+          startupProbe:
+            tcpSocket:
+              port: rpc
+            initialDelaySeconds: {{ .Values.worker.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.worker.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.worker.startupProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.worker.startupProbe.failureThreshold }}
+          {{- end}}
           ports:
           - containerPort: {{ .Values.worker.ports.rpc }}
             name: rpc
           - containerPort: {{ .Values.worker.ports.web }}
             name: web
           volumeMounts:
+            {{- if .Values.worker.extraVolumeMounts }}
+{{- include "alluxio.extraVolumeMounts" (dict "extraVolumeMounts" .Values.worker.extraVolumeMounts) | indent 12 }}
+            {{- end }}
             {{- if .Values.metrics.enabled }}
             - name: {{ $fullName }}-metrics-volume
               mountPath: /config/metrics
@@ -156,6 +178,11 @@ spec:
 {{- include "alluxio.worker.secretVolumeMounts" . }}
               {{- end -}}
             {{- end -}}
+            {{- if .Values.configmaps }}
+              {{- if .Values.configmaps.worker }}
+{{- include "alluxio.worker.configmapVolumeMounts" . }}
+              {{- end }}
+            {{- end }}
             {{- if .Values.tieredstore -}}
 {{- include "alluxio.worker.tieredstoreVolumeMounts" . }}
             {{- end -}}
@@ -205,6 +232,7 @@ spec:
             periodSeconds: {{ .Values.jobWorker.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.jobWorker.readinessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.jobWorker.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.jobWorker.readinessProbe.successThreshold }}
           livenessProbe:
             tcpSocket:
               port: job-rpc
@@ -212,6 +240,15 @@ spec:
             periodSeconds: {{ .Values.jobWorker.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.jobWorker.livenessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.jobWorker.livenessProbe.failureThreshold }}
+          {{- if .Values.jobWorker.startupProbe }}
+          startupProbe:
+            tcpSocket:
+              port: job-rpc
+            initialDelaySeconds: {{ .Values.jobWorker.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.jobWorker.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.jobWorker.startupProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.jobWorker.startupProbe.failureThreshold }}
+          {{- end}}
           ports:
           - containerPort: {{ .Values.jobWorker.ports.rpc }}
             name: job-rpc
@@ -220,6 +257,9 @@ spec:
           - containerPort: {{ .Values.jobWorker.ports.web }}
             name: job-web
           volumeMounts:
+            {{- if .Values.worker.extraVolumeMounts }}
+{{- include "alluxio.extraVolumeMounts" (dict "extraVolumeMounts" .Values.worker.extraVolumeMounts) | indent 12 }}
+            {{- end }}
             {{- if .Values.metrics.enabled }}
             - name: {{ $fullName }}-metrics-volume
               mountPath: /config/metrics
@@ -233,6 +273,11 @@ spec:
 {{- include "alluxio.worker.secretVolumeMounts" . }}
               {{- end -}}
             {{- end }}
+            {{- if .Values.configmaps }}
+              {{- if .Values.configmaps.worker }}
+{{- include "alluxio.worker.configmapVolumeMounts" . }}
+              {{- end }}
+            {{- end }}
             {{- if .Values.tieredstore }}
 {{- include "alluxio.worker.tieredstoreVolumeMounts" . }}
             {{- end }}
@@ -241,6 +286,9 @@ spec:
             {{- end }}
       restartPolicy: Always
       volumes:
+        {{- if .Values.worker.extraVolumes }}
+{{- include "alluxio.extraVolumes" (dict "extraVolumes" .Values.worker.extraVolumes) | indent 8 }}
+        {{- end }}
         {{- if .Values.metrics.enabled }}
         - name: {{ $fullName }}-metrics-volume
           configMap:
@@ -274,3 +322,4 @@ spec:
             path: {{ .Values.fuse.mountPath | dir }}
             type: Directory
         {{- end }}
+{{- end }}

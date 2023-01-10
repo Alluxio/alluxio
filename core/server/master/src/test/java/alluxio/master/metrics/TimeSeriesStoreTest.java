@@ -60,8 +60,8 @@ public class TimeSeriesStoreTest {
     }
     assertNotNull(ts1);
     assertNotNull(ts2);
-    assertEquals(value1, ts1.getDataPoints().get(0).getValue(), 0);
-    assertEquals(value2, ts2.getDataPoints().get(0).getValue(), 0);
+    assertEquals(value1, ts1.getDataPoints().element().getValue(), 0);
+    assertEquals(value2, ts2.getDataPoints().element().getValue(), 0);
   }
 
   @Test
@@ -73,7 +73,7 @@ public class TimeSeriesStoreTest {
     store.record(metric1, value1);
     CommonUtils.sleepMs(10); // To prevent the two records from being placed in the same ms.
     store.record(metric1, value2);
-    assertEquals(value1, store.getTimeSeries().get(0).getDataPoints().get(0).getValue(), 0);
-    assertEquals(value2, store.getTimeSeries().get(0).getDataPoints().get(1).getValue(), 0);
+    assertEquals(value1, store.getTimeSeries().get(0).getDataPoints().poll().getValue(), 0);
+    assertEquals(value2, store.getTimeSeries().get(0).getDataPoints().poll().getValue(), 0);
   }
 }

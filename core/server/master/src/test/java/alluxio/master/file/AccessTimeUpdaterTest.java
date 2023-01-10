@@ -14,7 +14,7 @@ package alluxio.master.file;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -22,8 +22,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
@@ -41,6 +41,7 @@ import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.journal.JournalType;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -57,6 +58,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import java.time.Clock;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -83,7 +85,7 @@ public final class AccessTimeUpdaterTest {
   public final void before() throws Exception {
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
     when(mFileSystemMaster.getName()).thenReturn(Constants.FILE_SYSTEM_MASTER_NAME);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     MasterRegistry registry = new MasterRegistry();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
     mContext = MasterTestUtils.testMasterContext(journalSystem);
@@ -91,7 +93,7 @@ public final class AccessTimeUpdaterTest {
     mBlockMaster = new BlockMasterFactory().create(registry, mContext);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager manager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(manager, mock(MountInfo.class));
+    MountTable mountTable = new MountTable(manager, mock(MountInfo.class), Clock.systemUTC());
     InodeLockManager lockManager = new InodeLockManager();
     mInodeStore = mContext.getInodeStoreFactory().apply(lockManager);
     mInodeTree =
@@ -101,8 +103,8 @@ public final class AccessTimeUpdaterTest {
     journalSystem.gainPrimacy();
     mBlockMaster.start(true);
 
-    ServerConfiguration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
-    ServerConfiguration
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true);
+    Configuration
         .set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup");
     mInodeTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_MODE, NoopJournalContext.INSTANCE);
     mScheduler = new ControllableScheduler();
@@ -111,7 +113,11 @@ public final class AccessTimeUpdaterTest {
   private void createInode(String path, CreateFileContext context)
       throws Exception {
     try (LockedInodePath inodePath =
-             mInodeTree.lockInodePath(new AlluxioURI(path), InodeTree.LockPattern.WRITE_EDGE)) {
+             mInodeTree.lockInodePath(
+                 new AlluxioURI(path),
+                 InodeTree.LockPattern.WRITE_EDGE, NoopJournalContext.INSTANCE
+             )
+    ) {
       List<Inode> result = mInodeTree.createPath(RpcContext.NOOP, inodePath, context);
       MutableInode<?> inode = mInodeStore.getMutable(result.get(result.size() - 1).getId()).get();
       mInodeStore.writeInode(inode);
@@ -130,7 +136,7 @@ public final class AccessTimeUpdaterTest {
     long accessTime = CommonUtils.getCurrentMs() + 100L;
     long inodeId;
     try (LockedInodePath lockedInodes = mInodeTree.lockFullInodePath(new AlluxioURI(path),
-        InodeTree.LockPattern.READ)) {
+        InodeTree.LockPattern.READ, journalContext)) {
       mAccessTimeUpdater.updateAccessTime(journalContext, lockedInodes.getInode(), accessTime);
       inodeId = lockedInodes.getInode().getId();
     }
@@ -160,7 +166,7 @@ public final class AccessTimeUpdaterTest {
     long accessTime = CommonUtils.getCurrentMs() + 100L;
     long inodeId;
     try (LockedInodePath lockedInodes = mInodeTree.lockFullInodePath(new AlluxioURI(path),
-        InodeTree.LockPattern.READ)) {
+        InodeTree.LockPattern.READ, journalContext)) {
       mAccessTimeUpdater.updateAccessTime(journalContext, lockedInodes.getInode(), accessTime);
       inodeId = lockedInodes.getInode().getId();
     }
@@ -198,7 +204,7 @@ public final class AccessTimeUpdaterTest {
     long accessTime = CommonUtils.getCurrentMs() + 100L;
     long inodeId;
     try (LockedInodePath lockedInodes = mInodeTree.lockFullInodePath(new AlluxioURI(path),
-        InodeTree.LockPattern.READ)) {
+        InodeTree.LockPattern.READ, journalContext)) {
       mAccessTimeUpdater.updateAccessTime(journalContext, lockedInodes.getInode(), accessTime);
       inodeId = lockedInodes.getInode().getId();
     }
@@ -213,7 +219,7 @@ public final class AccessTimeUpdaterTest {
 
     // update access time with a much later timestamp
     try (LockedInodePath lockedInodes = mInodeTree.lockFullInodePath(new AlluxioURI(path),
-        InodeTree.LockPattern.READ)) {
+        InodeTree.LockPattern.READ, journalContext)) {
       mAccessTimeUpdater.updateAccessTime(journalContext, lockedInodes.getInode(), newAccessTime);
       inodeId = lockedInodes.getInode().getId();
     }
@@ -242,7 +248,7 @@ public final class AccessTimeUpdaterTest {
     long accessTime = CommonUtils.getCurrentMs() + 100L;
     long inodeId;
     try (LockedInodePath lockedInodes = mInodeTree.lockFullInodePath(new AlluxioURI(path),
-        InodeTree.LockPattern.READ)) {
+        InodeTree.LockPattern.READ, journalContext)) {
       mAccessTimeUpdater.updateAccessTime(journalContext, lockedInodes.getInode(), accessTime);
       inodeId = lockedInodes.getInode().getId();
     }
@@ -259,7 +265,7 @@ public final class AccessTimeUpdaterTest {
 
     // update access time with a much later timestamp
     try (LockedInodePath lockedInodes = mInodeTree.lockFullInodePath(new AlluxioURI(path),
-        InodeTree.LockPattern.READ)) {
+        InodeTree.LockPattern.READ, journalContext)) {
       mAccessTimeUpdater.updateAccessTime(journalContext, lockedInodes.getInode(), newAccessTime);
       inodeId = lockedInodes.getInode().getId();
     }
@@ -296,7 +302,7 @@ public final class AccessTimeUpdaterTest {
     long accessTime = CommonUtils.getCurrentMs() + 100L;
     long inodeId;
     try (LockedInodePath lockedInodes = mInodeTree.lockFullInodePath(new AlluxioURI(path),
-        InodeTree.LockPattern.READ)) {
+        InodeTree.LockPattern.READ, journalContext)) {
       mAccessTimeUpdater.updateAccessTime(journalContext, lockedInodes.getInode(), accessTime);
       inodeId = lockedInodes.getInode().getId();
     }

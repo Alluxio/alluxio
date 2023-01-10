@@ -15,8 +15,8 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalType;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -30,7 +30,6 @@ import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -61,8 +60,8 @@ public final class LocalAlluxioMaster {
 
   private LocalAlluxioMaster(boolean includeSecondary) {
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC,
-        ServerConfiguration.global());
-    mJournalFolder = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+        Configuration.global());
+    mJournalFolder = Configuration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     mIncludeSecondary = includeSecondary;
   }
 
@@ -75,7 +74,7 @@ public final class LocalAlluxioMaster {
   public static LocalAlluxioMaster create(boolean includeSecondary) throws IOException {
     String workDirectory = uniquePath();
     FileUtils.deletePathRecursively(workDirectory);
-    ServerConfiguration.set(PropertyKey.WORK_DIR, workDirectory);
+    Configuration.set(PropertyKey.WORK_DIR, workDirectory);
     return create(workDirectory, includeSecondary);
   }
 
@@ -117,9 +116,8 @@ public final class LocalAlluxioMaster {
     mMasterThread = new Thread(runMaster);
     mMasterThread.setName("MasterThread-" + System.identityHashCode(mMasterThread));
     mMasterThread.start();
-    TestUtils.waitForReady(mMasterProcess);
     // Don't start a secondary master when using the Raft journal.
-    if (ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE,
+    if (Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE,
         JournalType.class) == JournalType.EMBEDDED) {
       return;
     }
@@ -153,7 +151,7 @@ public final class LocalAlluxioMaster {
    * @return true if the master is serving, false otherwise
    */
   public boolean isServing() {
-    return mMasterProcess.isServing();
+    return mMasterProcess.isGrpcServing();
   }
 
   /**

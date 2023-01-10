@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -67,7 +66,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
   }
 
   @Override
-  protected void afterConnect() throws IOException {
+  protected void afterConnect() {
     mClient = MetaMasterMasterServiceGrpc.newBlockingStub(mChannel);
   }
 

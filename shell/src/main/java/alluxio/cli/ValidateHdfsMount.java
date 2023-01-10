@@ -11,11 +11,10 @@
 
 package alluxio.cli;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 import alluxio.underfs.UnderFileSystemConfiguration;
-
-import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -114,23 +113,17 @@ public class ValidateHdfsMount {
     }
 
     String ufsPath = args[0];
-    InstancedConfiguration conf = InstancedConfiguration.defaults();
     // Merge options from the command line option
-    UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(conf);
-    if (cmd.hasOption(READONLY_OPTION.getLongOpt())) {
-      ufsConf.setReadOnly(true);
-    }
-    if (cmd.hasOption(SHARED_OPTION.getLongOpt())) {
-      ufsConf.setShared(true);
-    }
+    InstancedConfiguration config = Configuration.copyGlobal();
     if (cmd.hasOption(OPTION_OPTION.getLongOpt())) {
       Properties properties = cmd.getOptionProperties(OPTION_OPTION.getLongOpt());
-      ufsConf.merge(properties, Source.MOUNT_OPTION);
+      config.merge(properties, Source.MOUNT_OPTION);
       LOG.debug("Options from cmdline: {}", properties);
     }
-
+    UnderFileSystemConfiguration ufsConf = new UnderFileSystemConfiguration(
+        config, cmd.hasOption(READONLY_OPTION.getLongOpt()));
     ValidationToolRegistry registry
-            = new ValidationToolRegistry(new InstancedConfiguration(ConfigurationUtils.defaults()));
+            = new ValidationToolRegistry(Configuration.global());
     // Load hdfs validation tool from alluxio lib directory
     registry.refresh();
 

@@ -9,6 +9,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+{{ if not (eq .Values.worker.enabled false) -}}
+
 {{ $shortCircuitEnabled := .Values.shortCircuit.enabled -}}
 {{ $needDomainSocketVolume := and (and $shortCircuitEnabled (eq .Values.shortCircuit.policy "uuid")) (eq .Values.shortCircuit.volumeType "persistentVolumeClaim") -}}
 {{ if $needDomainSocketVolume -}}
@@ -37,3 +39,4 @@ spec:
       heritage: {{ .Release.Service }}
       role: alluxio-worker
 {{- end -}}
+{{- end }}

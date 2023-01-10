@@ -13,8 +13,8 @@ package alluxio.testutils;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedClientUserResource;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.DeletePOptions;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.file.FileSystemMaster;
@@ -36,13 +36,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A JUnit Rule resource for automatically managing a local alluxio cluster for testing. To use it,
  * create an instance of the class under a {@literal @}Rule annotation, with the required
- * configuration parameters, and any necessary explicit {@link ServerConfiguration} settings. The
+ * configuration parameters, and any necessary explicit {@link Configuration} settings. The
  * Alluxio cluster will be set up from scratch at the end of every method (or at the start of
  * every suite if {@literal @}ClassRule is used), and destroyed at the end. Below is an example
  * of declaring and using it.
@@ -86,14 +85,17 @@ public final class LocalAlluxioClusterResource implements TestRule {
   /** Weather to include the secondary master. */
   private final boolean mIncludeSecondary;
 
+  /** Weather to include the proxy. */
+  private final boolean mIncludeProxy;
+
   /**
    * If true (default), we start the cluster before running a test method. Otherwise, the method
    * must start the cluster explicitly.
    */
   private final boolean mStartCluster;
 
-  /** ServerConfiguration values for the cluster. */
-  private final Map<PropertyKey, String> mConfiguration = new HashMap<>();
+  /** Configuration values for the cluster. */
+  private final Map<PropertyKey, Object> mConfiguration = new HashMap<>();
 
   /** The Alluxio cluster being managed. */
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
@@ -109,9 +111,10 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * @param configuration configuration for configuring the cluster
    */
   private LocalAlluxioClusterResource(boolean startCluster, boolean includeSecondary,
-      int numWorkers, Map<PropertyKey, String> configuration) {
+      boolean includeProxy, int numWorkers, Map<PropertyKey, Object> configuration) {
     mStartCluster = startCluster;
     mIncludeSecondary = includeSecondary;
+    mIncludeProxy = includeProxy;
     mNumWorkers = numWorkers;
     mConfiguration.putAll(configuration);
     MetricsSystem.resetCountersAndGauges();
@@ -135,7 +138,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     if (value == null) {
       mConfiguration.remove(key);
     } else {
-      mConfiguration.put(key, value.toString());
+      mConfiguration.put(key, value);
     }
     return this;
   }
@@ -146,14 +149,14 @@ public final class LocalAlluxioClusterResource implements TestRule {
   public void start() throws Exception {
     AuthenticatedClientUser.remove();
     // Create a new cluster.
-    mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers, mIncludeSecondary);
+    mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers, mIncludeSecondary, mIncludeProxy);
     // Init configuration for integration test
     mLocalAlluxioCluster.initConfiguration(mTestName);
     // Overwrite the test configuration with test specific parameters
-    for (Entry<PropertyKey, String> entry : mConfiguration.entrySet()) {
-      ServerConfiguration.set(entry.getKey(), entry.getValue());
+    for (Entry<PropertyKey, Object> entry : mConfiguration.entrySet()) {
+      Configuration.set(entry.getKey(), entry.getValue());
     }
-    ServerConfiguration.global().validate();
+    Configuration.global().validate();
     // Start the cluster
     mLocalAlluxioCluster.start();
   }
@@ -213,7 +216,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
   private void overrideConfiguration(String[] config) {
     // Override the configuration parameters with any configuration params
     for (int i = 0; i < config.length; i += 2) {
-      mConfiguration.put(PropertyKey.fromString(config[i]), config[i + 1]);
+      PropertyKey key = PropertyKey.fromString(config[i]);
+      mConfiguration.put(key, key.parseValue(config[i + 1]));
     }
   }
 
@@ -235,8 +239,9 @@ public final class LocalAlluxioClusterResource implements TestRule {
   public static class Builder {
     private boolean mStartCluster;
     private boolean mIncludeSecondary;
+    private boolean mIncludeProxy;
     private int mNumWorkers;
-    private Map<PropertyKey, String> mConfiguration;
+    private Map<PropertyKey, Object> mConfiguration;
 
     /**
      * Constructs the builder with default values.
@@ -244,6 +249,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     public Builder() {
       mStartCluster = true;
       mIncludeSecondary = false;
+      mIncludeProxy = false;
       mNumWorkers = 1;
       mConfiguration = new HashMap<>();
     }
@@ -265,6 +271,14 @@ public final class LocalAlluxioClusterResource implements TestRule {
     }
 
     /**
+     * @param includeProxy whether to include the proxy
+     */
+    public Builder setIncludeProxy(boolean includeProxy) {
+      mIncludeProxy = includeProxy;
+      return this;
+    }
+
+    /**
      * @param numWorkers the number of workers to run in the cluster
      */
     public Builder setNumWorkers(int numWorkers) {
@@ -277,7 +291,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
      * @param value the value to set it to
      */
     public Builder setProperty(PropertyKey key, Object value) {
-      mConfiguration.put(key, value.toString());
+      mConfiguration.put(key, value);
       return this;
     }
 
@@ -285,8 +299,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
      * @return a {@link LocalAlluxioClusterResource} for the current builder values
      */
     public LocalAlluxioClusterResource build() {
-      return new LocalAlluxioClusterResource(mStartCluster, mIncludeSecondary, mNumWorkers,
-          mConfiguration);
+      return new LocalAlluxioClusterResource(mStartCluster, mIncludeSecondary, mIncludeProxy,
+          mNumWorkers, mConfiguration);
     }
   }
 
@@ -309,10 +323,10 @@ public final class LocalAlluxioClusterResource implements TestRule {
                 mCluster.mLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
                     .getMaster(FileSystemMaster.class);
 
-            if (SecurityUtils.isAuthenticationEnabled(ServerConfiguration.global())) {
+            if (SecurityUtils.isAuthenticationEnabled(Configuration.global())) {
               // Reset the state as the root inode user (superuser).
               try (AuthenticatedClientUserResource r = new AuthenticatedClientUserResource(
-                  fsm.getRootInodeOwner(), ServerConfiguration.global())) {
+                  fsm.getRootInodeOwner(), Configuration.global())) {
                 resetCluster(fsm);
               }
             } else {
@@ -339,7 +353,10 @@ public final class LocalAlluxioClusterResource implements TestRule {
       for (FileInfo fileInfo : fsm
           .listStatus(new AlluxioURI("/"), ListStatusContext.defaults())) {
         fsm.delete(new AlluxioURI(fileInfo.getPath()), DeleteContext
-            .create(DeletePOptions.newBuilder().setUnchecked(true).setRecursive(true)));
+            .create(DeletePOptions.newBuilder()
+                .setUnchecked(true)
+                .setRecursive(true)
+                .setDeleteMountPoint(true)));
       }
     }
   }

@@ -22,6 +22,11 @@
  -->
 
 <module name = "Checker">
+  <module name="SuppressionFilter">
+    <property name="file" value="suppressions.xml"/>
+    <property name="optional" value="true"/>
+  </module>
+
   <property name="charset" value="UTF-8"/>
 
   <property name="severity" value="error"/>
@@ -69,6 +74,10 @@
     <property name="fileExtensions" value=".java"/>
     <property name="message" value="Extra newline at end of block"/>
   </module>
+  <module name="LineLength">
+    <property name="max" value="100"/>
+    <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+  </module>
 
   <!-- All Java AST specific tests live under TreeWalker module. -->
   <module name="TreeWalker">
@@ -84,10 +93,6 @@
       <property name="allowByTailComment" value="true"/>
       <property name="allowNonPrintableEscapes" value="true"/>
     </module>
-    <module name="LineLength">
-      <property name="max" value="100"/>
-      <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
-    </module>
     <module name="AvoidStarImport"/>
     <module name="UnusedImports">
         <property name="processJavadoc" value="true"/>
@@ -100,12 +105,8 @@
         LITERAL_ELSE, LITERAL_SWITCH"/>
     </module>
     <module name="NeedBraces"/>
-    <module name="LeftCurly">
-      <property name="maxLineLength" value="100"/>
-    </module>
-    <module name="RightCurly"/>
     <module name="RightCurly">
-      <property name="option" value="alone"/>
+      <property name="option" value="same"/>
       <property name="tokens" value="CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE,
         LITERAL_DO, STATIC_INIT, INSTANCE_INIT"/>
     </module>
@@ -161,7 +162,7 @@
     </module>
     <module name="LocalVariableName">
       <property name="tokens" value="VARIABLE_DEF"/>
-      <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+      <property name="format" value="^[a-ln-z][a-zA-Z0-9]*$|^m([a-z0-9][a-zA-Z0-9]*)?$"/>
       <property name="allowOneCharVarInForLoop" value="true"/>
       <message key="name.invalidPattern"
                value="Local variable name ''{0}'' must match pattern ''{1}''."/>
@@ -200,6 +201,7 @@
     <module name="CustomImportOrder">
       <property name="specialImportsRegExp" value="alluxio"/>
       <property name="customImportOrderRules" value="STATIC###SPECIAL_IMPORTS###THIRD_PARTY_PACKAGE###STANDARD_JAVA_PACKAGE"/>
+      <property name="sortImportsInGroupAlphabetically" value="true" />
     </module>
     <module name="MethodParamPad"/>
     <module name="ParenPad">
@@ -219,15 +221,21 @@
       <property name="format" value="^\s*this\."/>
       <property name="message" value="keyword this is not needed"/>
     </module>
-    <module name="MissingDeprecated"/>
+    <module name="MissingDeprecated">
+      <property name="violateExecutionOnNonTightHtml" value="false"/>
+    </module>
     <module name="EqualsHashCode"/>
 
+    <!-- Checks the Javadoc of a public method or constructor exists. -->
+    <module name="MissingJavadocMethod" />
     <!-- Checks the Javadoc of a public method or constructor. Only applies to production code. -->
     <module name="JavadocMethod">
       <property name="id" value="ProductionScope"/>
-      <property name="scope" value="public"/>
-      <property name="allowMissingThrowsTags" value="true"/>
+      <property name="accessModifiers" value="public"/>
+      <property name="validateThrows" value="false"/>
     </module>
+    <!-- Checks the Javadoc of a public class or interface exists. -->
+    <module name="MissingJavadocType" />
     <!-- Checks Javadoc comments for public class and interface definitions. Only applies to
          production code -->
     <module name="JavadocType">
@@ -258,9 +266,12 @@
 
     <!-- Checks that there is whitespace after various tokens. -->
     <module name="WhitespaceAfter"/>
+  </module>
 
-    <!-- Allows SuppressionCommentFilter to access module contents. -->
-    <module name="FileContentsHolder"/>
+  <!-- Disables checkstyle for particular lines of codes. -->
+  <module name="SuppressWithPlainTextCommentFilter">
+    <property name="offCommentFormat" value="CHECKSTYLE.OFF\: ([\w\|]+)"/>
+    <property name="onCommentFormat" value="CHECKSTYLE.ON\: ([\w\|]+)"/>
   </module>
 
   <!-- always use Unix-style line separators -->
@@ -271,11 +282,5 @@
     <property name="format" value="\s+$"/>
     <property name="message" value="Trailing whitespace found."/>
     <property name="fileExtensions" value=".java"/>
-  </module>
-
-  <!-- Disables checkstyle for particular lines of codes. -->
-  <module name="SuppressionCommentFilter">
-    <property name="offCommentFormat" value="CHECKSTYLE.OFF\: ([\w\|]+)"/>
-    <property name="onCommentFormat" value="CHECKSTYLE.ON\: ([\w\|]+)"/>
   </module>
 </module>

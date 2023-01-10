@@ -20,6 +20,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -46,6 +47,7 @@ public class DataMessageClientResponseObserver<ReqT, RespT>
       DataMessageMarshaller<ReqT> requestMarshaller,
       DataMessageMarshaller<RespT> responseMarshaller) {
     super(requestMarshaller, responseMarshaller);
+    Objects.requireNonNull(observer);
     mObserver = observer;
   }
 

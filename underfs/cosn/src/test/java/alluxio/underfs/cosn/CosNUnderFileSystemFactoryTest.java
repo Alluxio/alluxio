@@ -11,10 +11,11 @@
 
 package alluxio.underfs.cosn;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
-import alluxio.ConfigurationTestUtils;
-import alluxio.conf.AlluxioConfiguration;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,11 +30,35 @@ public class CosNUnderFileSystemFactoryTest {
    */
   @Test
   public void factory() {
-    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
+    AlluxioConfiguration conf = Configuration.global();
     UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry
                             .find("cosn://test-bucket/path", conf);
 
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for cosn paths when using this module", factory);
+  }
+
+  /**
+   * Tests that the COSN UFS module could choose correct version to use.
+   */
+  @Test
+  public void version() {
+    AlluxioConfiguration conf = Configuration.global();
+    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry
+        .find("cosn://test-bucket/path", conf);
+    Assert.assertNotNull(
+        "A UnderFileSystemFactory should exist when don't specify the cosn version", factory);
+
+    Configuration.set(PropertyKey.UNDERFS_VERSION, "3.1.0-5.8.5");
+    factory = UnderFileSystemFactoryRegistry
+        .find("cosn://test-bucket/path", conf);
+    Assert.assertNotNull(
+        "A UnderFileSystemFactory should exist when specify the correct cosn version", factory);
+
+    Configuration.set(PropertyKey.UNDERFS_VERSION, "error-version");
+    factory = UnderFileSystemFactoryRegistry
+        .find("cosn://test-bucket/path", conf);
+    Assert.assertNull(
+        "A UnderFileSystemFactory should not exist when specify the wrong cosn version", factory);
   }
 }

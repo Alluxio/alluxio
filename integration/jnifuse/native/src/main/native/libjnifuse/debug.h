@@ -9,9 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#include <stdio.h>
+#ifndef FUSE_NATIVE_LIBJNIFUSE_DEBUG_H_
+#define FUSE_NATIVE_LIBJNIFUSE_DEBUG_H_
 
-// #define DEBUG
+#include <stdio.h>
 
 #ifdef DEBUG
 #define LOGD(format, ...) \
@@ -23,8 +24,16 @@ do { \
 #define LOGD(format, ...)
 #endif
 
+#define LOGI(format, ...) \
+do { \
+    fprintf(stdout, "INFO %s:%d " format "\n", \
+        __FILE__, __LINE__, ##__VA_ARGS__); \
+} while (0)
+
 #define LOGE(format, ...) \
 do { \
     fprintf(stderr, "ERROR %s:%d " format "\n", \
         __FILE__, __LINE__, ##__VA_ARGS__); \
 } while (0)
+
+#endif  // FUSE_NATIVE_LIBJNIFUSE_DEBUG_H_

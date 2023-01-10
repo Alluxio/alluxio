@@ -18,13 +18,13 @@ import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.client.file.FileOutStream;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -82,12 +82,13 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test",
-      ServerConfiguration.global());
+      Configuration.global());
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE, 2).build();
+          .setProperty(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE, 2)
+          .setProperty(PropertyKey.MASTER_METADATA_SYNC_IGNORE_TTL, true).build();
 
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
@@ -101,7 +102,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Before
   public void before() throws Exception {
     mLocalUfsPath = mTempFolder.getRoot().getAbsolutePath();
-    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
+    mFileSystem = FileSystem.Factory.create();
     mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI("sleep://" + mLocalUfsPath));
 
     new File(mLocalUfsPath + "/dir1/dirA/").mkdirs();
@@ -117,7 +118,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @After
   public void after() throws Exception {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Test
@@ -408,7 +409,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void loadRecursive() throws Exception {
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
+    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
         LoadMetadataType.ONCE.toString());
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
     int createdInodes = createUfsFiles(5);
@@ -419,12 +420,15 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void testNoTtlOnLoadedFiles() throws Exception {
+  public void noTtlOnLoadedFiles() throws Exception {
     int created = createUfsFiles(2);
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
+    // Set cluster default configuration related TTL
+    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
         LoadMetadataType.ONCE.toString());
-    ServerConfiguration.set(PropertyKey.USER_FILE_CREATE_TTL, "11000");
-    ServerConfiguration.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.FREE.toString());
+    Configuration.set(PropertyKey.USER_FILE_CREATE_TTL, "11000");
+    Configuration.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.FREE.toString());
+    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_IGNORE_TTL, true);
+    // Set TTL related arguments from client side
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true)
         .setCommonOptions(
             FileSystemMasterCommonPOptions.newBuilder()
@@ -436,6 +440,33 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     assertEquals(created + EXTRA_DIR_FILES, list.size());
     list.forEach(stat -> {
       assertEquals(-1, stat.getTtl());
+    });
+  }
+
+  @Test
+  public void hasTtlOnLoadedFiles() throws Exception {
+    int created = createUfsFiles(2);
+    long expectedTtl = 1000000;
+    // Set cluster default configuration related TTL
+    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
+        LoadMetadataType.ONCE.toString());
+    Configuration.set(PropertyKey.USER_FILE_CREATE_TTL, "11000");
+    Configuration.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.FREE.toString());
+    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_IGNORE_TTL, false);
+    // Set TTL related arguments from client side
+    ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true)
+        .setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder()
+                .setTtl(expectedTtl)
+                .setTtlAction(TtlAction.FREE)
+                .build())
+        .build();
+    List<URIStatus> list = mFileSystem.listStatus(new AlluxioURI("/mnt"), options);
+    assertEquals(created + EXTRA_DIR_FILES, list.size());
+    list.forEach(stat -> {
+      if (stat.getPath().startsWith("/mnt/dir")) {
+        assertEquals(expectedTtl, stat.getTtl());
+      }
     });
   }
 

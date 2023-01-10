@@ -14,7 +14,6 @@ package alluxio.wire;
 import alluxio.annotation.PublicApi;
 
 import java.util.List;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

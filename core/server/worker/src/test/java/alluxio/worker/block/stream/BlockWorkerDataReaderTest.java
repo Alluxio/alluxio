@@ -26,18 +26,19 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.client.block.stream.BlockWorkerDataReader;
 import alluxio.client.block.stream.DataReader;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
@@ -45,7 +46,9 @@ import alluxio.wire.FileInfo;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
+import alluxio.worker.block.MonoBlockStore;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.file.FileSystemMasterClient;
@@ -58,6 +61,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Unit tests for {@link BlockWorkerDataReader}.
@@ -69,7 +73,7 @@ public class BlockWorkerDataReaderTest {
   private static final long SESSION_ID = 10L;
   private static final int LOCK_NUM = 5;
 
-  private final InstancedConfiguration mConf = ServerConfiguration.global();
+  private final InstancedConfiguration mConf = Configuration.modifiableGlobal();
   private final String mMemDir =
       AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_MEM).getAbsolutePath();
 
@@ -79,43 +83,48 @@ public class BlockWorkerDataReaderTest {
 
   @Rule
   public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
-          .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "1")
+      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, Object>()
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1)
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS, Constants.MEDIUM_MEM)
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIUMTYPE, Constants.MEDIUM_MEM)
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA, "1GB")
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, mMemDir)
-          .put(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS, String.valueOf(LOCK_NUM))
-          .put(PropertyKey.WORKER_RPC_PORT, "0")
+          .put(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS, LOCK_NUM)
+          .put(PropertyKey.WORKER_RPC_PORT, 0)
           .put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
               AlluxioTestDirectory.createTemporaryDirectory("BlockWorkerDataReaderTest")
-                  .getAbsolutePath()).build(), mConf);
+                  .getAbsolutePath()).build(), Configuration.modifiableGlobal());
 
   @Before
   public void before() throws Exception {
     BlockMasterClient blockMasterClient = mock(BlockMasterClient.class);
     BlockMasterClientPool blockMasterClientPool = spy(new BlockMasterClientPool());
     when(blockMasterClientPool.createNewResource()).thenReturn(blockMasterClient);
-    TieredBlockStore blockStore = new TieredBlockStore();
+
     FileSystemMasterClient fileSystemMasterClient = mock(FileSystemMasterClient.class);
     Sessions sessions = mock(Sessions.class);
 
     // Connect to the real UFS for UFS read testing
     UfsManager ufsManager = mock(UfsManager.class);
-    mRootUfs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    mRootUfs = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(
         () -> UnderFileSystem.Factory.create(mRootUfs,
-            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())),
+            UnderFileSystemConfiguration.defaults(Configuration.global())),
         new AlluxioURI(mRootUfs));
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
 
+    TieredBlockStore tieredBlockStore = new TieredBlockStore();
+    AtomicReference<Long> workerId = new AtomicReference<>(-1L);
+    MonoBlockStore blockStore =
+        new MonoBlockStore(tieredBlockStore, blockMasterClientPool, ufsManager, workerId);
     mBlockWorker = new DefaultBlockWorker(blockMasterClientPool, fileSystemMasterClient,
-        sessions, blockStore, ufsManager);
+        sessions, blockStore, workerId);
 
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setBlockIds(Collections.singletonList(BLOCK_ID)));
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(mConf), mConf);
+        new InStreamOptions(dummyStatus, FileSystemOptionsUtils.openFileDefaults(mConf), mConf,
+            FileSystemContext.create(mConf));
     mDataReaderFactory =
         new BlockWorkerDataReader.Factory(mBlockWorker, BLOCK_ID, CHUNK_SIZE, options);
   }
@@ -127,7 +136,8 @@ public class BlockWorkerDataReaderTest {
 
   @Test
   public void create() throws Exception {
-    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0, Constants.MEDIUM_MEM, 1);
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0,
+        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(SESSION_ID, BLOCK_ID, true);
     DataReader dataReader = mDataReaderFactory.create(100, 200);
     assertEquals(100, dataReader.pos());
@@ -138,11 +148,12 @@ public class BlockWorkerDataReaderTest {
   public void createAndCloseManyReader() throws Exception {
     for (int i = 0; i < LOCK_NUM * 10; i++) {
       long blockId = i;
-      mBlockWorker.createBlock(SESSION_ID, blockId, 0, Constants.MEDIUM_MEM, 1);
+      mBlockWorker.createBlock(SESSION_ID, blockId, 0,
+          new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
       mBlockWorker.commitBlock(SESSION_ID, blockId, true);
       InStreamOptions inStreamOptions = new InStreamOptions(
           new URIStatus(new FileInfo().setBlockIds(Collections.singletonList(blockId))),
-          FileSystemOptions.openFileDefaults(mConf), mConf);
+          FileSystemOptionsUtils.openFileDefaults(mConf), mConf, FileSystemContext.create(mConf));
       mDataReaderFactory =
           new BlockWorkerDataReader.Factory(mBlockWorker, blockId, CHUNK_SIZE, inStreamOptions);
       DataReader dataReader = mDataReaderFactory.create(0, 100);
@@ -166,7 +177,8 @@ public class BlockWorkerDataReaderTest {
         .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
     OpenFilePOptions readOptions = OpenFilePOptions.newBuilder()
         .setReadType(ReadPType.NO_CACHE).build();
-    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, mConf);
+    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, mConf,
+        FileSystemContext.create(mConf));
 
     BlockWorkerDataReader.Factory factory = new BlockWorkerDataReader
         .Factory(mBlockWorker, BLOCK_ID, CHUNK_SIZE, options);
@@ -182,7 +194,8 @@ public class BlockWorkerDataReaderTest {
   @Test
   public void readChunkFullFile() throws Exception {
     int len = CHUNK_SIZE * 2;
-    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0, Constants.MEDIUM_MEM, 1);
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0,
+        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     try (BlockWriter writer = mBlockWorker.createBlockWriter(SESSION_ID, BLOCK_ID)) {
       writer.append(BufferUtils.getIncreasingByteBuffer(len));
     }
@@ -198,7 +211,8 @@ public class BlockWorkerDataReaderTest {
   @Test
   public void readChunkPartial() throws Exception {
     int len = CHUNK_SIZE * 5;
-    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0, Constants.MEDIUM_MEM, 1);
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0,
+        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     try (BlockWriter writer = mBlockWorker.createBlockWriter(SESSION_ID, BLOCK_ID)) {
       writer.append(BufferUtils.getIncreasingByteBuffer(len));
     }

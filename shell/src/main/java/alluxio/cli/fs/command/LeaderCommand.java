@@ -17,6 +17,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.ServiceType;
 import alluxio.master.MasterInquireClient;
 import alluxio.master.PollingMasterInquireClient;
 import alluxio.resource.CloseableResource;
@@ -62,12 +63,13 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
     try (CloseableResource<FileSystemMasterClient> client =
         mFsContext.acquireMasterClientResource()) {
       try {
-        InetSocketAddress address = client.get().getAddress();
+        InetSocketAddress address = (InetSocketAddress) client.get().getRemoteSockAddress();
         System.out.println(address.getHostName());
 
         List<InetSocketAddress> addresses = Arrays.asList(address);
         MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses, () ->
-                new ExponentialBackoffRetry(50, 100, 2), mFsContext.getClusterConf()
+                new ExponentialBackoffRetry(50, 100, 2), mFsContext.getClusterConf(),
+            ServiceType.META_MASTER_CLIENT_SERVICE
         );
         try {
           inquireClient.getPrimaryRpcAddress();

@@ -22,7 +22,6 @@ import org.apache.avro.SchemaBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
-
 import javax.validation.constraints.NotNull;
 
 /**

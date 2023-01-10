@@ -13,7 +13,8 @@ export * from './data/headerNavigation';
 export * from './data/footerNavigation';
 export * from './data/routePaths';
 
-export * from './types/IConfigTriple';
 export * from './types/INodeInfo';
+export * from './types/IMasterInfo';
 export * from './types/IScopedPropertyInfo';
 export * from './types/IStorageTierInfo';
+export * from '@alluxio/common-ui/src/constants/types/IConfigTriple';

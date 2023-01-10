@@ -13,19 +13,24 @@ package alluxio;
 
 import alluxio.conf.SensitiveConfigMask;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authentication.ClientContextServerInjector;
 
 import com.codahale.metrics.Timer;
 import io.grpc.StatusException;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Utilities for handling server RPC calls.
@@ -80,7 +85,7 @@ public final class RpcUtils {
     T response;
     try {
       response = callAndReturn(logger, callable, methodName, failureOk, description, args);
-    } catch (StatusException e) {
+    } catch (StatusException | StatusRuntimeException e) {
       responseObserver.onError(e);
       return;
     }
@@ -113,41 +118,86 @@ public final class RpcUtils {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description,
         processObjects(logger, args)) : null;
-    try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
+    try (MetricsSystem.MultiTimerContext ctx = new MetricsSystem.MultiTimerContext(
+        MetricsSystem.timer(MetricKey.MASTER_TOTAL_RPCS.getName()),
+        MetricsSystem.timer(getQualifiedMetricName(methodName)))) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
-      logger.debug("Enter: {}: {}", methodName, debugDesc);
+      logger.debug("Enter: {} from {}: {} client version: {}", methodName,
+          ClientContextServerInjector.getIpAddress(),
+          ClientContextServerInjector.getClientVersion(),
+          debugDesc);
       T res = callable.call();
       logger.debug("Exit: {}: {}", methodName, debugDesc);
       return res;
+    } catch (AlluxioRuntimeException e) {
+      recordFailure(e, methodName, failureOk, description, debugDesc, logger, args);
+      throw e.toGrpcStatusRuntimeException();
     } catch (AlluxioException e) {
-      logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
-      if (!failureOk) {
-        MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
-        if (!logger.isDebugEnabled()) {
-          logger.warn("Exit (Error): {}: {}, Error={}", methodName,
-              String.format(description, processObjects(logger, args)),
-              e.toString());
-        }
-      }
+      recordFailure(e, methodName, failureOk, description, debugDesc, logger, args);
       throw AlluxioStatusException.fromAlluxioException(e).toGrpcStatusException();
     } catch (IOException e) {
-      logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
-      if (!failureOk) {
-        MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
-        if (!logger.isDebugEnabled()) {
-          logger.warn("Exit (Error): {}: {}, Error={}", methodName,
-              String.format(description, processObjects(logger, args)),
-              e.toString());
-        }
-      }
+      recordFailure(e, methodName, failureOk, description, debugDesc, logger, args);
       throw AlluxioStatusException.fromIOException(e).toGrpcStatusException();
-    } catch (RuntimeException e) {
+    } catch (RuntimeException | LinkageError e) {
+      // Linkage error can happen when ufs libraries are improperly included or classloaded,
+      // right now those simply fail silently.
       logger.error("Exit (Error): {}: {}", methodName,
           String.format(description, processObjects(logger, args)), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       throw new InternalException(e).toGrpcStatusException();
     } finally {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).dec();
+    }
+  }
+
+  /**
+   * Calls the given method and handled exception. Exceptions are
+   * accounted for in metrics and then rethrown at the end.
+   *
+   * @param logger           the logger to use for this call
+   * @param future           the future to call
+   * @param methodName       the name of the method, used for metrics
+   * @param description      the format string of the description, used for logging
+   * @param responseObserver gRPC response observer
+   * @param args             the arguments for the description
+   * @param <T>              the return type of the method
+   */
+  public static <T> void invoke(Logger logger, CompletableFuture<T> future, String methodName,
+      String description, StreamObserver<T> responseObserver, Object... args) {
+    // avoid string format for better performance if debug is off
+    String debugDesc =
+        logger.isDebugEnabled() ? String.format(description, processObjects(logger, args)) : null;
+    try (MetricsSystem.MultiTimerContext ctx = new MetricsSystem.MultiTimerContext(
+        MetricsSystem.timer(MetricKey.MASTER_TOTAL_RPCS.getName()),
+        MetricsSystem.timer(getQualifiedMetricName(methodName)))) {
+      MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
+      logger.debug("Enter: {}: {}", methodName, debugDesc);
+      future.whenComplete((r, t) -> {
+        if (t == null) {
+          responseObserver.onNext(r);
+          responseObserver.onCompleted();
+        } else {
+          MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+          logger.warn("Exception when invoking : {}: {}", methodName, debugDesc, t);
+          responseObserver.onError(
+              AlluxioRuntimeException.from(t).toGrpcStatusRuntimeException());
+        }
+        logger.debug("Exit: {}: {}", methodName, debugDesc);
+        MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).dec();
+      });
+    }
+  }
+
+  private static void recordFailure(Throwable e, String methodName, boolean failureOk,
+      String description, String debugDesc, Logger logger, Object[] args) {
+    logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
+    if (!failureOk) {
+      MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+      if (!logger.isDebugEnabled()) {
+        logger.warn("Exit (Error): {}: {}, Error={}", methodName,
+            String.format(description, processObjects(logger, args)),
+            e.toString());
+      }
     }
   }
 
@@ -168,7 +218,8 @@ public final class RpcUtils {
       String methodName, boolean sendResponse, boolean completeResponse,
       StreamObserver<T> responseObserver, String description, Object... args) {
     // avoid string format for better performance if debug is off
-    String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+    String debugDesc = logger.isDebugEnabled() ? String.format(description,
+        processObjects(logger, args)) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
       logger.debug("Enter(stream): {}: {}", methodName, debugDesc);
@@ -193,7 +244,7 @@ public final class RpcUtils {
     }
   }
 
-  protected static Object[] processObjects(Logger logger, Object... args) {
+  private static Object[] processObjects(Logger logger, Object... args) {
     return SENSITIVE_CONFIG_MASKER == null
         ? args : SENSITIVE_CONFIG_MASKER.maskObjects(logger, args);
   }

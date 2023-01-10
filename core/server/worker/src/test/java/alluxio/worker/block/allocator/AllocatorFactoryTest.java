@@ -13,7 +13,7 @@ package alluxio.worker.block.allocator;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataView;
@@ -47,7 +47,7 @@ public final class AllocatorFactoryTest {
 
   @After
   public void after() {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   /**
@@ -56,7 +56,7 @@ public final class AllocatorFactoryTest {
    */
   @Test
   public void createGreedyAllocator() {
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(mMetadataView);
     assertTrue(allocator instanceof GreedyAllocator);
   }
@@ -67,7 +67,7 @@ public final class AllocatorFactoryTest {
    */
   @Test
   public void createMaxFreeAllocator() {
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(mMetadataView);
     assertTrue(allocator instanceof MaxFreeAllocator);
   }
@@ -78,7 +78,7 @@ public final class AllocatorFactoryTest {
    */
   @Test
   public void createRoundRobinAllocator() {
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS,
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS,
         RoundRobinAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(mMetadataView);
     assertTrue(allocator instanceof RoundRobinAllocator);

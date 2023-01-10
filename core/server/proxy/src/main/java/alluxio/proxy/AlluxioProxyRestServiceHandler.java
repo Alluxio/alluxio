@@ -11,10 +11,10 @@
 
 package alluxio.proxy;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.ConfigurationValueOptions;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
+import alluxio.conf.Configuration;
+import alluxio.conf.ConfigurationValueOptions;
 import alluxio.web.ProxyWebServer;
 import alluxio.wire.AlluxioProxyInfo;
 
@@ -23,7 +23,6 @@ import io.swagger.annotations.ApiOperation;
 
 import java.util.Map;
 import java.util.TreeMap;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
@@ -81,18 +80,16 @@ public final class AlluxioProxyRestServiceHandler {
       if (rawConfiguration != null) {
         rawConfig = rawConfiguration;
       }
-      AlluxioProxyInfo result =
-          new AlluxioProxyInfo()
-              .setConfiguration(getConfigurationInternal(rawConfig))
-              .setStartTimeMs(mProxyProcess.getStartTimeMs())
-              .setUptimeMs(mProxyProcess.getUptimeMs())
-              .setVersion(RuntimeConstants.VERSION);
-      return result;
-    }, ServerConfiguration.global());
+      return new AlluxioProxyInfo()
+          .setConfiguration(getConfigurationInternal(rawConfig))
+          .setStartTimeMs(mProxyProcess.getStartTimeMs())
+          .setUptimeMs(mProxyProcess.getUptimeMs())
+          .setVersion(RuntimeConstants.VERSION);
+    }, Configuration.global());
   }
 
-  private Map<String, String> getConfigurationInternal(boolean raw) {
-    return new TreeMap<>(ServerConfiguration
+  private Map<String, Object> getConfigurationInternal(boolean raw) {
+    return new TreeMap<>(Configuration
         .toMap(ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }
 }

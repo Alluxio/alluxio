@@ -20,9 +20,11 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
@@ -36,6 +38,7 @@ import alluxio.wire.SyncPointInfo;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +80,12 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
+  public boolean exists(AlluxioURI path, ExistsPOptions options)
+      throws AlluxioStatusException {
+    return false;
+  }
+
+  @Override
   public void free(AlluxioURI path, FreePOptions options) throws AlluxioStatusException {
   }
 
@@ -113,6 +122,12 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
+  public ListStatusPartialResult listStatusPartial(
+      AlluxioURI path, ListStatusPartialPOptions options) {
+    return null;
+  }
+
+  @Override
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws AlluxioStatusException {
   }
@@ -123,7 +138,8 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public Map<String, MountPointInfo> getMountTable() throws AlluxioStatusException {
+  public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
+      throws AlluxioStatusException {
     return null;
   }
 
@@ -187,7 +203,12 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public InetSocketAddress getAddress() throws UnavailableException {
+  public SocketAddress getRemoteSockAddress() throws UnavailableException {
+    return null;
+  }
+
+  @Override
+  public String getRemoteHostName() throws UnavailableException {
     return null;
   }
 
@@ -208,5 +229,9 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
 
   @Override
   public void close() throws IOException {
+  }
+
+  @Override
+  public void needsSync(AlluxioURI path) throws AlluxioStatusException {
   }
 }

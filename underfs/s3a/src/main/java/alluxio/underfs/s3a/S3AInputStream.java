@@ -17,13 +17,11 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -34,22 +32,22 @@ public class S3AInputStream extends InputStream {
   private static final Logger LOG = LoggerFactory.getLogger(S3AInputStream.class);
 
   /** Client for operations with s3. */
-  private final AmazonS3 mClient;
+  protected AmazonS3 mClient;
   /** Name of the bucket the object resides in. */
-  private final String mBucketName;
+  protected final String mBucketName;
   /** The path of the object to read. */
-  private final String mKey;
+  protected final String mKey;
 
   /** The backing input stream from s3. */
-  private S3ObjectInputStream mIn;
+  protected S3ObjectInputStream mIn;
   /** The current position of the stream. */
-  private long mPos;
+  protected long mPos;
 
   /**
    * Policy determining the retry behavior in case the key does not exist. The key may not exist
    * because of eventual consistency.
    */
-  private final RetryPolicy mRetryPolicy;
+  protected final RetryPolicy mRetryPolicy;
 
   /**
    * Constructor for an input stream of an object in s3 using the aws-sdk implementation to read
@@ -144,24 +142,26 @@ public class S3AInputStream extends InputStream {
       getReq.setRange(mPos);
     }
     AmazonS3Exception lastException = null;
-    String errorMessage = String.format("Failed to open key: %s bucket: %s", mKey, mBucketName);
+    String errorMessage = String.format("Failed to open key: %s bucket: %s, left retry:%d",
+        mKey, mBucketName, mRetryPolicy.getAttemptCount());
     while (mRetryPolicy.attempt()) {
       try {
-        mIn = mClient.getObject(getReq).getObjectContent();
+        mIn = getClient().getObject(getReq).getObjectContent();
         return;
       } catch (AmazonS3Exception e) {
         errorMessage = String
             .format("Failed to open key: %s bucket: %s attempts: %d error: %s", mKey, mBucketName,
                 mRetryPolicy.getAttemptCount(), e.getMessage());
-        if (e.getStatusCode() != HttpStatus.SC_NOT_FOUND) {
-          throw new IOException(errorMessage, e);
-        }
-        // Key does not exist
-        lastException = e;
+        throw AlluxioS3Exception.from(errorMessage, e);
       }
     }
-    // Failed after retrying key does not exist
-    throw new IOException(errorMessage, lastException);
+  }
+
+  /**
+   * @return the client
+   */
+  protected AmazonS3 getClient() {
+    return mClient;
   }
 
   /**

@@ -14,6 +14,7 @@ package alluxio.resource;
 import alluxio.Constants;
 import alluxio.clock.SystemClock;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -105,6 +105,14 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     private ScheduledExecutorService mGcExecutor;
 
     /**
+     * If set to true, when a resource needs to be taken from the pool, the last returned resource
+     * will take priority. {@link #acquire()} tends to return a different object every time.
+     * If set to false, the first returned resource will take priority.
+     * {@link #acquire()} tends to reuse the most fresh resource if possible.
+     */
+    private boolean mFIFO = false;
+
+    /**
      * @return the max capacity
      */
     public int getMaxCapacity() {
@@ -137,6 +145,22 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
      */
     public ScheduledExecutorService getGcExecutor() {
       return mGcExecutor;
+    }
+
+    /**
+     * @return if resources are returned in a FIFO manner
+     */
+    public boolean getFIFO() {
+      return mFIFO;
+    }
+
+    /**
+     * @param fifo if resources should be returned in a FIFO manner
+     * @return the updated object
+     */
+    public Options setFIFO(boolean fifo) {
+      mFIFO = fifo;
+      return this;
     }
 
     /**
@@ -208,6 +232,14 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   /** The min capacity. */
   private final int mMinCapacity;
 
+  /**
+   * If set to true, when a resource needs to be taken from the pool, the last returned resource
+   * will take priority. {@link #acquire()} tends to return a different object every time.
+   * If set to false, the first returned resource will take priority.
+   * {@link #acquire()} tends to reuse the most fresh resource if possible.
+   */
+  private final boolean mFIFO;
+
   // Tracks the resources that are available ordered by lastAccessTime (the head is
   // the most recently used resource).
   // These are the resources that acquire() will take.
@@ -221,6 +253,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   // any performance overhead.
   private final ConcurrentHashMap<T, ResourceInternal<T>> mResources =
       new ConcurrentHashMap<>(32);
+  private final Counter mCounter;
 
   // Thread to scan mAvailableResources to close those resources that are old.
   private ScheduledExecutorService mExecutor;
@@ -235,11 +268,12 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    */
   public DynamicResourcePool(Options options) {
     mExecutor = Preconditions.checkNotNull(options.getGcExecutor(), "executor");
-
+    mCounter = Preconditions.checkNotNull(getMetricCounter(),
+        "cannot find resource count metric for %s", getClass().getName());
     mMaxCapacity = options.getMaxCapacity();
     mMinCapacity = options.getMinCapacity();
+    mFIFO = options.getFIFO();
     mAvailableResources = new ArrayDeque<>(Math.min(mMaxCapacity, 32));
-
     mGcFuture = mExecutor.scheduleAtFixedRate(() -> {
       List<T> resourcesToGc = new ArrayList<>();
 
@@ -256,6 +290,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
             resourcesToGc.add(next.mResource);
             iterator.remove();
             mResources.remove(next.mResource);
+            mCounter.dec();
             currentSize--;
             if (currentSize <= mMinCapacity) {
               break;
@@ -276,6 +311,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
       }
     }, options.getInitialDelayMs(), options.getGcIntervalMs(), TimeUnit.MILLISECONDS);
   }
+
+  protected abstract Counter getMetricCounter();
 
   /**
    * Acquires a resource of type {code T} from the pool.
@@ -428,6 +465,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
         return false;
       } else {
         mResources.put(resource.mResource, resource);
+        mCounter.inc();
         return true;
       }
     } finally {
@@ -444,6 +482,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     try {
       mLock.lock();
       mResources.remove(resource);
+      mCounter.dec();
     } finally {
       mLock.unlock();
     }
@@ -455,6 +494,9 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   private ResourceInternal<T> poll() {
     try {
       mLock.lock();
+      if (mFIFO) {
+        return mAvailableResources.pollLast();
+      }
       return mAvailableResources.pollFirst();
     } finally {
       mLock.unlock();

@@ -12,28 +12,28 @@ priority: 3
 
 ## Overview
 
-An Alluxio service with High availability (or HA) achieved by running multiple Alluxio master
+An Alluxio cluster with High Availability (HA) is achieved by running multiple Alluxio master
 processes on different nodes in the system.
-One of these masters is elected the **leading master** which serves all workers and clients as the
+One master is elected as the **leading master** which serves all workers and clients as the
 primary point of contact.
-The other master processes act as **standby masters** which maintain the same file system state with
-the leading master by trailing a shared journal.
+The other masters act as **standby masters** and maintain the same file system state as
+the leading master by reading a shared journal.
 Standby masters do not serve any client or worker requests; however, if the leading master fails,
-one standby master will automatically be chosen to take over and become the new leading master.
+one standby master will automatically be elected as the new leading master.
 Once the new leading master starts serving, Alluxio clients and workers proceed as usual.
 During the failover to a standby master, clients may experience brief delays or transient errors.
 
-The major challenges here to achieving high-availability are maintaining the shared file system
-state across service restarts and maintaining consensus among masters on **leading master** after
-failover. In Alluxio 2.0, there are two different ways to achieve these two goals:
+The major challenges to achieving high-availability are maintaining a shared file system
+state across service restarts and maintaining consensus among masters about the identity of the 
+**leading master** after failover. In Alluxio 2.0, there are two different ways to achieve these two goals:
 
-1. [Raft-based Journal](#raft-based-embedded-journal): Use an internal replicated state
-  machine based on the Raft protocol to both store the file system journal and select a leading
-  master.
+1. [Raft-based Journal](#raft-based-embedded-journal): Uses an internal replicated state
+  machine based on the [Raft protocol](https://raft.github.io/) to both store the file system journal and run
+  leader elections.
   This approach is introduced in Alluxio 2.0 and requires no dependency on external services.
-1. [Zookeeper with a shared Journal](#zookeeper-and-shared-journal-storage):
-  Leverage an external Zookeeper service for leader election on the leading master and a shared
-  storage (e.g., the root UFS) for shared journal.
+2. [Zookeeper with a shared Journal](#zookeeper-and-shared-journal-storage):
+  Uses an external Zookeeper service for leader elections in conjunction with a shared
+  storage (e.g. HDFS) for the shared journal.
   See [journal management documentation]({{ '/en/operation/Journal.html' | relativize_url }}) for
   more information about choosing and configuring Alluxio journal system.
 
@@ -64,7 +64,6 @@ Add the following properties to the `conf/alluxio-site.properties` file:
 
 ```properties
 alluxio.master.hostname=<MASTER_HOSTNAME> # Only needed on master node
-alluxio.master.mount.table.root.ufs=<STORAGE_URI>
 alluxio.master.embedded.journal.addresses=<EMBEDDED_JOURNAL_ADDRESS>
 ```
 
@@ -74,11 +73,7 @@ Explanation:
   This is required on each individual component of the master quorum to have its own address set.
   On worker nodes, this parameter will be ignored.
   Examples include `alluxio.master.hostname=1.2.3.4`, `alluxio.master.hostname=node1.a.com`.
-- The second property `alluxio.master.mount.table.root.ufs=<STORAGE_URI>` sets the URI of the
-  shared under store to mount to the root of the Alluxio namespace Alluxio.
-  This shared under store must be accessible by all master nodes and all worker nodes.
-  Examples include `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/` or `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`
-- The third property `alluxio.master.embedded.journal.addresses` sets the sets of masters to
+- The second property `alluxio.master.embedded.journal.addresses` sets the sets of masters to
   participate Alluxio's internal leader election and determine the leading master.
   The default embedded journal port is `19200`.
   An example: `alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200`
@@ -86,7 +81,7 @@ Explanation:
 Note that embedded journal feature relies on [Ratis](https://github.com/apache/incubator-ratis) which uses
 leader election based on the Raft protocol and has its own format for storing journal entries.
 The built-in leader election cannot work with Zookeeper since the journal formats between these
-configuration may not match.
+configurations may not match.
 Enabling embedded journal enables Alluxio's internal leader election.
 See [embedded journal configuration documentation]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
 for more details and alternative ways to set up HA cluster with internal leader election.
@@ -197,6 +192,7 @@ This will start Alluxio masters on all the nodes specified in `conf/masters`, an
 on all the nodes specified in `conf/workers`.
 Argument `SudoMount` indicates to mount the RamFS on each worker using `sudo` privilege, if it is
 not already mounted.
+On MacOS, make sure your terminal has full disk access (tutorial [here](https://osxdaily.com/2018/10/09/fix-operation-not-permitted-terminal-error-macos/)).
 
 ### Verify Alluxio Cluster
 
@@ -204,7 +200,7 @@ To verify that Alluxio is running, you can visit the web UI of the leading maste
 leading master, run:
 
 ```console
-$ ./bin/alluxio fs leader
+$ ./bin/alluxio fs masterInfo
 ```
 
 Then, visit `http://<LEADER_HOSTNAME>:19999` to see the status page of the Alluxio leading master.
@@ -220,7 +216,7 @@ $ ./bin/alluxio runTests
 
 When an application interacts with Alluxio in HA mode, the client must know about
 the connection information of Alluxio HA cluster, so that the client knows how to discover the Alluxio leading master.
-The following sections list two ways to specify the HA Alluxio service address on the client side.
+The following sections list three ways to specify the HA Alluxio service address on the client side.
 
 ### Specify Alluxio Service in Configuration Parameters or Java Options
 
@@ -268,7 +264,7 @@ e.g. site properties or environment variables.
 master_hostname_2:19998,master_hostname_3:19998/path`
 - When using Zookeeper leader election, use `alluxio://zk@<ZOOKEEPER_ADDRESS>/path`.
 
-For many applications (e.g., Hadoop, HBase, Hive and Flink), you can use a comma as the
+For many applications (e.g., Hadoop, Hive and Flink), you can use a comma as the
 delimiter for multiple addresses in the URI, like
 `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path`
 and `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`.
@@ -277,6 +273,64 @@ For some other applications (e.g., Spark) where comma is not accepted inside a U
 need to use semicolons as the delimiter for multiple addresses,
 like `alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998`
 and `alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/path`.
+
+### Specify Alluxio Service with logical URL Authority 
+
+Some frameworks may not accept either of these ways to connect to a highly available Alluxio HA cluster,
+so Alluxio also supports connecting to an Alluxio HA cluster via a logical name. In order to use logical
+names, the following configuration options need to be set in your environment variables or site properties.
+
+#### Use logical name when using embedded journal
+
+If you are using embedded journal, you need to configure the following configuration options and connect
+to the highly available alluxio node via `alluxio://ebj@[logical-name]` , for example
+`alluxio://ebj@my-alluxio-cluster`.
+
+* alluxio.master.nameservices.[logical-name] unique identifier for each alluxio master node
+
+A comma-separated ID of the alluxio master node that determine all the alluxio master nodes in the cluster.
+For example, if you previously used `my-alluxio-cluster` as the logical name and wanted to
+use `master1,master2,master3` as individual IDs for each alluxio master, you configure this as such:
+
+```
+alluxio.master.nameservices.my-alluxio-cluster=master1,master2,master3
+```
+
+* alluxio.master.rpc.address.[logical name]. [master node ID]  RPC Address for each alluxio master node
+
+For each alluxio master node previously configured, set the full address of each alluxio master node, for example:
+
+```
+alluxio.master.rpc.address.my-alluxio-cluster.master1=master1:19998
+alluxio.master.rpc.address.my-alluxio-cluster.master2=master2:19998
+alluxio.master.rpc.address.my-alluxio-cluster.master3=master3:19998
+```
+
+#### Use logical name when using Zookeeper
+
+If you are using zookeeper for leader election, you need to configure the following values and connect to
+the highly available alluxio node via `alluxio://zk@[logical-name]` , for example `alluxio://zk@my-alluxio-cluster`.
+
+* alluxio.master.zookeeper.nameservices.[logical-name] unique identifier for each Zookeeper node
+
+A comma-separated zookeeper node ID that determine all the Zookeeper nodes in the cluster. For example,
+if you previously used `my-alluxio-cluster` as the logical name and wanted to use `node1,node2,node3` as individual
+IDs for each Zookeeper, you would configure this as such:
+
+```
+alluxio.master.zookeeper.nameservices.my-alluxio-cluster=node1,node2,node3
+```
+
+* alluxio.master.zookeeper.address.[logical-domain]. [Zookeeper node ID] Address foreach Zookeeper node
+  
+
+For each Zookeeper node previously configured, set the full address of each Zookeeper node, for example:
+
+```
+alluxio.master.zookeeper.address.my-alluxio-cluster.node1=host1:2181
+alluxio.master.zookeeper.address.my-alluxio-cluster.node2=host2:2181
+alluxio.master.zookeeper.address.my-alluxio-cluster.node3=host3:2181
+```
 
 ## Common Operations
 
@@ -362,7 +416,7 @@ In order to add a master, the Alluxio cluster must operate in HA mode.
 If you are running the cluster as a single master cluster, you must configure it to be an HA cluster
 before having more than one master.
 
-See the [journal management documentation]({{ '/en/operation/Journal.html' | relativize_url }}) for
+See the [journal management documentation]({{ '/en/operation/Journal.html#adding-a-new-master' | relativize_url }}) for
 more information about adding and removing masters.
 
 ### Update Master-side Configuration
@@ -376,11 +430,10 @@ Alternatively, one benefit of running Alluxio in HA mode is to use rolling resta
 to minimize downtime when updating configurations:
 
 1. Update the master configuration on all the master nodes without restarting any master.
-1. Restart the leading master (can be determined by running `bin/alluxio leader`).
-  A new leading master will be elected to continue servicing requests.
-1. Wait for the previous leading master to come up successfully but as a standby master.
-1. Update and restart all remaining standby masters.
-1. Verify the configuration update
+2. Restart standby masters one by one (the cluster [cannot survive more than `floor(n/2)` simultaneous restarts]( {{ '/en/operation/Journal.html#embedded-journal-vs-ufs-journal' | relativize_url }})).
+3. Elect a standby master as the leading master (tutorial [here]({{ '/en/operation/Journal.html#electing-a-specific-master-as-leader' | relativize_url }})).
+4. Restart the old leading master that is now a standby master.
+5. Verify the configuration update.
 
 ### Update Worker-side Configuration
 

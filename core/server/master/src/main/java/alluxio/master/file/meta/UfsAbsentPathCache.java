@@ -12,12 +12,13 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Clock;
 import java.util.List;
 
 /**
@@ -70,14 +71,19 @@ public interface UfsAbsentPathCache {
 
     private Factory() {} // prevent instantiation
 
-    public static UfsAbsentPathCache create(MountTable mountTable) {
-      int numThreads = ServerConfiguration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_THREADS);
+    /**
+     * @param mountTable the mount table
+     * @param clock the clock to use to compute the sync times
+     * @return {@link UfsAbsentPathCache}
+     */
+    public static UfsAbsentPathCache create(MountTable mountTable, Clock clock) {
+      int numThreads = Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_THREADS);
       if (numThreads <= 0) {
         LOG.info("UfsAbsentPathCache is disabled. {}: {}",
             PropertyKey.MASTER_UFS_PATH_CACHE_THREADS, numThreads);
         return new NoopUfsAbsentPathCache();
       }
-      return new AsyncUfsAbsentPathCache(mountTable, numThreads);
+      return new AsyncUfsAbsentPathCache(mountTable, numThreads, clock);
     }
   }
 }

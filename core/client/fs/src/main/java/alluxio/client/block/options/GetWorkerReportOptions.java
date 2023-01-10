@@ -17,10 +17,9 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
-import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -46,7 +45,7 @@ public final class GetWorkerReportOptions implements Serializable {
    */
   private GetWorkerReportOptions() {
     mAddresses = new HashSet<>();
-    mFieldRange = new HashSet<>(Arrays.asList(WorkerInfoField.values()));
+    mFieldRange = EnumSet.allOf(WorkerInfoField.class);
     mWorkerRange = WorkerRange.ALL;
   }
 
@@ -160,10 +159,11 @@ public final class GetWorkerReportOptions implements Serializable {
   /**
    * Enum representing the range of workers that we want to show capacity information for.
    */
-  public static enum WorkerRange {
+  public enum WorkerRange {
     ALL, // All workers
     LIVE, // Live workers
     LOST, // Lost workers
+    DECOMMISSIONED, // Decommissioned workers
     SPECIFIED; // Combine with mAddresses to define worker range
 
     /**
@@ -185,7 +185,7 @@ public final class GetWorkerReportOptions implements Serializable {
   /**
    * Enum representing the fields of the worker information.
    */
-  public static enum WorkerInfoField {
+  public enum WorkerInfoField {
     ADDRESS,
     WORKER_CAPACITY_BYTES,
     WORKER_CAPACITY_BYTES_ON_TIERS,
@@ -194,7 +194,11 @@ public final class GetWorkerReportOptions implements Serializable {
     START_TIME_MS,
     STATE,
     WORKER_USED_BYTES,
-    WORKER_USED_BYTES_ON_TIERS;
+    WORKER_USED_BYTES_ON_TIERS,
+    BLOCK_COUNT,
+    BUILD_VERSION;
+
+    public static final Set<WorkerInfoField> ALL = EnumSet.allOf(WorkerInfoField.class);
 
     /**
      * @return the proto representation of this worker info fields

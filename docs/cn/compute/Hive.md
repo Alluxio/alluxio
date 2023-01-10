@@ -125,7 +125,7 @@ hive> desc formatted u_user;
 #### 使用已存在的外部表的Hive命令行示例
 
 假设在Hive中有一个已存在的外部表`u_user` ，存储位置设置为`hdfs://namenode_hostname:port/ml-100k`.
-你可以使用下面的HiveQL语句来检查它的“位置”属性
+你可以使用下面的HiveQL语句来检查它的"位置"属性
 
 ```
 hive> desc formatted u_user;
@@ -143,6 +143,12 @@ hive> alter table u_user set location "alluxio://master_hostname:port/ml-100k";
 
 ```
 hive> alter table TABLE_NAME set location "hdfs://namenode:port/table/path/in/HDFS";
+```
+
+### 使用已存在的Hive分区表
+修改分区表的过程与修改非分区表非常相似，不同的地方在于除了改变表位置之外，我们还需要修改所有分区的分区位置。请参阅以下示例：
+```
+hive> alter table TABLE_NAME partition(PARTITION_COLUMN = VALUE) set location "hdfs://namenode:port/table/path/partitionpath";
 ```
 
 ## Alluxio作为默认文件系统

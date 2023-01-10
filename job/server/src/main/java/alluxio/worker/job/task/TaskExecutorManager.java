@@ -12,8 +12,8 @@
 package alluxio.worker.job.task;
 
 import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.job.ErrorUtils;
 import alluxio.job.RunTaskContext;
@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -191,7 +190,7 @@ public class TaskExecutorManager {
     taskInfo.setStatus(Status.FAILED);
 
     String errorMessage;
-    if (ServerConfiguration.getBoolean(PropertyKey.DEBUG)) {
+    if (Configuration.getBoolean(PropertyKey.DEBUG)) {
       errorMessage = Throwables.getStackTraceAsString(t);
     } else {
       errorMessage = t.getMessage();
@@ -241,15 +240,15 @@ public class TaskExecutorManager {
       // job has finished, or failed, or canceled
       return;
     }
-
-    LOG.info("Task {} for job {} canceled", taskId, jobId);
     Future<?> future = mTaskFutures.get(id);
     if (!future.cancel(true)) {
       taskInfo.setStatus(Status.FAILED);
       taskInfo.setErrorType("FailedCancel");
       taskInfo.setErrorMessage("Failed to cancel the task");
+      LOG.info("Failed to cancel task {} for job {}", taskId, jobId);
     } else {
       taskInfo.setStatus(Status.CANCELED);
+      LOG.info("Task {} for job {} canceled", taskId, jobId);
     }
     finishTask(id);
   }

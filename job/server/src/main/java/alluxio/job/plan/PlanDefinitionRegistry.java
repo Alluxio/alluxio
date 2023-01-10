@@ -23,7 +23,6 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -56,7 +55,7 @@ public enum PlanDefinitionRegistry {
 
   private PlanDefinitionRegistry() {}
 
-  /**
+  /*
    * Adds a mapping from the job configuration to the definition.
    */
   private <T extends JobConfig> void add(Class<T> jobConfig,

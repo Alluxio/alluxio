@@ -19,12 +19,12 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -69,12 +69,12 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public String get(PropertyKey key) {
+  public Object get(PropertyKey key) {
     return conf(key).get(key);
   }
 
   @Override
-  public String get(PropertyKey key, ConfigurationValueOptions options) {
+  public Object get(PropertyKey key, ConfigurationValueOptions options) {
     return conf(key).get(key, options);
   }
 
@@ -99,6 +99,11 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
   }
 
   @Override
+  public String getString(PropertyKey key) {
+    return conf(key).getString(key);
+  }
+
+  @Override
   public int getInt(PropertyKey key) {
     return conf(key).getInt(key);
   }
@@ -114,18 +119,13 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public float getFloat(PropertyKey key) {
-    return conf(key).getFloat(key);
-  }
-
-  @Override
   public boolean getBoolean(PropertyKey key) {
     return conf(key).getBoolean(key);
   }
 
   @Override
-  public List<String> getList(PropertyKey key, String delimiter) {
-    return conf(key).getList(key, delimiter);
+  public List<String> getList(PropertyKey key) {
+    return conf(key).getList(key);
   }
 
   @Override
@@ -154,7 +154,7 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public Map<String, String> getNestedProperties(PropertyKey prefixKey) {
+  public Map<String, Object> getNestedProperties(PropertyKey prefixKey) {
     return conf(prefixKey).getNestedProperties(prefixKey);
   }
 
@@ -174,12 +174,12 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public Map<String, String> toMap(ConfigurationValueOptions opts) {
-    Map<String, String> map = new HashMap<>();
+  public Map<String, Object> toMap(ConfigurationValueOptions opts) {
+    ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
     // Cannot use Collectors.toMap because we support null keys.
     keySet().forEach(key ->
         map.put(key.getName(), conf(key).getOrDefault(key, null, opts)));
-    return map;
+    return map.build();
   }
 
   @Override

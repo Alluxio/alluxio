@@ -13,13 +13,15 @@ package alluxio.client.file.options;
 
 import alluxio.client.ReadType;
 import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.master.block.BlockId;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 
@@ -28,6 +30,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -37,7 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * fields and creating {@link alluxio.proto.dataserver.Protocol.ReadRequest}s.
  */
 @NotThreadSafe
-// TODO(calvin): Rename this class
+// TODO(calvin, jianjian): Rename this class since it's not used by InStream
 public final class InStreamOptions {
   private final URIStatus mStatus;
   private final OpenFilePOptions mProtoOptions;
@@ -50,8 +53,21 @@ public final class InStreamOptions {
    * @param status the file to create the options for
    * @param alluxioConf Alluxio configuration
    */
-  public InStreamOptions(URIStatus status, AlluxioConfiguration alluxioConf) {
-    this(status, FileSystemOptions.openFileDefaults(alluxioConf), alluxioConf);
+  public InStreamOptions(URIStatus status, @Nonnull AlluxioConfiguration alluxioConf) {
+    this(status, FileSystemOptionsUtils.openFileDefaults(alluxioConf), alluxioConf,
+        FileSystemContext.create(alluxioConf));
+  }
+
+  /**
+   * Creates with the default {@link OpenFilePOptions}.
+   *
+   * @param status the file to create the options for
+   * @param alluxioConf Alluxio configuration
+   * @param context the file system context
+   */
+  public InStreamOptions(URIStatus status, @Nonnull AlluxioConfiguration alluxioConf,
+      @Nonnull FileSystemContext context) {
+    this(status, FileSystemOptionsUtils.openFileDefaults(alluxioConf), alluxioConf, context);
   }
 
   /**
@@ -59,9 +75,11 @@ public final class InStreamOptions {
    * @param status URI status
    * @param options OpenFile options
    * @param alluxioConf Alluxio configuration
+   * @param context the file system context
    */
-  public InStreamOptions(URIStatus status, OpenFilePOptions options,
-      AlluxioConfiguration alluxioConf) {
+  public InStreamOptions(URIStatus status, @Nonnull OpenFilePOptions options,
+      @Nonnull AlluxioConfiguration alluxioConf, @Nonnull FileSystemContext context) {
+    Preconditions.checkNotNull(context);
     // Create OpenOptions builder with default options.
     OpenFilePOptions.Builder openOptionsBuilder = OpenFilePOptions.newBuilder()
         .setReadType(alluxioConf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
@@ -73,8 +91,7 @@ public final class InStreamOptions {
 
     mStatus = status;
     mProtoOptions = openOptions;
-    mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(
-        alluxioConf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), alluxioConf);
+    mUfsReadLocationPolicy = context.getReadBlockLocationPolicy(alluxioConf);
     mPositionShort = false;
   }
 
@@ -92,7 +109,6 @@ public final class InStreamOptions {
    */
   @VisibleForTesting
   public void setUfsReadLocationPolicy(BlockLocationPolicy ufsReadLocationPolicy) {
-
     mUfsReadLocationPolicy = Preconditions.checkNotNull(ufsReadLocationPolicy);
   }
 
@@ -142,30 +158,31 @@ public final class InStreamOptions {
    * @return a {@link Protocol.OpenUfsBlockOptions} based on the block id and options
    */
   public Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions(long blockId) {
-    Preconditions.checkArgument(mStatus.getBlockIds().contains(blockId), "blockId");
-    boolean readFromUfs = mStatus.isPersisted();
+    Preconditions.checkArgument(mStatus.getBlockIds().contains(blockId),
+        "block id %s does not belong to the file %s", blockId, mStatus.getPath());
     // In case it is possible to fallback to read UFS blocks, also fill in the options.
-    boolean storedAsUfsBlock = mStatus.getPersistenceState().equals("TO_BE_PERSISTED");
-    readFromUfs = readFromUfs || storedAsUfsBlock;
-    if (!readFromUfs) {
+    boolean storedAsUfsBlock = mStatus.getPersistenceState()
+        .equals(PersistenceState.TO_BE_PERSISTED.name());
+    if (!mStatus.isPersisted() && !storedAsUfsBlock) {
       return Protocol.OpenUfsBlockOptions.getDefaultInstance();
     }
     long blockStart = BlockId.getSequenceNumber(blockId) * mStatus.getBlockSizeBytes();
     BlockInfo info = getBlockInfo(blockId);
-    Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
-        .setUfsPath(mStatus.getUfsPath()).setOffsetInFile(blockStart).setBlockSize(info.getLength())
-        .setMaxUfsReadConcurrency(mProtoOptions.getMaxUfsReadConcurrency())
-        .setNoCache(!ReadType.fromProto(mProtoOptions.getReadType()).isCache())
-        .setMountId(mStatus.getMountId()).build();
+    Protocol.OpenUfsBlockOptions.Builder openUfsBlockOptionsBuilder =
+        Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(mStatus.getUfsPath())
+            .setOffsetInFile(blockStart).setBlockSize(info.getLength())
+            .setMaxUfsReadConcurrency(mProtoOptions.getMaxUfsReadConcurrency())
+            .setNoCache(!ReadType.fromProto(mProtoOptions.getReadType()).isCache())
+            .setMountId(mStatus.getMountId());
     if (storedAsUfsBlock) {
       // On client-side, we do not have enough mount information to fill in the UFS file path.
       // Instead, we unset the ufsPath field and fill in a flag ufsBlock to indicate the UFS file
       // path can be derived from mount id and the block ID. Also because the entire file is only
       // one block, we set the offset in file to be zero.
-      openUfsBlockOptions = openUfsBlockOptions.toBuilder().clearUfsPath().setBlockInUfsTier(true)
-            .setOffsetInFile(0).build();
+      openUfsBlockOptionsBuilder.clearUfsPath().setBlockInUfsTier(true)
+            .setOffsetInFile(0);
     }
-    return openUfsBlockOptions;
+    return openUfsBlockOptionsBuilder.build();
   }
 
   @Override

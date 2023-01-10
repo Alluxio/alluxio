@@ -13,8 +13,8 @@ package alluxio.master.metrics;
 
 import alluxio.Constants;
 import alluxio.clock.SystemClock;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.MetricValue;
 import alluxio.grpc.ServiceType;
@@ -25,16 +25,18 @@ import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.journal.NoopJournaled;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MultiValueMetricsAggregator;
-import alluxio.metrics.MetricInfo;
 import alluxio.metrics.aggregator.SingleTagValueAggregator;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
+import io.grpc.ServerInterceptors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +66,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   DefaultMetricsMaster(CoreMasterContext masterContext) {
     this(masterContext, new SystemClock(),
         ExecutorServiceFactories.fixedThreadPool(Constants.METRICS_MASTER_NAME,
-            ServerConfiguration.getInt(PropertyKey.MASTER_METRICS_SERVICE_THREADS)));
+            Configuration.getInt(PropertyKey.MASTER_METRICS_SERVICE_THREADS)));
   }
 
   /**
@@ -164,20 +166,22 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(ServiceType.METRICS_MASTER_CLIENT_SERVICE,
-        new GrpcService(getMasterServiceHandler()));
+        new GrpcService(ServerInterceptors.intercept(
+            getMasterServiceHandler(),
+            new ClientContextServerInjector())));
     return services;
   }
 
   @Override
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
+    mMetricsStore.initMetricKeys();
+    mMetricsStore.clear();
     if (isLeader) {
-      mMetricsStore.initMetricKeys();
-      mMetricsStore.clear();
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER, new ClusterMetricsUpdater(),
-          ServerConfiguration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
-          ServerConfiguration.global(), mMasterContext.getUserState()));
+          Configuration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
+          Configuration.global(), mMasterContext.getUserState()));
     }
   }
 

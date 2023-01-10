@@ -13,12 +13,10 @@ package alluxio.client.fs.io;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.fs.io.AbstractFileOutStreamIntegrationTest;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.MasterProcess;
@@ -50,7 +48,7 @@ public class FileInStreamRehydrationIntegrationTest extends AbstractFileOutStrea
 
   @Test
   public void testRehydration() throws Exception {
-    FileSystem fs = FileSystem.Factory.create(ServerConfiguration.global());
+    FileSystem fs = FileSystem.Factory.create();
 
     // Create a file with 10 blocks.
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());

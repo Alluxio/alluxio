@@ -113,7 +113,7 @@ public final class BackwardsCompatibilityJournalGenerator {
             .setClusterName("BackwardsCompatibility")
             .setNumMasters(1)
             .setNumWorkers(1)
-            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
             .build();
     try {
       cluster.start();

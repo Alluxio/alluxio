@@ -25,12 +25,12 @@ import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -92,11 +92,12 @@ public final class CommandUtils {
    * @param n an integer
    * @throws InvalidArgumentException if the number is smaller than n
    */
-  public static void checkNumOfArgsNoLessThan(Command cmd, CommandLine cl, int n) throws
-      InvalidArgumentException {
+  public static void checkNumOfArgsNoLessThan(Command cmd, CommandLine cl, int n)
+      throws InvalidArgumentException {
     if (cl.getArgs().length < n) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
-          .getMessage(cmd.getCommandName(), n, cl.getArgs().length));
+      throw new InvalidArgumentException(
+          MessageFormat.format("Command {0} requires at least {1} arguments ({2} provided)",
+              cmd.getCommandName(), n, cl.getArgs().length));
     }
   }
 
@@ -108,11 +109,12 @@ public final class CommandUtils {
    * @param n an integer
    * @throws InvalidArgumentException if the number is greater than n
    */
-  public static void checkNumOfArgsNoMoreThan(Command cmd, CommandLine cl, int n) throws
-      InvalidArgumentException {
+  public static void checkNumOfArgsNoMoreThan(Command cmd, CommandLine cl, int n)
+      throws InvalidArgumentException {
     if (cl.getArgs().length > n) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_TOO_MANY
-          .getMessage(cmd.getCommandName(), n, cl.getArgs().length));
+      throw new InvalidArgumentException(
+          MessageFormat.format("Command {0} requires at most {1} arguments ({2} provided)",
+              cmd.getCommandName(), n, cl.getArgs().length));
     }
   }
 

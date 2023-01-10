@@ -11,21 +11,30 @@
 
 package alluxio.stress.cli.client;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileOutStream;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
+import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
-import alluxio.stress.cli.Benchmark;
+import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.client.ClientIOOperation;
 import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
+import alluxio.stress.common.FileSystemClientType;
 import alluxio.stress.common.SummaryStatistics;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
-import com.beust.jcommander.ParametersDelegate;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -35,8 +44,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -50,16 +62,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Single node client IO stress test.
+ * Client IO stress test.
  */
-public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
+// TODO(jiacheng): avoid the implicit casts and @SuppressFBWarnings
+public class StressClientIOBench extends AbstractStressBench
+    <ClientIOTaskResult, ClientIOParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressClientIOBench.class);
-
-  @ParametersDelegate
-  private ClientIOParameters mParameters = new ClientIOParameters();
 
   /** Cached FS instances. */
   private FileSystem[] mCachedFs;
+
+  /** In case the Alluxio Native API is used,  use the following instead. */
+  private alluxio.client.file.FileSystem[] mCachedNativeFs;
+
     /** Set to true after the first barrier is passed. */
   private volatile boolean mStartBarrierPassed = false;
 
@@ -67,6 +82,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
    * Creates instance.
    */
   public StressClientIOBench() {
+    mParameters = new ClientIOParameters();
   }
 
   /**
@@ -78,21 +94,31 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
 
   @Override
   public String getBenchDescription() {
-    // TODO(David) Fill in description
-    return "";
+    return String.join("\n", ImmutableList.of(
+        "A benchmarking tool to measure the end-to-end read performance of Alluxio "
+             + "when the client preforms different read operation",
+        "To run the read test, data should be first generated with the \"Write\" operation ",
+        "",
+        "Example:",
+        "# This test will run create a 500MB file with block size 15KB on 1 worker,",
+        "# then test the ReadArray operation for 30s and calculate the throughput after 10s "
+            + "warmup.",
+        "$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation Write "
+            + "--base alluxio:///stress-client-io-base --file-size 500m --buffer-size 64k "
+            + "--block-size 16k --write-num-workers 1 --cluster --cluster-limit 1",
+        "$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation "
+            + "ReadArray --base alluxio:///stress-client-io-base --file-size 500m --buffer-size "
+            + "64k --block-size 16k --warmup 10s --duration 30s --write-num-workers 1 --cluster "
+            + "--cluster-limit 1\n"));
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public void prepare() throws Exception {
-    if (mBaseParameters.mCluster && mBaseParameters.mClusterLimit != 1) {
-      throw new IllegalArgumentException(String.format(
-          "%s is a single-node client IO stress test, so it cannot be run in cluster mode without"
-              + " flag '%s 1'.", this.getClass().getName(), BaseParameters.CLUSTER_LIMIT_FLAG));
-    }
     if (FormatUtils.parseSpaceSize(mParameters.mFileSize) < FormatUtils
         .parseSpaceSize(mParameters.mBufferSize)) {
       throw new IllegalArgumentException(String
-          .format("File size (%s) must be larger than buffer size (%s)", mParameters.mFileSize,
+          .format("File size (%s) cannot be smaller than buffer size (%s)", mParameters.mFileSize,
               mParameters.mBufferSize));
     }
     if (mParameters.mOperation == ClientIOOperation.WRITE) {
@@ -103,7 +129,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       // set hdfs conf for preparation client
       Configuration hdfsConf = new Configuration();
       hdfsConf.set(PropertyKey.Name.USER_FILE_DELETE_UNCHECKED, "true");
-      hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+      hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
       FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
 
       // initialize the base, for only the non-distributed task (the cluster launching task)
@@ -128,13 +154,38 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
-    mCachedFs = new FileSystem[mParameters.mClients];
-    for (int i = 0; i < mCachedFs.length; i++) {
-      mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
+
+    hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
+
+    if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
+      LOG.info("Using ALLUXIO HDFS Compatible API to perform the test.");
+      mCachedFs = new FileSystem[mParameters.mClients];
+      for (int i = 0; i < mCachedFs.length; i++) {
+        mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
+      }
+    } else if (mParameters.mClientType == FileSystemClientType.ALLUXIO_NATIVE) {
+      LOG.info("Using ALLUXIO Native API to perform the test.");
+
+      alluxio.conf.AlluxioProperties alluxioProperties = alluxio.conf.Configuration
+          .copyProperties();
+      alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf),
+          Source.RUNTIME);
+
+      mCachedNativeFs = new alluxio.client.file.FileSystem[mParameters.mClients];
+      for (int i = 0; i < mCachedNativeFs.length; i++) {
+        mCachedNativeFs[i] = alluxio.client.file.FileSystem.Factory
+            .create(new InstancedConfiguration(alluxioProperties));
+      }
+    } else {
+      LOG.info("Using Alluxio POSIX API to perform the test.");
+      if (mBaseParameters.mDistributed) {
+        Files.createDirectories(Paths.get(mParameters.mBasePath, mBaseParameters.mId));
+      }
     }
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public ClientIOTaskResult runLocal() throws Exception {
     List<Integer> threadCounts = new ArrayList<>(mParameters.mThreads);
     threadCounts.sort(Comparator.comparingInt(i -> i));
@@ -156,6 +207,19 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     return taskResult;
   }
 
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
+  private BenchThread getBenchThread(BenchContext context, int index) {
+    if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
+      return new AlluxioHDFSBenchThread(context, mCachedFs[index % mCachedFs.length], index);
+    } else if (mParameters.mClientType == FileSystemClientType.ALLUXIO_NATIVE) {
+      return new AlluxioNativeBenchThread(context,
+          mCachedNativeFs[index % mCachedNativeFs.length], index);
+    } else {
+      return new AlluxioPOSIXBenchThread(context, index);
+    }
+  }
+
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   private ClientIOTaskResult.ThreadCountResult runForThreadCount(int numThreads) throws Exception {
     LOG.info("Running benchmark for thread count: " + numThreads);
     ExecutorService service =
@@ -173,7 +237,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
 
     List<Callable<Void>> callables = new ArrayList<>(numThreads);
     for (int i = 0; i < numThreads; i++) {
-      callables.add(new BenchThread(context, mCachedFs[i % mCachedFs.length], i));
+      callables.add(getBenchThread(context, i));
     }
     service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
         TimeUnit.MILLISECONDS);
@@ -195,7 +259,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
    * @param startMs start time for profiling
    * @param endMs end time for profiling
    * @return TimeToFirstByteStatistics
-   * @throws IOException
+   * @throws IOException exception
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
   public synchronized Map<String, SummaryStatistics> addAdditionalResult(
@@ -249,7 +313,12 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         responseTime99Percentile, maxResponseTimesMs);
   }
 
-  private final class BenchContext {
+  @Override
+  public void validateParams() throws Exception {
+    // no-op
+  }
+
+  private static final class BenchContext {
     private final long mStartMs;
     private final long mEndMs;
 
@@ -276,7 +345,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         try {
           mThreadCountResult.merge(threadResult);
         } catch (Exception e) {
-          mThreadCountResult.addErrorMessage(e.getMessage());
+          mThreadCountResult.addErrorMessage(e.toString());
         }
       }
     }
@@ -286,26 +355,24 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     }
   }
 
-  private final class BenchThread implements Callable<Void> {
+  private abstract class BenchThread implements Callable<Void> {
     private final BenchContext mContext;
-    private final Path mFilePath;
-    private final FileSystem mFs;
-    private final byte[] mBuffer;
-    private final ByteBuffer mByteBuffer;
-    private final int mThreadId;
-    private final long mFileSize;
-    private final long mMaxOffset;
-    private final Iterator<Long> mLongs;
-    private final long mBlockSize;
+    protected final Path mFilePath;
+    protected final byte[] mBuffer;
+    protected final ByteBuffer mByteBuffer;
+    protected final int mThreadId;
+    protected final long mFileSize;
+    protected final long mMaxOffset;
+    protected final Iterator<Long> mLongs;
+    protected final long mBlockSize;
 
-    private final ClientIOTaskResult.ThreadCountResult mThreadCountResult =
+    protected final ClientIOTaskResult.ThreadCountResult mThreadCountResult =
         new ClientIOTaskResult.ThreadCountResult();
 
-    private FSDataInputStream mInStream = null;
-    private FSDataOutputStream mOutStream = null;
-    private long mCurrentOffset;
+    protected long mCurrentOffset;
 
-    private BenchThread(BenchContext context, FileSystem fs, int threadId) {
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
+    protected BenchThread(BenchContext context, int threadId) {
       mContext = context;
       mThreadId = threadId;
 
@@ -314,13 +381,12 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         // all threads read the first file
         fileId = 0;
       }
-      mFilePath = new Path(mParameters.mBasePath, "data-" + fileId);
-
-      mFs = fs;
+      mFilePath = new Path(new Path(mParameters.mBasePath, mBaseParameters.mId), "data-" + fileId);
 
       mBuffer = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mBufferSize)];
       Arrays.fill(mBuffer, (byte) 'A');
       mByteBuffer = ByteBuffer.wrap(mBuffer);
+      mByteBuffer.mark();
 
       mFileSize = FormatUtils.parseSpaceSize(mParameters.mFileSize);
       mCurrentOffset = mFileSize;
@@ -336,7 +402,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         runInternal();
       } catch (Exception e) {
         LOG.error(Thread.currentThread().getName() + ": failed", e);
-        mThreadCountResult.addErrorMessage(e.getMessage());
+        mThreadCountResult.addErrorMessage(e.toString());
       } finally {
         closeInStream();
       }
@@ -348,6 +414,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       return null;
     }
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private void runInternal() throws Exception {
       // When to start recording measurements
       long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
@@ -381,7 +448,27 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       }
     }
 
-    private int applyOperation() throws IOException {
+    protected abstract int applyOperation() throws IOException, AlluxioException;
+
+    protected abstract void closeInStream();
+  }
+
+  private final class AlluxioHDFSBenchThread extends BenchThread {
+    private final FileSystem mFs;
+
+    private FSDataInputStream mInStream = null;
+    private FSDataOutputStream mOutStream = null;
+    private long mCurrentOffset;
+
+    private AlluxioHDFSBenchThread(BenchContext context, FileSystem fs, int threadId) {
+      super(context, threadId);
+
+      mFs = fs;
+    }
+
+    @Override
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
+    protected int applyOperation() throws IOException {
       if (ClientIOOperation.isRead(mParameters.mOperation)) {
         if (mInStream == null) {
           mInStream = mFs.open(mFilePath);
@@ -410,6 +497,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         }
         case READ_BYTE_BUFFER: {
           int bytesRead = mInStream.read(mByteBuffer);
+          mByteBuffer.reset();
           if (bytesRead < 0) {
             closeInStream();
             mInStream = mFs.open(mFilePath);
@@ -417,7 +505,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           return bytesRead;
         }
         case READ_FULLY: {
-          int toRead = Math.min(mBuffer.length, (int) (mFileSize - mInStream.getPos()));
+          int toRead = (int) Math.min(mBuffer.length, mFileSize - mInStream.getPos());
           mInStream.readFully(mBuffer, 0, toRead);
           if (mInStream.getPos() == mFileSize) {
             closeInStream();
@@ -449,15 +537,181 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       }
     }
 
-    private void closeInStream() {
+    @Override
+    protected void closeInStream() {
       try {
         if (mInStream != null) {
           mInStream.close();
         }
       } catch (IOException e) {
-        mThreadCountResult.addErrorMessage(e.getMessage());
+        mThreadCountResult.addErrorMessage(e.toString());
       } finally {
         mInStream = null;
+      }
+    }
+  }
+
+  private final class AlluxioNativeBenchThread extends BenchThread {
+    private final alluxio.client.file.FileSystem mFs;
+
+    private FileInStream mInStream = null;
+    private FileOutStream mOutStream = null;
+
+    private AlluxioNativeBenchThread(BenchContext context, alluxio.client.file.FileSystem fs,
+                                     int threadId) {
+      super(context, threadId);
+
+      mFs = fs;
+    }
+
+    @Override
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
+    protected int applyOperation() throws IOException, AlluxioException {
+      if (ClientIOOperation.isRead(mParameters.mOperation)) {
+        if (mInStream == null) {
+          mInStream = mFs.openFile(new AlluxioURI(mFilePath.toString()));
+        }
+        if (mParameters.mReadRandom) {
+          mCurrentOffset = mLongs.next();
+          if (!ClientIOOperation.isPosRead(mParameters.mOperation)) {
+            // must seek if not a positioned read
+            mInStream.seek(mCurrentOffset);
+          }
+        } else {
+          mCurrentOffset += mBuffer.length;
+          if (mCurrentOffset > mMaxOffset) {
+            mCurrentOffset = 0;
+          }
+        }
+      }
+      switch (mParameters.mOperation) {
+        case READ_ARRAY: {
+          int bytesRead = mInStream.read(mBuffer);
+          if (bytesRead < 0) {
+            closeInStream();
+            mInStream = mFs.openFile(new AlluxioURI(mFilePath.toString()));
+          }
+          return bytesRead;
+        }
+        case READ_BYTE_BUFFER: {
+          int bytesRead = mInStream.read(mByteBuffer);
+          mByteBuffer.reset();
+          if (bytesRead < 0) {
+            closeInStream();
+            mInStream = mFs.openFile(new AlluxioURI(mFilePath.toString()));
+          }
+          return bytesRead;
+        }
+        case READ_FULLY:
+        case POS_READ_FULLY: {
+          throw new UnsupportedOperationException(
+              "READ_FULLY and POS_READ_FULLY are not supported!");
+        }
+        case POS_READ: {
+          return mInStream.positionedRead(mCurrentOffset, mBuffer, 0, mBuffer.length);
+        }
+        case WRITE: {
+          if (mOutStream == null) {
+            mOutStream = mFs.createFile(new AlluxioURI(mFilePath.toString()),
+                CreateFilePOptions.newBuilder().setBlockSizeBytes(mBlockSize).setRecursive(true)
+                    .build());
+          }
+          int bytesToWrite = (int) Math.min(mFileSize - mOutStream.getBytesWritten(),
+              mBuffer.length);
+          if (bytesToWrite == 0) {
+            mOutStream.close();
+            return -1;
+          }
+          mOutStream.write(mBuffer, 0, bytesToWrite);
+          return bytesToWrite;
+        }
+        default:
+          throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
+      }
+    }
+
+    @Override
+    protected void closeInStream() {
+      try {
+        if (mInStream != null) {
+          mInStream.close();
+        }
+      } catch (IOException e) {
+        mThreadCountResult.addErrorMessage(e.toString());
+      } finally {
+        mInStream = null;
+      }
+    }
+  }
+
+  private final class AlluxioPOSIXBenchThread extends BenchThread {
+
+    private RandomAccessFile mRandomAccessFile = null;
+
+    private AlluxioPOSIXBenchThread(BenchContext context, int threadId) {
+      super(context, threadId);
+    }
+
+    @Override
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
+    protected int applyOperation() throws IOException, AlluxioException {
+      if (mRandomAccessFile == null) {
+        mRandomAccessFile = new RandomAccessFile(mFilePath.toString(), "rw");
+        mCurrentOffset = 0;
+      }
+      if (ClientIOOperation.isRead(mParameters.mOperation) && mParameters.mReadRandom) {
+        mCurrentOffset = mLongs.next();
+        mRandomAccessFile.seek(mCurrentOffset);
+      }
+      switch (mParameters.mOperation) {
+        case READ_ARRAY: // fall through
+        case POS_READ: {
+          int bytesRead = mRandomAccessFile.read(mBuffer);
+          if (bytesRead < 0) {
+            closeFile();
+          }
+          return bytesRead;
+        }
+        case READ_FULLY: // fall through
+        case POS_READ_FULLY: {
+          int toRead = (int) Math.min(mBuffer.length,
+              mFileSize - mRandomAccessFile.getFilePointer());
+          mRandomAccessFile.readFully(mBuffer, 0, toRead);
+          if (mRandomAccessFile.getFilePointer() == mFileSize) {
+            closeFile();
+          }
+          return toRead;
+        }
+        case READ_BYTE_BUFFER: {
+          throw new UnsupportedOperationException("READ_BYTE_BUFFER is not supported!");
+        }
+        case WRITE: {
+          int bytesToWrite = (int) Math.min(mFileSize - mRandomAccessFile.getFilePointer(),
+              mBuffer.length);
+          if (bytesToWrite == 0) {
+            closeFile();
+            return -1;
+          }
+          mRandomAccessFile.write(mBuffer, 0, bytesToWrite);
+          return bytesToWrite;
+        }
+        default:
+          throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
+      }
+    }
+
+    @Override
+    protected void closeInStream() {}
+
+    private void closeFile() {
+      try {
+        if (mRandomAccessFile != null) {
+          mRandomAccessFile.close();
+        }
+      } catch (IOException e) {
+        mThreadCountResult.addErrorMessage(e.toString());
+      } finally {
+        mRandomAccessFile = null;
       }
     }
   }

@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.raft;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.DownloadSnapshotPRequest;
 import alluxio.grpc.DownloadSnapshotPResponse;
@@ -35,6 +35,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 /**
@@ -46,7 +47,7 @@ import java.util.function.Function;
 public class SnapshotUploader<S, R>
     implements StreamObserver<R>, ClientResponseObserver<S, R> {
   private static final Logger LOG = LoggerFactory.getLogger(SnapshotUploader.class);
-  private static final int SNAPSHOT_CHUNK_SIZE = (int) ServerConfiguration.getBytes(
+  private static final int SNAPSHOT_CHUNK_SIZE = (int) Configuration.getBytes(
       PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE);
 
   private final Function<SnapshotData, S> mDataMessageBuilder;
@@ -56,6 +57,7 @@ public class SnapshotUploader<S, R>
   private final SnapshotInfo mSnapshotInfo;
   private long mOffset = 0;
   private StreamObserver<S> mStream;
+  private final CompletableFuture<SnapshotInfo> mCompletionFuture = new CompletableFuture<>();
 
   /**
    * Builds a stream for leader to upload a snapshot.
@@ -151,12 +153,22 @@ public class SnapshotUploader<S, R>
   @Override
   public void onError(Throwable t) {
     LOG.error("Error sending snapshot {} at {}", mSnapshotFile, mOffset, t);
+    mStream.onError(t);
+    mCompletionFuture.completeExceptionally(t);
   }
 
   @Override
   public void onCompleted() {
-    LOG.debug("Received onComplete");
+    LOG.debug("Received onComplete for {}", mSnapshotInfo);
     mStream.onCompleted();
+    mCompletionFuture.complete(mSnapshotInfo);
+  }
+
+  /**
+   * @return a future used to propagate completion status to {@link SnapshotReplicationManager}
+   */
+  public CompletableFuture<SnapshotInfo> getCompletionFuture() {
+    return mCompletionFuture;
   }
 
   @Override

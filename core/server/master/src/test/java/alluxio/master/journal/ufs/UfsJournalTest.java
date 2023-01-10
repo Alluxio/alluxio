@@ -11,8 +11,12 @@
 
 package alluxio.master.journal.ufs;
 
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.exception.status.UnavailableException;
-import alluxio.master.NoopMaster;
+import alluxio.master.journal.CatchupFuture;
+import alluxio.master.journal.CountingNoopFileSystemMaster;
 import alluxio.proto.journal.Journal;
 import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
@@ -40,14 +44,14 @@ public final class UfsJournalTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   private UfsJournal mJournal;
-  private CountingNoopMaster mCountingNoopMaster;
+  private CountingNoopFileSystemMaster mFileSystemMaster;
 
   @Before
   public void before() throws Exception {
-    mCountingNoopMaster = new CountingNoopMaster();
+    mFileSystemMaster = new CountingNoopFileSystemMaster();
     mJournal =
         new UfsJournal(URIUtils.appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()),
-            "FileSystemMaster"), mCountingNoopMaster, 0, Collections::emptySet);
+            "FileSystemMaster"), mFileSystemMaster, 0, Collections::emptySet);
   }
 
   /**
@@ -106,35 +110,35 @@ public final class UfsJournalTest {
     mJournal.gainPrimacy();
 
     // Create a counting master implementation that counts how many journal entries it processed.
-    CountingNoopMaster countingMaster = new CountingNoopMaster();
-    // Find journal base path for secondary journal to consume the same journal files.
+    CountingNoopFileSystemMaster countingMaster = new CountingNoopFileSystemMaster();
+    // Find journal base path for standby journal to consume the same journal files.
     String parentPath = new File(mJournal.getLocation().getPath()).getParent();
-    UfsJournal secondaryJournal =
+    UfsJournal standbyJournal =
         new UfsJournal(new URI(parentPath), countingMaster, 0, Collections::emptySet);
-    secondaryJournal.start();
+    standbyJournal.start();
 
     // Bring current next sequence to 3.
     mJournal.write(Journal.JournalEntry.getDefaultInstance()); // seq-0
     mJournal.write(Journal.JournalEntry.getDefaultInstance()); // seq-1
     mJournal.write(Journal.JournalEntry.getDefaultInstance()); // seq-2
     mJournal.flush();
-    // Secondary still hasn't seen the updates since the current journal file is not complete.
-    secondaryJournal.suspend();
-    // Write more entries while secondary is at backup mode.
+    // Standby still hasn't seen the updates since the current journal file is not complete.
+    standbyJournal.suspend();
+    // Write more entries while standby is at backup mode.
     mJournal.write(Journal.JournalEntry.getDefaultInstance()); // seq-3
     mJournal.write(Journal.JournalEntry.getDefaultInstance()); // seq-4
     mJournal.flush();
     // Resume until sequence-1.
-    secondaryJournal.catchup(1).waitTermination();
+    standbyJournal.catchup(1).waitTermination();
     // Entries still reside in an incomplete journal file.
     // After backup, we should have read only up to sequence-1.
     Assert.assertEquals(2, countingMaster.getApplyCount());
     // Initiate primary journal shutdown.
-    // Current journal file will be completed and secondary should still be suspended.
+    // Current journal file will be completed and standby should still be suspended.
     mJournal.close();
     Assert.assertEquals(2, countingMaster.getApplyCount());
-    // secondary should apply new entries after resumed.
-    secondaryJournal.resume();
+    // standby should apply new entries after resumed.
+    standbyJournal.resume();
     CommonUtils.waitFor("catching up to current state", () -> countingMaster.getApplyCount() == 5);
   }
 
@@ -161,16 +165,16 @@ public final class UfsJournalTest {
     // Create a new Journal with the same journal path
     String parentPath = new File(mJournal.getLocation().getPath()).getParent();
     mJournal =
-        new UfsJournal(new URI(parentPath), mCountingNoopMaster, 0, Collections::emptySet);
+        new UfsJournal(new URI(parentPath), mFileSystemMaster, 0, Collections::emptySet);
     mJournal.start();
     CommonUtils.waitFor("catchup done", () -> mJournal.getCatchupState()
             == UfsJournalCheckpointThread.CatchupState.DONE,
         WaitForOptions.defaults().setTimeoutMs(6000));
-    Assert.assertEquals(entryCount, mCountingNoopMaster.getApplyCount());
+    Assert.assertEquals(entryCount, mFileSystemMaster.getApplyCount());
   }
 
   @Test
-  public void journalSecondaryCatchup() throws Exception {
+  public void journalStandbyCatchup() throws Exception {
     mJournal.start();
     mJournal.gainPrimacy();
     UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, 0);
@@ -180,14 +184,14 @@ public final class UfsJournalTest {
     }
     writer.close();
     mJournal.signalLosePrimacy();
-    Assert.assertEquals(0, mCountingNoopMaster.getApplyCount());
+    Assert.assertEquals(0, mFileSystemMaster.getApplyCount());
     mJournal.awaitLosePrimacy();
     // When master steps down, it should start catching up
     CommonUtils.waitFor("catchup done", () -> mJournal.getCatchupState()
             == UfsJournalCheckpointThread.CatchupState.DONE,
         WaitForOptions.defaults().setTimeoutMs(6000));
     // check if logs are applied
-    Assert.assertEquals(entryCount, mCountingNoopMaster.getApplyCount());
+    Assert.assertEquals(entryCount, mFileSystemMaster.getApplyCount());
   }
 
   @Test
@@ -196,15 +200,15 @@ public final class UfsJournalTest {
     mJournal.gainPrimacy();
 
     // Create a counting master implementation that counts how many journal entries it processed.
-    CountingNoopMaster countingMaster = new CountingNoopMaster();
-    // Find journal base path for secondary journal to consume the same journal files.
+    CountingNoopFileSystemMaster countingMaster = new CountingNoopFileSystemMaster();
+    // Find journal base path for standby journal to consume the same journal files.
     String parentPath = new File(mJournal.getLocation().getPath()).getParent();
-    UfsJournal secondaryJournal =
+    UfsJournal standbyJournal =
         new UfsJournal(new URI(parentPath), countingMaster, 0, Collections::emptySet);
-    secondaryJournal.start();
+    standbyJournal.start();
 
-    // Suspend secondary journal
-    secondaryJournal.suspend();
+    // Suspend standby journal
+    standbyJournal.suspend();
 
     // Write entries
     int entryCount = 10;
@@ -212,17 +216,17 @@ public final class UfsJournalTest {
       mJournal.write(Journal.JournalEntry.getDefaultInstance());
     }
     mJournal.flush();
-    // Validate secondary didn't apply any entries yet.
+    // Validate standby didn't apply any entries yet.
     Assert.assertEquals(0, countingMaster.getApplyCount());
 
     // Gain primacy.
-    secondaryJournal.gainPrimacy();
+    standbyJournal.gainPrimacy();
     CommonUtils.waitFor("catching up to current state",
         () -> countingMaster.getApplyCount() == entryCount);
 
     // Resume should fail after becoming primary.
     mThrown.expect(IllegalStateException.class);
-    secondaryJournal.resume();
+    standbyJournal.resume();
   }
 
   @Test
@@ -231,15 +235,15 @@ public final class UfsJournalTest {
     mJournal.gainPrimacy();
 
     // Create a counting master implementation that counts how many journal entries it processed.
-    CountingNoopMaster countingMaster = new CountingNoopMaster();
-    // Find journal base path for secondary journal to consume the same journal files.
+    CountingNoopFileSystemMaster countingMaster = new CountingNoopFileSystemMaster();
+    // Find journal base path for standby journal to consume the same journal files.
     String parentPath = new File(mJournal.getLocation().getPath()).getParent();
-    UfsJournal secondaryJournal =
+    UfsJournal standbyJournal =
         new UfsJournal(new URI(parentPath), countingMaster, 0, Collections::emptySet);
-    secondaryJournal.start();
+    standbyJournal.start();
 
-    // Suspend secondary journal.
-    secondaryJournal.suspend();
+    // Suspend standby journal.
+    standbyJournal.suspend();
 
     // Write 2 batches of entries.
     int entryBatchCount = 5;
@@ -247,14 +251,14 @@ public final class UfsJournalTest {
       mJournal.write(Journal.JournalEntry.getDefaultInstance());
     }
     mJournal.flush();
-    // Validate secondary didn't apply any entries yet.
+    // Validate standby didn't apply any entries yet.
     Assert.assertEquals(0, countingMaster.getApplyCount());
 
     // Catch up follower journal system to first batch of entries.
-    secondaryJournal.catchup(entryBatchCount - 1).waitTermination();
+    standbyJournal.catchup(entryBatchCount - 1).waitTermination();
     Assert.assertEquals(entryBatchCount, countingMaster.getApplyCount());
     // Catch up follower journal system to second batch of entries.
-    secondaryJournal.catchup((2 * entryBatchCount) - 1).waitTermination();
+    standbyJournal.catchup((2 * entryBatchCount) - 1).waitTermination();
     Assert.assertEquals(2 * entryBatchCount, countingMaster.getApplyCount());
   }
 
@@ -264,15 +268,15 @@ public final class UfsJournalTest {
     mJournal.gainPrimacy();
 
     // Create a counting master implementation that counts how many journal entries it processed.
-    CountingNoopMaster countingMaster = new SleepingCountingMaster(50);
-    // Find journal base path for secondary journal to consume the same journal files.
+    CountingNoopFileSystemMaster countingMaster = CountingNoopFileSystemMaster.withApplyDelay(50);
+    // Find journal base path for standby journal to consume the same journal files.
     String parentPath = new File(mJournal.getLocation().getPath()).getParent();
-    UfsJournal secondaryJournal =
+    UfsJournal standbyJournal =
         new UfsJournal(new URI(parentPath), countingMaster, 0, Collections::emptySet);
-    secondaryJournal.start();
+    standbyJournal.start();
 
-    // Suspend secondary journal.
-    secondaryJournal.suspend();
+    // Suspend standby journal.
+    standbyJournal.suspend();
 
     // Write many entries to guarantee that advancing will be in progress
     // when gainPrimacy() is called.
@@ -281,14 +285,14 @@ public final class UfsJournalTest {
       mJournal.write(Journal.JournalEntry.getDefaultInstance());
     }
     mJournal.flush();
-    // Validate secondary didn't apply any entries yet.
+    // Validate standby didn't apply any entries yet.
     Assert.assertEquals(0, countingMaster.getApplyCount());
 
     // Initiate catching up.
-    secondaryJournal.catchup(entryCount - 2);
+    standbyJournal.catchup(entryCount - 2);
 
     // Gain primacy.
-    secondaryJournal.gainPrimacy();
+    standbyJournal.gainPrimacy();
     CommonUtils.waitFor("catching up to current state",
         () -> countingMaster.getApplyCount() == entryCount);
   }
@@ -299,15 +303,15 @@ public final class UfsJournalTest {
     mJournal.gainPrimacy();
 
     // Create a counting master implementation that counts how many journal entries it processed.
-    CountingNoopMaster countingMaster = new CountingNoopMaster();
-    // Find journal base path for secondary journal to consume the same journal files.
+    CountingNoopFileSystemMaster countingMaster = new CountingNoopFileSystemMaster();
+    // Find journal base path for standby journal to consume the same journal files.
     String parentPath = new File(mJournal.getLocation().getPath()).getParent();
-    UfsJournal secondaryJournal =
+    UfsJournal standbyJournal =
         new UfsJournal(new URI(parentPath), countingMaster, 0, Collections::emptySet);
-    secondaryJournal.start();
+    standbyJournal.start();
 
-    // Suspend secondary journal.
-    secondaryJournal.suspend();
+    // Suspend standby journal.
+    standbyJournal.suspend();
 
     // Write many entries to guarantee that advancing will be in progress
     // when gainPrimacy() is called.
@@ -316,60 +320,57 @@ public final class UfsJournalTest {
       mJournal.write(Journal.JournalEntry.getDefaultInstance());
     }
     mJournal.flush();
-    // Validate secondary didn't apply any entries yet.
+    // Validate standby didn't apply any entries yet.
     Assert.assertEquals(0, countingMaster.getApplyCount());
 
     // Initiate and wait for catching up.
-    secondaryJournal.catchup(entryCount - 2).waitTermination();
+    standbyJournal.catchup(entryCount - 2).waitTermination();
     Assert.assertEquals(entryCount - 1, countingMaster.getApplyCount());
 
     // Gain primacy.
-    secondaryJournal.gainPrimacy();
+    standbyJournal.gainPrimacy();
     CommonUtils.waitFor("catching up to current state",
         () -> countingMaster.getApplyCount() == entryCount);
   }
 
-  /**
-   * Used to validate journal apply counts to master.
-   */
-  class CountingNoopMaster extends NoopMaster {
-    /** Tracks how many entries have been applied to master. */
-    private long mApplyCount = 0;
+  @Test
+  public void catchupCorruptedEntry() throws Exception {
+    mJournal.start();
+    mJournal.gainPrimacy();
 
-    @Override
-    public boolean processJournalEntry(Journal.JournalEntry entry) {
-      mApplyCount++;
-      return true;
+    // Create a counting master implementation that counts how many journal entries it processed.
+    CountingNoopFileSystemMaster countingMaster = new CountingNoopFileSystemMaster();
+    // Find journal base path for standby journal to consume the same journal files.
+    String parentPath = new File(mJournal.getLocation().getPath()).getParent();
+    UfsJournal standbyJournal =
+        new UfsJournal(new URI(parentPath), countingMaster, 0, Collections::emptySet);
+    standbyJournal.start();
+
+    // Suspend standby journal.
+    standbyJournal.suspend();
+
+    int entryCount = 10;
+    for (int i = 0; i < entryCount; i++) {
+      mJournal.write(Journal.JournalEntry.getDefaultInstance());
     }
+    // This one will corrupt the journal catch thread
+    Journal.JournalEntry corruptedEntry = Journal.JournalEntry.newBuilder()
+        .setSequenceNumber(entryCount + 1)
+        .setDeleteFile(alluxio.proto.journal.File.DeleteFileEntry.newBuilder()
+            .setId(4563728)
+            .setPath("/crash")
+            .build())
+          .build();
+    mJournal.write(corruptedEntry);
+    mJournal.flush();
 
-    /**
-     * @return how many entries are applied
-     */
-    public long getApplyCount() {
-      return mApplyCount;
-    }
-  }
-
-  /**
-   * A {@link CountingNoopMaster} with simulated delay per each journal apply.
-   */
-  class SleepingCountingMaster extends CountingNoopMaster {
-    /** How much to sleep per each apply. */
-    private long mSleepMs;
-
-    public SleepingCountingMaster(long sleepMs) {
-      mSleepMs = sleepMs;
-    }
-
-    @Override
-    public boolean processJournalEntry(Journal.JournalEntry entry) {
-      try {
-        Thread.sleep(mSleepMs);
-      } catch (Exception e) {
-        // Do not interfere with interrupt handling.
-        Thread.currentThread().interrupt();
-      }
-      return super.processJournalEntry(entry);
-    }
+    // The standby catchup thread will crash and the exception will be
+    // recovered on waitTermination()
+    RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+      CatchupFuture future = standbyJournal.catchup(entryCount);
+      future.waitTermination();
+    });
+    assertTrue(exception.getMessage()
+        .contains(CountingNoopFileSystemMaster.ENTRY_DOES_NOT_EXIST));
   }
 }

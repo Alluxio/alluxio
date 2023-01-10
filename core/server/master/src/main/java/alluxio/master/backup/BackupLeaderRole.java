@@ -13,8 +13,8 @@ package alluxio.master.backup;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BackupAbortedException;
 import alluxio.exception.BackupDelegationException;
@@ -30,7 +30,7 @@ import alluxio.master.StateLockOptions;
 import alluxio.master.transport.GrpcMessagingConnection;
 import alluxio.master.transport.GrpcMessagingServiceClientHandler;
 import alluxio.resource.LockResource;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BackupStatus;
@@ -99,7 +99,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
     // Store state lock manager pausing state change when necessary.
     mStateLockManager = masterContext.getStateLockManager();
     // Read properties.
-    mBackupAbandonTimeout = ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_ABANDON_TIMEOUT);
+    mBackupAbandonTimeout = Configuration.getMs(PropertyKey.MASTER_BACKUP_ABANDON_TIMEOUT);
   }
 
   @Override
@@ -120,7 +120,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
     } catch (Exception e) {
       LOG.warn("Failed to close {} backup-worker connections. Error: {}", closeFutures.size(), e);
     }
-    // Reset existing stand-by connections.
+    // Reset existing standby connections.
     mBackupWorkerConnections.clear();
     mBackupWorkerHostNames.clear();
     // Cancel ongoing local backup task.
@@ -141,10 +141,10 @@ public class BackupLeaderRole extends AbstractBackupRole {
                     new GrpcMessagingServiceClientHandler(
                         NetworkAddressUtils.getConnectAddress(
                             NetworkAddressUtils.ServiceType.MASTER_RPC,
-                            ServerConfiguration.global()),
+                            Configuration.global()),
                         (conn) -> activateWorkerConnection(conn), mGrpcMessagingContext,
                         mExecutorService, mCatalystRequestTimeout),
-                    new ClientIpAddressInjector())).withCloseable(this));
+                    new ClientContextServerInjector())).withCloseable(this));
     return services;
   }
 
@@ -162,12 +162,18 @@ public class BackupLeaderRole extends AbstractBackupRole {
       }
 
       // Whether to attempt to delegate backup to a backup worker.
-      delegateBackup = ServerConfiguration.getBoolean(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED)
-          && ConfigurationUtils.isHaMode(ServerConfiguration.global());
+      delegateBackup = Configuration.getBoolean(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED)
+          && ConfigurationUtils.isHaMode(Configuration.global());
+      // Check if backup-delegation is suppressed by back-up client.
+      if (delegateBackup && request.getOptions().getBypassDelegation()) {
+        LOG.info("Back-up delegation is suppressed by back-up client.");
+        delegateBackup = false;
+      }
       // Fail, if in HA mode and no masters available to delegate,
       // unless `AllowLeader` flag in the backup request is set.
       if (delegateBackup && mBackupWorkerHostNames.size() == 0) {
         if (request.getOptions().getAllowLeader()) {
+          LOG.info("Back-up delegation is deactivated for cluster with no followers.");
           delegateBackup = false;
         } else {
           throw new BackupDelegationException("No master found to delegate backup.");
@@ -176,7 +182,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
       // Initialize backup status.
       mBackupTracker.reset();
       mBackupTracker.updateState(BackupState.Initiating);
-      mBackupTracker.updateHostname(NetworkAddressUtils.getLocalHostName((int) ServerConfiguration
+      mBackupTracker.updateHostname(NetworkAddressUtils.getLocalHostName((int) Configuration
           .global().getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
 
       // Store backup id to query later for async requests.

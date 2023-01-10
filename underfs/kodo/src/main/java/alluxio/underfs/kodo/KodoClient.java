@@ -20,7 +20,6 @@ import com.qiniu.storage.UploadManager;
 import com.qiniu.storage.model.FileInfo;
 import com.qiniu.storage.model.FileListing;
 import com.qiniu.util.Auth;
-
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -56,6 +55,7 @@ public class KodoClient {
 
   /** Endpoint for Qiniu kodo. */
   private String mEndPoint;
+
   /**
    * Creates a new instance of {@link KodoClient}.
    * @param auth Qiniu authentication
@@ -75,6 +75,7 @@ public class KodoClient {
     mUploadManager = new UploadManager(cfg);
     mOkHttpClient = okHttpClient;
   }
+
   /**
    * Gets bucketname for kodoclient.
    * @return bucketname
@@ -92,6 +93,7 @@ public class KodoClient {
   public FileInfo getFileInfo(String key) throws QiniuException {
     return mBucketManager.stat(mBucketName, key);
   }
+
   /**
    * Gets object from Qiniu kodo. All requests are authenticated by default，default expires 3600s We
    * use okhttp as our HTTP client and support two main parameters in the external adjustment, MAX
@@ -135,6 +137,7 @@ public class KodoClient {
         mUploadManager.put(File, Key, mAuth.uploadToken(mBucketName, Key));
     response.close();
   }
+
   /**
    * Copys object in Qiniu kodo.
    * @param src source Object key
@@ -143,6 +146,7 @@ public class KodoClient {
   public void copyObject(String src, String dst) throws QiniuException {
     mBucketManager.copy(mBucketName, src, mBucketName, dst);
   }
+
   /**
    * Creates empty Object in Qiniu kodo.
    * @param key empty Object key
@@ -152,6 +156,7 @@ public class KodoClient {
         mUploadManager.put(new byte[0], key, mAuth.uploadToken(mBucketName, key));
     response.close();
   }
+
   /**
    * Deletes Object in Qiniu kodo.
    * @param key Object key
@@ -160,6 +165,7 @@ public class KodoClient {
     com.qiniu.http.Response response = mBucketManager.delete(mBucketName, key);
     response.close();
   }
+
   /**
    * Lists object for Qiniu kodo.
    * @param prefix prefix for bucket

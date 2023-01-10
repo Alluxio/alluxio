@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -46,17 +45,17 @@ public class AdlUnderFileSystem extends HdfsUnderFileSystem {
    */
   public static Configuration createConfiguration(UnderFileSystemConfiguration conf) {
     Configuration adlConf = HdfsUnderFileSystem.createConfiguration(conf);
-    for (Map.Entry<String, String> entry : conf.toMap().entrySet()) {
+    for (Map.Entry<String, Object> entry : conf.toMap().entrySet()) {
       String key = entry.getKey();
-      String value = entry.getValue();
+      Object value = entry.getValue();
       if (PropertyKey.Template.UNDERFS_AZURE_CLIENT_ID.matches(key)) {
-        adlConf.set(key, value);
+        adlConf.set(key, (String) value);
       }
       if (PropertyKey.Template.UNDERFS_AZURE_CLIENT_SECRET.matches(key)) {
-        adlConf.set(key, value);
+        adlConf.set(key, (String) value);
       }
       if (PropertyKey.Template.UNDERFS_AZURE_REFRESH_URL.matches(key)) {
-        adlConf.set(key, value);
+        adlConf.set(key, (String) value);
       }
     }
     LOG.info(adlConf.toString());

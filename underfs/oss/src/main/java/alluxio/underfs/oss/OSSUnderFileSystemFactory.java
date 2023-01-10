@@ -22,7 +22,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -63,6 +62,10 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
    * @return true if both access, secret and endpoint keys are present, false otherwise
    */
   private boolean checkOSSCredentials(UnderFileSystemConfiguration conf) {
+    if (conf.getBoolean(PropertyKey.UNDERFS_OSS_STS_ENABLED)) {
+      return conf.isSet(PropertyKey.UNDERFS_OSS_ECS_RAM_ROLE);
+    }
+
     return conf.isSet(PropertyKey.OSS_ACCESS_KEY)
         && conf.isSet(PropertyKey.OSS_SECRET_KEY)
         && conf.isSet(PropertyKey.OSS_ENDPOINT_KEY);

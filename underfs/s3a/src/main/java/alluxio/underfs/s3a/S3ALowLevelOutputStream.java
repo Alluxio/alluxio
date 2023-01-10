@@ -49,7 +49,6 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -99,13 +98,13 @@ public class S3ALowLevelOutputStream extends OutputStream {
   private final String mBucketName;
 
   /** The Amazon S3 client to interact with S3. */
-  private final AmazonS3 mClient;
+  protected AmazonS3 mClient;
 
   /** Executing the upload tasks. */
   private final ListeningExecutorService mExecutor;
 
   /** Key of the file when it is uploaded to S3. */
-  private final String mKey;
+  protected final String mKey;
 
   /** The retry policy of this multipart upload. */
   private final RetryPolicy mRetryPolicy = new CountingRetry(5);
@@ -272,10 +271,14 @@ public class S3ALowLevelOutputStream extends OutputStream {
     }
   }
 
+  protected void initMultiPartUpload() throws IOException {
+    initMultiPartUpload(getClient());
+  }
+
   /**
    * Initializes multipart upload.
    */
-  private void initMultiPartUpload() throws IOException {
+  private void initMultiPartUpload(AmazonS3 s3Client) throws IOException {
     // Generate the object metadata by setting server side encryption, md5 checksum,
     // and encoding as octet stream since no assumptions are made about the file type
     ObjectMetadata meta = new ObjectMetadata();
@@ -292,7 +295,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
         new InitiateMultipartUploadRequest(mBucketName, mKey).withObjectMetadata(meta);
     do {
       try {
-        mUploadId = mClient.initiateMultipartUpload(initRequest).getUploadId();
+        mUploadId = s3Client.initiateMultipartUpload(initRequest).getUploadId();
         return;
       } catch (AmazonClientException e) {
         lastException = e;
@@ -321,7 +324,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
   /**
    * Uploads part async.
    */
-  private void uploadPart() throws IOException {
+  protected void uploadPart() throws IOException {
     if (mFile == null) {
       return;
     }
@@ -340,12 +343,16 @@ public class S3ALowLevelOutputStream extends OutputStream {
     execUpload(uploadRequest);
   }
 
+  protected void execUpload(UploadPartRequest request) throws IOException {
+    execUpload(getClient(), request);
+  }
+
   /**
    * Executes the upload part request.
    *
    * @param request the upload part request
    */
-  private void execUpload(UploadPartRequest request) {
+  protected void execUpload(AmazonS3 s3Client, UploadPartRequest request) {
     File file = request.getFile();
     ListenableFuture<PartETag> futureTag =
         mExecutor.submit((Callable) () -> {
@@ -354,7 +361,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
           try {
             do {
               try {
-                partETag = mClient.uploadPart(request).getPartETag();
+                partETag = s3Client.uploadPart(request).getPartETag();
                 return partETag;
               } catch (AmazonClientException e) {
                 lastException = e;
@@ -377,7 +384,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
   /**
    * Waits for the submitted upload tasks to finish.
    */
-  private void waitForAllPartsUpload() throws IOException {
+  protected void waitForAllPartsUpload() throws IOException {
     int beforeSize = mTags.size();
     try {
       for (ListenableFuture<PartETag> future : mTagFutures) {
@@ -402,18 +409,22 @@ public class S3ALowLevelOutputStream extends OutputStream {
     }
   }
 
+  protected void completeMultiPartUpload() throws IOException {
+    completeMultiPartUpload(getClient(), mUploadId);
+  }
+
   /**
    * Completes multipart upload.
    */
-  private void completeMultiPartUpload() throws IOException {
+  protected void completeMultiPartUpload(AmazonS3 s3Client, String uploadId) throws IOException {
     AmazonClientException lastException;
     CompleteMultipartUploadRequest completeRequest = new CompleteMultipartUploadRequest(mBucketName,
-        mKey, mUploadId, mTags);
+        mKey, uploadId, mTags);
     do {
       try {
-        mClient.completeMultipartUpload(completeRequest);
+        s3Client.completeMultipartUpload(completeRequest);
         LOG.debug("Completed multipart upload for key {} and id '{}' with {} partitions.",
-            mKey, mUploadId, mTags.size());
+            mKey, uploadId, mTags.size());
         return;
       } catch (AmazonClientException e) {
         lastException = e;
@@ -422,20 +433,24 @@ public class S3ALowLevelOutputStream extends OutputStream {
     // This point is only reached if the operation failed more
     // than the allowed retry count
     throw new IOException("Unable to complete multipart upload with id '"
-        + mUploadId + "' to " + mKey, lastException);
+        + uploadId + "' to " + mKey, lastException);
+  }
+
+  protected void abortMultiPartUpload() {
+    abortMultiPartUpload(getClient(), mUploadId);
   }
 
   /**
    * Aborts multipart upload.
    */
-  private void abortMultiPartUpload() {
+  protected void abortMultiPartUpload(AmazonS3 s3Client, String uploadId) {
     AmazonClientException lastException;
     do {
       try {
-        mClient.abortMultipartUpload(new AbortMultipartUploadRequest(mBucketName,
-            mKey, mUploadId));
+        s3Client.abortMultipartUpload(new AbortMultipartUploadRequest(mBucketName,
+            mKey, uploadId));
         LOG.warn("Aborted multipart upload for key {} and id '{}' to bucket {}",
-            mKey, mUploadId, mBucketName);
+            mKey, uploadId, mBucketName);
         return;
       } catch (AmazonClientException e) {
         lastException = e;
@@ -445,7 +460,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
     // than the allowed retry count
     LOG.warn("Unable to abort multipart upload for key '{}' and id '{}' to bucket {}. "
         + "You may need to enable the periodical cleanup by setting property {}"
-        + "to be true.", mKey, mUploadId, mBucketName,
+        + "to be true.", mKey, uploadId, mBucketName,
         PropertyKey.UNDERFS_CLEANUP_ENABLED.getName(),
         lastException);
   }
@@ -463,5 +478,12 @@ public class S3ALowLevelOutputStream extends OutputStream {
         || (off + len) > b.length || (off + len) < 0) {
       throw new IndexOutOfBoundsException("write(b[" + b.length + "], " + off + ", " + len + ")");
     }
+  }
+
+  /**
+   * @return the client
+   */
+  protected AmazonS3 getClient() {
+    return mClient;
   }
 }

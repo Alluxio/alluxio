@@ -16,11 +16,11 @@ import static org.junit.Assert.assertEquals;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.conf.PropertyKey;
+import alluxio.client.file.FileSystem;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
-import alluxio.client.file.FileSystem;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
 import alluxio.master.MasterClientContext;
@@ -45,15 +45,17 @@ public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
     MultiProcessCluster cluster = MultiProcessCluster.newBuilder(PortCoordination.JOURNAL_MIGRATION)
         .setClusterName("journalMigration")
         .setNumMasters(3)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     try {
       cluster.start();
       FileSystem fs = cluster.getFileSystemClient();
       MetaMasterClient metaClient = new RetryHandlingMetaMasterClient(
-          MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
+          MasterClientContext.newBuilder(ClientContext.create(Configuration.global()))
               .setMasterInquireClient(cluster.getMasterInquireClient())
               .build());
       for (int i = 0; i < NUM_DIRS; i++) {

@@ -29,9 +29,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -79,10 +79,12 @@ public class BufferCachingGrpcDataReader {
       CloseableResource<BlockWorkerClient> client, long dataTimeoutMs,
       ReadRequest readRequest, GrpcBlockingStream<ReadRequest, ReadResponse> stream) {
     mAddress = address;
+    Objects.requireNonNull(client);
     mClient = client;
     mDataTimeoutMs = dataTimeoutMs;
     mPosToRead = readRequest.getOffset();
     mReadRequest = readRequest;
+    Objects.requireNonNull(stream);
     mStream = stream;
     long blockSize = mReadRequest.getLength() + mReadRequest.getOffset();
     long chunkSize = mReadRequest.getChunkSize();
@@ -106,7 +108,7 @@ public class BufferCachingGrpcDataReader {
     }
 
     if (index >= mBufferCount.get()) {
-      try (LockResource r1 = new LockResource(mBufferLocks.writeLock())) {
+      try (LockResource ignored = new LockResource(mBufferLocks.writeLock())) {
         while (index >= mBufferCount.get()) {
           DataBuffer buffer = readChunk();
           mDataBuffers[mBufferCount.get()] = buffer;
@@ -128,9 +130,7 @@ public class BufferCachingGrpcDataReader {
   protected DataBuffer readChunk() throws IOException {
     Preconditions.checkState(!mClient.get().isShutdown(),
         "Data reader is closed while reading data chunks.");
-    DataBuffer buffer = null;
-    ReadResponse response = null;
-    response = mStream.receive(mDataTimeoutMs);
+    ReadResponse response = mStream.receive(mDataTimeoutMs);
     if (response == null) {
       return null;
     }
@@ -138,7 +138,7 @@ public class BufferCachingGrpcDataReader {
         "response should always contain chunk");
 
     ByteBuffer byteBuffer = response.getChunk().getData().asReadOnlyByteBuffer();
-    buffer = new NioDataBuffer(byteBuffer, byteBuffer.remaining());
+    DataBuffer buffer = new NioDataBuffer(byteBuffer, byteBuffer.remaining());
     mPosToRead += buffer.readableBytes();
     try {
       mStream.send(mReadRequest.toBuilder().setOffsetReceived(mPosToRead).build());

@@ -13,16 +13,16 @@ package alluxio.job.master;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
-import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.LocalAlluxioJobCluster;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.JobWorkerIdRegistry;
@@ -45,8 +45,8 @@ public class LostWorkerIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap.of(
-      PropertyKey.JOB_MASTER_WORKER_TIMEOUT, Integer.toString(WORKER_HEARTBEAT_TIMEOUT_MS)),
-      ServerConfiguration.global());
+      PropertyKey.JOB_MASTER_WORKER_TIMEOUT, WORKER_HEARTBEAT_TIMEOUT_MS),
+      Configuration.modifiableGlobal());
 
   // We need this because LocalAlluxioJobCluster doesn't work without it.
   @Rule
@@ -73,7 +73,7 @@ public class LostWorkerIntegrationTest extends BaseIntegrationTest {
     HeartbeatScheduler.execute(HeartbeatContext.JOB_WORKER_COMMAND_HANDLING);
     CommonUtils.waitFor("worker to reregister",
         () -> !mLocalAlluxioJobCluster.getMaster().getJobMaster().getWorkerInfoList().isEmpty()
-            && JobWorkerIdRegistry.getWorkerId() != initialId,
+            && JobWorkerIdRegistry.getWorkerId().longValue() != initialId,
         WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
   }
 }

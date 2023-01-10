@@ -12,9 +12,10 @@
 package alluxio.worker.grpc;
 
 import alluxio.Constants;
+import alluxio.RpcSensitiveConfigMask;
 import alluxio.client.block.stream.GrpcDataWriter;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.WriteRequest;
@@ -38,7 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Semaphore;
-
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -62,7 +62,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractWriteHandler.class);
   private static final Logger SLOW_WRITE_LOG = new SamplingLogger(LOG, 5 * Constants.MINUTE_MS);
   private static final long SLOW_WRITE_MS =
-      ServerConfiguration.getMs(PropertyKey.WORKER_REMOTE_IO_SLOW_THRESHOLD);
+      Configuration.getMs(PropertyKey.WORKER_REMOTE_IO_SLOW_THRESHOLD);
   public static final long FILE_BUFFER_SIZE = Constants.MB;
 
   /** The observer for sending response messages. */
@@ -71,7 +71,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
   private final SerializingExecutor mSerializingExecutor;
   /** The semaphore to control the number of write tasks queued up in the executor.*/
   private final Semaphore mSemaphore = new Semaphore(
-      ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES), true);
+      Configuration.getInt(PropertyKey.WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES), true);
 
   /**
    * This is initialized only once for a whole file or block in
@@ -110,7 +110,8 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
     mSerializingExecutor.execute(() -> {
       try {
         if (mContext == null) {
-          LOG.debug("Received write request {}.", writeRequest);
+          LOG.debug("Received write request {}.",
+              RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskObjects(LOG, writeRequest));
           try {
             mContext = createRequestContext(writeRequest);
           } catch (Exception e) {

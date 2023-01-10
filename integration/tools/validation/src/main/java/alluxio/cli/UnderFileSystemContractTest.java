@@ -11,6 +11,9 @@
 
 package alluxio.cli;
 
+import static alluxio.conf.PropertyKey.PropertyType.STRING;
+
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
@@ -21,7 +24,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.ConfigurationUtils;
+import alluxio.util.ExceptionUtils;
 import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;
@@ -74,18 +77,7 @@ public final class UnderFileSystemContractTest {
    * A constructor from default.
    * */
   public UnderFileSystemContractTest() {
-    mConf = new InstancedConfiguration(ConfigurationUtils.defaults());
-  }
-
-  /**
-   * Initiate the tests for a specific UFS path and UFS configs.
-   *
-   * @param path the UFS path
-   * @param conf the UFs configurations
-   * */
-  public UnderFileSystemContractTest(String path, InstancedConfiguration conf) {
-    mUfsPath = path;
-    mConf = conf;
+    mConf = Configuration.modifiableGlobal();
   }
 
   /**
@@ -101,7 +93,7 @@ public final class UnderFileSystemContractTest {
     }
 
     // Set common properties
-    mConf.set(PropertyKey.UNDERFS_LISTING_LENGTH, "50");
+    mConf.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
     mConf.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "512B");
     // Increase the buffer time of journal writes to speed up tests
     mConf.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "1sec");
@@ -144,7 +136,7 @@ public final class UnderFileSystemContractTest {
       }
 
       // Set common properties
-      mConf.set(PropertyKey.UNDERFS_LISTING_LENGTH, "50");
+      mConf.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
       mConf.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "512B");
       // Increase the buffer time of journal writes to speed up tests
       mConf.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "1sec");
@@ -165,7 +157,7 @@ public final class UnderFileSystemContractTest {
       return new ValidationTaskResult(state, TASK_NAME, msgBuf.toString(),
               adviceBuf.toString());
     } catch (Exception e) {
-      msgStream.append(ValidationUtils.getErrorInfo(e));
+      msgStream.append(ExceptionUtils.asPlainText(e));
       adviceStream.append("Please resolve the errors from failed UFS operations.");
       return new ValidationTaskResult(ValidationUtils.State.FAILED, TASK_NAME,
               msgBuf.toString(), adviceBuf.toString());
@@ -176,9 +168,10 @@ public final class UnderFileSystemContractTest {
 
   private UnderFileSystemConfiguration getUfsConf() {
     return UnderFileSystemConfiguration.defaults(mConf)
-        .createMountSpecificConf(mConf.copyProperties().entrySet().stream()
+        .createMountSpecificConf(mConf.getProperties().entrySet().stream()
             .filter(entry -> mConf.getSource(entry.getKey()) == Source.SYSTEM_PROPERTY)
-            .filter(entry -> mConf.isSet(entry.getKey()) && !entry.getValue().isEmpty())
+            .filter(entry -> mConf.isSet(entry.getKey()) && (entry.getKey().getType() != STRING
+                || !((String) entry.getValue()).isEmpty()))
             .collect(Collectors.toMap(entry -> entry.getKey().getName(), Map.Entry::getValue)));
   }
 
@@ -199,8 +192,8 @@ public final class UnderFileSystemContractTest {
 
   private int runS3Operations(PrintStream msgStream,
                               PrintStream adviceStream, PrintStream errStream) throws Exception {
-    mConf.set(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1, "true");
-    mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_ENABLED, "true");
+    mConf.set(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1, true);
+    mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_ENABLED, true);
     mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE, "5MB");
     mConf.set(PropertyKey.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE, "0");
 
@@ -248,7 +241,7 @@ public final class UnderFileSystemContractTest {
               logRelatedS3Operations(test, msgStream);
             }
             msgStream.format("Operation %s failed%n", testName);
-            msgStream.format(ValidationUtils.getErrorInfo(e));
+            msgStream.format(ExceptionUtils.asPlainText(e));
             errStream.format("Test %s.%s aborted%n%s%n", test.getClass(), test.getName(), e);
           } finally {
             cleanupUfs(testDir);
@@ -321,7 +314,7 @@ public final class UnderFileSystemContractTest {
         + "fulfill the minimum S3 compatibility requirements in order to "
         + "work well with Alluxio through Alluxio's integration with S3. \n"
         + "Command line example: 'bin/alluxio runUfsTests --path s3://testPath "
-        + "-Daws.accessKeyId=<accessKeyId> -Daws.secretKeyId=<secretKeyId>"
+        + "-Ds3a.accessKeyId=<accessKeyId> -Ds3a.secretKeyId=<secretKeyId>"
         + "-Dalluxio.underfs.s3.endpoint=<endpoint_url> "
         + "-Dalluxio.underfs.s3.disable.dns.buckets=true'";
   }

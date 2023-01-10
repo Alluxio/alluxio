@@ -16,7 +16,6 @@ import com.google.common.base.Objects;
 
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -25,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class AlluxioWorkerInfo {
   private Capacity mCapacity;
-  private Map<String, String> mConfiguration;
+  private Map<String, Object> mConfiguration;
   private Map<String, Long> mMetrics;
   private String mRpcAddress;
   private long mStartTimeMs;
@@ -33,6 +32,7 @@ public class AlluxioWorkerInfo {
   private Map<String, List<String>> mTierPaths;
   private long mUptimeMs;
   private String mVersion;
+  private String mRevision;
 
   /**
    * Creates a new instance of {@link AlluxioWorkerInfo}.
@@ -49,7 +49,7 @@ public class AlluxioWorkerInfo {
   /**
    * @return the configuration
    */
-  public Map<String, String> getConfiguration() {
+  public Map<String, Object> getConfiguration() {
     return mConfiguration;
   }
 
@@ -103,6 +103,15 @@ public class AlluxioWorkerInfo {
   }
 
   /**
+   * Gets revision.
+   *
+   * @return the revision
+   */
+  public String getRevision() {
+    return mRevision;
+  }
+
+  /**
    * @param capacity the capacity to use
    * @return the Alluxio worker information
    */
@@ -115,7 +124,7 @@ public class AlluxioWorkerInfo {
    * @param configuration the configuration to use
    * @return the Alluxio worker information
    */
-  public AlluxioWorkerInfo setConfiguration(Map<String, String> configuration) {
+  public AlluxioWorkerInfo setConfiguration(Map<String, Object> configuration) {
     mConfiguration = configuration;
     return this;
   }
@@ -183,6 +192,15 @@ public class AlluxioWorkerInfo {
     return this;
   }
 
+  /**
+   * @param revision the revision to use
+   * @return the Alluxio worker information
+   */
+  public AlluxioWorkerInfo setRevision(String revision) {
+    mRevision = revision;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -200,14 +218,15 @@ public class AlluxioWorkerInfo {
         && Objects.equal(mTierCapacity, that.mTierCapacity)
         && Objects.equal(mTierPaths, that.mTierPaths)
         && mUptimeMs == that.mUptimeMs
-        && Objects.equal(mVersion, that.mVersion);
+        && Objects.equal(mVersion, that.mVersion)
+        && Objects.equal(mRevision, that.mRevision);
   }
 
   @Override
   public int hashCode() {
     return Objects
         .hashCode(mCapacity, mConfiguration, mMetrics, mRpcAddress, mStartTimeMs, mTierCapacity,
-            mTierPaths, mUptimeMs, mVersion);
+            mTierPaths, mUptimeMs, mVersion, mRevision);
   }
 
   @Override
@@ -221,6 +240,8 @@ public class AlluxioWorkerInfo {
         .add("tier capacity", mTierCapacity)
         .add("tier paths", mTierPaths)
         .add("uptime", mUptimeMs)
-        .add("version", mVersion).toString();
+        .add("version", mVersion)
+        .add("revision", mRevision)
+        .toString();
   }
 }

@@ -13,10 +13,9 @@ package alluxio.cli.bundler;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.cli.bundler.command.AbstractCollectInfoCommand;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.cli.Command;
-import alluxio.util.ConfigurationUtils;
+import alluxio.cli.bundler.command.AbstractCollectInfoCommand;
+import alluxio.conf.Configuration;
 
 import org.junit.Test;
 import org.reflections.Reflections;
@@ -25,9 +24,6 @@ import java.lang.reflect.Modifier;
 import java.util.Collection;
 
 public class CollectInfoTest {
-  private static InstancedConfiguration sConf =
-          new InstancedConfiguration(ConfigurationUtils.defaults());
-
   private int getNumberOfCommands() {
     Reflections reflections =
             new Reflections(AbstractCollectInfoCommand.class.getPackage().getName());
@@ -42,7 +38,7 @@ public class CollectInfoTest {
 
   @Test
   public void loadedCommands() {
-    CollectInfo ic = new CollectInfo(sConf);
+    CollectInfo ic = new CollectInfo(Configuration.global());
     Collection<Command> commands = ic.getCommands();
     assertEquals(getNumberOfCommands(), commands.size());
   }

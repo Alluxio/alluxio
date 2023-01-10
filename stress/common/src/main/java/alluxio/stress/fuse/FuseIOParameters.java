@@ -22,8 +22,9 @@ import com.beust.jcommander.Parameter;
  */
 public final class FuseIOParameters extends Parameters {
   @Parameter(names = {"--operation"},
-      description = "The operation to perform. Options are [Read, Write, ListFile], where "
-          + "\"Write\" and \"ListFile\" are for testing read performance, not individual tests.",
+      description = "The operation to perform. Options are [LocalRead, RemoteRead, ClusterRead, "
+          + "Write, ListFile], where \"ListFile\" are for testing read performance, "
+          + "not individual tests.",
       converter = FuseIOOperationConverter.class,
       required = true)
   public FuseIOOperation mOperation;
@@ -63,8 +64,6 @@ public final class FuseIOParameters extends Parameters {
 
   /**
    * Converts from String to FuseIOOperation instance.
-   *
-   * @return FuseIOOperation of this bench
    */
   public static class FuseIOOperationConverter implements IStringConverter<FuseIOOperation> {
     @Override

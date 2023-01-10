@@ -47,7 +47,7 @@ public final class MigrateIntegrationTest extends JobIntegrationTest {
     String destination = "/mount2/destination";
     createFileWithTestBytes(source);
     long jobId = mJobMaster
-        .run(new MigrateConfig(source, destination, WriteType.CACHE_THROUGH.toString(), true));
+        .run(new MigrateConfig(source, destination, WriteType.CACHE_THROUGH, true));
     JobInfo info = waitForJobToFinish(jobId);
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI(source)));
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI(destination)));
@@ -68,7 +68,7 @@ public final class MigrateIntegrationTest extends JobIntegrationTest {
     mFileSystem.createDirectory(new AlluxioURI("/mount1/source/baz"));
     createFileWithTestBytes("/mount1/source/baz/bat");
     long jobId = mJobMaster.run(new MigrateConfig("/mount1/source", "/mount2/destination",
-        WriteType.CACHE_THROUGH.toString(), true));
+        WriteType.CACHE_THROUGH, true));
     waitForJobFailure(jobId);
   }
 

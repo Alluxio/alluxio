@@ -15,9 +15,9 @@ import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A sink which outputs metric values to the metrics logger.

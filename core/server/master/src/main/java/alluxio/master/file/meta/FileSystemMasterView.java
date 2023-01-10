@@ -24,7 +24,6 @@ import alluxio.wire.WorkerInfo;
 import com.google.common.base.Preconditions;
 
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -44,18 +43,6 @@ public final class FileSystemMasterView {
   }
 
   /**
-   * Returns the persistence state of a given file.
-   *
-   * @param fileId the file id
-   * @return the persistence state
-   * @throws FileDoesNotExistException if the file does not exist
-   */
-  public synchronized PersistenceState getFilePersistenceState(long fileId)
-      throws FileDoesNotExistException {
-    return mFileSystemMaster.getPersistenceState(fileId);
-  }
-
-  /**
    * Returns the {@link FileInfo} for a given path. Called via RPC, as well as internal masters.
    *
    * @param fileId the file id to get the {@link FileInfo} for
@@ -66,13 +53,6 @@ public final class FileSystemMasterView {
   public synchronized FileInfo getFileInfo(long fileId)
       throws FileDoesNotExistException, AccessControlException, UnavailableException {
     return mFileSystemMaster.getFileInfo(fileId);
-  }
-
-  /**
-   * @return all the files lost on the workers
-   */
-  public synchronized List<Long> getLostFiles() {
-    return mFileSystemMaster.getLostFiles();
   }
 
   /**

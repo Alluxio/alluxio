@@ -17,6 +17,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.ServiceType;
 import alluxio.master.MasterInquireClient;
 import alluxio.master.PollingMasterInquireClient;
 import alluxio.resource.CloseableResource;
@@ -59,11 +60,14 @@ public final class FileSystemAdminShellUtils {
   public static void checkMasterClientService(AlluxioConfiguration alluxioConf) throws IOException {
     try (FileSystemContext context = FileSystemContext.create(ClientContext.create(alluxioConf));
         CloseableResource<FileSystemMasterClient> client = context.acquireMasterClientResource()) {
-      InetSocketAddress address = client.get().getAddress();
+      // MasterClient is guaranteed to have an InetSocketAddress remote
+      // so the cast is safe here.
+      InetSocketAddress address = (InetSocketAddress) client.get().getRemoteSockAddress();
 
       List<InetSocketAddress> addresses = Arrays.asList(address);
       MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses,
-          () -> new ExponentialBackoffRetry(50, 100, 2), alluxioConf);
+          () -> new ExponentialBackoffRetry(50, 100, 2), alluxioConf,
+          ServiceType.META_MASTER_CLIENT_SERVICE);
       inquireClient.getPrimaryRpcAddress();
     } catch (UnavailableException e) {
       throw new IOException("Cannot connect to Alluxio leader master.");

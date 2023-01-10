@@ -9,12 +9,18 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+{{- if not (eq .Values.master.enabled false) -}}
+
 {{ $masterCount := int .Values.master.count }}
 {{- $release := .Release }}
 {{- $name := include "alluxio.name" . }}
 {{- $fullName := include "alluxio.fullname" . }}
 {{- $chart := include "alluxio.chart" . }}
+{{- $extraServicePorts := .Values.master.extraServicePorts }}
 {{- range $i := until $masterCount }}
+  # Set scope back to root for variable access in values.yaml.
+  # See https://github.com/helm/helm/issues/1311#issuecomment-625976875
+  {{- with $ }}
   {{- $masterName := printf "master-%v" $i }}
   {{- $masterJavaOpts := printf " -Dalluxio.master.hostname=%v-%v " $fullName $masterName }}
 apiVersion: v1
@@ -29,18 +35,21 @@ metadata:
     role: alluxio-master
 spec:
   ports:
-    - port: 19998
+    - port: {{ int .Values.master.ports.rpc }}
       name: rpc
-    - port: 19999
+    - port: {{ int .Values.master.ports.web }}
       name: web
-    - port: 20001
+    - port: {{ int .Values.jobMaster.ports.rpc }}
       name: job-rpc
-    - port: 20002
+    - port: {{ int .Values.jobMaster.ports.web }}
       name: job-web
-    - port: 19200
+    - port: {{ int .Values.master.ports.embedded }}
       name: embedded
-    - port: 20003
+    - port: {{ int .Values.jobMaster.ports.embedded }}
       name: job-embedded
+    {{- if $extraServicePorts }}
+{{- include "alluxio.extraServicePorts" (dict "extraServicePorts" $extraServicePorts) | indent 4 }}
+    {{- end }}
   clusterIP: None
   selector:
     role: alluxio-master
@@ -48,4 +57,6 @@ spec:
     release: {{ $release.Name }}
     statefulset.kubernetes.io/pod-name: {{ $fullName }}-{{ $masterName }}
 ---
+  {{- end }}
+{{- end }}
 {{- end }}

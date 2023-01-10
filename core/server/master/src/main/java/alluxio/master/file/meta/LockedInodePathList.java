@@ -13,7 +13,6 @@ package alluxio.master.file.meta;
 
 import java.util.Iterator;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

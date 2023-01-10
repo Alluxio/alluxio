@@ -12,8 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
@@ -189,7 +189,8 @@ public final class MutableInodeDirectoryTest extends AbstractInodeTest {
     Assert.assertEquals(TEST_OWNER, inode2.getOwner());
     Assert.assertEquals(TEST_GROUP, inode2.getGroup());
     Assert.assertEquals(ModeUtils.applyDirectoryUMask(Mode.defaults(),
-        ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toShort(),
+        Configuration.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK))
+            .toShort(),
         inode2.getMode());
   }
 

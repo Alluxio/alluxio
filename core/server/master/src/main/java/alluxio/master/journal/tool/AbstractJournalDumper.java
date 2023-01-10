@@ -15,6 +15,7 @@ import alluxio.master.file.meta.InodeView;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CompoundCheckpointFormat;
 import alluxio.master.metastore.rocks.RocksInodeStore;
+import alluxio.resource.CloseableIterator;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
@@ -76,7 +77,7 @@ public abstract class AbstractJournalDumper {
    *
    * @param checkpoint the checkpoint stream
    * @param path persistence path
-   * @throws IOException
+   * @throws IOException if checkpoint read fails
    */
   protected void readCheckpoint(CheckpointInputStream checkpoint, Path path) throws IOException {
     LOG.debug("Reading checkpoint of type {} to {}", checkpoint.getType().name(), path);
@@ -84,7 +85,7 @@ public abstract class AbstractJournalDumper {
       case COMPOUND:
         readCompoundCheckpoint(checkpoint, path);
         break;
-      case ROCKS:
+      case ROCKS_SINGLE:
         readRocksCheckpoint(checkpoint, path);
         break;
       default:
@@ -118,9 +119,12 @@ public abstract class AbstractJournalDumper {
       inodeStore.restoreFromCheckpoint(checkpoint);
       // Dump entries.
       final String ENTRY_SEPARATOR = Strings.repeat("-", 80);
-      for (InodeView inode : (Iterable<InodeView>) () -> inodeStore.iterator()) {
-        out.println(ENTRY_SEPARATOR);
-        out.println(inode.toProto());
+      try (CloseableIterator<InodeView> iterator = inodeStore.getCloseableIterator()) {
+        while (iterator.hasNext()) {
+          InodeView inode = iterator.next();
+          out.println(ENTRY_SEPARATOR);
+          out.println(inode.toProto());
+        }
       }
     } finally {
       // Remove the temp db directory.

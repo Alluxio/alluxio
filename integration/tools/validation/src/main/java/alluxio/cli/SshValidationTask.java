@@ -49,7 +49,7 @@ public final class SshValidationTask extends AbstractValidationTask {
     if (nodes == null) {
       msg.append("Failed to find master/worker nodes from Alluxio configuration. ");
       advice.append(String.format("Please check your %s/master and %s/worker files. ",
-              mConf.get(PropertyKey.CONF_DIR)));
+              mConf.getString(PropertyKey.CONF_DIR)));
       return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
               msg.toString(), advice.toString());
     }

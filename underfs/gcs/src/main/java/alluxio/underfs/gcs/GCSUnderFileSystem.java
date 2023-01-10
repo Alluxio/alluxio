@@ -45,8 +45,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -95,8 +95,8 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     Preconditions.checkArgument(conf.isSet(PropertyKey.GCS_SECRET_KEY),
             "Property " + PropertyKey.GCS_SECRET_KEY + " is required to connect to GCS");
     GSCredentials googleCredentials = new GSCredentials(
-        conf.get(PropertyKey.GCS_ACCESS_KEY),
-        conf.get(PropertyKey.GCS_SECRET_KEY));
+        conf.getString(PropertyKey.GCS_ACCESS_KEY),
+        conf.getString(PropertyKey.GCS_SECRET_KEY));
 
     // TODO(chaomin): maybe add proxy support for GCS.
     GoogleStorageService googleStorageService = new GoogleStorageService(googleCredentials);
@@ -190,7 +190,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected OutputStream createObject(String key) throws IOException {
     return new GCSOutputStream(mBucketName, key, mClient,
-        mUfsConf.getList(PropertyKey.TMP_DIRS, ","));
+        mUfsConf.getList(PropertyKey.TMP_DIRS));
   }
 
   @Override
@@ -206,7 +206,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected String getFolderSuffix() {
-    return mUfsConf.get(PropertyKey.UNDERFS_GCS_DIRECTORY_SUFFIX);
+    return mUfsConf.getString(PropertyKey.UNDERFS_GCS_DIRECTORY_SUFFIX);
   }
 
   @Override
@@ -256,8 +256,10 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
       StorageObject[] objects = mChunk.getObjects();
       ObjectStatus[] ret = new ObjectStatus[objects.length];
       for (int i = 0; i < ret.length; ++i) {
+        Date lastModifiedDate = objects[i].getLastModifiedDate();
+        Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
         ret[i] = new ObjectStatus(objects[i].getKey(), objects[i].getMd5HashAsBase64(),
-            objects[i].getContentLength(), objects[i].getLastModifiedDate().getTime());
+            objects[i].getContentLength(), lastModifiedTime);
       }
       return ret;
     }
@@ -321,7 +323,8 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
         accountOwnerId = storageOwner.getId();
         // Gets the owner from user-defined static mapping from GCS account id to Alluxio user name.
         String owner = CommonUtils.getValueFromStaticMapping(
-            mUfsConf.get(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING), accountOwnerId);
+            mUfsConf.getString(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING),
+            accountOwnerId);
         // If there is no user-defined mapping, use the display name.
         if (owner == null) {
           owner = storageOwner.getDisplayName();
@@ -337,7 +340,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     short bucketMode =
-        ModeUtils.getUMask(mUfsConf.get(PropertyKey.UNDERFS_GCS_DEFAULT_MODE)).toShort();
+        ModeUtils.getUMask(mUfsConf.getString(PropertyKey.UNDERFS_GCS_DEFAULT_MODE)).toShort();
     try {
       GSAccessControlList acl = mClient.getBucketAcl(mBucketName);
       bucketMode = GCSUtils.translateBucketAcl(acl, accountOwnerId);

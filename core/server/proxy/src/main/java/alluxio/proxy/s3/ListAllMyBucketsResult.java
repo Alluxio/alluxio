@@ -17,8 +17,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,8 +35,7 @@ public class ListAllMyBucketsResult {
   public ListAllMyBucketsResult(List<URIStatus> names) {
     mBuckets =
         names.stream().map((uriStatus) -> new Bucket(uriStatus.getName(),
-            LocalDateTime.ofEpochSecond(
-                uriStatus.getCreationTimeMs() / 1000L, 0, ZoneOffset.UTC).toString()))
+            S3RestUtils.toS3Date(uriStatus.getCreationTimeMs())))
             .collect(Collectors.toList());
   }
 

@@ -13,7 +13,7 @@ package alluxio.util.network;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -35,30 +35,30 @@ public class GetMasterWorkerAddressTest {
    */
   @Test
   public void getMasterAddress() {
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    InstancedConfiguration conf = Configuration.copyGlobal();
 
     // connect host and port
     conf.set(PropertyKey.MASTER_HOSTNAME, "RemoteMaster1");
-    conf.set(PropertyKey.MASTER_RPC_PORT, "10000");
+    conf.set(PropertyKey.MASTER_RPC_PORT, 10000);
     int resolveTimeout = (int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     String defaultHostname = NetworkAddressUtils.getLocalHostName(resolveTimeout);
-    int defaultPort = Integer.parseInt(PropertyKey.MASTER_RPC_PORT.getDefaultValue());
+    int defaultPort = (Integer) PropertyKey.MASTER_RPC_PORT.getDefaultValue();
     InetSocketAddress masterAddress =
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     assertEquals(InetSocketAddress.createUnresolved("RemoteMaster1", 10000), masterAddress);
-    conf = ConfigurationTestUtils.defaults();
+    conf = Configuration.copyGlobal();
 
     // port only
-    conf.set(PropertyKey.MASTER_RPC_PORT, "20000");
+    conf.set(PropertyKey.MASTER_RPC_PORT, 20000);
     masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     assertEquals(InetSocketAddress.createUnresolved(defaultHostname, 20000), masterAddress);
-    conf = ConfigurationTestUtils.defaults();
+    conf = Configuration.copyGlobal();
 
     // connect host only
     conf.set(PropertyKey.MASTER_HOSTNAME, "RemoteMaster3");
     masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     assertEquals(InetSocketAddress.createUnresolved("RemoteMaster3", defaultPort), masterAddress);
-    conf = ConfigurationTestUtils.defaults();
+    conf = Configuration.copyGlobal();
 
     // all default
     masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);

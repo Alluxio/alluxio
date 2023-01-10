@@ -23,7 +23,7 @@ import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.server.raftlog.segmented.LogSegment;
 import org.apache.ratis.server.raftlog.segmented.LogSegmentPath;
 import org.apache.ratis.server.storage.RaftStorage;
-import org.apache.ratis.server.storage.RaftStorageImpl;
+import org.apache.ratis.server.storage.StorageImplUtils;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.slf4j.Logger;
@@ -83,8 +83,11 @@ public class RaftJournalDumper extends AbstractJournalDumper {
     try (
         PrintStream out =
             new PrintStream(new BufferedOutputStream(new FileOutputStream(mJournalEntryFile)));
-        RaftStorage storage = new RaftStorageImpl(getJournalDir(),
-                RaftServerConfigKeys.Log.CorruptionPolicy.getDefault())) {
+        RaftStorage storage = StorageImplUtils.newRaftStorage(getJournalDir(),
+            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
+            RaftStorage.StartupOption.RECOVER,
+            RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize())) {
+      storage.initialize();
       List<LogSegmentPath> paths = LogSegmentPath.getLogSegmentPaths(storage);
       for (LogSegmentPath path : paths) {
         final int entryCount = LogSegment.readSegmentFile(path.getPath().toFile(),
@@ -113,8 +116,11 @@ public class RaftJournalDumper extends AbstractJournalDumper {
   }
 
   private void readRatisSnapshotFromDir() throws IOException {
-    try (RaftStorage storage = new RaftStorageImpl(getJournalDir(),
-            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault())) {
+    try (RaftStorage storage = StorageImplUtils.newRaftStorage(getJournalDir(),
+        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
+        RaftStorage.StartupOption.RECOVER,
+        RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize())) {
+      storage.initialize();
       SimpleStateMachineStorage stateMachineStorage = new SimpleStateMachineStorage();
       stateMachineStorage.init(storage);
       SingleFileSnapshotInfo currentSnapshot = stateMachineStorage.getLatestSnapshot();
@@ -151,10 +157,9 @@ public class RaftJournalDumper extends AbstractJournalDumper {
       return;
     }
     Preconditions.checkState(
-        entry.getAllFields().size() <= 1
-            || (entry.getAllFields().size() == 2 && entry.hasSequenceNumber()),
+        entry.toBuilder().clearOperationId().clearSequenceNumber().getAllFields().size() <= 1,
         "Raft journal entries should never set multiple fields in addition to sequence "
-            + "number, but found %s",
+            + "number, but found\n%s",
         entry);
     if (entry.getJournalEntriesCount() > 0) {
       // This entry aggregates multiple entries.

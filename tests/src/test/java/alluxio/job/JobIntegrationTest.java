@@ -14,8 +14,8 @@ package alluxio.job;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
@@ -62,7 +62,7 @@ public abstract class JobIntegrationTest extends BaseIntegrationTest {
     mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
     mLocalAlluxioJobCluster.start();
     mJobMaster = mLocalAlluxioJobCluster.getMaster().getJobMaster();
-    mFsContext = FileSystemContext.create(ServerConfiguration.global());
+    mFsContext = FileSystemContext.create(Configuration.global());
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
 

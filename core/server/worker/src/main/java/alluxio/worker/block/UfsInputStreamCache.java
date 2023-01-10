@@ -12,13 +12,15 @@
 package alluxio.worker.block;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.logging.SamplingLogger;
 import alluxio.worker.block.io.BlockReader;
 
 import com.google.common.base.Preconditions;
@@ -27,6 +29,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalListeners;
 import com.google.common.cache.RemovalNotification;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +43,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -50,8 +52,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class UfsInputStreamCache {
   private static final Logger LOG = LoggerFactory.getLogger(UfsInputStreamCache.class);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
   private static final boolean CACHE_ENABLED =
-      ServerConfiguration.getBoolean(PropertyKey.WORKER_UFS_INSTREAM_CACHE_ENABLED);
+      Configuration.getBoolean(PropertyKey.WORKER_UFS_INSTREAM_CACHE_ENABLED);
 
   /**
    * A map from the ufs file id to the metadata of the input streams. Synchronization on this map
@@ -60,17 +63,16 @@ public final class UfsInputStreamCache {
   private final Map<Long, StreamIdSet> mFileIdToStreamIds;
   /** Cache of the input streams, from the input stream id to the input stream. */
   private final Cache<Long, CachedSeekableInputStream> mStreamCache;
-  /** Thread pool for asynchronously removing the expired input streams. */
-  private final ExecutorService mRemovalThreadPool;
 
   /**
    * Constructs a new UFS input stream cache.
    */
   public UfsInputStreamCache() {
     mFileIdToStreamIds = new ConcurrentHashMap<>();
-    mRemovalThreadPool = ExecutorServiceFactories
-        .fixedThreadPool(Constants.UFS_INPUT_STREAM_CACHE_EXPIRATION, 2)
-        .create();
+    /* Thread pool for asynchronously removing the expired input streams. */
+    ExecutorService removalThreadPool =
+        ExecutorServiceFactories.fixedThreadPool(Constants.UFS_INPUT_STREAM_CACHE_EXPIRATION, 2)
+            .create();
 
     // A listener to the input stream removal.
     RemovalListener<Long, CachedSeekableInputStream> listener =
@@ -116,11 +118,11 @@ public final class UfsInputStreamCache {
           }
         };
     mStreamCache = CacheBuilder.newBuilder()
-        .maximumSize(ServerConfiguration.getInt(PropertyKey.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE))
+        .maximumSize(Configuration.getInt(PropertyKey.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE))
         .expireAfterAccess(
-            ServerConfiguration.getMs(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME),
+            Configuration.getMs(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME),
             TimeUnit.MILLISECONDS)
-        .removalListener(RemovalListeners.asynchronous(listener, mRemovalThreadPool)).build();
+        .removalListener(RemovalListeners.asynchronous(listener, removalThreadPool)).build();
   }
 
   /**
@@ -129,10 +131,10 @@ public final class UfsInputStreamCache {
    * @param inputStream the input stream to release
    * @throws IOException when input stream fails to close
    */
-  public void release(InputStream inputStream) throws IOException {
+  public void release(InputStream inputStream) {
     if (!(inputStream instanceof CachedSeekableInputStream) || !CACHE_ENABLED) {
       // for non-seekable input stream, close and return
-      inputStream.close();
+      close(inputStream);
       return;
     }
 
@@ -145,7 +147,7 @@ public final class UfsInputStreamCache {
       // the cache no longer tracks this input stream
       LOG.debug("UFS input stream (fileId: {} resourceId: {}) is already expired", fileId,
           resourceId);
-      inputStream.close();
+      close(inputStream);
       return;
     }
 
@@ -153,7 +155,15 @@ public final class UfsInputStreamCache {
       LOG.debug("Close the expired UFS input stream (fileId: {} resourceId: {})", fileId,
           resourceId);
       // the input stream expired, close it
-      inputStream.close();
+      close(inputStream);
+    }
+  }
+
+  private void close(InputStream in) {
+    try {
+      in.close();
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
     }
   }
 
@@ -176,7 +186,11 @@ public final class UfsInputStreamCache {
     }
 
     // explicit cache cleanup
-    mStreamCache.cleanUp();
+    try {
+      mStreamCache.cleanUp();
+    } catch (Throwable error) {
+      SAMPLING_LOG.warn("Explicit cache removal failed.", error);
+    }
 
     StreamIdSet streamIds = mFileIdToStreamIds.compute(fileId, (key, value) -> {
       if (value != null) {
@@ -225,6 +239,9 @@ public final class UfsInputStreamCache {
       return ufs.openExistingFile(path,
           OpenOptions.defaults().setOffset(openOptions.getOffset()));
     }
+    catch (UncheckedExecutionException e) {
+      throw AlluxioRuntimeException.from(e.getCause());
+    }
     return inputStream;
   }
 
@@ -258,7 +275,7 @@ public final class UfsInputStreamCache {
      * @param id the id of the input stream
      */
     synchronized void acquire(long id) {
-      Preconditions.checkArgument(!mInUseStreamIds.contains(id), "%d is already in use", id);
+      Preconditions.checkArgument(!mInUseStreamIds.contains(id), "%s is already in use", id);
       mAvailableStreamIds.remove(id);
       mInUseStreamIds.add(id);
     }

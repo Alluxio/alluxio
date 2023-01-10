@@ -27,11 +27,6 @@ Usage: alluxio [COMMAND]
 This section lists usages and examples of general Alluxio operations with the exception of file
 system commands which are covered in the [Admin CLI doc]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
 
-### extensions
-
-The `extensions` command is for managing UFS extensions to Alluxio. For additional information, refer
-to the [main page]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}).
-
 ### format
 
 The `format` command formats the Alluxio master and all its workers.
@@ -229,17 +224,18 @@ Status: CANCELED
 The `logLevel` command returns the current value of or updates the log level of a particular class
 on specific instances. Users are able to change Alluxio server-side log levels at runtime.
 
-The command follows the format `alluxio logLevel --logName=NAME [--target=<master|workers|job_master|job_workers|host:port>] [--level=LEVEL]`,
+The command follows the format `alluxio logLevel --logName=NAME [--target=<master|workers|job_master|job_workers|host:webPort[:role]>] [--level=LEVEL]`,
 where:
 * `--logName <arg>` indicates the logger's class (e.g. `alluxio.master.file.DefaultFileSystemMaster`)
 * `--target <arg>` lists the Alluxio master or workers to set.
-The target could be of the form `<master|workers|job_master|job_workers|host:webPort>` and multiple targets can be listed as comma-separated entries.
-The `host:webPort` format can only be used when referencing a worker.
+The target could be of the form `<master|workers|job_master|job_workers|host:webPort[:role]>` and multiple targets can be listed as comma-separated entries.
+`role` can be one of `master|worker|job_master|job_worker`. Using the `role` option is useful when an Alluxio process
+is configured to use a non-standard web port (e.g. if an Alluxio master does not use 19999 as its web port).
 The default target value is the primary master, primary job master, all workers and job workers.
 * `--level <arg>` If provided, the command changes to the given logger level,
 otherwise it returns the current logger level.
 
-See [here]({{ '/en/operation/Basic-Logging.html#modifying-server-logging-at-runtime' | relativize_url }})
+See [here]({{ '/en/administration/Basic-Logging.html#modifying-server-logging-at-runtime' | relativize_url }})
 for more examples.
 
 > Note: This command requires the Alluxio cluster to be running.
@@ -416,7 +412,7 @@ $ ./bin/alluxio runUfsTests --path /local/underfs/path
 
 # Run tests against S3
 $ ./bin/alluxio runUfsTests --path s3://<s3_bucket_name> \
-  -Daws.accessKeyId=<access_key> -Daws.secretKey=<secret_key> \
+  -Ds3a.accessKeyId=<access_key> -Ds3a.secretKey=<secret_key> \
   -Dalluxio.underfs.s3.endpoint=<endpoint_url> -Dalluxio.underfs.s3.disable.dns.buckets=true
 ```
 
@@ -565,7 +561,7 @@ server-side hadoop configuration directory when running validating tasks.
 ### collectInfo
 
 The `collectInfo` command collects information to troubleshoot an Alluxio cluster.
-For more information see the [collectInfo command page]({{ '/en/operation/Troubleshooting.html#alluxio-collectinfo-command' | relativize_url }}).
+For more information see the [collectInfo command page]({{ '/en/administration/Troubleshooting.html#alluxio-collectinfo-command' | relativize_url }}).
 
 > Note: This command does not require the Alluxio cluster to be running.
 > But if the cluster is not running, this command will fail to gather some information from it.
@@ -583,7 +579,7 @@ Usage: alluxio fs [generic options]
 For `fs` subcommands that take Alluxio URIs as argument (e.g. `ls`, `mkdir`), the argument should
 be either a complete Alluxio URI, such as `alluxio://<master-hostname>:<master-port>/<path>`,
 or a path without its header, such as `/<path>`, to use the default hostname and port set in the
-`conf/allluxio-site.properties`.
+`conf/alluxio-site.properties`.
 
 > Note: This command requires the Alluxio cluster to be running.
 
@@ -813,7 +809,11 @@ $ ./bin/alluxio fs cp /hdfs/file1 /s3/
 ### distributedCp
 
 The `distributedCp` command copies a file or directory in the Alluxio file system distributed across workers
-using the job service.
+using the job service. By default, the command runs synchronously and the user will get a `JOB_CONTROL_ID` after the command successfully submits the job to be executed.
+The command will wait until the job is complete, at which point the user will see the list of files copied and statistics on which files completed or failed.
+The command can also run in async mode with the `--async` flag. Similar to before, the user will get a `JOB_CONTROL_ID` after the command successfully submits the job.
+The difference is that the command will not wait for the job to finish. 
+Users can use the [`getCmdStatus`](#getCmdStatus) command with the `JOB_CONTROL_ID` as an argument to check detailed status information about the job.
 
 If the source designates a directory, `distributedCp` copies the entire subtree at source to the destination.
 
@@ -821,15 +821,41 @@ Options:
 * `--active-jobs`: Limits how many jobs can be submitted to the Alluxio job service at the same time.
 Later jobs must wait until some earlier jobs to finish. The default value is `3000`.
 A lower value means slower execution but also being nicer to the other users of the job service.
-
+* `--overwrite`: Whether to overwrite the destination. Default is true.
+* `--batch-size`: Specifies how many files to be batched into one request. The default value is `20`. Notice that if some task failed in the batched job, the whole batched job would fail with some completed tasks and some failed tasks.
+* `--async`: Specifies whether to wait for command execution to finish. If not explicitly shown then default to run synchronously.
 ```console
 $ ./bin/alluxio fs distributedCp --active-jobs 2000 /data/1023 /data/1024
+Sample Output:
+Please wait for command submission to finish..
+Submitted successfully, jobControlId = JOB_CONTROL_ID_1
+Waiting for the command to finish ...
+Get command status information below:
+Successfully copied path /data/1023/$FILE_PATH_1
+Successfully copied path /data/1023/$FILE_PATH_2
+Successfully copied path /data/1023/$FILE_PATH_3
+Total completed file count is 3, failed file count is 0
+Finished running the command, jobControlId = JOB_CONTROL_ID_1
+```
+
+```console
+# Turn on async submission mode. Run this command to get JOB_CONTROL_ID, then use getCmdStatus to check command detailed status.
+$ ./bin/alluxio fs distributedCp /data/1023 /data/1025 --async
+Sample Output:
+Entering async submission mode.
+Please wait for command submission to finish..
+Submitted migrate job successfully, jobControlId = JOB_CONTROL_ID_2
 ```
 
 ### distributedLoad
 
 The `distributedLoad` command loads a file or directory from the under storage system into Alluxio storage distributed
 across workers using the job service. The job is a no-op if the file is already loaded into Alluxio.
+By default, the command runs synchronously and the user will get a `JOB_CONTROL_ID` after the command successfully submits the job to be executed.
+The command will wait until the job is complete, at which point the user will see the list of files loaded and statistics on which files completed or failed.
+The command can also run in async mode with the `--async` flag. Similar to before, the user will get a `JOB_CONTROL_ID` after the command successfully submits the job.
+The difference is that the command will not wait for the job to finish.
+Users can use the [`getCmdStatus`](#getCmdStatus) command with the `JOB_CONTROL_ID` as an argument to check detailed status information about the job.
 
 If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
 on a random worker.
@@ -840,6 +866,7 @@ Options:
 * `--active-jobs`: Limits how many jobs can be submitted to the Alluxio job service at the same time.
 Later jobs must wait until some earlier jobs to finish. The default value is `3000`.
 A lower value means slower execution but also being nicer to the other users of the job service.
+* `--batch-size`: Specifies how many files to be batched into one request. The default value is `20`. Notice that if some task failed in the batched job, the whole batched job would fail with some completed tasks and some failed tasks.
 * `--host-file <host-file>`: Specifies a file contains worker hosts to load target data, each line has a worker host.
 * `--hosts`: Specifies a list of worker hosts separated by comma to load target data.
 * `--excluded-host-file <host-file>`: Specifies a file contains worker hosts which shouldn't load target data, each line has a worker host.
@@ -849,9 +876,30 @@ A lower value means slower execution but also being nicer to the other users of 
 * `--excluded-locality-file <locality-file>`: Specifies a file contains worker locality which shouldn't load target data, each line has a worker locality.
 * `--excluded-locality`: Specifies a list of worker locality separated by comma which shouldn't load target data.
 * `--index`: Specifies a file that lists all files to be loaded
+* `--passive-cache`: Specifies using direct cache request or passive cache with read(old implementation)
+* `--async`: Specifies whether to wait for command execution to finish. If not explicitly shown then default to run synchronously.
 
 ```console
 $ ./bin/alluxio fs distributedLoad --replication 2 --active-jobs 2000 /data/today
+Sample Output:
+Please wait for command submission to finish..
+Submitted successfully, jobControlId = JOB_CONTROL_ID_3
+Waiting for the command to finish ...
+Get command status information below:
+Successfully loaded path /data/today/$FILE_PATH_1
+Successfully loaded path /data/today/$FILE_PATH_2
+Successfully loaded path /data/today/$FILE_PATH_3
+Total completed file count is 3, failed file count is 0
+Finished running the command, jobControlId = JOB_CONTROL_ID_3
+```
+
+```console
+# Turn on async submission mode. Run this command to get JOB_CONTROL_ID, then use getCmdStatus to check command detailed status.
+$ ./bin/alluxio fs distributedLoad /data/today --async
+Sample Output:
+Entering async submission mode.
+Please wait for command submission to finish..
+Submitted distLoad job successfully, jobControlId = JOB_CONTROL_ID_4
 ```
 
 Or you can include some workers or exclude some workers by using options `--host-file <host-file>`, `--hosts`, `--excluded-host-file <host-file>`,
@@ -884,8 +932,6 @@ $ ./bin/alluxio fs distributedLoad /data/today --locality ROCK2,ROCK3 --hosts ho
 # The `--excluded-hosts` and `--excluded-locality` are `OR` relationship, so host2,host3 and workers in ROCK2,ROCKS3 will be excluded.
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host2,host3 --excluded-locality ROCK2,ROCK3
 ```
-
-See examples for [Tiered Locality Example]({{ '/en/operation/Tiered-Locality.html' | relativize_url }}#Example)
 
 ### distributedMv
 
@@ -970,6 +1016,25 @@ For example, `getCapacityBytes` can be used to verify if your cluster is set up 
 
 ```console
 $ ./bin/alluxio fs getCapacityBytes
+```
+
+### getCmdStatus
+
+The `getCmdStatus` command returns the detailed distributed command status based on a given JOB_CONTROL_ID.
+The detailed status includes:
+1. Successfully loaded or copied file paths.
+2. Statistics on the number of successful and failed file paths.
+3. Failed file paths, logged in a separate csv file.
+
+For example, `getCmdStatus` can be used to check what files are loaded in a distributed command, and how many succeeded or failed.
+
+```console
+$ ./bin/alluxio job getCmdStatus $JOB_CONTROL_ID
+Sample Output:
+Get command status information below:
+Successfully loaded path $FILE_PATH_1
+Successfully loaded path $FILE_PATH_2
+Total completed file count is 2, failed file count is 0
 ```
 
 ### getfacl
@@ -1078,6 +1143,7 @@ Options:
 * `-d` option lists the directories as plain files. For example, `ls -d /` shows the attributes of root directory.
 * `-f` option forces loading metadata for immediate children in a directory.
 By default, it loads metadata only at the first time at which a directory is listed.
+`-f` is equivalent to `-Dalluxio.user.file.metadata.sync.interval=0`.
 * `-h` option displays file sizes in human-readable formats.
 * `-p` option lists all pinned files.
 * `-R` option also recursively lists child directories, displaying the entire subtree starting from the input path.
@@ -1100,6 +1166,19 @@ $ ./bin/alluxio fs ls -f /s3/data
 # Files are not removed from Alluxio if they are removed from the UFS (s3 here) only.
 $ aws s3 rm s3://data-bucket/somedata
 $ ./bin/alluxio fs ls -f /s3/data
+```
+
+Metadata sync is an expensive operation. A rough estimation is metadata sync
+on 1 million files will consume 2GB heap until the sync operation is complete.
+Therefore, we recommend not using forced sync to avoid accidental repeated sync operations.
+It is recommended to always specify a non-zero sync interval for metadata sync, so
+even if the sync is repeatedly triggered, the paths that have just been sync-ed can be identified and skipped. 
+```console
+# Should be avoided
+$ ./bin/alluxio fs ls -f -R /s3/data
+
+# Recommended. This will not sync files repeatedly in 1 minute.
+$ ./bin/alluxio fs ls -Dalluxio.user.file.metadata.sync.interval=1min -R /s3/data
 ```
 
 ### masterInfo
@@ -1155,9 +1234,24 @@ For example, `mount` can be used to make data in another storage system availabl
 $ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
 $ ./bin/alluxio fs mount --shared --readonly /mnt/hdfs2 hdfs://host2:9000/data/
 $ ./bin/alluxio fs mount \
-  --option aws.accessKeyId=<accessKeyId> \
-  --option aws.secretKey=<secretKey> \
+  --option s3a.accessKeyId=<accessKeyId> \
+  --option s3a.secretKey=<secretKey> \
   /mnt/s3 s3://data-bucket/
+```
+
+To connect to the UFS for a mount point, Alluxio looks for the corresponding connector under
+`${ALLUXIO_HOME}/lib/` and will use the first one that supports the path.
+The connector jars look like `lib/alluxio-underfs-hdfs-2.7.1.jar`.
+The logic to decide whether a connector supports a path depends on the `UnderFileSystemFactory` implementation.
+When there are multiple connectors for the same UFS, like 
+`lib/alluxio-underfs-hdfs-2.7.1.jar`, `lib/alluxio-underfs-hdfs-2.7.1-patch1.jar`, `lib/alluxio-underfs-hdfs-2.7.1-patch2.jar`, 
+option `alluxio.underfs.strict.version.match.enabled` can be used to make sure the correct one is picked up.
+For example, if the HDFS is running with 2.7.1-patch1, you can use `alluxio.underfs.version`
+and `alluxio.underfs.strict.version.match.enabled=true` to ensure `lib/alluxio-underfs-hdfs-2.7.1-patch1.jar`
+is used to connect to the target HDFS at `hdfs://ns1/`.
+```
+$ ./bin/alluxio fs mount --option alluxio.underfs.version=2.7.1-patch1 \
+  --option alluxio.underfs.strict.version.match.enabled=true /ns1 hdfs://ns1/
 ```
 
 ### mv
@@ -1172,6 +1266,23 @@ For example, `mv` can be used to re-organize your files.
 
 ```console
 $ ./bin/alluxio fs mv /data/2014 /data/archives/2014
+```
+
+### needsSync
+
+The `needsSync` command marks a path in Alluxio as needing synchronization with the UFS.
+The next time the path or any child path is accessed by a file system operation the
+metadata for that path will be synchronized with the UFS. Note that the metadata will not
+be synchronized immediately, the synchronization will only happen on each path when it
+is accessed.
+
+Usage `needsSync <path>`
+
+For example, `needsSync` can be used after a set of files have been modified on the UFS
+outside Alluxio and those changes should be visible the next time the files are accessed.
+
+```console
+$ ./bin/alluxio fs needsSync /data
 ```
 
 ### persist
@@ -1220,7 +1331,7 @@ but the actual data may be deleted a while later.
 
 * Adding `-R` option deletes all contents of the directory and the directory itself.
 * Adding `-U` option skips the check for whether the UFS contents being deleted are in-sync with Alluxio
-before attempting to delete persisted directories.
+before attempting to delete persisted directories. We recommend always using the `-U` option for the best performance and resource efficiency.
 * Adding `--alluxioOnly` option removes data and metadata from Alluxio space only.
 The under storage system will not be affected.
 
@@ -1230,6 +1341,39 @@ $ ./bin/alluxio fs rm /tmp/unused-file
 # Remove a file from Alluxio space only
 $ ./bin/alluxio fs rm --alluxioOnly /tmp/unused-file2
 ```
+
+When deleting only from Alluxio but leaving the files in UFS, we recommend using `-U` and `-Dalluxio.user.file.metadata.sync.interval=-1`
+to skip the metadata sync and the UFS check. This will save time and memory consumption on the Alluxio master.
+```console
+$ bin/alluxio fs rm -R -U --alluxioOnly -Dalluxio.user.file.metadata.sync.interval=-1 /dir
+```
+
+When deleting a large directory (with millions of files) recursively both from Alluxio and UFS,
+the operation is expensive. 
+
+We recommend doing the deletion in the following way:
+1. Perform a direct sanity check against the UFS path with the corresponding file system API
+or CLI to make sure everything can be deleted safely. 
+For example if the UFS is HDFS, use `hdfs dfs -ls -R /dir` to list the UFS files and check.
+We do not recommend doing this sanity check from Alluxio using a command like `alluxio fs ls -R -f /dir`,
+because the loaded file metadata will be deleted anyway, and the expensive metadata sync operation
+will essentially be wasted.
+
+2. Issue the deletion from Alluxio to delete files from both Alluxio and the UFS:
+```console
+# Disable the sync and skip the UFS check, to reduce memory consumption on the master side
+$ bin/alluxio fs rm -R -U -Dalluxio.user.file.metadata.sync.interval=-1 /dir
+```
+
+Per 1 million files deleted, the memory overhead can be estimated as follows:
+* If both metadata sync and UFS check are disabled, recursively deleting from Alluxio only will hold 2GB JVM heap memory until the deletion completes.
+* If files are also deleted from UFS, there will not be extra heap consumption but the operation will take longer to complete.
+* If metadata sync is enabled, there will be another around 2GB overhead on the JVM heap until the operation completes.
+* If UFS check is enabled, there will another around 2GB overhead on the JVM heap until the operation completes.
+
+Using this example as a guideline, estimate the total additional memory overhead as a proportion to the number of files to be deleted. 
+Ensure that the leading master has sufficient available heap memory to perform the operation before issuing a large recursive delete command.
+A general good practice is to break deleting a large directory into deleting each individual children directories.
 
 ### setfacl
 
@@ -1312,6 +1456,7 @@ One can specify `-f <arg>` to display info in given format:
 * `%y` or `%Y`: modification time, where `%y` shows the UTC date in the form `yyyy-MM-dd HH:mm:ss`
  and `%Y` shows the number of milliseconds since January 1, 1970 UTC
 * `%b`: Number of blocks allocated for file
+* `%i`: file ID(inode ID) of the file
 
 For example, `stat` can be used to debug the block locations of a file.
 This is useful when trying to achieve locality for compute workloads.
@@ -1325,6 +1470,10 @@ $ ./bin/alluxio fs stat /data/2015
 
 # Displays the size of file
 $ ./bin/alluxio fs stat -f %z /data/2015/logs-1.txt
+
+# Finds the file by fileID/inodeID and displays the stat
+# Useful in troubleshooting
+$ ./bin/alluxio fs stat -fileId 12345678
 ```
 
 ### stopSync
@@ -1392,6 +1541,10 @@ data from that system.
 $ ./bin/alluxio fs unmount /s3/data
 ```
 
+If there are files under the mount point, the `unmount` operation will implicitly delete those files from Alluxio.
+See the [rm command]({{ '/en/operation/User-CLI.html#rm' | relativize_url }}) for how to estimate the memory consumption.
+It is recommended to remove those files in Alluxio first, before the `unmount`.
+
 ### unpin
 
 The `unpin` command unmarks a file or directory in Alluxio as pinned.
@@ -1428,219 +1581,3 @@ Usage: `updateMount [--readonly] [--shared] [--option <key=val>] <alluxioPath>`
 For security reasons, no options from existing mount point will be inherited.
 * `<alluxioPath>` Directory path in the Alluxio filesystem
 
-## Table Operations
-
-```console
-$ ./bin/alluxio table
-Usage: alluxio table [generic options]
-	 [attachdb [-o|--option <key=value>] [--db <alluxio db name>] [--ignore-sync-errors] <udb type> <udb connection uri> <udb db name>]
-	 [detachdb <db name>]
-	 [ls [<db name> [<table name>]]]
-	 [sync <db name>]
-	 [transform <db name> <table name>]
-	 [transformStatus [<job ID>]]
-```
-
-The table subcommand manages the structured data service of Alluxio.
-
-> Note: This command requires the Alluxio cluster to be running.
-
-### attachdb
-
-Syntax:
-```
-attachdb [-o|--option <key=value>] [--db <alluxio db name>] [--ignore-sync-errors] <udb type> <udb connection uri> <udb db name>
-```
-
-The `attachdb` command attaches an existing "under database" to the Alluxio catalog. This is
-analogous to mounting a under filesystem to the Alluxio filesystem namespace. Once a database is
-attached, it will be exposed through the Alluxio catalog.
-Here is an example of the usage:
-
-```console
-$ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name
-```
-
-This command will attach the database `hive_db_name` (of type `hive`) from the URI
-`thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `hive_db_name`.
-
-Here are the attach command options:
-  * `--db <alluxio db name>`: specify a different Alluxio database name
-  * `--ignore-sync-errors`: ignore sync errors, and keeps the database attached
-  * `-o|--option <key=value>`: (multiple) additional properties associated with the attached db and UDB
-
-Here are the additional properties possible for the `-o` options:
-  * `udb-<UDB_TYPE>.mount.option.{<UFS_PREFIX>}.<MOUNT_PROPERTY>`: specify a mount option for a
-  particular UFS path
-    * `<UDB_TYPE>`: the UDB type
-    * `<UFS_PREFIX>`: the UFS path prefix, or a regex string starts with `regex:` that the mount properties are for
-    * `<MOUNT_PROPERTY>`: an Alluxio mount property
-  * `catalog.db.config.file`: the config file for the UDB, 
-    you can configure which tables and partitions to bypass from Alluxio in a configuration specified 
-    by this option. 
-    See [UDB Configuration File]({{ '/en/core-services/Catalog.html#udb-configuration-file' | relativize_url }}) 
-    for details.
-  * `catalog.db.ignore.udb.tables`: comma-separated list of table names to ignore from the UDB
-  * `catalog.db.sync.threads`: number of parallel threads to use to sync with the UDB. If too large,
-  the sync may overload the UDB, and if set too low, syncing a database with many tables make take
-  a long time. The default is `4`.
-
-
-### Hive UDB
-For the `hive` udb type, during the attach process, the Alluxio catalog will auto-mount all the
-table/partition locations in the specified database, to Alluxio. You can supply the mount options
-for the possible table locations with the
-option `-o udb-hive.mount.option.{scheme/authority}.key=value` or
-`-o udb-hive.mount.option.{regex:REGEX}.key=value`
-
-```console
-$ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
-  -o udb-hive.mount.option.{s3a://bucket1}.aws.accessKeyId=abc \
-  -o udb-hive.mount.option.{s3a://bucket2}.aws.accessKeyId=123
-```
-
-This command will attach the database `hive_db_name` (of type `hive`) from the URI
-`thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `alluxio_db_name`.
-When paths are mounted for `s3a://bucket1`, the mount option `aws.accessKeyId=abc` will be used,
-and when paths are mounted for `s3a://bucket2`, the mount option `aws.accessKeyId=123` will be used.
-
-Or using regex expression if the options are same the two buckets.
-
-```console
-$ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
-  -o udb-hive.mount.option.{regex:s3a://bucket.*}.aws.accessKeyId=abc
-```
-
-Besides mount options, there are some additional properties with the `-o` options:
-  * `udb-hive.<UDB_PROPERTY>`: specify the UDB options for the Hive UDB. The options
-  are as follows
-    * `allow.diff.partition.location.prefix`: Whether to mount partitions that do not share
-  the same location prefix with table location(true/false, default false)
-
-
-### Glue UDB
-For `glue` udb type, there are some additional properties with the `-o` options:
-  * `udb-glue.<UDB_PROPERTY>`: specify the UDB options for the Glue UDB. The options
-  are as follows:
-    * `aws.region`: the glue aws region
-    * `aws.catalog.id`: the aws catalog id
-    * `aws.accesskey`: the aws access key id
-    * `aws.secretkey`: the aws secret key
-    * `aws.proxy.protocol`: The protocol(HTTP/HTTPS) to use for connecting to the proxy server
-    * `aws.proxy.host`: The proxy host the client will connect through
-    * `aws.proxy.port`: The proxy port the client will connect through
-    * `aws.proxy.username`: The proxy user name
-    * `aws.proxy.password`: The proxy password
-    * `table.column.statistics`: Enable table column statistics(true/false)
-    * `partition.column.statistics`: Enable partition column statistics(true/false)
-
-You can supply the mount options for the `glue` as follows:
-
-```console
-$ ./bin/alluxio table attachdb --db alluxio_db_name glue null glue_db_name \
-    -o udb-glue.aws.region=<AWS_GLUE_REGION> \
-    -o udb-glue.aws.catalog.id=<AWS_CATALOGID> \
-    -o udb-glue.aws.accesskey=<AWS_ACCESSKEY_ID> \
-    -o udb-glue.aws.secretkey=<AWS_SERCRETKEY_ID>
-```
-
-This command will attach the database `glue_db_name` (of type `glue`) to the Alluxio catalog,
-using the same database name `alluxio_db_name`. Please notice that `glue` udb does not need the
-URI as `hive` udb. When `glue` udb access to AWS glue, the aws region `udb-glue.aws.region`, AWS
-catalog id `udb-glue.aws.catalog.id` and AWS credentials, `udb-glue.aws.accesskey` and
-`udb-glue.aws.secretkey` , need to be provided.
-
-### detachdb
-
-The `detachdb` command is the opposite of the `attachdb` command. Detaching a database will remove
-the connection to the under database, and remove it from the Alluxio catalog. Example usage:
-
-```console
-$ ./bin/alluxio table detachdb alluxio_db_name
-```
-
-This command will detach the database name `alluxio_db_name` from the Alluxio catalog.
-
-### ls
-
-The `ls` command shows information about the Alluxio catalog. Here are some examples:
-
-```console
-$ ./bin/alluxio table ls
-```
-
-This command without any arguments will show all the databases attached in the system.
-
-```console
-$ ./bin/alluxio table ls db_name
-```
-
-This command with 1 argument will show all the tables in the `db_name` database.
-
-```console
-$ ./bin/alluxio table ls db_name table_name
-```
-
-This command with 2 arguments will show the table information of the `table_name` table in
-the `db_name` database.
-
-### sync
-
-The `sync` command syncs the metadata of specified database name with the under database.
-Here is an example:
-
-```console
-$ ./bin/alluxio table sync db_name
-```
-
-This will sync the metadata of `db_name` database name with its under database.
-The sync will update, add, remove catalog metadata according to the changes found in the underlying
-database and tables.
-For example, if the under database is `hive`, and the metadata of its tables is updated
-in the Hive Metastore (like `MSCK REPAIR` or other commands), then this `sync` command will
-update the Alluxio metadata with the updated Hive metadata.
-If an existing Alluxio partition or table is updated and previously had a transformation, then the
-transformation is invalidated, and must be re-triggered via the `transform` command.
-
-> If the metadata is NOT updated in the under database, then this sync command will not update
-> the Alluxio catalog metadata, even if the data of the table has been updated. For example,
-> if files are added to a Hive table but the Hive Metastore is not updated, the sync will not
-> detect changes to the metadata.
-
-### transform
-
-The `transform` command will transform a table for improved efficiency when reading the table.
-Here is an example usage:
-
-```console
-$ ./bin/alluxio table transform db_name table_name [-d <definition>]
-```
-
-This command will invoke a transformation on the table. The transformation is performed
-asynchronously, and will coalesce to a fewer number of files, and convert into the parquet file
-format.
-
-> In 2.1.0, the supported file formats which can be transformed are: parquet and csv
-> file formats. The resulting transformations are in the parquet file format. Additional formats
-> for input and output will be implemented in future versions.
-> For the coalesce feature, by default it will coalesce into a maximum of 100 files,
-> with each file no smaller than 2GB.
-
-The definition format takes a form of configuration separated by semicolon and specifies the details of the output
-format. Available configurations are:
-
-```console
-file.count.max=<num> (maximum number of files in transformed output)
-file.size.min=<num> (minimum file size in bytes of the output)
-```
-
-### transformStatus
-
-The `transformStatus` command will display information about a table transformation.
-Here is an example usage:
-
-```console
-$ ./bin/alluxio table transformStatus transform_id
-```
-
-This command will display status details on the transformation identified by `transform_id`.

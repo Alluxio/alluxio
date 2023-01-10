@@ -11,6 +11,7 @@
 
 package alluxio.cli.bundler.command;
 
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -18,16 +19,19 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.util.SleepUtils;
 import alluxio.util.network.HttpUtils;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
  * Command to probe Alluxio metrics for a few times.
@@ -39,6 +43,15 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
   private static final int COLLECT_METRICS_TIMES = 3;
   private static final int COLLECT_METRICS_TIMEOUT = 5 * 1000;
   private static final String METRICS_SERVLET_PATH = "/metrics/json/";
+
+  private static final String EXCLUDE_OPTION_NAME = "exclude-worker-metrics";
+  private static final Option ONLY_MASTER_OPTION =
+          Option.builder().required(false).longOpt(EXCLUDE_OPTION_NAME).hasArg(false)
+                  .desc("only collect master metrics\n"
+                          + "By default collect master metrics and all worker metrics.")
+                  .build();
+  // Class specific options are aggregated into CollectInfo with reflection
+  public static final Options OPTIONS = new Options().addOption(ONLY_MASTER_OPTION);
 
   /**
    * Creates a new instance of {@link CollectMetricsCommand}.
@@ -55,11 +68,6 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
   }
 
   @Override
-  public boolean hasSubCommand() {
-    return false;
-  }
-
-  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     // Determine the working dir path
     mWorkingDirPath = getWorkingDirectory(cl);
@@ -68,42 +76,16 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
     StringWriter outputBuffer = new StringWriter();
     for (int i = 0; i < COLLECT_METRICS_TIMES; i++) {
       LocalDateTime now = LocalDateTime.now();
-      String timeMsg = String.format("Collecting metrics at %s", dtf.format(now));
-      LOG.info(timeMsg);
-      outputBuffer.write(timeMsg);
-
-      // Generate URL from config properties
-      String masterAddr;
-      try {
-        masterAddr = mFsContext.getMasterAddress().getHostName();
-      } catch (UnavailableException e) {
-        String noMasterMsg = "No Alluxio master available. Skip metrics collection.";
-        LOG.warn(noMasterMsg);
-        outputBuffer.write(noMasterMsg);
-        break;
+      String masterMsg = String.format("Collecting master metrics at %s ", dtf.format(now));
+      LOG.info(masterMsg);
+      outputBuffer.write(masterMsg);
+      masterMetrics(outputBuffer, i);
+      if (!cl.hasOption(EXCLUDE_OPTION_NAME)) {
+        String workerMsg = String.format("Collecting worker metrics at %s ", dtf.format(now));
+        LOG.info(workerMsg);
+        outputBuffer.write(workerMsg);
+        workerMetrics(outputBuffer, i);
       }
-      String url = String.format("http://%s:%s%s", masterAddr,
-              mFsContext.getClusterConf().get(PropertyKey.MASTER_WEB_PORT),
-              METRICS_SERVLET_PATH);
-      LOG.info(String.format("Metric address URL: %s", url));
-
-      // Get metrics
-      String metricsResponse;
-      try {
-        metricsResponse = getMetricsJson(url);
-      } catch (Exception e) {
-        // Do not break the loop since the HTTP failure can be due to many reasons
-        // Return the error message instead
-        LOG.error("Failed to get Alluxio metrics from URL %s. Exception is %s", url, e);
-        metricsResponse =  String.format("Url: %s%nError: %s", url, e.getMessage());
-      }
-      outputBuffer.write(metricsResponse);
-
-      // Write to file
-      File outputFile = generateOutputFile(mWorkingDirPath,
-              String.format("%s-%s", getCommandName(), i));
-      FileUtils.writeStringToFile(outputFile, metricsResponse);
-
       // Wait for an interval
       SleepUtils.sleepMs(LOG, COLLECT_METRICS_INTERVAL);
     }
@@ -114,6 +96,78 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
     FileUtils.writeStringToFile(outputFile, outputBuffer.toString());
 
     return 0;
+  }
+
+  private void masterMetrics(StringWriter outputBuffer, int i) throws IOException {
+    // Generate URL from config properties
+    String masterAddr;
+    try {
+      masterAddr = mFsContext.getMasterAddress().getHostName();
+    } catch (UnavailableException e) {
+      String noMasterMsg = "No Alluxio master available. Skip metrics collection.";
+      LOG.warn(noMasterMsg);
+      outputBuffer.write(noMasterMsg);
+      return;
+    }
+    String url = String.format("http://%s:%s%s", masterAddr,
+            mFsContext.getClusterConf().get(PropertyKey.MASTER_WEB_PORT),
+            METRICS_SERVLET_PATH);
+    LOG.info(String.format("Metric address URL: %s", url));
+
+    // Get metrics
+    String metricsResponse;
+    try {
+      metricsResponse = getMetricsJson(url);
+    } catch (Exception e) {
+      // Do not break the loop since the HTTP failure can be due to many reasons
+      // Return the error message instead
+      LOG.error("Failed to get Alluxio master metrics from URL {}. Exception: ", url, e);
+      metricsResponse =  String.format("Url: %s%nError: %s", url, e.getMessage());
+    }
+    outputBuffer.write(metricsResponse);
+    outputBuffer.write("\n");
+
+    // Write to file
+    File outputFile = generateOutputFile(mWorkingDirPath,
+            String.format("%s-master-%s", getCommandName(), i));
+    FileUtils.writeStringToFile(outputFile, metricsResponse);
+  }
+
+  private void workerMetrics(StringWriter outputBuffer, int i) throws IOException {
+    // Generate URL from config properties
+    List<BlockWorkerInfo> workers;
+    try {
+      workers = mFsContext.getCachedWorkers();
+    } catch (UnavailableException e) {
+      String noWorkerMsg = "No Alluxio workers available. Skip metrics collection.";
+      LOG.warn(noWorkerMsg);
+      outputBuffer.write(noWorkerMsg);
+      return;
+    }
+    for (BlockWorkerInfo worker : workers) {
+      String url = String.format("http://%s:%s%s", worker.getNetAddress().getHost(),
+              mFsContext.getClusterConf().get(PropertyKey.WORKER_WEB_PORT),
+              METRICS_SERVLET_PATH);
+      LOG.info(String.format("Metric address URL: %s", url));
+
+      // Get metrics
+      String metricsResponse;
+      try {
+        metricsResponse = getMetricsJson(url);
+      } catch (Exception e) {
+        // Do not break the loop since the HTTP failure can be due to many reasons
+        // Return the error message instead
+        LOG.error("Failed to get Alluxio worker metrics from URL {}. Exception: ", url, e);
+        metricsResponse =  String.format("Url: %s%nError: %s", url, e.getMessage());
+      }
+      outputBuffer.write(metricsResponse);
+      outputBuffer.write("\n");
+
+      // Write to file
+      File outputFile = generateOutputFile(mWorkingDirPath,
+              String.format("%s-worker-%s", getCommandName(), i));
+      FileUtils.writeStringToFile(outputFile, metricsResponse);
+    }
   }
 
   @Override

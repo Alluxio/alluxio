@@ -11,7 +11,7 @@
 
 package alluxio;
 
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
@@ -30,12 +30,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class AuthenticatedUserRule extends AbstractResourceRule {
   private final String mUser;
   private User mPreviousUser;
-  private final InstancedConfiguration mConfiguration;
+  private final AlluxioConfiguration mConfiguration;
 
   /**
    * @param user the user name to set as authenticated user
    */
-  public AuthenticatedUserRule(String user, InstancedConfiguration conf) {
+  public AuthenticatedUserRule(String user, AlluxioConfiguration conf) {
     mUser = user;
     mConfiguration = conf;
   }
@@ -53,5 +53,13 @@ public final class AuthenticatedUserRule extends AbstractResourceRule {
     } else {
       AuthenticatedClientUser.set(mPreviousUser.getName());
     }
+  }
+
+  /**
+   * Used to reset user info on the calling thread.
+   * @throws Exception
+   */
+  public void resetUser() throws Exception {
+    before();
   }
 }

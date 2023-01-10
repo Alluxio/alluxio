@@ -11,8 +11,8 @@
 
 package alluxio.wire;
 
-import alluxio.util.CommonUtils;
 import alluxio.grpc.GrpcUtils;
+import alluxio.util.CommonUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;

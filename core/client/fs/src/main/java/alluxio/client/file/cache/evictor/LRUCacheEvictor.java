@@ -12,12 +12,11 @@
 package alluxio.client.file.cache.evictor;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.conf.AlluxioConfiguration;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -37,11 +36,10 @@ public class LRUCacheEvictor implements CacheEvictor {
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
   /**
-   * Required constructor.
-   *
-   * @param conf Alluxio configuration
+   * Constructor.
+   * @param options
    */
-  public LRUCacheEvictor(AlluxioConfiguration conf) {
+  public LRUCacheEvictor(CacheEvictorOptions options) {
   }
 
   @Override
@@ -64,6 +62,19 @@ public class LRUCacheEvictor implements CacheEvictor {
   public PageId evict() {
     synchronized (mLRUCache) {
       return mLRUCache.isEmpty() ? null : mLRUCache.keySet().iterator().next();
+    }
+  }
+
+  @Nullable
+  @Override
+  public PageId evictMatching(Predicate<PageId> criterion) {
+    synchronized (mLRUCache) {
+      for (PageId candidate : mLRUCache.keySet()) {
+        if (criterion.test(candidate)) {
+          return candidate;
+        }
+      }
+      return null;
     }
   }
 

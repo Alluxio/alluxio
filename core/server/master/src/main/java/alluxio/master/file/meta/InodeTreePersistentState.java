@@ -11,10 +11,13 @@
 
 package alluxio.master.file.meta;
 
+import static alluxio.conf.PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED;
+import static alluxio.conf.PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE;
 import static alluxio.conf.PropertyKey.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS;
 
 import alluxio.ProcessUtils;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.master.file.RpcContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
@@ -45,8 +48,11 @@ import alluxio.util.BucketCounter;
 import alluxio.util.FormatUtils;
 import alluxio.util.StreamUtils;
 import alluxio.util.proto.ProtoUtils;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.Preconditions;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +70,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 /**
  * Class for managing persistent inode tree state.
@@ -77,6 +84,13 @@ public class InodeTreePersistentState implements Journaled {
 
   private final InodeStore mInodeStore;
   private final InodeLockManager mInodeLockManager;
+
+  private final boolean mRetryCacheEnabled;
+  /**
+   * This cache is used by this persistent state and InodeTree
+   * for keeping track of recently applied operations on inodes.
+   */
+  private final Cache<OperationId, Boolean> mOpIdCache;
 
   /**
    * A set of inode ids representing pinned inode files. These are not part of the journaled state,
@@ -117,8 +131,33 @@ public class InodeTreePersistentState implements Journaled {
     mInodeLockManager = lockManager;
     mTtlBuckets = ttlBucketList;
     mBucketCounter = new BucketCounter(
-        ServerConfiguration.getList(MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS, ",")
+        Configuration.getList(MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS)
             .stream().map(FormatUtils::parseSpaceSize).collect(Collectors.toList()));
+    mRetryCacheEnabled =
+        Configuration.getBoolean(MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED);
+    mOpIdCache = CacheBuilder.newBuilder()
+        .maximumSize(Configuration.getInt(MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE))
+        .build();
+  }
+
+  /**
+   * Whether given operation is still cached in retry-cache.
+   *
+   * @param opId the operation id
+   * @return {@code true} if given op is marked complete
+   */
+  public boolean isOperationComplete(@Nullable OperationId opId) {
+    return mRetryCacheEnabled && opId != null && (null != mOpIdCache.getIfPresent(opId));
+  }
+
+  /**
+   * Used to mark an operation as complete in retry-cache.
+   * @param opId the operation id
+   */
+  public void cacheOperation(@Nullable OperationId opId) {
+    if (mRetryCacheEnabled && opId != null) {
+      mOpIdCache.put(opId, true);
+    }
   }
 
   /**
@@ -164,6 +203,17 @@ public class InodeTreePersistentState implements Journaled {
     return Collections.unmodifiableSet(mToBePersistedIds);
   }
 
+  ////
+  /// The applyAndJournal() methods make sure the in-memory metadata state and the journal are
+  /// BOTH updated. Any exception seen here will crash the master! So if an exception should be
+  /// tolerated, make sure it is caught and handled properly.
+  /// However, the journal flushing is async and happens when the JournalContext is closed.
+  /// That means when applyAndJournal() returns, the metadata states are updated but the
+  /// journal entries are not necessarily persisted or sent to standby masters.
+  /// Therefore, to ensure atomicity, callers should make sure the JournalContext is closed
+  /// after calling the applyAndJournal() methods.
+  ////
+
   /**
    * Deletes an inode (may be either a file or directory).
    *
@@ -180,7 +230,12 @@ public class InodeTreePersistentState implements Journaled {
     // creation entry because delete requires a write lock on the deleted file, but the create
     // operation holds that lock until after it has appended to the journal.
     try {
-      context.get().append(JournalEntry.newBuilder().setDeleteFile(entry).build());
+      JournalEntry.Builder builder = JournalEntry.newBuilder().setDeleteFile(entry);
+      OperationId opId = getOpId(context);
+      if (opId != null) {
+        builder.setOperationId(opId.toJournalProto());
+      }
+      context.get().append(builder.build());
       applyDelete(entry);
     } catch (Throwable t) {
       // Delete entries should always apply cleanly, but if it somehow fails, we are in a state
@@ -217,7 +272,12 @@ public class InodeTreePersistentState implements Journaled {
   public void applyAndJournal(Supplier<JournalContext> context, RenameEntry entry) {
     try {
       applyRename(entry);
-      context.get().append(JournalEntry.newBuilder().setRename(entry).build());
+      JournalEntry.Builder builder = JournalEntry.newBuilder().setRename(entry);
+      OperationId opId = getOpId(context);
+      if (opId != null) {
+        builder.setOperationId(opId.toJournalProto());
+      }
+      context.get().append(builder.build());
     } catch (Throwable t) {
       ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
       throw t; // fatalError will usually system.exit
@@ -249,7 +309,12 @@ public class InodeTreePersistentState implements Journaled {
   public void applyAndJournal(Supplier<JournalContext> context, UpdateInodeEntry entry) {
     try {
       applyUpdateInode(entry);
-      context.get().append(JournalEntry.newBuilder().setUpdateInode(entry).build());
+      JournalEntry.Builder builder = JournalEntry.newBuilder().setUpdateInode(entry);
+      OperationId opId = getOpId(context);
+      if (opId != null) {
+        builder.setOperationId(opId.toJournalProto());
+      }
+      context.get().append(builder.build());
     } catch (Throwable t) {
       ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
       throw t; // fatalError will usually system.exit
@@ -299,8 +364,13 @@ public class InodeTreePersistentState implements Journaled {
       String path) {
     try {
       applyCreateInode(inode);
-      context.get().append(inode.toJournalEntry(
-          Preconditions.checkNotNull(path)));
+      JournalEntry.Builder builder =
+          inode.toJournalEntry(Preconditions.checkNotNull(path)).toBuilder();
+      OperationId opId = getOpId(context);
+      if (opId != null) {
+        builder.setOperationId(opId.toJournalProto());
+      }
+      context.get().append(builder.build());
     } catch (Throwable t) {
       ProcessUtils.fatalError(LOG, t, "Failed to apply %s", inode);
       throw t; // fatalError will usually system.exit
@@ -325,6 +395,7 @@ public class InodeTreePersistentState implements Journaled {
   ////
   /// Apply Implementations. These methods are used for journal replay, so they are not allowed to
   /// fail. They are also used when making metadata changes during regular operation.
+  /// If the method throws an exception, the caller applyAndJournal() method will crash the master.
   ////
 
   private void applyDelete(DeleteFileEntry entry) {
@@ -339,12 +410,15 @@ public class InodeTreePersistentState implements Journaled {
         InodeDirectory dir = dirsToDelete.poll();
         mInodeStore.removeInodeAndParentEdge(inode);
         mInodeCounter.decrement();
-        for (Inode child : mInodeStore.getChildren(dir)) {
-          if (child.isDirectory()) {
-            dirsToDelete.add(child.asDirectory());
-          } else {
-            mInodeStore.removeInodeAndParentEdge(inode);
-            mInodeCounter.decrement();
+        try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(dir)) {
+          while (it.hasNext()) {
+            Inode child = it.next();
+            if (child.isDirectory()) {
+              dirsToDelete.add(child.asDirectory());
+            } else {
+              mInodeStore.removeInodeAndParentEdge(inode);
+              mInodeCounter.decrement();
+            }
           }
         }
       }
@@ -453,6 +527,13 @@ public class InodeTreePersistentState implements Journaled {
         mReplicationLimitedFileIds.add(file.getId());
       }
     }
+  }
+
+  private OperationId getOpId(Supplier<JournalContext> context) {
+    if (context instanceof RpcContext) {
+      return ((RpcContext) context).getOpId();
+    }
+    return null;
   }
 
   /**
@@ -687,6 +768,7 @@ public class InodeTreePersistentState implements Journaled {
 
   @Override
   public boolean processJournalEntry(JournalEntry entry) {
+    // Apply entry.
     if (entry.hasDeleteFile()) {
       applyDelete(entry.getDeleteFile());
     } else if (entry.hasInodeDirectory()) {
@@ -719,6 +801,11 @@ public class InodeTreePersistentState implements Journaled {
     } else {
       return false;
     }
+
+    // Account for entry in retry-cache before returning.
+    if (entry.hasOperationId()) {
+      cacheOperation(OperationId.fromJournalProto(entry.getOperationId()));
+    }
     return true;
   }
 
@@ -727,6 +814,7 @@ public class InodeTreePersistentState implements Journaled {
     mInodeStore.clear();
     mReplicationLimitedFileIds.clear();
     mPinnedInodeFileIds.clear();
+    mOpIdCache.invalidateAll();
   }
 
   @Override

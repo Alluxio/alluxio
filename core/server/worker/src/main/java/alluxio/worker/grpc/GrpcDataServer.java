@@ -12,16 +12,19 @@
 package alluxio.worker.grpc;
 
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.executor.ExecutorServiceBuilder;
+import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
-import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.ServiceType;
+import alluxio.master.AlluxioExecutorService;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.ChannelType;
-import alluxio.security.user.ServerUserState;
 import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.WorkerProcess;
@@ -40,7 +43,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -49,30 +51,32 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class GrpcDataServer implements DataServer {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataServer.class);
+  private static final long SHUTDOWN_TIMEOUT =
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT);
+  private static final long KEEPALIVE_TIME_MS =
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIME_MS);
+  private static final long KEEPALIVE_TIMEOUT_MS =
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS);
+  private static final long PERMIT_KEEPALIVE_TIME_MS =
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_PERMIT_KEEPALIVE_TIME_MS);
+  private static final long FLOWCONTROL_WINDOW =
+      Configuration.getBytes(PropertyKey.WORKER_NETWORK_FLOWCONTROL_WINDOW);
+  private static final long MAX_INBOUND_MESSAGE_SIZE =
+      Configuration.getBytes(PropertyKey.WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE);
+  private static final long SHUTDOWN_QUIET_PERIOD =
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
 
   private final SocketAddress mSocketAddress;
-  private final WorkerProcess mWorkerProcess;
-  private final long mTimeoutMs =
-      ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT);
-  private final long mKeepAliveTimeMs =
-      ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIME_MS);
-  private final long mKeepAliveTimeoutMs =
-      ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS);
-  private final long mFlowControlWindow =
-      ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_FLOWCONTROL_WINDOW);
-  private final long mMaxInboundMessageSize =
-      ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE);
-  private final long mQuietPeriodMs =
-      ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
-
   private EventLoopGroup mBossGroup;
   private EventLoopGroup mWorkerGroup;
-  private GrpcServer mServer;
+  private final GrpcServer mServer;
   /** non-null when the server is used with domain socket address.  */
   private DomainSocketAddress mDomainSocketAddress = null;
 
+  private AlluxioExecutorService mRPCExecutor = null;
+
   private final FileSystemContext mFsContext =
-      FileSystemContext.create(ServerConfiguration.global());
+      FileSystemContext.create(Configuration.global());
 
   /**
    * Creates a new instance of {@link GrpcDataServer}.
@@ -84,7 +88,6 @@ public final class GrpcDataServer implements DataServer {
   public GrpcDataServer(final String hostName, final SocketAddress bindAddress,
       final WorkerProcess workerProcess) {
     mSocketAddress = bindAddress;
-    mWorkerProcess = workerProcess;
     try {
       // There is no way to query domain socket address afterwards.
       // So store the bind address if it's domain socket address.
@@ -93,17 +96,18 @@ public final class GrpcDataServer implements DataServer {
       }
       BlockWorkerClientServiceHandler blockWorkerService =
           new BlockWorkerClientServiceHandler(
-              workerProcess, mFsContext, mDomainSocketAddress != null);
+              workerProcess, mDomainSocketAddress != null);
       mServer = createServerBuilder(hostName, bindAddress, NettyUtils.getWorkerChannel(
-          ServerConfiguration.global()))
-          .addService(ServiceType.FILE_SYSTEM_WORKER_WORKER_SERVICE, new GrpcService(
+          Configuration.global()))
+          .addService(ServiceType.BLOCK_WORKER_CLIENT_SERVICE, new GrpcService(
               GrpcSerializationUtils.overrideMethods(blockWorkerService.bindService(),
                   blockWorkerService.getOverriddenMethodDescriptors())
           ))
-          .flowControlWindow((int) mFlowControlWindow)
-          .keepAliveTime(mKeepAliveTimeMs, TimeUnit.MILLISECONDS)
-          .keepAliveTimeout(mKeepAliveTimeoutMs, TimeUnit.MILLISECONDS)
-          .maxInboundMessageSize((int) mMaxInboundMessageSize)
+          .flowControlWindow((int) FLOWCONTROL_WINDOW)
+          .keepAliveTime(KEEPALIVE_TIME_MS, TimeUnit.MILLISECONDS)
+          .keepAliveTimeout(KEEPALIVE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+          .permitKeepAlive(PERMIT_KEEPALIVE_TIME_MS, TimeUnit.MILLISECONDS)
+          .maxInboundMessageSize((int) MAX_INBOUND_MESSAGE_SIZE)
           .build()
           .start();
     } catch (IOException e) {
@@ -117,14 +121,24 @@ public final class GrpcDataServer implements DataServer {
 
   private GrpcServerBuilder createServerBuilder(String hostName,
       SocketAddress bindAddress, ChannelType type) {
-    GrpcServerBuilder builder =
-        GrpcServerBuilder.forAddress(GrpcServerAddress.create(hostName, bindAddress),
-            ServerConfiguration.global(), ServerUserState.global());
-    int bossThreadCount = ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BOSS_THREADS);
+    // Create an executor for Worker RPC server.
+    mRPCExecutor = ExecutorServiceBuilder.buildExecutorService(
+            ExecutorServiceBuilder.RpcExecutorHost.WORKER);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_RPC_QUEUE_LENGTH.getName(),
+            mRPCExecutor::getRpcQueueLength);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_RPC_THREAD_ACTIVE_COUNT.getName(),
+        mRPCExecutor::getActiveCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_RPC_THREAD_CURRENT_COUNT.getName(),
+        mRPCExecutor::getPoolSize);
+    // Create underlying gRPC server.
+    GrpcServerBuilder builder = GrpcServerBuilder
+        .forAddress(GrpcServerAddress.create(hostName, bindAddress),
+            Configuration.global())
+        .executor(mRPCExecutor);
+    int bossThreadCount = Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BOSS_THREADS);
 
-    // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
     int workerThreadCount =
-        ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS);
+        Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS);
     String dataServerEventLoopNamePrefix =
         "data-server-" + ((mSocketAddress instanceof DomainSocketAddress) ? "domain-socket" :
             "tcp-socket");
@@ -134,7 +148,7 @@ public final class GrpcDataServer implements DataServer {
         .createEventLoop(type, workerThreadCount, dataServerEventLoopNamePrefix + "-worker-%d",
             true);
     Class<? extends ServerChannel> socketChannelClass = NettyUtils.getServerChannelClass(
-        mSocketAddress instanceof DomainSocketAddress, ServerConfiguration.global());
+        mSocketAddress instanceof DomainSocketAddress, Configuration.global());
     if (type == ChannelType.EPOLL) {
       builder.withChildOption(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED);
     }
@@ -146,9 +160,9 @@ public final class GrpcDataServer implements DataServer {
         // set write buffer
         // this is the default, but its recommended to set it in case of change in future netty.
         .withChildOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK,
-            (int) ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_HIGH))
+            (int) Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_HIGH))
         .withChildOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK,
-            (int) ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_LOW));
+            (int) Configuration.getBytes(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_LOW));
   }
 
   @Override
@@ -160,15 +174,27 @@ public final class GrpcDataServer implements DataServer {
       if (!completed) {
         LOG.warn("Alluxio worker gRPC server shutdown timed out.");
       }
-      completed = mBossGroup.shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
-          .awaitUninterruptibly(mTimeoutMs);
+      completed = mBossGroup
+          .shutdownGracefully(SHUTDOWN_QUIET_PERIOD, SHUTDOWN_TIMEOUT, TimeUnit.MILLISECONDS)
+          .awaitUninterruptibly(SHUTDOWN_TIMEOUT);
       if (!completed) {
         LOG.warn("Forced boss group shutdown because graceful shutdown timed out.");
       }
-      completed = mWorkerGroup.shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
-          .awaitUninterruptibly(mTimeoutMs);
+      completed = mWorkerGroup
+          .shutdownGracefully(SHUTDOWN_QUIET_PERIOD, SHUTDOWN_TIMEOUT, TimeUnit.MILLISECONDS)
+          .awaitUninterruptibly(SHUTDOWN_TIMEOUT);
       if (!completed) {
         LOG.warn("Forced worker group shutdown because graceful shutdown timed out.");
+      }
+    }
+    if (mRPCExecutor != null) {
+      mRPCExecutor.shutdownNow();
+      try {
+        mRPCExecutor.awaitTermination(
+            Configuration.getMs(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT),
+            TimeUnit.MILLISECONDS);
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
       }
     }
   }

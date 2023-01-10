@@ -15,14 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -41,13 +39,6 @@ public final class PrefixPathConfiguration implements PathConfiguration {
    * Matches path patterns.
    */
   private final PathMatcher mMatcher;
-
-  /**
-   * Constructs an empty path level configuration.
-   */
-  public PrefixPathConfiguration() {
-    mMatcher = new PrefixPathMatcher(Collections.emptySet());
-  }
 
   /**
    * Constructs a new path level configuration.

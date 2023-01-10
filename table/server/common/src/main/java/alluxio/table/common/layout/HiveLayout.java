@@ -12,7 +12,7 @@
 package alluxio.table.common.layout;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
 import alluxio.grpc.table.layout.hive.StorageFormat;
@@ -146,7 +146,7 @@ public class HiveLayout implements Layout {
       TransformDefinition definition) throws IOException {
     AlluxioURI outputPath = transformContext.generateTransformedPath();
     AlluxioURI outputUri = new AlluxioURI(
-        ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global())
+        ConfigurationUtils.getSchemeAuthority(Configuration.global())
         + outputPath.getPath());
     HiveLayout transformedLayout = transformLayout(outputUri, definition);
     return new TransformPlan(this, transformedLayout, definition);

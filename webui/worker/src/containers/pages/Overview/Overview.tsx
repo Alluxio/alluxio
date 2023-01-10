@@ -58,6 +58,10 @@ export class OverviewPresenter extends React.Component<AllProps> {
                 <th scope="row">Version</th>
                 <td>{data.version}</td>
               </tr>
+              <tr>
+                <th scope="row">Revision</th>
+                <td>{data.revision}</td>
+              </tr>
             </tbody>
           </Table>
         </div>
@@ -79,6 +83,10 @@ export class OverviewPresenter extends React.Component<AllProps> {
                   </td>
                 </tr>
               ))}
+              <tr>
+                <th scope="row">Block Count</th>
+                <td>{data.blockCount}</td>
+              </tr>
             </tbody>
           </Table>
         </div>

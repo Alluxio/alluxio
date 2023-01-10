@@ -27,7 +27,7 @@ import java.util.List;
  * This class represents a getSyncPathList Command.
  */
 @PublicApi
-public class GetSyncPathListCommand extends AbstractFileSystemCommand{
+public class GetSyncPathListCommand extends AbstractFileSystemCommand {
   /**
    * Create a GetSyncPathListCommand object.
    *

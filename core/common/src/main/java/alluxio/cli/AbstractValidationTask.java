@@ -11,6 +11,8 @@
 
 package alluxio.cli;
 
+import alluxio.util.ExceptionUtils;
+
 import org.apache.commons.cli.Option;
 
 import java.util.ArrayList;
@@ -29,12 +31,7 @@ public abstract class AbstractValidationTask implements ValidationTask {
   protected abstract ValidationTaskResult validateImpl(Map<String, String> optionMap)
       throws InterruptedException;
 
-  /**
-   * validate a test and return the result.
-   *
-   * @param optionMap contains string representation of <key, value> pairs
-   * @return return test result
-   */
+  @Override
   public ValidationTaskResult validate(Map<String, String> optionMap)
       throws InterruptedException {
     try {
@@ -43,7 +40,7 @@ public abstract class AbstractValidationTask implements ValidationTask {
       throw e;
     } catch (Exception e) {
       return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
-          ValidationUtils.getErrorInfo(e), "Fix unexpected error");
+          ExceptionUtils.asPlainText(e), "Fix unexpected error");
     }
   }
 }

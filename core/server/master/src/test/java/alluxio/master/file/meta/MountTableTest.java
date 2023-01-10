@@ -16,7 +16,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -36,6 +36,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.Clock;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,7 +47,7 @@ public final class MountTableTest {
   private MountTable mMountTable;
   private static final String ROOT_UFS = "s3a://bucket/";
   private final UnderFileSystem mTestUfs = new LocalUnderFileSystemFactory().create("/",
-      UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
+      UnderFileSystemConfiguration.defaults(Configuration.global()));
 
   @Before
   public void before() throws Exception {
@@ -56,7 +57,8 @@ public final class MountTableTest {
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mMountTable = new MountTable(ufsManager,
         new MountInfo(new AlluxioURI(MountTable.ROOT), new AlluxioURI(ROOT_UFS),
-            IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()));
+            IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()),
+        Clock.systemUTC());
   }
 
   /**
@@ -64,6 +66,9 @@ public final class MountTableTest {
    */
   @Test
   public void path() throws Exception {
+    Assert.assertEquals(IdUtils.ROOT_MOUNT_ID,
+        mMountTable.getMountInfo(new AlluxioURI(MountTable.ROOT)).getMountId());
+
     // Test add()
     addMount("/mnt/foo", "/foo", 2);
     addMount("/mnt/bar", "/bar", 3);
@@ -232,6 +237,7 @@ public final class MountTableTest {
     Assert.assertFalse(deleteMount("/mnt/foo"));
     Assert.assertFalse(deleteMount("/"));
   }
+
   /**
    * Tests the different methods of the {@link MountTable} class with a URI.
    */

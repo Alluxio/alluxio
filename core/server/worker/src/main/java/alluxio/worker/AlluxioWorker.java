@@ -11,10 +11,10 @@
 
 package alluxio.worker;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.ProcessUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.conf.Configuration;
+import alluxio.grpc.Scope;
 import alluxio.master.MasterInquireClient;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -48,20 +47,19 @@ public final class AlluxioWorker {
       System.exit(-1);
     }
 
-    if (!ConfigurationUtils.masterHostConfigured(ServerConfiguration.global())) {
+    if (!ConfigurationUtils.masterHostConfigured(Configuration.global())) {
       ProcessUtils.fatalError(LOG,
           ConfigurationUtils.getMasterHostNotConfiguredMessage("Alluxio worker"));
     }
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.WORKER);
     MasterInquireClient masterInquireClient =
-        MasterInquireClient.Factory.create(ServerConfiguration.global(), ServerUserState.global());
+        MasterInquireClient.Factory.create(Configuration.global(), ServerUserState.global());
     try {
       RetryUtils.retry("load cluster default configuration with master", () -> {
         InetSocketAddress masterAddress = masterInquireClient.getPrimaryRpcAddress();
-        ServerConfiguration.loadWorkerClusterDefaults(masterAddress);
-      }, RetryUtils.defaultWorkerMasterClientRetry(
-          ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
+        Configuration.loadClusterDefaults(masterAddress, Scope.WORKER);
+      }, RetryUtils.defaultWorkerMasterClientRetry());
     } catch (IOException e) {
       ProcessUtils.fatalError(LOG,
           "Failed to load cluster default configuration for worker. Please make sure that Alluxio "

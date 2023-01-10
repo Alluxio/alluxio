@@ -18,11 +18,11 @@ import alluxio.stress.Summary;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.math.Quantiles;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 /**
  * This object is used to summarize the RPC stress test results.
@@ -61,6 +61,9 @@ public class RpcTaskSummary implements Summary {
   }
 
   private void calculate() {
+    if (mPoints.isEmpty()) {
+      return;
+    }
     for (RpcTaskResult.Point p : mPoints) {
       mTotalDurationMs += p.mDurationMs;
     }
@@ -80,6 +83,9 @@ public class RpcTaskSummary implements Summary {
 
   @Override
   public String toString() {
+    if (mPoints.isEmpty()) {
+      return String.format("RpcTaskSummary:%nNo data points%nErrors: %s%n", mErrors);
+    }
     return String.format("RpcTaskSummary: Data points: %d, Errors: %d%n"
         + "Total: %.3e, Average: %.3e, Median: %.3e%n"
         + "5 Percentile: %.3e%n25 Percentile: %.3e%n75 Percentile: %.3e%n95 Percentile: %.3e%n",

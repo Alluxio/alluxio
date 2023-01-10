@@ -13,7 +13,7 @@ priority: 6
 ## 概述
 
 Tensorflow使开发人员可以快速轻松地开始使用深度学习。 
-[深度学习]({{ '/en/compute/Deep-Learning.html' | relativize_url}})部分介绍了深度学习的数据挑战 
+[深度学习]({{ '/cn/solutions/Deep-Learning.html' | relativize_url}})部分介绍了深度学习的数据挑战 
 以及Alluxio如何帮助解决这些挑战。 
 本教程针对在Alluxio POSIX API之上运行Tensorflow提供一些动手实例和技巧。
 
@@ -82,7 +82,7 @@ $ ./integration/fuse/bin/alluxio-fuse stat
 
 ```console
 $ ./bin/alluxio fs mount /training-data/imagenet/ s3://alluxio-tensorflow-imagenet/ \
-  --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
+  --option s3a.accessKeyID=<ACCESS_KEY_ID> --option s3a.secretKey=<SECRET_KEY>
 ```
 
 注意，此命令可以接受选项来传递存储桶的S3凭证。 
@@ -138,8 +138,8 @@ earthstar (score = 0.00117)
 ```console
 $ ./bin/alluxio fs mount /training-data/imagenet/ \
   s3://alluxio-tensorflow-imagenet/ \
-  --option aws.accessKeyID=<ACCESS_KEY_ID> \
-  --option aws.secretKey=<SECRET_KEY>
+  --option s3a.accessKeyID=<ACCESS_KEY_ID> \
+  --option s3a.secretKey=<SECRET_KEY>
 ```
 
 要使用Alluxio POSIX API通过Alluxio访问S3中的训练数据，

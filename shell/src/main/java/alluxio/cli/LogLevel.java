@@ -18,10 +18,9 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.job.wire.JobWorkerHealth;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.HttpUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -49,7 +48,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -76,9 +74,8 @@ public final class LogLevel {
           .required(false)
           .longOpt(TARGET_OPTION_NAME)
           .hasArg(true)
-          .desc("<master|workers|job_master|job_workers|host:webPort>."
+          .desc("<master|workers|job_master|job_workers|host:webPort[:role]>."
               + " A list of targets separated by " + TARGET_SEPARATOR + " can be specified."
-              + " host:webPort pair must be one of workers."
               + " Default target is master, job master, all workers and all job workers.")
           .build();
   private static final String LOG_NAME_OPTION_NAME = "logName";
@@ -130,7 +127,7 @@ public final class LogLevel {
     String level = parseOptLevel(cmd);
 
     for (TargetInfo targetInfo : targets) {
-      setLogLevel(targetInfo, logName, level, alluxioConf);
+      setLogLevel(targetInfo, logName, level);
     }
   }
 
@@ -205,7 +202,7 @@ public final class LogLevel {
           jobClient = JobMasterClient.Factory.create(JobMasterClientContext
                   .newBuilder(clientContext).build());
         }
-        String jobMasterHost = jobClient.getAddress().getHostName();
+        String jobMasterHost = jobClient.getRemoteHostName();
         int jobMasterPort = NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_WEB, conf);
         TargetInfo jobMaster = new TargetInfo(jobMasterHost, jobMasterPort, ROLE_JOB_MASTER);
         targetInfoList.add(jobMaster);
@@ -241,11 +238,16 @@ public final class LogLevel {
           targetInfoList.add(jobWorker);
         }
       } else if (target.contains(":")) {
-        String[] hostPortPair = target.split(":");
-        int port = Integer.parseInt(hostPortPair[1]);
-        String role = inferRoleFromPort(port, conf);
+        String[] targetInfoParts = target.split(":");
+        int port = Integer.parseInt(targetInfoParts[1]);
+        String role;
+        if (targetInfoParts.length > 2) {
+          role = targetInfoParts[2];
+        } else {
+          role = inferRoleFromPort(port, conf);
+        }
         LOG.debug("Port {} maps to role {}", port, role);
-        TargetInfo unspecifiedTarget = new TargetInfo(hostPortPair[0], port, role);
+        TargetInfo unspecifiedTarget = new TargetInfo(targetInfoParts[0], port, role);
         System.out.format("Role inferred from port: %s%n", unspecifiedTarget);
         targetInfoList.add(unspecifiedTarget);
       } else {
@@ -275,8 +277,7 @@ public final class LogLevel {
     return null;
   }
 
-  private static void setLogLevel(final TargetInfo targetInfo, String logName, String level,
-                                  AlluxioConfiguration alluxioConf)
+  private static void setLogLevel(final TargetInfo targetInfo, String logName, String level)
       throws IOException {
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme("http");
@@ -287,11 +288,11 @@ public final class LogLevel {
     if (level != null) {
       uriBuilder.addParameter(LEVEL_OPTION_NAME, level);
     }
-    LOG.info("Setting log level on {}", uriBuilder.toString());
+    LOG.info("Setting log level on {}", uriBuilder);
     HttpUtils.post(uriBuilder.toString(), "", 5000, inputStream -> {
       ObjectMapper mapper = new ObjectMapper();
       LogInfo logInfo = mapper.readValue(inputStream, LogInfo.class);
-      System.out.println(targetInfo.toString() + logInfo.toString());
+      System.out.println(targetInfo + logInfo.toString());
     });
   }
 
@@ -323,7 +324,7 @@ public final class LogLevel {
   public static void main(String[] args) {
     int exitCode = 1;
     try {
-      logLevel(args, new InstancedConfiguration(ConfigurationUtils.defaults()));
+      logLevel(args, Configuration.global());
       exitCode = 0;
     } catch (ParseException e) {
       printHelp("Unable to parse input args: " + e.getMessage());
@@ -340,9 +341,9 @@ public final class LogLevel {
    * Object that represents a REST endpoint that logLevel sends HTTP request to.
    * */
   public static final class TargetInfo {
-    private String mRole;
-    private String mHost;
-    private int mPort;
+    private final String mRole;
+    private final String mHost;
+    private final int mPort;
 
     /**
      * Constructor.

@@ -14,7 +14,6 @@ package alluxio.job.plan.persist;
 import alluxio.util.CommonUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.junit.Assert;
 import org.junit.Test;
 

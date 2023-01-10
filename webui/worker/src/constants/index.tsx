@@ -14,3 +14,4 @@ export * from './data/footerNavigation';
 export * from './data/routePaths';
 
 export * from './types/IStorageTierInfo';
+export * from '@alluxio/common-ui/src/constants/types/IConfigTriple';

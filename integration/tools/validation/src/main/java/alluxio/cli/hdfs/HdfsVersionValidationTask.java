@@ -12,11 +12,12 @@
 package alluxio.cli.hdfs;
 
 import alluxio.cli.AbstractValidationTask;
+import alluxio.cli.ApplicableUfsType;
 import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
-import alluxio.cli.ApplicableUfsType;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.util.ExceptionUtils;
 import alluxio.util.ShellUtils;
 
 import java.io.IOException;
@@ -87,11 +88,11 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
       hadoopVersion = getHadoopVersion();
     } catch (IOException e) {
       return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
-              String.format("Failed to get hadoop version:%n%s.", ValidationUtils.getErrorInfo(e)),
+              String.format("Failed to get hadoop version:%n%s.", ExceptionUtils.asPlainText(e)),
               "Please check if hadoop is on your PATH.");
     }
 
-    String version = mConf.get(PropertyKey.UNDERFS_VERSION);
+    String version = mConf.getString(PropertyKey.UNDERFS_VERSION);
     for (String prefix : new String[] {CDH_PREFIX, HADOOP_PREFIX}) {
       if (version.startsWith(prefix)) {
         version = version.substring(prefix.length());
@@ -101,15 +102,15 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
     if (hadoopVersion.contains(version)) {
       return new ValidationTaskResult(ValidationUtils.State.OK, getName(),
               String.format("Hadoop version %s contains UFS version defined in alluxio %s=%s.",
-                      hadoopVersion, PropertyKey.UNDERFS_VERSION.toString(), version),
+                      hadoopVersion, PropertyKey.UNDERFS_VERSION, version),
               "");
     }
 
     return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
             String.format("Hadoop version %s does not match %s=%s.",
-                    hadoopVersion, PropertyKey.UNDERFS_VERSION.toString(), version),
+                    hadoopVersion, PropertyKey.UNDERFS_VERSION, version),
             String.format("Please configure %s to match the HDFS version.",
-                    PropertyKey.UNDERFS_VERSION.toString()));
+                    PropertyKey.UNDERFS_VERSION));
   }
 
   protected String getHadoopVersion() throws IOException {

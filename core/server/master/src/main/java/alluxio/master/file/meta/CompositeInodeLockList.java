@@ -17,7 +17,6 @@ import com.google.common.base.Preconditions;
 
 import java.util.List;
 import java.util.concurrent.locks.Lock;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

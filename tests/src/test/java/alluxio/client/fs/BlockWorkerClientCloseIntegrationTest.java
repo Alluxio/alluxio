@@ -11,25 +11,35 @@
 
 package alluxio.client.fs;
 
+import static org.junit.Assert.assertTrue;
+
+import alluxio.TestLoggerRule;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.resource.CloseableResource;
 import alluxio.security.user.TestUserState;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.wire.WorkerNetAddress;
 
+import io.netty.util.ResourceLeakDetector;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 public final class BlockWorkerClientCloseIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
+
+  @Rule
+  public TestLoggerRule mLogger = new TestLoggerRule();
 
   private WorkerNetAddress mWorkerNetAddress;
   private FileSystemContext mFsContext;
@@ -38,8 +48,8 @@ public final class BlockWorkerClientCloseIntegrationTest extends BaseIntegration
   public void before() throws Exception {
     mWorkerNetAddress = mClusterResource.get().getWorkerAddress();
     mFsContext = FileSystemContext
-        .create(new TestUserState("test", ServerConfiguration.global()).getSubject(),
-            ServerConfiguration.global());
+        .create(new TestUserState("test", Configuration.global()).getSubject(),
+            Configuration.global());
   }
 
   @After
@@ -54,8 +64,33 @@ public final class BlockWorkerClientCloseIntegrationTest extends BaseIntegration
           .acquireBlockWorkerClient(mWorkerNetAddress);
       Assert.assertFalse(client.get().isShutdown());
       client.get().close();
-      Assert.assertTrue(client.get().isShutdown());
+      assertTrue(client.get().isShutdown());
       client.close();
     }
+  }
+
+  @Ignore
+  @Test
+  public void testLeakTracker() throws Exception {
+    ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID);
+    for (int i = 0; i < 5; i++) {
+      CloseableResource<BlockWorkerClient> client = mFsContext
+          .acquireBlockWorkerClient(mWorkerNetAddress);
+    }
+    for (int i = 0; i < 10; i++) {
+      byte[] mem = new byte[1024 * 1024 * 1024];
+      if (mem[0] == 0x7a) {
+        continue;
+      }
+      mem[ThreadLocalRandom.current().nextInt(1024 * 1024)] += 1;
+    }
+    for (int i = 0; i < 5; i++) {
+      CloseableResource<BlockWorkerClient> client = mFsContext
+          .acquireBlockWorkerClient(mWorkerNetAddress);
+    }
+    System.gc();
+    assertTrue(mLogger.wasLogged(
+            "DefaultBlockWorkerClient\\.close\\(\\) was not called before resource "
+            + "is garbage-collected"));
   }
 }

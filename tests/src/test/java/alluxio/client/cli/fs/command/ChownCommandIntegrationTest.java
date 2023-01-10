@@ -13,12 +13,12 @@ package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
-import alluxio.conf.PropertyKey;
+import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
-import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
@@ -35,7 +35,7 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
   @Rule
   public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
       .of(PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.class.getName()),
-      ServerConfiguration.global());
+      Configuration.modifiableGlobal());
 
   @Test
   public void chown() throws IOException, AlluxioException {

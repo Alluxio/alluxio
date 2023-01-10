@@ -13,7 +13,11 @@ package alluxio.multi.process;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -26,25 +30,38 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Using the same ports every time improves build stability when using Docker.
  */
 public class PortCoordination {
+  private static final Logger LOG = LoggerFactory.getLogger(PortCoordination.class);
   // Start at 11000 to stay within the non-ephemeral port range and hopefully dodge most other
   // processes.
   private static final AtomicInteger NEXT_PORT = new AtomicInteger(11000);
   private static final Set<Integer> SKIP_PORTS = new HashSet(Arrays.asList(
       // add ports here to avoid conflicting with other processes on those ports.
   ));
-
+  // for EmbeddedJournalIntegrationTestFaultTolerance
   public static final List<ReservedPort> EMBEDDED_JOURNAL_FAILOVER = allocate(3, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_MASTER = allocate(3, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_FOLLOWER = allocate(3, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_TRANSFER_LOAD = allocate(3, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_SINGLE_MASTER = allocate(1, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART_STRESS = allocate(3, 0);
+  // for EmbeddedJournalIntegrationTestResizing
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESIZE = allocate(5, 0);
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_GROW = allocate(2, 0);
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_GROW_NEWMASTER = allocate(1, 0);
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP = allocate(3, 0);
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP_NEW = allocate(1, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_GROW = allocate(3, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_REPLACE_ALL = allocate(3, 0);
+  // for EmbeddedJournalIntegrationTestTransferLeadership
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_TRANSFER_LEADER = allocate(5, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_REPEAT_TRANSFER_LEADER = allocate(5, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_ALREADY_TRANSFERRING = allocate(5, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_OUTSIDE_CLUSTER = allocate(5, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_NEW_MEMBER = allocate(6, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_UNAVAILABLE_MASTER = allocate(5, 0);
 
   public static final List<ReservedPort> JOURNAL_MIGRATION = allocate(3, 1);
 
   public static final List<ReservedPort> BACKUP_RESTORE_EMBEDDED = allocate(3, 1);
+  public static final List<ReservedPort> BACKUP_SYNC_ON_RESTORE = allocate(1, 1);
+  public static final List<ReservedPort> BACKUP_CONTENT_ON_RESTORE = allocate(1, 1);
 
   public static final List<ReservedPort> CONFIG_CHECKER_MULTI_WORKERS = allocate(1, 2);
   public static final List<ReservedPort> CONFIG_CHECKER_MULTI_NODES = allocate(2, 2);
@@ -66,6 +83,10 @@ public class PortCoordination {
   public static final List<ReservedPort> BACKUP_DELEGATION_EMBEDDED = allocate(2, 1);
   public static final List<ReservedPort> BACKUP_RESTORE_METASSTORE_HEAP = allocate(1, 1);
   public static final List<ReservedPort> BACKUP_RESTORE_METASSTORE_ROCKS = allocate(1, 1);
+  public static final List<ReservedPort> BACKUP_EMERGENCY_1 = allocate(1, 0);
+  public static final List<ReservedPort> BACKUP_EMERGENCY_2 = allocate(1, 0);
+  public static final List<ReservedPort> BACKUP_EMERGENCY_HA_1 = allocate(3, 0);
+  public static final List<ReservedPort> BACKUP_EMERGENCY_HA_2 = allocate(3, 0);
 
   public static final List<ReservedPort> ZOOKEEPER_FAILURE = allocate(2, 1);
   public static final List<ReservedPort> ZOOKEEPER_CONNECTION_POLICY_STANDARD = allocate(2, 0);
@@ -91,12 +112,24 @@ public class PortCoordination {
     Builder<ReservedPort> ports = ImmutableList.builder();
     for (int i = 0; i < needed; i++) {
       int port = NEXT_PORT.getAndIncrement();
-      while (SKIP_PORTS.contains(port)) {
+      while (SKIP_PORTS.contains(port) || !isAvailable(port)) {
         port = NEXT_PORT.getAndIncrement();
       }
       ports.add(new ReservedPort(port));
     }
     return ports.build();
+  }
+
+  /**
+   * Implementation from https://stackoverflow.com/a/15340291.
+   */
+  private static boolean isAvailable(int port) {
+    try (Socket ignored = new Socket("localhost", port)) {
+      LOG.info("Port {} is unavailable", port);
+      return false;
+    } catch (IOException e) {
+      return true;
+    }
   }
 
   /**

@@ -36,7 +36,7 @@ final class StatsCounter {
     mEvictionCount = MetricsSystem.counter(evictionsKey.getName());
     MetricsSystem.registerGaugeIfAbsent(MASTER_INODE_CACHE_HIT_RATIO.getName(),
         () -> mHitCount.getCount() * 1.0
-            / mHitCount.getCount() + mMissCount.getCount());
+            / (mHitCount.getCount() + mMissCount.getCount()));
   }
 
   /**

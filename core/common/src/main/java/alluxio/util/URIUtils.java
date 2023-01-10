@@ -24,7 +24,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -69,7 +68,7 @@ public final class URIUtils {
   }
 
   /**
-   * Generates a query string from a {@link Map <String, String>} of key/value pairs.
+   * Generates a query string from a {@link Map} of key/value pairs.
    *
    * @param queryMap the map of query key/value pairs
    * @return the generated query string, null if the input map is null or empty
@@ -314,8 +313,14 @@ public final class URIUtils {
       if (ch == '%') {
         // hash next 2 characters
         index++;
+        if (index >= s.length()) {
+          break;
+        }
         nextHash = 31 * nextHash + URIUtils.toLower(s.charAt(index));
         index++;
+        if (index >= s.length()) {
+          break;
+        }
         nextHash = 31 * nextHash + URIUtils.toLower(s.charAt(index));
       }
     }

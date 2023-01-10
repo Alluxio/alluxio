@@ -11,8 +11,8 @@
 
 package alluxio.time;
 
-import alluxio.retry.RetryPolicy;
 import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 
 /**
  * The {@link ExponentialTimer} can be used for generating a sequence of events that are

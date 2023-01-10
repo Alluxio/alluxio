@@ -13,12 +13,12 @@ package alluxio.worker.block.annotator;
 
 import alluxio.annotation.PublicApi;
 import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Interface for providers that annotates blocks for sorting.
@@ -43,7 +43,7 @@ public interface BlockAnnotator<T extends BlockSortedField> {
      */
     public static BlockAnnotator create() {
       return CommonUtils.createNewClassInstance(
-          ServerConfiguration.getClass(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS), null,
+          Configuration.getClass(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS), null,
           null);
     }
   }

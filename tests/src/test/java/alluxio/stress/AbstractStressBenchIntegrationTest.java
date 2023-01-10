@@ -70,4 +70,35 @@ public class AbstractStressBenchIntegrationTest extends BaseIntegrationTest {
       assertTrue("report must contain graph name: " + expectedName, result.contains(expectedName));
     }
   }
+
+  protected List<String> getJsonResult(String output) {
+    // get the Json parts of the output string and convert them into summaries
+    List<String> res = new ArrayList<>();
+    int bracketsNum = 0;
+    int start = 0;
+    int end = 0;
+
+    while (start < output.length()) {
+      if (output.charAt(start) == '{') {
+        bracketsNum = 1;
+        for (end = start + 1; end < output.length(); end++) {
+          char c = output.charAt(end);
+          if (c == '{') {
+            bracketsNum++;
+          } else if (c == '}') {
+            bracketsNum--;
+          }
+
+          if (bracketsNum == 0) {
+            String json = output.substring(start, end + 1);
+            res.add(json);
+            break;
+          }
+        }
+        start = end;
+      }
+      start++;
+    }
+    return res;
+  }
 }

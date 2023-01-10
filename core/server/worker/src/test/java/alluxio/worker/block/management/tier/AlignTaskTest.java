@@ -11,14 +11,14 @@
 
 package alluxio.worker.block.management.tier;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
-import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.annotator.BlockOrder;
+import alluxio.worker.block.meta.StorageDir;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,12 +34,12 @@ public class AlignTaskTest extends BaseTierManagementTaskTest {
    */
   @Before
   public void before() throws Exception {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
     // Current tier layout could end up swapping 2 blocks concurrently.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES,
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES,
         2 * BLOCK_SIZE);
     // Disable promotions to avoid interference.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
     // Initialize the tier layout.
     init();
   }

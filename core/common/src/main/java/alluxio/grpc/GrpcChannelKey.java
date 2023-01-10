@@ -11,58 +11,33 @@
 
 package alluxio.grpc;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.util.network.NetworkAddressUtils;
-
 import com.google.common.base.MoreObjects;
 
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.lang.reflect.Field;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Used to identify a unique {@link GrpcChannel}.
+ * Used to define a key for {@link GrpcChannelPool}.
  */
 public class GrpcChannelKey {
-  @IdentityField
-  GrpcNetworkGroup mNetworkGroup = GrpcNetworkGroup.RPC;
-  @IdentityField
-  private GrpcServerAddress mServerAddress;
+  private final GrpcNetworkGroup mNetworkGroup;
+  private final GrpcServerAddress mServerAddress;
 
   /** Unique channel identifier. */
   private final UUID mChannelId = UUID.randomUUID();
-  /** Hostname to send to server for identification. */
-  private final String mLocalHostName;
-
-  /** Client that requires a channel. */
-  private String mClientType;
-
-  private GrpcChannelKey(AlluxioConfiguration conf) {
-    // Try to get local host name.
-    String localHostName;
-    try {
-      localHostName = NetworkAddressUtils
-          .getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
-    } catch (Exception e) {
-      localHostName = NetworkAddressUtils.UNKNOWN_HOSTNAME;
-    }
-    mLocalHostName = localHostName;
-  }
+  private final int mGroupIndex;
 
   /**
-   * Creates a {@link GrpcChannelKey}.
-   *
-   * @param conf the Alluxio configuration
-   * @return the created instance
+   * Constructor.
+   * @param networkGroup network group
+   * @param serverAddress server address
+   * @param groupIndex the order of channel in slots that are allocated for its network group
    */
-  public static GrpcChannelKey create(AlluxioConfiguration conf) {
-    return new GrpcChannelKey(conf);
+  protected GrpcChannelKey(GrpcNetworkGroup networkGroup,
+      GrpcServerAddress serverAddress, int groupIndex) {
+    mNetworkGroup = Objects.requireNonNull(networkGroup, "networkGroup is null");
+    mServerAddress = Objects.requireNonNull(serverAddress, "serverAddress is null");
+    mGroupIndex = groupIndex;
   }
 
   /**
@@ -80,108 +55,39 @@ public class GrpcChannelKey {
   }
 
   /**
-   * @param address destination address of the channel
-   * @return the modified {@link GrpcChannelKey}
-   */
-  public GrpcChannelKey setServerAddress(GrpcServerAddress address) {
-    mServerAddress = address;
-    return this;
-  }
-
-  /**
-   * @param group the networking group membership
-   * @return the modified {@link GrpcChannelKey}
-   */
-  public GrpcChannelKey setNetworkGroup(GrpcNetworkGroup group) {
-    mNetworkGroup = group;
-    return this;
-  }
-
-  /**
    * @return the network group
    */
   public GrpcNetworkGroup getNetworkGroup() {
     return mNetworkGroup;
   }
 
-  /**
-   * @param clientType the client type
-   * @return the modified {@link GrpcChannelKey}
-   */
-  public GrpcChannelKey setClientType(String clientType) {
-    mClientType = clientType;
-    return this;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    GrpcChannelKey other = (GrpcChannelKey) o;
+    return mNetworkGroup.equals(other.mNetworkGroup)
+        && mServerAddress.equals(other.mServerAddress)
+        && mGroupIndex == other.mGroupIndex;
   }
 
   @Override
   public int hashCode() {
-    HashCodeBuilder hashCodebuilder = new HashCodeBuilder();
-    for (Field field : this.getClass().getDeclaredFields()) {
-      if (field.isAnnotationPresent(IdentityField.class)) {
-        try {
-          hashCodebuilder.append(field.get(this));
-        } catch (IllegalAccessException e) {
-          throw new RuntimeException(
-              String.format("Failed to calculate hashcode for channel-key: %s", this), e);
-        }
-      }
-    }
-    return hashCodebuilder.toHashCode();
-  }
-
-  @Override
-  public boolean equals(Object other) {
-    if (other instanceof GrpcChannelKey) {
-      GrpcChannelKey otherKey = (GrpcChannelKey) other;
-      boolean areEqual = true;
-      for (Field field : this.getClass().getDeclaredFields()) {
-        if (field.isAnnotationPresent(IdentityField.class)) {
-          try {
-            areEqual &= field.get(this).equals(field.get(otherKey));
-          } catch (IllegalAccessException e) {
-            throw new RuntimeException(String.format(
-                "Failed to calculate equality between channel-keys source: %s | destination: %s",
-                this, otherKey), e);
-          }
-        }
-      }
-      return areEqual;
-    }
-    return false;
+    return Objects.hash(mNetworkGroup, mServerAddress, mGroupIndex);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("ClientType", mClientType)
+        .add("NetworkGroup", mNetworkGroup)
         .add("ServerAddress", mServerAddress)
+        .add("GroupIndex", mGroupIndex)
         .add("ChannelId", mChannelId)
-        .omitNullValues()
         .toString();
-  }
-
-  /**
-   * @return short representation of this channel key
-   */
-  public String toStringShort() {
-    return MoreObjects.toStringHelper(this)
-        .add("ClientType", mClientType)
-        .add("ClientHostname", mLocalHostName)
-        .add("ServerAddress", mServerAddress)
-        .add("ChannelId", mChannelId)
-        .omitNullValues()
-        .toString();
-  }
-
-  @Retention(RetentionPolicy.RUNTIME)
-  @Target(ElementType.FIELD)
-  /**
-   * Used to mark fields in this class that are part of
-   * the identity of a channel while pooling channels.
-   *
-   * Values of fields that are marked with this annotation will be used
-   * during {@link #hashCode()} and {@link #equals(Object)}.
-   */
-  protected @interface IdentityField {
   }
 }

@@ -20,7 +20,6 @@ import org.apache.hadoop.fs.FileSystem;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.annotation.Nullable;
 
 /**

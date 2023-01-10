@@ -18,6 +18,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
 
+import java.util.Optional;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -27,17 +28,18 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MostAvailableFirstPolicy implements BlockLocationPolicy {
 
   /**
-   * Constructs a new {@link MostAvailableFirstPolicy}.
+   * Constructs a new {@link MostAvailableFirstPolicy}
+   * needed for instantiation in {@link BlockLocationPolicy.Factory}.
    *
-   * @param conf Alluxio configuration
+   * @param ignoredConf is unused
    */
-  public MostAvailableFirstPolicy(AlluxioConfiguration conf) {}
+  public MostAvailableFirstPolicy(AlluxioConfiguration ignoredConf) {}
 
   /**
    * The policy returns null if no worker is qualified.
    */
   @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+  public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
     long mostAvailableBytes = -1;
     WorkerNetAddress result = null;
     for (BlockWorkerInfo workerInfo : options.getBlockWorkerInfos()) {
@@ -46,12 +48,12 @@ public final class MostAvailableFirstPolicy implements BlockLocationPolicy {
         result = workerInfo.getNetAddress();
       }
     }
-    return result;
+    return Optional.ofNullable(result);
   }
 
   @Override
   public boolean equals(Object o) {
-    return this == o || o instanceof MostAvailableFirstPolicy;
+    return o instanceof MostAvailableFirstPolicy;
   }
 
   @Override

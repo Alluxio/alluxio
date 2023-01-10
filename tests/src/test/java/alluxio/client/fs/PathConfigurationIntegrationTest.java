@@ -20,8 +20,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.meta.MetaMasterConfigClient;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientContext;
@@ -67,11 +67,11 @@ public class PathConfigurationIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    FileSystemContext metaCtx = FileSystemContext.create(ServerConfiguration.global());
+    FileSystemContext metaCtx = FileSystemContext.create(Configuration.global());
     mMetaConfig = new RetryHandlingMetaMasterConfigClient(
         MasterClientContext.newBuilder(metaCtx.getClientContext()).build());
     setPathConfigurations(mMetaConfig);
-    FileSystemContext fsCtx = FileSystemContext.create(ServerConfiguration.global());
+    FileSystemContext fsCtx = FileSystemContext.create(Configuration.global());
     fsCtx.getClientContext().loadConf(fsCtx.getMasterAddress(), true, true);
     mFileSystem = mLocalAlluxioClusterResource.get().getClient(fsCtx);
     mWriteThrough = CreateFilePOptions.newBuilder().setRecursive(true)

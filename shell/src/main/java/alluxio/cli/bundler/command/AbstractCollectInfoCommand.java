@@ -58,7 +58,7 @@ public abstract class AbstractCollectInfoCommand implements Command {
     String[] args = cl.getArgs();
     String baseDirPath = args[1];
     String workingDirPath =  Paths.get(baseDirPath, this.getCommandName()).toString();
-    LOG.debug("Command %s works in %s", this.getCommandName(), workingDirPath);
+    LOG.debug("Command {} works in {}", this.getCommandName(), workingDirPath);
     // mkdirs checks existence of the path
     File workingDir = new File(workingDirPath);
     if (!workingDir.exists()) {

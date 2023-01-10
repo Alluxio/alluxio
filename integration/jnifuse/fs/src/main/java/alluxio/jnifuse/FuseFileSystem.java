@@ -41,7 +41,7 @@ public interface FuseFileSystem {
     throw new UnsupportedOperationException("symlink");
   }
 
-  default int rename(String oldpath, String newpath) {
+  default int rename(String oldpath, String newpath, int flags) {
     throw new UnsupportedOperationException("rename");
   }
 
@@ -101,7 +101,7 @@ public interface FuseFileSystem {
     throw new UnsupportedOperationException("create");
   }
 
-  default int utimensCallback(String path, long aSec, long aNsec, long mSec, long mNsec) {
+  default int utimens(String path, long aSec, long aNsec, long mSec, long mNsec) {
     throw new UnsupportedOperationException("utimens");
   }
 

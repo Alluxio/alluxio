@@ -14,10 +14,10 @@ package alluxio.underfs.gcs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.underfs.gcs.v2.GCSV2UnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
+import alluxio.underfs.gcs.v2.GCSV2UnderFileSystem;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -36,7 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(GCSUnderFileSystemFactory.class);
-  private static final String GCS_VERSION_TWO = "2";
+  private static final int GCS_VERSION_TWO = 2;
 
   /**
    * Constructs a new {@link GCSUnderFileSystemFactory}.
@@ -47,7 +46,7 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
 
-    if (conf.get(PropertyKey.UNDERFS_GCS_VERSION).equals(GCS_VERSION_TWO)) {
+    if (conf.getInt(PropertyKey.UNDERFS_GCS_VERSION) == GCS_VERSION_TWO) {
       try {
         return GCSV2UnderFileSystem.createInstance(new AlluxioURI(path), conf);
       } catch (IOException e) {

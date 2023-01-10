@@ -67,6 +67,8 @@ enum MetricType {
   METER = 2;
   // TIMER represents a histogram of the rate of the specified events.
   TIMER = 3;
+  // EXECUTOR_SERVICE represents an executor service.
+  EXECUTOR_SERVICE = 4;
 }
 
 enum CommandType {
@@ -127,4 +129,18 @@ message WorkerNetAddress {
 message BlockStoreLocationProto {
   optional string tierAlias = 1;
   optional string mediumType = 2;
+}
+
+message RetryInfo {
+  optional bool isRetryable = 1;
+}
+
+message ErrorInfo {
+  optional ErrorType errorType = 1;
+}
+
+enum ErrorType {
+  User = 0;
+  Internal = 1;
+  External = 2;
 }

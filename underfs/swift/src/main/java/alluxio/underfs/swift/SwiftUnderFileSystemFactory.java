@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -68,7 +67,7 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   private boolean checkSwiftCredentials(UnderFileSystemConfiguration conf) {
     // We do not need authentication credentials in simulation mode
     if (conf.isSet(PropertyKey.SWIFT_SIMULATION)
-        && Boolean.valueOf(conf.get(PropertyKey.SWIFT_SIMULATION))) {
+        && conf.getBoolean(PropertyKey.SWIFT_SIMULATION)) {
       return true;
     }
 

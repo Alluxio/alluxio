@@ -19,7 +19,6 @@ import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -154,7 +153,12 @@ public final class FormatUtils {
       return String.format(Locale.ENGLISH, "%.2fTB", ret);
     }
     ret /= 1024;
-    return String.format(Locale.ENGLISH, "%.2fPB", ret);
+    if (ret <= 1024 * 5) {
+      return String.format(Locale.ENGLISH, "%.2fPB", ret);
+    }
+    ret /= 1024;
+    //Long.MAX_VALUE bytes approximately equals to 8EB.
+    return String.format(Locale.ENGLISH, "%.2fEB", ret);
   }
 
   /**
@@ -177,19 +181,24 @@ public final class FormatUtils {
       index--;
     }
     spaceSize = spaceSize.substring(0, index + 1);
-    double ret = Double.parseDouble(spaceSize);
+    double ret;
+    try {
+      ret = Double.parseDouble(spaceSize);
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("Fail to parse " + ori + " to bytes");
+    }
     end = end.toLowerCase();
     if (end.isEmpty() || end.equals("b")) {
       return (long) (ret + alpha);
-    } else if (end.equals("kb") || end.equals("k")) {
+    } else if (end.equals("kb") || end.equals("k") || end.equals("kib") || end.equals("ki")) {
       return (long) (ret * Constants.KB + alpha);
-    } else if (end.equals("mb") || end.equals("m")) {
+    } else if (end.equals("mb") || end.equals("m") || end.equals("mib") || end.equals("mi")) {
       return (long) (ret * Constants.MB + alpha);
-    } else if (end.equals("gb") || end.equals("g")) {
+    } else if (end.equals("gb") || end.equals("g") || end.equals("gib") || end.equals("gi")) {
       return (long) (ret * Constants.GB + alpha);
-    } else if (end.equals("tb") || end.equals("t")) {
+    } else if (end.equals("tb") || end.equals("t") || end.equals("tib") || end.equals("ti")) {
       return (long) (ret * Constants.TB + alpha);
-    } else if (end.equals("pb") || end.equals("p")) {
+    } else if (end.equals("pb") || end.equals("p") || end.equals("pib") || end.equals("pi")) {
       // When parsing petabyte values, we can't multiply with doubles and longs, since that will
       // lose presicion with such high numbers. Therefore we use a BigDecimal.
       BigDecimal pBDecimal = new BigDecimal(Constants.PB);
@@ -219,7 +228,12 @@ public final class FormatUtils {
       time = m.group(1);
       size = m.group(2);
     }
-    double douTime = Double.parseDouble(time);
+    double douTime;
+    try {
+      douTime = Double.parseDouble(time);
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("Fail to parse " + timeSize + " to milliseconds");
+    }
     long sign = 1;
     if (douTime < 0) {
       sign = -1;

@@ -16,10 +16,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.ConfigurationTestUtils;
+import alluxio.TestLoggerRule;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.TestLoggerRule;
 
 import org.junit.After;
 import org.junit.Before;
@@ -38,7 +38,7 @@ public final class AbstractFileSystemApiTest {
   @Rule
   public TestLoggerRule mTestLogger = new TestLoggerRule();
 
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = Configuration.copyGlobal();
 
   @Before
   public void before() {
@@ -48,7 +48,7 @@ public final class AbstractFileSystemApiTest {
 
   @After
   public void after() {
-    mConf = ConfigurationTestUtils.defaults();
+    mConf = Configuration.copyGlobal();
     HadoopClientTestUtils.disableMetrics(mConf);
   }
 

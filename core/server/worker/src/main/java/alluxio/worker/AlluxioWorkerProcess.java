@@ -11,9 +11,8 @@
 
 package alluxio.worker;
 
-import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.ChannelType;
@@ -46,7 +45,6 @@ import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -59,31 +57,31 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   private final TieredIdentity mTieredIdentitiy;
 
   /** Server for data requests and responses. */
-  private DataServer mDataServer;
+  private final DataServer mDataServer;
 
   /** If started (i.e. not null), this server is used to serve local data transfer. */
   private DataServer mDomainSocketDataServer;
 
   /** The worker registry. */
-  private WorkerRegistry mRegistry;
+  private final WorkerRegistry mRegistry;
 
   /** Worker Web UI server. */
-  private WebServer mWebServer;
+  private final WebServer mWebServer;
 
   /** Used for auto binding. **/
   private ServerSocket mBindSocket;
 
   /** The bind address for the rpc server. */
-  private InetSocketAddress mRpcBindAddress;
+  private final InetSocketAddress mRpcBindAddress;
 
   /** The connect address for the rpc server. */
-  private InetSocketAddress mRpcConnectAddress;
+  private final InetSocketAddress mRpcConnectAddress;
 
   /** Worker start time in milliseconds. */
   private final long mStartTimeMs;
 
   /** The manager for all ufs. */
-  private UfsManager mUfsManager;
+  private final UfsManager mUfsManager;
 
   /** The jvm monitor.*/
   private JvmPauseMonitor mJvmPauseMonitor;
@@ -107,26 +105,20 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
           return null;
         });
       }
-      // In the worst case, each worker factory is blocked waiting for the dependent servers to be
-      // registered at worker registry, so the maximum timeout here is set to the multiply of
-      // the number of factories by the default timeout of getting a worker from the registry.
       CommonUtils.invokeAll(callables,
-          (long) callables.size() * 10 * Constants.DEFAULT_REGISTRY_GET_TIMEOUT_MS);
+          Configuration.getMs(PropertyKey.WORKER_STARTUP_TIMEOUT));
 
       // Setup web server
       mWebServer =
           new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
-              ServerConfiguration.global()), this,
-              mRegistry.get(BlockWorker.class),
-              NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
-                  ServerConfiguration.global()),
-              mStartTimeMs);
+              Configuration.global()), this,
+              mRegistry.get(BlockWorker.class));
 
       // Random port binding.
       int bindPort;
       InetSocketAddress configuredBindAddress =
               NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC,
-                  ServerConfiguration.global());
+                  Configuration.global());
       if (configuredBindAddress.getPort() == 0) {
         mBindSocket = new ServerSocket(0);
         bindPort = mBindSocket.getLocalPort();
@@ -135,7 +127,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       }
       mRpcBindAddress = new InetSocketAddress(configuredBindAddress.getHostName(), bindPort);
       mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC,
-          ServerConfiguration.global());
+          Configuration.global());
       if (mBindSocket != null) {
         // Socket opened for auto bind.
         // Close it.
@@ -147,8 +139,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       // Setup domain socket data server
       if (isDomainSocketEnabled()) {
         String domainSocketPath =
-            ServerConfiguration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
-        if (ServerConfiguration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
+            Configuration.getString(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+        if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
           domainSocketPath =
               PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
         }
@@ -221,7 +213,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     // NOTE: the order to start different services is sensitive. If you change it, do it cautiously.
 
     // Start serving metrics system, this will not block
-    MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
+    MetricsSystem.startSinks(Configuration.getString(PropertyKey.METRICS_CONF_FILE));
 
     // Start each worker. This must be done before starting the web or RPC servers.
     // Requirement: NetAddress set in WorkerContext, so block worker can initialize BlockMasterSync
@@ -232,12 +224,12 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     mWebServer.start();
 
     // Start monitor jvm
-    if (ServerConfiguration.getBoolean(PropertyKey.WORKER_JVM_MONITOR_ENABLED)) {
+    if (Configuration.getBoolean(PropertyKey.WORKER_JVM_MONITOR_ENABLED)) {
       mJvmPauseMonitor =
           new JvmPauseMonitor(
-              ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS),
-              ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS),
-              ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS));
+              Configuration.getMs(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS),
+              Configuration.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS),
+              Configuration.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS));
       mJvmPauseMonitor.start();
       MetricsSystem.registerGaugeIfAbsent(
               MetricsSystem.getMetricName(MetricKey.TOTAL_EXTRA_TIME.getName()),
@@ -253,10 +245,10 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     // Start serving RPC, this will block
     LOG.info("Alluxio worker started. id={}, bindHost={}, connectHost={}, rpcPort={}, webPort={}",
         mRegistry.get(BlockWorker.class).getWorkerId(),
-        NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
-        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
-        NetworkAddressUtils.getPort(ServiceType.WORKER_RPC, ServerConfiguration.global()),
-        NetworkAddressUtils.getPort(ServiceType.WORKER_WEB, ServerConfiguration.global()));
+        NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, Configuration.global()),
+        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, Configuration.global()),
+        NetworkAddressUtils.getPort(ServiceType.WORKER_RPC, Configuration.global()),
+        NetworkAddressUtils.getPort(ServiceType.WORKER_WEB, Configuration.global()));
 
     mDataServer.awaitTermination();
 
@@ -305,8 +297,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
    * @return true if domain socket is enabled
    */
   private boolean isDomainSocketEnabled() {
-    return NettyUtils.getWorkerChannel(ServerConfiguration.global()) == ChannelType.EPOLL
-        && ServerConfiguration.isSet(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+    return NettyUtils.getWorkerChannel(Configuration.global()) == ChannelType.EPOLL
+        && Configuration.isSet(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
   }
 
   @Override
@@ -329,8 +321,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   public WorkerNetAddress getAddress() {
     return new WorkerNetAddress()
         .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
-            ServerConfiguration.global()))
-        .setContainerHost(ServerConfiguration.global()
+            Configuration.global()))
+        .setContainerHost(Configuration.global()
             .getOrDefault(PropertyKey.WORKER_CONTAINER_HOSTNAME, ""))
         .setRpcPort(mRpcBindAddress.getPort())
         .setDataPort(getDataLocalPort())

@@ -20,9 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Duration;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -30,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class SleepingTimer implements HeartbeatTimer {
-  private final long mIntervalMs;
+  private long mIntervalMs;
   private long mPreviousTickMs;
   private final String mThreadName;
   private final Logger mLogger;
@@ -66,11 +63,17 @@ public final class SleepingTimer implements HeartbeatTimer {
     mSleeper = sleeper;
   }
 
+  @Override
+  public void setIntervalMs(long intervalMs) {
+    mIntervalMs = intervalMs;
+  }
+
   /**
    * Enforces the thread waits for the given interval between consecutive ticks.
    *
    * @throws InterruptedException if the thread is interrupted while waiting
    */
+  @Override
   public void tick() throws InterruptedException {
     if (mPreviousTickMs != 0) {
       long executionTimeMs = mClock.millis() - mPreviousTickMs;

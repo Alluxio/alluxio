@@ -11,12 +11,12 @@
 
 package alluxio.cli.extensions.command;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.ConfigurationUtils;
@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -63,8 +62,8 @@ public final class UninstallCommand implements Command {
   @Override
   public int run(CommandLine cl) {
     String uri = cl.getArgs()[0];
-    AlluxioConfiguration conf = ServerConfiguration.global();
-    String extensionsDir = conf.get(PropertyKey.EXTENSIONS_DIR);
+    AlluxioConfiguration conf = Configuration.global();
+    String extensionsDir = conf.getString(PropertyKey.EXTENSIONS_DIR);
     List<String> failedHosts = new ArrayList<>();
     for (String host : ConfigurationUtils.getServerHostnames(conf)) {
       try {

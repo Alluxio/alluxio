@@ -28,13 +28,14 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.Comparator;
 import java.util.stream.Collectors;
 
 /**
@@ -195,7 +196,7 @@ public class CapacityCommand {
     String tiersInfo = String.format(Strings.repeat("%-14s", tiers.size()), tiers.toArray());
     String longInfoFormat = getInfoFormat(workerInfoList, false);
     print(String.format("%n" + longInfoFormat,
-        "Worker Name", "Last Heartbeat", "Storage", "Total", tiersInfo));
+        "Worker Name", "Last Heartbeat", "Storage", "Total", tiersInfo, "Version", "Revision"));
 
     for (WorkerInfo info : workerInfoList) {
       String workerName = info.getAddress().getHost();
@@ -213,9 +214,11 @@ public class CapacityCommand {
       String usedTierInfo = getWorkerFormattedTierValues(mUsedTierInfoMap, workerName);
 
       print(String.format(longInfoFormat, workerName, info.getLastContactSec(), "capacity",
-          FormatUtils.getSizeFromBytes(capacityBytes), capacityTierInfo));
+          FormatUtils.getSizeFromBytes(capacityBytes), capacityTierInfo,
+          info.getVersion(), info.getRevision()));
       print(String.format(longInfoFormat, "", "", "used",
-          FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo, usedTierInfo));
+          FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo, usedTierInfo,
+          "", ""));
     }
   }
 
@@ -225,10 +228,10 @@ public class CapacityCommand {
    * @param workerInfoList the worker info list to get info from
    */
   private void printShortWorkerInfo(List<WorkerInfo> workerInfoList) {
-    String tier = mCapacityTierInfoMap.firstKey();
+    String tier = String.format("%-16s", mCapacityTierInfoMap.firstKey());
     String shortInfoFormat = getInfoFormat(workerInfoList, true);
     print(String.format("%n" + shortInfoFormat,
-        "Worker Name", "Last Heartbeat", "Storage", tier));
+        "Worker Name", "Last Heartbeat", "Storage", tier, "Version", "Revision"));
 
     for (WorkerInfo info : workerInfoList) {
       long capacityBytes = info.getCapacityBytes();
@@ -240,9 +243,12 @@ public class CapacityCommand {
         usedPercentageInfo = String.format(" (%s%%)", usedPercentage);
       }
       print(String.format(shortInfoFormat, info.getAddress().getHost(),
-          info.getLastContactSec(), "capacity", FormatUtils.getSizeFromBytes(capacityBytes)));
+          info.getLastContactSec(), "capacity",
+          String.format("%-16s", FormatUtils.getSizeFromBytes(capacityBytes)),
+          info.getVersion(), info.getRevision()));
       print(String.format(shortInfoFormat, "", "", "used",
-          FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo));
+          String.format("%-16s", FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo),
+          "", ""));
     }
   }
 
@@ -261,9 +267,9 @@ public class CapacityCommand {
       firstIndent = maxWorkerNameLength + 5;
     }
     if (isShort) {
-      return "%-" + firstIndent + "s %-16s %-13s %s";
+      return "%-" + firstIndent + "s %-16s %-13s %s %-16s %-40s";
     }
-    return "%-" + firstIndent + "s %-16s %-13s %-16s %s";
+    return "%-" + firstIndent + "s %-16s %-13s %-16s %s %-16s %-40s";
   }
 
   /**
@@ -279,16 +285,18 @@ public class CapacityCommand {
     }
     GetWorkerReportOptions workerOptions = GetWorkerReportOptions.defaults();
 
-    Set<WorkerInfoField> fieldRange = new HashSet<>(Arrays.asList(WorkerInfoField.ADDRESS,
+    Set<WorkerInfoField> fieldRange = EnumSet.of(WorkerInfoField.ADDRESS,
         WorkerInfoField.WORKER_CAPACITY_BYTES, WorkerInfoField.WORKER_CAPACITY_BYTES_ON_TIERS,
         WorkerInfoField.LAST_CONTACT_SEC, WorkerInfoField.WORKER_USED_BYTES,
-        WorkerInfoField.WORKER_USED_BYTES_ON_TIERS));
+        WorkerInfoField.WORKER_USED_BYTES_ON_TIERS, WorkerInfoField.BUILD_VERSION);
     workerOptions.setFieldRange(fieldRange);
 
     if (cl.hasOption(ReportCommand.LIVE_OPTION_NAME)) {
       workerOptions.setWorkerRange(WorkerRange.LIVE);
     } else if (cl.hasOption(ReportCommand.LOST_OPTION_NAME)) {
       workerOptions.setWorkerRange(WorkerRange.LOST);
+    } else if (cl.hasOption(ReportCommand.DECOMMISSIONED_OPTION_NAME)) {
+      workerOptions.setWorkerRange(WorkerRange.DECOMMISSIONED);
     } else if (cl.hasOption(ReportCommand.SPECIFIED_OPTION_NAME)) {
       workerOptions.setWorkerRange(WorkerRange.SPECIFIED);
       String addressString = cl.getOptionValue(ReportCommand.SPECIFIED_OPTION_NAME);

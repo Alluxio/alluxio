@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
@@ -29,6 +29,7 @@ import alluxio.master.journal.sink.JournalSink;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.UfsStatus;
@@ -46,11 +47,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -99,7 +101,7 @@ public class UfsJournal implements Journal {
   private final UnderFileSystem mUfs;
   /** The amount of time to wait to pass without seeing a new journal entry when gaining primacy. */
   private final long mQuietPeriodMs;
-  /** The current log writer. Null when in secondary mode. */
+  /** The current log writer. Null when in standby mode. */
   private UfsJournalLogWriter mWriter;
   /** Asynchronous journal writer. */
   private volatile AsyncJournalWriter mAsyncWriter;
@@ -122,10 +124,10 @@ public class UfsJournal implements Journal {
   private long mEntriesSinceLastCheckPoint = 0;
 
   private enum State {
-    SECONDARY, PRIMARY, CLOSED;
+    STANDBY, PRIMARY, CLOSED
   }
 
-  private AtomicReference<State> mState = new AtomicReference<>(State.SECONDARY);
+  private final AtomicReference<State> mState = new AtomicReference<>(State.STANDBY);
 
   /** A supplier of journal sinks for this journal. */
   private final Supplier<Set<JournalSink>> mJournalSinks;
@@ -134,9 +136,9 @@ public class UfsJournal implements Journal {
    * @return the ufs configuration to use for the journal operations
    */
   public static UnderFileSystemConfiguration getJournalUfsConf() {
-    Map<String, String> ufsConf =
-        ServerConfiguration.getNestedProperties(PropertyKey.MASTER_JOURNAL_UFS_OPTION);
-    return UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
+    Map<String, Object> ufsConf =
+        Configuration.getNestedProperties(PropertyKey.MASTER_JOURNAL_UFS_OPTION);
+    return UnderFileSystemConfiguration.defaults(Configuration.global())
                .createMountSpecificConf(ufsConf);
   }
 
@@ -151,22 +153,22 @@ public class UfsJournal implements Journal {
    */
   public UfsJournal(URI location, Master master, long quietPeriodMs,
       Supplier<Set<JournalSink>> journalSinks) {
-    this(location, master, master.getMasterContext().getUfsManager().getJournal(location)
-            .acquireUfsResource()
-            .get(),
-        quietPeriodMs, journalSinks);
+    try (CloseableResource<UnderFileSystem> ufs =
+             master.getMasterContext().getUfsManager().getJournal(location).acquireUfsResource()) {
+      mLocation = URIUtils.appendPathOrDie(location, VERSION);
+      mMaster = master;
+      mUfs = ufs.get();
+      mQuietPeriodMs = quietPeriodMs;
+
+      mLogDir = URIUtils.appendPathOrDie(mLocation, LOG_DIRNAME);
+      mCheckpointDir = URIUtils.appendPathOrDie(mLocation, CHECKPOINT_DIRNAME);
+      mTmpDir = URIUtils.appendPathOrDie(mLocation, TMP_DIRNAME);
+      mJournalSinks = journalSinks;
+      init();
+    }
   }
 
-  /**
-   * Creates a new instance of {@link UfsJournal}.
-   *
-   * @param location the location for this journal
-   * @param master the state machine to manage
-   * @param ufs the under file system
-   * @param quietPeriodMs the amount of time to wait to pass without seeing a new journal entry when
-   *        gaining primacy
-   * @param journalSinks a supplier for journal sinks
-   */
+  @VisibleForTesting
   UfsJournal(URI location, Master master, UnderFileSystem ufs,
       long quietPeriodMs, Supplier<Set<JournalSink>> journalSinks) {
     mLocation = URIUtils.appendPathOrDie(location, VERSION);
@@ -177,8 +179,12 @@ public class UfsJournal implements Journal {
     mLogDir = URIUtils.appendPathOrDie(mLocation, LOG_DIRNAME);
     mCheckpointDir = URIUtils.appendPathOrDie(mLocation, CHECKPOINT_DIRNAME);
     mTmpDir = URIUtils.appendPathOrDie(mLocation, TMP_DIRNAME);
-    mState.set(State.SECONDARY);
     mJournalSinks = journalSinks;
+    init();
+  }
+
+  protected void init() {
+    mState.set(State.STANDBY);
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName() + "." + mMaster.getName(),
         this::getEntriesSinceLastCheckPoint);
@@ -201,6 +207,10 @@ public class UfsJournal implements Journal {
   }
 
   /**
+   * Writes a journal entry.
+   * This is only used by tests where journal entries are manually written.
+   * In the real logic the flush is handled by the {@link AsyncJournalWriter}
+   * and no direct access to the {@link UfsJournalLogWriter}.
    * @param entry an entry to write to the journal
    */
   @VisibleForTesting
@@ -211,6 +221,9 @@ public class UfsJournal implements Journal {
 
   /**
    * Flushes the journal.
+   * This is only used by tests where journal entries are manually flushed.
+   * In the real logic the flush is handled by the {@link AsyncJournalWriter}
+   * and no direct access to the {@link UfsJournalLogWriter}.
    */
   @VisibleForTesting
   public synchronized void flush() throws IOException, JournalClosedException {
@@ -240,32 +253,34 @@ public class UfsJournal implements Journal {
   }
 
   /**
-   * Starts the journal in secondary mode.
+   * Starts the journal in standby mode.
    */
-  public synchronized void start() throws IOException {
+  public synchronized void start() {
     mMaster.resetState();
     mTailerThread = new UfsJournalCheckpointThread(mMaster, this, mJournalSinks);
     mTailerThread.start();
   }
 
   /**
-   * Transitions the journal from secondary to primary mode. The journal will apply the latest
+   * Transitions the journal from standby to primary mode. The journal will apply the latest
    * journal entries to the state machine, then begin to allow writes.
    */
   public synchronized void gainPrimacy() throws IOException {
-    Preconditions.checkState(mWriter == null, "writer must be null in secondary mode");
+    Preconditions.checkState(mWriter == null, "writer must be null in standby mode");
     Preconditions.checkState(mSuspended || mTailerThread != null,
-        "tailer thread must not be null in secondary mode");
+        "tailer thread must not be null in standby mode");
 
     // Resume first if suspended.
     if (mSuspended) {
       resume();
     }
 
+    // If the tailing thread has crashed, the standby master will crash here
+    // instead of gaining primacy
     mTailerThread.awaitTermination(true);
     long nextSequenceNumber = mTailerThread.getNextSequenceNumber();
     mTailerThread = null;
-
+    // Read all the rest of journal entries if any, in the main thread
     nextSequenceNumber = catchUp(nextSequenceNumber);
     mWriter = new UfsJournalLogWriter(this, nextSequenceNumber);
     mAsyncWriter = new AsyncJournalWriter(mWriter, mJournalSinks, mMaster.getName());
@@ -283,20 +298,20 @@ public class UfsJournal implements Journal {
   public synchronized void signalLosePrimacy() {
     Preconditions
         .checkState(mState.get() == State.PRIMARY, "unexpected journal state " + mState.get());
-    mState.set(State.SECONDARY);
-    LOG.info("{}: journal switched to secondary mode, starting transition. location: {}",
+    mState.set(State.STANDBY);
+    LOG.info("{}: journal switched to standby mode, starting transition. location: {}",
         mMaster.getName(), mLocation);
   }
 
   /**
-   * Transitions the journal from primary to secondary mode. The journal will no longer allow
+   * Transitions the journal from primary to standby mode. The journal will no longer allow
    * writes, and the state machine is rebuilt from the journal and kept up to date.
    *
    * This must be called after {@link #signalLosePrimacy()} to finish the transition from primary.
    */
-  public synchronized void awaitLosePrimacy() throws IOException {
-    Preconditions.checkState(mState.get() == State.SECONDARY,
-        "Should already be set to SECONDARY state. unexpected state: " + mState.get());
+  public synchronized void awaitLosePrimacy() {
+    Preconditions.checkState(mState.get() == State.STANDBY,
+        "Should already be set to STANDBY state. unexpected state: " + mState.get());
     Preconditions.checkState(mWriter != null, "writer thread must not be null in primary mode");
     Preconditions.checkState(mTailerThread == null, "tailer thread must be null in primary mode");
 
@@ -312,13 +327,14 @@ public class UfsJournal implements Journal {
 
   /**
    * Suspends applying this journal until resumed.
-   *
-   * @throws IOException
    */
-  public synchronized void suspend() throws IOException {
+  public synchronized void suspend() {
     Preconditions.checkState(!mSuspended, "journal is already suspended");
-    Preconditions.checkState(mState.get() == State.SECONDARY, "unexpected state " + mState.get());
+    Preconditions.checkState(mState.get() == State.STANDBY, "unexpected state " + mState.get());
     Preconditions.checkState(mSuspendSequence == -1, "suspend sequence already set");
+    // The standby suspends first in order to take a snapshot/backup
+    // So if the tailing thread has crashed before that,
+    // the crash will propagate and kill the standby master here
     mTailerThread.awaitTermination(false);
     mSuspendSequence = mTailerThread.getNextSequenceNumber() - 1;
     mTailerThread = null;
@@ -331,11 +347,10 @@ public class UfsJournal implements Journal {
    *
    * @param sequence sequence to catch up
    * @return the catch-up task
-   * @throws IOException
    */
-  public synchronized CatchupFuture catchup(long sequence) throws IOException {
+  public synchronized CatchupFuture catchup(long sequence) {
     Preconditions.checkState(mSuspended, "journal is not suspended");
-    Preconditions.checkState(mState.get() == State.SECONDARY, "unexpected state " + mState.get());
+    Preconditions.checkState(mState.get() == State.STANDBY, "unexpected state %s", mState.get());
     Preconditions.checkState(mTailerThread == null, "tailer is not null");
     Preconditions.checkState(sequence >= mSuspendSequence, "can't catch-up before suspend");
     Preconditions.checkState(mCatchupThread == null || !mCatchupThread.isAlive(),
@@ -347,6 +362,7 @@ public class UfsJournal implements Journal {
     }
 
     // Create an async task to catch up to target sequence.
+    // The thread is closed when the Future is completed
     mCatchupThread = new UfsJournalCatchupThread(mSuspendSequence + 1, sequence);
     mCatchupThread.start();
     return new CatchupFuture(mCatchupThread);
@@ -355,18 +371,18 @@ public class UfsJournal implements Journal {
   /**
    * Resumes the journal.
    * Note: Journal should have been suspended prior to calling this.
-   *
-   * @throws IOException
    */
-  public synchronized void resume() throws IOException {
+  public synchronized void resume() {
     Preconditions.checkState(mSuspended, "journal is not suspended");
-    Preconditions.checkState(mState.get() == State.SECONDARY, "unexpected state " + mState.get());
+    Preconditions.checkState(mState.get() == State.STANDBY, "unexpected state " + mState.get());
     Preconditions.checkState(mTailerThread == null, "tailer is not null");
 
     // Cancel and wait for active catch-up thread.
+    // If the catch-up thread crashed silently, the next catchup() will just create another one
     if (mCatchupThread != null && mCatchupThread.isAlive()) {
       mCatchupThread.cancel();
       mCatchupThread.waitTermination();
+      mCatchupThread = null;
       mStopCatchingUp = false;
     }
 
@@ -418,19 +434,18 @@ public class UfsJournal implements Journal {
   /**
    * @return whether the journal has been formatted
    */
-  public boolean isFormatted() throws IOException {
-    UfsStatus[] files = mUfs.listStatus(mLocation.toString());
-    if (files == null) {
+  public boolean isFormatted() {
+    try {
+      UfsStatus[] files = mUfs.listStatus(mLocation.toString());
+      if (files == null) {
+        return false;
+      }
+      // Search for the format file.
+      String filePrefix = Configuration.getString(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
+      return Arrays.stream(files).anyMatch(file -> file.getName().startsWith(filePrefix));
+    } catch (IOException e) {
       return false;
     }
-    // Search for the format file.
-    String formatFilePrefix = ServerConfiguration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
-    for (UfsStatus file : files) {
-      if (file.getName().startsWith(formatFilePrefix)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -447,7 +462,7 @@ public class UfsJournal implements Journal {
     URI location = getLocation();
     LOG.info("Formatting {}", location);
     if (mUfs.isDirectory(location.toString())) {
-      for (UfsStatus status : mUfs.listStatus(location.toString())) {
+      for (UfsStatus status : Objects.requireNonNull(mUfs.listStatus(location.toString()))) {
         String childPath = URIUtils.appendPathOrDie(location, status.getName()).toString();
         if (status.isDirectory()
             && !mUfs.deleteDirectory(childPath, DeleteOptions.defaults().setRecursive(true))
@@ -461,7 +476,8 @@ public class UfsJournal implements Journal {
 
     // Create a breadcrumb that indicates that the journal folder has been formatted.
     UnderFileSystemUtils.touch(mUfs, URIUtils.appendPathOrDie(location,
-        ServerConfiguration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
+        Configuration.getString(
+            PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
         .toString());
   }
 
@@ -560,6 +576,13 @@ public class UfsJournal implements Journal {
     }
   }
 
+  /**
+   * This method only throws unchecked exceptions like {@code RuntimeException}.
+   * If journal replay fails due to corrupted journal contents, this method will crash the master.
+   * If the journal cannot be accessed due to IOException, this method will retry forever.
+   * If an exception is thrown from this method that suggests an uncaught exception
+   * or the master is failing over or shutting down.
+   */
   private long catchUp(JournalReader journalReader, long limit) {
     RetryPolicy retry =
         ExponentialTimeBoundedRetry.builder()
@@ -615,7 +638,11 @@ public class UfsJournal implements Journal {
   }
 
   @Override
-  public synchronized void close() throws IOException {
+  public synchronized void close() {
+    if (mState.get() == State.PRIMARY && mWriter != null) {
+      LOG.info("Closing journal {}, state {} last journal location {}, next sequence number {}",
+          this, mState, mWriter.currentLogName(), mWriter.getNextSequenceNumber());
+    }
     if (mAsyncWriter != null) {
       mAsyncWriter.close();
       mAsyncWriter = null;
@@ -625,7 +652,20 @@ public class UfsJournal implements Journal {
       mWriter = null;
     }
     if (mTailerThread != null) {
-      mTailerThread.awaitTermination(false);
+      try {
+        // If the tailing thread has crashed before the close,
+        // an exception will be thrown, containing what has originally caused the crash
+        mTailerThread.awaitTermination(false);
+        if (mState.get() == State.STANDBY) {
+          LOG.info("Closing journal {}, state {}, next sequence number {}",
+              this, this.mState, mTailerThread.getNextSequenceNumber());
+        }
+      } catch (Throwable t) {
+        // We want to let the thread finish normally, however this call might throw if it already
+        // finished exceptionally. We do not rethrow as we want the shutdown sequence to be smooth
+        // (aka not throw exceptions).
+        LOG.warn("exception caught when closing {}'s journal", mMaster.getName(), t);
+      }
       mTailerThread = null;
     }
     mState.set(State.CLOSED);
@@ -633,12 +673,13 @@ public class UfsJournal implements Journal {
 
   /**
    * UFS implementation for {@link AbstractCatchupThread}.
+   * This thread is only used on the standby master to catch up before taking a backup.
    */
   class UfsJournalCatchupThread extends AbstractCatchupThread {
     /** Where to start catching up. */
-    private long mCatchUpStartSequence;
+    private final long mCatchUpStartSequence;
     /** Where to end catching up. */
-    private long mCatchUpEndSequence;
+    private final long mCatchUpEndSequence;
 
     /**
      * Creates UFS catch-up thread for given range.
@@ -658,6 +699,7 @@ public class UfsJournal implements Journal {
       mStopCatchingUp = true;
     }
 
+    @Override
     protected void runCatchup() {
       // Update suspended sequence after catch-up is finished.
       mSuspendSequence = catchUp(mCatchUpStartSequence, mCatchUpEndSequence) - 1;

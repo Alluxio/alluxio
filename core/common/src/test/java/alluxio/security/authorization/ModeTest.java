@@ -16,10 +16,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.ModeUtils;
 
 import org.junit.Before;
@@ -42,7 +42,7 @@ public final class ModeTest {
 
   @Before
   public void before() {
-    mConfiguration = new InstancedConfiguration(ConfigurationUtils.defaults());
+    mConfiguration = Configuration.copyGlobal();
   }
 
   @Test
@@ -168,7 +168,7 @@ public final class ModeTest {
     mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
         PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
     ModeUtils.applyDirectoryUMask(Mode.defaults(), mConfiguration
-        .get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
+        .getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
   }
 
   /**

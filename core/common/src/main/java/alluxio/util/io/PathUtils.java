@@ -12,6 +12,8 @@
 package alluxio.util.io;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.util.OSUtils;
@@ -20,13 +22,10 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FilenameUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -39,6 +38,8 @@ public final class PathUtils {
       String.format(TEMPORARY_SUFFIX_FORMAT, 0).length();
   private static final CharMatcher SEPARATOR_MATCHER =
       CharMatcher.is(AlluxioURI.SEPARATOR.charAt(0));
+  private static final Pattern TEMPORARY_FILE_NAME =
+      Pattern.compile("^.*\\.alluxio\\.0x[0-9A-F]{16}\\.tmp$");
 
   /**
    * Checks and normalizes the given path.
@@ -135,24 +136,32 @@ public final class PathUtils {
     if (paths == null || paths.isEmpty()) {
       return null;
     }
-    List<String> matchedComponents = null;
+    String[] matchedComponents = null;
     int matchedLen = 0;
     for (AlluxioURI path : paths) {
       String[] pathComp = path.getPath().split(AlluxioURI.SEPARATOR);
       if (matchedComponents == null) {
-        matchedComponents = new ArrayList<>(Arrays.asList(pathComp));
+        matchedComponents = pathComp;
         matchedLen = pathComp.length;
+        continue;
       }
 
       for (int i = 0; i < pathComp.length && i < matchedLen; ++i) {
-        if (!matchedComponents.get(i).equals(pathComp[i])) {
+        if (!matchedComponents[i].equals(pathComp[i])) {
           matchedLen = i;
           break;
         }
       }
+      // here, either matchedComponents or pathComp is the prefix of one another,
+      // if pathComp is the prefix of matchedComponents (e.g. pathComp: ["", "a"]
+      // matchedComponents: ["", "a", "b"]), then the lowest common ancestor of
+      // pathComp and current matchedComponents is pathComp (the shorter one).
+      if (matchedLen > pathComp.length) {
+        matchedLen = pathComp.length;
+      }
     }
     return new AlluxioURI(PathUtils.concatPath(AlluxioURI.SEPARATOR,
-        matchedComponents.subList(0, matchedLen).toArray()));
+        Arrays.copyOf(matchedComponents, matchedLen)));
   }
 
   /**
@@ -163,7 +172,16 @@ public final class PathUtils {
    * @throws InvalidPathException if the path is invalid
    */
   public static String getParent(String path) throws InvalidPathException {
-    String cleanedPath = cleanPath(path);
+    return getParentCleaned(cleanPath(path));
+  }
+
+  /**
+   * The same as {@link #getParent} except does not clean the path before getting the parent.
+   * @param cleanedPath the path that has been cleaned
+   * @return the parent path of the file; this is "/" if the given path is the root
+   * @throws InvalidPathException if the path is invalid
+   */
+  public static String getParentCleaned(String cleanedPath) throws InvalidPathException {
     String name = FilenameUtils.getName(cleanedPath);
     String parent = cleanedPath.substring(0, cleanedPath.length() - name.length() - 1);
     if (parent.isEmpty()) {
@@ -208,20 +226,26 @@ public final class PathUtils {
   /**
    * Get temp path for async persistence job.
    *
+   * @param ufsConfiguration the ufs configuration
    * @param path ufs path
    * @return ufs temp path with UUID
    */
-  public static String getPersistentTmpPath(String path) {
+  public static String getPersistentTmpPath(AlluxioConfiguration ufsConfiguration,
+      String path) {
     StringBuilder tempFilePath = new StringBuilder();
     StringBuilder tempFileName = new StringBuilder();
     String fileName = FilenameUtils.getName(path);
     String timeStamp = String.valueOf(System.currentTimeMillis());
-    tempFilePath.append(".alluxio_ufs_persistence/");
     String uuid = UUID.randomUUID().toString();
+    String tempDir = ufsConfiguration
+          .getString(PropertyKey.UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR);
+    tempFilePath.append(tempDir);
+    tempFilePath.append(AlluxioURI.SEPARATOR);
     tempFileName.append(fileName);
     tempFileName.append(".alluxio.");
     tempFileName.append(timeStamp);
-    tempFileName.append(String.format(".%s", uuid));
+    tempFileName.append(".");
+    tempFileName.append(uuid);
     tempFileName.append(".tmp");
     tempFilePath.append(tempFileName);
     return tempFilePath.toString();
@@ -240,6 +264,21 @@ public final class PathUtils {
   public static String[] getPathComponents(String path) throws InvalidPathException {
     path = cleanPath(path);
     if (isRoot(path)) {
+      return new String[]{""};
+    }
+    return path.split(AlluxioURI.SEPARATOR);
+  }
+
+  /**
+   * Get the components of a path that has already been cleaned.
+   * @param path the path
+   * @return the components
+   */
+  public static String[] getCleanedPathComponents(String path) throws InvalidPathException {
+    if (path == null || path.isEmpty()) {
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path));
+    }
+    if (AlluxioURI.SEPARATOR.equals(path)) { // root
       return new String[]{""};
     }
     return path.split(AlluxioURI.SEPARATOR);
@@ -282,17 +321,21 @@ public final class PathUtils {
    * @throws InvalidPathException when the path or prefix is invalid
    */
   public static boolean hasPrefix(String path, String prefix) throws InvalidPathException {
-    String[] pathComponents = getPathComponents(path);
-    String[] prefixComponents = getPathComponents(prefix);
-    if (pathComponents.length < prefixComponents.length) {
+    // normalize path and prefix(e.g. "/a/b/../c" -> "/a/c", "/a/b/" --> "/a/b")
+    path = cleanPath(path);
+    prefix = cleanPath(prefix);
+
+    if (prefix.equals("/")) {
+      return true;
+    }
+    if (!path.startsWith(prefix)) {
       return false;
     }
-    for (int i = 0; i < prefixComponents.length; i++) {
-      if (!pathComponents[i].equals(prefixComponents[i])) {
-        return false;
-      }
-    }
-    return true;
+    return path.length() == prefix.length()  // path == prefix
+        // Include cases like `prefix=/a/b/, path=/a/b/c/`
+        || prefix.endsWith("/")
+        // Exclude cases like `prefix=/a/b/c, path=/a/b/ccc`
+        || path.charAt(prefix.length()) == '/';
   }
 
   /**
@@ -352,7 +395,7 @@ public final class PathUtils {
    * @return whether the given path is a temporary file name generated by Alluxio
    */
   public static boolean isTemporaryFileName(String path) {
-    return path.matches("^.*\\.alluxio\\.0x[0-9A-F]{16}\\.tmp$");
+    return TEMPORARY_FILE_NAME.matcher(path).matches();
   }
 
   /**

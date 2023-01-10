@@ -16,6 +16,5 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 SRC_DIR="$SCRIPT_DIR/runConfigurations"
 DEST_DIR="$SCRIPT_DIR/../../.idea/runConfigurations/"
-echo `realpath $DEST_DIR`
 mkdir -p "$DEST_DIR"
 ls -1 "$SRC_DIR" | xargs -n1 -I FILE cp "$SRC_DIR/FILE" "$DEST_DIR"

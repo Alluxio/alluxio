@@ -12,15 +12,12 @@
 package alluxio.master;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.AlluxioURI;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.journal.JournalType;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
@@ -39,7 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -48,7 +44,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   private static final Logger LOG = LoggerFactory.getLogger(MultiMasterLocalAlluxioCluster.class);
-  private static final int WAIT_MASTER_START_TIMEOUT_MS = 20000;
 
   private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
@@ -85,19 +80,19 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   public void initConfiguration(String name) throws IOException {
     setAlluxioWorkDirectory(name);
     setHostname();
-    for (Map.Entry<PropertyKey, String> entry : ConfigurationTestUtils
-        .testConfigurationDefaults(ServerConfiguration.global(),
+    for (Map.Entry<PropertyKey, Object> entry : ConfigurationTestUtils
+        .testConfigurationDefaults(Configuration.global(),
             mHostname, mWorkDirectory).entrySet()) {
-      ServerConfiguration.set(entry.getKey(), entry.getValue());
+      Configuration.set(entry.getKey(), entry.getValue());
     }
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, 0);
-    ServerConfiguration.set(PropertyKey.TEST_MODE, true);
-    ServerConfiguration.set(PropertyKey.JOB_WORKER_THROTTLING, false);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
-    ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, 0);
-    ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT, 0);
-    ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, 0);
-    ServerConfiguration.set(PropertyKey.WORKER_WEB_PORT, 0);
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, 0);
+    Configuration.set(PropertyKey.TEST_MODE, true);
+    Configuration.set(PropertyKey.JOB_WORKER_THROTTLING, false);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    Configuration.set(PropertyKey.MASTER_WEB_PORT, 0);
+    Configuration.set(PropertyKey.PROXY_WEB_PORT, 0);
+    Configuration.set(PropertyKey.WORKER_RPC_PORT, 0);
+    Configuration.set(PropertyKey.WORKER_WEB_PORT, 0);
   }
 
   @Override
@@ -205,20 +200,6 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
         WaitForOptions.defaults().setTimeoutMs(timeoutMs));
   }
 
-  private void waitForMasterServing() throws TimeoutException, InterruptedException {
-    CommonUtils.waitFor("master starts serving RPCs", () -> {
-      try {
-        getClient().getStatus(new AlluxioURI("/"));
-        return true;
-      } catch (AlluxioException | AlluxioStatusException e) {
-        LOG.error("Failed to get status of /:", e);
-        return false;
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(WAIT_MASTER_START_TIMEOUT_MS));
-  }
-
   /**
    * Stops the cluster's Zookeeper service.
    */
@@ -235,13 +216,13 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
 
   @Override
   protected void startMasters() throws IOException {
-    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ENABLED, "true");
-    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
-    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ELECTION_PATH, "/alluxio/election");
-    ServerConfiguration.set(PropertyKey.ZOOKEEPER_LEADER_PATH, "/alluxio/leader");
+    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, true);
+    Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
+    Configuration.set(PropertyKey.ZOOKEEPER_ELECTION_PATH, "/alluxio/election");
+    Configuration.set(PropertyKey.ZOOKEEPER_LEADER_PATH, "/alluxio/leader");
 
     for (int k = 0; k < mNumOfMasters; k++) {
-      ServerConfiguration.set(PropertyKey.MASTER_METASTORE_DIR,
+      Configuration.set(PropertyKey.MASTER_METASTORE_DIR,
           PathUtils.concatPath(mWorkDirectory, "metastore-" + k));
       final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory, false);
       master.start();
@@ -249,14 +230,14 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
           master.getAddress());
       mMasters.add(master);
       // Each master should generate a new port for binding
-      ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, "0");
-      ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, "0");
+      Configuration.set(PropertyKey.MASTER_RPC_PORT, 0);
+      Configuration.set(PropertyKey.MASTER_WEB_PORT, 0);
     }
 
     // Create the UFS directory after LocalAlluxioMaster construction, because LocalAlluxioMaster
     // sets MASTER_MOUNT_TABLE_ROOT_UFS.
-    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
-    String path = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(Configuration.global());
+    String path = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     if (ufs.isDirectory(path)) {
       ufs.deleteExistingDirectory(path, DeleteOptions.defaults().setRecursive(true));
     }
@@ -272,8 +253,8 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       throw new IOException(e);
     }
     // Use first master port
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT,
-        String.valueOf(getLocalAlluxioMaster().getRpcLocalPort()));
+    Configuration.set(PropertyKey.MASTER_RPC_PORT,
+        getLocalAlluxioMaster().getRpcLocalPort());
   }
 
   @Override

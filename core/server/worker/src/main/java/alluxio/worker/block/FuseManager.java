@@ -13,12 +13,9 @@ package alluxio.worker.block;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.fuse.AlluxioFuse;
-import alluxio.fuse.FuseMountOptions;
 import alluxio.fuse.FuseUmountable;
+import alluxio.fuse.options.FuseOptions;
 
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
@@ -26,19 +23,17 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * The Fuse manager that is responsible for managing the Fuse application lifecycle.
  */
 public class FuseManager implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FuseManager.class);
-  private static final String FUSE_OPTION_SEPARATOR = ",";
   private final FileSystemContext mFsContext;
   /** Use to umount Fuse application during stop. */
   private FuseUmountable mFuseUmountable;
   /** Use to close resources during stop. */
-  private Closer mResourceCloser;
+  private final Closer mResourceCloser;
 
   /**
    * Constructs a new {@link FuseManager}.
@@ -54,38 +49,12 @@ public class FuseManager implements Closeable {
    * Starts mounting the internal Fuse applications.
    */
   public void start() {
-    AlluxioConfiguration conf = ServerConfiguration.global();
-    if (!conf.isSet(PropertyKey.WORKER_FUSE_MOUNT_POINT)
-        || conf.get(PropertyKey.WORKER_FUSE_MOUNT_POINT).isEmpty()) {
-      LOG.error("Failed to launch worker internal Fuse application. {} should be set.",
-          PropertyKey.WORKER_FUSE_MOUNT_POINT);
-      return;
-    }
-    if (!conf.isSet(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
-        || conf.get(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
-      LOG.error("Failed to launch worker internal Fuse application. {} should be set.",
-          PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH.getName());
-      return;
-    }
-    String fuseMount = conf.get(PropertyKey.WORKER_FUSE_MOUNT_POINT);
-    String alluxioPath = conf.get(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH);
-    // TODO(lu) check if the given fuse mount point exists
-    // create the folder if it does not exist
     try {
-      String[] fuseOptsSeparated = new String[0];
-      if (conf.isSet(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS)) {
-        String fuseOptsString = conf.get(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS);
-        if (!fuseOptsString.isEmpty()) {
-          fuseOptsSeparated = fuseOptsString.split(FUSE_OPTION_SEPARATOR);
-        }
-      }
-      List<String> fuseOptions = AlluxioFuse.parseFuseOptions(fuseOptsSeparated, conf);
-      FuseMountOptions options = new FuseMountOptions(fuseMount, alluxioPath,
-          conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED), fuseOptions);
       // TODO(lu) consider launching fuse in a separate thread as blocking operation
       // so that we can know about the fuse application status
       FileSystem fileSystem = mResourceCloser.register(FileSystem.Factory.create(mFsContext));
-      mFuseUmountable = AlluxioFuse.launchFuse(fileSystem, conf, options, false);
+      mFuseUmountable = AlluxioFuse.launchFuse(
+          mFsContext, fileSystem, FuseOptions.create(mFsContext.getClusterConf()), false);
     } catch (Throwable throwable) {
       // TODO(lu) for already mounted application, unmount first and then remount
       LOG.error("Failed to launch worker internal Fuse application", throwable);

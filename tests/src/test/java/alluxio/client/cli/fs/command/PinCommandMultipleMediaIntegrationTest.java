@@ -18,11 +18,12 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.fs.FileSystemShell;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 import alluxio.job.wire.Status;
@@ -62,14 +63,14 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
           .setProperty(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "10ms")
           .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "200ms")
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, SIZE_BYTES)
-          .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, "false")
+          .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, SIZE_BYTES)
-          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.MAX_VALUE)
-          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
+          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Long.MAX_VALUE)
+          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
           .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, SIZE_BYTES / 2)
           // multiple media
           .setProperty(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS, "500ms")
-          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
+          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, 2)
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS
               .format(1), Constants.MEDIUM_SSD)
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
@@ -107,7 +108,7 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
   @Test
   public void setPinToSpecificMedia() throws Exception {
     FileSystem fileSystem = sLocalAlluxioClusterResource.get().getClient();
-    FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
+    FileSystemShell fsShell = new FileSystemShell(Configuration.global());
 
     AlluxioURI filePathA = new AlluxioURI("/testFileA");
     AlluxioURI filePathB = new AlluxioURI("/testFileB");
@@ -146,7 +147,7 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
   @Test
   public void pinToMediumForceEviction() throws Exception {
     FileSystem fileSystem = sLocalAlluxioClusterResource.get().getClient();
-    FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
+    FileSystemShell fsShell = new FileSystemShell(Configuration.global());
 
     AlluxioURI filePathA = new AlluxioURI("/testFileA");
     AlluxioURI dirPath = new AlluxioURI("/testDirA");

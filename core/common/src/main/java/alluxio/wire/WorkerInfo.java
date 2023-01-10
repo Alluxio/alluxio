@@ -20,7 +20,6 @@ import java.io.Serializable;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -39,11 +38,9 @@ public final class WorkerInfo implements Serializable {
   private long mStartTimeMs;
   private Map<String, Long> mCapacityBytesOnTiers;
   private Map<String, Long> mUsedBytesOnTiers;
-
-  /**
-   * Creates a new instance of {@link WorkerInfo}.
-   */
-  public WorkerInfo() {}
+  private long mBlockCount;
+  private String mVersion = "";
+  private String mRevision = "";
 
   /**
    * @return the worker id
@@ -115,6 +112,22 @@ public final class WorkerInfo implements Serializable {
   @ApiModelProperty(value = "The number of bytes currently used on each of the worker's tiers")
   public Map<String, Long> getUsedBytesOnTiers() {
     return mUsedBytesOnTiers;
+  }
+
+  /**
+   * @return the project version of the worker
+   */
+  @ApiModelProperty(value = "The project version of the worker")
+  public String getVersion() {
+    return mVersion;
+  }
+
+  /**
+   * @return the git revision at the time of building the worker
+   */
+  @ApiModelProperty(value = "Git revision at the time of building the worker")
+  public String getRevision() {
+    return mRevision;
   }
 
   /**
@@ -200,6 +213,24 @@ public final class WorkerInfo implements Serializable {
     return this;
   }
 
+  /**
+   * @param version the project version of the worker
+   * @return the worker information
+   */
+  public WorkerInfo setVersion(String version) {
+    mVersion = version;
+    return this;
+  }
+
+  /**
+   * @param revision the git revision at the time of building the worker
+   * @return the worker information
+   */
+  public WorkerInfo setRevision(String revision) {
+    mRevision = revision;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -214,7 +245,25 @@ public final class WorkerInfo implements Serializable {
         && mCapacityBytes == that.mCapacityBytes && mUsedBytes == that.mUsedBytes
         && mStartTimeMs == that.mStartTimeMs
         && Objects.equal(mCapacityBytesOnTiers, that.mCapacityBytesOnTiers)
-        && Objects.equal(mUsedBytesOnTiers, that.mUsedBytesOnTiers);
+        && Objects.equal(mUsedBytesOnTiers, that.mUsedBytesOnTiers)
+        && mVersion.equals(that.mVersion) && mRevision.equals(that.mRevision);
+  }
+
+  /**
+   * @param blockCount the worker block count
+   * @return the worker information
+   */
+  public WorkerInfo setBlockCount(long blockCount) {
+    mBlockCount = blockCount;
+    return this;
+  }
+
+  /**
+   * @return the worker block count
+   */
+  @ApiModelProperty(value = "Number of worker block count")
+  public long getBlockCount() {
+    return mBlockCount;
   }
 
   /**
@@ -238,7 +287,7 @@ public final class WorkerInfo implements Serializable {
   @Override
   public int hashCode() {
     return Objects.hashCode(mId, mAddress, mLastContactSec, mState, mCapacityBytes, mUsedBytes,
-        mStartTimeMs, mCapacityBytesOnTiers, mUsedBytesOnTiers);
+        mStartTimeMs, mCapacityBytesOnTiers, mUsedBytesOnTiers, mVersion, mRevision);
   }
 
   @Override
@@ -247,6 +296,7 @@ public final class WorkerInfo implements Serializable {
         .add("lastContactSec", mLastContactSec).add("state", mState)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("startTimeMs", mStartTimeMs).add("capacityBytesOnTiers", mCapacityBytesOnTiers)
-        .add("usedBytesOnTiers", mUsedBytesOnTiers).toString();
+        .add("usedBytesOnTiers", mUsedBytesOnTiers)
+        .add("version", mVersion).add("revision", mRevision).toString();
   }
 }

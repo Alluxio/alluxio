@@ -13,7 +13,7 @@ package alluxio.client.block.stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -21,8 +21,8 @@ import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 import alluxio.ClientContext;
-import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.Configuration;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
@@ -65,8 +65,8 @@ public final class GrpcDataReaderTest {
   public void before() throws Exception {
     mContext = Mockito.mock(FileSystemContext.class);
     when(mContext.getClientContext())
-        .thenReturn(ClientContext.create(ConfigurationTestUtils.defaults()));
-    when(mContext.getClusterConf()).thenReturn(ConfigurationTestUtils.defaults());
+        .thenReturn(ClientContext.create(Configuration.global()));
+    when(mContext.getClusterConf()).thenReturn(Configuration.global());
     mAddress = new WorkerNetAddress().setHost("localhost").setDataPort(1234);
     ReadRequest.Builder readRequestBuilder =
         ReadRequest.newBuilder().setBlockId(BLOCK_ID).setChunkSize(CHUNK_SIZE);

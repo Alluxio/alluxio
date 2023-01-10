@@ -12,7 +12,6 @@
 package alluxio.exception;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

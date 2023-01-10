@@ -14,20 +14,18 @@ package alluxio.underfs.oss;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.retry.CountingRetry;
-import alluxio.util.ConfigurationUtils;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.model.OSSObject;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,8 +43,7 @@ public class OSSInputStreamTest {
 
   private static final String BUCKET_NAME = "testBucket";
   private static final String OBJECT_KEY = "testObjectKey";
-  private static AlluxioConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.defaults());
+  private static AlluxioConfiguration sConf = Configuration.global();
 
   private OSSInputStream mOssInputStream;
   private OSS mOssClient;

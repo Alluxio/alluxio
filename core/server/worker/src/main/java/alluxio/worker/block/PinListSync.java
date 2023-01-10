@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -34,7 +33,7 @@ public final class PinListSync implements HeartbeatExecutor {
   private final BlockWorker mBlockWorker;
 
   /** Client for all master communication. */
-  private FileSystemMasterClient mMasterClient;
+  private final FileSystemMasterClient mMasterClient;
 
   /**
    * Creates a new instance of {@link PinListSync}.

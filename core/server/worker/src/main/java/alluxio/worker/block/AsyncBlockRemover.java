@@ -12,7 +12,6 @@
 package alluxio.worker.block;
 
 import alluxio.Sessions;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.ThreadFactoryUtils;
@@ -30,7 +29,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -50,7 +48,6 @@ public class AsyncBlockRemover {
   private final ExecutorService mRemoverPool;
   private final Counter mTryRemoveCount;
   private final Counter mRemovedCount;
-  private final int mPoolSize;
   private volatile boolean mShutdown = false;
 
   /**
@@ -74,7 +71,6 @@ public class AsyncBlockRemover {
   public AsyncBlockRemover(BlockWorker worker, int threads, BlockingQueue<Long> blocksToRemove,
       Set<Long> removingBlocks) {
     mBlockWorker = worker;
-    mPoolSize = threads;
     mBlocksToRemove = blocksToRemove;
     mRemovingBlocks = removingBlocks;
     mTryRemoveCount = MetricsSystem.counter(
@@ -86,9 +82,9 @@ public class AsyncBlockRemover {
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.WORKER_BLOCK_REMOVER_REMOVING_BLOCKS_SIZE.getName(), mRemovingBlocks::size);
 
-    mRemoverPool = Executors.newFixedThreadPool(mPoolSize,
+    mRemoverPool = Executors.newFixedThreadPool(threads,
         ThreadFactoryUtils.build("block-removal-service-%d", true));
-    for (int i = 0; i < mPoolSize; i++) {
+    for (int i = 0; i < threads; i++) {
       mRemoverPool.execute(new BlockRemover());
     }
   }
@@ -141,9 +137,6 @@ public class AsyncBlockRemover {
                 blockToBeRemoved);
           }
           break;
-        } catch (BlockDoesNotExistException e) {
-          // Ignore the case when block is already removed. This could happen when master is asking
-          // worker to remove blocks based on stale information
         } catch (Exception e) {
           LOG.warn("Failed to remove block {} instructed by master. This is best-effort and "
               + "will be tried later. threadName {}, error {}", blockToBeRemoved,

@@ -11,8 +11,8 @@
 
 package alluxio.collections;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.util.SleepUtils;
 
@@ -237,20 +237,10 @@ public class IndexedSetConcurrencyTest {
   }
 
   private final IndexDefinition<TestInfo, Long> mIdIndex =
-      new IndexDefinition<TestInfo, Long>(true) {
-        @Override
-        public Long getFieldValue(TestInfo o) {
-          return o.getId();
-        }
-      };
+      IndexDefinition.ofUnique(TestInfo::getId);
 
   private final IndexDefinition<TestInfo, Integer> mSizeIndex =
-      new IndexDefinition<TestInfo, Integer>(false) {
-        @Override
-        public Integer getFieldValue(TestInfo o) {
-          return o.getSize();
-        }
-      };
+      IndexDefinition.ofNonUnique(TestInfo::getSize);
 
   @Before
   public void before() throws Exception {

@@ -23,9 +23,8 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.annotation.concurrent.ThreadSafe;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Cache for storing file input and output streams.
@@ -47,9 +46,9 @@ public final class StreamCache {
         }
       };
 
-  private AtomicInteger mCounter;
-  private Cache<Integer, FileInStream> mInStreamCache;
-  private Cache<Integer, FileOutStream> mOutStreamCache;
+  private final AtomicInteger mCounter = new AtomicInteger();
+  private final Cache<Integer, FileInStream> mInStreamCache;
+  private final Cache<Integer, FileOutStream> mOutStreamCache;
 
   /**
    * Creates a new instance of {@link StreamCache}.
@@ -57,7 +56,6 @@ public final class StreamCache {
    * @param timeoutMs the timeout (in milliseconds) for the stream cache eviction
    */
   public StreamCache(long timeoutMs) {
-    mCounter = new AtomicInteger();
     mInStreamCache = CacheBuilder.newBuilder()
         .expireAfterAccess(timeoutMs, TimeUnit.MILLISECONDS).removalListener(CLOSER).build();
     mOutStreamCache = CacheBuilder.newBuilder()

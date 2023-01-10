@@ -33,6 +33,18 @@ The Alluxio binaries must be on your machine. You can either
 [compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
 [download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
+## Creating NFS mount point
+
+Before Alluxio master and workers can access the NFS server, mount points to the NFS server need to be created.
+Typically, all the machines will have the NFS shares located at the same path, such as `/mnt/nfs`.
+NFS client cache can interfere with the correct operation of Alluxio, specifically if Alluxio master creates a file on the NFS but the NFS client on the Alluxio worker continue to use the cached file listing, it will not see the newly created file. 
+Thus we highly recommend setting the attribute cache timeout to 0. 
+Please mount your nfs share like this. 
+
+```console
+$ sudo mount -o actimeo=0 nfshost:/nfsdir /mnt/nfs
+```
+
 ## Configuring Alluxio
 
 Configure Alluxio to use under storage systems by modifying
@@ -43,9 +55,7 @@ template.
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-The following configuration assumes that all NFS clients are co-located with Alluxio nodes.
-We also assume that all of the NFS shares are located at the same location of `/mnt/nfs`.
-Given those assumptions, the following lines should be exist within the `conf/alluxio-site.properties` file.
+Assume we have mounted NFS share at `/mnt/nfs` on all Alluxio masters and workers, the following lines should be exist within the `conf/alluxio-site.properties` file.
 
 ```
 alluxio.master.hostname=localhost

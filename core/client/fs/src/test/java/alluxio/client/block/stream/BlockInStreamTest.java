@@ -12,20 +12,24 @@
 package alluxio.client.block.stream;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
+import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileInfo;
@@ -37,9 +41,8 @@ import io.grpc.stub.StreamObserver;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -47,6 +50,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.Closeable;
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Tests the {@link BlockInStream} class's static methods.
@@ -57,7 +61,7 @@ public class BlockInStreamTest {
   private FileSystemContext mMockContext;
   private BlockInfo mInfo;
   private InStreamOptions mOptions;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private final InstancedConfiguration mConf = Configuration.copyGlobal();
   private StreamObserver<OpenLocalBlockResponse> mResponseObserver;
 
   @Before
@@ -66,11 +70,9 @@ public class BlockInStreamTest {
     ClientCallStreamObserver requestObserver = Mockito.mock(ClientCallStreamObserver.class);
     when(requestObserver.isReady()).thenReturn(true);
     when(workerClient.openLocalBlock(any(StreamObserver.class)))
-        .thenAnswer(new Answer() {
-          public Object answer(InvocationOnMock invocation) {
-            mResponseObserver = invocation.getArgument(0, StreamObserver.class);
-            return requestObserver;
-          }
+        .thenAnswer((Answer) invocation -> {
+          mResponseObserver = invocation.getArgument(0, StreamObserver.class);
+          return requestObserver;
         });
     doAnswer(invocation -> {
       mResponseObserver.onNext(OpenLocalBlockResponse.newBuilder().setPath("/tmp").build());
@@ -78,13 +80,42 @@ public class BlockInStreamTest {
       return null;
     }).when(requestObserver).onNext(any(OpenLocalBlockRequest.class));
     mMockContext = Mockito.mock(FileSystemContext.class);
-    when(mMockContext.acquireBlockWorkerClient(Matchers.any(WorkerNetAddress.class)))
+    when(mMockContext.acquireBlockWorkerClient(ArgumentMatchers.any(WorkerNetAddress.class)))
         .thenReturn(new NoopClosableResource<>(workerClient));
     when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));
     when(mMockContext.getClusterConf()).thenReturn(mConf);
     mInfo = new BlockInfo().setBlockId(1);
     mOptions = new InStreamOptions(new URIStatus(new FileInfo().setBlockIds(Collections
-        .singletonList(1L))), mConf);
+        .singletonList(1L))), mConf, mMockContext);
+  }
+
+  @Test
+  public void closeReaderAfterReadingAllData() throws Exception {
+    int chunkSize = 512;
+    TestDataReader.Factory factory = new TestDataReader.Factory(
+        chunkSize, BufferUtils.getIncreasingByteArray(2 * chunkSize));
+    BlockInStream stream = new BlockInStream(factory, new WorkerNetAddress(),
+        BlockInStream.BlockInStreamSource.PROCESS_LOCAL, -1, 1024);
+
+    byte[] res = new byte[chunkSize];
+    int read;
+    read = stream.read(res, 0, chunkSize);
+    TestDataReader reader = factory.getDataReader();
+    assertEquals(chunkSize, read);
+    assertNotNull(reader);
+    assertFalse(reader.isClosed());
+
+    // close data reader after reading all data
+    read = stream.read(res, 0, chunkSize);
+    assertEquals(chunkSize, read);
+    assertTrue(reader.isClosed());
+
+    read = stream.read(res, 0, chunkSize);
+    assertEquals(-1, read);
+    assertTrue(reader.isClosed());
+
+    stream.close();
+    assertTrue(reader.isClosed());
   }
 
   @Test
@@ -119,8 +150,8 @@ public class BlockInStreamTest {
 
   @Test
   public void createShortCircuitDisabled() throws Exception {
-    try (Closeable c =
-        new ConfigurationRule(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, "false", mConf)
+    try (Closeable ignored =
+        new ConfigurationRule(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false, mConf)
             .toResource()) {
       WorkerNetAddress dataSource = new WorkerNetAddress();
       when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));
@@ -136,10 +167,12 @@ public class BlockInStreamTest {
   @Test
   public void createDomainSocketEnabled() throws Exception {
     PowerMockito.mockStatic(NettyUtils.class);
-    PowerMockito.when(NettyUtils.isDomainSocketAccessible(Matchers.any(WorkerNetAddress.class),
-        Matchers.any(InstancedConfiguration.class)))
+    PowerMockito.when(
+        NettyUtils.isDomainSocketAccessible(ArgumentMatchers.any(WorkerNetAddress.class),
+            ArgumentMatchers.any(InstancedConfiguration.class)))
         .thenReturn(true);
-    PowerMockito.when(NettyUtils.isDomainSocketSupported(Matchers.any(WorkerNetAddress.class)))
+    PowerMockito.when(
+        NettyUtils.isDomainSocketSupported(ArgumentMatchers.any(WorkerNetAddress.class)))
         .thenReturn(true);
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.NODE_LOCAL;
@@ -154,7 +187,7 @@ public class BlockInStreamTest {
     WorkerNetAddress dataSource = new WorkerNetAddress();
     when(mMockContext.getNodeLocalWorker()).thenReturn(dataSource);
     when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));
-    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    Optional<BlockWorker> blockWorker = Optional.of(Mockito.mock(BlockWorker.class));
     when(mMockContext.getProcessLocalWorker()).thenReturn(blockWorker);
     BlockInStream.BlockInStreamSource dataSourceType =
         BlockInStream.BlockInStreamSource.PROCESS_LOCAL;

@@ -11,12 +11,12 @@
 
 package alluxio.underfs.gcs;
 
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
@@ -24,7 +24,7 @@ import org.jets3t.service.ServiceException;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 
 import java.io.IOException;
 
@@ -40,18 +40,16 @@ public class GCSUnderFileSystemTest {
   private static final String DST = "dst";
 
   private static final String BUCKET_NAME = "bucket";
-  private static final short BUCKET_MODE = 0;
-  private static final String ACCOUNT_OWNER = "account owner";
 
   /**
    * Set up.
    */
   @Before
-  public void before() throws InterruptedException, ServiceException {
+  public void before() {
     mClient = mock(GoogleStorageService.class);
 
     mGCSUnderFileSystem = new GCSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
   }
 
   /**
@@ -59,8 +57,8 @@ public class GCSUnderFileSystemTest {
    */
   @Test
   public void deleteNonRecursiveOnServiceException() throws IOException, ServiceException {
-    when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
-        Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
+    when(mClient.listObjectsChunked(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString(), ArgumentMatchers.anyLong(), ArgumentMatchers.anyString()))
         .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.deleteDirectory(PATH,
@@ -73,8 +71,8 @@ public class GCSUnderFileSystemTest {
    */
   @Test
   public void deleteRecursiveOnServiceException() throws IOException, ServiceException {
-    when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
-        Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
+    when(mClient.listObjectsChunked(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString(), ArgumentMatchers.anyLong(), ArgumentMatchers.anyString()))
         .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.deleteDirectory(PATH,
@@ -87,8 +85,8 @@ public class GCSUnderFileSystemTest {
    */
   @Test
   public void renameOnServiceException() throws IOException, ServiceException {
-    when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
-        Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
+    when(mClient.listObjectsChunked(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString(), ArgumentMatchers.anyLong(), ArgumentMatchers.anyString()))
         .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.renameFile(SRC, DST);

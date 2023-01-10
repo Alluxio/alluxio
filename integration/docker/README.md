@@ -1,18 +1,74 @@
-## Building docker image
-To build the Alluxio Docker image from the default remote url, run
+## Prerequisite
+To build your Alluxio Docker image, a Docker 19.03+ is required. 
 
+## Building docker image for production
+To build the Alluxio Docker image from the default remote url, run
 ```console
-$ docker build -t alluxio .
+$ docker build -t alluxio/alluxio .
 ```
 
 To build with a local Alluxio tarball, specify the `ALLUXIO_TARBALL` build argument
 
 ```console
-$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-${version}.tar.gz .
+$ docker build -t alluxio/alluxio --build-arg ALLUXIO_TARBALL=alluxio-${version}.tar.gz .
+```
+
+Starting from v2.6.0, alluxio-fuse image is deprecated. It is embedded in `alluxio/alluxio` image.
+
+## Building docker image for development
+Starting from now, Alluxio has a separate image for development usage. Unlike the default Alluxio 
+Docker image that only installs packages needed for Alluxio service to run, this image installs 
+more development tools, including gcc, make, async-profiler, etc., making it easier to deploy more 
+services along with Alluxio.
+
+To build the development image from the default remote url, run
+```console
+$ docker build -t alluxio/alluxio-dev -f Dockerfile-dev .
+```
+
+To build with a local Alluxio tarball, specify the `ALLUXIO_TARBALL` build argument
+
+```console
+$ docker build -t alluxio/alluxio-dev -f Dockerfile-dev \
+--build-arg ALLUXIO_TARBALL=alluxio-${version}.tar.gz .
+```
+
+Development image also has Java11 installed. To run Alluxio with Java11, build development image 
+with the `JAVA_VERSION` build argument specified.
+
+```console
+$ docker build -t alluxio/alluxio-dev -f Dockerfile-dev \
+--build-arg ALLUXIO_TARBALL=alluxio-${version}.tar.gz \
+--build-arg JAVA_VERSION=11 .
+```
+
+To use a customized user/group to launch Alluxio inside containers, build the Dockerfile
+with `--build-arg ALLUXIO_USERNAME=`, `--build-arg ALLUXIO_GROUP=`, etc. For example,
+if you want to use user `alluxio2` with uid `1001` and group `alluxio2` with gid `1001`, run the following command:
+
+```console
+$ docker build -t alluxio/alluxio:customizedUser \
+--build-arg ALLUXIO_USERNAME=alluxio2 --build-arg ALLUXIO_UID=1001 \
+--build-arg ALLUXIO_GROUP=alluxio2 --build-arg ALLUXIO_GID=1001 .
+```
+
+To use a customized user/group in the development image,
+you need to first build the base image with the customized user/group, 
+modify `Dockerfile-dev` to make it based on your base image, and build your dev image.
+For example, if you already build the `alluxio/alluxio:customizedUser` image, modify `Dockerfile-dev` to 
+
+```
+FROM alluxio/alluxio:customizedUser
+```
+
+and run
+
+```console
+$ docker build -t alluxio/alluxio-dev:customizedUser -f Dockerfile-dev .
 ```
 
 ## Running docker image
-The generated image expects to be run with single argument of "master", "worker", or "proxy".
+The generated image expects to be run with single argument of "master", "worker", "proxy", or "fuse".
 To set an Alluxio configuration property, convert it to an environment variable by uppercasing
 and replacing periods with underscores. For example, `alluxio.master.hostname` converts to
 `ALLUXIO_MASTER_HOSTNAME`. You can then set the environment variable on the image with
@@ -21,31 +77,21 @@ when the image starts.
 
 ```console
 $ docker run -e ALLUXIO_MASTER_HOSTNAME=ec2-203-0-113-25.compute-1.amazonaws.com \
-alluxio [master|worker|proxy]
+alluxio/alluxio-[
+|dev] [master|worker|proxy|fuse]
 ```
 
 Additional configuration files can be included when building the image by adding them to the
 `integration/docker/conf/` directory. All contents of this directory will be
 copied to `/opt/alluxio/conf`.
 
-
-## Building docker image with FUSE support
-To build a docker image with
-[FUSE](https://docs.alluxio.io/os/user/stable/en/api/FUSE-API.html) support, run
-
-```console
-$ docker build -t alluxio-fuse .
-```
-
-You can add the same arguments supported by the non-FUSE docker file.
-
-
 ## Running docker image with FUSE support
-There are a couple extra arguments required to run the docker image with FUSE support, for example:
+There are a couple extra arguments required to run the docker image with FUSE support. For example,
+to launch a standalone Fuse container:
 
 ```console
 $ docker run -e ALLUXIO_MASTER_HOSTNAME=alluxio-master \
---cap-add SYS_ADMIN --device /dev/fuse alluxio-fuse fuse --fuse-opts=allow_other
+--cap-add SYS_ADMIN --device /dev/fuse alluxio/alluxio fuse --fuse-opts=allow_other
 ```
 
 Note: running FUSE in docker requires adding
@@ -57,3 +103,7 @@ You can easily extend the docker image to include applications to run on top of 
 In order for the application to access data from Alluxio storage mounted with FUSE, it must run
 in the same container as Alluxio FUSE. Simply edit `Dockerfile` to install the applications, and 
 then build the image with the same command for building image with FUSE support and run it.
+
+## More information
+For more information on launching alluxio in docker containers, please refer to
+https://docs.alluxio.io/os/user/stable/en/deploy/Running-Alluxio-On-Docker.html

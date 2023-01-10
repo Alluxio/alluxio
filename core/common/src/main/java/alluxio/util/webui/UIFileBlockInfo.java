@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -54,7 +53,8 @@ public final class UIFileBlockInfo {
       mTierAliases.add(location.getTierAlias());
     }
     mIsInHighestTier = mTierAliases
-        .contains(alluxioConfiguration.get(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS));
+        .contains(alluxioConfiguration.getString(
+            PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS));
   }
 
   /**
@@ -73,7 +73,8 @@ public final class UIFileBlockInfo {
     mLastAccessTimeMs = blockLastAccessTimeMs;
     mTierAliases.add(tierAlias);
     mIsInHighestTier = mTierAliases
-        .contains(alluxioConfiguration.get(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS));
+        .contains(alluxioConfiguration.getString(
+            PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS));
   }
 
   private void addLocations(FileBlockInfo fileBlockInfo) {

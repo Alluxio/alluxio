@@ -26,7 +26,6 @@ import org.apache.commons.cli.Options;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -37,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ChownCommand extends AbstractFileSystemCommand {
 
   private static final Option RECURSIVE_OPTION =
-      Option.builder("R")
+      Option.builder("R").longOpt("recursive")
           .required(false)
           .hasArg(false)
           .desc("change owner recursively")
@@ -59,9 +58,9 @@ public final class ChownCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     if (mGroup == null) {
-      chown(path, mOwner, cl.hasOption("R"));
+      chown(path, mOwner, cl.hasOption(RECURSIVE_OPTION.getOpt()));
     } else {
-      chown(path, mOwner, mGroup, cl.hasOption("R"));
+      chown(path, mOwner, mGroup, cl.hasOption(RECURSIVE_OPTION.getOpt()));
     }
   }
 
@@ -86,7 +85,7 @@ public final class ChownCommand extends AbstractFileSystemCommand {
    * valid POSIX usernames.
    */
   private static final Pattern USER_GROUP_PATTERN =
-      Pattern.compile("(?<user>[\\w][\\w-]*\\$?)(:(?<group>[\\w][\\w-]*\\$?))?");
+      Pattern.compile("(?<user>[\\w][\\w-.]*\\$?)(:(?<group>[\\w][\\w-.]*\\$?))?");
 
   /**
    * Changes the owner for the path specified in args.
@@ -136,12 +135,12 @@ public final class ChownCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "chown [-R] <owner>[:<group>] <path>";
+    return "chown [-R/--recursive] <owner>[:<group>] <path>";
   }
 
   @Override
   public String getDescription() {
     return "Changes the owner of a file or directory specified by args."
-        + " Specify -R to change the owner recursively.";
+        + " Specify -R/--recursive to change the owner recursively.";
   }
 }

@@ -24,7 +24,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -35,7 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ChgrpCommand extends AbstractFileSystemCommand {
 
   private static final Option RECURSIVE_OPTION =
-      Option.builder("R")
+      Option.builder("R").longOpt("recursive")
           .required(false)
           .hasArg(false)
           .desc("change group recursively")
@@ -85,7 +84,7 @@ public final class ChgrpCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws IOException, AlluxioException {
-    chgrp(path, mGroup, cl.hasOption("R"));
+    chgrp(path, mGroup, cl.hasOption(RECURSIVE_OPTION.getOpt()));
   }
 
   @Override
@@ -100,12 +99,12 @@ public final class ChgrpCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "chgrp [-R] <group> <path>";
+    return "chgrp [-R/--recursive] <group> <path>";
   }
 
   @Override
   public String getDescription() {
     return "Changes the group of a file or directory specified by args."
-        + " Specify -R to change the group recursively.";
+        + " Specify -R/--recursive to change the group recursively.";
   }
 }

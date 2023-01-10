@@ -14,8 +14,8 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.client.WriteType;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -36,6 +36,7 @@ import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.TtlIntervalRule;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -55,7 +56,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.io.File;
@@ -90,8 +91,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false)
-          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS,
-              String.valueOf(TTL_CHECKER_INTERVAL_MS))
+          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, TTL_CHECKER_INTERVAL_MS)
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, 1000)
           .setProperty(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, 0)
           .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER).build();
@@ -101,7 +101,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER,
-      ServerConfiguration.global());
+      Configuration.global());
 
   private FileSystemMaster mFsMaster;
 
@@ -112,7 +112,11 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
   }
 
   private FsMasterResource createFileSystemMasterFromJournal() throws Exception {
-    return MasterTestUtils.createLeaderFileSystemMasterFromJournalCopy();
+    FsMasterResource resource = MasterTestUtils.createLeaderFileSystemMasterFromJournalCopy();
+    if (AuthenticatedClientUser.getOrNull() == null) {
+      AuthenticatedClientUser.set(TEST_USER);
+    }
+    return resource;
   }
 
   @Test
@@ -136,7 +140,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
     Assert.assertEquals(alluxioFile.getName(), files.get(0).getName());
 
     // Add ufs only paths
-    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Files.createDirectory(Paths.get(ufs, "ufs_dir"));
     Files.createFile(Paths.get(ufs, "ufs_file"));
 
@@ -173,7 +177,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
     AlluxioURI dir = new AlluxioURI("/dir/");
 
     // Add ufs nested file.
-    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Files.createDirectory(Paths.get(ufs, "dir"));
     Files.createFile(Paths.get(ufs, "dir", "file"));
 
@@ -228,15 +232,16 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
     String ufsBase = "test://test/";
 
     UnderFileSystemFactory mockUfsFactory = Mockito.mock(UnderFileSystemFactory.class);
-    Mockito.when(mockUfsFactory.supportsPath(Matchers.anyString(), Matchers.any()))
+    Mockito.when(mockUfsFactory.supportsPath(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
         .thenReturn(Boolean.FALSE);
-    Mockito.when(mockUfsFactory.supportsPath(Matchers.eq(ufsBase), Matchers.any()))
+    Mockito.when(mockUfsFactory.supportsPath(ArgumentMatchers.eq(ufsBase), ArgumentMatchers.any()))
         .thenReturn(Boolean.TRUE);
 
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsDirectoryStatus ufsStatus = new
         UfsDirectoryStatus("test", "owner", "group", (short) 511);
-    Mockito.when(mockUfsFactory.create(Matchers.eq(ufsBase), Matchers.any())).thenReturn(mockUfs);
+    Mockito.when(mockUfsFactory.create(ArgumentMatchers.eq(ufsBase), ArgumentMatchers.any()))
+        .thenReturn(mockUfs);
     Mockito.when(mockUfs.isDirectory(ufsBase)).thenReturn(true);
     Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), ""))
         .thenReturn(new AlluxioURI(ufsBase));
@@ -244,7 +249,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
         .thenReturn(new AlluxioURI(ufsBase + "/dir1"));
     Mockito.when(mockUfs.getExistingDirectoryStatus(ufsBase))
         .thenReturn(ufsStatus);
-    Mockito.when(mockUfs.mkdirs(Matchers.eq(ufsBase + "/dir1"), Matchers.any()))
+    Mockito.when(mockUfs.mkdirs(ArgumentMatchers.eq(ufsBase + "/dir1"), ArgumentMatchers.any()))
         .thenThrow(new IOException("ufs unavailable"));
     Mockito.when(mockUfs.getStatus(ufsBase))
         .thenReturn(ufsStatus);
@@ -301,6 +306,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
         .createLeaderFileSystemMasterFromJournal()) {
       FileSystemMaster newFsMaster = masterResource.getRegistry().get(FileSystemMaster.class);
 
+      AuthenticatedClientUser.set(TEST_USER);
       files = newFsMaster.listStatus(new AlluxioURI("/mnt/"),
           ListStatusContext.defaults());
       Assert.assertTrue(files.isEmpty());

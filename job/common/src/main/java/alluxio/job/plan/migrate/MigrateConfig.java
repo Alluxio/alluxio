@@ -11,6 +11,7 @@
 
 package alluxio.job.plan.migrate;
 
+import alluxio.client.WriteType;
 import alluxio.job.plan.PlanConfig;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -19,8 +20,8 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Configuration for the migrate job. A migration can either be a copy or a move.
@@ -29,11 +30,11 @@ import java.util.Collection;
 @ThreadSafe
 public class MigrateConfig implements PlanConfig {
   private static final long serialVersionUID = 8014674802258120190L;
-  private static final String NAME = "Migrate";
+  public static final String NAME = "Migrate";
 
   private final String mSource;
   private final String mDestination;
-  private final String mWriteType;
+  private final WriteType mWriteType;
   private final boolean mOverwrite;
 
   /**
@@ -47,7 +48,7 @@ public class MigrateConfig implements PlanConfig {
    */
   public MigrateConfig(@JsonProperty("source") String source,
                        @JsonProperty("destination") String dst,
-                       @JsonProperty("writeType") String writeType,
+                       @JsonProperty("writeType") WriteType writeType,
                        @JsonProperty("overwrite") boolean overwrite) {
     mSource = Preconditions.checkNotNull(source, "source must be set");
     mDestination = Preconditions.checkNotNull(dst, "destination must be set");
@@ -72,7 +73,7 @@ public class MigrateConfig implements PlanConfig {
   /**
    * @return the writeType
    */
-  public String getWriteType() {
+  public WriteType getWriteType() {
     return mWriteType;
   }
 

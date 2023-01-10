@@ -18,6 +18,8 @@ import alluxio.underfs.UfsManager;
 
 import com.google.common.base.Preconditions;
 
+import javax.annotation.Nullable;
+
 /**
  * Stores context information for Alluxio masters.
  *
@@ -25,6 +27,7 @@ import com.google.common.base.Preconditions;
  */
 public class MasterContext<T extends UfsManager> {
   private final JournalSystem mJournalSystem;
+  private final PrimarySelector mPrimarySelector;
   /**
    * The stateLockManager is used to allow us to pause master state changes so that we can
    * take backups of master state. All state modifications should hold the lock in shared mode
@@ -38,28 +41,32 @@ public class MasterContext<T extends UfsManager> {
    * Creates a new master context, using the global server UserState.
    *
    * @param journalSystem the journal system to use for tracking master operations
+   * @param primarySelector the primary selector for selecting the leading master
+   * @param ufsManager the UFS manager
    */
-  public MasterContext(JournalSystem journalSystem) {
-    this(journalSystem, null, null);
+  public MasterContext(JournalSystem journalSystem, PrimarySelector primarySelector, T ufsManager) {
+    this(journalSystem, primarySelector, null, ufsManager);
   }
 
   /**
    * Creates a new master context.
    *
    * @param journalSystem the journal system to use for tracking master operations
+   * @param primarySelector the primary selector for selecting the leading master
    * @param userState the user state of the server. If null, will use the global server user state
    * @param ufsManager the UFS manager
    */
-  public MasterContext(JournalSystem journalSystem,
-      UserState userState, T ufsManager) {
+  public MasterContext(JournalSystem journalSystem, PrimarySelector primarySelector,
+      @Nullable UserState userState, T ufsManager) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
+    mPrimarySelector = Preconditions.checkNotNull(primarySelector, "primarySelector");
+    mUfsManager = Preconditions.checkNotNull(ufsManager, "ufsManager");
     if (userState == null) {
       mUserState = ServerUserState.global();
     } else {
       mUserState = userState;
     }
     mStateLockManager = new StateLockManager();
-    mUfsManager = ufsManager;
   }
 
   /**
@@ -67,6 +74,13 @@ public class MasterContext<T extends UfsManager> {
    */
   public JournalSystem getJournalSystem() {
     return mJournalSystem;
+  }
+
+  /**
+   * @return the primary selector that selects the leading master
+   */
+  public PrimarySelector getPrimarySelector() {
+    return mPrimarySelector;
   }
 
   /**

@@ -13,7 +13,7 @@ package alluxio.worker.block.allocator;
 
 import static org.junit.Assert.fail;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.worker.block.meta.StorageTier;
 
@@ -66,7 +66,7 @@ public final class AllocatorContractTest extends AllocatorTestBase {
   @Test
   public void shouldNotAllocate() throws Exception {
     for (String strategyName : mStrategies) {
-      ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
+      Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();
       Allocator allocator = Allocator.Factory.create(getMetadataEvictorView());
       assertTempBlockMeta(allocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE + 1, false);
@@ -83,7 +83,7 @@ public final class AllocatorContractTest extends AllocatorTestBase {
   @Test
   public void shouldAllocate() throws Exception {
     for (String strategyName : mStrategies) {
-      ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
+      Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();
       Allocator tierAllocator = Allocator.Factory.create(getMetadataEvictorView());
       for (int i = 0; i < DEFAULT_RAM_NUM; i++) {
@@ -113,7 +113,7 @@ public final class AllocatorContractTest extends AllocatorTestBase {
   @Test
   public void allocateAfterDirDeletion() throws Exception {
     for (String strategyName : mStrategies) {
-      ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
+      Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();
       for (int i = 0; i < TIER_ALIAS.length; i++) {
         StorageTier tier = mManager.getTier(TIER_ALIAS[i]);

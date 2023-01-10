@@ -25,8 +25,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -47,7 +47,7 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -101,7 +101,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test",
-      ServerConfiguration.global());
+      Configuration.global());
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -113,12 +113,12 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @After
   public void after() throws Exception {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Before
   public void before() throws Exception {
-    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
+    mFileSystem = FileSystem.Factory.create();
     mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI(mLocalUfsPath));
 
     new File(ufsPath(EXISTING_DIR)).mkdirs();
@@ -576,7 +576,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     mFileSystem.free(new AlluxioURI("/"), FreePOptions.newBuilder().setRecursive(true).build());
     BlockMasterClient blockClient =
         BlockMasterClient.Factory.create(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+            .newBuilder(ClientContext.create(Configuration.global())).build());
     CommonUtils.waitFor("data to be freed", () -> {
       try {
         return blockClient.getUsedBytes() == 0;
@@ -618,7 +618,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void createNestedFileSync() throws Exception {
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
 
     mFileSystem.createFile(new AlluxioURI(alluxioPath(NEW_NESTED_FILE)),
         CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
@@ -692,7 +692,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
           try {
             return mFileSystem.listStatus(new AlluxioURI("/"), ListStatusPOptions.newBuilder()
                 .setRecursive(true)
-                .setCommonOptions(FileSystemOptions.commonDefaults(
+                .setCommonOptions(FileSystemOptionsUtils.commonDefaults(
                     mFileSystem.getConf()).toBuilder().setSyncIntervalMs(0).build()).build());
           } catch (Exception e) {
             return Collections.<URIStatus>emptyList();
@@ -708,7 +708,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     assertEquals(0, status.size());
     status = mFileSystem.listStatus(new AlluxioURI("/"), ListStatusPOptions.newBuilder()
         .setRecursive(true)
-        .setCommonOptions(FileSystemOptions.commonDefaults(
+        .setCommonOptions(FileSystemOptionsUtils.commonDefaults(
             mFileSystem.getConf()).toBuilder().setSyncIntervalMs(-1).build()).build());
     final int TOTAL_FILE_COUNT = 20103;
     // verify that the previous sync did not complete
@@ -740,7 +740,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     // Should not exist, since no loading or syncing
     assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA)), ExistsPOptions.newBuilder()
-        .setCommonOptions(FileSystemOptions.commonDefaults(mFileSystem.getConf()).toBuilder()
+        .setCommonOptions(FileSystemOptionsUtils.commonDefaults(mFileSystem.getConf()).toBuilder()
             .setSyncIntervalMs(-1).build()).build()));
 
     try {
@@ -958,8 +958,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
       }
       // Check fingerprint.
       UnderFileSystem ufs = UnderFileSystem.Factory.create(uriStatus.getUfsPath(),
-          ServerConfiguration.global());
-      String ufsFingerprint = ufs.getFingerprint(uriStatus.getUfsPath());
+          Configuration.global());
+      String ufsFingerprint = ufs.getParsedFingerprint(uriStatus.getUfsPath()).serialize();
       String alluxioFingerprint = uriStatus.getUfsFingerprint();
       if (!ufsFingerprint.equals(alluxioFingerprint)) {
         Assert.fail(

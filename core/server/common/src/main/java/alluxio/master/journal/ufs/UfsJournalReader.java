@@ -13,9 +13,9 @@ package alluxio.master.journal.ufs;
 
 import alluxio.ProcessUtils;
 import alluxio.exception.ExceptionMessage;
-import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.JournalEntryStreamReader;
 import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
@@ -31,14 +31,13 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.OptionalLong;
 import java.util.Queue;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Implementation of {@link JournalReader} that reads journal entries from a UFS. It can optionally
  * read after a given sequence number. By default, it starts from 0 sequence number.
  * If this reader runs in a primary master, it reads the incomplete log.
- * If this reader runs in a secondary master, it does not read the incomplete log.
+ * If this reader runs in a standby master, it does not read the incomplete log.
  */
 @NotThreadSafe
 public final class UfsJournalReader implements JournalReader {
@@ -102,7 +101,7 @@ public final class UfsJournalReader implements JournalReader {
    * @param journal the handle to the journal
    * @param readIncompleteLog whether to read incomplete logs
    */
-  UfsJournalReader(UfsJournal journal, boolean readIncompleteLog) {
+  public UfsJournalReader(UfsJournal journal, boolean readIncompleteLog) {
     this(journal, 0, readIncompleteLog);
   }
 

@@ -11,16 +11,21 @@
 
 package alluxio.client.file.cache;
 
+import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
+import static alluxio.client.file.CacheContext.StatsUnit.NANO;
+
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
+import alluxio.client.file.cache.store.ByteBufferTargetBuffer;
+import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
-import com.codahale.metrics.Meter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
@@ -32,7 +37,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -55,6 +59,11 @@ public class LocalCacheFileInStream extends FileInStream {
   /** File info, fetched from external FS. */
   private final URIStatus mStatus;
   private final FileInStreamOpener mExternalFileInStreamOpener;
+  private final int mBufferSize;
+
+  private byte[] mBuffer = null;
+  private long mBufferStartOffset;
+  private long mBufferEndOffset;
 
   /** Stream reading from the external file system, opened once. */
   private FileInStream mExternalFileInStream;
@@ -62,8 +71,6 @@ public class LocalCacheFileInStream extends FileInStream {
   private long mPosition = 0;
   private boolean mClosed = false;
   private boolean mEOF = false;
-
-  private final Stopwatch mStopwatch;
 
   /**
    * Interface to wrap open method of file system.
@@ -79,6 +86,13 @@ public class LocalCacheFileInStream extends FileInStream {
   }
 
   /**
+   * Registers metrics.
+   */
+  public static void registerMetrics() {
+    Metrics.registerGauges();
+  }
+
+  /**
    * Constructor when the {@link URIStatus} is already available.
    *
    * @param status file status
@@ -88,12 +102,6 @@ public class LocalCacheFileInStream extends FileInStream {
    */
   public LocalCacheFileInStream(URIStatus status, FileInStreamOpener fileOpener,
       CacheManager cacheManager, AlluxioConfiguration conf) {
-    this(status, fileOpener, cacheManager, conf, Stopwatch.createUnstarted(Ticker.systemTicker()));
-  }
-
-  @VisibleForTesting
-  LocalCacheFileInStream(URIStatus status, FileInStreamOpener fileOpener,
-      CacheManager cacheManager, AlluxioConfiguration conf, Stopwatch stopwatch) {
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     mExternalFileInStreamOpener = fileOpener;
     mCacheManager = cacheManager;
@@ -106,102 +114,151 @@ public class LocalCacheFileInStream extends FileInStream {
       mCacheContext = CacheContext.defaults();
     }
     Metrics.registerGauges();
-    mStopwatch = stopwatch;
+
+    mBufferSize = (int) conf.getBytes(PropertyKey.USER_CLIENT_CACHE_IN_STREAM_BUFFER_SIZE);
+    Preconditions.checkArgument(mBufferSize >= 0, "Buffer size cannot be negative. %s", mPageSize);
+    if (mBufferSize > 0) {
+      mBuffer = new byte[mBufferSize];
+    }
   }
 
   @Override
-  public int read(byte[] b, int off, int len) throws IOException {
-    return readInternal(b, off, len, ReadType.READ_INTO_BYTE_ARRAY, mPosition, false);
+  public int read(byte[] bytesBuffer, int offset, int length) throws IOException {
+    return readInternal(new ByteArrayTargetBuffer(bytesBuffer, offset), offset, length,
+        ReadType.READ_INTO_BYTE_ARRAY, mPosition, false);
   }
 
   @Override
-  public int read(ByteBuffer buf, int off, int len) throws IOException {
-    byte[] b = new byte[buf.remaining()];
-    int totalBytesRead =
-        readInternal(b, off, len, ReadType.READ_INTO_BYTE_BUFFER, mPosition, false);
+  public int read(ByteBuffer buffer, int offset, int length) throws IOException {
+    int totalBytesRead = readInternal(new ByteBufferTargetBuffer(buffer), offset, length,
+        ReadType.READ_INTO_BYTE_BUFFER, mPosition, false);
     if (totalBytesRead == -1) {
       return -1;
     }
-    buf.put(b, off, totalBytesRead);
     return totalBytesRead;
   }
 
+  private int bufferedRead(PageReadTargetBuffer targetBuffer, int length,
+      ReadType readType, long position, Stopwatch stopwatch) throws IOException {
+    if (mBuffer == null) { //buffer is disabled, read data from local cache directly.
+      return localCachedRead(targetBuffer, length, readType, position, stopwatch);
+    }
+    //hit or partially hit the in stream buffer
+    if (position > mBufferStartOffset && position < mBufferEndOffset) {
+      int lengthToReadFromBuffer = (int) Math.min(length,
+          mBufferEndOffset - position);
+      targetBuffer.writeBytes(mBuffer, (int) (position - mBufferStartOffset),
+          lengthToReadFromBuffer);
+      return lengthToReadFromBuffer;
+    }
+    if (length >= mBufferSize) {
+      // Skip load to the in stream buffer if the data piece is larger than buffer size
+      return localCachedRead(targetBuffer, length, readType, position, stopwatch);
+    }
+    int bytesLoadToBuffer = (int) Math.min(mBufferSize, mStatus.getLength() - position);
+    int bytesRead =
+        localCachedRead(new ByteArrayTargetBuffer(mBuffer, 0),  bytesLoadToBuffer, readType,
+            position, stopwatch);
+    mBufferStartOffset = position;
+    mBufferEndOffset = position + bytesRead;
+    int dataReadFromBuffer = Math.min(bytesRead, length);
+    targetBuffer.writeBytes(mBuffer, 0, dataReadFromBuffer);
+    MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_IN_STREAM_BUFFER.getName())
+        .mark(dataReadFromBuffer);
+    return dataReadFromBuffer;
+  }
+
+  private int localCachedRead(PageReadTargetBuffer bytesBuffer, int length,
+      ReadType readType, long position, Stopwatch stopwatch) throws IOException {
+    long currentPage = position / mPageSize;
+    PageId pageId;
+    CacheContext cacheContext = mStatus.getCacheContext();
+    if (cacheContext != null && cacheContext.getCacheIdentifier() != null) {
+      pageId = new PageId(cacheContext.getCacheIdentifier(), currentPage);
+    } else {
+      pageId = new PageId(Long.toString(mStatus.getFileId()), currentPage);
+    }
+    int currentPageOffset = (int) (position % mPageSize);
+    int bytesLeftInPage = (int) (mPageSize - currentPageOffset);
+    int bytesToReadInPage = Math.min(bytesLeftInPage, length);
+    stopwatch.reset().start();
+    int bytesRead =
+        mCacheManager.get(pageId, currentPageOffset, bytesToReadInPage, bytesBuffer, mCacheContext);
+    stopwatch.stop();
+    if (bytesRead > 0) {
+      MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
+      if (cacheContext != null) {
+        cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
+            bytesRead);
+        cacheContext.incrementCounter(
+            MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
+            stopwatch.elapsed(TimeUnit.NANOSECONDS));
+      }
+      return bytesRead;
+    }
+    // on local cache miss, read a complete page from external storage. This will always make
+    // progress or throw an exception
+    stopwatch.reset().start();
+    byte[] page = readExternalPage(position, readType);
+    stopwatch.stop();
+    if (page.length > 0) {
+      bytesBuffer.writeBytes(page, currentPageOffset, bytesToReadInPage);
+      // cache misses
+      MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
+          .mark(bytesToReadInPage);
+      if (cacheContext != null) {
+        cacheContext.incrementCounter(
+            MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
+            bytesToReadInPage);
+        cacheContext.incrementCounter(
+            MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
+            stopwatch.elapsed(TimeUnit.NANOSECONDS)
+        );
+      }
+      mCacheManager.put(pageId, page, mCacheContext);
+    }
+    return bytesToReadInPage;
+  }
+
   // TODO(binfan): take ByteBuffer once CacheManager takes ByteBuffer to avoid extra mem copy
-  private int readInternal(byte[] b, int off, int len, ReadType readType, long pos,
-      boolean isPositionedRead) throws IOException {
-    Preconditions.checkArgument(len >= 0, "length should be non-negative");
-    Preconditions.checkArgument(off >= 0, "offset should be non-negative");
-    Preconditions.checkArgument(pos >= 0, "position should be non-negative");
-    if (len == 0) {
+  private int readInternal(PageReadTargetBuffer targetBuffer, int offset, int length,
+      ReadType readType, long position, boolean isPositionedRead) throws IOException {
+    Preconditions.checkArgument(length >= 0, "length should be non-negative");
+    Preconditions.checkArgument(offset >= 0, "offset should be non-negative");
+    Preconditions.checkArgument(position >= 0, "position should be non-negative");
+    if (length == 0) {
       return 0;
     }
-    if (pos >= mStatus.getLength()) { // at end of file
+    if (position >= mStatus.getLength()) { // at end of file
       return -1;
     }
     int totalBytesRead = 0;
-    long currentPosition = pos;
-    long lengthToRead = Math.min(len, mStatus.getLength() - pos);
+    long currentPosition = position;
+    long lengthToRead = Math.min(length, mStatus.getLength() - position);
+    // used in positionedRead, so make stopwatch a local variable rather than class member
+    Stopwatch stopwatch = createUnstartedStopwatch();
     // for each page, check if it is available in the cache
     while (totalBytesRead < lengthToRead) {
-      long currentPage = currentPosition / mPageSize;
-      int currentPageOffset = (int) (currentPosition % mPageSize);
-      int bytesLeftInPage =
-          (int) Math.min(mPageSize - currentPageOffset, lengthToRead - totalBytesRead);
-      PageId pageId;
-      CacheContext cacheContext = mStatus.getCacheContext();
-      if (cacheContext != null && cacheContext.getCacheIdentifier() != null) {
-        pageId = new PageId(cacheContext.getCacheIdentifier(), currentPage);
-      } else {
-        pageId = new PageId(Long.toString(mStatus.getFileId()), currentPage);
-      }
-      mStopwatch.reset().start();
-      int bytesRead =
-          mCacheManager.get(pageId, currentPageOffset, bytesLeftInPage, b, off + totalBytesRead,
-              mCacheContext);
-      mStopwatch.stop();
-      if (bytesRead > 0) {
-        totalBytesRead += bytesRead;
-        currentPosition += bytesRead;
-        Metrics.BYTES_READ_CACHE.mark(bytesRead);
-        if (cacheContext != null) {
-          cacheContext
-              .incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), bytesRead);
-          cacheContext.incrementCounter(
-              MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(),
-              mStopwatch.elapsed(TimeUnit.NANOSECONDS));
-        }
-      } else {
-        // on local cache miss, read a complete page from external storage. This will always make
-        // progress or throw an exception
-        mStopwatch.reset().start();
-        byte[] page = readExternalPage(currentPosition, readType);
-        mStopwatch.stop();
-        if (page.length > 0) {
-          System.arraycopy(page, currentPageOffset, b, off + totalBytesRead, bytesLeftInPage);
-          totalBytesRead += bytesLeftInPage;
-          currentPosition += bytesLeftInPage;
-          Metrics.BYTES_REQUESTED_EXTERNAL.mark(bytesLeftInPage);
-          if (cacheContext != null) {
-            cacheContext.incrementCounter(
-                MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), bytesLeftInPage);
-            cacheContext.incrementCounter(
-                MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(),
-                mStopwatch.elapsed(TimeUnit.NANOSECONDS)
-            );
-          }
-          mCacheManager.put(pageId, page, mCacheContext);
-        }
-      }
+      int bytesRead = bufferedRead(targetBuffer,
+          (int) (lengthToRead - totalBytesRead), readType, currentPosition, stopwatch);
+      totalBytesRead += bytesRead;
+      currentPosition += bytesRead;
       if (!isPositionedRead) {
         mPosition = currentPosition;
       }
     }
-    if (totalBytesRead > len || (totalBytesRead < len && currentPosition < mStatus.getLength())) {
+    if (totalBytesRead > length
+        || (totalBytesRead < length && currentPosition < mStatus.getLength())) {
       throw new IOException(String.format("Invalid number of bytes read - "
           + "bytes to read = %d, actual bytes read = %d, bytes remains in file %d",
-          len, totalBytesRead, remaining()));
+          length, totalBytesRead, remaining()));
     }
     return totalBytesRead;
+  }
+
+  @VisibleForTesting
+  protected Stopwatch createUnstartedStopwatch() {
+    return Stopwatch.createUnstarted(Ticker.systemTicker());
   }
 
   @Override
@@ -227,7 +284,8 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
-    return readInternal(b, off, len, ReadType.READ_INTO_BYTE_ARRAY, pos, true);
+    return readInternal(new ByteArrayTargetBuffer(b, off), off, len, ReadType.READ_INTO_BYTE_ARRAY,
+        pos, true);
   }
 
   @Override
@@ -263,9 +321,9 @@ public class LocalCacheFileInStream extends FileInStream {
    * <p>
    * // TODO(calvin): Evaluate if using positioned read to allow for more concurrency is worthwhile
    *
-   * @param pos position to set the external stream to
+   * @param position position to set the external stream to
    */
-  private FileInStream getExternalFileInStream(long pos) throws IOException {
+  private FileInStream getExternalFileInStream(long position) throws IOException {
     try {
       if (mExternalFileInStream == null) {
         mExternalFileInStream = mExternalFileInStreamOpener.open(mStatus);
@@ -274,7 +332,7 @@ public class LocalCacheFileInStream extends FileInStream {
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
-    long pageStart = pos - (pos % mPageSize);
+    long pageStart = position - (position % mPageSize);
     if (mExternalFileInStream.getPos() != pageStart) {
       mExternalFileInStream.seek(pageStart);
     }
@@ -293,11 +351,12 @@ public class LocalCacheFileInStream extends FileInStream {
    * <p>
    * TODO(calvin): Consider a more efficient API which does not require a data copy.
    *
-   * @param pos the position which the page will contain
+   * @param position the position which the page will contain
    * @return a byte array of the page data
    */
-  private synchronized byte[] readExternalPage(long pos, ReadType readType) throws IOException {
-    long pageStart = pos - (pos % mPageSize);
+  private synchronized byte[] readExternalPage(long position, ReadType readType)
+      throws IOException {
+    long pageStart = position - (position % mPageSize);
     FileInStream stream = getExternalFileInStream(pageStart);
     int pageSize = (int) Math.min(mPageSize, mStatus.getLength() - pageStart);
     byte[] page = new byte[pageSize];
@@ -320,7 +379,8 @@ public class LocalCacheFileInStream extends FileInStream {
       }
       totalBytesRead += bytesRead;
     }
-    Metrics.BYTES_READ_EXTERNAL.mark(totalBytesRead);
+    // Bytes read from external, may be larger than requests due to reading complete pages
+    MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).mark(totalBytesRead);
     if (totalBytesRead != pageSize) {
       throw new IOException("Failed to read complete page from external storage. Bytes read: "
           + totalBytesRead + " Page size: " + pageSize);
@@ -329,23 +389,19 @@ public class LocalCacheFileInStream extends FileInStream {
   }
 
   private static final class Metrics {
-    /** Cache hits. */
-    private static final Meter BYTES_READ_CACHE =
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName());
-    /** Bytes read from external, may be larger than requests due to reading complete pages. */
-    private static final Meter BYTES_READ_EXTERNAL =
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName());
-    /** Cache misses. */
-    private static final Meter BYTES_REQUESTED_EXTERNAL =
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName());
+    // Note that only counter/guage can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
 
     private static void registerGauges() {
       // Cache hit rate = Cache hits / (Cache hits + Cache misses).
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_HIT_RATE.getName()),
           () -> {
-            long cacheHits = BYTES_READ_CACHE.getCount();
-            long cacheMisses = BYTES_REQUESTED_EXTERNAL.getCount();
+            long cacheHits = MetricsSystem.meter(
+                MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount();
+            long cacheMisses = MetricsSystem.meter(
+                MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount();
             long total = cacheHits + cacheMisses;
             if (total > 0) {
               return cacheHits / (1.0 * total);

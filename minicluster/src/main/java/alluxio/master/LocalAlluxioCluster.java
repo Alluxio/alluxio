@@ -14,17 +14,13 @@ package alluxio.master;
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.Map;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -43,11 +39,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
-  public static final String DEFAULT_TEST_NAME = "test";
-
-  private static final Logger LOG = LoggerFactory.getLogger(LocalAlluxioCluster.class);
-
   private boolean mIncludeSecondary;
+
+  private boolean mIncludeProxy;
 
   private LocalAlluxioMaster mMaster;
 
@@ -55,7 +49,18 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
    * Runs a test Alluxio cluster with a single Alluxio worker.
    */
   public LocalAlluxioCluster() {
-    this(1, false);
+    this(1, false, false);
+  }
+
+  /**
+   * @param numWorkers the number of workers to run
+   * @param includeSecondary weather to include the secondary master
+   * @param includeProxy weather to include the proxy
+   */
+  public LocalAlluxioCluster(int numWorkers, boolean includeSecondary, boolean includeProxy) {
+    super(numWorkers);
+    mIncludeSecondary = includeSecondary;
+    mIncludeProxy = includeProxy;
   }
 
   /**
@@ -63,8 +68,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
    * @param includeSecondary weather to include the secondary master
    */
   public LocalAlluxioCluster(int numWorkers, boolean includeSecondary) {
-    super(numWorkers);
-    mIncludeSecondary = includeSecondary;
+    this(numWorkers, includeSecondary, false);
   }
 
   @Override
@@ -128,22 +132,30 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   public void initConfiguration(String name) throws IOException {
     setAlluxioWorkDirectory(name);
     setHostname();
-    for (Map.Entry<PropertyKey, String> entry : ConfigurationTestUtils
-        .testConfigurationDefaults(ServerConfiguration.global(),
+    for (Map.Entry<PropertyKey, Object> entry : ConfigurationTestUtils
+        .testConfigurationDefaults(Configuration.global(),
             mHostname, mWorkDirectory).entrySet()) {
-      ServerConfiguration.set(entry.getKey(), entry.getValue());
+      Configuration.set(entry.getKey(), entry.getValue());
     }
-    ServerConfiguration.set(PropertyKey.TEST_MODE, true);
-    ServerConfiguration.set(PropertyKey.JOB_WORKER_THROTTLING, false);
-    ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT, 0);
-    ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, 0);
-    ServerConfiguration.set(PropertyKey.WORKER_WEB_PORT, 0);
+    Configuration.set(PropertyKey.TEST_MODE, true);
+    Configuration.set(PropertyKey.JOB_WORKER_THROTTLING, false);
+    Configuration.set(PropertyKey.PROXY_WEB_PORT, 0);
+    Configuration.set(PropertyKey.WORKER_RPC_PORT, 0);
+    Configuration.set(PropertyKey.WORKER_WEB_PORT, 0);
   }
 
   @Override
   public void startMasters() throws Exception {
     mMaster = LocalAlluxioMaster.create(mWorkDirectory, mIncludeSecondary);
     mMaster.start();
+    waitForMasterServing();
+  }
+
+  @Override
+  protected void startProxy() throws Exception {
+    if (mIncludeProxy) {
+      super.startProxy();
+    }
   }
 
   @Override

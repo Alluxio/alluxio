@@ -27,8 +27,8 @@ import com.google.common.hash.Hashing;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -54,7 +54,8 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
   private final HashFunction mHashFunc = Hashing.md5();
 
   /**
-   * Constructs a new {@link DeterministicHashPolicy}.
+   * Constructs a new {@link DeterministicHashPolicy}
+   * needed for instantiation in {@link BlockLocationPolicy.Factory}.
    *
    * @param conf Alluxio configuration
    */
@@ -66,7 +67,7 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
   }
 
   @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+  public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
     List<BlockWorkerInfo> workerInfos = Lists.newArrayList(options.getBlockWorkerInfos());
     workerInfos.sort((o1, o2) ->
         o1.getNetAddress().toString().compareToIgnoreCase(o2.getNetAddress().toString()));
@@ -81,7 +82,7 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
     int hv =
         Math.abs(mHashFunc.newHasher().putLong(options.getBlockInfo().getBlockId()).hash().asInt());
     int index = hv % workerInfos.size();
-    for (BlockWorkerInfo blockWorkerInfoUnused : workerInfos) {
+    for (BlockWorkerInfo ignored : workerInfos) {
       WorkerNetAddress candidate = workerInfos.get(index).getNetAddress();
       BlockWorkerInfo workerInfo = blockWorkerInfoMap.get(candidate);
       if (workerInfo != null
@@ -93,7 +94,8 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
       }
       index = (index + 1) % workerInfos.size();
     }
-    return workers.isEmpty() ? null : workers.get(mRandom.nextInt(workers.size()));
+    return workers.isEmpty() ? Optional.empty() :
+        Optional.of(workers.get(mRandom.nextInt(workers.size())));
   }
 
   @Override

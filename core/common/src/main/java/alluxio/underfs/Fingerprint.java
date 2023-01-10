@@ -12,7 +12,6 @@
 package alluxio.underfs;
 
 import alluxio.Constants;
-
 import alluxio.security.authorization.AccessControlList;
 
 import com.google.common.base.Splitter;
@@ -21,9 +20,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
-
-import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Fingerprint for a UFS file or directory.
@@ -39,6 +37,8 @@ public final class Fingerprint {
   private static final Tag[] METADATA_TAGS = {Tag.OWNER, Tag.GROUP, Tag.MODE, Tag.ACL};
   /** These tags are all the content tags in the fingerprints. */
   private static final Tag[] CONTENT_TAGS = {Tag.TYPE, Tag.UFS, Tag.CONTENT_HASH};
+
+  public static final Fingerprint INVALID_FINGERPRINT = new Fingerprint(Collections.emptyMap());
 
   private static final char KVDELIMTER = '|';
   private static final char TAGDELIMTER = ' ';
@@ -137,7 +137,7 @@ public final class Fingerprint {
       return null;
     }
     if (Constants.INVALID_UFS_FINGERPRINT.equals(input)) {
-      return new Fingerprint(Collections.emptyMap());
+      return INVALID_FINGERPRINT;
     }
     Map<String, String> kv = Splitter.on(TAGDELIMTER).trimResults().omitEmptyStrings()
             .withKeyValueSeparator(KVDELIMTER).split(input);

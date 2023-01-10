@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -38,7 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CopyFromLocalCommand.class);
 
-  private CpCommand mCpCommand;
+  private final CpCommand mCpCommand;
 
   /**
    * @param fsContext the filesystem of Alluxio
@@ -52,9 +51,11 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
         fsContext.getClusterConf().copyProperties());
     conf.set(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY,
         conf.get(PropertyKey.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY));
-    LOG.debug(String.format("copyFromLocal block write location policy is %s from property %s",
-        conf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
-        PropertyKey.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY.getName()));
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("copyFromLocal block write location policy is %s from property %s",
+          conf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
+          PropertyKey.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY.getName()));
+    }
     FileSystemContext updatedCtx = FileSystemContext.create(conf);
     mFsContext = updatedCtx;
     mFileSystem = FileSystem.Factory.create(updatedCtx);

@@ -11,11 +11,12 @@
 
 package alluxio.master.file.contexts;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.underfs.UfsStatus;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
@@ -30,6 +31,7 @@ public class CreateDirectoryContext
 
   private UfsStatus mUfsStatus;
   protected List<AclEntry> mDefaultAcl;
+
   /**
    * Creates context with given option data.
    *
@@ -59,7 +61,7 @@ public class CreateDirectoryContext
    */
   public static CreateDirectoryContext mergeFrom(CreateDirectoryPOptions.Builder optionsBuilder) {
     CreateDirectoryPOptions masterOptions =
-        FileSystemOptions.createDirectoryDefaults(ServerConfiguration.global());
+        FileSystemOptionsUtils.createDirectoryDefaults(Configuration.global(), false);
     CreateDirectoryPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -69,8 +71,8 @@ public class CreateDirectoryContext
    * @return the instance of {@link CreateDirectoryContext} with default values for master
    */
   public static CreateDirectoryContext defaults() {
-    return create(FileSystemOptions
-        .createDirectoryDefaults(ServerConfiguration.global()).toBuilder());
+    return create(FileSystemOptionsUtils
+        .createDirectoryDefaults(Configuration.global(), false).toBuilder());
   }
 
   /**
@@ -106,6 +108,14 @@ public class CreateDirectoryContext
    */
   public List<AclEntry> getDefaultAcl() {
     return mDefaultAcl;
+  }
+
+  @Override
+  public OperationId getOperationId() {
+    if (getOptions().hasCommonOptions() && getOptions().getCommonOptions().hasOperationId()) {
+      return OperationId.fromFsProto(getOptions().getCommonOptions().getOperationId());
+    }
+    return super.getOperationId();
   }
 
   @Override

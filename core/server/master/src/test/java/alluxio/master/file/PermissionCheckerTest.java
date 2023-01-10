@@ -15,8 +15,8 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
@@ -59,6 +59,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -189,7 +190,7 @@ public final class PermissionCheckerTest {
     BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, masterContext);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
+    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class), Clock.systemUTC());
     InodeLockManager lockManager = new InodeLockManager();
     sInodeStore = masterContext.getInodeStoreFactory().apply(lockManager);
     sTree = new InodeTree(sInodeStore, blockMaster, directoryIdGenerator, mountTable, lockManager);
@@ -197,12 +198,12 @@ public final class PermissionCheckerTest {
     sRegistry.start(true);
 
     GroupMappingServiceTestUtils.resetCache();
-    ServerConfiguration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
+    Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
         FakeUserGroupsMapping.class.getName());
-    ServerConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.SIMPLE.getAuthName());
-    ServerConfiguration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
-    ServerConfiguration
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.SIMPLE);
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true);
+    Configuration
         .set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
     sTree.initializeRoot(TEST_USER_ADMIN.getUser(), TEST_USER_ADMIN.getGroup(), TEST_NORMAL_MODE,
         NoopJournalContext.INSTANCE);
@@ -217,7 +218,7 @@ public final class PermissionCheckerTest {
   public static void afterClass() throws Exception {
     sRegistry.stop();
     AuthenticatedClientUser.remove();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Before
@@ -235,7 +236,9 @@ public final class PermissionCheckerTest {
   private static void createAndSetPermission(String path, CreateFileContext context)
       throws Exception {
     try (LockedInodePath inodePath =
-        sTree.lockInodePath(new AlluxioURI(path), LockPattern.WRITE_EDGE)) {
+        sTree.lockInodePath(
+            new AlluxioURI(path), LockPattern.WRITE_EDGE, NoopJournalContext.INSTANCE)
+    ) {
       List<Inode> result = sTree.createPath(RpcContext.NOOP, inodePath, context);
       MutableInode<?> inode = sInodeStore.getMutable(result.get(result.size() - 1).getId()).get();
       inode.setOwner(context.getOwner())
@@ -262,19 +265,19 @@ public final class PermissionCheckerTest {
   @Test
   public void createFileAndDirs() throws Exception {
     try (LockedInodePath inodePath = sTree.lockInodePath(new AlluxioURI(TEST_DIR_FILE_URI),
-        LockPattern.READ)) {
+        LockPattern.READ, NoopJournalContext.INSTANCE)) {
       verifyInodesList(TEST_DIR_FILE_URI.split("/"), inodePath.getInodeList());
     }
     try (LockedInodePath inodePath = sTree.lockInodePath(new AlluxioURI(TEST_FILE_URI),
-        LockPattern.READ)) {
+        LockPattern.READ, NoopJournalContext.INSTANCE)) {
       verifyInodesList(TEST_FILE_URI.split("/"), inodePath.getInodeList());
     }
     try (LockedInodePath inodePath = sTree.lockInodePath(new AlluxioURI(TEST_WEIRD_FILE_URI),
-        LockPattern.READ)) {
+        LockPattern.READ, NoopJournalContext.INSTANCE)) {
       verifyInodesList(TEST_WEIRD_FILE_URI.split("/"), inodePath.getInodeList());
     }
     try (LockedInodePath inodePath = sTree.lockInodePath(new AlluxioURI(TEST_NOT_EXIST_URI),
-        LockPattern.READ)) {
+        LockPattern.READ, NoopJournalContext.INSTANCE)) {
       verifyInodesList(new String[]{"", "testDir"}, inodePath.getInodeList());
     }
   }
@@ -395,7 +398,7 @@ public final class PermissionCheckerTest {
   public void invalidPath() throws Exception {
     mThrown.expect(InvalidPathException.class);
     try (LockedInodePath inodePath = sTree
-        .lockInodePath(new AlluxioURI(""), LockPattern.READ)) {
+        .lockInodePath(new AlluxioURI(""), LockPattern.READ, NoopJournalContext.INSTANCE)) {
       mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
     }
   }
@@ -403,7 +406,9 @@ public final class PermissionCheckerTest {
   @Test
   public void getPermission() throws Exception {
     try (LockedInodePath path =
-             sTree.lockInodePath(new AlluxioURI(TEST_WEIRD_FILE_URI), LockPattern.READ)) {
+             sTree.lockInodePath(
+                 new AlluxioURI(TEST_WEIRD_FILE_URI), LockPattern.READ, NoopJournalContext.INSTANCE)
+    ) {
       // user is admin
       AuthenticatedClientUser.set(TEST_USER_ADMIN.getUser());
       Mode.Bits perm = mPermissionChecker.getPermission(path);
@@ -433,7 +438,7 @@ public final class PermissionCheckerTest {
       throws Exception {
     AuthenticatedClientUser.set(user.getUser());
     try (LockedInodePath inodePath = sTree
-        .lockInodePath(new AlluxioURI(path), LockPattern.READ)) {
+        .lockInodePath(new AlluxioURI(path), LockPattern.READ, NoopJournalContext.INSTANCE)) {
       mPermissionChecker.checkPermission(action, inodePath);
     }
   }
@@ -450,7 +455,7 @@ public final class PermissionCheckerTest {
       throws Exception {
     AuthenticatedClientUser.set(user.getUser());
     try (LockedInodePath inodePath = sTree
-        .lockInodePath(new AlluxioURI(path), LockPattern.READ)) {
+        .lockInodePath(new AlluxioURI(path), LockPattern.READ, NoopJournalContext.INSTANCE)) {
       mPermissionChecker.checkParentPermission(action, inodePath);
     }
   }

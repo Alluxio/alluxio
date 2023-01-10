@@ -16,7 +16,6 @@ import alluxio.proto.journal.Journal.JournalEntry;
 
 import java.io.Closeable;
 import java.io.IOException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

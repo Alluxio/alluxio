@@ -12,7 +12,7 @@
 package alluxio.master;
 
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.metastore.BlockStore;
+import alluxio.master.metastore.BlockMetaStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.security.user.UserState;
 import alluxio.underfs.MasterUfsManager;
@@ -25,14 +25,15 @@ import com.google.common.base.Preconditions;
 public class CoreMasterContext extends MasterContext<MasterUfsManager> {
   private final SafeModeManager mSafeModeManager;
   private final BackupManager mBackupManager;
-  private final BlockStore.Factory mBlockStoreFactory;
+  private final BlockMetaStore.Factory mBlockStoreFactory;
   private final InodeStore.Factory mInodeStoreFactory;
   private final JournalSystem mJournalSystem;
   private final long mStartTimeMs;
   private final int mPort;
 
   private CoreMasterContext(Builder builder) {
-    super(builder.mJournalSystem, builder.mUserState, builder.mUfsManager);
+    super(builder.mJournalSystem, builder.mPrimarySelector, builder.mUserState,
+        builder.mUfsManager);
 
     mSafeModeManager = Preconditions.checkNotNull(builder.mSafeModeManager, "safeModeManager");
     mBackupManager = Preconditions.checkNotNull(builder.mBackupManager, "backupManager");
@@ -62,7 +63,7 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
   /**
    * @return the block store factory
    */
-  public BlockStore.Factory getBlockStoreFactory() {
+  public BlockMetaStore.Factory getBlockStoreFactory() {
     return mBlockStoreFactory;
   }
 
@@ -73,12 +74,11 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
     return mInodeStoreFactory;
   }
 
-  /**
-   * @return the journal system
-   */
+  @Override
   public JournalSystem getJournalSystem() {
     return mJournalSystem;
   }
+
   /**
    * @return the master process start time in milliseconds
    */
@@ -105,10 +105,11 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
    */
   public static class Builder {
     private JournalSystem mJournalSystem;
+    private PrimarySelector mPrimarySelector;
     private UserState mUserState;
     private SafeModeManager mSafeModeManager;
     private BackupManager mBackupManager;
-    private BlockStore.Factory mBlockStoreFactory;
+    private BlockMetaStore.Factory mBlockStoreFactory;
     private InodeStore.Factory mInodeStoreFactory;
     private MasterUfsManager mUfsManager;
     private long mStartTimeMs;
@@ -120,6 +121,15 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
      */
     public Builder setJournalSystem(JournalSystem journalSystem) {
       mJournalSystem = journalSystem;
+      return this;
+    }
+
+    /**
+     * @param primarySelector the primary selector
+     * @return the builder
+     */
+    public Builder setPrimarySelector(PrimarySelector primarySelector) {
+      mPrimarySelector = primarySelector;
       return this;
     }
 
@@ -154,7 +164,7 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
      * @param blockStoreFactory factory for creating a block store
      * @return the builder
      */
-    public Builder setBlockStoreFactory(BlockStore.Factory blockStoreFactory) {
+    public Builder setBlockStoreFactory(BlockMetaStore.Factory blockStoreFactory) {
       mBlockStoreFactory = blockStoreFactory;
       return this;
     }

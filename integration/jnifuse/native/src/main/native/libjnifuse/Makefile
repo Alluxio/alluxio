@@ -11,35 +11,57 @@
 CXX := g++
 UNAME := $(shell uname)
 INCDIR = -I /usr/include -I $(JAVA_HOME)/include -I ./
-FUSE_LIBS = $(shell pkg-config fuse --libs)
-FUSE_CXXFLAGS = $(shell pkg-config fuse --cflags)
+
+FUSE2_LIBS := $(shell pkg-config fuse --libs)
+FUSE2_CXXFLAGS := $(shell pkg-config fuse --cflags) -DFUSE_USE_VERSION=29
+
+FUSE3_LIBS := $(shell pkg-config fuse3 --libs)
+FUSE3_CXXFLAGS := $(shell pkg-config fuse3 --cflags) -DFUSE_USE_VERSION=30
 
 # Linux
 ifeq ($(UNAME), Linux)
 	INCDIR += -I $(JAVA_HOME)/include/linux
-	TARGET_LIB := libjnifuse.so
+	FUSE2_TARGET_LIB := libjnifuse.so
+	FUSE3_TARGET_LIB := libjnifuse3.so
 endif
 # MacOS
 ifeq ($(UNAME), Darwin)
 	INCDIR += -I $(JAVA_HOME)/include/darwin
-	TARGET_LIB := libjnifuse.dylib
+	FUSE2_TARGET_LIB := libjnifuse.dylib
+	FUSE3_TARGET_LIB := libjnifuse3.dylib
 	INCDIR += -D__APPLE__
 endif
 
-CXXFLAGS = -std=c++11 -Wall -fPIC -D_FILE_OFFSET_BITS=64 ${INCDIR} ${FUSE_CXXFLAGS}
-LDFLAGS = -shared ${FUSE_LIBS}
+COMMON_FLAGS = -std=c++11 -Wall -fPIC -D_FILE_OFFSET_BITS=64 ${INCDIR}
+
+FUSE2_CXXFLAGS += ${COMMON_FLAGS}
+FUSE2_LDFLAGS = -shared ${FUSE2_LIBS}
+
+FUSE3_CXXFLAGS += ${COMMON_FLAGS}
+FUSE3_LDFLAGS = -shared ${FUSE3_LIBS}
+
 OUTPUT_DIR ?= .
 SRC_DIR ?= ../../src/main/native/libjnifuse
-OBJS= $(addprefix $(OUTPUT_DIR)/, $(patsubst %.cc,%.o,$(notdir $(wildcard $(SRC_DIR)/*.cc))))
+FUSE2_OBJS= $(addprefix $(OUTPUT_DIR)/, $(patsubst %.cc,%.fuse2.o,$(notdir $(wildcard $(SRC_DIR)/*.cc))))
+FUSE3_OBJS= $(addprefix $(OUTPUT_DIR)/, $(patsubst %.cc,%.fuse3.o,$(notdir $(wildcard $(SRC_DIR)/*.cc))))
 
-${TARGET_LIB}: ${OBJS}
-	${CXX} ${CXXFLAGS} -o ${OUTPUT_DIR}/${TARGET_LIB} ${OBJS} ${LDFLAGS}
+all: ${FUSE2_TARGET_LIB} ${FUSE3_TARGET_LIB}
 
-install: ${TARGET_LIB}
-	sudo mv ${TARGET_LIB} /usr/lib/
+${OUTPUT_DIR}/%.fuse2.o: ${SRC_DIR}/%.cc
+	${CXX} ${FUSE2_CXXFLAGS} -o $@ -c $<
+
+${FUSE2_TARGET_LIB}: ${FUSE2_OBJS}
+	${CXX} ${FUSE2_CXXFLAGS} -o ${OUTPUT_DIR}/${FUSE2_TARGET_LIB} ${FUSE2_OBJS} ${FUSE2_LDFLAGS}
+
+${OUTPUT_DIR}/%.fuse3.o: ${SRC_DIR}/%.cc
+	${CXX} ${FUSE3_CXXFLAGS} -o $@ -c $<
+
+${FUSE3_TARGET_LIB}: ${FUSE3_OBJS}
+	${CXX} ${FUSE3_CXXFLAGS} -o ${OUTPUT_DIR}/${FUSE3_TARGET_LIB} ${FUSE3_OBJS} ${FUSE3_LDFLAGS}
+
+install: ${FUSE2_TARGET_LIB} ${FUSE3_TARGET_LIB}
+	sudo mv ${FUSE2_TARGET_LIB} /usr/lib/
+	sudo mv ${FUSE3_TARGET_LIB} /usr/lib/
 
 clean:
-	rm -rf ${OBJS} ${OUTPUT_DIR}/${TARGET_LIB}
-
-${OUTPUT_DIR}/%.o: ${SRC_DIR}/%.cc
-	${CXX} ${CXXFLAGS} -o $@ -c $<
+	rm -rf ${FUSE2_OBJS} ${FUSE3_OBJS} ${OUTPUT_DIR}/${FUSE2_TARGET_LIB} ${OUTPUT_DIR}/${FUSE3_TARGET_LIB}

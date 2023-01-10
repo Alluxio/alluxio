@@ -78,7 +78,20 @@ message NewBlockEntry {
   optional int64 id = 1;
 }
 
-// next available id: 20
+// XAttrUpdateStrategy controls the behaviour for
+// handling updates to the xAttr map
+// - TRUNCATE:       Replaces the existing xAttr map with the provided xAttr
+// - UNION_REPLACE:  Inserts all keys from xAttr and overwrites any existing keys
+// - UNION_PRESERVE: Inserts all new keys from xAttr (i.e: preserves any existing keys)
+// - DELETE_KEYS:    Deletes the specified xAttr keys from the existing xAttr map
+enum XAttrUpdateStrategy {
+    TRUNCATE = 1;
+    UNION_REPLACE = 2;
+    UNION_PRESERVE = 3;
+    DELETE_KEYS = 4;
+}
+
+// next available id: 21
 message UpdateInodeEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -99,6 +112,7 @@ message UpdateInodeEntry {
   map<string, bytes> xAttr = 17;
   optional int64 last_access_time_ms = 18;
   optional bool overwrite_access_time = 19;
+  optional XAttrUpdateStrategy xAttr_update_strategy = 20 [default = TRUNCATE];
 }
 
 // next available id: 5

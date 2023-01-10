@@ -20,7 +20,6 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -209,7 +208,7 @@ public final class TimeSeries implements Serializable {
     }
   }
 
-  /**
+  /*
    * @param timeNano the time in nano seconds
    * @return the bucketed timestamp in nano seconds
    */

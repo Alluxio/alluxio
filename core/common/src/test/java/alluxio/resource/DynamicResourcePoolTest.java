@@ -12,13 +12,15 @@
 package alluxio.resource;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.clock.ManualClock;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.ThreadFactoryUtils;
 
+import com.codahale.metrics.Counter;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -54,7 +56,7 @@ public final class DynamicResourcePoolTest {
     }
 
     /**
-     * Sets the the number representing current capacity of Resource and returns Resource Object.
+     * Sets the number representing current capacity of Resource and returns Resource Object.
      *
      * @param i the value of member variable represents the current capacity of Resource
      * @return the Resource object
@@ -93,6 +95,11 @@ public final class DynamicResourcePoolTest {
      */
     public TestPool(Options options) {
       super(options.setGcExecutor(GC_EXECUTOR));
+    }
+
+    @Override
+    protected Counter getMetricCounter() {
+      return MetricsSystem.counter("Test.DynamicResourcePoolResourceCount");
     }
 
     @Override
@@ -151,6 +158,30 @@ public final class DynamicResourcePoolTest {
     // Make sure we are not creating new resources.
     for (int i = 0; i < 3; i++) {
       assertTrue(resources.contains(i));
+    }
+  }
+
+  /**
+   * Tests if resources are acquired in a fifo manner when fifo is set to true.
+   */
+  @Test
+  public void acquireFIFO() throws Exception {
+    TestPool pool = new TestPool(DynamicResourcePool.Options.defaultOptions().setFIFO(true));
+    List<Resource> resourceList = new ArrayList<>();
+    for (int i = 0; i < 3; i++) {
+      Resource resource = pool.acquire();
+      resourceList.add(resource);
+    }
+    for (int i = 0; i < 3; i++) {
+      pool.release(resourceList.get(i));
+    }
+
+    for (int iteration = 0; iteration < 10; ++iteration) {
+      for (int i = 0; i < 3; ++i) {
+        Resource resource = pool.acquire();
+        assertEquals(resourceList.get(i), resource);
+        pool.release(resource);
+      }
     }
   }
 

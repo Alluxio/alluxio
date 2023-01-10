@@ -13,12 +13,12 @@ package alluxio.client.fs.concurrent;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
@@ -67,7 +67,7 @@ public class ConcurrentFileSystemMasterCreateIntegrationTest extends BaseIntegra
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER,
-      ServerConfiguration.global());
+      Configuration.global());
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -91,13 +91,13 @@ public class ConcurrentFileSystemMasterCreateIntegrationTest extends BaseIntegra
 
   @Before
   public void before() {
-    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
-    ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "2b");
+    mFileSystem = FileSystem.Factory.create();
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "2b");
   }
 
   @After
   public void after() {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   /**

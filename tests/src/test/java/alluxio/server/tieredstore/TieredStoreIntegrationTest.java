@@ -17,8 +17,8 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.SetAttributePOptions;
@@ -31,6 +31,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.allocator.GreedyAllocator;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -62,10 +63,10 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, MEM_CAPACITY_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, 1000)
-          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100))
+          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, 100)
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, 0.8)
-          .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, String.valueOf(100))
-          .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, String.valueOf(false))
+          .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, 100)
+          .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false)
           .setProperty(PropertyKey.WORKER_REVIEWER_CLASS,
               "alluxio.worker.block.reviewer.AcceptingReviewer")
           .build();
@@ -169,7 +170,7 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     Assert.assertFalse(mFileSystem.getStatus(file1).isPinned());
 
     // Wait until worker receives the new pin-list.
-    Thread.sleep(2 * ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+    Thread.sleep(2 * Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
 
     // Try to create a file that cannot be stored unless the previous file is evicted, this
     // should succeed
@@ -256,12 +257,12 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     mLocalAlluxioClusterResource
         .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB")
         .setProperty(PropertyKey.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName())
-        .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "1")
-        .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, String.join(",",
+        .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1)
+        .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, ImmutableList.of(
             mTempFolder.newFolder("dir1").getAbsolutePath(),
             mTempFolder.newFolder("dir2").getAbsolutePath()))
         .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA,
-            String.join(",", "2MB", String.valueOf(2 * fileLen)));
+            ImmutableList.of("2MB", String.valueOf(2 * fileLen)));
     mLocalAlluxioClusterResource.start();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     AlluxioURI uri1 = new AlluxioURI("/file1");

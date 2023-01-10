@@ -39,8 +39,8 @@ for details.
 ## Coding Style
 
 - Please follow the style of the existing codebase. We mainly follow the
-[Google Java style](https://google.github.io/styleguide/javaguide.html),
-with the following deviations:
+  [Google Java style](https://google.github.io/styleguide/javaguide.html),
+  with the following deviations:
   - Maximum line length of **100** characters.
   - Third-party imports are grouped together to make IDE formatting much simpler.
   - Class member variable names should be prefixed with `m`
@@ -49,19 +49,20 @@ with the following deviations:
     - example: `private static String sUnderFSAddress;`
 - Bash scripts follow the [Google Shell style](https://google.github.io/styleguide/shell.xml), and
 must be compatible with Bash 3.x
+- If you use IntelliJ IDEA:
+  - You can use the [IntelliJ checkstyle plugin](https://plugins.jetbrains.com/plugin/1065-checkstyle-idea) and 
+    configure it [as such]({{ '/resources/intellij_checkstyle_plugin.png' | relativize_url }}) under 
+    Preferences->Tools->Checkstyle.
+  - To automatically format the **import**, configure in
+    Preferences->Code Style->Java->Imports->Import Layout according to
+    [this order]({{ '/resources/intellij_imports.png' | relativize_url }}).
+  - In that same settings pane, you can set your style scheme to the one you imported in the Checkstyle plugin 
+    settings [as such]({{ '/resources/style_scheme.png' | relativize_url }}).
 - If you use Eclipse:
     - You can download our
-[Eclipse formatter]({{ '/resources/alluxio-code-formatter-eclipse.xml' | relativize_url }})
+    [Eclipse formatter]({{ '/resources/alluxio-code-formatter-eclipse.xml' | relativize_url }})
     - To organize your imports correctly, configure "Organize Imports" to look like
-[this]({{ '/resources/eclipse_imports.png' | relativize_url }})
-- If you use IntelliJ IDEA:
-    - You can either use our formatter with the help from
-[Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
-or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546) in
-IntelliJ IDEA.
-    - To automatically format the **import**, configure in
-Preferences->Code Style->Java->Imports->Import Layout according to
-[this order]({{ '/resources/intellij_imports.png' | relativize_url }})
+    [this]({{ '/resources/eclipse_imports.png' | relativize_url }})
 - To automatically reorder methods alphabetically, try the
 [Rearranger Plugin](http://plugins.jetbrains.com/plugin/173), open Preferences, search for
 rearranger, remove the unnecessary comments, then right click, choose "Rearrange", codes
@@ -186,8 +187,8 @@ Note that, each class must use its own logger based on the class name,
 like `LoggerFactory.getLogger(MyClass.class)` in above example,
 so its output can easily be searched for.
 The location of the output of SLF4J loggers can be found for
-[server logs]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#server-logs)
-and [application logs]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#application-logs).
+[server logs]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#server-logs)
+and [application logs]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#application-logs).
 
 ### Best Practice
 
@@ -229,22 +230,24 @@ messages.
 ### Which logging level to use
 
 There are several levels of logging, see detailed explanation of
-[different Levels]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#configuring-log-levels)
+[different Levels]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#configuring-log-levels)
 Here are the guidelines for deciding which level to use.
 
 #### Error Log Level
 
-Error level logging (`LOG.error`) indicates system level problems which cannot be recovered
-from. It should always be accompanied by a stack trace.
+Error level logging (`LOG.error`) indicates system level problems which cannot be recovered from. 
+It should be accompanied by a stack trace of the exception thrown to help debug the issue.
 
 ```java
-// Recommended
+// Recommended: a stack trace will be shown in the log
 LOG.error("Failed to do something due to an exception", e);
 ```
 
 ```java
-// Not recommended: stack trace will not be logged
+// Not recommended: wrong logging syntax
 LOG.error("Failed to do something due to an exception {}", e);
+// Not recommended: stack trace will not be logged
+LOG.error("Failed to do something due to an exception {}", e.toString());
 ```
 
 **When to Use**
@@ -262,21 +265,23 @@ level thread loop.
 #### Warn Log Level
 
 Warn level logging (`LOG.warn`) indicates a logical mismatch between user intended behavior
-and Alluxio behavior. Warn level logs are accompanied by an exception message. The associated stack
-trace may be found in debug level logs.
+and Alluxio behavior.
+Warn level logs are accompanied by an exception message using `e.toString()`.
+The associated stack trace is typically not included to avoid spamming the logs.
+If needed, print the details in separate debug level logs.
 
 ```java
 // Recommended
 LOG.warn("Failed to do something: {}", e.toString());
-// Recommended
-LOG.warn("Failed to do something: {}", e);
 ```
 
 ```java
-// Not recommended: this will print out the stack trace
+// Not recommended: wrong logging syntax 
+LOG.warn("Failed to do something: {}", e);
+// Not recommended: this will print out the stack trace, can be noisy
 LOG.warn("Failed to do something", e);
 // Not recommended: the exception class name is not included
-LOG.warn("Failed to do something", e.getMessage());
+LOG.warn("Failed to do something {}", e.getMessage());
 
 ```
 
@@ -766,19 +771,24 @@ public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap
     PropertyKey.key1, "value1",
     PropertyKey.key2, "value2"));
 ```
-For configuration changes needed for an individual test, use `Configuration.set(key, value)`, and
-create an `@After` method to clean up the configuration changes after the test:
+For configuration changes needed for an individual test, use `ConfigurationRule#set(key, value)` on the instance created by your test class. The resulting change of this method is only visible for the calling test.
 
 ```java
-@After
-public void after() {
-  ConfigurationTestUtils.resetConfiguration();
-}
+@Rule
+public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap.of(
+    PropertyKey.key1, "value1",
+    PropertyKey.key2, "value2"));
 
 @Test
 public void testSomething() {
-  Configuration.set(PropertyKey.key, "value");
+  mConfigurationRule.set(PropertyKey.key1, "value3");
+  // Now PropertyKey.key1 = "value3"
   ...
+}
+
+@Test
+public void testAnotherThing() {
+  // Now PropertyKey.key1 = "value1"
 }
 ```
 

@@ -91,7 +91,7 @@ $ mvn clean install
 
 This will build Alluxio, resulting in a series of compiled jars,
 as well as run all checks and tests.
-Depending on your hardware, this may take anywhere form several minutes to half an hour to finish.
+Depending on your hardware, this may take anywhere from several minutes to half an hour to finish.
 
 To only recompile and skip running all the checks and tests, run:
 
@@ -235,7 +235,7 @@ possible prefixes.
 * **[DOCFIX]**: This is for PRs which updates documentation
   * Examples: `[DOCFIX] Update the Getting Started guide`, `[DOCFIX] Add GCS documentation`
 * **[SMALLFIX]**: This is for PRs for minor fixes which do not change any logic, like typos
-  * Examples: `[SMALLFIX] Fix typo in AlluxioProcess`, `[SMALLFIX] Improve comment style in GlusterFSUnderFileSystem`
+  * Examples: `[SMALLFIX] Fix typo in AlluxioProcess`
 
 #### Pull Request Description
 

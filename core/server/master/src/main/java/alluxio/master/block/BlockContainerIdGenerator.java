@@ -12,7 +12,6 @@
 package alluxio.master.block;
 
 import java.util.concurrent.atomic.AtomicLong;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -33,6 +32,20 @@ public final class BlockContainerIdGenerator implements ContainerIdGenerable {
   @Override
   public long getNewContainerId() {
     return mNextContainerId.getAndIncrement();
+  }
+
+  /**
+   * @return a unique block container id, and is used
+   */
+  public long getNextContainerId() {
+    return mNextContainerId.get();
+  }
+
+  /**
+   * @return the next container id
+   */
+  public long peekNewContainerId() {
+    return mNextContainerId.get();
   }
 
   /**

@@ -18,14 +18,13 @@ import alluxio.retry.RetryPolicy;
 
 import java.net.InetSocketAddress;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The base class for job master clients.
  */
 @ThreadSafe
-public abstract class AbstractJobMasterClient extends AbstractMasterClient{
+public abstract class AbstractJobMasterClient extends AbstractMasterClient {
   /** Address to load configuration, which may differ from {@code mAddress}. */
   protected InetSocketAddress mConfAddress;
 
@@ -47,12 +46,11 @@ public abstract class AbstractJobMasterClient extends AbstractMasterClient{
    * Creates a new master client base.
    *
    * @param clientConf master client configuration
-   * @param address address to connect to
    * @param retryPolicySupplier retry policy to use
    */
-  public AbstractJobMasterClient(MasterClientContext clientConf, InetSocketAddress address,
+  public AbstractJobMasterClient(MasterClientContext clientConf,
                               Supplier<RetryPolicy> retryPolicySupplier) {
-    super(clientConf, address, retryPolicySupplier);
+    super(clientConf, retryPolicySupplier);
     mConfMasterInquireClient = clientConf.getConfMasterInquireClient();
   }
 

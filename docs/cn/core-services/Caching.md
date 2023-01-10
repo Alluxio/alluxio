@@ -35,7 +35,7 @@ Alluxio是通过把存储分为两个不同的类别来实现这一目标的。
 ![Alluxio存储图]({{ '/img/stack.png' | relativize_url }})
 
 Alluxio存储通过将数据存储在计算节点内存中来提高性能。
-Alluxio存储中的数据可以被复制来形成“热”数据，更易于I/O并行操作和使用。
+Alluxio存储中的数据可以被复制来形成"热"数据，更易于I/O并行操作和使用。
 
 Alluxio中的数据副本独立于UFS中可能已存在的副本。
 Alluxio存储中的数据副本数是由集群活动动态决定的。
@@ -93,7 +93,7 @@ alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 注意存储空间配置的顺序一定与存储目录的配置相符。
 
 Alluxio在通过`Mount`或`SudoMount`选项启动时，配置并挂载ramdisk。
-这个ramdisk大小是由`alluxio.worker.memory.size`确定的。
+这个ramdisk大小是由`alluxio.worker.ramdisk.size`确定的。
 默认情况下，tier 0设置为MEM并且管理整个ramdisk。
 此时`alluxio.worker.tieredstore.level0.dirs.quota`的值同`alluxio.worker.ramdisk.size`一样。
 如果tier0要使用除默认的ramdisk以外的设备，应该显式地设置`alluxio.worker.tieredstore.level0.dirs.quota`选项。
@@ -113,7 +113,7 @@ Alluxio假定根据按I/O性能从高到低来对多层存储进行排序。
 
 用户写新的数据块时，默认情况下会将其写入顶层存储。如果顶层没有足够的可用空间，
 则会尝试下一层存储。如果在所有层上均未找到存储空间，因Alluxio的设计是易失性存储，Alluxio会释放空间来存储新写入的数据块。
-根据块注释策略，空间释放操作会从work中释放数据块。 [块注释政策](#block-annotation-policies)。
+根据块注释策略，空间释放操作会从worker中释放数据块。 [块注释政策](#block-annotation-policies)。
 如果空间释放操作无法释放新空间，则写数据将失败。
 
 **注意:**新的释放空间模型是同步模式并会代表要求为其要写入的数据块释放新空白存储空间的客户端来执行释放空间操作。
@@ -232,7 +232,7 @@ Alluxio将动态地跨层移动数据块，以使块组成与配置的块注释�
 为辅助块对齐，Alluxio会监视I/O模式并会跨层重组数据块，以确保
 **较高层的最低块比下面层的最高块具有更高的次序**。
 
-这是通过“对齐”这个管理任务来实现的。此管理任务在检测到层之间
+这是通过"对齐"这个管理任务来实现的。此管理任务在检测到层之间
 顺序已乱时，会通过在层之间交换块位置来有效地将各层与已配置的注释策略对齐以消除乱序。
 有关如何控制这些新的后台任务对用户I/O的影响，参见[管理任务推后](#management-task-back-off)部分。
 
@@ -328,7 +328,7 @@ $ ./bin/alluxio fs persist ${PATH_TO_FILE}
 
 ### 设置生存时间(TTL)
 
-Alluxio支持命名空间中每个文件和目录的”生存时间(TTL)”设置。此
+Alluxio支持命名空间中每个文件和目录的"生存时间(TTL)"设置。此
 功能可用于有效地管理Alluxio缓存，尤其是在严格
 保证数据访问模式的环境中。例如，如果对上一周提取数据进行分析，
 则TTL功能可用于明确刷新旧数据，从而为新文件释放缓存空间。
@@ -388,7 +388,7 @@ Alluxio客户端可以配置为只要在Alluxio命名空间添加新文件时就
 * `alluxio.user.file.create.ttl`-在Alluxio中文件上设置的TTL持续时间。
 默认情况下，未设置TTL持续时间。
 * `alluxio.user.file.create.ttl.action`-对文件设置的TTL到期后的操作
-在Alluxio中。**注意：默认情况下，此操作为“DELETE”，它将导致文件永久被删除。**
+在Alluxio中。**注意：默认情况下，此操作为"DELETE"，它将导致文件永久被删除。**
 
 TTL默认情况下处于不使用状态，仅当客户有严格数据访问模式才启用。
 

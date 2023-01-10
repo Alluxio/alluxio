@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-core-server</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>2.7.0-SNAPSHOT</version>
+    <version>2.10.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-server-proxy</artifactId>
   <packaging>jar</packaging>
@@ -74,6 +74,10 @@
       <groupId>org.glassfish.jersey.inject</groupId>
       <artifactId>jersey-hk2</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.kerby</groupId>
+      <artifactId>kerby-util</artifactId>
+    </dependency>
     <!-- Required at runtime to decode json objects for rest API -->
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
@@ -124,7 +128,11 @@
 1. The Streams endpoint provides a RESTful gateway to the Alluxio file system for data operations.
                 </description>
               </info>
-              <locations>alluxio.proxy.AlluxioProxyRestServiceHandler;alluxio.proxy.PathsRestServiceHandler;alluxio.proxy.StreamsRestServiceHandler</locations>
+              <locations>
+                <location>alluxio.proxy.AlluxioProxyRestServiceHandler</location>
+                <location>alluxio.proxy.PathsRestServiceHandler</location>
+                <location>alluxio.proxy.StreamsRestServiceHandler</location>
+              </locations>
               <templatePath>${project.parent.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
               <outputPath>${project.parent.parent.parent.basedir}/generated/proxy/index.html</outputPath>
               <swaggerDirectory>${project.parent.parent.parent.basedir}/generated/proxy/swagger-ui</swaggerDirectory>

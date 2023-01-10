@@ -11,20 +11,29 @@
 
 package alluxio.underfs.cosn;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.underfs.hdfs.HdfsUnderFileSystem;
-import alluxio.underfs.hdfs.HdfsUnderFileSystemFactory;
+import alluxio.CosnUfsConstants;
+import alluxio.conf.PropertyKey;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.hdfs.HdfsUnderFileSystemFactory;
+
+import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory for creating {@link HdfsUnderFileSystem}.
- *
- * It caches created {@link HdfsUnderFileSystem}s, using the scheme and authority pair as the key.
+ * Factory for creating {@link CosnUnderFileSystem}.
  */
 @ThreadSafe
 public class CosNUnderFileSystemFactory extends HdfsUnderFileSystemFactory {
+
+  @Override
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
+    Preconditions.checkNotNull(path, "path");
+    return CosnUnderFileSystem.createInstance(new AlluxioURI(path), conf);
+  }
 
   @Override
   public boolean supportsPath(String path) {
@@ -33,6 +42,21 @@ public class CosNUnderFileSystemFactory extends HdfsUnderFileSystemFactory {
 
   @Override
   public boolean supportsPath(String path, UnderFileSystemConfiguration conf) {
-    return supportsPath(path);
+    if (!supportsPath(path)) {
+      return false;
+    }
+    // If the user has explicitly specified a UFS version,
+    // the version also has to match exactly, in addition to path prefix
+    if (conf.isSetByUser(PropertyKey.UNDERFS_VERSION)
+        && !conf.get(PropertyKey.UNDERFS_VERSION).equals(getVersion())) {
+      return false;
+    }
+    // otherwise, assume the version we ship with Alluxio supports it.
+    return true;
+  }
+
+  @Override
+  public String getVersion() {
+    return CosnUfsConstants.UFS_COSN_VERSION;
   }
 }

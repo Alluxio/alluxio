@@ -12,14 +12,13 @@
 package alluxio.worker;
 
 import alluxio.Process;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
 import java.net.InetSocketAddress;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -35,7 +34,7 @@ public interface WorkerProcess extends Process {
      * @return a new instance of {@link WorkerProcess}
      */
     public static WorkerProcess create() {
-      return create(TieredIdentityFactory.localIdentity(ServerConfiguration.global()));
+      return create(TieredIdentityFactory.localIdentity(Configuration.global()));
     }
 
     /**

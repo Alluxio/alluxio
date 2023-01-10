@@ -11,9 +11,12 @@
 
 package alluxio.proxy.s3;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+import java.util.Objects;
 
 /**
  * Result returned after requests for completing a multipart upload.
@@ -22,6 +25,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement(localName = "CompleteMultipartUploadResult")
 @JsonPropertyOrder({ "Location", "Bucket", "Key", "ETag" })
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class CompleteMultipartUploadResult {
   /* The URI that identifies the newly created object. */
   private String mLocation;
@@ -31,6 +35,11 @@ public class CompleteMultipartUploadResult {
   private String mKey;
   /* Entity tag of the object. */
   private String mETag;
+
+  /* Error Code */
+  private String mCode;
+  /* Error Message */
+  private String mMessage;
 
   /**
    * Constructs an {@link CompleteMultipartUploadResult} with fields initialized to empty strings.
@@ -48,13 +57,24 @@ public class CompleteMultipartUploadResult {
    * @param location the URI that identifies the newly created object
    * @param bucket name of the bucket
    * @param key object key
-   * @param etag entity tag of the newly created object, the etag should not be surrounded by quotes
+   * @param etag entity tag of the newly created object
    */
   public CompleteMultipartUploadResult(String location, String bucket, String key, String etag) {
     mLocation = location;
     mBucket = bucket;
     mKey = key;
-    mETag = S3RestUtils.quoteETag(etag);
+    mETag = etag;
+  }
+
+  /**
+   * Constructs an {@link CompleteMultipartUploadResult} with the specified values.
+   *
+   * @param code error code
+   * @param message error message
+   */
+  public CompleteMultipartUploadResult(String code, String message) {
+    mCode = code;
+    mMessage = message;
   }
 
   /**
@@ -106,7 +126,7 @@ public class CompleteMultipartUploadResult {
   }
 
   /**
-   * @return the entity tag surrounded by quotes
+   * @return the entity tag
    */
   @JacksonXmlProperty(localName = "ETag")
   public String getETag() {
@@ -114,10 +134,79 @@ public class CompleteMultipartUploadResult {
   }
 
   /**
-   * @param etag the entity tag to be set, should not be surrounded by quotes
+   * @param etag the entity tag to be set
    */
   @JacksonXmlProperty(localName = "ETag")
   public void setETag(String etag) {
-    mETag = S3RestUtils.quoteETag(etag);
+    mETag = etag;
+  }
+
+  /**
+   * @return the entity error code
+   */
+  @JacksonXmlProperty(localName = "Code")
+  public String getCode() {
+    return mCode;
+  }
+
+  /**
+   * @param code the entity error code
+   */
+  @JacksonXmlProperty(localName = "Code")
+  public void setCode(String code) {
+    mCode = code;
+  }
+
+  /**
+   * @return the entity error message
+   */
+  @JacksonXmlProperty(localName = "Message")
+  public String getMessage() {
+    return mMessage;
+  }
+
+  /**
+   * @param message the entity error message
+   */
+  @JacksonXmlProperty(localName = "Message")
+  public void setMessage(String message) {
+    mMessage = message;
+  }
+
+  @Override
+  public String toString() {
+    return "CompleteMultipartUploadResult{"
+        + "mLocation='" + mLocation + '\''
+        + ", mBucket='" + mBucket + '\''
+        + ", mKey='" + mKey + '\''
+        + ", mETag='" + mETag + '\''
+        + ", mCode='" + mCode + '\''
+        + ", mMessage='" + mMessage + '\''
+        + '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    CompleteMultipartUploadResult result = (CompleteMultipartUploadResult) o;
+    return Objects.equals(mLocation, result.mLocation)
+        && Objects.equals(mBucket, result.mBucket)
+        && Objects.equals(mKey, result.mKey)
+        && Objects.equals(mETag, result.mETag)
+        && Objects.equals(mCode, result.mCode)
+        && Objects.equals(mMessage, result.mMessage);
+  }
+
+  @Override
+  public int hashCode() {
+    if (mCode == null) {
+      return Objects.hash(mLocation, mBucket, mKey, mETag);
+    }
+    return Objects.hash(mCode, mMessage);
   }
 }

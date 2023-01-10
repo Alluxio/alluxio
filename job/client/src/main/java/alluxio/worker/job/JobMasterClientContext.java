@@ -12,7 +12,6 @@
 package alluxio.worker.job;
 
 import alluxio.ClientContext;
-
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 

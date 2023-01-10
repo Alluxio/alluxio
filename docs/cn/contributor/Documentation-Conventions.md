@@ -36,17 +36,17 @@ priority: 4
 不是用来传达必要信息的词汇没有人愿意读。
 
 * 用[祈使语气](https://en.wikipedia.org/wiki/Imperative_mood)，与发命令时用的口气一样
-    * “运行命令以启动进程”
-    * 而**不是**“下一步，您可以运行命令以启动该进程”
-    * “在配置中包括一个SocketAppender ...”
-    * 而**不是**“ SocketAppender可以被包含在配置中……”
+    * "运行命令以启动进程"
+    * 而**不是**"下一步，您可以运行命令以启动该进程"
+    * "在配置中包括一个SocketAppender ..."
+    * 而**不是**" SocketAppender可以被包含在配置中……"
 * 使用[主动语态](https://en.wikipedia.org/wiki/Active_voice)
-    * “配置错误时该进程失败”
-    * 而**不是**“配置错误时该过程将失败”
-    * 而**不是**“众所周知配置错误会导致启动进程失败”
+    * "配置错误时该进程失败"
+    * 而**不是**"配置错误时该过程将失败"
+    * 而**不是**"众所周知配置错误会导致启动进程失败"
 * 不要使用不必要的标点符号
     * 避免使用括号来降低一个部分的重要性
-        * 错误样例：“Alluxio做为生态系统中的新数据访问层，位于任何持久性存储系统（例如Amazon S3，Microsoft Azure对象存储，Apache HDFS或OpenStack Swift）和计算框架之间（例如Apache Spark，Presto， 或Hadoop MapReduce）。”
+        * 错误样例："Alluxio做为生态系统中的新数据访问层，位于任何持久性存储系统（例如Amazon S3，Microsoft Azure对象存储，Apache HDFS或OpenStack Swift）和计算框架之间（例如Apache Spark，Presto， 或Hadoop MapReduce）。"
 * 减少不添加内容的从句的使用
     * 删除以下用法:
         * 例如， …
@@ -68,7 +68,7 @@ priority: 4
     * ```` ```properties```` 为Java属性文件
     * ```` ```console```` 为一个shell中的交互式时域
     * ```` ```bash```` 为shell脚本
-* 以Alluxio开头的术语，例如命名空间，缓存或存储，应以“ the”开头，以区别于常用术语，但如果不是专有名词，则保持小写
+* 以Alluxio开头的术语，例如命名空间，缓存或存储，应以" the"开头，以区别于常用术语，但如果不是专有名词，则保持小写
     * 例如数据将被复制到 the Alluxio 存储中。... 
     * 例如当新文件添加到 the Alluxio 命名空间后，...
     * 例如The Alluxio master从不直接读取或写入数据 ...
@@ -78,7 +78,7 @@ priority: 4
 文档不是对话。请不要用类似与他人闲聊的语气。
 
 列出项目时，请使用串行逗号，也称为牛津逗号
-* 例如：“ Alluxio与Amazon S3，Apache HDFS，和Microsoft Azure Object Store等存储系统集成。” 注意“ HDFS”之后的最后一个逗号。
+* 例如：" Alluxio与Amazon S3，Apache HDFS，和Microsoft Azure Object Store等存储系统集成。" 注意" HDFS"之后的最后一个逗号。
 * 避免适用缩略词；删除撇号并展开
     * Don’t -> Do not
 * 用一个空格将一个句子的结束句号与下一个句子的开始字符分开； 这是自1950年代就有的规范。
@@ -92,11 +92,11 @@ priority: 4
 |-------------------------|-----------------------------------------------------|
 | File system | Filesystem |
 | Leading master | Leader, lead master, primary master |
-| Backup master | Secondary master, following master, follower master |
+| Standby master | Backup master, following master, follower master |
 | Containerized | Dockerized |
 | Superuser | Super-user, super user |
 | I/O | i/o, IO |
-| High availability mode | Fault tolerance mode (Use of "fault tolerance" is fine, but not when interchangeable with “high availability”) |
+| High availability mode | Fault tolerance mode (Use of "fault tolerance" is fine, but not when interchangeable with "high availability") |
 | Hostname | Host name |
 
 ## 换行

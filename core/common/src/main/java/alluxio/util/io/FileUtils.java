@@ -13,17 +13,30 @@ package alluxio.util.io;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.AlreadyExistsRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
+import alluxio.exception.runtime.InternalRuntimeException;
+import alluxio.exception.runtime.InvalidArgumentRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.runtime.PermissionDeniedRuntimeException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
+import alluxio.exception.runtime.UnknownRuntimeException;
+import alluxio.grpc.ErrorType;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
@@ -38,7 +51,6 @@ import java.nio.file.attribute.UserPrincipal;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -72,8 +84,18 @@ public final class FileUtils {
    * @param filePath that will change permission
    * @param perms the permission, e.g. "rwxr--r--"
    */
-  public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
-    Files.setPosixFilePermissions(Paths.get(filePath), PosixFilePermissions.fromString(perms));
+  public static void changeLocalFilePermission(String filePath, String perms) {
+    try {
+      Files.setPosixFilePermissions(Paths.get(filePath), PosixFilePermissions.fromString(perms));
+    } catch (UnsupportedOperationException e) {
+      throw new UnimplementedRuntimeException(e, ErrorType.External);
+    } catch (ClassCastException e) {
+      throw new InvalidArgumentRuntimeException(e);
+    } catch (SecurityException e) {
+      throw new PermissionDeniedRuntimeException(e);
+    } catch (IOException e) {
+      throw new UnknownRuntimeException(e);
+    }
   }
 
   /**
@@ -81,32 +103,8 @@ public final class FileUtils {
    *
    * @param filePath that will change permission
    */
-  public static void changeLocalFileToFullPermission(String filePath) throws IOException {
+  public static void changeLocalFileToFullPermission(String filePath) {
     changeLocalFilePermission(filePath, "rwxrwxrwx");
-  }
-
-  /**
-   * Gets local file's owner.
-   *
-   * @param filePath the file path
-   * @return the owner of the local file
-   */
-  public static String getLocalFileOwner(String filePath) throws IOException {
-    PosixFileAttributes attr =
-        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class);
-    return attr.owner().getName();
-  }
-
-  /**
-   * Gets local file's group.
-   *
-   * @param filePath the file path
-   * @return the group of the local file
-   */
-  public static String getLocalFileGroup(String filePath) throws IOException {
-    PosixFileAttributes attr =
-        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class);
-    return attr.group().getName();
   }
 
   /**
@@ -228,15 +226,14 @@ public final class FileUtils {
    * @param path the path of the block
    * @param workerDataFolderPermissions The permissions to set on the worker's data folder
    */
-  public static void createBlockPath(String path, String workerDataFolderPermissions)
-      throws IOException {
+  @VisibleForTesting
+  public static void createBlockPath(String path, String workerDataFolderPermissions) {
     try {
-      createStorageDirPath(PathUtils.getParent(path), workerDataFolderPermissions);
+      String parent = PathUtils.getParent(path);
+      createStorageDirPath(parent, workerDataFolderPermissions);
     } catch (InvalidPathException e) {
-      throw new IOException("Failed to create block path, get parent path of " + path + "failed",
-          e);
-    } catch (IOException e) {
-      throw new IOException("Failed to create block path " + path, e);
+      throw new InternalRuntimeException(
+          "Failed to create block path, get parent path of " + path + "failed", e);
     }
   }
 
@@ -256,9 +253,19 @@ public final class FileUtils {
    *
    * @param path pathname string of file or directory
    */
-  public static void delete(String path) throws IOException {
-    if (!Files.deleteIfExists(Paths.get(path))) {
-      throw new IOException("Failed to delete " + path);
+  public static void delete(String path) {
+    try {
+      Files.delete(Paths.get(path));
+    } catch (java.nio.file.InvalidPathException e) {
+      throw new InvalidArgumentRuntimeException(e);
+    } catch (NoSuchFileException e) {
+      throw new NotFoundRuntimeException(e);
+    } catch (DirectoryNotEmptyException e) {
+      throw new FailedPreconditionRuntimeException(e);
+    } catch (SecurityException e) {
+      throw new PermissionDeniedRuntimeException(e);
+    } catch (IOException e) {
+      throw new UnknownRuntimeException(e);
     }
   }
 
@@ -303,17 +310,23 @@ public final class FileUtils {
    * @param workerDataFolderPermissions the permissions to set for the worker's data folder
    * @return true if the directory is created and false if the directory already exists
    */
-  public static boolean createStorageDirPath(String path, String workerDataFolderPermissions)
-      throws IOException {
+  public static boolean createStorageDirPath(String path, String workerDataFolderPermissions) {
     if (Files.exists(Paths.get(path))) {
       return false;
     }
     Path storagePath;
     try {
       storagePath = Files.createDirectories(Paths.get(path));
-    } catch (UnsupportedOperationException | SecurityException | IOException e) {
-      throw new IOException("Failed to create folder " + path, e);
+    } catch (UnsupportedOperationException e) {
+      throw new UnimplementedRuntimeException(e, ErrorType.External);
+    } catch (FileAlreadyExistsException e) {
+      throw new AlreadyExistsRuntimeException(e);
+    } catch (SecurityException e) {
+      throw new PermissionDeniedRuntimeException(e);
+    } catch (IOException e) {
+      throw new UnknownRuntimeException(e);
     }
+
     String absolutePath = storagePath.toAbsolutePath().toString();
     changeLocalFilePermission(absolutePath, workerDataFolderPermissions);
     setLocalDirStickyBit(absolutePath);
@@ -325,13 +338,23 @@ public final class FileUtils {
    *
    * @param filePath pathname string of the file to create
    */
-  public static void createFile(String filePath) throws IOException {
+  public static void createFile(String filePath) {
     Path storagePath = Paths.get(filePath);
     Path parent = storagePath.getParent();
-    if (parent != null) {
-      Files.createDirectories(parent);
+    try {
+      if (parent != null) {
+        Files.createDirectories(parent);
+      }
+      Files.createFile(storagePath);
+    } catch (UnsupportedOperationException e) {
+      throw new UnimplementedRuntimeException(e, ErrorType.External);
+    } catch (ClassCastException e) {
+      throw new InvalidArgumentRuntimeException(e);
+    } catch (SecurityException e) {
+      throw new PermissionDeniedRuntimeException(e);
+    } catch (IOException e) {
+      throw new UnknownRuntimeException(e);
     }
-    Files.createFile(storagePath);
   }
 
   /**

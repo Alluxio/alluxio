@@ -13,15 +13,12 @@ package alluxio.heartbeat;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.ConfigurationTestUtils;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.security.user.UserState;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +27,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
+import javax.annotation.Nullable;
 
 /**
  * Unit tests for {@link HeartbeatThread}. This test uses
@@ -67,8 +65,6 @@ public final class HeartbeatThreadTest {
   private static final int NUMBER_OF_THREADS = 10;
 
   private ExecutorService mExecutorService;
-
-  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
 
   @Before
   public void before() {
@@ -143,8 +139,8 @@ public final class HeartbeatThreadTest {
       try (ManuallyScheduleHeartbeat.Resource r =
           new ManuallyScheduleHeartbeat.Resource(Arrays.asList(mThreadName))) {
         DummyHeartbeatExecutor executor = new DummyHeartbeatExecutor();
-        HeartbeatThread ht = new HeartbeatThread(mThreadName, executor, 1, mConfiguration,
-            UserState.Factory.create(mConfiguration));
+        HeartbeatThread ht = new HeartbeatThread(mThreadName, executor, 1, Configuration.global(),
+            UserState.Factory.create(Configuration.global()));
 
         // Run the HeartbeatThread.
         mExecutorService.submit(ht);

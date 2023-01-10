@@ -23,7 +23,7 @@ function main {
   fi
   if [ -z "${ALLUXIO_DOCKER_IMAGE}" ]
   then
-    ALLUXIO_DOCKER_IMAGE="alluxio/alluxio-maven:0.0.5-jdk8"
+    ALLUXIO_DOCKER_IMAGE="alluxio/alluxio-maven:0.0.8-jdk8"
   fi
 
   local run_args="--rm"
@@ -31,6 +31,11 @@ function main {
   if [ -z ${ALLUXIO_DOCKER_NO_TTY} ]
   then
     run_args+=" -it"
+  fi
+
+  if [ -n "${ALLUXIO_DOCKER_FORK_COUNT}" ]
+   then
+     run_args+=" -e ALLUXIO_FORK_COUNT=${ALLUXIO_DOCKER_FORK_COUNT}"
   fi
 
   if [ -n "${ALLUXIO_DOCKER_GIT_CLEAN}" ]
@@ -79,10 +84,7 @@ function main {
   run_args+=" -e ALLUXIO_USE_FIXED_TEST_PORTS=true"
   run_args+=" -e ALLUXIO_PORT_COORDINATION_DIR=${home}"
 
-  if [ -n "${ALLUXIO_COVERAGE_REPORT}" ]
-  then
-    run_args+=" --entrypoint=dev/github/run_coverage.sh"
-  elif [ -n "${ALLUXIO_CHECKSTYLE}" ]
+  if [ -n "${ALLUXIO_CHECKSTYLE}" ]
   then
     run_args+=" --entrypoint=dev/github/run_checks.sh"
   else

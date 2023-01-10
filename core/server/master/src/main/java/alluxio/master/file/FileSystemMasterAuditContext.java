@@ -12,6 +12,8 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
 import alluxio.master.file.meta.Inode;
@@ -37,6 +39,7 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   private Inode mSrcInode;
   private long mCreationTimeNs;
   private long mExecutionTimeNs;
+  private String mClientVersion;
 
   @Override
   public FileSystemMasterAuditContext setAllowed(boolean allowed) {
@@ -140,11 +143,22 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   }
 
   /**
+   * set client version.
+   *
+   * @param version client version
+   * @return this {@link AuditContext} instance
+   */
+  public FileSystemMasterAuditContext setClientVersion(String version) {
+    mClientVersion = version;
+    return this;
+  }
+
+  /**
    * Constructor of {@link FileSystemMasterAuditContext}.
    *
-   * @param asyncAuditLogWriter
+   * @param asyncAuditLogWriter async audit log writer
    */
-  protected FileSystemMasterAuditContext(AsyncUserAccessAuditLogWriter asyncAuditLogWriter) {
+  FileSystemMasterAuditContext(AsyncUserAccessAuditLogWriter asyncAuditLogWriter) {
     mAsyncAuditLogWriter = asyncAuditLogWriter;
     mAllowed = true;
   }
@@ -160,21 +174,28 @@ public final class FileSystemMasterAuditContext implements AuditContext {
 
   @Override
   public String toString() {
+    StringBuilder auditLog = new StringBuilder();
     if (mSrcInode != null) {
       short mode = mSrcInode.getMode();
-      return String.format(
+      auditLog.append(String.format(
           "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
               + "perm=%s:%s:%s%s%s\texecutionTimeUs=%d",
           mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
           mSrcInode.getOwner(), mSrcInode.getGroup(),
           Mode.extractOwnerBits(mode), Mode.extractGroupBits(mode), Mode.extractOtherBits(mode),
-          mExecutionTimeNs / 1000);
+          mExecutionTimeNs / 1000));
     } else {
-      return String.format(
+      auditLog.append(String.format(
           "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
               + "perm=null\texecutionTimeUs=%d",
           mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
-          mExecutionTimeNs / 1000);
+          mExecutionTimeNs / 1000));
     }
+    if (Configuration.global().getBoolean(PropertyKey.USER_CLIENT_REPORT_VERSION_ENABLED)) {
+      auditLog.append(
+          String.format("\tclientVersion=%s\t", mClientVersion));
+    }
+    auditLog.append("\tproto=rpc");
+    return auditLog.toString();
   }
 }

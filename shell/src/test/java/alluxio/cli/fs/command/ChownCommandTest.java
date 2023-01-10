@@ -11,6 +11,7 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.AlluxioURI;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
@@ -18,6 +19,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -43,17 +45,14 @@ public class ChownCommandTest {
   public void chownPanicIllegalOwnerName() throws AlluxioException, IOException {
     ChownCommand command = new ChownCommand(null);
 
-    String expectedOutput =
-        String.format("Failed to parse user.1:group1 as user or user:group%n");
-    verifyChownCommandReturnValueAndOutput(command, -1, expectedOutput,
-        "user.1:group1", "/testFile");
-
-    String[] args2 = {"user#1:group1", "/testFile"};
-    expectedOutput = String.format("Failed to parse user#1:group1 as user or user:group%n");
+    String expectedOutput = String.format("Failed to parse user#1:group1 as user or user:group%n");
     verifyChownCommandReturnValueAndOutput(command, -1, expectedOutput,
         "user#1:group1", "/testFile");
 
-    String[] args3 = {"6user^$group$", "/testFile"};
+    expectedOutput = String.format("Failed to parse user@1:group1 as user or user:group%n");
+    verifyChownCommandReturnValueAndOutput(command, -1, expectedOutput,
+        "user@1:group1", "/testFile");
+
     expectedOutput = String.format("Failed to parse 6user^$group$ as user or user:group%n");
     verifyChownCommandReturnValueAndOutput(command, -1, expectedOutput,
         "6user^$group$", "/testFile");
@@ -63,18 +62,23 @@ public class ChownCommandTest {
   public void chownPanicIllegalGroupName() throws AlluxioException, IOException {
     ChownCommand command = new ChownCommand(null);
 
-    String expectedOutput = String.format("Failed to parse user1:group.1 as user or user:group%n");
-    verifyChownCommandReturnValueAndOutput(command, -1, expectedOutput,
-        "user1:group.1", "/testFile");
-
-    expectedOutput = String.format("Failed to parse user1:^6group$ as user or user:group%n");
+    String expectedOutput = String.format("Failed to parse user1:^6group$ as user or user:group%n");
     verifyChownCommandReturnValueAndOutput(command, -1, expectedOutput,
         "user1:^6group$", "/testFile");
   }
 
+  @Test
+  public void chownLegalCases() throws AlluxioException, IOException {
+    ChownCommand command = Mockito.spy(new ChownCommand(null));
+    Mockito.doNothing().when(command).runWildCardCmd(
+        Mockito.any(AlluxioURI.class), Mockito.any(CommandLine.class));
+    verifyChownCommandReturnValueAndOutput(command, 0, "", "user-1:group-1", "/testFile");
+    verifyChownCommandReturnValueAndOutput(command, 0, "", "user.1:group.1", "/testFile");
+  }
+
   private void verifyChownCommandReturnValueAndOutput(ChownCommand command,
       int expectedReturnValue, String expectedOutput, String... args)
-    throws AlluxioException, IOException {
+      throws AlluxioException, IOException {
     mOutput.reset();
     CommandLine cl = command.parseAndValidateArgs(args);
     int ret = command.run(cl);

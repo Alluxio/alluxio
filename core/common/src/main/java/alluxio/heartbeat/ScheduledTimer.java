@@ -18,7 +18,6 @@ import com.google.common.base.Preconditions;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -77,11 +76,7 @@ public final class ScheduledTimer implements HeartbeatTimer {
     }
   }
 
-  /**
-   * Waits until the heartbeat is scheduled for execution.
-   *
-   * @throws InterruptedException if the thread is interrupted while waiting
-   */
+  @Override
   public void tick() throws InterruptedException {
     try (LockResource r = new LockResource(mLock)) {
       HeartbeatScheduler.addTimer(this);

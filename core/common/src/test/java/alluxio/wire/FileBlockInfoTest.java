@@ -12,8 +12,8 @@
 package alluxio.wire;
 
 import alluxio.Constants;
-import alluxio.util.CommonUtils;
 import alluxio.grpc.GrpcUtils;
+import alluxio.util.CommonUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HostAndPort;

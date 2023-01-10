@@ -11,10 +11,11 @@
 
 package alluxio.cli.hdfs;
 
+import alluxio.cli.ApplicableUfsType;
 import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
-import alluxio.cli.ApplicableUfsType;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.util.ExceptionUtils;
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.Option;
@@ -111,7 +112,7 @@ public class HdfsConfParityValidationTask extends HdfsConfValidationTask {
       serverSiteProps = parser.parseXmlConfiguration(serverConfigFilePath);
     } catch (Exception e) {
       mMsg.append(String.format("Failed to parse server-side %s.%n", serverConfigFilePath));
-      mMsg.append(ValidationUtils.getErrorInfo(e));
+      mMsg.append(ExceptionUtils.asPlainText(e));
       mAdvice.append(String.format("Please fix the parsing error in %s.%n", serverConfigFilePath));
       return false;
     }

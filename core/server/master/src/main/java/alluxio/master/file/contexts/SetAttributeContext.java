@@ -12,9 +12,9 @@
 package alluxio.master.file.contexts;
 
 import alluxio.Constants;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 
 import com.google.common.base.MoreObjects;
 
@@ -26,6 +26,7 @@ public class SetAttributeContext
 
   private long mOperationTimeMs;
   private String mUfsFingerprint;
+  private boolean mMetadataLoad = false;
 
   /**
    * Creates context with given option data.
@@ -54,7 +55,7 @@ public class SetAttributeContext
    */
   public static SetAttributeContext mergeFrom(SetAttributePOptions.Builder optionsBuilder) {
     SetAttributePOptions masterOptions =
-        FileSystemOptions.setAttributeDefaults(ServerConfiguration.global());
+        FileSystemOptionsUtils.setAttributeDefaults(Configuration.global());
     SetAttributePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -64,7 +65,7 @@ public class SetAttributeContext
    * @return the instance of {@link SetAttributeContext} with default values for master
    */
   public static SetAttributeContext defaults() {
-    return create(FileSystemOptions.setAttributeDefaults(ServerConfiguration.global()).toBuilder());
+    return create(FileSystemOptionsUtils.setAttributeDefaults(Configuration.global()).toBuilder());
   }
 
   /**
@@ -83,6 +84,23 @@ public class SetAttributeContext
   public SetAttributeContext setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
     return this;
+  }
+
+  /**
+   * @param metadataLoad the flag value to use; if true, the operation is a result of a metadata
+   *        load
+   * @return the updated context
+   */
+  public SetAttributeContext setMetadataLoad(boolean metadataLoad) {
+    mMetadataLoad = metadataLoad;
+    return this;
+  }
+
+  /**
+   * @return the metadataLoad flag; if true, the operation is a result of a metadata load
+   */
+  public boolean isMetadataLoad() {
+    return mMetadataLoad;
   }
 
   /**

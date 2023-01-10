@@ -19,6 +19,10 @@ The Alluxio master web interface can be found by visiting `http://<MASTER IP>:19
 For instance, if Alluxio was started locally, the master web interface
 can be viewed by visiting [localhost:19999](http://localhost:19999).
 
+When the cluster is running with High Availability, by default the standby masters
+do not serve the Web UI. Set `alluxio.standby.master.web.enabled=true`
+to have the standby masters also serve the Web UI.
+
 The Alluxio master web interface contains several different pages, described below.
 
 ### Home Page
@@ -91,7 +95,7 @@ Possible causes include system restart or network failures.
 
 ### Master Metrics
 
-To access master metrics section, click on the “Metrics” tab in the navigation bar.
+To access master metrics section, click on the "Metrics" tab in the navigation bar.
 
 ![masterMetrics]({{ '/img/screenshot_masterMetrics.png' | relativize_url }})
 
@@ -128,7 +132,7 @@ Clicking on a file shows the blocks of that file.
 
 ### Worker Metrics 
 
-To Access worker metrics section, click on the “Metrics” tab in the navigation bar.
+To Access worker metrics section, click on the "Metrics" tab in the navigation bar.
 
 ![workerMetrics]({{ '/img/screenshot_workerMetrics.png' | relativize_url }})
 

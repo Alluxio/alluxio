@@ -21,6 +21,7 @@
 /conf/alluxio-env.sh
 /conf/alluxio-env.sh.bootstrap.bk
 /conf/metrics.properties
+/conf/rocks-*.ini
 /data/
 /dev/scripts/*.tar.gz
 /dev/scripts/tarballs
@@ -30,6 +31,7 @@
 /docs/serve/
 /extensions/
 /generated/
+/integration/docker/*.tar.gz
 /integration/vagrant/.request_ids
 /integration/vagrant/.vagrant/
 /integration/vagrant/conf/ec2.yml

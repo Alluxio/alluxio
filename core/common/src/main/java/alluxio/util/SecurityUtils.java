@@ -20,7 +20,6 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.UserState;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
@@ -144,7 +143,7 @@ public final class SecurityUtils {
     try {
       // Create LoginContext based on authType, corresponding LoginModule should be registered
       // under the authType name in LoginModuleConfiguration.
-      return new LoginContext(authType.getAuthName(), subject, callbackHandler, configuration);
+      return new LoginContext(authType.name(), subject, callbackHandler, configuration);
     } finally {
       Thread.currentThread().setContextClassLoader(previousClassLoader);
     }

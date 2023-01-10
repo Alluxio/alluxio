@@ -12,8 +12,6 @@
 package alluxio.client.file.cache.evictor;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -51,10 +49,10 @@ public class LFUCacheEvictor implements CacheEvictor {
   /**
    * Required constructor.
    *
-   * @param conf Alluxio configuration
+   * @param options
    */
-  public LFUCacheEvictor(AlluxioConfiguration conf) {
-    mDivisor = Math.log(conf.getDouble(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE));
+  public LFUCacheEvictor(CacheEvictorOptions options) {
+    mDivisor = Math.log(options.getLFULogBase());
   }
 
   private int getBucket(int count) {
@@ -149,6 +147,23 @@ public class LFUCacheEvictor implements CacheEvictor {
     PageId pageToEvict = lruMap.keySet().iterator().next();
     LOG.debug("plan to evict page {} ", pageToEvict);
     return pageToEvict;
+  }
+
+  @Nullable
+  @Override
+  public synchronized PageId evictMatching(Predicate<PageId> criterion) {
+    Map<PageId, Boolean> lruMap = mBucketMap.get(mMinBucket);
+    if (lruMap == null) {
+      LOG.debug("cannot evict page - bucket {} is empty", mMinBucket);
+      return null;
+    }
+    for (PageId candidate : lruMap.keySet()) {
+      if (criterion.test(candidate)) {
+        LOG.debug("plan to evict page {} ", candidate);
+        return candidate;
+      }
+    }
+    return null;
   }
 
   @Override

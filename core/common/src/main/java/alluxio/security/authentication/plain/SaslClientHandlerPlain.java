@@ -16,18 +16,18 @@ import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.ChannelAuthenticationScheme;
 import alluxio.security.User;
 import alluxio.security.authentication.AbstractSaslClientHandler;
+import alluxio.security.authentication.AuthenticationUtils;
 import alluxio.security.authentication.SaslClientHandler;
-import alluxio.security.authentication.AuthenticationUserUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Set;
 import javax.security.auth.Subject;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
-import java.util.HashMap;
-import java.util.Set;
 
 /**
  * {@link SaslClientHandler} implementation for Plain/Custom schemes.
@@ -62,7 +62,7 @@ public class SaslClientHandlerPlain extends AbstractSaslClientHandler {
     }
 
     // Determine the impersonation user
-    String impersonationUser = AuthenticationUserUtils.getImpersonationUser(subject, conf);
+    String impersonationUser = AuthenticationUtils.getImpersonationUser(subject, conf);
 
     mSaslClient = createSaslClient(connectionUser, password, impersonationUser);
   }

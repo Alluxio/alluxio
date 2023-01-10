@@ -19,7 +19,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.io.Serializable;
 import java.util.List;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

@@ -13,8 +13,8 @@ package alluxio.master.table.transform;
 
 import alluxio.client.job.JobMasterClient;
 import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
@@ -22,9 +22,9 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.JobConfig;
-import alluxio.job.workflow.composite.CompositeConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
+import alluxio.job.workflow.composite.CompositeConfig;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
@@ -99,7 +99,7 @@ public class TransformManager implements DelegatingJournaled {
    * This is not journaled, so after restarting TableMaster, the job history is lost.
    */
   private final Cache<Long, TransformJobInfo> mJobHistory = CacheBuilder.newBuilder()
-      .expireAfterWrite(ServerConfiguration.getMs(
+      .expireAfterWrite(Configuration.getMs(
           PropertyKey.TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME),
           TimeUnit.MILLISECONDS)
       .build();
@@ -135,8 +135,8 @@ public class TransformManager implements DelegatingJournaled {
   public void start(ExecutorService executorService, UserState userState) {
     executorService.submit(
         new HeartbeatThread(HeartbeatContext.MASTER_TABLE_TRANSFORMATION_MONITOR, new JobMonitor(),
-            ServerConfiguration.getMs(PropertyKey.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL),
-            ServerConfiguration.global(), userState));
+            Configuration.getMs(PropertyKey.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL),
+            Configuration.global(), userState));
   }
 
   /**
@@ -303,8 +303,7 @@ public class TransformManager implements DelegatingJournaled {
     public void heartbeat() throws InterruptedException {
       for (TransformJobInfo job : mState.getRunningJobs()) {
         if (Thread.currentThread().isInterrupted()) {
-          throw new InterruptedException(ExceptionMessage.TRANSFORM_MANAGER_HEARTBEAT_INTERRUPTED
-              .getMessage());
+          throw new InterruptedException("TransformManager's heartbeat was interrupted");
         }
         long jobId = job.getJobId();
         try {

@@ -11,19 +11,19 @@
 
 package alluxio.master.block.meta;
 
+import alluxio.DefaultStorageTierAssoc;
 import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * An object representation of fields relevant to worker usage and capacity.
  * This class is not thread safe so external locking is required.
- * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+ * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
  * with {@link WorkerMetaLockSection#USAGE} specified.
  */
 @NotThreadSafe
@@ -32,31 +32,19 @@ public class WorkerUsageMeta {
   long mCapacityBytes;
   /** Worker's used bytes. */
   long mUsedBytes;
-  /** Worker-specific mapping between storage tier alias and storage tier ordinal. */
-  StorageTierAssoc mStorageTierAssoc;
   /** Mapping from storage tier alias to total bytes. */
-  Map<String, Long> mTotalBytesOnTiers;
+  Map<String, Long> mTotalBytesOnTiers = new HashMap<>();
   /** Mapping from storage tier alias to used bytes. */
-  Map<String, Long> mUsedBytesOnTiers;
+  Map<String, Long> mUsedBytesOnTiers = new HashMap<>();
   /** Mapping from tier alias to lost storage paths. */
-  Map<String, List<String>> mLostStorage;
-
-  /**
-   * Constructor.
-   */
-  public WorkerUsageMeta() {
-    mStorageTierAssoc = null;
-    mTotalBytesOnTiers = new HashMap<>();
-    mUsedBytesOnTiers = new HashMap<>();
-    mLostStorage = new HashMap<>();
-  }
+  Map<String, List<String>> mLostStorage = new HashMap<>();
 
   /**
    * Update the worker resource usage. An exclusive lock is required.
    *
    * Example:
    * <blockquote><pre>
-   *   EnumSet<WorkerMetaLockSection> lockTypes =
+   *   EnumSet&lt;WorkerMetaLockSection&gt; lockTypes =
    *       EnumSet.of(WorkerMetaLockSection.USAGE_LOCK);
    *   worker.lock(lockTypes, false);
    *   try {
@@ -82,7 +70,7 @@ public class WorkerUsageMeta {
       }
     }
 
-    WorkerStorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(storageTierAliases);
+    StorageTierAssoc storageTierAssoc = new DefaultStorageTierAssoc(storageTierAliases);
     // validate the number of tiers
     if (storageTierAssoc.size() != totalBytesOnTiers.size()
             || storageTierAssoc.size() != usedBytesOnTiers.size()) {
@@ -93,7 +81,6 @@ public class WorkerUsageMeta {
               + " tiers and usedBytesOnTiers has " + usedBytesOnTiers.size() + " tiers");
     }
 
-    mStorageTierAssoc = storageTierAssoc;
     // defensive copy
     mTotalBytesOnTiers = new HashMap<>(totalBytesOnTiers);
     mUsedBytesOnTiers = new HashMap<>(usedBytesOnTiers);
@@ -112,7 +99,7 @@ public class WorkerUsageMeta {
    *
    * Example:
    * <blockquote><pre>
-   *   EnumSet<WorkerMetaLockSection> lockTypes =
+   *   EnumSet&lt;WorkerMetaLockSection&gt; lockTypes =
    *       EnumSet.of(WorkerMetaLockSection.USAGE_LOCK);
    *   worker.lock(lockTypes, true);
    *   try {

@@ -11,11 +11,12 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.metrics.MetricKey;
@@ -31,8 +32,8 @@ import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.nio.file.Paths;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -97,10 +98,8 @@ public final class LocalFileDataReader implements DataReader {
   @NotThreadSafe
   public static class Factory implements DataReader.Factory {
     private final CloseableResource<BlockWorkerClient> mBlockWorker;
-    private final long mBlockId;
     private final String mPath;
     private final long mLocalReaderChunkSize;
-    private final int mReadBufferSize;
     private final GrpcBlockingStream<OpenLocalBlockRequest, OpenLocalBlockResponse> mStream;
 
     private LocalFileBlockReader mReader;
@@ -114,33 +113,32 @@ public final class LocalFileDataReader implements DataReader {
      * @param address the worker address
      * @param blockId the block ID
      * @param localReaderChunkSize chunk size in bytes for local reads
-     * @param options the instream options
+     * @param options the InStream options
      */
     public Factory(FileSystemContext context, WorkerNetAddress address, long blockId,
         long localReaderChunkSize, InStreamOptions options) throws IOException {
       AlluxioConfiguration conf = context.getClusterConf();
-      mBlockId = blockId;
       mLocalReaderChunkSize = localReaderChunkSize;
-      mReadBufferSize = conf.getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
       mDataTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_DATA_READ_TIMEOUT);
       if (conf.getBoolean(PropertyKey.USER_DIRECT_MEMORY_IO_ENABLED)) {
         mBlockWorker = null;
         mStream = null;
         PropertyKey tierDirPathConf =
             PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0);
-        String storageDir = conf.get(tierDirPathConf).split(",")[0];
-        String workerDir = conf.get(PropertyKey.WORKER_DATA_FOLDER);
+        String storageDir = conf.getString(tierDirPathConf).split(",")[0];
+        String workerDir = conf.getString(PropertyKey.WORKER_DATA_FOLDER);
         mPath = Paths.get(storageDir, workerDir, Long.toString(blockId)).toString();
         return;
       }
 
       boolean isPromote = ReadType.fromProto(options.getOptions().getReadType()).isPromote();
       OpenLocalBlockRequest request = OpenLocalBlockRequest.newBuilder()
-          .setBlockId(mBlockId).setPromote(isPromote).build();
+          .setBlockId(blockId).setPromote(isPromote).build();
 
       mBlockWorker = context.acquireBlockWorkerClient(address);
       try {
-        mStream = new GrpcBlockingStream<>(mBlockWorker.get()::openLocalBlock, mReadBufferSize,
+        mStream = new GrpcBlockingStream<>(mBlockWorker.get()::openLocalBlock,
+            conf.getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES),
             MoreObjects.toStringHelper(LocalFileDataReader.class)
                 .add("request", request)
                 .add("address", address)
@@ -152,6 +150,13 @@ public final class LocalFileDataReader implements DataReader {
       } catch (Exception e) {
         mBlockWorker.close();
         throw e;
+      }
+
+      if (!Files.exists(Paths.get(mPath))) {
+        mStream.close();
+        mBlockWorker.close();
+        throw new NotFoundException(String.format(
+            "LocalFileDataReader can not find the path:%s", mPath));
       }
     }
 

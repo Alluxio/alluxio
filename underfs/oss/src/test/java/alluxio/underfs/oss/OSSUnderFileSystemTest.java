@@ -12,7 +12,7 @@
 package alluxio.underfs.oss;
 
 import alluxio.AlluxioURI;
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
@@ -22,7 +22,7 @@ import com.aliyun.oss.model.ListObjectsRequest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -49,7 +49,7 @@ public class OSSUnderFileSystemTest {
     mClient = Mockito.mock(OSSClient.class);
 
     mOSSUnderFileSystem = new OSSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
   }
 
   /**
@@ -57,7 +57,7 @@ public class OSSUnderFileSystemTest {
    */
   @Test
   public void deleteNonRecursiveOnServiceException() throws IOException {
-    Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
+    Mockito.when(mClient.listObjects(ArgumentMatchers.any(ListObjectsRequest.class)))
         .thenThrow(ServiceException.class);
 
     boolean result = mOSSUnderFileSystem.deleteDirectory(PATH,
@@ -70,7 +70,7 @@ public class OSSUnderFileSystemTest {
    */
   @Test
   public void deleteRecursiveOnServiceException() throws IOException {
-    Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
+    Mockito.when(mClient.listObjects(ArgumentMatchers.any(ListObjectsRequest.class)))
         .thenThrow(ServiceException.class);
 
     boolean result = mOSSUnderFileSystem.deleteDirectory(PATH,
@@ -83,7 +83,7 @@ public class OSSUnderFileSystemTest {
    */
   @Test
   public void renameOnServiceException() throws IOException {
-    Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
+    Mockito.when(mClient.listObjects(ArgumentMatchers.any(ListObjectsRequest.class)))
         .thenThrow(ServiceException.class);
 
     boolean result = mOSSUnderFileSystem.renameFile(SRC, DST);

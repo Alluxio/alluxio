@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -49,12 +48,10 @@ public final class FileSystemUtils {
    * @param uri the URI of the file on which the thread should wait
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
-   * @throws InterruptedException if the thread receives an interrupt while waiting for file
-   *         completion
    * @see #waitCompleted(FileSystem, AlluxioURI, long, TimeUnit)
    */
   public static boolean waitCompleted(FileSystem fs, AlluxioURI uri)
-      throws IOException, AlluxioException, InterruptedException {
+      throws IOException, AlluxioException {
     return FileSystemUtils.waitCompleted(fs, uri, -1, TimeUnit.MILLISECONDS);
   }
 
@@ -84,12 +81,10 @@ public final class FileSystemUtils {
    * @param tunit the @{link TimeUnit} instance describing the {@code timeout} parameter
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
-   * @throws InterruptedException if the thread receives an interrupt while waiting for file
-   *         completion
    */
   public static boolean waitCompleted(final FileSystem fs, final AlluxioURI uri,
       final long timeout, final TimeUnit tunit)
-      throws IOException, AlluxioException, InterruptedException {
+      throws IOException, AlluxioException {
 
     final long deadline = System.currentTimeMillis() + tunit.toMillis(timeout);
     final long fileWaitCompletedPollMs =

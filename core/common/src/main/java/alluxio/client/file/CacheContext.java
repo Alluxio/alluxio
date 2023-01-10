@@ -18,13 +18,21 @@ import alluxio.client.quota.CacheScope;
 import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
-
 import javax.annotation.Nullable;
 
 /**
  * Cache related context.
  */
 public class CacheContext {
+
+  /**
+   * Stats Unit.
+   */
+  public enum StatsUnit
+  {
+    NANO, BYTE;
+  }
+
   /** Used in Prestodb to indicate the cache quota for a file. */
   private CacheQuota mCacheQuota = CacheQuota.UNLIMITED;
 
@@ -41,6 +49,8 @@ public class CacheContext {
    * We don't set Alluxio fileId because in local cache files do not have Alluxio fileId assigned.
    */
   private String mCacheIdentifier = null;
+
+  private boolean mIsTemporary = false;
 
   /**
    * @return the default CacheContext
@@ -127,14 +137,31 @@ public class CacheContext {
   }
 
   /**
+   * @return whether the caching data is temporary
+   */
+  public boolean isTemporary() {
+    return mIsTemporary;
+  }
+
+  /**
+   * @param isTemporary whether the caching data is temporary
+   * @return the updated {@code CacheContext}
+   */
+  public CacheContext setTemporary(boolean isTemporary) {
+    mIsTemporary = isTemporary;
+    return this;
+  }
+
+  /**
    * Increments the counter {@code name} by {@code value}.
    * <p>
    * Default implementation does nothing. Subclass can implement its own tracking mechanism.
    *
    * @param name name of the counter
+   * @param unit unit of the counter
    * @param value value of the counter
    */
-  public void incrementCounter(String name, long value) {
+  public void incrementCounter(String name, StatsUnit unit, long value) {
     // Default implementation does nothing
   }
 
@@ -155,7 +182,8 @@ public class CacheContext {
 
   @Override
   public int hashCode() {
-    return Objects.hash(mCacheQuota, mCacheScope, mCacheIdentifier, mHiveCacheContext);
+    return Objects.hash(mCacheQuota, mCacheScope, mCacheIdentifier, mHiveCacheContext,
+        mIsTemporary);
   }
 
   @Override
@@ -165,6 +193,7 @@ public class CacheContext {
         .add("cacheQuota", mCacheQuota)
         .add("cacheScope", mCacheScope)
         .add("hiveCacheContext", mHiveCacheContext)
+        .add("isTemporary", mIsTemporary)
         .toString();
   }
 }

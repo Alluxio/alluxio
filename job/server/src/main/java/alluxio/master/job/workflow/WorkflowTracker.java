@@ -19,10 +19,10 @@ import alluxio.job.JobConfig;
 import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
+import alluxio.job.wire.WorkflowInfo;
 import alluxio.job.workflow.WorkflowConfig;
 import alluxio.job.workflow.WorkflowExecution;
 import alluxio.job.workflow.WorkflowExecutionRegistry;
-import alluxio.job.wire.WorkflowInfo;
 import alluxio.master.job.JobMaster;
 
 import org.apache.commons.compress.utils.Lists;
@@ -131,10 +131,9 @@ public class WorkflowTracker {
       }
     }
 
-    WorkflowInfo workflowInfo = new WorkflowInfo(jobId, workflowExecution.getName(),
+    return new WorkflowInfo(jobId, workflowExecution.getName(),
         workflowExecution.getStatus(), workflowExecution.getLastUpdated(),
         workflowExecution.getErrorType(), workflowExecution.getErrorMessage(), jobInfos);
-    return workflowInfo;
   }
 
   /**
@@ -235,7 +234,6 @@ public class WorkflowTracker {
     workflowExecution.stop(status, errorType, errorMessage);
 
     stop(parentJobId, status, errorType, errorMessage);
-    return;
   }
 
   private synchronized void next(long jobId) {

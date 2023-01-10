@@ -12,7 +12,6 @@
 package alluxio.worker.block.meta;
 
 import java.util.List;
-
 import javax.annotation.Nullable;
 
 /**

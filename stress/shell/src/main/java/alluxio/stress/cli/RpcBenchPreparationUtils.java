@@ -14,11 +14,12 @@ package alluxio.stress.cli;
 import static alluxio.stress.rpc.TierAlias.MEM;
 
 import alluxio.ClientContext;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.rpc.TierAlias;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockMasterClient;
@@ -40,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Utilities for the preparation step in RPC benchmark testing.
@@ -56,58 +59,69 @@ public class RpcBenchPreparationUtils {
       ImmutableMap.of(MEM.toString(), ImmutableList.of());
   public static final List<ConfigProperty> EMPTY_CONFIG = ImmutableList.of();
 
-  private static InstancedConfiguration sConf = InstancedConfiguration.defaults();
-
   private RpcBenchPreparationUtils() {}
 
   /**
    * Prepare all relevant block IDs on the master side concurrently.
    *
    * @param locToBlocks a map from block location to block IDs
-   * @param pool the thread pool to submit to
-   * @param concurrency number of threads/concurrent clients
    */
-  public static void prepareBlocksInMaster(Map<BlockStoreLocation, List<Long>> locToBlocks,
-                                           ExecutorService pool,
-                                           int concurrency) {
+  public static void prepareBlocksInMaster(Map<BlockStoreLocation, List<Long>> locToBlocks)
+      throws InterruptedException {
+    // Since the task is I/O bound, set concurrency set to 4x CPUs
+    int concurrency = Runtime.getRuntime().availableProcessors() * 4;
     // Partition the wanted block IDs to smaller jobs in order to utilize concurrency
     List<List<Long>> jobs = new ArrayList<>();
+    long totalBlocks = 0;
     for (Map.Entry<BlockStoreLocation, List<Long>> e : locToBlocks.entrySet()) {
       List<Long> v = e.getValue();
+      totalBlocks += v.size();
       jobs.addAll(Lists.partition(v, Math.min(v.size() / concurrency, 1_000)));
     }
+    final long totalBlocksFinal = totalBlocks;
 
     LOG.info("Split block ID generation into {} jobs", jobs.size());
     for (List<Long> job : jobs) {
-      LOG.info("Block ids: [{},{}]", job.get(0), job.get(job.size() - 1));
+      LOG.debug("Block ids: [{},{}]", job.get(0), job.get(job.size() - 1));
     }
+    ExecutorService pool =
+        ExecutorServiceFactories.fixedThreadPool("rpc-bench-prepare", concurrency).create();
 
-    long blockSize = sConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    long blockSize = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     CompletableFuture[] futures = new CompletableFuture[jobs.size()];
+    AtomicInteger progress = new AtomicInteger(0);
     for (int i = 0; i < jobs.size(); i++) {
       List<Long> job = jobs.get(i);
-      LOG.info("Generating block IDs in range {}", i);
+      final int batchIndex = i;
+      final int batchSize = job.size();
       CompletableFuture<Void> future = CompletableFuture.supplyAsync((Supplier<Void>) () -> {
         BlockMasterClient client =
             new BlockMasterClient(MasterClientContext
-                .newBuilder(ClientContext.create(sConf))
+                .newBuilder(ClientContext.create())
                 .build());
-        long finishedCount = 0;
-        try {
-          for (Long blockId : job) {
+        for (Long blockId : job) {
+          try {
             client.commitBlockInUfs(blockId, blockSize);
-            finishedCount++;
+          } catch (IOException e) {
+            LOG.error("Failed to commitBlockInUfs in batch {}, blockId={} total={}",
+                batchIndex, blockId, totalBlocksFinal, e);
           }
-        } catch (IOException e) {
-          LOG.error("Failed to commitBlockInUfs with finishedCount {}", finishedCount, e);
         }
+        long finishedCount = progress.addAndGet(batchSize);
+        LOG.info("Generated {}th batch of {} blocks, {}% completed",
+            batchIndex, batchSize, String.format("%.2f", 100.0 * finishedCount / totalBlocksFinal));
         return null;
       }, pool);
       futures[i] = (future);
     }
 
     LOG.info("Collect all results");
-    CompletableFuture.allOf(futures).join();
+    try {
+      CompletableFuture.allOf(futures).join();
+    } finally {
+      pool.shutdownNow();
+      pool.awaitTermination(30, TimeUnit.SECONDS);
+    }
   }
 
   /**
@@ -153,9 +167,12 @@ public class RpcBenchPreparationUtils {
    * Generates block IDs according to the storage tier/dir setup.
    * In order to avoid block ID colliding with existing blocks, this will generate IDs
    * decreasingly from the {@link Long#MAX_VALUE}.
+   *
+   * @param tiersConfig the tier/dir block counts
+   * @return a map of location to generated block lists
    */
-  static Map<BlockStoreLocation, List<Long>> generateBlockIdOnTiers(
-      Map<TierAlias, List<Integer>> tiersConfig) {
+  public static Map<BlockStoreLocation, List<Long>> generateBlockIdOnTiers(
+          Map<TierAlias, List<Integer>> tiersConfig) {
     Map<BlockStoreLocation, List<Long>> blockMap = new HashMap<>();
 
     long blockIdStart = Long.MAX_VALUE;

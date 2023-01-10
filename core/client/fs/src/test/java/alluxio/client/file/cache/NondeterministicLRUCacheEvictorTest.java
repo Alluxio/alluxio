@@ -11,9 +11,8 @@
 
 package alluxio.client.file.cache;
 
-import alluxio.ConfigurationTestUtils;
+import alluxio.client.file.cache.evictor.CacheEvictorOptions;
 import alluxio.client.file.cache.evictor.NondeterministicLRUCacheEvictor;
-import alluxio.conf.InstancedConfiguration;
 
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -34,8 +33,7 @@ public final class NondeterministicLRUCacheEvictorTest {
    */
   @Before
   public void before() {
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
-    mEvictor = new NondeterministicLRUCacheEvictor(conf);
+    mEvictor = new NondeterministicLRUCacheEvictor(new CacheEvictorOptions());
     mEvictor.setNumOfCandidate(2);
   }
 

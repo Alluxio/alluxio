@@ -61,7 +61,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -77,7 +76,13 @@ public final class CpCommand extends AbstractFileSystemCommand {
   private static final int COPY_TO_LOCAL_BUFFER_SIZE_DEFAULT = 64 * Constants.MB;
 
   private static final Option RECURSIVE_OPTION =
-      Option.builder("R")
+      Option.builder("R").longOpt("recursive")
+          .required(false)
+          .hasArg(false)
+          .desc("copy files in subdirectories recursively")
+          .build();
+  private static final Option RECURSIVE_ALIAS_OPTION =
+      Option.builder("r")
           .required(false)
           .hasArg(false)
           .desc("copy files in subdirectories recursively")
@@ -265,7 +270,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
           mFileSystem.delete(mPath);
         }
       } catch (Exception e) {
-        mExceptions.add(new IOException("Failed to delete path " + mPath.toString(), e));
+        mExceptions.add(new IOException("Failed to delete path " + mPath, e));
       }
 
       if (!mExceptions.isEmpty()) {
@@ -331,16 +336,13 @@ public final class CpCommand extends AbstractFileSystemCommand {
             + " into an integer", e);
       }
     }
-    if (cl.hasOption(PRESERVE_OPTION.getLongOpt())) {
-      mPreservePermissions = true;
-    } else {
-      mPreservePermissions = false;
-    }
+    mPreservePermissions = cl.hasOption(PRESERVE_OPTION.getLongOpt());
   }
 
   @Override
   public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION)
+        .addOption(RECURSIVE_ALIAS_OPTION)
         .addOption(THREAD_OPTION)
         .addOption(PRESERVE_OPTION);
   }
@@ -376,7 +378,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
           srcPaths.add(srcPath);
         }
       }
-      if (srcPaths.size() == 1) {
+      if (srcPaths.size() == 1 && !(new File(srcPaths.get(0).getPath())).isDirectory()) {
         copyFromLocalFile(srcPaths.get(0), dstPath);
       } else {
         CopyThreadPoolExecutor pool = new CopyThreadPoolExecutor(mThread, System.out, System.err,
@@ -413,10 +415,12 @@ public final class CpCommand extends AbstractFileSystemCommand {
         throw new FileDoesNotExistException(
             ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath.getPath()));
       }
+      boolean recursive = cl.hasOption(RECURSIVE_OPTION.getOpt())
+          || cl.hasOption(RECURSIVE_ALIAS_OPTION.getOpt());
       if (srcPath.containsWildcard()) {
-        copyWildcard(srcPaths, dstPath, cl.hasOption(RECURSIVE_OPTION.getOpt()));
+        copyWildcard(srcPaths, dstPath, recursive);
       } else {
-        copy(srcPath, dstPath, cl.hasOption(RECURSIVE_OPTION.getOpt()));
+        copy(srcPath, dstPath, recursive);
       }
     } else {
       throw new InvalidPathException(
@@ -488,8 +492,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
       copyFile(srcPath, dstPath);
     } else {
       if (!recursive) {
-        throw new IOException(
-            srcPath.getPath() + " is a directory, to copy it please use \"cp -R <src> <dst>\"");
+        throw new IOException(srcPath.getPath() + " is a directory,"
+            + " to copy it please use \"cp -R/-r/--recursive <src> <dst>\"");
       }
 
       List<URIStatus> statuses;
@@ -794,7 +798,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
   @Override
   public String getUsage() {
     return "cp "
-        + "[-R] "
+        + "[-R/-r/--recursive] "
         + "[--buffersize <bytes>] "
         + "<src> <dst>";
   }
@@ -802,8 +806,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
   @Override
   public String getDescription() {
     return "Copies a file or a directory in the Alluxio filesystem or between local filesystem "
-        + "and Alluxio filesystem. The -R flag is needed to copy directories in the Alluxio "
-        + "filesystem. Local Path with schema \"file\".";
+        + "and Alluxio filesystem. The -R/-r/--recursive flags are needed to copy"
+        + "directories in the Alluxio filesystem. Local Path with schema \"file\".";
   }
 
   private static boolean isAlluxio(String scheme) {

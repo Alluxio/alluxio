@@ -23,7 +23,6 @@ import org.apache.hadoop.mapred.Reporter;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
-
 import javax.annotation.Nullable;
 
 /**

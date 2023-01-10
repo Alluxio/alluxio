@@ -11,29 +11,32 @@
 
 package alluxio.client.file.cache.store;
 
+import alluxio.Constants;
 import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
 import alluxio.proto.client.Cache;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Streams;
-import org.rocksdb.Options;
+import com.google.common.collect.ImmutableList;
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.rocksdb.ColumnFamilyDescriptor;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.ColumnFamilyOptions;
+import org.rocksdb.CompressionType;
+import org.rocksdb.DBOptions;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.RocksIterator;
+import org.rocksdb.WriteOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.stream.Stream;
-
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -44,99 +47,151 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class RocksPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
+  private static final String PAGE_COLUMN = "PAGE";
   private static final byte[] CONF_KEY = "CONF".getBytes();
+  private static final int DEFAULT_COLUMN_INDEX = 0;
+  private static final int PAGE_COLUMN_INDEX = 1;
 
+  private static final long WRITE_BUFFER_SIZE = 64 * Constants.MB;
   private final long mCapacity;
   private final RocksDB mDb;
-  private final RocksPageStoreOptions mOptions;
+  private final ColumnFamilyHandle mDefaultColumnHandle;
+  private final ColumnFamilyHandle mPageColumnHandle;
+  private final DBOptions mRocksOptions;
+
+  private final WriteOptions mWriteOptions = new WriteOptions();
 
   /**
-   * @param options options for the rocks page store
+   * @param pageStoreOptions options for the rocks page store
    * @return a new instance of {@link PageStore} backed by RocksDB
    * @throws IOException if I/O error happens
    */
-  public static RocksPageStore open(RocksPageStoreOptions options) throws IOException {
-    Preconditions.checkArgument(options.getMaxPageSize() > 0);
+  public static RocksPageStore open(PageStoreOptions pageStoreOptions) {
     RocksDB.loadLibrary();
-    Options rocksOptions = new Options();
-    rocksOptions.setCreateIfMissing(true);
-    rocksOptions.setWriteBufferSize(options.getWriteBufferSize());
-    rocksOptions.setCompressionType(options.getCompressionType());
+    // The RocksObject will be closed together with the RocksPageStore
+    DBOptions rocksOptions = createDbOptions();
     RocksDB db = null;
+    List<ColumnFamilyHandle> columnHandles = new ArrayList<>();
     try {
-      db = RocksDB.open(rocksOptions, options.getRootDir());
-      byte[] confData = db.get(CONF_KEY);
-      Cache.PRocksPageStoreOptions pOptions = options.toProto();
-      if (confData != null) {
-        Cache.PRocksPageStoreOptions persistedOptions =
-            Cache.PRocksPageStoreOptions.parseFrom(confData);
-        if (!persistedOptions.equals(pOptions)) {
-          db.close();
-          throw new IOException("Inconsistent configuration for RocksPageStore");
-        }
-      }
-      db.put(CONF_KEY, pOptions.toByteArray());
+      db = openDB(pageStoreOptions, rocksOptions, columnHandles);
     } catch (RocksDBException e) {
-      if (db != null) {
-        db.close();
+      try {
+        //clear the root dir and retry
+        PageStoreDir.clear(pageStoreOptions.getRootDir());
+        rocksOptions = createDbOptions();
+        columnHandles = new ArrayList<>();
+        db = openDB(pageStoreOptions, rocksOptions, columnHandles);
+      } catch (IOException | RocksDBException ex) {
+        throw new RuntimeException("Couldn't open rocksDB database", e);
       }
-      throw new IOException("Couldn't open rocksDB database", e);
+    } catch (InvalidProtocolBufferException e) {
+      throw new RuntimeException("Couldn't open rocksDB database", e);
     }
-    return new RocksPageStore(options, db);
+    return new RocksPageStore(pageStoreOptions, rocksOptions, db,
+        columnHandles.get(DEFAULT_COLUMN_INDEX), columnHandles.get(PAGE_COLUMN_INDEX));
+  }
+
+  private static DBOptions createDbOptions() {
+    DBOptions rocksOptions = new DBOptions()
+        .setCreateIfMissing(true)
+        .setCreateMissingColumnFamilies(true);
+    return rocksOptions;
+  }
+
+  private static RocksDB openDB(PageStoreOptions pageStoreOptions,
+      DBOptions rocksOptions, List<ColumnFamilyHandle> columnHandles)
+      throws RocksDBException, InvalidProtocolBufferException {
+    List<ColumnFamilyDescriptor> columnDescriptors = ImmutableList.of(
+        new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY),
+        new ColumnFamilyDescriptor(PAGE_COLUMN.getBytes(),
+            new ColumnFamilyOptions()
+                .setWriteBufferSize(WRITE_BUFFER_SIZE)
+                .setCompressionType(CompressionType.NO_COMPRESSION))
+    );
+    RocksDB db =
+        RocksDB.open(rocksOptions, pageStoreOptions.getRootDir().toString(), columnDescriptors,
+            columnHandles);
+    byte[] confData = db.get(columnHandles.get(DEFAULT_COLUMN_INDEX), CONF_KEY);
+    Cache.PRocksPageStoreOptions pOptions =
+        toProto(pageStoreOptions.getPageSize(), pageStoreOptions.getCacheSize(),
+            pageStoreOptions.getAlluxioVersion());
+    if (confData != null) {
+      Cache.PRocksPageStoreOptions persistedOptions =
+          Cache.PRocksPageStoreOptions.parseFrom(confData);
+      if (!persistedOptions.equals(pOptions)) {
+        db.close();
+        rocksOptions.close();
+        throw new RocksDBException("Inconsistent configuration for RocksPageStore");
+      }
+    }
+    db.put(columnHandles.get(DEFAULT_COLUMN_INDEX), CONF_KEY, pOptions.toByteArray());
+    return db;
+  }
+
+  private static Cache.PRocksPageStoreOptions toProto(long pageSize, long cacheSize,
+      String alluxioVersion) {
+    return Cache.PRocksPageStoreOptions.newBuilder()
+        .setCommonOptions(Cache.PPageStoreCommonOptions.newBuilder()
+            .setPageSize(pageSize)
+            .setCacheSize(cacheSize)
+            .setAlluxioVersion(alluxioVersion)
+        )
+        .build();
   }
 
   /**
    * Creates a new instance of {@link PageStore} backed by RocksDB.
    *
-   * @param options options for the rocks page store
+   * @param pageStoreOptions options for the rocks page store
+   * @param rocksOptions rocksdb options
+   * @param rocksDB RocksDB instance
+   * @param defaultColumnHandle default column for storing configurations
+   * @param pageColumnHandle page column for staring page content
    */
-  private RocksPageStore(RocksPageStoreOptions options, RocksDB rocksDB) {
-    mOptions = options;
-    mCapacity = (long) (options.getCacheSize() / (1 + options.getOverheadRatio()));
+  private RocksPageStore(PageStoreOptions pageStoreOptions,
+      DBOptions rocksOptions,
+      RocksDB rocksDB,
+      ColumnFamilyHandle defaultColumnHandle,
+      ColumnFamilyHandle pageColumnHandle) {
+    mCapacity =
+        (long) (pageStoreOptions.getCacheSize() / (1 + pageStoreOptions.getOverheadRatio()));
+    mRocksOptions = rocksOptions;
     mDb = rocksDB;
+    mDefaultColumnHandle = defaultColumnHandle;
+    mPageColumnHandle = pageColumnHandle;
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws IOException {
+  public void put(PageId pageId, ByteBuffer page, boolean isTemporary) throws IOException {
     try {
-      byte[] key = getKeyFromPageId(pageId);
-      mDb.put(key, page);
+      //TODO(beinan): support temp page for rocksdb page store
+      ByteBuffer key = getKeyFromPageId(pageId, page.isDirect());
+      if (page.isDirect()) {
+        mDb.put(mPageColumnHandle, mWriteOptions, key, page);
+      } else {
+        mDb.put(mPageColumnHandle, mWriteOptions, key.array(), page.array());
+      }
     } catch (RocksDBException e) {
       throw new IOException("Failed to store page", e);
     }
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
-      throws IOException, PageNotFoundException {
+  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+      boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     try {
-      byte[] page = mDb.get(getKeyFromPageId(pageId));
+      byte[] key = getKeyFromPageId(pageId, false).array();
+      byte[] page = mDb.get(mPageColumnHandle, key);
       if (page == null) {
-        throw new PageNotFoundException(new String(getKeyFromPageId(pageId)));
+        throw new PageNotFoundException(new String(key));
       }
       Preconditions.checkArgument(pageOffset <= page.length,
           "page offset %s exceeded page size %s", pageOffset, page.length);
-      try (ByteArrayInputStream bais = new ByteArrayInputStream(page)) {
-        int bytesSkipped = (int) bais.skip(pageOffset);
-        if (pageOffset != bytesSkipped) {
-          throw new IOException(
-              String.format("Failed to read page %s from offset %s: %s bytes skipped", pageId,
-                  pageOffset, bytesSkipped));
-        }
-        int bytesRead = 0;
-        int bytesLeft = Math.min(page.length - pageOffset, buffer.length - bufferOffset);
-        bytesLeft = Math.min(bytesLeft, bytesToRead);
-        while (bytesLeft >= 0) {
-          int bytes = bais.read(buffer, bufferOffset + bytesRead, bytesLeft);
-          if (bytes <= 0) {
-            break;
-          }
-          bytesRead += bytes;
-          bytesLeft -= bytes;
-        }
-        return bytesRead;
-      }
+      int bytesLeft =
+          Math.min(page.length - pageOffset, Math.min((int) target.remaining(), bytesToRead));
+      System.arraycopy(page, pageOffset, target.byteArray(), (int) target.offset(), bytesLeft);
+      return bytesLeft;
     } catch (RocksDBException e) {
       throw new IOException("Failed to retrieve page", e);
     }
@@ -145,8 +200,8 @@ public class RocksPageStore implements PageStore {
   @Override
   public void delete(PageId pageId) throws PageNotFoundException {
     try {
-      byte[] key = getKeyFromPageId(pageId);
-      mDb.delete(key);
+      byte[] key = getKeyFromPageId(pageId, false).array();
+      mDb.delete(mPageColumnHandle, key);
     } catch (RocksDBException e) {
       throw new PageNotFoundException("Failed to remove page", e);
     }
@@ -154,15 +209,25 @@ public class RocksPageStore implements PageStore {
 
   @Override
   public void close() {
+    LOG.info("Closing RocksPageStore and recycling all RocksDB JNI objects");
     mDb.close();
+    mRocksOptions.close();
+    mDefaultColumnHandle.close();
+    mPageColumnHandle.close();
+    LOG.info("RocksPageStore closed");
   }
 
-  private static byte[] getKeyFromPageId(PageId pageId) {
+  static ByteBuffer getKeyFromPageId(PageId pageId, boolean isDirect) {
     byte[] fileId = pageId.getFileId().getBytes();
-    ByteBuffer buf = ByteBuffer.allocate(Long.BYTES + fileId.length);
+    ByteBuffer buf;
+    if (isDirect) {
+      buf = ByteBuffer.allocateDirect(Long.BYTES + fileId.length);
+    } else {
+      buf = ByteBuffer.allocate(Long.BYTES + fileId.length);
+    }
     buf.putLong(pageId.getPageIndex());
     buf.put(fileId);
-    return buf.array();
+    return buf;
   }
 
   /**
@@ -170,7 +235,7 @@ public class RocksPageStore implements PageStore {
    * @return the corresponding page id, or null if the key does not match the pattern
    */
   @Nullable
-  private static PageId getPageIdFromKey(byte[] key) {
+  static PageId getPageIdFromKey(byte[] key) {
     if (key.length < Long.BYTES) {
       return null;
     }
@@ -180,55 +245,10 @@ public class RocksPageStore implements PageStore {
     return new PageId(fileId, pageIndex);
   }
 
-  @Override
-  public Stream<PageInfo> getPages() {
-    RocksIterator iter = mDb.newIterator();
-    iter.seekToFirst();
-    return Streams.stream(new PageIterator(iter)).onClose(iter::close);
-  }
-
-  @Override
-  public long getCacheSize() {
-    return mCapacity;
-  }
-
-  private class PageIterator implements Iterator<PageInfo> {
-    private final RocksIterator mIter;
-    private PageInfo mValue;
-
-    PageIterator(RocksIterator iter) {
-      mIter = iter;
-    }
-
-    @Override
-    public boolean hasNext() {
-      return ensureValue() != null;
-    }
-
-    @Override
-    public PageInfo next() {
-      PageInfo value = ensureValue();
-      if (value == null) {
-        throw new NoSuchElementException();
-      }
-      mIter.next();
-      mValue = null;
-      return value;
-    }
-
-    @Nullable
-    private PageInfo ensureValue() {
-      if (mValue == null) {
-        for (; mIter.isValid(); mIter.next()) {
-          PageId id = getPageIdFromKey(mIter.key());
-          long size = mIter.value().length;
-          if (id != null) {
-            mValue = new PageInfo(id, size);
-            break;
-          }
-        }
-      }
-      return mValue;
-    }
+  /**
+   * @return a new iterator for the rocksdb
+   */
+  public RocksIterator createNewInterator() {
+    return mDb.newIterator(mPageColumnHandle);
   }
 }

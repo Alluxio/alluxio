@@ -33,11 +33,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -48,7 +48,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
   private static final Logger LOG = LoggerFactory.getLogger(ZkMasterInquireClient.class);
 
   /** Map from key spliced by the address for Zookeeper and path of leader to created client. */
-  private static HashMap<ZkMasterConnectDetails, ZkMasterInquireClient> sCreatedClients =
+  private static final HashMap<ZkMasterConnectDetails, ZkMasterInquireClient> CREATED_CLIENTS =
       new HashMap<>();
 
   private final ZkMasterConnectDetails mConnectDetails;
@@ -59,8 +59,8 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
   /**
    * Zookeeper factory for curator that controls enabling/disabling client authentication.
    */
-  private class AlluxioZookeeperFactory implements ZookeeperFactory {
-    private boolean mAuthEnabled;
+  private static class AlluxioZookeeperFactory implements ZookeeperFactory {
+    private final boolean mAuthEnabled;
 
     public AlluxioZookeeperFactory(boolean authEnabled) {
       mAuthEnabled = authEnabled;
@@ -90,11 +90,11 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
       String electionPath, String leaderPath, int inquireRetryCount, boolean authEnabled) {
     ZkMasterConnectDetails connectDetails =
         new ZkMasterConnectDetails(zookeeperAddress, leaderPath);
-    if (!sCreatedClients.containsKey(connectDetails)) {
-      sCreatedClients.put(connectDetails,
+    if (!CREATED_CLIENTS.containsKey(connectDetails)) {
+      CREATED_CLIENTS.put(connectDetails,
           new ZkMasterInquireClient(connectDetails, electionPath, inquireRetryCount, authEnabled));
     }
-    return sCreatedClients.get(connectDetails);
+    return CREATED_CLIENTS.get(connectDetails);
   }
 
   /**
@@ -115,6 +115,12 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
     curatorBuilder.connectString(connectDetails.getZkAddress());
     curatorBuilder.retryPolicy(new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
     curatorBuilder.zookeeperFactory(new AlluxioZookeeperFactory(authEnabled));
+    // Force compatibility mode to support writing to 3.4.x servers.
+    curatorBuilder.zk34CompatibilityMode(true);
+    // Prevent using container parents as it breaks compatibility with 3.4.x servers.
+    // This is only required if the client is used to write data to zookeeper.
+    curatorBuilder.dontUseContainerParents();
+
     mClient = curatorBuilder.build();
 
     mInquireRetryCount = inquireRetryCount;
@@ -190,7 +196,8 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
             byte[] data = mClient.getData().forPath(PathUtils.concatPath(mElectionPath, child));
             if (data != null) {
               // The data of the child znode is the corresponding master address for now
-              ret.add(NetworkAddressUtils.parseInetSocketAddress(new String(data, "utf-8")));
+              ret.add(NetworkAddressUtils.parseInetSocketAddress(new String(data,
+                  StandardCharsets.UTF_8)));
             }
           }
           LOG.info("All masters: {}", ret);

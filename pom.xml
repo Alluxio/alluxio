@@ -14,7 +14,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>2.7.0-SNAPSHOT</version>
+  <version>2.10.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -129,31 +129,30 @@
     <catalyst.version>1.2.1</catalyst.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <grpc.version>1.37.0</grpc.version>
-    <gson.version>2.8.6</gson.version>
+    <gson.version>2.8.9</gson.version>
     <netty.version>4.1.52.Final</netty.version>
-    <rocksdb.version>6.15.2</rocksdb.version>
-    <hadoop.version>3.3.0</hadoop.version>
+    <rocksdb.version>7.0.3</rocksdb.version>
+    <hadoop.version>3.3.1</hadoop.version>
     <jacoco.version>0.8.5</jacoco.version>
     <java.version>1.8</java.version>
     <jaxb.version>2.3.3</jaxb.version>
-    <jersey.version>2.29.1</jersey.version>
-    <jetty.version>9.4.43.v20210629</jetty.version>
-    <junit.version>4.13</junit.version>
-    <log4j.version>2.13.3</log4j.version>
+    <jersey.version>2.34</jersey.version>
+    <jetty.version>9.4.46.v20220331</jetty.version>
+    <junit.version>4.13.1</junit.version>
+    <log4j.version>2.17.1</log4j.version>
     <maven.version>3.3.9</maven.version>
     <metrics.version>4.1.11</metrics.version>
+    <mockito.version>3.4.4</mockito.version>
     <orc.version>1.6.3</orc.version>
     <oshi.version>5.3.5</oshi.version>
     <powermock.version>2.0.7</powermock.version>
     <prometheus.version>0.8.0</prometheus.version>
-    <guava.version>29.0-jre</guava.version>
+    <guava.version>31.0.1-jre</guava.version>
     <parquet.version>1.11.0</parquet.version>
-    <protobuf.version>3.12.4</protobuf.version>
+    <protobuf.version>3.19.6</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <ratis.version>2.0.0</ratis.version>
     <slf4j.version>1.7.30</slf4j.version>
-    <jackson.version>2.11.1</jackson.version>
-    <ozone.version>1.0.0</ozone.version>
+    <jackson.version>2.13.3</jackson.version>
     <hadoop-cos.version>3.1.0-5.8.5</hadoop-cos.version>
     <cos_api.version>5.6.19</cos_api.version>
     <surefire.forkCount>2</surefire.forkCount>
@@ -169,6 +168,8 @@
     <cephfs-hadoop.version>0.0.1</cephfs-hadoop.version>
     <libcephfs.version>0.0.1</libcephfs.version>
     <jnr-fuse.version>0.5.5</jnr-fuse.version>
+    <kerby.version>1.0.1</kerby.version>
+    <fastutil.version>8.5.9</fastutil.version>
   </properties>
 
   <modules>
@@ -177,6 +178,7 @@
     <module>examples</module>
     <module>integration</module>
     <module>logserver</module>
+    <module>microbench</module>
     <module>minicluster</module>
     <module>job</module>
     <module>shaded</module>
@@ -270,6 +272,12 @@
         <groupId>com.google.protobuf</groupId>
         <artifactId>protobuf-java</artifactId>
         <version>${protobuf.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>com.jamesmurty.utils</groupId>
@@ -279,7 +287,7 @@
       <dependency>
         <groupId>com.salesforce.servicelibs</groupId>
         <artifactId>proto-backwards-compatibility</artifactId>
-        <version>1.0.6</version>
+        <version>1.0.7</version>
       </dependency>
       <dependency>
         <groupId>com.sun.xml.bind</groupId>
@@ -367,6 +375,11 @@
             <artifactId>proto-google-common-protos</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-services</artifactId>
+        <version>${grpc.version}</version>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
@@ -465,16 +478,6 @@
         <artifactId>hadoop-client</artifactId>
         <version>${hadoop.version}</version>
         <exclusions>
-          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-core</artifactId>
-          </exclusion>
-          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
-          </exclusion>
           <!-- Excluded to avoid implementation conflict with javax.servlet:servlet-api -->
           <exclusion>
             <groupId>javax.servlet</groupId>
@@ -540,16 +543,6 @@
         <version>${hadoop.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-ozone-client</artifactId>
-        <version>${ozone.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-ozone-filesystem</artifactId>
-        <version>${ozone.version}</version>
-      </dependency>
-      <dependency>
         <groupId>com.qcloud.cos</groupId>
         <artifactId>hadoop-cos</artifactId>
         <version>${hadoop-cos.version}</version>
@@ -597,14 +590,7 @@
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
-        <version>3.5.8</version>
-        <!-- conflicts with netty-all -->
-        <exclusions>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>*</artifactId>
-          </exclusion>
-        </exclusions>
+        <version>3.5.5</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
@@ -709,16 +695,15 @@
         <version>${log4j.version}</version>
       </dependency>
       <dependency>
-        <artifactId>ratis-server</artifactId>
-        <groupId>org.apache.ratis</groupId>
-        <version>${ratis.version}</version>
+        <groupId>org.apache.kerby</groupId>
+        <artifactId>kerby-util</artifactId>
+        <version>${kerby.version}</version>
       </dependency>
       <dependency>
-        <artifactId>ratis-grpc</artifactId>
-        <groupId>org.apache.ratis</groupId>
-        <version>${ratis.version}</version>
+        <groupId>it.unimi.dsi</groupId>
+        <artifactId>fastutil-core</artifactId>
+        <version>${fastutil.version}</version>
       </dependency>
-
       <!-- Test scope -->
       <dependency>
         <groupId>com.google.guava</groupId>
@@ -764,7 +749,13 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>3.4.4</version>
+        <version>${mockito.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-inline</artifactId>
+        <version>${mockito.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -806,24 +797,8 @@
       <dependency>
         <artifactId>xstream</artifactId>
         <groupId>com.thoughtworks.xstream</groupId>
-        <version>1.4.18</version>
+        <version>1.4.19</version>
         <scope>test</scope>
-      </dependency>
-
-      <!-- Provided scope -->
-      <!--
-         Dependency for SpotBugs Plugin annotations.
-         This enables @ThreadSafe @ThreadNotSafe @SuppressFBWarnings.
-         This library is a super set of com.google.code.findbugs:jsr305
-         Note that this package can be unnecessary for runtime, and the
-         'provided' scope makes it available for compilation and test,
-         but not be packaged into the jar.
-       -->
-      <dependency>
-        <groupId>com.github.spotbugs</groupId>
-        <artifactId>spotbugs-annotations</artifactId>
-        <version>4.0.4</version>
-        <scope>provided</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -831,11 +806,6 @@
   <!-- Dependencies to add to all projects. -->
   <dependencies>
     <!-- Dependencies in the compile scope. -->
-    <!-- Spotbugs and concurrency annotations. -->
-    <dependency>
-      <groupId>com.github.spotbugs</groupId>
-      <artifactId>spotbugs-annotations</artifactId>
-    </dependency>
     <!-- System logging. -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
@@ -846,12 +816,12 @@
       <artifactId>log4j-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
     </dependency>
 
     <!-- Dependencies in the test scope. -->
@@ -945,11 +915,6 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
           <version>2.3</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>2.17</version>
         </plugin>
         <plugin>
           <artifactId>maven-clean-plugin</artifactId>
@@ -1210,6 +1175,14 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.1.2</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>9.0.1</version>
+          </dependency>
+        </dependencies>
         <configuration>
           <configLocation>${build.path}/checkstyle/alluxio_checks.xml</configLocation>
           <suppressionsLocation>${build.path}/checkstyle/suppressions.xml</suppressionsLocation>
@@ -1253,7 +1226,6 @@
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
-            <exclude>**/dev/scripts/src/vendor/**</exclude>
             <exclude>**/vagrant/**/*</exclude>
             <exclude>**/\?/.java/**/*</exclude>
 
@@ -1265,6 +1237,8 @@
             <exclude>conf/masters</exclude>
             <exclude>conf/tiered_identity.sh</exclude>
             <exclude>conf/workers</exclude>
+            <exclude>dev/scripts/src/alluxio.org/go.mod</exclude>
+            <exclude>dev/scripts/src/alluxio.org/go.sum</exclude>
             <exclude>dev/scripts/tarballs/**/*</exclude>
             <exclude>dev/scripts/workdir/**/*</exclude>
             <exclude>generated/**</exclude>
@@ -1283,10 +1257,12 @@
             <exclude>docs/**/*</exclude>
             <exclude>LICENSE</exclude>
             <exclude>NOTICE</exclude>
+            <exclude>templates/*</exclude>
 
             <!-- Default Local File System Exclusions -->
-            <exclude>logs/*</exclude>
+            <exclude>logs/**/*</exclude>
             <exclude>journal/**/*</exclude>
+            <exclude>metastore/**/*</exclude>
             <exclude>underFSStorage/**/*</exclude>
           </excludes>
           <mapping>
@@ -1380,18 +1356,11 @@
     <profile>
       <id>hadoop-3</id>
       <properties>
-        <hadoop.version>3.3.0</hadoop.version>
+        <hadoop.version>3.3.1</hadoop.version>
       </properties>
     </profile>
 
     <!-- Requires hadoop.version to be 2.4.0 or later -->
-    <profile>
-      <id>yarn</id>
-      <modules>
-        <module>integration/yarn</module>
-      </modules>
-    </profile>
-
     <profile>
       <id>java11</id>
       <activation>
@@ -1433,10 +1402,9 @@
     <profile>
       <id>developer</id>
       <modules>
-        <module>integration/yarn</module>
       </modules>
       <properties>
-        <hadoop.version>3.3.0</hadoop.version>
+        <hadoop.version>3.3.1</hadoop.version>
       </properties>
     </profile>
 

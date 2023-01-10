@@ -12,10 +12,11 @@
 package alluxio.client.hadoop;
 
 import alluxio.Constants;
-import alluxio.conf.ServerConfiguration;
-import alluxio.hadoop.HadoopClientTestUtils;
+import alluxio.client.WriteType;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.hadoop.FileSystem;
+import alluxio.hadoop.HadoopClientTestUtils;
 import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
@@ -29,7 +30,6 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.Lists;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
@@ -61,9 +61,9 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName())
-          .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
-          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
+          .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE)
+          .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true)
+          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
           .build();
   private static String sUfsRoot;
   private static UnderFileSystem sUfs;
@@ -89,16 +89,16 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    Configuration conf = new Configuration();
+    org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     conf.set("fs.alluxio.impl", FileSystem.class.getName());
-    conf = HadoopConfigurationUtils.mergeAlluxioConfiguration(conf, ServerConfiguration.global());
+    conf = HadoopConfigurationUtils.mergeAlluxioConfiguration(conf, Configuration.global());
 
     URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, HadoopConfigurationUtils
-        .mergeAlluxioConfiguration(conf, ServerConfiguration.global()));
-    sUfsRoot = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    sUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
+        .mergeAlluxioConfiguration(conf, Configuration.global()));
+    sUfsRoot = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    sUfs = UnderFileSystem.Factory.createForRoot(Configuration.global());
   }
 
   @After
@@ -467,7 +467,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
       sTFS.delete(file, false);
       // Create a file directly in UFS and set the corresponding mode.
       String ufsPath = PathUtils.concatPath(sUfsRoot, file);
-      sUfs.create(ufsPath, CreateOptions.defaults(ServerConfiguration.global()).setOwner("testuser")
+      sUfs.create(ufsPath, CreateOptions.defaults(Configuration.global()).setOwner("testuser")
           .setGroup("testgroup").setMode(new Mode((short) value))).close();
       Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, file)));
       // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
@@ -493,7 +493,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
       // Create a directory directly in UFS and set the corresponding mode.
       String ufsPath = PathUtils.concatPath(sUfsRoot, dir);
       sUfs.mkdirs(ufsPath,
-          MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false)
+          MkdirsOptions.defaults(Configuration.global()).setCreateParent(false)
               .setOwner("testuser").setGroup("testgroup").setMode(new Mode((short) value)));
       Assert.assertTrue(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, dir)));
       // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
@@ -506,7 +506,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   public void s3GetPermission() throws Exception {
     Assume.assumeTrue(UnderFileSystemUtils.isS3(sUfs));
 
-    ServerConfiguration.unset(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING);
+    Configuration.unset(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING);
     Path fileA = new Path("/s3GetPermissionFile");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
@@ -523,7 +523,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   public void gcsGetPermission() throws Exception {
     Assume.assumeTrue(UnderFileSystemUtils.isGcs(sUfs));
 
-    ServerConfiguration.unset(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING);
+    Configuration.unset(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING);
     Path fileA = new Path("/gcsGetPermissionFile");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));

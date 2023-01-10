@@ -11,13 +11,21 @@
 
 package alluxio.worker.block;
 
+import alluxio.ClientContext;
+import alluxio.Sessions;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.master.MasterClientContext;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.WorkerRegistry;
+import alluxio.worker.file.FileSystemMasterClient;
+import alluxio.worker.page.PagedBlockStore;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -39,8 +47,27 @@ public final class BlockWorkerFactory implements WorkerFactory {
 
   @Override
   public BlockWorker create(WorkerRegistry registry, UfsManager ufsManager) {
-    LOG.info("Creating {} ", BlockWorker.class.getName());
-    BlockWorker blockWorker = new DefaultBlockWorker(ufsManager);
+    BlockMasterClientPool blockMasterClientPool = new BlockMasterClientPool();
+    AtomicReference<Long> workerId = new AtomicReference<>(-1L);
+    BlockStore blockStore;
+    switch (Configuration.global()
+        .getEnum(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
+      case PAGE:
+        LOG.info("Creating PagedBlockWorker");
+        blockStore = PagedBlockStore.create(ufsManager, blockMasterClientPool, workerId);
+        break;
+      case FILE:
+        LOG.info("Creating DefaultBlockWorker");
+        blockStore =
+            new MonoBlockStore(new TieredBlockStore(), blockMasterClientPool, ufsManager, workerId);
+        break;
+      default:
+        throw new UnsupportedOperationException("Unsupported block store type.");
+    }
+    BlockWorker blockWorker = new DefaultBlockWorker(blockMasterClientPool,
+        new FileSystemMasterClient(
+            MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build()),
+        new Sessions(), blockStore, workerId);
     registry.add(BlockWorker.class, blockWorker);
     return blockWorker;
   }

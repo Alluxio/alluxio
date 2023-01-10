@@ -12,19 +12,23 @@
 package alluxio.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -41,6 +45,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -212,6 +217,28 @@ public class CommonUtilsTest {
     }
   }
 
+  @Test
+  public void isCollection() {
+    assertTrue(CommonUtils.isCollection(Sets.newHashSet()));
+    assertTrue(CommonUtils.isCollection(Maps.newHashMap()));
+    assertTrue(CommonUtils.isCollection(Lists.newArrayList()));
+    assertFalse(CommonUtils.isCollection(null));
+    assertFalse(CommonUtils.isCollection(1));
+  }
+
+  @Test
+  public void summarizeCollection() {
+    Set<Integer> set = Sets.newHashSet(1, 2);
+    assertEquals("HashSet{2 entries}", CommonUtils.summarizeCollection(set));
+
+    Map<Integer, Long> map = ImmutableMap.of(0, 3L, 1, 1L);
+    assertEquals("Map{2 entries}", CommonUtils.summarizeCollection(map));
+
+    TestClassA a = new TestClassA();
+    assertEquals(a.toString(), CommonUtils.summarizeCollection(a));
+    assertEquals("null", CommonUtils.summarizeCollection(null));
+  }
+
   static class TestClassA {
     public TestClassA() {}
 
@@ -272,7 +299,7 @@ public class CommonUtilsTest {
    */
   @Test
   public void getGroups() throws Throwable {
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    AlluxioConfiguration conf = Configuration.global();
 
     String userName = "alluxio-user1";
     String userGroup1 = "alluxio-user1-group1";

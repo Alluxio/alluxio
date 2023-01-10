@@ -14,7 +14,7 @@ package alluxio.client.meta;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.ClientContext;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
@@ -50,7 +50,7 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   public void getInfoAllFields() throws Exception {
     try (MetaMasterClient client =
         new RetryHandlingMetaMasterClient(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
+            .newBuilder(ClientContext.create(Configuration.global())).build())) {
       MasterInfo info = client.getMasterInfo(Collections.emptySet());
       assertEquals(mWebPort, info.getWebPort());
     }
@@ -60,7 +60,7 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   public void getMasterInfoWebPort() throws Exception {
     try (MetaMasterClient client =
         new RetryHandlingMetaMasterClient(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
+            .newBuilder(ClientContext.create(Configuration.global())).build())) {
       MasterInfo info = client.getMasterInfo(new HashSet<>(Arrays
           .asList(MasterInfoField.WEB_PORT)));
       assertEquals(mWebPort, info.getWebPort());
@@ -71,13 +71,13 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   public void getConfigurationWebPort() throws Exception {
     try (MetaMasterConfigClient client =
              new RetryHandlingMetaMasterConfigClient(MasterClientContext
-                 .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
+                 .newBuilder(ClientContext.create(Configuration.global())).build())) {
       List<Property> configList = client.getConfiguration(GetConfigurationPOptions.newBuilder()
           .setIgnorePathConf(true).build()).getClusterConf();
       int configWebPort = -1;
       for (Property info : configList) {
         if (info.getName().equals("alluxio.master.web.port")) {
-          configWebPort = Integer.valueOf(info.getValue());
+          configWebPort = Integer.valueOf((String) info.getValue());
         }
       }
       assertEquals(mWebPort, configWebPort);

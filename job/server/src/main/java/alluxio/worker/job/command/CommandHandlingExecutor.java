@@ -11,8 +11,8 @@
 
 package alluxio.worker.job.command;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.CancelTaskCommand;
@@ -25,10 +25,10 @@ import alluxio.job.JobServerContext;
 import alluxio.job.RunTaskContext;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.TaskInfo;
-import alluxio.worker.job.JobMasterClient;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.JobWorkerIdRegistry;
+import alluxio.worker.job.JobMasterClient;
 import alluxio.worker.job.task.TaskExecutorManager;
 
 import com.google.common.base.Preconditions;
@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -57,6 +56,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
   private final TaskExecutorManager mTaskExecutorManager;
   private final WorkerNetAddress mWorkerNetAddress;
   private final JobWorkerHealthReporter mHealthReporter;
+  private final boolean mIsThrottleWorkerOnPoorHealth;
 
   // Keep this single threaded to keep the order of command execution consistent
   private final ExecutorService mCommandHandlingService =
@@ -78,25 +78,26 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
     mTaskExecutorManager = Preconditions.checkNotNull(taskExecutorManager, "taskExecutorManager");
     mMasterClient = Preconditions.checkNotNull(masterClient, "masterClient");
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress, "workerNetAddress");
-    if (ServerConfiguration.getBoolean(PropertyKey.JOB_WORKER_THROTTLING)) {
-      mHealthReporter = new JobWorkerHealthReporter();
-    } else {
-      mHealthReporter = new AlwaysHealthyJobWorkerHealthReporter();
-    }
+    mIsThrottleWorkerOnPoorHealth = Configuration.getBoolean(PropertyKey.JOB_WORKER_THROTTLING);
+    mHealthReporter = new JobWorkerHealthReporter(mWorkerNetAddress);
   }
 
   @Override
   public void heartbeat() {
-    mHealthReporter.compute();
+    JobWorkerHealthReporter.JobWorkerHealthReport jobWorkerHealthReport =
+            mHealthReporter.getJobWorkerHealthReport();
 
-    if (mHealthReporter.isHealthy()) {
-      mTaskExecutorManager.unthrottle();
-    } else {
-      mTaskExecutorManager.throttle();
+    if (mIsThrottleWorkerOnPoorHealth) {
+      if (jobWorkerHealthReport.isHealthy()) {
+        mTaskExecutorManager.unthrottle();
+      } else {
+        mTaskExecutorManager.throttle();
+        LOG.warn("Worker,{}, is throttled.", mWorkerNetAddress.getHost());
+      }
     }
 
     JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(JobWorkerIdRegistry.getWorkerId(),
-        mHealthReporter.getCpuLoadAverage(), mTaskExecutorManager.getTaskExecutorPoolSize(),
+        jobWorkerHealthReport.getCpuLoadAverage(), mTaskExecutorManager.getTaskExecutorPoolSize(),
         mTaskExecutorManager.getNumActiveTasks(), mTaskExecutorManager.unfinishedTasks(),
         mWorkerNetAddress.getHost());
 
@@ -162,7 +163,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
         LOG.info(String.format("Task Pool Size: %s", command.getTaskPoolSize()));
         mTaskExecutorManager.setDefaultTaskExecutorPoolSize(command.getTaskPoolSize());
       } else {
-        throw new RuntimeException("unsupported command type:" + mCommand.toString());
+        throw new RuntimeException("unsupported command type:" + mCommand);
       }
     }
   }

@@ -12,7 +12,7 @@
 package alluxio.job.plan.transform;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,7 +26,6 @@ import alluxio.wire.WorkerInfo;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +72,7 @@ public class CompactDefinitionSelectExecutorsTest extends SelectExecutorsTest {
   }
 
   private URIStatus newFile(String name) {
-    URIStatus mockFileStatus = Mockito.mock(URIStatus.class);
+    URIStatus mockFileStatus = mock(URIStatus.class);
     when(mockFileStatus.isFolder()).thenReturn(false);
     when(mockFileStatus.getName()).thenReturn(name);
     when(mockFileStatus.getLength()).thenReturn(LONG_STREAM.next());

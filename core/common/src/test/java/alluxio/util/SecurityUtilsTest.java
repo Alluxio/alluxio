@@ -13,35 +13,29 @@ package alluxio.util;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public final class SecurityUtilsTest {
 
-  private InstancedConfiguration mConfiguration;
-
-  @Before
-  public void before() {
-    mConfiguration = ConfigurationTestUtils.defaults();
-  }
+  private final InstancedConfiguration mConfiguration = Configuration.copyGlobal();
 
   /**
-   * Tests the {@link SecurityUtils#getOwnerFromGrpcClient()} ()} method.
+   * Tests the {@link SecurityUtils#getOwnerFromGrpcClient} method.
    */
   @Test
   public void getOwnerFromGrpcClient() throws Exception {
     // When security is not enabled, user and group are not set
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
     assertEquals("", SecurityUtils.getOwnerFromGrpcClient(mConfiguration));
 
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
     mConfiguration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
         IdentityUserGroupsMapping.class.getName());
     AuthenticatedClientUser.set("test_client_user");
@@ -49,15 +43,15 @@ public final class SecurityUtilsTest {
   }
 
   /**
-   * Tests the {@link SecurityUtils#getGroupFromGrpcClient()} ()} method.
+   * Tests the {@link SecurityUtils#getGroupFromGrpcClient} method.
    */
   @Test
   public void getGroupFromGrpcClient() throws Exception {
     // When security is not enabled, user and group are not set
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
     assertEquals("", SecurityUtils.getGroupFromGrpcClient(mConfiguration));
 
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
     mConfiguration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
         IdentityUserGroupsMapping.class.getName());
     AuthenticatedClientUser.set("test_client_user");

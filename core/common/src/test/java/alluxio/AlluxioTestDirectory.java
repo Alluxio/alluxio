@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.UUID;
 
 /**
@@ -28,8 +27,6 @@ import java.util.UUID;
  */
 public final class AlluxioTestDirectory {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioTestDirectory.class);
-
-  private static final int MAX_FILE_AGE_HOURS = 1;
 
   /**
    * This directory should be used over the system temp directory for creating temporary files
@@ -54,13 +51,12 @@ public final class AlluxioTestDirectory {
    * @param prefix a prefix to use in naming the temporary directory
    * @return the created directory
    */
-  public static File createTemporaryDirectory(File parent, String prefix) {
+  private static File createTemporaryDirectory(File parent, String prefix) {
     final File file = new File(parent, prefix + "-" + UUID.randomUUID());
     if (!file.mkdirs()) {
       throw new RuntimeException("Failed to create directory " + file.getAbsolutePath());
     }
 
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> delete(file)));
     return file;
   }
 
@@ -70,29 +66,18 @@ public final class AlluxioTestDirectory {
    * @return the testing directory
    */
   private static File createTestingDirectory() {
-    final File tmpDir = new File(System.getProperty("java.io.tmpdir"), "alluxio-tests");
-    if (tmpDir.exists()) {
-      cleanUpOldFiles(tmpDir);
-    }
+    final File tmpDir = new File(System.getProperty("java.io.tmpdir"),
+        "alluxio-tests" + "-" + UUID.randomUUID());
     if (!tmpDir.exists()) {
       if (!tmpDir.mkdir()) {
         throw new RuntimeException(
             "Failed to create testing directory " + tmpDir.getAbsolutePath());
       }
     }
-    return tmpDir;
-  }
 
-  /**
-   * Deletes files in the given directory which are older than 2 hours.
-   *
-   * @param dir the directory to clean up
-   */
-  private static void cleanUpOldFiles(File dir) {
-    long cutoffTimestamp = System.currentTimeMillis() - (MAX_FILE_AGE_HOURS * Constants.HOUR_MS);
-    Arrays.asList(dir.listFiles()).stream()
-        .filter(file -> !FileUtils.isFileNewer(file, cutoffTimestamp))
-        .forEach(AlluxioTestDirectory::delete);
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> delete(tmpDir)));
+
+    return tmpDir;
   }
 
   private static void delete(File file) {

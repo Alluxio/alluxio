@@ -15,7 +15,6 @@ set -e
 ALLUXIO_HOME="/opt/alluxio"
 NO_FORMAT='--no-format'
 FUSE_OPTS='--fuse-opts'
-MOUNT_POINT="${MOUNT_POINT:-/mnt/alluxio-fuse}"
 ALLUXIO_USERNAME="${ALLUXIO_USERNAME:-root}"
 ALLUXIO_GROUP="${ALLUXIO_GROUP:-root}"
 ALLUXIO_UID="${ALLUXIO_UID:-0}"
@@ -44,27 +43,44 @@ function printUsage {
   echo "Usage: COMMAND [COMMAND_OPTIONS]"
   echo
   echo "COMMAND is one of:"
-  echo -e " master [--no-format]         \t Start Alluxio master. If --no-format is specified, do not format"
-  echo -e " master-only [--no-format]    \t Start Alluxio master w/o job master. If --no-format is specified, do not format"
-  echo -e " worker [--no-format]         \t Start Alluxio worker. If --no-format is specified, do not format"
-  echo -e " worker-only [--no-format]    \t Start Alluxio worker w/o job worker. If --no-format is specified, do not format"
-  echo -e " job-master                   \t Start Alluxio job master"
-  echo -e " job-worker                   \t Start Alluxio job worker"
-  echo -e " proxy                        \t Start Alluxio proxy"
-  echo -e " fuse [--fuse-opts=opt1,...]  \t Start Alluxio FUSE file system, option --fuse-opts expects a list of fuse options separated by comma"
-  echo -e " logserver                    \t Start Alluxio log server"
+  echo -e " master [--no-format]      \t Start Alluxio master. If --no-format is specified, do not format"
+  echo -e " master-only [--no-format] \t Start Alluxio master w/o job master. If --no-format is specified, do not format"
+  echo -e " worker [--no-format]      \t Start Alluxio worker. If --no-format is specified, do not format"
+  echo -e " worker-only [--no-format] \t Start Alluxio worker w/o job worker. If --no-format is specified, do not format"
+  echo -e " job-master                \t Start Alluxio job master"
+  echo -e " job-worker                \t Start Alluxio job worker"
+  echo -e " proxy                     \t Start Alluxio proxy"
+  echo -e " fuse [--fuse-opts=opt1,...] [mount_point] [alluxio_path]"
+  echo -e "                           \t Start Alluxio FUSE file system, option --fuse-opts expects a list of fuse options separated by commas"
+  echo -e " mount ufs_address mount_point [options]"
+  echo -e "                           \t Mounts an UFS address to a local mount point, example options include -o attr_timeout=700 -o s3a.accessKeyId=<S3 ACCESS KEY> -o s3a.secretKey=<S3 SECRET KEY>"
+  echo -e " logserver                 \t Start Alluxio log server"
+  echo -e " csiserver                 \t Start Alluxio CSI server, need option --nodeid={NODE_ID} --endpoint={CSI_ENDPOINT}"
 }
 
 function writeConf {
   local IFS=$'\n' # split by line instead of space
-  for keyvaluepair in $(env); do
-    # split around the first "="
-    key=$(echo ${keyvaluepair} | cut -d= -f1)
-    value=$(echo ${keyvaluepair} | cut -d= -f2-)
-    if [[ -n "${ALLUXIO_ENV_MAP[${key}]}" ]]; then
-      echo "export ${key}=\"${value}\"" >> conf/alluxio-env.sh
-    fi
-  done
+  if [ ! -f "conf/alluxio-env.sh" ]; then
+    for keyvaluepair in $(env); do
+      # split around the first "="
+      key=$(echo ${keyvaluepair} | cut -d= -f1)
+      value=$(echo ${keyvaluepair} | cut -d= -f2-)
+      if [[ -n "${ALLUXIO_ENV_MAP[${key}]}" ]]; then
+        echo "export ${key}=\"${value}\"" >> conf/alluxio-env.sh
+      fi
+    done
+  fi
+  LOG4J_FILE_TEMPLATE="/tmp/log4j.properties"
+  LOG4J_FILE="conf/log4j.properties"
+  if [ -f "$LOG4J_FILE_TEMPLATE" ] && [ ! -f "$LOG4J_FILE" ]; then
+    cp $LOG4J_FILE_TEMPLATE $LOG4J_FILE
+  fi
+  if [[ ! -z "${ALLUXIO_LOG4J_PROPERTIES}" ]]; then
+    echo "${ALLUXIO_LOG4J_PROPERTIES}" > $LOG4J_FILE
+  fi
+  if [[ ! -z "${ALLUXIO_SITE_PROPERTIES}" ]]; then
+    echo "${ALLUXIO_SITE_PROPERTIES}" > conf/alluxio-site.properties
+  fi
 }
 
 function formatMasterIfSpecified {
@@ -87,21 +103,26 @@ function formatWorkerIfSpecified {
   fi
 }
 
-function mountAlluxioRootFSWithFuseOption {
-  local fuseOptions=""
-  if [[ -n ${OPTIONS} ]]; then
-    if [[ ! ${OPTIONS} =~ ${FUSE_OPTS}=* ]] || [[ ! -n ${OPTIONS#*=} ]]; then
-      printUsage
-      exit 1
-    fi
-    fuseOptions="-o ${OPTIONS#*=}"
+function mountAlluxioFSWithFuseOption {
+  if [[ -n ${FUSE_ALLUXIO_PATH} || -n ${MOUNT_POINT} ]]; then
+    echo "Use of environment variables FUSE_ALLUXIO_PATH and MOUNT_POINT for Alluxio Fuse are deprecated."
+    printUsage
+    exit 1
   fi
+  local mountOptions="$1"
+  if [[ "${mountOptions}" =~ ${FUSE_OPTS}=* ]]; then
+    exec integration/fuse/bin/alluxio-fuse mount -n -o "${mountOptions#*=}" "${@:2}"
+  else
+    exec integration/fuse/bin/alluxio-fuse mount -n "${@:1}"
+  fi
+}
 
-  # Unmount first if cleanup failed and ignore error
-  ! mkdir -p ${MOUNT_POINT}
-  ! umount ${MOUNT_POINT}
-  #! integration/fuse/bin/alluxio-fuse unmount ${MOUNT_POINT}
-  exec integration/fuse/bin/alluxio-fuse mount -n ${fuseOptions} ${MOUNT_POINT} /
+function mountFuseWithUFS {
+  exec bin/alluxio-fuse mount "${@}" -f
+}
+
+function startCsiServer {
+  exec /usr/local/bin/alluxio-csi "${@:1}"
 }
 
 # Sends a signal to each of the running background processes
@@ -212,8 +233,6 @@ function main {
   local service="$1"
   OPTIONS="$2"
 
-  set_ram_folder_if_needed
-
   setup_for_dynamic_non_root "$@"
 
   cd ${ALLUXIO_HOME}
@@ -236,11 +255,13 @@ function main {
       processes+=("job_master")
       ;;
     worker)
+      set_ram_folder_if_needed
       formatWorkerIfSpecified
       processes+=("job_worker")
       processes+=("worker")
       ;;
     worker-only)
+      set_ram_folder_if_needed
       formatWorkerIfSpecified
       processes+=("worker")
       ;;
@@ -251,10 +272,16 @@ function main {
       processes+=("proxy")
       ;;
     fuse)
-      mountAlluxioRootFSWithFuseOption
+      mountAlluxioFSWithFuseOption "${@:2}"
+      ;;
+    mount)
+      mountFuseWithUFS "${@:2}"
       ;;
     logserver)
       processes+=("logserver")
+      ;;
+    csiserver)
+      startCsiServer "${@:2}"
       ;;
     *)
       printUsage

@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -113,7 +112,11 @@ public abstract class Cache<K, V> implements Closeable {
    * @return the value, or empty if the key doesn't exist in the cache or in the backing store
    */
   public Optional<V> get(K key, ReadOption option) {
-    if (option.shouldSkipCache() || cacheIsFull()) {
+    if (option.shouldSkipCache()) {
+      return getSkipCache(key);
+    }
+    if (cacheIsFull()) {
+      wakeEvictionThreadIfNecessary();
       return getSkipCache(key);
     }
     Entry result = mMap.compute(key, (k, entry) -> {
@@ -171,13 +174,31 @@ public abstract class Cache<K, V> implements Closeable {
 
   /**
    * Writes a key/value pair to the cache.
+   * This method is similar to {@link #put(Object, Object)}, but with an added information that
+   * the entry is new.
+   *
+   * @param key the key
+   * @param value the value
+   */
+  public void putNewEntry(K key, V value) {
+    putInternal(key, value, true);
+  }
+
+  /**
+   * Writes a key/value pair to the cache.
+   * If it is known that the entry is new, prefer {@link #putNewEntry(Object, Object)}.
    *
    * @param key the key
    * @param value the value
    */
   public void put(K key, V value) {
+    putInternal(key, value, false);
+  }
+
+  private void putInternal(K key, V value, boolean isNewEntry) {
     mMap.compute(key, (k, entry) -> {
-      onPut(key, value);
+      V existingValue = entry == null ? null : entry.mValue;
+      onPut(key, existingValue, value, isNewEntry);
       if (entry == null && cacheIsFull()) {
         writeToBackingStore(key, value);
         return null;
@@ -259,8 +280,8 @@ public abstract class Cache<K, V> implements Closeable {
     mMap.clear();
   }
 
-  private boolean overHighWaterMark() {
-    return mMap.size() >= mHighWaterMark;
+  private boolean underHighWaterMark() {
+    return mMap.size() < mHighWaterMark;
   }
 
   private boolean cacheIsFull() {
@@ -317,9 +338,9 @@ public abstract class Cache<K, V> implements Closeable {
     public void run() {
       while (!Thread.interrupted()) {
         // Wait for the cache to get over the high water mark.
-        while (!overHighWaterMark()) {
+        while (underHighWaterMark()) {
           synchronized (mEvictionThread) {
-            if (!overHighWaterMark()) {
+            if (underHighWaterMark()) {
               try {
                 mIsSleeping = true;
                 mEvictionThread.wait();
@@ -447,9 +468,11 @@ public abstract class Cache<K, V> implements Closeable {
    * Callback triggered whenever a new key/value pair is added by put(key, value).
    *
    * @param key the added key
+   * @param existingValue the current value if exists, otherwise null
    * @param value the added value
+   * @param isNewKey a user input boolean indicates if the key is a new key or not
    */
-  protected void onPut(K key, V value) {}
+  protected void onPut(K key, @Nullable V existingValue, V value, boolean isNewKey) {}
 
   /**
    * Callback triggered whenever a key is removed by remove(key).

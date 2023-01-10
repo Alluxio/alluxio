@@ -17,9 +17,8 @@ easily accessible enabling applications to connect to numerous storage systems t
 interface. Alluxio’s memory-first tiered architecture enables data access at speeds orders of
 magnitude faster than existing solutions.
 
-In the data ecosystem, Alluxio lies between data driven applications, such as Apache Spark, Presto,
-Tensorflow, Apache HBase, Apache Hive, or Apache Flink, and various persistent storage systems, such
-as Amazon S3, Google Cloud Storage, OpenStack Swift, HDFS, GlusterFS, IBM Cleversafe, EMC ECS, Ceph,
+In the data ecosystem, Alluxio lies between data driven applications, such as Apache Spark, Presto, Tensorflow, Apache HBase, Apache Hive, or Apache Flink, and various persistent storage systems, such
+as Amazon S3, Google Cloud Storage, OpenStack Swift, HDFS, IBM Cleversafe, EMC ECS, Ceph,
 NFS, Minio, and Alibaba OSS. Alluxio unifies the data stored in these different storage systems,
 presenting unified client APIs and a global namespace to its upper layer data driven applications.
 
@@ -106,7 +105,6 @@ Each release comes with prebuilt binaries compatible with various Hadoop version
 [Building From Master Branch Documentation]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
 explains how to build the project from source code. Questions can be directed to our
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
-(users who can not access the Google Group may use its [mirror](http://alluxio-users.85194.x6.nabble.com/))
 or our [Community Slack Channel](https://alluxio.io/slack).
 
 [Downloads](https://www.alluxio.io/download/)

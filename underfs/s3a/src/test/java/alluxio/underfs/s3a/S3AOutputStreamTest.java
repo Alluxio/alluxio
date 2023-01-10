@@ -12,9 +12,8 @@
 package alluxio.underfs.s3a;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.util.ConfigurationUtils;
 
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.TransferManager;
@@ -40,8 +39,7 @@ import java.security.DigestOutputStream;
 public class S3AOutputStreamTest {
   private static final String BUCKET_NAME = "testBucket";
   private static final String KEY = "testKey";
-  private static AlluxioConfiguration sConf = new InstancedConfiguration(
-      ConfigurationUtils.defaults());
+  private static AlluxioConfiguration sConf = Configuration.global();
 
   private File mFile;
   private BufferedOutputStream mLocalOutputStream;
@@ -64,7 +62,7 @@ public class S3AOutputStreamTest {
     FileOutputStream outputStream = PowerMockito.mock(FileOutputStream.class);
     PowerMockito.whenNew(FileOutputStream.class).withArguments(mFile).thenReturn(outputStream);
     mStream = new S3AOutputStream(BUCKET_NAME, KEY, manager,
-        sConf.getList(PropertyKey.TMP_DIRS, ","),
+        sConf.getList(PropertyKey.TMP_DIRS),
         sConf.getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED));
   }
 

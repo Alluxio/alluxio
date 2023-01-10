@@ -19,10 +19,13 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
+import alluxio.AlluxioMockUtil;
+import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobServerContext;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.meta.JobIdGenerator;
+import alluxio.job.plan.replicate.SetReplicaConfig;
 import alluxio.job.wire.Status;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.workflow.WorkflowTracker;
@@ -31,11 +34,11 @@ import alluxio.wire.WorkerInfo;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.powermock.reflect.Whitebox;
 
 import java.util.List;
 import java.util.Queue;
@@ -138,8 +141,22 @@ public class PlanTrackerTest {
     assertFalse("job should not be finished", mTracker.getCoordinator(jobId).isJobFinished());
     finishAllJobs();
     assertTrue("job should be finished", mTracker.getCoordinator(jobId).isJobFinished());
-    assertEquals("finished should be of size 1", 1, ((Queue) Whitebox.getInternalState(mTracker,
-        "mFinished")).size());
+    assertEquals("finished should be of size 1", 1,
+        ((Queue) AlluxioMockUtil.getInternalState(mTracker, "mFinished")).size());
+  }
+
+  @Test
+  public void testDuplicateSetReplicaJobs() throws Exception {
+    long jobId = mJobIdGenerator.getNewJobId();
+    mTracker.run(new SetReplicaConfig("test", 0, 2), mCommandManager, mMockJobServerContext,
+        mWorkers, jobId);
+    long jobId2 = mJobIdGenerator.getNewJobId();
+    try {
+      mTracker.run(new SetReplicaConfig("test", 0, 3), mCommandManager, mMockJobServerContext,
+          mWorkers, jobId2);
+      Assert.fail("There's SetReplica job running for path:test blockId:0, try later");
+    } catch (JobDoesNotExistException ignored) { // ignored
+    }
   }
 
   private long addJob(int sleepTimeMs) throws Exception {

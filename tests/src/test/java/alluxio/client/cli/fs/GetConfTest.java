@@ -11,19 +11,19 @@
 
 package alluxio.client.cli.fs;
 
+import static alluxio.conf.PropertyKey.Builder.stringBuilder;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import alluxio.ClientContext;
 import alluxio.SystemOutRule;
 import alluxio.SystemPropertyRule;
 import alluxio.cli.GetConf;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPResponse;
-import alluxio.wire.Configuration;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
@@ -47,39 +47,39 @@ public final class GetConfTest {
 
   @After
   public void after() {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Test
   public void getConf() throws Exception {
-    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2048");
-    ClientContext ctx = ClientContext.create(ServerConfiguration.global());
+    Configuration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2048");
+    ClientContext ctx = ClientContext.create(Configuration.global());
     assertEquals(0, GetConf.getConf(ctx,
         PropertyKey.WORKER_RAMDISK_SIZE.toString()));
     assertEquals("2048\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2MB");
-    ctx = ClientContext.create(ServerConfiguration.global());
+    Configuration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2MB");
+    ctx = ClientContext.create(Configuration.global());
     assertEquals(0, GetConf.getConf(ctx,
         PropertyKey.WORKER_RAMDISK_SIZE.toString()));
     assertEquals("2MB\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "Nonsense");
-    ctx = ClientContext.create(ServerConfiguration.global());
+    Configuration.set(PropertyKey.WORKER_RAMDISK_SIZE, 2048);
+    ctx = ClientContext.create(Configuration.global());
     assertEquals(0, GetConf.getConf(ctx,
         PropertyKey.WORKER_RAMDISK_SIZE.toString()));
-    assertEquals("Nonsense\n", mOutputStream.toString());
+    assertEquals("2048\n", mOutputStream.toString());
   }
 
   @Test
   public void getConfByAlias() {
-    PropertyKey testProperty = new PropertyKey.Builder("alluxio.test.property")
+    PropertyKey testProperty = stringBuilder("alluxio.test.property")
         .setAlias(new String[] {"alluxio.test.property.alias"})
         .setDefaultValue("testValue")
         .build();
-    ClientContext ctx = ClientContext.create(ServerConfiguration.global());
+    ClientContext ctx = ClientContext.create(Configuration.global());
     assertEquals(0, GetConf.getConf(ctx, "alluxio.test.property.alias"));
     assertEquals("testValue\n", mOutputStream.toString());
 
@@ -91,29 +91,29 @@ public final class GetConfTest {
 
   @Test
   public void getConfWithCorrectUnit() throws Exception {
-    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2048");
-    ClientContext ctx = ClientContext.create(ServerConfiguration.global());
+    Configuration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2048");
+    ClientContext ctx = ClientContext.create(Configuration.global());
     assertEquals(0, GetConf.getConf(ctx, "--unit", "B",
         PropertyKey.WORKER_RAMDISK_SIZE.toString()));
     assertEquals("2048\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2048");
-    ctx = ClientContext.create(ServerConfiguration.global());
+    Configuration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2048");
+    ctx = ClientContext.create(Configuration.global());
     assertEquals(0, GetConf.getConf(ctx, "--unit", "KB",
         PropertyKey.WORKER_RAMDISK_SIZE.toString()));
     assertEquals("2\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2MB");
-    ctx = ClientContext.create(ServerConfiguration.global());
+    Configuration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2MB");
+    ctx = ClientContext.create(Configuration.global());
     assertEquals(0, GetConf.getConf(ctx, "--unit", "KB",
         PropertyKey.WORKER_RAMDISK_SIZE.toString()));
     assertEquals("2048\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2MB");
-    ctx = ClientContext.create(ServerConfiguration.global());
+    Configuration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2MB");
+    ctx = ClientContext.create(Configuration.global());
     assertEquals(0, GetConf.getConf(ctx, "--unit", "MB",
         PropertyKey.WORKER_RAMDISK_SIZE.toString()));
     assertEquals("2\n", mOutputStream.toString());
@@ -121,9 +121,9 @@ public final class GetConfTest {
 
   @Test
   public void getConfWithWrongUnit() throws Exception {
-    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2048");
+    Configuration.set(PropertyKey.WORKER_RAMDISK_SIZE, "2048");
     assertEquals(1,
-        GetConf.getConf(ClientContext.create(ServerConfiguration.global()), "--unit", "bad_unit",
+        GetConf.getConf(ClientContext.create(Configuration.global()), "--unit", "bad_unit",
             PropertyKey.WORKER_RAMDISK_SIZE.toString()));
   }
 
@@ -132,13 +132,13 @@ public final class GetConfTest {
     try (Closeable p = new SystemPropertyRule(ImmutableMap.of(
         PropertyKey.CONF_VALIDATION_ENABLED.toString(), "false",
         PropertyKey.ZOOKEEPER_ENABLED.toString(), "true")).toResource()) {
-      ServerConfiguration.reset();
-      ClientContext ctx = ClientContext.create(ServerConfiguration.global());
+      Configuration.reloadProperties();
+      ClientContext ctx = ClientContext.create(Configuration.global());
       assertEquals(0, GetConf.getConf(ctx,
           PropertyKey.ZOOKEEPER_ENABLED.toString()));
       assertEquals("true\n", mOutputStream.toString());
     } finally {
-      ServerConfiguration.reset();
+      Configuration.reloadProperties();
     }
   }
 
@@ -148,9 +148,9 @@ public final class GetConfTest {
     RetryHandlingMetaMasterConfigClient client =
         Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
     Mockito.when(client.getConfiguration(any())).thenReturn(
-        Configuration.fromProto(prepareGetConfigurationResponse()));
+        alluxio.wire.Configuration.fromProto(prepareGetConfigurationResponse()));
 
-    assertEquals(0, GetConf.getConfImpl(() -> client, ServerConfiguration.global(), "--master"));
+    assertEquals(0, GetConf.getConfImpl(() -> client, Configuration.global(), "--master"));
     String expectedOutput = "alluxio.logger.type=MASTER_LOGGER\n"
         + "alluxio.master.audit.logger.type=MASTER_AUDIT_LOGGER\n"
         + "alluxio.master.hostname=localhost\n"
@@ -165,9 +165,9 @@ public final class GetConfTest {
     // Prepare mock meta master client
     RetryHandlingMetaMasterConfigClient client =
         Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
-    Mockito.when(client.getConfiguration(any())).thenReturn(Configuration.fromProto(
+    Mockito.when(client.getConfiguration(any())).thenReturn(alluxio.wire.Configuration.fromProto(
         prepareGetConfigurationResponse()));
-    assertEquals(0, GetConf.getConfImpl(() -> client, ServerConfiguration.global(), "--master",
+    assertEquals(0, GetConf.getConfImpl(() -> client, Configuration.global(), "--master",
         "--source"));
     // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
     String expectedOutput =

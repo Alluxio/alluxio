@@ -22,8 +22,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.WritePType;
@@ -52,8 +52,8 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
   // Helper function to create a set of files in the file system
   private void createFiles() throws Exception {
     FileSystem fs = sLocalAlluxioCluster.getClient(FileSystemContext
-        .create(new TestUserState("test_user_ls", ServerConfiguration.global()).getSubject(),
-            ServerConfiguration.global()));
+        .create(new TestUserState("test_user_ls", Configuration.global()).getSubject(),
+            Configuration.global()));
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.MUST_CACHE, 10);
     FileSystemTestUtils
         .createByteFile(fs, "/testRoot/testDir/testFileB", WritePType.MUST_CACHE, 20);
@@ -81,8 +81,8 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
   @Test
   public void lsWildcard() throws Exception {
     FileSystem fs = sLocalAlluxioCluster.getClient(FileSystemContext.create(
-        new TestUserState("test_user_ls", ServerConfiguration.global()).getSubject(),
-        ServerConfiguration.global()));
+        new TestUserState("test_user_ls", Configuration.global()).getSubject(),
+        Configuration.global()));
 
     String testDir = FileSystemShellUtilsTest.resetFileHierarchy(fs);
     sFsShell.run("ls", testDir + "/*/foo*");
@@ -119,7 +119,7 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
   }
 
   private String getDisplayTime(long timestamp) {
-    String formatString = ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN);
+    String formatString = Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN);
     return CommonUtils.convertMsToDate(timestamp, formatString);
   }
 
@@ -164,8 +164,8 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
     int size = 50;
 
     FileSystem fs = sLocalAlluxioCluster.getClient(FileSystemContext
-        .create(new TestUserState("test_user_ls", ServerConfiguration.global()).getSubject(),
-            ServerConfiguration.global()));
+        .create(new TestUserState("test_user_ls", Configuration.global()).getSubject(),
+            Configuration.global()));
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testDir/testFileB",
         WritePType.MUST_CACHE, 20);
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFile",

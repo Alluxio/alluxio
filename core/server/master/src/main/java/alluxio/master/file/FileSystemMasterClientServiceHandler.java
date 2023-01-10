@@ -13,9 +13,9 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.RpcUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.InvalidPathException;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -30,6 +30,8 @@ import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.DeletePResponse;
+import alluxio.grpc.ExistsPRequest;
+import alluxio.grpc.ExistsPResponse;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.FreePRequest;
 import alluxio.grpc.FreePResponse;
@@ -49,8 +51,12 @@ import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
+import alluxio.grpc.ListStatusPartialPRequest;
+import alluxio.grpc.ListStatusPartialPResponse;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
+import alluxio.grpc.NeedsSyncRequest;
+import alluxio.grpc.NeedsSyncResponse;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.RenamePResponse;
 import alluxio.grpc.ReverseResolvePRequest;
@@ -77,6 +83,7 @@ import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.GrpcCallTracker;
@@ -86,6 +93,7 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.recorder.Recorder;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -146,6 +154,17 @@ public final class FileSystemMasterClientServiceHandler
       }
       return CheckConsistencyPResponse.newBuilder().addAllInconsistentPaths(uris).build();
     }, "CheckConsistency", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void exists(ExistsPRequest request,
+          StreamObserver<ExistsPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      AlluxioURI pathUri = getAlluxioURI(request.getPath());
+      boolean exists = mFileSystemMaster.exists(pathUri,
+          ExistsContext.create(request.getOptions().toBuilder()));
+      return ExistsPResponse.newBuilder().setExists(exists).build();
+    }, "CheckExistence", "request=%s", responseObserver, request);
   }
 
   @Override
@@ -216,7 +235,6 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void getStatus(GetStatusPRequest request,
       StreamObserver<GetStatusPResponse> responseObserver) {
-    String path = request.getPath();
     GetStatusPOptions options = request.getOptions();
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
@@ -231,7 +249,7 @@ public final class FileSystemMasterClientServiceHandler
   public void listStatus(ListStatusPRequest request,
       StreamObserver<ListStatusPResponse> responseObserver) {
     final int listStatusBatchSize =
-        ServerConfiguration.getInt(PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE);
+        Configuration.getInt(PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE);
 
     // Result streamer for listStatus.
     ListStatusResultStream resultStream =
@@ -255,12 +273,42 @@ public final class FileSystemMasterClientServiceHandler
   }
 
   @Override
+  public void listStatusPartial(ListStatusPartialPRequest request,
+                                StreamObserver<ListStatusPartialPResponse> responseObserver) {
+    ListStatusContext context = ListStatusContext.create(request.getOptions().toBuilder());
+    ListStatusPartialResultStream resultStream =
+        new ListStatusPartialResultStream(responseObserver, context);
+    try {
+      RpcUtils.callAndReturn(LOG, () -> {
+        AlluxioURI pathUri = getAlluxioURI(request.getPath());
+        mFileSystemMaster.listStatus(pathUri,
+            context.withTracker(new GrpcCallTracker(responseObserver)),
+            resultStream);
+        return null;
+      }, "ListStatus", false, "request=%s", request);
+    } catch (Exception e) {
+      resultStream.onError(e);
+    } finally {
+      resultStream.complete();
+    }
+  }
+
+  @Override
   public void mount(MountPRequest request, StreamObserver<MountPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.mount(new AlluxioURI(request.getAlluxioPath()),
-          new AlluxioURI(request.getUfsPath()),
-          MountContext.create(request.getOptions().toBuilder())
-              .withTracker(new GrpcCallTracker(responseObserver)));
+      MountContext mountContext = MountContext.create(request.getOptions().toBuilder())
+          .withTracker(new GrpcCallTracker(responseObserver));
+      // the mount execution process is recorded so that
+      // when an exception occurs during mounting, the user can get detailed debugging messages
+      try {
+        mFileSystemMaster.mount(new AlluxioURI(request.getAlluxioPath()),
+            new AlluxioURI(request.getUfsPath()), mountContext);
+      } catch (Exception e) {
+        Recorder recorder = mountContext.getRecorder();
+        recorder.record(e.getMessage());
+        // put the messages in an exception and let it carry over to the user
+        throw new AlluxioException(String.join("\n", recorder.takeRecords()), e);
+      }
       return MountPResponse.newBuilder().build();
     }, "Mount", "request=%s", responseObserver, request);
   }
@@ -280,7 +328,11 @@ public final class FileSystemMasterClientServiceHandler
   public void getMountTable(GetMountTablePRequest request,
       StreamObserver<GetMountTablePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      Map<String, MountPointInfo> mountTableWire = mFileSystemMaster.getMountPointInfoSummary();
+      // Set the checkUfs default to true to include ufs usage info, etc.,
+      // which requires talking to UFS and comes at a cost.
+      boolean checkUfs = request.hasCheckUfs() ? request.getCheckUfs() : true;
+      Map<String, MountPointInfo> mountTableWire = mFileSystemMaster.getMountPointInfoSummary(
+          checkUfs);
       Map<String, alluxio.grpc.MountPointInfo> mountTableProto = new HashMap<>();
       for (Map.Entry<String, MountPointInfo> entry : mountTableWire.entrySet()) {
         mountTableProto.put(entry.getKey(), GrpcUtils.toProto(entry.getValue()));
@@ -422,13 +474,22 @@ public final class FileSystemMasterClientServiceHandler
     }, "getStateLockHolders", "request=%s", responseObserver, request);
   }
 
+  @Override
+  public void needsSync(NeedsSyncRequest request,
+                        StreamObserver<NeedsSyncResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mFileSystemMaster.needsSync(new AlluxioURI(request.getPath()));
+      return NeedsSyncResponse.getDefaultInstance();
+    }, "NeedsSync", true, "request=%s", responseObserver, request);
+  }
+
   /**
    * Helper to return {@link AlluxioURI} from transport URI.
    *
    * @param uriStr transport uri string
    * @return a {@link AlluxioURI} instance
    */
-  private AlluxioURI getAlluxioURI(String uriStr) throws InvalidPathException {
+  private AlluxioURI getAlluxioURI(String uriStr) {
     return new AlluxioURI(uriStr);
   }
 }

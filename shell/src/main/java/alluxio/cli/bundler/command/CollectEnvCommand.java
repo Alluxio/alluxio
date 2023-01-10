@@ -73,11 +73,6 @@ public class CollectEnvCommand extends ExecuteShellCollectInfoCommand {
   }
 
   @Override
-  public boolean hasSubCommand() {
-    return false;
-  }
-
-  @Override
   public String getUsage() {
     return "collectEnv <outputPath>";
   }

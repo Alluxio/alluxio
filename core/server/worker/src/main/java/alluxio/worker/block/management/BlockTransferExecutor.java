@@ -13,7 +13,7 @@ package alluxio.worker.block.management;
 
 import alluxio.Sessions;
 import alluxio.worker.block.AllocateOptions;
-import alluxio.worker.block.BlockStore;
+import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.evictor.BlockTransferInfo;
 
 import org.slf4j.Logger;
@@ -34,7 +34,7 @@ public class BlockTransferExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(BlockTransferExecutor.class);
 
   private final ExecutorService mExecutor;
-  private final BlockStore mBlockStore;
+  private final LocalBlockStore mBlockStore;
   private final StoreLoadTracker mLoadTracker;
   private final int mConcurrencyLimit;
   private final BlockTransferPartitioner mPartitioner;
@@ -47,7 +47,7 @@ public class BlockTransferExecutor {
    * @param loadTracker the load tracker
    * @param concurrencyLimit the max concurrent transfers
    */
-  public BlockTransferExecutor(ExecutorService executor, BlockStore blockStore,
+  public BlockTransferExecutor(ExecutorService executor, LocalBlockStore blockStore,
       StoreLoadTracker loadTracker, int concurrencyLimit) {
     mExecutor = executor;
     mBlockStore = blockStore;
@@ -143,7 +143,7 @@ public class BlockTransferExecutor {
                   .setUseReservedSpace(useReservedSpace));
         }
       } catch (Exception e) {
-        LOG.warn("Transfer-order: {} failed. {}. ", transferInfo, e);
+        LOG.warn("Transfer-order: {} failed. {} ", transferInfo, e.toString());
         failCount++;
         if (exceptionHandler != null) {
           exceptionHandler.accept(e);

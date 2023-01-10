@@ -12,28 +12,27 @@
 package alluxio.worker.block;
 
 import alluxio.Server;
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.Block;
+import alluxio.grpc.BlockStatus;
+import alluxio.grpc.CacheRequest;
+import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.UfsReadOptions;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.wire.BlockReadRequest;
+import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
-
-import javax.annotation.Nullable;
 
 /**
  * A block worker mock for testing.
@@ -46,45 +45,29 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      BlockDoesNotExistException, InvalidWorkerStateException, IOException {
+  public void abortBlock(long sessionId, long blockId) throws IOException {
     // noop
   }
 
   @Override
-  public void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
+  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
     // noop
   }
 
   @Override
-  public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException {
+  public void commitBlockInUfs(long blockId, long length) {
     // noop
   }
 
   @Override
-  public void commitBlockInUfs(long blockId, long length) throws IOException {
-    // noop
-  }
-
-  @Override
-  public String createBlock(long sessionId, long blockId, int tier, String medium,
-      long initialBytes)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
+  public String createBlock(long sessionId, long blockId, int tier,
+      CreateBlockOptions createBlockOptions) {
     return null;
   }
 
   @Override
   public BlockWriter createBlockWriter(long sessionId, long blockId)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      IOException {
+      throws IOException {
     return null;
   }
 
@@ -104,67 +87,42 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException {
-    return null;
-  }
-
-  @Override
-  public BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException {
-    return null;
-  }
-
-  @Override
-  public boolean hasBlockMeta(long blockId) {
-    return false;
-  }
-
-  @Override
-  public long lockBlock(long sessionId, long blockId) {
-    return 0;
-  }
-
-  @Override
-  public void moveBlock(long sessionId, long blockId, int tier)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
-    // noop
-  }
-
-  @Override
-  public void moveBlockToMedium(long sessionId, long blockId, String mediumType)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
-    // noop
-  }
-
-  @Override
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
-      throws BlockDoesNotExistException, IOException {
+      throws IOException {
     return null;
   }
 
   @Override
   public void removeBlock(long sessionId, long blockId)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
+      throws IOException {
     // noop
   }
 
   @Override
-  public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
+  public void freeWorker()
+      throws IOException {
     // noop
   }
 
   @Override
-  public void unlockBlock(long lockId) throws BlockDoesNotExistException {
+  public void requestSpace(long sessionId, long blockId, long additionalBytes) {
     // noop
   }
 
   @Override
   public void asyncCache(AsyncCacheRequest request) {
     // noop
+  }
+
+  @Override
+  public void cache(CacheRequest request) {
+    // noop
+  }
+
+  @Override
+  public CompletableFuture<List<BlockStatus>> load(List<Block> blocks, UfsReadOptions options) {
+    return null;
   }
 
   @Override
@@ -178,14 +136,30 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public BlockReader createBlockReader(BlockReadRequest request)
-      throws BlockDoesNotExistException, IOException {
+  public BlockReader createBlockReader(long sessionId, long blockId, long offset,
+      boolean positionShort, Protocol.OpenUfsBlockOptions options)
+      throws IOException {
     return null;
   }
 
   @Override
   public void clearMetrics() {
     // noop
+  }
+
+  @Override
+  public Configuration getConfiguration(GetConfigurationPOptions options) {
+    return null;
+  }
+
+  @Override
+  public List<String> getWhiteList() {
+    return null;
+  }
+
+  @Override
+  public BlockStore getBlockStore() {
+    throw new UnsupportedOperationException();
   }
 
   @Override

@@ -11,14 +11,14 @@
 
 package alluxio.master.meta;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BackupPStatus;
 import alluxio.grpc.BackupState;
 import alluxio.master.BackupManager;
@@ -76,7 +76,7 @@ public class DailyMetadataBackupTest {
     mUfsClient = Mockito.mock(UfsManager.UfsClient.class);
     when(mUfsClient.acquireUfsResource()).thenReturn(new CloseableResource<UnderFileSystem>(mUfs) {
       @Override
-      public void close() {
+      public void closeResource() {
         // Noop
       }
     });
@@ -92,9 +92,9 @@ public class DailyMetadataBackupTest {
     try (Closeable c =
         new ConfigurationRule(ImmutableMap.of(
             PropertyKey.MASTER_BACKUP_DIRECTORY, mBackupDir,
-            PropertyKey.MASTER_DAILY_BACKUP_ENABLED, "true",
+            PropertyKey.MASTER_DAILY_BACKUP_ENABLED, true,
             PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED,
-            String.valueOf(fileToRetain)), ServerConfiguration.global()).toResource()) {
+            fileToRetain), Configuration.modifiableGlobal()).toResource()) {
       DailyMetadataBackup dailyBackup =
           new DailyMetadataBackup(mMetaMaster, mScheduler, mUfsManager);
       dailyBackup.start();

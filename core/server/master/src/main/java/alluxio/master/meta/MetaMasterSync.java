@@ -11,11 +11,10 @@
 
 package alluxio.master.meta;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.Scope;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.util.ConfigurationUtils;
 import alluxio.wire.Address;
 
 import org.slf4j.Logger;
@@ -23,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -114,7 +112,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
   private void setIdAndRegister() throws IOException {
     mMasterId.set(mMasterClient.getId(mMasterAddress));
     mMasterClient.register(mMasterId.get(),
-        ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.MASTER));
+        Configuration.getConfiguration(Scope.MASTER));
   }
 
   @Override

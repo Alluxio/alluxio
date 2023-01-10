@@ -12,8 +12,8 @@
 package alluxio.master.backup;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BackupPRequest;
 import alluxio.master.BackupManager;
 import alluxio.master.CoreMasterContext;
@@ -103,7 +103,7 @@ public abstract class AbstractBackupRole implements BackupRole {
     initializeCatalystContext();
     // Read properties.
     mCatalystRequestTimeout =
-        ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_TRANSPORT_TIMEOUT);
+        Configuration.getMs(PropertyKey.MASTER_BACKUP_TRANSPORT_TIMEOUT);
     // Initialize backup tracker.
     mBackupTracker = new BackupTracker();
   }
@@ -124,9 +124,8 @@ public abstract class AbstractBackupRole implements BackupRole {
   protected void sendMessageBlocking(GrpcMessagingConnection connection, Object message)
       throws IOException {
     try {
-      mGrpcMessagingContext.execute(() -> {
-        return connection.sendAndReceive(message);
-      }).get().get(); // First get is for the task, second is for the messaging future.
+      // First get is for the task, second is for the messaging future.
+      mGrpcMessagingContext.execute(() -> connection.sendAndReceive(message)).get().get();
     } catch (InterruptedException ie) {
       throw new RuntimeException("Interrupted while waiting for messaging to complete.");
     } catch (ExecutionException ee) {
@@ -146,24 +145,23 @@ public abstract class AbstractBackupRole implements BackupRole {
       throws IOException {
     AlluxioURI backupUri;
 
-    final Closer closer = Closer.create();
     // Acquire the UFS resource under which backup is being created.
-    try (CloseableResource<UnderFileSystem> ufsResource =
+    try (Closer closer = Closer.create(); CloseableResource<UnderFileSystem> ufsResource =
         mUfsManager.getRoot().acquireUfsResource()) {
       // Get backup parent directory.
       String backupParentDir = request.hasTargetDirectory() ? request.getTargetDirectory()
-          : ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
+          : Configuration.getString(PropertyKey.MASTER_BACKUP_DIRECTORY);
       // Get ufs resource for backup.
       UnderFileSystem ufs = ufsResource.get();
       if (request.getOptions().getLocalFileSystem() && !ufs.getUnderFSType().equals("local")) {
         // TODO(lu) Support getting UFS based on type from UfsManager
         ufs = closer.register(UnderFileSystem.Factory.create("/",
-            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())));
+            UnderFileSystemConfiguration.defaults(Configuration.global())));
       }
       // Ensure parent directory for backup.
       if (!ufs.isDirectory(backupParentDir)) {
         if (!ufs.mkdirs(backupParentDir,
-            MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(true))) {
+            MkdirsOptions.defaults(Configuration.global()).setCreateParent(true))) {
           throw new IOException(String.format("Failed to create directory %s", backupParentDir));
         }
       }
@@ -174,7 +172,7 @@ public abstract class AbstractBackupRole implements BackupRole {
           now.toEpochMilli());
       String backupFilePath = PathUtils.concatPath(backupParentDir, backupFileName);
       // Calculate URI for the path.
-      String rootUfs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      String rootUfs = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       if (request.getOptions().getLocalFileSystem()) {
         rootUfs = "file:///";
       }
@@ -198,8 +196,6 @@ public abstract class AbstractBackupRole implements BackupRole {
         throw new IOException(String.format("Backup failed. BackupUri: %s, LastEntryCount: %d",
             backupUri, entryCounter.get()), e);
       }
-    } finally {
-      closer.close();
     }
     return backupUri;
   }

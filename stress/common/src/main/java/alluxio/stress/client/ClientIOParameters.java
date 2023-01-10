@@ -12,6 +12,7 @@
 package alluxio.stress.client;
 
 import alluxio.stress.Parameters;
+import alluxio.stress.common.FileSystemParameters;
 
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.IStringConverter;
@@ -26,7 +27,7 @@ import java.util.Map;
  * This holds all the parameters. All fields are public for easier json ser/de without all the
  * getters and setters.
  */
-public final class ClientIOParameters extends Parameters {
+public final class ClientIOParameters extends FileSystemParameters {
   /** This must match the member name. */
   public static final String FIELD_READ_RANDOM = "mReadRandom";
 
@@ -48,7 +49,7 @@ public final class ClientIOParameters extends Parameters {
   @Parameter(names = {"--base"},
       description = "The base directory path URI to perform operations in")
   @Parameters.PathDescription(aliasFieldName = "mBaseAlias")
-  public String mBasePath = "alluxio://localhost:19998/stress-client-io-base";
+  public String mBasePath = "alluxio:///stress-client-io-base";
 
   @Parameter(names = {"--base-alias"}, description = "The alias for the base path, unused if empty")
   @Parameters.KeylessDescription
@@ -104,7 +105,6 @@ public final class ClientIOParameters extends Parameters {
   public Map<String, String> mConf = new HashMap<>();
 
   /**
-   * @return ClientIOOperation of this bench
    * Converts from String to ClientIOOperation instance.
    */
   public static class ClientIOOperationConverter implements IStringConverter<ClientIOOperation> {

@@ -12,9 +12,9 @@
 package alluxio.master.job.workflow;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -27,8 +27,8 @@ import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.TestPlanConfig;
-import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.plan.PlanConfig;
+import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.WorkflowInfo;
 import alluxio.job.workflow.composite.CompositeConfig;

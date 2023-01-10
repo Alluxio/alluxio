@@ -30,16 +30,22 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -49,7 +55,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -101,27 +106,26 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Information about a single object in object UFS.
    */
   protected class ObjectStatus {
-    private static final String INVALID_CONTENT_HASH = "";
     private static final long INVALID_CONTENT_LENGTH = -1L;
-    private static final long INVALID_MODIFIED_TIME = -1L;
 
     private final String mContentHash;
     private final long mContentLength;
-    private final long mLastModifiedTimeMs;
+    /** Last modified epoch time in ms, or null if it is not available. */
+    private final Long mLastModifiedTimeMs;
     private final String mName;
 
     public ObjectStatus(String name, String contentHash, long contentLength,
-        long lastModifiedTimeMs) {
-      mContentHash = contentHash;
+        @Nullable Long lastModifiedTimeMs) {
+      mContentHash = contentHash == null ? UfsFileStatus.INVALID_CONTENT_HASH : contentHash;
       mContentLength = contentLength;
       mLastModifiedTimeMs = lastModifiedTimeMs;
       mName = name;
     }
 
     public ObjectStatus(String name) {
-      mContentHash = INVALID_CONTENT_HASH;
+      mContentHash = UfsFileStatus.INVALID_CONTENT_HASH;
       mContentLength = INVALID_CONTENT_LENGTH;
-      mLastModifiedTimeMs = INVALID_MODIFIED_TIME;
+      mLastModifiedTimeMs = null;
       mName = name;
     }
 
@@ -146,7 +150,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      *
      * @return modification time in milliseconds
      */
-    public long getLastModifiedTimeMs() {
+    @Nullable
+    public Long getLastModifiedTimeMs() {
       return mLastModifiedTimeMs;
     }
 
@@ -257,7 +262,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
 
     /**
-     * Get the batch size.
+     * Gets the batch size.
      *
      * @return a positive integer denoting the batch size
      */
@@ -272,7 +277,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     protected abstract List<T> operate(List<T> paths) throws IOException;
 
     /**
-     * Add a new input to be operated on.
+     * Adds a new input to be operated on.
      *
      * @param input the input to operate on
      * @throws IOException if a non-Alluxio error occurs
@@ -287,7 +292,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
 
     /**
-     * Get the combined result from all batches.
+     * Gets the combined result from all batches.
      *
      * @return a list of inputs for successful operations
      * @throws IOException if a non-Alluxio error occurs
@@ -427,6 +432,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       LOG.warn("Unable to delete {} because listInternal returns null", path);
       return false;
     }
+    Arrays.sort(pathsToDelete, Comparator.comparing(UfsStatus::getName).reversed());
     for (UfsStatus pathToDelete : pathsToDelete) {
       String pathKey = stripPrefixIfPresent(PathUtils.concatPath(path, pathToDelete.getName()));
       if (pathToDelete.isDirectory()) {
@@ -908,7 +914,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     if (child.startsWith(parent)) {
       return child.substring(parent.length());
     }
-    throw new IOException(ExceptionMessage.INVALID_PREFIX.getMessage(parent, child));
+    throw new IOException(
+        MessageFormat.format("Parent path \"{0}\" is not a prefix of child {1}.", parent, child));
   }
 
   /**
@@ -943,11 +950,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     String dir = stripPrefixIfPresent(path);
     ObjectListingChunk objs = getObjectListingChunk(dir, recursive);
     // If there are, this is a folder and we can create the necessary metadata
-    if (objs != null && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
+    if (objs != null
+        && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
         || (objs.getCommonPrefixes() != null && objs.getCommonPrefixes().length > 0))) {
       // Do not recreate the breadcrumb if it already exists
       String folderName = convertToFolderName(dir);
-      if (!mUfsConf.isReadOnly() && mBreadcrumbsEnabled
+      if (!mUfsConf.isReadOnly() && mBreadcrumbsEnabled && !isRoot(dir)
           && Arrays.stream(objs.getObjectStatuses()).noneMatch(
               x -> x.mContentLength == 0 && x.getName().equals(folderName))) {
         mkdirsInternal(dir);
@@ -1042,7 +1050,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
             }
           }
         }
-        commonPrefixes = prefixes.toArray(new String[prefixes.size()]);
+        commonPrefixes = prefixes.toArray(new String[0]);
       } else {
         commonPrefixes = chunk.getCommonPrefixes();
       }
@@ -1134,13 +1142,36 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Represents an object store operation.
    */
-  private interface ObjectStoreOperation<T> {
+  @VisibleForTesting
+  protected interface ObjectStoreOperation<T> {
     /**
      * Applies this operation.
      *
      * @return the result of this operation
      */
     T apply() throws IOException;
+  }
+
+  /**
+   * Filters exception that need to be retried.
+   * if exception need to be retried will return to continue the retry.
+   * else will throw exception to quit retry.
+   * @param e exception to be handled
+   * @throws IOException Exceptions that do not need to be tried again will be thrown directly
+   */
+  private void handleRetriablException(IOException e) throws IOException {
+    if (e instanceof EOFException
+        || e instanceof UnknownHostException
+        || e instanceof ConnectTimeoutException) {
+      LOG.warn("retry policy meet exception, and will retry, e:", e);
+      return;
+    } else if (e instanceof SocketException) {
+      LOG.warn("retry policy meet socket exception, and will retry, e:", e);
+      return;
+    } else {
+      LOG.warn("retry policy meet exception, but no need to retry, e:", e);
+      throw e;
+    }
   }
 
   /**
@@ -1151,8 +1182,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param description the description regarding the operation
    * @return the operation result if operation succeed
    */
-  private <T> T retryOnException(ObjectStoreOperation<T> op,
-      Supplier<String> description) throws IOException {
+  @VisibleForTesting
+  protected <T> T retryOnException(ObjectStoreOperation<T> op,
+                                   Supplier<String> description) throws IOException {
     RetryPolicy retryPolicy = getRetryPolicy();
     IOException thrownException = null;
     while (retryPolicy.attempt()) {
@@ -1161,6 +1193,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       } catch (IOException e) {
         LOG.debug("Attempt {} to {} failed with exception : {}", retryPolicy.getAttemptCount(),
             description.get(), e.toString());
+        handleRetriablException(e);
         thrownException = e;
       }
     }

@@ -13,7 +13,7 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.UfsInfo;
@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -43,7 +42,7 @@ public final class WorkerUfsManager extends AbstractUfsManager {
    */
   public WorkerUfsManager() {
     mMasterClient = mCloser.register(new FileSystemMasterClient(MasterClientContext
-        .newBuilder(ClientContext.create(ServerConfiguration.global())).build()));
+        .newBuilder(ClientContext.create(Configuration.global())).build()));
   }
 
   /**
@@ -69,18 +68,16 @@ public final class WorkerUfsManager extends AbstractUfsManager {
     }
     Preconditions.checkState((info.hasUri() && info.hasProperties()), "unknown mountId");
     super.addMount(mountId, new AlluxioURI(info.getUri()),
-        UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
-            .setReadOnly(info.getProperties().getReadOnly())
-            .setShared(info.getProperties().getShared())
+        new UnderFileSystemConfiguration(
+            Configuration.global(), info.getProperties().getReadOnly())
             .createMountSpecificConf(info.getProperties().getPropertiesMap()));
-    UfsClient ufsClient = super.get(mountId);
-    return ufsClient;
+    return super.get(mountId);
   }
 
   @Override
   protected void connectUfs(UnderFileSystem fs) throws IOException {
     fs.connectFromWorker(
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC,
-            ServerConfiguration.global()));
+            Configuration.global()));
   }
 }

@@ -1,4 +1,3 @@
 alluxio.job.plan.CrashPlanDefinition
-alluxio.job.plan.NoopPlanDefinition
 alluxio.job.plan.SleepPlanDefinition
 alluxio.job.plan.TestPlanDefinition

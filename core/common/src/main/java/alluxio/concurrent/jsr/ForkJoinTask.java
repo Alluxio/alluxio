@@ -5,8 +5,8 @@
 package alluxio.concurrent.jsr;
 
 import java.io.Serializable;
-import java.lang.ref.WeakReference;
 import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.List;
@@ -368,7 +368,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
    */
   public static <T extends ForkJoinTask<?>> Collection<T> invokeAll(Collection<T> tasks) {
     if (!(tasks instanceof RandomAccess) || !(tasks instanceof List<?>)) {
-      invokeAll(tasks.toArray(new ForkJoinTask<?>[tasks.size()]));
+      invokeAll(tasks.toArray(new ForkJoinTask<?>[0]));
       return tasks;
     }
     List<? extends ForkJoinTask<?>> ts = (List<? extends ForkJoinTask<?>>) tasks;

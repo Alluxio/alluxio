@@ -132,7 +132,7 @@ $ ./bin/alluxio runTests
 
 ## 访问HA Alluxio集群
 
-当应用程序在HA模式下与Alluxio交互时，客户端知道Alluxio HA集群，以便客户端知道如何返现Alluxio leading master。有两种方法可以在客户端上指定HA Alluxio服务地址:
+当应用程序在HA模式下与Alluxio交互时，客户端知道Alluxio HA集群，以便客户端知道如何返现Alluxio leading master。有三种方法可以在客户端上指定HA Alluxio服务地址:
 
 ### 在配置参数或Java Option中指定Alluxio服务
 
@@ -165,14 +165,63 @@ alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 
 ### 使用URL Authority指定Alluxio服务{#ha-authority}
 
-用户还可以通过在URI中完整描述HA集群信息的方式来连接到Alluxio HA集群。从HA Authority获取的配置优先于所有其他形式的配置，如 站点属性或环境变量。
+用户还可以通过在URI中完整描述HA集群信息的方式来连接到Alluxio HA集群。从HA Authority获取的配置优先于所有其他形式的配置，如站点属性或环境变量。
 
-- 使用嵌入式日志时，使用 `alluxio://master_hostname_1:19998`，`master_hostname_2:19998，master_hostname_3:19998/path`
+- 使用嵌入式日志时，使用 `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path`
 - 使用Zookeeper做leader选举时，使用 `alluxio://zk@<ZOOKEEPER_ADDRESS>/path`。
 
-对于许多应用程序(例如，Hadoop，HBase，Hive和Flink)，可以使用逗号作为URI中多个地址的分隔符，例如 `alluxio://master_hostname_1:19998，master_hostname_2:19998，master_hostname_3:19998/path` 和 `alluxio://zk@zkHost1:2181，zkHost2:2181，zkHost3:2181/path`。
+对于许多应用程序(例如，Hadoop，Hive和Flink)，可以使用逗号作为URI中多个地址的分隔符，例如 `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path` 和 `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`。
 
 对于URL Authority内不接受逗号的其他一些应用程序(例如Spark)，需要使用分号作为多个地址的分隔符，例如 `alluxio://master_hostname_1:19998; master_hostname_2:19998; master_hostname_3:19998` 和 `alluxio://zk@zkHost1:2181; zkHost2:2181; zkHost3:2181/path`。
+
+### 使用逻辑域名指定 Alluxio 服务
+
+一些框架可能不接受上述两种方式来连接到高可用Alluxio HA集群，因此Alluxio也支持通过逻辑域名的来连接到Alluxio HA集群。为了使用逻辑域名，需要在环境变量或站点属性中设置以下的值。
+
+#### 嵌入式日志逻辑域名
+
+如果你使用的是嵌入式日志，你需要配置以下的值并通过`alluxio://ebj@[logical-name]`（例如 `alluxio://ebj@my-alluxio-cluster` ）来连接到高可用 alluxio 节点。
+
+* alluxio.master.nameservices.[逻辑名称] 每个 alluxio master 节点的单独标识符
+
+用逗号分割的 alluxio master 节点的 ID，用来确定集群中所有的 alluxio master 节点。例如，你之前使用 `my-alluxio-cluster`作为逻辑域名，并且想使用 `master1,master2,master3` 作为每个 alluxio master 的单独 ID，你可以这么设置：
+
+```
+alluxio.master.nameservices.my-alluxio-cluster=master1,master2,master3
+```
+
+* alluxio.master.rpc.address.[逻辑名称].[master 节点 ID] 每个 alluxio master 节点对应的地址
+
+对于之前配置的每个 alluxio master 节点，设置每个 alluxio master 节点的完整地址，例如
+
+```
+alluxio.master.rpc.address.my-alluxio-cluster.master1=master1:19998
+alluxio.master.rpc.address.my-alluxio-cluster.master2=master2:19998
+alluxio.master.rpc.address.my-alluxio-cluster.master3=master3:19998
+```
+
+#### Zookeeper 逻辑域名
+
+如果你使用 zookeeper 做 leader 选举时，你需要配置以下的值并通过`alluxio://zk@[logical-name]`（例如 `alluxio://zk@my-alluxio-cluster` ）来连接到高可用 alluxio 节点。
+
+* alluxio.master.zookeeper.nameservices.[逻辑名称] 每个 Zookeeper 节点的单独标识符
+
+用逗号分割的 Zookeeper 节点 ID，用来确定集群中所有的 Zookeeper 节点。例如，你之前使用 `my-alluxio-cluster`作为逻辑域名，并且想使用 `node1,node2,node3` 作为每个 Zookeeper 的单独 ID，你可以这么设置：
+
+```
+alluxio.master.zookeeper.nameservices.my-alluxio-cluster=node1,node2,node3
+```
+
+* alluxio.master.zookeeper.address.[逻辑域名].[Zookeeper 节点 ID] 每个 Zookeeper 节点对应的地址
+  
+
+对于之前配置的每个 Zookeeper 节点，设置每个 Zookeeper 节点的完整地址，例如
+
+```
+alluxio.master.zookeeper.address.my-alluxio-cluster.node1=host1:2181
+alluxio.master.zookeeper.address.my-alluxio-cluster.node2=host2:2181
+alluxio.master.zookeeper.address.my-alluxio-cluster.node3=host3:2181
+```
 
 ## 常见操作
 
@@ -250,7 +299,7 @@ $ ./bin/alluxio-start.sh worker SudoMount # 开始 local worker
 $ ./bin/alluxio-stop.sh worker # 停止 local worker
 ```
 
-一旦worker被停止，master将在预定的超时值（通过master参数alluxio.master.worker.timeout配置）后将此worker标记为缺失。 主机视worker为“丢失”，并且不再将其包括在集群中。
+一旦worker被停止，master将在预定的超时值（通过master参数alluxio.master.worker.timeout配置）后将此worker标记为缺失。 主机视worker为"丢失"，并且不再将其包括在集群中。
 
 ### 添加/删除Masters
 如要添加一个master节点，Alluxio集群必须已经在HA模式下运行。如果目前集群为单个master集群，则必须先将其配置为HA集群才能有多于一个master。

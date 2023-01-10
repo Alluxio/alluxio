@@ -19,7 +19,6 @@ import com.codahale.metrics.graphite.GraphiteReporter;
 
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

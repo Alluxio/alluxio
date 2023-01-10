@@ -22,8 +22,8 @@ with the correct Hadoop version (recommended), or
 [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
 (for advanced users).
 
-Note that, when building Alluxio from source code, by default Alluxio server binaries is built to
-work with Apache Hadoop HDFS of version `3.3.0`. To work with Hadoop distributions of other
+Note that, when building Alluxio from source code, by default Alluxio server binaries are built to
+work with Apache Hadoop HDFS of version `3.3.1`. To work with Hadoop distributions of other
 versions, one needs to specify the correct Hadoop profile and run the following in your Alluxio
 directory:
 
@@ -37,11 +37,10 @@ For example,
 
 ```console
 # Build Alluxio for the Apache Hadoop version Hadoop 2.7.1
-$ mvn install -Phadoop-2 -Dhadoop.version=2.7.1 -DskipTests
+$ mvn install -Pufs-hadoop-2 -Dhadoop.version=2.7.1 -DskipTests
 # Build Alluxio for the Apache Hadoop version Hadoop 3.1.0
-$ mvn install -Phadoop-3 -Dhadoop.version=3.1.0 -DskipTests
+$ mvn install -Pufs-hadoop-3 -Dhadoop.version=3.1.0 -DskipTests
 ```
-
 Please visit the
 [Building Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}#hadoop-distribution-support)
 page for more information about support for other distributions.
@@ -49,6 +48,15 @@ page for more information about support for other distributions.
 If everything succeeds, you should see
 `alluxio-assembly-server-{{site.ALLUXIO_VERSION_STRING}}-jar-with-dependencies.jar` created in
 the `${ALLUXIO_HOME}/assembly/server/target` directory.
+
+To enable active sync be sure to build using the `hdfsActiveSync` property.
+For example,
+```console
+# Build Alluxio for the Apache Hadoop version Hadoop 3.1.0 with active sync enabled
+$ mvn install -PhdfsActiveSync -Pufs-hadoop-3 -Dhadoop.version=3.1.0 -DskipTests
+```
+Please visit [Active Sync for HDFS]({{ '/en/core-services/Unified-Namespace.html#active-sync-for-hdfs' | relativize_url }})
+for more information on using active sync.
 
 ## Basic Setup
 
@@ -110,10 +118,11 @@ read/write access to the HDFS directory mounted to Alluxio. By default,
 the login user is the current user of the host OS. To change the user, set the value of
 `alluxio.security.login.username` in `conf/alluxio-site.properties` to the desired username.
 
-After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070)
+After this succeeds, you can visit HDFS web UI at [http://localhost:9870](http://localhost:9870)
+([http://localhost:50070](http://localhost:50070) if you are running HDFS 2.x)
 to verify the files and directories created by Alluxio exist. For this test, you should see
 files named like: `/default_tests_files/BASIC_CACHE_THROUGH` at
-[http://localhost:50070/explorer.html](http://localhost:50070/explorer.html)
+[http://localhost:9870/explorer.html](http://localhost:9870/explorer.html)
 
 Stop Alluxio by running:
 
@@ -142,15 +151,16 @@ set the property `alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.co
 Make sure this configuration is set on all servers running Alluxio.
 
 ```
-alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml
+alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml
 ```
 
 ### HDFS Namenode HA Mode
 
 To configure Alluxio to work with HDFS namenodes in HA mode, first configure Alluxio servers to [access HDFS with the proper configuration files](#specify-hdfs-configuration-location).
 
-In addition, set the under storage address to `hdfs://nameservice/` (`nameservice` is the name of HDFS
-service already configured in `core-site.xml`). To mount an HDFS subdirectory to Alluxio instead
+In addition, set the under storage address to `hdfs://nameservice/` (`nameservice` is 
+the [HDFS nameservice](https://hadoop.apache.org/docs/r3.3.1/hadoop-project-dist/hadoop-hdfs/HDFSHighAvailabilityWithQJM.html#Configuration_details)
+already configured in `hdfs-site.xml`). To mount an HDFS subdirectory to Alluxio instead
 of the whole HDFS namespace, change the under storage address to something like
 `hdfs://nameservice/alluxio/data`.
 
@@ -160,17 +170,17 @@ alluxio.master.mount.table.root.ufs=hdfs://nameservice/
 
 ### User/Permission Mapping
 
-Alluxio supports POSIX-like filesystem [user and permission checking]({{ '/en/operation/Security.html' | relativize_url }}).
+Alluxio supports POSIX-like filesystem [user and permission checking]({{ '/en/security/Security.html' | relativize_url }}).
 To ensure that the permission information of files/directories including user, group and mode in
 HDFS is consistent with Alluxio (e.g., a file created by user Foo in Alluxio is persisted to
 HDFS also with owner as user Foo), the user to start Alluxio master and worker processes
 **is required** to be either:
 
-1. [HDFS super user](http://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#The_Super-User).
+1. [HDFS super user](http://hadoop.apache.org/docs/r3.3.1/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#The_Super-User).
 Namely, use the same user that starts HDFS namenode process to also start Alluxio master and
 worker processes.
 
-2. A member of [HDFS superuser group](http://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#Configuration_Parameters).
+2. A member of [HDFS superuser group](http://hadoop.apache.org/docs/r3.3.1/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#Configuration_Parameters).
 Edit HDFS configuration file `hdfs-site.xml` and check the value of configuration property
 `dfs.permissions.superusergroup`. If this property is set with a group (e.g., "hdfs"), add the
 user to start Alluxio process (e.g., "alluxio") to this group ("hdfs"); if this property is not
@@ -178,7 +188,7 @@ set, add a group to this property where your Alluxio running user is a member of
 group.
 
 The user set above is only the identity that starts Alluxio master and worker
-processes. Once Alluxio servers started, it is **unnecessary** to run your Alluxio client
+processes. Once Alluxio servers are started, it is **unnecessary** to run your Alluxio client
 applications using this user.
 
 ### Connect to Secure HDFS
@@ -196,11 +206,15 @@ alluxio.worker.principal=hdfs/<_HOST>@<REALM>
 ```
 
 If connecting to secure HDFS, run `kinit` on all Alluxio nodes.
-Use the principal `hdfs` and the keytab that you configured earlier in `alluxio-site.properties`
+Use the principal `hdfs` and the keytab that you configured earlier in `alluxio-site.properties`.
 A known limitation is that the Kerberos TGT may expire after
 the max renewal lifetime. You can work around this by renewing the TGT periodically. Otherwise you
 may see `No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)`
-when starting Alluxio services.
+when starting Alluxio services. Another option is to set `alluxio.hadoop.security.kerberos.keytab.login.autorenewal=true`
+so the TGT is automatically refreshed.
+
+The user can also use `alluxio.hadoop.security.krb5.conf` to specify the krb5.conf file location
+and use `alluxio.hadoop.security.authentication` to specify authentication method.
 
 #### Custom Kerberos Realm/KDC
 
@@ -230,14 +244,16 @@ $ mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests \
 ```
 
 #### Using Mount Command-line
-When using the mount Alluxio shell command, one can pass through the mount option `alluxio.underfs.version` to specify which version of HDFS to mount. If no such a version is specified, by default Alluxio treats it as Apache HDFS 2.7.
+When using the mount Alluxio shell command, one can pass through the mount option
+`alluxio.underfs.version` to specify which version of HDFS to mount. If no such a version is specified, 
+by default Alluxio treats it as Apache HDFS 3.3.
 
 For example, the following commands mount two HDFS deployments—one is HDFS 2.2 and the other is 2.7—into Alluxio namespace under directory `/mnt/hdfs22` and `/mnt/hdfs27`.
 
 ```console
 $ ./bin/alluxio fs mount \
   --option alluxio.underfs.version=2.2 \
-  /mnt/hdfs12 hdfs://namenode1:8020/
+  /mnt/hdfs22 hdfs://namenode1:8020/
 $ ./bin/alluxio fs mount \
   --option alluxio.underfs.version=2.7 \
   /mnt/hdfs27 hdfs://namenode2:8020/
@@ -257,7 +273,7 @@ alluxio.master.mount.table.root.option.alluxio.underfs.version=2.2
 
 Alluxio supports the following versions of HDFS as a valid argument of mount option `alluxio.underfs.version`:
 
-- Apache Hadoop: 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3
+- Apache Hadoop: 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 3.0, 3.1, 3.2, 3.3
 
 Note: Apache Hadoop 1.0 and 1.2 are still supported, but not included in the default download.
 To build this module yourself, build the shaded hadoop client and then the UFS module. 

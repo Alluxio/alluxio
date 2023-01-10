@@ -23,7 +23,6 @@ import alluxio.wire.WorkerInfo;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -56,6 +55,13 @@ public interface BlockMasterClient extends Client {
    * @return a list of worker information
    */
   List<WorkerInfo> getWorkerInfoList() throws IOException;
+
+  /**
+   * Remove the metadata of a decommissioned worker.
+   *
+   * @param workerName contains a string, representing the workerName
+   */
+  void removeDecommissionedWorker(String workerName) throws IOException;
 
   /**
    * Gets the worker information of selected workers and selected fields for report CLI.

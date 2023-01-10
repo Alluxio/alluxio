@@ -33,6 +33,7 @@ import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
@@ -113,6 +114,14 @@ public interface FileSystemMaster extends Master {
       UnavailableException, IOException;
 
   /**
+   * Returns the mount id according to the ufs path.
+   *
+   * @param ufsPath the ufs path
+   * @return the corresponding mount id
+   */
+  long getMountIdFromUfsPath(AlluxioURI ufsPath);
+
+  /**
    * Returns the persistence state for a file id.
    *
    * @param fileId the file id
@@ -139,7 +148,7 @@ public interface FileSystemMaster extends Master {
    */
   List<FileInfo> listStatus(AlluxioURI path, ListStatusContext context)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException,
-      UnavailableException, IOException;
+      IOException;
 
   /**
    * Enumerates given path to given batch tracker.
@@ -178,6 +187,16 @@ public interface FileSystemMaster extends Master {
    */
   void checkAccess(AlluxioURI path, CheckAccessContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException;
+
+  /**
+   * Checks path exists.
+   *
+   * @param path path to check
+   * @param context the method context
+   * @return whether the path exists
+   */
+  boolean exists(AlluxioURI path, ExistsContext context)
+      throws AccessControlException, IOException;
 
   /**
    * Checks the consistency of the files and directories in the subtree under the path.
@@ -246,9 +265,18 @@ public interface FileSystemMaster extends Master {
       AccessControlException, UnavailableException;
 
   /**
+   * This is the same as calling {@link #getMountPointInfoSummary(boolean)} with true argument.
    * @return a snapshot of the mount table as a mapping of Alluxio path to {@link MountPointInfo}
    */
-  Map<String, MountPointInfo> getMountPointInfoSummary();
+  default Map<String, MountPointInfo> getMountPointInfoSummary() {
+    return getMountPointInfoSummary(true);
+  }
+
+  /**
+   * @param checkUfs if true, invoke ufs to set ufs properties
+   * @return a snapshot of the mount table as a mapping of Alluxio path to {@link MountPointInfo}
+   */
+  Map<String, MountPointInfo> getMountPointInfoSummary(boolean checkUfs);
 
   /**
    * Gets the mount point information of an Alluxio path for display purpose.
@@ -391,7 +419,7 @@ public interface FileSystemMaster extends Master {
   /**
    * @return all the files lost on the workers
    */
-  List<Long> getLostFiles();
+  Set<Long> getLostFiles();
 
   /**
    * Mounts a UFS path onto an Alluxio path.
@@ -600,4 +628,11 @@ public interface FileSystemMaster extends Master {
    * @return the list of thread identifiers that are waiting and holding the state lock
    */
   List<String> getStateLockSharedWaitersAndHolders();
+
+  /**
+   * Mark a path as needed synchronization with the UFS, when this path or any
+   * of its children are accessed, a sync with the UFS will be performed.
+   * @param path the path to invalidate
+   */
+  void needsSync(AlluxioURI path) throws InvalidPathException;
 }

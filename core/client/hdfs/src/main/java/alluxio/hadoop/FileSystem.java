@@ -15,21 +15,23 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.PreconditionMessage;
 import alluxio.uri.Authority;
+import alluxio.uri.EmbeddedLogicalAuthority;
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.UnknownAuthority;
 import alluxio.uri.ZookeeperAuthority;
+import alluxio.uri.ZookeeperLogicalAuthority;
 
 import com.google.common.base.Preconditions;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.StringJoiner;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -39,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * native API defined in {@link alluxio.client.file.FileSystem}, which this API is built on top of.
  */
 @NotThreadSafe
-public final class FileSystem extends AbstractFileSystem {
+public class FileSystem extends AbstractFileSystem {
   /**
    * Constructs a new {@link FileSystem}.
    */
@@ -68,7 +70,7 @@ public final class FileSystem extends AbstractFileSystem {
   }
 
   @Override
-  protected Map<String, Object> getConfigurationFromUri(URI uri) {
+  protected Map<String, Object> getConfigurationFromUri(URI uri, Configuration conf) {
     AlluxioURI alluxioUri = new AlluxioURI(uri.toString());
     Map<String, Object> alluxioConfProperties = new HashMap<>();
 
@@ -94,6 +96,46 @@ public final class FileSystem extends AbstractFileSystem {
       // Unset the zookeeper configuration to support alluxio URI has the highest priority
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
+    } else if (alluxioUri.getAuthority() instanceof EmbeddedLogicalAuthority) {
+      EmbeddedLogicalAuthority authority = (EmbeddedLogicalAuthority) alluxioUri.getAuthority();
+      String masterNamesConfKey = PropertyKey.Template.MASTER_LOGICAL_NAMESERVICES
+          .format(authority.getLogicalName()).getName();
+      String[] masterNames = conf.getTrimmedStrings(masterNamesConfKey);
+      Preconditions.checkArgument(masterNames.length != 0,
+          "Invalid uri. You must set %s to use the logical name ", masterNamesConfKey);
+
+      StringJoiner masterRpcAddress = new StringJoiner(",");
+      for (String masterName : masterNames) {
+        String name = PropertyKey.Template.MASTER_LOGICAL_RPC_ADDRESS
+            .format(authority.getLogicalName(), masterName).getName();
+        String address = conf.get(name);
+        Preconditions.checkArgument(address != null, "You need to set %s", name);
+        masterRpcAddress.add(address);
+      }
+
+      alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
+          masterRpcAddress.toString());
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
+    } else if (alluxioUri.getAuthority() instanceof ZookeeperLogicalAuthority) {
+      ZookeeperLogicalAuthority authority = (ZookeeperLogicalAuthority) alluxioUri.getAuthority();
+      String zkNodesConfKey = PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_NAMESERVICES
+          .format(authority.getLogicalName()).getName();
+      String[] zkNodeNames = conf.getTrimmedStrings(zkNodesConfKey);
+      Preconditions.checkArgument(zkNodeNames.length != 0,
+          "Invalid uri. You must set %s to use the logical name", zkNodesConfKey);
+
+      StringJoiner zkAddress = new StringJoiner(",");
+      for (String zkName : zkNodeNames) {
+        String name = PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_ADDRESS
+            .format(authority.getLogicalName(), zkName).getName();
+        String address = conf.get(name);
+        Preconditions.checkArgument(address != null, "You need to set %s", name);
+        zkAddress.add(address);
+      }
+
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), zkAddress.toString());
     }
     return alluxioConfProperties;
   }
@@ -101,7 +143,7 @@ public final class FileSystem extends AbstractFileSystem {
   @Override
   protected void validateFsUri(URI fsUri) throws IOException, IllegalArgumentException {
     Preconditions.checkArgument(fsUri.getScheme().equals(getScheme()),
-            PreconditionMessage.URI_SCHEME_MISMATCH.toString(), fsUri.getScheme(), getScheme());
+        "URI scheme %s does not match the expected scheme %s", fsUri.getScheme(), getScheme());
 
     Authority auth = Authority.fromString(fsUri.getAuthority());
     if (auth instanceof UnknownAuthority) {

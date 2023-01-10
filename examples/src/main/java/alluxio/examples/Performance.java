@@ -13,16 +13,16 @@ package alluxio.examples;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.file.FileSystemContext;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
@@ -582,7 +582,7 @@ public final class Performance {
       System.exit(-1);
     }
 
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    InstancedConfiguration conf = Configuration.modifiableGlobal();
 
     HostAndPort masterAddress = HostAndPort.fromString(args[0]);
     sFileName = args[1];
@@ -611,7 +611,7 @@ public final class Performance {
     CommonUtils.warmUpLoop();
 
     conf.set(PropertyKey.MASTER_HOSTNAME, masterAddress.getHost());
-    conf.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getPort()));
+    conf.set(PropertyKey.MASTER_RPC_PORT, masterAddress.getPort());
 
     FileSystemContext fsContext = FileSystemContext.create(conf);
 

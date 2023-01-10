@@ -50,6 +50,10 @@ public interface UfsBlockLocationCache {
   final class Factory {
     private Factory() {} // prevent instantiation
 
+    /**
+     * @param mountTable the mount table
+     * @return {@link UfsBlockLocationCache}
+     */
     public static UfsBlockLocationCache create(MountTable mountTable) {
       return new LazyUfsBlockLocationCache(mountTable);
     }

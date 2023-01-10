@@ -1,9 +1,6 @@
 name: Java 8 Integration Tests
 
-on:
-  pull_request:
-  schedule:
-    - cron: 0 0 * * *
+on: [pull_request]
 
 jobs:
   build:
@@ -22,13 +19,9 @@ jobs:
           - >-
             alluxio.client.fs.concurrent.**,alluxio.client.fs.io.**
           - >-
-            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**
+            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**,!alluxio.client.fuse.**
           - >-
             alluxio.job.**,alluxio.master.**,alluxio.stress.**
-          - >-
-            alluxio.server.ft.**,!alluxio.server.ft.journal.raft.**,!alluxio.server.ft.journal.ufs.**
-          - >-
-            alluxio.server.ft.journal.raft.**,alluxio.server.ft.journal.ufs.**
           - >-
             alluxio.server.**,!alluxio.server.ft.**
 
@@ -50,6 +43,12 @@ jobs:
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-java8-${{ hashFiles('**/pom.xml') }}
+
+      - name: Cache local Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.mod') }}
 
       - name: Run tests
         id: test0

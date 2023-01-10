@@ -15,18 +15,29 @@ package alluxio.stress.fuse;
  * The operations for the FUSE stress tests.
  */
 public enum FuseIOOperation {
-  /** Write operation to test the write throughput or prepare data for reading. */
-  WRITE("Write"),
-
+  /**
+   * Read &lt;numAllFiles&gt;/&lt;numJobWorker&gt; number of files evenly from all directories
+   * created by all job workers through local Fuse mount point.
+   */
+  CLUSTER_READ("ClusterRead"),
   /**
    * List the files before reading can help cache the metadata and gain more accurate reading
    * performance, if client-side metadata cache is enabled.
    */
   LIST_FILE("ListFile"),
 
-  /** Now only streaming reading is supported, that is, sequentially read the written files. */
-  READ("Read"),
-  // TODO(Shawn): Support other types of read
+  /*Now only streaming reading is supported, that is, sequentially read the written files. */
+  /**
+   * Each job worker, or client, will read the files it wrote through local Fuse mount point.
+   */
+  LOCAL_READ("LocalRead"),
+  /**
+   * Each job worker will evenly read the files written by other job workers via local Fuse mount
+   * point.
+   */
+  REMOTE_READ("RemoteRead"),
+  /** Write operation to test the write throughput or prepare data for reading. */
+  WRITE("Write"),
   ;
 
   /**
@@ -35,7 +46,9 @@ public enum FuseIOOperation {
    */
   public static boolean isRead(FuseIOOperation operation) {
     switch (operation) {
-      case READ:
+      case LOCAL_READ: // fall through
+      case REMOTE_READ: // fall through
+      case CLUSTER_READ:
         return true;
       default:
         return false;

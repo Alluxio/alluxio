@@ -12,7 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.resource.CloseableResource;
@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -39,7 +38,7 @@ public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
 
   /** Number of blocks to cache. */
   private static final int MAX_BLOCKS =
-      ServerConfiguration.getInt(PropertyKey.MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY);
+      Configuration.getInt(PropertyKey.MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY);
 
   /** Cache of ufs block locations, key is block ID, value is block locations. */
   private Cache<Long, List<String>> mCache;

@@ -12,8 +12,8 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.job.JobMasterClient;
-import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.StatusSummary;
 import alluxio.util.CommonUtils;

@@ -12,7 +12,6 @@
 package alluxio.metrics;
 
 import alluxio.conf.PropertyKey;
-import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.MetricType;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -23,12 +22,12 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -46,6 +45,8 @@ public final class MetricKey implements Comparable<MetricKey> {
 
   /** Metric name. */
   private final String mName;
+  /** Metrics name without instance prefix. */
+  private final String mMetricName;
 
   /** Metric key description. */
   private final String mDescription;
@@ -68,6 +69,7 @@ public final class MetricKey implements Comparable<MetricKey> {
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
     mMetricType = metricType;
     mIsClusterAggregated = isClusterAggregated;
+    mMetricName = extractMetricName();
   }
 
   /**
@@ -97,7 +99,7 @@ public final class MetricKey implements Comparable<MetricKey> {
     if (key != null) {
       return key;
     }
-    throw new IllegalArgumentException(ExceptionMessage.INVALID_METRIC_KEY.getMessage(name));
+    throw new IllegalArgumentException(MessageFormat.format("Invalid metric key {0}", name));
   }
 
   /**
@@ -136,6 +138,10 @@ public final class MetricKey implements Comparable<MetricKey> {
    * @return the name of the Metric without instance prefix
    */
   public String getMetricName() {
+    return mMetricName;
+  }
+
+  private String extractMetricName() {
     String[] pieces = mName.split("\\.");
     if (pieces.length <= 1) {
       return mName;
@@ -230,6 +236,26 @@ public final class MetricKey implements Comparable<MetricKey> {
     }
   }
 
+  /**
+   * @param mountId the mount id to get the metric for
+   * @return the metadata sync ufs access count metric for the mount id
+   */
+  public static String getSyncMetricName(long mountId) {
+    return MetricKey.MASTER_METADATA_SYNC_UFS_MOUNT + Long.toString(mountId);
+  }
+
+  private static final String EXECUTOR_STRING = "%1$s.submitted is a meter of the tasks submitted"
+      + " to the executor. %1$s.completed is a meter of the tasks completed by the executor."
+      + " %1$s.activeTaskQueue is exponentially-decaying random reservoir of the number of"
+      + " active tasks (running or submitted) at the executor calculated each time a new"
+      + " task is added to the executor. The max value is the maximum number of active"
+      + " tasks at any time during execution. %1$s.running is the number of tasks actively"
+      + " being run by the executor. %1$s.idle is the time spent idling by the submitted"
+      + " tasks (i.e. waiting the the queue before being executed)."
+      + " %1$s.duration is the time spent running the submitted tasks."
+      + " If the executor is a thread pool executor then %1$s.queueSize is"
+      + " the size of the task queue.";
+
   // Master metrics
   // Absent cache stats
   public static final MetricKey MASTER_ABSENT_CACHE_HITS =
@@ -246,6 +272,13 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Master.AbsentCacheSize")
           .setDescription("Size of the absent cache")
           .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ABSENT_PATH_CACHE_QUEUE_SIZE =
+      new Builder("Master.AbsentPathCacheQueueSize")
+          .setDescription("Alluxio maintains a cache of absent UFS paths. "
+              + "This is the number of UFS paths being processed.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
           .build();
 
   // Edge cache stats
@@ -348,14 +381,21 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "Use this metric to monitor whether your journal is running out of disk space.")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey MASTER_LOST_FILE_COUNT =
-      new Builder("Master.LostFileCount")
-          .setDescription("Count of lost files")
-          .setMetricType(MetricType.GAUGE)
-          .build();
   public static final MetricKey MASTER_LOST_BLOCK_COUNT =
       new Builder("Master.LostBlockCount")
           .setDescription("Count of lost unique blocks")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_TO_REMOVE_BLOCK_COUNT =
+      new Builder("Master.ToRemoveBlockCount")
+          .setDescription("Count of block replicas to be removed from the workers. "
+              + "If 1 block is to be removed from 2 workers, 2 will be counted here.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_LOST_FILE_COUNT =
+      new Builder("Master.LostFileCount")
+          .setDescription("Count of lost files. This number is cached and may not be in sync with "
+              + String.format("%s", MetricKey.MASTER_LOST_BLOCK_COUNT.getName()))
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_TOTAL_PATHS =
@@ -367,6 +407,13 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Master.UniqueBlocks")
           .setDescription("Total number of unique blocks in Alluxio")
           .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_TOTAL_RPCS =
+      new Builder("Master.TotalRpcs")
+          .setDescription("Throughput of master RPC calls. This metrics indicates how busy the"
+              + " master is serving client and worker requests")
+          .setMetricType(MetricType.TIMER)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey MASTER_TOTAL_BLOCK_REPLICA_COUNT =
       new Builder("Master.BlockReplicaCount")
@@ -385,10 +432,31 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey MASTER_RPC_QUEUE_LENGTH =
       new Builder("Master.RpcQueueLength")
-          .setDescription("Length of the master rpc queue")
+          .setDescription("Length of the master rpc queue. "
+              + "Use this metric to monitor the RPC pressure on master.")
           .setMetricType(MetricType.GAUGE)
           .build();
-
+  public static final MetricKey MASTER_RPC_THREAD_ACTIVE_COUNT =
+      new Builder("Master.RpcThreadActiveCount")
+          .setDescription("The number of threads that are actively executing tasks "
+              + "in the master RPC executor thread pool. "
+              + "Use this metric to monitor the RPC pressure on master.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_RPC_THREAD_CURRENT_COUNT =
+      new Builder("Master.RpcThreadCurrentCount")
+          .setDescription("Current count of threads in the master RPC executor thread pool. "
+              + "Use this metric to monitor the RPC pressure on master.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_REPLICA_MGMT_ACTIVE_JOB_SIZE =
+      new Builder("Master.ReplicaMgmtActiveJobSize")
+          .setDescription("Number of active block replication/eviction jobs. "
+              + "These jobs are created by the master to maintain the block replica factor. "
+              + "The value is an estimate with lag. ")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
   // Backup Restore
   public static final MetricKey MASTER_LAST_BACKUP_ENTRIES_COUNT =
       new Builder("Master.LastBackupEntriesCount")
@@ -471,6 +539,11 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_PATHS_UNMOUNTED =
       new Builder("Master.PathsUnmounted")
           .setDescription("Total number of succeed Unmount operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_COMPLETED_OPERATION_RETRY_COUNT =
+      new Builder("Master.CompletedOperationRetryCount")
+          .setDescription("Total number of completed operations that has been retried by client.")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_COMPLETE_FILE_OPS =
@@ -574,6 +647,200 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The size of master edge lock pool")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_AUDIT_LOG_ENTRIES_SIZE =
+      new Builder("Master.AuditLogEntriesSize")
+          .setDescription("The size of the audit log entries blocking queue")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+
+  public static final MetricKey PROXY_AUDIT_LOG_ENTRIES_SIZE =
+      new Builder("Proxy.AuditLogEntriesSize")
+          .setDescription("The size of the audit log entries blocking queue")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+
+  public static final MetricKey PROXY_CHECK_UPLOADID_STATUS_LATENCY =
+          new Builder("Proxy.CheckUploadIDStatusLatency")
+                  .setDescription("Latency of check uploadId status in CompleteMultipartUpload")
+                  .setMetricType(MetricType.TIMER)
+                  .build();
+  public static final MetricKey PROXY_COMPLETE_MP_UPLOAD_MERGE_LATENCY =
+          new Builder("Proxy.CompleteMPUploadMergeLatency")
+                  .setDescription("Latency of merging parts into one object"
+                          + "in CompleteMultipartUpload")
+                  .setMetricType(MetricType.TIMER)
+                  .build();
+
+  public static final MetricKey PROXY_CLEANUP_MULTIPART_UPLOAD_LATENCY =
+          new Builder("Proxy.CleanupMultipartUploadLatency")
+                  .setDescription("Latency of cleaning up temp folder and meta"
+                          + "file from CompleteMultipartUpload")
+                  .setMetricType(MetricType.TIMER)
+                  .build();
+
+  public static final MetricKey PROXY_CLEANUP_TEMP_MULTIPART_UPLOAD_OBJ_LATENCY =
+          new Builder("Proxy.CleanupTempMultipartUploadObjectLatency")
+                  .setDescription("Latency of cleaning up temp target obj during"
+                          + "CompleteMultipartUpload")
+                  .setMetricType(MetricType.TIMER)
+                  .build();
+
+  // Metadata sync metrics
+  public static final MetricKey MASTER_METADATA_SYNC_UFS_MOUNT =
+      new Builder("Master.MetadataSyncUfsMount.")
+          .setDescription("The number of UFS sync operations for a given mount point")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_OPS_COUNT =
+      new Builder("Master.MetadataSyncOpsCount")
+          .setDescription("The number of metadata sync operations. "
+              + "Each sync operation corresponds to one InodeSyncStream instance.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_TIME_MS =
+      new Builder("Master.MetadataSyncTimeMs")
+          .setDescription("The total time elapsed in all InodeSyncStream instances")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_SKIPPED =
+      new Builder("Master.MetadataSyncSkipped")
+          .setDescription("The number of InodeSyncStream that are skipped because "
+              + "the Alluxio metadata is fresher than "
+              + PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL)
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_NO_CHANGE =
+      new Builder("Master.MetadataSyncNoChange")
+          .setDescription("The number of InodeSyncStream that finished with no change to inodes.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_SUCCESS =
+      new Builder("Master.MetadataSyncSuccess")
+          .setDescription("The number of InodeSyncStream that succeeded")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FAIL =
+      new Builder("Master.MetadataSyncFail")
+          .setDescription("The number of InodeSyncStream that failed, either partially or fully")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PENDING_PATHS =
+      new Builder("Master.MetadataSyncPendingPaths")
+          .setDescription("The number of pending paths from all active InodeSyncStream instances,"
+              + "waiting for metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_ACTIVE_PATHS =
+      new Builder("Master.MetadataSyncActivePaths")
+          .setDescription("The number of in-progress paths from all InodeSyncStream instances")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PATHS_CANCEL =
+      new Builder("Master.MetadataSyncPathsCancel")
+          .setDescription("The number of pending paths from all InodeSyncStream instances that "
+              + "are ignored in the end instead of processed")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PATHS_SUCCESS =
+      new Builder("Master.MetadataSyncPathsSuccess")
+          .setDescription("The number of paths sync-ed from all InodeSyncStream instances")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PATHS_FAIL =
+      new Builder("Master.MetadataSyncPathsFail")
+          .setDescription("The number of paths that failed during metadata sync"
+              + " from all InodeSyncStream instances")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_OPS_COUNT =
+      new Builder("Master.MetadataSyncPrefetchOpsCount")
+          .setDescription("The number of prefetch operations handled by the prefetch thread pool")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_SUCCESS =
+      new Builder("Master.MetadataSyncPrefetchSuccess")
+          .setDescription("Number of successful prefetch jobs from metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_FAIL =
+      new Builder("Master.MetadataSyncPrefetchFail")
+          .setDescription("Number of failed prefetch jobs from metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_CANCEL =
+      new Builder("Master.MetadataSyncPrefetchCancel")
+          .setDescription("Number of cancelled prefetch jobs from metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_RETRIES =
+      new Builder("Master.MetadataSyncPrefetchRetries")
+          .setDescription("Number of retries to get from prefetch jobs from metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_PATHS =
+      new Builder("Master.MetadataSyncPrefetchPaths")
+          .setDescription("Total number of UFS paths fetched by prefetch jobs from metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_UFS_STATUS_CACHE_SIZE =
+      new Builder("Master.UfsStatusCacheSize")
+          .setDescription("Total number of Alluxio paths being processed by the "
+              + "metadata sync prefetch thread pool.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_UFS_STATUS_CACHE_CHILDREN_SIZE =
+      new Builder("Master.UfsStatusCacheChildrenSize")
+          .setDescription("Total number of UFS file metadata cached."
+              + " The cache is used during metadata sync.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_EXECUTOR =
+      new Builder("Master.MetadataSyncPrefetchExecutor")
+          .setDescription(String.format("Metrics concerning the master metadata sync prefetch"
+              + "executor threads. " + EXECUTOR_STRING, "Master.MetadataSyncPrefetchExecutor"))
+          .setMetricType(MetricType.EXECUTOR_SERVICE)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE =
+      new Builder("Master.MetadataSyncPrefetchExecutorQueueSize")
+          .setDescription("The number of queuing prefetch tasks in the metadata sync thread pool"
+              + " controlled by " + PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_EXECUTOR =
+      new Builder("Master.MetadataSyncExecutor")
+          .setDescription(String.format("Metrics concerning the master metadata sync "
+              + "executor threads. " + EXECUTOR_STRING, "Master.MetadataSyncExecutor"))
+          .setMetricType(MetricType.EXECUTOR_SERVICE)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_EXECUTOR_QUEUE_SIZE =
+      new Builder("Master.MetadataSyncExecutorQueueSize")
+          .setDescription("The number of queuing sync tasks in the metadata sync thread pool"
+              + " controlled by " + PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE)
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
   // Journal metrics
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotGenerateTimer")
@@ -614,6 +881,11 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "master in the cluster. Only valid when using the embedded journal.")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_ROLE_ID =
+      new Builder("Master.RoleId")
+          .setDescription("Display master role id")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
       new Builder("Master.JournalFlushFailure")
           .setDescription("Total number of failed journal flush")
@@ -639,7 +911,20 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Journal entries since last checkpoint")
           .setMetricType(MetricType.GAUGE)
           .build();
-
+  public static final MetricKey MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX =
+      new Builder("Master.JournalLastAppliedCommitIndex")
+          .setDescription("The last raft log index which was applied to the state machine")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_JOURNAL_CHECKPOINT_WARN =
+      new Builder("Master.JournalCheckpointWarn")
+          .setDescription(String.format("If the raft log index exceeds %s, and the "
+              + "last checkpoint exceeds %s, it returns 1 to indicate that a warning"
+              + " is required, otherwise it returns 0",
+              PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES.getName(),
+              PropertyKey.MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME.getName()))
+         .setMetricType(MetricType.GAUGE)
+         .build();
   public static final MetricKey MASTER_JOURNAL_GAIN_PRIMACY_TIMER =
       new Builder("Master.JournalGainPrimacyTimer")
           .setDescription("The timer statistics of journal gain primacy")
@@ -649,7 +934,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Master.UfsJournalCatchupTimer")
           .setDescription("The timer statistics of journal catchup"
               + "Only valid when ufs journal is used. "
-              + "This provides a summary of how long a secondary master"
+              + "This provides a summary of how long a standby master"
               + " takes to catch up with primary master,"
               + " and should be monitored if master transition takes too long")
           .setMetricType(MetricType.TIMER)
@@ -667,6 +952,409 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "Use this metric to monitor when your master boot-up time is high。")
           .setMetricType(MetricType.GAUGE)
           .build();
+  // Job metrics
+  public static final MetricKey MASTER_JOB_CANCELED =
+      new Builder("Master.JobCanceled")
+          .setDescription("The number of canceled status job")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_COMPLETED =
+      new Builder("Master.JobCompleted")
+          .setDescription("The number of completed status job")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_COUNT =
+      new Builder("Master.JobCount")
+          .setDescription("The number of all status job")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_JOB_CREATED =
+      new Builder("Master.JobCreated")
+          .setDescription("The number of created status job")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_FAILED =
+      new Builder("Master.JobFailed")
+          .setDescription("The number of failed status job")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_RUNNING =
+      new Builder("Master.JobRunning")
+          .setDescription("The number of running status job")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+
+  // Distributed command related metrics
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_SUCCESS =
+      new Builder("Master.JobDistributedLoadSuccess")
+          .setDescription("The number of successful DistributedLoad operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_FAIL =
+      new Builder("Master.JobDistributedLoadFail")
+          .setDescription("The number of failed DistributedLoad operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_CANCEL =
+      new Builder("Master.JobDistributedLoadCancel")
+          .setDescription("The number of cancelled DistributedLoad operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_FILE_COUNT =
+      new Builder("Master.JobDistributedLoadFileCount")
+          .setDescription("The number of files by DistributedLoad operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_FILE_SIZE =
+      new Builder("Master.JobDistributedLoadFileSizes")
+          .setDescription("The total file size by DistributedLoad operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_RATE =
+      new Builder("Master.JobDistributedLoadRate")
+          .setDescription("The average DistributedLoad loading rate")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey MASTER_MIGRATE_JOB_SUCCESS =
+      new Builder("Master.MigrateJobSuccess")
+          .setDescription("The number of successful MigrateJob operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_MIGRATE_JOB_FAIL =
+      new Builder("Master.MigrateJobFail")
+          .setDescription("The number of failed MigrateJob operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_MIGRATE_JOB_CANCEL =
+      new Builder("Master.MigrateJobCancel")
+          .setDescription("The number of cancelled MigrateJob operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_MIGRATE_JOB_FILE_COUNT =
+      new Builder("Master.MigrateJobFileCount")
+          .setDescription("The number of MigrateJob files")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_MIGRATE_JOB_FILE_SIZE =
+      new Builder("Master.MigrateJobFileSize")
+          .setDescription("The total size of MigrateJob files")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+
+  public static final MetricKey MASTER_ASYNC_PERSIST_SUCCESS =
+      new Builder("Master.AsyncPersistSuccess")
+          .setDescription("The number of successful AsyncPersist operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ASYNC_PERSIST_FAIL =
+      new Builder("Master.AsyncPersistFail")
+          .setDescription("The number of failed AsyncPersist operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ASYNC_PERSIST_CANCEL =
+      new Builder("Master.AsyncPersistCancel")
+          .setDescription("The number of cancelled AsyncPersist operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ASYNC_PERSIST_FILE_COUNT =
+      new Builder("Master.AsyncPersistFileCount")
+          .setDescription("The number of files created by AsyncPersist operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ASYNC_PERSIST_FILE_SIZE =
+      new Builder("Master.AsyncPersistFileSize")
+          .setDescription("The total size of files created by AsyncPersist operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+
+  // Rocks Block metrics
+  public static final MetricKey MASTER_ROCKS_BLOCK_BACKGROUND_ERRORS =
+      new Builder("Master.RocksBlockBackgroundErrors")
+          .setDescription("RocksDB block table. Accumulated number of background errors.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_BLOCK_CACHE_CAPACITY =
+      new Builder("Master.RocksBlockBlockCacheCapacity")
+          .setDescription("RocksDB block table. Block cache capacity.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_BLOCK_CACHE_PINNED_USAGE =
+      new Builder("Master.RocksBlockBlockCachePinnedUsage")
+          .setDescription("RocksDB block table. Memory size for the entries being pinned.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_BLOCK_CACHE_USAGE =
+      new Builder("Master.RocksBlockBlockCacheUsage")
+          .setDescription("RocksDB block table. Memory size for the entries residing in block "
+              + "cache.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_COMPACTION_PENDING =
+      new Builder("Master.RocksBlockCompactionPending")
+          .setDescription("RocksDB block table. This metric 1 if at least one compaction "
+              + "is pending; otherwise, the metric reports 0.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_CUR_SIZE_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksBlockCurSizeActiveMemTable")
+          .setDescription("RocksDB block table. Approximate size of active memtable in bytes.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_CUR_SIZE_ALL_MEM_TABLES =
+      new Builder("Master.RocksBlockCurSizeAllMemTables")
+          .setDescription("RocksDB block table. Approximate size of active, unflushed immutable, "
+              + "and pinned immutable memtables in bytes. Pinned immutable memtables are flushed "
+              + "memtables that are kept in memory to maintain write history in memory.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_ESTIMATE_NUM_KEYS =
+      new Builder("Master.RocksBlockEstimateNumKeys")
+          .setDescription("RocksDB block table. Estimated number of total keys in the active and "
+              + "unflushed immutable memtables and storage.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_ESTIMATE_PENDING_COMPACTION_BYTES =
+      new Builder("Master.RocksBlockEstimatePendingCompactionBytes")
+          .setDescription("RocksDB block table. Estimated total number of bytes a compaction needs "
+              + "to rewrite on disk to get all levels down to under target size. In other words, "
+              + "this metrics relates to the write amplification in level compaction. "
+              + "Thus, this metric is not valid for compactions other than level-based.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_ESTIMATE_TABLE_READERS_MEM =
+      new Builder("Master.RocksBlockEstimateTableReadersMem")
+          .setDescription("RocksDB inode table. Estimated memory in bytes used for reading SST "
+              + "tables, excluding memory used in block cache (e.g., filter and index blocks). "
+              + "This metric records the memory used by iterators as well as filters and indices "
+              + "if the filters and indices are not maintained in the block cache. Basically this "
+              + "metric reports the memory used outside the block cache to read data.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_LIVE_SST_FILES_SIZE =
+      new Builder("Master.RocksBlockLiveSstFilesSize")
+          .setDescription("RocksDB block table. Total size in bytes of all SST files that belong "
+              + "to the latest LSM tree.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_MEM_TABLE_FLUSH_PENDING =
+      new Builder("Master.RocksBlockMemTableFlushPending")
+          .setDescription("RocksDB block table. This metric returns 1 if a memtable flush "
+              + "is pending; otherwhise it returns 0.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_DELETES_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksBlockNumDeletesActiveMemTable")
+          .setDescription("RocksDB block table. Total number of delete entries in the active "
+              + "memtable.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_DELETES_IMM_MEM_TABLES =
+      new Builder("Master.RocksBlockNumDeletesImmMemTables")
+          .setDescription("RocksDB block table. Total number of delete entries in the unflushed "
+              + "immutable memtables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_ENTRIES_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksBlockNumEntriesActiveMemTable")
+          .setDescription("RocksDB block table. Total number of entries in the active memtable.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_ENTRIES_IMM_MEM_TABLES =
+      new Builder("Master.RocksBlockNumEntriesImmMemTables")
+          .setDescription("RocksDB block table. Total number of entries in the unflushed "
+              + "immutable memtables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_IMMUTABLE_MEM_TABLE =
+      new Builder("Master.RocksBlockNumImmutableMemTable")
+          .setDescription("RocksDB block table. Number of immutable memtables that have not yet "
+              + "been flushed.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_LIVE_VERSIONS =
+      new Builder("Master.RocksBlockNumLiveVersions")
+          .setDescription("RocksDB inode table. Number of live versions. More live versions often "
+              + "mean more SST files are held from being deleted, by iterators or unfinished "
+              + "compactions.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_RUNNING_COMPACTIONS =
+      new Builder("Master.RocksBlockNumRunningCompactions")
+          .setDescription("RocksDB block table. Number of currently running compactions.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_RUNNING_FLUSHES =
+      new Builder("Master.RocksBlockNumRunningFlushes")
+          .setDescription("RocksDB block table. Number of currently running flushes.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_SIZE_ALL_MEM_TABLES =
+      new Builder("Master.RocksBlockSizeAllMemTables")
+          .setDescription("RocksDB block table. Size all mem tables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_TOTAL_SST_FILES_SIZE =
+      new Builder("Master.RocksBlockTotalSstFilesSize")
+          .setDescription("RocksDB block table. Total size in bytes of all SST files.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_ESTIMATED_MEM_USAGE =
+      new Builder("Master.RocksBlockEstimatedMemUsage")
+          .setDescription("RocksDB block table. This metric estimates the memory usage of the "
+              + "RockDB Block table by aggregating the values of "
+              + "Master.RocksBlockBlockCacheUsage, Master.RocksBlockEstimateTableReadersMem, "
+              + "Master.RocksBlockCurSizeAllMemTables, and Master.RocksBlockBlockCachePinnedUsage")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
+  // Rocks Inode metrics
+  public static final MetricKey MASTER_ROCKS_INODE_BACKGROUND_ERRORS =
+      new Builder("Master.RocksInodeBackgroundErrors")
+          .setDescription("RocksDB inode table. Accumulated number of background errors.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_BLOCK_CACHE_CAPACITY =
+      new Builder("Master.RocksInodeBlockCacheCapacity")
+          .setDescription("RocksDB inode table. Block cache capacity.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_BLOCK_CACHE_PINNED_USAGE =
+      new Builder("Master.RocksInodeBlockCachePinnedUsage")
+          .setDescription("RocksDB inode table. Memory size for the entries being pinned.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_BLOCK_CACHE_USAGE =
+      new Builder("Master.RocksInodeBlockCacheUsage")
+          .setDescription("RocksDB inode table. Memory size for the entries residing in block "
+              + "cache.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_COMPACTION_PENDING =
+      new Builder("Master.RocksInodeCompactionPending")
+          .setDescription("RocksDB inode table. This metric 1 if at least one compaction is "
+              + "pending; otherwise, the metric reports 0.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_CUR_SIZE_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksInodeCurSizeActiveMemTable")
+          .setDescription("RocksDB inode table. Approximate size of active memtable in bytes.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_CUR_SIZE_ALL_MEM_TABLES =
+      new Builder("Master.RocksInodeCurSizeAllMemTables")
+          .setDescription("RocksDB inode table. Approximate size of active and unflushed "
+              + "immutable memtable in bytes.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_ESTIMATE_NUM_KEYS =
+      new Builder("Master.RocksInodeEstimateNumKeys")
+          .setDescription("RocksDB inode table. Estimated number of total keys in the active and "
+              + "unflushed immutable memtables and storage.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_ESTIMATE_PENDING_COMPACTION_BYTES =
+      new Builder("Master.RocksInodeEstimatePendingCompactionBytes")
+          .setDescription("RocksDB block table. Estimated total number of bytes a compaction needs "
+              + "to rewrite on disk to get all levels down to under target size. In other words, "
+              + "this metrics relates to the write amplification in level compaction. "
+              + "Thus, this metric is not valid for compactions other than level-based.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_ESTIMATE_TABLE_READERS_MEM =
+      new Builder("Master.RocksInodeEstimateTableReadersMem")
+          .setDescription("RocksDB inode table. Estimated memory in bytes used for reading SST "
+              + "tables, excluding memory used in block cache (e.g., filter and index blocks). "
+              + "This metric records the memory used by iterators as well as filters and indices "
+              + "if the filters and indices are not maintained in the block cache. Basically this "
+              + "metric reports the memory used outside the block cache to read data.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_LIVE_SST_FILES_SIZE =
+      new Builder("Master.RocksInodeLiveSstFilesSize")
+          .setDescription("RocksDB inode table. Total size in bytes of all SST files that belong "
+              + "to the latest LSM tree.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_MEM_TABLE_FLUSH_PENDING =
+      new Builder("Master.RocksInodeMemTableFlushPending")
+          .setDescription("RocksDB inode table. This metric returns 1 if a memtable flush "
+              + "is pending; otherwhise it returns 0.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_DELETES_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksInodeNumDeletesActiveMemTable")
+          .setDescription("RocksDB inode table. Total number of delete entries in the active "
+              + "memtable.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_DELETES_IMM_MEM_TABLES =
+      new Builder("Master.RocksInodeNumDeletesImmMemTables")
+          .setDescription("RocksDB inode table. Total number of delete entries in the unflushed "
+              + "immutable memtables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_ENTRIES_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksInodeNumEntriesActiveMemTable")
+          .setDescription("RocksDB inode table. Total number of entries in the active memtable.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_ENTRIES_IMM_MEM_TABLES =
+      new Builder("Master.RocksInodeNumEntriesImmMemTables")
+          .setDescription("RocksDB inode table. Total number of entries in the unflushed "
+              + "immutable memtables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_IMMUTABLE_MEM_TABLE =
+      new Builder("Master.RocksInodeNumImmutableMemTable")
+          .setDescription("RocksDB inode table. Number of immutable memtables that have not yet "
+              + "been flushed.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_LIVE_VERSIONS =
+      new Builder("Master.RocksInodeNumLiveVersions")
+          .setDescription("RocksDB inode table. Number of live versions. More live versions often "
+              + "mean more SST files are held from being deleted, by iterators or unfinished "
+              + "compactions.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_RUNNING_COMPACTIONS =
+      new Builder("Master.RocksInodeNumRunningCompactions")
+          .setDescription("RocksDB inode table. Number of currently running compactions.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_RUNNING_FLUSHES =
+      new Builder("Master.RocksInodeNumRunningFlushes")
+          .setDescription("RocksDB inode table. Number of currently running flushes.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_SIZE_ALL_MEM_TABLES =
+      new Builder("Master.RocksInodeSizeAllMemTables")
+          .setDescription("RocksDB inode table. Approximate size of active, unflushed immutable, "
+              + "and pinned immutable memtables in bytes. Pinned immutable memtables are flushed "
+              + "memtables that are kept in memory to maintain write history in memory.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_TOTAL_SST_FILES_SIZE =
+      new Builder("Master.RocksInodeTotalSstFilesSize")
+          .setDescription("RocksDB inode table. Total size in bytes of all SST files.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_ESTIMATED_MEM_USAGE =
+      new Builder("Master.RocksInodeEstimatedMemUsage")
+          .setDescription("RocksDB block table. This metric estimates the memory usage of the "
+              + "RockDB Inode table by aggregating the values of "
+              + "Master.RocksInodeBlockCacheUsage, Master.RocksInodeEstimateTableReadersMem, "
+              + "Master.RocksInodeCurSizeAllMemTables, and Master.RocksInodeBlockCachePinnedUsage")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_TOTAL_ESTIMATED_MEM_USAGE =
+      new Builder("Master.RocksTotalEstimatedMemUsage")
+          .setDescription("This metric gives an estimate of the total memory used by RocksDB by "
+              + "aggregating the values of Master.RocksBlockEstimatedMemUsage and "
+              + "Master.RocksInodeEstimatedMemUsage")
+          .setMetricType(MetricType.GAUGE)
+          .build();
 
   // Cluster metrics
   public static final MetricKey CLUSTER_ACTIVE_RPC_READ_COUNT =
@@ -681,58 +1369,57 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_DIRECT =
       new Builder("Cluster.BytesReadDirect")
-          .setDescription("Total number of bytes read from Alluxio storage managed by workers "
-              + "and underlying UFS if data cannot be found in the Alluxio storage "
-              + "without external RPC involved. This records data read "
+          .setDescription("Total number of bytes read from all workers "
+              + "without external RPC involved. Data exists in worker storage "
+              + "or is fetched by workers from UFSes. This records data read "
               + "by worker internal calls (e.g. clients embedded in workers).")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_DIRECT_THROUGHPUT =
       new Builder("Cluster.BytesReadDirectThroughput")
-          .setDescription("Total number of bytes read from Alluxio storage managed by workers "
-              + "and underlying UFS if data cannot be found in the Alluxio storage "
-              + "without external RPC involved. This records data read "
+          .setDescription("Total number of bytes read from all workers "
+              + "without external RPC involved. Data exists in worker storage "
+              + "or is fetched by workers from UFSes. This records data read "
               + "by worker internal calls (e.g. clients embedded in workers).")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_REMOTE =
       new Builder("Cluster.BytesReadRemote")
-          .setDescription("Total number of bytes read from Alluxio storage "
-              + "or underlying UFS if data does not exist in Alluxio storage "
-              + "reported by all workers. This does not include "
-              + "short-circuit local reads and domain socket reads")
+          .setDescription("Total number of bytes read from all workers via network (RPC). "
+              + "Data exists in worker storage or is fetched by workers from UFSes. "
+              + "This does not include short-circuit local reads and domain socket reads")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_REMOTE_THROUGHPUT =
       new Builder("Cluster.BytesReadRemoteThroughput")
-          .setDescription("Bytes read per minute throughput from Alluxio storage "
-              + "or underlying UFS if data does not exist in Alluxio storage "
-              + "reported by all workers. This does not include "
+          .setDescription("Bytes read per minute throughput from all workers "
+              + "via network (RPC calls). Data exists in worker storage "
+              + "or is fetched by workers from UFSes. This does not include "
               + "short-circuit local reads and domain socket reads")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_DOMAIN =
       new Builder("Cluster.BytesReadDomain")
-          .setDescription("Total number of bytes read from Alluxio storage "
-              + "via domain socket reported by all workers")
+          .setDescription("Total number of bytes read from all works "
+              + "via domain socket")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT =
       new Builder("Cluster.BytesReadDomainThroughput")
-          .setDescription("Bytes read per minute throughput from Alluxio storage "
-              + "via domain socket by all workers")
+          .setDescription("Bytes read per minute throughput from all workers "
+              + "via domain socket")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_LOCAL =
       new Builder("Cluster.BytesReadLocal")
-          .setDescription("Total number of bytes short-circuit read from local storage "
-              + "by all clients")
+          .setDescription("Total number of bytes short-circuit read reported by all clients. "
+              + "Each client reads data from the collocated worker data storage directly.")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_LOCAL_THROUGHPUT =
       new Builder("Cluster.BytesReadLocalThroughput")
           .setDescription("Bytes per minute throughput "
-              + "short-circuit read from local storage by all clients")
+              + "short-circuit read reported by all clients")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_UFS =
@@ -752,39 +1439,41 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_REMOTE =
       new Builder("Cluster.BytesWrittenRemote")
-          .setDescription("Total number of bytes written to Alluxio storage in all workers "
-              + "or the underlying UFS. This does not include short-circuit local writes "
-              + "and domain socket writes.")
+          .setDescription("Total number of bytes written to workers via network (RPC). "
+              + "Data is written to worker storage or is written by workers to underlying UFSes. "
+              + "This does not include short-circuit local writes and domain socket writes.")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT =
       new Builder("Cluster.BytesWrittenRemoteThroughput")
-          .setDescription("Bytes write per minute throughput to Alluxio storage in all workers "
-              + "or the underlying UFS. This does not include short-circuit local writes "
+          .setDescription("Bytes write per minute throughput to workers via network (RPC). "
+              + "Data is written to worker storage or is written by workers to underlying UFSes. "
+              + "This does not include short-circuit local writes "
               + "and domain socket writes.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_DOMAIN =
       new Builder("Cluster.BytesWrittenDomain")
-          .setDescription("Total number of bytes written to Alluxio storage "
-              + "via domain socket by all workers")
+          .setDescription("Total number of bytes written to all workers "
+              + "via domain socket")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT =
       new Builder("Cluster.BytesWrittenDomainThroughput")
-          .setDescription("Throughput of bytes written per minute to Alluxio storage "
-              + "via domain socket by all workers")
+          .setDescription("Throughput of bytes written per minute to all workers "
+              + "via domain socket")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_LOCAL =
       new Builder("Cluster.BytesWrittenLocal")
-          .setDescription("Total number of bytes short-circuit written to local storage "
-              + "by all clients")
+          .setDescription("Total number of bytes short-circuit written to "
+              + "local worker data storage by all clients")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT =
       new Builder("Cluster.BytesWrittenLocalThroughput")
-          .setDescription("Bytes per minute throughput written to local storage by all clients")
+          .setDescription("Bytes per minute throughput written to "
+              + "local worker data storage by all clients")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_UFS =
@@ -847,6 +1536,39 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of lost workers inside the cluster")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey CLUSTER_LEADER_INDEX =
+      new Builder("Cluster.LeaderIndex")
+          .setDescription("Index of current leader")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey CLUSTER_LEADER_ID =
+      new Builder("Cluster.LeaderId")
+          .setDescription("Display current leader id")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  // Server metrics shared by Master, Worker and other Alluxio servers
+  public static final MetricKey TOTAL_EXTRA_TIME =
+      new Builder(Name.TOTAL_EXTRA_TIME)
+          .setDescription("The total time that JVM slept and didn't do GC")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey INFO_TIME_EXCEEDED =
+      new Builder(Name.INFO_TIME_EXCEEDED)
+          .setDescription(String.format("The total number of times that JVM slept and the sleep"
+                  + " period is larger than the info level threshold defined by %s",
+              PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS.getName()))
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WARN_TIME_EXCEEDED =
+      new Builder(Name.WARN_TIME_EXCEEDED)
+          .setDescription(String.format("The total number of times that JVM slept and the sleep"
+                  + " period is larger than the warn level threshold defined by %s",
+              PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS.getName()))
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
 
   // Worker metrics
   public static final MetricKey WORKER_ACTIVE_RPC_READ_COUNT =
@@ -866,42 +1588,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The number of clients actively reading from or writing to this worker")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
-          .build();
-  public static final MetricKey WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS =
-      new Builder("Worker.AsyncCacheDuplicateRequests")
-          .setDescription("Total number of duplicated async cache request received by this worker")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_ASYNC_CACHE_FAILED_BLOCKS =
-      new Builder("Worker.AsyncCacheFailedBlocks")
-          .setDescription("Total number of async cache failed blocks in this worker")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_ASYNC_CACHE_REMOTE_BLOCKS =
-      new Builder("Worker.AsyncCacheRemoteBlocks")
-          .setDescription("Total number of blocks that need to be async cached from remote source")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_ASYNC_CACHE_REQUESTS =
-      new Builder("Worker.AsyncCacheRequests")
-          .setDescription("Total number of async cache request received by this worker")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_ASYNC_CACHE_SUCCEEDED_BLOCKS =
-      new Builder("Worker.AsyncCacheSucceededBlocks")
-          .setDescription("Total number of async cache succeeded blocks in this worker")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_ASYNC_CACHE_UFS_BLOCKS =
-      new Builder("Worker.AsyncCacheUfsBlocks")
-          .setDescription("Total number of blocks that need to be async cached from local source")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BLOCKS_ACCESSED =
       new Builder("Worker.BlocksAccessed")
@@ -972,51 +1658,50 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey WORKER_BYTES_READ_DIRECT =
       new Builder("Worker.BytesReadDirect")
-          .setDescription("Total number of bytes read from Alluxio storage managed by this worker "
-              + "and underlying UFS if data cannot be found in the Alluxio storage "
-              + "without external RPC involved. This records data read "
-              + "by worker internal calls (e.g. a client embedded in this worker).")
+          .setDescription("Total number of bytes read from the this worker "
+              + "without external RPC involved. Data exists in worker storage "
+              + "or is fetched by this worker from underlying UFSes. "
+              + "This records data read by worker internal calls "
+              + "(e.g. a client embedded in this worker).")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_READ_DIRECT_THROUGHPUT =
       new Builder("Worker.BytesReadDirectThroughput")
-          .setDescription("Total number of bytes read from Alluxio storage managed by this worker "
-              + "and underlying UFS if data cannot be found in the Alluxio storage "
-              + "without external RPC involved. This records data read "
-              + "by worker internal calls (e.g. a client embedded in this worker).")
+          .setDescription("Throughput of bytes read from the this worker "
+              + "without external RPC involved. Data exists in worker storage "
+              + "or is fetched by this worker from underlying UFSes. "
+              + "This records data read by worker internal calls "
+              + "(e.g. a client embedded in this worker).")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BYTES_READ_REMOTE =
       new Builder("Worker.BytesReadRemote")
-          .setDescription("Total number of bytes read from Alluxio storage managed by this worker "
-              + "and underlying UFS if data cannot be found in the Alluxio storage "
-              + "via external RPC channel. This does not include "
-              + "short-circuit local reads and domain socket reads.")
+          .setDescription("Total number of bytes read from the this worker via network (RPC). "
+              + "Data exists in worker storage or is fetched by this worker from underlying UFSes. "
+              + "This does not include short-circuit local reads and domain socket reads.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_READ_REMOTE_THROUGHPUT =
       new Builder("Worker.BytesReadRemoteThroughput")
-          .setDescription("Total number of bytes read from Alluxio storage managed by this worker "
-              + "and underlying UFS if data cannot be found in the Alluxio storage "
-              + "via external RPC channel. This does not include "
-              + "short-circuit local reads and domain socket reads.")
+          .setDescription("Throughput of bytes read from the this worker via network (RPC). "
+              + "Data exists in worker storage or is fetched by this worker from underlying UFSes. "
+              + "This does not include short-circuit local reads and domain socket reads")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BYTES_READ_DOMAIN =
       new Builder("Worker.BytesReadDomain")
-          .setDescription("Total number of bytes read from Alluxio storage "
-              + "via domain socket by this worker")
+          .setDescription("Total number of bytes read from the this worker via domain socket")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_READ_DOMAIN_THROUGHPUT =
       new Builder("Worker.BytesReadDomainThroughput")
-          .setDescription("Bytes read throughput from Alluxio storage "
-              + "via domain socket by this worker")
+          .setDescription("Bytes read throughput from the this worker "
+              + "via domain socket")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
@@ -1027,54 +1712,58 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_READ_UFS_THROUGHPUT =
-      new MetricKey.Builder("Worker.BytesReadUfsThroughput")
+      new Builder("Worker.BytesReadUfsThroughput")
           .setDescription("Bytes read throughput from all Alluxio UFSes by this worker")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_DIRECT =
       new Builder("Worker.BytesWrittenDirect")
-          .setDescription("Total number of bytes written to Alluxio storage managed by this worker "
-              + "without external RPC involved. This records data written "
-              + "by worker internal calls (e.g. a client embedded in this worker).")
+          .setDescription("Total number of bytes written to this worker "
+              + "without external RPC involved. Data is written to worker storage "
+              + "or is written by this worker to underlying UFSes. "
+              + "This records data written by worker internal calls "
+              + "(e.g. a client embedded in this worker).")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_DIRECT_THROUGHPUT =
       new Builder("Worker.BytesWrittenDirectThroughput")
-          .setDescription("Total number of bytes written to Alluxio storage managed by this worker "
-              + "without external RPC involved. This records data written "
+          .setDescription("Total number of bytes written to this worker "
+              + "without external RPC involved. Data is written to worker storage "
+              + "or is written by this worker to underlying UFSes. This records data written "
               + "by worker internal calls (e.g. a client embedded in this worker).")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_REMOTE =
       new Builder("Worker.BytesWrittenRemote")
-          .setDescription("Total number of bytes written to Alluxio storage "
-              + "or the underlying UFS by this worker. "
-              + "This does not include short-circuit local writes and domain socket writes.")
+          .setDescription("Total number of bytes written to this worker via network (RPC). "
+              + "Data is written to worker storage or is written by this worker "
+              + "to underlying UFSes. This does not include short-circuit local writes "
+              + "and domain socket writes.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_REMOTE_THROUGHPUT =
       new Builder("Worker.BytesWrittenRemoteThroughput")
-          .setDescription("Bytes write throughput to Alluxio storage "
-              + "or the underlying UFS by this worker"
-              + "This does not include short-circuit local writes and domain socket writes.")
+          .setDescription("Bytes write throughput to this worker via network (RPC). "
+              + "Data is written to worker storage or is written by this worker "
+              + "to underlying UFSes. This does not include short-circuit local writes "
+              + "and domain socket writes.")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_DOMAIN =
       new Builder("Worker.BytesWrittenDomain")
-          .setDescription("Total number of bytes written to Alluxio storage "
-              + "via domain socket by this worker")
+          .setDescription("Total number of bytes written to this worker via domain socket")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT =
       new Builder("Worker.BytesWrittenDomainThroughput")
-          .setDescription("Throughput of bytes written to Alluxio storage "
-              + "via domain socket by this worker")
+          .setDescription("Throughput of bytes written to this worker "
+              + "via domain socket")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
@@ -1108,6 +1797,54 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_CACHE_FAILED_BLOCKS =
+      new Builder("Worker.CacheFailedBlocks")
+          .setDescription("Total number of failed cache blocks in this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_REMOTE_BLOCKS =
+      new Builder("Worker.CacheRemoteBlocks")
+          .setDescription("Total number of blocks that need to be cached from remote source")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_REQUESTS =
+      new Builder("Worker.CacheRequests")
+          .setDescription("Total number of cache request received by this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_REQUESTS_ASYNC =
+      new Builder("Worker.CacheRequestsAsync")
+          .setDescription("Total number of async cache request received by this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_REQUESTS_SYNC =
+      new Builder("Worker.CacheRequestsSync")
+          .setDescription("Total number of sync cache request received by this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_SUCCEEDED_BLOCKS =
+      new Builder("Worker.CacheSucceededBlocks")
+          .setDescription("Total number of cache succeeded blocks in this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_UFS_BLOCKS =
+      new Builder("Worker.CacheUfsBlocks")
+          .setDescription("Total number of blocks that need to be cached from local source")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_BLOCKS_SIZE =
+      new Builder("Worker.CacheBlocksSize")
+          .setDescription("Total number of bytes that being cached through cache requests")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey WORKER_BLOCK_REMOVER_TRY_REMOVE_COUNT =
       new Builder("Worker.BlockRemoverTryRemoveCount")
           .setDescription("The total number of blocks this worker attempted to remove "
@@ -1136,6 +1873,141 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_CACHE_MANAGER_THREAD_ACTIVE_COUNT =
+      new Builder("Worker.CacheManagerThreadActiveCount")
+          .setDescription("The approximate number of block cache "
+              + "threads that are actively executing tasks in the cache manager thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_MANAGER_THREAD_CURRENT_COUNT =
+      new Builder("Worker.CacheManagerThreadCurrentCount")
+          .setDescription("The current number of cache threads in the cache manager thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_MANAGER_THREAD_QUEUE_WAITING_TASK_COUNT =
+      new Builder("Worker.CacheManagerThreadQueueWaitingTaskCount")
+          .setDescription("The current number of tasks waiting in the work queue "
+              + "in the cache manager thread pool, bounded by "
+              + PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_MANAGER_THREAD_MAX_COUNT =
+      new Builder("Worker.CacheManagerThreadMaxCount")
+          .setDescription("The maximum allowed number of block cache "
+              + "thread in the cache manager thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_MANAGER_COMPLETED_TASK_COUNT =
+      new Builder("Worker.CacheManagerCompleteTaskCount")
+          .setDescription("The approximate total number of block cache tasks "
+              + "that have completed execution")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_READER_THREAD_ACTIVE_COUNT =
+      new Builder("Worker.BlockReaderThreadActiveCount")
+          .setDescription("The approximate number of block read "
+              + "threads that are actively executing tasks in reader thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_READER_THREAD_CURRENT_COUNT =
+      new Builder("Worker.BlockReaderThreadCurrentCount")
+          .setDescription("The current number of read threads in the reader thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_READER_THREAD_MAX_COUNT =
+      new Builder("Worker.BlockReaderThreadMaxCount")
+          .setDescription("The maximum allowed number of block read "
+              + "thread in the reader thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_READER_COMPLETED_TASK_COUNT =
+      new Builder("Worker.BlockReaderCompleteTaskCount")
+          .setDescription("The approximate total number of block read tasks "
+              + "that have completed execution")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_SERIALIZED_THREAD_ACTIVE_COUNT =
+      new Builder("Worker.BlockSerializedThreadActiveCount")
+          .setDescription("The approximate number of block serialized "
+              + "threads that are actively executing tasks in serialized thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_SERIALIZED_THREAD_CURRENT_COUNT =
+      new Builder("Worker.BlockSerializedThreadCurrentCount")
+          .setDescription("The current number of serialized threads in the serialized thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_SERIALIZED_THREAD_MAX_COUNT =
+      new Builder("Worker.BlockSerializedThreadMaxCount")
+          .setDescription("The maximum allowed number of block serialized "
+              + "thread in the serialized thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_SERIALIZED_COMPLETED_TASK_COUNT =
+      new Builder("Worker.BlockSerializedCompleteTaskCount")
+          .setDescription("The approximate total number of block serialized tasks "
+              + "that have completed execution")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_WRITER_THREAD_ACTIVE_COUNT =
+      new Builder("Worker.BlockWriterThreadActiveCount")
+          .setDescription("The approximate number of block write "
+              + "threads that are actively executing tasks in writer thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_WRITER_THREAD_CURRENT_COUNT =
+      new Builder("Worker.BlockWriterThreadCurrentCount")
+          .setDescription("The current number of write threads in the writer thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_WRITER_THREAD_MAX_COUNT =
+      new Builder("Worker.BlockWriterThreadMaxCount")
+          .setDescription("The maximum allowed number of block write "
+              + "thread in the writer thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_WRITER_COMPLETED_TASK_COUNT =
+      new Builder("Worker.BlockWriterCompleteTaskCount")
+          .setDescription("The approximate total number of block write tasks "
+              + "that have completed execution")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_RPC_QUEUE_LENGTH =
+      new Builder("Worker.RpcQueueLength")
+          .setDescription("Length of the worker rpc queue. "
+              + "Use this metric to monitor the RPC pressure on worker.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey WORKER_RPC_THREAD_ACTIVE_COUNT =
+      new Builder("Worker.RpcThreadActiveCount")
+          .setDescription("The number of threads that are actively executing tasks "
+              + "in the worker RPC executor thread pool. "
+              + "Use this metric to monitor the RPC pressure on worker.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey WORKER_RPC_THREAD_CURRENT_COUNT =
+      new Builder("Worker.RpcThreadCurrentCount")
+          .setDescription("Current count of threads in the worker RPC executor thread pool. "
+              + "Use this metric to monitor the RPC pressure on worker.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
 
   // Client metrics
   public static final MetricKey CLIENT_BLOCK_READ_CHUNK_REMOTE =
@@ -1147,16 +2019,23 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.TIMER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_BUSY_EXCEPTION_COUNT =
+      new Builder("Client.BusyExceptionCount")
+          .setDescription("Total number of BusyException observed")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
   public static final MetricKey CLIENT_BYTES_READ_LOCAL =
       new Builder("Client.BytesReadLocal")
-          .setDescription("Total number of bytes short-circuit read from local storage "
-              + "by this client")
+          .setDescription("Total number of bytes short-circuit read from worker data storage "
+              + "that collocates with the client")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey CLIENT_BYTES_READ_LOCAL_THROUGHPUT =
       new Builder("Client.BytesReadLocalThroughput")
-          .setDescription("Bytes throughput short-circuit read from local storage by this client")
+          .setDescription("Bytes throughput short-circuit read from worker data storage "
+              + "that collocated with this client")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
@@ -1183,6 +2062,12 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey CLIENT_CACHE_BYTES_READ_CACHE =
       new Builder("Client.CacheBytesReadCache")
           .setDescription("Total number of bytes read from the client cache.")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_BYTES_READ_IN_STREAM_BUFFER =
+      new Builder("Client.CacheBytesReadInStreamBuffer")
+          .setDescription("Total number of bytes read from the client cache's in stream buffer.")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
@@ -1215,6 +2100,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_BYTES_DISCARDED =
+      new Builder("Client.CacheBytesDiscarded")
+          .setDescription("Total number of bytes discarded when restoring the page store.")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_BYTES_EVICTED =
       new Builder("Client.CacheBytesEvicted")
           .setDescription("Total number of bytes evicted from the client cache.")
@@ -1225,6 +2116,12 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Client.CachePages")
           .setDescription("Total number of pages in the client cache.")
           .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_PAGES_DISCARDED =
+      new Builder("Client.CachePagesDiscarded")
+          .setDescription("Total number of pages discarded when restoring the page store.")
+          .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_PAGES_EVICTED =
@@ -1460,66 +2357,89 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey CLIENT_META_DATA_CACHE_SIZE =
       new Builder("Client.MetadataCacheSize")
           .setDescription("The total number of files and directories whose metadata is cached "
-              + "on the client-side. Only valid if the filesystem is"
+              + "on the client-side. Only valid if the filesystem is "
               + "alluxio.client.file.MetadataCachingBaseFileSystem.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_FILE_SYSTEM_MASTER_CLIENT_COUNT =
+      new Builder("Client.FileSystemMasterClientCount")
+          .setDescription("Number of instances in the FileSystemMasterClientPool.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_BLOCK_MASTER_CLIENT_COUNT =
+      new Builder("Client.BlockMasterClientCount")
+          .setDescription("Number of instances in the BlockMasterClientPool.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_BLOCK_WORKER_CLIENT_COUNT =
+      new Builder("Client.BlockWorkerClientCount")
+          .setDescription("Number of instances in the BlockWorkerClientPool.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_DEFAULT_HIVE_CLIENT_COUNT =
+      new Builder("Client.DefaultHiveClientCount")
+          .setDescription("Number of instances in the DefaultHiveClientPool.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+
+  public static final MetricKey CLOSE_UFS_OUTSTREAM_LATENCY =
+          new Builder("Client.CloseUFSOutStreamLatency")
+                  .setDescription("Latency of close UFS outstream latency")
+                  .setMetricType(MetricType.TIMER)
+                  .build();
+
+  public static final MetricKey CLOSE_ALLUXIO_OUTSTREAM_LATENCY =
+          new Builder("Client.CloseAlluxioOutStreamLatency")
+                  .setDescription("Latency of close Alluxio outstream latency")
+                  .setMetricType(MetricType.TIMER)
+                  .build();
 
   // Fuse operation timer and failure counter metrics are added dynamically.
   // Other Fuse related metrics are added here
-  public static final MetricKey FUSE_BYTES_TO_READ =
-      new Builder("Fuse.BytesToRead")
-          .setDescription("Total number of bytes requested by Fuse.read() operations.")
-          .setMetricType(MetricType.COUNTER)
+  public static final MetricKey FUSE_TOTAL_CALLS =
+      new Builder("Fuse.TotalCalls")
+          .setDescription("Throughput of JNI FUSE operation calls. "
+              + "This metrics indicates how busy the Alluxio Fuse application is serving requests")
+          .setMetricType(MetricType.TIMER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey FUSE_BYTES_READ =
-      new Builder("Fuse.BytesRead")
-          .setDescription("Total number of bytes read through Fuse.read() operations.")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey FUSE_WRITING_FILE_COUNT =
-      new Builder("Fuse.WritingFileCount")
-          .setDescription("Total number of files being written concurrently.")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey FUSE_READING_FILE_COUNT =
-      new Builder("Fuse.ReadingFileCount")
-          .setDescription("Total number of files being read concurrently.")
+  public static final MetricKey FUSE_READ_WRITE_FILE_COUNT =
+      new Builder("Fuse.ReadWriteFileCount")
+          .setDescription("Total number of files being opened for reading or writing concurrently.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey FUSE_CACHED_PATH_COUNT =
       new Builder("Fuse.CachedPathCount")
-          .setDescription("Total number of Alluxio paths to cache for FUSE conversion.")
+          .setDescription(String
+              .format("Total number of FUSE-to-Alluxio path mappings being cached. "
+                      + "This value will be smaller or equal to %s",
+              PropertyKey.FUSE_CACHED_PATHS_MAX.getName()))
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey TOTAL_EXTRA_TIME =
-       new Builder("JvmPauseMonitor.totalExtraTime")
-           .setDescription("The total time that JVM slept and didn't do GC")
-           .setMetricType(MetricType.GAUGE)
-           .setIsClusterAggregated(false)
-           .build();
-  public static final MetricKey INFO_TIME_EXCEEDED =
-       new Builder("JvmPauseMonitor.infoTimeExceeded")
-           .setDescription(String.format("The total number of times that JVM slept and the sleep"
-               + " period is larger than the info level threshold defined by %s",
-               PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS.getName()))
-           .setMetricType(MetricType.GAUGE)
-           .setIsClusterAggregated(false)
-           .build();
-  public static final MetricKey WARN_TIME_EXCEEDED =
-       new Builder("JvmPauseMonitor.warnTimeExceeded")
-            .setDescription(String.format("The total number of times that JVM slept and the sleep"
-                + " period is larger than the warn level threshold defined by %s",
-                PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS.getName()))
-           .setMetricType(MetricType.GAUGE)
-           .setIsClusterAggregated(false)
-           .build();
+
+  // Other system related metrics
+  public static final MetricKey PROCESS_POOL_DIRECT_MEM_USED =
+      new Builder("Process.pool.direct.mem.used")
+          .setDescription("The used direct memory")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
+  /**
+   * A nested class to hold named string constants for their corresponding metrics.
+   */
+  @ThreadSafe
+  public static final class Name {
+    public static final String TOTAL_EXTRA_TIME = "Server.JvmPauseMonitorTotalExtraTime";
+    public static final String INFO_TIME_EXCEEDED = "Server.JvmPauseMonitorInfoTimeExceeded";
+    public static final String WARN_TIME_EXCEEDED = "Server.JvmPauseMonitorWarnTimeExceeded";
+  }
 
   /**
    * Registers the given key to the global key map.

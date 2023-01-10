@@ -17,6 +17,7 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.ListStatusPOptions;
 
 import org.apache.commons.cli.CommandLine;
@@ -24,7 +25,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -40,6 +40,13 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
           .required(false)
           .hasArg(false)
           .desc("load metadata subdirectories recursively")
+          .build();
+
+  private static final Option FORCE_OPTION =
+      Option.builder("F")
+          .required(false)
+          .hasArg(false)
+          .desc("update the metadata of the existing sub file forcibly")
           .build();
 
   /**
@@ -58,13 +65,16 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(RECURSIVE_OPTION);
+    return new Options()
+        .addOption(RECURSIVE_OPTION)
+        .addOption(FORCE_OPTION);
   }
 
   @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
-    loadMetadata(plainPath, cl.hasOption(RECURSIVE_OPTION.getOpt()));
+    loadMetadata(plainPath, cl.hasOption(RECURSIVE_OPTION.getOpt()),
+        cl.hasOption(FORCE_OPTION.getOpt()));
   }
 
   @Override
@@ -76,10 +86,18 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
     return 0;
   }
 
-  private void loadMetadata(AlluxioURI path, boolean recursive) throws IOException {
+  private void loadMetadata(AlluxioURI path, boolean recursive, boolean force) throws IOException {
     try {
-      ListStatusPOptions options = ListStatusPOptions.newBuilder()
-          .setRecursive(recursive).build();
+      ListStatusPOptions options;
+      if (force) {
+        options = ListStatusPOptions.newBuilder()
+            .setRecursive(recursive)
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+                .setSyncIntervalMs(0).build())
+            .build();
+      } else {
+        options = ListStatusPOptions.newBuilder().setRecursive(recursive).build();
+      }
       mFileSystem.loadMetadata(path, options);
     } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
@@ -88,7 +106,7 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "loadMetadata [-R] <path>";
+    return "loadMetadata [-R] [-F] <path>";
   }
 
   @Override

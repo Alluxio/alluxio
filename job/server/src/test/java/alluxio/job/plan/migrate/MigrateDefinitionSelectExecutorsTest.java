@@ -14,7 +14,7 @@ package alluxio.job.plan.migrate;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.WriteType;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
@@ -36,10 +36,6 @@ import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.List;
 import java.util.Set;
@@ -49,8 +45,6 @@ import java.util.Set;
  * {@link MigrateDefinition#selectExecutors(MigrateConfig, List, SelectExecutorsContext)}.
  * No matter whether to delete source, selectExecutors should have the same behavior.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioBlockStore.class})
 public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsTest {
   private static final List<BlockWorkerInfo> BLOCK_WORKERS =
       new ImmutableList.Builder<BlockWorkerInfo>()
@@ -59,15 +53,10 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
           .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host2"), 0, 0))
           .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host3"), 0, 0)).build();
 
-  private AlluxioBlockStore mMockBlockStore;
-
   @Before
   @Override
   public void before() throws Exception {
     super.before();
-    mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
-    PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
     when(mMockFileSystemContext.getCachedWorkers()).thenReturn(BLOCK_WORKERS);
     createDirectory("/");
   }
@@ -98,24 +87,20 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
 
   @Test
   public void migrateToSubpath() throws Exception {
-    try {
-      assignMigratesFail("/src", "/src/dst");
-    } catch (RuntimeException e) {
-      Assert.assertEquals(
-          ExceptionMessage.MIGRATE_CANNOT_BE_TO_SUBDIRECTORY.getMessage("/src", "/src/dst"),
-          e.getMessage());
-    }
+    RuntimeException exception = Assert.assertThrows(RuntimeException.class,
+        () -> assignMigratesFail("/src", "/src/dst"));
+    Assert.assertEquals(
+        ExceptionMessage.MIGRATE_CANNOT_BE_TO_SUBDIRECTORY.getMessage("/src", "/src/dst"),
+        exception.getMessage());
   }
 
   @Test
   public void migrateMissingSource() throws Exception {
     setPathToNotExist("/notExist");
-    try {
-      assignMigratesFail("/notExist", "/dst");
-    } catch (FileDoesNotExistException e) {
-      Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/notExist"),
-          e.getMessage());
-    }
+    FileDoesNotExistException exception = Assert.assertThrows(FileDoesNotExistException.class,
+        () -> assignMigratesFail("/notExist", "/dst"));
+    Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/notExist"),
+        exception.getMessage());
   }
 
   @Test
@@ -132,7 +117,7 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
 
     Set<Pair<WorkerInfo, MigrateCommand>> assignments =
         new MigrateDefinition().selectExecutors(
-            new MigrateConfig("/src", "/dst", "THROUGH", true),
+            new MigrateConfig("/src", "/dst", WriteType.THROUGH, true),
             ImmutableList.of(JOB_WORKER_3),
             new SelectExecutorsContext(1,
                 new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager)));
@@ -146,7 +131,7 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
    */
   private Set<Pair<WorkerInfo, MigrateCommand>> assignMigrates(String source,
       String destination) throws Exception {
-    return assignMigrates(new MigrateConfig(source, destination, "THROUGH", false));
+    return assignMigrates(new MigrateConfig(source, destination, WriteType.THROUGH, false));
   }
 
   /**
@@ -164,13 +149,13 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
    * Runs selectExecutors with the expectation that it will throw an exception.
    */
   private void assignMigratesFail(String source, String destination) throws Exception {
-    assignMigratesFail(source, destination, "THROUGH", false);
+    assignMigratesFail(source, destination, WriteType.THROUGH, false);
   }
 
   /**
    * Runs selectExecutors with the expectation that it will throw an exception.
    */
-  private void assignMigratesFail(String source, String destination, String writeType,
+  private void assignMigratesFail(String source, String destination, WriteType writeType,
       boolean overwrite) throws Exception {
     Set<Pair<WorkerInfo, MigrateCommand>> assignment =
         assignMigrates(new MigrateConfig(source, destination, writeType, overwrite));

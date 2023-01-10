@@ -16,9 +16,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.conf.ServerConfiguration;
+import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.LoadMetadataPType;
@@ -64,7 +64,7 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
     FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testDir/testFileB",
             WritePType.CACHE_THROUGH, 20);
     String ufsPath = sFileSystem.getStatus(new AlluxioURI("/testRoot/testDir")).getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, Configuration.global());
     ufs.deleteDirectory(ufsPath, DeleteOptions.defaults().setRecursive(true));
     sFsShell.run("checkConsistency", "/testRoot");
     StringBuilder expected = new StringBuilder();
@@ -99,6 +99,28 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
         ExistsPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).build()));
     assertEquals(3, sFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"))
         .getLength());
+  }
+
+  @Test
+  public void testExistInAlluxioButNotInUfs() throws Exception {
+    FileSystemTestUtils
+        .createByteFile(sFileSystem, "/testRoot/testFileA", WritePType.CACHE_THROUGH, 10);
+    String ufsPath = sFileSystem.getStatus(new AlluxioURI("/testRoot")).getUfsPath();
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, Configuration.global());
+    ufs.deleteFile(sFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA")).getUfsPath());
+
+    sFsShell.run("checkConsistency", "/testRoot");
+    String res = mOutput.toString();
+    assertTrue(res.contains("The following files are inconsistent")
+        && res.contains("/testRoot/testFileA"));
+    mOutput.reset();
+
+    sFsShell.run("checkConsistency", "-r", "/testRoot");
+    res = mOutput.toString();
+    assertTrue(res.contains("/testRoot has: 1 inconsistent files")
+        && res.contains("repairing path: /testRoot/testFileA")
+        && res.contains("/testRoot/testFileA repaired"));
+    assertFalse(sFileSystem.exists(new AlluxioURI("/testRoot/testFileA")));
   }
 
   /**
@@ -142,7 +164,7 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
         .createByteFile(sFileSystem, path, WritePType.CACHE_THROUGH, 10));
 
     String ufsPath = sFileSystem.getStatus(new AlluxioURI("/testRoot/testDir")).getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, Configuration.global());
     ufs.deleteDirectory(ufsPath, DeleteOptions.defaults().setRecursive(true));
   }
 }

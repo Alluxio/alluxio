@@ -14,7 +14,7 @@ package alluxio.client.block.stream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -23,11 +23,11 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.RequestType;
 import alluxio.grpc.WriteRequest;
@@ -78,7 +78,7 @@ public final class GrpcDataWriterTest {
   private WorkerNetAddress mAddress;
   private BlockWorkerClient mClient;
   private ClientCallStreamObserver<WriteRequest> mRequestObserver;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = Configuration.copyGlobal();
   private ClientContext mClientContext;
 
   @Rule
@@ -196,7 +196,7 @@ public final class GrpcDataWriterTest {
     mConf.set(PropertyKey.USER_STREAMING_WRITER_CLOSE_TIMEOUT, "1");
     GrpcDataWriter writer = GrpcDataWriter.create(context, mAddress, BLOCK_ID, 0,
         RequestType.ALLUXIO_BLOCK,
-        OutStreamOptions.defaults(mClientContext).setWriteTier(0));
+        OutStreamOptions.defaults(mContext).setWriteTier(0));
     verify(resource, times(0)).close();
     verifyWriteRequests(mClient, 0, 0);
     writer.close();
@@ -213,7 +213,7 @@ public final class GrpcDataWriterTest {
     DataWriter writer =
         GrpcDataWriter.create(mContext, mAddress, BLOCK_ID, length,
             RequestType.ALLUXIO_BLOCK,
-            OutStreamOptions.defaults(mClientContext).setWriteTier(TIER));
+            OutStreamOptions.defaults(mContext).setWriteTier(TIER));
     return writer;
   }
 

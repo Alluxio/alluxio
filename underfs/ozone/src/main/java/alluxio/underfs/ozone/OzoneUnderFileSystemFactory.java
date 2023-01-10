@@ -11,28 +11,57 @@
 
 package alluxio.underfs.ozone;
 
-import alluxio.Constants;
-import alluxio.underfs.hdfs.HdfsUnderFileSystem;
-import alluxio.underfs.hdfs.HdfsUnderFileSystemFactory;
+import alluxio.AlluxioURI;
+import alluxio.OzoneUfsConstants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.hdfs.HdfsUnderFileSystemFactory;
 
+import com.google.common.base.Preconditions;
+
+import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory for creating {@link HdfsUnderFileSystem}.
- *
- * It caches created {@link HdfsUnderFileSystem}s, using the scheme and authority pair as the key.
+ * Factory for creating {@link OzoneUnderFileSystem}.
  */
 @ThreadSafe
 public class OzoneUnderFileSystemFactory extends HdfsUnderFileSystemFactory {
 
   @Override
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
+    Preconditions.checkNotNull(path, "path");
+    return OzoneUnderFileSystem.createInstance(new AlluxioURI(path), conf);
+  }
+
+  @Override
   public boolean supportsPath(String path) {
-    return path != null && path.startsWith(Constants.HEADER_OZONE);
+    List<String> prefixes = Configuration.global().getList(PropertyKey.UNDERFS_OZONE_PREFIXES);
+    if (path != null) {
+      for (final String prefix : prefixes) {
+        if (path.startsWith(prefix)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   @Override
   public boolean supportsPath(String path, UnderFileSystemConfiguration conf) {
-    return supportsPath(path);
+    if (supportsPath(path)) {
+      if (!conf.isSetByUser(PropertyKey.UNDERFS_VERSION)
+          || conf.get(PropertyKey.UNDERFS_VERSION).equals(getVersion())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public String getVersion() {
+    return OzoneUfsConstants.UFS_OZONE_VERSION;
   }
 }

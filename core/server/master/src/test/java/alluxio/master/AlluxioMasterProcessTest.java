@@ -15,11 +15,17 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.NodeState;
+import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.noop.NoopJournalSystem;
-import alluxio.master.journal.raft.RaftJournalConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
+import alluxio.master.service.metrics.MetricsService;
+import alluxio.master.service.rpc.RpcServerService;
+import alluxio.master.service.web.WebServerService;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
@@ -28,12 +34,16 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -42,43 +52,73 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Tests for {@link AlluxioMasterProcess}.
  */
+@RunWith(Parameterized.class)
 public final class AlluxioMasterProcessTest {
-
   @Rule
   public PortReservationRule mRpcPortRule = new PortReservationRule();
   @Rule
   public PortReservationRule mWebPortRule = new PortReservationRule();
-
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
-  @Rule
-  public ExpectedException mException = ExpectedException.none();
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+        {new ImmutableMap.Builder<Object, Boolean>()
+            .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, true)
+            .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, true)
+            .build()},
+        {new ImmutableMap.Builder<Object, Boolean>()
+            .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, false)
+            .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, false)
+            .build()},
+        {new ImmutableMap.Builder<Object, Boolean>()
+            .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, true)
+            .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, false)
+            .build()},
+        {new ImmutableMap.Builder<Object, Boolean>()
+            .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, false)
+            .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, true)
+            .build()},
+    });
+  }
 
-  private int mRpcPort;
-  private int mWebPort;
+  public ImmutableMap<PropertyKey, Object> mConfigMap;
+
+  public AlluxioMasterProcessTest(ImmutableMap<PropertyKey, Object> propMap) {
+    mConfigMap = propMap;
+  }
 
   @Before
   public void before() throws Exception {
-    ServerConfiguration.reset();
-    mRpcPort = mRpcPortRule.getPort();
-    mWebPort = mWebPortRule.getPort();
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, mRpcPort);
-    ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, mWebPort);
-    ServerConfiguration.set(PropertyKey.MASTER_METASTORE_DIR, mFolder.getRoot().getAbsolutePath());
-    String journalPath = PathUtils.concatPath(mFolder.getRoot(), "journal");
-    FileUtils.createDir(journalPath);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
+    Configuration.reloadProperties();
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, mRpcPortRule.getPort());
+    Configuration.set(PropertyKey.MASTER_WEB_PORT, mWebPortRule.getPort());
+    Configuration.set(PropertyKey.MASTER_METASTORE_DIR, mFolder.newFolder("metastore"));
+    Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, mFolder.newFolder("journal"));
+    for (Map.Entry<PropertyKey, Object> entry : mConfigMap.entrySet()) {
+      Configuration.set(entry.getKey(), entry.getValue());
+    }
   }
 
   @Test
   public void startStopPrimary() throws Exception {
-    AlluxioMasterProcess master = new AlluxioMasterProcess(new NoopJournalSystem());
+    AlluxioMasterProcess master = new AlluxioMasterProcess(new NoopJournalSystem(),
+        new UfsJournalSingleMasterPrimarySelector());
+    master.registerService(
+        RpcServerService.Factory.create(master.getRpcBindAddress(), master, master.getRegistry()));
+    master.registerService(WebServerService.Factory.create(master.getWebBindAddress(), master));
+    master.registerService(MetricsService.Factory.create());
     Thread t = new Thread(() -> {
       try {
         master.start();
@@ -91,9 +131,13 @@ public final class AlluxioMasterProcessTest {
   }
 
   @Test
-  public void startStopSecondary() throws Exception {
-    FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
-        new NoopJournalSystem(), new AlwaysSecondaryPrimarySelector());
+  public void startStopStandby() throws Exception {
+    AlluxioMasterProcess master = new AlluxioMasterProcess(
+        new NoopJournalSystem(), new AlwaysStandbyPrimarySelector());
+    master.registerService(
+        RpcServerService.Factory.create(master.getRpcBindAddress(), master, master.getRegistry()));
+    master.registerService(WebServerService.Factory.create(master.getWebBindAddress(), master));
+    master.registerService(MetricsService.Factory.create());
     Thread t = new Thread(() -> {
       try {
         master.start();
@@ -102,16 +146,50 @@ public final class AlluxioMasterProcessTest {
       }
     });
     t.start();
-    startStopTest(master);
+    startStopTest(master, false,
+        Configuration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED),
+        Configuration.getBoolean(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED));
   }
 
   @Test
-  public void stopAfterSecondaryTransition() throws Exception {
+  public void startMastersThrowsUnavailableException() throws InterruptedException, IOException {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
-    primarySelector.setState(PrimarySelector.State.PRIMARY);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, "true");
-    FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
+    primarySelector.setState(NodeState.PRIMARY);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, true);
+    AlluxioMasterProcess master = new AlluxioMasterProcess(
         new NoopJournalSystem(), primarySelector);
+    AlluxioMasterProcess spy = Mockito.spy(master);
+    Mockito.doAnswer(invocation -> { throw new UnavailableException("unavailable"); })
+        .when(spy).startMasterComponents(true);
+
+    AtomicBoolean success = new AtomicBoolean(true);
+    Thread t = new Thread(() -> {
+      try {
+        spy.start();
+      } catch (UnavailableException ue) {
+        success.set(false);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+    t.start();
+    final int WAIT_TIME_TO_THROW_EXC = 500; // in ms
+    t.join(WAIT_TIME_TO_THROW_EXC);
+    t.interrupt();
+    Assert.assertTrue(success.get());
+  }
+
+  @Test
+  @Ignore
+  public void stopAfterStandbyTransition() throws Exception {
+    ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
+    primarySelector.setState(NodeState.PRIMARY);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, true);
+    AlluxioMasterProcess master = new AlluxioMasterProcess(
+        new NoopJournalSystem(), primarySelector);
+    master.registerService(
+        RpcServerService.Factory.create(master.getRpcBindAddress(), master, master.getRegistry()));
+    master.registerService(WebServerService.Factory.create(master.getWebBindAddress(), master));
     Thread t = new Thread(() -> {
       try {
         master.start();
@@ -120,16 +198,20 @@ public final class AlluxioMasterProcessTest {
       }
     });
     t.start();
-    waitForServing(ServiceType.MASTER_RPC);
-    waitForServing(ServiceType.MASTER_WEB);
-    assertTrue(isBound(mRpcPort));
-    assertTrue(isBound(mWebPort));
-    primarySelector.setState(PrimarySelector.State.SECONDARY);
+    waitForSocketServing(ServiceType.MASTER_RPC);
+    waitForSocketServing(ServiceType.MASTER_WEB);
+    int rpcPort = master.getRpcAddress().getPort();
+    int webPort = master.getWebAddress().getPort();
+    assertTrue(isBound(rpcPort));
+    assertTrue(isBound(webPort));
+    primarySelector.setState(NodeState.STANDBY);
     t.join(10000);
-    // make these two lines flake less
-    //assertFalse(isBound(mRpcPort));
-    //assertFalse(isBound(mWebPort));
-    assertFalse(master.isRunning());
+    CommonUtils.waitFor("Master to be stopped", () -> !master.isRunning(),
+        WaitForOptions.defaults().setTimeoutMs(3 * Constants.MINUTE_MS));
+    CommonUtils.waitFor("Master to be stopped", () -> !isBound(rpcPort),
+        WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
+    CommonUtils.waitFor("Master to be stopped", () -> !isBound(webPort),
+        WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 
   /**
@@ -151,13 +233,18 @@ public final class AlluxioMasterProcessTest {
     String ufsPath = PathUtils.concatPath(mFolder.getRoot(), "ufs");
     FileUtils.createDir(ufsPath);
     ufsPath = "http://other_ufs/";
-    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "550");
-    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1100");
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupPath);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
-    ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsPath);
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "550");
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1100");
+    Configuration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupPath);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsPath);
     AlluxioMasterProcess master = new AlluxioMasterProcess(
-        RaftJournalSystem.create(RaftJournalConfiguration.defaults(ServiceType.MASTER_RAFT)));
+        new RaftJournalSystem(JournalUtils.getJournalLocation(), ServiceType.MASTER_RAFT),
+        new UfsJournalSingleMasterPrimarySelector());
+    master.registerService(
+        RpcServerService.Factory.create(master.getRpcBindAddress(), master, master.getRegistry()));
+    master.registerService(WebServerService.Factory.create(master.getWebBindAddress(), master));
+    master.registerService(MetricsService.Factory.create());
     Thread t = new Thread(() -> {
       try {
         master.start();
@@ -169,75 +256,36 @@ public final class AlluxioMasterProcessTest {
     startStopTest(master);
   }
 
-  @Test
-  public void startZeroParallelism() {
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM, "0");
-    mException.expect(IllegalArgumentException.class);
-    mException.expectMessage(String.format("Cannot start Alluxio master gRPC thread pool with "
-                    + "%s=%s! The parallelism must be greater than 0!",
-            PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM.toString(), 0));
-    AlluxioMasterProcess.Factory.create();
-  }
-
-  @Test
-  public void startNegativeParallelism() {
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM, "-1");
-    mException.expect(IllegalArgumentException.class);
-    mException.expectMessage(String.format("Cannot start Alluxio master gRPC thread pool with"
-                    + " %s=%s! The parallelism must be greater than 0!",
-            PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM.toString(), -1));
-    AlluxioMasterProcess.Factory.create();
-  }
-
-  @Test
-  public void startInvalidMaxPoolSize() {
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM, "4");
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, "3");
-    mException.expect(IllegalArgumentException.class);
-    mException.expectMessage(String.format("Cannot start Alluxio master gRPC thread pool with "
-                    + "%s=%s greater than %s=%s!",
-            PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM.toString(), 4,
-            PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE.toString(), 3));
-    AlluxioMasterProcess.Factory.create();
-  }
-
-  @Test
-  public void startZeroKeepAliveTime() {
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE, "0");
-    mException.expect(IllegalArgumentException.class);
-    mException.expectMessage(
-            String.format("Cannot start Alluxio master gRPC thread pool with %s=%s. "
-                    + "The keepalive time must be greater than 0!",
-            PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE.toString(),
-            0));
-    AlluxioMasterProcess.Factory.create();
-  }
-
-  @Test
-  public void startNegativeKeepAliveTime() {
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE, "-1");
-    mException.expect(IllegalArgumentException.class);
-    mException.expectMessage(
-            String.format("Cannot start Alluxio master gRPC thread pool with %s=%s. "
-                            + "The keepalive time must be greater than 0!",
-                    PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE.toString(),
-                    -1));
-    AlluxioMasterProcess.Factory.create();
-  }
-
   private void startStopTest(AlluxioMasterProcess master) throws Exception {
-    waitForServing(ServiceType.MASTER_RPC);
-    waitForServing(ServiceType.MASTER_WEB);
-    assertTrue(isBound(mRpcPort));
-    assertTrue(isBound(mWebPort));
-    master.stop();
-    assertFalse(isBound(mRpcPort));
-    assertFalse(isBound(mWebPort));
+    startStopTest(master, true, true, true);
   }
 
-  private void waitForServing(ServiceType service) throws TimeoutException, InterruptedException {
+  private void startStopTest(AlluxioMasterProcess master, boolean expectGrpcServiceStarted,
+      boolean expectWebServiceStarted, boolean expectMetricsSinkStarted) throws Exception {
+    final int TIMEOUT_MS = 10_000;
+    // rpc and web ports will be bound either by the serving server, or by the rejecting server
+    waitForSocketServing(ServiceType.MASTER_RPC);
+    waitForSocketServing(ServiceType.MASTER_WEB);
+    assertTrue(isBound(master.getRpcAddress().getPort()));
+    assertTrue(isBound(master.getWebAddress().getPort()));
+    if (expectGrpcServiceStarted) {
+      assertTrue(master.waitForGrpcServerReady(TIMEOUT_MS));
+    }
+    if (expectWebServiceStarted) {
+      assertTrue(master.waitForWebServerReady(TIMEOUT_MS));
+    }
+    if (expectMetricsSinkStarted) {
+      assertTrue(master.waitForMetricSinkServing(TIMEOUT_MS));
+    }
+    master.stop();
+    assertFalse(isBound(master.getRpcAddress().getPort()));
+    assertFalse(isBound(master.getWebAddress().getPort()));
+  }
+
+  private void waitForSocketServing(ServiceType service)
+      throws TimeoutException, InterruptedException {
     InetSocketAddress addr =
-        NetworkAddressUtils.getBindAddress(service, ServerConfiguration.global());
+        NetworkAddressUtils.getBindAddress(service, Configuration.global());
     CommonUtils.waitFor(service + " to be serving", () -> {
       try {
         Socket s = new Socket(addr.getAddress(), addr.getPort());

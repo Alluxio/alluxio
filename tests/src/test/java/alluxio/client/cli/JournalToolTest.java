@@ -22,10 +22,11 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.SystemOutRule;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterClientContext;
@@ -41,7 +42,7 @@ import alluxio.util.io.PathUtils;
 
 import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.server.storage.RaftStorage;
-import org.apache.ratis.server.storage.RaftStorageImpl;
+import org.apache.ratis.server.storage.StorageImplUtils;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.hamcrest.Matchers;
@@ -72,11 +73,10 @@ public class JournalToolTest extends BaseIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setIncludeSecondary(true)
-          .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
-          .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES,
-              Integer.toString(CHECKPOINT_SIZE))
+          .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
+          .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, CHECKPOINT_SIZE)
           .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "100")
-          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE").build();
+          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE).build();
 
   private File mDumpDir;
   private FileSystem mFs;
@@ -211,17 +211,20 @@ public class JournalToolTest extends BaseIntegrationTest {
 
     // Take snapshot on master.
     new RetryHandlingMetaMasterClient(MasterClientContext
-        .newBuilder(ClientContext.create(ServerConfiguration.global()))
+        .newBuilder(ClientContext.create(Configuration.global()))
         .setMasterInquireClient(new SingleMasterInquireClient(
             mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress()))
         .build()).checkpoint();
   }
 
   private long getCurrentRatisSnapshotIndex(String journalFolder) throws Throwable {
-    try (RaftStorage storage = new RaftStorageImpl(
+    try (RaftStorage storage = StorageImplUtils.newRaftStorage(
         new File(RaftJournalUtils.getRaftJournalDir(new File(journalFolder)),
             RaftJournalSystem.RAFT_GROUP_UUID.toString()),
-            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault())) {
+          RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
+          RaftStorage.StartupOption.RECOVER,
+          RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize())) {
+      storage.initialize();
       SimpleStateMachineStorage stateMachineStorage = new SimpleStateMachineStorage();
       stateMachineStorage.init(storage);
       SingleFileSnapshotInfo snapshot = stateMachineStorage.getLatestSnapshot();

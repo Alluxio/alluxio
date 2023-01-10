@@ -14,12 +14,12 @@ package alluxio.cli;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.SystemOutRule;
+import alluxio.conf.Configuration;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -52,7 +52,7 @@ public final class AbstractShellTest {
       super(ImmutableMap.<String, String[]>builder().put("cmdAlias", new String[] {"cmd", "-O"})
           .put("stableAlias", new String[]{"cmd", "-O"})
           .build(), ImmutableSet.<String>builder().add("cmdAlias").build(),
-          ConfigurationTestUtils.defaults());
+          Configuration.global());
     }
 
     @Override

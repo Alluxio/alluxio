@@ -45,8 +45,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -103,7 +103,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     // Whether to run against a simulated Swift backend
     mSimulationMode = false;
     if (conf.isSet(PropertyKey.SWIFT_SIMULATION)) {
-      mSimulationMode = Boolean.valueOf(conf.get(PropertyKey.SWIFT_SIMULATION));
+      mSimulationMode = conf.getBoolean(PropertyKey.SWIFT_SIMULATION);
     }
 
     if (mSimulationMode) {
@@ -112,23 +112,23 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       config.setMockAllowEveryone(true);
     } else {
       if (conf.isSet(PropertyKey.SWIFT_PASSWORD_KEY)) {
-        config.setPassword(conf.get(PropertyKey.SWIFT_PASSWORD_KEY));
+        config.setPassword(conf.getString(PropertyKey.SWIFT_PASSWORD_KEY));
       }
-      config.setAuthUrl(conf.get(PropertyKey.SWIFT_AUTH_URL_KEY));
-      String authMethod = conf.get(PropertyKey.SWIFT_AUTH_METHOD_KEY);
+      config.setAuthUrl(conf.getString(PropertyKey.SWIFT_AUTH_URL_KEY));
+      String authMethod = conf.getString(PropertyKey.SWIFT_AUTH_METHOD_KEY);
       if (authMethod != null) {
-        config.setUsername(conf.get(PropertyKey.SWIFT_USER_KEY));
-        config.setTenantName(conf.get(PropertyKey.SWIFT_TENANT_KEY));
+        config.setUsername(conf.getString(PropertyKey.SWIFT_USER_KEY));
+        config.setTenantName(conf.getString(PropertyKey.SWIFT_TENANT_KEY));
         switch (authMethod) {
           case Constants.SWIFT_AUTH_KEYSTONE:
             config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
             if (conf.isSet(PropertyKey.SWIFT_REGION_KEY)) {
-              config.setPreferredRegion(conf.get(PropertyKey.SWIFT_REGION_KEY));
+              config.setPreferredRegion(conf.getString(PropertyKey.SWIFT_REGION_KEY));
             }
             break;
           case Constants.SWIFT_AUTH_KEYSTONE_V3:
             if (conf.isSet(PropertyKey.SWIFT_REGION_KEY)) {
-              config.setPreferredRegion(conf.get(PropertyKey.SWIFT_REGION_KEY));
+              config.setPreferredRegion(conf.getString(PropertyKey.SWIFT_REGION_KEY));
             }
             config.setAuthenticationMethod(AuthenticationMethod.EXTERNAL);
             KeystoneV3AccessProvider accessProvider = new KeystoneV3AccessProvider(config);
@@ -141,16 +141,16 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
             // swiftauth requires authentication header to be of the form tenant:user.
             // JOSS however generates header of the form user:tenant.
             // To resolve this, we switch user with tenant
-            config.setTenantName(conf.get(PropertyKey.SWIFT_USER_KEY));
-            config.setUsername(conf.get(PropertyKey.SWIFT_TENANT_KEY));
+            config.setTenantName(conf.getString(PropertyKey.SWIFT_USER_KEY));
+            config.setUsername(conf.getString(PropertyKey.SWIFT_TENANT_KEY));
             break;
           default:
             config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
             // tempauth requires authentication header to be of the form tenant:user.
             // JOSS however generates header of the form user:tenant.
             // To resolve this, we switch user with tenant
-            config.setTenantName(conf.get(PropertyKey.SWIFT_USER_KEY));
-            config.setUsername(conf.get(PropertyKey.SWIFT_TENANT_KEY));
+            config.setTenantName(conf.getString(PropertyKey.SWIFT_USER_KEY));
+            config.setUsername(conf.getString(PropertyKey.SWIFT_TENANT_KEY));
         }
       }
     }
@@ -169,7 +169,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     // Assume the Swift user name has 1-1 mapping to Alluxio username.
-    mAccountOwner = conf.get(PropertyKey.SWIFT_USER_KEY);
+    mAccountOwner = conf.getString(PropertyKey.SWIFT_USER_KEY);
     short mode = (short) 0;
     List<String> readAcl =
         Arrays.asList(container.getContainerReadPermission().split(ACL_SEPARATOR_REGEXP));
@@ -244,7 +244,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   protected OutputStream createObject(String key) throws IOException {
     if (mSimulationMode) {
       return new SwiftMockOutputStream(mAccount, mContainerName, key,
-          mUfsConf.getList(PropertyKey.TMP_DIRS, ","));
+          mUfsConf.getList(PropertyKey.TMP_DIRS));
     }
 
     return SwiftDirectClient.put(mAccess,
@@ -314,9 +314,11 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       ObjectStatus[] res = new ObjectStatus[objects.size()];
       for (DirectoryOrObject object : objects) {
         if (object.isObject()) {
+          Date lastModifiedDate = object.getAsObject().getLastModifiedAsDate();
+          Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
           res[i++] = new ObjectStatus(object.getName(), object.getAsObject().getEtag(),
               object.getAsObject().getContentLength(),
-              object.getAsObject().getLastModifiedAsDate().getTime());
+              lastModifiedTime);
         } else {
           res[i++] = new ObjectStatus(object.getName());
         }
@@ -346,8 +348,10 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     Container container = mAccount.getContainer(mContainerName);
     StoredObject meta = container.getObject(key);
     if (meta != null && meta.exists()) {
+      Date lastModifiedDate = meta.getLastModifiedAsDate();
+      Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
       return new ObjectStatus(key, meta.getEtag(), meta.getContentLength(),
-          meta.getLastModifiedAsDate().getTime());
+          lastModifiedTime);
     }
     return null;
   }

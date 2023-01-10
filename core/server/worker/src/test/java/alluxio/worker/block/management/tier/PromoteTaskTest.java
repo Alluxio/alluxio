@@ -11,8 +11,8 @@
 
 package alluxio.worker.block.management.tier;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
@@ -29,11 +29,11 @@ public class PromoteTaskTest extends BaseTierManagementTaskTest {
    */
   @Before
   public void before() throws Exception {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
     // Disable tier alignment to avoid interference.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false);
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false);
     // Set promotion quota percentage.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT,
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT,
         MOVE_QUOTA_PERCENT);
     // Initialize the tier layout.
     init();

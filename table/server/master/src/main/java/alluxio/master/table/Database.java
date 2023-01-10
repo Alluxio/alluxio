@@ -11,8 +11,8 @@
 
 package alluxio.master.table;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.FileStatistics;
@@ -56,7 +56,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
-
 import javax.annotation.Nullable;
 
 /**
@@ -75,7 +74,7 @@ public class Database implements Journaled {
   private final String mConfigPath;
   private DbConfig mDbConfig;
   private final long mUdbSyncTimeoutMs =
-      ServerConfiguration.getMs(PropertyKey.TABLE_CATALOG_UDB_SYNC_TIMEOUT);
+      Configuration.getMs(PropertyKey.TABLE_CATALOG_UDB_SYNC_TIMEOUT);
 
   private DatabaseInfo mDatabaseInfo;
 

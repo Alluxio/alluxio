@@ -1,3 +1,4 @@
 metricName,metricType
-Fuse.BytesRead,COUNTER
-Fuse.BytesToRead,COUNTER
+Fuse.CachedPathCount,GAUGE
+Fuse.ReadWriteFileCount,GAUGE
+Fuse.TotalCalls,TIMER

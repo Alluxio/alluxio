@@ -21,8 +21,6 @@ import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.proto.journal.Journal;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
@@ -38,8 +36,6 @@ import java.nio.file.Paths;
  * Implementation of {@link AbstractJournalDumper} for UFS journals.
  */
 public class UfsJournalDumper extends AbstractJournalDumper {
-  private static final Logger LOG = LoggerFactory.getLogger(UfsJournalDumper.class);
-
   /** Separator to place at the end of each journal entry. */
   private static final String ENTRY_SEPARATOR = StringUtils.repeat('-', 80);
 

@@ -97,11 +97,11 @@ this has been the norm [as of the 1950s](https://en.wikipedia.org/wiki/Sentence_
 |-------------------------|-----------------------------------------------------|
 | File system | Filesystem |
 | Leading master | Leader, lead master, primary master |
-| Backup master | Secondary master, following master, follower master |
+| Standby master | Backup master, following master, follower master |
 | Containerized | Dockerized |
 | Superuser | Super-user, super user |
 | I/O | i/o, IO |
-| High availability mode | Fault tolerance mode (Use of "fault tolerance" is fine, but not when interchangeable with “high availability”) |
+| High availability mode | Fault tolerance mode (Use of "fault tolerance" is fine, but not when interchangeable with "high availability") |
 | Hostname | Host name |
 
 ## Line breaks

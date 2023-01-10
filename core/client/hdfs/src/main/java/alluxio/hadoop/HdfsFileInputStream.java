@@ -22,7 +22,6 @@ import org.apache.hadoop.fs.ByteBufferReadable;
 import org.apache.hadoop.fs.FileSystem.Statistics;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -194,7 +193,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   @Override
   public boolean seekToNewSource(long targetPos) throws IOException {
-    throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
+    throw new IOException("This method is not supported.");
   }
 
   @Override

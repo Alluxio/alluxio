@@ -16,14 +16,12 @@ import alluxio.Constants;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.google.common.base.Stopwatch;
-
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
@@ -32,6 +30,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.management.ObjectName;
 
 /**
  * Class to monitor JVM with a daemon thread, the thread sleep period of time
@@ -143,22 +143,23 @@ public class JvmPauseMonitor {
     List<String> beanDiffs = Lists.newArrayList();
     GarbageCollectorMXBean oldBean;
     GarbageCollectorMXBean newBean;
-    Set<String> nameSet = Sets.intersection(gcMXBeanMapBeforeSleep.keySet(),
+    Set<String> nameSet = Sets.union(gcMXBeanMapBeforeSleep.keySet(),
         gcMXBeanMapAfterSleep.keySet());
     for (String name : nameSet) {
       oldBean = gcMXBeanMapBeforeSleep.get(name);
       newBean = gcMXBeanMapAfterSleep.get(name);
       if (oldBean == null) {
-        beanDiffs.add("new GCBean created name= '" + newBean.getName() + " count="
-            + newBean.getCollectionCount() + " time=" + newBean.getCollectionTime() + "ms");
+        beanDiffs.add(String.format("new GCBean created name='%s' count=%d time=%dms",
+            newBean.getName(), newBean.getCollectionCount(), newBean.getCollectionTime()));
       } else if (newBean == null) {
-        beanDiffs.add("old GCBean canceled name= '" + oldBean.getName() + " count="
-            + oldBean.getCollectionCount() + " time=" + oldBean.getCollectionTime() + "ms");
+        beanDiffs.add(String.format("old GCBean canceled name= '%s' count=%d time=%dms",
+            oldBean.getName(), oldBean.getCollectionCount(), oldBean.getCollectionTime()));
       } else {
         if (oldBean.getCollectionTime() != newBean.getCollectionTime()
             || oldBean.getCollectionCount() != newBean.getCollectionCount()) {
-          beanDiffs.add("GC name= '" + newBean.getName() + " count="
-              + newBean.getCollectionCount() + " time=" + newBean.getCollectionTime() + "ms");
+          beanDiffs.add(String.format("GC name='%s' count=%d time=%dms", newBean.getName(),
+              newBean.getCollectionCount() - oldBean.getCollectionCount(),
+              newBean.getCollectionTime() - oldBean.getCollectionTime()));
         }
       }
     }
@@ -177,7 +178,9 @@ public class JvmPauseMonitor {
     List<GarbageCollectorMXBean> gcBeanList = ManagementFactory.getGarbageCollectorMXBeans();
     Map<String, GarbageCollectorMXBean> gcBeanMap = new HashMap<>();
     for (GarbageCollectorMXBean gcBean : gcBeanList) {
-      gcBeanMap.put(gcBean.getName(), gcBean);
+      // #getGarbageCollectorMXBeans will return the same gc bean
+      // so we need to clone a new gc bean.
+      gcBeanMap.put(gcBean.getName(), new GarbageCollectorMXBeanView(gcBean));
     }
     return gcBeanMap;
   }
@@ -226,6 +229,61 @@ public class JvmPauseMonitor {
         }
         gcBeanMapBeforeSleep = gcBeanMapAfterSleep;
       }
+    }
+  }
+
+  /**
+   * An unmodifiable view of a garbage collector MX Bean.
+   */
+  public static class GarbageCollectorMXBeanView implements GarbageCollectorMXBean {
+    private final long mCollectionCount;
+    private final long mCollectionTime;
+    private final String mName;
+    private final boolean mValid;
+    private final String[] mMemoryPoolNames;
+    private final ObjectName mObjectName;
+
+    /**
+     * Creates a new instance of {@link GarbageCollectorMXBeanView}.
+     * @param gcBean which the unmodifiable view should be constructed from
+     */
+    public GarbageCollectorMXBeanView(GarbageCollectorMXBean gcBean) {
+      mCollectionCount = gcBean.getCollectionCount();
+      mCollectionTime = gcBean.getCollectionTime();
+      mName = gcBean.getName();
+      mValid = gcBean.isValid();
+      mMemoryPoolNames = gcBean.getMemoryPoolNames();
+      mObjectName = gcBean.getObjectName();
+    }
+
+    @Override
+    public long getCollectionCount() {
+      return mCollectionCount;
+    }
+
+    @Override
+    public long getCollectionTime() {
+      return mCollectionTime;
+    }
+
+    @Override
+    public String getName() {
+      return mName;
+    }
+
+    @Override
+    public boolean isValid() {
+      return mValid;
+    }
+
+    @Override
+    public String[] getMemoryPoolNames() {
+      return mMemoryPoolNames;
+    }
+
+    @Override
+    public ObjectName getObjectName() {
+      return mObjectName;
     }
   }
 }

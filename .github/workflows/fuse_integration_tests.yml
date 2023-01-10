@@ -1,0 +1,61 @@
+name: Fuse Integration Tests
+
+on: [pull_request]
+
+jobs:
+  build:
+    name: "modules: fuse"
+
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ["8", "11"]
+        version: ["2", "3"]
+
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.pull_request.title, 'DOCFIX') &&
+        !contains(github.event.pull_request.title, 'SKIPCI')"
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: '10.11.0'
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-java${{ matrix.java }}-${{ hashFiles('**/pom.xml') }}
+
+      - name: Cache local Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.mod') }}
+
+      - name: Run tests
+        id: test0
+        run: |
+          mkdir -p ~/.m2
+          ALLUXIO_DOCKER_NO_TTY=true \
+          ALLUXIO_DOCKER_GIT_CLEAN=true \
+          ALLUXIO_DOCKER_MVN_RUNTOEND=true \
+          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!shaded/client,!integration/tools/hms,!integration/yarn,!assembly/client,!assembly/server,!table/server/underdb/glue,!underfs/hdfs,!underfs/ozone,!underfs/adl,!underfs/abfs,!underfs/cosn,!underfs/wasb,!underfs/cos,!underfs/kodo,!underfs/oss,!underfs/swift \
+          dev/github/run_docker.sh "\"-Dtest=alluxio.client.fuse.**\""  "\"-Dalluxio.fuse.jnifuse.libfuse.version=${{ matrix.version }}\"" -pl tests
+        timeout-minutes: 60
+
+      - name: Archive artifacts
+        continue-on-error: true
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: artifact
+          path: |
+            **/target/surefire-reports/*
+            **/target/artifacts/*
+            **/target/logs/*
+          retention-days: 7

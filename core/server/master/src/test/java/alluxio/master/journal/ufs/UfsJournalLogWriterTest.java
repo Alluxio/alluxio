@@ -14,10 +14,9 @@ package alluxio.master.journal.ufs;
 import static org.hamcrest.CoreMatchers.containsString;
 
 import alluxio.RuntimeConstants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalReader.State;
@@ -64,7 +63,7 @@ public final class UfsJournalLogWriterTest {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
     mUfs = Mockito
-        .spy(UnderFileSystem.Factory.create(location.toString(), ServerConfiguration.global()));
+        .spy(UnderFileSystem.Factory.create(location.toString(), Configuration.global()));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0, Collections::emptySet);
     mJournal.start();
     mJournal.gainPrimacy();
@@ -73,7 +72,7 @@ public final class UfsJournalLogWriterTest {
   @After
   public void after() throws Exception {
     mJournal.close();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   /**
@@ -181,7 +180,7 @@ public final class UfsJournalLogWriterTest {
   @Test
   public void writeJournalEntryRotate() throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "1");
+    Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "1");
 
     long nextSN = 0x20;
     UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, nextSN);
@@ -229,7 +228,7 @@ public final class UfsJournalLogWriterTest {
    *
    * This test has the following steps.
    * 1. Write several journal entries, flush and close the journal. This will create a complete
-   *    journal file, i.e. <startSN>-<endSN>.
+   *    journal file, i.e. &lt;startSN&gt;-&lt;endSN&gt;.
    * 2. Write another journal entry, do NOT flush it, and inject an I/O error.
    * 3. Attempt to write another journal entry, which is expected to fail. After the failure,
    *    the newly created incomplete journal file may or may not have valid content.
@@ -457,9 +456,9 @@ public final class UfsJournalLogWriterTest {
    */
   private void flushOutputStream(UfsJournalLogWriter writer) throws IOException {
     Object journalOutputStream = writer.getJournalOutputStream();
-    DataOutputStream mOutputStream =
+    DataOutputStream outputStream =
         Whitebox.getInternalState(journalOutputStream, "mOutputStream");
-    mOutputStream.flush();
+    outputStream.flush();
   }
 
   /**
@@ -499,7 +498,7 @@ public final class UfsJournalLogWriterTest {
    * @param endSN end sequence number (exclusive)
    */
   private void checkJournalEntries(long startSN, long endSN)
-      throws IOException, InvalidJournalEntryException {
+      throws IOException {
     try (JournalReader reader = new UfsJournalReader(mJournal, startSN, true)) {
       long seq = startSN;
       while (reader.advance() == State.LOG) {

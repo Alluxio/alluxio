@@ -22,5 +22,8 @@ A clear and concise description of what you expected to happen.
 **Urgency**
 Describe the impact and urgency of the bug.
 
+**Are you planning to fix it**
+Please indicate if you are already working on a PR. 
+
 **Additional context**
 Add any other context about the problem here.

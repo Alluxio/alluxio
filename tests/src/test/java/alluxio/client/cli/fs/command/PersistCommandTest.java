@@ -18,17 +18,17 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.TestLoggerRule;
 import alluxio.cli.fs.FileSystemShell;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
+import alluxio.client.cli.fs.AbstractFileSystemShellTest;
+import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.security.authorization.Mode;
-import alluxio.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -68,7 +68,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   @Test
   public void persistDirectory() throws Exception {
     // Set the default write type to MUST_CACHE, so that directories are not persisted by default
-    ServerConfiguration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
     assertFalse(sFileSystem.getStatus(new AlluxioURI(testDir)).isPersisted());
     assertFalse(sFileSystem.getStatus(new AlluxioURI(testDir + "/foo")).isPersisted());
@@ -86,9 +86,9 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
 
   @Test
   public void persistOnRenameDirectory() throws Exception {
-    InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
+    InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    conf.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, "true");
+    conf.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, true);
 
     try (FileSystemShell fsShell = new FileSystemShell(conf)) {
       String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
@@ -117,9 +117,9 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
 
   @Test
   public void persistOnRenameDirectoryBlacklist() throws Exception {
-    InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
+    InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    conf.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, "true");
+    conf.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, true);
     // MASTER_PERSISTENCE_BLACKLIST is set to "foobar_blacklist" for the server configuration
 
     try (FileSystemShell fsShell = new FileSystemShell(conf)) {
@@ -175,7 +175,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
    */
   @Test
   public void persistMultiFilesAndDirs() throws Exception {
-    ServerConfiguration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
     assertFalse(sFileSystem.getStatus(new AlluxioURI(testDir)).isPersisted());
     assertFalse(sFileSystem.getStatus(new AlluxioURI(testDir + "/foo")).isPersisted());
@@ -222,7 +222,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   @Test
   public void persistWithAncestorPermission() throws Exception {
     String ufsRoot = sFileSystem.getStatus(new AlluxioURI("/")).getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(Configuration.global());
     // Skip non-local and non-HDFS UFSs.
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(ufs) || UnderFileSystemUtils.isHdfs(ufs));
 

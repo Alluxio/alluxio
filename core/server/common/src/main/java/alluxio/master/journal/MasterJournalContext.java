@@ -12,8 +12,8 @@
 package alluxio.master.journal;
 
 import alluxio.ProcessUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
@@ -28,20 +28,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Context for storing master journal information.
+ *
+ * This journal context is made thread-safe because metadata sync creates worker threads to fetch
+ * metadata and reuses the same journal context.
  */
-@NotThreadSafe
+@ThreadSafe
 public final class MasterJournalContext implements JournalContext {
   private static final Logger LOG = LoggerFactory.getLogger(MasterJournalContext.class);
   private static final long INVALID_FLUSH_COUNTER = -1;
   private static final long FLUSH_RETRY_TIMEOUT_MS =
-      ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);
+      Configuration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS);
   private static final int FLUSH_RETRY_INTERVAL_MS =
-      (int) ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_RETRY_INTERVAL);
+      (int) Configuration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_RETRY_INTERVAL);
 
   private final AsyncJournalWriter mAsyncJournalWriter;
   private long mFlushCounter;
@@ -58,7 +60,7 @@ public final class MasterJournalContext implements JournalContext {
   }
 
   @Override
-  public void append(JournalEntry entry) {
+  public synchronized void append(JournalEntry entry) {
     mFlushCounter = mAsyncJournalWriter.appendEntry(entry);
   }
 
@@ -89,11 +91,6 @@ public final class MasterJournalContext implements JournalContext {
           LOG.warn("Journal flush failed. retrying...", e);
         }
       } catch (IOException e) {
-        if (e instanceof AlluxioStatusException
-            && ((AlluxioStatusException) e).getStatusCode() == Status.Code.CANCELLED) {
-          throw new UnavailableException(String.format("Failed to complete request: %s",
-              e.getMessage()), e);
-        }
         LOG.warn("Journal flush failed. retrying...", e);
       } catch (Throwable e) {
         ProcessUtils.fatalError(LOG, e, "Journal flush failed");
@@ -103,7 +100,12 @@ public final class MasterJournalContext implements JournalContext {
   }
 
   @Override
-  public void close() throws UnavailableException {
+  public synchronized void flush() throws UnavailableException {
+    waitForJournalFlush();
+  }
+
+  @Override
+  public synchronized void close() throws UnavailableException {
     waitForJournalFlush();
   }
 }

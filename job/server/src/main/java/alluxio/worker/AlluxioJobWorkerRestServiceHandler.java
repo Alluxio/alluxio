@@ -11,10 +11,10 @@
 
 package alluxio.worker;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.LogUtils;
 import alluxio.web.JobWorkerWebServer;
 import alluxio.wire.AlluxioJobWorkerInfo;
@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
@@ -96,7 +95,7 @@ public final class  AlluxioJobWorkerRestServiceHandler {
               .setUptimeMs(mJobWorker.getUptimeMs())
               .setVersion(RuntimeConstants.VERSION);
       return result;
-    }, ServerConfiguration.global());
+    }, Configuration.global());
   }
 
   /**
@@ -110,19 +109,19 @@ public final class  AlluxioJobWorkerRestServiceHandler {
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName,
                            @QueryParam(LOG_ARGUMENT_LEVEL) final String level) {
     return RestUtils.call(() -> LogUtils.setLogLevel(logName, level),
-            ServerConfiguration.global());
+            Configuration.global());
   }
 
-  private Map<String, String> getConfigurationInternal(boolean raw) {
-    Set<Map.Entry<String, String>> properties = ServerConfiguration.toMap().entrySet();
-    SortedMap<String, String> configuration = new TreeMap<>();
-    for (Map.Entry<String, String> entry : properties) {
+  private Map<String, Object> getConfigurationInternal(boolean raw) {
+    Set<Map.Entry<String, Object>> properties = Configuration.toMap().entrySet();
+    SortedMap<String, Object> configuration = new TreeMap<>();
+    for (Map.Entry<String, Object> entry : properties) {
       String key = entry.getKey();
       if (PropertyKey.isValid(key)) {
         if (raw) {
           configuration.put(key, entry.getValue());
         } else {
-          configuration.put(key, ServerConfiguration.get(PropertyKey.fromString(key)));
+          configuration.put(key, Configuration.get(PropertyKey.fromString(key)));
         }
       }
     }

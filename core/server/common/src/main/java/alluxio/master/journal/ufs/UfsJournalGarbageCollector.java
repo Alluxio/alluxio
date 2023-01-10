@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.ThreadFactoryUtils;
@@ -29,7 +29,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -56,7 +55,7 @@ final class UfsJournalGarbageCollector implements Closeable {
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mUfs = mJournal.getUfs();
     mGc = mExecutor.scheduleAtFixedRate(this::gc,
-        Constants.SECOND_MS, ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_GC_PERIOD_MS),
+        Constants.SECOND_MS, Configuration.getMs(PropertyKey.MASTER_JOURNAL_GC_PERIOD_MS),
         TimeUnit.MILLISECONDS);
   }
 
@@ -116,17 +115,21 @@ final class UfsJournalGarbageCollector implements Closeable {
       return;
     }
 
-    long lastModifiedTimeMs;
+    Long lastModifiedTimeMs;
     try {
       lastModifiedTimeMs = mUfs.getFileStatus(file.getLocation().toString()).getLastModifiedTime();
     } catch (IOException e) {
       LOG.warn("Failed to get the last modified time for {}.", file.getLocation());
       return;
     }
+    if (lastModifiedTimeMs == null) {
+      LOG.warn("Failed to get the last modified time for {}.", file.getLocation());
+      return;
+    }
 
     long thresholdMs = file.isTmpCheckpoint()
-        ? ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS)
-        : ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_GC_THRESHOLD_MS);
+        ? Configuration.getMs(PropertyKey.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS)
+        : Configuration.getMs(PropertyKey.MASTER_JOURNAL_GC_THRESHOLD_MS);
 
     if (System.currentTimeMillis() - lastModifiedTimeMs > thresholdMs) {
       deleteNoException(file.getLocation());

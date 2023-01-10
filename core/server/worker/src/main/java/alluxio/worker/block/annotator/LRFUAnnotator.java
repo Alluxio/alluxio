@@ -12,8 +12,8 @@
 package alluxio.worker.block.annotator;
 
 import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -30,7 +31,7 @@ public class LRFUAnnotator implements BlockAnnotator<LRFUAnnotator.LRFUSortedFie
   private static final Logger LOG = LoggerFactory.getLogger(LRFUAnnotator.class);
 
   /** LRU logical clock. */
-  private AtomicLong mLRUClock;
+  private final AtomicLong mLRUClock = new AtomicLong();
 
   /** In the range of [0, 1]. Closer to 0, LRFU closer to LFU. Closer to 1, LRFU closer to LRU. */
   private static final double STEP_FACTOR;
@@ -38,17 +39,10 @@ public class LRFUAnnotator implements BlockAnnotator<LRFUAnnotator.LRFUSortedFie
   private static final double ATTENUATION_FACTOR;
 
   static {
-    STEP_FACTOR = ServerConfiguration.getDouble(
+    STEP_FACTOR = Configuration.getDouble(
         PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR);
-    ATTENUATION_FACTOR = ServerConfiguration.getDouble(
+    ATTENUATION_FACTOR = Configuration.getDouble(
         PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR);
-  }
-
-  /**
-   * Creates a new LRFU annotator.
-   */
-  public LRFUAnnotator() {
-    mLRUClock = new AtomicLong();
   }
 
   @Override
@@ -97,9 +91,9 @@ public class LRFUAnnotator implements BlockAnnotator<LRFUAnnotator.LRFUSortedFie
   /**
    * Sorted-field for LRFU.
    */
-  protected class LRFUSortedField implements BlockSortedField {
-    private Long mClockValue;
-    private Double mCrfValue;
+  protected static class LRFUSortedField implements BlockSortedField {
+    private final long mClockValue;
+    private final double mCrfValue;
 
     private LRFUSortedField(long clockValue, double crfValue) {
       mClockValue = clockValue;
@@ -109,12 +103,15 @@ public class LRFUAnnotator implements BlockAnnotator<LRFUAnnotator.LRFUSortedFie
     @Override
     public int compareTo(BlockSortedField o) {
       Preconditions.checkState(o instanceof LRFUSortedField);
-      return mCrfValue.compareTo(((LRFUSortedField) o).mCrfValue);
+      return Double.compare(mCrfValue, ((LRFUSortedField) o).mCrfValue);
     }
 
     @Override
     public boolean equals(Object o) {
-      if (o == null || !(o instanceof LRFUSortedField)) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof LRFUSortedField)) {
         return false;
       }
       return Double.compare(mCrfValue, ((LRFUSortedField) o).mCrfValue) == 0;
@@ -122,7 +119,7 @@ public class LRFUAnnotator implements BlockAnnotator<LRFUAnnotator.LRFUSortedFie
 
     @Override
     public int hashCode() {
-      return mCrfValue.hashCode();
+      return Objects.hash(mCrfValue);
     }
 
     @Override

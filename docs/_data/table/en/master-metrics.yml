@@ -1,15 +1,31 @@
 Master.AbsentCacheHits:
   'Number of cache hits on the absent cache'
-Master.AbsentCacheInvalidations:
-  'Number of invalidations on the absent cache'
 Master.AbsentCacheMisses:
   'Number of cache misses on the absent cache'
 Master.AbsentCacheSize:
   'Size of the absent cache'
+Master.AbsentPathCacheQueueSize:
+  'Alluxio maintains a cache of absent UFS paths. This is the number of UFS paths being processed.'
+Master.AsyncPersistCancel:
+  'The number of cancelled AsyncPersist operations'
+Master.AsyncPersistFail:
+  'The number of failed AsyncPersist operations'
+Master.AsyncPersistFileCount:
+  'The number of files created by AsyncPersist operations'
+Master.AsyncPersistFileSize:
+  'The total size of files created by AsyncPersist operations'
+Master.AsyncPersistSuccess:
+  'The number of successful AsyncPersist operations'
+Master.AuditLogEntriesSize:
+  'The size of the audit log entries blocking queue'
 Master.BlockHeapSize:
   'An estimate of the blocks heap size'
+Master.BlockReplicaCount:
+  'Total number of block replicas in Alluxio'
 Master.CompleteFileOps:
   'Total number of the CompleteFile operations'
+Master.CompletedOperationRetryCount:
+  'Total number of completed operations that has been retried by client.'
 Master.CreateDirectoryOps:
   'Total number of the CreateDirectory operations'
 Master.CreateFileOps:
@@ -31,15 +47,15 @@ Master.EdgeCacheSize:
 Master.EdgeLockPoolSize:
   'The size of master edge lock pool'
 Master.EmbeddedJournalSnapshotDownloadGenerate:
-  'The timer statistics of journal snapshot download from other masters'
+  'Describes the amount of time taken to download journal snapshots from other masters in the cluster. Only valid when using the embedded journal. Use this metric to determine if there are potential communication bottlenecks between Alluxio masters.'
 Master.EmbeddedJournalSnapshotGenerateTimer:
-  'The timer statistics of journal snapshot generation by this master'
+  'Describes the amount of time taken to generate local journal snapshots on this master. Only valid when using the embedded journal. Use this metric to measure the performance of Alluxio''s snapshot generation.'
 Master.EmbeddedJournalSnapshotInstallTimer:
-  'The timer statistics of journal snapshot install'
+  'Describes the amount of time taken to install a downloaded journal snapshot from another master. Only valid only when using the embedded journal. Use this metric to determine the performance of Alluxio when installing snapshots from the leader. Higher numbers may indicate a slow disk or CPU contention.'
 Master.EmbeddedJournalSnapshotLastIndex:
-  'The last index of the latest journal snapshot created by this master or downloaded from other masters'
+  'Represents the latest journal index that was recorded by this master in the most recent local snapshot or from a snapshot downloaded from another master in the cluster. Only valid when using the embedded journal.'
 Master.EmbeddedJournalSnapshotReplayTimer:
-  'The timer statistics of journal snapshot replay'
+  'Describes the amount of time taken to replay a journal snapshot onto the master''s state machine. Only valid only when using the embedded journal. Use this metric to determine the performance of Alluxio when replaying journal snapshot file. Higher numbers may indicate a slow disk or CPU contention'
 Master.FileBlockInfosGot:
   'Total number of succeed GetFileBlockInfo operations'
 Master.FileInfosGot:
@@ -72,8 +88,6 @@ Master.InodeCacheHitRatio:
   'Inode Cache hit ratio'
 Master.InodeCacheHits:
   'Total number of hits in the inodes (inode metadata) cache.'
-Master.InodeCacheLoadTimer:
-  'Total load latency in the inodes (inode metadata) cache'
 Master.InodeCacheLoadTimes:
   'Total load times in the inodes (inode metadata) cache that resulted from a cache miss.'
 Master.InodeCacheMisses:
@@ -84,6 +98,32 @@ Master.InodeHeapSize:
   'An estimate of the inode heap size'
 Master.InodeLockPoolSize:
   'The size of master inode lock pool'
+Master.JobCanceled:
+  'The number of canceled status job'
+Master.JobCompleted:
+  'The number of completed status job'
+Master.JobCount:
+  'The number of all status job'
+Master.JobCreated:
+  'The number of created status job'
+Master.JobDistributedLoadCancel:
+  'The number of cancelled DistributedLoad operations'
+Master.JobDistributedLoadFail:
+  'The number of failed DistributedLoad operations'
+Master.JobDistributedLoadFileCount:
+  'The number of files by DistributedLoad operations'
+Master.JobDistributedLoadFileSizes:
+  'The total file size by DistributedLoad operations'
+Master.JobDistributedLoadRate:
+  'The average DistributedLoad loading rate'
+Master.JobDistributedLoadSuccess:
+  'The number of successful DistributedLoad operations'
+Master.JobFailed:
+  'The number of failed status job'
+Master.JobRunning:
+  'The number of running status job'
+Master.JournalCheckpointWarn:
+  'If the raft log index exceeds alluxio.master.journal.checkpoint.period.entries, and the last checkpoint exceeds alluxio.master.journal.checkpoint.warning.threshold.time, it returns 1 to indicate that a warning is required, otherwise it returns 0'
 Master.JournalEntriesSinceCheckPoint:
   'Journal entries since last checkpoint'
 Master.JournalFlushFailure:
@@ -91,11 +131,13 @@ Master.JournalFlushFailure:
 Master.JournalFlushTimer:
   'The timer statistics of journal flush'
 Master.JournalFreeBytes:
-  'Bytes left on the journal disk(s) for an Alluxio master'
+  'Bytes left on the journal disk(s) for an Alluxio master. This metric is only valid on Linux and when embedded journal is used. Use this metric to monitor whether your journal is running out of disk space.'
 Master.JournalFreePercent:
-  'Percentage of free space left on the journal disk(s) for an Alluxio master'
+  'Percentage of free space left on the journal disk(s) for an Alluxio master.This metric is only valid on Linux and when embedded journal is used. Use this metric to monitor whether your journal is running out of disk space.'
 Master.JournalGainPrimacyTimer:
   'The timer statistics of journal gain primacy'
+Master.JournalLastAppliedCommitIndex:
+  'The last raft log index which was applied to the state machine'
 Master.JournalLastCheckPointTime:
   'Last Journal Checkpoint Time'
 Master.JournalSequenceNumber:
@@ -118,6 +160,64 @@ Master.ListingCacheMisses:
   'The total number of misses in master listing cache'
 Master.ListingCacheSize:
   'The size of master listing cache'
+Master.LostBlockCount:
+  'Count of lost unique blocks'
+Master.LostFileCount:
+  'Count of lost files. This number is cached and may not be in sync with Master.LostBlockCount'
+Master.MetadataSyncActivePaths:
+  'The number of in-progress paths from all InodeSyncStream instances'
+Master.MetadataSyncExecutor:
+  'Metrics concerning the master metadata sync executor threads. Master.MetadataSyncExecutor.submitted is a meter of the tasks submitted to the executor. Master.MetadataSyncExecutor.completed is a meter of the tasks completed by the executor. Master.MetadataSyncExecutor.activeTaskQueue is exponentially-decaying random reservoir of the number of active tasks (running or submitted) at the executor calculated each time a new task is added to the executor. The max value is the maximum number of active tasks at any time during execution. Master.MetadataSyncExecutor.running is the number of tasks actively being run by the executor. Master.MetadataSyncExecutor.idle is the time spent idling by the submitted tasks (i.e. waiting the the queue before being executed). Master.MetadataSyncExecutor.duration is the time spent running the submitted tasks. If the executor is a thread pool executor then Master.MetadataSyncExecutor.queueSize is the size of the task queue.'
+Master.MetadataSyncExecutorQueueSize:
+  'The number of queuing sync tasks in the metadata sync thread pool controlled by alluxio.master.metadata.sync.executor.pool.size'
+Master.MetadataSyncFail:
+  'The number of InodeSyncStream that failed, either partially or fully'
+Master.MetadataSyncNoChange:
+  'The number of InodeSyncStream that finished with no change to inodes.'
+Master.MetadataSyncOpsCount:
+  'The number of metadata sync operations. Each sync operation corresponds to one InodeSyncStream instance.'
+Master.MetadataSyncPathsCancel:
+  'The number of pending paths from all InodeSyncStream instances that are ignored in the end instead of processed'
+Master.MetadataSyncPathsFail:
+  'The number of paths that failed during metadata sync from all InodeSyncStream instances'
+Master.MetadataSyncPathsSuccess:
+  'The number of paths sync-ed from all InodeSyncStream instances'
+Master.MetadataSyncPendingPaths:
+  'The number of pending paths from all active InodeSyncStream instances,waiting for metadata sync'
+Master.MetadataSyncPrefetchCancel:
+  'Number of cancelled prefetch jobs from metadata sync'
+Master.MetadataSyncPrefetchExecutor:
+  'Metrics concerning the master metadata sync prefetchexecutor threads. Master.MetadataSyncPrefetchExecutor.submitted is a meter of the tasks submitted to the executor. Master.MetadataSyncPrefetchExecutor.completed is a meter of the tasks completed by the executor. Master.MetadataSyncPrefetchExecutor.activeTaskQueue is exponentially-decaying random reservoir of the number of active tasks (running or submitted) at the executor calculated each time a new task is added to the executor. The max value is the maximum number of active tasks at any time during execution. Master.MetadataSyncPrefetchExecutor.running is the number of tasks actively being run by the executor. Master.MetadataSyncPrefetchExecutor.idle is the time spent idling by the submitted tasks (i.e. waiting the the queue before being executed). Master.MetadataSyncPrefetchExecutor.duration is the time spent running the submitted tasks. If the executor is a thread pool executor then Master.MetadataSyncPrefetchExecutor.queueSize is the size of the task queue.'
+Master.MetadataSyncPrefetchExecutorQueueSize:
+  'The number of queuing prefetch tasks in the metadata sync thread pool controlled by alluxio.master.metadata.sync.ufs.prefetch.pool.size'
+Master.MetadataSyncPrefetchFail:
+  'Number of failed prefetch jobs from metadata sync'
+Master.MetadataSyncPrefetchOpsCount:
+  'The number of prefetch operations handled by the prefetch thread pool'
+Master.MetadataSyncPrefetchPaths:
+  'Total number of UFS paths fetched by prefetch jobs from metadata sync'
+Master.MetadataSyncPrefetchRetries:
+  'Number of retries to get from prefetch jobs from metadata sync'
+Master.MetadataSyncPrefetchSuccess:
+  'Number of successful prefetch jobs from metadata sync'
+Master.MetadataSyncSkipped:
+  'The number of InodeSyncStream that are skipped because the Alluxio metadata is fresher than alluxio.user.file.metadata.sync.interval'
+Master.MetadataSyncSuccess:
+  'The number of InodeSyncStream that succeeded'
+Master.MetadataSyncTimeMs:
+  'The total time elapsed in all InodeSyncStream instances'
+Master.MetadataSyncUfsMount.:
+  'The number of UFS sync operations for a given mount point'
+Master.MigrateJobCancel:
+  'The number of cancelled MigrateJob operations'
+Master.MigrateJobFail:
+  'The number of failed MigrateJob operations'
+Master.MigrateJobFileCount:
+  'The number of MigrateJob files'
+Master.MigrateJobFileSize:
+  'The total size of MigrateJob files'
+Master.MigrateJobSuccess:
+  'The number of successful MigrateJob operations'
 Master.MountOps:
   'Total number of Mount operations'
 Master.NewBlocksGot:
@@ -132,19 +232,131 @@ Master.PathsUnmounted:
   'Total number of succeed Unmount operations'
 Master.RenamePathOps:
   'Total number of Rename operations'
+Master.ReplicaMgmtActiveJobSize:
+  'Number of active block replication/eviction jobs. These jobs are created by the master to maintain the block replica factor. The value is an estimate with lag. '
+Master.RocksBlockBackgroundErrors:
+  'RocksDB block table. Accumulated number of background errors.'
+Master.RocksBlockBlockCacheCapacity:
+  'RocksDB block table. Block cache capacity.'
+Master.RocksBlockBlockCachePinnedUsage:
+  'RocksDB block table. Memory size for the entries being pinned.'
+Master.RocksBlockBlockCacheUsage:
+  'RocksDB block table. Memory size for the entries residing in block cache.'
+Master.RocksBlockCompactionPending:
+  'RocksDB block table. This metric 1 if at least one compaction is pending; otherwise, the metric reports 0.'
+Master.RocksBlockCurSizeActiveMemTable:
+  'RocksDB block table. Approximate size of active memtable in bytes.'
+Master.RocksBlockCurSizeAllMemTables:
+  'RocksDB block table. Approximate size of active, unflushed immutable, and pinned immutable memtables in bytes. Pinned immutable memtables are flushed memtables that are kept in memory to maintain write history in memory.'
+Master.RocksBlockEstimateNumKeys:
+  'RocksDB block table. Estimated number of total keys in the active and unflushed immutable memtables and storage.'
+Master.RocksBlockEstimatePendingCompactionBytes:
+  'RocksDB block table. Estimated total number of bytes a compaction needs to rewrite on disk to get all levels down to under target size. In other words, this metrics relates to the write amplification in level compaction. Thus, this metric is not valid for compactions other than level-based.'
+Master.RocksBlockEstimateTableReadersMem:
+  'RocksDB inode table. Estimated memory in bytes used for reading SST tables, excluding memory used in block cache (e.g., filter and index blocks). This metric records the memory used by iterators as well as filters and indices if the filters and indices are not maintained in the block cache. Basically this metric reports the memory used outside the block cache to read data.'
+Master.RocksBlockEstimatedMemUsage:
+  'RocksDB block table. This metric estimates the memory usage of the RockDB Block table by aggregating the values of Master.RocksBlockBlockCacheUsage, Master.RocksBlockEstimateTableReadersMem, Master.RocksBlockCurSizeAllMemTables, and Master.RocksBlockBlockCachePinnedUsage'
+Master.RocksBlockLiveSstFilesSize:
+  'RocksDB block table. Total size in bytes of all SST files that belong to the latest LSM tree.'
+Master.RocksBlockMemTableFlushPending:
+  'RocksDB block table. This metric returns 1 if a memtable flush is pending; otherwhise it returns 0.'
+Master.RocksBlockNumDeletesActiveMemTable:
+  'RocksDB block table. Total number of delete entries in the active memtable.'
+Master.RocksBlockNumDeletesImmMemTables:
+  'RocksDB block table. Total number of delete entries in the unflushed immutable memtables.'
+Master.RocksBlockNumEntriesActiveMemTable:
+  'RocksDB block table. Total number of entries in the active memtable.'
+Master.RocksBlockNumEntriesImmMemTables:
+  'RocksDB block table. Total number of entries in the unflushed immutable memtables.'
+Master.RocksBlockNumImmutableMemTable:
+  'RocksDB block table. Number of immutable memtables that have not yet been flushed.'
+Master.RocksBlockNumLiveVersions:
+  'RocksDB inode table. Number of live versions. More live versions often mean more SST files are held from being deleted, by iterators or unfinished compactions.'
+Master.RocksBlockNumRunningCompactions:
+  'RocksDB block table. Number of currently running compactions.'
+Master.RocksBlockNumRunningFlushes:
+  'RocksDB block table. Number of currently running flushes.'
+Master.RocksBlockSizeAllMemTables:
+  'RocksDB block table. Size all mem tables.'
+Master.RocksBlockTotalSstFilesSize:
+  'RocksDB block table. Total size in bytes of all SST files.'
+Master.RocksInodeBackgroundErrors:
+  'RocksDB inode table. Accumulated number of background errors.'
+Master.RocksInodeBlockCacheCapacity:
+  'RocksDB inode table. Block cache capacity.'
+Master.RocksInodeBlockCachePinnedUsage:
+  'RocksDB inode table. Memory size for the entries being pinned.'
+Master.RocksInodeBlockCacheUsage:
+  'RocksDB inode table. Memory size for the entries residing in block cache.'
+Master.RocksInodeCompactionPending:
+  'RocksDB inode table. This metric 1 if at least one compaction is pending; otherwise, the metric reports 0.'
+Master.RocksInodeCurSizeActiveMemTable:
+  'RocksDB inode table. Approximate size of active memtable in bytes.'
+Master.RocksInodeCurSizeAllMemTables:
+  'RocksDB inode table. Approximate size of active and unflushed immutable memtable in bytes.'
+Master.RocksInodeEstimateNumKeys:
+  'RocksDB inode table. Estimated number of total keys in the active and unflushed immutable memtables and storage.'
+Master.RocksInodeEstimatePendingCompactionBytes:
+  'RocksDB block table. Estimated total number of bytes a compaction needs to rewrite on disk to get all levels down to under target size. In other words, this metrics relates to the write amplification in level compaction. Thus, this metric is not valid for compactions other than level-based.'
+Master.RocksInodeEstimateTableReadersMem:
+  'RocksDB inode table. Estimated memory in bytes used for reading SST tables, excluding memory used in block cache (e.g., filter and index blocks). This metric records the memory used by iterators as well as filters and indices if the filters and indices are not maintained in the block cache. Basically this metric reports the memory used outside the block cache to read data.'
+Master.RocksInodeEstimatedMemUsage:
+  'RocksDB block table. This metric estimates the memory usage of the RockDB Inode table by aggregating the values of Master.RocksInodeBlockCacheUsage, Master.RocksInodeEstimateTableReadersMem, Master.RocksInodeCurSizeAllMemTables, and Master.RocksInodeBlockCachePinnedUsage'
+Master.RocksInodeLiveSstFilesSize:
+  'RocksDB inode table. Total size in bytes of all SST files that belong to the latest LSM tree.'
+Master.RocksInodeMemTableFlushPending:
+  'RocksDB inode table. This metric returns 1 if a memtable flush is pending; otherwhise it returns 0.'
+Master.RocksInodeNumDeletesActiveMemTable:
+  'RocksDB inode table. Total number of delete entries in the active memtable.'
+Master.RocksInodeNumDeletesImmMemTables:
+  'RocksDB inode table. Total number of delete entries in the unflushed immutable memtables.'
+Master.RocksInodeNumEntriesActiveMemTable:
+  'RocksDB inode table. Total number of entries in the active memtable.'
+Master.RocksInodeNumEntriesImmMemTables:
+  'RocksDB inode table. Total number of entries in the unflushed immutable memtables.'
+Master.RocksInodeNumImmutableMemTable:
+  'RocksDB inode table. Number of immutable memtables that have not yet been flushed.'
+Master.RocksInodeNumLiveVersions:
+  'RocksDB inode table. Number of live versions. More live versions often mean more SST files are held from being deleted, by iterators or unfinished compactions.'
+Master.RocksInodeNumRunningCompactions:
+  'RocksDB inode table. Number of currently running compactions.'
+Master.RocksInodeNumRunningFlushes:
+  'RocksDB inode table. Number of currently running flushes.'
+Master.RocksInodeSizeAllMemTables:
+  'RocksDB inode table. Approximate size of active, unflushed immutable, and pinned immutable memtables in bytes. Pinned immutable memtables are flushed memtables that are kept in memory to maintain write history in memory.'
+Master.RocksInodeTotalSstFilesSize:
+  'RocksDB inode table. Total size in bytes of all SST files.'
+Master.RocksTotalEstimatedMemUsage:
+  'This metric gives an estimate of the total memory used by RocksDB by aggregating the values of Master.RocksBlockEstimatedMemUsage and Master.RocksInodeEstimatedMemUsage'
+Master.RoleId:
+  'Display master role id'
+Master.RpcQueueLength:
+  'Length of the master rpc queue. Use this metric to monitor the RPC pressure on master.'
+Master.RpcThreadActiveCount:
+  'The number of threads that are actively executing tasks in the master RPC executor thread pool. Use this metric to monitor the RPC pressure on master.'
+Master.RpcThreadCurrentCount:
+  'Current count of threads in the master RPC executor thread pool. Use this metric to monitor the RPC pressure on master.'
 Master.SetAclOps:
   'Total number of SetAcl operations'
 Master.SetAttributeOps:
   'Total number of SetAttribute operations'
-Master.TotalBlocks:
-  'Total number of blocks in Alluxio'
+Master.ToRemoveBlockCount:
+  'Count of block replicas to be removed from the workers. If 1 block is to be removed from 2 workers, 2 will be counted here.'
 Master.TotalPaths:
   'Total number of files and directory in Alluxio namespace'
+Master.TotalRpcs:
+  'Throughput of master RPC calls. This metrics indicates how busy the master is serving client and worker requests'
 Master.UfsJournalCatchupTimer:
-  'The timer statistics of journal catchup'
+  'The timer statistics of journal catchupOnly valid when ufs journal is used. This provides a summary of how long a standby master takes to catch up with primary master, and should be monitored if master transition takes too long'
 Master.UfsJournalFailureRecoverTimer:
   'The timer statistics of ufs journal failure recover'
 Master.UfsJournalInitialReplayTimeMs:
-  'The process time of the ufs journal initial replay'
+  'The process time of the ufs journal initial replay.Only valid when ufs journal is used. It records the time it took for the very first journal replay. Use this metric to monitor when your master boot-up time is high。'
+Master.UfsStatusCacheChildrenSize:
+  'Total number of UFS file metadata cached. The cache is used during metadata sync.'
+Master.UfsStatusCacheSize:
+  'Total number of Alluxio paths being processed by the metadata sync prefetch thread pool.'
+Master.UniqueBlocks:
+  'Total number of unique blocks in Alluxio'
 Master.UnmountOps:
   'Total number of Unmount operations'

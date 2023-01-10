@@ -38,6 +38,10 @@ public class AuthorityTest {
     assertTrue(Authority.fromString("") instanceof NoAuthority);
     assertTrue(Authority.fromString(null) instanceof NoAuthority);
 
+    assertTrue(Authority.fromString("ebj@logical") instanceof EmbeddedLogicalAuthority);
+
+    assertTrue(Authority.fromString("zk@logical") instanceof ZookeeperLogicalAuthority);
+
     assertTrue(Authority.fromString("localhost") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("f3,321:sad") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("localhost:") instanceof UnknownAuthority);
@@ -47,7 +51,6 @@ public class AuthorityTest {
 
     assertTrue(Authority.fromString("zk@") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("zk@;") instanceof UnknownAuthority);
-    assertTrue(Authority.fromString("zk@localhost") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("zk@127.0.0.1:port") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("zk@127.0.0.1:2181,") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("zk@127.0.0.1:2181,localhost") instanceof UnknownAuthority);
@@ -73,7 +76,7 @@ public class AuthorityTest {
     assertEquals("host1:19998,host2:19998,host3:19998", authority.getMasterAddresses());
 
     authority = (MultiMasterAuthority) Authority
-         .fromString("127.0.0.1:213,127.0.0.2:532423,127.0.0.3:3213");
+        .fromString("127.0.0.1:213,127.0.0.2:532423,127.0.0.3:3213");
     assertEquals("127.0.0.1:213,127.0.0.2:532423,127.0.0.3:3213", authority.toString());
     assertEquals("127.0.0.1:213,127.0.0.2:532423,127.0.0.3:3213", authority.getMasterAddresses());
 
@@ -110,6 +113,22 @@ public class AuthorityTest {
     authority = (ZookeeperAuthority) Authority.fromString("zk@host1:2181+host2:2181+host3:2181");
     assertEquals("zk@host1:2181,host2:2181,host3:2181", authority.toString());
     assertEquals("host1:2181,host2:2181,host3:2181", authority.getZookeeperAddress());
+  }
+
+  @Test
+  public void zookeeperLogicalAuthorityTest() {
+    ZookeeperLogicalAuthority authority =
+        (ZookeeperLogicalAuthority) Authority.fromString("zk@logical");
+    assertEquals("zk@logical", authority.toString());
+    assertEquals("logical", authority.getLogicalName());
+  }
+
+  @Test
+  public void embeddedLogicalAuthorityTest() {
+    EmbeddedLogicalAuthority authority =
+        (EmbeddedLogicalAuthority) Authority.fromString("ebj@logical");
+    assertEquals("ebj@logical", authority.toString());
+    assertEquals("logical", authority.getLogicalName());
   }
 
   @Test

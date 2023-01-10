@@ -16,8 +16,10 @@ import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
+import alluxio.client.file.options.FileSystemOptions;
+import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
@@ -36,6 +38,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
@@ -49,7 +52,6 @@ import alluxio.grpc.UnmountPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -67,7 +69,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-
 import javax.security.auth.Subject;
 
 /**
@@ -106,15 +107,28 @@ public interface FileSystem extends Closeable {
      * @return a FileSystem from the cache, creating a new one if it doesn't yet exist
      */
     public static FileSystem get(Subject subject) {
-      return get(subject, new InstancedConfiguration(ConfigurationUtils.defaults()));
+      return get(subject, Configuration.global());
     }
 
+    /**
+     * Get a FileSystem from the cache with a given subject.
+     * @param subject The subject to use for security-related client operations
+     * @param conf the Alluxio configuration
+     * @return a FileSystem from the cache, creating a new one if it doesn't yet exist
+     */
     public static FileSystem get(Subject subject, AlluxioConfiguration conf) {
       Preconditions.checkNotNull(subject, "subject");
       // TODO(gpang): should this key use the UserState instead of subject?
       FileSystemCache.Key key =
           new FileSystemCache.Key(UserState.Factory.create(conf, subject).getSubject(), conf);
       return FILESYSTEM_CACHE.get(key);
+    }
+
+    /**
+     * @return a new FileSystem instance
+     */
+    public static FileSystem create() {
+      return create(FileSystemContext.create());
     }
 
     /**
@@ -138,22 +152,24 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context) {
+      return create(context, FileSystemOptions.create(context.getClusterConf()));
+    }
+
+    /**
+     * @param context the FileSystemContext to use with the FileSystem
+     * @return a new FileSystem instance
+     */
+    public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
       AlluxioConfiguration conf = context.getClusterConf();
-      if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
-        // Sort properties by name to keep output ordered.
-        List<PropertyKey> keys = new ArrayList<>(conf.keySet());
-        keys.sort(Comparator.comparing(PropertyKey::getName));
-        for (PropertyKey key : keys) {
-          String value = conf.getOrDefault(key, null);
-          Source source = conf.getSource(key);
-          LOG.debug("{}={} ({})", key.getName(), value, source);
-        }
+      checkSortConf(conf);
+      FileSystem fs = options.getUfsFileSystemOptions().isPresent()
+          ? new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get())
+          : new BaseFileSystem(context);
+      if (options.isMetadataCacheEnabled()) {
+        fs = new MetadataCachingFileSystem(fs, context);
       }
-      FileSystem fs = conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)
-          ? new MetadataCachingBaseFileSystem(context) : new BaseFileSystem(context);
-      // Enable local cache only for clients which have the property set.
-      if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)
-          && CommonUtils.PROCESS_TYPE.get().equals(CommonUtils.ProcessType.CLIENT)) {
+      if (options.isDataCacheEnabled()
+          && CommonUtils.PROCESS_TYPE.get() == CommonUtils.ProcessType.CLIENT) {
         try {
           CacheManager cacheManager = CacheManager.Factory.get(conf);
           return new LocalCacheFileSystem(cacheManager, fs, conf);
@@ -162,6 +178,19 @@ public interface FileSystem extends Closeable {
         }
       }
       return fs;
+    }
+
+    static void checkSortConf(AlluxioConfiguration conf) {
+      if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
+        // Sort properties by name to keep output ordered.
+        List<PropertyKey> keys = new ArrayList<>(conf.keySet());
+        keys.sort(Comparator.comparing(PropertyKey::getName));
+        for (PropertyKey key : keys) {
+          Object value = conf.getOrDefault(key, null);
+          Source source = conf.getSource(key);
+          LOG.debug("{}={} ({})", key.getName(), value, source);
+        }
+      }
     }
   }
 
@@ -322,7 +351,20 @@ public interface FileSystem extends Closeable {
    *         sequences in file.
    * @throws FileDoesNotExistException if the given path does not exist
    */
-  List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
+  default List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return getBlockLocations(getStatus(path));
+  }
+
+  /**
+   * Builds a list of {@link BlockLocationInfo} for the given file.
+   *
+   * @param status the path status
+   * @return a list of blocks with the workers whose hosts have the blocks. The blocks may not
+   *         necessarily be stored in Alluxio. The blocks are returned in the order of their
+   *         sequences in file.
+   */
+  List<BlockLocationInfo> getBlockLocations(URIStatus status)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
@@ -411,6 +453,20 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
+   * Same as {@link FileSystem#listStatus(AlluxioURI, ListStatusPOptions)} except may
+   * only return a subset of the results as determined by the options parameter.
+   *
+   * @param path the path to list information about
+   * @param options options to associate with this operation
+   * @return a list of {@link URIStatus}s containing information about the files and directories
+   *         which are children of the given path
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
+  ListStatusPartialResult listStatusPartial(
+      AlluxioURI path, ListStatusPartialPOptions options)
+      throws AlluxioException, IOException;
+
+  /**
    * Convenience method for {@link #loadMetadata(AlluxioURI, ListStatusPOptions)} with default
    * options.
    *
@@ -472,9 +528,20 @@ public interface FileSystem extends Closeable {
 
   /**
    * Lists all mount points and their corresponding under storage addresses.
+   * This is the same as calling {@link #getMountTable(boolean)} with true argument.
    * @return a map from String to {@link MountPointInfo}
    */
-  Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException;
+  default Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
+    return getMountTable(true);
+  }
+
+  /**
+   * Lists all mount points and their corresponding under storage addresses.
+   * @param checkUfs whether to get UFS usage info
+   * @return a map from String to {@link MountPointInfo}
+   */
+  Map<String, MountPointInfo> getMountTable(boolean checkUfs)
+      throws IOException, AlluxioException;
 
   /**
    * Lists all the actively synced paths.
@@ -663,4 +730,11 @@ public interface FileSystem extends Closeable {
    * @param options options to associate with this operation
    */
   void unmount(AlluxioURI path, UnmountPOptions options) throws IOException, AlluxioException;
+
+  /**
+   * Marks the path in Alluxio as needing sync with the UFS. The next time the
+   * path or any of its children are accessed they will be synced with the UFS.
+   * @param path the path needing synchronization
+   */
+  void needsSync(AlluxioURI path) throws IOException, AlluxioException;
 }

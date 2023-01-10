@@ -44,7 +44,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -168,7 +167,7 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
         contentLength = Long.parseLong(header.getValue());
       } else if (headerName.equalsIgnoreCase("Last-Modified")) {
         lastModified = parseTimestamp(header.getValue(),
-            mUfsConf.get(PropertyKey.UNDERFS_WEB_HEADER_LAST_MODIFIED));
+            mUfsConf.getString(PropertyKey.UNDERFS_WEB_HEADER_LAST_MODIFIED));
       }
     }
 
@@ -208,7 +207,7 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
       Elements titleElements = Jsoup.connect(path).get().select("title");
       if (titleElements.size() > 0) {
         String title = titleElements.get(0).text();
-        List<String> titles = mUfsConf.getList(PropertyKey.UNDERFS_WEB_TITLES, ",");
+        List<String> titles = mUfsConf.getList(PropertyKey.UNDERFS_WEB_TITLES);
         for (final String t : titles) {
           if (title.contains(t)) {
             return true;
@@ -274,7 +273,7 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
       return null;
     }
 
-    List<String> parentNames = mUfsConf.getList(PropertyKey.UNDERFS_WEB_PARENT_NAMES, ",");
+    List<String> parentNames = mUfsConf.getList(PropertyKey.UNDERFS_WEB_PARENT_NAMES);
     int flagIndex = -1;
     for (int i = 0; flagIndex == -1 && i < listElements.size(); i++) {
       for (final String flag : parentNames) {

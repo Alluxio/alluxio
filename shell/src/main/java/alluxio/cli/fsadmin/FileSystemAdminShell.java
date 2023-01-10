@@ -12,20 +12,21 @@
 package alluxio.cli.fsadmin;
 
 import alluxio.ClientContext;
-import alluxio.client.job.RetryHandlingJobMasterClient;
-import alluxio.client.journal.RetryHandlingJournalMasterClient;
-import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
-import alluxio.client.metrics.RetryHandlingMetricsMasterClient;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.command.Context;
-import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
+import alluxio.client.job.RetryHandlingJobMasterClient;
+import alluxio.client.journal.RetryHandlingJournalMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.client.metrics.RetryHandlingMetricsMasterClient;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.master.MasterClientContext;
 import alluxio.util.ConfigurationUtils;
@@ -48,7 +49,7 @@ public final class FileSystemAdminShell extends AbstractShell {
    *
    * @param alluxioConf Alluxio configuration
    */
-  public FileSystemAdminShell(InstancedConfiguration alluxioConf) {
+  public FileSystemAdminShell(AlluxioConfiguration alluxioConf) {
     super(null, null, alluxioConf);
   }
 
@@ -59,7 +60,7 @@ public final class FileSystemAdminShell extends AbstractShell {
    */
   public static void main(String[] args) throws IOException {
     int ret;
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    InstancedConfiguration conf = Configuration.modifiableGlobal();
     if (!ConfigurationUtils.masterHostConfigured(conf) && args.length > 0) {
       System.out.println(ConfigurationUtils
           .getMasterHostNotConfiguredMessage("Alluxio fsadmin shell"));

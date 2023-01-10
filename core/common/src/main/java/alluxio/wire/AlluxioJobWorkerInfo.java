@@ -21,7 +21,7 @@ import java.util.Map;
  * Alluxio job worker information.
  */
 public final class AlluxioJobWorkerInfo {
-  private Map<String, String> mConfiguration;
+  private Map<String, Object> mConfiguration;
   private long mStartTimeMs;
   private long mUptimeMs;
   private String mVersion;
@@ -35,7 +35,7 @@ public final class AlluxioJobWorkerInfo {
    * @return the configuration
    */
   @ApiModelProperty(value = "Configuration of the Job Worker")
-  public Map<String, String> getConfiguration() {
+  public Map<String, Object> getConfiguration() {
     return mConfiguration;
   }
 
@@ -67,7 +67,7 @@ public final class AlluxioJobWorkerInfo {
    * @param configuration the configuration to use
    * @return the Alluxio job worker information
    */
-  public AlluxioJobWorkerInfo setConfiguration(Map<String, String> configuration) {
+  public AlluxioJobWorkerInfo setConfiguration(Map<String, Object> configuration) {
     mConfiguration = configuration;
     return this;
   }

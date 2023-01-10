@@ -7,7 +7,7 @@ priority: 10
 ---
 
 
-This guide describes how to configure [Ozone](https://hadoop.apache.org/ozone) as Alluxio's under storage system. 
+This guide describes how to configure [Ozone](https://ozone.apache.org/) as Alluxio's under storage system. 
 Ozone is a scalable, redundant, and distributed object store for Hadoop. Apart from scaling to billions of objects of varying sizes, 
 Ozone can function effectively in containerized environments such as Kubernetes and YARN.
 
@@ -18,27 +18,76 @@ machines. You can either [download the precompiled binaries directly]({{ '/en/de
 with the correct Hadoop version (recommended), or 
 [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) (for advanced users).
 
-In preparation for using Ozone with Alluxio, follow the [Ozone On Premise Installation](https://hadoop.apache.org/ozone/docs/1.0.0/start/onprem.html)
-to install a Ozone cluster, and follow the [Volume Commands](https://hadoop.apache.org/ozone/docs/1.0.0/shell/volumecommands.html) and 
-[Bucket Commands](https://hadoop.apache.org/ozone/docs/1.0.0/shell/bucketcommands.html) to create volume and bucket for Ozone cluster.
+In preparation for using Ozone with Alluxio, follow the [Ozone On Premise Installation](https://ozone.apache.org/docs/1.2.1/start/onprem.html)
+to install a Ozone cluster, and follow the [Cli Commands](https://ozone.apache.org/docs/1.2.1/interface/cli.html) to create volume and bucket for Ozone cluster.
 
 ## Basic Setup
 
 To configure Alluxio to use Ozone as under storage, you will need to modify the configuration file 
 `conf/alluxio-site.properties`. If the file does not exist, create the configuration file from the template.
 
-```
+```console
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-Edit `conf/alluxio-site.properties` file to set the under storage address to the Ozone bucket and 
-the Ozone directory you want to mount to Alluxio. For example, the under storage address can be `o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/` if
-you want to mount the whole bucket to Alluxio, or `o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/alluxio/data` if only the directory `/alluxio/data`
-inside the ozone bucket `<OZONE_BUCKET>` of `<OZONE_VOLUME>` is mapped to Alluxio.
+Edit `conf/alluxio-site.properties` file to set the under storage address to the Ozone bucket and the Ozone directory you want to mount to Alluxio.
+Ozone supports two different schemas `o3fs` and `ofs`
+### o3fs
+For example, the under storage address can be `o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/` if you want to mount the whole bucket to Alluxio, 
+or `o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/alluxio/data` if only the directory `/alluxio/data` inside the ozone bucket `<OZONE_BUCKET>` of `<OZONE_VOLUME>` is mapped to Alluxio.
 
-```
+set the property `alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration` in `conf/alluxio-site.properties` to point to your `ozone-site.xml`. Make sure this configuration is set on all servers running Alluxio.
+
+```properties
 alluxio.master.mount.table.root.ufs=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
+alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
 ``` 
+
+### ofs
+For example, the under storage address can be `ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/` if you want to mount the whole bucket to Alluxio,
+or `ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/alluxio/data` if only the directory `/alluxio/data` inside the ozone bucket `<OZONE_BUCKET>` of `<OZONE_VOLUME>` is mapped to Alluxio.
+
+```properties
+alluxio.master.mount.table.root.ufs=ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/
+``` 
+
+## Ozone HA Mode
+### o3fs
+To make Alluxio mount Ozone in HA mode, you should configure Alluxio's server so that it can find the OzoneManager. Please note that once set up, your application using the Alluxio client does not require any special configuration.
+In HA mode `alluxio.master.mount.table.root.ufs` needs to specify `<OM_SERVICE_IDS>`
+such as:
+
+```properties
+alluxio.master.mount.table.root.ufs=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>.<OM_SERVICE_IDS>/
+alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
+``` 
+
+### ofs
+```properties
+alluxio.master.mount.table.root.ufs=ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/
+alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
+```
+
+`<OM_SERVICE_IDS>` can be found in `ozone-site.xml`.
+In the following example `ozone-site.xml` file, `<OM_SERVICE_IDS>` is `omservice1`:
+```xml
+<property>
+    <name>ozone.om.service.ids</name>
+    <value>omservice1</value>
+</property>
+```
+
+### Mount Ozone with Specific Versions
+
+Users can mount an Ozone cluster of a specific version as an under storage into Alluxio namespace.
+Before mounting Ozone with a specific version, make sure you have built a client with that specific version of Ozone.
+You can check the existence of this client by going to the `lib` directory under the Alluxio directory.
+
+When mounting the under storage at the Alluxio root with a specific Ozone version, one can add the following line to the site properties file (`conf/alluxio-site.properties`).
+
+```properties
+alluxio.master.mount.table.root.option.alluxio.underfs.version=<OZONE_VERSION>
+```
 
 ## Example: Running Alluxio Locally with Ozone
 
@@ -80,25 +129,19 @@ For example, the following command mounts a directory inside an Ozone bucket int
 
 ```console
 $ ./bin/alluxio fs mount \
-  --option alluxio.underfs.hdfs.configuration=<DIR>/ozone-site.xml:<DIR>/core-site.xml \
+  --option alluxio.underfs.hdfs.configuration=<DIR>/ozone-site.xml \
   /ozone o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 ```
 
-Possible `core-site.xml` and `ozone-site.xml`
-- `core-site.xml`
-
-```xml
-<configuration>
-  <property>
-    <name>fs.o3fs.impl</name>
-    <value>org.apache.hadoop.fs.ozone.BasicOzoneFileSystem</value>
-  </property>
-  <property>
-    <name>fs.AbstractFileSystem.o3fs.impl</name>
-    <value>org.apache.hadoop.fs.ozone.BasicOzFs</value>
-  </property>
-</configuration>
+If you need to mount an Ozone cluster of a specific version, you can specify it through the command line option `alluxio.underfs.version=<OZONE_VERSION>`.
+```console
+$ ./bin/alluxio fs mount \
+  --option alluxio.underfs.hdfs.configuration=<DIR>/ozone-site.xml \
+  --option alluxio.underfs.version=<OZONE_VERSION> \
+  /ozone o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 ```
+
+Possible `ozone-site.xml`
 
 - `ozone-site.xml`
 
@@ -108,26 +151,6 @@ Possible `core-site.xml` and `ozone-site.xml`
     <name>ozone.om.address</name>
     <value>localhost</value>
   </property>
-  <property>
-    <name>scm.container.client.max.size</name>
-    <value>256</value>
-  </property>
-  <property>
-    <name>scm.container.client.idle.threshold</name>
-    <value>10s</value>
-  </property>
-  <property>
-    <name>hdds.ratis.raft.client.rpc.request.timeout</name>
-    <value>60s</value>
-  </property>
-  <property>
-    <name>hdds.ratis.raft.client.async.outstanding-requests.max</name>
-    <value>32</value>
-  </property>
-  <property>
-    <name>hdds.ratis.raft.client.rpc.watch.request.timeout</name>
-    <value>180s</value>
-  </property>
 </configuration>
 ```
 
@@ -135,7 +158,7 @@ Make sure the related config file is on all servers nodes running Alluxio.
 
 ### Supported Ozone Versions
 
-Currently, the only tested Ozone version with Alluxio is `1.0.0`.
+Currently, the only tested Ozone version with Alluxio is `1.0.0`, `1.1.0`, `1.2.1`.
 
 ## Contributed by the Alluxio Community
 

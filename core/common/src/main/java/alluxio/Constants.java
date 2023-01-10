@@ -73,12 +73,12 @@ public final class Constants {
   public static final String HEADER_HTTPS = "https://";
   public static final String HEADER_KODO = "kodo://";
   public static final String HEADER_OSS = "oss://";
-  public static final String HEADER_OZONE = "o3fs://";
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3A = "s3a://";
   public static final String HEADER_SWIFT = "swift://";
   public static final String HEADER_WASB = "wasb://";
   public static final String HEADER_WASBS = "wasbs://";
+  public static final String HEADER_OBS = "obs://";
 
   public static final int MAX_PORT = 65535;
 
@@ -91,6 +91,7 @@ public final class Constants {
   public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 2;
   public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 2;
+  public static final long BLOCK_WORKER_CLIENT_SERVICE_VERSION = 1;
   public static final long META_MASTER_CONFIG_SERVICE_VERSION = 2;
   public static final long META_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long META_MASTER_MASTER_SERVICE_VERSION = 1;
@@ -103,6 +104,7 @@ public final class Constants {
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
   public static final String META_MASTER_NAME = "MetaMaster";
   public static final String METRICS_MASTER_NAME = "MetricsMaster";
+  public static final String JOURNAL_MASTER_NAME = "JournalMaster";
   public static final String BLOCK_WORKER_NAME = "BlockWorker";
   public static final String FILE_SYSTEM_WORKER_NAME = "FileSystemWorker";
 
@@ -119,7 +121,7 @@ public final class Constants {
   public static final String METRICS_MASTER_CLIENT_SERVICE_NAME = "MetricsMasterClient";
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
   public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
-  public static final String JOURNAL_MASTER_CLIENT_SERVICE_NAME = "JournalMaster";
+  public static final String JOURNAL_MASTER_CLIENT_SERVICE_NAME = "JournalMasterClient";
   public static final String RAFT_JOURNAL_SERVICE_NAME = "RaftJournal";
 
   public static final String UFS_INPUT_STREAM_CACHE_EXPIRATION = "UfsInputStreamCacheExpiration";
@@ -176,7 +178,6 @@ public final class Constants {
   // S3 northbound API constants
   public static final String S3_DELETE_IN_ALLUXIO_ONLY = "ALLUXIO_ONLY";
   public static final String S3_DELETE_IN_ALLUXIO_AND_UFS = "ALLUXIO_AND_UFS";
-  public static final String S3_MULTIPART_TEMPORARY_DIR_SUFFIX = "_s3_multipart_tmp";
 
   // Ufs fingerprint
   public static final String INVALID_UFS_FINGERPRINT = "";
@@ -192,6 +193,9 @@ public final class Constants {
   public static final int JOB_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final String JOB_WORKER_NAME = "JobWorker";
 
+  // Throttle master
+  public static final String THROTTLE_MASTER_NAME = "ThrottleMaster";
+
   public static final int JOB_DEFAULT_MASTER_PORT = 20001;
   public static final int JOB_DEFAULT_MASTER_WEB_PORT = JOB_DEFAULT_MASTER_PORT + 1;
   public static final int JOB_DEFAULT_WORKER_PORT = 30001;
@@ -203,6 +207,10 @@ public final class Constants {
 
   // Replication
   public static final int REPLICATION_MAX_INFINITY = -1;
+
+  // Fuse shell
+  public static final String DEAFULT_FUSE_MOUNT = "/mnt/alluxio-fuse";
+  public static final String ALLUXIO_CLI_PATH = "/.alluxiocli";
 
   // Persistence
   // The file should only be persisted after rename operation or persist CLI

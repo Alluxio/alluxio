@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -55,7 +54,7 @@ public final class PinCommand extends AbstractFileSystemCommand {
     // args[0] is the path, args[1] to args[end] is the list of possible media to pin
     List<String> pinnedMediumTypes = Arrays.asList(Arrays.copyOfRange(args, 1, args.length));
     List<String> availableMediumList = mFsContext.getPathConf(path).getList(
-        PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE, ",");
+        PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE);
     List<String> invalidMediumType = new ArrayList<>();
     List<String> validMediumType = new ArrayList<>();
     for (String mediumType: pinnedMediumTypes) {
@@ -68,7 +67,7 @@ public final class PinCommand extends AbstractFileSystemCommand {
     if (!invalidMediumType.isEmpty()) {
       throw new IllegalArgumentException("Invalid medium to pin the file. "
           + String.join(",", invalidMediumType) + " are invalid. "
-          + String.join(",", availableMediumList) + " are valid medium types");
+          + String.join(",", validMediumType) + " are valid medium types");
     }
     FileSystemCommandUtils.setPinned(mFileSystem, path, true, pinnedMediumTypes);
     System.out.println("File '" + path + "' was successfully pinned.");

@@ -11,9 +11,9 @@
 
 package alluxio.master.file.contexts;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 
 import com.google.common.base.MoreObjects;
 
@@ -47,7 +47,7 @@ public class GetStatusContext
    */
   public static GetStatusContext mergeFrom(GetStatusPOptions.Builder optionsBuilder) {
     GetStatusPOptions masterOptions =
-        FileSystemOptions.getStatusDefaults(ServerConfiguration.global());
+        FileSystemOptionsUtils.getStatusDefaults(Configuration.global());
     GetStatusPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -57,7 +57,7 @@ public class GetStatusContext
    * @return the instance of {@link GetStatusContext} with default values for master
    */
   public static GetStatusContext defaults() {
-    return create(FileSystemOptions.getStatusDefaults(ServerConfiguration.global()).toBuilder());
+    return create(FileSystemOptionsUtils.getStatusDefaults(Configuration.global()).toBuilder());
   }
 
   @Override

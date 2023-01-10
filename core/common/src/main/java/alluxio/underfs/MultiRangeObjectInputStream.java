@@ -11,11 +11,9 @@
 
 package alluxio.underfs;
 
-import alluxio.exception.ExceptionMessage;
-
 import java.io.IOException;
 import java.io.InputStream;
-
+import java.text.MessageFormat;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -136,7 +134,8 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
       throw new IOException("Stream closed");
     }
     if (mMultiRangeChunkSize <= 0) {
-      throw new IOException(ExceptionMessage.BLOCK_SIZE_INVALID.getMessage(mMultiRangeChunkSize));
+      throw new IOException(MessageFormat.format(
+          "Block size of {0} is invalid. Block size must be > 0 bytes.", mMultiRangeChunkSize));
     }
 
     if (mStream != null) { // stream is already open

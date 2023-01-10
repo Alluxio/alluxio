@@ -21,15 +21,15 @@ import java.util.Map;
  * A rule for modifying Alluxio configuration during a test suite.
  */
 public final class ConfigurationRule extends AbstractResourceRule {
-  private final Map<PropertyKey, String> mKeyValuePairs;
-  private final Map<PropertyKey, String> mStashedProperties = new HashMap<>();
+  private final Map<PropertyKey, Object> mKeyValuePairs;
+  private final Map<PropertyKey, Object> mStashedProperties = new HashMap<>();
   private final InstancedConfiguration mConfiguration;
 
   /**
    * @param keyValuePairs map from configuration keys to the values to set them to
    * @param conf base configuration
    */
-  public ConfigurationRule(Map<PropertyKey, String> keyValuePairs, InstancedConfiguration conf) {
+  public ConfigurationRule(Map<PropertyKey, Object> keyValuePairs, InstancedConfiguration conf) {
     mKeyValuePairs = keyValuePairs;
     mConfiguration = conf;
   }
@@ -39,20 +39,45 @@ public final class ConfigurationRule extends AbstractResourceRule {
    * @param value the value to set it to, can be null to unset this key
    * @param conf base configuration
    */
-  public ConfigurationRule(final PropertyKey key, final String value, InstancedConfiguration conf) {
+  public ConfigurationRule(final PropertyKey key, final Object value, InstancedConfiguration conf) {
     // ImmutableMap does not support nullable value, create a map literals
-    this(new HashMap<PropertyKey, String>() {
+    this(new HashMap<PropertyKey, Object>() {
       {
         put(key, value);
       }
     }, conf);
   }
 
+  /**
+   * Set a specific PropertyKey of the global configuration,
+   * change is only visible in the scope of the calling method.
+   *
+   * @param key the key of the configuration property to set
+   * @param value the value to set it to, can be null to unset
+   */
+  public ConfigurationRule set(final PropertyKey key, final Object value) {
+    if (!mStashedProperties.containsKey(key)) {
+      if (mConfiguration.isSet(key)) {
+        mStashedProperties.put(key, mConfiguration.get(key));
+      } else {
+        mStashedProperties.put(key, null);
+      }
+    }
+
+    if (value != null) {
+      mConfiguration.set(key, value);
+    } else {
+      mConfiguration.unset(key);
+    }
+
+    return this;
+  }
+
   @Override
   public void before() {
-    for (Map.Entry<PropertyKey, String> entry : mKeyValuePairs.entrySet()) {
+    for (Map.Entry<PropertyKey, Object> entry : mKeyValuePairs.entrySet()) {
       PropertyKey key = entry.getKey();
-      String value = entry.getValue();
+      Object value = entry.getValue();
       if (mConfiguration.isSet(key)) {
         mStashedProperties.put(key, mConfiguration.get(key));
       } else {
@@ -68,8 +93,8 @@ public final class ConfigurationRule extends AbstractResourceRule {
 
   @Override
   public void after() {
-    for (Map.Entry<PropertyKey, String> entry : mStashedProperties.entrySet()) {
-      String value = entry.getValue();
+    for (Map.Entry<PropertyKey, Object> entry : mStashedProperties.entrySet()) {
+      Object value = entry.getValue();
       if (value != null) {
         mConfiguration.set(entry.getKey(), value);
       } else {

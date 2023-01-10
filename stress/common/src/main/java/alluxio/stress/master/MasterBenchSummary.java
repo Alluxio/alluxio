@@ -11,9 +11,11 @@
 
 package alluxio.stress.master;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.collections.Pair;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
+import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.common.SummaryStatistics;
 import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
@@ -32,14 +34,11 @@ import java.util.zip.DataFormatException;
 /**
  * The summary for the master stress tests.
  */
-public final class MasterBenchSummary implements Summary {
+public final class MasterBenchSummary extends GeneralBenchSummary<MasterBenchTaskResult> {
   private long mDurationMs;
   private long mEndTimeMs;
   private MasterBenchParameters mParameters;
-  private List<String> mNodes;
-  private Map<String, List<String>> mErrors;
 
-  private float mThroughput;
   private SummaryStatistics mStatistics;
 
   private Map<String, SummaryStatistics> mStatisticsPerMethod;
@@ -55,12 +54,12 @@ public final class MasterBenchSummary implements Summary {
    * Creates an instance.
    *
    * @param mergedTaskResults the merged task result
-   * @param nodes the list of nodes
-   * @param errors the list of errors
+   * @param nodes the map storing the nodes' result
    */
-  public MasterBenchSummary(MasterBenchTaskResult mergedTaskResults, List<String> nodes,
-      Map<String, List<String>> errors) throws DataFormatException {
-    mStatistics = mergedTaskResults.getStatistics().toMasterBenchSummaryStatistics();
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
+  public MasterBenchSummary(MasterBenchTaskResult mergedTaskResults,
+       Map<String, MasterBenchTaskResult> nodes) throws DataFormatException {
+    mStatistics = mergedTaskResults.getStatistics().toBenchSummaryStatistics();
 
     mStatisticsPerMethod = new HashMap<>();
     for (Map.Entry<String, MasterBenchTaskResultStatistics> entry :
@@ -68,29 +67,14 @@ public final class MasterBenchSummary implements Summary {
       final String key = entry.getKey();
       final MasterBenchTaskResultStatistics value = entry.getValue();
 
-      mStatisticsPerMethod.put(key, value.toMasterBenchSummaryStatistics());
+      mStatisticsPerMethod.put(key, value.toBenchSummaryStatistics());
     }
 
     mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
     mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
     mParameters = mergedTaskResults.getParameters();
-    mNodes = nodes;
-    mErrors = errors;
-  }
-
-  /**
-   * @return the throughput
-   */
-  public float getThroughput() {
-    return mThroughput;
-  }
-
-  /**
-   * @param throughput the throughput
-   */
-  public void setThroughput(float throughput) {
-    mThroughput = throughput;
+    mNodeResults = nodes;
   }
 
   /**
@@ -119,34 +103,6 @@ public final class MasterBenchSummary implements Summary {
    */
   public void setParameters(MasterBenchParameters parameters) {
     mParameters = parameters;
-  }
-
-  /**
-   * @return the list of nodes
-   */
-  public List<String> getNodes() {
-    return mNodes;
-  }
-
-  /**
-   * @param nodes the list of nodes
-   */
-  public void setNodes(List<String> nodes) {
-    mNodes = nodes;
-  }
-
-  /**
-   * @return the errors
-   */
-  public Map<String, List<String>> getErrors() {
-    return mErrors;
-  }
-
-  /**
-   * @param errors the errors
-   */
-  public void setErrors(Map<String, List<String>> errors) {
-    mErrors = errors;
   }
 
   /**
@@ -194,16 +150,6 @@ public final class MasterBenchSummary implements Summary {
 
   private LineGraph.Data computeResponseTimeData() {
     return mStatistics.computeTimeData();
-  }
-
-  private List<String> collectErrors() {
-    List<String> errors = new ArrayList<>();
-    for (Map.Entry<String, List<String>> entry : mErrors.entrySet()) {
-      // add all the errors for this node, with the node appended to prefix
-      errors.addAll(entry.getValue().stream().map(err -> entry.getKey() + ": " + err)
-          .collect(Collectors.toList()));
-    }
-    return errors;
   }
 
   @Override
@@ -259,7 +205,7 @@ public final class MasterBenchSummary implements Summary {
         for (MasterBenchSummary summary : opSummaries) {
           String series = summary.mParameters.getDescription(fieldNames.getSecond());
           responseTimeGraph.addDataSeries(series, summary.computeResponseTimeData());
-          responseTimeGraph.setErrors(series, summary.collectErrors());
+          responseTimeGraph.setErrors(series, summary.collectErrorsFromAllNodes());
 
           for (Map.Entry<String, SummaryStatistics> entry :
               summary.getStatisticsPerMethod().entrySet()) {
@@ -287,10 +233,7 @@ public final class MasterBenchSummary implements Summary {
           maxGraph.addDataSeries(entry.getKey(), data);
         }
         graphs.add(maxGraph);
-
-        for (LineGraph graph : responseTimeGraphPerMethod.values()) {
-          graphs.add(graph);
-        }
+        graphs.addAll(responseTimeGraphPerMethod.values());
       }
 
       return graphs;

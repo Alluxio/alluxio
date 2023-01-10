@@ -17,12 +17,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.ClientContext;
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterInquireClient;
@@ -41,7 +41,7 @@ public class MetricsHeartbeatContextTest {
 
   @Test
   public void testExecutorInitialized() {
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.MASTER_HOSTNAME, "localhost");
     conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
     ClientContext ctx = ClientContext.create(conf);
@@ -77,7 +77,7 @@ public class MetricsHeartbeatContextTest {
         getContextMap();
     assertTrue(map.isEmpty());
 
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
     ClientContext ctx = ClientContext.create(conf);
     MasterInquireClient client = MasterInquireClient.Factory
@@ -92,7 +92,7 @@ public class MetricsHeartbeatContextTest {
     map.forEach((details, context) ->
         assertEquals(2, (int) Whitebox.getInternalState(context, "mCtxCount")));
 
-    conf = ConfigurationTestUtils.defaults();
+    conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
     conf.set(PropertyKey.MASTER_RPC_ADDRESSES, "master1:19998,master2:19998,master3:19998");
     ClientContext haCtx = ClientContext.create(conf);
@@ -120,7 +120,7 @@ public class MetricsHeartbeatContextTest {
 
     ScheduledFuture<?> future = Mockito.mock(ScheduledFuture.class);
     when(future.cancel(any(Boolean.class))).thenReturn(true);
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
     ClientContext ctx = ClientContext.create(conf);
     MasterInquireClient client = MasterInquireClient.Factory

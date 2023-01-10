@@ -12,8 +12,8 @@
 package alluxio.worker.block.reviewer;
 
 import alluxio.annotation.PublicApi;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.StorageDirView;
@@ -54,7 +54,7 @@ public interface Reviewer {
      */
     public static Reviewer create() {
       return CommonUtils.createNewClassInstance(
-              ServerConfiguration.<Reviewer>getClass(PropertyKey.WORKER_REVIEWER_CLASS),
+              Configuration.getClass(PropertyKey.WORKER_REVIEWER_CLASS),
               new Class[] {}, new Object[] {});
     }
   }

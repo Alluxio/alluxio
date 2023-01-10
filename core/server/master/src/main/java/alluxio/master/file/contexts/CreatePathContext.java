@@ -12,13 +12,15 @@
 package alluxio.master.file.contexts;
 
 import alluxio.client.WriteType;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
+import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
+import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 
 import com.google.common.base.MoreObjects;
@@ -28,7 +30,6 @@ import com.google.protobuf.GeneratedMessageV3;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 
 /**
@@ -49,6 +50,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   protected boolean mMetadataLoad;
   private WriteType mWriteType;
   protected Map<String, byte[]> mXAttr;
+  protected XAttrPropagationStrategy mXAttrPropStrat;
 
   //
   // Values for the below fields will be extracted from given proto options
@@ -76,19 +78,25 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     mMetadataLoad = false;
     mGroup = "";
     mOwner = "";
-    if (SecurityUtils.isAuthenticationEnabled(ServerConfiguration.global())) {
-      mOwner = SecurityUtils.getOwnerFromGrpcClient(ServerConfiguration.global());
-      mGroup = SecurityUtils.getGroupFromGrpcClient(ServerConfiguration.global());
+    if (SecurityUtils.isAuthenticationEnabled(Configuration.global())) {
+      mOwner = SecurityUtils.getOwnerFromGrpcClient(Configuration.global());
+      mGroup = SecurityUtils.getGroupFromGrpcClient(Configuration.global());
     }
     // Initialize mPersisted based on proto write type.
     WritePType writeType = WritePType.NONE;
+    mXAttr = null;
     if (optionsBuilder instanceof CreateFilePOptions.Builder) {
       writeType = ((CreateFilePOptions.Builder) optionsBuilder).getWriteType();
+      mXAttr = CommonUtils.convertFromByteString(
+          ((CreateFilePOptions.Builder) optionsBuilder).getXattrMap());
+      mXAttrPropStrat = ((CreateFilePOptions.Builder) optionsBuilder).getXattrPropStrat();
     } else if (optionsBuilder instanceof CreateDirectoryPOptions.Builder) {
       writeType = ((CreateDirectoryPOptions.Builder) optionsBuilder).getWriteType();
+      mXAttr = CommonUtils.convertFromByteString(
+          ((CreateDirectoryPOptions.Builder) optionsBuilder).getXattrMap());
+      mXAttrPropStrat = ((CreateDirectoryPOptions.Builder) optionsBuilder).getXattrPropStrat();
     }
     mWriteType = WriteType.fromProto(writeType);
-    mXAttr = null;
   }
 
   private void loadExtractedFields() {
@@ -285,6 +293,13 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   public K setXAttr(@Nullable Map<String, byte[]> xattr) {
     mXAttr = xattr;
     return getThis();
+  }
+
+  /**
+   * @return extended attributes propagation strategy of this context
+   */
+  public XAttrPropagationStrategy getXAttrPropStrat() {
+    return mXAttrPropStrat;
   }
 
   /**

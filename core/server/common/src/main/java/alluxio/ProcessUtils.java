@@ -11,8 +11,8 @@
 
 package alluxio;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
@@ -60,7 +60,7 @@ public final class ProcessUtils {
    * @param args args for the format string
    */
   public static void fatalError(Logger logger, String format, Object... args) {
-    fatalError(logger, null, format, args);
+    fatalError(logger, new Throwable(), format, args);
   }
 
   /**
@@ -76,7 +76,7 @@ public final class ProcessUtils {
     if (t != null) {
       message += "\n" + Throwables.getStackTraceAsString(t);
     }
-    if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+    if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
       throw new RuntimeException(message);
     }
     logger.error(message);

@@ -21,6 +21,7 @@ import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
+import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
@@ -49,8 +50,8 @@ public final class HelpCommand extends AbstractFileSystemCommand {
     String description =
         String.format("%s: %s", command.getCommandName(), command.getDescription());
     int width = 80;
-    try {
-      width = TerminalBuilder.terminal().getWidth();
+    try (Terminal terminal = TerminalBuilder.terminal()) {
+      width = terminal.getWidth();
     } catch (Exception e) {
       // In case the terminal builder failed to decide terminal type, use default width
     }

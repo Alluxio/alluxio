@@ -17,41 +17,34 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import alluxio.AlluxioMockUtil;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.job.JobConfig;
+import alluxio.job.RunTaskContext;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.plan.PlanDefinition;
 import alluxio.job.plan.PlanDefinitionRegistry;
-import alluxio.job.JobServerContext;
-import alluxio.job.RunTaskContext;
 import alluxio.job.util.SerializationUtils;
 
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import java.io.Serializable;
 
 /**
  * Tests {@link TaskExecutor}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({TaskExecutorManager.class, PlanDefinitionRegistry.class, JobServerContext.class})
 public final class TaskExecutorTest {
   private TaskExecutorManager mTaskExecutorManager;
   private PlanDefinitionRegistry mRegistry;
 
   @Before
   public void before() {
-    mTaskExecutorManager = PowerMockito.mock(TaskExecutorManager.class);
-    mRegistry = PowerMockito.mock(PlanDefinitionRegistry.class);
-    Whitebox.setInternalState(PlanDefinitionRegistry.class, "INSTANCE", mRegistry);
+    mTaskExecutorManager = mock(TaskExecutorManager.class);
+    mRegistry = mock(PlanDefinitionRegistry.class);
+    AlluxioMockUtil.setInternalState(PlanDefinitionRegistry.class, "INSTANCE", mRegistry);
   }
 
   @Test

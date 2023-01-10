@@ -16,25 +16,25 @@ import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
+import alluxio.grpc.TtlAction;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.ProtobufUtils;
+import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.FreeContext;
+import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
-import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
-import alluxio.master.file.contexts.DeleteContext;
-import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.proto.journal.File.UpdateInodeEntry;
-import alluxio.grpc.TtlAction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -68,7 +68,9 @@ final class InodeTtlChecker implements HeartbeatExecutor {
         }
         AlluxioURI path = null;
         try (LockedInodePath inodePath =
-            mInodeTree.lockFullInodePath(inode.getId(), LockPattern.READ)) {
+            mInodeTree.lockFullInodePath(
+                inode.getId(), LockPattern.READ, NoopJournalContext.INSTANCE)
+        ) {
           path = inodePath.getUri();
         } catch (FileDoesNotExistException e) {
           // The inode has already been deleted, nothing needs to be done.
@@ -116,7 +118,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 LOG.error("Unknown ttl action {}", ttlAction);
             }
           } catch (Exception e) {
-            LOG.error("Exception trying to clean up {} for ttl check", inode.toString(), e);
+            LOG.error("Exception trying to clean up {} for ttl check", inode, e);
           }
         }
       }

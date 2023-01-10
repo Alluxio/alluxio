@@ -11,14 +11,33 @@
 
 #include "jnifuse_impls.h"
 
+#include <fuse.h>
+
 #include "debug.h"
 #include "jnifuse_fs.h"
 
-int chmod_wrapper(const char *path, mode_t mode) {
+static int RENAME_NO_FLAGS = 0;
+
+#if FUSE_USE_VERSION >= 30
+
+struct fuse_conn_info_opts *conn_info_opts;
+
+void *init_wrapper(struct fuse_conn_info *conn, struct fuse_config *cfg) {
+  fuse_apply_conn_info_opts(conn_info_opts, conn);
+
+  #ifndef __APPLE__
+  if((unsigned int)conn->capable & FUSE_CAP_ATOMIC_O_TRUNC){
+      conn->want |= FUSE_CAP_ATOMIC_O_TRUNC;
+  }
+  #endif
+  return NULL;
+}
+
+int chmod_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi) {
   return jnifuse::JniFuseFileSystem::getInstance()->chmodOper->call(path, mode);
 }
 
-int chown_wrapper(const char *path, uid_t uid, gid_t gid) {
+int chown_wrapper(const char *path, uid_t uid, gid_t gid, struct fuse_file_info *fi) {
   return jnifuse::JniFuseFileSystem::getInstance()->chownOper->call(path, uid, gid);
 }
 
@@ -31,7 +50,7 @@ int flush_wrapper(const char *path, struct fuse_file_info *fi) {
   return jnifuse::JniFuseFileSystem::getInstance()->flushOper->call(path, fi);
 }
 
-int getattr_wrapper(const char *path, struct stat *stbuf) {
+int getattr_wrapper(const char *path, struct stat *stbuf, struct fuse_file_info *fi) {
   LOGD("getattr %s", path);
 
   int ret =
@@ -81,8 +100,8 @@ int read_wrapper(const char *path, char *buf, size_t size, off_t offset,
 }
 
 int readdir_wrapper(const char *path, void *buf, fuse_fill_dir_t filler,
-                    off_t offset, struct fuse_file_info *fi) {
-  LOGD("readdir: %s", path);
+                    off_t offset, struct fuse_file_info *fi, fuse_readdir_flags flags) {
+  LOGD("readdir: %s, flags: %d", path, flags);
 
   int ret = jnifuse::JniFuseFileSystem::getInstance()->readdirOper->call(
       path, buf, filler, offset, fi);
@@ -98,8 +117,8 @@ int removexattr_wrapper(const char *path, const char *list) {
   return jnifuse::JniFuseFileSystem::getInstance()->removexattrOper->call(path, list);
 }
 
-int rename_wrapper(const char *oldPath, const char *newPath) {
-  return jnifuse::JniFuseFileSystem::getInstance()->renameOper->call(oldPath, newPath);
+int rename_wrapper(const char *oldPath, const char *newPath, unsigned int flags) {
+  return jnifuse::JniFuseFileSystem::getInstance()->renameOper->call(oldPath, newPath, flags);
 }
 
 int rmdir_wrapper(const char *path) {
@@ -117,6 +136,147 @@ int setxattr_wrapper(const char *path, const char *name,
   return jnifuse::JniFuseFileSystem::getInstance()->setxattrOper->call(path, name, value, size, flags);
 }
 #endif
+
+int statfs_wrapper(const char *path, struct statvfs *stbuf) {
+  return jnifuse::JniFuseFileSystem::getInstance()->statfsOper->call(path, stbuf);
+}
+
+int symlink_wrapper(const char *linkname, const char *path) {
+  return jnifuse::JniFuseFileSystem::getInstance()->symlinkOper->call(linkname, path);
+}
+
+int truncate_wrapper(const char *path, off_t size, struct fuse_file_info *fi) {
+  return jnifuse::JniFuseFileSystem::getInstance()->truncateOper->call(path, size);
+}
+
+int unlink_wrapper(const char *path) {
+  return jnifuse::JniFuseFileSystem::getInstance()->unlinkOper->call(path);
+}
+
+int utimens_wrapper(const char *path, const struct timespec ts[2], struct fuse_file_info *fi) {
+  return jnifuse::JniFuseFileSystem::getInstance()->utimensOper->call(path, ts);
+}
+
+int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
+                  struct fuse_file_info *fi) {
+  return jnifuse::JniFuseFileSystem::getInstance()->writeOper->call(
+      path, buf, size, off, fi);
+}
+
+#else
+
+void* init_wrapper(struct fuse_conn_info* conn) {
+  #ifndef __APPLE__
+  if((unsigned int)conn->capable & FUSE_CAP_ATOMIC_O_TRUNC){
+      conn->want |= FUSE_CAP_ATOMIC_O_TRUNC;
+  }
+  #endif
+
+  if((unsigned int)conn->capable & FUSE_CAP_BIG_WRITES){
+    conn->want |= FUSE_CAP_BIG_WRITES;
+  }
+  return NULL;
+}
+
+int chmod_wrapper(const char *path, mode_t mode) {
+  return jnifuse::JniFuseFileSystem::getInstance()->chmodOper->call(path, mode);
+}
+
+int chown_wrapper(const char *path, uid_t uid, gid_t gid) {
+  return jnifuse::JniFuseFileSystem::getInstance()->chownOper->call(path, uid, gid);
+}
+
+int create_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi) {
+  return jnifuse::JniFuseFileSystem::getInstance()->createOper->call(path, mode,
+                                                                     fi);
+}
+
+int flush_wrapper(const char *path, struct fuse_file_info *fi) {
+  return jnifuse::JniFuseFileSystem::getInstance()->flushOper->call(path, fi);
+}
+
+int getattr_wrapper(const char *path, struct stat *stbuf) {
+
+  int ret =
+      jnifuse::JniFuseFileSystem::getInstance()->getattrOper->call(path, stbuf);
+
+  return ret;
+}
+
+#ifdef __APPLE__
+int getxattr_wrapper(const char *path, const char *name, char *value, size_t size, uint32_t position) {
+  return jnifuse::JniFuseFileSystem::getInstance()->getxattrOper->call(path, name, value, size);
+}
+#else
+int getxattr_wrapper(const char *path, const char *name, char *value, size_t size) {
+  return jnifuse::JniFuseFileSystem::getInstance()->getxattrOper->call(path, name, value, size);
+}
+#endif
+
+int listxattr_wrapper(const char *path, char *list, size_t size) {
+  return jnifuse::JniFuseFileSystem::getInstance()->listxattrOper->call(path, list, size);
+}
+
+int mkdir_wrapper(const char *path, mode_t mode) {
+  return jnifuse::JniFuseFileSystem::getInstance()->mkdirOper->call(path, mode);
+}
+
+int open_wrapper(const char *path, struct fuse_file_info *fi) {
+
+  int ret = jnifuse::JniFuseFileSystem::getInstance()->openOper->call(path, fi);
+
+  return ret;
+}
+
+int read_wrapper(const char *path, char *buf, size_t size, off_t offset,
+                 struct fuse_file_info *fi) {
+
+  int ret = jnifuse::JniFuseFileSystem::getInstance()->readOper->call(
+      path, buf, size, offset, fi);
+
+  return ret;
+}
+
+int readdir_wrapper(const char *path, void *buf, fuse_fill_dir_t filler,
+                    off_t offset, struct fuse_file_info *fi) {
+
+  int ret = jnifuse::JniFuseFileSystem::getInstance()->readdirOper->call(
+      path, buf, filler, offset, fi);
+
+  return ret;
+}
+
+int release_wrapper(const char *path, struct fuse_file_info *fi) {
+  return jnifuse::JniFuseFileSystem::getInstance()->releaseOper->call(path, fi);
+}
+
+int removexattr_wrapper(const char *path, const char *list) {
+  return jnifuse::JniFuseFileSystem::getInstance()->removexattrOper->call(path, list);
+}
+
+int rename_wrapper(const char *oldPath, const char *newPath) {
+  return jnifuse::JniFuseFileSystem::getInstance()->renameOper->call(oldPath, newPath, RENAME_NO_FLAGS);
+}
+
+int rmdir_wrapper(const char *path) {
+  return jnifuse::JniFuseFileSystem::getInstance()->rmdirOper->call(path);
+}
+
+#ifdef __APPLE__
+int setxattr_wrapper(const char *path, const char *name,
+                     const char *value, size_t size, int flags, uint32_t position) {
+  return jnifuse::JniFuseFileSystem::getInstance()->setxattrOper->call(path, name, value, size, flags);
+}
+#else
+int setxattr_wrapper(const char *path, const char *name,
+                     const char *value, size_t size, int flags) {
+  return jnifuse::JniFuseFileSystem::getInstance()->setxattrOper->call(path, name, value, size, flags);
+}
+#endif
+
+int statfs_wrapper(const char *path, struct statvfs *stbuf) {
+  return jnifuse::JniFuseFileSystem::getInstance()->statfsOper->call(path, stbuf);
+}
 
 int symlink_wrapper(const char *linkname, const char *path) {
   return jnifuse::JniFuseFileSystem::getInstance()->symlinkOper->call(linkname, path);
@@ -139,3 +299,5 @@ int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
   return jnifuse::JniFuseFileSystem::getInstance()->writeOper->call(
       path, buf, size, off, fi);
 }
+
+#endif  // FUSE_USE_VERSION >= 30

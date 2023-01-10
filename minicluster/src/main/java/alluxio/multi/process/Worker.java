@@ -21,7 +21,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -32,7 +31,7 @@ public class Worker implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Worker.class);
 
   private final File mLogsDir;
-  private final Map<PropertyKey, String> mProperties;
+  private final Map<PropertyKey, Object> mProperties;
 
   private ExternalProcess mProcess;
 
@@ -40,7 +39,7 @@ public class Worker implements Closeable {
    * @param logsDir log directory
    * @param properties alluxio properties
    */
-  public Worker(File logsDir, Map<PropertyKey, String> properties) throws IOException {
+  public Worker(File logsDir, Map<PropertyKey, Object> properties) throws IOException {
     mLogsDir = logsDir;
     mProperties = properties;
   }

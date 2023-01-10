@@ -17,6 +17,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.CreateBlockOptions;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -30,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This handler handles block write request. Check more information in
  * {@link AbstractWriteHandler}.
  */
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
+@alluxio.annotation.SuppressFBWarnings(value = "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
     justification = "false positive with superclass generics, "
         + "see more description in https://sourceforge.net/p/findbugs/bugs/1242/")
 @NotThreadSafe
@@ -62,8 +63,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
   }
 
   @Override
-  protected BlockWriteRequestContext createRequestContext(alluxio.grpc.WriteRequest msg)
-      throws Exception {
+  protected BlockWriteRequestContext createRequestContext(alluxio.grpc.WriteRequest msg) {
     long bytesToReserve = FILE_BUFFER_SIZE;
     if (msg.getCommand().hasSpaceToReserve()) {
       bytesToReserve = msg.getCommand().getSpaceToReserve();
@@ -71,7 +71,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     BlockWriteRequestContext context = new BlockWriteRequestContext(msg, bytesToReserve);
     BlockWriteRequest request = context.getRequest();
     mWorker.createBlock(request.getSessionId(), request.getId(), request.getTier(),
-        request.getMediumType(), bytesToReserve);
+        new CreateBlockOptions(null, request.getMediumType(), bytesToReserve));
     if (mDomainSocketEnabled) {
       context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName()));
       context.setMeter(MetricsSystem.meter(
@@ -119,8 +119,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
   }
 
   @Override
-  protected void flushRequest(BlockWriteRequestContext context)
-      throws Exception {
+  protected void flushRequest(BlockWriteRequestContext context) {
     // This is a no-op because block worker does not support flush currently.
   }
 

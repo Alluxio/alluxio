@@ -19,13 +19,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Represents the delta of the block store within one heartbeat period. For now, newly committed
  * blocks do not pass through this master communication mechanism, instead it is synchronized
- * through {@link alluxio.worker.block.BlockWorker#commitBlock(long, long)}.
+ * through {@link alluxio.worker.block.BlockWorker#commitBlock(long, long, boolean)}.
  */
 @ThreadSafe
 public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListener {
@@ -76,7 +75,7 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   }
 
   @Override
-  public void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByClient(long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     synchronized (mLock) {
       // Remove the block from our list of added blocks in this heartbeat, if it was added, to
@@ -88,21 +87,21 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   }
 
   @Override
-  public void onRemoveBlockByClient(long sessionId, long blockId) {
+  public void onRemoveBlockByClient(long blockId) {
     synchronized (mLock) {
       removeBlockInternal(blockId);
     }
   }
 
   @Override
-  public void onRemoveBlockByWorker(long sessionId, long blockId) {
+  public void onRemoveBlockByWorker(long blockId) {
     synchronized (mLock) {
       removeBlockInternal(blockId);
     }
   }
 
   @Override
-  public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByWorker(long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     synchronized (mLock) {
       // Remove the block from our list of added blocks in this heartbeat, if it was added, to

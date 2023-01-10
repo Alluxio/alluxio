@@ -12,13 +12,13 @@
 package alluxio.server.health;
 
 import alluxio.HealthCheckClient;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.worker.job.JobWorkerHealthCheckClient;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.retry.CountingRetry;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.worker.job.JobWorkerHealthCheckClient;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -44,7 +44,7 @@ public class JobWorkerHealthCheckClientIntegrationTest extends BaseIntegrationTe
     mLocalAlluxioJobCluster.start();
     InetSocketAddress address = mLocalAlluxioJobCluster.getWorker().getRpcAddress();
     mHealthCheckClient = new JobWorkerHealthCheckClient(address, () -> new CountingRetry(1),
-        ServerConfiguration.global());
+        Configuration.global());
   }
 
   @After

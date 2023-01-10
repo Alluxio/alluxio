@@ -11,13 +11,12 @@
 
 package alluxio.master.audit;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.concurrent.ThreadSafe;
@@ -32,8 +31,7 @@ public final class AsyncUserAccessAuditLogWriter {
   private static final String AUDIT_LOG_THREAD_NAME = "AsyncUserAccessAuditLogger";
   private static final Logger LOG =
       LoggerFactory.getLogger(AsyncUserAccessAuditLogWriter.class);
-  private static final Logger AUDIT_LOG =
-      LoggerFactory.getLogger("AUDIT_LOG");
+  private final Logger mLog;
   private volatile boolean mStopped;
   /**
    * A thread-safe linked-list-based queue with an optional capacity limit.
@@ -47,10 +45,13 @@ public final class AsyncUserAccessAuditLogWriter {
 
   /**
    * Constructs an {@link AsyncUserAccessAuditLogWriter} instance.
+   *
+   * @param loggerName the logger name
    */
-  public AsyncUserAccessAuditLogWriter() {
-    int queueCapacity = ServerConfiguration.getInt(PropertyKey.MASTER_AUDIT_LOGGING_QUEUE_CAPACITY);
+  public AsyncUserAccessAuditLogWriter(String loggerName) {
+    int queueCapacity = Configuration.getInt(PropertyKey.MASTER_AUDIT_LOGGING_QUEUE_CAPACITY);
     mAuditLogEntries = new LinkedBlockingQueue<>(queueCapacity);
+    mLog = LoggerFactory.getLogger(loggerName);
     LOG.info("Audit logging queue capacity is {}.", queueCapacity);
     mStopped = true;
   }
@@ -104,6 +105,14 @@ public final class AsyncUserAccessAuditLogWriter {
   }
 
   /**
+   * Gets the size of audit log entries.
+   * @return the size of the audit log blocking queue
+   */
+  public long getAuditLogEntriesSize() {
+    return mAuditLogEntries.size();
+  }
+
+  /**
    * Consumer thread of the queue to perform actual logging of audit info.
    */
   private class AuditLoggingWorker implements Runnable {
@@ -114,7 +123,7 @@ public final class AsyncUserAccessAuditLogWriter {
       while (!mStopped) {
         try {
           AuditContext headContext = mAuditLogEntries.take();
-          AUDIT_LOG.info(headContext.toString());
+          mLog.info(headContext.toString());
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
           break;

@@ -11,20 +11,27 @@
 
 package alluxio.underfs.cephfshadoop;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.underfs.hdfs.HdfsUnderFileSystem;
-import alluxio.underfs.hdfs.HdfsUnderFileSystemFactory;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.hdfs.HdfsUnderFileSystemFactory;
+
+import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory for creating {@link HdfsUnderFileSystem}.
- *
- * It caches created {@link HdfsUnderFileSystem}s, using the scheme and authority pair as the key.
+ * Factory for creating {@link CephfsHadoopUnderFileSystem}.
  */
 @ThreadSafe
 public class CephfsHadoopUnderFileSystemFactory extends HdfsUnderFileSystemFactory {
+
+  @Override
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
+    Preconditions.checkNotNull(path, "path");
+    return CephfsHadoopUnderFileSystem.createInstance(new AlluxioURI(path), conf);
+  }
 
   @Override
   public boolean supportsPath(String path) {

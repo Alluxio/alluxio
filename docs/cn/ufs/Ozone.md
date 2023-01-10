@@ -6,7 +6,7 @@ group: Storage Integrations
 priority: 10
 ---
 
-本指南介绍了如何将[Ozone](https://hadoop.apache.org/ozone)配置为Alluxio的底层存储系统。 
+本指南介绍了如何将[Ozone](https://ozone.apache.org/)配置为Alluxio的底层存储系统。 
 Ozone是用于Hadoop的可扩展，冗余和分布式对象存储。除了可以扩展到数十亿个大小不同的对象外， 
 Ozone可以在容器化环境(例如Kubernetes和YARN)中有效运行。
 
@@ -17,27 +17,73 @@ Ozone可以在容器化环境(例如Kubernetes和YARN)中有效运行。
 具有正确的Hadoop版本(推荐))，或 
 [从Alluxio源代码编译二进制文件]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url}})(适用于高级用户)。
 
-在准备Ozone与Alluxio一起使用时，请遵循[Ozone本地安装](https://hadoop.apache.org/ozone/docs/1.0.0/start/onprem.html)
-安装Ozone集群，并遵循[卷命令](https://hadoop.apache.org/ozone/docs/1.0.0/shell/volumecommands.html)和 
-[桶命令](https://hadoop.apache.org/ozone/docs/1.0.0/shell/bucketcommands.html)创建Ozone集群的卷和存储桶。
+在准备Ozone与Alluxio一起使用时，请遵循[Ozone本地安装](https://ozone.apache.org/docs/1.2.1/zh/start/onprem.html)
+安装Ozone集群，并遵循[Cli命令](https://ozone.apache.org/docs/1.2.1/interface/cli.html)创建Ozone集群的卷和存储桶。
 
 ## 基本设置
 
 要配置Alluxio使用Ozone做为底层存储系统，需要修改配置文件 
 `conf/alluxio-site.properties`。如果此文件不存在，请从模板创建此配置文件。
 
-```
+```console
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-编辑`conf/alluxio-site.properties`文件把底层存储地址设置为Ozone桶和 
-想要挂载到Alluxio的Ozone目录。例如，如果要将整个存储桶挂载到Alluxio
-底层存储的地址可以是`o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/`
-，或者是`o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/alluxio/data`如果仅将`<OZONE_VOLUME>`的 `<OZONE_BUCKET>` ozone桶内的`/alluxio/data`目录映射到Alluxio。
+编辑`conf/alluxio-site.properties`将`alluxio.master.mount.table.root.ufs`底层存储地址设置为Ozone桶或想要挂载到Alluxio的Ozone目录。
+Ozone 支持`o3fs`和`ofs`两种不同的 schema
+### o3fs
+例如，如果要将整个存储桶挂载到Alluxio的根目录，则将`alluxio.master.mount.table.root.ufs`设置为`o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/`；
+如果仅将`<OZONE_VOLUME>`的`<OZONE_BUCKET>`Ozone桶内的`/alluxio/data`目录映射到Alluxio的根目录，
+则可以设置为`o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/alluxio/data`。
 
-```
+将`alluxio-site.properties`中的`alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration`指向`ozone-site.xml`，确保配置在所有正在运行Alluxio的服务端上设置了。
+
+```properties
 alluxio.master.mount.table.root.ufs=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
+alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
 ``` 
+
+### ofs
+例如，如果要将整个存储桶挂载到Alluxio的根目录，则将`alluxio.master.mount.table.root.ufs`设置为`ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/`；
+如果仅将`<OZONE_VOLUME>`的`<OZONE_BUCKET>`Ozone桶内的`/alluxio/data`目录映射到Alluxio的根目录，
+则可以设置为`ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/alluxio/data`。
+
+## Ozone HA模式
+### o3fs
+要让Alluxio挂载HA模式下Ozone，你应该配置Alluxio的服务端以让其可以找到OzoneManager。请注意一旦设置，你使用Alluxio客户端的应用程序不再需要任何特殊的配置。
+在HA模式下`alluxio.master.mount.table.root.ufs`需要指定`<OM_SERVICE_IDS>`
+例如：
+```properties
+alluxio.master.mount.table.root.ufs=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>.<OM_SERVICE_IDS>/
+alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
+``` 
+
+### ofs
+```properties
+alluxio.master.mount.table.root.ufs=ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/
+alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
+```
+
+`<OM_SERVICE_IDS>` 可以在`ozone-site.xml`中找到，
+例如以下`ozone-site.xml`配置文件中`<OM_SERVICE_IDS>`为`omservice1`。
+```xml
+<property>
+    <name>ozone.om.service.ids</name>
+    <value>omservice1</value>
+</property>
+```
+
+## 挂载特定版本Ozone
+
+用户可以将具有指定版本的Ozone集群作为底层存储挂载到Alluxio命名空间。
+在挂载特定版本Ozone之前，请确保已使用该特定版本Ozone构建了客户端。
+你可以通过到Alluxio目录下的`lib`目录来检查该客户端是否存在。
+
+当使用特定的Ozone版本挂载Alluxio根目录的底层存储时，可以添加以下内容到`conf/alluxio-site.properties`。
+
+```properties
+alluxio.master.mount.table.root.option.alluxio.underfs.version=<OZONE_VERSION>
+```
 
 ## 示例:使用Ozone本地运行Alluxio
 
@@ -48,7 +94,7 @@ $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
 
-这将启动Alluxio master和Alluxio worker。可以在[http:// localhost:19999](http:// localhost:19999)上看到 master UI。
+这将启动Alluxio master和Alluxio worker。可以在[http://localhost:19999](http://localhost:19999)上看到 master UI。
 
 运行一个简单的示例程序
 
@@ -76,25 +122,19 @@ $ ./bin/alluxio-stop.sh local
 
 ```console
 $ ./bin/alluxio fs mount \
-  --option alluxio.underfs.hdfs.configuration=<DIR>/ozone-site.xml:<DIR>/core-site.xml \
+  --option alluxio.underfs.hdfs.configuration=<DIR>/ozone-site.xml \
   /ozone o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 ```
 
-可能的`core-site.xml`和`ozone-site.xml`文件设置
-- `core-site.xml`
-
-```xml
-<configuration>
-  <property>
-    <name>fs.o3fs.impl</name>
-    <value>org.apache.hadoop.fs.ozone.BasicOzoneFileSystem</value>
-  </property>
-  <property>
-    <name>fs.AbstractFileSystem.o3fs.impl</name>
-    <value>org.apache.hadoop.fs.ozone.BasicOzFs</value>
-  </property>
-</configuration>
+如果需要挂载指定版本的Ozone，可以在挂载时通过`alluxio.underfs.version=<OZONE_VERSION>`参数指定版本。
+```console
+$ ./bin/alluxio fs mount \
+  --option alluxio.underfs.hdfs.configuration=<DIR>/ozone-site.xml \
+  --option alluxio.underfs.version=<OZONE_VERSION> \
+  /ozone o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 ```
+
+可能的 `ozone-site.xml` 文件设置
 
 - `ozone-site.xml`
 
@@ -104,26 +144,6 @@ $ ./bin/alluxio fs mount \
     <name>ozone.om.address</name>
     <value>localhost</value>
   </property>
-  <property>
-    <name>scm.container.client.max.size</name>
-    <value>256</value>
-  </property>
-  <property>
-    <name>scm.container.client.idle.threshold</name>
-    <value>10s</value>
-  </property>
-  <property>
-    <name>hdds.ratis.raft.client.rpc.request.timeout</name>
-    <value>60s</value>
-  </property>
-  <property>
-    <name>hdds.ratis.raft.client.async.outstanding-requests.max</name>
-    <value>32</value>
-  </property>
-  <property>
-    <name>hdds.ratis.raft.client.rpc.watch.request.timeout</name>
-    <value>180s</value>
-  </property>
 </configuration>
 ```
 
@@ -131,4 +151,4 @@ $ ./bin/alluxio fs mount \
 
 ### 支持的Ozone版本
 
-当前，唯一经过与Alluxio测试Ozone版本是`1.0.0`。
+当前，与 Alluxio 测试过的 Ozone 版本是 `1.0.0`, `1.1.0`, `1.2.1`。

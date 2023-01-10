@@ -12,35 +12,51 @@
 package alluxio.client.fuse;
 
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.fuse.AlluxioFuseFileSystem;
-import alluxio.fuse.FuseMountOptions;
+import alluxio.fuse.AlluxioJnrFuseFileSystem;
+import alluxio.fuse.options.FuseOptions;
+
+import org.junit.Assume;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
 
 /**
- * Integration tests for JNR-FUSE based {@link AlluxioFuseFileSystem}.
+ * Integration tests for JNR-FUSE based {@link AlluxioJnrFuseFileSystem}.
  */
 public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
-  private AlluxioFuseFileSystem mFuseFileSystem;
+  private AlluxioJnrFuseFileSystem mFuseFileSystem;
 
   @Override
   public void configure() {
-    ServerConfiguration.set(PropertyKey.FUSE_JNIFUSE_ENABLED, false);
+    Configuration.set(PropertyKey.FUSE_JNIFUSE_ENABLED, false);
   }
 
   @Override
-  public void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot) {
-    FuseMountOptions options =
-        new FuseMountOptions(mountPoint, alluxioRoot, false, new ArrayList<>());
-    mFuseFileSystem = new AlluxioFuseFileSystem(fileSystem, options, ServerConfiguration.global());
+  public void mountFuse(FileSystemContext context,
+      FileSystem fileSystem, String mountPoint, String alluxioRoot) {
+    Assume.assumeTrue(Configuration.getInt(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION) == 2);
+    Configuration.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, alluxioRoot);
+    Configuration.set(PropertyKey.FUSE_MOUNT_POINT, mountPoint);
+    Configuration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
+    mFuseFileSystem = new AlluxioJnrFuseFileSystem(fileSystem, Configuration.global(),
+        FuseOptions.create(Configuration.global()));
     mFuseFileSystem.mount(Paths.get(mountPoint), false, false, new String[] {"-odirect_io"});
   }
 
   @Override
-  public void umountFuse(String mountPath) throws Exception {
-    mFuseFileSystem.umount();
+  public void beforeStop() throws Exception {
+    try {
+      mFuseFileSystem.umount();
+    } catch (Exception e) {
+      // will try umounting from shell
+    }
+    umountFromShellIfMounted();
+  }
+
+  @Override
+  public void afterStop() throws Exception {
+    // noop
   }
 }

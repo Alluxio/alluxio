@@ -20,8 +20,8 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The configuration of a dummy job for testing.

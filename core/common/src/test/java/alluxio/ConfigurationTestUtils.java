@@ -12,9 +12,8 @@
 package alluxio;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.util.ConfigurationUtils;
+import alluxio.master.journal.JournalType;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
@@ -30,14 +29,6 @@ import java.util.Map;
 public final class ConfigurationTestUtils {
 
   /**
-   * Return an instanced configuration with default value from the site properties file.
-   * @return the default configuration
-   */
-  public static InstancedConfiguration defaults() {
-    return new InstancedConfiguration(ConfigurationUtils.defaults());
-  }
-
-  /**
    * Returns reasonable default configuration values for running integration tests.
    *
    * These defaults are mostly aimed at getting tests to run faster. Individual tests may override
@@ -47,9 +38,9 @@ public final class ConfigurationTestUtils {
    * @param workDirectory the work directory in which to configure the journal and tiered storage
    * @return the configuration
    */
-  public static Map<PropertyKey, String> testConfigurationDefaults(AlluxioConfiguration alluxioConf,
+  public static Map<PropertyKey, Object> testConfigurationDefaults(AlluxioConfiguration alluxioConf,
       String hostname, String workDirectory) {
-    Map<PropertyKey, String> conf = new HashMap<>();
+    Map<PropertyKey, Object> conf = new HashMap<>();
     conf.put(PropertyKey.MASTER_HOSTNAME, hostname);
     conf.put(PropertyKey.WORKER_BIND_HOST, hostname);
     conf.put(PropertyKey.WORKER_WEB_BIND_HOST, hostname);
@@ -66,7 +57,7 @@ public final class ConfigurationTestUtils {
     for (int level = 1; level < numLevel; level++) {
       PropertyKey tierLevelDirPath =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
-      String[] dirPaths = alluxioConf.get(tierLevelDirPath).split(",");
+      String[] dirPaths = alluxioConf.getString(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<>();
       for (String dirPath : dirPaths) {
         String newPath = workDirectory + dirPath;
@@ -80,7 +71,7 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WORKER_REVIEWER_CLASS, "alluxio.worker.block.reviewer.AcceptingReviewer");
 
     // Sets up the journal folder
-    conf.put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
+    conf.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, PathUtils.concatPath(workDirectory, "journal"));
     conf.put(PropertyKey.MASTER_METASTORE_DIR, PathUtils.concatPath(workDirectory, "metastore"));
 
@@ -114,16 +105,16 @@ public final class ConfigurationTestUtils {
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
     // default Alluxio storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
-    //conf.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+    //conf.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH);
 
-    conf.put(PropertyKey.WEB_THREADS, "1");
+    conf.put(PropertyKey.WEB_THREADS, 1);
     conf.put(PropertyKey.WEB_RESOURCES,
         PathUtils.concatPath(System.getProperty("user.dir"), "../webui"));
     conf.put(PropertyKey.WORKER_RAMDISK_SIZE, "100MB");
     conf.put(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL, "15ms");
     conf.put(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL, "15ms");
     conf.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "15ms");
-    conf.put(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, "2");
+    conf.put(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, 2);
 
     // Shutdown data server quickly. Graceful shutdown is unnecessarily slow.
     conf.put(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, "0ms");
@@ -148,11 +139,10 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME, "20ms");
 
     // faster I/O retries.
-    conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "1ms");
     conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "5ms");
     conf.put(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION, "10ms");
 
-    conf.put(PropertyKey.TEST_MODE, "true");
+    conf.put(PropertyKey.TEST_MODE, true);
 
     return conf;
   }

@@ -28,6 +28,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -55,7 +56,7 @@ public class DelegatingFileSystem implements FileSystem {
   /**
    * Wraps a file system instance to forward messages.
    *
-   * @param fs the underline file system
+   * @param fs the underlying file system
    */
   public DelegatingFileSystem(FileSystem fs) {
     mDelegatedFileSystem = fs;
@@ -109,6 +110,12 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
+  public List<BlockLocationInfo> getBlockLocations(URIStatus status)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return mDelegatedFileSystem.getBlockLocations(status);
+  }
+
+  @Override
   public AlluxioConfiguration getConf() {
     return mDelegatedFileSystem.getConf();
   }
@@ -123,6 +130,13 @@ public class DelegatingFileSystem implements FileSystem {
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     return mDelegatedFileSystem.listStatus(path, options);
+  }
+
+  @Override
+  public ListStatusPartialResult listStatusPartial(
+      AlluxioURI path, ListStatusPartialPOptions options)
+      throws AlluxioException, IOException {
+    return mDelegatedFileSystem.listStatusPartial(path, options);
   }
 
   @Override
@@ -151,8 +165,9 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
-    return mDelegatedFileSystem.getMountTable();
+  public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
+      throws IOException, AlluxioException {
+    return mDelegatedFileSystem.getMountTable(checkUfs);
   }
 
   @Override
@@ -219,6 +234,11 @@ public class DelegatingFileSystem implements FileSystem {
   public void unmount(AlluxioURI path, UnmountPOptions options)
       throws IOException, AlluxioException {
     mDelegatedFileSystem.unmount(path, options);
+  }
+
+  @Override
+  public void needsSync(AlluxioURI path) throws IOException, AlluxioException {
+    mDelegatedFileSystem.needsSync(path);
   }
 
   @Override

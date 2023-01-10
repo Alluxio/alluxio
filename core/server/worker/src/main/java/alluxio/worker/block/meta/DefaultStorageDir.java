@@ -11,14 +11,13 @@
 
 package alluxio.worker.block.meta;
 
+import static com.google.common.base.Preconditions.checkState;
+
+import alluxio.annotation.SuppressFBWarnings;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidPathException;
-import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.util.io.FileUtils;
 import alluxio.worker.block.BlockStoreLocation;
 
@@ -35,9 +34,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -56,17 +55,17 @@ public final class DefaultStorageDir implements StorageDir {
   private final long mCapacityBytes;
   private final String mDirMedium;
   /** A map from block id to block metadata. */
-  private Map<Long, BlockMeta> mBlockIdToBlockMap;
+  private final Map<Long, BlockMeta> mBlockIdToBlockMap = new HashMap<>(200);
   /** A map from block id to temp block metadata. */
-  private Map<Long, TempBlockMeta> mBlockIdToTempBlockMap;
+  private final Map<Long, TempBlockMeta> mBlockIdToTempBlockMap = new HashMap<>(200);
   /** A map from session id to the set of temp blocks created by this session. */
-  private Map<Long, Set<Long>> mSessionIdToTempBlockIdsMap;
-  private AtomicLong mAvailableBytes;
-  private AtomicLong mCommittedBytes;
-  private AtomicLong mReservedBytes;
-  private String mDirPath;
-  private int mDirIndex;
-  private StorageTier mTier;
+  private final Map<Long, Set<Long>> mSessionIdToTempBlockIdsMap = new HashMap<>(200);
+  private final AtomicLong mAvailableBytes;
+  private final AtomicLong mCommittedBytes;
+  private final AtomicLong mReservedBytes;
+  private final String mDirPath;
+  private final int mDirIndex;
+  private final StorageTier mTier;
 
   private DefaultStorageDir(StorageTier tier, int dirIndex, long capacityBytes, long reservedBytes,
       String dirPath, String dirMedium) {
@@ -78,9 +77,6 @@ public final class DefaultStorageDir implements StorageDir {
     mCommittedBytes = new AtomicLong(0);
     mDirPath = dirPath;
     mDirMedium = dirMedium;
-    mBlockIdToBlockMap = new HashMap<>(200);
-    mBlockIdToTempBlockMap = new HashMap<>(200);
-    mSessionIdToTempBlockIdsMap = new HashMap<>(200);
   }
 
   /**
@@ -98,13 +94,9 @@ public final class DefaultStorageDir implements StorageDir {
    * @param dirPath filesystem path of this dir for actual storage
    * @param dirMedium the medium type of the storage dir
    * @return the new created {@link StorageDir}
-   * @throws BlockAlreadyExistsException when metadata of existing committed blocks already exists
-   * @throws WorkerOutOfSpaceException when metadata can not be added due to limited left space
    */
   public static StorageDir newStorageDir(StorageTier tier, int dirIndex, long capacityBytes,
-      long reservedBytes, String dirPath, String dirMedium)
-      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException,
-      InvalidPathException {
+      long reservedBytes, String dirPath, String dirMedium) {
     DefaultStorageDir dir =
         new DefaultStorageDir(tier, dirIndex, capacityBytes, reservedBytes, dirPath, dirMedium);
     dir.initializeMeta();
@@ -120,16 +112,12 @@ public final class DefaultStorageDir implements StorageDir {
    * Only paths satisfying the contract defined in
    * {@link DefaultBlockMeta#commitPath(StorageDir, long)} are legal, should be in format like
    * {dir}/{blockId}. other paths will be deleted.
-   *
-   * @throws BlockAlreadyExistsException when metadata of existing committed blocks already exists
-   * @throws WorkerOutOfSpaceException when metadata can not be added due to limited left space
    */
-  private void initializeMeta() throws BlockAlreadyExistsException, IOException,
-      WorkerOutOfSpaceException, InvalidPathException {
+  private void initializeMeta() {
     // Create the storage directory path
     boolean isDirectoryNewlyCreated = FileUtils.createStorageDirPath(mDirPath,
-        ServerConfiguration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
-    String tmpDir = Paths.get(ServerConfiguration.get(PropertyKey.WORKER_DATA_TMP_FOLDER))
+        Configuration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
+    String tmpDir = Paths.get(Configuration.getString(PropertyKey.WORKER_DATA_TMP_FOLDER))
         .getName(0).toString();
     if (isDirectoryNewlyCreated) {
       LOG.info("Folder {} was created!", mDirPath);
@@ -224,55 +212,44 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException {
-    BlockMeta blockMeta = mBlockIdToBlockMap.get(blockId);
-    if (blockMeta == null) {
-      throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
-    }
-    return blockMeta;
+  public Optional<BlockMeta> getBlockMeta(long blockId) {
+    return Optional.ofNullable(mBlockIdToBlockMap.get(blockId));
   }
 
   @Override
-  public TempBlockMeta getTempBlockMeta(long blockId) {
-    return mBlockIdToTempBlockMap.get(blockId);
+  public Optional<TempBlockMeta> getTempBlockMeta(long blockId) {
+    return Optional.ofNullable(mBlockIdToTempBlockMap.get(blockId));
   }
 
   @Override
-  public void addBlockMeta(BlockMeta blockMeta) throws WorkerOutOfSpaceException,
-      BlockAlreadyExistsException {
+  public void addBlockMeta(BlockMeta blockMeta) {
     Preconditions.checkNotNull(blockMeta, "blockMeta");
     long blockId = blockMeta.getBlockId();
     long blockSize = blockMeta.getBlockSize();
-
     if (getAvailableBytes() + getReservedBytes() < blockSize) {
-      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId,
-          blockSize, getAvailableBytes(), blockMeta.getBlockLocation().tierAlias());
+      throw new ResourceExhaustedRuntimeException(
+          ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(blockId, blockSize,
+              getAvailableBytes(), blockMeta.getBlockLocation().tierAlias()), false);
     }
-    if (hasBlockMeta(blockId)) {
-      throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, blockMeta
-          .getBlockLocation().tierAlias());
-    }
+    checkState(!hasBlockMeta(blockId), ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(blockId,
+        blockMeta.getBlockLocation().tierAlias()));
     mBlockIdToBlockMap.put(blockId, blockMeta);
     reserveSpace(blockSize, true);
   }
 
   @Override
-  public void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws WorkerOutOfSpaceException,
-      BlockAlreadyExistsException {
+  public void addTempBlockMeta(TempBlockMeta tempBlockMeta) {
     Preconditions.checkNotNull(tempBlockMeta, "tempBlockMeta");
     long sessionId = tempBlockMeta.getSessionId();
     long blockId = tempBlockMeta.getBlockId();
     long blockSize = tempBlockMeta.getBlockSize();
-
     if (getAvailableBytes() + getReservedBytes() < blockSize) {
-      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId,
-          blockSize, getAvailableBytes(), tempBlockMeta.getBlockLocation().tierAlias());
+      throw new ResourceExhaustedRuntimeException(
+          ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(blockId, blockSize,
+              getAvailableBytes(), tempBlockMeta.getBlockLocation().tierAlias()), false);
     }
-    if (hasTempBlockMeta(blockId)) {
-      throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId,
-          tempBlockMeta.getBlockLocation().tierAlias());
-    }
-
+    checkState(!hasTempBlockMeta(blockId), ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(blockId,
+        tempBlockMeta.getBlockLocation().tierAlias()));
     mBlockIdToTempBlockMap.put(blockId, tempBlockMeta);
     Set<Long> sessionTempBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);
     if (sessionTempBlocks == null) {
@@ -284,31 +261,28 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public void removeBlockMeta(BlockMeta blockMeta) throws BlockDoesNotExistException {
+  public void removeBlockMeta(BlockMeta blockMeta) {
     Preconditions.checkNotNull(blockMeta, "blockMeta");
     long blockId = blockMeta.getBlockId();
     BlockMeta deletedBlockMeta = mBlockIdToBlockMap.remove(blockId);
-    if (deletedBlockMeta == null) {
-      throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
+    if (deletedBlockMeta != null) {
+      reclaimSpace(blockMeta.getBlockSize(), true);
     }
-    reclaimSpace(blockMeta.getBlockSize(), true);
   }
 
   @Override
-  public void removeTempBlockMeta(TempBlockMeta tempBlockMeta) throws BlockDoesNotExistException {
+  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH")
+  public void removeTempBlockMeta(TempBlockMeta tempBlockMeta) {
     Preconditions.checkNotNull(tempBlockMeta, "tempBlockMeta");
     final long blockId = tempBlockMeta.getBlockId();
     final long sessionId = tempBlockMeta.getSessionId();
     TempBlockMeta deletedTempBlockMeta = mBlockIdToTempBlockMap.remove(blockId);
-    if (deletedTempBlockMeta == null) {
-      throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
-    }
+    checkState(deletedTempBlockMeta != null,
+        ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(blockId));
     Set<Long> sessionBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);
-    if (sessionBlocks == null || !sessionBlocks.contains(blockId)) {
-      throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_FOR_SESSION, blockId,
-          mTier.getTierAlias(), sessionId);
-    }
-    Preconditions.checkState(sessionBlocks.remove(blockId));
+    checkState(sessionBlocks != null && sessionBlocks.remove(blockId),
+        ExceptionMessage.BLOCK_NOT_FOUND_FOR_SESSION.getMessage(blockId, mTier.getTierAlias(),
+            sessionId));
     if (sessionBlocks.isEmpty()) {
       mSessionIdToTempBlockIdsMap.remove(sessionId);
     }
@@ -316,14 +290,12 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize)
-      throws InvalidWorkerStateException {
+  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize) {
     long oldSize = tempBlockMeta.getBlockSize();
+    checkState(oldSize < newSize, "Shrinking block, not supported!");
     if (newSize > oldSize) {
       reserveSpace(newSize - oldSize, false);
       tempBlockMeta.setBlockSize(newSize);
-    } else if (newSize < oldSize) {
-      throw new InvalidWorkerStateException("Shrinking block, not supported!");
     }
   }
 
@@ -382,18 +354,23 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   private void reclaimSpace(long size, boolean committed) {
-    Preconditions.checkState(mCapacityBytes >= mAvailableBytes.get() + size,
-        "Available bytes should always be less than total capacity bytes");
-    mAvailableBytes.addAndGet(size);
+    mAvailableBytes.getAndUpdate(oldAvailableBytes -> {
+      long newAvailableBytes = oldAvailableBytes + size;
+      checkState(mCapacityBytes >= newAvailableBytes,
+              "Available bytes should always be less than total capacity bytes");
+      return newAvailableBytes;
+    });
     if (committed) {
       mCommittedBytes.addAndGet(-size);
     }
   }
 
   private void reserveSpace(long size, boolean committed) {
-    Preconditions.checkState(size <= mAvailableBytes.get() + mReservedBytes.get(),
-        "Available bytes should always be non-negative");
-    mAvailableBytes.getAndSet(Math.max(0, mAvailableBytes.get() - size));
+    mAvailableBytes.getAndUpdate(oldAvailableBytes -> {
+      checkState(size <= oldAvailableBytes + getReservedBytes(),
+              "Available bytes should always be non-negative");
+      return oldAvailableBytes - size;
+    });
     if (committed) {
       mCommittedBytes.addAndGet(size);
     }

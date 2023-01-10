@@ -54,6 +54,36 @@ The values of bytes throughput metrics equal to bytes metrics counter value divi
 {% endfor %}
 </table>
 
+## Process Metrics
+
+Metrics shared by the all Alluxio server and client processes.
+
+<table class="table table-striped">
+<tr><th>Name</th><th>Type</th><th>Description</th></tr>
+{% for item in site.data.table.process-metrics %}
+  <tr>
+    <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
+    <td>{{ item.metricType }}</td>
+    <td>{{ site.data.table.en.process-metrics[item.metricName] }}</td>
+  </tr>
+{% endfor %}
+</table>
+
+## Server Metrics
+
+Metrics shared by the Alluxio server processes.
+
+<table class="table table-striped">
+<tr><th>Name</th><th>Type</th><th>Description</th></tr>
+{% for item in site.data.table.server-metrics %}
+  <tr>
+    <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
+    <td>{{ item.metricType }}</td>
+    <td>{{ site.data.table.en.server-metrics[item.metricName] }}</td>
+  </tr>
+{% endfor %}
+</table>
+
 ## Master Metrics
 
 Default master metrics:
@@ -73,17 +103,17 @@ Dynamically generated master metrics:
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
-| Master.CapacityTotalTier<TIER_NAME> | Total capacity in tier <TIER_NAME> of the Alluxio file system in bytes |
-| Master.CapacityUsedTier<TIER_NAME>  | Used capacity in tier <TIER_NAME> of the Alluxio file system in bytes |
-| Master.CapacityFreeTier<TIER_NAME>  | Free capacity in tier <TIER_NAME> of the Alluxio file system in bytes |
-| Master.UfsSessionCount-Ufs:<UFS_ADDRESS> | The total number of currently opened UFS sessions to connect to the given <UFS_ADDRESS> |
-| Master.<UFS_RPC_NAME>.UFS:<UFS_ADDRESS>.UFS_TYPE:<UFS_TYPE>.User:<USER> | The details UFS rpc operation done by the current master |
-| Master.PerUfsOp<UFS_RPC_NAME>.UFS:<UFS_ADDRESS> | The aggregated number of UFS operation <UFS_RPC_NAME> ran on UFS <UFS_ADDRESS> by leading master |  
-| Master.<LEADING_MASTER_RPC_NAME> | The duration statistics of RPC calls exposed on leading master |
+| Master.CapacityTotalTier{TIER_NAME} | Total capacity in tier {TIER_NAME} of the Alluxio file system in bytes |
+| Master.CapacityUsedTier{TIER_NAME}  | Used capacity in tier {TIER_NAME} of the Alluxio file system in bytes |
+| Master.CapacityFreeTier{TIER_NAME}  | Free capacity in tier {TIER_NAME} of the Alluxio file system in bytes |
+| Master.UfsSessionCount-Ufs:{UFS_ADDRESS} | The total number of currently opened UFS sessions to connect to the given {UFS_ADDRESS} |
+| Master.{UFS_RPC_NAME}.UFS:{UFS_ADDRESS}.UFS_TYPE:{UFS_TYPE}.User:{USER} | The details UFS rpc operation done by the current master |
+| Master.PerUfsOp{UFS_RPC_NAME}.UFS:{UFS_ADDRESS} | The aggregated number of UFS operation {UFS_RPC_NAME} ran on UFS {UFS_ADDRESS} by leading master |  
+| Master.{LEADING_MASTER_RPC_NAME} | The duration statistics of RPC calls exposed on leading master |
 
 ## Worker Metrics
 
-Default master metrics:
+Default worker metrics:
 
 <table class="table table-striped">
 <tr><th>Name</th><th>Type</th><th>Description</th></tr>
@@ -96,12 +126,12 @@ Default master metrics:
 {% endfor %}
 </table>
 
-Dynamically generated master metrics:
+Dynamically generated worker metrics:
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
-| Worker.UfsSessionCount-Ufs:<UFS_ADDRESS> | The total number of currently opened UFS sessions to connect to the given <UFS_ADDRESS> |
-| Worker.<RPC_NAME>                        | The duration statistics of RPC calls exposed on workers |
+| Worker.UfsSessionCount-Ufs:{UFS_ADDRESS} | The total number of currently opened UFS sessions to connect to the given {UFS_ADDRESS} |
+| Worker.{RPC_NAME}                        | The duration statistics of RPC calls exposed on workers |
 
 ## Client Metrics
 
@@ -126,6 +156,8 @@ Depending on the launching ways, Fuse metrics show as
 * client metrics when Fuse client is launching in a standalone AlluxioFuse process.
 * worker metrics when Fuse client is embedded in the AlluxioWorker process.
 
+Fuse metrics includes:
+
 <table class="table table-striped">
 <tr><th>Name</th><th>Type</th><th>Description</th></tr>
 {% for item in site.data.table.fuse-metrics %}
@@ -137,17 +169,21 @@ Depending on the launching ways, Fuse metrics show as
 {% endfor %}
 </table>
 
+Fuse reading/writing file count can be used as the indicators for Fuse application pressure.
+If a large amount of concurrent read/write occur in a short period of time, each of the read/write operations may take longer time to finish.
+
 When a user or an application runs a filesystem command under Fuse mount point, 
 this command will be processed and translated by operating system which will trigger the related Fuse operations
 exposed in [AlluxioFuse](https://github.com/Alluxio/alluxio/blob/db01aae966849e88d342a71609ab3d910215afeb/integration/fuse/src/main/java/alluxio/fuse/AlluxioJniFuseFileSystem.java).
 The count of how many times each operation is called, and the duration of each call will be recorded with metrics name `Fuse.<FUSE_OPERATION_NAME>` dynamically.
 
 The important Fuse metrics include:
+
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
 | Fuse.readdir | The duration metrics of listing a directory |
 | Fuse.getattr | The duration metrics of getting the metadata of a file |
-| Fuse.open | The duration metrics of opening a file for read |
+| Fuse.open | The duration metrics of opening a file for read or overwrite |
 | Fuse.read | The duration metrics of reading a part of a file |
 | Fuse.create | The duration metrics of creating a file for write |
 | Fuse.write | The duration metrics of writing a file |
@@ -159,10 +195,15 @@ The important Fuse metrics include:
 | Fuse.chown | The duration metrics of modifying the user and/or group ownership of a file or a directory |
 
 Fuse related metrics include:
+* `Client.TotalRPCClients`shows the total number of RPC clients exist that is using to or can be used to connect to master or worker for operations.
 * Worker metrics with `Direct` keyword. When Fuse is embedded in worker process, it can go through worker internal API to read from / write to this worker.
 The related metrics are ended with `Direct`. For example, `Worker.BytesReadDirect` shows how many bytes are served by this worker to its embedded Fuse client for read.
 * If `alluxio.user.block.read.metrics.enabled=true` is configured, `Client.BlockReadChunkRemote` will be recorded. 
 This metric shows the duration statistics of reading data from remote workers via gRPC.
+
+`Client.TotalRPCClients` and `Fuse.TotalCalls` metrics are good indicator of the current load of the Fuse applications.
+If applications (e.g. Tensorflow) are running on top of Alluxio Fuse but these two metrics show a much lower value than before,
+the training job may be stuck with Alluxio.
 
 ## Process Common Metrics
 

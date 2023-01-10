@@ -13,7 +13,6 @@ package alluxio.table.under.glue;
 
 import alluxio.table.common.Layout;
 import alluxio.table.common.UdbPartition;
-
 import alluxio.table.common.layout.HiveLayout;
 
 import com.google.common.base.MoreObjects;

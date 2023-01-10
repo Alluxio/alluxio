@@ -12,13 +12,13 @@
 package alluxio.client.cli.fs.command;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
 
 import org.junit.Test;
 

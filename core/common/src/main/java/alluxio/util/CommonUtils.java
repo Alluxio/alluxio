@@ -46,6 +46,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -53,6 +54,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.concurrent.Callable;
@@ -64,7 +66,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -149,7 +150,7 @@ public final class CommonUtils {
    *
    * @return the worker data folder path after each storage directory, the final path will be like
    * "/mnt/ramdisk/alluxioworker" for storage dir "/mnt/ramdisk" by appending
-   * {@link PropertyKey#WORKER_DATA_FOLDER).
+   * {@link PropertyKey#WORKER_DATA_FOLDER}.
    */
   public static String getWorkerDataDirectory(String storageDir, AlluxioConfiguration conf) {
     return PathUtils.concatPath(
@@ -202,8 +203,7 @@ public final class CommonUtils {
    * @return an array of strings
    */
   public static String[] toStringArray(ArrayList<String> src) {
-    String[] ret = new String[src.size()];
-    return src.toArray(ret);
+    return src.toArray(new String[0]);
   }
 
   /**
@@ -672,6 +672,7 @@ public final class CommonUtils {
     JOB_WORKER,
     CLIENT,
     MASTER,
+    PLUGIN,
     PROXY,
     WORKER;
   }
@@ -789,6 +790,7 @@ public final class CommonUtils {
     return new Supplier<T>() {
       Supplier<T> mDelegate = this::firstTime;
       boolean mInitialized;
+      @Override
       public T get() {
         return mDelegate.get();
       }
@@ -881,6 +883,41 @@ public final class CommonUtils {
       }
     }
     return Integer.parseInt(version);
+  }
+
+  /**
+   * @param obj a Java object
+   * @return if this object is an collection
+   */
+  public static boolean isCollection(Object obj) {
+    return obj instanceof Collection || obj instanceof Map;
+  }
+
+  /**
+   * @param obj a Java object
+   * @return a string to summarize the object if this is a collection or a map
+   */
+  public static String summarizeCollection(Object obj) {
+    if (obj instanceof Collection) {
+      return String.format(
+          "%s{%d entries}", obj.getClass().getSimpleName(), ((Collection<?>) obj).size());
+    } else if (obj instanceof Map) {
+      return String.format("Map{%d entries}", ((Map<?, ?>) obj).size());
+    }
+    return Objects.toString(obj);
+  }
+
+  /**
+   * @param e error
+   * @return whether it's fatal error
+   */
+  public static boolean isFatalError(Throwable e) {
+    // StackOverflowError ok even though it is a VirtualMachineError
+    if (e instanceof StackOverflowError) {
+      return false;
+    }
+    // VirtualMachineError includes OutOfMemoryError and other fatal errors
+    return e instanceof VirtualMachineError || e instanceof LinkageError;
   }
 
   private CommonUtils() {} // prevent instantiation

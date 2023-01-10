@@ -12,13 +12,14 @@
 package alluxio.cli.hdfs;
 
 import alluxio.cli.AbstractValidationTask;
+import alluxio.cli.ApplicableUfsType;
 import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
-import alluxio.cli.ApplicableUfsType;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
+import alluxio.util.ExceptionUtils;
 import alluxio.util.io.PathUtils;
 
 import java.io.IOException;
@@ -30,7 +31,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
 
 /**
@@ -77,9 +77,9 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
   }
 
   protected Pair<String, String> getHdfsConfPaths() {
-    // If ServerConfiguration does not contain the key, then a {@link RuntimeException} will be
+    // If Configuration does not contain the key, then a {@link RuntimeException} will be
     // thrown before calling the {@link String#split} method.
-    String confVal = mConf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION);
+    String confVal = mConf.getString(PropertyKey.UNDERFS_HDFS_CONFIGURATION);
     String[] clientHadoopConfFilePaths = confVal.split(SEPARATOR);
     mMsg.append(String.format(
         "%d file path(s) detected in for HDFS configuration files for \"%s\"%n",
@@ -157,7 +157,7 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
     } catch (IllegalArgumentException e) {
       state = ValidationUtils.State.FAILED;
       mMsg.append("HDFS path not parsable as a URI.");
-      mMsg.append(ValidationUtils.getErrorInfo(e));
+      mMsg.append(ExceptionUtils.asPlainText(e));
       mAdvice.append("Make sure the HDFS URI is in a valid format.");
     }
     return new ValidationTaskResult(state, getName(), mMsg.toString(), mAdvice.toString());
@@ -201,7 +201,7 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
       mState = ValidationUtils.State.WARNING;
       mMsg.append(String.format("Invalid path %s in Alluxio property %s.%n", path,
               PropertyKey.UNDERFS_HDFS_CONFIGURATION));
-      mMsg.append(ValidationUtils.getErrorInfo(e));
+      mMsg.append(ExceptionUtils.asPlainText(e));
       mAdvice.append(String.format("Please correct the path for %s in %s%n", configName,
               PropertyKey.UNDERFS_HDFS_CONFIGURATION));
       return null;
@@ -232,12 +232,12 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
     } catch (IOException e) {
       mState = ValidationUtils.State.FAILED;
       mMsg.append(String.format("Failed to read %s. %s.%n", path, e.getMessage()));
-      mMsg.append(ValidationUtils.getErrorInfo(e));
+      mMsg.append(ExceptionUtils.asPlainText(e));
       mAdvice.append(String.format("Please check your %s.%n", path));
     } catch (RuntimeException e) {
       mState = ValidationUtils.State.FAILED;
       mMsg.append(String.format("Failed to parse %s. %s.%n", path, e.getMessage()));
-      mMsg.append(ValidationUtils.getErrorInfo(e));
+      mMsg.append(ExceptionUtils.asPlainText(e));
       mAdvice.append(String.format("Failed to parse %s as valid XML. Please check that the file "
           + "path is correct and the content is valid XML.%n", path));
     }

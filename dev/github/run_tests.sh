@@ -15,6 +15,11 @@
 #
 set -ex
 
+if [ -z "${ALLUXIO_FORK_COUNT}" ]
+then
+  ALLUXIO_FORK_COUNT=2
+fi
+
 if [ -n "${ALLUXIO_GIT_CLEAN}" ]
 then
   git clean -fdx
@@ -54,5 +59,5 @@ JAVA_HOME=${JAVA_HOME_BACKUP}
 PATH=${PATH_BACKUP}
 
 # Run tests
-mvn -Duser.home=/home/jenkins test -Pjacoco -Pdeveloper -Dmaven.main.skip -Dskip.protoc=true -Dmaven.javadoc.skip -Dlicense.skip=true \
--Dcheckstyle.skip=true -Dfindbugs.skip=true -Dsurefire.forkCount=2 ${mvn_args} $@
+mvn -Duser.home=/home/jenkins test -Pdeveloper -Dmaven.main.skip -Dskip.protoc=true -Dmaven.javadoc.skip -Dlicense.skip=true \
+-Dcheckstyle.skip=true -Dfindbugs.skip=true -Dsurefire.forkCount=${ALLUXIO_FORK_COUNT} ${mvn_args} $@

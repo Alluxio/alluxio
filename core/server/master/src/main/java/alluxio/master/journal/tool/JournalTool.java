@@ -12,22 +12,19 @@
 package alluxio.master.journal.tool;
 
 import alluxio.RuntimeConstants;
+import alluxio.annotation.SuppressFBWarnings;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalType;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -35,13 +32,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * <pre>
  * java -cp \
- *   assembly/server/target/alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
+ *   assembly/server/target/alluxio-assembly-server-&lt;ALLUXIO-VERSION&gt;
+ *   -jar-with-dependencies.jar \
  *   alluxio.master.journal.JournalTool -master FileSystemMaster -outputDir my-journal
  * </pre>
  */
 @NotThreadSafe
 public final class JournalTool {
-  private static final Logger LOG = LoggerFactory.getLogger(JournalTool.class);
   private static final int EXIT_FAILED = -1;
   private static final int EXIT_SUCCEEDED = 0;
   private static final String HELP_OPTION_NAME = "help";
@@ -94,14 +91,14 @@ public final class JournalTool {
     try {
       dumpJournal();
     } catch (Exception exc) {
-      System.out.println(String.format("Journal tool failed: %s", exc));
+      System.out.printf("Journal tool failed: %s%n", exc);
     }
   }
 
   @SuppressFBWarnings(value = "DB_DUPLICATE_SWITCH_CLAUSES")
   private static void dumpJournal() throws Throwable {
     JournalType journalType =
-        ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+        Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
 
     AbstractJournalDumper journalDumper;
     switch (journalType) {
@@ -112,12 +109,11 @@ public final class JournalTool {
         journalDumper = new RaftJournalDumper(sMaster, sStart, sEnd, sOutputDir, sInputDir);
         break;
       default:
-        System.err.println(String.format("Unsupported journal type: %s", journalType.name()));
+        System.err.printf("Unsupported journal type: %s%n", journalType.name());
         return;
     }
 
-    System.out.println(
-        String.format("Dumping journal of type %s to %s", journalType.name(), sOutputDir));
+    System.out.printf("Dumping journal of type %s to %s%n", journalType.name(), sOutputDir);
     journalDumper.dumpJournal();
   }
 
@@ -145,7 +141,7 @@ public final class JournalTool {
     if (cmd.hasOption(INPUT_DIR_OPTION_NAME)) {
       sInputDir = new File(cmd.getOptionValue(INPUT_DIR_OPTION_NAME)).getAbsolutePath();
     } else {
-      sInputDir = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+      sInputDir = Configuration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     }
     sOutputDir = new File(cmd.getOptionValue(OUTPUT_DIR_OPTION_NAME,
         "journal_dump-" + System.currentTimeMillis())).getAbsolutePath();

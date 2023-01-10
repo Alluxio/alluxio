@@ -21,7 +21,6 @@ import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
 import java.util.function.Function;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -49,8 +48,7 @@ public class GrpcDataMessageBlockingStream<ReqT, ResT> extends GrpcBlockingStrea
       DataMessageClientResponseObserver<ReqT, ResT> newObserver =
           new DataMessageClientResponseObserver<>(resObserver, requestMarshaller,
               responseMarshaller);
-      StreamObserver<ReqT> requestObserver = rpcFunc.apply(newObserver);
-      return requestObserver;
+      return rpcFunc.apply(newObserver);
     }, bufferSize, description);
     mRequestMarshaller = requestMarshaller;
     mResponseMarshaller = responseMarshaller;

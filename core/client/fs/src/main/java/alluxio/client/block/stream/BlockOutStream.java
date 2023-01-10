@@ -15,22 +15,20 @@ import alluxio.client.BoundedStream;
 import alluxio.client.Cancelable;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.exception.PreconditionMessage;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.netty.buffer.Unpooled;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
+import java.util.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -39,7 +37,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class BlockOutStream extends OutputStream implements BoundedStream, Cancelable {
-  private static final Logger LOG = LoggerFactory.getLogger(BlockOutStream.class);
 
   private final Closer mCloser;
   /** Length of the stream. If unknown, set to Long.MAX_VALUE. */
@@ -60,8 +57,10 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
   public BlockOutStream(DataWriter dataWriter, long length, WorkerNetAddress address) {
     mCloser = Closer.create();
     mLength = length;
+    Objects.requireNonNull(address);
     mAddress = address;
     mDataWriters = new ArrayList<>(1);
+    Objects.requireNonNull(dataWriter);
     mDataWriters.add(dataWriter);
     mCloser.register(dataWriter);
     mClosed = false;
@@ -122,7 +121,7 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
 
   @Override
   public void write(int b) throws IOException {
-    Preconditions.checkState(remaining() > 0, PreconditionMessage.ERR_END_OF_BLOCK);
+    Preconditions.checkState(remaining() > 0, "Cannot write past end of block");
     updateCurrentChunk(false);
     mCurrentChunk.writeByte(b);
   }
@@ -134,25 +133,14 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    if (len == 0) {
-      return;
-    }
-
-    while (len > 0) {
-      updateCurrentChunk(false);
-      int toWrite = Math.min(len, mCurrentChunk.writableBytes());
-      mCurrentChunk.writeBytes(b, off, toWrite);
-      off += toWrite;
-      len -= toWrite;
-    }
-    updateCurrentChunk(false);
+    writeInternal(Unpooled.wrappedBuffer(b), off, len);
   }
 
   /**
    * Writes the data in the specified byte buf to this output stream.
    *
    * @param buf the buffer
-   * @throws IOException
+   * @throws IOException exception
    */
   public void write(io.netty.buffer.ByteBuf buf) throws IOException {
     write(buf, 0, buf.readableBytes());
@@ -166,6 +154,10 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
    * @param len the length
    */
   public void write(io.netty.buffer.ByteBuf buf, int off, int len) throws IOException {
+    writeInternal(buf, off, len);
+  }
+
+  private void writeInternal(ByteBuf b, int off, int len) throws IOException {
     if (len == 0) {
       return;
     }
@@ -173,7 +165,7 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
     while (len > 0) {
       updateCurrentChunk(false);
       int toWrite = Math.min(len, mCurrentChunk.writableBytes());
-      mCurrentChunk.writeBytes(buf, off, toWrite);
+      mCurrentChunk.writeBytes(b, off, toWrite);
       off += toWrite;
       len -= toWrite;
     }

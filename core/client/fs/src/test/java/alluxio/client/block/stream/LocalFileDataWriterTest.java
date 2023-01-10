@@ -15,10 +15,9 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.ClientContext;
-import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.util.IdUtils;
@@ -31,7 +30,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -51,7 +50,6 @@ public class LocalFileDataWriterTest {
   private WorkerNetAddress mAddress;
   private BlockWorkerClient mClient;
   private ClientContext mClientContext;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
   private FileSystemContext mContext;
   private GrpcBlockingStream<CreateLocalBlockRequest, CreateLocalBlockResponse> mStream;
 
@@ -60,7 +58,7 @@ public class LocalFileDataWriterTest {
     mWorkDirectory =
         AlluxioTestDirectory.createTemporaryDirectory("blocks").getAbsolutePath();
 
-    mClientContext = ClientContext.create(mConf);
+    mClientContext = ClientContext.create(Configuration.global());
 
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = mock(WorkerNetAddress.class);
@@ -69,11 +67,11 @@ public class LocalFileDataWriterTest {
     PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(
         new NoopClosableResource<>(mClient));
     PowerMockito.when(mContext.getClientContext()).thenReturn(mClientContext);
-    PowerMockito.when(mContext.getClusterConf()).thenReturn(mConf);
+    PowerMockito.when(mContext.getClusterConf()).thenReturn(Configuration.global());
 
     mStream = mock(GrpcBlockingStream.class);
-    PowerMockito.doNothing().when(mStream).send(Matchers.any(), Matchers.anyLong());
-    PowerMockito.when(mStream.receive(Matchers.anyLong()))
+    PowerMockito.doNothing().when(mStream).send(ArgumentMatchers.any(), ArgumentMatchers.anyLong());
+    PowerMockito.when(mStream.receive(ArgumentMatchers.anyLong()))
         .thenReturn(CreateLocalBlockResponse.newBuilder()
             .setPath(PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(),
                 PathUtils.concatPath(mWorkDirectory, BLOCK_ID)))
@@ -93,7 +91,7 @@ public class LocalFileDataWriterTest {
   @Test
   public void streamCancelled() throws Exception {
     LocalFileDataWriter writer = LocalFileDataWriter.create(mContext, mAddress, BLOCK_ID,
-        128 /* unused */, OutStreamOptions.defaults(mClientContext));
+        128 /* unused */, OutStreamOptions.defaults(mContext));
 
     // Cancel stream before cancelling the writer
     PowerMockito.when(mStream.isCanceled()).thenReturn(true);
@@ -110,7 +108,7 @@ public class LocalFileDataWriterTest {
   @Test
   public void streamClosed() throws Exception {
     LocalFileDataWriter writer = LocalFileDataWriter.create(mContext, mAddress, BLOCK_ID,
-        128 /* unused */, OutStreamOptions.defaults(mClientContext));
+        128 /* unused */, OutStreamOptions.defaults(mContext));
 
     // Close stream before closing the writer
     PowerMockito.when(mStream.isCanceled()).thenReturn(true);

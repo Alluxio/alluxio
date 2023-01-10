@@ -11,17 +11,20 @@
 
 package alluxio.master.journal;
 
-import static org.junit.Assert.fail;
+import static alluxio.master.journal.JournalTestUtils.createEmbeddedJournalTestPorts;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
@@ -30,6 +33,7 @@ import alluxio.master.StateLockOptions;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
+import alluxio.master.file.FileSystemJournalEntryMerger;
 import alluxio.master.file.InodeSyncStream;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -84,7 +88,8 @@ public class JournalContextTest {
 
   @Before
   public void before() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, mJournalType);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, mJournalType);
+    createEmbeddedJournalTestPorts(1);
 
     mRegistry = new MasterRegistry();
     mJournalSystem = JournalTestUtils.createJournalSystem(mTemporaryFolder);
@@ -103,7 +108,7 @@ public class JournalContextTest {
   public void after() throws Exception {
     mRegistry.stop();
     mJournalSystem.stop();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Test
@@ -164,7 +169,7 @@ public class JournalContextTest {
 
       // after un-pausing, new journal contexts can be created
       lock.close();
-      thread2.run();
+      thread2.start();
       CommonUtils.waitFor("journal context created", journalContextCreated::get,
           WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS).setInterval(10));
     } finally {
@@ -180,10 +185,10 @@ public class JournalContextTest {
   public void journalClosedTest() throws Exception {
     // Secondary journals will be closed for operation.
     mJournalSystem.losePrimacy();
-    // Validate that createJournalContext fails for secondary journals.
+    // Validate that createJournalContext fails for standby journals.
     try {
       mBlockMaster.createJournalContext();
-      fail("journal context creation should fail in secondary journal.");
+      fail("journal context creation should fail in standby journal.");
     } catch (UnavailableException e) {
       // expected.
     }
@@ -245,6 +250,7 @@ public class JournalContextTest {
   @Test
   public void mergeJournal() throws Exception {
     JournalContext journalContext = Mockito.mock(JournalContext.class);
+    AlluxioURI uri = new AlluxioURI("/dir/test1");
     List<Journal.JournalEntry> entries = new ArrayList<>();
     doAnswer(invocationOnMock -> {
       entries.add(invocationOnMock.getArgument(0));
@@ -252,12 +258,12 @@ public class JournalContextTest {
     }).when(journalContext).append(any(Journal.JournalEntry.class));
 
     JournalContext mergeContext = new MergeJournalContext(journalContext,
-        InodeSyncStream::mergeCreateComplete);
+        uri, InodeSyncStream::mergeCreateComplete);
     mergeContext.append(Journal.JournalEntry.newBuilder().setInodeFile(
         File.InodeFileEntry.newBuilder().setId(
             BlockId.createBlockId(1, BlockId.getMaxSequenceNumber())).setLength(2)
             .setPersistenceState(PersistenceState.PERSISTED.name())
-            .setName("test1").build()).build());
+            .setName("test1").setPath(uri.getPath()).build()).build());
     mergeContext.append(Journal.JournalEntry.newBuilder().setInodeFile(
         File.InodeFileEntry.newBuilder().setId(
             BlockId.createBlockId(2, BlockId.getMaxSequenceNumber())).setLength(3)
@@ -277,24 +283,84 @@ public class JournalContextTest {
             .setLength(200).build()).build());
     mergeContext.close();
 
-    assertEquals(3, entries.size());
+    // Merge context only merges the matching file and ignores other entries
+    assertEquals(4, entries.size());
     Journal.JournalEntry entry = entries.get(0);
     assertNotNull(entry.getInodeFile());
-    assertEquals(BlockId.createBlockId(1, BlockId.getMaxSequenceNumber()),
-        entry.getInodeFile().getId());
-    assertEquals(200, entry.getInodeFile().getLength());
-    assertEquals("test1", entry.getInodeFile().getName());
-    Journal.JournalEntry entry2 = entries.get(1);
-    assertNotNull(entry2.getInodeFile());
     assertEquals(BlockId.createBlockId(2, BlockId.getMaxSequenceNumber()),
-        entry2.getInodeFile().getId());
-    assertEquals(3, entry2.getInodeFile().getLength());
-    assertEquals("test2_updated", entry2.getInodeFile().getName());
+        entry.getInodeFile().getId());
+    assertEquals(3, entry.getInodeFile().getLength());
+    assertEquals("test2", entry.getInodeFile().getName());
+
+    Journal.JournalEntry entry2 = entries.get(1);
+    assertNotNull(entry2.getUpdateInode());
+    assertEquals(BlockId.createBlockId(3, BlockId.getMaxSequenceNumber()),
+        entry2.getUpdateInode().getId());
+    assertEquals("test3_unchanged", entry2.getUpdateInode().getName());
 
     Journal.JournalEntry entry3 = entries.get(2);
     assertNotNull(entry3.getUpdateInode());
-    assertEquals(BlockId.createBlockId(3, BlockId.getMaxSequenceNumber()),
+    assertEquals(BlockId.createBlockId(2, BlockId.getMaxSequenceNumber()),
         entry3.getUpdateInode().getId());
-    assertEquals("test3_unchanged", entry3.getUpdateInode().getName());
+    assertEquals("test2_updated", entry3.getUpdateInode().getName());
+
+    Journal.JournalEntry entry4 = entries.get(3);
+    assertNotNull(entry4.getInodeFile());
+    assertEquals(BlockId.createBlockId(1, BlockId.getMaxSequenceNumber()),
+        entry4.getInodeFile().getId());
+    assertEquals(200, entry4.getInodeFile().getLength());
+    assertEquals("test1", entry4.getInodeFile().getName());
+  }
+
+  @Test
+  public void fileSystemMergeJournalContext() throws Exception {
+    testMergeJournalContext(false);
+  }
+
+  @Test
+  public void metadataSyncMergeJournalContext() throws Exception {
+    testMergeJournalContext(true);
+  }
+
+  private void testMergeJournalContext(boolean useMetadataSyncJournalContext) throws Exception {
+    JournalContext journalContext = Mockito.mock(JournalContext.class);
+    List<Journal.JournalEntry> entries = new ArrayList<>();
+    doAnswer(invocationOnMock -> {
+      entries.add(invocationOnMock.getArgument(0));
+      return null;
+    }).when(journalContext).append(any(Journal.JournalEntry.class));
+
+    doNothing().when(journalContext).flush();
+    doNothing().when(journalContext).close();
+
+    JournalContext mergeContext = useMetadataSyncJournalContext
+        ? new MetadataSyncMergeJournalContext(journalContext, new FileSystemJournalEntryMerger()) :
+        new FileSystemMergeJournalContext(journalContext, new FileSystemJournalEntryMerger());
+
+    mergeContext.append(Journal.JournalEntry.newBuilder().getDefaultInstanceForType());
+    assertEquals(0, entries.size());
+
+    mergeContext.flush();
+    // Flush should flush all journals held by the JournalContext into the writer
+    assertEquals(1, entries.size());
+
+    // Test merge journal entries. Detailed test can be found in FileSystemJournalEntryMergerTest
+    mergeContext.append(Journal.JournalEntry.newBuilder().setInodeFile(
+        File.InodeFileEntry.newBuilder().setId(
+                BlockId.createBlockId(2, BlockId.getMaxSequenceNumber())).setLength(3)
+            .setPersistenceState(PersistenceState.PERSISTED.name())
+            .setName("test2").build()).build());
+
+    mergeContext.append(Journal.JournalEntry.newBuilder().setUpdateInode(
+        File.UpdateInodeEntry.newBuilder().setId(
+                BlockId.createBlockId(2, BlockId.getMaxSequenceNumber()))
+            .setName("test2_updated").build()).build());
+    mergeContext.flush();
+    assertEquals(2, entries.size());
+
+    mergeContext.append(Journal.JournalEntry.newBuilder().getDefaultInstanceForType());
+    mergeContext.close();
+    // Close should also flush all journals held by the JournalContext into the writer
+    assertEquals(3, entries.size());
   }
 }

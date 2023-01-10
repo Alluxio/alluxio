@@ -14,96 +14,67 @@ package alluxio.fuse.auth;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.fuse.AlluxioFuseUtils;
-import alluxio.grpc.SetAttributePOptions;
-import alluxio.jnifuse.AbstractFuseFileSystem;
+import alluxio.jnifuse.FuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.common.base.Preconditions;
 
-import java.io.IOException;
+import java.util.Optional;
 
 /**
- * Default Fuse Auth Policy.
+ * The system user group authentication policy that always set the user group
+ * to the actual end user.
+ * Note that this may downgrade the performance of creating file/directory.
  */
-public final class SystemUserGroupAuthPolicy implements AuthPolicy {
-  private static final Logger LOG = LoggerFactory.getLogger(
-      SystemUserGroupAuthPolicy.class);
-  private static final String DEFAULT_USER_NAME = System.getProperty("user.name");
-  private static final String DEFAULT_GROUP_NAME = System.getProperty("user.name");
-  public static final long DEFAULT_UID = AlluxioFuseUtils.getUid(DEFAULT_USER_NAME);
-  public static final long DEFAULT_GID = AlluxioFuseUtils.getGid(DEFAULT_GROUP_NAME);
+public final class SystemUserGroupAuthPolicy extends LaunchUserGroupAuthPolicy {
 
-  private final FileSystem mFileSystem;
-  private final AbstractFuseFileSystem mFuseFileSystem;
-  private final boolean mIsUserGroupTranslation;
-  private final LoadingCache<Long, String> mUsernameCache;
-  private final LoadingCache<Long, String> mGroupnameCache;
+  /**
+   * Creates a new system auth policy.
+   *
+   * @param fileSystem file system
+   * @param conf the Alluxio configuration
+   * @param fuseFileSystem fuse file system
+   * @return system auth policy
+   */
+  public static SystemUserGroupAuthPolicy create(FileSystem fileSystem,
+      AlluxioConfiguration conf, Optional<FuseFileSystem> fuseFileSystem) {
+    return new SystemUserGroupAuthPolicy(fileSystem, fuseFileSystem);
+  }
 
   /**
    * @param fileSystem     the Alluxio file system
-   * @param conf           alluxio configuration
    * @param fuseFileSystem AbstractFuseFileSystem
    */
-  public SystemUserGroupAuthPolicy(
-      FileSystem fileSystem, AlluxioConfiguration conf, AbstractFuseFileSystem fuseFileSystem) {
-    mFileSystem = fileSystem;
-    mFuseFileSystem = fuseFileSystem;
-
-    mUsernameCache = CacheBuilder.newBuilder()
-        .maximumSize(100)
-        .build(new CacheLoader<Long, String>() {
-          @Override
-          public String load(Long uid) {
-            try {
-              String userName = AlluxioFuseUtils.getGroupName(uid);
-              return userName.isEmpty() ? DEFAULT_USER_NAME : userName;
-            } catch (IOException e) {
-              // This should never be reached since input uid is always valid
-              LOG.error("Failed to get user name from uid {}, fallback to {}",
-                  uid, DEFAULT_USER_NAME);
-              return DEFAULT_USER_NAME;
-            }
-          }
-        });
-    mGroupnameCache = CacheBuilder.newBuilder()
-        .maximumSize(100)
-        .build(new CacheLoader<Long, String>() {
-          @Override
-          public String load(Long gid) {
-            try {
-              String groupName = AlluxioFuseUtils.getGroupName(gid);
-              return groupName.isEmpty() ? DEFAULT_GROUP_NAME : groupName;
-            } catch (IOException e) {
-              // This should never be reached since input gid is always valid
-              LOG.error("Failed to get group name from gid {}, fallback to {}.",
-                  gid, DEFAULT_GROUP_NAME);
-              return DEFAULT_GROUP_NAME;
-            }
-          }
-        });
-    mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
+  private SystemUserGroupAuthPolicy(FileSystem fileSystem,
+      Optional<FuseFileSystem> fuseFileSystem) {
+    super(fileSystem, fuseFileSystem);
+    Preconditions.checkArgument(mFuseFileSystem.isPresent());
   }
 
   @Override
-  public void setUserGroupIfNeeded(AlluxioURI uri) throws Exception {
-    FuseContext fc = mFuseFileSystem.getContext();
-    long uid = mIsUserGroupTranslation ? fc.uid.get() : DEFAULT_UID;
-    long gid = mIsUserGroupTranslation ? fc.gid.get() : DEFAULT_GID;
-    if (gid != DEFAULT_GID || uid != DEFAULT_UID) {
-      String groupName = gid != DEFAULT_GID ? mGroupnameCache.get(gid) : DEFAULT_GROUP_NAME;
-      String userName = uid != DEFAULT_UID ? mUsernameCache.get(uid) : DEFAULT_USER_NAME;
-      SetAttributePOptions attributeOptions = SetAttributePOptions.newBuilder()
-          .setGroup(groupName)
-          .setOwner(userName)
-          .build();
-      LOG.debug("Set attributes of path {} to {}", uri, attributeOptions);
-      mFileSystem.setAttribute(uri, attributeOptions);
-    }
+  public void setUserGroupIfNeeded(AlluxioURI uri) {
+    FuseContext fc = mFuseFileSystem.get().getContext();
+    setUserGroup(uri, fc.uid.get(), fc.gid.get());
+  }
+
+  @Override
+  public Optional<Long> getUid() {
+    return Optional.of(mFuseFileSystem.get().getContext().uid.get());
+  }
+
+  @Override
+  public Optional<Long> getUid(String owner) {
+    return AlluxioFuseUtils.getUid(owner);
+  }
+
+  @Override
+  public Optional<Long> getGid() {
+    return Optional.of(mFuseFileSystem.get().getContext().gid.get());
+  }
+
+  @Override
+  public Optional<Long> getGid(String group) {
+    return AlluxioFuseUtils.getGidFromGroupName(group);
   }
 }

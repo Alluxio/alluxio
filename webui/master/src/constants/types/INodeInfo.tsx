@@ -20,4 +20,7 @@ export interface INodeInfo {
   lastHeartbeat: string;
   uptimeClockTime: string;
   usedMemory: string;
+  blockCount: number;
+  version: string;
+  revision: string;
 }

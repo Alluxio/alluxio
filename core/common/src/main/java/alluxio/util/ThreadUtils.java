@@ -14,7 +14,6 @@ package alluxio.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.GuardedBy;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -26,6 +25,7 @@ import java.lang.management.ThreadMXBean;
 import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  * Utility method for working with threads.
@@ -43,6 +43,15 @@ public final class ThreadUtils {
     Throwable t = new Throwable(String.format("Stack trace for thread %s (State: %s):",
         thread.getName(), thread.getState()));
     t.setStackTrace(thread.getStackTrace());
+    return formatStackTrace(t);
+  }
+
+  /**
+   * Return formatted stacktrace of Throwable instance.
+   * @param t - a Throwable instance
+   * @return a human-readable representation of the Throwable's stack trace
+   */
+  public static String formatStackTrace(Throwable t) {
     StringWriter sw = new StringWriter();
     t.printStackTrace(new PrintWriter(sw));
     return sw.toString();

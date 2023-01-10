@@ -1,4 +1,6 @@
-Fuse.BytesRead:
-  'Total number of bytes read through Fuse.read() operations.'
-Fuse.BytesToRead:
-  'Total number of bytes requested by Fuse.read() operations.'
+Fuse.CachedPathCount:
+  'Total number of FUSE-to-Alluxio path mappings being cached. This value will be smaller or equal to alluxio.fuse.cached.paths.max'
+Fuse.ReadWriteFileCount:
+  'Total number of files being opened for reading or writing concurrently.'
+Fuse.TotalCalls:
+  'Throughput of JNI FUSE operation calls. This metrics indicates how busy the Alluxio Fuse application is serving requests'

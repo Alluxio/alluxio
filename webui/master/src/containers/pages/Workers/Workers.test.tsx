@@ -54,10 +54,35 @@ describe('Workers', () => {
 
     it('Renders without crashing', () => {
       expect(shallowWrapper.length).toEqual(1);
+      expect(shallowWrapper.find('#id-nodename')).toHaveLength(1);
     });
 
     it('Matches snapshot', () => {
       expect(shallowWrapper).toMatchSnapshot();
+    });
+
+    it('Hostname in Kubernetes environment', () => {
+      shallowWrapper.setProps({
+        workersData: {
+          ...props.workersData,
+          normalNodeInfos: [{ host: 'hostIp1 (podIp)', workerId: 1 }, { host: 'hostIp2 (podIp)', workerId: 2 }],
+        },
+      });
+      expect(shallowWrapper.find('#id-nodename').props().children).toEqual('Node Name(Container Host)');
+      expect(shallowWrapper.find('#id-1-link').prop('href')).toEqual(`//hostIp1:${props.initData.workerPort}`);
+      expect(shallowWrapper.find('#id-2-link').prop('href')).toEqual(`//hostIp2:${props.initData.workerPort}`);
+    });
+
+    it('Hostname in bare-metal environment', () => {
+      shallowWrapper.setProps({
+        workersData: {
+          ...props.workersData,
+          normalNodeInfos: [{ host: 'hostIp1', workerId: 1 }, { host: 'hostIp2', workerId: 2 }],
+        },
+      });
+      expect(shallowWrapper.find('#id-nodename').props().children).toEqual('Node Name');
+      expect(shallowWrapper.find('#id-1-link').prop('href')).toEqual(`//hostIp1:${props.initData.workerPort}`);
+      expect(shallowWrapper.find('#id-2-link').prop('href')).toEqual(`//hostIp2:${props.initData.workerPort}`);
     });
   });
 });

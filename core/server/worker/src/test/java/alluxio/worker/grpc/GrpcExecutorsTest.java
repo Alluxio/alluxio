@@ -62,6 +62,6 @@ public class GrpcExecutorsTest {
 
   @Test
   public void impersonationPassedToAsyncCacheManager() {
-    validateAuthenticatedClientUser(GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR);
+    validateAuthenticatedClientUser(GrpcExecutors.CACHE_MANAGER_EXECUTOR);
   }
 }

@@ -13,8 +13,8 @@ package alluxio.master;
 
 import alluxio.Constants;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
 import alluxio.retry.RetryUtils;
@@ -94,12 +94,12 @@ public class StateLockManager {
     mScheduler = Executors
         .newSingleThreadScheduledExecutor(ThreadFactoryUtils.build("state-lock-manager-%d", true));
     // Read properties.
-    mInterruptCycleEnabled = ServerConfiguration
+    mInterruptCycleEnabled = Configuration
         .getBoolean(PropertyKey.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED);
     mInterruptCycleInterval =
-        ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL);
+        Configuration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL);
     mForcedDurationMs =
-        ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_FORCED_DURATION);
+        Configuration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_FORCED_DURATION);
     // Validate properties.
     Preconditions.checkArgument(mInterruptCycleInterval > 0,
         "Interrupt-cycle interval should be greater than 0.");
@@ -115,7 +115,7 @@ public class StateLockManager {
   public void mastersStartedCallback() {
     if (mExclusiveOnlyDeadlineMs == -1) {
       long exclusiveOnlyDurationMs =
-          ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION);
+          Configuration.getMs(PropertyKey.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION);
       mExclusiveOnlyDeadlineMs = System.currentTimeMillis() + exclusiveOnlyDurationMs;
       if (exclusiveOnlyDurationMs > 0) {
         LOG.info("State-lock will remain in exclusive-only mode for {}ms until {}",
@@ -196,7 +196,7 @@ public class StateLockManager {
       throws TimeoutException, InterruptedException, IOException {
     LOG.debug("Thread-{} entered lockExclusive().", ThreadUtils.getCurrentThreadIdentifier());
     // Run the grace cycle.
-    StateLockOptions.GraceMode graceMode = lockOptions.getGraceMode();
+    GraceMode graceMode = lockOptions.getGraceMode();
     boolean graceCycleEntered = false;
     boolean lockAcquired = false;
     long deadlineMs = System.currentTimeMillis() + lockOptions.getGraceCycleTimeoutMs();
@@ -225,7 +225,7 @@ public class StateLockManager {
           ThreadUtils.getCurrentThreadIdentifier());
       activateInterruptCycle();
     } else { // Lock couldn't be acquired by grace-cycle.
-      if (graceMode == StateLockOptions.GraceMode.TIMEOUT) {
+      if (graceMode == GraceMode.TIMEOUT) {
         throw new TimeoutException(
             ExceptionMessage.STATE_LOCK_TIMED_OUT.getMessage(lockOptions.getGraceCycleTimeoutMs()));
       }

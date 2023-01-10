@@ -25,9 +25,9 @@ import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import com.google.common.collect.ImmutableSet;
 
-import java.util.HashSet;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Alluxio file system's directory representation in the file system master.
@@ -114,8 +114,6 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
   /**
    * Generates client file info for a folder.
    *
-   * xAttr is intentionally left out as the information is not yet exposed to clients
-   *
    * @param path the path of the folder in the filesystem
    * @return the generated {@link FileInfo}
    */
@@ -145,6 +143,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     ret.setAcl(mAcl);
     ret.setDefaultAcl(mDefaultAcl);
     ret.setMediumTypes(getMediumTypes());
+    ret.setXAttr(getXAttr());
     return ret;
   }
 
@@ -199,8 +198,8 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     } else {
       // Backward compatibility.
       AccessControlList acl = new AccessControlList();
-      acl.setOwningUser(entry.getOwner());
-      acl.setOwningGroup(entry.getGroup());
+      acl.setOwningUser(entry.getOwner().intern());
+      acl.setOwningGroup(entry.getGroup().intern());
       short mode = entry.hasMode() ? (short) entry.getMode() : Constants.DEFAULT_FILE_SYSTEM_MODE;
       acl.setMode(mode);
       ret.mAcl = acl;
@@ -210,7 +209,9 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     } else {
       ret.mDefaultAcl = new DefaultAccessControlList();
     }
-    ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+    if (!entry.getMediumTypeList().isEmpty()) {
+      ret.setMediumTypes(ImmutableSet.copyOf(entry.getMediumTypeList()));
+    }
     if (entry.getXAttrCount() > 0) {
       ret.setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
     }
@@ -234,8 +235,8 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setName(name)
         .setTtl(context.getTtl())
         .setTtlAction(context.getTtlAction())
-        .setOwner(context.getOwner())
-        .setGroup(context.getGroup())
+        .setOwner(context.getOwner().intern())
+        .setGroup(context.getGroup().intern())
         .setMode(context.getMode().toShort())
         .setAcl(context.getAcl())
         // SetAcl call is also setting default AclEntries
@@ -304,8 +305,10 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setMountPoint(inode.getIsMountPoint())
         .setDirectChildrenLoaded(inode.getHasDirectChildrenLoaded())
         .setChildCount(inode.getChildCount())
-        .setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getDefaultAcl()))
-        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
+        .setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getDefaultAcl()));
+    if (!inode.getMediumTypeList().isEmpty()) {
+      d.setMediumTypes(ImmutableSet.copyOf(inode.getMediumTypeList()));
+    }
     if (inode.getXAttrCount() > 0) {
       d.setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));
     }

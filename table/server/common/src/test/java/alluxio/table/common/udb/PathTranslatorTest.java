@@ -14,8 +14,8 @@ package alluxio.table.common.udb;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -28,7 +28,7 @@ import java.io.IOException;
 
 public class PathTranslatorTest {
   private static final String MASTER_HOSTNAME = "master";
-  private static final String MASTER_RPC_PORT = "11111";
+  private static final int MASTER_RPC_PORT = 11111;
   private static final String ALLUXIO_URI_AUTHORITY = "alluxio://" + MASTER_HOSTNAME;
   private static final String ALLUXIO_URI_AUTHORITY_WITH_PORT =
       ALLUXIO_URI_AUTHORITY + ":" + MASTER_RPC_PORT;
@@ -41,7 +41,7 @@ public class PathTranslatorTest {
       new ConfigurationRule(
           ImmutableMap.of(PropertyKey.MASTER_HOSTNAME, MASTER_HOSTNAME,
             PropertyKey.MASTER_RPC_PORT, MASTER_RPC_PORT),
-          ServerConfiguration.global());
+          Configuration.modifiableGlobal());
 
   private PathTranslator mTranslator;
 

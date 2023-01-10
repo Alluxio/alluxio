@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -94,7 +93,7 @@ public final class JobGrpcClientUtils {
     throw new RuntimeException("Failed to successfully complete the job: " + errorMessage);
   }
 
-  /**
+  /*
    * @param jobId the ID of the job to wait for
    * @return the job info once it finishes or null if the status cannot be fetched
    */
@@ -104,7 +103,7 @@ public final class JobGrpcClientUtils {
     try (final JobMasterClient client =
         JobMasterClient.Factory.create(JobMasterClientContext
             .newBuilder(ClientContext.create(alluxioConf)).build())) {
-      return CommonUtils.waitForResult("Job to finish", ()-> {
+      return CommonUtils.waitForResult("Job to finish", () -> {
         try {
           return client.getJobStatus(jobId);
         } catch (Exception e) {

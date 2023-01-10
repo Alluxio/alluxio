@@ -11,7 +11,7 @@
 
 package alluxio.master.journalv0;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.proto.journal.Journal.JournalEntry;
 
@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -62,7 +61,7 @@ public final class AsyncJournalWriter {
     mWriteCounter = new AtomicLong(0);
     // convert milliseconds to nanoseconds.
     mFlushBatchTimeNs =
-        1000000L * ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS);
+        1000000L * Configuration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS);
   }
 
   /**

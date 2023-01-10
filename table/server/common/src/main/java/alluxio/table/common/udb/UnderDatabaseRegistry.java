@@ -11,8 +11,8 @@
 
 package alluxio.table.common.udb;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.extensions.ExtensionsClassLoader;
 import alluxio.util.io.PathUtils;
 
@@ -54,8 +54,7 @@ public class UnderDatabaseRegistry {
   public void refresh() {
     Map<String, UnderDatabaseFactory> map = new HashMap<>();
 
-    String libDir =
-        PathUtils.concatPath(ServerConfiguration.global().get(PropertyKey.HOME), "lib");
+    String libDir = PathUtils.concatPath(Configuration.get(PropertyKey.HOME), "lib");
     LOG.info("Loading udb jars from {}", libDir);
     List<File> files = new ArrayList<>();
     try (DirectoryStream<Path> stream = Files

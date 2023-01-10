@@ -79,6 +79,11 @@ public class HdfsVersionTest {
     Assert.assertEquals(HdfsVersion.HADOOP_2_9, HdfsVersion.find("hadoop-2.9"));
     Assert.assertEquals(HdfsVersion.HADOOP_2_9, HdfsVersion.find("hadoop-2.9.0"));
     Assert.assertEquals(HdfsVersion.HADOOP_2_9, HdfsVersion.find("hadoop2.9"));
+    Assert.assertEquals(HdfsVersion.HADOOP_2_10, HdfsVersion.find("2.10.0"));
+    Assert.assertEquals(HdfsVersion.HADOOP_2_10, HdfsVersion.find("2.10.0-SNAPSHOT"));
+    Assert.assertEquals(HdfsVersion.HADOOP_2_10, HdfsVersion.find("hadoop-2.10"));
+    Assert.assertEquals(HdfsVersion.HADOOP_2_10, HdfsVersion.find("hadoop-2.10.0"));
+    Assert.assertEquals(HdfsVersion.HADOOP_2_10, HdfsVersion.find("hadoop2.10"));
     Assert.assertEquals(HdfsVersion.HADOOP_3_0, HdfsVersion.find("3.0.0"));
     Assert.assertEquals(HdfsVersion.HADOOP_3_0, HdfsVersion.find("3.0.0-SNAPSHOT"));
     Assert.assertEquals(HdfsVersion.HADOOP_3_0, HdfsVersion.find("hadoop-3.0"));

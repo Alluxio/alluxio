@@ -12,13 +12,12 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.grpc.ReadPType;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.wire.BlockReadRequest;
+import alluxio.util.IdUtils;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 
@@ -26,7 +25,7 @@ import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
+import java.util.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -55,6 +54,7 @@ public final class BlockWorkerDataReader implements DataReader {
    */
   private BlockWorkerDataReader(BlockReader reader,
       long offset, long len, long chunkSize) {
+    Objects.requireNonNull(reader);
     mReader = reader;
     Preconditions.checkArgument(chunkSize > 0);
     mPos = offset;
@@ -100,10 +100,8 @@ public final class BlockWorkerDataReader implements DataReader {
     private final long mChunkSize;
     private final BlockWorker mBlockWorker;
     private final long mBlockId;
-    private final boolean mIsPromote;
     private final boolean mIsPositionShort;
     private final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
-    private BlockReadRequest mBlockReadRequest;
 
     /**
      * Creates an instance of {@link Factory}.
@@ -119,17 +117,15 @@ public final class BlockWorkerDataReader implements DataReader {
       mBlockId = blockId;
       mBlockWorker = blockWorker;
       mChunkSize = chunkSize;
-      mIsPromote = options.getOptions().getReadType() == ReadPType.CACHE_PROMOTE;
       mIsPositionShort = options.getPositionShort();
       mOpenUfsBlockOptions = options.getOpenUfsBlockOptions(blockId);
     }
 
     @Override
     public DataReader create(long offset, long len) throws IOException {
-      mBlockReadRequest = new BlockReadRequest(mBlockId, offset, offset + len, mChunkSize,
-          mIsPromote, mIsPositionShort, mOpenUfsBlockOptions);
       try {
-        BlockReader reader = mBlockWorker.createBlockReader(mBlockReadRequest);
+        BlockReader reader = mBlockWorker.createBlockReader(IdUtils.createSessionId(),
+            mBlockId, offset, mIsPositionShort, mOpenUfsBlockOptions);
         return new BlockWorkerDataReader(reader, offset, len, mChunkSize);
       } catch (Exception e) {
         throw new IOException(e);

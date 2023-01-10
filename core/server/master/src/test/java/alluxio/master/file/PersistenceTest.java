@@ -11,14 +11,14 @@
 
 package alluxio.master.file;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.client.job.JobMasterClient;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -100,27 +100,27 @@ public final class PersistenceTest {
 
   @Before
   public void before() throws Exception {
-    UserState s = UserState.Factory.create(ServerConfiguration.global());
+    UserState s = UserState.Factory.create(Configuration.global());
     AuthenticatedClientUser.set(s.getUser().getName());
     TemporaryFolder tmpFolder = new TemporaryFolder();
     tmpFolder.create();
     File ufsRoot = tmpFolder.newFolder();
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
-    ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsRoot.getAbsolutePath());
-    ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, 0);
-    ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS, 1000);
-    ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS, 1000);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsRoot.getAbsolutePath());
+    Configuration.set(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, 0);
+    Configuration.set(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS, 1000);
+    Configuration.set(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS, 1000);
     mJournalFolder = tmpFolder.newFolder();
     mSafeModeManager = new DefaultSafeModeManager();
     mStartTimeMs = System.currentTimeMillis();
-    mPort = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT);
+    mPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     startServices();
   }
 
   @After
   public void after() throws Exception {
     stopServices();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
     AuthenticatedClientUser.remove();
   }
 
@@ -203,7 +203,7 @@ public final class PersistenceTest {
       Map<Long, PersistJob> persistJobs = getPersistJobs();
       PersistJob job = persistJobs.get(fileInfo.getFileId());
       UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath().toString(),
-          UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
+          UnderFileSystemConfiguration.defaults(Configuration.global()));
       UnderFileSystemUtils.touch(ufs, job.getTempUfsPath());
     }
 
@@ -312,7 +312,7 @@ public final class PersistenceTest {
    */
   @Test(timeout = 20000)
   public void retryPersistJobRenameDelete() throws Exception {
-    UserState s = UserState.Factory.create(ServerConfiguration.global());
+    UserState s = UserState.Factory.create(Configuration.global());
     AuthenticatedClientUser.set(s.getUser().getName());
     // Create src file and directory, checking the internal state.
     AlluxioURI alluxioDirSrc = new AlluxioURI("/src");
@@ -357,7 +357,7 @@ public final class PersistenceTest {
       Map<Long, PersistJob> persistJobs = getPersistJobs();
       PersistJob job = persistJobs.get(info.getFileId());
       UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath().toString(),
-          UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
+          UnderFileSystemConfiguration.defaults(Configuration.global()));
       UnderFileSystemUtils.touch(ufs, job.getTempUfsPath());
     }
 
@@ -445,8 +445,8 @@ public final class PersistenceTest {
 
   private AlluxioURI createTestFile() throws Exception {
     AlluxioURI path = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
-    String owner = SecurityUtils.getOwnerFromGrpcClient(ServerConfiguration.global());
-    String group = SecurityUtils.getGroupFromGrpcClient(ServerConfiguration.global());
+    String owner = SecurityUtils.getOwnerFromGrpcClient(Configuration.global());
+    String group = SecurityUtils.getGroupFromGrpcClient(Configuration.global());
     mFileSystemMaster.createFile(path,
         CreateFileContext
             .mergeFrom(

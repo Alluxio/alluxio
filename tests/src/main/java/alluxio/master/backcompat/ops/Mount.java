@@ -12,10 +12,10 @@
 package alluxio.master.backcompat.ops;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.file.FileSystem;
 import alluxio.master.backcompat.FsTestOp;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Assert;
 
 import java.io.File;

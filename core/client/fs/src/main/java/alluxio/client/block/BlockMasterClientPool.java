@@ -13,14 +13,17 @@ package alluxio.client.block;
 
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.resource.ResourcePool;
 import alluxio.util.ThreadFactoryUtils;
 
+import com.codahale.metrics.Counter;
+
 import java.io.IOException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -37,6 +40,8 @@ public final class BlockMasterClientPool extends DynamicResourcePool<BlockMaster
   private static final ScheduledExecutorService GC_EXECUTOR =
       new ScheduledThreadPoolExecutor(BLOCK_MASTER_CLIENT_POOL_GC_THREADPOOL_SIZE,
           ThreadFactoryUtils.build("BlockMasterClientPoolGcThreads-%d", true));
+  private static final Counter COUNTER = MetricsSystem.counter(
+      MetricKey.CLIENT_BLOCK_MASTER_CLIENT_COUNT.getName());
 
   /**
    * Creates a new block master client pool.
@@ -74,6 +79,11 @@ public final class BlockMasterClientPool extends DynamicResourcePool<BlockMaster
   @Override
   protected boolean isHealthy(BlockMasterClient client) {
     return client.isConnected();
+  }
+
+  @Override
+  protected Counter getMetricCounter() {
+    return COUNTER;
   }
 
   @Override

@@ -22,7 +22,6 @@ import alluxio.grpc.TtlAction;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -66,6 +65,23 @@ public final class FileSystemCommandUtils {
       throws AlluxioException, IOException {
     SetAttributePOptions options = SetAttributePOptions.newBuilder().setPinned(pinned)
         .addAllPinnedMedia(mediumTypes)
+        .build();
+    fs.setAttribute(path, options);
+  }
+
+  /**
+   * Sets direct children loaded.
+   *
+   * @param fs The {@link FileSystem} client
+   * @param path The {@link AlluxioURI} path as the input of the command
+   * @param directChildrenLoaded true or false
+   */
+  public static void setDirectChildrenLoaded(FileSystem fs, AlluxioURI path,
+      boolean directChildrenLoaded)
+      throws AlluxioException, IOException {
+    SetAttributePOptions options = SetAttributePOptions.newBuilder()
+        .setRecursive(false)
+        .setDirectChildrenLoaded(directChildrenLoaded)
         .build();
     fs.setAttribute(path, options);
   }

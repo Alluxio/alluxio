@@ -44,20 +44,18 @@ public class RocksStoreTest {
         .setMemTableConfig(new HashLinkedListMemTableConfig())
         .setCompressionType(CompressionType.NO_COMPRESSION)
         .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
-    DBOptions dbOpts = new DBOptions()
-        // Concurrent memtable write is not supported for hash linked list memtable
-        .setAllowConcurrentMemtableWrite(false)
-        .setMaxOpenFiles(-1)
-        .setCreateIfMissing(true)
-        .setCreateMissingColumnFamilies(true);
 
     List<ColumnFamilyDescriptor> columnDescriptors =
         Arrays.asList(new ColumnFamilyDescriptor("test".getBytes(), cfOpts));
     String dbDir = mFolder.newFolder("rocks").getAbsolutePath();
     String backupsDir = mFolder.newFolder("rocks-backups").getAbsolutePath();
     AtomicReference<ColumnFamilyHandle> testColumn = new AtomicReference<>();
+    DBOptions dbOpts = new DBOptions().setCreateIfMissing(true)
+        .setCreateMissingColumnFamilies(true)
+        .setAllowConcurrentMemtableWrite(false);
     RocksStore store =
-        new RocksStore(dbDir, backupsDir, columnDescriptors, dbOpts, Arrays.asList(testColumn));
+        new RocksStore("test", dbDir, backupsDir, dbOpts, columnDescriptors,
+            Arrays.asList(testColumn));
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RocksDB db = store.getDb();
     int count = 10;
@@ -66,15 +64,22 @@ public class RocksStoreTest {
           "b".getBytes());
     }
     store.writeToCheckpoint(baos);
+    store.close();
 
     String newBbDir = mFolder.newFolder("rocks-new").getAbsolutePath();
+    dbOpts = new DBOptions().setCreateIfMissing(true)
+        .setCreateMissingColumnFamilies(true)
+        .setAllowConcurrentMemtableWrite(false);
     store =
-        new RocksStore(newBbDir, backupsDir, columnDescriptors, dbOpts, Arrays.asList(testColumn));
+        new RocksStore("test-new", newBbDir, backupsDir, dbOpts, columnDescriptors,
+            Arrays.asList(testColumn));
     store.restoreFromCheckpoint(
         new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
     db = store.getDb();
     for (int i = 0; i < count; i++) {
       assertArrayEquals("b".getBytes(), db.get(testColumn.get(), ("a" + i).getBytes()));
     }
+    store.close();
+    cfOpts.close();
   }
 }

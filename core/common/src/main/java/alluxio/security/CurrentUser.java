@@ -14,7 +14,6 @@ package alluxio.security;
 import com.google.common.base.Objects;
 
 import java.security.Principal;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

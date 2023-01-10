@@ -11,8 +11,8 @@
 
 package alluxio.master.table;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.TableInfo;
@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -48,7 +47,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class Table {
   private static final Logger LOG = LoggerFactory.getLogger(Table.class);
   private static final long UNDEFINED_VERSION = -1;
-  private static final int PARTITIONS_CHUNK_SIZE = ServerConfiguration
+  private static final int PARTITIONS_CHUNK_SIZE = Configuration
       .getInt(PropertyKey.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE);
 
   public static final long FIRST_VERSION = 1;
@@ -98,19 +97,19 @@ public class Table {
           newPartition = new Partition(udbPartition);
           if (LOG.isDebugEnabled()) {
             LOG.debug("Existing table {}.{} adding UDB partition: {}",
-                database.getName(), mName, udbPartition.toString());
+                database.getName(), mName, udbPartition);
           }
         } else if (!newPartition.getBaseLayout().equals(udbPartition.getLayout())) {
           // existing partition is updated
           newPartition = newPartition.createNext(udbPartition);
           if (LOG.isDebugEnabled()) {
             LOG.debug("Existing table {}.{} updating UDB partition {}",
-                database.getName(), mName, udbPartition.toString());
+                database.getName(), mName, udbPartition);
           }
         } else {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Existing table {}.{} keeping partition spec: {}",
-                database.getName(), mName, udbPartition.toString());
+                database.getName(), mName, udbPartition);
           }
         }
         partitions.add(newPartition);
@@ -126,7 +125,7 @@ public class Table {
       if (LOG.isDebugEnabled()) {
         udbTable.getPartitions().stream().forEach(udbPartition ->
             LOG.debug("New table {}.{} adding UDB partition: {}.",
-                database.getName(), mName, udbPartition.toString()));
+                database.getName(), mName, udbPartition));
       }
     }
     mPartitionScheme =

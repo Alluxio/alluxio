@@ -14,6 +14,7 @@ package alluxio;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 
@@ -28,7 +29,7 @@ public final class ConfigurationRuleTest {
 
   @Test
   public void changeConfiguration() throws Throwable {
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    InstancedConfiguration conf = Configuration.copyGlobal();
     Statement statement = new Statement() {
       @Override
       public void evaluate() throws Throwable {
@@ -41,7 +42,7 @@ public final class ConfigurationRuleTest {
 
   @Test
   public void changeConfigurationForDefaultNullValue() throws Throwable {
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    InstancedConfiguration conf = Configuration.copyGlobal();
 
     Statement statement = new Statement() {
       @Override
@@ -53,5 +54,48 @@ public final class ConfigurationRuleTest {
     new ConfigurationRule(ImmutableMap.of(PropertyKey.SECURITY_LOGIN_USERNAME, "testValue"), conf)
         .apply(statement, null).evaluate();
     assertFalse(conf.isSet(PropertyKey.SECURITY_LOGIN_USERNAME));
+  }
+
+  @Test
+  public void setConfiguration() throws Throwable {
+    InstancedConfiguration conf = Configuration.copyGlobal();
+
+    ConfigurationRule configurationRule = new ConfigurationRule(
+        ImmutableMap.of(PropertyKey.MASTER_HOSTNAME, "testHostName1"),
+        conf
+    );
+
+    // before rule is in effect, none of the property is set
+    assertFalse(conf.isSet(PropertyKey.MASTER_HOSTNAME));
+    assertFalse(conf.isSet(PropertyKey.SECURITY_LOGIN_USERNAME));
+
+    Statement statementWithSet = new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        // calling set overrides the initial value of configuration rule
+        configurationRule
+            .set(PropertyKey.MASTER_HOSTNAME, "testHostName2")
+            .set(PropertyKey.SECURITY_LOGIN_USERNAME, "testUserName");
+        assertEquals("testHostName2", conf.get(PropertyKey.MASTER_HOSTNAME));
+        assertEquals("testUserName", conf.get(PropertyKey.SECURITY_LOGIN_USERNAME));
+      }
+    };
+    configurationRule
+        .apply(statementWithSet, null)
+        .evaluate();
+
+    // calling set will have no effect to another
+    // life cycle of a ConfigurationRule
+    Statement statementWithoutSet = new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        assertEquals("testHostName1", conf.get(PropertyKey.MASTER_HOSTNAME));
+        assertFalse(conf.isSet(PropertyKey.SECURITY_LOGIN_USERNAME));
+      }
+    };
+
+    configurationRule
+        .apply(statementWithoutSet, null)
+        .evaluate();
   }
 }

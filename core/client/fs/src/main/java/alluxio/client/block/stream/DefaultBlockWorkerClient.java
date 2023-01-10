@@ -15,20 +15,22 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.grpc.AsyncCacheRequest;
-import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.CacheRequest;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.DataMessageMarshallerProvider;
+import alluxio.grpc.FreeWorkerRequest;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcNetworkGroup;
 import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.LoadRequest;
+import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
@@ -39,19 +41,23 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
+import alluxio.resource.AlluxioResourceLeakDetectorFactory;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
 
-import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import io.netty.util.ResourceLeakDetector;
+import io.netty.util.ResourceLeakTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 
 /**
  * Default implementation of {@link BlockWorkerClient}.
@@ -60,14 +66,21 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private static final Logger LOG =
       LoggerFactory.getLogger(DefaultBlockWorkerClient.class.getName());
 
+  private static final ResourceLeakDetector<DefaultBlockWorkerClient> DETECTOR =
+      AlluxioResourceLeakDetectorFactory.instance()
+          .newResourceLeakDetector(DefaultBlockWorkerClient.class);
+
   private GrpcChannel mStreamingChannel;
   private GrpcChannel mRpcChannel;
-  private GrpcServerAddress mAddress;
+  private final GrpcServerAddress mAddress;
   private final long mRpcTimeoutMs;
 
-  private BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
-  private BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
-  private BlockWorkerGrpc.BlockWorkerStub mRpcAsyncStub;
+  private final BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
+  private final BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
+  private final BlockWorkerGrpc.BlockWorkerFutureStub mRpcFutureStub;
+
+  @Nullable
+  private final ResourceLeakTracker<DefaultBlockWorkerClient> mTracker;
 
   /**
    * Creates a client instance for communicating with block worker.
@@ -78,10 +91,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    */
   public DefaultBlockWorkerClient(UserState userState, GrpcServerAddress address,
       AlluxioConfiguration alluxioConf) throws IOException {
-    RetryPolicy retryPolicy = RetryUtils.defaultClientRetry(
-        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
-        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
-        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS));
+    RetryPolicy retryPolicy = RetryUtils.defaultClientRetry();
     UnauthenticatedException lastException = null;
     // TODO(feng): unify worker client with AbstractClient
     while (retryPolicy.attempt()) {
@@ -91,14 +101,12 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
         mStreamingChannel = GrpcChannelBuilder.newBuilder(address, alluxioConf)
             .setSubject(userState.getSubject())
             .setNetworkGroup(GrpcNetworkGroup.STREAMING)
-            .setClientType("DefaultBlockWorkerClient-Stream")
             .build();
         mStreamingChannel.intercept(new StreamSerializationClientInterceptor());
         // Uses default pooling strategy for RPC calls for better scalability.
         mRpcChannel = GrpcChannelBuilder.newBuilder(address, alluxioConf)
             .setSubject(userState.getSubject())
             .setNetworkGroup(GrpcNetworkGroup.RPC)
-            .setClientType("DefaultBlockWorkerClient-Rpc")
             .build();
         lastException = null;
         break;
@@ -116,9 +124,10 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     }
     mStreamingAsyncStub = BlockWorkerGrpc.newStub(mStreamingChannel);
     mRpcBlockingStub = BlockWorkerGrpc.newBlockingStub(mRpcChannel);
-    mRpcAsyncStub = BlockWorkerGrpc.newStub(mRpcChannel);
+    mRpcFutureStub = BlockWorkerGrpc.newFutureStub(mRpcChannel);
     mAddress = address;
     mRpcTimeoutMs = alluxioConf.getMs(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
+    mTracker = DETECTOR.track(this);
   }
 
   @Override
@@ -144,6 +153,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
           mRpcChannel.shutdown();
         }
       });
+      closer.register(() -> {
+        if (mTracker != null) {
+          mTracker.close(this);
+        }
+      });
     }
   }
 
@@ -152,8 +166,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     if (responseObserver instanceof DataMessageMarshallerProvider) {
       DataMessageMarshaller<WriteRequest> marshaller =
           ((DataMessageMarshallerProvider<WriteRequest, WriteResponse>) responseObserver)
-              .getRequestMarshaller();
-      Preconditions.checkNotNull(marshaller, "marshaller");
+              .getRequestMarshaller().orElseThrow(NullPointerException::new);
       return mStreamingAsyncStub
           .withOption(GrpcSerializationUtils.OVERRIDDEN_METHOD_DESCRIPTOR,
               BlockWorkerGrpc.getWriteBlockMethod().toBuilder()
@@ -170,8 +183,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     if (responseObserver instanceof DataMessageMarshallerProvider) {
       DataMessageMarshaller<ReadResponse> marshaller =
           ((DataMessageMarshallerProvider<ReadRequest, ReadResponse>) responseObserver)
-              .getResponseMarshaller();
-      Preconditions.checkNotNull(marshaller);
+              .getResponseMarshaller().orElseThrow(NullPointerException::new);
       return mStreamingAsyncStub
           .withOption(GrpcSerializationUtils.OVERRIDDEN_METHOD_DESCRIPTOR,
               BlockWorkerGrpc.getReadBlockMethod().toBuilder()
@@ -214,23 +226,26 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public void asyncCache(final AsyncCacheRequest request) {
-    mRpcAsyncStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
-        .asyncCache(request, new StreamObserver<AsyncCacheResponse>() {
-          @Override
-          public void onNext(AsyncCacheResponse value) {
-            // we don't use response from the RPC
-          }
+  public void cache(CacheRequest request) {
+    boolean async = request.getAsync();
+    try {
+      mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).cache(request);
+    } catch (Exception e) {
+      if (!async) {
+        throw e;
+      }
+      LOG.warn("Error sending async cache request {} to worker {}.", request, mAddress, e);
+    }
+  }
 
-          @Override
-          public void onError(Throwable t) {
-            LOG.warn("Error sending async cache request {} to worker {}.", request, mAddress, t);
-          }
+  @Override
+  public void freeWorker() {
+    mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+            .freeWorker(FreeWorkerRequest.getDefaultInstance());
+  }
 
-          @Override
-          public void onCompleted() {
-            // we don't use response from the RPC
-          }
-        });
+  @Override
+  public ListenableFuture<LoadResponse> load(LoadRequest request) {
+    return mRpcFutureStub.load(request);
   }
 }

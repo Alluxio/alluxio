@@ -18,7 +18,7 @@ Usage: alluxio fs [generic options]
        ...
 ```
 
-对于用Alluxio URI（如`ls`， `mkdir`）作为参数的`fs`子命令来说，参数应该要么是完整的Alluxio URI `alluxio://<master-hostname>:<master-port>/<path>`，要么是省略了头部信息的`/<path>`，以使用`conf/allluxio-site.properties`中设置的默认的主机名和端口。
+对于用Alluxio URI（如`ls`， `mkdir`）作为参数的`fs`子命令来说，参数应该要么是完整的Alluxio URI `alluxio://<master-hostname>:<master-port>/<path>`，要么是省略了头部信息的`/<path>`，以使用`conf/alluxio-site.properties`中设置的默认的主机名和端口。
 
 
 >**通配符输入**
@@ -391,8 +391,8 @@ $ ./bin/alluxio fs mkdir /users/Bob
 $ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
 $ ./bin/alluxio fs mount --shared --readonly /mnt/hdfs2 hdfs://host2:9000/data/
 $ ./bin/alluxio fs mount \
---option aws.accessKeyId=<accessKeyId> \
---option aws.secretKey=<secretKey> \
+--option s3a.accessKeyId=<accessKeyId> \
+--option s3a.secretKey=<secretKey> \
 /mnt/s3 s3://data-bucket/
 ```
 

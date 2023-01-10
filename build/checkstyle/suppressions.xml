@@ -8,4 +8,12 @@
     <!-- Suppresses files in the src/main folder. To be used for rules which only apply to test
          code. -->
     <suppress files="[\\/]src[\\/]main[\\/].*|[\\/]generated-sources[\\/].*" id="TestScope" />
+    <!-- Excludes test files from having Javadocs for classes and methods (a lot do not have those) -->
+    <suppress files="[\\/]*[\\/]test[\\/].*" checks="MissingJavadocMethod" />
+    <suppress files="[\\/]*[\\/]test[\\/].*" checks="MissingJavadocType" />
+    <suppress files="[\\/]src[\\/]test[\\/].*|[\\/]generated-test-sources[\\/].*" checks="MissingJavadocMethod" />
+    <suppress files="[\\/]src[\\/]test[\\/].*|[\\/]generated-test-sources[\\/].*" checks="MissingJavadocType" />
+    <!-- Micro bench does not require java doc on methods and types, as they are typically benchmark methods and params. -->
+    <suppress files="[\\/]microbench[\\/]src[\\/]main[\\/].*" checks="MissingJavadocMethod" />
+    <suppress files="[\\/]microbench[\\/]src[\\/]main[\\/].*" checks="MissingJavadocType" />
 </suppressions>

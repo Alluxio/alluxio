@@ -9,6 +9,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+{{- if not (eq .Values.master.enabled false) -}}
+
 {{- $masterCount := int .Values.master.count }}
 {{- $isSingleMaster := eq $masterCount 1 }}
 {{- $isEmbedded := (eq .Values.journal.type "EMBEDDED") }}
@@ -87,17 +89,27 @@ spec:
     {{- else if .Values.serviceAccount }}
       serviceAccountName: {{ .Values.serviceAccount }}
     {{- end }}
+      {{- if .Values.imagePullSecrets }}
+{{ include "alluxio.imagePullSecrets" . | indent 6 }}
+      {{- end}}
       initContainers:
       {{- if .Values.journal.format.runFormat}}
       - name: journal-format
         image: {{ .Values.image }}:{{ .Values.imageTag }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         command: ["alluxio","formatJournal"]
+        envFrom:
+          - configMapRef:
+              name: {{ $fullName }}-config
         volumeMounts:
           - name: alluxio-journal
-            mountPath: /journal
+            mountPath: {{ .Values.journal.folder }}
       {{- end}}
+      shareProcessNamespace: {{ .Values.master.shareProcessNamespace | default false }}
       containers:
+        {{- if .Values.master.extraContainers }}
+{{- include "alluxio.extraContainers" (dict "extraContainers" .Values.master.extraContainers) | indent 8 }}
+        {{- end }}
         - name: alluxio-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -137,6 +149,7 @@ spec:
             periodSeconds: {{ .Values.master.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.master.readinessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.master.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.master.readinessProbe.successThreshold }}
           livenessProbe:
             tcpSocket:
               port: {{ $probePort }}
@@ -144,6 +157,15 @@ spec:
             periodSeconds: {{ .Values.master.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.master.livenessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.master.livenessProbe.failureThreshold }}
+          {{- if .Values.master.startupProbe }}
+          startupProbe:
+            tcpSocket:
+              port: {{ $probePort }}
+            initialDelaySeconds: {{ .Values.master.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.master.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.master.startupProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.master.startupProbe.failureThreshold }}
+          {{- end}}
           ports:
           - containerPort: {{ .Values.master.ports.rpc }}
             name: rpc
@@ -154,13 +176,16 @@ spec:
             name: embedded
           {{- end }}
           volumeMounts:
+            {{- if .Values.master.extraVolumeMounts }}
+{{- include "alluxio.extraVolumeMounts" (dict "extraVolumeMounts" .Values.master.extraVolumeMounts) | indent 12 }}
+            {{- end }}
             {{- if .Values.metrics.enabled }}
             - name: {{ $fullName }}-metrics-volume
               mountPath: /config/metrics
             {{- end }}
             {{- if $needJournalVolume }}
             - name: alluxio-journal
-              mountPath: /journal
+              mountPath: {{ .Values.journal.folder }}
             {{- end }}
             {{- if .Values.metastore }}
             - name: alluxio-metastore
@@ -171,11 +196,13 @@ spec:
 {{- include "alluxio.master.secretVolumeMounts" . }}
               {{- end }}
             {{- end }}
-            {{- if .Values.mounts }}
-              {{- range .Values.mounts }}
-            - name: "{{ .name }}"
-              mountPath: "{{ .path }}"
+            {{- if .Values.configmaps }}
+              {{- if .Values.configmaps.master }}
+{{- include "alluxio.master.configmapVolumeMounts" . }}
               {{- end }}
+            {{- end }}
+            {{- if .Values.mounts }}
+{{- include "alluxio.master.otherVolumeMounts" . }}
             {{- end }}
         - name: alluxio-job-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
@@ -202,27 +229,37 @@ spec:
                 fieldPath: status.podIP
           {{- end }}
           {{- range $key, $value := .Values.jobMaster.env }}
-            - name: "{{ $key }}"
-              value: "{{ $value }}"
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
           {{- end }}
           envFrom:
           - configMapRef:
               name: {{ $fullName }}-config
-{{- $probePort := $isHaEmbedded | ternary "job-embedded" "job-rpc" }}
+{{- $jobProbePort := $isHaEmbedded | ternary "job-embedded" "job-rpc" }}
           readinessProbe:
             tcpSocket:
-              port: {{ $probePort }}
+              port: {{ $jobProbePort }}
             initialDelaySeconds: {{ .Values.jobMaster.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.jobMaster.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.jobMaster.readinessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.jobMaster.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.jobMaster.readinessProbe.successThreshold }}
           livenessProbe:
             tcpSocket:
-              port: {{ $probePort }}
+              port: {{ $jobProbePort }}
             initialDelaySeconds: {{ .Values.jobMaster.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.jobMaster.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.jobMaster.livenessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.jobMaster.livenessProbe.failureThreshold }}
+          {{- if .Values.jobMaster.startupProbe }}
+          startupProbe:
+            tcpSocket:
+              port: {{ $jobProbePort }}
+            initialDelaySeconds: {{ .Values.jobMaster.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.jobMaster.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.jobMaster.startupProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.jobMaster.startupProbe.failureThreshold }}
+          {{- end}}
           ports:
           - containerPort: {{ .Values.jobMaster.ports.rpc }}
             name: job-rpc
@@ -233,23 +270,31 @@ spec:
             name: job-embedded
           {{- end }}
           volumeMounts:
+          {{- if .Values.master.extraVolumeMounts }}
+{{- include "alluxio.extraVolumeMounts" (dict "extraVolumeMounts" .Values.master.extraVolumeMounts) | indent 12 }}
+          {{- end }}
           {{- if .Values.metrics.enabled }}
-          - name: {{ $fullName }}-metrics-volume
-            mountPath: /config/metrics
+            - name: {{ $fullName }}-metrics-volume
+              mountPath: /config/metrics
           {{- end }}
           {{- if .Values.secrets }}
             {{- if .Values.secrets.master }}
 {{- include "alluxio.master.secretVolumeMounts" . }}
             {{- end }}
           {{- end }}
-          {{- if .Values.mounts }}
-            {{- range .Values.mounts }}
-            - name: "{{ .name }}"
-              mountPath: "{{ .path }}"
+          {{- if .Values.configmaps }}
+            {{- if .Values.configmaps.master }}
+{{- include "alluxio.master.configmapVolumeMounts" . }}
             {{- end }}
+          {{- end }}
+          {{- if .Values.mounts }}
+{{- include "alluxio.worker.otherVolumeMounts" . }}
           {{- end }}
       restartPolicy: Always
       volumes:
+        {{- if .Values.master.extraVolumes }}
+{{- include "alluxio.extraVolumes" (dict "extraVolumes" .Values.master.extraVolumes) | indent 8 }}
+        {{- end }}
         {{- if .Values.metrics.enabled }}
         - name: {{ $fullName }}-metrics-volume
           configMap:
@@ -311,3 +356,4 @@ spec:
             storage: {{ .Values.metastore.size }}
     {{- end }}
   {{- end }}
+{{- end }}

@@ -16,7 +16,6 @@ import alluxio.cli.fsadmin.command.Context;
 import alluxio.client.journal.JournalMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.NetAddress;
@@ -30,7 +29,7 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Command for transferring the leadership to another master within a quorum.
@@ -39,8 +38,13 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
   public static final String ADDRESS_OPTION_NAME = "address";
 
+  public static final String TRANSFER_INIT = "Initiating transfer of leadership to %s";
   public static final String TRANSFER_SUCCESS = "Successfully elected %s as the new leader";
   public static final String TRANSFER_FAILED = "Failed to elect %s as the new leader: %s";
+  public static final String RESET_INIT = "Resetting priorities of masters after %s transfer of "
+      + "leadership";
+  public static final String RESET_SUCCESS = "Quorum priorities were reset to 1";
+  public static final String RESET_FAILED = "Quorum priorities failed to be reset: %s";
 
   /**
    * @param context fsadmin command context
@@ -63,34 +67,50 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
     JournalMasterClient jmClient = mMasterJournalMasterClient;
     String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
     NetAddress address = QuorumCommand.stringToAddress(serverAddress);
+    boolean success = false;
     try {
-      jmClient.transferLeadership(address);
+      mPrintStream.println(String.format(TRANSFER_INIT, serverAddress));
+      String transferId = jmClient.transferLeadership(address);
+      AtomicReference<String> errorMessage = new AtomicReference<>("");
       // wait for confirmation of leadership transfer
       final int TIMEOUT_3MIN = 3 * 60 * 1000; // in milliseconds
-      CommonUtils.waitFor("Waiting for election to finalize", () -> {
+      CommonUtils.waitFor("election to finalize.", () -> {
         try {
+          errorMessage.set(jmClient.getTransferLeaderMessage(transferId).getTransMsg().getMsg());
+          if (!errorMessage.get().isEmpty()) {
+            // if an error is reported, end the retry immediately
+            return true;
+          }
           GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
-
-          Optional<QuorumServerInfo>
-              leadingMasterInfoOpt = quorumInfo.getServerInfoList().stream()
+          Optional<QuorumServerInfo> leadingMasterInfoOpt = quorumInfo.getServerInfoList().stream()
               .filter(QuorumServerInfo::getIsLeader).findFirst();
           NetAddress leaderAddress = leadingMasterInfoOpt.isPresent()
               ? leadingMasterInfoOpt.get().getServerAddress() : null;
           return address.equals(leaderAddress);
-        } catch (AlluxioStatusException e) {
+        } catch (IOException e) {
           return false;
         }
       }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN));
 
+      if (!errorMessage.get().isEmpty()) {
+        throw new Exception(errorMessage.get());
+      }
       mPrintStream.println(String.format(TRANSFER_SUCCESS, serverAddress));
-      return 0;
-    } catch (AlluxioStatusException e) {
+      success = true;
+    } catch (Exception e) {
       mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, e.getMessage()));
-    } catch (InterruptedException | TimeoutException e) {
-      mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, "the election was "
-              + "initiated but never completed"));
     }
-    return -1;
+    // reset priorities regardless of transfer success
+    try {
+      mPrintStream.println(String.format(RESET_INIT, success ? "successful" : "failed"));
+      jmClient.resetPriorities();
+      mPrintStream.println(RESET_SUCCESS);
+    } catch (IOException e) {
+      mPrintStream.println(String.format(RESET_FAILED, e));
+      success = false;
+    }
+
+    return success ? 0 : -1;
   }
 
   @Override

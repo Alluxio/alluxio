@@ -1,30 +1,25 @@
 - name: ALLUXIO_CONF_DIR
-  description: The path to the alluxio configuration directory.
+  description: >
+    The path to the alluxio configuration directory. This defines the value for the property key
+    `alluxio.conf.dir` which should never be set directly outside the environment variable.
 - name: ALLUXIO_LOGS_DIR
-  description: The path to the directory that stores Alluxio server logs
+  description: >
+    The path to the directory that stores Alluxio server logs. This defines the value for the
+    property key `alluxio.logs.dir` which should never be set directly outside the environment
+    variable.
 - name: ALLUXIO_USER_LOGS_DIR
-  description: The path to the directory that stores Alluxio user logs
+  description: >
+    The path to the directory that stores Alluxio user logs. This defines the value for the
+    property key `alluxio.user.logs.dir` which should never be set directly outside the environment
+    variable.
 - name: ALLUXIO_MASTER_HOSTNAME
-  description: hostname of the Alluxio master. Defaults to localhost
+  description: Hostname of the Alluxio master. Defaults to `localhost`.
 - name: ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS
   description: >
-    The under storage system addess. Defaults to `${ALLUXIO_HOME}`/underFSStorage which is a local
+    The under storage system address. Defaults to `${ALLUXIO_HOME}`/underFSStorage which is a local
     file system.
 - name: ALLUXIO_RAM_FOLDER
-  description: The directory where a worker stores its in-memory data. Defaults to `/mnt/ramdisk`
-- name: ALLUXIO_JAVA_OPTS
-  description: >
-    Java VM options for the Alluxio master, worker, and shell commands. Note that, by default
-    `ALLUXIO_JAVA_OPTS` is included in `ALLUXIO_MASTER_JAVA_OPTS`, `ALLUXIO_WORKER_JAVA_OPTS`,
-    and `ALLUXIO_USER_JAVA_OPTS`
-- name: ALLUXIO_MASTER_JAVA_OPTS
-  description: Additional Java VM options for Alluxio master configuration.
-- name: ALLUXIO_WORKER_JAVA_OPTS
-  description: Additional Java VM options for Alluxio worker configuration.
-- name: ALLUXIO_USER_JAVA_OPTS
-  description: Additional Java VM options for Alluxio shell command configuration.
-- name: ALLUXIO_CLASSPATH
-  description: Additional classpath entries for Alluxio processes. Empty by default.
+  description: The directory where a worker stores its in-memory data. Defaults to `/mnt/ramdisk`.
 - name: ALLUXIO_LOGSERVER_HOSTNAME
   description: Hostname of the log server. Empty by default.
 - name: ALLUXIO_LOGSERVER_PORT
@@ -32,5 +27,43 @@
 - name: ALLUXIO_LOGSERVER_LOGS_DIR
   description: >
     The path to the local directory where the Alluxio log server stores logs received from the
-    Alluxio servers
-
+    Alluxio servers.
+- name: ALLUXIO_JAVA_OPTS
+  description: >
+    Java VM options for the Alluxio master, worker, and shell commands. By default,
+    `ALLUXIO_JAVA_OPTS` is prepended to other `ALLUXIO_*_JAVA_OPTS` environment variables,
+    such as `ALLUXIO_MASTER_JAVA_OPTS` and `ALLUXIO_USER_JAVA_OPTS`.
+- name: ALLUXIO_MASTER_JAVA_OPTS
+  description: Additional Java VM options for Alluxio master configuration.
+- name: ALLUXIO_JOB_MASTER_JAVA_OPTS
+  description: Additional Java VM options for Alluxio job master configuration.
+- name: ALLUXIO_WORKER_JAVA_OPTS
+  description: Additional Java VM options for Alluxio worker configuration.
+- name: ALLUXIO_JOB_WORKER_JAVA_OPTS
+  description: Additional Java VM options for Alluxio job worker configuration.
+- name: ALLUXIO_PROXY_JAVA_OPTS
+  description: Additional Java VM options for Alluxio proxy configuration.
+- name: ALLUXIO_LOGSERVER_JAVA_OPTS
+  description: Additional Java VM options for Alluxio log server configuration.
+- name: ALLUXIO_USER_JAVA_OPTS
+  description: Additional Java VM options for Alluxio shell command configuration.
+- name: ALLUXIO_CLASSPATH
+  description: Additional classpath entries for Alluxio processes. Empty by default.
+- name: ALLUXIO_MASTER_ATTACH_OPTS
+  description: Additional Java VM options to apply when attaching a debugger to Alluxio master.
+- name: ALLUXIO_SECONDARY_MASTER_ATTACH_OPTS
+  description: Additional Java VM options to apply when attaching a debugger to Alluxio secondary master.
+- name: ALLUXIO_JOB_MASTER_ATTACH_OPTS
+  description: Additional Java VM options to apply when attaching a debugger to Alluxio job master.
+- name: ALLUXIO_WORKER_ATTACH_OPTS
+  description: Additional Java VM options to apply when attaching a debugger to Alluxio worker.
+- name: ALLUXIO_JOB_WORKER_ATTACH_OPTS
+  description: Additional Java VM options to apply when attaching a debugger to Alluxio job worker.
+- name: ALLUXIO_PROXY_ATTACH_OPTS
+  description: Additional Java VM options to apply when attaching a debugger to Alluxio proxy.
+- name: ALLUXIO_LOGSERVER_ATTACH_OPTS
+  description: Additional Java VM options to apply when attaching a debugger to Alluxio log server.
+- name: ALLUXIO_FUSE_ATTACH_OPTS
+  description: Additional Java VM options to apply when attaching a debugger to Alluxio FUSE process.
+- name: ALLUXIO_USER_ATTACH_OPTS
+  description: Additional Java VM options to apply when attaching a debugger to Alluxio shell command.

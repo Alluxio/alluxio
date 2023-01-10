@@ -11,8 +11,8 @@
 
 package alluxio.master.meta;
 
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Hash;
+import alluxio.conf.PropertyKey;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
@@ -32,7 +32,6 @@ import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -57,7 +56,7 @@ public final class PathProperties implements DelegatingJournaled {
   @GuardedBy("mLock")
   private final State mState = new State();
   @GuardedBy("mLock")
-  private Hash mHash = new Hash(() -> mState.getProperties().entrySet().stream()
+  private final Hash mHash = new Hash(() -> mState.getProperties().entrySet().stream()
       .flatMap(pathProperties -> pathProperties.getValue().entrySet().stream()
           .map(property -> String.format("%s:%s:%s", pathProperties.getKey(), property.getKey(),
               property.getValue()).getBytes())));
@@ -113,7 +112,7 @@ public final class PathProperties implements DelegatingJournaled {
     try (LockResource r = new LockResource(mLock.writeLock())) {
       Map<String, String> properties = mState.getProperties(path);
       if (!properties.isEmpty()) {
-        keys.forEach(key -> properties.remove(key));
+        keys.forEach(properties::remove);
         if (properties.isEmpty()) {
           mState.applyAndJournal(ctx, RemovePathPropertiesEntry.newBuilder().setPath(path).build());
         } else {

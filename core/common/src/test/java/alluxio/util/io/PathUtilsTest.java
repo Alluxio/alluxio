@@ -11,18 +11,20 @@
 
 package alluxio.util.io;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertNotEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
+import alluxio.underfs.UnderFileSystemConfiguration;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -137,6 +139,28 @@ public final class PathUtilsTest {
     assertEquals("/", PathUtils.findLowestCommonAncestor(paths).getPath());
 
     paths.clear();
+    paths.add(new AlluxioURI("/"));
+    paths.add(new AlluxioURI("/a/b/c/d"));
+    paths.add(new AlluxioURI("/a/b/c/d/e/f"));
+    assertEquals("/", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.clear();
+    paths.add(new AlluxioURI("/a"));
+    paths.add(new AlluxioURI("/a/b"));
+    paths.add(new AlluxioURI("/aaa/b"));
+    assertEquals("/", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.clear();
+    paths.add(new AlluxioURI("/a/b/"));
+    assertEquals("/a/b", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.clear();
+    paths.add(new AlluxioURI("/a/b/c"));
+    paths.add(new AlluxioURI("/a"));
+    paths.add(new AlluxioURI("/a/b/c/d"));
+    assertEquals("/a", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.clear();
     paths.add(new AlluxioURI("/a"));
     assertEquals("/a", PathUtils.findLowestCommonAncestor(paths).getPath());
 
@@ -246,21 +270,26 @@ public final class PathUtilsTest {
     // Get temporary path
     Pattern pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
-    String tempPersistencePath = PathUtils.getPersistentTmpPath("s3://test/test.parquet");
+    AlluxioConfiguration alluxioConfiguration = UnderFileSystemConfiguration.emptyConfig();
+    String tempPersistencePath = PathUtils.getPersistentTmpPath(alluxioConfiguration,
+        "s3://test/test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
     pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
-    tempPersistencePath = PathUtils.getPersistentTmpPath("hdfs://localhost:9010/test/test.parquet");
+    tempPersistencePath = PathUtils
+        .getPersistentTmpPath(alluxioConfiguration, "hdfs://localhost:9010/test/test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
 
     // Get temporary path with root path
     pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
-    tempPersistencePath = PathUtils.getPersistentTmpPath("s3://test.parquet");
+    tempPersistencePath = PathUtils.getPersistentTmpPath(alluxioConfiguration,
+        "s3://test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
     pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
-    tempPersistencePath = PathUtils.getPersistentTmpPath("hdfs://localhost:9010/test.parquet");
+    tempPersistencePath = PathUtils
+        .getPersistentTmpPath(alluxioConfiguration, "hdfs://localhost:9010/test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
   }
 
@@ -279,6 +308,13 @@ public final class PathUtilsTest {
         PathUtils.getPathComponents("/foo/../bar"));
     assertArrayEquals(new String[] {"", "foo", "bar", "a", "b", "c"},
         PathUtils.getPathComponents("/foo//bar/a/b/c"));
+  }
+
+  @Test
+  public void getCleanedPathComponents() throws InvalidPathException {
+    assertArrayEquals(new String[] {"s3:", "", "a", "b"},
+        PathUtils.getCleanedPathComponents("s3://a/b"));
+    assertArrayEquals(new String[] {""}, PathUtils.getCleanedPathComponents("/"));
   }
 
   /**
@@ -339,11 +375,16 @@ public final class PathUtilsTest {
   @Test
   public void hasPrefix() throws InvalidPathException {
     assertTrue(PathUtils.hasPrefix("/", "/"));
+    assertTrue(PathUtils.hasPrefix("/a/b/c", "/"));
     assertTrue(PathUtils.hasPrefix("/a", "/a"));
+    assertTrue(PathUtils.hasPrefix("/a/b/c/", "/a/b/c"));
     assertTrue(PathUtils.hasPrefix("/a", "/a/"));
     assertTrue(PathUtils.hasPrefix("/a/b/c", "/a"));
     assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b"));
     assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b/c"));
+    assertTrue(PathUtils.hasPrefix("/a/b/c/d/e", "/a/b/"));
+    assertTrue(PathUtils.hasPrefix("/a/b/./c/../d", "/a/../a/b/d"));
+    assertFalse(PathUtils.hasPrefix("/a/b/../c", "/a/b"));
     assertFalse(PathUtils.hasPrefix("/", "/a"));
     assertFalse(PathUtils.hasPrefix("/", "/a/b/c"));
     assertFalse(PathUtils.hasPrefix("/a", "/a/b/c"));

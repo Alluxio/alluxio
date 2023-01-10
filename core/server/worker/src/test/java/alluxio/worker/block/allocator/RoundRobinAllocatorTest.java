@@ -12,7 +12,7 @@
 package alluxio.worker.block.allocator;
 
 import alluxio.Constants;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.worker.block.reviewer.MockReviewer;
 
@@ -27,14 +27,14 @@ import org.junit.Test;
 public final class RoundRobinAllocatorTest extends AllocatorTestBase {
   @Before
   public void initialize() {
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS,
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS,
             RoundRobinAllocator.class.getName());
     mAllocator = Allocator.Factory.create(getMetadataEvictorView());
   }
 
   @After
   public void reset() {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   /**

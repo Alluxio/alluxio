@@ -36,6 +36,8 @@ To deploy Alluxio in production, we highly recommend running Alluxio masters in
   For basic functionality, make sure RPC port (default:19998) is open on all nodes.
 * Allow `sudo` privilege for the OS user that Alluxio will be running as.
   This is only needed if you expect Alluxio to mount a RAMFS on the workers automatically.
+  To use `sudo` command without entering password, see [this tutorial](https://askubuntu.com/questions/334318/sudoers-file-enable-nopasswd-for-user-all-commands)
+  for more details.
 
 ## Basic Setup
 
@@ -70,7 +72,7 @@ alluxio.master.mount.table.root.ufs=<STORAGE_URI>
 
 Append the hostname of each node into `conf/masters` and `conf/workers` accordingly.
 Append the hostname of each Alluxio master node to a new line into `conf/masters`,
-and the hostname of each worker node to a new line into `conf/worers`.
+and the hostname of each worker node to a new line into `conf/workers`.
 Comment out `localhost` if necessary.
 For example, in `conf/masters`, we can add the hostnames of two master nodes in the following format:
 ```

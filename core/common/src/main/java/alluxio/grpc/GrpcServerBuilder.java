@@ -16,16 +16,15 @@ import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthenticatedUserInjector;
 import alluxio.security.authentication.AuthenticationServer;
 import alluxio.security.authentication.DefaultAuthenticationServer;
-import alluxio.security.user.UserState;
 import alluxio.util.SecurityUtils;
 import alluxio.util.network.tls.SslContextProvider;
 
 import com.google.common.io.Closer;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.ServerInterceptor;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.netty.NettyServerBuilder;
+import io.grpc.protobuf.services.ProtoReflectionService;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
@@ -35,7 +34,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.Nullable;
 
 /**
@@ -44,39 +42,37 @@ import javax.annotation.Nullable;
 public final class GrpcServerBuilder {
 
   /** Internal netty builder. */
-  private NettyServerBuilder mNettyServerBuilder;
+  private final NettyServerBuilder mNettyServerBuilder;
   /** Set of services that this server has. */
-  private Set<ServiceType> mServices;
+  private final Set<ServiceType> mServices = new HashSet<>();
   /** Authentication server instance that will be used by this server. */
-  private AuthenticationServer mAuthenticationServer;
+  private final AuthenticationServer mAuthenticationServer;
   /** Used to register closers that needs to be called during server shut-down. */
-  private Closer mCloser = Closer.create();
+  private final Closer mCloser = Closer.create();
   /** Alluxio configuration.  */
-  private AlluxioConfiguration mConfiguration;
+  private final AlluxioConfiguration mConfiguration;
 
-  @SuppressFBWarnings(value = "URF_UNREAD_FIELD")
-  private UserState mUserState;
+  private final boolean mGrpcReflectionEnabled;
 
   private GrpcServerBuilder(GrpcServerAddress serverAddress,
-      AuthenticationServer authenticationServer, AlluxioConfiguration conf, UserState userState) {
-    mAuthenticationServer = authenticationServer;
+      AuthenticationServer authenticationServer, AlluxioConfiguration conf) {
     mNettyServerBuilder = NettyServerBuilder.forAddress(serverAddress.getSocketAddress());
-    mServices = new HashSet<>();
     mConfiguration = conf;
-    mUserState = userState;
+    mGrpcReflectionEnabled = conf.getBoolean(PropertyKey.GRPC_REFLECTION_ENABLED);
 
     if (conf.getBoolean(alluxio.conf.PropertyKey.NETWORK_TLS_ENABLED)) {
       sslContext(SslContextProvider.Factory.create(mConfiguration).getServerSSLContext());
     }
 
     if (SecurityUtils.isAuthenticationEnabled(mConfiguration)) {
-      if (mAuthenticationServer == null) {
-        mAuthenticationServer =
+      if (authenticationServer == null) {
+        authenticationServer =
             new DefaultAuthenticationServer(serverAddress.getHostName(), mConfiguration);
       }
-      addService(new GrpcService(mAuthenticationServer).disableAuthentication()
-          .withCloseable(mAuthenticationServer));
+      addService(new GrpcService(authenticationServer).disableAuthentication()
+          .withCloseable(authenticationServer));
     }
+    mAuthenticationServer = authenticationServer;
   }
 
   /**
@@ -84,26 +80,11 @@ public final class GrpcServerBuilder {
    *
    * @param serverAddress server address
    * @param conf Alluxio configuration
-   * @param userState the user state
    * @return a new instance of {@link GrpcServerBuilder}
    */
   public static GrpcServerBuilder forAddress(GrpcServerAddress serverAddress,
-      AlluxioConfiguration conf, UserState userState) {
-    return new GrpcServerBuilder(serverAddress, null, conf, userState);
-  }
-
-  /**
-   * Create an new instance of {@link GrpcServerBuilder} with authentication support.
-   *
-   * @param serverAddress server address
-   * @param authenticationServer the authentication server to use
-   * @param conf the Alluxio configuration
-   * @param userState the user state
-   * @return a new instance of {@link GrpcServerBuilder}
-   */
-  public static GrpcServerBuilder forAddress(GrpcServerAddress serverAddress,
-      AuthenticationServer authenticationServer, AlluxioConfiguration conf, UserState userState) {
-    return new GrpcServerBuilder(serverAddress, authenticationServer, conf, userState);
+      AlluxioConfiguration conf) {
+    return new GrpcServerBuilder(serverAddress, null, conf);
   }
 
   /**
@@ -113,7 +94,7 @@ public final class GrpcServerBuilder {
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
   public GrpcServerBuilder executor(@Nullable Executor executor) {
-    mNettyServerBuilder = mNettyServerBuilder.executor(executor);
+    mNettyServerBuilder.executor(executor);
     return this;
   }
 
@@ -124,31 +105,44 @@ public final class GrpcServerBuilder {
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
   public GrpcServerBuilder flowControlWindow(int flowControlWindow) {
-    mNettyServerBuilder = mNettyServerBuilder.flowControlWindow(flowControlWindow);
+    mNettyServerBuilder.flowControlWindow(flowControlWindow);
     return this;
   }
 
   /**
-   * Sets the keep alive time.
+   * Sets the server keep-alive time.
    *
    * @param keepAliveTime the time to wait after idle before pinging client
    * @param timeUnit unit of the time
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
   public GrpcServerBuilder keepAliveTime(long keepAliveTime, TimeUnit timeUnit) {
-    mNettyServerBuilder = mNettyServerBuilder.keepAliveTime(keepAliveTime, timeUnit);
+    mNettyServerBuilder.keepAliveTime(keepAliveTime, timeUnit);
     return this;
   }
 
   /**
-   * Sets the keep alive timeout.
+   * Sets the server keep-alive timeout.
    *
    * @param keepAliveTimeout time to wait after pinging client before closing the connection
    * @param timeUnit unit of the timeout
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
   public GrpcServerBuilder keepAliveTimeout(long keepAliveTimeout, TimeUnit timeUnit) {
-    mNettyServerBuilder = mNettyServerBuilder.keepAliveTimeout(keepAliveTimeout, timeUnit);
+    mNettyServerBuilder.keepAliveTimeout(keepAliveTimeout, timeUnit);
+    return this;
+  }
+
+  /**
+   * Sets the high-bar for client-side keep-alive frequency.
+   * Clients pushing this bar will be held back by closing their connections.
+   *
+   * @param permitKeepAlive permitted client-side keep-alive time
+   * @param timeUnit unit of the timeout
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public GrpcServerBuilder permitKeepAlive(long permitKeepAlive, TimeUnit timeUnit) {
+    mNettyServerBuilder.permitKeepAliveTime(permitKeepAlive, timeUnit);
     return this;
   }
 
@@ -159,7 +153,7 @@ public final class GrpcServerBuilder {
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
   public GrpcServerBuilder channelType(Class<? extends ServerChannel> channelType) {
-    mNettyServerBuilder = mNettyServerBuilder.channelType(channelType);
+    mNettyServerBuilder.channelType(channelType);
     return this;
   }
 
@@ -172,7 +166,7 @@ public final class GrpcServerBuilder {
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
   public <T> GrpcServerBuilder withChildOption(ChannelOption<T> option, T value) {
-    mNettyServerBuilder = mNettyServerBuilder.withChildOption(option, value);
+    mNettyServerBuilder.withChildOption(option, value);
     return this;
   }
 
@@ -183,7 +177,7 @@ public final class GrpcServerBuilder {
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
   public GrpcServerBuilder bossEventLoopGroup(EventLoopGroup bossGroup) {
-    mNettyServerBuilder = mNettyServerBuilder.bossEventLoopGroup(bossGroup);
+    mNettyServerBuilder.bossEventLoopGroup(bossGroup);
     return this;
   }
 
@@ -194,7 +188,7 @@ public final class GrpcServerBuilder {
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
   public GrpcServerBuilder workerEventLoopGroup(EventLoopGroup workerGroup) {
-    mNettyServerBuilder = mNettyServerBuilder.workerEventLoopGroup(workerGroup);
+    mNettyServerBuilder.workerEventLoopGroup(workerGroup);
     return this;
   }
 
@@ -204,7 +198,7 @@ public final class GrpcServerBuilder {
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
   public GrpcServerBuilder maxInboundMessageSize(int messageSize) {
-    mNettyServerBuilder = mNettyServerBuilder.maxInboundMessageSize(messageSize);
+    mNettyServerBuilder.maxInboundMessageSize(messageSize);
     return this;
   }
 
@@ -234,7 +228,7 @@ public final class GrpcServerBuilder {
       service = ServerInterceptors.intercept(service,
           new AuthenticatedUserInjector(mAuthenticationServer));
     }
-    mNettyServerBuilder = mNettyServerBuilder.addService(service);
+    mNettyServerBuilder.addService(service);
     mCloser.register(serviceDefinition.getCloser());
     return this;
   }
@@ -246,7 +240,7 @@ public final class GrpcServerBuilder {
    * @return an updates instance of this {@link GrpcServerBuilder}
    */
   public GrpcServerBuilder intercept(ServerInterceptor interceptor) {
-    mNettyServerBuilder = mNettyServerBuilder.intercept(interceptor);
+    mNettyServerBuilder.intercept(interceptor);
     return this;
   }
 
@@ -257,7 +251,7 @@ public final class GrpcServerBuilder {
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
   public GrpcServerBuilder sslContext(SslContext sslContext) {
-    mNettyServerBuilder = mNettyServerBuilder.sslContext(sslContext);
+    mNettyServerBuilder.sslContext(sslContext);
     return this;
   }
 
@@ -270,6 +264,11 @@ public final class GrpcServerBuilder {
   public GrpcServer build() {
     addService(new GrpcService(new ServiceVersionClientServiceHandler(mServices))
         .disableAuthentication());
+    if (mGrpcReflectionEnabled) {
+      // authentication needs to be disabled so that the grpc command line tools can call
+      // this reflection endpoint and get the current grpc services and their interfaces.
+      addService(new GrpcService(ProtoReflectionService.newInstance()).disableAuthentication());
+    }
     return new GrpcServer(mNettyServerBuilder.build(), mAuthenticationServer, mCloser,
         mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT));
   }

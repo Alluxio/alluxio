@@ -57,7 +57,7 @@ $ cp conf/core-site.xml.template conf/core-site.xml
 ```
 
 {% navtabs Setup %}
-{% navtab Option 1: cephfs %}
+{% navtab cephfs %}
 
 Modify `conf/alluxio-site.properties` to include:
 
@@ -70,7 +70,7 @@ alluxio.underfs.cephfs.auth.keyring=<client-keyring-file>
 ```
 
 {% endnavtab %}
-{% navtab Option 2: cephfs-hadoop %}
+{% navtab cephfs-hadoop %}
 
 Modify `conf/alluxio-site.properties` to include:
 
@@ -80,7 +80,7 @@ alluxio.underfs.hdfs.configuration=${ALLUXIO_HOME}/conf/core-site.xml
 
 Modify `conf/core-site.xml` to include:
 
-```properties
+```xml
 <configuration>
   <property>
     <name>fs.default.name</name>
@@ -141,7 +141,7 @@ This should start an Alluxio master and Alluxio worker. You can see the master U
 [http://localhost:19999](http://localhost:19999).
 
 {% navtabs Test %}
-{% navtab Option 1: cephfs %}
+{% navtab cephfs %}
 
 An CephFS location can be mounted at a nested directory in the Alluxio namespace to have unified access
 to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
@@ -174,7 +174,7 @@ In Alluxio, you can visit the nested directory in the Alluxio. Alluxio's [Comman
 ```
 
 {% endnavtab %}
-{% navtab Option 2: cephfs-hadoop %}
+{% navtab cephfs-hadoop %}
 
 An CephFS location can be mounted at a nested directory in the Alluxio namespace to have unified access
 to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.

@@ -1,11 +1,6 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Checkstyle, Findbugs, Doc Check, etc.
 
-on:
-  pull_request:
-  schedule:
-    - cron: 0 0 * * *
+on: [pull_request]
 
 jobs:
   build:
@@ -27,6 +22,12 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+
+      - name: Cache local Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.mod') }}
 
       - name: Execute license check, checkstyle, findbugs
         run: |

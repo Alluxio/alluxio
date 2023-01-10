@@ -11,9 +11,10 @@
 
 package alluxio.master.file.contexts;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.MoreObjects;
 
@@ -51,7 +52,7 @@ public class CreateFileContext
    */
   public static CreateFileContext mergeFrom(CreateFilePOptions.Builder optionsBuilder) {
     CreateFilePOptions masterOptions =
-        FileSystemOptions.createFileDefaults(ServerConfiguration.global());
+        FileSystemOptionsUtils.createFileDefaults(Configuration.global(), false);
     CreateFilePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return new CreateFileContext(mergedOptionsBuilder);
@@ -61,7 +62,8 @@ public class CreateFileContext
    * @return the instance of {@link CreateFileContext} with default values for master
    */
   public static CreateFileContext defaults() {
-    return create(FileSystemOptions.createFileDefaults(ServerConfiguration.global()).toBuilder());
+    return create(
+        FileSystemOptionsUtils.createFileDefaults(Configuration.global(), false).toBuilder());
   }
 
   /**
@@ -78,6 +80,14 @@ public class CreateFileContext
   public CreateFileContext setCacheable(boolean cacheable) {
     mCacheable = cacheable;
     return this;
+  }
+
+  @Override
+  public OperationId getOperationId() {
+    if (getOptions().hasCommonOptions() && getOptions().getCommonOptions().hasOperationId()) {
+      return OperationId.fromFsProto(getOptions().getCommonOptions().getOperationId());
+    }
+    return super.getOperationId();
   }
 
   @Override

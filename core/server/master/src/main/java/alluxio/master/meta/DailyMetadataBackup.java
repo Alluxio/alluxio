@@ -12,8 +12,8 @@
 package alluxio.master.meta;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
 import alluxio.master.BackupManager;
@@ -69,8 +69,8 @@ public final class DailyMetadataBackup {
   DailyMetadataBackup(MetaMaster metaMaster,
       ScheduledExecutorService service, UfsManager ufsManager) {
     mMetaMaster = metaMaster;
-    mBackupDir = ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
-    mRetainedFiles = ServerConfiguration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED);
+    mBackupDir = Configuration.getString(PropertyKey.MASTER_BACKUP_DIRECTORY);
+    mRetainedFiles = Configuration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED);
     mScheduledExecutor = service;
     mUfsManager = ufsManager;
     try (CloseableResource<UnderFileSystem> ufsResource =
@@ -100,8 +100,8 @@ public final class DailyMetadataBackup {
     LocalDateTime now = LocalDateTime.now(Clock.systemUTC());
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm");
-    LocalTime backupTime = LocalTime.parse(ServerConfiguration
-        .get(PropertyKey.MASTER_DAILY_BACKUP_TIME), formatter);
+    LocalTime backupTime = LocalTime.parse(Configuration
+        .getString(PropertyKey.MASTER_DAILY_BACKUP_TIME), formatter);
     LocalDateTime nextBackupTime = now.withHour(backupTime.getHour())
         .withMinute(backupTime.getMinute());
     if (nextBackupTime.isBefore(now)) {

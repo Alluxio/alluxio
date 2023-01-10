@@ -11,9 +11,9 @@
 
 package alluxio.master.file;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CompleteFilePOptions;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -28,7 +28,7 @@ public final class FileSystemMasterOptions {
    */
   public static CompleteFilePOptions completeFileDefaults() {
     return CompleteFilePOptions.newBuilder()
-        .setCommonOptions(FileSystemOptions.commonDefaults(ServerConfiguration.global()))
+        .setCommonOptions(FileSystemOptionsUtils.commonDefaults(Configuration.global()))
         .setUfsLength(0)
         .build();
   }

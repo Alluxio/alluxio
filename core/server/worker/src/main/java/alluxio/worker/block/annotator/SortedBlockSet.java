@@ -116,7 +116,7 @@ public class SortedBlockSet<T extends BlockSortedField> {
   }
 
   /**
-   * @return an ascending iterator of "<BlockId,SortedField>" pairs
+   * @return an ascending iterator of "&lt;BlockId,SortedField&gt;" pairs
    */
   public Iterator<Pair<Long, T>> getAscendingIterator() {
     return Iterators.transform(mSortedSet.iterator(),
@@ -124,7 +124,7 @@ public class SortedBlockSet<T extends BlockSortedField> {
   }
 
   /**
-   * @return a descending iterator of "<BlockId,SortedField>" pairs
+   * @return a descending iterator of "&lt;BlockId,SortedField&gt;" pairs
    */
   public Iterator<Pair<Long, T>> getDescendingIterator() {
     return Iterators.transform(mSortedSet.descendingIterator(),
@@ -138,9 +138,9 @@ public class SortedBlockSet<T extends BlockSortedField> {
    * @param <T> type of the sorted field
    */
   class SortedBlockSetEntry<T extends Comparable> implements Comparable<SortedBlockSetEntry> {
-    private long mBlockId;
-    private T mSortedField;
-    private long mChangeIndex;
+    private final long mBlockId;
+    private final T mSortedField;
+    private final long mChangeIndex;
 
     public SortedBlockSetEntry(long blockId, long changeIndex, T sortId) {
       mBlockId = blockId;
@@ -150,7 +150,7 @@ public class SortedBlockSet<T extends BlockSortedField> {
 
     @Override
     public int compareTo(SortedBlockSetEntry o) {
-      /**
+      /*
        * Comparison should be consistent with {@link Object#equals} for {@link SortedSet} to
        * maintain set semantics.
        *

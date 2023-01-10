@@ -22,6 +22,7 @@ public class JournalDiskInfo implements Serializable {
   private static final long serialVersionUID = 12938071234234123L;
 
   private final String mDiskPath;
+  private final String mDiskType;
   private final long mUsedBytes;
   private final long mTotalAllocatedBytes;
   private final long mAvailableBytes;
@@ -33,14 +34,16 @@ public class JournalDiskInfo implements Serializable {
    * particular block device.
    *
    * @param diskPath            the path to the raw device
+   * @param diskType            the type to the raw device
    * @param totalAllocatedBytes the total filesystem
    * @param usedBytes           the amount of bytes used by the filesystem
    * @param availableBytes      the amount of bytes available on the filesystem
    * @param mountPath           the path where the device is mounted
    */
-  public JournalDiskInfo(String diskPath, long totalAllocatedBytes, long usedBytes,
+  public JournalDiskInfo(String diskPath, String diskType, long totalAllocatedBytes, long usedBytes,
       long availableBytes, String mountPath) {
     mDiskPath = diskPath;
+    mDiskType = diskType;
     mTotalAllocatedBytes = totalAllocatedBytes * 1024;
     mUsedBytes = usedBytes * 1024;
     mAvailableBytes = availableBytes * 1024;
@@ -52,6 +55,16 @@ public class JournalDiskInfo implements Serializable {
    * @return the raw device path
    */
   public String getDiskPath() {
+    return mDiskPath;
+  }
+
+  /**
+   * @return the device path with schema
+   */
+  public String getDiskPathWithSchema() {
+    if (mDiskType.contains("nfs")) {
+      return "nfs://" + mDiskPath;
+    }
     return mDiskPath;
   }
 

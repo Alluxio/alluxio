@@ -19,13 +19,14 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.SystemPropertyRule;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterInquireClient;
 import alluxio.security.User;
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.ZookeeperAuthority;
-import alluxio.util.ConfigurationUtils;
 
 import org.junit.After;
 import org.junit.Before;
@@ -38,13 +39,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import javax.security.auth.Subject;
 
 public class FileSystemFactoryTest {
   @Before
   public void before() {
-    ConfigurationUtils.reloadProperties();
+    Configuration.reloadProperties();
   }
 
   @After
@@ -71,8 +71,8 @@ public class FileSystemFactoryTest {
   public void multiMasterFileSystemCacheTest()  {
     try (Closeable p = new SystemPropertyRule(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
         "192.168.0.1:1234,192.168.0.2:1445,192.168.0.3:9943").toResource()) {
-      ConfigurationUtils.reloadProperties();
-      InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+      Configuration.reloadProperties();
+      AlluxioConfiguration conf = Configuration.global();
       MasterInquireClient.ConnectDetails connectDetails =
           MasterInquireClient.Factory.getConnectDetails(conf);
       // Make sure we have a MultiMaster authority
@@ -91,8 +91,8 @@ public class FileSystemFactoryTest {
     sysProps.put(PropertyKey.ZOOKEEPER_ELECTION_PATH.getName(), "/alluxio/leader");
 
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      ConfigurationUtils.reloadProperties();
-      InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+      Configuration.reloadProperties();
+      AlluxioConfiguration conf = Configuration.global();
       MasterInquireClient.ConnectDetails connectDetails =
           MasterInquireClient.Factory.getConnectDetails(conf);
       // Make sure we have a Zookeeper authority
@@ -111,7 +111,7 @@ public class FileSystemFactoryTest {
   @Test
   public void uncachedFileSystemDoesntAffectCache() throws Exception {
     FileSystem fs1 = FileSystem.Factory.get();
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1sec");
     FileSystem fs2 = FileSystem.Factory.create(conf);
     fs2.close();

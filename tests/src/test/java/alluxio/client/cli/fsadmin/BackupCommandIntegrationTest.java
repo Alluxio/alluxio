@@ -14,9 +14,9 @@ package alluxio.client.cli.fsadmin;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.PropertyKey.Name;
-import alluxio.conf.ServerConfiguration;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Test;
@@ -37,7 +37,7 @@ import java.nio.file.Paths;
 public final class BackupCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void defaultDirectory() throws IOException {
-    Path dir = Paths.get(ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY));
+    Path dir = Paths.get(Configuration.getString(PropertyKey.MASTER_BACKUP_DIRECTORY));
     Files.createDirectories(dir);
     assertEquals(0, Files.list(dir).count());
     int errCode = mFsAdminShell.run("backup");

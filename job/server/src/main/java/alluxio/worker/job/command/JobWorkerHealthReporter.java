@@ -11,7 +11,7 @@
 
 package alluxio.worker.job.command;
 
-import alluxio.util.CommonUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,51 +28,104 @@ import java.util.stream.DoubleStream;
 public class JobWorkerHealthReporter {
   private static final Logger LOG = LoggerFactory.getLogger(JobWorkerHealthReporter.class);
 
-  private static final double CPU_LOAD_AVERAGE_HEALTHY_FACTOR = 1.0;
-
-  private HardwareAbstractionLayer mHardware;
-
-  private List<Double> mCpuLoadAverage;
-  private int mLogicalProcessorCount;
-
-  private long mLastComputed;
+  private final HardwareAbstractionLayer mHardware;
+  private final WorkerNetAddress mWorkerNetAddress;
 
   /**
-   * Default constructor.
+   * Creates a new instance of {@link JobWorkerHealthReporter}.
+   *
+   * @param workerNetAddress the connection info for this worker
    */
-  public JobWorkerHealthReporter() {
+  public JobWorkerHealthReporter(WorkerNetAddress workerNetAddress) {
+    mWorkerNetAddress = workerNetAddress;
     mHardware = new SystemInfo().getHardware();
   }
 
   /**
-   * Returns the system load average of the worker.
-   * See http://oshi.github.io/oshi/apidocs/oshi/hardware/CentralProcessor.html#getSystemLoadAverage
    *
-   * @return the system load average of the worker
+   * @return instance of JobWorkerHealthReport
    */
-  public List<Double> getCpuLoadAverage() {
-    return mCpuLoadAverage;
+  public JobWorkerHealthReport getJobWorkerHealthReport() {
+    return new JobWorkerHealthReport(mHardware, mWorkerNetAddress);
   }
 
   /**
-   * Determines whether the system is healthy from all the metrics it has collected.
-   * @return true if system is deemed healthy, false otherwise
+   * It represents the job worker health information.
    */
-  public boolean isHealthy() {
-    if (mCpuLoadAverage.isEmpty()) {
-      // report healthy if cpu load average is not computable
-      return true;
+  public static class JobWorkerHealthReport {
+    private static final double CPU_LOAD_AVERAGE_HEALTHY_FACTOR = 1.0;
+    private final WorkerNetAddress mWorkerNetAddress;
+    private final List<Double> mCpuLoadAverage;
+    private final int mLogicalProcessorCount;
+    private final long mLastComputed;
+
+    /**
+     * Creates a new instance of {@link JobWorkerHealthReport}.
+     *
+     * @param hardware represents the system info of the worker
+     * @param workerNetAddress the connection info for this worker
+     */
+    public JobWorkerHealthReport(HardwareAbstractionLayer hardware,
+                                 WorkerNetAddress workerNetAddress) {
+      mWorkerNetAddress = workerNetAddress;
+      mCpuLoadAverage = DoubleStream.of(hardware.getProcessor()
+              .getSystemLoadAverage(3)).boxed()
+              .collect(Collectors.toList());
+      mLogicalProcessorCount = hardware.getProcessor().getLogicalProcessorCount();
+      mLastComputed = System.currentTimeMillis();
     }
-    return mLogicalProcessorCount * CPU_LOAD_AVERAGE_HEALTHY_FACTOR > mCpuLoadAverage.get(0);
-  }
 
-  /**
-   * Computes all of the metrics needed for JobWorkerHealthReporter.
-   */
-  public void compute() {
-    mLastComputed = CommonUtils.getCurrentMs();
-    mCpuLoadAverage = DoubleStream.of(mHardware.getProcessor().getSystemLoadAverage(3)).boxed()
-        .collect(Collectors.toList());
-    mLogicalProcessorCount = mHardware.getProcessor().getLogicalProcessorCount();
+    /**
+     * Returns the system load average of the worker.
+     * See https://www.oshi.ooo/oshi-core/apidocs/oshi/hardware/CentralProcessor.html#getSystemLoadAverage(int)
+     *
+     * @return the system load average of the worker
+     */
+    public List<Double> getCpuLoadAverage() {
+      return mCpuLoadAverage;
+    }
+
+    /**
+     * Returns the system logical processor count.
+     * Ref: https://www.oshi.ooo/oshi-core/apidocs/oshi/hardware/CentralProcessor.html#getLogicalProcessorCount()
+     *
+     * @return the logical process count of the worker
+     */
+    public int getLogicalProcessorCount() {
+      return mLogicalProcessorCount;
+    }
+
+    /**
+     * Returns the worker health observed time.
+     *
+     * @return observed time
+     */
+    public long getLastComputed() {
+      return mLastComputed;
+    }
+
+    /**
+     * Determines whether the system is healthy from all the metrics it has collected.
+     *
+     * @return true if system is deemed healthy, false otherwise
+     */
+    public boolean isHealthy() {
+      if (mCpuLoadAverage.isEmpty()) {
+        // report healthy if cpu load average is not computable
+        return true;
+      }
+
+      boolean isWorkerHealthy =
+              mLogicalProcessorCount * CPU_LOAD_AVERAGE_HEALTHY_FACTOR > mCpuLoadAverage.get(0);
+
+      if (!isWorkerHealthy) {
+        LOG.warn("Worker,{}, is not healthy.Process count:{}, Average cpu load:{}",
+                mWorkerNetAddress.getHost(),
+                mLogicalProcessorCount,
+                mCpuLoadAverage);
+      }
+
+      return isWorkerHealthy;
+    }
   }
 }

@@ -12,8 +12,8 @@
 package alluxio.collections;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Before;
@@ -57,19 +57,9 @@ public final class IndexedSetTest {
    */
   @Before
   public void before() {
-    mNonUniqueIntIndex = new IndexDefinition<Pair, Integer>(false) {
-      @Override
-      public Integer getFieldValue(Pair o) {
-        return o.intValue();
-      }
-    };
+    mNonUniqueIntIndex = IndexDefinition.ofNonUnique(Pair::intValue);
 
-    mUniqueLongIndex = new IndexDefinition<Pair, Long>(true) {
-      @Override
-      public Long getFieldValue(Pair o) {
-        return o.longValue();
-      }
-    };
+    mUniqueLongIndex = IndexDefinition.ofUnique(Pair::longValue);
 
     mSet = new IndexedSet<>(mNonUniqueIntIndex, mUniqueLongIndex);
     long l = 0;

@@ -58,6 +58,14 @@ exports[`Overview Shallow component Matches snapshot 1`] = `
           <th
             scope="row"
           >
+            Revision
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
             Running Workers
           </th>
           <td>
@@ -73,6 +81,22 @@ exports[`Overview Shallow component Matches snapshot 1`] = `
           <td
             className=""
           />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            Role
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            LeaderId
+          </th>
+          <td />
         </tr>
       </tbody>
     </Table>
@@ -124,6 +148,30 @@ exports[`Overview Shallow component Matches snapshot 1`] = `
           <td>
              / 
           </td>
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            Total Paths
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            Unique Block Count
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            Replica Block Count
+          </th>
+          <td />
         </tr>
       </tbody>
     </Table>

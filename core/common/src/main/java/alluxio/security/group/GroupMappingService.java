@@ -11,9 +11,9 @@
 
 package alluxio.security.group;
 
+import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.annotation.PublicApi;
 import alluxio.util.CommonUtils;
 
 import org.slf4j.Logger;

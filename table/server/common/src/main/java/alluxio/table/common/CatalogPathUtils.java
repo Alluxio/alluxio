@@ -12,8 +12,8 @@
 package alluxio.table.common;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -23,11 +23,11 @@ import org.slf4j.LoggerFactory;
  * A collection of utility methods for catalog paths.
  *
  * Catalog paths for tables look like:
- * /<catalog base dir>/<dbName1>/tables/<tableName1>/<udbType>/...
+ * /&lt;catalog base dir&gt;/&lt;dbName1&gt;/tables/&lt;tableName1&gt;/&lt;udbType&gt;/...
  *                                                  /_internal_/...
- *                                     /<tableName2>/<udbType>/...
+ *                                     /&lt;tableName2&gt;/&lt;udbType&gt;/...
  *                                                  /_internal_/...
- * /<catalog base dir>/<dbName2>/tables/<tableName3>/<udbType>/...
+ * /&lt;catalog base dir&gt;/&lt;dbName2&gt;/tables/&lt;tableName3&gt;/&lt;udbType&gt;/...
  *                                                  /_internal_/...
  */
 public class CatalogPathUtils {
@@ -45,7 +45,7 @@ public class CatalogPathUtils {
    */
   public static AlluxioURI getTablePathUdb(String dbName, String tableName, String udbType) {
     return new AlluxioURI(PathUtils
-        .concatPath(ServerConfiguration.get(PropertyKey.TABLE_CATALOG_PATH), dbName, TABLES_ROOT,
+        .concatPath(Configuration.get(PropertyKey.TABLE_CATALOG_PATH), dbName, TABLES_ROOT,
             tableName, udbType));
   }
 
@@ -56,7 +56,7 @@ public class CatalogPathUtils {
    */
   public static AlluxioURI getTablePathInternal(String dbName, String tableName) {
     return new AlluxioURI(PathUtils
-        .concatPath(ServerConfiguration.get(PropertyKey.TABLE_CATALOG_PATH), dbName, TABLES_ROOT,
+        .concatPath(Configuration.get(PropertyKey.TABLE_CATALOG_PATH), dbName, TABLES_ROOT,
             tableName, INTERNAL_ROOT));
   }
 }

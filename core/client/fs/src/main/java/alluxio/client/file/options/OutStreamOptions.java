@@ -11,12 +11,12 @@
 
 package alluxio.client.file.options;
 
-import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
@@ -24,7 +24,7 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ModeUtils;
 
@@ -32,7 +32,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -63,7 +62,8 @@ public final class OutStreamOptions {
    * @param alluxioConf the Alluxio configuration
    * @return the default {@link OutStreamOptions}
    */
-  public static OutStreamOptions defaults(ClientContext context, AlluxioConfiguration alluxioConf) {
+  public static OutStreamOptions defaults(FileSystemContext context,
+      AlluxioConfiguration alluxioConf) {
     return new OutStreamOptions(context, alluxioConf);
   }
 
@@ -71,7 +71,7 @@ public final class OutStreamOptions {
    * @param context Alluxio client context
    * @return the default {@link OutStreamOptions}
    */
-  public static OutStreamOptions defaults(ClientContext context) {
+  public static OutStreamOptions defaults(FileSystemContext context) {
     return new OutStreamOptions(context, context.getClusterConf());
   }
 
@@ -83,7 +83,7 @@ public final class OutStreamOptions {
    * @param alluxioConf the Alluxio configuration
    * @throws Exception if {@link BlockLocationPolicy} can't be loaded
    */
-  public OutStreamOptions(CreateFilePOptions options, ClientContext context,
+  public OutStreamOptions(CreateFilePOptions options, FileSystemContext context,
       AlluxioConfiguration alluxioConf) {
     this(context, alluxioConf);
     if (options.hasCommonOptions()) {
@@ -113,31 +113,23 @@ public final class OutStreamOptions {
     if (options.hasWriteType()) {
       mWriteType = WriteType.fromProto(options.getWriteType());
     }
-    try {
-      mLocationPolicy = BlockLocationPolicy.Factory.create(
-          alluxioConf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY), alluxioConf);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
   }
 
-  private OutStreamOptions(ClientContext context, AlluxioConfiguration alluxioConf) {
-    mCommonOptions = FileSystemOptions.commonDefaults(alluxioConf);
+  private OutStreamOptions(FileSystemContext context, AlluxioConfiguration alluxioConf) {
+    mCommonOptions = FileSystemOptionsUtils.commonDefaults(alluxioConf);
     mBlockSizeBytes = alluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-    mLocationPolicy = BlockLocationPolicy.Factory.create(
-        alluxioConf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
-        alluxioConf);
+    mLocationPolicy = context.getWriteBlockLocationPolicy(alluxioConf);
     mWriteTier = alluxioConf.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = alluxioConf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     try {
-      mOwner = context.getUserState().getUser().getName();
+      mOwner = context.getClientContext().getUserState().getUser().getName();
       mGroup = CommonUtils.getPrimaryGroupName(mOwner, context.getClusterConf());
     } catch (IOException e) {
       mOwner = "";
       mGroup = "";
     }
     mMode = ModeUtils.applyFileUMask(Mode.defaults(), alluxioConf
-        .get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
+        .getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
     mMountId = IdUtils.INVALID_MOUNT_ID;
     mPersistenceWaitTime = alluxioConf.getMs(PropertyKey.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME);
     mReplicationDurable = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
@@ -145,7 +137,7 @@ public final class OutStreamOptions {
     mReplicationMin = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
     mMediumType = "";
     if (alluxioConf.isSet(PropertyKey.USER_FILE_TARGET_MEDIA)) {
-      mMediumType = alluxioConf.get(PropertyKey.USER_FILE_TARGET_MEDIA);
+      mMediumType = alluxioConf.getString(PropertyKey.USER_FILE_TARGET_MEDIA);
     }
   }
 

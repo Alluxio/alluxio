@@ -14,6 +14,7 @@ package alluxio.master.file.contexts;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.underfs.UfsStatus;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.MoreObjects;
 
@@ -25,6 +26,7 @@ public class CompleteFileContext
 
   private long mOperationTimeMs;
   private UfsStatus mUfsStatus;
+  private boolean mMetadataLoad = false;
 
   /**
    * Creates rename context with given option data.
@@ -35,6 +37,23 @@ public class CompleteFileContext
     super(mergedOptionsBuilder);
     mOperationTimeMs = System.currentTimeMillis();
     mUfsStatus = null;
+  }
+
+  /**
+   * @param metadataLoad the flag value to use; if true, the operation is a result of a metadata
+   *        load
+   * @return the updated context
+   */
+  public CompleteFileContext setMetadataLoad(boolean metadataLoad) {
+    mMetadataLoad = metadataLoad;
+    return this;
+  }
+
+  /**
+   * @return the metadataLoad flag; if true, the operation is a result of a metadata load
+   */
+  public boolean isMetadataLoad() {
+    return mMetadataLoad;
   }
 
   /**
@@ -99,6 +118,14 @@ public class CompleteFileContext
   public CompleteFileContext setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
     return this;
+  }
+
+  @Override
+  public OperationId getOperationId() {
+    if (getOptions().hasCommonOptions() && getOptions().getCommonOptions().hasOperationId()) {
+      return OperationId.fromFsProto(getOptions().getCommonOptions().getOperationId());
+    }
+    return super.getOperationId();
   }
 
   @Override

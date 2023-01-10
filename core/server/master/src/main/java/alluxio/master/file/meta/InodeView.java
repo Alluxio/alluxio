@@ -11,6 +11,7 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.grpc.TtlAction;
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.security.authorization.AccessControlList;
@@ -18,12 +19,11 @@ import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
-import alluxio.grpc.TtlAction;
+
+import com.google.common.collect.ImmutableSet;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
 import javax.annotation.Nullable;
 
 /**
@@ -125,7 +125,7 @@ public interface InodeView extends JournalEntryRepresentable, Comparable<InodeVi
   /**
    * @return the pinned medium types set
    */
-  Set<String> getMediumTypes();
+  ImmutableSet<String> getMediumTypes();
 
   /**
    * @return the UFS fingerprint

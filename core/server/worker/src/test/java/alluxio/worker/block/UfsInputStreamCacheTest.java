@@ -21,8 +21,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.test.util.ConcurrencyUtils;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
@@ -113,11 +113,11 @@ public final class UfsInputStreamCacheTest {
 
   @Test
   public void expire() throws Exception {
-    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "2");
       }
-    }, ServerConfiguration.global()).toResource()) {
+    }, Configuration.modifiableGlobal()).toResource()) {
       mManager = new UfsInputStreamCache();
       // check out a stream
       InputStream instream =
@@ -133,11 +133,11 @@ public final class UfsInputStreamCacheTest {
 
   @Test
   public void releaseExpiredSameFile() throws Exception {
-    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "2");
       }
-    }, ServerConfiguration.global()).toResource()) {
+    }, Configuration.modifiableGlobal()).toResource()) {
       mManager = new UfsInputStreamCache();
       // check out a stream
       InputStream instream =
@@ -158,11 +158,11 @@ public final class UfsInputStreamCacheTest {
 
   @Test
   public void releaseExpiredDifferentFile() throws Exception {
-    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "2");
       }
-    }, ServerConfiguration.global()).toResource()) {
+    }, Configuration.modifiableGlobal()).toResource()) {
       mManager = new UfsInputStreamCache();
       // check out a stream
       InputStream instream =
@@ -183,12 +183,12 @@ public final class UfsInputStreamCacheTest {
 
   @Test
   public void concurrency() throws Exception {
-    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         // use very large number
         put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "200000");
       }
-    }, ServerConfiguration.global()).toResource()) {
+    }, Configuration.modifiableGlobal()).toResource()) {
       mManager = new UfsInputStreamCache();
       List<Thread> threads = new ArrayList<>();
       int numCheckOutPerThread = 10;
@@ -226,11 +226,11 @@ public final class UfsInputStreamCacheTest {
 
   @Test
   public void concurrencyWithExpiration() throws Exception {
-    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "20");
       }
-    }, ServerConfiguration.global()).toResource()) {
+    }, Configuration.modifiableGlobal()).toResource()) {
       mManager = new UfsInputStreamCache();
       List<Thread> threads = new ArrayList<>();
       int numCheckOutPerThread = 4;

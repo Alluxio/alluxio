@@ -16,8 +16,10 @@ Alluxio-FUSE是基于[FUSE](http://fuse.sourceforge.net/)这个项目，并且�
 ## 安装要求
 
 * JDK 1.8及以上
-* Linux系统上[libfuse](https://github.com/libfuse/libfuse) 2.9.3及以上
-  (2.8.3也能够工作，但会提示一些警告)
+* Linux系统现在支持[libfuse](https://github.com/libfuse/libfuse)的2或者3版本
+  * 要使用libfuse2，安装2.9.3及以上(2.8.3也能够工作，但会提示一些警告)
+  * 要使用libfuse3，安装3.2.6及以上(目前系统使用3.2.6版本进行测试)
+  * 查看[选择libfuse的版本](#%E9%80%89%E6%8B%A9libfuse%E7%9A%84%E7%89%88%E6%9C%AC)来了解和配置要使用的libfuse的版本
 * MAC系统上[osxfuse](https://osxfuse.github.io/) 3.7.1及以上
 
 ## 用法
@@ -79,11 +81,73 @@ $ pid	mount_point	alluxio_path
 80847	/mnt/sales	/sales
 ```
 
+## Fuse Shell 工具
+
+Alluxio-FUSE 提供了 Fuse shell 工具对客户端进行一些内部操作， 例如清理 Fuse Client 端的元数据缓存，获取元数据缓存大小等。
+Fuse Shell 工具使用 UNIX 系统的标准的命令行 `ls -l` 触发，假如我们的 Alluxio-Fuse 挂载点为 `/mnt/alluxio-fuse`， Fuse Shell 的命令格式为：
+```console
+$ ls -l /mnt/alluxio-fuse/.alluxiocli.[COMMAND].[SUBCOMMAND]
+```
+其中， `/.alluxiocli` 为 Fuse Shell 的标识字符串，`COMMAND` 为 Fuse Shell 命令(例如 `metadatacache` ), `SUBCOMMAND` 为子命令(例如 `drop, size, dropAll` 等)。
+目前 Fuse Shell 还只支持 `metadatacache` 命令， 后续我们会扩展更多的命令和交互方式。需要注意，使用 Fuse Shell 工具需要将配置项 `alluxio.fuse.special.command.enabled` 设置为 true。
+```console
+$ alluxio.fuse.special.command.enabled=true
+```
+
+### Metadatacache 命令
+
+我们在使用 Alluxio fuse 时通常会开启客户端元数据缓存，比如在 AI 这种大量小文件读的业务场景下， 开启客户端元数据缓存能够缓解
+Alluxio Master 的元数据压力， 提升业务的读性能， 当 Alluxio 中的数据更新后，client 端的元数据缓存也需要更新，通常我们要等待 `alluxio.user.metadata.cache.expiration.time` 配置的超时时间让元数据缓存失效，
+这意味着有一个时间窗口元数据可能是无效的，这种情况下推荐使用 Fuse Shell 的 `metadatacache` 命令及时对客户端元数据缓存进行清理, ` metadatacache` 命令格式为：
+```console
+$ ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.[dropAll|drop|size]
+```
+
+#### 使用示例:
+
+- 清理客户端所有的元数据缓存：
+```console
+$ ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.dropAll
+```
+- 清理挂载点下某一路径及其父目录缓存：
+```console
+$ ls -l /mnt/alluxio-fuse/dir/dir1/.alluxiocli.metadatacache.drop
+```
+上述命令会清除 `/mnt/alluxio-fuse/dir/dir1` 的元数据以及所有父目录的元数据缓存。
+- 获取客户端元数据大小
+```console
+$ ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.size
+```
+你将在下面输出结果中的文件大小字段得到元数据缓存的大小：
+```
+---------- 1 root root 13 Jan  1  1970 /mnt/alluxio-fuse/.alluxiocli.metadatacache.size
+```
+
 ## 可选配置
 
 Alluxio-FUSE是基于标准的alluxio-core-client-fs进行操作的。你也许希望像使用其他应用的client一样，自定义该alluxio-core-client-fs的行为。
 
 一种方法是编辑`$ALLUXIO_HOME/conf/alluxio-site.properties`配置文件来更改客户端选项。注意所有的更改应该在Alluxio-FUSE启动之前完成。
+
+### 选择libfuse的版本
+
+Alluxio现在支持libfuse2或者libfuse3。Alluxio的libfuse2的支持较成熟和稳定，已在生产环境中大规模部署。alluxio目前试验性支持libfuse3。Alluxio未来的开发也将专注于libfuse3，更好地利用libfuse3提供的新特性。
+
+如果系统内只安装了一个libfuse版本，alluxio将会使用这个版本。在大多数发行版中，libfuse2和libfuse3可以同时存在。如果两个版本都安装了，为了保持兼容性，alluxio将会默认使用libfuse2版本。
+
+要手动修改要使用的libfuse版本，在`$ALLUXIO_HOME/conf/alluxio-site.properties`中增加以下配置：
+
+```
+alluxio.fuse.jnifuse.libfuse.version=3
+```
+
+有效的值为`2`（只使用libfuse2）、`3`（只使用libfuse3）和其他整数值（先尝试加载libfuse2，如果失败了，加载libfuse3）。
+
+查看`logs/fuse.out`来查看当前具体使用的哪个版本。
+
+```
+INFO  NativeLibraryLoader - Loaded libjnifuse with libfuse version 2(或者3).
+```
 
 ## 局限性
 

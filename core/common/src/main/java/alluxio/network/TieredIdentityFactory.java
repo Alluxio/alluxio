@@ -36,7 +36,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
@@ -77,7 +76,7 @@ public final class TieredIdentityFactory {
     TieredIdentity scriptIdentity = fromScript(conf);
 
     List<LocalityTier> tiers = new ArrayList<>();
-    List<String> orderedTierNames = conf.getList(PropertyKey.LOCALITY_ORDER, ",");
+    List<String> orderedTierNames = conf.getList(PropertyKey.LOCALITY_ORDER);
     for (int i = 0; i < orderedTierNames.size(); i++) {
       String tierName = orderedTierNames.get(i);
       String value = null;
@@ -88,7 +87,7 @@ public final class TieredIdentityFactory {
       }
       // Explicit configuration overrides script output.
       if (conf.isSet(Template.LOCALITY_TIER.format(tierName))) {
-        value = conf.get(Template.LOCALITY_TIER.format(tierName));
+        value = conf.getString(Template.LOCALITY_TIER.format(tierName));
       }
       tiers.add(new LocalityTier(tierName, value));
     }
@@ -107,7 +106,7 @@ public final class TieredIdentityFactory {
    */
   @Nullable
   private static TieredIdentity fromScript(AlluxioConfiguration conf) {
-    String scriptName = conf.get(PropertyKey.LOCALITY_SCRIPT);
+    String scriptName = conf.getString(PropertyKey.LOCALITY_SCRIPT);
     Path script = Paths.get(scriptName);
     if (!Files.exists(script)) {
       URL resource = TieredIdentityFactory.class.getClassLoader().getResource(scriptName);
@@ -140,7 +139,7 @@ public final class TieredIdentityFactory {
    */
   public static TieredIdentity fromString(String identityString, AlluxioConfiguration conf)
       throws IOException {
-    Set<String> allTiers = Sets.newHashSet(conf.getList(PropertyKey.LOCALITY_ORDER, ","));
+    Set<String> allTiers = Sets.newHashSet(conf.getList(PropertyKey.LOCALITY_ORDER));
     Map<String, String> tiers = new HashMap<>();
     for (String tier : identityString.split(",")) {
       String[] parts = tier.split("=");
@@ -163,7 +162,7 @@ public final class TieredIdentityFactory {
       tiers.put(key, parts[1].trim());
     }
     List<LocalityTier> tieredIdentity = new ArrayList<>();
-    for (String localityTier : conf.getList(PropertyKey.LOCALITY_ORDER, ",")) {
+    for (String localityTier : conf.getList(PropertyKey.LOCALITY_ORDER)) {
       String value = tiers.getOrDefault(localityTier, null);
       tieredIdentity.add(new LocalityTier(localityTier, value));
     }

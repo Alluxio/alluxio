@@ -47,7 +47,7 @@ val sc = new SparkContext(conf)
 
 ## Hadoop MapReduce 作业
 
-Hadoop MapReduce用户可以在`hadoop jar`或“`yarn jar`命令后添加`"-Dproperty=value"`。
+Hadoop MapReduce用户可以在`hadoop jar`或"`yarn jar`命令后添加`"-Dproperty=value"`。
 属性将被传播到这个作业的所有任务中。例如,下面的
 MapReduce任务中设置wordcount集写入Alluxio类型为`CACHE_THROUGH`：
 
@@ -134,6 +134,14 @@ Alluxio通过环境变量来支持一些常用的配置设置，包括:
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_WORKER_JAVA_OPTS</code></td>
   <td>对Worker配置的额外Java虚拟机配置选项</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_JOB_MASTER_JAVA_OPTS</code></td>
+  <td>对Job Master配置的额外Java虚拟机配置选项</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_JOB_WORKER_JAVA_OPTS</code></td>
+  <td>对Job Worker配置的额外Java虚拟机配置选项</td>
 </tr>
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_USER_JAVA_OPTS</code></td>

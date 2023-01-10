@@ -12,52 +12,81 @@
 package alluxio.stress.fuse;
 
 import alluxio.Constants;
-import alluxio.collections.Pair;
-
 import alluxio.stress.BaseParameters;
-import alluxio.stress.Parameters;
-import alluxio.stress.Summary;
 import alluxio.stress.TaskResult;
-import alluxio.stress.common.SummaryStatistics;
-import alluxio.stress.graph.Graph;
-import alluxio.stress.graph.LineGraph;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Splitter;
 
-import java.io.IOException;
-import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * The task result for the Fuse IO stress tests.
  */
-public final class FuseIOTaskResult implements TaskResult, Summary {
+public final class FuseIOTaskResult implements TaskResult {
   private long mRecordStartMs;
   private long mEndMs;
-  private Map<Integer, ThreadCountResult> mThreadCountResults;
+  private long mIOBytes;
+  private List<String> mErrors;
   private BaseParameters mBaseParameters;
   private FuseIOParameters mParameters;
-
-  private Map<Integer, Map<String, SummaryStatistics>> mTimeToFirstByte;
 
   /**
    * Creates an instance.
    */
   public FuseIOTaskResult() {
-    // Default constructor required for json deserialization
-    mThreadCountResults = new HashMap<>();
-    mTimeToFirstByte = new HashMap<>();
+    mErrors = new ArrayList<>();
+  }
+
+  @Override
+  public TaskResult.Aggregator aggregator() {
+    return new Aggregator();
+  }
+
+  private static final class Aggregator implements TaskResult.Aggregator<FuseIOTaskResult> {
+    @Override
+    public FuseIOSummary aggregate(Iterable<FuseIOTaskResult> results) throws Exception {
+      long recordStartMs = 0;
+      long endMs = 0;
+      long ioBytes = 0;
+      FuseIOParameters fuseIOParameters = null;
+      BaseParameters baseParameters = null;
+      Map<String, FuseIOTaskResult> nodes = new HashMap<>();
+
+      for (FuseIOTaskResult taskResult: results) {
+        recordStartMs = taskResult.getRecordStartMs();
+        endMs = Math.max(endMs, taskResult.getEndMs());
+        ioBytes += taskResult.getIOBytes();
+        fuseIOParameters = taskResult.getParameters();
+        baseParameters = taskResult.getBaseParameters();
+
+        String jobWorkerUniqueId = taskResult.getBaseParameters().mId;
+        nodes.put(jobWorkerUniqueId, taskResult);
+      }
+
+      float ioMBps = (float) ioBytes / (endMs - recordStartMs) * 1000.0f / Constants.MB;
+
+      return new FuseIOSummary(fuseIOParameters, baseParameters, nodes, recordStartMs,
+          endMs, ioBytes, ioMBps);
+    }
   }
 
   /**
-   * @return the base parameters
+   * Merges this thread result into the Fuse IO task result.
+   *
+   * @param result  the result to merge
    */
+  public void merge(FuseIOTaskResult result) {
+    mRecordStartMs = Math.min(mRecordStartMs, result.mRecordStartMs);
+    mEndMs = Math.max(mEndMs, result.mEndMs);
+    mIOBytes += result.mIOBytes;
+    mErrors.addAll(result.mErrors);
+  }
+
+  @Override
   public BaseParameters getBaseParameters() {
     return mBaseParameters;
   }
@@ -70,17 +99,55 @@ public final class FuseIOTaskResult implements TaskResult, Summary {
   }
 
   /**
-   * @return the Fuse IO parameters
+   * @return the Fuse IO Stress Bench parameters
    */
   public FuseIOParameters getParameters() {
     return mParameters;
   }
 
   /**
-   * @param parameters the Fuse IO parameters
+   * @param parameters the Fuse IO Stress Bench parameters
    */
   public void setParameters(FuseIOParameters parameters) {
     mParameters = parameters;
+  }
+
+  /**
+   * @return the duration (in ms)
+   */
+  public long getDurationMs() {
+    return mEndMs - mRecordStartMs;
+  }
+
+  /**
+   * @param durationMs the duration (in ms)
+   */
+  @JsonIgnore
+  public void setDurationMs(long durationMs) {
+    // ignore
+  }
+
+  /**
+   * @return bytes of IO
+   */
+  public long getIOBytes() {
+    return mIOBytes;
+  }
+
+  /**
+   * Increments the bytes of IO an amount.
+   *
+   * @param ioBytes the amount to increment by
+   */
+  public void incrementIOBytes(long ioBytes) {
+    mIOBytes += ioBytes;
+  }
+
+  /**
+   * @param ioBytes bytes of IO
+   */
+  public void setIOBytes(long ioBytes) {
+    mIOBytes = ioBytes;
   }
 
   /**
@@ -98,30 +165,6 @@ public final class FuseIOTaskResult implements TaskResult, Summary {
   }
 
   /**
-   * @return client IO statistics per method
-   */
-  public Map<Integer, Map<String, SummaryStatistics>> getTimeToFirstBytePerThread() {
-    return mTimeToFirstByte;
-  }
-
-  /**
-   * @param timeToFirstByte time to first statistics
-   */
-  public void setTimeToFirstBytePerThread(Map<Integer, Map<String,
-      SummaryStatistics>> timeToFirstByte) {
-    mTimeToFirstByte = timeToFirstByte;
-  }
-
-  /**
-   * @param numThreads thread count
-   * @param statistics FuseIOTaskResultStatistics
-   */
-  public void putTimeToFirstBytePerThread(Integer numThreads,
-      Map<String, SummaryStatistics> statistics) {
-    mTimeToFirstByte.put(numThreads, statistics);
-  }
-
-  /**
    * @return the end time (in ms)
    */
   public long getEndMs() {
@@ -135,304 +178,36 @@ public final class FuseIOTaskResult implements TaskResult, Summary {
     mEndMs = endMs;
   }
 
-  /**
-   * @return the map of thread counts to results
-   */
-  public Map<Integer, ThreadCountResult> getThreadCountResults() {
-    return mThreadCountResults;
-  }
-
-  /**
-   * @param threadCountResults the map of thread counts to results
-   */
-  public void setThreadCountResults(Map<Integer, ThreadCountResult> threadCountResults) {
-    mThreadCountResults = threadCountResults;
-  }
-
-  /**
-   * @param threadCount the thread count of the results
-   * @param threadCountResult the results to add
-   */
-  public void addThreadCountResults(int threadCount, ThreadCountResult threadCountResult) {
-    mThreadCountResults.put(threadCount, threadCountResult);
-  }
-
-  private long computeLastEndMs() {
-    long endMs = 0;
-    for (ThreadCountResult result : mThreadCountResults.values()) {
-      endMs = Math.max(endMs, result.getEndMs());
-    }
-    return endMs;
-  }
-
-  private LineGraph.Data getThroughputData() {
-    LineGraph.Data data = new LineGraph.Data();
-    for (Map.Entry<Integer, ThreadCountResult> entry : mThreadCountResults.entrySet()) {
-      data.addData(entry.getKey(), entry.getValue().getIOMBps());
-    }
-    return data;
-  }
-
-  private void getNumSuccessData(String series, LineGraph lineGraph) {
-    Map<String, LineGraph.Data> data = new HashMap<>();
-
-    for (Map.Entry<Integer, Map<String, SummaryStatistics>> threadEntry :
-        mTimeToFirstByte.entrySet()) {
-      for (Map.Entry<String, SummaryStatistics> methodEntry :
-          threadEntry.getValue().entrySet()) {
-        String prefix = series + ", method: " + methodEntry.getKey();
-        LineGraph.Data currentData = data.getOrDefault(prefix, new LineGraph.Data());
-        currentData.addData(threadEntry.getKey(), methodEntry.getValue().mNumSuccess);
-        data.put(prefix, currentData);
-      }
-    }
-
-    for (Map.Entry<String, LineGraph.Data> entry : data.entrySet()) {
-      lineGraph.addDataSeries(entry.getKey(), entry.getValue());
-    }
-  }
-
-  private void getTimeToFistByteData(String series, LineGraph lineGraph) {
-    for (Map.Entry<Integer, Map<String, SummaryStatistics>> threadEntry :
-        mTimeToFirstByte.entrySet()) {
-      for (Map.Entry<String, SummaryStatistics> methodEntry :
-          threadEntry.getValue().entrySet()) {
-        lineGraph.addDataSeries(series
-            + ", method: " + methodEntry.getKey()
-            + ", thread: " + threadEntry.getKey(), methodEntry.getValue().computeTimeData());
-      }
-    }
-  }
-
-  private List<String> collectErrors() {
-    List<String> errors = new ArrayList<>();
-    for (Map.Entry<Integer, ThreadCountResult> entry : mThreadCountResults.entrySet()) {
-      // add all the errors for this thread count, with the thread count appended to prefix
-      errors.addAll(
-          entry.getValue().getErrors().stream().map(err -> entry.getKey().toString() + ": " + err)
-              .collect(Collectors.toList()));
-    }
-    return errors;
-  }
-
   @Override
-  public TaskResult.Aggregator aggregator() {
-    return new Aggregator();
-  }
-
-  private static final class Aggregator implements TaskResult.Aggregator<FuseIOTaskResult> {
-    @Override
-    public FuseIOTaskResult aggregate(Iterable<FuseIOTaskResult> results) throws Exception {
-      Iterator<FuseIOTaskResult> it = results.iterator();
-      if (it.hasNext()) {
-        FuseIOTaskResult taskResult = it.next();
-        if (it.hasNext()) {
-          throw new IOException(
-              "FuseIO is a single node test, so multiple task results cannot be aggregated.");
-        }
-        return taskResult;
-      }
-      return new FuseIOTaskResult();
-    }
-  }
-
-  @Override
-  public alluxio.stress.GraphGenerator graphGenerator() {
-    return new GraphGenerator();
+  public List<String> getErrors() {
+    return Collections.unmodifiableList(mErrors);
   }
 
   /**
-   * The graph generator for this summary.
+   * @param errors the list of errors
    */
-  public static final class GraphGenerator extends alluxio.stress.GraphGenerator {
-    @Override
-    public List<Graph> generate(List<? extends Summary> results) {
-      List<Graph> graphs = new ArrayList<>();
-      // expecting FuseIOTaskResult, or will throw ClassCastException
-      List<FuseIOTaskResult> summaries =
-          results.stream().map(x -> (FuseIOTaskResult) x).collect(Collectors.toList());
-
-      // Iterate over all operations
-      for (FuseIOOperation operation : FuseIOOperation.values()) {
-        List<FuseIOTaskResult> opSummaries =
-            summaries.stream().filter(x -> x.mParameters.mOperation == operation)
-                .collect(Collectors.toList());
-
-        if (!opSummaries.isEmpty()) {
-          // first() is the list of common field names, second() is the list of unique field names
-          Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
-              opSummaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
-
-          // Split up common description into 100 character chunks, for the sub title
-          List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
-              opSummaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
-
-          for (FuseIOTaskResult summary : opSummaries) {
-            String series = summary.mParameters.getDescription(fieldNames.getSecond());
-            subTitle.add(series + ": " + DateFormat.getDateTimeInstance()
-                .format(summary.computeLastEndMs()));
-          }
-
-          LineGraph responseTimeGraph = new LineGraph(String
-              .format("%s - Throughput"),
-              subTitle, "# Threads", "Throughput (MB/s)");
-
-          LineGraph numSuccessGraph = new LineGraph(String
-              .format("%s - API calls", operation),
-              subTitle, "# Threads", "# API calls");
-
-          LineGraph timeToFirstByteGraph = new LineGraph(String
-              .format("%s - Time To First Byte"),
-              subTitle, "# Threads", "Time To First Byte (Ms)");
-
-          for (FuseIOTaskResult summary : opSummaries) {
-            String series = summary.mParameters.getDescription(fieldNames.getSecond());
-            responseTimeGraph.addDataSeries(series, summary.getThroughputData());
-            responseTimeGraph.setErrors(series, summary.collectErrors());
-
-            summary.getNumSuccessData(series, numSuccessGraph);
-
-            summary.getTimeToFistByteData(series, timeToFirstByteGraph);
-          }
-          graphs.add(responseTimeGraph);
-          graphs.add(numSuccessGraph);
-          graphs.add(timeToFirstByteGraph);
-        }
-      }
-
-      return graphs;
-    }
+  public void setErrors(List<String> errors) {
+    mErrors = errors;
   }
 
   /**
-   * A result for a single thread count test.
+   * @param errMessage the error message to add
    */
-  public static final class ThreadCountResult {
-    private long mRecordStartMs;
-    private long mEndMs;
-    private long mIOBytes;
-    private List<String> mErrors;
+  public void addErrorMessage(String errMessage) {
+    mErrors.add(errMessage);
+  }
 
-    /**
-     * Creates an instance.
-     */
-    public ThreadCountResult() {
-      // Default constructor required for json deserialization
-      mErrors = new ArrayList<>();
-    }
+  /**
+   * @return the throughput (MB/s)
+   */
+  public float getIOMBps() {
+    return ((float) mIOBytes / getDurationMs()) * 1000.0f / Constants.MB;
+  }
 
-    /**
-     * Merges (updates) a result with this result.
-     *
-     * @param result  the result to merge
-     */
-    public void merge(FuseIOTaskResult.ThreadCountResult result) {
-      mRecordStartMs = Math.min(mRecordStartMs, result.mRecordStartMs);
-      mEndMs = Math.max(mEndMs, result.mEndMs);
-      mIOBytes += result.mIOBytes;
-      mErrors.addAll(result.mErrors);
-    }
-
-    /**
-     * @return the duration (in ms)
-     */
-    public long getDurationMs() {
-      return mEndMs - mRecordStartMs;
-    }
-
-    /**
-     * @param durationMs the duration (in ms)
-     */
-    @JsonIgnore
-    public void setDurationMs(long durationMs) {
-      // ignore
-    }
-
-    /**
-     * @return bytes of IO
-     */
-    public long getIOBytes() {
-      return mIOBytes;
-    }
-
-    /**
-     * Increments the bytes of IO an amount.
-     *
-     * @param ioBytes the amount to increment by
-     */
-    public void incrementIOBytes(long ioBytes) {
-      mIOBytes += ioBytes;
-    }
-
-    /**
-     * @param ioBytes bytes of IO
-     */
-    public void setIOBytes(long ioBytes) {
-      mIOBytes = ioBytes;
-    }
-
-    /**
-     * @return the start time (in ms)
-     */
-    public long getRecordStartMs() {
-      return mRecordStartMs;
-    }
-
-    /**
-     * @param recordStartMs the start time (in ms)
-     */
-    public void setRecordStartMs(long recordStartMs) {
-      mRecordStartMs = recordStartMs;
-    }
-
-    /**
-     * @return the end time (in ms)
-     */
-    public long getEndMs() {
-      return mEndMs;
-    }
-
-    /**
-     * @param endMs the end time (in ms)
-     */
-    public void setEndMs(long endMs) {
-      mEndMs = endMs;
-    }
-
-    /**
-     * @return the list of errors
-     */
-    public List<String> getErrors() {
-      return mErrors;
-    }
-
-    /**
-     * @param errors the list of errors
-     */
-    public void setErrors(List<String> errors) {
-      mErrors = errors;
-    }
-
-    /**
-     * @param errMessage the error message to add
-     */
-    public void addErrorMessage(String errMessage) {
-      mErrors.add(errMessage);
-    }
-
-    /**
-     * @return the throughput (MB/s)
-     */
-    public float getIOMBps() {
-      return ((float) mIOBytes / getDurationMs()) * 1000.0f / Constants.MB;
-    }
-
-    /**
-     * @param ioMBps the throughput (MB / s)
-     */
-    @JsonIgnore
-    public void setIOMBps(float ioMBps) {
-      // ignore
-    }
+  /**
+   * @param ioMBps the throughput (MB / s)
+   */
+  public void setIOMBps(float ioMBps) {
+    // ignore
   }
 }

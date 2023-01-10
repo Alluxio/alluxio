@@ -12,16 +12,15 @@
 package alluxio.job.plan.migrate;
 
 import static junit.framework.TestCase.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.ConfigurationTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -29,8 +28,8 @@ import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.MockFileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.FileAlreadyExistsException;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -45,20 +44,13 @@ import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.ArgumentMatchers;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Unit tests for {@link MigrateDefinition#runTask(MigrateConfig, MigrateCommand, RunTaskContext)}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class})
 public final class MigrateDefinitionRunTaskTest {
   private static final String TEST_DIR = "/DIR";
   private static final String TEST_SOURCE = "/DIR/TEST_SOURCE";
@@ -73,9 +65,9 @@ public final class MigrateDefinitionRunTaskTest {
 
   @Before
   public void before() throws Exception {
-    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
-    mMockFileSystem = Mockito.mock(FileSystem.class);
-    mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    AlluxioConfiguration conf = Configuration.global();
+    mMockFileSystem = mock(FileSystem.class);
+    mMockFileSystemContext = mock(FileSystemContext.class);
     when(mMockFileSystemContext.getClientContext())
         .thenReturn(ClientContext.create(conf));
     when(mMockFileSystemContext.getClusterConf()).thenReturn(conf);
@@ -86,7 +78,7 @@ public final class MigrateDefinitionRunTaskTest {
     mMockOutStream = new MockFileOutStream(mMockFileSystemContext);
     when(mMockFileSystem.createFile(eq(new AlluxioURI(TEST_DESTINATION)),
         any(CreateFilePOptions.class))).thenReturn(mMockOutStream);
-    mMockUfsManager = Mockito.mock(UfsManager.class);
+    mMockUfsManager = mock(UfsManager.class);
   }
 
   /**
@@ -144,11 +136,11 @@ public final class MigrateDefinitionRunTaskTest {
   @Test
   public void writeTypeTest() throws Exception {
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.CACHE_THROUGH);
-    verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
+    verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), ArgumentMatchers
         .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build()));
 
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.MUST_CACHE);
-    verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
+    verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), ArgumentMatchers
         .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build()));
   }
 
@@ -167,9 +159,8 @@ public final class MigrateDefinitionRunTaskTest {
   }
 
   @Test
-  public void overwriteTest() throws Exception {
+  public void overwriteFailureTest() throws Exception {
     final AtomicBoolean deleteCalled = new AtomicBoolean(false);
-
     when(mMockFileSystem.createFile(eq(new AlluxioURI(TEST_DESTINATION)), any()))
         .thenAnswer((invocation) -> {
           if (deleteCalled.get()) {
@@ -177,23 +168,29 @@ public final class MigrateDefinitionRunTaskTest {
           }
           throw new FileAlreadyExistsException("already exists");
         });
-
-    doAnswer((invocation) -> {
-      if (deleteCalled.get()) {
-        throw new FileDoesNotExistException("doesn't exist");
-      }
-      deleteCalled.set(true);
-      return null;
-    }).when(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DESTINATION)));
-
     try {
       runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH, false);
       fail();
     } catch (FileAlreadyExistsException e) {
       // expected
     }
+  }
+
+  @Test
+  public void overwriteSuccessTest() throws Exception {
+    final AtomicBoolean deleteCalled = new AtomicBoolean(false);
+    when(mMockFileSystem.createFile(any(AlluxioURI.class), any()))
+        .thenAnswer((invocation) -> {
+          if (deleteCalled.get()) {
+            return mMockOutStream;
+          }
+          deleteCalled.set(true);
+          throw new FileAlreadyExistsException("already exists");
+        });
 
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH, true);
+    verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DESTINATION)));
+    verify(mMockFileSystem).rename(any(AlluxioURI.class), eq(new AlluxioURI(TEST_DESTINATION)));
   }
 
   /**
@@ -221,7 +218,7 @@ public final class MigrateDefinitionRunTaskTest {
   private void runTask(String configSource, String commandSource, String commandDestination,
                        WriteType writeType, boolean overwrite) throws Exception {
     new MigrateDefinition().runTask(
-        new MigrateConfig(configSource, "", writeType.toString(), overwrite),
+        new MigrateConfig(configSource, "", writeType, overwrite),
         new MigrateCommand(commandSource, commandDestination),
         new RunTaskContext(1, 1,
             new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager)));

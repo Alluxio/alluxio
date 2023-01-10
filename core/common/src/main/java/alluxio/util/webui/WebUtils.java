@@ -15,7 +15,6 @@ import alluxio.wire.WorkerInfo;
 
 import java.util.Arrays;
 import java.util.Collection;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

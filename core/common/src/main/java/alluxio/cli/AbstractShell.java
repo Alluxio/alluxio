@@ -11,7 +11,7 @@
 
 package alluxio.cli;
 
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 
 import com.google.common.io.Closer;
@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -40,11 +39,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class AbstractShell implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractShell.class);
 
-  private Map<String, String[]> mCommandAlias;
-  private Set<String> mUnstableAlias;
-  private Map<String, Command> mCommands;
-  protected InstancedConfiguration mConfiguration;
-  protected Closer mCloser;
+  private final Map<String, String[]> mCommandAlias;
+  private final Set<String> mUnstableAlias;
+  private final Map<String, Command> mCommands;
+  protected final AlluxioConfiguration mConfiguration;
+  protected final Closer mCloser;
 
   /**
    * Creates a new instance of {@link AbstractShell}.
@@ -54,7 +53,7 @@ public abstract class AbstractShell implements Closeable {
    * @param conf Alluxio configuration
    */
   public AbstractShell(Map<String, String[]> commandAlias,
-      Set<String> unstableAlias, InstancedConfiguration conf) {
+      Set<String> unstableAlias, AlluxioConfiguration conf) {
     mCloser = Closer.create();
     mConfiguration = conf; // This needs to go first in case loadCommands() uses the reference to
     // the configuration
@@ -62,7 +61,7 @@ public abstract class AbstractShell implements Closeable {
     mCommandAlias = commandAlias;
     mCommands = loadCommands();
     // Register all loaded commands under closer.
-    mCommands.values().stream().forEach((cmd) -> mCloser.register(cmd));
+    mCommands.values().forEach(mCloser::register);
   }
 
   /**
@@ -85,7 +84,7 @@ public abstract class AbstractShell implements Closeable {
       String[] replacementCmd = getReplacementCmd(cmd);
       if (replacementCmd == null) {
         // Unknown command (we didn't find the cmd in our dict)
-        System.err.println(String.format("%s is an unknown command.", cmd));
+        System.err.printf("%s is an unknown command.%n", cmd);
         printUsage();
         return -1;
       } else {
@@ -99,7 +98,7 @@ public abstract class AbstractShell implements Closeable {
         }
 
         String[] replacementArgv =
-            (String[]) ArrayUtils.addAll(replacementCmd, ArrayUtils.subarray(argv, 1, argv.length));
+            ArrayUtils.addAll(replacementCmd, ArrayUtils.subarray(argv, 1, argv.length));
         return run(replacementArgv);
       }
     }
@@ -116,9 +115,7 @@ public abstract class AbstractShell implements Closeable {
           throw new InvalidArgumentException("Unknown sub-command: " + currArgs[1]);
         }
         command = command.getSubCommands().get(currArgs[1]);
-        if (currArgs.length >= 2) {
-          currArgs = Arrays.copyOfRange(currArgs, 1, currArgs.length);
-        }
+        currArgs = Arrays.copyOfRange(currArgs, 1, currArgs.length);
       }
       currArgs = Arrays.copyOfRange(currArgs, 1, currArgs.length);
 

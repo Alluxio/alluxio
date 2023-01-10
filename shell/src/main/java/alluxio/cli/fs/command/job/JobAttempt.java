@@ -21,6 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Abstract class for handling submission for a job.
@@ -32,10 +35,13 @@ public abstract class JobAttempt {
   protected final RetryPolicy mRetryPolicy;
 
   private Long mJobId;
+  protected Set<JobInfo> mFailedTasks;
+  protected Set<String> mFailedFiles;
 
   protected JobAttempt(JobMasterClient client, RetryPolicy retryPolicy) {
     mClient = client;
     mRetryPolicy = retryPolicy;
+    mFailedFiles = new HashSet<>();
   }
 
   /**
@@ -43,13 +49,16 @@ public abstract class JobAttempt {
    * @return true if an attempt was made, false if attempts ran out
    */
   public boolean run() {
-    if (mRetryPolicy.attempt()) {
+    while (mRetryPolicy.attempt()) {
       mJobId = null;
       try {
         mJobId = mClient.run(getJobConfig());
       } catch (IOException e) {
-        LOG.warn("Failed to start job", e);
-        System.out.println(String.format("Failed to start job with error: %s", e.getMessage()));
+        int retryCount = mRetryPolicy.getAttemptCount();
+        System.out.println(String.format("Retry %d Failed to start job with error: %s",
+            retryCount, e.getMessage()));
+        LOG.warn("Retry {} Failed to get status for job (jobId={}) {}", retryCount, mJobId, e);
+        continue;
         // Do nothing. This will be counted as a failed attempt
       }
       return true;
@@ -70,7 +79,7 @@ public abstract class JobAttempt {
 
     JobInfo jobInfo;
     try {
-      jobInfo = mClient.getJobStatus(mJobId);
+      jobInfo = mClient.getJobStatusDetailed(mJobId);
     } catch (IOException e) {
       LOG.warn("Failed to get status for job (jobId={})", mJobId, e);
       return Status.FAILED;
@@ -78,16 +87,19 @@ public abstract class JobAttempt {
 
     // This make an assumption that this job tree only goes 1 level deep
     boolean finished = true;
+
     for (JobInfo child : jobInfo.getChildren()) {
       if (!child.getStatus().isFinished()) {
         finished = false;
         break;
       }
     }
-
     if (finished) {
       if (jobInfo.getStatus().equals(Status.FAILED)) {
         logFailedAttempt(jobInfo);
+        mFailedTasks = jobInfo.getChildren().stream()
+            .filter(child -> child.getStatus() == Status.FAILED).collect(Collectors.toSet());
+        setFailedFiles();
       } else if (jobInfo.getStatus().equals(Status.COMPLETED)) {
         logCompleted();
       }
@@ -96,7 +108,27 @@ public abstract class JobAttempt {
     return Status.RUNNING;
   }
 
-  protected abstract JobConfig getJobConfig();
+  /**
+   * Get job config.
+   * @return job config
+   */
+  public abstract JobConfig getJobConfig();
+
+  /**
+   * Get how many files contained in job attempt.
+   * @return number of files
+   */
+  public abstract int getSize();
+
+  /**
+   * Get failed files if there's any. Only call this function after confirm job status is FAILED!
+   * @return failed fail set
+   */
+  public Set<String> getFailedFiles() {
+    return mFailedFiles;
+  }
+
+  protected abstract void setFailedFiles();
 
   protected abstract void logFailedAttempt(JobInfo jobInfo);
 

@@ -13,7 +13,6 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.DeletePOptions;
@@ -30,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.annotation.Nullable;
 
 /**
@@ -84,7 +82,7 @@ public final class SafeUfsDeleter implements UfsDeleter {
         if (inode.isFile()) {
           if (!ufs.deleteExistingFile(ufsUri)) {
             if (ufs.isFile(ufsUri)) {
-              throw new IOException(ExceptionMessage.DELETE_FAILED_UFS_FILE.getMessage());
+              throw new IOException("UFS delete file failed");
             } else {
               LOG.warn("The file to delete does not exist in ufs: {}", ufsUri);
             }
@@ -96,7 +94,7 @@ public final class SafeUfsDeleter implements UfsDeleter {
             if (!ufs.deleteExistingDirectory(ufsUri, options)) {
               // TODO(adit): handle partial failures of recursive deletes
               if (ufs.isDirectory(ufsUri)) {
-                throw new IOException(ExceptionMessage.DELETE_FAILED_UFS_DIR.getMessage());
+                throw new IOException("UFS delete dir failed");
               } else {
                 LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
               }
@@ -104,7 +102,7 @@ public final class SafeUfsDeleter implements UfsDeleter {
           } else {
             LOG.warn("The directory cannot be deleted from the ufs as it is not in sync: {}",
                 ufsUri);
-            throw new IOException(ExceptionMessage.DELETE_FAILED_UFS_NOT_IN_SYNC.getMessage());
+            throw new IOException("UFS dir not in sync. Sync UFS, or delete with unchecked flag.");
           }
         }
       }

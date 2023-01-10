@@ -25,8 +25,6 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.GuardedBy;
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Queue;
@@ -34,6 +32,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Used to control applying to masters.
@@ -72,13 +72,13 @@ public class BufferedJournalApplier {
   private boolean mResumeInProgress = false;
 
   /** Buffer to use during suspend period. */
-  private Queue<Journal.JournalEntry> mSuspendBuffer = new ConcurrentLinkedQueue();
+  private final Queue<Journal.JournalEntry> mSuspendBuffer = new ConcurrentLinkedQueue<>();
 
   /** Used to store latest catch-up thread. */
   private AbstractCatchupThread mCatchupThread;
 
   /** Used to synchronize buffer state. */
-  private ReentrantLock mStateLock = new ReentrantLock(true);
+  private final ReentrantLock mStateLock = new ReentrantLock(true);
 
   /**
    * Creates a buffered applier over given journals.
@@ -127,7 +127,7 @@ public class BufferedJournalApplier {
    * After this call, journal entries will be buffered until {@link #resume()} or
    * {@link #catchup(long)} is called.
    *
-   * @throws IOException
+   * @throws IOException if suspension fails
    */
   public void suspend() throws IOException {
     try (LockResource stateLock = new LockResource(mStateLock)) {
@@ -140,7 +140,7 @@ public class BufferedJournalApplier {
   /**
    * Resumes the applier. This method will apply all buffered entries before returning.
    *
-   * @throws IOException
+   * @throws IOException if resuming fails
    */
   public void resume() throws IOException {
     try (LockResource stateLock = new LockResource(mStateLock)) {
@@ -152,12 +152,12 @@ public class BufferedJournalApplier {
 
     cancelCatchup();
 
-    /**
-     * Applies all buffered entries.
-     *
-     * It doesn't block state until
-     *   -> buffer contains few elements ( RESUME_LOCK_BUFFER_SIZE_WATERMARK )
-     *   -> was running for a long time  ( RESUME_LOCK_TIME_LIMIT_MS         )
+    /*
+      Applies all buffered entries.
+
+      It doesn't block state until
+        -> buffer contains few elements ( RESUME_LOCK_BUFFER_SIZE_WATERMARK )
+        -> was running for a long time  ( RESUME_LOCK_TIME_LIMIT_MS         )
      */
     try {
       // Mark resume start time.
@@ -251,7 +251,7 @@ public class BufferedJournalApplier {
   }
 
   /**
-   * Resets the suspend applier. Should only be used when the state machine is reset.
+   * Resets the suspend-applier. Should only be used when the state machine is reset.
    */
   public void close() {
     try (LockResource stateLock = new LockResource(mStateLock)) {
@@ -265,7 +265,7 @@ public class BufferedJournalApplier {
    */
   class RaftJournalCatchupThread extends AbstractCatchupThread {
     /** Where to stop catching up. */
-    private long mCatchUpEndSequence;
+    private final long mCatchUpEndSequence;
     /** Used to stop catching up early. */
     private boolean mStopCatchingUp = false;
 
