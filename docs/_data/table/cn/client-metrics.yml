@@ -1,7 +1,7 @@
 Client.BlockMasterClientCount:
   'BlockMasterClientPool 中实例数量'
 Client.BlockReadChunkRemote:
-  '这个客户端从远程 Alluxio worker 读取数据chunk数量'
+  '这个客户端从远程 Alluxio worker 读取数据chunk数量。当 alluxio.user.block.read.metrics.enabled 设置为 true 时，才会记录此指标'
 Client.BlockWorkerClientCount:
   'BlockWorkerClientPool 中实例数量'
 Client.BusyExceptionCount:

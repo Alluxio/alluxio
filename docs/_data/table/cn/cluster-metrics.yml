@@ -3,9 +3,9 @@ Cluster.ActiveRpcReadCount:
 Cluster.ActiveRpcWriteCount:
   'worker 上进行中的 write-RPC 数量'
 Cluster.BytesReadDirect:
-  '从所有外部 RPC 的 worker 线程读取的字节数。数据存在于 worker 存储中或者由 worker 从 UFS 获取。这记录了 worker 内部调用（e.g. 嵌入在 worker 中的客户端）读取的数据'
+  '汇总在所有 worker 上不通过 RPC 读取的字节数。这记录了 worker 内部调用（e.g. 嵌入在 worker 中的客户端）读取的数据，数据存在于 worker 缓存中或由 worker 从 UFS 获取'
 Cluster.BytesReadDirectThroughput:
-  '从所有外部 RPC 的 worker 线程读取的字节数。数据存在于 worker 存储中或者由 worker 从 UFS 获取。这记录了 worker 内部调用（e.g. 嵌入在 worker 中的客户端）读取的数据。'
+  '汇总在所有 worker 上不通过 RPC 读取字节的吞吐量。这记录了 worker 内部调用（e.g. 嵌入在 worker 中的客户端）读取的数据，数据存在于 worker 缓存中或由 worker 从 UFS 获取'
 Cluster.BytesReadDomain:
   '从所有 worker 通过域套接字读取的总字节数'
 Cluster.BytesReadDomainThroughput:
