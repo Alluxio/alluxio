@@ -242,6 +242,23 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
+  public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
+      boolean usePartialListing, boolean verify) {
+    return mDelegatedFileSystem.submitLoad(path, bandwidth, usePartialListing, verify);
+  }
+
+  @Override
+  public boolean stopLoad(AlluxioURI path) {
+    return mDelegatedFileSystem.stopLoad(path);
+  }
+
+  @Override
+  public String getLoadProgress(AlluxioURI path,
+      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
+    return mDelegatedFileSystem.getLoadProgress(path, format, verbose);
+  }
+
+  @Override
   public void close() throws IOException {
     mDelegatedFileSystem.close();
   }

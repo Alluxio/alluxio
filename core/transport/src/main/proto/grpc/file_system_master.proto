@@ -586,6 +586,48 @@ message NeedsSyncRequest {
 
 message NeedsSyncResponse {}
 
+message LoadPathPOptions {
+  optional int64 bandwidth = 1;
+  optional bool verify = 2;
+  optional bool partialListing = 3;
+}
+
+message LoadPathPRequest {
+  required string path = 1;
+  optional LoadPathPOptions options = 2;
+}
+
+message LoadPathPResponse {
+  optional bool newLoadSubmitted = 1;
+}
+
+message StopLoadPathPRequest {
+  required string path = 1;
+}
+
+message StopLoadPathPResponse {
+  optional bool existingLoadStopped = 1;
+}
+
+enum LoadProgressReportFormat {
+  TEXT = 1;
+  JSON = 2;
+}
+
+message LoadProgressPOptions {
+  optional LoadProgressReportFormat format = 1;
+  optional bool verbose = 2;
+}
+
+message GetLoadProgressPRequest {
+  required string path = 1;
+  optional LoadProgressPOptions options = 2;
+}
+
+message GetLoadProgressPResponse {
+  optional string progressReport = 1;
+  optional LoadProgressReportFormat format = 2;
+}
 
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
@@ -732,6 +774,15 @@ service FileSystemMasterClientService {
   rpc GetStateLockHolders(GetStateLockHoldersPRequest) returns (GetStateLockHoldersPResponse);
 
   rpc NeedsSync(NeedsSyncRequest) returns (NeedsSyncResponse);
+
+  /**
+   * Load a directory into Alluxio.
+   */
+  rpc LoadPath(LoadPathPRequest) returns (LoadPathPResponse);
+
+  rpc StopLoadPath(StopLoadPathPRequest) returns (StopLoadPathPResponse);
+
+  rpc GetLoadProgress(GetLoadProgressPRequest) returns (GetLoadProgressPResponse);
 }
 
 message FileSystemHeartbeatPResponse {

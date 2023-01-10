@@ -392,6 +392,23 @@ public class UfsBaseFileSystem implements FileSystem {
     throw new UnsupportedOperationException();
   }
 
+  @Override
+  public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
+      boolean usePartialListing, boolean verify) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean stopLoad(AlluxioURI path) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public String getLoadProgress(AlluxioURI path,
+      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
+    throw new UnsupportedOperationException();
+  }
+
   /**
    * Transform UFS file/directory status to client-side status.
    *
