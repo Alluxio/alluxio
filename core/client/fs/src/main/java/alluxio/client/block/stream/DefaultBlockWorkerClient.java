@@ -24,6 +24,8 @@ import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.DataMessageMarshallerProvider;
 import alluxio.grpc.FreeWorkerRequest;
+import alluxio.grpc.GetStatusPRequest;
+import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcNetworkGroup;
@@ -247,5 +249,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   @Override
   public ListenableFuture<LoadResponse> load(LoadRequest request) {
     return mRpcFutureStub.load(request);
+  }
+
+  @Override
+  public GetStatusPResponse getStatus(GetStatusPRequest request) {
+    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+        .getStatus(request);
   }
 }

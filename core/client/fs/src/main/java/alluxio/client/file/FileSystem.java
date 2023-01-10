@@ -157,6 +157,7 @@ public interface FileSystem extends Closeable {
 
     /**
      * @param context the FileSystemContext to use with the FileSystem
+     * @param options the FileSystemOptions
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
@@ -167,6 +168,9 @@ public interface FileSystem extends Closeable {
           : new BaseFileSystem(context);
       if (options.isMetadataCacheEnabled()) {
         fs = new MetadataCachingFileSystem(fs, context);
+      }
+      if (options.isDoraCacheEnabled()) {
+        fs = new DoraCacheFileSystem(fs, context);
       }
       if (options.isDataCacheEnabled()
           && CommonUtils.PROCESS_TYPE.get() == CommonUtils.ProcessType.CLIENT) {

@@ -10,3 +10,5 @@
 #
 
 alluxio.worker.block.BlockWorkerFactory
+alluxio.worker.dora.DoraWorkerFactory
+

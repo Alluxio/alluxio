@@ -7174,6 +7174,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
 
+  public static final PropertyKey DORA_CLIENT_UFS_ROOT =
+      stringBuilder(Name.DORA_CLIENT_UFS_ROOT)
+          .setDefaultValue("/tmp")
+          .setDescription("UFS root for dora client")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.CLIENT)
+          .build();
+
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -8624,6 +8632,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String DORA_CLIENT_READ_LOCATION_POLICY_ENABLED =
         "alluxio.dora.client.read.location.policy.enabled";
+
+    public static final String DORA_CLIENT_UFS_ROOT = "alluxio.dora.client.ufs.root";
 
     private Name() {} // prevent instantiation
   }
