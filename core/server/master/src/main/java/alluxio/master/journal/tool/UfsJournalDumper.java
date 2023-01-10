@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -67,9 +66,8 @@ public class UfsJournalDumper extends AbstractJournalDumper {
         switch (state) {
           case CHECKPOINT:
             try (CheckpointInputStream checkpoint = reader.getCheckpoint()) {
-              Path dir = Paths.get(mCheckpointsDir + "-" + reader.getNextSequenceNumber());
-              Files.createDirectories(dir);
-              readCheckpoint(checkpoint, dir);
+              Path path = Paths.get(mCheckpointsDir + "-" + reader.getNextSequenceNumber());
+              readCheckpoint(checkpoint, path);
             }
             break;
           case LOG:
