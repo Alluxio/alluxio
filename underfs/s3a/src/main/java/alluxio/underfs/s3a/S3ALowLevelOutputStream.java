@@ -77,9 +77,7 @@ public class S3ALowLevelOutputStream extends ObjectLowLevelOutputStream {
       AlluxioConfiguration ufsConf) {
     super(bucketName, key, executor,
         ufsConf.getBytes(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE), ufsConf);
-    Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(),
-        "Bucket name must not be null or empty.");
-    mClient = s3Client;
+    mClient = Preconditions.checkNotNull(s3Client);
     mManager = manager;
     mSseEnabled = ufsConf.getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED);
   }
@@ -117,9 +115,9 @@ public class S3ALowLevelOutputStream extends ObjectLowLevelOutputStream {
         meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
       }
       meta.setContentType(Mimetypes.MIMETYPE_OCTET_STREAM);
-      InitiateMultipartUploadRequest request =
-          new InitiateMultipartUploadRequest(mBucketName, mKey, meta);
-      mUploadId = getClient().initiateMultipartUpload(request).getUploadId();
+      mUploadId = getClient()
+          .initiateMultipartUpload(new InitiateMultipartUploadRequest(mBucketName, mKey, meta))
+          .getUploadId();
     } catch (SdkClientException e) {
       LOG.debug("failed to init multi part upload", e);
       throw new IOException("failed to init multi part upload", e);
@@ -129,35 +127,28 @@ public class S3ALowLevelOutputStream extends ObjectLowLevelOutputStream {
   @Override
   protected void completeMultiPartUploadInternal() throws IOException {
     try {
-      LOG.info("complete part {}", mUploadId);
-      CompleteMultipartUploadRequest completeRequest = new CompleteMultipartUploadRequest(
-          mBucketName, mKey, mUploadId, mTags);
-      getClient().completeMultipartUpload(completeRequest);
+      LOG.debug("complete multi part {}", mUploadId);
+      getClient().completeMultipartUpload(new CompleteMultipartUploadRequest(
+          mBucketName, mKey, mUploadId, mTags));
     } catch (SdkClientException e) {
       LOG.debug("failed to complete multi part upload", e);
       throw new IOException(
           String.format("failed to complete multi part upload, key: %s, upload id: %s",
-              mKey, mUploadId) + e);
+              mKey, mUploadId), e);
     }
   }
 
   @Override
   protected void abortMultiPartUploadInternal() throws IOException {
     try {
-      AbortMultipartUploadRequest request =
-          new AbortMultipartUploadRequest(mBucketName, mKey, mUploadId);
-      getClient().abortMultipartUpload(request);
+      getClient().abortMultipartUpload(
+          new AbortMultipartUploadRequest(mBucketName, mKey, mUploadId));
     } catch (SdkClientException e) {
       LOG.debug("failed to abort multi part upload", e);
       throw new IOException(
-          String.format("failed to complete multi part upload, key: %s, upload id: %s", mKey,
+          String.format("failed to abort multi part upload, key: %s, upload id: %s", mKey,
               mUploadId), e);
     }
-  }
-
-  @Override
-  protected boolean isMultiPartUploadInitialized() {
-    return mUploadId != null;
   }
 
   @Override

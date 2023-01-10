@@ -34,6 +34,7 @@ import com.aliyun.oss.model.UploadPartRequest;
 import com.aliyun.oss.model.UploadPartResult;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -116,8 +117,9 @@ public class OSSLowLevelOutputStreamTest {
   public void writeByteArrayForLargeFile() throws Exception {
     int partSize = (int) FormatUtils.parseSpaceSize(PARTITION_SIZE);
     byte[] b = new byte[partSize + 1];
-
+    Assert.assertEquals(mStream.getPartNumber(), 1);
     mStream.write(b, 0, b.length);
+    Assert.assertEquals(mStream.getPartNumber(), 2);
     Mockito.verify(mMockOssClient)
         .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
     Mockito.verify(mMockOutputStream).write(b, 0, b.length - 1);
@@ -125,6 +127,7 @@ public class OSSLowLevelOutputStreamTest {
     Mockito.verify(mMockExecutor).submit(any(Callable.class));
 
     mStream.close();
+    Assert.assertEquals(mStream.getPartNumber(), 3);
     Mockito.verify(mMockOssClient)
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
   }

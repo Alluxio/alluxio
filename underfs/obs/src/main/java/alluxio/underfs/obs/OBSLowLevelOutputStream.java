@@ -72,9 +72,7 @@ public class OBSLowLevelOutputStream extends ObjectLowLevelOutputStream {
       AlluxioConfiguration ufsConf) {
     super(bucketName, key, executor,
         ufsConf.getBytes(PropertyKey.UNDERFS_OBS_STREAMING_UPLOAD_PARTITION_SIZE), ufsConf);
-    Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(),
-        "Bucket name must not be null or empty.");
-    mClient = obsClient;
+    mClient = Preconditions.checkNotNull(obsClient);
   }
 
   @Override
@@ -94,7 +92,7 @@ public class OBSLowLevelOutputStream extends ObjectLowLevelOutputStream {
       UploadPartResult result = getClient().uploadPart(uploadRequest);
       mTags.add(new PartEtag(result.getEtag(), result.getPartNumber()));
     } catch (ObsException e) {
-      LOG.debug("failed to upload part.", e);
+      LOG.debug("failed to upload part. part number: {} upload id: {}", partNumber, mUploadId, e);
       throw new IOException(String.format(
           "failed to upload part. key: %s part number: %s uploadId: %s",
           mKey, partNumber, mUploadId), e);
@@ -118,7 +116,7 @@ public class OBSLowLevelOutputStream extends ObjectLowLevelOutputStream {
   @Override
   protected void completeMultiPartUploadInternal() throws IOException {
     try {
-      LOG.info("complete part {}", mUploadId);
+      LOG.debug("complete multi part {}", mUploadId);
       CompleteMultipartUploadRequest completeRequest = new CompleteMultipartUploadRequest(
           mBucketName, mKey, mUploadId, mTags);
       getClient().completeMultipartUpload(completeRequest);
@@ -142,11 +140,6 @@ public class OBSLowLevelOutputStream extends ObjectLowLevelOutputStream {
           String.format("failed to complete multi part upload, key: %s, upload id: %s", mKey,
               mUploadId), e);
     }
-  }
-
-  @Override
-  protected boolean isMultiPartUploadInitialized() {
-    return mUploadId != null;
   }
 
   @Override

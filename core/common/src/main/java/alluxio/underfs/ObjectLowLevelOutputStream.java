@@ -20,6 +20,7 @@ import alluxio.retry.RetryUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -46,6 +47,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * [Experimental] A stream for writing a file into object storage using streaming upload.
@@ -73,6 +75,7 @@ import javax.annotation.Nullable;
  * When a leader master starts or a cleanup interval is reached, all the multipart uploads
  * older than clean age will be cleaned.
  */
+@NotThreadSafe
 public abstract class ObjectLowLevelOutputStream extends OutputStream {
   protected static final Logger LOG = LoggerFactory.getLogger(ObjectLowLevelOutputStream.class);
 
@@ -131,6 +134,9 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
   @Nullable
   private Duration mUploadPartTimeout;
 
+  /** Whether the multi upload has been initialized. */
+  private boolean mMultiPartUploadInitialized = false;
+
   /**
    * Constructs a new stream for writing a file.
    *
@@ -177,7 +183,8 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
     if (b == null || len == 0) {
       return;
     }
-    validateWriteArgs(b, off, len);
+    Preconditions.checkNotNull(b);
+    Preconditions.checkArgument(off >= 0 && off <= b.length && len >= 0 && off + len <= b.length);
     if (mFile == null) {
       initNewFile();
     }
@@ -195,7 +202,7 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
 
   @Override
   public void flush() throws IOException {
-    if (!isMultiPartUploadInitialized()) {
+    if (!mMultiPartUploadInitialized) {
       return;
     }
     // We try to minimize the time use to close()
@@ -221,7 +228,7 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
     mClosed = true;
 
     // Multi-part upload has not been initialized
-    if (!isMultiPartUploadInitialized()) {
+    if (!mMultiPartUploadInitialized) {
       if (mFile == null) {
         LOG.debug("Streaming upload output stream closed without uploading any data.");
         RetryUtils.retry("put empty object for key" + mKey, () -> createEmptyObject(mKey),
@@ -229,12 +236,7 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
       } else {
         try {
           mLocalOutputStream.close();
-          final String md5;
-          if (mHash != null) {
-            md5 = Base64.encodeBase64String(mHash.digest());
-          } else {
-            md5 = null;
-          }
+          final String md5 = mHash != null ? Base64.encodeBase64String(mHash.digest()) : null;
           RetryUtils.retry("put object for key" + mKey, () -> putObject(mKey, mFile, md5),
               mRetryPolicy);
         } finally {
@@ -259,21 +261,6 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
     } catch (Exception e) {
       LOG.error("Failed to upload {}", mKey, e);
       throw new IOException(e);
-    }
-  }
-
-  /**
-   * Validates the arguments of write operation.
-   *
-   * @param b the data
-   * @param off the start offset in the data
-   * @param len the number of bytes to write
-   */
-  private void validateWriteArgs(byte[] b, int off, int len) {
-    Preconditions.checkNotNull(b);
-    if (off < 0 || off > b.length || len < 0
-        || (off + len) > b.length || (off + len) < 0) {
-      throw new IndexOutOfBoundsException("write(b[" + b.length + "], " + off + ", " + len + ")");
     }
   }
 
@@ -309,8 +296,9 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
     if (mFile == null) {
       return;
     }
-    if (!isMultiPartUploadInitialized()) {
+    if (!mMultiPartUploadInitialized) {
       RetryUtils.retry("init multipart upload", this::initMultiPartUploadInternal, mRetryPolicy);
+      mMultiPartUploadInitialized = true;
     }
     mLocalOutputStream.close();
     int partNumber = mPartNumber.getAndIncrement();
@@ -321,12 +309,7 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
   }
 
   protected void uploadPart(File file, int partNumber, boolean lastPart) throws IOException {
-    final String md5;
-    if (mHash != null) {
-      md5 = Base64.encodeBase64String(mHash.digest());
-    } else {
-      md5 = null;
-    }
+    final String md5 = mHash != null ? Base64.encodeBase64String(mHash.digest()) : null;
     Callable<?> callable = () -> {
       try {
         RetryUtils.retry("upload part for key " + mKey + " and part number " + partNumber,
@@ -381,6 +364,15 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
     mFutures.clear();
   }
 
+  /**
+   * Get the part number.
+   * @return the part number
+   */
+  @VisibleForTesting
+  public int getPartNumber() {
+    return mPartNumber.get();
+  }
+
   protected abstract void uploadPartInternal(
       File file,
       int partNumber,
@@ -398,5 +390,4 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
 
   protected abstract void putObject(String key, File file, String md5) throws IOException;
 
-  protected abstract boolean isMultiPartUploadInitialized();
 }

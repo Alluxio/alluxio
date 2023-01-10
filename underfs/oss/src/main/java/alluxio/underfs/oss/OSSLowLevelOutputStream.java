@@ -26,6 +26,7 @@ import com.aliyun.oss.model.ObjectMetadata;
 import com.aliyun.oss.model.PartETag;
 import com.aliyun.oss.model.PutObjectRequest;
 import com.aliyun.oss.model.UploadPartRequest;
+import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ListeningExecutorService;
 
 import java.io.BufferedInputStream;
@@ -68,7 +69,7 @@ public class OSSLowLevelOutputStream extends ObjectLowLevelOutputStream {
       AlluxioConfiguration ufsConf) {
     super(bucketName, key, executor,
         ufsConf.getBytes(PropertyKey.UNDERFS_OSS_STREAMING_UPLOAD_PARTITION_SIZE), ufsConf);
-    mClient = oss;
+    mClient = Preconditions.checkNotNull(oss);
   }
 
   @Override
@@ -77,7 +78,10 @@ public class OSSLowLevelOutputStream extends ObjectLowLevelOutputStream {
       getClient().abortMultipartUpload(new AbortMultipartUploadRequest(mBucketName,
           mKey, mUploadId));
     } catch (OSSException | ClientException e) {
-      throw new IOException(e);
+      LOG.debug("failed to abort multi part upload. upload id: {}", mUploadId, e);
+      throw new IOException(String.format(
+          "failed to upload part. key: %s uploadId: %s",
+          mKey, mUploadId), e);
     }
   }
 
@@ -96,7 +100,10 @@ public class OSSLowLevelOutputStream extends ObjectLowLevelOutputStream {
         mTags.add(partETag);
       }
     } catch (OSSException | ClientException e) {
-      throw new IOException(e);
+      LOG.debug("failed to upload part. part number: {} upload id: {}", partNumber, mUploadId, e);
+      throw new IOException(String.format(
+          "failed to upload part. key: %s part number: %s uploadId: %s",
+          mKey, partNumber, mUploadId), e);
     }
   }
 
@@ -109,24 +116,24 @@ public class OSSLowLevelOutputStream extends ObjectLowLevelOutputStream {
           new InitiateMultipartUploadRequest(mBucketName, mKey, meta);
       mUploadId = getClient().initiateMultipartUpload(initRequest).getUploadId();
     } catch (OSSException | ClientException e) {
-      throw new IOException(e);
+      LOG.debug("failed to init multi part upload", e);
+      throw new IOException("failed to init multi part upload", e);
     }
   }
 
   @Override
   protected void completeMultiPartUploadInternal() throws IOException {
     try {
+      LOG.debug("complete multi part {}", mUploadId);
       CompleteMultipartUploadRequest completeRequest = new CompleteMultipartUploadRequest(
           mBucketName, mKey, mUploadId, mTags);
       getClient().completeMultipartUpload(completeRequest);
     } catch (OSSException | ClientException e) {
-      throw new IOException(e);
+      LOG.debug("failed to complete multi part upload", e);
+      throw new IOException(
+          String.format("failed to complete multi part upload, key: %s, upload id: %s",
+              mKey, mUploadId) + e);
     }
-  }
-
-  @Override
-  protected boolean isMultiPartUploadInitialized() {
-    return mUploadId != null;
   }
 
   @Override
