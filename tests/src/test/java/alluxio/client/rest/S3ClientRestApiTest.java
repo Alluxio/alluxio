@@ -71,17 +71,23 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.File;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
@@ -89,6 +95,7 @@ import javax.ws.rs.core.Response;
 /**
  * Test cases for {@link alluxio.proxy.s3.S3RestServiceHandler}.
  */
+@RunWith(Parameterized.class)
 public final class S3ClientRestApiTest extends RestApiTest {
   private static final int DATA_SIZE = 16 * Constants.KB;
   // cannot be too large, since all block streams are open until file is closed, and may run out of
@@ -127,6 +134,29 @@ public final class S3ClientRestApiTest extends RestApiTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+            {new ImmutableMap.Builder<Object, Boolean>()
+                    .put(PropertyKey.PROXY_S3_OPTIMIZED_VERSION_ENABLED, false)
+                    .put(PropertyKey.PROXY_S3_ASYNC_PROCESSING_ENABLED, false)
+                    .build()},
+            {new ImmutableMap.Builder<Object, Boolean>()
+                    .put(PropertyKey.PROXY_S3_OPTIMIZED_VERSION_ENABLED, true)
+                    .put(PropertyKey.PROXY_S3_ASYNC_PROCESSING_ENABLED, false)
+                    .build()},
+            {new ImmutableMap.Builder<Object, Boolean>()
+                    .put(PropertyKey.PROXY_S3_OPTIMIZED_VERSION_ENABLED, true)
+                    .put(PropertyKey.PROXY_S3_ASYNC_PROCESSING_ENABLED, true)
+                    .build()},
+    });
+  }
+
+  public ImmutableMap<PropertyKey, Object> mConfigMap;
+  public S3ClientRestApiTest(ImmutableMap<PropertyKey, Object> propMap) {
+    mConfigMap = propMap;
+  }
+
   @Before
   public void before() throws Exception {
     mHostname = sResource.get().getHostname();
@@ -146,6 +176,9 @@ public final class S3ClientRestApiTest extends RestApiTest {
       sResource.setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false);
     } else {
       AuthenticatedClientUser.set(System.getProperty("user.name"));
+    }
+    for (Map.Entry<PropertyKey, Object> entry : mConfigMap.entrySet()) {
+      sResource.setProperty(entry.getKey(), entry.getValue());
     }
   }
 
