@@ -23,8 +23,7 @@ Client.CacheBytesEvicted:
 Client.CacheBytesReadCache:
   '从客户端缓存读的总字节数'
 Client.CacheBytesReadExternal:
-  '由于客户端缓存未命中从外部存储读取的总字节数'
-  '由于客户端缓存未命中从 Alluxio 集群读取的总字节数'
+  '由于客户端缓存未命中从 Alluxio 集群读取的总字节数。chunk read 可能导致这个数字小于 Client.CacheBytesReadExternal'
 Client.CacheBytesReadInStreamBuffer:
   '从客户端缓存的输入流缓冲区中读取的总字节数'
 Client.CacheBytesRequestedExternal:
