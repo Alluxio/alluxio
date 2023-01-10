@@ -51,7 +51,6 @@ public final class Hash {
    */
   public void markOutdated() {
     mShouldUpdate.set(true);
-    mLastUpdateTime = System.currentTimeMillis();
   }
 
   private String compute() {
@@ -72,6 +71,7 @@ public final class Hash {
         // If another thread has recomputed the version, no need to recompute again.
         if (mShouldUpdate.get()) {
           mVersion = compute();
+          mLastUpdateTime = System.currentTimeMillis();
           mShouldUpdate.set(false);
         }
       }
@@ -82,7 +82,7 @@ public final class Hash {
   /**
    * @return the latest update time
    */
-  public long getLastUpdateTime() {
+  public synchronized long getLastUpdateTime() {
     return mLastUpdateTime;
   }
 }
