@@ -1,8 +1,8 @@
 name: "Mark stale issues and PRs"
 on:
   schedule:
-    # Run the stalebot every day at 8pm UTC
-    - cron: "00 20 * * *"
+    # Run the stalebot every day at 3pm UTC
+    - cron: "00 15 * * *"
 
 permissions:
   contents: read
@@ -18,6 +18,8 @@ jobs:
       - uses: actions/stale@v6
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+          ascending: true # old issues/PRs first
+          operations-per-run: 100 # default is 30, enlarge for dealing with more issues/PRs
           days-before-stale: 30
           days-before-close: -1
           stale-issue-message: >
