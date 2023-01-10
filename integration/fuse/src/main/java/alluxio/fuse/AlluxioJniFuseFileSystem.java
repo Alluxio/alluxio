@@ -648,8 +648,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return res;
     }
 
-    if (mConf.getBoolean(PropertyKey.FUSE_DF_MOUNT_POINT_ENABLED)) {
-      return setFromMountInfo(path, stbuf, uri);
+    if (setFromMountInfo(path, stbuf, uri)) {
+      return 0;
     }
 
     BlockMasterInfo info = mFsStatCache.get();
@@ -662,21 +662,21 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     return 0;
   }
 
-  private int setFromMountInfo(String path, Statvfs stbuf, AlluxioURI uri) {
+  private boolean setFromMountInfo(String path, Statvfs stbuf, AlluxioURI uri) {
     Map<String, MountPointInfo> mountPointInfoMap = mMountPointInfoCache.get();
     if (mountPointInfoMap == null) {
       LOG.error("Failed to statfs {}: cannot get mount point info map", path);
-      return -ErrorCodes.EIO();
+      return false;
     }
 
     MountPointInfo mountPointInfo = mountPointInfoMap.get(uri.getPath());
     if (mountPointInfo == null) {
       LOG.error("Failed to statfs {}: cannot get mount point info from {}", path, uri.getPath());
-      return -ErrorCodes.EIO();
+      return false;
     }
     setSize(stbuf, mountPointInfo.getUfsCapacityBytes(),
         mountPointInfo.getUfsCapacityBytes() - mountPointInfo.getUfsUsedBytes());
-    return 0;
+    return true;
   }
 
   private void setSize(Statvfs stbuf, long capacityBytes, long freeBytes) {

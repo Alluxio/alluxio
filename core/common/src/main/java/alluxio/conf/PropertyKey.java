@@ -6520,13 +6520,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey FUSE_DF_MOUNT_POINT_ENABLED =
-      booleanBuilder(Name.FUSE_DF_MOUNT_POINT_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Run FUSE df in mount point mode, and will display the UFS size")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey FUSE_FS_NAME =
       stringBuilder(Name.FUSE_FS_NAME)
           .setDefaultValue("alluxio-fuse")
@@ -8516,7 +8509,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.auth.policy.custom.group";
     public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
-    public static final String FUSE_DF_MOUNT_POINT_ENABLED = "alluxio.fuse.df.mount.point.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
     public static final String FUSE_JNIFUSE_ENABLED = "alluxio.fuse.jnifuse.enabled";
     public static final String FUSE_SHARED_CACHING_READER_ENABLED
