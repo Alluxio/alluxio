@@ -15,7 +15,9 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.PageNotFoundException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.grpc.ErrorType;
 import alluxio.master.NoopUfsManager;
 import alluxio.underfs.UfsManager;
@@ -24,10 +26,15 @@ import alluxio.worker.block.*;
 import alluxio.worker.block.io.BlockWriter;
 import com.google.common.collect.ImmutableList;
 import io.grpc.Status;
+import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.mockito.Spy;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -40,7 +47,27 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.assertEquals;
 
+@RunWith(Parameterized.class)
 public class PagedBlockStoreCommitBlockTest {
+
+
+    // @Spy
+    // BlockStoreEventListener listener;
+    BlockStoreEventListener listener0 = new AbstractBlockStoreEventListener() {
+        @Override
+        public void onCommitBlockToLocal(long blockId, BlockStoreLocation location) {
+            assertEquals(2L, blockId);
+            // assertEquals(dirs.get(0).getLocation(), location);
+        }
+
+        @Override
+        public void onCommitBlockToMaster(long blockId, BlockStoreLocation location) {
+            assertEquals(2L, blockId);
+            // assertEquals(dirs.get(0).getLocation(), location);
+        }
+    };
+
+    BlockStoreEventListener listener = spy(listener0);
     UfsManager ufs;
     AlluxioConfiguration conf;
     CacheManagerOptions cacheManagerOptions;
@@ -53,7 +80,21 @@ public class PagedBlockStoreCommitBlockTest {
     Boolean mCommitMaster = true;
 
     private static final int DIR_INDEX = 0;
-    private static final long blockId = 2L;
+
+    private long blockId;
+
+    @Parameterized.Parameters
+    public static List<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                {2L},
+                {3L},
+                {4L},
+        });
+    }
+
+    public PagedBlockStoreCommitBlockTest(long input) {
+        this.blockId = input;
+    }
 
     public int mPageSize = 2;
 
@@ -86,6 +127,9 @@ public class PagedBlockStoreCommitBlockTest {
             conf = Configuration.global();
             mConf.set(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, mPageSize);
             mConf.set(PropertyKey.WORKER_PAGE_STORE_DIRS, ImmutableList.of(mDirPath));
+
+            // Here mock BlockMasterClientPool and BlockMasterClient since I have no idea about how to override them
+            // mockedPool will return a mocked BlockMasterClient when require() is called, and do nothing when releasing, maybe add some action later on
             blockMasterClientPool = mock(BlockMasterClientPool.class);
             BlockMasterClient mockedBlockMasterClient = mock(BlockMasterClient.class);
             when(blockMasterClientPool.acquire()).thenReturn(mockedBlockMasterClient);
@@ -103,8 +147,19 @@ public class PagedBlockStoreCommitBlockTest {
             pageStoreDirs = new ArrayList<PageStoreDir>();
             pageStoreDirs.add(pageStoreDir);
             dirs = PagedBlockStoreDir.fromPageStoreDirs(pageStoreDirs);
-            pageMetaStore = new PagedBlockMetaStore(dirs);
+            pageMetaStore = new PagedBlockMetaStore(dirs) {
+                @Override
+                public PagedBlockMeta commit(long blockId) {
+                    if (blockId == 4L) {
+                        throw new RuntimeException();
+                    }
+                    return super.commit(blockId);
+                }
+            };
             cacheManager = CacheManager.Factory.create(conf, cacheManagerOptions, pageMetaStore);
+
+
+
             // pagedBlockStore = new PagedBlockStore(cacheManager, ufs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions// .getPageSize()) {
             //     @Override
             //     public void commitBlockToMaster(PagedBlockMeta blockMeta) {
@@ -123,19 +178,19 @@ public class PagedBlockStoreCommitBlockTest {
 
     @Test
     public void LocalCommitAndMasterCommit() {
-        BlockStoreEventListener listener = new AbstractBlockStoreEventListener() {
-            @Override
-            public void onCommitBlockToLocal(long blockId, BlockStoreLocation location) {
-                assertEquals(2L, blockId);
-                // assertEquals(dirs.get(0).getLocation(), location);
-            }
+        // listener = new AbstractBlockStoreEventListener() {
+        //     @Override
+        //     public void onCommitBlockToLocal(long blockId, BlockStoreLocation location) {
+        //         assertEquals(2L, blockId);
+        //         // assertEquals(dirs.get(0).getLocation(), location);
+        //     }
 
-            @Override
-            public void onCommitBlockToMaster(long blockId, BlockStoreLocation location) {
-                assertEquals(2L, blockId);
-                // assertEquals(dirs.get(0).getLocation(), location);
-            }
-        };
+        //     @Override
+        //     public void onCommitBlockToMaster(long blockId, BlockStoreLocation location) {
+        //         assertEquals(2L, blockId);
+        //         // assertEquals(dirs.get(0).getLocation(), location);
+        //     }
+        // };
         System.out.println("finding null pointer " + pagedBlockStore);
         PagedBlockStoreDir dir =
                 (PagedBlockStoreDir) pageMetaStore.allocate(BlockPageId.tempFileIdOf(blockId), 1);
@@ -155,5 +210,7 @@ public class PagedBlockStoreCommitBlockTest {
 
         pagedBlockStore.registerBlockStoreEventListener(listener);
         pagedBlockStore.commitBlock(1L, blockId, false);
+        verify(listener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
+        verify(listener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
     }
 }
