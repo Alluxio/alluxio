@@ -1,6 +1,7 @@
 package alluxio.worker.page;
 
 
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.*;
 import alluxio.Constants;
 import alluxio.client.file.cache.CacheManager;
@@ -47,12 +48,7 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.assertEquals;
 
-@RunWith(Parameterized.class)
 public class PagedBlockStoreCommitBlockTest {
-
-
-    // @Spy
-    // BlockStoreEventListener listener;
     BlockStoreEventListener listener0 = new AbstractBlockStoreEventListener() {
         @Override
         public void onCommitBlockToLocal(long blockId, BlockStoreLocation location) {
@@ -81,20 +77,7 @@ public class PagedBlockStoreCommitBlockTest {
 
     private static final int DIR_INDEX = 0;
 
-    private long blockId;
-
-    @Parameterized.Parameters
-    public static List<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                {2L},
-                {3L},
-                {4L},
-        });
-    }
-
-    public PagedBlockStoreCommitBlockTest(long input) {
-        this.blockId = input;
-    }
+    private static long blockId = 2L;
 
     public int mPageSize = 2;
 
@@ -158,40 +141,20 @@ public class PagedBlockStoreCommitBlockTest {
             };
             cacheManager = CacheManager.Factory.create(conf, cacheManagerOptions, pageMetaStore);
 
-
-
-            // pagedBlockStore = new PagedBlockStore(cacheManager, ufs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions// .getPageSize()) {
-            //     @Override
-            //     public void commitBlockToMaster(PagedBlockMeta blockMeta) {
-            //         if (mCommitMaster) {
-            //             // do nothing, 'onCommitToMaster will tell'
-            //         } else {
-            //             throw new AlluxioRuntimeException(Status.UNAVAILABLE, ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage// (blockId), new IOException(), ErrorType.Internal, false);
-            //         }
-            //     }
-            // };
             pagedBlockStore = new PagedBlockStore(cacheManager, ufs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions .getPageSize());
         } catch (Exception e) {
             System.out.println(e);
         }
     }
 
-    @Test
-    public void LocalCommitAndMasterCommit() {
-        // listener = new AbstractBlockStoreEventListener() {
-        //     @Override
-        //     public void onCommitBlockToLocal(long blockId, BlockStoreLocation location) {
-        //         assertEquals(2L, blockId);
-        //         // assertEquals(dirs.get(0).getLocation(), location);
-        //     }
+    // trying to split different test in different inner class since they should not share same setup or before method. Bowen think the mocked and override commit methods are better to be more explicit, but judge by 2L 3L or 4L
+    class LocalCommitAndMasterCommitBothSuccess {
 
-        //     @Override
-        //     public void onCommitBlockToMaster(long blockId, BlockStoreLocation location) {
-        //         assertEquals(2L, blockId);
-        //         // assertEquals(dirs.get(0).getLocation(), location);
-        //     }
-        // };
-        System.out.println("finding null pointer " + pagedBlockStore);
+    }
+
+    // This Test case success both to commit, no Exception should be throwed, and both onCommit method should be called
+    @Test
+    public void LocalCommitAndMasterCommitBothSuccess() {
         PagedBlockStoreDir dir =
                 (PagedBlockStoreDir) pageMetaStore.allocate(BlockPageId.tempFileIdOf(blockId), 1);
 
@@ -213,4 +176,58 @@ public class PagedBlockStoreCommitBlockTest {
         verify(listener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
         verify(listener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
     }
+
+    @Test
+    public void LocalCommitSuccessAndMasterCommitFail() {
+        PagedBlockStoreDir dir =
+                (PagedBlockStoreDir) pageMetaStore.allocate(BlockPageId.tempFileIdOf(blockId), 1);
+
+        dir.putTempFile(BlockPageId.tempFileIdOf(blockId));
+        PagedTempBlockMeta blockMeta = new PagedTempBlockMeta(blockId, dir);
+        // pageMetaStore.addTempBlock(blockMeta);
+        pagedBlockStore.createBlock(1L, blockId, offset, new CreateBlockOptions(null, null, 64));
+        byte[] data = new byte[64];
+        Arrays.fill(data, (byte) 1);
+        ByteBuffer buf = ByteBuffer.wrap(data);
+        try (BlockWriter writer = pagedBlockStore.createBlockWriter(1L, blockId)) {
+            writer.append(buf);
+            writer.close();
+        } catch (Exception e) {
+            System.out.println("writer failed");
+        }
+
+        pagedBlockStore.registerBlockStoreEventListener(listener);
+        assertThrows(RuntimeException.class, () -> {
+            pagedBlockStore.commitBlock(1L, blockId, false);
+        });
+
+        verify(listener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
+        verify(listener, never()).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
+    }
+    @Test
+    public void LocalCommitFailAndMasterCommitSuccess() {
+        PagedBlockStoreDir dir =
+                (PagedBlockStoreDir) pageMetaStore.allocate(BlockPageId.tempFileIdOf(blockId), 1);
+
+        dir.putTempFile(BlockPageId.tempFileIdOf(blockId));
+        PagedTempBlockMeta blockMeta = new PagedTempBlockMeta(blockId, dir);
+        // pageMetaStore.addTempBlock(blockMeta);
+        pagedBlockStore.createBlock(1L, blockId, offset, new CreateBlockOptions(null, null, 64));
+        byte[] data = new byte[64];
+        Arrays.fill(data, (byte) 1);
+        ByteBuffer buf = ByteBuffer.wrap(data);
+        try (BlockWriter writer = pagedBlockStore.createBlockWriter(1L, blockId)) {
+            writer.append(buf);
+        } catch (Exception e) {
+            System.out.println("writer failed");
+        }
+
+        pagedBlockStore.registerBlockStoreEventListener(listener);
+        assertThrows(RuntimeException.class, () -> {
+            pagedBlockStore.commitBlock(1L, blockId, false);
+        });
+        verify(listener, never()).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
+        verify(listener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
+    }
+
 }
