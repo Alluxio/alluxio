@@ -136,7 +136,7 @@ public final class ProxyWebServer extends WebServer {
           if (req instanceof org.eclipse.jetty.server.Request) {
             isHandled = ((Request) req).isHandled();
           }
-          logAccess(httpReq, httpRes, stopWatch, S3BaseTask.OpType.Unsupported);
+          logAccess(httpReq, httpRes, stopWatch, null);
         }
       }
     };
@@ -178,7 +178,7 @@ public final class ProxyWebServer extends WebServer {
     }
     String accessLog = String.format("[ACCESSLOG] %s Request:%s - Status:%d "
                     + "- ContentLength:%s - Elapsed(ms):%d",
-            opType, request, response.getStatus(),
+            (opType == null ? "" : opType), request, response.getStatus(),
             contentLenStr, stopWatch.elapsed(TimeUnit.MILLISECONDS));
     if (LOG.isDebugEnabled()) {
       String requestHeaders = Collections.list(request.getHeaderNames()).stream()
