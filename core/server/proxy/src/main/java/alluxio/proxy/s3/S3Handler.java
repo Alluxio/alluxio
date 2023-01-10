@@ -61,11 +61,11 @@ public class S3Handler {
     private S3BaseTask mS3Task;
 
     public static final boolean mBucketNamingRestrictionsEnabled = Configuration.getBoolean(
-        PropertyKey.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED);
+            PropertyKey.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED);
     public static final int mMaxHeaderMetadataSize = (int) Configuration.getBytes(
-        PropertyKey.PROXY_S3_METADATA_HEADER_MAX_SIZE);
+            PropertyKey.PROXY_S3_METADATA_HEADER_MAX_SIZE);
     public static final boolean mMultipartCleanerEnabled = Configuration.getBoolean(
-        PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED);
+            PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED);
 
     // https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
     // - Undocumented edge-case, no adjacent periods with hyphens, i.e: '.-' or '-.'
@@ -90,35 +90,30 @@ public class S3Handler {
         mServletResponse = response;
     }
 
-    public void init() throws S3Exception{
-        try {
-            // Do Authentication of the request.
-            doAuthorization();
-            // Extract x-amz- headers.
-            extractAMZHeaders();
-            // Reject unsupported subresources.
-            rejectUnsupportedResources();
-            // Init utils
-            mMetaFS = ProxyWebServer.mFileSystem;
-            mAsyncAuditLogWriter = ProxyWebServer.mAsyncAuditLogWriter;
-            // Initiate the S3 API metadata directories -> TODO this should be init once instead every time
-            if (!mMetaFS.exists(new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR))) {
-                mMetaFS.createDirectory(
-                        new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR),
-                        CreateDirectoryPOptions.newBuilder()
-                                .setRecursive(true)
-                                .setMode(PMode.newBuilder()
-                                        .setOwnerBits(Bits.ALL)
-                                        .setGroupBits(Bits.ALL)
-                                        .setOtherBits(Bits.NONE).build())
-                                .setWriteType(S3RestUtils.getS3WriteType())
-                                .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-                                .build()
-                );
-            }
-        } catch (Exception ex) {
-            LOG.error(ThreadUtils.formatStackTrace(ex));
-            throw S3RestUtils.toBucketS3Exception(ex, mBucket);
+    public void init() throws Exception {
+        // Do Authentication of the request.
+        doAuthorization();
+        // Extract x-amz- headers.
+        extractAMZHeaders();
+        // Reject unsupported subresources.
+        rejectUnsupportedResources();
+        // Init utils
+        mMetaFS = ProxyWebServer.mFileSystem;
+        mAsyncAuditLogWriter = ProxyWebServer.mAsyncAuditLogWriter;
+        // Initiate the S3 API metadata directories -> TODO this should be init once instead every time
+        if (!mMetaFS.exists(new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR))) {
+            mMetaFS.createDirectory(
+                    new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR),
+                    CreateDirectoryPOptions.newBuilder()
+                            .setRecursive(true)
+                            .setMode(PMode.newBuilder()
+                                    .setOwnerBits(Bits.ALL)
+                                    .setGroupBits(Bits.ALL)
+                                    .setOtherBits(Bits.NONE).build())
+                            .setWriteType(S3RestUtils.getS3WriteType())
+                            .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                            .build()
+            );
         }
     }
 
@@ -129,10 +124,9 @@ public class S3Handler {
     }
 
     public static S3Handler createHandler(String path,
-                                       HttpServletRequest request,
-                                       HttpServletResponse response) throws S3Exception {
+                                          HttpServletRequest request,
+                                          HttpServletResponse response) throws Exception {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        Matcher baseMatcher = mBasePathPattern.matcher(path);
         Matcher bucketMatcher = mBucketPathPattern.matcher(path);
         Matcher objectMatcher = mObjectPathPattern.matcher(path);
 
@@ -161,7 +155,8 @@ public class S3Handler {
             handler.setS3Task(task);
             return handler;
         } catch (Exception ex) {
-            throw S3RestUtils.toObjectS3Exception(ex, "");
+            LOG.error("Exception during create s3handler:", ThreadUtils.formatStackTrace(ex));
+            throw ex;
         }
     }
 
@@ -242,7 +237,7 @@ public class S3Handler {
     }
 
     public S3AuditContext createAuditContext(String command, String user,
-                                              @Nullable String bucket, @Nullable String object) {
+                                             @Nullable String bucket, @Nullable String object) {
         // Audit log may be enabled during runtime
         AsyncUserAccessAuditLogWriter auditLogWriter = null;
         if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
@@ -317,7 +312,7 @@ public class S3Handler {
         }
     }
 
-    public void doAuthorization() throws S3Exception {
+    public void doAuthorization() throws Exception {
         try {
             String authorization = mServletRequest.getHeader("Authorization");
             String user = S3RestUtils.getUser(authorization, mServletRequest);
@@ -326,8 +321,8 @@ public class S3Handler {
                     authorization, user);
             mUser = user;
         } catch (Exception e) {
-            LOG.warn("exception happened in Authentication:", e);
-            throw new S3Exception("Authorization", S3ErrorCode.ACCESS_DENIED_ERROR);
+            LOG.warn("exception happened in Authentication.");
+            throw e;
         }
     }
 
