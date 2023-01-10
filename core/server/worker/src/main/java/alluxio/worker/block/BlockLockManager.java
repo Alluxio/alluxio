@@ -386,6 +386,7 @@ public final class BlockLockManager {
       return false;
     }
     Lock lock = record.getLock();
+    mLockRecords.remove(record);
     unlock(lock, record.getBlockId());
     return true;
   }
