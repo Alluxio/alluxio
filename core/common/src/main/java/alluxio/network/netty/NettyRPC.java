@@ -14,17 +14,19 @@ package alluxio.network.netty;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
+
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.concurrent.Promise;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Netty blocking RPC client. This provides a simple way to send a request and wait for response
@@ -90,9 +92,9 @@ public final class NettyRPC {
       if (future.cause() != null) {
         future.channel().close();
       }
-      flushed.set(true);
       synchronized (flushed) {
-        flushed.notify();
+        flushed.set(true);
+        flushed.notifyAll();
       }
     });
     try {
