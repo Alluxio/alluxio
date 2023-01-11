@@ -287,7 +287,7 @@ public final class S3RestServiceHandler {
       if (policyStatus != null) {
         throw new S3Exception(bucket, new S3ErrorCode(
             S3ErrorCode.INTERNAL_ERROR.getCode(),
-            "GetBucketpolicyStatus is not currently supported.",
+            "GetBucketPolicyStatus is not currently supported.",
             S3ErrorCode.INTERNAL_ERROR.getStatus()));
       }
 
