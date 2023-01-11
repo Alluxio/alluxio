@@ -13,10 +13,10 @@ priority: 2
 Alluxio作为大数据和机器学习生态系统中的新增数据访问层，可位于任何持久化存储系统（如Amazon S3、Microsoft Azure 对象存储、Apache HDFS或OpenStack Swift）和计算框架（如Apache Spark、Presto或Hadoop MapReduce）之间，但是Alluxio本身并非持久化存储系统。使用Alluxio作为数据访问层可带来诸多优势：
 
 
-- 对于用户应用和计算框架而言，Alluxio可提供快速存储并促进应用（无论是否在同一计算引擎上运行）之间的数据共享和本地性。因此，当数据在本地时，Alluxio可以提供内存级别的数据访问速度；当数据在Alluxio中时，Alluxio将提供计算集群网络带宽级别的数据访问速度。数据只需在第一次被访问时从底层存储系统中读取一次即可。因此，即使底层存储的访问速度较慢，也可以通过Alluxio显著加速数据访问。为了获得最佳性能，建议将 Alluxio与集群的计算框架部署在一起。
+- 对于用户应用和计算框架而言，Alluxio提供的快速存储可以让任务（无论是否在同一计算引擎上运行）进行数据共享，并且在同时将数据缓存在本地计算集群。因此，当数据在本地时，Alluxio可以提供内存级别的数据访问速度；当数据在Alluxio中时，Alluxio将提供计算集群网络带宽级别的数据访问速度。数据只需在第一次被访问时从底层存储系统中读取一次即可。因此，即使底层存储的访问速度较慢，也可以通过Alluxio显著加速数据访问。为了获得最佳性能，建议将 Alluxio与集群的计算框架部署在一起。
 
 
-- 就底层存储系统而言，Alluxio将大数据应用和传统的存储系统连接起来，因此扩充了能够利用数据的可用工作负载集。由于Alluxio和底层存储系统的集成对于应用程序是隐藏的，因此任何底层存储都可以通过Alluxio支持数据访问的应用和框架。此外，当同时挂载多个底层存储系统时，Alluxio可以作为任意数量的不同数据源的统一层。
+- 就底层存储系统而言，Alluxio将大数据应用和不同的存储系统连接起来，因此扩充了能够利用数据的可用工作负载集。由于Alluxio和底层存储系统的集成对于应用程序是透明的，因此任何底层存储都可以通过Alluxio支持数据访问的应用和框架。此外，当同时挂载多个底层存储系统时，Alluxio可以作为任意数量的不同数据源的统一层。
 
 
 <p align="center">
@@ -27,7 +27,7 @@ Alluxio包含三种组件：master、worker和client。一个集群通常包含�
 
 Alluxio Job Masters和Job Worker可以归为一个单独的功能，称为**Job Service**。Alluxio Job Service是一个轻量级的任务调度框架，负责将许多不同类型的操作分配给Job Worker。这些任务包括:
 
-- 将数据从UFS加载到Alluxio
+- 将数据从UFS(under file system)加载到Alluxio
 - 将数据持久化到UFS
 - 在Alluxio中复制文件
 - 在UFS间或Alluxio节点间移动或拷贝数据
@@ -70,7 +70,7 @@ Alluxio Job Master接受执行上述操作的请求，并在将要具体执行�
 
 ### Alluxio Workers
 
-Alluxio worker负责管理分配给Alluxio的用户可配置本地资源（RAM、SSD、HDD 等）。Alluxio worker以block为单位存储数据，并通过在其本地资源中读取或创建新的block来服务client读取或写入数据的请求。worker只负责管理block, 从文件到block的实际映射都由master管理。
+Alluxio worker负责管理分配给Alluxio的用户可配置本地资源（RAMDisk、SSD、HDD 等）。Alluxio worker以block为单位存储数据，并通过在其本地资源中读取或创建新的block来服务client读取或写入数据的请求。worker只负责管理block, 从文件到block的实际映射都由master管理。
 
 Worker在底层存储上执行数据操作, 由此带来两大重要的益处：
 
