@@ -28,9 +28,7 @@ import alluxio.worker.block.*;
 import alluxio.worker.block.io.BlockWriter;
 import com.google.common.collect.ImmutableList;
 import io.grpc.Status;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.rules.TemporaryFolder;
 
@@ -70,6 +68,8 @@ public class PagedBlockStoreCommitBlockTest {
     BlockMasterClientPool blockMasterClientPool;
     BlockMasterClient mockedBlockMasterClient;
     AtomicReference<Long> workerId;
+
+    CacheManager cacheManager;
 
     private static final int DIR_INDEX = 0;
 
@@ -147,7 +147,6 @@ public class PagedBlockStoreCommitBlockTest {
     // This Test case success both to commit, no Exception should be throwed, and both onCommit method should be called
     @Test
     public void LocalCommitAndMasterCommitBothSuccess() {
-        CacheManager cacheManager;
         try {
             pageMetaStore = new PagedBlockMetaStore(dirs) {
                 // here commit always success
@@ -174,9 +173,11 @@ public class PagedBlockStoreCommitBlockTest {
         Arrays.fill(data, (byte) 1);
         ByteBuffer buf = ByteBuffer.wrap(data);
         try (BlockWriter writer = pagedBlockStore.createBlockWriter(1L, blockId)) {
+            Thread.sleep(1000);
             writer.append(buf);
+            writer.close();
         } catch (Exception e) {
-            System.out.println("writer failed");
+            System.out.println(e);
         }
 
         pagedBlockStore.registerBlockStoreEventListener(listener);
@@ -187,7 +188,6 @@ public class PagedBlockStoreCommitBlockTest {
 
     @Test
     public void LocalCommitFailAndMasterCommitSuccess() {
-        CacheManager cacheManager;
         try {
             pageMetaStore = new PagedBlockMetaStore(dirs) {
                 // here commit always throw Exception
@@ -216,7 +216,6 @@ public class PagedBlockStoreCommitBlockTest {
             writer.append(buf);
             writer.close();
         } catch (Exception e) {
-            System.out.println("writer failed");
         }
 
         pagedBlockStore.registerBlockStoreEventListener(listener);
@@ -226,20 +225,26 @@ public class PagedBlockStoreCommitBlockTest {
 
         verify(listener, never()).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
         verify(listener, never()).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
+
+        try {
+            pagedBlockStore.close();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
     }
+
     @Test
     public void LocalCommitSuccessAndMasterCommitFail() {
         // doAnswer((i) -> { throw new AlluxioRuntimeException(Status.UNAVAILABLE, ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage((Long)i.getArgument(5)), new IOException(), ErrorType.Internal, false);}).when(mockedBlockMasterClient).commitBlock(anyLong(), anyLong(), anyString(), anyString(), anyLong(), anyLong());
 
         try {
             doAnswer((i) -> {
-                System.out.println("MasterClientThrowing");
                 throw new AlluxioStatusException(Status.UNAVAILABLE);
             }).when(mockedBlockMasterClient).commitBlock(anyLong(), anyLong(), anyString(), anyString(), anyLong(), anyLong());
         } catch (AlluxioStatusException e) {
             throw new RuntimeException();
         }
-        CacheManager cacheManager;
         try {
             pageMetaStore = new PagedBlockMetaStore(dirs) {
                 // here commit always success
@@ -265,7 +270,9 @@ public class PagedBlockStoreCommitBlockTest {
         Arrays.fill(data, (byte) 1);
         ByteBuffer buf = ByteBuffer.wrap(data);
         try (BlockWriter writer = pagedBlockStore.createBlockWriter(1L, blockId)) {
+            Thread.sleep(1000);
             writer.append(buf);
+            writer.close();
         } catch (Exception e) {
             System.out.println("writer failed");
         }
