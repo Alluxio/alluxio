@@ -1,0 +1,6 @@
+Server.JvmPauseMonitorInfoTimeExceeded:
+  'JVM 暂停时间长于 alluxio.jvm.monitor.info.threshold 阈值的总次数'
+Server.JvmPauseMonitorTotalExtraTime:
+  'JVM 暂停的总时间，JVM暂停通常由GC或jstack等事件引发'
+Server.JvmPauseMonitorWarnTimeExceeded:
+  'JVM 暂停时间长于 alluxio.jvm.monitor.warn.threshold 阈值的总次数'

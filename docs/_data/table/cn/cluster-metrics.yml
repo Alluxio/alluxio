@@ -1,0 +1,66 @@
+Cluster.ActiveRpcReadCount:
+  ' worker 上进行中的 read-RPC 数量'
+Cluster.ActiveRpcWriteCount:
+  'worker 上进行中的 write-RPC 数量'
+Cluster.BytesReadDirect:
+  '汇总在所有 worker 上不通过 RPC 读取的字节数。这记录了 worker 内部调用（e.g. 嵌入在 worker 中的客户端）读取的数据，数据存在于 worker 缓存中或由 worker 从 UFS 获取'
+Cluster.BytesReadDirectThroughput:
+  '汇总在所有 worker 上不通过 RPC 读取字节的吞吐量。这记录了 worker 内部调用（e.g. 嵌入在 worker 中的客户端）读取的数据，数据存在于 worker 缓存中或由 worker 从 UFS 获取'
+Cluster.BytesReadDomain:
+  '从所有 worker 通过域套接字读取的总字节数'
+Cluster.BytesReadDomainThroughput:
+  '通过域套接字从所有 worker 每分钟读取字节的吞吐量'
+Cluster.BytesReadLocal:
+  '由所有客户端报告的短路读取的总字节数'
+Cluster.BytesReadLocalThroughput:
+  '由所有客户端报告的每分钟短路读取字节的吞吐量'
+Cluster.BytesReadPerUfs:
+  '所有 worker 从特定 UFS 读取的字节数总和'
+Cluster.BytesReadRemote:
+  '从所有 worker 通过网络（RPC）读取的总字节数。数据存在于 worker 存储中，或者由 worker 从 UFS 获取。这不包括本地短路读和域套接字读'
+Cluster.BytesReadRemoteThroughput:
+  '从所有 worker 通过网络（RPC 调用）每分钟读取的字节数吞吐量。数据存在于 worker 存储中，或者由 worker 从 UFS 获取。这不包括短路本地读取和域套接字读取'
+Cluster.BytesReadUfsAll:
+  '所有 worker 从所有 UFS 读取的字节数总和'
+Cluster.BytesReadUfsThroughput:
+  '所有 worker 从所有 UFS 每分钟读取的字节数吞吐量'
+Cluster.BytesWrittenDomain:
+  '通过域套接字写入所有 worker 的字节数总和'
+Cluster.BytesWrittenDomainThroughput:
+  '通过域套接字向所有 worker 每分钟写入字节的吞吐量'
+Cluster.BytesWrittenLocal:
+  '所有客户端短路写入到本地 worker 数据存储的字节数总和'
+Cluster.BytesWrittenLocalThroughput:
+  '所有客户端每分钟写入本地 worker 数据存储字节的吞吐量'
+Cluster.BytesWrittenPerUfs:
+  '所有 worker 向特定的 Alluxio UFS 写入的字节数总和'
+Cluster.BytesWrittenRemote:
+  '通过网络（RPC）写入 worker 的字节数总和。数据被写入 worker 存储，或者由 worker 写入底层 UFS。其中不包括短路本地写入和域套接字写入'
+Cluster.BytesWrittenRemoteThroughput:
+  '通过网络（RPC）每分钟向 worker 写入字节的吞吐量。数据被写入 worker 存储，或者由 worker 写入底层 UFS。其中不包括短路本地写入和域套接字写入'
+Cluster.BytesWrittenUfsAll:
+  '所有 worker 向所有 UFS 写入的字节数总和'
+Cluster.BytesWrittenUfsThroughput:
+  '所有 worker 每分钟向所有 UFS 写入字节的吞吐量'
+Cluster.CacheHitRate:
+  '缓存命中率：（#从缓存读取的字节数）/（#请求的字节数）'
+Cluster.CapacityFree:
+  'Alluxio 所有 worker 上所有层的总空闲字节数'
+Cluster.CapacityTotal:
+  'Alluxio 所有 worker 上所有层的总容量（以字节为单位）'
+Cluster.CapacityUsed:
+  'Alluxio 所有 worker 上所有层的使用字节总数'
+Cluster.LeaderId:
+  '展示当前 primary master id'
+Cluster.LeaderIndex:
+  '当前 primary master 的序号'
+Cluster.LostWorkers:
+  '集群内丢失的 worker 总数'
+Cluster.RootUfsCapacityFree:
+  'Alluxio 根 UFS 的空闲容量（以字节为单位）'
+Cluster.RootUfsCapacityTotal:
+  'Alluxio 根 UFS 的总容量（以字节为单位）'
+Cluster.RootUfsCapacityUsed:
+  'Alluxio 根 UFS 的使用容量（以字节为单位）'
+Cluster.Workers:
+  '集群内活跃的 worker 总数'
