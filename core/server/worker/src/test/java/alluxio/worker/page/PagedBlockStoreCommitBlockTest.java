@@ -19,6 +19,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.ErrorType;
 import alluxio.master.NoopUfsManager;
 import alluxio.underfs.UfsManager;
@@ -27,15 +28,11 @@ import alluxio.worker.block.*;
 import alluxio.worker.block.io.BlockWriter;
 import com.google.common.collect.ImmutableList;
 import io.grpc.Status;
-import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.rules.TemporaryFolder;
-
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.mockito.Spy;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -71,9 +68,8 @@ public class PagedBlockStoreCommitBlockTest {
     List<PagedBlockStoreDir> dirs;
     PagedBlockStore pagedBlockStore;
     BlockMasterClientPool blockMasterClientPool;
+    BlockMasterClient mockedBlockMasterClient;
     AtomicReference<Long> workerId;
-
-    Boolean mCommitMaster = true;
 
     private static final int DIR_INDEX = 0;
 
@@ -90,7 +86,6 @@ public class PagedBlockStoreCommitBlockTest {
 
     @Before
     public void setup() throws Exception {
-        CacheManager cacheManager;
         List<PageStoreDir> pageStoreDirs;
         InstancedConfiguration mConf = Configuration.copyGlobal();
 
@@ -114,7 +109,7 @@ public class PagedBlockStoreCommitBlockTest {
             // Here mock BlockMasterClientPool and BlockMasterClient since I have no idea about how to override them
             // mockedPool will return a mocked BlockMasterClient when require() is called, and do nothing when releasing, maybe add some action later on
             blockMasterClientPool = mock(BlockMasterClientPool.class);
-            BlockMasterClient mockedBlockMasterClient = mock(BlockMasterClient.class);
+            mockedBlockMasterClient = mock(BlockMasterClient.class);
             when(blockMasterClientPool.acquire()).thenReturn(mockedBlockMasterClient);
             doNothing().when(blockMasterClientPool).release(any());
             doAnswer((i) -> {
@@ -130,31 +125,44 @@ public class PagedBlockStoreCommitBlockTest {
             pageStoreDirs = new ArrayList<PageStoreDir>();
             pageStoreDirs.add(pageStoreDir);
             dirs = PagedBlockStoreDir.fromPageStoreDirs(pageStoreDirs);
-            pageMetaStore = new PagedBlockMetaStore(dirs) {
-                @Override
-                public PagedBlockMeta commit(long blockId) {
-                    if (blockId == 4L) {
-                        throw new RuntimeException();
-                    }
-                    return super.commit(blockId);
-                }
-            };
-            cacheManager = CacheManager.Factory.create(conf, cacheManagerOptions, pageMetaStore);
+            // pageMetaStore = new PagedBlockMetaStore(dirs) {
+            //     @Override
+            //     public PagedBlockMeta commit(long blockId) {
+            //         if (blockId == 4L) {
+            //             throw new RuntimeException();
+            //         }
+            //         return super.commit(blockId);
+            //     }
+            // };
+            // cacheManager = CacheManager.Factory.create(conf, cacheManagerOptions, // pageMetaStore);
 
-            pagedBlockStore = new PagedBlockStore(cacheManager, ufs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions .getPageSize());
+            // pagedBlockStore = new PagedBlockStore(cacheManager, ufs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions .getPageSize());
         } catch (Exception e) {
             System.out.println(e);
         }
     }
 
     // trying to split different test in different inner class since they should not share same setup or before method. Bowen think the mocked and override commit methods are better to be more explicit, but judge by 2L 3L or 4L
-    class LocalCommitAndMasterCommitBothSuccess {
-
-    }
 
     // This Test case success both to commit, no Exception should be throwed, and both onCommit method should be called
     @Test
     public void LocalCommitAndMasterCommitBothSuccess() {
+        CacheManager cacheManager;
+        try {
+            pageMetaStore = new PagedBlockMetaStore(dirs) {
+                // here commit always success
+                @Override
+                public PagedBlockMeta commit(long blockId) {
+                    return super.commit(blockId);
+                }
+            };
+            cacheManager = CacheManager.Factory.create(conf, cacheManagerOptions, pageMetaStore);
+
+            pagedBlockStore = new PagedBlockStore(cacheManager, ufs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions.getPageSize());
+        } catch (IOException e) {
+            throw new RuntimeException();
+        }
+
         PagedBlockStoreDir dir =
                 (PagedBlockStoreDir) pageMetaStore.allocate(BlockPageId.tempFileIdOf(blockId), 1);
 
@@ -178,7 +186,22 @@ public class PagedBlockStoreCommitBlockTest {
     }
 
     @Test
-    public void LocalCommitSuccessAndMasterCommitFail() {
+    public void LocalCommitFailAndMasterCommitSuccess() {
+        CacheManager cacheManager;
+        try {
+            pageMetaStore = new PagedBlockMetaStore(dirs) {
+                // here commit always throw Exception
+                @Override
+                public PagedBlockMeta commit(long blockId) {
+                    throw new RuntimeException();
+                }
+            };
+            cacheManager = CacheManager.Factory.create(conf, cacheManagerOptions, pageMetaStore);
+
+            pagedBlockStore = new PagedBlockStore(cacheManager, ufs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions.getPageSize());
+        } catch (IOException e) {
+            throw new RuntimeException();
+        }
         PagedBlockStoreDir dir =
                 (PagedBlockStoreDir) pageMetaStore.allocate(BlockPageId.tempFileIdOf(blockId), 1);
 
@@ -201,11 +224,36 @@ public class PagedBlockStoreCommitBlockTest {
             pagedBlockStore.commitBlock(1L, blockId, false);
         });
 
-        verify(listener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
+        verify(listener, never()).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
         verify(listener, never()).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
     }
     @Test
-    public void LocalCommitFailAndMasterCommitSuccess() {
+    public void LocalCommitSuccessAndMasterCommitFail() {
+        // doAnswer((i) -> { throw new AlluxioRuntimeException(Status.UNAVAILABLE, ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage((Long)i.getArgument(5)), new IOException(), ErrorType.Internal, false);}).when(mockedBlockMasterClient).commitBlock(anyLong(), anyLong(), anyString(), anyString(), anyLong(), anyLong());
+
+        try {
+            doAnswer((i) -> {
+                System.out.println("MasterClientThrowing");
+                throw new AlluxioStatusException(Status.UNAVAILABLE);
+            }).when(mockedBlockMasterClient).commitBlock(anyLong(), anyLong(), anyString(), anyString(), anyLong(), anyLong());
+        } catch (AlluxioStatusException e) {
+            throw new RuntimeException();
+        }
+        CacheManager cacheManager;
+        try {
+            pageMetaStore = new PagedBlockMetaStore(dirs) {
+                // here commit always success
+                @Override
+                public PagedBlockMeta commit(long blockId) {
+                    return super.commit(blockId);
+                }
+            };
+            cacheManager = CacheManager.Factory.create(conf, cacheManagerOptions, pageMetaStore);
+
+            pagedBlockStore = new PagedBlockStore(cacheManager, ufs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions.getPageSize());
+        } catch (IOException e) {
+            throw new RuntimeException();
+        }
         PagedBlockStoreDir dir =
                 (PagedBlockStoreDir) pageMetaStore.allocate(BlockPageId.tempFileIdOf(blockId), 1);
 
@@ -226,8 +274,8 @@ public class PagedBlockStoreCommitBlockTest {
         assertThrows(RuntimeException.class, () -> {
             pagedBlockStore.commitBlock(1L, blockId, false);
         });
-        verify(listener, never()).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
-        verify(listener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
+        verify(listener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
+        verify(listener, never()).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
     }
 
 }
