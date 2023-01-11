@@ -20,6 +20,7 @@ import alluxio.grpc.ErrorType;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.NioDirectBufferPool;
+import alluxio.worker.block.io.BlockReadableChannel;
 import alluxio.worker.block.io.BlockReader;
 
 import com.google.common.base.Preconditions;
@@ -167,7 +168,7 @@ public class PagedBlockReader extends BlockReader {
 
   @Override
   public ReadableByteChannel getChannel() {
-    throw new UnsupportedOperationException();
+    return new BlockReadableChannel(this);
   }
 
   @Override
