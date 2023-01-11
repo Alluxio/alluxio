@@ -505,4 +505,28 @@ public final class BufferUtils {
   }
 
   private BufferUtils() {} // prevent instantiation
+
+  /**
+   * An efficient copy between two channels with a fixed-size buffer.
+   *
+   * @param src the source channel
+   * @param dest the destination channel
+   */
+  public static void fastCopy(final ReadableByteChannel src, final WritableByteChannel dest)
+      throws IOException {
+    // TODO(JiamingMai): make the buffer size configurable
+    final ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
+
+    while (src.read(buffer) != -1) {
+      buffer.flip();
+      dest.write(buffer);
+      buffer.compact();
+    }
+
+    buffer.flip();
+
+    while (buffer.hasRemaining()) {
+      dest.write(buffer);
+    }
+  }
 }

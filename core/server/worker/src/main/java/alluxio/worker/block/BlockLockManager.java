@@ -17,6 +17,9 @@ import alluxio.collections.Pair;
 import alluxio.concurrent.ClientRWLock;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidWorkerStateException;
 import alluxio.resource.ResourcePool;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -47,16 +50,26 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(BlockLockManager.class);
 
-  /** The unique id of each lock. */
+  /**
+   * Invalid lock ID.
+   */
+  public static final long INVALID_LOCK_ID = -1;
+
+  /**
+   * The unique id of each lock.
+   */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
   private static final int MAX_READERS = Configuration.getInt(
       PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCK_READERS);
 
- /** A pool of read write locks. */
+  /**
+   * A pool of read write locks.
+   */
   private final ResourcePool<ClientRWLock> mLockPool = new ResourcePool<ClientRWLock>(
       Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS)) {
     @Override
-    public void close() {}
+    public void close() {
+    }
 
     @Override
     public ClientRWLock createNewResource() {
@@ -64,7 +77,9 @@ public final class BlockLockManager {
     }
   };
 
-  /** A map from block id to the read write lock used to guard that block. */
+  /**
+   * A map from block id to the read write lock used to guard that block.
+   */
   // todo(bowen): set concurrency level?
   private final ConcurrentHashMap<Long, ClientRWLock> mLocks = new ConcurrentHashMap<>();
 
@@ -106,17 +121,18 @@ public final class BlockLockManager {
   /**
    * Constructs a new {@link BlockLockManager}.
    */
-  public BlockLockManager() {}
+  public BlockLockManager() {
+  }
 
   /**
    * Locks a block. Note that even if this block does not exist, a closable lock is still returned.
-   *
+   * <p>
    * If all {@link PropertyKey#WORKER_TIERED_STORE_BLOCK_LOCKS} are already in use and no lock has
    * been allocated for the specified block, this method will need to wait until a lock can be
    * acquired from the lock pool.
    *
-   * @param sessionId the session id
-   * @param blockId the block id
+   * @param sessionId     the session id
+   * @param blockId       the block id
    * @param blockLockType {@link BlockLockType#READ} or {@link BlockLockType#WRITE}
    * @return closable block lock
    */
@@ -129,28 +145,46 @@ public final class BlockLockManager {
   /**
    * Tries to lock a block within the given time.
    * Note that even if this block does not exist, a lock id is still returned.
-   *
+   * <p>
    * If all {@link PropertyKey#WORKER_TIERED_STORE_BLOCK_LOCKS} are already in use and no lock has
    * been allocated for the specified block, this method will need to wait until a lock can be
    * acquired from the lock pool.
    *
-   * @param sessionId the session id
-   * @param blockId the block id
+   * @param sessionId     the session id
+   * @param blockId       the block id
    * @param blockLockType {@link BlockLockType#READ} or {@link BlockLockType#WRITE}
-   * @param time the maximum time to wait for the lock
-   * @param unit the time unit of the {@code time} argument
+   * @param time          the maximum time to wait for the lock
+   * @param unit          the time unit of the {@code time} argument
    * @return lock id or INVALID_LOCK_ID if not able to lock within the given time
    */
   public Optional<BlockLock> tryAcquireBlockLock(long sessionId, long blockId,
-      BlockLockType blockLockType,
-      long time, TimeUnit unit) {
+                                                 BlockLockType blockLockType,
+                                                 long time, TimeUnit unit) {
     OptionalLong lockId = lockBlockInternal(sessionId, blockId, blockLockType, false, time, unit);
     return lockId.isPresent() ? Optional.of(new BlockLock(lockId.getAsLong(), this::unlockBlock)) :
         Optional.empty();
   }
 
+  /**
+   * Locks a block. Note that even if this block does not exist, a lock id is still returned.
+   * <p>
+   * If all {@link PropertyKey#WORKER_TIERED_STORE_BLOCK_LOCKS} are already in use and no lock has
+   * been allocated for the specified block, this method will need to wait until a lock can be
+   * acquired from the lock pool.
+   *
+   * @param sessionId     the session id
+   * @param blockId       the block id
+   * @param blockLockType {@link BlockLockType#READ} or {@link BlockLockType#WRITE}
+   * @return lock id
+   */
+  public long lockBlock(long sessionId, long blockId, BlockLockType blockLockType) {
+    return lockBlockInternal(sessionId, blockId, blockLockType,
+        false, 1L, TimeUnit.MINUTES).getAsLong();
+  }
+
   private OptionalLong lockBlockInternal(long sessionId, long blockId, BlockLockType blockLockType,
-      boolean blocking, @Nullable Long time, @Nullable TimeUnit unit) {
+                                         boolean blocking, @Nullable Long time,
+                                         @Nullable TimeUnit unit) {
     ClientRWLock blockLock = getBlockLock(blockId);
     Lock lock = blockLockType == BlockLockType.READ ? blockLock.readLock() : blockLock.writeLock();
     // Make sure the session isn't already holding the block lock.
@@ -208,7 +242,7 @@ public final class BlockLockManager {
 
   /**
    * @param sessionId the session id to check
-   * @param blockId the block id to check
+   * @param blockId   the block id to check
    * @return whether the specified session holds a lock on the specified block
    */
   private boolean sessionHoldsLock(long sessionId, long blockId) {
@@ -218,8 +252,35 @@ public final class BlockLockManager {
   }
 
   /**
-   * Returns the block lock for the given block id, acquiring such a lock if it doesn't exist yet.
+   * Validates the lock is hold by the given session for the given block.
    *
+   * @param sessionId the session id
+   * @param blockId   the block id
+   * @param lockId    the lock id
+   * @throws BlockDoesNotExistException  when no lock record can be found for lock id
+   * @throws InvalidWorkerStateException when session id or block id is not consistent with that
+   *                                     in the lock record for lock id
+   */
+  public void validateLock(long sessionId, long blockId, long lockId)
+      throws BlockDoesNotExistException, InvalidWorkerStateException {
+    LockRecord record = mLockRecords.getFirstByField(INDEX_LOCK_ID, lockId);
+    if (record == null) {
+      throw new BlockDoesNotExistException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
+          lockId);
+    }
+    if (sessionId != record.getSessionId()) {
+      throw new InvalidWorkerStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_SESSION,
+          lockId, record.getSessionId(), sessionId);
+    }
+    if (blockId != record.getBlockId()) {
+      throw new InvalidWorkerStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_BLOCK, lockId,
+          record.getBlockId(), blockId);
+    }
+  }
+
+  /**
+   * Returns the block lock for the given block id, acquiring such a lock if it doesn't exist yet.
+   * <p>
    * If all locks have been allocated, this method will block until one can be acquired.
    *
    * @param blockId the block id to get the lock for
@@ -279,7 +340,7 @@ public final class BlockLockManager {
    *
    * @param lockId the id of the lock to release
    */
-  private void unlockBlock(long lockId) {
+  public void unlockBlock(long lockId) {
     LockRecord record = mLockRecords.getFirstByField(INDEX_LOCK_ID, lockId);
     if (record == null) {
       return;
@@ -292,11 +353,50 @@ public final class BlockLockManager {
   }
 
   /**
+   * Releases the lock with the specified session and block id.
+   *
+   * @param sessionId the session id
+   * @param blockId   the block id
+   * @return whether the block has been successfully unlocked
+   */
+  public boolean unlockBlock(long sessionId, long blockId) {
+    LockRecord record = mLockRecords.getFirstByField(INDEX_SESSION_BLOCK_ID,
+        new Pair<>(sessionId, blockId));
+    if (record != null && record.getSessionId() == sessionId && record.getBlockId() == blockId) {
+      // the record may have been removed by someone else
+      // after we retrieved it, so a check is necessary
+      if (mLockRecords.remove(record)) {
+        unlock(record.getLock(), record.getBlockId());
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Releases the lock with the specified lock id.
+   *
+   * @param lockId the id of the lock to release
+   * @return whether the lock corresponding the lock ID has been successfully unlocked
+   */
+  public boolean unlockBlockNoException(long lockId) {
+    LockRecord record = mLockRecords.getFirstByField(INDEX_LOCK_ID, lockId);
+    if (record == null) {
+      return false;
+    }
+    Lock lock = record.getLock();
+    mLockRecords.remove(record);
+    unlock(lock, record.getBlockId());
+    return true;
+  }
+
+  /**
    * Validates the lock is hold by the given session for the given block.
    *
    * @param sessionId the session id
-   * @param blockId the block id
-   * @param lockId the lock id
+   * @param blockId   the block id
+   * @param lockId    the lock id
    * @return hold or not
    */
   @VisibleForTesting
@@ -351,7 +451,7 @@ public final class BlockLockManager {
    * Unlocks the given lock and releases the block lock for the given block id if the lock no longer
    * in use.
    *
-   * @param lock the lock to unlock
+   * @param lock    the lock to unlock
    * @param blockId the block id for which to potentially release the block lock
    */
   private void unlock(Lock lock, long blockId) {
@@ -381,7 +481,7 @@ public final class BlockLockManager {
 
   /**
    * Checks the internal state of the manager to make sure invariants hold.
-   *
+   * <p>
    * This method is intended for testing purposes. A runtime exception will be thrown if invalid
    * state is encountered. This method should only be called when there are no other concurrent
    * threads accessing this manager.
@@ -420,11 +520,12 @@ public final class BlockLockManager {
     private final long mLockId;
     private final Lock mLock;
 
-    /** Creates a new instance of {@link LockRecord}.
+    /**
+     * Creates a new instance of {@link LockRecord}.
      *
      * @param sessionId the session id
-     * @param blockId the block id
-     * @param lock the lock
+     * @param blockId   the block id
+     * @param lock      the lock
      */
     LockRecord(long sessionId, long blockId, long lockId, Lock lock) {
       mSessionId = sessionId;

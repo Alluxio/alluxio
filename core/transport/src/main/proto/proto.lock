@@ -8145,7 +8145,100 @@
     {
       "protopath": "proto:/:dataserver:/:protocol.proto",
       "def": {
+        "enums": [
+          {
+            "name": "RequestType",
+            "enum_fields": [
+              {
+                "name": "ALLUXIO_BLOCK"
+              },
+              {
+                "name": "UFS_FILE",
+                "integer": 1
+              }
+            ]
+          },
+          {
+            "name": "ReadResponse.Type",
+            "enum_fields": [
+              {
+                "name": "UFS_READ_HEARTBEAT",
+                "integer": 1
+              }
+            ]
+          }
+        ],
         "messages": [
+          {
+            "name": "ReadRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "block_id",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "offset",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "length",
+                "type": "int64"
+              },
+              {
+                "id": 4,
+                "name": "cancel",
+                "type": "bool"
+              },
+              {
+                "id": 7,
+                "name": "promote",
+                "type": "bool"
+              },
+              {
+                "id": 5,
+                "name": "chunk_size",
+                "type": "int64"
+              },
+              {
+                "id": 6,
+                "name": "open_ufs_block_options",
+                "type": "OpenUfsBlockOptions"
+              }
+            ]
+          },
+          {
+            "name": "AsyncCacheRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "block_id",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "source_host",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "source_port",
+                "type": "int32"
+              },
+              {
+                "id": 4,
+                "name": "open_ufs_block_options",
+                "type": "OpenUfsBlockOptions"
+              },
+              {
+                "id": 5,
+                "name": "length",
+                "type": "int64"
+              }
+            ]
+          },
           {
             "name": "OpenUfsBlockOptions",
             "fields": [
@@ -8188,6 +8281,46 @@
                 "id": 8,
                 "name": "block_in_ufs_tier",
                 "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "WriteRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "type",
+                "type": "RequestType"
+              },
+              {
+                "id": 2,
+                "name": "id",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "offset",
+                "type": "int64"
+              },
+              {
+                "id": 4,
+                "name": "tier",
+                "type": "int32"
+              },
+              {
+                "id": 5,
+                "name": "eof",
+                "type": "bool"
+              },
+              {
+                "id": 6,
+                "name": "cancel",
+                "type": "bool"
+              },
+              {
+                "id": 7,
+                "name": "create_ufs_file_options",
+                "type": "CreateUfsFileOptions"
               }
             ]
           },
@@ -8247,6 +8380,19 @@
             ]
           },
           {
+            "name": "ReadResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "type",
+                "type": "Type"
+              }
+            ]
+          },
+          {
+            "name": "Heartbeat"
+          },
+          {
             "name": "Response",
             "fields": [
               {
@@ -8258,6 +8404,91 @@
                 "id": 2,
                 "name": "message",
                 "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "LocalBlockOpenRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "block_id",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "promote",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "LocalBlockOpenResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "path",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "LocalBlockCloseRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "block_id",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "LocalBlockCreateRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "block_id",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "tier",
+                "type": "int32"
+              },
+              {
+                "id": 4,
+                "name": "space_to_reserve",
+                "type": "int64"
+              },
+              {
+                "id": 5,
+                "name": "only_reserve_space",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "LocalBlockCreateResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "path",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "LocalBlockCompleteRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "block_id",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "cancel",
+                "type": "bool"
               }
             ]
           }
@@ -8286,7 +8517,7 @@
                 "name": "OK"
               },
               {
-                "name": "CANCELED",
+                "name": "CANCELLED",
                 "integer": 1
               },
               {

@@ -31,6 +31,7 @@ import alluxio.web.WorkerWebServer;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.grpc.GrpcDataServer;
+import alluxio.worker.netty.NettyDataServer;
 
 import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
@@ -58,6 +59,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /** Server for data requests and responses. */
   private final DataServer mDataServer;
 
+  private final DataServer mNettyDataServer;
+
   /** If started (i.e. not null), this server is used to serve local data transfer. */
   private DataServer mDomainSocketDataServer;
 
@@ -73,6 +76,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /** The bind address for the rpc server. */
   private final InetSocketAddress mRpcBindAddress;
 
+  /** The bind address for the netty data server. */
+  private final InetSocketAddress mNettyDataServerAddress;
+
   /** The connect address for the rpc server. */
   private final InetSocketAddress mRpcConnectAddress;
 
@@ -84,6 +90,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   /** The jvm monitor.*/
   private JvmPauseMonitor mJvmPauseMonitor;
+
+  private boolean mNettyDataTransmissionEnable;
 
   /**
    * Creates a new instance of {@link AlluxioWorkerProcess}.
@@ -127,13 +135,26 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mRpcBindAddress = new InetSocketAddress(configuredBindAddress.getHostName(), bindPort);
       mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC,
           Configuration.global());
+
       if (mBindSocket != null) {
         // Socket opened for auto bind.
         // Close it.
         mBindSocket.close();
       }
-      // Setup Data server
+      // Setup GRPC server
       mDataServer = new GrpcDataServer(mRpcConnectAddress.getHostName(), mRpcBindAddress, this);
+
+      // Setup Netty Data Server
+      mNettyDataTransmissionEnable =
+          Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
+      if (mNettyDataTransmissionEnable) {
+        mNettyDataServerAddress =
+            NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, Configuration.global());
+        mNettyDataServer = new NettyDataServer(mNettyDataServerAddress, this);
+      } else {
+        mNettyDataServerAddress = null;
+        mNettyDataServer = null;
+      }
 
       // Setup domain socket data server
       if (isDomainSocketEnabled()) {
@@ -171,7 +192,15 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public int getDataLocalPort() {
+    if (mNettyDataTransmissionEnable) {
+      return ((InetSocketAddress) mNettyDataServer.getBindAddress()).getPort();
+    }
     return ((InetSocketAddress) mDataServer.getBindAddress()).getPort();
+  }
+
+  @Override
+  public int getNettyDataLocalPort() {
+    return ((InetSocketAddress) mNettyDataServer.getBindAddress()).getPort();
   }
 
   @Override
@@ -266,7 +295,12 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   }
 
   private boolean isServing() {
-    return mDataServer != null && !mDataServer.isClosed();
+    boolean dataServerStart = mDataServer != null && !mDataServer.isClosed();
+    if (mNettyDataTransmissionEnable) {
+      boolean nettyDataServerStart = mNettyDataServer != null && !mNettyDataServer.isClosed();
+      return dataServerStart && nettyDataServerStart;
+    }
+    return dataServerStart;
   }
 
   private void startWorkers() throws Exception {
@@ -279,6 +313,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   private void stopServing() throws Exception {
     mDataServer.close();
+    if (mNettyDataServer != null) {
+      mNettyDataServer.close();
+    }
     if (mDomainSocketDataServer != null) {
       mDomainSocketDataServer.close();
       mDomainSocketDataServer = null;
@@ -318,7 +355,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public WorkerNetAddress getAddress() {
-    return new WorkerNetAddress()
+    WorkerNetAddress workerNetAddress = new WorkerNetAddress()
         .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
             Configuration.global()))
         .setContainerHost(Configuration.global()
@@ -328,6 +365,10 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         .setDomainSocketPath(getDataDomainSocketPath())
         .setWebPort(mWebServer.getLocalPort())
         .setTieredIdentity(mTieredIdentitiy);
+    if (mNettyDataTransmissionEnable) {
+      workerNetAddress.setNettyDataPort(getNettyDataLocalPort());
+    }
+    return workerNetAddress;
   }
 
   @Override

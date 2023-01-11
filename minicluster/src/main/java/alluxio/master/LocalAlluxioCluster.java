@@ -141,6 +141,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.JOB_WORKER_THROTTLING, false);
     Configuration.set(PropertyKey.PROXY_WEB_PORT, 0);
     Configuration.set(PropertyKey.WORKER_RPC_PORT, 0);
+    Configuration.set(PropertyKey.WORKER_DATA_PORT, 0);
     Configuration.set(PropertyKey.WORKER_WEB_PORT, 0);
   }
 

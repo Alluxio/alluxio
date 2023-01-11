@@ -15,6 +15,7 @@ import static java.lang.String.format;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
@@ -29,6 +30,7 @@ import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
 import com.codahale.metrics.Counter;
@@ -109,6 +111,29 @@ public final class UnderFileSystemBlockStore implements SessionCleanable, Closea
     mLocalBlockStore = localBlockStore;
     mUfsManager = ufsManager;
     mUfsInstreamCache = new UfsInputStreamCache();
+  }
+
+  /**
+   * Closes the block reader or writer and checks whether it is necessary to commit the block
+   * to Local block store.
+   *
+   * During UFS block read, this is triggered when the block is unlocked.
+   * During UFS block write, this is triggered when the UFS block is committed.
+   *
+   * @param sessionId the session ID
+   * @param blockId the block ID
+   */
+  public void closeReaderOrWriter(long sessionId, long blockId) throws IOException {
+    BlockInfo blockInfo;
+    try (LockResource lr = new LockResource(mLock)) {
+      blockInfo = mBlocks.get(new Key(sessionId, blockId));
+      if (blockInfo == null) {
+        LOG.warn("Key (block ID: {}, session ID {}) is not found when cleaning up the UFS block.",
+            blockId, sessionId);
+        return;
+      }
+    }
+    blockInfo.closeReaderOrWriter();
   }
 
   /**
@@ -282,6 +307,54 @@ public final class UnderFileSystemBlockStore implements SessionCleanable, Closea
   }
 
   /**
+   * Creates a block reader that reads from UFS and optionally caches the block to the Alluxio
+   * block store.
+   *
+   * @param sessionId the client session ID that requested this read
+   * @param blockId the ID of the block to read
+   * @param offset the read offset within the block (NOT the file)
+   * @return the block reader instance
+   * @throws BlockDoesNotExistException if the UFS block does not exist in the
+   * {@link UnderFileSystemBlockStore}
+   */
+  public BlockReader createBlockReader(final long sessionId, long blockId, long offset)
+      throws BlockDoesNotExistException, IOException {
+    final BlockInfo blockInfo;
+    try (LockResource lr = new LockResource(mLock)) {
+      blockInfo = getBlockInfo(sessionId, blockId);
+      BlockReader blockReader = blockInfo.getBlockReader();
+      if (blockReader != null) {
+        return blockReader;
+      }
+    }
+    UfsManager.UfsClient ufsClient = mUfsManager.get(blockInfo.getMeta().getMountId());
+    Counter ufsBytesRead = mUfsBytesReadMetrics.computeIfAbsent(
+        new BytesReadMetricKey(ufsClient.getUfsMountPointUri(), null),
+        key -> key.mUser == null
+            ? MetricsSystem.counterWithTags(
+            MetricKey.WORKER_BYTES_READ_UFS.getName(),
+            MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
+            MetricInfo.TAG_UFS, MetricsSystem.escape(key.mUri))
+            : MetricsSystem.counterWithTags(
+            MetricKey.WORKER_BYTES_READ_UFS.getName(),
+            MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
+            MetricInfo.TAG_UFS, MetricsSystem.escape(key.mUri),
+            MetricInfo.TAG_USER, key.mUser));
+    Meter ufsBytesReadThroughput = mUfsBytesReadThroughputMetrics.computeIfAbsent(
+        ufsClient.getUfsMountPointUri(),
+        uri -> MetricsSystem.meterWithTags(
+            MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName(),
+            MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.isClusterAggregated(),
+            MetricInfo.TAG_UFS,
+            MetricsSystem.escape(uri)));
+    BlockReader reader =
+        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, false,
+            mLocalBlockStore, ufsClient, mUfsInstreamCache, ufsBytesRead, ufsBytesReadThroughput);
+    blockInfo.setBlockReader(reader);
+    return reader;
+  }
+
+  /**
    * Get ufsIOManager for the mount or add if absent.
    * @param mountId mount identifier
    * @return ufsIOManager for the mount
@@ -408,7 +481,15 @@ public final class UnderFileSystemBlockStore implements SessionCleanable, Closea
       }
 
       BytesReadMetricKey that = (BytesReadMetricKey) o;
-      return mUri.equals(that.mUri) && mUser.equals(that.mUser);
+      if (mUri.equals(that.mUri)) {
+        if (null == mUser) {
+          return null == that.mUser;
+        } else {
+          return mUser.equals(that.mUser);
+        }
+      } else {
+        return false;
+      }
     }
 
     @Override
@@ -428,6 +509,8 @@ public final class UnderFileSystemBlockStore implements SessionCleanable, Closea
     private final UnderFileSystemBlockMeta mMeta;
 
     private BlockReader mBlockReader;
+
+    private BlockWriter mBlockWriter;
 
     /**
      * Creates an instance of {@link BlockInfo}.
@@ -463,12 +546,40 @@ public final class UnderFileSystemBlockStore implements SessionCleanable, Closea
     }
 
     /**
+     * @param blockWriter the block writer to be set
+     */
+    public synchronized void setBlockWriter(BlockWriter blockWriter) {
+      mBlockWriter = blockWriter;
+    }
+
+    /**
+     * @return the block writer
+     */
+    public synchronized BlockWriter getBlockWriter() {
+      return mBlockWriter;
+    }
+
+    /**
      * Closes the block reader or writer.
      */
     public synchronized void close() throws IOException {
       if (mBlockReader != null) {
         mBlockReader.close();
         mBlockReader = null;
+      }
+    }
+
+    /**
+     * Closes the block reader or writer.
+     */
+    public synchronized void closeReaderOrWriter() throws IOException {
+      if (mBlockReader != null) {
+        mBlockReader.close();
+        mBlockReader = null;
+      }
+      if (mBlockWriter != null) {
+        mBlockWriter.close();
+        mBlockWriter = null;
       }
     }
   }

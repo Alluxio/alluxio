@@ -20,6 +20,25 @@ import java.util.concurrent.Executors;
  * Convenience methods for constructing instances of {@link ExecutorServiceFactory}.
  */
 public final class ExecutorServiceFactories {
+
+  /**
+   * Returns a {@link ExecutorServiceFactory} which creates threadpool executors with the given base
+   * name and number of threads. Created threads will be daemonic.
+   *
+   * @param name the base name for executor thread names
+   * @param nThreads the number of threads to create executors with
+   * @return the {@link ExecutorServiceFactory}
+   */
+  public static ExecutorServiceFactory fixedThreadPoolExecutorServiceFactory(final String name,
+                                                                             final int nThreads) {
+    return new ExecutorServiceFactory() {
+      @Override
+      public ExecutorService create() {
+        return Executors.newFixedThreadPool(nThreads, ThreadFactoryUtils.build(name + "-%d", true));
+      }
+    };
+  }
+
   /**
    * Returns a {@link ExecutorServiceFactory} which creates threadpool executors with the given base
    * name. Created threads will be daemonic.
