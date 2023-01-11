@@ -15,10 +15,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.grpc.ErrorType;
 import alluxio.master.NoopUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.block.*;
@@ -108,37 +105,16 @@ public class PagedBlockStoreCommitBlockTest {
             mockedBlockMasterClient = mock(BlockMasterClient.class);
             when(blockMasterClientPool.acquire()).thenReturn(mockedBlockMasterClient);
             doNothing().when(blockMasterClientPool).release(any());
-            doAnswer((i) -> {
-                // when testing blockId == 3L, commit to Master should fail, otherwise it will do nothing and success.
-                if ((Long)i.getArgument(4) == 3L) {
-                    throw new AlluxioRuntimeException(Status.UNAVAILABLE, ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage((Long)i.getArgument(5)), new IOException(), ErrorType.Internal, false);
-                }
-                return null;
-            }).when(mockedBlockMasterClient).commitBlock(anyLong(), anyLong(), anyString(), anyString(), anyLong(), anyLong());
             workerId = new AtomicReference<>(-1L);
             cacheManagerOptions = CacheManagerOptions.createForWorker(mConf);
-            // pageStoreDirs = PageStoreDir.createPageStoreDirs(cacheManagerOptions);
             pageStoreDirs = new ArrayList<PageStoreDir>();
             pageStoreDirs.add(pageStoreDir);
             dirs = PagedBlockStoreDir.fromPageStoreDirs(pageStoreDirs);
-            // pageMetaStore = new PagedBlockMetaStore(dirs) {
-            //     @Override
-            //     public PagedBlockMeta commit(long blockId) {
-            //         if (blockId == 4L) {
-            //             throw new RuntimeException();
-            //         }
-            //         return super.commit(blockId);
-            //     }
-            // };
-            // cacheManager = CacheManager.Factory.create(conf, cacheManagerOptions, // pageMetaStore);
-
-            // pagedBlockStore = new PagedBlockStore(cacheManager, ufs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions .getPageSize());
         } catch (Exception e) {
             System.out.println(e);
         }
     }
 
-    // trying to split different test in different inner class since they should not share same setup or before method. Bowen think the mocked and override commit methods are better to be more explicit, but judge by 2L 3L or 4L
 
     // This Test case success both to commit, no Exception should be throwed, and both onCommit method should be called
     @Test
@@ -163,7 +139,6 @@ public class PagedBlockStoreCommitBlockTest {
 
         dir.putTempFile(BlockPageId.tempFileIdOf(blockId));
         PagedTempBlockMeta blockMeta = new PagedTempBlockMeta(blockId, dir);
-        // pageMetaStore.addTempBlock(blockMeta);
         pagedBlockStore.createBlock(1L, blockId, offset, new CreateBlockOptions(null, null, 64));
         byte[] data = new byte[64];
         Arrays.fill(data, (byte) 1);
@@ -171,7 +146,6 @@ public class PagedBlockStoreCommitBlockTest {
         try (BlockWriter writer = pagedBlockStore.createBlockWriter(1L, blockId)) {
             Thread.sleep(1000);
             writer.append(buf);
-            writer.close();
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -182,6 +156,7 @@ public class PagedBlockStoreCommitBlockTest {
         verify(listener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
     }
 
+    // This Test case success commitToMaster, expecting one exception, and only one onCommit method should be called
     @Test
     public void LocalCommitFailAndMasterCommitSuccess() {
         try {
@@ -203,14 +178,12 @@ public class PagedBlockStoreCommitBlockTest {
 
         dir.putTempFile(BlockPageId.tempFileIdOf(blockId));
         PagedTempBlockMeta blockMeta = new PagedTempBlockMeta(blockId, dir);
-        // pageMetaStore.addTempBlock(blockMeta);
         pagedBlockStore.createBlock(1L, blockId, offset, new CreateBlockOptions(null, null, 64));
         byte[] data = new byte[64];
         Arrays.fill(data, (byte) 1);
         ByteBuffer buf = ByteBuffer.wrap(data);
         try (BlockWriter writer = pagedBlockStore.createBlockWriter(1L, blockId)) {
             writer.append(buf);
-            writer.close();
         } catch (Exception e) {
         }
 
@@ -230,10 +203,9 @@ public class PagedBlockStoreCommitBlockTest {
 
     }
 
+    // This Test case success commitToLocal, expecting one exception, and only one onCommit method should be called
     @Test
     public void LocalCommitSuccessAndMasterCommitFail() {
-        // doAnswer((i) -> { throw new AlluxioRuntimeException(Status.UNAVAILABLE, ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage((Long)i.getArgument(5)), new IOException(), ErrorType.Internal, false);}).when(mockedBlockMasterClient).commitBlock(anyLong(), anyLong(), anyString(), anyString(), anyLong(), anyLong());
-
         try {
             doAnswer((i) -> {
                 throw new AlluxioStatusException(Status.UNAVAILABLE);
@@ -260,7 +232,6 @@ public class PagedBlockStoreCommitBlockTest {
 
         dir.putTempFile(BlockPageId.tempFileIdOf(blockId));
         PagedTempBlockMeta blockMeta = new PagedTempBlockMeta(blockId, dir);
-        // pageMetaStore.addTempBlock(blockMeta);
         pagedBlockStore.createBlock(1L, blockId, offset, new CreateBlockOptions(null, null, 64));
         byte[] data = new byte[64];
         Arrays.fill(data, (byte) 1);
@@ -268,7 +239,6 @@ public class PagedBlockStoreCommitBlockTest {
         try (BlockWriter writer = pagedBlockStore.createBlockWriter(1L, blockId)) {
             Thread.sleep(1000);
             writer.append(buf);
-            writer.close();
         } catch (Exception e) {
             System.out.println("writer failed");
         }
