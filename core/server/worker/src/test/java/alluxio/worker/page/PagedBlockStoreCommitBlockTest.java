@@ -144,6 +144,7 @@ public class PagedBlockStoreCommitBlockTest {
         Arrays.fill(data, (byte) 1);
         ByteBuffer buf = ByteBuffer.wrap(data);
         try (BlockWriter writer = pagedBlockStore.createBlockWriter(1L, blockId)) {
+            // LocalCacheManager line 107 🤔
             Thread.sleep(1000);
             writer.append(buf);
         } catch (Exception e) {
