@@ -132,7 +132,7 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
 
   /** upload part timeout, null means no timeout. */
   @Nullable
-  private Duration mUploadPartTimeout;
+  private Long mUploadPartTimeoutMills;
 
   /** Whether the multi upload has been initialized. */
   private boolean mMultiPartUploadInitialized = false;
@@ -156,14 +156,16 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
         "Bucket name must not be null or empty.");
     mBucketName = bucketName;
     mTmpDirs = ufsConf.getList(PropertyKey.TMP_DIRS);
+    Preconditions.checkArgument(!mTmpDirs.isEmpty(), "No temporary directories available");
     mExecutor = executor;
     mKey = key;
     initHash();
     mPartitionSize = Math.max(UPLOAD_THRESHOLD, streamingUploadPartitionSize);
     mPartNumber = new AtomicInteger(1);
     if (ufsConf.isSet(PropertyKey.UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT)) {
-      mUploadPartTimeout =
-          ufsConf.getDuration(PropertyKey.UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT);
+      mUploadPartTimeoutMills =
+          ufsConf.getDuration(PropertyKey.UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT)
+              .toMillis();
     }
   }
 
@@ -302,13 +304,12 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
     }
     mLocalOutputStream.close();
     int partNumber = mPartNumber.getAndIncrement();
-    File newFileToUpload = new File(mFile.getPath());
+    uploadPart(new File(mFile.getPath()), partNumber, false);
     mFile = null;
     mLocalOutputStream = null;
-    uploadPart(newFileToUpload, partNumber, false);
   }
 
-  protected void uploadPart(File file, int partNumber, boolean lastPart) throws IOException {
+  protected void uploadPart(File file, int partNumber, boolean lastPart) {
     final String md5 = mHash != null ? Base64.encodeBase64String(mHash.digest()) : null;
     Callable<?> callable = () -> {
       try {
@@ -337,10 +338,10 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
   protected void waitForAllPartsUpload() throws IOException {
     try {
       for (ListenableFuture<?> future : mFutures) {
-        if (mUploadPartTimeout == null) {
+        if (mUploadPartTimeoutMills == null) {
           future.get();
         } else {
-          future.get(mUploadPartTimeout.toMillis(), TimeUnit.MILLISECONDS);
+          future.get(mUploadPartTimeoutMills, TimeUnit.MILLISECONDS);
         }
       }
     } catch (ExecutionException e) {
