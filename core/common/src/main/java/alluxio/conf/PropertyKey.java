@@ -6894,6 +6894,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .build();
 
+  // new job service
+  public static final PropertyKey JOB_BATCH_SIZE =
+      intBuilder(Name.JOB_BATCH_SIZE)
+          .setDescription("The number of tasks would be included in a job request.")
+          .setDefaultValue(20)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey JOB_RETENTION_TIME =
+      durationBuilder(Name.JOB_RETENTION_TIME)
+      .setDescription("The length of time the Alluxio should save information about "
+          + "completed jobs before they are discarded.")
+      .setDefaultValue("1d")
+      .setScope(Scope.MASTER)
+      .build();
+
   //
   // Job service
   //
@@ -8632,6 +8647,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME =
         "alluxio.network.tls.ssl.context.provider.classname";
     public static final String NETWORK_TLS_ENABLED = "alluxio.network.tls.enabled";
+
+    // new job service
+    public static final String JOB_BATCH_SIZE = "alluxio.job.batch.size";
+    public static final String JOB_RETENTION_TIME = "alluxio.job.retention.time";
 
     //
     // Job service
