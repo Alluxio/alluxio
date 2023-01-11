@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -532,6 +533,11 @@ public class ListBucketResult {
     }
 
     String path = mContents.get(mContents.size() - 1).mKey;
+    try {
+      path = URLDecoder.decode(path, "UTF-8");
+    } catch (UnsupportedEncodingException ex) {
+      // IGNORE, return as is
+    }
     if (StringUtils.isEmpty(mDelimiter)) {
       mNextMarker = path;
     } else {
