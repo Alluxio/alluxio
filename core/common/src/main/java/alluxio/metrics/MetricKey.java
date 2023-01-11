@@ -983,7 +983,38 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The number of running status job")
           .setMetricType(MetricType.COUNTER)
           .build();
-
+// new job metrics
+  public static final MetricKey MASTER_JOB_LOAD_SUCCESS =
+      new Builder("Master.JobLoadSuccess")
+          .setDescription("The number of successful Load commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_LOAD_FAIL =
+      new Builder("Master.JobLoadFail")
+          .setDescription("The number of failed Load commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_LOAD_BLOCK_COUNT =
+      new Builder("Master.JobLoadBlockCount")
+          .setDescription("The number of blocks loaded by load commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_LOAD_BLOCK_FAIL =
+      new Builder("Master.JobLoadBlockFail")
+          .setDescription("The number of blocks failed to be loaded by load commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_LOAD_BLOCK_SIZE =
+      new Builder("Master.JobDistributedLoadBlockSizes")
+          .setDescription("The total block size loaded by load commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_LOAD_RATE =
+      new Builder("Master.JobLoadRate")
+          .setDescription("The average loading rate of Load commands")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(true)
+          .build();
   // Distributed command related metrics
   public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_SUCCESS =
       new Builder("Master.JobDistributedLoadSuccess")

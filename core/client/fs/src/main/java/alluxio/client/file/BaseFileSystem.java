@@ -516,6 +516,32 @@ public class BaseFileSystem implements FileSystem {
     });
   }
 
+  @Override
+  public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
+      boolean usePartialListing, boolean verify) {
+    try (CloseableResource<FileSystemMasterClient> client =
+            mFsContext.acquireMasterClientResource()) {
+      return client.get().submitLoad(path, bandwidth, usePartialListing, verify);
+    }
+  }
+
+  @Override
+  public boolean stopLoad(AlluxioURI path) {
+    try (CloseableResource<FileSystemMasterClient> client =
+            mFsContext.acquireMasterClientResource()) {
+      return client.get().stopLoad(path);
+    }
+  }
+
+  @Override
+  public String getLoadProgress(AlluxioURI path,
+      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
+    try (CloseableResource<FileSystemMasterClient> client =
+            mFsContext.acquireMasterClientResource()) {
+      return client.get().getLoadProgress(path, format, verbose);
+    }
+  }
+
   /**
    * Checks an {@link AlluxioURI} for scheme and authority information. Warn the user and throw an
    * exception if necessary.
