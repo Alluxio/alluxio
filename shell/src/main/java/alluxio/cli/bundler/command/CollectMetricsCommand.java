@@ -16,6 +16,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.SleepUtils;
 import alluxio.util.network.HttpUtils;
 
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -99,38 +101,57 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
   }
 
   private void masterMetrics(StringWriter outputBuffer, int i) throws IOException {
+    List<InetSocketAddress> masterAddresses =
+        ConfigurationUtils.getMasterRpcAddresses(mFsContext.getClusterConf());
+    boolean masterHostsDistinct =
+        masterAddresses.stream().map(InetSocketAddress::getHostName).distinct().count()
+            == masterAddresses.size();
+
     // Generate URL from config properties
-    String masterAddr;
+    InetSocketAddress primaryMasterAddr;
     try {
-      masterAddr = mFsContext.getMasterAddress().getHostName();
+      primaryMasterAddr = mFsContext.getMasterAddress();
     } catch (UnavailableException e) {
       String noMasterMsg = "No Alluxio master available. Skip metrics collection.";
       LOG.warn(noMasterMsg);
       outputBuffer.write(noMasterMsg);
       return;
     }
-    String url = String.format("http://%s:%s%s", masterAddr,
-            mFsContext.getClusterConf().get(PropertyKey.MASTER_WEB_PORT),
-            METRICS_SERVLET_PATH);
-    LOG.info(String.format("Metric address URL: %s", url));
 
-    // Get metrics
-    String metricsResponse;
-    try {
-      metricsResponse = getMetricsJson(url);
-    } catch (Exception e) {
-      // Do not break the loop since the HTTP failure can be due to many reasons
-      // Return the error message instead
-      LOG.error("Failed to get Alluxio master metrics from URL {}. Exception: ", url, e);
-      metricsResponse =  String.format("Url: %s%nError: %s", url, e.getMessage());
+    for (InetSocketAddress masterAddress: masterAddresses) {
+      String url = String.format("http://%s:%s%s", masterAddress.getHostName(),
+          mFsContext.getClusterConf().get(PropertyKey.MASTER_WEB_PORT),
+          METRICS_SERVLET_PATH);
+      LOG.info(String.format("Metric address URL: %s", url));
+
+      // Get metrics
+      String metricsResponse;
+      try {
+        metricsResponse = getMetricsJson(url);
+      } catch (Exception e) {
+        // Do not break the loop since the HTTP failure can be due to many reasons
+        // Return the error message instead
+        LOG.error("Failed to get Alluxio master metrics from URL {}. Exception: ", url, e);
+        metricsResponse =  String.format("Url: %s%nError: %s", url, e.getMessage());
+        if (!masterAddress.equals(primaryMasterAddr)) {
+          metricsResponse += "\n"
+              + "Standby master metrics cannot be collected if the web server isn't enabled.";
+        }
+      }
+      outputBuffer.write(metricsResponse);
+      outputBuffer.write("\n");
+
+      String masterName = masterHostsDistinct ? masterAddress.getHostName() :
+          masterAddress.getHostName() + ":" + masterAddress.getPort();
+      if (masterAddress.equals(primaryMasterAddr)) {
+        masterName += "(PRIMARY)";
+      }
+
+      // Write to file
+      File outputFile = generateOutputFile(mWorkingDirPath,
+          String.format("%s-master-%s-%s", getCommandName(), masterName, i));
+      FileUtils.writeStringToFile(outputFile, metricsResponse);
     }
-    outputBuffer.write(metricsResponse);
-    outputBuffer.write("\n");
-
-    // Write to file
-    File outputFile = generateOutputFile(mWorkingDirPath,
-            String.format("%s-master-%s", getCommandName(), i));
-    FileUtils.writeStringToFile(outputFile, metricsResponse);
   }
 
   private void workerMetrics(StringWriter outputBuffer, int i) throws IOException {
@@ -144,10 +165,12 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
       outputBuffer.write(noWorkerMsg);
       return;
     }
+    boolean workerHostsDistinct = workers.size()
+        == workers.stream().map(it -> it.getNetAddress().getHost()).distinct().count();
     for (BlockWorkerInfo worker : workers) {
       String url = String.format("http://%s:%s%s", worker.getNetAddress().getHost(),
-              mFsContext.getClusterConf().get(PropertyKey.WORKER_WEB_PORT),
-              METRICS_SERVLET_PATH);
+          worker.getNetAddress().getWebPort(),
+          METRICS_SERVLET_PATH);
       LOG.info(String.format("Metric address URL: %s", url));
 
       // Get metrics
@@ -163,9 +186,11 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
       outputBuffer.write(metricsResponse);
       outputBuffer.write("\n");
 
+      String workerName = workerHostsDistinct ? worker.getNetAddress().getHost() :
+          worker.getNetAddress().getHost() + ":" + worker.getNetAddress().getRpcPort();
       // Write to file
       File outputFile = generateOutputFile(mWorkingDirPath,
-              String.format("%s-worker-%s", getCommandName(), i));
+          String.format("%s-worker-%s-%s", getCommandName(), workerName, i));
       FileUtils.writeStringToFile(outputFile, metricsResponse);
     }
   }
