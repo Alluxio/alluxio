@@ -499,7 +499,7 @@ public class TieredBlockStore implements LocalBlockStore {
    * @return destination location to move the block
    */
   @VisibleForTesting
-  public BlockStoreLocation commitBlockInternal(long sessionId, long blockId,
+  BlockStoreLocation commitBlockInternal(long sessionId, long blockId,
       boolean pinOnCreate) {
     if (mMetaManager.hasBlockMeta(blockId)) {
       LOG.debug("Block {} has been in block store, this could be a retry due to master-side RPC "
