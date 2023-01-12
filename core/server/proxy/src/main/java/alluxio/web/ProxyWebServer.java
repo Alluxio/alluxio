@@ -69,7 +69,7 @@ public final class ProxyWebServer extends WebServer {
   class ProxyListener implements HttpChannel.Listener {
     public void onComplete(Request request)
     {
-      S3Handler s3Hdlr = S3RequestServlet.getInstance().s3HandlerMap.get(request);
+      S3Handler s3Hdlr = S3RequestServlet.getInstance().mS3HandlerMap.get(request);
       if (s3Hdlr != null) {
         ProxyWebServer.logAccess(s3Hdlr.getServletRequest(), s3Hdlr.getServletResponse(),
                 s3Hdlr.getStopwatch(),

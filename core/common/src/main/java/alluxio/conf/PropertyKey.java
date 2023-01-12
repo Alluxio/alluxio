@@ -5169,15 +5169,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey PROXY_S3_OPTIMIZED_VERSION_ENABLED =
           booleanBuilder(Name.PROXY_S3_OPTIMIZED_VERSION_ENABLED)
                   .setDefaultValue(false)
-                  .setDescription("(Experimental) An optimized version of Alluxio s3 proxy service.")
+                  .setDescription("(Experimental) An optimized version of "
+                          + "Alluxio s3 proxy service.")
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
                   .setScope(Scope.SERVER)
                   .build();
   public static final PropertyKey PROXY_S3_ASYNC_PROCESSING_ENABLED =
           booleanBuilder(Name.PROXY_S3_ASYNC_PROCESSING_ENABLED)
                   .setDefaultValue(false)
-                  .setDescription("(Experimental) If enabled, handle S3 request in async mode when" +
-                          " optimized version of Alluxio s3 proxy service is enabled.")
+                  .setDescription("(Experimental) If enabled, handle S3 request "
+                          + "in async mode when optimized version of Alluxio s3 "
+                          + "proxy service is enabled.")
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
                   .setScope(Scope.SERVER)
                   .build();

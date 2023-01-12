@@ -50,7 +50,6 @@ import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.glassfish.jersey.message.internal.MessageBodyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

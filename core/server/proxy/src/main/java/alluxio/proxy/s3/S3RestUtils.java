@@ -540,6 +540,14 @@ public final class S3RestUtils {
     }
   }
 
+  /**
+   *
+   *
+   * @param authorization
+   * @param request
+   * @return
+   * @throws S3Exception
+   */
   public static String getUser(String authorization, HttpServletRequest request)
           throws S3Exception {
     if (S3RestUtils.isAuthenticationEnabled(Configuration.global())) {
@@ -659,7 +667,7 @@ public final class S3RestUtils {
     TaggingData tagData = null;
     if (taggingHeader != null) { // Parse the tagging header if it exists for PutObject
       try {
-        tagData = S3RestUtils.deserializeTaggingHeader(taggingHeader, S3Handler.mMaxHeaderMetadataSize);
+        tagData = S3RestUtils.deserializeTaggingHeader(taggingHeader, S3Handler.MAX_HEADER_METADATA_SIZE);
       } catch (IllegalArgumentException e) {
         if (e.getCause() instanceof S3Exception) {
           throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath,

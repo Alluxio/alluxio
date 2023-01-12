@@ -192,7 +192,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       throw e;
     } finally {
       if (stopwatch != null) {
-        ProxyWebServer.logAccess(httpServletRequest, httpServletResponse, stopwatch, S3BaseTask.OpType.CompleteMultipartUpload);
+        ProxyWebServer.logAccess(httpServletRequest, httpServletResponse,
+                stopwatch, S3BaseTask.OpType.CompleteMultipartUpload);
       }
     }
   }
