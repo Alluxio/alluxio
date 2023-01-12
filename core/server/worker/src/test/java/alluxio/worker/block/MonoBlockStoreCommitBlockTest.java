@@ -65,7 +65,7 @@ public class MonoBlockStoreCommitBlockTest {
         try {
             mMonoBlockStore.removeBlock(sessoinId, blockId);
         } catch (Exception e) {
-            System.out.println(e);
+
         }
     }
 

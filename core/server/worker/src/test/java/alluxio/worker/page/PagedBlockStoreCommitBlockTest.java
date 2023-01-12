@@ -137,14 +137,13 @@ public class PagedBlockStoreCommitBlockTest {
         PagedBlockStoreDir dir =
                 (PagedBlockStoreDir) pageMetaStore.allocate(BlockPageId.tempFileIdOf(blockId), 1);
 
-        dir.putTempFile(BlockPageId.tempFileIdOf(blockId));
+        // dir.putTempFile(BlockPageId.tempFileIdOf(blockId));
         PagedTempBlockMeta blockMeta = new PagedTempBlockMeta(blockId, dir);
         pagedBlockStore.createBlock(1L, blockId, offset, new CreateBlockOptions(null, null, 64));
         byte[] data = new byte[64];
         Arrays.fill(data, (byte) 1);
         ByteBuffer buf = ByteBuffer.wrap(data);
         try (BlockWriter writer = pagedBlockStore.createBlockWriter(1L, blockId)) {
-            // LocalCacheManager line 107 🤔
             Thread.sleep(1000);
             writer.append(buf);
         } catch (Exception e) {
