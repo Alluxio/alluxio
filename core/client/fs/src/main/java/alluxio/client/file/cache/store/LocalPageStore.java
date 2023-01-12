@@ -67,7 +67,7 @@ public class LocalPageStore implements PageStore {
     mCapacity = (long) (options.getCacheSize() / (1 + options.getOverheadRatio()));
     mFileBuckets = options.getFileBuckets();
     mOpenedReadFile
-        = CacheBuilder.newBuilder().weakValues()
+        = CacheBuilder.newBuilder()
         .expireAfterAccess(Duration.ofMinutes(1))
         .removalListener(
             new RemovalListener<String, RandomAccessFile>(){
