@@ -19,6 +19,11 @@ import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+// This Test is a little different from the PagedBlockStoreCommitStore due to structure different.
+// MonoBlockStore.commitBlock() will call TieredBlockStore.commitBlocked() first as commitLocal, then will call BlockMasterClient.commitBlock() as commitMaster
+// TieredBlockStore.commitBlock() call TieredBLockStore.commitBlockInternal inside them wake the EventListener for listener.onCommitToLocal()
+// MonoBlockStore will wake the EventListener for listener.onCommitToMaster after BlockMasterClient.commitBlock() successes
+// In a nutshell two onCommit events weren't called in same domain
 public class MonoBlockStoreCommitBlockTest {
     public MonoBlockStore mMonoBlockStore;
     BlockMasterClientPool mockedBlockMasterClientPool;
@@ -31,17 +36,16 @@ public class MonoBlockStoreCommitBlockTest {
     Long sessoinId = 1L;
     Long blockId = 2L;
     int FIRST_TIER = 1;
+    // Maybe location should be asserted as well.
     BlockStoreEventListener listener0 = new AbstractBlockStoreEventListener() {
         @Override
         public void onCommitBlockToLocal(long blockId, BlockStoreLocation location) {
             assertEquals(2L, blockId);
-            // assertEquals(dirs.get(0).getLocation(), location);
         }
 
         @Override
         public void onCommitBlockToMaster(long blockId, BlockStoreLocation location) {
             assertEquals(2L, blockId);
-            // assertEquals(dirs.get(0).getLocation(), location);
         }
     };
     BlockStoreEventListener listener = spy(listener0);
@@ -67,26 +71,9 @@ public class MonoBlockStoreCommitBlockTest {
 
     @Test
     public void CommitLocalandCommitMasterBothSuccess() {
-        // doAnswer((i) -> { return null; }).when(mockedBlockMasterClient).commitBlock(anyLong(), anyLong(), anyString(), anyString(), anyLong(), anyLong());
-        // try {
-        //     System.out.println("Trying to remove block in Test");
-        //     mMonoBlockStore.removeBlock(sessoinId, blockId);
-        // } catch (Exception e) {
-        //     System.out.println("Remove block Fail");
-        //     System.out.println(e);
-        // }
-        mTieredBlockStore = new TieredBlockStore(mBlockMetadataManager, mBlockLockManager) {
-            public BlockStoreLocation commitBlockInternal(Long sessionId, Long blockId, boolean pinOnCreate) {
-                TempBlockMeta tempBlockMeta = mBlockMetadataManager.getTempBlockMeta(blockId).get();
-                BlockStoreLocation loc = tempBlockMeta.getBlockLocation();
-                return loc;
-            }
-
-        };
+        mTieredBlockStore = new TieredBlockStore(mBlockMetadataManager, mBlockLockManager);
 
         mMonoBlockStore = new MonoBlockStore(mTieredBlockStore, mockedBlockMasterClientPool, mock(UfsManager.class), new AtomicReference<>(1L));
-
-        // doAnswer((i) -> { return null; }).when(mockedBlockMasterClient).commitBlock();
 
         mMonoBlockStore.createBlock(sessoinId, blockId, FIRST_TIER, new CreateBlockOptions(null, null, 64));
         byte[] data = new byte[64];
@@ -119,8 +106,6 @@ public class MonoBlockStoreCommitBlockTest {
 
         mMonoBlockStore = new MonoBlockStore(mTieredBlockStore, mockedBlockMasterClientPool, mock(UfsManager.class), new AtomicReference<>(1L));
 
-        // doAnswer((i) -> { return null; }).when(mockedBlockMasterClient).commitBlock();
-
         mMonoBlockStore.createBlock(sessoinId, blockId, FIRST_TIER, new CreateBlockOptions(null, null, 64));
         byte[] data = new byte[64];
         Arrays.fill(data, (byte) 1);
@@ -145,14 +130,11 @@ public class MonoBlockStoreCommitBlockTest {
     @Test
     public void CommitLocalFailandCommitMasterSuccess() {
         mTieredBlockStore = spy(new TieredBlockStore(mBlockMetadataManager, mBlockLockManager));
-        //when(mTieredBlockStore.commitBlockInternal(anyLong(), anyLong(), anyBoolean())).thenThrow(new RuntimeException());
         doAnswer((i) -> {
             throw new RuntimeException();
         }).when(mTieredBlockStore).commitBlockInternal(anyLong(), anyLong(), anyBoolean());
 
         mMonoBlockStore = new MonoBlockStore(mTieredBlockStore, mockedBlockMasterClientPool, mock(UfsManager.class), new AtomicReference<>(1L));
-
-        // doAnswer((i) -> { return null; }).when(mockedBlockMasterClient).commitBlock();
 
         mMonoBlockStore.createBlock(sessoinId, blockId, FIRST_TIER, new CreateBlockOptions(null, null, 64));
         byte[] data = new byte[64];
