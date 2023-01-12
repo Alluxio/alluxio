@@ -51,8 +51,8 @@ public class PagedBlockStoreCommitBlockTest {
         }
     };
 
-    BlockStoreEventListener listener = spy(listener0);
-    UfsManager ufs;
+    BlockStoreEventListener mListener = spy(listener0);
+    UfsManager mUfs;
     AlluxioConfiguration conf;
     CacheManagerOptions cacheManagerOptions;
     PagedBlockMetaStore pageMetaStore;
@@ -66,7 +66,9 @@ public class PagedBlockStoreCommitBlockTest {
 
     private static final int DIR_INDEX = 0;
 
-    private static long blockId = 2L;
+    final Long sessionId = 1L;
+    final Long blockId = 2L;
+    final int blockSize = 64;
 
     public int mPageSize = 2;
 
@@ -94,7 +96,7 @@ public class PagedBlockStoreCommitBlockTest {
         mDir = new PagedBlockStoreDir(pageStoreDir, DIR_INDEX);
 
         try{
-            ufs = new NoopUfsManager();
+            mUfs = new NoopUfsManager();
             conf = Configuration.global();
             mConf.set(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, mPageSize);
             mConf.set(PropertyKey.WORKER_PAGE_STORE_DIRS, ImmutableList.of(mDirPath));
@@ -129,31 +131,16 @@ public class PagedBlockStoreCommitBlockTest {
             };
             cacheManager = CacheManager.Factory.create(conf, cacheManagerOptions, pageMetaStore);
 
-            pagedBlockStore = new PagedBlockStore(cacheManager, ufs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions.getPageSize());
+            pagedBlockStore = new PagedBlockStore(cacheManager, mUfs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions.getPageSize());
         } catch (IOException e) {
             throw new RuntimeException();
         }
 
-        PagedBlockStoreDir dir =
-                (PagedBlockStoreDir) pageMetaStore.allocate(BlockPageId.tempFileIdOf(blockId), 1);
+        prepareBlockStore();
 
-        // dir.putTempFile(BlockPageId.tempFileIdOf(blockId));
-        PagedTempBlockMeta blockMeta = new PagedTempBlockMeta(blockId, dir);
-        pagedBlockStore.createBlock(1L, blockId, offset, new CreateBlockOptions(null, null, 64));
-        byte[] data = new byte[64];
-        Arrays.fill(data, (byte) 1);
-        ByteBuffer buf = ByteBuffer.wrap(data);
-        try (BlockWriter writer = pagedBlockStore.createBlockWriter(1L, blockId)) {
-            Thread.sleep(1000);
-            writer.append(buf);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-
-        pagedBlockStore.registerBlockStoreEventListener(listener);
-        pagedBlockStore.commitBlock(1L, blockId, false);
-        verify(listener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
-        verify(listener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
+        pagedBlockStore.commitBlock(sessionId, blockId, false);
+        verify(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
+        verify(mListener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
     }
 
     // This Test case success commitToMaster, expecting one exception, and only one onCommit method should be called
@@ -169,31 +156,19 @@ public class PagedBlockStoreCommitBlockTest {
             };
             cacheManager = CacheManager.Factory.create(conf, cacheManagerOptions, pageMetaStore);
 
-            pagedBlockStore = new PagedBlockStore(cacheManager, ufs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions.getPageSize());
+            pagedBlockStore = new PagedBlockStore(cacheManager, mUfs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions.getPageSize());
         } catch (IOException e) {
             throw new RuntimeException();
         }
-        PagedBlockStoreDir dir =
-                (PagedBlockStoreDir) pageMetaStore.allocate(BlockPageId.tempFileIdOf(blockId), 1);
 
-        dir.putTempFile(BlockPageId.tempFileIdOf(blockId));
-        PagedTempBlockMeta blockMeta = new PagedTempBlockMeta(blockId, dir);
-        pagedBlockStore.createBlock(1L, blockId, offset, new CreateBlockOptions(null, null, 64));
-        byte[] data = new byte[64];
-        Arrays.fill(data, (byte) 1);
-        ByteBuffer buf = ByteBuffer.wrap(data);
-        try (BlockWriter writer = pagedBlockStore.createBlockWriter(1L, blockId)) {
-            writer.append(buf);
-        } catch (Exception e) {
-        }
+        prepareBlockStore();
 
-        pagedBlockStore.registerBlockStoreEventListener(listener);
         assertThrows(RuntimeException.class, () -> {
-            pagedBlockStore.commitBlock(1L, blockId, false);
+            pagedBlockStore.commitBlock(sessionId, blockId, false);
         });
 
-        verify(listener, never()).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
-        verify(listener, never()).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
+        verify(mListener, never()).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
+        verify(mListener, never()).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
 
         try {
             pagedBlockStore.close();
@@ -223,32 +198,39 @@ public class PagedBlockStoreCommitBlockTest {
             };
             cacheManager = CacheManager.Factory.create(conf, cacheManagerOptions, pageMetaStore);
 
-            pagedBlockStore = new PagedBlockStore(cacheManager, ufs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions.getPageSize());
+            pagedBlockStore = new PagedBlockStore(cacheManager, mUfs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions.getPageSize());
         } catch (IOException e) {
             throw new RuntimeException();
         }
+
+        prepareBlockStore();
+
+        assertThrows(RuntimeException.class, () -> {
+            pagedBlockStore.commitBlock(sessionId, blockId, false);
+        });
+        verify(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
+        verify(mListener, never()).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
+    }
+
+    // Prepare PageBlockStore and creat a temp block for following test
+    public void prepareBlockStore() {
         PagedBlockStoreDir dir =
                 (PagedBlockStoreDir) pageMetaStore.allocate(BlockPageId.tempFileIdOf(blockId), 1);
 
         dir.putTempFile(BlockPageId.tempFileIdOf(blockId));
         PagedTempBlockMeta blockMeta = new PagedTempBlockMeta(blockId, dir);
-        pagedBlockStore.createBlock(1L, blockId, offset, new CreateBlockOptions(null, null, 64));
-        byte[] data = new byte[64];
+        pagedBlockStore.createBlock(sessionId, blockId, offset, new CreateBlockOptions(null, null, blockSize));
+        byte[] data = new byte[blockSize];
         Arrays.fill(data, (byte) 1);
         ByteBuffer buf = ByteBuffer.wrap(data);
-        try (BlockWriter writer = pagedBlockStore.createBlockWriter(1L, blockId)) {
+        try (BlockWriter writer = pagedBlockStore.createBlockWriter(sessionId, blockId)) {
             Thread.sleep(1000);
             writer.append(buf);
         } catch (Exception e) {
-            System.out.println("writer failed");
+            System.out.println(e);
         }
 
-        pagedBlockStore.registerBlockStoreEventListener(listener);
-        assertThrows(RuntimeException.class, () -> {
-            pagedBlockStore.commitBlock(1L, blockId, false);
-        });
-        verify(listener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
-        verify(listener, never()).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
+        pagedBlockStore.registerBlockStoreEventListener(mListener);
     }
 
 }
