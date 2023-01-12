@@ -23,7 +23,6 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.GuardedBy;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -36,7 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterStreamObserver.class);
-  @GuardedBy("this")
+
   private WorkerRegisterContext mContext;
   private final BlockMaster mBlockMaster;
   // Used to send responses to the worker
