@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  * This class handles the master side logic of the register stream.
@@ -36,6 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterStreamObserver.class);
 
+  @GuardedBy("this")
   private WorkerRegisterContext mContext;
   private final BlockMaster mBlockMaster;
   // Used to send responses to the worker
