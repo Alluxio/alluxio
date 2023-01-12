@@ -370,7 +370,7 @@ public final class NetworkAddressUtils {
                                                  AlluxioConfiguration conf) {
     int port = getPort(service, conf);
     assertValidPort(port);
-    return new InetSocketAddress(getBindHost(service, conf), getPort(service, conf));
+    return new InetSocketAddress(getBindHost(service, conf), port);
   }
 
   /**
