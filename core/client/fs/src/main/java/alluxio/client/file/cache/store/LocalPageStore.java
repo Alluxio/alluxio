@@ -72,7 +72,6 @@ public class LocalPageStore implements PageStore {
               @Override
               public void onRemoval(RemovalNotification<String, RandomAccessFile> notification) {
                 try {
-                  LOG.info("Closing random access file of {}", notification.getKey());
                   assert notification.getValue() != null;
                   notification.getValue().close();
                 } catch (IOException e) {
