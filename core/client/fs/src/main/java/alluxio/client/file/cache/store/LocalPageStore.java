@@ -38,6 +38,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -67,6 +68,7 @@ public class LocalPageStore implements PageStore {
     mFileBuckets = options.getFileBuckets();
     mOpenedReadFile
         = CacheBuilder.newBuilder().weakValues()
+        .expireAfterAccess(Duration.ofMinutes(1))
         .removalListener(
             new RemovalListener<String, RandomAccessFile>(){
               @Override
