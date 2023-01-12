@@ -9,19 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.fs;
+package alluxio.server.block;
 
-import static alluxio.master.block.RegisterStreamTestUtils.BATCH_SIZE;
-import static alluxio.master.block.RegisterStreamTestUtils.CAPACITY_MAP;
-import static alluxio.master.block.RegisterStreamTestUtils.EMPTY_CONFIG;
-import static alluxio.master.block.RegisterStreamTestUtils.LOST_STORAGE;
-import static alluxio.master.block.RegisterStreamTestUtils.MEM_CAPACITY_BYTES;
-import static alluxio.master.block.RegisterStreamTestUtils.NET_ADDRESS_1;
-import static alluxio.master.block.RegisterStreamTestUtils.TIER_BLOCK_TOTAL;
-import static alluxio.master.block.RegisterStreamTestUtils.TIER_CONFIG;
-import static alluxio.master.block.RegisterStreamTestUtils.USAGE_MAP;
-import static alluxio.master.block.RegisterStreamTestUtils.getErrorCapturingResponseObserver;
-import static alluxio.master.block.RegisterStreamTestUtils.parseTierConfig;
+import static alluxio.server.block.RegisterStreamTestUtils.BATCH_SIZE;
+import static alluxio.server.block.RegisterStreamTestUtils.CAPACITY_MAP;
+import static alluxio.server.block.RegisterStreamTestUtils.EMPTY_CONFIG;
+import static alluxio.server.block.RegisterStreamTestUtils.LOST_STORAGE;
+import static alluxio.server.block.RegisterStreamTestUtils.MEM_CAPACITY_BYTES;
+import static alluxio.server.block.RegisterStreamTestUtils.NET_ADDRESS_1;
+import static alluxio.server.block.RegisterStreamTestUtils.TIER_BLOCK_TOTAL;
+import static alluxio.server.block.RegisterStreamTestUtils.TIER_CONFIG;
+import static alluxio.server.block.RegisterStreamTestUtils.USAGE_MAP;
+import static alluxio.server.block.RegisterStreamTestUtils.getErrorCapturingResponseObserver;
+import static alluxio.server.block.RegisterStreamTestUtils.parseTierConfig;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
@@ -46,7 +46,6 @@ import alluxio.master.block.BlockMasterTestUtils;
 import alluxio.master.block.BlockMasterWorkerServiceHandler;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.block.RegisterStreamObserver;
-import alluxio.master.block.RegisterStreamTestUtils;
 import alluxio.master.block.WorkerRegisterContext;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.metrics.MetricsMaster;
@@ -149,7 +148,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
 
     Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
     RegisterStreamTestUtils.sendStreamToMaster(mHandler, requestChunks,
-        RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
+        getErrorCapturingResponseObserver(errorQueue));
 
     // Verify the worker is registered
     assertEquals(0, errorQueue.size());
@@ -173,7 +172,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     prepareBlocksOnMaster(requestChunks);
     Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
     RegisterStreamTestUtils.sendStreamToMaster(mHandler, requestChunks,
-        RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
+        getErrorCapturingResponseObserver(errorQueue));
 
     // Verify the worker is registered
     assertEquals(0, errorQueue.size());
@@ -197,7 +196,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     prepareBlocksOnMaster(requestChunks);
     Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
     RegisterStreamTestUtils.sendStreamToMaster(mHandler, requestChunks,
-        RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
+        getErrorCapturingResponseObserver(errorQueue));
     // Verify the worker has been registered
     assertEquals(0, errorQueue.size());
     assertEquals(1, mBlockMaster.getWorkerCount());
@@ -216,7 +215,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     // Register again
     Queue<Throwable> newErrorQueue = new ConcurrentLinkedQueue<>();
     RegisterStreamTestUtils.sendStreamToMaster(mHandler, requestChunks,
-        RegisterStreamTestUtils.getErrorCapturingResponseObserver(newErrorQueue));
+        getErrorCapturingResponseObserver(newErrorQueue));
 
     // Verify the worker is registered again
     assertEquals(0, errorQueue.size());
@@ -239,7 +238,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     prepareBlocksOnMaster(requestChunks);
     Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
     RegisterStreamTestUtils.sendStreamToMaster(mHandler, requestChunks,
-        RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
+        getErrorCapturingResponseObserver(errorQueue));
     assertEquals(0, errorQueue.size());
     // Verify the worker has registered
     assertEquals(1, mBlockMaster.getWorkerCount());
@@ -247,7 +246,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     // Register again
     Queue<Throwable> newErrorQueue = new ConcurrentLinkedQueue<>();
     RegisterStreamTestUtils.sendStreamToMaster(mHandler, requestChunks,
-        RegisterStreamTestUtils.getErrorCapturingResponseObserver(newErrorQueue));
+        getErrorCapturingResponseObserver(newErrorQueue));
     assertEquals(0, newErrorQueue.size());
 
     // Verify the worker is registered
@@ -269,7 +268,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     prepareBlocksOnMaster(requestChunks);
     Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
     RegisterStreamTestUtils.sendStreamToMaster(mHandler, requestChunks,
-        RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
+        getErrorCapturingResponseObserver(errorQueue));
     assertEquals(0, errorQueue.size());
     // Verify the worker has registered
     assertEquals(1, mBlockMaster.getWorkerCount());
@@ -293,7 +292,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     // Register again with the updated stream
     Queue<Throwable> newErrorQueue = new ConcurrentLinkedQueue<>();
     RegisterStreamTestUtils.sendStreamToMaster(mHandler, newRequestChunks,
-        RegisterStreamTestUtils.getErrorCapturingResponseObserver(newErrorQueue));
+        getErrorCapturingResponseObserver(newErrorQueue));
     assertEquals(0, newErrorQueue.size());
 
     // Verify the worker is registered
@@ -322,7 +321,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     prepareBlocksOnMaster(requestChunks);
     Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
     RegisterStreamTestUtils.sendStreamToMaster(mHandler, requestChunks,
-        RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
+        getErrorCapturingResponseObserver(errorQueue));
     assertEquals(0, errorQueue.size());
     // Verify the worker has registered
     assertEquals(1, mBlockMaster.getWorkerCount());
@@ -351,7 +350,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     // Register again with the new request stream
     Queue<Throwable> newErrorQueue = new ConcurrentLinkedQueue<>();
     RegisterStreamTestUtils.sendStreamToMaster(mHandler, newRequestChunks,
-        RegisterStreamTestUtils.getErrorCapturingResponseObserver(newErrorQueue));
+        getErrorCapturingResponseObserver(newErrorQueue));
     assertEquals(0, newErrorQueue.size());
 
     // Verify the worker is registered
@@ -421,7 +420,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
     StreamObserver<RegisterWorkerPRequest> requestObserver =
         mHandler.registerWorkerStream(
-            RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
+            getErrorCapturingResponseObserver(errorQueue));
 
     // Instead of sending requests to the master, the worker is interrupted
     // around the beginning of the stream. The error propagated to the master.
@@ -454,7 +453,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
     StreamObserver<RegisterWorkerPRequest> requestObserver =
         mHandler.registerWorkerStream(
-            RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
+            getErrorCapturingResponseObserver(errorQueue));
 
     // An error took place in the worker during the stream
     RegisterWorkerPRequest first = requestChunks.get(0);
@@ -486,7 +485,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
     StreamObserver<RegisterWorkerPRequest> requestObserver =
         mHandler.registerWorkerStream(
-            RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
+            getErrorCapturingResponseObserver(errorQueue));
     for (RegisterWorkerPRequest chunk : requestChunks) {
       requestObserver.onNext(chunk);
     }
@@ -667,7 +666,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     prepareBlocksOnMaster(requestChunks);
     Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
     RegisterStreamTestUtils.sendStreamToMaster(mHandler, requestChunks,
-        RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
+        getErrorCapturingResponseObserver(errorQueue));
     assertEquals(0, errorQueue.size());
     assertEquals(1, mBlockMaster.getWorkerCount());
 
@@ -679,7 +678,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     Queue<Throwable> newErrorQueue = new ConcurrentLinkedQueue<>();
     Future f = mExecutorService.submit(() -> {
       sendStreamToMasterAndSignal(requestChunks,
-          RegisterStreamTestUtils.getErrorCapturingResponseObserver(newErrorQueue), latch);
+          getErrorCapturingResponseObserver(newErrorQueue), latch);
     });
 
     // During the register stream, trigger a delete on worker
@@ -720,7 +719,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     prepareBlocksOnMaster(requestChunks);
     Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
     RegisterStreamTestUtils.sendStreamToMaster(mHandler, requestChunks,
-        RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
+        getErrorCapturingResponseObserver(errorQueue));
     assertEquals(0, errorQueue.size());
     assertEquals(1, mBlockMaster.getWorkerCount());
 
@@ -732,7 +731,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     Queue<Throwable> newErrorQueue = new ConcurrentLinkedQueue<>();
     mExecutorService.submit(() -> {
       sendStreamToMasterAndSignal(requestChunks,
-          RegisterStreamTestUtils.getErrorCapturingResponseObserver(newErrorQueue), latch);
+          getErrorCapturingResponseObserver(newErrorQueue), latch);
     });
 
     // During the register stream, trigger a delete on worker
@@ -843,7 +842,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
       List<RegisterWorkerPRequest> requestChunks, int expectedBlockCount) throws Exception {
     Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
     RegisterStreamTestUtils.sendStreamToMaster(mHandler, requestChunks,
-        RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
+        getErrorCapturingResponseObserver(errorQueue));
 
     assertEquals(errorQueue.toString(), 0, errorQueue.size());
     MasterWorkerInfo worker = mBlockMaster.getWorker(workerId);

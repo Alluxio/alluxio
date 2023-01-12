@@ -60,10 +60,6 @@ public abstract class AbstractLocalAlluxioCluster {
   private static final Random RANDOM_GENERATOR = new Random();
   private static final int WAIT_MASTER_START_TIMEOUT_MS = 200_000;
 
-  // ALLUXIO CS ADD
-  final LocalAlluxioCrossClusterMaster mCrossClusterMaster;
-
-  // ALLUXIO CS END
   protected ProxyProcess mProxyProcess;
   protected Thread mProxyThread;
 
@@ -79,21 +75,6 @@ public abstract class AbstractLocalAlluxioCluster {
    * @param numWorkers the number of workers to run
    */
   AbstractLocalAlluxioCluster(int numWorkers) {
-    // ALLUXIO CS ADD
-    this(numWorkers, false);
-  }
-
-  /**
-   * @param numWorkers the number of workers to run
-   * @param includeCrossCluster whether to start a cross cluster master
-   */
-  AbstractLocalAlluxioCluster(int numWorkers, boolean includeCrossCluster) {
-    if (includeCrossCluster) {
-      mCrossClusterMaster = LocalAlluxioCrossClusterMaster.create();
-    } else {
-      mCrossClusterMaster = null;
-    }
-    // ALLUXIO CS END
     mProxyProcess = ProxyProcess.Factory.create();
     mNumWorkers = numWorkers;
     mWorkerThreads = new ArrayList<>();
@@ -108,12 +89,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
     resetClientPools();
 
-    // ALLUXIO CS ADD
-    if (mCrossClusterMaster != null) {
-      mCrossClusterMaster.start();
-      TestUtils.waitForReady(mCrossClusterMaster);
-    }
-    // ALLUXIO CS END
     setupTest();
     startMasters();
     startWorkers();
@@ -150,52 +125,6 @@ public abstract class AbstractLocalAlluxioCluster {
     startMasters();
   }
 
-  // ALLUXIO CS ADD
-  /**
-   * Stop the cross cluster master if enabled.
-   */
-  public void stopCrossClusterMaster() throws Exception {
-    if (mCrossClusterMaster != null) {
-      mCrossClusterMaster.stop();
-    }
-  }
-
-  /**
-   * Start the cross cluster master if enabled.
-   */
-  public void startCrossClusterMaster() {
-    if (mCrossClusterMaster != null) {
-      mCrossClusterMaster.start();
-      TestUtils.waitForReady(mCrossClusterMaster);
-    }
-  }
-
-  /**
-   * Restart the cross cluster master if enabled.
-   */
-  public void restartCrossClusterMaster() throws Exception {
-    if (mCrossClusterMaster != null) {
-      mCrossClusterMaster.stop();
-      mCrossClusterMaster.start();
-      TestUtils.waitForReady(mCrossClusterMaster);
-    }
-  }
-
-  /**
-   * @return a new {@link alluxio.client.crosscluster.CrossClusterNameServiceClient} client
-   */
-  public alluxio.client.crosscluster.CrossClusterNameServiceClient getCrossClusterStandaloneClient() {
-    if (mCrossClusterMaster != null) {
-      alluxio.conf.InstancedConfiguration conf = new alluxio.conf.InstancedConfiguration(
-          Configuration.copyProperties());
-      conf.set(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED, false);
-      return new alluxio.client.crosscluster.RetryHandlingCrossClusterNameServiceMasterClient(
-          alluxio.client.crosscluster.CrossClusterNameServiceClientContextBuilder.create(conf).build());
-    }
-    return null;
-  }
-
-  // ALLUXIO CS END
   /**
    * Configures and starts the proxy.
    */
@@ -332,11 +261,6 @@ public abstract class AbstractLocalAlluxioCluster {
     stopProxy();
     stopWorkers();
     stopMasters();
-    // ALLUXIO CS ADD
-    if (mCrossClusterMaster != null) {
-      mCrossClusterMaster.stop();
-    }
-    // ALLUXIO CS END
   }
 
   /**
@@ -454,8 +378,8 @@ public abstract class AbstractLocalAlluxioCluster {
   public void waitForWorkersRegistered(int timeoutMs)
       throws TimeoutException, InterruptedException, IOException {
     try (MetaMasterClient client =
-             new RetryHandlingMetaMasterClient(MasterClientContext
-                 .newBuilder(ClientContext.create(Configuration.global())).build())) {
+         new RetryHandlingMetaMasterClient(MasterClientContext
+             .newBuilder(ClientContext.create(Configuration.global())).build())) {
       CommonUtils.waitFor("workers registered", () -> {
         try {
           return client.getMasterInfo(Collections.emptySet())

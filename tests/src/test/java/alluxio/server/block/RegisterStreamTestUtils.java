@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.block;
+package alluxio.server.block;
 
 import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
 import static alluxio.stress.rpc.TierAlias.MEM;
@@ -19,6 +19,7 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
+import alluxio.master.block.BlockMasterWorkerServiceHandler;
 import alluxio.stress.cli.RpcBenchPreparationUtils;
 import alluxio.stress.rpc.TierAlias;
 import alluxio.wire.WorkerNetAddress;
@@ -84,7 +85,8 @@ public class RegisterStreamTestUtils {
     return tierConfig.keySet().stream().map(TierAlias::toString).collect(Collectors.toList());
   }
 
-  public static List<RegisterWorkerPRequest> generateRegisterStreamForWorkerWithTiers(long workerId) {
+  public static List<RegisterWorkerPRequest> generateRegisterStreamForWorkerWithTiers(
+      long workerId) {
     List<String> tierAliases = getTierAliases(parseTierConfig(TIER_CONFIG));
     // Generate block IDs heuristically
     Map<TierAlias, List<Integer>> tierConfigMap = parseTierConfig(TIER_CONFIG);
@@ -104,7 +106,7 @@ public class RegisterStreamTestUtils {
   }
 
   public static List<RegisterWorkerPRequest> generateRegisterStreamForWorkerWithBlocks(
-      long workerId, long blockSize, List<Long> blockList) {
+          long workerId, long blockSize, List<Long> blockList) {
     Map<BlockStoreLocation, List<Long>> blockMap = new HashMap<>();
     BlockStoreLocation mem = new BlockStoreLocation("MEM", 0);
     blockMap.put(mem, blockList);
@@ -132,17 +134,14 @@ public class RegisterStreamTestUtils {
     int length = Math.min(tiers.length, TierAlias.values().length);
     ImmutableMap.Builder<TierAlias, List<Integer>> builder = new ImmutableMap.Builder<>();
     for (int i = 0; i < length; i++) {
-      builder.put(
-              TierAlias.SORTED.get(i),
-              Arrays.stream(tiers[i].split(","))
-                      .map(Integer::parseInt)
-                      .collect(Collectors.toList()));
+      builder.put(TierAlias.SORTED.get(i),
+          Arrays.stream(tiers[i].split(",")).map(Integer::parseInt).collect(Collectors.toList()));
     }
     return builder.build();
   }
 
   public static StreamObserver<RegisterWorkerPResponse> getErrorCapturingResponseObserver(
-          Queue<Throwable> errorQueue) {
+      Queue<Throwable> errorQueue) {
     return new StreamObserver<RegisterWorkerPResponse>() {
       @Override
       public void onNext(RegisterWorkerPResponse response) {}
@@ -164,10 +163,10 @@ public class RegisterStreamTestUtils {
   }
 
   public static void sendStreamToMaster(BlockMasterWorkerServiceHandler handler,
-                                        List<RegisterWorkerPRequest> requestChunks,
-                                        StreamObserver<RegisterWorkerPResponse> responseObserver) {
+      List<RegisterWorkerPRequest> requestChunks,
+      StreamObserver<RegisterWorkerPResponse> responseObserver) {
     StreamObserver<RegisterWorkerPRequest> requestObserver =
-            handler.registerWorkerStream(responseObserver);
+        handler.registerWorkerStream(responseObserver);
     for (RegisterWorkerPRequest chunk : requestChunks) {
       requestObserver.onNext(chunk);
     }
