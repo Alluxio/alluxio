@@ -144,7 +144,7 @@ import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.Mode;
@@ -561,11 +561,14 @@ public class DefaultFileSystemMaster extends CoreMaster
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE, new GrpcService(ServerInterceptors
-        .intercept(new FileSystemMasterClientServiceHandler(this), new ClientIpAddressInjector())));
-    services.put(ServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE,
-        new GrpcService(new FileSystemMasterJobServiceHandler(this)));
-    services.put(ServiceType.FILE_SYSTEM_MASTER_WORKER_SERVICE,
-        new GrpcService(new FileSystemMasterWorkerServiceHandler(this)));
+        .intercept(new FileSystemMasterClientServiceHandler(this),
+            new ClientContextServerInjector())));
+    services.put(ServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE, new GrpcService(ServerInterceptors
+        .intercept(new FileSystemMasterJobServiceHandler(this),
+            new ClientContextServerInjector())));
+    services.put(ServiceType.FILE_SYSTEM_MASTER_WORKER_SERVICE, new GrpcService(ServerInterceptors
+        .intercept(new FileSystemMasterWorkerServiceHandler(this),
+            new ClientContextServerInjector())));
     return services;
   }
 
@@ -751,6 +754,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public void stop() throws IOException {
+    LOG.info("Next directory id before close: {}", mDirectoryIdGenerator.peekDirectoryId());
     if (mAsyncAuditLogWriter != null) {
       mAsyncAuditLogWriter.stop();
       mAsyncAuditLogWriter = null;
@@ -4071,6 +4075,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     Inode inode = inodePath.getInode();
     SetAttributePOptions.Builder protoOptions = context.getOptions();
+    if (inode.isDirectory() && protoOptions.hasDirectChildrenLoaded()) {
+      mInodeTree.setDirectChildrenLoaded(
+          rpcContext, inode.asDirectory(), protoOptions.getDirectChildrenLoaded());
+    }
     if (protoOptions.hasPinned()) {
       mInodeTree.setPinned(rpcContext, inodePath, context.getOptions().getPinned(),
           context.getOptions().getPinnedMediaList(), opTimeMs);
@@ -5216,7 +5224,8 @@ public class DefaultFileSystemMaster extends CoreMaster
           Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
       auditContext.setUgi(ugi)
           .setAuthType(authType)
-          .setIp(ClientIpAddressInjector.getIpAddress())
+          .setIp(ClientContextServerInjector.getIpAddress())
+          .setClientVersion(ClientContextServerInjector.getClientVersion())
           .setCommand(command).setSrcPath(srcPath).setDstPath(dstPath)
           .setSrcInode(srcInode).setAllowed(true)
           .setCreationTimeNs(System.nanoTime());

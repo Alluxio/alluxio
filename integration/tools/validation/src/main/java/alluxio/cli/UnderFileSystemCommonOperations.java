@@ -975,7 +975,7 @@ public final class UnderFileSystemCommonOperations {
     path = PathUtils.concatPath(path, "file.txt");
     paths.add(path);
 
-    String[] expectedStatus = paths.toArray(new String[paths.size()]);
+    String[] expectedStatus = paths.toArray(new String[0]);
     String[] actualStatus =
         UfsStatus.convertToNames(mUfs.listStatus(root, ListOptions.defaults().setRecursive(true)));
     Arrays.sort(expectedStatus);

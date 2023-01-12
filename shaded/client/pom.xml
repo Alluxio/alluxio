@@ -334,7 +334,29 @@
             </goals>
             <configuration>
               <sourceFile>${basedir}/target/${project.artifactId}-${project.version}.jar</sourceFile>
-              <destinationFile>${project.parent.parent.basedir}/client/alluxio-${project.version}-client.jar</destinationFile>
+              <destinationFile>${project.parent.parent.basedir}/client/build/alluxio-${project.version}-hadoop2-client.jar</destinationFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>symlink-jar</id>
+            <phase>install</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>ln</executable>
+              <arguments>
+                <argument>-fnsv</argument>
+                <argument>build/alluxio-${project.version}-hadoop2-client.jar</argument>
+                <argument>${project.parent.parent.basedir}/client/alluxio-${project.version}-client.jar</argument>
+              </arguments>
             </configuration>
           </execution>
         </executions>

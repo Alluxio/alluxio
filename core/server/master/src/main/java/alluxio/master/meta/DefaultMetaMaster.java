@@ -52,6 +52,7 @@ import alluxio.master.meta.checkconf.ConfigurationStore;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Meta;
 import alluxio.resource.CloseableIterator;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
@@ -66,6 +67,7 @@ import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigHash;
 
 import com.google.common.collect.ImmutableSet;
+import io.grpc.ServerInterceptors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -256,11 +258,17 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(ServiceType.META_MASTER_CONFIG_SERVICE,
-        new GrpcService(new MetaMasterConfigurationServiceHandler(this)).disableAuthentication());
+        new GrpcService(ServerInterceptors.intercept(
+            new MetaMasterConfigurationServiceHandler(this),
+            new ClientContextServerInjector())).disableAuthentication());
     services.put(ServiceType.META_MASTER_CLIENT_SERVICE,
-        new GrpcService(new MetaMasterClientServiceHandler(this)));
+        new GrpcService(ServerInterceptors.intercept(
+            new MetaMasterClientServiceHandler(this),
+            new ClientContextServerInjector())));
     services.put(ServiceType.META_MASTER_MASTER_SERVICE,
-        new GrpcService(new MetaMasterMasterServiceHandler(this)));
+        new GrpcService(ServerInterceptors.intercept(
+            new MetaMasterMasterServiceHandler(this),
+            new ClientContextServerInjector())));
     // Add backup role services.
     services.putAll(mBackupRole.getRoleServices());
     services.putAll(mJournalSystem.getJournalServices());

@@ -88,10 +88,30 @@ public class SimpleInodeLockList implements InodeLockList {
       Preconditions.checkState(!endsInInode(),
           "Cannot lock inode %s for lock list %s because the lock list already ends in an inode",
           inode.getId(), this);
-      Preconditions.checkState(inode.getName().equals(mLastEdge.getName()),
-          "Expected to lock inode %s but locked inode %s", mLastEdge.getName(), inode.getName());
+      checkInodeNameAndEdgeNameMatch(inode);
     }
     lockAndAddInode(inode, mode);
+  }
+
+  /**
+   * Checks if the inode name and the edge name match.
+   * @param inode the inode to check
+   */
+  private void checkInodeNameAndEdgeNameMatch(Inode inode) throws IllegalStateException {
+    if (!inode.getName().equals(mLastEdge.getName())) {
+      StringBuilder sb = new StringBuilder();
+      for (InodeView currentInode : mInodes) {
+        sb.append("[");
+        sb.append(currentInode.toProto());
+        sb.append("]->");
+      }
+      sb.append("[END]");
+      throw new IllegalStateException(
+          String.format(
+              "Expected to lock inode %s but locked inode name %s, id: %s, parent_id: %s. %n",
+              mLastEdge.getName(), inode.getName(), inode.getId(), inode.getParentId())
+              + "Locked inode path: " + sb);
+    }
   }
 
   @Override

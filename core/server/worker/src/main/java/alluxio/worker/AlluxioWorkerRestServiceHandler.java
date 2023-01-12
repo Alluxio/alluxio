@@ -13,6 +13,7 @@ package alluxio.worker;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
@@ -163,7 +164,9 @@ public final class AlluxioWorkerRestServiceHandler {
           .setRpcAddress(mWorkerProcess.getRpcAddress().toString())
           .setStartTimeMs(mWorkerProcess.getStartTimeMs())
           .setTierCapacity(getTierCapacityInternal()).setTierPaths(getTierPathsInternal())
-          .setUptimeMs(mWorkerProcess.getUptimeMs()).setVersion(RuntimeConstants.VERSION);
+          .setUptimeMs(mWorkerProcess.getUptimeMs())
+          .setVersion(RuntimeConstants.VERSION)
+          .setRevision(ProjectConstants.REVISION);
     }, Configuration.global());
   }
 
@@ -227,7 +230,8 @@ public final class AlluxioWorkerRestServiceHandler {
       response.setCapacityBytes(FormatUtils.getSizeFromBytes(capacityBytes))
           .setUsedBytes(FormatUtils.getSizeFromBytes(usedBytes)).setUsageOnTiers(usageOnTiers)
           .setBlockCount(Long.toString(storeMeta.getNumberOfBlocks()))
-          .setVersion(RuntimeConstants.VERSION);
+          .setVersion(RuntimeConstants.VERSION)
+          .setRevision(ProjectConstants.REVISION);
 
       List<UIStorageDir> storageDirs = new ArrayList<>(storeMeta.getCapacityBytesOnDirs().size());
       for (Pair<String, String> tierAndDirPath : storeMeta.getCapacityBytesOnDirs().keySet()) {

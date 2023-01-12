@@ -45,7 +45,6 @@ public class StackMain {
     for (int i = 2; i < args.length; i++) {
       fuseOpts.add(args[i].substring(2)); // remove -o
     }
-    System.arraycopy(args, 2, fuseOpts, 0, args.length - 2);
     try {
       CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
       MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));

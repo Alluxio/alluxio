@@ -18,6 +18,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipParameters;
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;
@@ -38,11 +39,15 @@ public final class TarUtils {
    * stream.
    *
    * @param dirPath the path to archive
+   * @param compressionLevel the compression level to use (0 for no compression, 9 for the most
+   *                         compression, or -1 for system default)
    * @param output the output stream to write the data to
    */
-  public static void writeTarGz(Path dirPath, OutputStream output)
+  public static void writeTarGz(Path dirPath, OutputStream output, int compressionLevel)
       throws IOException, InterruptedException {
-    GzipCompressorOutputStream zipStream = new GzipCompressorOutputStream(output);
+    GzipParameters params = new GzipParameters();
+    params.setCompressionLevel(compressionLevel);
+    GzipCompressorOutputStream zipStream = new GzipCompressorOutputStream(output, params);
     TarArchiveOutputStream archiveStream = new TarArchiveOutputStream(zipStream);
     archiveStream.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
     archiveStream.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
