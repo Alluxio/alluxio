@@ -35,6 +35,7 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 
 import org.slf4j.Logger;
@@ -42,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -58,6 +60,10 @@ public abstract class AbstractLocalAlluxioCluster {
   private static final Random RANDOM_GENERATOR = new Random();
   private static final int WAIT_MASTER_START_TIMEOUT_MS = 200_000;
 
+  // ALLUXIO CS ADD
+  final LocalAlluxioCrossClusterMaster mCrossClusterMaster;
+
+  // ALLUXIO CS END
   protected ProxyProcess mProxyProcess;
   protected Thread mProxyThread;
 
@@ -73,6 +79,21 @@ public abstract class AbstractLocalAlluxioCluster {
    * @param numWorkers the number of workers to run
    */
   AbstractLocalAlluxioCluster(int numWorkers) {
+    // ALLUXIO CS ADD
+    this(numWorkers, false);
+  }
+
+  /**
+   * @param numWorkers the number of workers to run
+   * @param includeCrossCluster whether to start a cross cluster master
+   */
+  AbstractLocalAlluxioCluster(int numWorkers, boolean includeCrossCluster) {
+    if (includeCrossCluster) {
+      mCrossClusterMaster = LocalAlluxioCrossClusterMaster.create();
+    } else {
+      mCrossClusterMaster = null;
+    }
+    // ALLUXIO CS END
     mProxyProcess = ProxyProcess.Factory.create();
     mNumWorkers = numWorkers;
     mWorkerThreads = new ArrayList<>();
@@ -87,6 +108,12 @@ public abstract class AbstractLocalAlluxioCluster {
 
     resetClientPools();
 
+    // ALLUXIO CS ADD
+    if (mCrossClusterMaster != null) {
+      mCrossClusterMaster.start();
+      TestUtils.waitForReady(mCrossClusterMaster);
+    }
+    // ALLUXIO CS END
     setupTest();
     startMasters();
     startWorkers();
@@ -123,6 +150,52 @@ public abstract class AbstractLocalAlluxioCluster {
     startMasters();
   }
 
+  // ALLUXIO CS ADD
+  /**
+   * Stop the cross cluster master if enabled.
+   */
+  public void stopCrossClusterMaster() throws Exception {
+    if (mCrossClusterMaster != null) {
+      mCrossClusterMaster.stop();
+    }
+  }
+
+  /**
+   * Start the cross cluster master if enabled.
+   */
+  public void startCrossClusterMaster() {
+    if (mCrossClusterMaster != null) {
+      mCrossClusterMaster.start();
+      TestUtils.waitForReady(mCrossClusterMaster);
+    }
+  }
+
+  /**
+   * Restart the cross cluster master if enabled.
+   */
+  public void restartCrossClusterMaster() throws Exception {
+    if (mCrossClusterMaster != null) {
+      mCrossClusterMaster.stop();
+      mCrossClusterMaster.start();
+      TestUtils.waitForReady(mCrossClusterMaster);
+    }
+  }
+
+  /**
+   * @return a new {@link alluxio.client.crosscluster.CrossClusterNameServiceClient} client
+   */
+  public alluxio.client.crosscluster.CrossClusterNameServiceClient getCrossClusterStandaloneClient() {
+    if (mCrossClusterMaster != null) {
+      alluxio.conf.InstancedConfiguration conf = new alluxio.conf.InstancedConfiguration(
+          Configuration.copyProperties());
+      conf.set(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED, false);
+      return new alluxio.client.crosscluster.RetryHandlingCrossClusterNameServiceMasterClient(
+          alluxio.client.crosscluster.CrossClusterNameServiceClientContextBuilder.create(conf).build());
+    }
+    return null;
+  }
+
+  // ALLUXIO CS END
   /**
    * Configures and starts the proxy.
    */
@@ -180,6 +253,41 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
+   * Restarts workers with the addresses provided, so that the workers can restart with
+   * static addresses to simulate a worker restart in the cluster.
+   *
+   * @param addresses worker addresses to use
+   */
+  public void restartWorkers(Collection<WorkerNetAddress> addresses) throws Exception {
+    // Start the worker one by one, so we avoid updating config while this worker is starting
+    for (WorkerNetAddress addr : addresses) {
+      Configuration.set(PropertyKey.WORKER_RPC_PORT, addr.getRpcPort());
+      Configuration.set(PropertyKey.WORKER_WEB_PORT, addr.getWebPort());
+      WorkerProcess worker = WorkerProcess.Factory.create();
+      mWorkers.add(worker);
+
+      Runnable runWorker = () -> {
+        try {
+          worker.start();
+        } catch (InterruptedException e) {
+          // this is expected
+        } catch (Exception e) {
+          // Log the exception as the RuntimeException will be caught and handled silently by
+          // JUnit
+          LOG.error("Start worker error", e);
+          throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+        }
+      };
+      Thread thread = new Thread(runWorker);
+      thread.setName("WorkerThread-" + System.identityHashCode(thread));
+      mWorkerThreads.add(thread);
+      thread.start();
+
+      TestUtils.waitForReady(worker);
+    }
+  }
+
+  /**
    * Sets up corresponding directories for tests.
    */
   protected void setupTest() throws IOException {
@@ -224,6 +332,11 @@ public abstract class AbstractLocalAlluxioCluster {
     stopProxy();
     stopWorkers();
     stopMasters();
+    // ALLUXIO CS ADD
+    if (mCrossClusterMaster != null) {
+      mCrossClusterMaster.stop();
+    }
+    // ALLUXIO CS END
   }
 
   /**
@@ -260,6 +373,22 @@ public abstract class AbstractLocalAlluxioCluster {
    * Stops the workers.
    */
   public void stopWorkers() throws Exception {
+    killWorkerProcesses();
+
+    // forget all the workers in the master
+    LocalAlluxioMaster master = getLocalAlluxioMaster();
+    if (master != null) {
+      DefaultBlockMaster bm =
+          (DefaultBlockMaster) master.getMasterProcess().getMaster(BlockMaster.class);
+      bm.forgetAllWorkers();
+    }
+  }
+
+  /**
+   * Kills all worker processes without forgetting them in the master,
+   * so we can validate the master mechanism handling dead workers.
+   */
+  public void killWorkerProcesses() throws Exception {
     if (mWorkers == null) {
       return;
     }
@@ -274,14 +403,6 @@ public abstract class AbstractLocalAlluxioCluster {
       }
     }
     mWorkerThreads.clear();
-
-    // forget all the workers in the master
-    LocalAlluxioMaster master = getLocalAlluxioMaster();
-    if (master != null) {
-      DefaultBlockMaster bm =
-          (DefaultBlockMaster) master.getMasterProcess().getMaster(BlockMaster.class);
-      bm.forgetAllWorkers();
-    }
   }
 
   /**

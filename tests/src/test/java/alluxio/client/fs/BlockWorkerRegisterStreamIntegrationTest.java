@@ -11,20 +11,20 @@
 
 package alluxio.client.fs;
 
-import static alluxio.client.fs.RegisterStreamTestUtils.BATCH_SIZE;
-import static alluxio.client.fs.RegisterStreamTestUtils.CAPACITY_MAP;
-import static alluxio.client.fs.RegisterStreamTestUtils.EMPTY_CONFIG;
-import static alluxio.client.fs.RegisterStreamTestUtils.LOST_STORAGE;
-import static alluxio.client.fs.RegisterStreamTestUtils.MEM_CAPACITY;
-import static alluxio.client.fs.RegisterStreamTestUtils.MEM_USAGE_EMPTY;
-import static alluxio.client.fs.RegisterStreamTestUtils.NET_ADDRESS_1;
-import static alluxio.client.fs.RegisterStreamTestUtils.TIER_BLOCK_TOTAL;
-import static alluxio.client.fs.RegisterStreamTestUtils.TIER_CONFIG;
-import static alluxio.client.fs.RegisterStreamTestUtils.USAGE_MAP;
-import static alluxio.client.fs.RegisterStreamTestUtils.findFirstBlock;
-import static alluxio.client.fs.RegisterStreamTestUtils.getTierAliases;
-import static alluxio.client.fs.RegisterStreamTestUtils.parseTierConfig;
 import static alluxio.grpc.BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub;
+import static alluxio.master.block.RegisterStreamTestUtils.BATCH_SIZE;
+import static alluxio.master.block.RegisterStreamTestUtils.CAPACITY_MAP;
+import static alluxio.master.block.RegisterStreamTestUtils.EMPTY_CONFIG;
+import static alluxio.master.block.RegisterStreamTestUtils.LOST_STORAGE;
+import static alluxio.master.block.RegisterStreamTestUtils.MEM_CAPACITY;
+import static alluxio.master.block.RegisterStreamTestUtils.MEM_USAGE_EMPTY;
+import static alluxio.master.block.RegisterStreamTestUtils.NET_ADDRESS_1;
+import static alluxio.master.block.RegisterStreamTestUtils.TIER_BLOCK_TOTAL;
+import static alluxio.master.block.RegisterStreamTestUtils.TIER_CONFIG;
+import static alluxio.master.block.RegisterStreamTestUtils.USAGE_MAP;
+import static alluxio.master.block.RegisterStreamTestUtils.findFirstBlock;
+import static alluxio.master.block.RegisterStreamTestUtils.getTierAliases;
+import static alluxio.master.block.RegisterStreamTestUtils.parseTierConfig;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -55,6 +55,7 @@ import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
+import alluxio.master.block.RegisterStreamTestUtils;
 import alluxio.stress.cli.RpcBenchPreparationUtils;
 import alluxio.stress.rpc.TierAlias;
 import alluxio.underfs.UfsManager;
@@ -214,7 +215,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
   @Test
   public void requestsForWorker() throws Exception {
     List<RegisterWorkerPRequest> requestChunks =
-            RegisterStreamTestUtils.generateRegisterStreamForWorker(WORKER_ID);
+            RegisterStreamTestUtils.generateRegisterStreamForWorkerWithTiers(WORKER_ID);
 
     // Verify the size and content of the requests
     int expectedBatchCount = (int) Math.ceil((TIER_BLOCK_TOTAL) / (double) BATCH_SIZE);
@@ -412,7 +413,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
   public void deleteDuringRegisterStream() throws Exception {
     // Generate a request stream of blocks
     List<RegisterWorkerPRequest> requestChunks =
-          RegisterStreamTestUtils.generateRegisterStreamForWorker(WORKER_ID);
+          RegisterStreamTestUtils.generateRegisterStreamForWorkerWithTiers(WORKER_ID);
     // Select a block to remove concurrent with the stream
     long blockToRemove = findFirstBlock(requestChunks);
 
