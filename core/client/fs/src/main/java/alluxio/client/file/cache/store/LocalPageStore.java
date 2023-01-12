@@ -20,6 +20,11 @@ import alluxio.exception.status.ResourceExhaustedException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
 import org.apache.commons.io.FileUtils;
 
 import java.io.FileNotFoundException;
@@ -33,6 +38,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.concurrent.ExecutionException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -47,6 +53,7 @@ public class LocalPageStore implements PageStore {
   private final long mPageSize;
   private final long mCapacity;
   private final int mFileBuckets;
+  private final LoadingCache<String, RandomAccessFile> mOpenedReadFile;
 
   /**
    * Creates a new instance of {@link LocalPageStore}.
@@ -58,6 +65,29 @@ public class LocalPageStore implements PageStore {
     mPageSize = options.getPageSize();
     mCapacity = (long) (options.getCacheSize() / (1 + options.getOverheadRatio()));
     mFileBuckets = options.getFileBuckets();
+    mOpenedReadFile
+        = CacheBuilder.newBuilder().weakValues()
+        .removalListener(
+            new RemovalListener<String, RandomAccessFile>(){
+              @Override
+              public void onRemoval(RemovalNotification<String, RandomAccessFile> notification) {
+                try {
+                  LOG.info("Closing random access file of {}", notification.getKey());
+                  assert notification.getValue() != null;
+                  notification.getValue().close();
+                } catch (IOException e) {
+                  LOG.error("Failed to close random access file of {} when removing the entry",
+                      notification.getKey());
+                  throw new RuntimeException(e);
+                }
+              }
+            })
+        .build(new CacheLoader<String, RandomAccessFile>() {
+          @Override
+          public RandomAccessFile load(String key) throws FileNotFoundException {
+            return new RandomAccessFile(key, "r");
+          }
+        });
   }
 
   @Override
@@ -65,6 +95,7 @@ public class LocalPageStore implements PageStore {
       ByteBuffer page,
       boolean isTemporary) throws ResourceExhaustedException, IOException {
     Path pagePath = getPagePath(pageId, isTemporary);
+    mOpenedReadFile.invalidate(pagePath.toString());
     try {
       if (!Files.exists(pagePath)) {
         Path parent = Preconditions.checkNotNull(pagePath.getParent(),
@@ -91,16 +122,18 @@ public class LocalPageStore implements PageStore {
       boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     Path pagePath = getPagePath(pageId, isTemporary);
-    try (RandomAccessFile localFile = new RandomAccessFile(pagePath.toString(), "r")) {
-      int bytesSkipped = localFile.skipBytes(pageOffset);
-      if (pageOffset != bytesSkipped) {
-        long pageLength = pagePath.toFile().length();
-        Preconditions.checkArgument(pageOffset <= pageLength,
-            "page offset %s exceeded page size %s", pageOffset, pageLength);
-        throw new IOException(
-            String.format("Failed to read page %s (%s) from offset %s: %s bytes skipped",
-                pageId, pagePath, pageOffset, bytesSkipped));
+    String pagePathString = pagePath.toString();
+    RandomAccessFile localFile;
+    try {
+      localFile = mOpenedReadFile.get(pagePathString);
+    } catch (ExecutionException e) {
+      if (e.getCause() instanceof FileNotFoundException) {
+        throw new PageNotFoundException(pagePath.toString(), e.getCause());
       }
+      throw new IOException(e);
+    }
+    try {
+      localFile.seek(pageOffset);
       int bytesRead = 0;
       int bytesLeft = Math.min((int) target.remaining(), bytesToRead);
       while (bytesLeft > 0) {
@@ -112,14 +145,16 @@ public class LocalPageStore implements PageStore {
         bytesLeft -= bytes;
       }
       return bytesRead;
-    } catch (FileNotFoundException e) {
-      throw new PageNotFoundException(pagePath.toString());
+    } catch (Throwable t) {
+      mOpenedReadFile.invalidate(pagePathString);
+      throw t;
     }
   }
 
   @Override
   public void delete(PageId pageId) throws IOException, PageNotFoundException {
     Path pagePath = getPagePath(pageId, false);
+    mOpenedReadFile.invalidate(pagePath.toString());
     if (!Files.exists(pagePath)) {
       throw new PageNotFoundException(pagePath.toString());
     }
@@ -156,14 +191,19 @@ public class LocalPageStore implements PageStore {
     if (!Files.exists(bucketPath)) {
       Files.createDirectories(bucketPath);
     }
+    Path tempPath = getTempFilePath(fileId);
+    mOpenedReadFile.invalidate(tempPath.toString());
+    mOpenedReadFile.invalidate(filePath.toString());
     Files.move(
-        getTempFilePath(fileId),
+        tempPath,
         filePath, StandardCopyOption.ATOMIC_MOVE);
   }
 
   @Override
   public void abort(String fileId) throws IOException {
-    FileUtils.deleteDirectory(getTempFilePath(fileId).toFile());
+    Path tempPath = getTempFilePath(fileId);
+    mOpenedReadFile.invalidate(tempPath.toString());
+    FileUtils.deleteDirectory(tempPath.toFile());
   }
 
   private Path getTempFilePath(String fileId) {
