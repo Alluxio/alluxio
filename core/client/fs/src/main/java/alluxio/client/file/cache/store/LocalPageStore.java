@@ -140,6 +140,7 @@ public class LocalPageStore implements PageStore {
       while (bytesLeft > 0) {
         int bytes = target.readFromFile(localFile, bytesLeft);
         if (bytes <= 0) {
+          mOpenedReadFile.invalidate(pagePathString);
           break;
         }
         bytesRead += bytes;
