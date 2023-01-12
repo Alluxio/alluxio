@@ -231,6 +231,7 @@ public class TieredBlockStore implements LocalBlockStore {
         sessionId, blockId, pinOnCreate);
     try (BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.WRITE)) {
       BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
+      System.out.println("commitBlockInternal Success");
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
           listener.onCommitBlockToLocal(blockId, loc);
@@ -498,8 +499,10 @@ public class TieredBlockStore implements LocalBlockStore {
    * @param pinOnCreate is block pinned on create
    * @return destination location to move the block
    */
-  private BlockStoreLocation commitBlockInternal(long sessionId, long blockId,
+  @VisibleForTesting
+  public BlockStoreLocation commitBlockInternal(long sessionId, long blockId,
       boolean pinOnCreate) {
+    System.out.println("Using original commitBlockInternal???");
     if (mMetaManager.hasBlockMeta(blockId)) {
       LOG.debug("Block {} has been in block store, this could be a retry due to master-side RPC "
           + "failure", blockId);
