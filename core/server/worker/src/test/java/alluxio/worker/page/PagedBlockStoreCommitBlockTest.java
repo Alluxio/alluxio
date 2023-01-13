@@ -37,21 +37,7 @@ import java.nio.file.Path;
 import static org.junit.Assert.assertEquals;
 
 public class PagedBlockStoreCommitBlockTest {
-    BlockStoreEventListener listener0 = new AbstractBlockStoreEventListener() {
-        @Override
-        public void onCommitBlockToLocal(long blockId, BlockStoreLocation location) {
-            assertEquals(2L, blockId);
-            // assertEquals(dirs.get(0).getLocation(), location);
-        }
-
-        @Override
-        public void onCommitBlockToMaster(long blockId, BlockStoreLocation location) {
-            assertEquals(2L, blockId);
-            // assertEquals(dirs.get(0).getLocation(), location);
-        }
-    };
-
-    BlockStoreEventListener mListener = spy(listener0);
+    BlockStoreEventListener mListener;
     UfsManager mUfs;
     AlluxioConfiguration conf;
     CacheManagerOptions cacheManagerOptions;
@@ -115,8 +101,17 @@ public class PagedBlockStoreCommitBlockTest {
         } catch (Exception e) {
             System.out.println(e);
         }
-    }
 
+        mListener = mock(BlockStoreEventListener.class);
+        doAnswer((i) -> {
+            assertEquals(2L, i.getArguments()[0]);
+            return 0;
+        }).when(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
+        doAnswer((i) -> {
+            assertEquals(2L, i.getArguments()[0]);
+            return 0;
+        }).when(mListener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
+    }
 
     // This Test case success both to commit, no Exception should be throwed, and both onCommit method should be called
     @Test
