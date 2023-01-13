@@ -1625,7 +1625,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // So if the worker comes back again the blocks are kept.
     // TODO(maobaolong): Remove the location cache related to this worker.
     //    for (String tierAlias : worker.getTotalBytesOnTiers().keySet()) {
-    //      BlockLocation location = BlockLocation.newBuilder().setWorkerId(worker.getId()).setTier(tierAlias)
+    //      BlockLocation location = BlockLocation.newBuilder()
+    //          .setWorkerId(worker.getId()).setTier(tierAlias)
     //          .setMediumType(mediumType).build();
     //    }
     processWorkerRemovedBlocks(worker, worker.getBlocks(), false);
