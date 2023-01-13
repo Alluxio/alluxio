@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
-import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
 import alluxio.clock.SystemClock;
@@ -64,7 +63,7 @@ import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -266,12 +265,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /** Handle to the metrics master. */
   private final MetricsMaster mMetricsMaster;
 
-  /**
-   * The service that detects lost worker nodes, and tries to restart the failed workers.
-   * We store it here so that it can be accessed from tests.
-   */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-
   /* The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
   private volatile long mJournaledNextContainerId = 0;
@@ -348,11 +341,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     services.put(ServiceType.BLOCK_MASTER_CLIENT_SERVICE,
         new GrpcService(ServerInterceptors
             .intercept(new BlockMasterClientServiceHandler(this),
-                new ClientIpAddressInjector())));
+                new ClientContextServerInjector())));
     services.put(ServiceType.BLOCK_MASTER_WORKER_SERVICE,
         new GrpcService(ServerInterceptors
             .intercept(new BlockMasterWorkerServiceHandler(this),
-                new ClientIpAddressInjector())));
+                new ClientContextServerInjector())));
     return services;
   }
 
@@ -501,6 +494,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public void stop() throws IOException {
+    LOG.info("Next container id before close: {}", mBlockContainerIdGenerator.peekNewContainerId());
     super.stop();
   }
 
@@ -1194,6 +1188,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void workerRegisterStream(WorkerRegisterContext context,
                                   RegisterWorkerPRequest chunk, boolean isFirstMsg) {
+    // TODO(jiacheng): find a place to check the lease
     if (isFirstMsg) {
       workerRegisterStart(context, chunk);
     } else {

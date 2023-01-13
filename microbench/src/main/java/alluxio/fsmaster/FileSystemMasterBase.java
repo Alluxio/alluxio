@@ -90,7 +90,8 @@ public class FileSystemMasterBase {
         ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFsMaster = new DefaultFileSystemMaster(blockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(service), Clock.systemUTC());
-    mFsMasterServer = new FileSystemMasterClientServiceHandler(mFsMaster);
+    mFsMasterServer =
+        new FileSystemMasterClientServiceHandler(mFsMaster, mFsMaster.getLoadManager());
     mGetStatusObserver = createStreamObserver();
 
     mRegistry.add(FileSystemMaster.class, mFsMaster);

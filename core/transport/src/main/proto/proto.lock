@@ -1162,6 +1162,11 @@
                 "id": 3,
                 "name": "bandwidth",
                 "type": "int64"
+              },
+              {
+                "id": 4,
+                "name": "user",
+                "type": "string"
               }
             ]
           },
@@ -2036,6 +2041,19 @@
               {
                 "name": "READ_WRITE",
                 "integer": 3
+              }
+            ]
+          },
+          {
+            "name": "LoadProgressReportFormat",
+            "enum_fields": [
+              {
+                "name": "TEXT",
+                "integer": 1
+              },
+              {
+                "name": "JSON",
+                "integer": 2
               }
             ]
           }
@@ -3270,6 +3288,21 @@
             ]
           },
           {
+            "name": "S3SyntaxOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "overwrite",
+                "type": "bool"
+              },
+              {
+                "id": 2,
+                "name": "isMultipartUpload",
+                "type": "bool"
+              }
+            ]
+          },
+          {
             "name": "RenamePResponse"
           },
           {
@@ -3284,6 +3317,11 @@
                 "id": 2,
                 "name": "persist",
                 "type": "bool"
+              },
+              {
+                "id": 3,
+                "name": "s3SyntaxOptions",
+                "type": "S3SyntaxOptions"
               }
             ]
           },
@@ -3388,6 +3426,11 @@
                 "id": 12,
                 "name": "xattrUpdateStrategy",
                 "type": "alluxio.proto.journal.XAttrUpdateStrategy"
+              },
+              {
+                "id": 13,
+                "name": "directChildrenLoaded",
+                "type": "bool"
               }
             ],
             "maps": [
@@ -3676,6 +3719,116 @@
             "name": "NeedsSyncResponse"
           },
           {
+            "name": "LoadPathPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "bandwidth",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "verify",
+                "type": "bool"
+              },
+              {
+                "id": 3,
+                "name": "partialListing",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "LoadPathPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "path",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "options",
+                "type": "LoadPathPOptions"
+              }
+            ]
+          },
+          {
+            "name": "LoadPathPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "newLoadSubmitted",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "StopLoadPathPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "path",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "StopLoadPathPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "existingLoadStopped",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "LoadProgressPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "format",
+                "type": "LoadProgressReportFormat"
+              },
+              {
+                "id": 2,
+                "name": "verbose",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "GetLoadProgressPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "path",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "options",
+                "type": "LoadProgressPOptions"
+              }
+            ]
+          },
+          {
+            "name": "GetLoadProgressPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "progressReport",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "format",
+                "type": "LoadProgressReportFormat"
+              }
+            ]
+          },
+          {
             "name": "FileSystemHeartbeatPResponse",
             "fields": [
               {
@@ -3942,6 +4095,21 @@
                 "name": "NeedsSync",
                 "in_type": "NeedsSyncRequest",
                 "out_type": "NeedsSyncResponse"
+              },
+              {
+                "name": "LoadPath",
+                "in_type": "LoadPathPRequest",
+                "out_type": "LoadPathPResponse"
+              },
+              {
+                "name": "StopLoadPath",
+                "in_type": "StopLoadPathPRequest",
+                "out_type": "StopLoadPathPResponse"
+              },
+              {
+                "name": "GetLoadProgress",
+                "in_type": "GetLoadProgressPRequest",
+                "out_type": "GetLoadProgressPResponse"
               }
             ]
           },
@@ -9380,6 +9548,84 @@
       }
     },
     {
+      "protopath": "proto:/:journal:/:job.proto",
+      "def": {
+        "enums": [
+          {
+            "name": "PJobState",
+            "enum_fields": [
+              {
+                "name": "CREATED",
+                "integer": 1
+              },
+              {
+                "name": "STOPPED",
+                "integer": 2
+              },
+              {
+                "name": "SUCCEEDED",
+                "integer": 3
+              },
+              {
+                "name": "FAILED",
+                "integer": 4
+              }
+            ]
+          }
+        ],
+        "messages": [
+          {
+            "name": "LoadJobEntry",
+            "fields": [
+              {
+                "id": 1,
+                "name": "load_path",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "state",
+                "type": "PJobState"
+              },
+              {
+                "id": 3,
+                "name": "bandwidth",
+                "type": "int64"
+              },
+              {
+                "id": 4,
+                "name": "verify",
+                "type": "bool"
+              },
+              {
+                "id": 5,
+                "name": "user",
+                "type": "string"
+              },
+              {
+                "id": 6,
+                "name": "partialListing",
+                "type": "bool"
+              },
+              {
+                "id": 7,
+                "name": "job_id",
+                "type": "string"
+              },
+              {
+                "id": 8,
+                "name": "end_time",
+                "type": "int64"
+              }
+            ]
+          }
+        ],
+        "package": {
+          "name": "alluxio.proto.journal"
+        }
+      }
+    },
+    {
       "protopath": "proto:/:journal:/:journal.proto",
       "def": {
         "messages": [
@@ -9592,6 +9838,11 @@
                 "type": "UpdateInodeFileEntry"
               },
               {
+                "id": 53,
+                "name": "load_job",
+                "type": "LoadJobEntry"
+              },
+              {
                 "id": 39,
                 "name": "journal_entries",
                 "type": "JournalEntry",
@@ -9612,6 +9863,9 @@
           },
           {
             "path": "proto/journal/table.proto"
+          },
+          {
+            "path": "proto/journal/job.proto"
           }
         ],
         "package": {

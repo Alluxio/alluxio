@@ -1,0 +1,36 @@
+name: "Mark stale issues and PRs"
+on:
+  schedule:
+    # Run the stalebot every day at 3pm UTC
+    - cron: "00 15 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  stale:
+    permissions:
+      issues: write # for writing stale message
+      pull-requests: write # for writing stale message
+    runs-on: ubuntu-20.04
+    if: github.repository == 'alluxio/alluxio'
+    steps:
+      - uses: actions/stale@v6
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          ascending: true # old issues/PRs first
+          operations-per-run: 100 # default is 30, enlarge for dealing with more issues/PRs
+          days-before-stale: 30
+          days-before-close: -1
+          stale-issue-message: >
+            This issue has been automatically marked as stale because it has not had recent activity.
+            It will be closed in two weeks if no further activity occurs.
+            Thank you for your contributions.
+          stale-pr-message: >
+            This pull request has been automatically marked as stale because it has not had
+            recent activity. It will be closed in two weeks if no further activity occurs.
+            Thank you for your contributions.
+          stale-pr-label: "stale"
+          stale-issue-label: "stale"
+          exempt-issue-labels: "keepalive,priority-high"
+          exempt-pr-labels: "keepalive,priority-high"

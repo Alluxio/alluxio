@@ -203,8 +203,7 @@ public final class CommonUtils {
    * @return an array of strings
    */
   public static String[] toStringArray(ArrayList<String> src) {
-    String[] ret = new String[src.size()];
-    return src.toArray(ret);
+    return src.toArray(new String[0]);
   }
 
   /**

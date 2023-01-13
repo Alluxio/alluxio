@@ -35,7 +35,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
@@ -293,7 +293,7 @@ public class SnapshotReplicationManager {
    */
   public StreamObserver<UploadSnapshotPRequest> receiveSnapshotFromFollower(
       StreamObserver<UploadSnapshotPResponse> responseStreamObserver) {
-    String followerIp = ClientIpAddressInjector.getIpAddress();
+    String followerIp = ClientContextServerInjector.getIpAddress();
     LOG.info("Received upload snapshot request from follower {}", followerIp);
 
     SnapshotDownloader<UploadSnapshotPResponse, UploadSnapshotPRequest> observer =
@@ -389,7 +389,8 @@ public class SnapshotReplicationManager {
   public StreamObserver<DownloadSnapshotPRequest> sendSnapshotToFollower(
       StreamObserver<DownloadSnapshotPResponse> responseObserver) {
     SnapshotInfo snapshot = mStorage.getLatestSnapshot();
-    LOG.debug("Received snapshot download request from {}", ClientIpAddressInjector.getIpAddress());
+    LOG.debug("Received snapshot download request from {}",
+        ClientContextServerInjector.getIpAddress());
     SnapshotUploader<DownloadSnapshotPResponse, DownloadSnapshotPRequest> requestStreamObserver =
         SnapshotUploader.forLeader(mStorage, snapshot, responseObserver);
     if (snapshot == null) {

@@ -737,4 +737,32 @@ public interface FileSystem extends Closeable {
    * @param path the path needing synchronization
    */
   void needsSync(AlluxioURI path) throws IOException, AlluxioException;
+
+  /**
+   * Submit a load job.
+   * @param path alluxio path to be loaded
+   * @param bandwidth bandwidth allocated to this load, unlimited if empty
+   * @param usePartialListing whether to use partial listing
+   * @param verify whether to verify after load finishes
+   * @return true if job is submitted, false if a load of the same path already exists
+   */
+  boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
+      boolean usePartialListing, boolean verify);
+
+  /**
+   * Stop a load job.
+   * @param path alluxio path to be stopped
+   * @return true if job is stopped, false if cannot find job
+   */
+  boolean stopLoad(AlluxioURI path);
+
+  /**
+   * Get progress of a load job.
+   * @param path alluxio path to get progress
+   * @param format progress report format
+   * @param verbose whether to return verbose report
+   * @return the load job progress
+   */
+  String getLoadProgress(AlluxioURI path,
+      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose);
 }
