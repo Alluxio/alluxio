@@ -5151,6 +5151,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS =
+      durationBuilder(Name.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS)
+          .setAlias("alluxio.proxy.s3.bucketpathcache.timeout.ms")
+          .setDefaultValue("1min")
+          .setDescription("The timeout for bucket path cache eviction in the "
+              + "proxy.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.NONE)
+          .build();
 
   //
   // Locality related properties
@@ -8197,7 +8206,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_AUDIT_LOGGING_ENABLED =
         "alluxio.proxy.audit.logging.enabled";
     public static final String S3_UPLOADS_ID_XATTR_KEY = "s3_uploads_mulitpartupload_id";
-
+    public static final String PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS =
+        "alluxio.proxy.s3.bucketpathcache.timeout";
     //
     // Locality related properties
     //

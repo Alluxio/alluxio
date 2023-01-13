@@ -42,6 +42,8 @@ import alluxio.web.ProxyWebServer;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Preconditions;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
 import com.google.common.net.InetAddresses;
@@ -66,6 +68,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -107,6 +110,10 @@ public final class S3RestServiceHandler {
   /* Object is after bucket in the URL path */
   public static final String OBJECT_PARAM = "{bucket}/{object:.+}";
 
+  private static final Cache<AlluxioURI, Boolean>  bucketPathCache = CacheBuilder.newBuilder()
+      .maximumSize(65536)
+        .expireAfterWrite(Configuration.global().getMs(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS), TimeUnit.MILLISECONDS)
+        .build();
   private final FileSystem mMetaFS;
   private final InstancedConfiguration mSConf;
 
@@ -629,6 +636,7 @@ public final class S3RestServiceHandler {
         } catch (Exception e) {
           throw S3RestUtils.toBucketS3Exception(e, bucketPath, auditContext);
         }
+        bucketPathCache.put(new AlluxioURI(bucketPath), false);
         return Response.Status.NO_CONTENT;
       }
     });
@@ -710,7 +718,7 @@ public final class S3RestServiceHandler {
       String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
       try (S3AuditContext auditContext =
           createAuditContext("createObject", user, bucket, object)) {
-        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
+        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,bucketPathCache);
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
 
         if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
