@@ -44,7 +44,7 @@ public class PagedBlockStoreCommitBlockTest {
     PagedBlockMetaStore pageMetaStore;
     List<PagedBlockStoreDir> dirs;
     PagedBlockStore pagedBlockStore;
-    BlockMasterClientPool blockMasterClientPool;
+    BlockMasterClientPool mBlockMasterClientPool;
     BlockMasterClient mockedBlockMasterClient;
     AtomicReference<Long> workerId;
 
@@ -52,9 +52,9 @@ public class PagedBlockStoreCommitBlockTest {
 
     private static final int DIR_INDEX = 0;
 
-    final Long sessionId = 1L;
-    final Long blockId = 2L;
-    final int blockSize = 64;
+    final Long mSessionId = 1L;
+    final Long mBlockId = 2L;
+    final int mBlockSize = 64;
 
     public int mPageSize = 2;
 
@@ -89,10 +89,10 @@ public class PagedBlockStoreCommitBlockTest {
 
             // Here mock BlockMasterClientPool and BlockMasterClient since I have no idea about how to override them
             // mockedPool will return a mocked BlockMasterClient when require() is called, and do nothing when releasing, maybe add some action later on
-            blockMasterClientPool = mock(BlockMasterClientPool.class);
+            mBlockMasterClientPool = mock(BlockMasterClientPool.class);
             mockedBlockMasterClient = mock(BlockMasterClient.class);
-            when(blockMasterClientPool.acquire()).thenReturn(mockedBlockMasterClient);
-            doNothing().when(blockMasterClientPool).release(any());
+            when(mBlockMasterClientPool.acquire()).thenReturn(mockedBlockMasterClient);
+            doNothing().when(mBlockMasterClientPool).release(any());
             workerId = new AtomicReference<>(-1L);
             cacheManagerOptions = CacheManagerOptions.createForWorker(mConf);
             pageStoreDirs = new ArrayList<PageStoreDir>();
@@ -120,20 +120,20 @@ public class PagedBlockStoreCommitBlockTest {
             pageMetaStore = new PagedBlockMetaStore(dirs) {
                 // here commit always success
                 @Override
-                public PagedBlockMeta commit(long blockId) {
-                    return super.commit(blockId);
+                public PagedBlockMeta commit(long mBlockId) {
+                    return super.commit(mBlockId);
                 }
             };
             cacheManager = CacheManager.Factory.create(conf, cacheManagerOptions, pageMetaStore);
 
-            pagedBlockStore = new PagedBlockStore(cacheManager, mUfs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions.getPageSize());
+            pagedBlockStore = new PagedBlockStore(cacheManager, mUfs, mBlockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions.getPageSize());
         } catch (IOException e) {
             throw new RuntimeException();
         }
 
         prepareBlockStore();
 
-        pagedBlockStore.commitBlock(sessionId, blockId, false);
+        pagedBlockStore.commitBlock(mSessionId, mBlockId, false);
         verify(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
         verify(mListener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
     }
@@ -145,13 +145,13 @@ public class PagedBlockStoreCommitBlockTest {
             pageMetaStore = new PagedBlockMetaStore(dirs) {
                 // here commit always throw Exception
                 @Override
-                public PagedBlockMeta commit(long blockId) {
+                public PagedBlockMeta commit(long mBlockId) {
                     throw new RuntimeException();
                 }
             };
             cacheManager = CacheManager.Factory.create(conf, cacheManagerOptions, pageMetaStore);
 
-            pagedBlockStore = new PagedBlockStore(cacheManager, mUfs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions.getPageSize());
+            pagedBlockStore = new PagedBlockStore(cacheManager, mUfs, mBlockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions.getPageSize());
         } catch (IOException e) {
             throw new RuntimeException();
         }
@@ -159,7 +159,7 @@ public class PagedBlockStoreCommitBlockTest {
         prepareBlockStore();
 
         assertThrows(RuntimeException.class, () -> {
-            pagedBlockStore.commitBlock(sessionId, blockId, false);
+            pagedBlockStore.commitBlock(mSessionId, mBlockId, false);
         });
 
         verify(mListener, never()).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
@@ -187,13 +187,13 @@ public class PagedBlockStoreCommitBlockTest {
             pageMetaStore = new PagedBlockMetaStore(dirs) {
                 // here commit always success
                 @Override
-                public PagedBlockMeta commit(long blockId) {
-                    return super.commit(blockId);
+                public PagedBlockMeta commit(long mBlockId) {
+                    return super.commit(mBlockId);
                 }
             };
             cacheManager = CacheManager.Factory.create(conf, cacheManagerOptions, pageMetaStore);
 
-            pagedBlockStore = new PagedBlockStore(cacheManager, mUfs, blockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions.getPageSize());
+            pagedBlockStore = new PagedBlockStore(cacheManager, mUfs, mBlockMasterClientPool, workerId, pageMetaStore, cacheManagerOptions.getPageSize());
         } catch (IOException e) {
             throw new RuntimeException();
         }
@@ -201,7 +201,7 @@ public class PagedBlockStoreCommitBlockTest {
         prepareBlockStore();
 
         assertThrows(RuntimeException.class, () -> {
-            pagedBlockStore.commitBlock(sessionId, blockId, false);
+            pagedBlockStore.commitBlock(mSessionId, mBlockId, false);
         });
         verify(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
         verify(mListener, never()).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
@@ -210,15 +210,15 @@ public class PagedBlockStoreCommitBlockTest {
     // Prepare PageBlockStore and creat a temp block for following test
     public void prepareBlockStore() {
         PagedBlockStoreDir dir =
-                (PagedBlockStoreDir) pageMetaStore.allocate(BlockPageId.tempFileIdOf(blockId), 1);
+                (PagedBlockStoreDir) pageMetaStore.allocate(BlockPageId.tempFileIdOf(mBlockId), 1);
 
-        dir.putTempFile(BlockPageId.tempFileIdOf(blockId));
-        PagedTempBlockMeta blockMeta = new PagedTempBlockMeta(blockId, dir);
-        pagedBlockStore.createBlock(sessionId, blockId, offset, new CreateBlockOptions(null, null, blockSize));
-        byte[] data = new byte[blockSize];
+        dir.putTempFile(BlockPageId.tempFileIdOf(mBlockId));
+        PagedTempBlockMeta blockMeta = new PagedTempBlockMeta(mBlockId, dir);
+        pagedBlockStore.createBlock(mSessionId, mBlockId, offset, new CreateBlockOptions(null, null, mBlockSize));
+        byte[] data = new byte[mBlockSize];
         Arrays.fill(data, (byte) 1);
         ByteBuffer buf = ByteBuffer.wrap(data);
-        try (BlockWriter writer = pagedBlockStore.createBlockWriter(sessionId, blockId)) {
+        try (BlockWriter writer = pagedBlockStore.createBlockWriter(mSessionId, mBlockId)) {
             Thread.sleep(1000);
             writer.append(buf);
         } catch (Exception e) {
