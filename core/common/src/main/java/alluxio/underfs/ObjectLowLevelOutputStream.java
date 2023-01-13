@@ -99,6 +99,7 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
   protected final byte[] mSingleCharWrite = new byte[1];
 
   /** The MD5 hash of the file. */
+  @Nullable
   protected MessageDigest mHash;
 
   /** Flag to indicate this stream has been closed, to ensure close is only done once. */
@@ -113,8 +114,10 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
    * The local temp file that will be uploaded when reaches the partition size
    * or when flush() is called and this file is bigger than {@link #UPLOAD_THRESHOLD}.
    */
+  @Nullable
   protected File mFile;
   /** The output stream to the local temp file. */
+  @Nullable
   protected OutputStream mLocalOutputStream;
 
   /**
