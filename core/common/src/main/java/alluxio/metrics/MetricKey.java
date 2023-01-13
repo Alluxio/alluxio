@@ -844,6 +844,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The number of active write-RPCs managed by workers")
           .setMetricType(MetricType.COUNTER)
           .build();
+  public static final MetricKey CLUSTER_BYTES_CACHE_BLOCKS_SIZE =
+      new Builder("Cluster.CacheBlocksSize")
+          .setDescription("Total number of bytes that being cached through cache requests")
+          .setMetricType(MetricType.COUNTER)
+          .build();
   public static final MetricKey CLUSTER_BYTES_READ_DIRECT =
       new Builder("Cluster.BytesReadDirect")
           .setDescription("Total number of bytes read from Alluxio storage managed by workers "
@@ -970,6 +975,12 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey CLUSTER_CACHE_HIT_RATE =
       new Builder("Cluster.CacheHitRate")
           .setDescription("Cache hit rate: (# bytes read from cache) / (# bytes requested)")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey CLUSTER_CACHE_HIT_RATE_USER =
+      new Builder("Cluster.CacheHitRateUser")
+          .setDescription("Cache hit rate from the perspective of users"
+              + "\n: (# bytes read from cache) / (# bytes requested)")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_CAPACITY_TOTAL =
@@ -1316,7 +1327,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Worker.CacheBlocksSize")
           .setDescription("Total number of bytes that being cached through cache requests")
           .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BLOCK_REMOVER_TRY_REMOVE_COUNT =
       new Builder("Worker.BlockRemoverTryRemoveCount")

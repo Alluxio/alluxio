@@ -197,6 +197,9 @@ public class MetricsStore {
       mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
           MetricKey.WORKER_ACTIVE_RPC_WRITE_COUNT.getMetricName()),
           MetricsSystem.counter(MetricKey.CLUSTER_ACTIVE_RPC_WRITE_COUNT.getName()));
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
+              MetricKey.WORKER_CACHE_BLOCKS_SIZE.getMetricName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_BYTES_CACHE_BLOCKS_SIZE.getName()));
 
       // client metrics
       mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.CLIENT,
@@ -225,7 +228,25 @@ public class MetricsStore {
                 + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName()).getCount()
                 + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()).getCount()
                 + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName()).getCount()
-                + cacheMisses;
+                + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_CACHE_BLOCKS_SIZE.getName())
+                    .getCount();
+            if (total > 0) {
+              return 1 - cacheMisses / (1.0 * total);
+            }
+            return 0;
+          });
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.CLUSTER_CACHE_HIT_RATE_USER.getName()),
+          () -> {
+            long cacheMisses = MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName())
+                .getCount() - MetricsSystem.counter(
+                    MetricKey.CLUSTER_BYTES_CACHE_BLOCKS_SIZE.getName())
+                .getCount();
+            long total =
+                MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DIRECT.getName()).getCount()
+                + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName()).getCount()
+                + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()).getCount()
+                + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName()).getCount();
             if (total > 0) {
               return 1 - cacheMisses / (1.0 * total);
             }
