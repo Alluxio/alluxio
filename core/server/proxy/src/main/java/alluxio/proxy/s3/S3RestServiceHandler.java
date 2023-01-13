@@ -111,10 +111,12 @@ public final class S3RestServiceHandler {
   /* Object is after bucket in the URL path */
   public static final String OBJECT_PARAM = "{bucket}/{object:.+}";
 
-  private static final Cache<AlluxioURI, Boolean>  bucketPathCache = CacheBuilder.newBuilder()
+  private static final Cache<AlluxioURI, Boolean> bucketPathCache = CacheBuilder.newBuilder()
       .maximumSize(65536)
-        .expireAfterWrite(max(0,Configuration.global().getMs(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS)), TimeUnit.MILLISECONDS)
-        .build();
+      .expireAfterWrite(
+          max(0, Configuration.global().getMs(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS)),
+          TimeUnit.MILLISECONDS)
+      .build();
   private final FileSystem mMetaFS;
   private final InstancedConfiguration mSConf;
 
