@@ -14,7 +14,6 @@ package alluxio.proxy.s3;
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.MetadataCachingFileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -299,31 +298,20 @@ public final class S3RestUtils {
    * @param fs instance of {@link FileSystem}
    * @param bucketPath bucket complete path
    * @param auditContext the audit context for exception
+   * @param bucketPathCache cache the bucket path for a certain time period
    */
   public static void checkPathIsAlluxioDirectory(FileSystem fs, String bucketPath,
                                                  @Nullable S3AuditContext auditContext,
                                                  Cache<AlluxioURI, Boolean> bucketPathCache)
       throws S3Exception {
-    AlluxioURI uri=new AlluxioURI(bucketPath);
-    if (Boolean.TRUE.equals(bucketPathCache.getIfPresent(uri))){
+    AlluxioURI uri = new AlluxioURI(bucketPath);
+    if (Boolean.TRUE.equals(bucketPathCache.getIfPresent(uri))) {
       return;
     }
-      checkPathIsAlluxioDirectory(fs,bucketPath,auditContext);
-      bucketPathCache.put(uri, true);
+    checkPathIsAlluxioDirectory(fs, bucketPath, auditContext);
+    bucketPathCache.put(uri, true);
   }
 
-//  public static void deleteAlluxioDirectory(FileSystem fs, AlluxioURI uri) {
-//    if (fs instanceof MetadataCachingFileSystem){
-//      bucketPathCache.modifyBucketPathCache(uri, false);
-//    }
-//  }
-//  public static void addAlluxioDirectory(AlluxioURI uri) {
-//    if (fs instanceof MetadataCachingFileSystem){
-//      ((MetadataCachingFileSystem) fs).modifyBucketPathCache(uri, true);
-//      bucketPathCache.put(uri, true);
-////      bucketPathMetadataCache.put(alluxioURI,status);
-//    }
-//  }
   /**
    * Fetches and returns the corresponding {@link URIStatus} for both
    * the multipart upload temp directory and the Alluxio S3 metadata file.
