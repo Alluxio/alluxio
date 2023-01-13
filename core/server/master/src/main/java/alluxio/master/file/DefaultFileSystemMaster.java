@@ -27,8 +27,6 @@ import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.Reconfigurable;
-import alluxio.conf.ReconfigurableRegistry;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
@@ -235,7 +233,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public class DefaultFileSystemMaster extends CoreMaster
-    implements FileSystemMaster, DelegatingJournaled, Reconfigurable {
+    implements FileSystemMaster, DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
 
@@ -711,7 +709,6 @@ public class DefaultFileSystemMaster extends CoreMaster
               mSafeModeManager, mJobMasterClientPool),
           () -> Configuration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS),
           Configuration.global(), mMasterContext.getUserState());
-      ReconfigurableRegistry.register(this);
       getExecutorService().submit(mReplicationCheckHeartbeatThread);
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER,
@@ -792,7 +789,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       Thread.currentThread().interrupt();
       LOG.warn("Failed to wait for active sync executor to shut down.");
     }
-    ReconfigurableRegistry.unregister(this);
   }
 
   @Override
@@ -3988,18 +3984,6 @@ public class DefaultFileSystemMaster extends CoreMaster
         getSyncPathCache(), rpcContext, syncDescendantType, options, auditContext,
         auditContextSrcInodeFunc, false, false, false);
     return sync.sync();
-  }
-
-  @Override
-  public void update() {
-    if (mReplicationCheckHeartbeatThread != null) {
-      long newValue = Configuration.getMs(
-          PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS);
-      mReplicationCheckHeartbeatThread.updateIntervalMs(
-          newValue);
-      LOG.info("The interval of {} updated to {}",
-          HeartbeatContext.MASTER_REPLICATION_CHECK, newValue);
-    }
   }
 
   @FunctionalInterface
