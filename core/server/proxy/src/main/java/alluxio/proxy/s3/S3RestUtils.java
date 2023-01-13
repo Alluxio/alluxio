@@ -292,6 +292,7 @@ public final class S3RestUtils {
       throw toBucketS3Exception(e, bucketPath);
     }
   }
+
   /**
    * Check if a path in alluxio is a directory.
    *

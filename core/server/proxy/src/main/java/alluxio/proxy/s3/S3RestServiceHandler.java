@@ -12,6 +12,7 @@
 package alluxio.proxy.s3;
 
 import static java.lang.Math.max;
+
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileInStream;
@@ -111,10 +112,10 @@ public final class S3RestServiceHandler {
   /* Object is after bucket in the URL path */
   public static final String OBJECT_PARAM = "{bucket}/{object:.+}";
 
-  private static final Cache<AlluxioURI, Boolean> bucketPathCache = CacheBuilder.newBuilder()
+  private static final Cache<AlluxioURI, Boolean> BUCKET_PATH_CACHE = CacheBuilder.newBuilder()
       .maximumSize(65536)
       .expireAfterWrite(
-          max(0, Configuration.global().getMs(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS)),
+          max(0, Configuration.global().getMs(PropertyKey.PROXY_S3_BUCKET_PATH_CACHE_TIMEOUT_MS)),
           TimeUnit.MILLISECONDS)
       .build();
   private final FileSystem mMetaFS;
@@ -220,7 +221,7 @@ public final class S3RestServiceHandler {
             // debatable (?) potentially breaks backcompat(?)
             .filter(URIStatus::isFolder)
             .collect(Collectors.toList());
-        buckets.forEach((uri)->bucketPathCache.put(new AlluxioURI(uri.getPath()),true));
+        buckets.forEach((uri) -> BUCKET_PATH_CACHE.put(new AlluxioURI(uri.getPath()), true));
         return new ListAllMyBucketsResult(buckets);
       }
     });
@@ -241,7 +242,8 @@ public final class S3RestServiceHandler {
       final FileSystem userFs = S3RestUtils.createFileSystemForUser(user, mMetaFS);
 
       try (S3AuditContext auditContext = createAuditContext("headBucket", user, bucket, null)) {
-        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,bucketPathCache);
+        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+            BUCKET_PATH_CACHE);
       }
       return Response.ok().build();
     });
@@ -307,7 +309,7 @@ public final class S3RestServiceHandler {
       final FileSystem userFs = S3RestUtils.createFileSystemForUser(user, mMetaFS);
 
       try (S3AuditContext auditContext = createAuditContext("listObjects", user, bucket, null)) {
-        S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext,bucketPathCache);
+        S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext, BUCKET_PATH_CACHE);
         if (tagging != null) { // GetBucketTagging
           AlluxioURI uri = new AlluxioURI(path);
           try {
@@ -499,7 +501,8 @@ public final class S3RestServiceHandler {
       try (S3AuditContext auditContext =
           createAuditContext("createBucket", user, bucket, null)) {
         if (tagging != null) { // PutBucketTagging
-          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,bucketPathCache);
+          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+              BUCKET_PATH_CACHE);
           try {
             TaggingData tagData = new XmlMapper().readerFor(TaggingData.class)
                 .readValue(is);
@@ -581,7 +584,7 @@ public final class S3RestServiceHandler {
         } catch (Exception e) {
           throw S3RestUtils.toBucketS3Exception(e, bucketPath, auditContext);
         }
-        bucketPathCache.put(new AlluxioURI(bucketPath), true);
+        BUCKET_PATH_CACHE.put(new AlluxioURI(bucketPath), true);
         return Response.Status.OK;
       }
     });
@@ -613,7 +616,8 @@ public final class S3RestServiceHandler {
 
       try (S3AuditContext auditContext =
           createAuditContext("deleteBucket", user, bucket, null)) {
-        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,bucketPathCache);
+        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+            BUCKET_PATH_CACHE);
 
         if (tagging != null) { // DeleteBucketTagging
           LOG.debug("DeleteBucketTagging bucket={}", bucketPath);
@@ -641,7 +645,7 @@ public final class S3RestServiceHandler {
         } catch (Exception e) {
           throw S3RestUtils.toBucketS3Exception(e, bucketPath, auditContext);
         }
-        bucketPathCache.put(new AlluxioURI(bucketPath), false);
+        BUCKET_PATH_CACHE.put(new AlluxioURI(bucketPath), false);
         return Response.Status.NO_CONTENT;
       }
     });
@@ -723,7 +727,8 @@ public final class S3RestServiceHandler {
       String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
       try (S3AuditContext auditContext =
           createAuditContext("createObject", user, bucket, object)) {
-        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,bucketPathCache);
+        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+            BUCKET_PATH_CACHE);
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
 
         if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
@@ -1021,7 +1026,8 @@ public final class S3RestServiceHandler {
       TaggingData tagData = null;
       try (S3AuditContext auditContext =
           createAuditContext("initiateMultipartUpload", user, bucket, object)) {
-        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,bucketPathCache);
+        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+            BUCKET_PATH_CACHE);
         if (taggingHeader != null) { // Parse the tagging header if it exists for PutObject
           try {
             tagData = S3RestUtils.deserializeTaggingHeader(taggingHeader, mMaxHeaderMetadataSize);
@@ -1205,7 +1211,8 @@ public final class S3RestServiceHandler {
       String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
       try (S3AuditContext auditContext =
           createAuditContext("listParts", user, bucket, object)) {
-        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,bucketPathCache);
+        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+            BUCKET_PATH_CACHE);
 
         AlluxioURI tmpDir = new AlluxioURI(
             S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, uploadId));
@@ -1308,7 +1315,8 @@ public final class S3RestServiceHandler {
       AlluxioURI uri = new AlluxioURI(objectPath);
       try (S3AuditContext auditContext =
           createAuditContext("getObjectTags", user, bucket, object)) {
-        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,bucketPathCache);
+        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+            BUCKET_PATH_CACHE);
         try {
           TaggingData tagData = S3RestUtils.deserializeTags(userFs.getStatus(uri).getXAttr());
           LOG.debug("GetObjectTagging tagData={}", tagData);
@@ -1365,7 +1373,7 @@ public final class S3RestServiceHandler {
         new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, uploadId));
     try (S3AuditContext auditContext =
         createAuditContext("abortMultipartUpload", user, bucket, object)) {
-      S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,bucketPathCache);
+      S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext, BUCKET_PATH_CACHE);
       try {
         S3RestUtils.checkStatusesForUploadId(mMetaFS, userFs, multipartTemporaryDir, uploadId);
       } catch (Exception e) {
@@ -1400,7 +1408,7 @@ public final class S3RestServiceHandler {
         .build();
     try (S3AuditContext auditContext =
         createAuditContext("deleteObject", user, bucket, object)) {
-      S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,bucketPathCache);
+      S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext, BUCKET_PATH_CACHE);
       try {
         userFs.delete(new AlluxioURI(objectPath), options);
       } catch (FileDoesNotExistException | DirectoryNotEmptyException e) {
@@ -1426,7 +1434,7 @@ public final class S3RestServiceHandler {
         .build();
     try (S3AuditContext auditContext =
         createAuditContext("deleteObjectTags", user, bucket, object)) {
-      S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,bucketPathCache);
+      S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext, BUCKET_PATH_CACHE);
       try {
         userFs.setAttribute(new AlluxioURI(objectPath), attrPOptions);
       } catch (Exception e) {
