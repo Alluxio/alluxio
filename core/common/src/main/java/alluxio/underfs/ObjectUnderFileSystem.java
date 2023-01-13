@@ -1050,7 +1050,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
             }
           }
         }
-        commonPrefixes = prefixes.toArray(new String[prefixes.size()]);
+        commonPrefixes = prefixes.toArray(new String[0]);
       } else {
         commonPrefixes = chunk.getCommonPrefixes();
       }

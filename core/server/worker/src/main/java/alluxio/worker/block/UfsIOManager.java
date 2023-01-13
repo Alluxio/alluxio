@@ -203,6 +203,10 @@ public class UfsIOManager implements Closeable {
       int bytesRead = 0;
       InputStream inStream = null;
       try (CloseableResource<UnderFileSystem> ufsResource = mUfsClient.acquireUfsResource()) {
+        if (mOptions.hasUser()) {
+          // Before interacting with ufs manager, set the user.
+          alluxio.security.authentication.AuthenticatedClientUser.set(mOptions.getUser());
+        }
         inStream = mUfsInstreamCache.acquire(ufsResource.get(), mUfsPath, mFileId,
             OpenOptions.defaults().setOffset(mOffset)
                 .setPositionShort(mOptions.getPositionShort()));

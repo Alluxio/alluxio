@@ -297,6 +297,23 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
+    public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
+        boolean usePartialListing, boolean verify) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean stopLoad(AlluxioURI path) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getLoadProgress(AlluxioURI path,
+        Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void close() throws IOException {
       throw new UnsupportedOperationException();
     }

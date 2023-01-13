@@ -30,7 +30,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MultiValueMetricsAggregator;
 import alluxio.metrics.aggregator.SingleTagValueAggregator;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 
@@ -168,7 +168,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     services.put(ServiceType.METRICS_MASTER_CLIENT_SERVICE,
         new GrpcService(ServerInterceptors.intercept(
             getMasterServiceHandler(),
-            new ClientIpAddressInjector())));
+            new ClientContextServerInjector())));
     return services;
   }
 

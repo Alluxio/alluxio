@@ -522,7 +522,7 @@ public final class UfsJournalLogWriter implements JournalWriter {
     }
   }
 
-  private String currentLogName() {
+  String currentLogName() {
     if (mJournalOutputStream != null) {
       return mJournalOutputStream.currentLog().toString();
     }

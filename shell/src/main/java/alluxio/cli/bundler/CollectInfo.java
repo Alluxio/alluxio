@@ -538,7 +538,7 @@ public class CollectInfo extends AbstractShell {
    */
   public static <T> CompletableFuture<List<T>> collectAllFutures(
           List<CompletableFuture<T>> futures) {
-    CompletableFuture[] cfs = futures.toArray(new CompletableFuture[futures.size()]);
+    CompletableFuture[] cfs = futures.toArray(new CompletableFuture[0]);
 
     return CompletableFuture.allOf(cfs)
             .thenApply(f -> futures.stream()

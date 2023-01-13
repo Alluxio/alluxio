@@ -39,6 +39,7 @@ export interface IOverview {
   usedCapacity: string;
 
   version: string;
+  revision: string;
 }
 
 export enum OverviewActionTypes {
