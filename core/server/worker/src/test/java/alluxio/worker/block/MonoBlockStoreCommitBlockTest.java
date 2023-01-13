@@ -4,14 +4,11 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.StorageDir;
-import alluxio.worker.block.meta.TempBlockMeta;
 import io.grpc.Status;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Spy;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -45,19 +42,7 @@ public class MonoBlockStoreCommitBlockTest {
     final Long blockId = 2L;
     int FIRST_TIER = 1;
     // Maybe location should be asserted as well.
-    BlockStoreEventListener listener0 = new AbstractBlockStoreEventListener() {
-        @Override
-        public void onCommitBlockToLocal(long blockId, BlockStoreLocation location) {
-            assertEquals(2L, blockId);
-        }
-
-        @Override
-        public void onCommitBlockToMaster(long blockId, BlockStoreLocation location) {
-            assertEquals(2L, blockId);
-        }
-    };
-    BlockStoreEventListener mListener = spy(listener0);
-
+    BlockStoreEventListener mListener;
     @Before
     public void setup() throws Exception {
         File tempFolder = mTestFolder.newFolder();
@@ -71,6 +56,16 @@ public class MonoBlockStoreCommitBlockTest {
         mBlockMetadataManager = BlockMetadataManager.createBlockMetadataManager();
 
         mTestDir1 = mBlockMetadataManager.getTier(FIRST_TIER_ALIAS).getDir(0);
+
+        mListener = mock(BlockStoreEventListener.class);
+        doAnswer((i) -> {
+            assertEquals(2L, i.getArguments()[0]);
+            return 0;
+        }).when(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
+        doAnswer((i) -> {
+            assertEquals(2L, i.getArguments()[0]);
+            return 0;
+        }).when(mListener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
     }
 
     @Test
