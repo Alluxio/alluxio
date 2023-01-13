@@ -53,6 +53,13 @@ public class AwsSignatureProcessor {
     mContext = context;
   }
 
+  /**
+   * Create a new {@link AwsSignatureProcessor} with HttpServletRequest
+   * as the info marshall source.
+   * Used by the new architecture in {@link alluxio.proxy.s3.S3RequestServlet}
+   *
+   * @param request
+   */
   public AwsSignatureProcessor(HttpServletRequest request) {
     mServletRequest = request;
   }

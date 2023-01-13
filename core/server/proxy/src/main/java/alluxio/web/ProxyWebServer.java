@@ -20,11 +20,11 @@ import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proxy.ProxyProcess;
+import alluxio.proxy.s3.CompleteMultipartUploadHandler;
 import alluxio.proxy.s3.S3BaseTask;
+import alluxio.proxy.s3.S3Handler;
 import alluxio.proxy.s3.S3RequestServlet;
 import alluxio.proxy.s3.S3RestExceptionMapper;
-import alluxio.proxy.s3.S3Handler;
-import alluxio.proxy.s3.CompleteMultipartUploadHandler;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Stopwatch;
@@ -43,7 +43,6 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -63,17 +62,18 @@ public final class ProxyWebServer extends WebServer {
   public static final String SERVER_CONFIGURATION_RESOURCE_KEY = "Server Configuration";
   public static final String ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY = "Alluxio Proxy Audit Log Writer";
 
-  public static FileSystem mFileSystem = null;
+  public static FileSystem sFileSystem = null;
 
-  public static AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+  public static AsyncUserAccessAuditLogWriter sAsyncAuditLogWriter;
+
   class ProxyListener implements HttpChannel.Listener {
     public void onComplete(Request request)
     {
       S3Handler s3Hdlr = S3RequestServlet.getInstance().mS3HandlerMap.get(request);
       if (s3Hdlr != null) {
         ProxyWebServer.logAccess(s3Hdlr.getServletRequest(), s3Hdlr.getServletResponse(),
-                s3Hdlr.getStopwatch(),
-                s3Hdlr.getS3Task() != null ? s3Hdlr.getS3Task().getOPType() : S3BaseTask.OpType.Unknown);
+                s3Hdlr.getStopwatch(), s3Hdlr.getS3Task() != null
+                    ? s3Hdlr.getS3Task().getOPType() : S3BaseTask.OpType.Unknown);
       } else {
         LOG.info("[ACCESSLOG] Request{} onComplete.", request);
       }
@@ -97,15 +97,15 @@ public final class ProxyWebServer extends WebServer {
         .register(JacksonProtobufObjectMapperProvider.class)
         .register(S3RestExceptionMapper.class);
 
-    ProxyWebServer.mFileSystem = FileSystem.Factory.create(Configuration.global());
+    ProxyWebServer.sFileSystem = FileSystem.Factory.create(Configuration.global());
 
     if (Configuration.getBoolean(PropertyKey.PROXY_AUDIT_LOGGING_ENABLED)) {
-      mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("PROXY_AUDIT_LOG");
-      mAsyncAuditLogWriter.start();
+      sAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("PROXY_AUDIT_LOG");
+      sAsyncAuditLogWriter.start();
       MetricsSystem.registerGaugeIfAbsent(
           MetricKey.PROXY_AUDIT_LOG_ENTRIES_SIZE.getName(),
-              () -> mAsyncAuditLogWriter != null
-                  ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
+              () -> sAsyncAuditLogWriter != null
+                  ? sAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
     }
 
     ServletContainer servlet = new ServletContainer(config) {
@@ -116,10 +116,10 @@ public final class ProxyWebServer extends WebServer {
         super.init();
         getServletContext().setAttribute(ALLUXIO_PROXY_SERVLET_RESOURCE_KEY, proxyProcess);
         getServletContext()
-                .setAttribute(FILE_SYSTEM_SERVLET_RESOURCE_KEY, mFileSystem);
+                .setAttribute(FILE_SYSTEM_SERVLET_RESOURCE_KEY, sFileSystem);
         getServletContext().setAttribute(STREAM_CACHE_SERVLET_RESOURCE_KEY,
                 new StreamCache(Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
-        getServletContext().setAttribute(ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY, mAsyncAuditLogWriter);
+        getServletContext().setAttribute(ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY, sAsyncAuditLogWriter);
       }
 
       @Override
@@ -142,11 +142,12 @@ public final class ProxyWebServer extends WebServer {
     };
     ServletHolder servletHolder;
     if (Configuration.getBoolean(PropertyKey.PROXY_S3_OPTIMIZED_VERSION_ENABLED)) {
-      servletHolder = new ServletHolder("Alluxio Proxy Web Service", S3RequestServlet.getInstance());
+      servletHolder = new ServletHolder("Alluxio Proxy Web Service",
+          S3RequestServlet.getInstance());
       super.getServerConnector().addBean(new ProxyListener());
     } else {
       servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
-      addHandler(new CompleteMultipartUploadHandler(mFileSystem, Constants.REST_API_PREFIX));
+      addHandler(new CompleteMultipartUploadHandler(sFileSystem, Constants.REST_API_PREFIX));
     }
     mServletContextHandler
             .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
@@ -154,11 +155,11 @@ public final class ProxyWebServer extends WebServer {
 
   @Override
   public void stop() throws Exception {
-    if (mAsyncAuditLogWriter != null) {
-      mAsyncAuditLogWriter.stop();
-      mAsyncAuditLogWriter = null;
+    if (sAsyncAuditLogWriter != null) {
+      sAsyncAuditLogWriter.stop();
+      sAsyncAuditLogWriter = null;
     }
-    mFileSystem.close();
+    sFileSystem.close();
     super.stop();
   }
 
@@ -167,6 +168,7 @@ public final class ProxyWebServer extends WebServer {
    * @param request
    * @param response
    * @param stopWatch
+   * @param opType
    */
   public static void logAccess(HttpServletRequest request, HttpServletResponse response,
                                Stopwatch stopWatch, S3BaseTask.OpType opType) {

@@ -541,11 +541,11 @@ public final class S3RestUtils {
   }
 
   /**
-   *
+   * Get username from header info from HttpServletRequest.
    *
    * @param authorization
    * @param request
-   * @return
+   * @return user name
    * @throws S3Exception
    */
   public static String getUser(String authorization, HttpServletRequest request)
@@ -559,7 +559,6 @@ public final class S3RestUtils {
       throw new S3Exception(new S3ErrorCode(S3ErrorCode.INTERNAL_ERROR.getCode(),
               e.getMessage(), S3ErrorCode.INTERNAL_ERROR.getStatus()));
     }
-
   }
 
   private static String getUserFromSignature(HttpServletRequest request)
@@ -646,7 +645,8 @@ public final class S3RestUtils {
    * @param xattrMap
    * @param contentTypeHeader
    */
-  public static void populateContentTypeInXAttr(Map<String, ByteString> xattrMap, String contentTypeHeader) {
+  public static void populateContentTypeInXAttr(Map<String, ByteString> xattrMap,
+                                                String contentTypeHeader) {
     if (contentTypeHeader != null) {
       xattrMap.put(S3Constants.CONTENT_TYPE_XATTR_KEY,
               ByteString.copyFrom(contentTypeHeader, S3Constants.HEADER_CHARSET));
@@ -663,11 +663,12 @@ public final class S3RestUtils {
    */
   public static void populateTaggingInXAttr(Map<String, ByteString> xattrMap, String taggingHeader,
                                             S3AuditContext auditContext, String objectPath)
-    throws S3Exception{
+      throws S3Exception {
     TaggingData tagData = null;
     if (taggingHeader != null) { // Parse the tagging header if it exists for PutObject
       try {
-        tagData = S3RestUtils.deserializeTaggingHeader(taggingHeader, S3Handler.MAX_HEADER_METADATA_SIZE);
+        tagData = S3RestUtils.deserializeTaggingHeader(
+            taggingHeader, S3Handler.MAX_HEADER_METADATA_SIZE);
       } catch (IllegalArgumentException e) {
         if (e.getCause() instanceof S3Exception) {
           throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath,

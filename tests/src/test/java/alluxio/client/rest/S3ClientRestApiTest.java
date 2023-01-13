@@ -71,7 +71,6 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
@@ -87,7 +86,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
@@ -153,6 +151,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   public ImmutableMap<PropertyKey, Object> mConfigMap;
+
   public S3ClientRestApiTest(ImmutableMap<PropertyKey, Object> propMap) {
     mConfigMap = propMap;
   }

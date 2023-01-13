@@ -1277,8 +1277,8 @@ public class S3ObjectTask extends S3BaseTask {
         final String uploadId = mHandler.getQueryParameter("uploadId");
         String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + mHandler.getObject();
-        AlluxioURI multipartTemporaryDir = new AlluxioURI(
-            S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, mHandler.getObject(), uploadId));
+        AlluxioURI multipartTemporaryDir = new AlluxioURI(S3RestUtils
+            .getMultipartTemporaryDirForObject(bucketPath, mHandler.getObject(), uploadId));
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             "abortMultipartUpload", user, mHandler.getBucket(), mHandler.getObject())) {
           S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
