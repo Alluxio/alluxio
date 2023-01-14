@@ -56,6 +56,8 @@ Client.CacheStoreDeleteTimeout,COUNTER
 Client.CacheStoreGetTimeout,COUNTER
 Client.CacheStorePutTimeout,COUNTER
 Client.CacheStoreThreadsRejected,COUNTER
+Client.CloseAlluxioOutStreamLatency,TIMER
+Client.CloseUFSOutStreamLatency,TIMER
 Client.DefaultHiveClientCount,COUNTER
 Client.FileSystemMasterClientCount,COUNTER
 Client.MetadataCacheSize,GAUGE

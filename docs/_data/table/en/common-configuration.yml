@@ -44,6 +44,8 @@ alluxio.fuse.web.hostname:
   'The hostname of Alluxio FUSE web UI.'
 alluxio.fuse.web.port:
   'The port Alluxio FUSE web UI runs on.'
+alluxio.grpc.reflection.enabled:
+  'If true, grpc reflection will be enabled on alluxio grpc servers, including masters, workers, job masters and job workers.  This makes grpc tools such as grpcurl or grpcui can send grpc requests to the master server easier without knowing the protobufs. This is a debug option.'
 alluxio.hadoop.kerberos.keytab.login.autorenewal:
   'Kerberos authentication keytab login auto renew.'
 alluxio.hadoop.security.authentication:
@@ -52,6 +54,8 @@ alluxio.hadoop.security.krb5.conf:
   'Kerberos krb file for configuration of Kerberos.'
 alluxio.home:
   'Alluxio installation directory.'
+alluxio.job.batch.size:
+  'The number of tasks would be included in a job request.'
 alluxio.job.master.bind.host:
   'The host that the Alluxio job master will bind to.'
 alluxio.job.master.client.threads:
@@ -96,6 +100,8 @@ alluxio.job.master.worker.timeout:
   'The time period after which the job master will mark a worker as lost without a subsequent heartbeat.'
 alluxio.job.request.batch.size:
   'The batch size client uses to make requests to the job master.'
+alluxio.job.retention.time:
+  'The length of time the Alluxio should save information about completed jobs before they are discarded.'
 alluxio.job.worker.bind.host:
   'The host that the Alluxio job worker will bind to.'
 alluxio.job.worker.data.port:
@@ -210,6 +216,24 @@ alluxio.standby.master.metrics.sink.enabled:
   'Whether a standby master runs the metric sink'
 alluxio.standby.master.web.enabled:
   'Whether a standby master runs a web server'
+alluxio.table.catalog.path:
+  'The Alluxio file path for the table catalog metadata.'
+alluxio.table.catalog.udb.sync.timeout:
+  'The timeout period for a db sync to finish in the catalog. If a synctakes longer than this timeout, the sync will be terminated.'
+alluxio.table.enabled:
+  '(Experimental) Enables the table service.'
+alluxio.table.journal.partitions.chunk.size:
+  'The maximum table partitions number in a single journal entry.'
+alluxio.table.load.default.replication:
+  'The default replication number of files under the SDS table after load option.'
+alluxio.table.transform.manager.job.history.retention.time:
+  'The length of time the Alluxio Table Master should keep information about finished transformation jobs before they are discarded.'
+alluxio.table.transform.manager.job.monitor.interval:
+  'Job monitor is a heartbeat thread in the transform manager, this is the time interval in milliseconds the job monitor heartbeat is run to check the status of the transformation jobs and update table and partition locations after transformation.'
+alluxio.table.udb.hive.clientpool.MAX:
+  'The maximum capacity of the hive client pool per hive metastore'
+alluxio.table.udb.hive.clientpool.min:
+  'The minimum capacity of the hive client pool per hive metastore'
 alluxio.test.deprecated.key:
   'N/A'
 alluxio.tmp.dirs:
@@ -310,8 +334,18 @@ alluxio.underfs.oss.connection.timeout:
   'The timeout when connecting to OSS.'
 alluxio.underfs.oss.connection.ttl:
   'The TTL of OSS connections in ms.'
+alluxio.underfs.oss.ecs.ram.role:
+  'The RAM role of current owner of ECS.'
+alluxio.underfs.oss.retry.max:
+  'The maximum number of OSS error retry.'
 alluxio.underfs.oss.socket.timeout:
   'The timeout of OSS socket.'
+alluxio.underfs.oss.sts.ecs.metadata.service.endpoint:
+  'The ECS metadata service endpoint for Aliyun STS'
+alluxio.underfs.oss.sts.enabled:
+  'Whether to enable oss STS(Security Token Service).'
+alluxio.underfs.oss.sts.token.refresh.interval.ms:
+  'Time before an OSS Security Token is considered expired and will be automatically renewed'
 alluxio.underfs.ozone.prefixes:
   'Specify which prefixes should run through the Ozone implementation of UnderFileSystem. The delimiter is any whitespace and/or '',''. The default value is &quot;o3fs://,ofs://&quot;.'
 alluxio.underfs.persistence.async.temp.dir:
@@ -383,11 +417,11 @@ alluxio.web.cors.allow.methods:
 alluxio.web.cors.allow.origins:
   'Which origins is allowed for cors. use * allow all any origin.'
 alluxio.web.cors.enabled:
-  'Set to true to enable Cross-Origin Resource Sharing for Web UI.'
+  'Set to true to enable Cross-Origin Resource Sharing for RESTful APIendpoints.'
 alluxio.web.cors.exposed.headers:
   'Which headers are allowed to set in response when access cross-origin resource. use * allow all any header.'
 alluxio.web.cors.max.age:
-  'Maximum number of seconds the results can be cached for cors. "-1 means no cache.'
+  'Maximum number of seconds the results can be cached. -1 means no cache.'
 alluxio.web.file.info.enabled:
   'Whether detailed file information are enabled for the web UI.'
 alluxio.web.refresh.interval:
@@ -422,6 +456,14 @@ alluxio.zookeeper.leader.path:
   'Leader directory in ZooKeeper.'
 alluxio.zookeeper.session.timeout:
   'Session timeout to use when connecting to Zookeeper'
+awt.toolkit:
+  'N/A'
+file.encoding:
+  'N/A'
+file.encoding.pkg:
+  'N/A'
+file.separator:
+  'N/A'
 fs.azure.account.oauth2.client.endpoint:
   'The oauth endpoint for ABFS.'
 fs.azure.account.oauth2.client.id:
@@ -484,7 +526,117 @@ fs.swift.tenant:
   'Swift user for authentication.'
 fs.swift.user:
   'Swift tenant for authentication.'
+ftp.nonProxyHosts:
+  'N/A'
+gopherProxySet:
+  'N/A'
+http.nonProxyHosts:
+  'N/A'
+java.awt.graphicsenv:
+  'N/A'
+java.awt.printerjob:
+  'N/A'
+java.class.path:
+  'N/A'
+java.class.version:
+  'N/A'
+java.endorsed.dirs:
+  'N/A'
+java.ext.dirs:
+  'N/A'
+java.home:
+  'N/A'
+java.io.tmpdir:
+  'N/A'
+java.library.path:
+  'N/A'
+java.net.preferIPv4Stack:
+  'N/A'
+java.runtime.name:
+  'N/A'
+java.runtime.version:
+  'N/A'
+java.specification.name:
+  'N/A'
+java.specification.vendor:
+  'N/A'
+java.specification.version:
+  'N/A'
+java.vendor:
+  'N/A'
+java.vendor.url:
+  'N/A'
+java.vendor.url.bug:
+  'N/A'
+java.version:
+  'N/A'
+java.vm.info:
+  'N/A'
+java.vm.name:
+  'N/A'
+java.vm.specification.name:
+  'N/A'
+java.vm.specification.vendor:
+  'N/A'
+java.vm.specification.version:
+  'N/A'
+java.vm.vendor:
+  'N/A'
+java.vm.version:
+  'N/A'
+line.separator:
+  'N/A'
+log4j.configuration:
+  'N/A'
+org.apache.jasper.compiler.disablejsr199:
+  'N/A'
+org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads:
+  'N/A'
+os.arch:
+  'N/A'
+os.name:
+  'N/A'
+os.version:
+  'N/A'
+path.separator:
+  'N/A'
 s3a.accessKeyId:
   'The access key of S3 bucket.'
 s3a.secretKey:
   'The secret key of S3 bucket.'
+socksNonProxyHosts:
+  'N/A'
+sun.arch.data.model:
+  'N/A'
+sun.boot.class.path:
+  'N/A'
+sun.boot.library.path:
+  'N/A'
+sun.cpu.endian:
+  'N/A'
+sun.cpu.isalist:
+  'N/A'
+sun.io.unicode.encoding:
+  'N/A'
+sun.java.command:
+  'N/A'
+sun.java.launcher:
+  'N/A'
+sun.jnu.encoding:
+  'N/A'
+sun.management.compiler:
+  'N/A'
+sun.os.patch.level:
+  'N/A'
+user.country:
+  'N/A'
+user.dir:
+  'N/A'
+user.home:
+  'N/A'
+user.language:
+  'N/A'
+user.name:
+  'N/A'
+user.timezone:
+  'N/A'
