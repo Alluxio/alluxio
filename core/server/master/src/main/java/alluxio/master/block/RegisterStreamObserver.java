@@ -12,6 +12,7 @@
 package alluxio.master.block;
 
 import alluxio.RpcUtils;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.GrpcExceptionUtils;
@@ -38,7 +39,10 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   private static final Logger LOG = LoggerFactory.getLogger(RegisterStreamObserver.class);
 
   @GuardedBy("this")
-  private WorkerRegisterContext mContext;
+  @SuppressFBWarnings(value = "IS_FIELD_NOT_GUARDED")
+  // Context is initialized on the 1st request so later requests are guaranteed to see the context
+  // Locking is applied on init and cleanup
+  private volatile WorkerRegisterContext mContext;
   private final BlockMaster mBlockMaster;
   // Used to send responses to the worker
   private final StreamObserver<RegisterWorkerPResponse> mMasterResponseObserver;
