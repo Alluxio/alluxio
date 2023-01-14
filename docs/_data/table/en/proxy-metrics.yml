@@ -1,2 +1,10 @@
 Proxy.AuditLogEntriesSize:
   'The size of the audit log entries blocking queue'
+Proxy.CheckUploadIDStatusLatency:
+  'Latency of check uploadId status in CompleteMultipartUpload'
+Proxy.CleanupMultipartUploadLatency:
+  'Latency of cleaning up temp folder and metafile from CompleteMultipartUpload'
+Proxy.CleanupTempMultipartUploadObjectLatency:
+  'Latency of cleaning up temp target obj duringCompleteMultipartUpload'
+Proxy.CompleteMPUploadMergeLatency:
+  'Latency of merging parts into one objectin CompleteMultipartUpload'
