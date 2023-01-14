@@ -340,6 +340,12 @@ public final class S3RestServiceHandler {
             .setContinuationToken(continuationTokenParam)
             .setStartAfter(startAfterParam);
 
+        String startAfter = (markerParam != null ? markerParam : (continuationTokenParam != null
+            ? ListBucketResult.decodeToken(continuationTokenParam) : ""));
+        if (StringUtils.isNotEmpty(startAfter)) {
+          startAfter = String.format("%s%s%s", path, AlluxioURI.SEPARATOR, startAfter);
+        }
+
         List<URIStatus> children;
         try {
           // TODO(czhu): allow non-"/" delimiters by parsing the prefix & delimiter pair to
@@ -356,8 +362,7 @@ public final class S3RestServiceHandler {
             if (prefixParam != null) {
               path = parsePathWithDelimiter(path, prefixParam, AlluxioURI.SEPARATOR);
             }
-            String startAfter = (markerParam != null ? markerParam
-                : (startAfterParam != null ? startAfterParam : ""));
+
             ListStatusPartialPOptions options = ListStatusPartialPOptions.newBuilder()
                 .setStartAfter(startAfter)
                 .setBatchSize(maxKeys)
