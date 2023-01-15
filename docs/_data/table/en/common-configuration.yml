@@ -518,3 +518,7 @@ fs.swift.tenant:
   'Swift user for authentication.'
 fs.swift.user:
   'Swift tenant for authentication.'
+s3a.accessKeyId:
+  'The access key of S3 bucket.'
+s3a.secretKey:
+  'The secret key of S3 bucket.'
