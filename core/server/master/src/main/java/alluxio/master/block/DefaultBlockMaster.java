@@ -1201,17 +1201,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     MasterWorkerInfo workerInfo = context.getWorkerInfo();
     Preconditions.checkState(workerInfo != null,
         "No workerInfo metadata found in the WorkerRegisterContext!");
-    mActiveRegisterContexts.put(workerInfo.getId(), context);
 
     final List<String> storageTiers = chunk.getStorageTiersList();
     final Map<String, Long> totalBytesOnTiers = chunk.getTotalBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = chunk.getUsedBytesOnTiersMap();
     final Map<String, StorageList> lostStorage = chunk.getLostStorageMap();
-
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
         BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(
             chunk.getCurrentBlocksList(), context.getWorkerId());
     RegisterWorkerPOptions options = chunk.getOptions();
+    mActiveRegisterContexts.put(workerInfo.getId(), context);
 
     // The workerInfo is locked so we can operate on its blocks without race conditions
     // We start with assuming all blocks in (mBlocks + mToRemoveBlocks) do not exist.
