@@ -1007,6 +1007,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.assertEquals("", response.getResource());
     Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_KEY, response.getCode());
   }
+
   @Test
   public void PutObjectToUnknownBucket() throws Exception {
     String bucket = "bucket";
@@ -1026,6 +1027,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     }
     Assert.fail("create object under non-existent bucket should fail");
   }
+
   @Test
   public void getDeletedBucket() throws Exception {
     String bucket = "bucket";
@@ -1048,6 +1050,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.assertEquals(bucket, response.getResource());
     Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
   }
+
   @Test
   public void putDirectoryObject() throws Exception {
     final String bucketName = "directory-bucket";
