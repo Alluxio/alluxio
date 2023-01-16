@@ -22,11 +22,8 @@ import alluxio.util.WaitForOptions;
 
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -37,8 +34,6 @@ import java.util.Optional;
 /**
  * Test base RpcService related tests.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(AlluxioMasterProcess.class)
 public class RpcServerServiceTestBase {
   @Rule
   public PortReservationRule mPort = new PortReservationRule();

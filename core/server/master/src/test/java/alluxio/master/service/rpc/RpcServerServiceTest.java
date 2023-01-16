@@ -11,12 +11,19 @@
 
 package alluxio.master.service.rpc;
 
+import alluxio.master.AlluxioMasterProcess;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * Test for RpcSimpleService.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(AlluxioMasterProcess.class)
 public class RpcServerServiceTest extends RpcServerServiceTestBase {
   @Test
   public void primaryOnlyTest() {
