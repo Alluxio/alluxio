@@ -501,8 +501,7 @@ public final class S3RestServiceHandler {
       try (S3AuditContext auditContext =
           createAuditContext("createBucket", user, bucket, null)) {
         if (tagging != null) { // PutBucketTagging
-          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
-              BUCKET_PATH_CACHE);
+          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,BUCKET_PATH_CACHE);
           try {
             TaggingData tagData = new XmlMapper().readerFor(TaggingData.class)
                 .readValue(is);
