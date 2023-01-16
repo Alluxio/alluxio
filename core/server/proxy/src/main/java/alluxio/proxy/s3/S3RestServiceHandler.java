@@ -115,7 +115,7 @@ public final class S3RestServiceHandler {
   private static final Cache<AlluxioURI, Boolean> BUCKET_PATH_CACHE = CacheBuilder.newBuilder()
       .maximumSize(65536)
       .expireAfterWrite(
-          max(0, Configuration.global().getMs(PropertyKey.PROXY_S3_BUCKET_PATH_CACHE_TIMEOUT_MS)),
+          max(0, Configuration.global().getMs(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS)),
           TimeUnit.MILLISECONDS)
       .build();
   private final FileSystem mMetaFS;
