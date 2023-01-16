@@ -35,6 +35,7 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 
 import org.slf4j.Logger;
@@ -42,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -180,6 +182,41 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
+   * Restarts workers with the addresses provided, so that the workers can restart with
+   * static addresses to simulate a worker restart in the cluster.
+   *
+   * @param addresses worker addresses to use
+   */
+  public void restartWorkers(Collection<WorkerNetAddress> addresses) throws Exception {
+    // Start the worker one by one, so we avoid updating config while this worker is starting
+    for (WorkerNetAddress addr : addresses) {
+      Configuration.set(PropertyKey.WORKER_RPC_PORT, addr.getRpcPort());
+      Configuration.set(PropertyKey.WORKER_WEB_PORT, addr.getWebPort());
+      WorkerProcess worker = WorkerProcess.Factory.create();
+      mWorkers.add(worker);
+
+      Runnable runWorker = () -> {
+        try {
+          worker.start();
+        } catch (InterruptedException e) {
+          // this is expected
+        } catch (Exception e) {
+          // Log the exception as the RuntimeException will be caught and handled silently by
+          // JUnit
+          LOG.error("Start worker error", e);
+          throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+        }
+      };
+      Thread thread = new Thread(runWorker);
+      thread.setName("WorkerThread-" + System.identityHashCode(thread));
+      mWorkerThreads.add(thread);
+      thread.start();
+
+      TestUtils.waitForReady(worker);
+    }
+  }
+
+  /**
    * Sets up corresponding directories for tests.
    */
   protected void setupTest() throws IOException {
@@ -260,6 +297,22 @@ public abstract class AbstractLocalAlluxioCluster {
    * Stops the workers.
    */
   public void stopWorkers() throws Exception {
+    killWorkerProcesses();
+
+    // forget all the workers in the master
+    LocalAlluxioMaster master = getLocalAlluxioMaster();
+    if (master != null) {
+      DefaultBlockMaster bm =
+          (DefaultBlockMaster) master.getMasterProcess().getMaster(BlockMaster.class);
+      bm.forgetAllWorkers();
+    }
+  }
+
+  /**
+   * Kills all worker processes without forgetting them in the master,
+   * so we can validate the master mechanism handling dead workers.
+   */
+  public void killWorkerProcesses() throws Exception {
     if (mWorkers == null) {
       return;
     }
@@ -274,14 +327,6 @@ public abstract class AbstractLocalAlluxioCluster {
       }
     }
     mWorkerThreads.clear();
-
-    // forget all the workers in the master
-    LocalAlluxioMaster master = getLocalAlluxioMaster();
-    if (master != null) {
-      DefaultBlockMaster bm =
-          (DefaultBlockMaster) master.getMasterProcess().getMaster(BlockMaster.class);
-      bm.forgetAllWorkers();
-    }
   }
 
   /**
@@ -333,8 +378,8 @@ public abstract class AbstractLocalAlluxioCluster {
   public void waitForWorkersRegistered(int timeoutMs)
       throws TimeoutException, InterruptedException, IOException {
     try (MetaMasterClient client =
-             new RetryHandlingMetaMasterClient(MasterClientContext
-                 .newBuilder(ClientContext.create(Configuration.global())).build())) {
+         new RetryHandlingMetaMasterClient(MasterClientContext
+             .newBuilder(ClientContext.create(Configuration.global())).build())) {
       CommonUtils.waitFor("workers registered", () -> {
         try {
           return client.getMasterInfo(Collections.emptySet())
