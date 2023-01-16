@@ -118,6 +118,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
     boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.NODE_LOCAL;
+    boolean nettyTransEnabled =
+        alluxioConf.getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
 
     // Short circuit is enabled when
     // 1. data source is local node
@@ -134,6 +136,18 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         LOG.warn("Failed to create short circuit input stream for block {} @ {}. Falling back to "
             + "network transfer", blockId, dataSource);
       }
+    }
+
+    // use Netty to transfer data
+    if (nettyTransEnabled) {
+      // TODO(JiamingMai): implement this logic
+      LOG.debug("Creating Netty input stream for block {} @ {} from client {} reading through {} ("
+              + "data locates in the local worker {}, shortCircuitEnabled {}, "
+              + "shortCircuitPreferred {}, sourceSupportDomainSocket {})",
+          blockId, dataSource, NetworkAddressUtils.getClientHostName(alluxioConf), dataSource,
+          sourceIsLocal, shortCircuit, shortCircuitPreferred, sourceSupportsDomainSocket);
+      return createNettyBlockInStream(context, dataSource, dataSourceType, blockId,
+          blockSize, options);
     }
 
     // gRPC
@@ -188,6 +202,32 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     return new BlockInStream(
         new LocalFileDataReader.Factory(context, address, blockId, chunkSize, options),
         address, BlockInStreamSource.NODE_LOCAL, blockId, length);
+  }
+
+  /**
+   * Creates a {@link BlockInStream} to read from a Netty data server.
+   *
+   * @param context the file system context
+   * @param address the address of the gRPC data server
+   * @param blockSource the source location of the block
+   * @param blockSize the block size
+   * @param blockId the block id
+   * @return the {@link BlockInStream} created
+   */
+  private static BlockInStream createNettyBlockInStream(FileSystemContext context,
+      WorkerNetAddress address, BlockInStreamSource blockSource,
+      long blockId, long blockSize, InStreamOptions options) {
+    AlluxioConfiguration conf = context.getClusterConf();
+    long chunkSize = conf.getBytes(
+        PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
+    // Construct the partial read request
+    Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder()
+        .setBlockId(blockId)
+        .setPromote(ReadType.fromProto(options.getOptions().getReadType()).isPromote())
+        .setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId)) // Add UFS fallback options
+        .setChunkSize(chunkSize);
+    DataReader.Factory factory = new NettyDataReader.Factory(context, address, builder);
+    return new BlockInStream(factory, address, blockSource, blockId, blockSize);
   }
 
   /**

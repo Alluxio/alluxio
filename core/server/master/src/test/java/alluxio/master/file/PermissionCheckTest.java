@@ -112,8 +112,7 @@ public final class PermissionCheckTest {
   private static final Mode TEST_DIR_MODE = new Mode((short) 0755);
   private static final Mode TEST_FILE_MODE = new Mode((short) 0755);
 
-  private MasterRegistry mRegistry;
-  private MetricsMaster mMetricsMaster;
+  private final MasterRegistry mRegistry = new MasterRegistry();
   private FileSystemMaster mFileSystemMaster;
 
   @Rule
@@ -183,11 +182,11 @@ public final class PermissionCheckTest {
   public void before() throws Exception {
     Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mTestFolder.newFolder());
     GroupMappingServiceTestUtils.resetCache();
-    mRegistry = new MasterRegistry();
-    mRegistry.add(MetricsMaster.class, mMetricsMaster);
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(new NoopJournalSystem(),
         new TestUserState(TEST_USER_ADMIN.getUser(), Configuration.global()));
-    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
+    MetricsMaster metricsMaster =
+        new MetricsMasterFactory().create(mRegistry, masterContext);
+    mRegistry.add(MetricsMaster.class, metricsMaster);
     new BlockMasterFactory().create(mRegistry, masterContext);
     mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);
     mRegistry.start(true);

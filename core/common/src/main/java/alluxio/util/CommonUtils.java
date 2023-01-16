@@ -723,6 +723,29 @@ public final class CommonUtils {
   }
 
   /**
+   * Closes the netty channel from outside the netty I/O thread.
+   * NOTE: Be careful when holding any lock that can be acquired in the netty I/O thread when
+   * calling this function to avoid having deadlocks.
+   *
+   * @param channel the netty channel
+   */
+  public static void closeChannel(final Channel channel) {
+    if (channel.isOpen())  {
+      try {
+        channel.eventLoop().submit(new Runnable() {
+          @Override
+          public void run() {
+            channel.close();
+          }
+        }).sync();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  /**
    * Converts a millisecond number to a formatted date String.
    *
    * @param millis a long millisecond number

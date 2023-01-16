@@ -46,6 +46,7 @@ public abstract class AbstractFuseFileStreamIntegrationTest extends BaseIntegrat
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.FUSE_AUTH_POLICY_CLASS,
               "alluxio.fuse.auth.LaunchUserGroupAuthPolicy")
+          .setProperty(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 0)
           .build();
 
   protected FileSystem mFileSystem = null;

@@ -41,6 +41,15 @@ public enum ExceptionMessage {
   NO_SPACE_FOR_BLOCK_ON_WORKER("There is no worker with enough space for a new block of size {0}"),
   NO_WORKER_AVAILABLE("No available Alluxio worker found"),
 
+  // block lock manager
+  LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0,number,#} is for blockId {1,number,#}, not {2,number,#}"),
+  LOCK_ID_FOR_DIFFERENT_SESSION(
+      "lockId {0,number,#} is owned by sessionId {1,number,#} not {2,number,#}"),
+  LOCK_NOT_RELEASED("lockId {0,number,#} is not released."),
+  SESSION_NOT_CLOSED("session {0,number,#} is not closed."),
+
+  LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID("lockId {0,number,#} has no lock record"),
+
   // block metadata manager and view
   BLOCK_META_NOT_FOUND("BlockMeta not found for blockId {0,number,#}"),
   TEMP_BLOCK_META_NOT_FOUND("TempBlockMeta not found for blockId {0,number,#}"),
@@ -67,6 +76,12 @@ public enum ExceptionMessage {
   REMOVE_UNCOMMITTED_BLOCK("Cannot remove uncommitted blockId {0,number,#}"),
   TEMP_BLOCK_ID_COMMITTED(
       "Temp blockId {0,number,#} is not available, because it is already committed"),
+
+  NO_BLOCK_ID_FOUND("blockId {0,number,#} not found"),
+
+  // ufsBlockStore
+  UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE(
+      "Failed to acquire an access token for the UFS block {0,number,#} (filename: {1})."),
 
   // journal
   JOURNAL_WRITE_AFTER_CLOSE("Cannot write entry after closing the stream"),

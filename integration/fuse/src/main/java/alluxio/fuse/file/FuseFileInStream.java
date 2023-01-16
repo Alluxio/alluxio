@@ -24,6 +24,7 @@ import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.lock.FuseReadWriteLockManager;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.resource.CloseableResource;
 
 import com.google.common.base.Preconditions;
@@ -78,7 +79,8 @@ public class FuseFileInStream implements FuseFileStream {
       }
 
       try {
-        FileInStream is = fileSystem.openFile(uri);
+        FileInStream is = fileSystem.openFile(status.get(),
+            OpenFilePOptions.getDefaultInstance());
         return new FuseFileInStream(is, lockResource,
             new FileStatus(status.get().getLength()), uri);
       } catch (IOException | AlluxioException e) {
@@ -110,19 +112,19 @@ public class FuseFileInStream implements FuseFileStream {
     }
     final int sz = (int) size;
     int totalRead = 0;
-    int currentRead = 0;
+    int currentRead;
     try {
       mInStream.seek(offset);
-      while (currentRead >= 0 && totalRead < sz) {
+      do {
         currentRead = mInStream.read(buf, totalRead, sz - totalRead);
         if (currentRead > 0) {
           totalRead += currentRead;
         }
-      }
+      } while (currentRead > 0 && totalRead < sz);
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
     }
-    return totalRead;
+    return totalRead == 0 ? currentRead : totalRead;
   }
 
   @Override

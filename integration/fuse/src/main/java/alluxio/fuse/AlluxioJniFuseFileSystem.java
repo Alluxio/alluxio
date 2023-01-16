@@ -57,6 +57,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import com.google.common.cache.LoadingCache;
 import io.grpc.Status;
@@ -109,6 +110,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final FuseFileStream.Factory mStreamFactory;
 
   private final boolean mUfsEnabled;
+  private final FuseOptions mFuseOptions;
 
   /** df command will treat -1 as an unknown value. */
   @VisibleForTesting
@@ -124,8 +126,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   public AlluxioJniFuseFileSystem(FileSystemContext fsContext, FileSystem fs,
       FuseOptions fuseOptions) {
     super(Paths.get(fsContext.getClusterConf().getString(PropertyKey.FUSE_MOUNT_POINT)));
-    mFileSystemContext = fsContext;
-    mFileSystem = fs;
+    mFileSystemContext = Preconditions.checkNotNull(fsContext);
+    mFileSystem = Preconditions.checkNotNull(fs);
+    mFuseOptions = Preconditions.checkNotNull(fuseOptions);
     mConf = fsContext.getClusterConf();
     mFuseShell = new FuseShell(fs, mConf);
     long statCacheTimeout = mConf.getMs(PropertyKey.FUSE_STAT_CACHE_REFRESH_INTERVAL);
@@ -209,7 +212,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return res;
     }
     try {
-      if (mConf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED)
+      if (mFuseOptions.specialCommandEnabled()
           && mFuseShell.isSpecialCommand(uri)) {
         // TODO(lu) add cache for isFuseSpecialCommand if needed
         AlluxioFuseUtils.fillStat(mAuthPolicy, stat, mFuseShell.runCommand(uri));

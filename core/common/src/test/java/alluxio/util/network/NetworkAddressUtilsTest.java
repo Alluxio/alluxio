@@ -287,6 +287,9 @@ public class NetworkAddressUtilsTest {
       case WORKER_WEB:
         mConfiguration.set(PropertyKey.WORKER_WEB_PORT, 20000);
         break;
+      case WORKER_DATA:
+        mConfiguration.set(PropertyKey.WORKER_DATA_PORT, 20000);
+        break;
       default:
         Assert.fail("Unrecognized service type: " + service.toString());
         break;

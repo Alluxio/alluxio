@@ -11,12 +11,16 @@
 
 package alluxio.client.file.ufs;
 
+import alluxio.Constants;
 import alluxio.Seekable;
 import alluxio.client.file.FileInStream;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.runtime.InternalRuntimeException;
+import alluxio.file.SeekableBufferedInputStream;
 
 import com.google.common.base.Preconditions;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -29,6 +33,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class UfsFileInStream extends FileInStream {
+  // TODO(lu) use stream manager to prevent memory over consumption issue
+  private static final int BUFFER_SIZE = 2 * Constants.MB;
   private final long mLength;
   private final Function<Long, InputStream> mFileOpener;
   private Optional<InputStream> mUfsInStream = Optional.empty();
@@ -61,6 +67,9 @@ public class UfsFileInStream extends FileInStream {
 
   @Override
   public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
+    if (byteBuffer.hasArray()) {
+      return read(byteBuffer.array(), off, len);
+    }
     byte[] byteArray = new byte[len];
     int totalBytesRead = read(byteArray, 0, len);
     if (totalBytesRead <= 0) {
@@ -79,17 +88,11 @@ public class UfsFileInStream extends FileInStream {
       return -1;
     }
     updateStreamIfNeeded();
-    int currentRead = 0;
-    int totalRead = 0;
-    while (totalRead < len) {
-      currentRead = mUfsInStream.get().read(b, off + totalRead, len - totalRead);
-      if (currentRead <= 0) {
-        break;
-      }
-      totalRead += currentRead;
+    int bytesRead = mUfsInStream.get().read(b, off, len);
+    if (bytesRead > 0) {
+      mPosition += bytesRead;
     }
-    mPosition += totalRead;
-    return totalRead == 0 ? currentRead : totalRead;
+    return bytesRead;
   }
 
   @Override
@@ -102,11 +105,11 @@ public class UfsFileInStream extends FileInStream {
       mPosition += toBeSkipped;
       return toBeSkipped;
     }
-    long res = mUfsInStream.get().skip(toBeSkipped);
-    if (res > 0) {
-      mPosition += res;
+    long skipped = mUfsInStream.get().skip(toBeSkipped);
+    if (skipped > 0) {
+      mPosition += skipped;
     }
-    return res;
+    return skipped;
   }
 
   @Override
@@ -141,8 +144,16 @@ public class UfsFileInStream extends FileInStream {
     if (mUfsInStream.get() instanceof Seekable) {
       ((Seekable) mUfsInStream.get()).seek(pos);
     } else if (mPosition < pos) {
-      while (mPosition < pos) {
-        mPosition += mUfsInStream.get().skip(pos - mPosition);
+      long skipped = 0;
+      do {
+        skipped = mUfsInStream.get().skip(pos - mPosition);
+        if (skipped > 0) {
+          mPosition += skipped;
+        }
+      } while (mPosition < pos && skipped > 0);
+      if (mPosition != pos) {
+        throw new InternalRuntimeException(String.format(
+            "Failed to use skip to seek to pos %s, current position %s", pos, mPosition));
       }
     } else {
       close();
@@ -162,6 +173,12 @@ public class UfsFileInStream extends FileInStream {
     if (mUfsInStream.isPresent()) {
       return;
     }
-    mUfsInStream = Optional.of(mFileOpener.apply(mPosition));
+    InputStream ufsInStream = mFileOpener.apply(mPosition);
+    if (mLength - mPosition >= BUFFER_SIZE) {
+      ufsInStream = ufsInStream instanceof Seekable
+          ? new SeekableBufferedInputStream(ufsInStream, BUFFER_SIZE)
+          : new BufferedInputStream(ufsInStream, BUFFER_SIZE);
+    }
+    mUfsInStream = Optional.of(ufsInStream);
   }
 }

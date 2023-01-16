@@ -11,6 +11,9 @@
 
 package alluxio.worker.block;
 
+import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.InvalidWorkerStateException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.UfsReadOptions;
@@ -94,6 +97,23 @@ public interface BlockStore extends Closeable, SessionCleanable {
   BlockReader createBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException;
+
+  /**
+   * Creates a reader of an existing block to read data from this block.
+   * <p>
+   * This operation requires the lock id returned by a previously acquired
+   * {@link #lockBlock(long, long)}.
+   *
+   * @param sessionId the id of the session to get the reader
+   * @param blockId the id of an existing block
+   * @param lockId the id of the lock returned by {@link #lockBlock(long, long)}
+   * @return a {@link BlockReader} instance on this block
+   * @throws BlockDoesNotExistException if lockId is not found
+   * @throws InvalidWorkerStateException if session id or block id is not the same as that in the
+   *         LockRecord of lockId
+   */
+  BlockReader createBlockReader(long sessionId, long blockId, long lockId)
+      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException;
 
   /**
    * Creates a block reader to read a UFS block starting from given block offset.
@@ -245,4 +265,76 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @return future of load status for failed blocks
    */
   CompletableFuture<List<BlockStatus>> load(List<Block> fileBlocks, UfsReadOptions options);
+
+  /**
+   * Gets the metadata of a specific block from local storage.
+   * <p>
+   * This method requires the lock id returned by a previously acquired
+   * {@link #lockBlock(long, long)}.
+   *
+   * @param sessionId the id of the session to get this file
+   * @param blockId the id of the block
+   * @param lockId the id of the lock
+   * @return metadata of the block
+   * @throws BlockDoesNotExistException if the block id can not be found in committed blocks or
+   *         lockId can not be found
+   * @throws InvalidWorkerStateException if session id or block id is not the same as that in the
+   *         LockRecord of lockId
+   */
+  BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
+      throws BlockDoesNotExistException, InvalidWorkerStateException;
+
+  /**
+   * Locks an existing block and guards subsequent reads on this block.
+   *
+   * @param sessionId the id of the session to lock this block
+   * @param blockId the id of the block to lock
+   * @return the lock id (non-negative) if the lock is acquired successfully
+   * @throws BlockDoesNotExistException if block id can not be found, for example, evicted already
+   */
+  long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
+
+  /**
+   * Locks an existing block and guards subsequent reads on this block. If the lock fails, return
+   * {@link BlockLockManager#INVALID_LOCK_ID}.
+   *
+   * @param sessionId the id of the session to lock this block
+   * @param blockId the id of the block to lock
+   * @return the lock id (non-negative) that uniquely identifies the lock obtained or
+   *         {@link BlockLockManager#INVALID_LOCK_ID} if it failed to lock
+   */
+  long lockBlockNoException(long sessionId, long blockId);
+
+  /**
+   * Releases an acquired block lock based on a lockId (returned by {@link #lockBlock(long, long)}.
+   *
+   * @param lockId the id of the lock returned by {@link #lockBlock(long, long)}
+   * @throws BlockDoesNotExistException if lockId can not be found
+   */
+  void unlockBlock(long lockId) throws BlockDoesNotExistException;
+
+  /**
+   * Releases an acquired block lock based on a session id and block id.
+   * TODO(calvin): temporary, will be removed after changing client side code.
+   *
+   * @param sessionId the id of the session to lock this block
+   * @param blockId the id of the block to lock
+   * @return false if it fails to unlock due to the lock is not found
+   */
+  boolean unlockBlock(long sessionId, long blockId);
+
+  /**
+   * Creates a writer to write data to a temp block. Since the temp block is "private" to the
+   * writer, this operation requires no previously acquired lock.
+   *
+   * @param sessionId the id of the session to get the writer
+   * @param blockId the id of the temp block
+   * @return a {@link BlockWriter} instance on this block
+   * @throws BlockDoesNotExistException if the block can not be found
+   * @throws BlockAlreadyExistsException if a committed block with the same ID exists
+   * @throws InvalidWorkerStateException if the worker state is invalid
+   */
+  BlockWriter getBlockWriter(long sessionId, long blockId)
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      IOException;
 }

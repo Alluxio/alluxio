@@ -23,10 +23,11 @@ General options
 
 Alluxio mount options
 \t-o <ALLUXIO_PROPERTY_KEY>=<ALLUXIO_PROPERTY_VALUE> \tThe credentials of the target ufs address should be provided here so that alluxio fuse can access the target data set. Other alluxio common/user configuration can also be provided here
+\t-o fuse=<version> (Default=\"3\") \tUnderlying libfuse version to use. Set to 2 if you are using fuse 2.
 \t-o data_cache=<local_cache_directory> (Default=\"\" which means disabled) \tLocal folder to use for local data cache.
 \t-o data_cache_size=<size> (Default=\"512MB\") \tMaximum cache size for local data cache directory.  
-\t-o metadata_cache_size=<size> (Default=\"0\" which means disabled) \tMaximum number of entries in the metadata cache. Each 1000 entries cause about 2MB memory.
-\t-o metadata_cache_expire=<timeout> (Default=\"10min\") \tSpecify expire time for entries in the metadata cache
+\t-o metadata_cache_size=<size> (Default=\"20000\" (around 40MB memory)) \tMaximum number of entries in the metadata cache. Each 1000 entries cost about 2MB memory.
+\t-o metadata_cache_expire=<timeout> (Default=\"no expire\") \tSpecify expire time for entries in the metadata cache (e.g. \"10min\", \"2h\").
 
 FUSE mount options
 \tMost of the generic mount options described in 'man mount' and many FUSE specific mount options are supported.
