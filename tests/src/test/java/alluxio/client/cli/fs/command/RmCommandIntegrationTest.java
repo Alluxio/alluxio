@@ -130,4 +130,28 @@ public final class RmCommandIntegrationTest extends AbstractFileSystemShellTest 
     Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foo")));
     Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foobar4")));
   }
+
+  @Test
+  public void rmSyncDirNextTime() {
+    StringBuilder toCompare = new StringBuilder();
+    sFsShell.run("mkdir", "/testFolder1/testFolder2");
+    toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1/testFolder2"}));
+    sFsShell.run("touch", "/testFolder1/testFolder2/testFile2");
+    toCompare
+        .append(getCommandOutput(new String[] {"touch", "/testFolder1/testFolder2/testFile2"}));
+    AlluxioURI testFolder1 = new AlluxioURI("/testFolder1");
+    AlluxioURI testFolder2 = new AlluxioURI("/testFolder1/testFolder2");
+    AlluxioURI testFile2 = new AlluxioURI("/testFolder1/testFolder2/testFile2");
+    Assert.assertTrue(fileExists(testFolder1));
+    Assert.assertTrue(fileExists(testFolder2));
+    Assert.assertTrue(fileExists(testFile2));
+    sFsShell.run("rm", "-s", "/testFolder1/testFolder2/testFile2");
+    toCompare.append(getCommandOutput(new String[] {"rm", "/testFolder1/testFolder2/testFile2"}));
+    Assert.assertEquals(toCompare.toString(), mOutput.toString());
+    Assert.assertTrue(fileExists(testFolder1));
+    Assert.assertTrue(fileExists(testFolder2));
+    Assert.assertFalse(fileExistsInAlluxio(testFile2));
+    Assert.assertTrue(fileExists(testFile2));
+    Assert.assertTrue(fileExistsInAlluxio(testFile2));
+  }
 }

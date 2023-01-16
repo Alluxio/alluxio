@@ -2086,7 +2086,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             && context.getOptions().hasSyncParentNextTime()) {
           boolean syncParentNextTime = context.getOptions().getSyncParentNextTime();
           mInodeTree.setDirectChildrenLoaded(
-              rpcContext, inodePath.getParentInodeDirectory(), syncParentNextTime);
+              rpcContext, inodePath.getParentInodeDirectory(), !syncParentNextTime);
         }
         auditContext.setSucceeded(true);
         cacheOperation(context);
