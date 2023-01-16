@@ -65,8 +65,8 @@ public class PagedBlockStoreCommitBlockTest {
 
   private static final int DIR_INDEX = 0;
 
-  final Long mSessionId = 1L;
-  final Long mBlockId = 2L;
+  private static final Long SESSION_ID = 1L;
+  private static final Long BLOCK_ID = 2L;
   final int mBlockSize = 64;
 
   public int mPageSize = 2;
@@ -111,16 +111,16 @@ public class PagedBlockStoreCommitBlockTest {
       pageStoreDirs.add(pageStoreDir);
       mDirs = PagedBlockStoreDir.fromPageStoreDirs(pageStoreDirs);
     } catch (Exception e) {
-      System.out.println(e);
+      throw e;
     }
 
     mListener = mock(BlockStoreEventListener.class);
     doAnswer((i) -> {
-      assertEquals(2L, i.getArguments()[0]);
+      assertEquals(BLOCK_ID, i.getArguments()[0]);
       return 0;
     }).when(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
     doAnswer((i) -> {
-      assertEquals(2L, i.getArguments()[0]);
+      assertEquals(BLOCK_ID, i.getArguments()[0]);
       return 0;
     }).when(mListener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
   }
@@ -128,13 +128,13 @@ public class PagedBlockStoreCommitBlockTest {
   // This Test case success both to commit, no Exception should be thrown,
   // and both onCommit method should be called
   @Test
-  public void LocalCommitAndMasterCommitBothSuccess() {
+  public void localCommitAndMasterCommitBothSuccess() throws IOException, InterruptedException {
     try {
       mPageMetaStore = new PagedBlockMetaStore(mDirs) {
         // here commit always success
         @Override
-        public PagedBlockMeta commit(long mBlockId) {
-            return super.commit(mBlockId);
+        public PagedBlockMeta commit(long BLOCK_ID) {
+            return super.commit(BLOCK_ID);
         }
       };
       mCacheManager = CacheManager.Factory.create(mConf, mCacheManagerOptions, mPageMetaStore);
@@ -145,9 +145,13 @@ public class PagedBlockStoreCommitBlockTest {
       throw new RuntimeException();
     }
 
-    prepareBlockStore();
+    try {
+      prepareBlockStore();
+    } catch (Exception e) {
+      throw e;
+    }
 
-    mPagedBlockStore.commitBlock(mSessionId, mBlockId, false);
+    mPagedBlockStore.commitBlock(SESSION_ID, BLOCK_ID, false);
     verify(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
     verify(mListener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
   }
@@ -155,12 +159,12 @@ public class PagedBlockStoreCommitBlockTest {
   // This Test case success commitToMaster, expecting one exception,
 
   @Test
-  public void LocalCommitFailAndMasterCommitSuccess() {
+  public void localCommitFailAndMasterCommitSuccess() throws IOException, InterruptedException {
     try {
       mPageMetaStore = new PagedBlockMetaStore(mDirs) {
           // here commit always throw Exception
           @Override
-          public PagedBlockMeta commit(long mBlockId) {
+          public PagedBlockMeta commit(long BLOCK_ID) {
               throw new RuntimeException();
           }
       };
@@ -172,10 +176,14 @@ public class PagedBlockStoreCommitBlockTest {
       throw new RuntimeException();
     }
 
-    prepareBlockStore();
+    try {
+      prepareBlockStore();
+    } catch (Exception e) {
+      throw e;
+    }
 
     assertThrows(RuntimeException.class, () -> {
-      mPagedBlockStore.commitBlock(mSessionId, mBlockId, false);
+      mPagedBlockStore.commitBlock(SESSION_ID, BLOCK_ID, false);
     });
 
     verify(mListener, never()).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
@@ -184,14 +192,14 @@ public class PagedBlockStoreCommitBlockTest {
     try {
       mPagedBlockStore.close();
     } catch (Exception e) {
-      System.out.println(e);
+      throw e;
     }
   }
 
   // This Test case success commitToLocal, expecting one exception,
   // and only one onCommit method should be called.
   @Test
-  public void LocalCommitSuccessAndMasterCommitFail() {
+  public void localCommitSuccessAndMasterCommitFail() throws IOException, InterruptedException {
     try {
       doAnswer((i) -> {
         throw new AlluxioStatusException(Status.UNAVAILABLE);
@@ -204,8 +212,8 @@ public class PagedBlockStoreCommitBlockTest {
       mPageMetaStore = new PagedBlockMetaStore(mDirs) {
         // here commit always success
         @Override
-        public PagedBlockMeta commit(long mBlockId) {
-          return super.commit(mBlockId);
+        public PagedBlockMeta commit(long BLOCK_ID) {
+          return super.commit(BLOCK_ID);
         }
       };
       mCacheManager = CacheManager.Factory.create(mConf, mCacheManagerOptions, mPageMetaStore);
@@ -216,32 +224,36 @@ public class PagedBlockStoreCommitBlockTest {
       throw new RuntimeException();
     }
 
-    prepareBlockStore();
+    try {
+      prepareBlockStore();
+    } catch (Exception e) {
+      throw e;
+    }
 
     assertThrows(RuntimeException.class, () -> {
-      mPagedBlockStore.commitBlock(mSessionId, mBlockId, false);
+      mPagedBlockStore.commitBlock(SESSION_ID, BLOCK_ID, false);
     });
     verify(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
     verify(mListener, never()).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
   }
 
   // Prepare PageBlockStore and creat a temp block for following test
-  public void prepareBlockStore() {
+  public void prepareBlockStore() throws IOException, InterruptedException {
     PagedBlockStoreDir dir =
-            (PagedBlockStoreDir) mPageMetaStore.allocate(BlockPageId.tempFileIdOf(mBlockId), 1);
+            (PagedBlockStoreDir) mPageMetaStore.allocate(BlockPageId.tempFileIdOf(BLOCK_ID), 1);
 
-    dir.putTempFile(BlockPageId.tempFileIdOf(mBlockId));
-    PagedTempBlockMeta blockMeta = new PagedTempBlockMeta(mBlockId, dir);
-    mPagedBlockStore.createBlock(mSessionId, mBlockId, OFFSET,
+    dir.putTempFile(BlockPageId.tempFileIdOf(BLOCK_ID));
+    PagedTempBlockMeta blockMeta = new PagedTempBlockMeta(BLOCK_ID, dir);
+    mPagedBlockStore.createBlock(SESSION_ID, BLOCK_ID, OFFSET,
              new CreateBlockOptions(null, null, mBlockSize));
     byte[] data = new byte[mBlockSize];
     Arrays.fill(data, (byte) 1);
     ByteBuffer buf = ByteBuffer.wrap(data);
-    try (BlockWriter writer = mPagedBlockStore.createBlockWriter(mSessionId, mBlockId)) {
+    try (BlockWriter writer = mPagedBlockStore.createBlockWriter(SESSION_ID, BLOCK_ID)) {
       Thread.sleep(1000);
       writer.append(buf);
     } catch (Exception e) {
-      System.out.println(e);
+      throw e;
     }
 
     mPagedBlockStore.registerBlockStoreEventListener(mListener);
