@@ -12,6 +12,7 @@
 package alluxio.util.network;
 
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.network.ChannelType;
 import alluxio.util.ThreadFactoryUtils;
@@ -30,6 +31,7 @@ import io.netty.channel.epoll.EpollServerDomainSocketChannel;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
@@ -44,6 +46,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class NettyUtils {
   private static final Logger LOG = LoggerFactory.getLogger(NettyUtils.class);
+
+  public static final ChannelType CHANNEL_TYPE = getChannelType();
 
   private static Boolean sNettyEpollAvailable = null;
 
@@ -78,13 +82,12 @@ public final class NettyUtils {
    * Returns the correct {@link io.netty.channel.socket.ServerSocketChannel} class for use by the
    * worker.
    *
+   * @param workerChannelType worker channel type
    * @param isDomainSocket whether this is a domain socket server
-   * @param conf Alluxio configuration
    * @return ServerSocketChannel matching the requirements
    */
-  public static Class<? extends ServerChannel> getServerChannelClass(boolean isDomainSocket,
-      AlluxioConfiguration conf) {
-    ChannelType workerChannelType = getWorkerChannel(conf);
+  public static Class<? extends ServerChannel> getServerChannelClass(ChannelType workerChannelType,
+                                                                     boolean isDomainSocket) {
     if (isDomainSocket) {
       Preconditions.checkState(workerChannelType == ChannelType.EPOLL,
           "Domain sockets are only supported with EPOLL channel type.");
@@ -98,6 +101,20 @@ public final class NettyUtils {
       default:
         throw new IllegalArgumentException("Unknown io type: " + workerChannelType);
     }
+  }
+
+  /**
+   * Returns the correct {@link io.netty.channel.socket.ServerSocketChannel} class for use by the
+   * worker.
+   *
+   * @param isDomainSocket whether this is a domain socket server
+   * @param conf Alluxio configuration
+   * @return ServerSocketChannel matching the requirements
+   */
+  public static Class<? extends ServerChannel> getServerChannelClass(boolean isDomainSocket,
+      AlluxioConfiguration conf) {
+    ChannelType workerChannelType = getWorkerChannel(conf);
+    return getServerChannelClass(workerChannelType, isDomainSocket);
   }
 
   /**
@@ -115,6 +132,27 @@ public final class NettyUtils {
     } else {
       return workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName(conf));
     }
+  }
+
+  /**
+   * Enables auto read for a netty channel.
+   *
+   * @param channel the netty channel
+   */
+  public static void enableAutoRead(Channel channel) {
+    if (!channel.config().isAutoRead()) {
+      channel.config().setAutoRead(true);
+      channel.read();
+    }
+  }
+
+  /**
+   * Disables auto read for a netty channel.
+   *
+   * @param channel the netty channel
+   */
+  public static void disableAutoRead(Channel channel) {
+    channel.config().setAutoRead(false);
   }
 
   /**
@@ -172,6 +210,17 @@ public final class NettyUtils {
   }
 
   /**
+   * Returns the correct {@link SocketChannel} class based on {@link ChannelType}.
+   *
+   * @param isDomainSocket whether this is to connect to a domain socket server
+   * @return Channel matching the requirements
+   */
+  public static Class<? extends Channel> getClientChannelClass(boolean isDomainSocket) {
+    return getChannelClass(isDomainSocket, PropertyKey.USER_NETWORK_NETTY_CHANNEL,
+        Configuration.global());
+  }
+
+  /**
    * Get the proper channel class.
    * Always returns {@link NioSocketChannel} NIO if EPOLL is not available.
    *
@@ -196,6 +245,17 @@ public final class NettyUtils {
       default:
         throw new IllegalArgumentException("Unknown io type: " + channelType);
     }
+  }
+
+  /**
+   * Note: Packet streaming requires {@link io.netty.channel.epoll.EpollMode} to be set to
+   * LEVEL_TRIGGERED which is not supported in netty versions < 4.0.26.Final. Without shading
+   * netty in Alluxio, we cannot use epoll.
+   *
+   * @return {@link ChannelType} to use
+   */
+  private static ChannelType getChannelType() {
+    return getChannelType(PropertyKey.USER_NETWORK_NETTY_CHANNEL, Configuration.global());
   }
 
   /**

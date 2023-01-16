@@ -62,6 +62,8 @@ public interface DataWriter extends Closeable, Cancelable {
       boolean ufsFallbackEnabled = options.getWriteType() == WriteType.ASYNC_THROUGH
           && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED);
       boolean workerIsLocal = CommonUtils.isLocalHost(address, alluxioConf);
+      boolean nettyTransEnabled =
+          alluxioConf.getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
 
       if (workerIsLocal && context.hasProcessLocalWorker() && !ufsFallbackEnabled) {
         LOG.debug("Creating worker process local output stream for block {} @ {}",
@@ -84,16 +86,28 @@ public interface DataWriter extends Closeable, Cancelable {
         }
         LOG.debug("Creating short circuit output stream for block {} @ {}", blockId, address);
         return LocalFileDataWriter.create(context, address, blockId, blockSize, options);
-      } else {
-        LOG.debug("Creating gRPC output stream for block {} @ {} from client {} "
-            + "(data locates in local worker: {}, shortCircuitEnabled: {}, "
-            + "shortCircuitPreferred: {}, domainSocketSupported: {})",
+      }
+
+      if (nettyTransEnabled) {
+        LOG.debug("Creating netty output stream for block {} @ {} from client {} "
+                + "(data locates in local worker: {}, shortCircuitEnabled: {}, "
+                + "shortCircuitPreferred: {}, domainSocketSupported: {})",
             blockId, address, NetworkAddressUtils.getClientHostName(alluxioConf),
             workerIsLocal, shortCircuit, shortCircuitPreferred, domainSocketSupported);
-        return GrpcDataWriter
+        // TODO(JiamingMai): implement the netty writer here
+        return NettyDataWriter
             .create(context, address, blockId, blockSize, RequestType.ALLUXIO_BLOCK,
                 options);
       }
+
+      LOG.debug("Creating gRPC output stream for block {} @ {} from client {} "
+          + "(data locates in local worker: {}, shortCircuitEnabled: {}, "
+          + "shortCircuitPreferred: {}, domainSocketSupported: {})",
+          blockId, address, NetworkAddressUtils.getClientHostName(alluxioConf),
+          workerIsLocal, shortCircuit, shortCircuitPreferred, domainSocketSupported);
+      return GrpcDataWriter
+          .create(context, address, blockId, blockSize, RequestType.ALLUXIO_BLOCK,
+              options);
     }
   }
 

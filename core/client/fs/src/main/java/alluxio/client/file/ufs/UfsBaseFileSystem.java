@@ -212,11 +212,7 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options) {
-    return callWithReturn(() -> {
-      String ufsPath = path.getPath();
-      return transformStatus(mUfs.get().isFile(ufsPath)
-          ? mUfs.get().getFileStatus(ufsPath) : mUfs.get().getDirectoryStatus(ufsPath));
-    });
+    return callWithReturn(() -> transformStatus(mUfs.get().getStatus(path.getPath())));
   }
 
   @Override

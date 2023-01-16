@@ -94,7 +94,8 @@ public class AlluxioJnrFuseFileSystemTest {
       new ConfigurationRule(ImmutableMap.of(PropertyKey.FUSE_CACHED_PATHS_MAX, 0,
           PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true,
           PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, TEST_ROOT_PATH,
-          PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT), mConf);
+          PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT,
+          PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 0), mConf);
 
   @Before
   public void before() throws Exception {

@@ -106,6 +106,7 @@ public abstract class AbstractFuseIntegrationTest {
 
   @Before
   public void before() throws Exception {
+    Configuration.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 0);
     String clusterName =
         IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName());
     mMountPoint = AlluxioTestDirectory.createTemporaryDirectory(clusterName).getAbsolutePath();

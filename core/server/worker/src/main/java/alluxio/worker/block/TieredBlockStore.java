@@ -881,6 +881,16 @@ public class TieredBlockStore implements LocalBlockStore {
     }
   }
 
+  @Override
+  public BlockMetadataManager getMetadataManager() {
+    return mMetaManager;
+  }
+
+  @Override
+  public BlockLockManager getLockManager() {
+    return mLockManager;
+  }
+
   /**
    * Removes a storage directory.
    *

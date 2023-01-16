@@ -24,9 +24,9 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.NoopUfsManager;
+import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.BufferUtils;
-import alluxio.worker.block.UfsInputStreamCache;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -43,6 +43,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -236,6 +237,28 @@ public class PagedBlockReaderTest {
     buffer.flip();
     assertTrue(BufferUtils.equalIncreasingByteBuffer(
         (byte) (mOffset % CARDINALITY_BYTE), buffer.remaining(), buffer));
+  }
+
+  @Test
+  public void channelRead() throws Exception {
+    ReadableByteChannel channel = mReader.getChannel();
+    int headerSize = 1;
+    int trailerSize = 4;
+    ByteBuffer buffer =
+        ByteBuffer.allocate((int) (BLOCK_SIZE - mOffset) + headerSize + trailerSize);
+    buffer.clear();
+    buffer.put((byte) 0x42); // fill with some data so that position starts with non-zero
+    if (BLOCK_SIZE == mOffset) {
+      assertEquals(-1, channel.read(buffer));
+      assertEquals(headerSize, buffer.position());
+    } else {
+      assertEquals(BLOCK_SIZE - mOffset, channel.read(buffer));
+      assertEquals(headerSize + BLOCK_SIZE - mOffset, buffer.position());
+      buffer.flip();
+      assertEquals((byte) 0x42, buffer.get());
+      assertTrue(BufferUtils.equalIncreasingByteBuffer(
+          (byte) (mOffset % CARDINALITY_BYTE), buffer.remaining(), buffer.slice()));
+    }
   }
 
   private static UfsBlockReadOptions createUfsBlockOptions(String ufsPath) {

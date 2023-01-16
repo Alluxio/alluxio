@@ -24,6 +24,7 @@ import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.metrics.MetricsHeartbeatContext;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ReconfigurableRegistry;
 import alluxio.conf.path.SpecificPathConfiguration;
@@ -34,12 +35,15 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.netty.NettyChannelPool;
+import alluxio.network.netty.NettyClient;
 import alluxio.refresh.RefreshPolicy;
 import alluxio.refresh.TimeoutRefresh;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.security.authentication.AuthenticationUtils;
 import alluxio.security.user.UserState;
+import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
@@ -50,6 +54,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,6 +119,10 @@ public class FileSystemContext implements Closeable {
    * in the context like clients and thread pools.
    */
   private final AtomicBoolean mClosed = new AtomicBoolean(false);
+
+  // The netty data server channel pools.
+  private final ConcurrentHashMap<SocketAddress, NettyChannelPool>
+      mNettyChannelPools = new ConcurrentHashMap<>();
 
   @GuardedBy("this")
   private boolean mMetricsEnabled;
@@ -521,6 +531,49 @@ public class FileSystemContext implements Closeable {
   public CloseableResource<BlockMasterClient> acquireBlockMasterClientResource() {
     try (ReinitBlockerResource r = blockReinit()) {
       return acquireClosableClientResource(mBlockMasterClientPool);
+    }
+  }
+
+  /**
+   * Acquires a netty channel from the channel pools. If there is no available client instance
+   * available in the pool, it tries to create a new one. And an exception is thrown if it fails to
+   * create a new one.
+   *
+   * @param workerNetAddress the network address of the channel
+   * @return the acquired netty channel
+   */
+  public Channel acquireNettyChannel(final WorkerNetAddress workerNetAddress) throws IOException {
+    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
+        Configuration.global());
+    if (!mNettyChannelPools.containsKey(address)) {
+      Bootstrap bs = NettyClient.createClientBootstrap(address);
+      bs.remoteAddress(address);
+      NettyChannelPool pool = new NettyChannelPool(bs,
+          Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
+          Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS));
+      if (mNettyChannelPools.putIfAbsent(address, pool) != null) {
+        // This can happen if this function is called concurrently.
+        pool.close();
+      }
+    }
+    return mNettyChannelPools.get(address).acquire();
+  }
+
+  /**
+   * Releases a netty channel to the channel pools.
+   *
+   * @param workerNetAddress the address of the channel
+   * @param channel the channel to release
+   */
+  public void releaseNettyChannel(WorkerNetAddress workerNetAddress, Channel channel) {
+    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
+        Configuration.global());
+    if (mNettyChannelPools.containsKey(address)) {
+      mNettyChannelPools.get(address).release(channel);
+    } else {
+      LOG.warn("No channel pool for address {}, closing channel instead. Context is closed: {}",
+          address, mClosed.get());
+      CommonUtils.closeChannel(channel);
     }
   }
 

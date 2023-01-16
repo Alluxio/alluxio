@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
@@ -38,6 +39,14 @@ public final class FileSystemUtils {
 
   // prevent instantiation
   private FileSystemUtils() {}
+
+  /**
+   * @param conf the configuration to get info from
+   * @return whether metadata cache is enabled in the given configuration
+   */
+  public static boolean metadataEnabled(AlluxioConfiguration conf) {
+    return !(conf.getInt(PropertyKey.USER_METADATA_CACHE_MAX_SIZE) == 0);
+  }
 
   /**
    * Shortcut for {@code waitCompleted(fs, uri, -1, TimeUnit.MILLISECONDS)}, i.e., wait for an

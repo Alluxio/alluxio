@@ -2411,6 +2411,14 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+
+  public static final MetricKey NETTY_CHANNEL_COUNT =
+      new Builder("Netty.NettyChannelCount")
+          .setDescription("Number of instances in the NettyChannelPool.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+
   public static final MetricKey CLIENT_DEFAULT_HIVE_CLIENT_COUNT =
       new Builder("Client.DefaultHiveClientCount")
           .setDescription("Number of instances in the DefaultHiveClientPool.")

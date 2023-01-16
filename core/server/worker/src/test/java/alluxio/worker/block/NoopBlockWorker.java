@@ -12,6 +12,10 @@
 package alluxio.worker.block;
 
 import alluxio.Server;
+import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.InvalidWorkerStateException;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
@@ -160,6 +164,77 @@ public class NoopBlockWorker implements BlockWorker {
   @Override
   public BlockStore getBlockStore() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public BlockReader readBlockRemote(long sessionId, long blockId, long lockId)
+      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
+    return null;
+  }
+
+  @Override
+  public boolean openUfsBlock(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
+      throws BlockAlreadyExistsException {
+    return false;
+  }
+
+  @Override
+  public void closeUfsBlock(long sessionId, long blockId)
+      throws BlockAlreadyExistsException, BlockDoesNotExistException, IOException,
+      WorkerOutOfSpaceException {
+  }
+
+  @Override
+  public void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
+  }
+
+  @Override
+  public void moveBlock(long sessionId, long blockId, String tierAlias)
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      WorkerOutOfSpaceException, IOException {
+  }
+
+  @Override
+  public String readBlock(long sessionId, long blockId, long lockId)
+      throws BlockDoesNotExistException, InvalidWorkerStateException {
+    return null;
+  }
+
+  @Override
+  public void unlockBlock(long lockId) throws BlockDoesNotExistException {
+  }
+
+  @Override
+  public boolean unlockBlock(long sessionId, long blockId) {
+    return false;
+  }
+
+  @Override
+  public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
+    return 0;
+  }
+
+  @Override
+  public long lockBlockNoException(long sessionId, long blockId) {
+    return 0;
+  }
+
+  @Override
+  public void createBlockRemote(long sessionId, long blockId, String tierAlias, long initialBytes)
+      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
+  }
+
+  @Override
+  public BlockReader readUfsBlock(long sessionId, long blockId, long offset)
+      throws BlockDoesNotExistException, IOException {
+    return null;
+  }
+
+  @Override
+  public BlockWriter getTempBlockWriterRemote(long sessionId, long blockId)
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      IOException {
+    return null;
   }
 
   @Override

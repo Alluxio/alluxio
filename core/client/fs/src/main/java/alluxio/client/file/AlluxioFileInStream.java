@@ -19,6 +19,7 @@ import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
@@ -26,11 +27,15 @@ import alluxio.exception.status.OutOfRangeException;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.network.netty.NettyRPC;
+import alluxio.network.netty.NettyRPCContext;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptionsUtils;
+import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerNetAddress;
@@ -40,6 +45,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.io.Closer;
 import io.grpc.StatusRuntimeException;
+import io.netty.channel.Channel;
 import io.netty.util.internal.OutOfDirectMemoryError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -424,8 +430,56 @@ public class AlluxioFileInStream extends FileInStream {
           || blockSource == BlockInStream.BlockInStreamSource.PROCESS_LOCAL) {
         return;
       }
-      triggerAsyncCaching(stream);
+      // trigger async caching
+      boolean nettyTransEnabled =
+          Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
+      if (nettyTransEnabled) {
+        triggerNettyAsyncCaching(stream);
+      } else {
+        triggerAsyncCaching(stream);
+      }
     }
+  }
+
+  @VisibleForTesting
+  boolean triggerNettyAsyncCaching(BlockInStream stream) throws IOException {
+    // Send an async cache request to a worker based on read type and passive cache options.
+    WorkerNetAddress dataSource = stream.getAddress();
+    boolean cache = ReadType.fromProto(mOptions.getOptions().getReadType()).isCache();
+    boolean passiveCache = Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
+    long channelTimeout = Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
+    if (cache) {
+      WorkerNetAddress worker;
+      if (passiveCache && mContext.hasNodeLocalWorker()) { // send request to local worker
+        worker = mContext.getNodeLocalWorker();
+      } else { // send request to data source
+        worker = dataSource;
+      }
+      long blockId = stream.getId();
+      try {
+        // Construct the async cache request
+        long blockLength = mOptions.getBlockInfo(blockId).getLength();
+        Protocol.AsyncCacheRequest request =
+            Protocol.AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+                .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
+                .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
+                .build();
+        Channel channel = mContext.acquireNettyChannel(worker);
+        try {
+          NettyRPCContext rpcContext =
+              NettyRPCContext.defaults().setChannel(channel).setTimeout(channelTimeout);
+          NettyRPC.fireAndForget(rpcContext, new ProtoMessage(request));
+          return true;
+        } finally {
+          mContext.releaseNettyChannel(worker, channel);
+        }
+      } catch (Exception e) {
+        LOG.warn("Failed to complete async cache request for block {} at worker {}: {}", blockId,
+            worker, e.getMessage());
+        return false;
+      }
+    }
+    return true;
   }
 
   // Send an async cache request to a worker based on read type and passive cache options.

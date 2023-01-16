@@ -14,11 +14,12 @@ package alluxio.worker.page;
 import alluxio.conf.PropertyKey;
 import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.resource.CloseableResource;
+import alluxio.underfs.FileId;
+import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
-import alluxio.worker.block.UfsInputStreamCache;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
 
@@ -263,7 +264,7 @@ public class PagedUfsBlockReader extends BlockReader {
               mUfsInStream = mUfsInStreamCache.acquire(
                   ufsResource.get(),
                   mUfsBlockOptions.getUfsPath(),
-                  IdUtils.fileIdFromBlockId(mBlockMeta.getBlockId()),
+                  FileId.of(IdUtils.fileIdFromBlockId(mBlockMeta.getBlockId())),
                   OpenOptions.defaults()
                       .setOffset(mUfsBlockOptions.getOffsetInFile() + mOffset)
                       .setPositionShort(true));

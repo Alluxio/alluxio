@@ -36,6 +36,8 @@ public final class WorkerNetAddress implements Serializable {
   private String mContainerHost = "";
   private int mRpcPort;
   private int mDataPort;
+
+  private int mNettyDataPort;
   private int mWebPort;
   private String mDomainSocketPath = "";
   private TieredIdentity mTieredIdentity;
@@ -76,6 +78,14 @@ public final class WorkerNetAddress implements Serializable {
   @ApiModelProperty(value = "Port of the worker's server for data operations")
   public int getDataPort() {
     return mDataPort;
+  }
+
+  /**
+   * @return the netty data port
+   */
+  @ApiModelProperty(value = "Port of the worker's server for netty data operations")
+  public int getNettyDataPort() {
+    return mNettyDataPort;
   }
 
   /**
@@ -140,6 +150,15 @@ public final class WorkerNetAddress implements Serializable {
    */
   public WorkerNetAddress setDataPort(int dataPort) {
     mDataPort = dataPort;
+    return this;
+  }
+
+  /**
+   * @param nettyDataPort the netty data port to use
+   * @return the worker net address
+   */
+  public WorkerNetAddress setNettyDataPort(int nettyDataPort) {
+    mNettyDataPort = nettyDataPort;
     return this;
   }
 

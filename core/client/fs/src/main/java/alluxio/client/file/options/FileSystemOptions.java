@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.client.file.FileSystemUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 
@@ -24,6 +25,7 @@ import java.util.Optional;
 public class FileSystemOptions {
   private final boolean mMetadataCacheEnabled;
   private final boolean mDataCacheEnabled;
+  private final boolean mDoraCacheEnabled;
   private final Optional<UfsFileSystemOptions> mUfsFileSystemOptions;
 
   /**
@@ -33,6 +35,10 @@ public class FileSystemOptions {
    * @return the file system options
    */
   public static FileSystemOptions create(AlluxioConfiguration conf) {
+    if (conf.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED)) {
+      return create(conf,
+          Optional.of(new UfsFileSystemOptions(conf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT))));
+    }
     return create(conf, Optional.empty());
   }
 
@@ -45,8 +51,9 @@ public class FileSystemOptions {
    */
   public static FileSystemOptions create(AlluxioConfiguration conf,
       Optional<UfsFileSystemOptions> ufsOptions) {
-    return new FileSystemOptions(conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED),
+    return new FileSystemOptions(FileSystemUtils.metadataEnabled(conf),
         conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED),
+        conf.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED),
         ufsOptions);
   }
 
@@ -55,13 +62,17 @@ public class FileSystemOptions {
    *
    * @param metadataCacheEnabled whether metadata cache is enabled
    * @param dataCacheEnabled whether data cache is enabled
+   * @param doraCacheEnabled whether dora cache is enabled
    * @param ufsFileSystemOptions the ufs file system options
    */
-  private FileSystemOptions(boolean metadataCacheEnabled, boolean dataCacheEnabled,
+  private FileSystemOptions(boolean metadataCacheEnabled,
+      boolean dataCacheEnabled,
+      boolean doraCacheEnabled,
       Optional<UfsFileSystemOptions> ufsFileSystemOptions) {
     mUfsFileSystemOptions = Preconditions.checkNotNull(ufsFileSystemOptions);
     mMetadataCacheEnabled = metadataCacheEnabled;
     mDataCacheEnabled = dataCacheEnabled;
+    mDoraCacheEnabled = doraCacheEnabled;
   }
 
   /**
@@ -83,6 +94,13 @@ public class FileSystemOptions {
    */
   public boolean isDataCacheEnabled() {
     return mDataCacheEnabled;
+  }
+
+  /**
+   * @return true if dora cache is enabled, false otherwise
+   */
+  public boolean isDoraCacheEnabled() {
+    return mDoraCacheEnabled;
   }
 }
 

@@ -246,4 +246,18 @@ public interface LocalBlockStore
    * Remove Storage directories that are no longer accessible.
    */
   void removeInaccessibleStorage();
+
+  /**
+   * Get {@link BlockMetadataManager}.
+   *
+   * @return BlockMetadataManager
+   */
+  BlockMetadataManager getMetadataManager();
+
+  /**
+   * Get {@link BlockLockManager}.
+   *
+   * @return BlockLockManager
+   */
+  BlockLockManager getLockManager();
 }
