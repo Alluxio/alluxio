@@ -51,8 +51,8 @@ public class MonoBlockStoreCommitBlockTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
-  final Long mSessionId = 1L;
-  final Long mBlockId = 2L;
+  private static final Long SESSION_ID = 1L;
+  private static final Long BLOCK_ID = 2L;
   // Maybe location should be asserted as well.
   BlockStoreEventListener mListener;
 
@@ -72,43 +72,51 @@ public class MonoBlockStoreCommitBlockTest {
 
     mListener = mock(BlockStoreEventListener.class);
     doAnswer((i) -> {
-      assertEquals(2L, i.getArguments()[0]);
+      assertEquals(BLOCK_ID, i.getArguments()[0]);
       return 0;
     }).when(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
     doAnswer((i) -> {
-      assertEquals(2L, i.getArguments()[0]);
+      assertEquals(BLOCK_ID, i.getArguments()[0]);
       return 0;
     }).when(mListener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
   }
 
   @Test
-  public void CommitLocalandCommitMasterBothSuccess() {
+  public void commitLocalandCommitMasterBothSuccess() throws Exception {
     mTieredBlockStore = new TieredBlockStore(mBlockMetadataManager, mBlockLockManager);
 
-    prepareBlockStore();
+    try {
+      prepareBlockStore();
+    } catch (Exception e) {
+      throw e;
+    }
 
-    mMonoBlockStore.commitBlock(mSessionId, mBlockId, false);
+    mMonoBlockStore.commitBlock(SESSION_ID, BLOCK_ID, false);
 
     verify(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
     verify(mListener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
   }
 
   @Test
-  public void CommitLocalSuccessandCommitMasterFail() {
+  public void commitLocalSuccessandCommitMasterFail() throws Exception {
     try {
       doAnswer((i) -> {
         throw new AlluxioStatusException(Status.UNAVAILABLE);
       }).when(mMockedBlockMasterClient).commitBlock(anyLong(), anyLong(), anyString(),
               anyString(), anyLong(), anyLong());
     } catch (Exception e) {
-      System.out.println(e);
+      throw e;
     }
     mTieredBlockStore = new TieredBlockStore(mBlockMetadataManager, mBlockLockManager);
 
-    prepareBlockStore();
+    try {
+      prepareBlockStore();
+    } catch (Exception e) {
+      throw e;
+    }
 
     assertThrows(RuntimeException.class, () -> {
-      mMonoBlockStore.commitBlock(mSessionId, mBlockId, false);
+      mMonoBlockStore.commitBlock(SESSION_ID, BLOCK_ID, false);
     });
 
     verify(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
@@ -116,39 +124,43 @@ public class MonoBlockStoreCommitBlockTest {
   }
 
   @Test
-  public void CommitLocalFailandCommitMasterSuccess() {
+  public void commitLocalFailandCommitMasterSuccess() throws Exception {
     mTieredBlockStore = spy(new TieredBlockStore(mBlockMetadataManager, mBlockLockManager));
     doAnswer((i) -> {
       throw new RuntimeException();
     }).when(mTieredBlockStore).commitBlockInternal(anyLong(), anyLong(), anyBoolean());
 
-    prepareBlockStore();
+    try {
+      prepareBlockStore();
+    } catch (Exception e) {
+      throw e;
+    }
 
     assertThrows(RuntimeException.class, () -> {
-      mMonoBlockStore.commitBlock(mSessionId, mBlockId, false);
+      mMonoBlockStore.commitBlock(SESSION_ID, BLOCK_ID, false);
     });
 
     verify(mListener, never()).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
     verify(mListener, never()).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
   }
 
-  public void prepareBlockStore() {
+  public void prepareBlockStore() throws Exception {
     mMonoBlockStore = new MonoBlockStore(mTieredBlockStore, mMockedBlockMasterClientPool,
              mock(UfsManager.class), new AtomicReference<>(1L));
 
     try {
-      TieredBlockStoreTestUtils.createTempBlock(mSessionId, mBlockId, 64, mTestDir1);
+      TieredBlockStoreTestUtils.createTempBlock(SESSION_ID, BLOCK_ID, 64, mTestDir1);
     } catch (Exception e) {
-      System.out.println("createTempBlockExceptiona: " + e);
+      throw e;
     }
 
     byte[] data = new byte[64];
     Arrays.fill(data, (byte) 1);
     ByteBuffer buf = ByteBuffer.wrap(data);
-    try (BlockWriter writer = mMonoBlockStore.createBlockWriter(mSessionId, mBlockId)) {
+    try (BlockWriter writer = mMonoBlockStore.createBlockWriter(SESSION_ID, BLOCK_ID)) {
       writer.append(buf);
     } catch (Exception e) {
-      System.out.println(e);
+      throw e;
     }
     mMonoBlockStore.registerBlockStoreEventListener(mListener);
   }
