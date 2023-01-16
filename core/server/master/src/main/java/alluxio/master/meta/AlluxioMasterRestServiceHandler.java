@@ -41,6 +41,7 @@ import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.throttle.SystemMonitor.SystemStatus;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -373,6 +374,14 @@ public final class AlluxioMasterRestServiceHandler {
       if (leaderIdGauge != null) {
         response.setLeaderId((String) leaderIdGauge.getValue());
       }
+      // Add master system status
+      Gauge systemStatusGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
+              .get("Master.system.status");
+      if (systemStatusGauge != null) {
+        SystemStatus systemStatus = (SystemStatus) systemStatusGauge.getValue();
+        response.setSystemStatus(systemStatus.toString());
+      }
+
       return response;
     }, Configuration.global());
   }
