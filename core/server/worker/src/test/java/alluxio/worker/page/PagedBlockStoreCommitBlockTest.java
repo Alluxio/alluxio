@@ -39,7 +39,11 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.NoopUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
-import alluxio.worker.block.*;
+import alluxio.worker.block.BlockMasterClient;
+import alluxio.worker.block.BlockMasterClientPool;
+import alluxio.worker.block.BlockStoreEventListener;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.io.BlockWriter;
 
 import com.google.common.collect.ImmutableList;
