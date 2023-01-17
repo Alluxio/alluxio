@@ -33,6 +33,7 @@ import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.grpc.LoadProgressReportFormat;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -309,7 +310,7 @@ public abstract class AbstractAuthPolicyTest {
 
     @Override
     public String getLoadProgress(AlluxioURI path,
-        Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
+        Optional<LoadProgressReportFormat> format, boolean verbose) {
       throw new UnsupportedOperationException();
     }
 

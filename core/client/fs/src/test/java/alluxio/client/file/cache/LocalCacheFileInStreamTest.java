@@ -41,6 +41,7 @@ import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.grpc.LoadProgressReportFormat;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -81,6 +82,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiConsumer;
@@ -875,7 +877,7 @@ public class LocalCacheFileInStreamTest {
 
     @Override
     public String getLoadProgress(AlluxioURI path,
-        java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
+        Optional<LoadProgressReportFormat> format, boolean verbose) {
       throw new UnsupportedOperationException();
     }
 
