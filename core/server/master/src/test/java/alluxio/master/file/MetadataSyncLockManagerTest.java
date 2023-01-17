@@ -20,17 +20,16 @@ import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
-import alluxio.util.CommonUtils;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class MetadataSyncLockManagerTest {
   private MetadataSyncLockManager mMetadataSyncLockManager;
@@ -39,26 +38,44 @@ public class MetadataSyncLockManagerTest {
   public void setup() {
     Configuration.reloadProperties();
     Configuration.set(PropertyKey.MASTER_METADATA_SYNC_LOCK_POOL_INITSIZE, 0);
-    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_LOCK_POOL_LOW_WATERMARK, 0);
-    Configuration.set(PropertyKey.MASTER_METADATA_SYNC_LOCK_POOL_HIGH_WATERMARK, 0);
     mMetadataSyncLockManager = new MetadataSyncLockManager();
   }
 
+  boolean differentIdentitiesFromIdx(int from, List<String> list1, List<String> list2) {
+    if (list1.size() != list2.size()) {
+      return false;
+    }
+    for (int i = from; i < list1.size(); i++) {
+      if (list1.get(i).equals(list2.get(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   @Test
-  public void lookPoolGC()
-      throws IOException, InterruptedException, TimeoutException, InvalidPathException {
+  public void lockPoolGC()
+      throws IOException, InvalidPathException {
     MetadataSyncLockManager.MetadataSyncPathList locks1 =
         mMetadataSyncLockManager.lockPath(new AlluxioURI("/a/b/c/d"));
     assertEquals(5, mMetadataSyncLockManager.getLockPoolSize());
     MetadataSyncLockManager.MetadataSyncPathList locks2 =
         mMetadataSyncLockManager.lockPath(new AlluxioURI("/e"));
     assertEquals(6, mMetadataSyncLockManager.getLockPoolSize());
+    List<String> locks1Identities = locks1.getLockIdentities();
     locks1.close();
-    CommonUtils.waitFor("Unused locks should be recycled.",
-        () -> mMetadataSyncLockManager.getLockPoolSize() == 2);
+    locks1 = null;
+    System.gc();
+    // The locks should have been GC'd, except the first one which is the root lock
+    // which is still locked by lock2
+    assertTrue(differentIdentitiesFromIdx(1, locks1Identities, mMetadataSyncLockManager
+        .lockPath(new AlluxioURI("/a/b/c/d")).getLockIdentities()));
+    List<String> locks2Identities = locks2.getLockIdentities();
     locks2.close();
-    CommonUtils.waitFor("Unused locks should be recycled.",
-        () -> mMetadataSyncLockManager.getLockPoolSize() == 0);
+    locks2 = null;
+    System.gc();
+    assertTrue(differentIdentitiesFromIdx(0, locks2Identities, mMetadataSyncLockManager
+        .lockPath(new AlluxioURI("/e")).getLockIdentities()));
   }
 
   @Test

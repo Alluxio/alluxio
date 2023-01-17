@@ -48,21 +48,16 @@ public class InodeLockManager implements Closeable {
    * We use weak values so that when nothing holds a reference to
    * a lock, the garbage collector can remove the lock's entry from the pool.
    */
-  private final LockPool<Long> mInodeLocks =
-      new LockPool<>((key) -> new ReentrantReadWriteLock(),
-          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
-          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK),
-          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK),
-          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_CONCURRENCY_LEVEL));
+  private final LockPool<Long> mInodeLocks = new LockPool<>(
+      Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
+      Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_CONCURRENCY_LEVEL));
+
   /**
    * Cache for supplying edge locks, similar to mInodeLocks.
    */
-  private final LockPool<Edge> mEdgeLocks =
-      new LockPool<>((key) -> new ReentrantReadWriteLock(),
-          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
-          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK),
-          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK),
-          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_CONCURRENCY_LEVEL));
+  private final LockPool<Edge> mEdgeLocks = new LockPool<>(
+      Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
+      Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_CONCURRENCY_LEVEL));
 
   /**
    * Locks for guarding changes to last modified time and size on read-locked parent inodes.

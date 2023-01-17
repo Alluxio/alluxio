@@ -46,17 +46,15 @@ import org.junit.Test;
  */
 public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
-  private static final int LOCK_POOL_LOW_WATERMARK = 50;
-  private static final int LOCK_POOL_HIGH_WATERMARK = 100;
+  private static final int LOCK_POOL_INIT_SIZE = 100;
   private static final WaitForOptions WAIT_OPTIONS =
       WaitForOptions.defaults().setTimeoutMs(2000).setInterval(10);
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.MASTER_LOCK_POOL_INITSIZE, LOCK_POOL_INIT_SIZE)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
-          .setProperty(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK, LOCK_POOL_LOW_WATERMARK)
-          .setProperty(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK, LOCK_POOL_HIGH_WATERMARK)
           .setProperty(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL, "10h")
           .build();
 
@@ -135,13 +133,13 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
-   * Tests that deleting a directory with number of files larger than maximum lock cache size will
-   * not be blocked.
+   * Tests that deleting a directory with number of files larger than the initial lock pool
+   * pool size not be blocked.
    */
   @Test(timeout = 10000)
   public void deleteDir() throws Exception {
     String uniqPath = PathUtils.uniqPath();
-    for (int file = 0; file < 2 * LOCK_POOL_HIGH_WATERMARK; file++) {
+    for (int file = 0; file < 2 * LOCK_POOL_INIT_SIZE; file++) {
       AlluxioURI filePath = new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + file));
       mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder().setRecursive(true).build())
           .close();

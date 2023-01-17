@@ -20,13 +20,13 @@ import alluxio.exception.InvalidPathException;
 import alluxio.resource.LockResource;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -39,12 +39,9 @@ public class MetadataSyncLockManager {
    * We use weak values so that when nothing holds a reference to
    * a lock, the garbage collector can remove the lock's entry from the pool.
    */
-  private final LockPool<String> mLockPool =
-      new LockPool<>((key) -> new ReentrantReadWriteLock(),
-          Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_LOCK_POOL_INITSIZE),
-          Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_LOCK_POOL_LOW_WATERMARK),
-          Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_LOCK_POOL_HIGH_WATERMARK),
-          Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_LOCK_POOL_CONCURRENCY_LEVEL));
+  private final LockPool<String> mLockPool = new LockPool<>(
+      Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_LOCK_POOL_INITSIZE),
+      Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_LOCK_POOL_CONCURRENCY_LEVEL));
 
   /**
    * Acquire locks for a given path before metadata sync.
@@ -98,6 +95,19 @@ public class MetadataSyncLockManager {
 
     private void add(LockResource lockResource) {
       mLockResources.add(lockResource);
+    }
+
+    /**
+     * @return a list of the identities of the locks using
+     * {@link org.apache.commons.lang3.ObjectUtils#identityToString(Object)}
+     */
+    @VisibleForTesting
+    public List<String> getLockIdentities() {
+      ArrayList<String> items = new ArrayList<>();
+      for (LockResource nxt : mLockResources) {
+        items.add(nxt.getLockIdentity());
+      }
+      return items;
     }
 
     @Override
