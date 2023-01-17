@@ -166,7 +166,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
             context.setCounter(MetricsSystem.counter(metricName));
             mWorker.accessBlock(request.getSessionId(), request.getId());
             if (reader.getChannel() instanceof FileChannel) {
-                ((FileChannel) reader.getChannel()).position(request.getStart());
+              ((FileChannel) reader.getChannel()).position(request.getStart());
             }
             return;
           } catch (Exception e) {
