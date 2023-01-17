@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * {@link ObjectLowLevelOutputStream} implement for OSS.
@@ -86,7 +87,11 @@ public class OSSLowLevelOutputStream extends ObjectLowLevelOutputStream {
   }
 
   @Override
-  protected void uploadPartInternal(File file, int partNumber, boolean isLastPart, String md5)
+  protected void uploadPartInternal(
+      File file,
+      int partNumber,
+      boolean isLastPart,
+      @Nullable String md5)
       throws IOException {
     try {
       try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
@@ -148,7 +153,7 @@ public class OSSLowLevelOutputStream extends ObjectLowLevelOutputStream {
   }
 
   @Override
-  protected void putObject(String key, File file, String md5) throws IOException {
+  protected void putObject(String key, File file, @Nullable String md5) throws IOException {
     try {
       ObjectMetadata objMeta = new ObjectMetadata();
       if (md5 != null) {

@@ -30,8 +30,6 @@ import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.services.s3.model.UploadPartResult;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.Upload;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import org.junit.Assert;
@@ -69,7 +67,6 @@ public class S3ALowLevelOutputStreamTest {
   private ListenableFuture<PartETag> mMockTag;
 
   private S3ALowLevelOutputStream mStream;
-  private TransferManager mTransferManager;
 
   /**
    * Sets the properties and configuration before each test runs.
@@ -78,13 +75,9 @@ public class S3ALowLevelOutputStreamTest {
   public void before() throws Exception {
     mockS3ClientAndExecutor();
     mockFileAndOutputStream();
-    mTransferManager = Mockito.mock(TransferManager.class);
-    Upload result = Mockito.mock(Upload.class);
-    Mockito.when(mTransferManager.upload(Mockito.any(PutObjectRequest.class))).thenReturn(result);
 
     sConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE, PARTITION_SIZE);
-    mStream = new S3ALowLevelOutputStream(BUCKET_NAME, KEY, mMockS3Client, mTransferManager,
-        mMockExecutor, sConf);
+    mStream = new S3ALowLevelOutputStream(BUCKET_NAME, KEY, mMockS3Client, mMockExecutor, sConf);
   }
 
   @Test
@@ -94,7 +87,7 @@ public class S3ALowLevelOutputStreamTest {
     mStream.close();
     Mockito.verify(mMockOutputStream).write(new byte[] {1}, 0, 1);
     Mockito.verify(mMockExecutor, never()).submit(any(Callable.class));
-    Mockito.verify(mTransferManager).upload(any(PutObjectRequest.class));
+    Mockito.verify(mMockS3Client).putObject(any(PutObjectRequest.class));
     Mockito.verify(mMockS3Client, never())
         .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
     Mockito.verify(mMockS3Client, never())
@@ -111,7 +104,7 @@ public class S3ALowLevelOutputStreamTest {
 
     mStream.close();
     Mockito.verify(mMockExecutor, never()).submit(any(Callable.class));
-    Mockito.verify(mTransferManager).upload(any(PutObjectRequest.class));
+    Mockito.verify(mMockS3Client).putObject(any(PutObjectRequest.class));
     Mockito.verify(mMockS3Client, never())
         .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
     Mockito.verify(mMockS3Client, never())
@@ -141,12 +134,11 @@ public class S3ALowLevelOutputStreamTest {
   public void createEmptyFile() throws Exception {
     mStream.close();
     Mockito.verify(mMockExecutor, never()).submit(any(Callable.class));
-    Mockito.verify(mTransferManager, never()).upload(any(PutObjectRequest.class));
     Mockito.verify(mMockS3Client, never())
         .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
     Mockito.verify(mMockS3Client, never())
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
-    Mockito.verify(mMockS3Client).putObject(any());
+    Mockito.verify(mMockS3Client).putObject(any(PutObjectRequest.class));
   }
 
   @Test

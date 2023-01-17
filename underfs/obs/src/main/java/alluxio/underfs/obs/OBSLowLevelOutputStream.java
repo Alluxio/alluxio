@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * {@link ObjectLowLevelOutputStream} implement for OBS.
@@ -76,7 +77,11 @@ public class OBSLowLevelOutputStream extends ObjectLowLevelOutputStream {
   }
 
   @Override
-  protected void uploadPartInternal(File file, int partNumber, boolean isLastPart, String md5)
+  protected void uploadPartInternal(
+      File file,
+      int partNumber,
+      boolean isLastPart,
+      @Nullable String md5)
       throws IOException {
     try {
       final UploadPartRequest uploadRequest = new UploadPartRequest();
@@ -157,7 +162,7 @@ public class OBSLowLevelOutputStream extends ObjectLowLevelOutputStream {
   }
 
   @Override
-  protected void putObject(String key, File file, String md5) throws IOException {
+  protected void putObject(String key, File file, @Nullable String md5) throws IOException {
     try {
       ObjectMetadata meta = new ObjectMetadata();
       meta.setContentLength(file.length());

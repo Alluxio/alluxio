@@ -391,5 +391,5 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream {
 
   protected abstract void createEmptyObject(String key) throws IOException;
 
-  protected abstract void putObject(String key, File file, String md5) throws IOException;
+  protected abstract void putObject(String key, File file, @Nullable String md5) throws IOException;
 }

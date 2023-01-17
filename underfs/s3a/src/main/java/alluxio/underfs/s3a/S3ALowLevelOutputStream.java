@@ -25,7 +25,6 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.UploadPartRequest;
-import com.amazonaws.services.s3.transfer.TransferManager;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import org.slf4j.Logger;
@@ -37,6 +36,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -51,12 +51,10 @@ public class S3ALowLevelOutputStream extends ObjectLowLevelOutputStream {
   /** The Amazon S3 client to interact with S3. */
   private final AmazonS3 mClient;
   /** Tags for the uploaded part, provided by S3 after uploading. */
-  private final List<PartETag> mTags =
-      Collections.synchronizedList(new ArrayList<>());
+  private final List<PartETag> mTags = Collections.synchronizedList(new ArrayList<>());
 
   /** The upload id of this multipart upload. */
   protected volatile String mUploadId;
-  protected final TransferManager mManager;
 
   /**
    * Constructs a new stream for writing a file.
@@ -64,7 +62,6 @@ public class S3ALowLevelOutputStream extends ObjectLowLevelOutputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param s3Client the Amazon S3 client to upload the file with
-   * @param manager the transfer manager
    * @param executor a thread pool executor
    * @param ufsConf the object store under file system configuration
    */
@@ -72,18 +69,20 @@ public class S3ALowLevelOutputStream extends ObjectLowLevelOutputStream {
       String bucketName,
       String key,
       AmazonS3 s3Client,
-      TransferManager manager,
       ListeningExecutorService executor,
       AlluxioConfiguration ufsConf) {
     super(bucketName, key, executor,
         ufsConf.getBytes(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE), ufsConf);
     mClient = Preconditions.checkNotNull(s3Client);
-    mManager = manager;
     mSseEnabled = ufsConf.getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED);
   }
 
   @Override
-  protected void uploadPartInternal(File file, int partNumber, boolean isLastPart, String md5)
+  protected void uploadPartInternal(
+      File file,
+      int partNumber,
+      boolean isLastPart,
+      @Nullable String md5)
       throws IOException {
     try {
       final UploadPartRequest uploadRequest = new UploadPartRequest()
@@ -165,7 +164,7 @@ public class S3ALowLevelOutputStream extends ObjectLowLevelOutputStream {
   }
 
   @Override
-  protected void putObject(String key, File file, String md5) throws IOException {
+  protected void putObject(String key, File file, @Nullable String md5) throws IOException {
     try {
       ObjectMetadata meta = new ObjectMetadata();
       if (mSseEnabled) {
@@ -176,8 +175,9 @@ public class S3ALowLevelOutputStream extends ObjectLowLevelOutputStream {
       }
       meta.setContentLength(file.length());
       meta.setContentType(Mimetypes.MIMETYPE_OCTET_STREAM);
-      PutObjectRequest putReq = new PutObjectRequest(mBucketName, key, file).withMetadata(meta);
-      mManager.upload(putReq).waitForUploadResult();
+      PutObjectRequest putReq = new PutObjectRequest(mBucketName, key, file);
+      putReq.setMetadata(meta);
+      getClient().putObject(putReq);
     } catch (Exception e) {
       throw new IOException(e);
     }
