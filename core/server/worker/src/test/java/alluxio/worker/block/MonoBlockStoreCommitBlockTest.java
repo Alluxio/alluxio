@@ -96,11 +96,7 @@ public class MonoBlockStoreCommitBlockTest {
   public void commitLocalandCommitMasterBothSuccess() throws Exception {
     mTieredBlockStore = new TieredBlockStore(mBlockMetadataManager, mBlockLockManager);
 
-    try {
-      prepareBlockStore();
-    } catch (Exception e) {
-      throw e;
-    }
+    prepareBlockStore();
 
     mMonoBlockStore.commitBlock(SESSION_ID, BLOCK_ID, false);
 
@@ -110,21 +106,13 @@ public class MonoBlockStoreCommitBlockTest {
 
   @Test
   public void commitLocalSuccessandCommitMasterFail() throws Exception {
-    try {
-      doAnswer((i) -> {
-        throw new AlluxioStatusException(Status.UNAVAILABLE);
-      }).when(mMockedBlockMasterClient).commitBlock(anyLong(), anyLong(), anyString(),
-              anyString(), anyLong(), anyLong());
-    } catch (Exception e) {
-      throw e;
-    }
+    doAnswer((i) -> {
+      throw new AlluxioStatusException(Status.UNAVAILABLE);
+    }).when(mMockedBlockMasterClient).commitBlock(anyLong(), anyLong(), anyString(),
+            anyString(), anyLong(), anyLong());
     mTieredBlockStore = new TieredBlockStore(mBlockMetadataManager, mBlockLockManager);
 
-    try {
-      prepareBlockStore();
-    } catch (Exception e) {
-      throw e;
-    }
+    prepareBlockStore();
 
     assertThrows(RuntimeException.class, () -> {
       mMonoBlockStore.commitBlock(SESSION_ID, BLOCK_ID, false);
@@ -141,11 +129,7 @@ public class MonoBlockStoreCommitBlockTest {
       throw new RuntimeException();
     }).when(mTieredBlockStore).commitBlockInternal(anyLong(), anyLong(), anyBoolean());
 
-    try {
-      prepareBlockStore();
-    } catch (Exception e) {
-      throw e;
-    }
+    prepareBlockStore();
 
     assertThrows(RuntimeException.class, () -> {
       mMonoBlockStore.commitBlock(SESSION_ID, BLOCK_ID, false);
@@ -159,20 +143,13 @@ public class MonoBlockStoreCommitBlockTest {
     mMonoBlockStore = new MonoBlockStore(mTieredBlockStore, mMockedBlockMasterClientPool,
              mock(UfsManager.class), new AtomicReference<>(1L));
 
-    try {
-      TieredBlockStoreTestUtils.createTempBlock(SESSION_ID, BLOCK_ID, 64, mTestDir1);
-    } catch (Exception e) {
-      throw e;
-    }
+    TieredBlockStoreTestUtils.createTempBlock(SESSION_ID, BLOCK_ID, 64, mTestDir1);
 
     byte[] data = new byte[64];
     Arrays.fill(data, (byte) 1);
     ByteBuffer buf = ByteBuffer.wrap(data);
-    try (BlockWriter writer = mMonoBlockStore.createBlockWriter(SESSION_ID, BLOCK_ID)) {
-      writer.append(buf);
-    } catch (Exception e) {
-      throw e;
-    }
+    BlockWriter writer = mMonoBlockStore.createBlockWriter(SESSION_ID, BLOCK_ID);
+    writer.append(buf);
     mMonoBlockStore.registerBlockStoreEventListener(mListener);
   }
 }
