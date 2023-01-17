@@ -7366,7 +7366,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("/tmp")
           .setDescription("UFS root for dora client")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.CLIENT)
+          .setScope(Scope.ALL)
+          .build();
+
+  public static final PropertyKey DORA_UFS_FILE_STATUS_CACHE_SIZE =
+      intBuilder(Name.DORA_UFS_FILE_STATUS_CACHE_SIZE)
+          .setDefaultValue(100000)
+          .setDescription("The max size of the cache of UFS file status")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
+
+  public static final PropertyKey DORA_UFS_FILE_STATUS_CACHE_TTL =
+      durationBuilder(Name.DORA_UFS_FILE_STATUS_CACHE_TTL)
+          .setDefaultValue("10min")
+          .setDescription("The TTL of the cache of UFS file status")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
           .build();
 
   /**
@@ -8879,6 +8895,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.dora.client.read.location.policy.enabled";
 
     public static final String DORA_CLIENT_UFS_ROOT = "alluxio.dora.client.ufs.root";
+
+    public static final String DORA_UFS_FILE_STATUS_CACHE_SIZE =
+        "alluxio.dora.ufs.file.status.cache.size";
+
+    public static final String DORA_UFS_FILE_STATUS_CACHE_TTL =
+        "alluxio.dora.ufs.file.status.cache.ttl";
 
     private Name() {} // prevent instantiation
   }
