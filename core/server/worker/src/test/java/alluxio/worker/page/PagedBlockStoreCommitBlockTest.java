@@ -39,11 +39,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.NoopUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
-import alluxio.worker.block.BlockMasterClient;
-import alluxio.worker.block.BlockMasterClientPool;
-import alluxio.worker.block.BlockStoreEventListener;
-import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.CreateBlockOptions;
+import alluxio.worker.block.*;
 import alluxio.worker.block.io.BlockWriter;
 
 import com.google.common.collect.ImmutableList;
@@ -104,28 +100,24 @@ public class PagedBlockStoreCommitBlockTest {
                     new CacheEvictorOptions().setEvictorClass(FIFOCacheEvictor.class),
                     PageStoreOptions.createForWorkerPageStore(dirConf).get(DIR_INDEX));
 
-    try  {
-      mUfs = new NoopUfsManager();
-      mConf = Configuration.global();
-      cacheManagerConf.set(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, mPageSize);
-      cacheManagerConf.set(PropertyKey.WORKER_PAGE_STORE_DIRS, ImmutableList.of(dirPath));
+    mUfs = new NoopUfsManager();
+    mConf = Configuration.global();
+    cacheManagerConf.set(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, mPageSize);
+    cacheManagerConf.set(PropertyKey.WORKER_PAGE_STORE_DIRS, ImmutableList.of(dirPath));
 
-      // Here mock BlockMasterClientPool and BlockMasterClient since I have no idea
-      // about how to override them.
-      // mockedPool will return a mocked BlockMasterClient when require() is called,
-      // and do nothing when releasing, maybe add some action later on.
-      mBlockMasterClientPool = mock(BlockMasterClientPool.class);
-      mMockedBlockMasterClient = mock(BlockMasterClient.class);
-      when(mBlockMasterClientPool.acquire()).thenReturn(mMockedBlockMasterClient);
-      doNothing().when(mBlockMasterClientPool).release(any());
-      mWorkerId = new AtomicReference<>(-1L);
-      mCacheManagerOptions = CacheManagerOptions.createForWorker(cacheManagerConf);
-      pageStoreDirs = new ArrayList<PageStoreDir>();
-      pageStoreDirs.add(pageStoreDir);
-      mDirs = PagedBlockStoreDir.fromPageStoreDirs(pageStoreDirs);
-    } catch (Exception e) {
-      throw e;
-    }
+    // Here mock BlockMasterClientPool and BlockMasterClient since I have no idea
+    // about how to override them.
+    // mockedPool will return a mocked BlockMasterClient when require() is called,
+    // and do nothing when releasing, maybe add some action later on.
+    mBlockMasterClientPool = mock(BlockMasterClientPool.class);
+    mMockedBlockMasterClient = mock(BlockMasterClient.class);
+    when(mBlockMasterClientPool.acquire()).thenReturn(mMockedBlockMasterClient);
+    doNothing().when(mBlockMasterClientPool).release(any());
+    mWorkerId = new AtomicReference<>(-1L);
+    mCacheManagerOptions = CacheManagerOptions.createForWorker(cacheManagerConf);
+    pageStoreDirs = new ArrayList<PageStoreDir>();
+    pageStoreDirs.add(pageStoreDir);
+    mDirs = PagedBlockStoreDir.fromPageStoreDirs(pageStoreDirs);
 
     mListener = mock(BlockStoreEventListener.class);
     doAnswer((i) -> {
@@ -143,27 +135,13 @@ public class PagedBlockStoreCommitBlockTest {
   @Test
   public void localCommitAndMasterCommitBothSuccess()
          throws IOException, InterruptedException, TimeoutException {
-    try {
-      mPageMetaStore = new PagedBlockMetaStore(mDirs) {
-        // here commit always success
-        @Override
-        public PagedBlockMeta commit(long BLOCK_ID) {
-            return super.commit(BLOCK_ID);
-        }
-      };
-      mCacheManager = CacheManager.Factory.create(mConf, mCacheManagerOptions, mPageMetaStore);
+    mPageMetaStore = new PagedBlockMetaStore(mDirs);
+    mCacheManager = CacheManager.Factory.create(mConf, mCacheManagerOptions, mPageMetaStore);
 
-      mPagedBlockStore = new PagedBlockStore(mCacheManager, mUfs, mBlockMasterClientPool, mWorkerId,
-              mPageMetaStore, mCacheManagerOptions.getPageSize());
-    } catch (IOException e) {
-      throw new RuntimeException();
-    }
+    mPagedBlockStore = new PagedBlockStore(mCacheManager, mUfs, mBlockMasterClientPool, mWorkerId,
+            mPageMetaStore, mCacheManagerOptions.getPageSize());
 
-    try {
-      prepareBlockStore();
-    } catch (Exception e) {
-      throw e;
-    }
+    prepareBlockStore();
 
     mPagedBlockStore.commitBlock(SESSION_ID, BLOCK_ID, false);
     verify(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
@@ -175,27 +153,19 @@ public class PagedBlockStoreCommitBlockTest {
   @Test
   public void localCommitFailAndMasterCommitSuccess()
           throws IOException, InterruptedException, TimeoutException {
-    try {
-      mPageMetaStore = new PagedBlockMetaStore(mDirs) {
-          // here commit always throw Exception
-          @Override
-          public PagedBlockMeta commit(long BLOCK_ID) {
-              throw new RuntimeException();
-          }
-      };
-      mCacheManager = CacheManager.Factory.create(mConf, mCacheManagerOptions, mPageMetaStore);
+    mPageMetaStore = new PagedBlockMetaStore(mDirs) {
+        // here commit always throw Exception
+        @Override
+        public PagedBlockMeta commit(long BLOCK_ID) {
+            throw new RuntimeException();
+        }
+    };
+    mCacheManager = CacheManager.Factory.create(mConf, mCacheManagerOptions, mPageMetaStore);
 
-      mPagedBlockStore = new PagedBlockStore(mCacheManager, mUfs, mBlockMasterClientPool,
-              mWorkerId, mPageMetaStore, mCacheManagerOptions.getPageSize());
-    } catch (IOException e) {
-      throw new RuntimeException();
-    }
+    mPagedBlockStore = new PagedBlockStore(mCacheManager, mUfs, mBlockMasterClientPool,
+            mWorkerId, mPageMetaStore, mCacheManagerOptions.getPageSize());
 
-    try {
-      prepareBlockStore();
-    } catch (Exception e) {
-      throw e;
-    }
+    prepareBlockStore();
 
     assertThrows(RuntimeException.class, () -> {
       mPagedBlockStore.commitBlock(SESSION_ID, BLOCK_ID, false);
@@ -204,11 +174,7 @@ public class PagedBlockStoreCommitBlockTest {
     verify(mListener, never()).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
     verify(mListener, never()).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
 
-    try {
-      mPagedBlockStore.close();
-    } catch (Exception e) {
-      throw e;
-    }
+    mPagedBlockStore.close();
   }
 
   // This Test case success commitToLocal, expecting one exception,
@@ -216,35 +182,17 @@ public class PagedBlockStoreCommitBlockTest {
   @Test
   public void localCommitSuccessAndMasterCommitFail()
           throws IOException, InterruptedException, TimeoutException {
-    try {
-      doAnswer((i) -> {
-        throw new AlluxioStatusException(Status.UNAVAILABLE);
-      }).when(mMockedBlockMasterClient).commitBlock(anyLong(), anyLong(), anyString(),
-               anyString(), anyLong(), anyLong());
-    } catch (AlluxioStatusException e) {
-      throw new RuntimeException();
-    }
-    try {
-      mPageMetaStore = new PagedBlockMetaStore(mDirs) {
-        // here commit always success
-        @Override
-        public PagedBlockMeta commit(long BLOCK_ID) {
-          return super.commit(BLOCK_ID);
-        }
-      };
-      mCacheManager = CacheManager.Factory.create(mConf, mCacheManagerOptions, mPageMetaStore);
+    doAnswer((i) -> {
+      throw new AlluxioStatusException(Status.UNAVAILABLE);
+    }).when(mMockedBlockMasterClient).commitBlock(anyLong(), anyLong(), anyString(),
+             anyString(), anyLong(), anyLong());
+    mPageMetaStore = new PagedBlockMetaStore(mDirs);
+    mCacheManager = CacheManager.Factory.create(mConf, mCacheManagerOptions, mPageMetaStore);
 
-      mPagedBlockStore = new PagedBlockStore(mCacheManager, mUfs, mBlockMasterClientPool, mWorkerId,
-               mPageMetaStore, mCacheManagerOptions.getPageSize());
-    } catch (IOException e) {
-      throw new RuntimeException();
-    }
+    mPagedBlockStore = new PagedBlockStore(mCacheManager, mUfs, mBlockMasterClientPool, mWorkerId,
+             mPageMetaStore, mCacheManagerOptions.getPageSize());
 
-    try {
-      prepareBlockStore();
-    } catch (Exception e) {
-      throw e;
-    }
+    prepareBlockStore();
 
     assertThrows(RuntimeException.class, () -> {
       mPagedBlockStore.commitBlock(SESSION_ID, BLOCK_ID, false);
@@ -265,13 +213,10 @@ public class PagedBlockStoreCommitBlockTest {
     byte[] data = new byte[mBlockSize];
     Arrays.fill(data, (byte) 1);
     ByteBuffer buf = ByteBuffer.wrap(data);
-    try (BlockWriter writer = mPagedBlockStore.createBlockWriter(SESSION_ID, BLOCK_ID)) {
-      CommonUtils.waitFor("writer initiation complete",
-              () -> mPagedBlockStore.getCacheManagerState() == CacheManager.State.READ_WRITE);
-      writer.append(buf);
-    } catch (Exception e) {
-      throw e;
-    }
+    BlockWriter writer = mPagedBlockStore.createBlockWriter(SESSION_ID, BLOCK_ID);
+    CommonUtils.waitFor("writer initiation complete",
+            () -> mPagedBlockStore.getCacheManagerState() == CacheManager.State.READ_WRITE);
+    writer.append(buf);
 
     mPagedBlockStore.registerBlockStoreEventListener(mListener);
   }
