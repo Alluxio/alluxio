@@ -311,6 +311,17 @@ Recommend 2x virtual core count if most jobs are running in off peak hours only 
 
 ## Client Tuning
 
+### Highly concurrent clients
+If a client performs a large number of concurrent operations that need to access the master,
+for example the `GetStatus` or `ListStatus` operations, it may be useful to increase
+the number of connections to the master. This can be done by setting the `alluxio.user.network.rpc.max.connections`
+property at the client to a value larger than the default value of `1`.
+All operations within the same client java process will share this number of connections
+to the master. As a rough estimate it may be expected for a single connection
+to handle `10,000` ops/sec, though this will depend on workload and should always be tested
+as allocating more connections than needed will result in poor resource utilization
+and may reduce performance.
+
 ### Passive caching
 
 Passive caching causes an Alluxio worker to cache another copy of data already cached on a
