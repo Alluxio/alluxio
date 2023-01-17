@@ -405,6 +405,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   /** Used to check pending/running backup from RPCs. */
   private final CallTracker mStateLockCallTracker;
+  private final alluxio.master.file.loadmanager.LoadManager mLoadManager;
 
   final Clock mClock;
 
@@ -508,6 +509,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     mSyncPrefetchExecutor.allowCoreThreadTimeOut(true);
     mSyncMetadataExecutor.allowCoreThreadTimeOut(true);
     mActiveSyncMetadataExecutor.allowCoreThreadTimeOut(true);
+    mLoadManager = new alluxio.master.file.loadmanager.LoadManager(this);
 
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
@@ -518,6 +520,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         add(mMountTable);
         add(mUfsManager);
         add(mSyncManager);
+        add(mLoadManager);
       }
     };
     mJournaledGroup = new JournaledGroup(journaledComponents, CheckpointName.FILE_SYSTEM_MASTER);
@@ -561,7 +564,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE, new GrpcService(ServerInterceptors
-        .intercept(new FileSystemMasterClientServiceHandler(this),
+        .intercept(new FileSystemMasterClientServiceHandler(this, mLoadManager),
             new ClientContextServerInjector())));
     services.put(ServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE, new GrpcService(ServerInterceptors
         .intercept(new FileSystemMasterJobServiceHandler(this),
@@ -749,6 +752,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
       mAccessTimeUpdater.start();
       mSyncManager.start();
+      mLoadManager.start();
     }
   }
 
@@ -761,6 +765,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
     mSyncManager.stop();
     mAccessTimeUpdater.stop();
+    mLoadManager.stop();
     super.stop();
   }
 
@@ -5335,5 +5340,13 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public void needsSync(AlluxioURI path) throws InvalidPathException {
     getSyncPathCache().notifyInvalidation(path);
+  }
+
+  /**
+   * Get load manager.
+   * @return load manager
+   */
+  public alluxio.master.file.loadmanager.LoadManager getLoadManager() {
+    return mLoadManager;
   }
 }

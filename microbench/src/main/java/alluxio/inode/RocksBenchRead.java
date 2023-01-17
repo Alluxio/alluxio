@@ -65,24 +65,31 @@ public class RocksBenchRead {
 
   @State(Scope.Benchmark)
   public static class Db extends BaseFileStructure {
-    @Param({SER_READ, NO_SER_READ, SER_NO_ALLOC_READ, NO_SER_NO_ALLOC_READ})
+    @Param({"0"})
+    public int mWidth;
+
+    @Param({"1000"})
+    public int mFileCount;
+
+    // is used in read benchmark to simulate different file access patterns
+    @Param({"ZIPF"})
+    public Distribution mDistribution;
+    @Param({SER_READ})
     public String mReadType;
 
-    @Param({"true", "false"})
+    @Param({"false"})
     public boolean mIsDirectory;
 
-    @Param({RocksBenchConfig.JAVA_CONFIG, RocksBenchConfig.BASE_CONFIG,
-        RocksBenchConfig.EMPTY_CONFIG, RocksBenchConfig.BLOOM_CONFIG})
+    @Param({RocksBenchConfig.JAVA_CONFIG})
     public String mRocksConfig;
 
     RocksBenchBase mBase;
 
     @Setup(Level.Trial)
     public void setup() throws IOException {
-      Assert.assertEquals("mDepth is not used in this benchmark", 0, mDepth);
       Assert.assertTrue("mFileCount must be > 0", mFileCount > 0);
       Configuration.set(PropertyKey.MASTER_METASTORE_ACL_NEW, false);
-
+      super.init(0, mWidth, mFileCount, mDistribution);
       MutableInode<?> inode = genInode(mIsDirectory);
       mBase = new RocksBenchBase(mRocksConfig);
       for (long i = 0; i < mFileCount; i++) {

@@ -32,6 +32,7 @@ import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.grpc.LoadProgressReportFormat;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -71,6 +72,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
@@ -389,6 +392,23 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public void needsSync(AlluxioURI path) throws IOException, AlluxioException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean submitLoad(AlluxioURI path, OptionalLong bandwidth,
+      boolean usePartialListing, boolean verify) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean stopLoad(AlluxioURI path) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public String getLoadProgress(AlluxioURI path,
+      Optional<LoadProgressReportFormat> format, boolean verbose) {
     throw new UnsupportedOperationException();
   }
 

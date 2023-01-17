@@ -48,6 +48,7 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.LoadProgressReportFormat;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -80,6 +81,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -514,6 +516,32 @@ public class BaseFileSystem implements FileSystem {
       client.needsSync(path);
       return null;
     });
+  }
+
+  @Override
+  public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
+      boolean usePartialListing, boolean verify) {
+    try (CloseableResource<FileSystemMasterClient> client =
+            mFsContext.acquireMasterClientResource()) {
+      return client.get().submitLoad(path, bandwidth, usePartialListing, verify);
+    }
+  }
+
+  @Override
+  public boolean stopLoad(AlluxioURI path) {
+    try (CloseableResource<FileSystemMasterClient> client =
+            mFsContext.acquireMasterClientResource()) {
+      return client.get().stopLoad(path);
+    }
+  }
+
+  @Override
+  public String getLoadProgress(AlluxioURI path,
+      Optional<LoadProgressReportFormat> format, boolean verbose) {
+    try (CloseableResource<FileSystemMasterClient> client =
+            mFsContext.acquireMasterClientResource()) {
+      return client.get().getLoadProgress(path, format, verbose);
+    }
   }
 
   /**

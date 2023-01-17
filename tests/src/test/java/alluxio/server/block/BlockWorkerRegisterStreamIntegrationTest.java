@@ -9,22 +9,22 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.fs;
+package alluxio.server.block;
 
-import static alluxio.client.fs.RegisterStreamTestUtils.BATCH_SIZE;
-import static alluxio.client.fs.RegisterStreamTestUtils.CAPACITY_MAP;
-import static alluxio.client.fs.RegisterStreamTestUtils.EMPTY_CONFIG;
-import static alluxio.client.fs.RegisterStreamTestUtils.LOST_STORAGE;
-import static alluxio.client.fs.RegisterStreamTestUtils.MEM_CAPACITY;
-import static alluxio.client.fs.RegisterStreamTestUtils.MEM_USAGE_EMPTY;
-import static alluxio.client.fs.RegisterStreamTestUtils.NET_ADDRESS_1;
-import static alluxio.client.fs.RegisterStreamTestUtils.TIER_BLOCK_TOTAL;
-import static alluxio.client.fs.RegisterStreamTestUtils.TIER_CONFIG;
-import static alluxio.client.fs.RegisterStreamTestUtils.USAGE_MAP;
-import static alluxio.client.fs.RegisterStreamTestUtils.findFirstBlock;
-import static alluxio.client.fs.RegisterStreamTestUtils.getTierAliases;
-import static alluxio.client.fs.RegisterStreamTestUtils.parseTierConfig;
 import static alluxio.grpc.BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub;
+import static alluxio.server.block.RegisterStreamTestUtils.BATCH_SIZE;
+import static alluxio.server.block.RegisterStreamTestUtils.CAPACITY_MAP;
+import static alluxio.server.block.RegisterStreamTestUtils.EMPTY_CONFIG;
+import static alluxio.server.block.RegisterStreamTestUtils.LOST_STORAGE;
+import static alluxio.server.block.RegisterStreamTestUtils.MEM_CAPACITY;
+import static alluxio.server.block.RegisterStreamTestUtils.MEM_USAGE_EMPTY;
+import static alluxio.server.block.RegisterStreamTestUtils.NET_ADDRESS_1;
+import static alluxio.server.block.RegisterStreamTestUtils.TIER_BLOCK_TOTAL;
+import static alluxio.server.block.RegisterStreamTestUtils.TIER_CONFIG;
+import static alluxio.server.block.RegisterStreamTestUtils.USAGE_MAP;
+import static alluxio.server.block.RegisterStreamTestUtils.findFirstBlock;
+import static alluxio.server.block.RegisterStreamTestUtils.getTierAliases;
+import static alluxio.server.block.RegisterStreamTestUtils.parseTierConfig;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -32,7 +32,6 @@ import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioTestDirectory;
@@ -81,6 +80,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -173,7 +173,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
 
   public void initBlockWorker() throws Exception {
     // Prepare a block worker
-    mBlockMasterClientPool = spy(new BlockMasterClientPool());
+    mBlockMasterClientPool = Mockito.spy(new BlockMasterClientPool());
     when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
     when(mBlockMasterClientPool.acquire()).thenReturn(mBlockMasterClient);
     TieredBlockStore tieredBlockStore = new TieredBlockStore();
@@ -185,7 +185,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     Sessions sessions = mock(Sessions.class);
 
     mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, fileSystemMasterClient,
-            sessions, blockStore, workerId);
+        sessions, blockStore, workerId);
   }
 
   /**
@@ -214,7 +214,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
   @Test
   public void requestsForWorker() throws Exception {
     List<RegisterWorkerPRequest> requestChunks =
-            RegisterStreamTestUtils.generateRegisterStreamForWorker(WORKER_ID);
+        RegisterStreamTestUtils.generateRegisterStreamForWorkerWithTiers(WORKER_ID);
 
     // Verify the size and content of the requests
     int expectedBatchCount = (int) Math.ceil((TIER_BLOCK_TOTAL) / (double) BATCH_SIZE);
@@ -412,7 +412,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
   public void deleteDuringRegisterStream() throws Exception {
     // Generate a request stream of blocks
     List<RegisterWorkerPRequest> requestChunks =
-          RegisterStreamTestUtils.generateRegisterStreamForWorker(WORKER_ID);
+        RegisterStreamTestUtils.generateRegisterStreamForWorkerWithTiers(WORKER_ID);
     // Select a block to remove concurrent with the stream
     long blockToRemove = findFirstBlock(requestChunks);
 
@@ -432,7 +432,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
 
     // Prepare the block worker to use the overriden stream
     MasterClientContext context = MasterClientContext
-            .newBuilder(ClientContext.create(Configuration.global())).build();
+        .newBuilder(ClientContext.create(Configuration.global())).build();
     // On heartbeat, the expected values will be checked against
     List<Long> expectedLostBlocks = ImmutableList.of(blockToRemove);
     Map<BlockStoreLocation, List<Long>> expectedAddedBlocks = ImmutableMap.of();
@@ -528,7 +528,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     // Generate block IDs heuristically
     Map<TierAlias, List<Integer>> tierConfigMap = parseTierConfig(tierConfig);
     Map<BlockStoreLocation, List<Long>> blockMap =
-            RpcBenchPreparationUtils.generateBlockIdOnTiers(tierConfigMap);
+        RpcBenchPreparationUtils.generateBlockIdOnTiers(tierConfigMap);
 
     for (Map.Entry<BlockStoreLocation, List<Long>> entry : blockMap.entrySet()) {
       BlockStoreLocation loc = entry.getKey();

@@ -97,16 +97,22 @@ public class InvalidationSyncCacheBench {
   public static class FileStructure extends BaseFileStructure {
     UfsSyncPathCache mCache;
 
-    @Param({"100", "1000"})
+    @Param({"10"})
+    public int mDepth;
+
+    @Param({"0"})
+    public int mWidth;
+
+    @Param({"1000"})
     public int mCacheSize;
 
-    @Param({"70", "80"})
+    @Param({"70"})
     public int mCheckSync;
 
     @Param({"5"})
     public int mDirSync;
 
-    @Param({"UNIFORM", "ZIPF"})
+    @Param({"ZIPF"})
     public Distribution mInvalDist;
 
     @Param({"1000"})
@@ -119,21 +125,14 @@ public class InvalidationSyncCacheBench {
       Configuration.set(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY, mCacheSize);
 
       mInvalidationStructure = new BaseFileStructure();
-      mInvalidationStructure.mDistribution = mInvalDist;
-      mInvalidationStructure.mFileCount = mInvalCount;
-      mInvalidationStructure.mDepth = mDepth;
-      mInvalidationStructure.init();
+      mInvalidationStructure.init(mDepth, 0, mInvalCount, mInvalDist);
       mCache = new UfsSyncPathCache(new AtomicClock());
       mCache.notifySyncedPath(new AlluxioURI("/"), DescendantType.ALL,
           mCache.recordStartSync(), null, false);
 
       // first approximately fill the cache
       BaseFileStructure fs = new BaseFileStructure();
-      fs.mDistribution = Distribution.UNIFORM;
-      fs.mFileCount = mInvalCount;
-      fs.mDepth = mDepth;
-      fs.mWidth = mWidth;
-      fs.init();
+      fs.init(mDepth, mWidth, mInvalCount, Distribution.UNIFORM);
       ThreadState ts = new ThreadState();
       int fillSize = Math.min(mCacheSize, 5000000);
       System.out.println("Filling cache with " + fillSize + " elements");

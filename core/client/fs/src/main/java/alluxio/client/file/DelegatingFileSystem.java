@@ -29,6 +29,7 @@ import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.grpc.LoadProgressReportFormat;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -45,6 +46,7 @@ import alluxio.wire.SyncPointInfo;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -239,6 +241,23 @@ public class DelegatingFileSystem implements FileSystem {
   @Override
   public void needsSync(AlluxioURI path) throws IOException, AlluxioException {
     mDelegatedFileSystem.needsSync(path);
+  }
+
+  @Override
+  public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
+      boolean usePartialListing, boolean verify) {
+    return mDelegatedFileSystem.submitLoad(path, bandwidth, usePartialListing, verify);
+  }
+
+  @Override
+  public boolean stopLoad(AlluxioURI path) {
+    return mDelegatedFileSystem.stopLoad(path);
+  }
+
+  @Override
+  public String getLoadProgress(AlluxioURI path,
+      Optional<LoadProgressReportFormat> format, boolean verbose) {
+    return mDelegatedFileSystem.getLoadProgress(path, format, verbose);
   }
 
   @Override
