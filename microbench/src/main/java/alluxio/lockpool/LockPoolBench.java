@@ -65,7 +65,7 @@ public class LockPoolBench {
 
     @TearDown(Level.Iteration)
     public void tearDownIteration() {
-      System.out.printf("\nLock pool size %d%n", mLockPool.size());
+      System.out.printf("%nLock pool size %d%n", mLockPool.size());
     }
 
     @TearDown(Level.Trial)
