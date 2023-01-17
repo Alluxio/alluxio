@@ -165,8 +165,15 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockMaster.class);
 
+  private static final IndexDefinition<BlockLocation, BlockLocation> LOCATION_INDEX =
+      IndexDefinition.ofUnique((b) -> b);
+
+  private static final IndexDefinition<BlockLocation, Long> WORKER_ID_INDEX =
+      IndexDefinition.ofNonUnique(BlockLocation::getWorkerId);
+
   // TODO(maobaolong): Add a metric to monitor the size of mLocationCacheMap
-  private final Map<BlockLocation, BlockLocation> mLocationCacheMap = new ConcurrentHashMap<>();
+  private final IndexedSet<BlockLocation> mLocationCache =
+      new IndexedSet<>(LOCATION_INDEX, WORKER_ID_INDEX);
 
   /**
    * Concurrency and locking in the BlockMaster
@@ -929,9 +936,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           BlockLocation location =
               BlockLocation.newBuilder().setWorkerId(workerId).setTier(tierAlias)
                   .setMediumType(mediumType).build();
-          mLocationCacheMap.putIfAbsent(location, location);
-          BlockLocation wrapLocation = mLocationCacheMap.get(location);
-          mBlockMetaStore.addLocation(blockId, wrapLocation);
+          mLocationCache.add(location);
+          mBlockMetaStore.addLocation(blockId,
+              mLocationCache.getFirstByField(LOCATION_INDEX, location));
           // This worker has this block, so it is no longer lost.
           mLostBlocks.remove(blockId);
 
@@ -1416,9 +1423,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             Preconditions.checkState(location.getWorkerId() == workerInfo.getId(),
                 "BlockLocation has a different workerId %s from the request sender's workerId %s",
                 location.getWorkerId(), workerInfo.getId());
-            mLocationCacheMap.putIfAbsent(location, location);
-            BlockLocation wrapLocation = mLocationCacheMap.get(location);
-            mBlockMetaStore.addLocation(blockId, wrapLocation);
+            mLocationCache.add(location);
+            mBlockMetaStore.addLocation(blockId,
+                mLocationCache.getFirstByField(LOCATION_INDEX, location));
             mLostBlocks.remove(blockId);
           } else {
             invalidBlockCount++;
@@ -1623,13 +1630,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // We only remove the blocks from master locations but do not
     // mark these blocks to-remove from the worker.
     // So if the worker comes back again the blocks are kept.
-    // TODO(maobaolong): Remove the location cache related to this worker.
-    //    for (String tierAlias : worker.getTotalBytesOnTiers().keySet()) {
-    //      BlockLocation location = BlockLocation.newBuilder()
-    //          .setWorkerId(worker.getId()).setTier(tierAlias)
-    //          .setMediumType(mediumType).build();
-    //    }
     processWorkerRemovedBlocks(worker, worker.getBlocks(), false);
+    mLocationCache.removeByField(WORKER_ID_INDEX, worker.getId());
   }
 
   private void deleteWorkerMetadata(MasterWorkerInfo worker) {
