@@ -20,6 +20,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,6 +40,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.NoopUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
+import alluxio.worker.block.AbstractBlockStoreEventListener;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.BlockStoreEventListener;
@@ -80,7 +82,7 @@ public class PagedBlockStoreCommitBlockTest {
   private static final int DIR_INDEX = 0;
 
   private static final Long SESSION_ID = 1L;
-  private static final Long BLOCK_ID = 2L;
+  private static final long BLOCK_ID = 2L;
   final int mBlockSize = 64;
 
   public int mPageSize = 2;
@@ -124,15 +126,27 @@ public class PagedBlockStoreCommitBlockTest {
     pageStoreDirs.add(pageStoreDir);
     mDirs = PagedBlockStoreDir.fromPageStoreDirs(pageStoreDirs);
 
-    mListener = mock(BlockStoreEventListener.class);
-    doAnswer((i) -> {
-      assertEquals(BLOCK_ID, i.getArguments()[0]);
-      return 0;
-    }).when(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
-    doAnswer((i) -> {
-      assertEquals(BLOCK_ID, i.getArguments()[0]);
-      return 0;
-    }).when(mListener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
+    // mListener = mock(BlockStoreEventListener.class);
+    // doAnswer((i) -> {
+    //   assertEquals(BLOCK_ID, i.getArguments()[0]);
+    //   return 0;
+    // }).when(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
+    // doAnswer((i) -> {
+    //   assertEquals(BLOCK_ID, i.getArguments()[0]);
+    //   return 0;
+    // }).when(mListener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
+
+    mListener = spy(new AbstractBlockStoreEventListener() {
+      @Override
+      public void onCommitBlockToLocal(long blockId, BlockStoreLocation location) {
+        assertEquals(BLOCK_ID, blockId);
+      }
+
+      @Override
+      public void onCommitBlockToMaster(long blockId, BlockStoreLocation location) {
+        assertEquals(BLOCK_ID, blockId);
+      }
+    });
   }
 
   @After
