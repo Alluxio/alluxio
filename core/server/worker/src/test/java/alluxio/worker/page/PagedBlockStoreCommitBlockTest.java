@@ -126,16 +126,6 @@ public class PagedBlockStoreCommitBlockTest {
     pageStoreDirs.add(pageStoreDir);
     mDirs = PagedBlockStoreDir.fromPageStoreDirs(pageStoreDirs);
 
-    // mListener = mock(BlockStoreEventListener.class);
-    // doAnswer((i) -> {
-    //   assertEquals(BLOCK_ID, i.getArguments()[0]);
-    //   return 0;
-    // }).when(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
-    // doAnswer((i) -> {
-    //   assertEquals(BLOCK_ID, i.getArguments()[0]);
-    //   return 0;
-    // }).when(mListener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
-
     mListener = spy(new AbstractBlockStoreEventListener() {
       @Override
       public void onCommitBlockToLocal(long blockId, BlockStoreLocation location) {
