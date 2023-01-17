@@ -17,6 +17,7 @@ import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.evictor.CacheEvictor;
+import alluxio.client.quota.CacheScope;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -104,13 +106,17 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
     Optional<PageId> pageId = getPageId(path);
     if (pageId.isPresent()) {
       long pageSize;
+      long createdTime;
       try {
         pageSize = Files.size(path);
+        FileTime creationTime = (FileTime) Files.getAttribute(path, "creationTime");
+        createdTime = creationTime.toMillis();
       } catch (IOException e) {
         LOG.error("Failed to get file size for " + path, e);
         return Optional.empty();
       }
-      return Optional.of(new PageInfo(pageId.get(), pageSize, this));
+      return Optional.of(new PageInfo(pageId.get(),
+          pageSize, CacheScope.GLOBAL, this, createdTime));
     }
     return Optional.empty();
   }
