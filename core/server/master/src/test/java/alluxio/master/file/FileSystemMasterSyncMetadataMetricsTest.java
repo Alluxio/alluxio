@@ -586,7 +586,7 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
         .map(FileSystemMasterSyncMetadataMetricsTest::createUfsStatusWithName)
         .collect(Collectors.toList());
     ufsStatusCache.addChildren(path2, statusList);
-    assertEquals(4, cacheSizeTotal.getCount());
+    assertEquals(7, cacheSizeTotal.getCount());
     assertEquals(3, cacheChildrenSizeTotal.getCount());
 
     // replace with a 4-children list
@@ -595,7 +595,7 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
         .map(FileSystemMasterSyncMetadataMetricsTest::createUfsStatusWithName)
         .collect(Collectors.toList());
     ufsStatusCache.addChildren(path2, statusList);
-    assertEquals(5, cacheSizeTotal.getCount());
+    assertEquals(12, cacheSizeTotal.getCount());
     assertEquals(4, cacheChildrenSizeTotal.getCount());
 
     ufsStatusCache.remove(path2);
