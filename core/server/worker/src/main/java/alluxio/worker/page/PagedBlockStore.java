@@ -370,6 +370,10 @@ public class PagedBlockStore implements BlockStore {
         String.format("Cannot overwrite an existing block %d", blockId)));
   }
 
+  /**
+   * Return mCacheManager.mState.get() for CommitTest.
+   * @return the mState, like READ_ONLY, READ_WRITE, NOT_IN_USE
+   */
   public CacheManager.State getCacheManagerState() {
     return mCacheManager.state();
   }
