@@ -33,6 +33,7 @@ import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.worker.block.DefaultBlockWorker.Metrics;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.DelegatingBlockReader;
@@ -171,7 +172,10 @@ public class MonoBlockStore implements BlockStore {
     try {
       BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
           positionShort, options);
-      return new DelegatingBlockReader(reader, () -> closeUfsBlock(sessionId, blockId));
+      BlockReader blockReader = new DelegatingBlockReader(reader,
+          () -> closeUfsBlock(sessionId, blockId));
+      Metrics.WORKER_ACTIVE_CLIENTS.inc();
+      return blockReader;
     } catch (Exception e) {
       try {
         closeUfsBlock(sessionId, blockId);
