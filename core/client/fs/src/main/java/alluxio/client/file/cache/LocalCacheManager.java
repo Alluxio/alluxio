@@ -50,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -637,6 +638,21 @@ public class LocalCacheManager implements CacheManager {
       }
     }
     return pageIds;
+  }
+
+  @Override
+  public void invalidate(Predicate<PageInfo> predicate) {
+    mPageStoreDirs.forEach(dir -> {
+      try {
+        dir.scanPages(pageInfo -> {
+          if (pageInfo.isPresent() && predicate.test(pageInfo.get())) {
+            delete(pageInfo.get().getPageId());
+          }
+        });
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   @Override
