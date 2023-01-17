@@ -15,7 +15,6 @@ import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.util.FormatUtils;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,18 +28,20 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
     Assert.assertEquals(0, ret);
     String output = mOutput.toString();
     String size = FormatUtils.getSizeFromBytes(SIZE_BYTES);
-    Assert.assertThat(output, CoreMatchers.containsString("Capacity information for all workers: \n"
-        + "    Total Capacity: " + size + "\n"
-        + "        Tier: MEM  Size: " + size + "\n"
-        + "    Used Capacity: 0B\n"
-        + "        Tier: MEM  Size: 0B\n"
-        + "    Used Percentage: 0%\n"
-        + "    Free Percentage: 100%\n"));
-    // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "Worker Name      Last Heartbeat   Storage       MEM              Version          Revision"));
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "                                  used          0B (0%)"));
+    String[] lines = output.split("\n");
+    Assert.assertEquals(11, lines.length);
+    Assert.assertEquals("Capacity information for all workers: ", lines[0]);
+    Assert.assertEquals("    Total Capacity: " + size, lines[1]);
+    Assert.assertEquals("        Tier: MEM  Size: " + size, lines[2]);
+    Assert.assertEquals("    Used Capacity: 0B", lines[3]);
+    Assert.assertEquals("        Tier: MEM  Size: 0B", lines[4]);
+    Assert.assertEquals("    Used Percentage: 0%", lines[5]);
+    Assert.assertEquals("    Free Percentage: 100%", lines[6]);
+    Assert.assertEquals("", lines[7]);
+    Assert.assertTrue(lines[8].matches(
+        "Worker Name {6,}Last Heartbeat {3}Storage {7}MEM {14}Version {10}Revision *"));
+    Assert.assertTrue(lines[9].contains("capacity      " + size));
+    Assert.assertTrue(lines[10].contains("used          0B (0%)"));
   }
 
   @Test
@@ -56,19 +57,20 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
     Assert.assertEquals(0, ret);
     String output = mOutput.toString();
     String size = FormatUtils.getSizeFromBytes(SIZE_BYTES);
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "Capacity information for live workers: \n"
-        + "    Total Capacity: " + size + "\n"
-        + "        Tier: MEM  Size: " + size + "\n"
-        + "    Used Capacity: 0B\n"
-        + "        Tier: MEM  Size: 0B\n"
-        + "    Used Percentage: 0%\n"
-        + "    Free Percentage: 100%\n"));
-    // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "Worker Name      Last Heartbeat   Storage       MEM              Version          Revision"));
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "                                  used          0B (0%)"));
+    String[] lines = output.split("\n");
+    Assert.assertEquals(11, lines.length);
+    Assert.assertEquals("Capacity information for live workers: ", lines[0]);
+    Assert.assertEquals("    Total Capacity: " + size, lines[1]);
+    Assert.assertEquals("        Tier: MEM  Size: " + size, lines[2]);
+    Assert.assertEquals("    Used Capacity: 0B", lines[3]);
+    Assert.assertEquals("        Tier: MEM  Size: 0B", lines[4]);
+    Assert.assertEquals("    Used Percentage: 0%", lines[5]);
+    Assert.assertEquals("    Free Percentage: 100%", lines[6]);
+    Assert.assertEquals("", lines[7]);
+    Assert.assertTrue(lines[8].matches(
+        "Worker Name {6,}Last Heartbeat {3}Storage {7}MEM {14}Version {10}Revision *"));
+    Assert.assertTrue(lines[9].contains("capacity      " + size));
+    Assert.assertTrue(lines[10].contains("used          0B (0%)"));
   }
 
   @Test
