@@ -37,8 +37,8 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.NoopUfsManager;
-import alluxio.util.CommonUtils;
 import alluxio.underfs.UfsManager;
+import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.BlockStoreEventListener;
@@ -141,7 +141,8 @@ public class PagedBlockStoreCommitBlockTest {
   // This Test case success both to commit, no Exception should be thrown,
   // and both onCommit method should be called
   @Test
-  public void localCommitAndMasterCommitBothSuccess() throws IOException, InterruptedException, TimeoutException {
+  public void localCommitAndMasterCommitBothSuccess()
+         throws IOException, InterruptedException, TimeoutException {
     try {
       mPageMetaStore = new PagedBlockMetaStore(mDirs) {
         // here commit always success
@@ -172,7 +173,8 @@ public class PagedBlockStoreCommitBlockTest {
   // This Test case success commitToMaster, expecting one exception,
 
   @Test
-  public void localCommitFailAndMasterCommitSuccess() throws IOException, InterruptedException, TimeoutException {
+  public void localCommitFailAndMasterCommitSuccess()
+          throws IOException, InterruptedException, TimeoutException {
     try {
       mPageMetaStore = new PagedBlockMetaStore(mDirs) {
           // here commit always throw Exception
@@ -212,7 +214,8 @@ public class PagedBlockStoreCommitBlockTest {
   // This Test case success commitToLocal, expecting one exception,
   // and only one onCommit method should be called.
   @Test
-  public void localCommitSuccessAndMasterCommitFail() throws IOException, InterruptedException, TimeoutException {
+  public void localCommitSuccessAndMasterCommitFail()
+          throws IOException, InterruptedException, TimeoutException {
     try {
       doAnswer((i) -> {
         throw new AlluxioStatusException(Status.UNAVAILABLE);
@@ -263,7 +266,8 @@ public class PagedBlockStoreCommitBlockTest {
     Arrays.fill(data, (byte) 1);
     ByteBuffer buf = ByteBuffer.wrap(data);
     try (BlockWriter writer = mPagedBlockStore.createBlockWriter(SESSION_ID, BLOCK_ID)) {
-      CommonUtils.waitFor("writer initiation complete", () -> mPagedBlockStore.getCacheManagerState() == CacheManager.State.READ_WRITE);
+      CommonUtils.waitFor("writer initiation complete",
+              () -> mPagedBlockStore.getCacheManagerState() == CacheManager.State.READ_WRITE);
       writer.append(buf);
     } catch (Exception e) {
       throw e;
