@@ -91,12 +91,14 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
               context.getRequest().getId(), e.getMessage());
         }
       }
+      /*
       if (!mWorker.unlockBlock(context.getRequest().getSessionId(), context.getRequest().getId())) {
         if (reader != null) {
           mWorker.closeUfsBlock(context.getRequest().getSessionId(), context.getRequest().getId());
           context.setBlockReader(null);
         }
       }
+      */
     }
 
     @Override
@@ -163,7 +165,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
             context.setBlockReader(reader);
             context.setCounter(MetricsSystem.counter(metricName));
             mWorker.accessBlock(request.getSessionId(), request.getId());
-            ((FileChannel) reader.getChannel()).position(request.getStart());
+            if (reader.getChannel() instanceof FileChannel) {
+                ((FileChannel) reader.getChannel()).position(request.getStart());
+            }
             return;
           } catch (Exception e) {
             mWorker.unlockBlock(lockId);
@@ -176,7 +180,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         if (mWorker.openUfsBlock(request.getSessionId(), request.getId(), openUfsBlockOptions)) {
           try {
             BlockReader reader =
-                mWorker.readUfsBlock(request.getSessionId(), request.getId(), request.getStart());
+                mWorker.createBlockReader(request.getSessionId(), request.getId(),
+                    request.getStart(), false, request.getOpenUfsBlockOptions());
+                //mWorker.readUfsBlock(request.getSessionId(), request.getId(), request.getStart());
             AlluxioURI ufsMountPointUri =
                 new AlluxioURI(request.getOpenUfsBlockOptions().getUfsPath());
             String ufsString = MetricsSystem.escape(ufsMountPointUri);

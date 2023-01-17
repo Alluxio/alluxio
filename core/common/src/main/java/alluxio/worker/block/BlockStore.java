@@ -109,11 +109,9 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @param lockId the id of the lock returned by {@link #lockBlock(long, long)}
    * @return a {@link BlockReader} instance on this block
    * @throws BlockDoesNotExistException if lockId is not found
-   * @throws InvalidWorkerStateException if session id or block id is not the same as that in the
-   *         LockRecord of lockId
    */
   BlockReader createBlockReader(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException;
+      throws BlockDoesNotExistException, IOException;
 
   /**
    * Creates a block reader to read a UFS block starting from given block offset.
