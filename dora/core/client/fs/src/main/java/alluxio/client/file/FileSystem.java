@@ -43,6 +43,7 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.LoadProgressReportFormat;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -800,6 +801,14 @@ public interface FileSystem extends Closeable {
    * @param verbose whether to return verbose report
    * @return the job progress
    */
+<<<<<<< HEAD:dora/core/client/fs/src/main/java/alluxio/client/file/FileSystem.java
   String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose);
+||||||| parent of 45ec28e77e ([SMALLFIX] Import class type before code class):core/client/fs/src/main/java/alluxio/client/file/FileSystem.java
+  String getLoadProgress(AlluxioURI path,
+      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose);
+=======
+  String getLoadProgress(AlluxioURI path,
+      Optional<LoadProgressReportFormat> format, boolean verbose);
+>>>>>>> 45ec28e77e ([SMALLFIX] Import class type before code class):core/client/fs/src/main/java/alluxio/client/file/FileSystem.java
 }
