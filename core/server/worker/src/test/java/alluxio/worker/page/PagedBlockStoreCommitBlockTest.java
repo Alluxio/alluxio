@@ -48,6 +48,7 @@ import alluxio.worker.block.io.BlockWriter;
 
 import com.google.common.collect.ImmutableList;
 import io.grpc.Status;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -134,6 +135,11 @@ public class PagedBlockStoreCommitBlockTest {
     }).when(mListener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
   }
 
+  @After
+  public void tearDown() throws IOException {
+    mPagedBlockStore.close();
+  }
+
   // This Test case success both to commit, no Exception should be thrown,
   // and both onCommit method should be called
   @Test
@@ -177,8 +183,6 @@ public class PagedBlockStoreCommitBlockTest {
 
     verify(mListener, never()).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
     verify(mListener, never()).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
-
-    mPagedBlockStore.close();
   }
 
   // This Test case success commitToLocal, expecting one exception,
