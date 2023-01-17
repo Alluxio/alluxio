@@ -522,7 +522,7 @@ public class ListBucketResult {
    * @param partialContent
    */
   public void addContent(List<Content> partialContent) {
-    mContents.addAll(0, partialContent);
+    mContents.addAll(partialContent);
     if (mContents.size() < mMaxKeys || mMaxKeys == 0) {
       mKeyCount = mKeyCount == null ? null : mContents.size();
       return;

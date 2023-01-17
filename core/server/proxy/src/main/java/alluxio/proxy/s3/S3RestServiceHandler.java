@@ -382,11 +382,8 @@ public final class S3RestServiceHandler {
                   .buildPartial();
               partialResult = userFs.listStatusPartial(new AlluxioURI(path), options);
               children = partialResult.getListings();
-              ListBucketResult partialBucketResult = bucketResult;
-              bucketResult =  new ListBucketResult(bucket, children, listBucketOptions);
-              if (!partialBucketResult.getContents().isEmpty()) {
-                bucketResult.addContent(partialBucketResult.getContents());
-              }
+              bucketResult.addContent(new ListBucketResult(bucket, children, listBucketOptions)
+                  .getContents());
             }
             // check for more results to tell the client whether the response is truncated
             if (children.size() > 0 && !bucketResult.isTruncated()) {
@@ -395,9 +392,8 @@ public final class S3RestServiceHandler {
                   .setBatchSize(1).buildPartial();
               partialResult = userFs.listStatusPartial(new AlluxioURI(path), options);
               children = partialResult.getListings();
-              ListBucketResult partialBucketResult = bucketResult;
-              bucketResult = new ListBucketResult(bucket, children, listBucketOptions);
-              bucketResult.addContent(partialBucketResult.getContents());
+              bucketResult.addContent(new ListBucketResult(bucket, children, listBucketOptions)
+                  .getContents());
             }
             return bucketResult;
           }
