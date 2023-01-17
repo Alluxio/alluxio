@@ -63,7 +63,7 @@ public class MonoBlockStoreCommitBlockTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   private static final Long SESSION_ID = 1L;
-  private static final Long BLOCK_ID = 2L;
+  private static final long BLOCK_ID = 2L;
   // Maybe location should be asserted as well.
   BlockStoreEventListener mListener;
 
@@ -81,15 +81,17 @@ public class MonoBlockStoreCommitBlockTest {
 
     mTestDir1 = mBlockMetadataManager.getTier(FIRST_TIER_ALIAS).getDir(0);
 
-    mListener = mock(BlockStoreEventListener.class);
-    doAnswer((i) -> {
-      assertEquals(BLOCK_ID, i.getArguments()[0]);
-      return 0;
-    }).when(mListener).onCommitBlockToLocal(anyLong(), any(BlockStoreLocation.class));
-    doAnswer((i) -> {
-      assertEquals(BLOCK_ID, i.getArguments()[0]);
-      return 0;
-    }).when(mListener).onCommitBlockToMaster(anyLong(), any(BlockStoreLocation.class));
+    mListener = spy(new AbstractBlockStoreEventListener() {
+      @Override
+      public void onCommitBlockToLocal(long blockId, BlockStoreLocation location) {
+        assertEquals(BLOCK_ID, blockId);
+      }
+
+      @Override
+      public void onCommitBlockToMaster(long blockId, BlockStoreLocation location) {
+        assertEquals(BLOCK_ID, blockId);
+      }
+    });
   }
 
   @Test
