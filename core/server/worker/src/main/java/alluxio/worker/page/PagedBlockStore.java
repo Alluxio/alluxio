@@ -370,6 +370,10 @@ public class PagedBlockStore implements BlockStore {
         String.format("Cannot overwrite an existing block %d", blockId)));
   }
 
+  public CacheManager.State getCacheManagerState() {
+    return mCacheManager.state();
+  }
+
   @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
       throws IOException {
