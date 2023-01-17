@@ -37,6 +37,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.NoopUfsManager;
+import alluxio.util.CommonUtils;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
@@ -58,6 +59,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class PagedBlockStoreCommitBlockTest {
@@ -139,7 +141,7 @@ public class PagedBlockStoreCommitBlockTest {
   // This Test case success both to commit, no Exception should be thrown,
   // and both onCommit method should be called
   @Test
-  public void localCommitAndMasterCommitBothSuccess() throws IOException, InterruptedException {
+  public void localCommitAndMasterCommitBothSuccess() throws IOException, InterruptedException, TimeoutException {
     try {
       mPageMetaStore = new PagedBlockMetaStore(mDirs) {
         // here commit always success
@@ -170,7 +172,7 @@ public class PagedBlockStoreCommitBlockTest {
   // This Test case success commitToMaster, expecting one exception,
 
   @Test
-  public void localCommitFailAndMasterCommitSuccess() throws IOException, InterruptedException {
+  public void localCommitFailAndMasterCommitSuccess() throws IOException, InterruptedException, TimeoutException {
     try {
       mPageMetaStore = new PagedBlockMetaStore(mDirs) {
           // here commit always throw Exception
@@ -210,7 +212,7 @@ public class PagedBlockStoreCommitBlockTest {
   // This Test case success commitToLocal, expecting one exception,
   // and only one onCommit method should be called.
   @Test
-  public void localCommitSuccessAndMasterCommitFail() throws IOException, InterruptedException {
+  public void localCommitSuccessAndMasterCommitFail() throws IOException, InterruptedException, TimeoutException {
     try {
       doAnswer((i) -> {
         throw new AlluxioStatusException(Status.UNAVAILABLE);
@@ -249,7 +251,7 @@ public class PagedBlockStoreCommitBlockTest {
   }
 
   // Prepare PageBlockStore and creat a temp block for following test
-  public void prepareBlockStore() throws IOException, InterruptedException {
+  public void prepareBlockStore() throws IOException, InterruptedException, TimeoutException {
     PagedBlockStoreDir dir =
             (PagedBlockStoreDir) mPageMetaStore.allocate(BlockPageId.tempFileIdOf(BLOCK_ID), 1);
 
@@ -261,7 +263,7 @@ public class PagedBlockStoreCommitBlockTest {
     Arrays.fill(data, (byte) 1);
     ByteBuffer buf = ByteBuffer.wrap(data);
     try (BlockWriter writer = mPagedBlockStore.createBlockWriter(SESSION_ID, BLOCK_ID)) {
-      Thread.sleep(1000);
+      CommonUtils.waitFor("writer initiation complete", () -> mPagedBlockStore.getCacheManagerState() == CacheManager.State.READ_WRITE);
       writer.append(buf);
     } catch (Exception e) {
       throw e;
