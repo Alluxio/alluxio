@@ -32,6 +32,16 @@ import java.nio.ByteBuffer;
  * This test covers the basic file system metadata operations.
  */
 public class FuseFileSystemMetadataTest extends AbstractFuseFileSystemTest {
+  /**
+   * Runs FUSE with UFS related tests with different configuration combinations.
+   *
+   * @param localDataCacheEnabled     whether local data cache is enabled
+   * @param localMetadataCacheEnabled whether local metadata cache is enabled
+   */
+  public FuseFileSystemMetadataTest(boolean localDataCacheEnabled, boolean localMetadataCacheEnabled) {
+    super(localDataCacheEnabled, localMetadataCacheEnabled);
+  }
+
   @Test
   public void createDeleteFile() {
     createEmptyFile(FILE);

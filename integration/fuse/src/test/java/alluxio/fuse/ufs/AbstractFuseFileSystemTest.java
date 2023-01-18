@@ -32,6 +32,16 @@ public abstract class AbstractFuseFileSystemTest extends AbstractTest {
   protected AlluxioFuseUtils.CloseableFuseFileInfo mFileInfo;
   protected FileStat mFileStat;
 
+  /**
+   * Runs FUSE with UFS related tests with different configuration combinations.
+   *
+   * @param localDataCacheEnabled     whether local data cache is enabled
+   * @param localMetadataCacheEnabled whether local metadata cache is enabled
+   */
+  public AbstractFuseFileSystemTest(boolean localDataCacheEnabled, boolean localMetadataCacheEnabled) {
+    super(localDataCacheEnabled, localMetadataCacheEnabled);
+  }
+
   @Override
   public void beforeActions() {
     mFuseFs = new AlluxioJniFuseFileSystem(mContext, mFileSystem,

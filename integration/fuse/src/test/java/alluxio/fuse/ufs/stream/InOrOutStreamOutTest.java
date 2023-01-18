@@ -28,6 +28,16 @@ import java.nio.ByteBuffer;
  * This class includes the write tests for {@link alluxio.fuse.file.FuseFileInOrOutStream}.
  */
 public class InOrOutStreamOutTest extends OutStreamTest {
+  /**
+   * Runs {@link InOrOutStreamOutTest} with different configuration combinations.
+   *
+   * @param localDataCacheEnabled     whether local data cache is enabled
+   * @param localMetadataCacheEnabled whether local metadata cache is enabled
+   */
+  public InOrOutStreamOutTest(boolean localDataCacheEnabled, boolean localMetadataCacheEnabled) {
+    super(localDataCacheEnabled, localMetadataCacheEnabled);
+  }
+
   @Override
   protected FuseFileStream createStream(AlluxioURI uri, boolean truncate) {
     int flags = OpenFlags.O_RDWR.intValue();
