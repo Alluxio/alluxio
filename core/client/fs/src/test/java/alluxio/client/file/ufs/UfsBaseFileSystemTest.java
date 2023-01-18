@@ -19,9 +19,12 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
@@ -38,18 +41,49 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Add unit tests for {@link UfsBaseFileSystem}.
  */
+@RunWith(Parameterized.class)
 public class UfsBaseFileSystemTest {
-  private InstancedConfiguration mConf = Configuration.copyGlobal();
+  private InstancedConfiguration mConf;
   private AlluxioURI mRootUfs;
   private FileSystem mFileSystem;
+
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+        {false, false},
+        {true, false},
+        {false, true},
+        {true, true}
+    });
+  }
+
+  /**
+   * Runs {@link UfsBaseFileSystem} with different configuration combinations.
+   *
+   * @param localDataCached whether local data cache is enabled
+   * @param localMetadataCached whether local metadata cache is enabled
+   */
+  public UfsBaseFileSystemTest(boolean localDataCached, boolean localMetadataCached) {
+    mConf = Configuration.copyGlobal();
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED,
+        PropertyKey.USER_CLIENT_CACHE_ENABLED.formatValue(localDataCached), Source.RUNTIME);
+    mConf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE,
+        PropertyKey.USER_METADATA_CACHE_MAX_SIZE.formatValue(localMetadataCached ? 20000 : 0),
+        Source.RUNTIME);
+  }
 
   /**
    * Sets up the file system and the context before a test runs.
@@ -59,8 +93,9 @@ public class UfsBaseFileSystemTest {
     String ufs = AlluxioTestDirectory.createTemporaryDirectory("ufs").toString();
     mRootUfs = new AlluxioURI(ufs);
     UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
-    mFileSystem = new UfsBaseFileSystem(FileSystemContext.create(
-        ClientContext.create(mConf)), new UfsFileSystemOptions(ufs));
+    mFileSystem = FileSystem.Factory.create(FileSystemContext.create(
+        ClientContext.create(mConf)), FileSystemOptions.create(mConf,
+        Optional.of(new UfsFileSystemOptions(ufs))));
   }
 
   @After
