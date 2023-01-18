@@ -12,76 +12,113 @@
 package alluxio.client.file.ufs;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
+import alluxio.ClientContext;
+import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.FileSystemOptions;
+import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
-import alluxio.underfs.UfsFileStatus;
-import alluxio.underfs.UnderFileSystem;
+import alluxio.grpc.DeletePOptions;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
-import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Add unit tests for {@link UfsFileOutStream}.
  */
+@RunWith(Parameterized.class)
 public class UfsFileOutStreamTest {
   private static final int CHUNK_SIZE = 128;
-  private String mRootUfs;
-  private UnderFileSystem mUfs;
+  private final InstancedConfiguration mConf;
+  private AlluxioURI mRootUfs;
+  private FileSystem mFileSystem;
+
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {{false}, {true}});
+  }
+
+  /**
+   * Runs {@link UfsFileInStreamTest} with different configuration combinations.
+   *
+   * @param localDataCacheEnabled whether local data cache is enabled
+   */
+  public UfsFileOutStreamTest(boolean localDataCacheEnabled) {
+    mConf = Configuration.copyGlobal();
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED,
+        PropertyKey.USER_CLIENT_CACHE_ENABLED.formatValue(localDataCacheEnabled), Source.RUNTIME);
+  }
 
   /**
    * Sets up the file system and the context before a test runs.
    */
   @Before
   public void before() {
-    mRootUfs = AlluxioTestDirectory.createTemporaryDirectory("ufs").toString();
+    String ufs = AlluxioTestDirectory.createTemporaryDirectory("ufsInStream").toString();
+    mRootUfs = new AlluxioURI(ufs);
     UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
-    mUfs = UnderFileSystem.Factory.create(mRootUfs, Configuration.global());
+    mFileSystem = FileSystem.Factory.create(FileSystemContext.create(
+        ClientContext.create(mConf)), FileSystemOptions.create(mConf,
+        Optional.of(new UfsFileSystemOptions(ufs))));
   }
 
   @After
   public void after() throws IOException, AlluxioException {
-    mUfs.deleteDirectory(mRootUfs, DeleteOptions.defaults().setRecursive(true));
+    for (URIStatus status : mFileSystem.listStatus(mRootUfs)) {
+      mFileSystem.delete(new AlluxioURI(status.getUfsPath()),
+          DeletePOptions.newBuilder().setRecursive(true).build());
+    }
   }
 
   @Test
-  public void createClose() throws IOException {
-    String ufsPath = getUfsPath();
-    new UfsFileOutStream(mUfs.create(ufsPath)).close();
-    assertTrue(mUfs.getStatus(ufsPath).isFile());
-    assertEquals(0L, ((UfsFileStatus) mUfs.getStatus(ufsPath)).getContentLength());
+  public void createClose() throws IOException, AlluxioException {
+    AlluxioURI ufsPath = getUfsPath();
+    mFileSystem.createFile(ufsPath).close();
+    assertFalse(mFileSystem.getStatus(ufsPath).isFolder());
+    assertEquals(0L, mFileSystem.getStatus(ufsPath).getLength());
   }
 
   @Test
-  public void singleByteWrite() throws IOException {
+  public void singleByteWrite() throws IOException, AlluxioException {
     byte byteToWrite = 5;
-    String ufsPath = getUfsPath();
-    try (UfsFileOutStream outStream = new UfsFileOutStream(mUfs.create(ufsPath))) {
+    AlluxioURI ufsPath = getUfsPath();
+    try (FileOutStream outStream = mFileSystem.createFile(ufsPath)) {
       outStream.write(byteToWrite);
     }
-    try (InputStream inputStream = mUfs.open(ufsPath)) {
+    try (InputStream inputStream = mFileSystem.openFile(ufsPath)) {
       assertEquals(byteToWrite, inputStream.read());
     }
   }
 
   @Test
-  public void writeIncreasingBytes() throws IOException {
-    String ufsPath = getUfsPath();
-    try (UfsFileOutStream outStream = new UfsFileOutStream(mUfs.create(ufsPath))) {
+  public void writeIncreasingBytes() throws IOException, AlluxioException {
+    AlluxioURI ufsPath = getUfsPath();
+    try (FileOutStream outStream = mFileSystem.createFile(ufsPath)) {
       for (int i = 0; i < CHUNK_SIZE; i++) {
         outStream.write(i);
       }
@@ -90,39 +127,39 @@ public class UfsFileOutStreamTest {
   }
 
   @Test
-  public void writeIncreasingByteArray() throws IOException {
-    String ufsPath = getUfsPath();
-    try (UfsFileOutStream outStream = new UfsFileOutStream(mUfs.create(ufsPath))) {
+  public void writeIncreasingByteArray() throws IOException, AlluxioException {
+    AlluxioURI ufsPath = getUfsPath();
+    try (FileOutStream outStream = mFileSystem.createFile(ufsPath)) {
       outStream.write(BufferUtils.getIncreasingByteArray(CHUNK_SIZE));
     }
     verifyIncreasingBytesWritten(ufsPath, CHUNK_SIZE);
   }
 
   @Test
-  public void writeIncreasingByteArrayOffsetLen() throws IOException {
-    String ufsPath = getUfsPath();
-    try (UfsFileOutStream outStream = new UfsFileOutStream(mUfs.create(ufsPath))) {
+  public void writeIncreasingByteArrayOffsetLen() throws IOException, AlluxioException {
+    AlluxioURI ufsPath = getUfsPath();
+    try (FileOutStream outStream = mFileSystem.createFile(ufsPath)) {
       outStream.write(BufferUtils.getIncreasingByteArray(CHUNK_SIZE), 0, CHUNK_SIZE);
     }
     verifyIncreasingBytesWritten(ufsPath, CHUNK_SIZE);
   }
 
   @Test
-  public void writePartialIncreasingByteArray() throws IOException {
+  public void writePartialIncreasingByteArray() throws IOException, AlluxioException {
     int offset = CHUNK_SIZE / 2;
-    String ufsPath = getUfsPath();
-    try (UfsFileOutStream outStream = new UfsFileOutStream(mUfs.create(ufsPath))) {
+    AlluxioURI ufsPath = getUfsPath();
+    try (FileOutStream outStream = mFileSystem.createFile(ufsPath)) {
       outStream.write(BufferUtils.getIncreasingByteArray(CHUNK_SIZE), offset, CHUNK_SIZE / 2);
     }
     verifyIncreasingBytesWritten(ufsPath, offset, CHUNK_SIZE / 2);
   }
 
   @Test
-  public void writeOffset() throws IOException {
+  public void writeOffset() throws IOException, AlluxioException {
     int bytesToWrite = CHUNK_SIZE * 5 + CHUNK_SIZE / 2;
     int offset = CHUNK_SIZE / 3;
-    String ufsPath = getUfsPath();
-    try (UfsFileOutStream outStream = new UfsFileOutStream(mUfs.create(ufsPath))) {
+    AlluxioURI ufsPath = getUfsPath();
+    try (FileOutStream outStream = mFileSystem.createFile(ufsPath)) {
       byte[] array = BufferUtils.getIncreasingByteArray(bytesToWrite + offset);
       outStream.write(array, offset, bytesToWrite);
     }
@@ -136,27 +173,27 @@ public class UfsFileOutStreamTest {
   }
 
   @Test
-  public void writeOverflowOffLen() throws IOException {
-    String ufsPath = getUfsPath();
-    try (UfsFileOutStream outStream = new UfsFileOutStream(mUfs.create(ufsPath))) {
+  public void writeOverflowOffLen() throws IOException, AlluxioException {
+    AlluxioURI ufsPath = getUfsPath();
+    try (FileOutStream outStream = mFileSystem.createFile(ufsPath)) {
       assertThrows(IllegalArgumentException.class, () ->
           outStream.write(BufferUtils.getIncreasingByteArray(CHUNK_SIZE), 5, CHUNK_SIZE + 5));
     }
   }
 
   @Test
-  public void writeNullByteArray() throws IOException {
-    String ufsPath = getUfsPath();
-    try (UfsFileOutStream outStream = new UfsFileOutStream(mUfs.create(ufsPath))) {
+  public void writeNullByteArray() throws IOException, AlluxioException {
+    AlluxioURI ufsPath = getUfsPath();
+    try (FileOutStream outStream = mFileSystem.createFile(ufsPath)) {
       assertThrows(IllegalArgumentException.class, () ->
           outStream.write(null));
     }
   }
 
   @Test
-  public void getBytesWrittenWhenWrite() throws IOException {
-    String ufsPath = getUfsPath();
-    try (UfsFileOutStream outStream = new UfsFileOutStream(mUfs.create(ufsPath))) {
+  public void getBytesWrittenWhenWrite() throws IOException, AlluxioException {
+    AlluxioURI ufsPath = getUfsPath();
+    try (FileOutStream outStream = mFileSystem.createFile(ufsPath)) {
       outStream.write(BufferUtils.getIncreasingByteArray(CHUNK_SIZE), 0, CHUNK_SIZE);
       assertEquals(CHUNK_SIZE, outStream.getBytesWritten());
       outStream.write(BufferUtils.getIncreasingByteArray(CHUNK_SIZE, CHUNK_SIZE), 0, CHUNK_SIZE);
@@ -165,19 +202,21 @@ public class UfsFileOutStreamTest {
     verifyIncreasingBytesWritten(ufsPath, CHUNK_SIZE * 2);
   }
 
-  private String getUfsPath() {
-    return Paths.get(mRootUfs, String.valueOf(UUID.randomUUID())).toString();
+  private AlluxioURI getUfsPath() {
+    return new AlluxioURI(mRootUfs, String.valueOf(UUID.randomUUID()), true);
   }
 
-  private void verifyIncreasingBytesWritten(String ufs, int len) throws IOException {
-    verifyIncreasingBytesWritten(ufs, 0, len);
+  private void verifyIncreasingBytesWritten(AlluxioURI ufsPath, int len)
+      throws IOException, AlluxioException {
+    verifyIncreasingBytesWritten(ufsPath, 0, len);
   }
 
-  private void verifyIncreasingBytesWritten(String ufs, int start, int len) throws IOException {
+  private void verifyIncreasingBytesWritten(AlluxioURI ufsPath, int start, int len)
+      throws IOException, AlluxioException {
     int block = 128;
     byte[] array = new byte[Math.min(block, len)];
     int curToRead;
-    try (InputStream inputStream = mUfs.open(ufs)) {
+    try (InputStream inputStream = mFileSystem.openFile(ufsPath)) {
       while (len > 0) {
         curToRead = Math.min(len, block);
         int read = inputStream.read(array, 0, curToRead);
