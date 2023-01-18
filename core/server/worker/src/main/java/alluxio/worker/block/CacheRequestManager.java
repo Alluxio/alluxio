@@ -11,6 +11,8 @@
 
 package alluxio.worker.block;
 
+import static alluxio.worker.block.CacheRequestManager.CacheResult.BLOCK_CACHED_BUT_NOT_REALLY_CACHE;
+
 import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.client.file.FileSystemContext;
@@ -205,14 +207,14 @@ public class CacheRequestManager {
     public Void call() throws IOException, AlluxioException {
       long blockId = mRequest.getBlockId();
       long blockLength = mRequest.getLength();
-      boolean result = false;
+      CacheResult result = null;
       try {
         result = cacheBlock(mRequest);
       } finally {
-        if (result) {
+        if (result != null && result.mResult && result.mReallyCache) {
           CACHE_BLOCKS_SIZE.inc(blockLength);
           CACHE_SUCCEEDED_BLOCKS.inc();
-        } else {
+        } else if (result != null && !result.mResult) {
           CACHE_FAILED_BLOCKS.inc();
         }
         mActiveCacheRequests.remove(blockId);
@@ -221,8 +223,23 @@ public class CacheRequestManager {
     }
   }
 
-  private boolean cacheBlock(CacheRequest request) throws IOException, AlluxioException {
-    boolean result;
+  static class CacheResult {
+
+    /** if the block is cached. */
+    private final boolean mResult;
+    private final boolean mReallyCache;
+    public static final CacheResult REALLY_CACHE_SUCCESS = new CacheResult(true, true);
+    public static final CacheResult BLOCK_CACHED_BUT_NOT_REALLY_CACHE = new CacheResult(true,
+        false);
+
+    private CacheResult(boolean result, boolean reallyCache) {
+      mResult = result;
+      mReallyCache = reallyCache;
+    }
+  }
+
+  private CacheResult cacheBlock(CacheRequest request) throws IOException, AlluxioException {
+    CacheResult result;
     boolean isSourceLocal = NetworkAddressUtils.isLocalAddress(request.getSourceHost(),
         NETWORK_HOST_RESOLUTION_TIMEOUT);
     long blockId = request.getBlockId();
@@ -230,7 +247,7 @@ public class CacheRequestManager {
     // Check if the block has already been cached on this worker
     if (mBlockWorker.getBlockStore().hasBlockMeta(blockId)) {
       LOG.debug("block already cached: {}", blockId);
-      return true;
+      return BLOCK_CACHED_BUT_NOT_REALLY_CACHE;
     }
     Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
     // Depends on the request, cache the target block from different sources
@@ -254,9 +271,9 @@ public class CacheRequestManager {
    * @param blockId block ID
    * @param blockSize block size
    * @param openUfsBlockOptions options to open the UFS file
-   * @return if the block is cached
+   * @return cache result
    */
-  private boolean cacheBlockFromUfs(long blockId, long blockSize,
+  private CacheResult cacheBlockFromUfs(long blockId, long blockSize,
       Protocol.OpenUfsBlockOptions openUfsBlockOptions) throws IOException {
     try (BlockReader reader = mBlockWorker.createUfsBlockReader(
         Sessions.CACHE_UFS_SESSION_ID, blockId, 0, false, openUfsBlockOptions)) {
@@ -271,7 +288,7 @@ public class CacheRequestManager {
         offset += bufferSize;
       }
     }
-    return true;
+    return CacheResult.REALLY_CACHE_SUCCESS;
   }
 
   /**
@@ -281,15 +298,15 @@ public class CacheRequestManager {
    * @param blockSize block size
    * @param sourceAddress the source to read the block previously by client
    * @param openUfsBlockOptions options to open the UFS file
-   * @return if the block is cached
+   * @return cache result
    */
-  private boolean cacheBlockFromRemoteWorker(long blockId, long blockSize,
+  private CacheResult cacheBlockFromRemoteWorker(long blockId, long blockSize,
       InetSocketAddress sourceAddress, Protocol.OpenUfsBlockOptions openUfsBlockOptions)
       throws IOException {
     if (mBlockWorker.getBlockStore().hasBlockMeta(blockId)
         || mBlockWorker.getBlockStore().hasTempBlockMeta(blockId)) {
       // It is already cached
-      return true;
+      return BLOCK_CACHED_BUT_NOT_REALLY_CACHE;
     }
     mBlockWorker.createBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId, 0,
         new CreateBlockOptions(null, "", blockSize));
@@ -300,7 +317,7 @@ public class CacheRequestManager {
              .createBlockWriter(Sessions.CACHE_WORKER_SESSION_ID, blockId)) {
       BufferUtils.transfer(reader.getChannel(), writer.getChannel());
       mBlockWorker.commitBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId, false);
-      return true;
+      return CacheResult.REALLY_CACHE_SUCCESS;
     } catch (IllegalStateException | IOException e) {
       LOG.warn("Failed to async cache block {} from remote worker ({}) on copying the block: {}",
           blockId, sourceAddress, e.toString());
