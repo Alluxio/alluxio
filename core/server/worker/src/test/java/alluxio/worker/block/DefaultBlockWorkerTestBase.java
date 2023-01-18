@@ -57,7 +57,7 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Unit tests for {@link DefaultBlockWorker}.
+ * Test base for block worker related tests.
  */
 public class DefaultBlockWorkerTestBase {
   protected static final int BLOCK_SIZE = 128;
