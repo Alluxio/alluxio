@@ -941,13 +941,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void commitBlockInUFS(long blockId, long length) throws UnavailableException {
-    try (JournalContext journalContext = createJournalContext()) {
-      commitBlockInUFS(blockId, length, journalContext);
-    }
-  }
-
-  @Override
   public void commitBlockInUFS(long blockId, long length, JournalContext journalContext) {
     LOG.debug("Commit block in ufs. blockId: {}, length: {}", blockId, length);
     try (LockResource r = lockBlock(blockId)) {

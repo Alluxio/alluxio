@@ -170,7 +170,11 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param blockId the id of the block to commit
    * @param length the length of the block
    */
-  void commitBlockInUFS(long blockId, long length) throws UnavailableException;
+  default void commitBlockInUFS(long blockId, long length) throws UnavailableException {
+    try (JournalContext journalContext = createJournalContext()) {
+      commitBlockInUFS(blockId, length, journalContext);
+    }
+  }
 
   /**
    * Marks a block as committed, but without a worker location. This means the block is only in ufs.
