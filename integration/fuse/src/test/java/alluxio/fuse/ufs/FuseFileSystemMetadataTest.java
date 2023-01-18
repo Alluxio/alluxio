@@ -38,7 +38,8 @@ public class FuseFileSystemMetadataTest extends AbstractFuseFileSystemTest {
    * @param localDataCacheEnabled     whether local data cache is enabled
    * @param localMetadataCacheEnabled whether local metadata cache is enabled
    */
-  public FuseFileSystemMetadataTest(boolean localDataCacheEnabled, boolean localMetadataCacheEnabled) {
+  public FuseFileSystemMetadataTest(boolean localDataCacheEnabled,
+      boolean localMetadataCacheEnabled) {
     super(localDataCacheEnabled, localMetadataCacheEnabled);
   }
 

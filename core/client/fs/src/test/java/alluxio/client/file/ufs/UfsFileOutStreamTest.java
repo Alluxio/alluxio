@@ -24,10 +24,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.options.UfsFileSystemOptions;
-import alluxio.conf.Configuration;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
@@ -43,35 +39,20 @@ import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Add unit tests for {@link UfsFileOutStream}.
  */
 @RunWith(Parameterized.class)
-public class UfsFileOutStreamTest {
-  private static final int CHUNK_SIZE = 128;
-  private final InstancedConfiguration mConf;
-  private AlluxioURI mRootUfs;
-  private FileSystem mFileSystem;
-
-  @Parameterized.Parameters
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {{false}, {true}});
-  }
-
+public class UfsFileOutStreamTest extends AbstractUfsStreamTest {
   /**
    * Runs {@link UfsFileInStreamTest} with different configuration combinations.
    *
    * @param localDataCacheEnabled whether local data cache is enabled
    */
   public UfsFileOutStreamTest(boolean localDataCacheEnabled) {
-    mConf = Configuration.copyGlobal();
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED,
-        PropertyKey.USER_CLIENT_CACHE_ENABLED.formatValue(localDataCacheEnabled), Source.RUNTIME);
+    super(localDataCacheEnabled);
   }
 
   /**
@@ -200,10 +181,6 @@ public class UfsFileOutStreamTest {
       assertEquals(CHUNK_SIZE * 2, outStream.getBytesWritten());
     }
     verifyIncreasingBytesWritten(ufsPath, CHUNK_SIZE * 2);
-  }
-
-  private AlluxioURI getUfsPath() {
-    return new AlluxioURI(mRootUfs, String.valueOf(UUID.randomUUID()), true);
   }
 
   private void verifyIncreasingBytesWritten(AlluxioURI ufsPath, int len)
