@@ -71,17 +71,17 @@ public class UfsBaseFileSystemTest {
   }
 
   /**
-   * Runs {@link UfsBaseFileSystem} with different configuration combinations.
+   * Runs {@link UfsBaseFileSystemTest} with different configuration combinations.
    *
-   * @param localDataCached whether local data cache is enabled
-   * @param localMetadataCached whether local metadata cache is enabled
+   * @param localDataCacheEnabled whether local data cache is enabled
+   * @param localMetadataCacheEnabled whether local metadata cache is enabled
    */
-  public UfsBaseFileSystemTest(boolean localDataCached, boolean localMetadataCached) {
+  public UfsBaseFileSystemTest(boolean localDataCacheEnabled, boolean localMetadataCacheEnabled) {
     mConf = Configuration.copyGlobal();
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED,
-        PropertyKey.USER_CLIENT_CACHE_ENABLED.formatValue(localDataCached), Source.RUNTIME);
+        PropertyKey.USER_CLIENT_CACHE_ENABLED.formatValue(localDataCacheEnabled), Source.RUNTIME);
     mConf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE,
-        PropertyKey.USER_METADATA_CACHE_MAX_SIZE.formatValue(localMetadataCached ? 20000 : 0),
+        PropertyKey.USER_METADATA_CACHE_MAX_SIZE.formatValue(localMetadataCacheEnabled ? 20000 : 0),
         Source.RUNTIME);
   }
 

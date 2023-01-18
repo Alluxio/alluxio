@@ -130,7 +130,7 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int read(ByteBuffer buffer, int offset, int length) throws IOException {
-    int totalBytesRead = readInternal(new ByteBufferTargetBuffer(buffer), offset, length,
+    int totalBytesRead = readInternal(new ByteBufferTargetBuffer(buffer, offset), offset, length,
         ReadType.READ_INTO_BYTE_BUFFER, mPosition, false);
     if (totalBytesRead == -1) {
       return -1;
@@ -226,6 +226,8 @@ public class LocalCacheFileInStream extends FileInStream {
     Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(offset >= 0, "offset should be non-negative");
     Preconditions.checkArgument(position >= 0, "position should be non-negative");
+    Preconditions.checkArgument(length <= targetBuffer.remaining(),
+        "to be read content must be equal or shorter than target buffer length");
     if (length == 0) {
       return 0;
     }
