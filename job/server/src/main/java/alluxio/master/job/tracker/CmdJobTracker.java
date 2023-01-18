@@ -114,7 +114,8 @@ public class CmdJobTracker {
         MigrateCliConfig migrateCliConfig = (MigrateCliConfig) cmdConfig;
         AlluxioURI srcPath = new AlluxioURI(migrateCliConfig.getSource());
         AlluxioURI dstPath = new AlluxioURI(migrateCliConfig.getDestination());
-        LOG.info("run a dist cp command, job control id: {} cmd config: {}", jobControlId, cmdConfig);
+        LOG.info("run a dist cp command, job control id: {}, cmd config: {}",
+            jobControlId, cmdConfig);
         cmdInfo = mMigrateCliRunner.runDistCp(srcPath, dstPath,
             migrateCliConfig.getOverWrite(), migrateCliConfig.getBatchSize(),
             jobControlId);
