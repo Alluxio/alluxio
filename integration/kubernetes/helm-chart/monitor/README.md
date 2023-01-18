@@ -70,7 +70,7 @@ metrics:
      prometheus.io/path: "/metrics/prometheus/"
 ```
 ### 4. Download the alluxio dashboard
-Download the alluxio dashboard from [Alluxio grafana dashboard V1](https://grafana.com/grafana/dashboards/17763-alluxio-prometheus-grafana-monitor-v1/), then
+Download the alluxio dashboard from [Alluxio grafana dashboard V1](https://grafana.com/grafana/dashboards/17785-alluxio-prometheus-grafana-monitor-v1/), then
 move the dashboard file to `monitor/source/grafana/dashboard` directory.
 
 ## Helm Chart Values
