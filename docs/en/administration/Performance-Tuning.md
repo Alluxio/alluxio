@@ -312,14 +312,18 @@ Recommend 2x virtual core count if most jobs are running in off peak hours only 
 ## Client Tuning
 
 ### Highly concurrent clients
+
 If a client performs a large number of concurrent operations that need to access the master,
 for example the `GetStatus` or `ListStatus` operations, it may be useful to increase
-the number of connections to the master. This can be done by setting the `alluxio.user.network.rpc.max.connections`
+the number of connections to the master (i.e. GRPC channels). This can be done by setting the `alluxio.user.network.rpc.max.connections`
 property at the client to a value larger than the default value of `1`.
-All operations within the same client java process will share this number of connections
-to the master. As a rough estimate it may be expected for a single connection
-to handle `10,000` ops/sec, though this will depend on workload and should always be tested
-as allocating more connections than needed will result in poor resource utilization
+All operations within the same java client process will share this number of connections to the master.
+As a rough estimate it may be expected that a single connection
+can handle `10,000` RPCs (e.g. `GetStatus` calls) per second.
+So for example if a client is expected to perform `20,000` RPCs per second
+then it may be useful to set `alluxio.user.network.rpc.max.connections` to `2` or `3`.
+Note that this will depend on workload and should always be tested,
+as allocating more connections than necessary will result in poor resource utilization
 and may reduce performance.
 
 ### Passive caching
