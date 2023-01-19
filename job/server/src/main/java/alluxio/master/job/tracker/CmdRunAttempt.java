@@ -173,12 +173,14 @@ public class CmdRunAttempt {
       return Status.FAILED;
     }
 
-    // This make an assumption that this job tree only goes 1 level deep
     boolean finished = true;
-    for (JobInfo child : jobInfo.getChildren()) {
-      if (!child.getStatus().isFinished()) {
-        finished = false;
-        break;
+    if (!jobInfo.getStatus().isFinished()) {
+      // This make an assumption that this job tree only goes 1 level deep
+      for (JobInfo child : jobInfo.getChildren()) {
+        if (!child.getStatus().isFinished()) {
+          finished = false;
+          break;
+        }
       }
     }
 
