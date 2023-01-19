@@ -20,11 +20,14 @@ import alluxio.client.job.JobContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.job.wire.Status;
 import alluxio.resource.CloseableResource;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +43,12 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public class GetCmdStatusCommand extends AbstractFileSystemCommand {
   private static final Logger LOG = LoggerFactory.getLogger(GetCmdStatusCommand.class);
+  private static final Option VERBOSE_OPTION =
+          Option.builder("v")
+                  .required(false)
+                  .hasArg(false)
+                  .desc("show detail status information of a distributed command.")
+                  .build();
 
   /**
    * @param fsContext the filesystem context of Alluxio
@@ -54,42 +63,59 @@ public class GetCmdStatusCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  public Options getOptions() {
+    return new Options().addOption(VERBOSE_OPTION);
+  }
+
+  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   @Override
   public String getUsage() {
-    return "getCmdStatus <jobControlId>";
+    return "getCmdStatus [-v] <jobControlId>";
   }
 
   @Override
   public String getDescription() {
-    return "Get the status information for a distributed command.";
+    return "Get the status information for a distributed command. "
+            + "Use -v flag to display the status in detail.";
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     long jobControlId = Long.parseLong(args[0]);
-    Set<String> failedFiles = Sets.newHashSet();
-    List<String> completedFiles = Lists.newArrayList();
-
     try (CloseableResource<JobMasterClient> client =
                  JobContext.create(mFsContext.getClusterConf(),
                                  mFsContext.getClientContext().getUserState())
                          .acquireMasterClientResource()) {
-      DistributedCommandUtil.getDetailedCmdStatus(
-              jobControlId, client.get(), failedFiles, completedFiles);
-      if (!failedFiles.isEmpty()) {
-        System.out.println("Failed files are:");
-        failedFiles.forEach(System.out::println);
+      if (cl.hasOption("v")) {
+        Set<String> failedFiles = Sets.newHashSet();
+        List<String> completedFiles = Lists.newArrayList();
+        DistributedCommandUtil.getDetailedCmdStatus(
+                jobControlId, client.get(), failedFiles, completedFiles);
+        if (!failedFiles.isEmpty()) {
+          System.out.println("Failed files are:");
+          failedFiles.forEach(System.out::println);
+        }
+      } else {
+        Status status = client.get().getCmdStatus(jobControlId);
+        System.out.println(status);
       }
     } catch (Exception e) {
-      LOG.error("Failed to get detailed status of the command", e);
-      System.out.println(String.format("Unable to get detailed information for command %s."
-                      + " Please retry using `getCmdStatus` to check command detailed status,",
-              jobControlId));
+      if (cl.hasOption("v")) {
+        LOG.error("Failed to get detailed status of the command", e);
+        System.out.println(String.format("Unable to get detailed information for command %s."
+                        + " Please retry using `getCmdStatus` to check command detailed status,",
+                jobControlId));
+      } else {
+        LOG.error("Failed to get the status of the command", e);
+        System.out.println(String.format("Unable to get the status for command %s."
+                        + " Please retry using `getCmdStatus` to check command status,",
+                jobControlId));
+      }
       return -1;
     }
     return 0;
