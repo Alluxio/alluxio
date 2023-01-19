@@ -37,8 +37,8 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
 import alluxio.util.ThreadUtils;
-
 import alluxio.web.ProxyWebServer;
+
 import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Preconditions;

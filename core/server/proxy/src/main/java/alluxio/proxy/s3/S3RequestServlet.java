@@ -15,21 +15,16 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
-
 import alluxio.web.ProxyWebServer;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 import org.eclipse.jetty.server.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
@@ -51,6 +46,7 @@ public class S3RequestServlet extends HttpServlet {
   private static S3RequestServlet sInstance = null;
   private static ReentrantLock sCreateInstanceLock = new ReentrantLock();
   public ConcurrentHashMap<Request, S3Handler> mS3HandlerMap = new ConcurrentHashMap<>();
+
   /**
    * @return the singleton instance of the S3RequestServlet
    */
@@ -155,6 +151,4 @@ public class S3RequestServlet extends HttpServlet {
       S3Handler.processResponse(s3Handler.getServletResponse(), errorResponse);
     }
   }
-
 }
-

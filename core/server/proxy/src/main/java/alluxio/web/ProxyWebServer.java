@@ -81,7 +81,6 @@ public final class ProxyWebServer extends WebServer {
       TimeUnit.SECONDS, new ArrayBlockingQueue<>(64 * 1024),
       ThreadFactoryUtils.build("S3-HEAVYPOOL-%d", false));
 
-
   private FileSystem mFileSystem = null;
 
   private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter = null;
@@ -102,7 +101,7 @@ public final class ProxyWebServer extends WebServer {
 
   /**
    * Get the ProxyWebServer singleton instance.
-   * @return ProxyWebServer singleton instance.
+   * @return ProxyWebServer singleton instance
    */
   public static ProxyWebServer getInstance() {
     return sInstance;
@@ -224,7 +223,7 @@ public final class ProxyWebServer extends WebServer {
 
   /**
    * Get the meta filesystem instance.
-   * @return the meta filesystem instance.
+   * @return the meta filesystem instance
    */
   public FileSystem getMetaFileSystem() {
     return mFileSystem;
@@ -232,7 +231,7 @@ public final class ProxyWebServer extends WebServer {
 
   /**
    * Get the AsyncUserAccessAuditLogWriter instance.
-   * @return the AsyncUserAccessAuditLogWriter instance.
+   * @return the AsyncUserAccessAuditLogWriter instance
    */
   public AsyncUserAccessAuditLogWriter getAsyncAuditLogWriter() {
     return mAsyncAuditLogWriter;
