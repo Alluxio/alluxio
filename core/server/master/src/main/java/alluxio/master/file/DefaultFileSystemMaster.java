@@ -142,7 +142,7 @@ import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.Mode;
@@ -403,6 +403,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   /** Used to check pending/running backup from RPCs. */
   private final CallTracker mStateLockCallTracker;
+  private final alluxio.master.file.loadmanager.LoadManager mLoadManager;
 
   final Clock mClock;
 
@@ -506,6 +507,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     mSyncPrefetchExecutor.allowCoreThreadTimeOut(true);
     mSyncMetadataExecutor.allowCoreThreadTimeOut(true);
     mActiveSyncMetadataExecutor.allowCoreThreadTimeOut(true);
+    mLoadManager = new alluxio.master.file.loadmanager.LoadManager(this);
 
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
@@ -516,6 +518,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         add(mMountTable);
         add(mUfsManager);
         add(mSyncManager);
+        add(mLoadManager);
       }
     };
     mJournaledGroup = new JournaledGroup(journaledComponents, CheckpointName.FILE_SYSTEM_MASTER);
@@ -559,14 +562,14 @@ public class DefaultFileSystemMaster extends CoreMaster
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE, new GrpcService(ServerInterceptors
-        .intercept(new FileSystemMasterClientServiceHandler(this),
-            new ClientIpAddressInjector())));
+        .intercept(new FileSystemMasterClientServiceHandler(this, mLoadManager),
+            new ClientContextServerInjector())));
     services.put(ServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE, new GrpcService(ServerInterceptors
         .intercept(new FileSystemMasterJobServiceHandler(this),
-            new ClientIpAddressInjector())));
+            new ClientContextServerInjector())));
     services.put(ServiceType.FILE_SYSTEM_MASTER_WORKER_SERVICE, new GrpcService(ServerInterceptors
         .intercept(new FileSystemMasterWorkerServiceHandler(this),
-            new ClientIpAddressInjector())));
+            new ClientContextServerInjector())));
     return services;
   }
 
@@ -747,17 +750,20 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
       mAccessTimeUpdater.start();
       mSyncManager.start();
+      mLoadManager.start();
     }
   }
 
   @Override
   public void stop() throws IOException {
+    LOG.info("Next directory id before close: {}", mDirectoryIdGenerator.peekDirectoryId());
     if (mAsyncAuditLogWriter != null) {
       mAsyncAuditLogWriter.stop();
       mAsyncAuditLogWriter = null;
     }
     mSyncManager.stop();
     mAccessTimeUpdater.stop();
+    mLoadManager.stop();
     super.stop();
   }
 
@@ -5208,7 +5214,8 @@ public class DefaultFileSystemMaster extends CoreMaster
           Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
       auditContext.setUgi(ugi)
           .setAuthType(authType)
-          .setIp(ClientIpAddressInjector.getIpAddress())
+          .setIp(ClientContextServerInjector.getIpAddress())
+          .setClientVersion(ClientContextServerInjector.getClientVersion())
           .setCommand(command).setSrcPath(srcPath).setDstPath(dstPath)
           .setSrcInode(srcInode).setAllowed(true)
           .setCreationTimeNs(System.nanoTime());
@@ -5318,5 +5325,13 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public void needsSync(AlluxioURI path) throws InvalidPathException {
     getSyncPathCache().notifyInvalidation(path);
+  }
+
+  /**
+   * Get load manager.
+   * @return load manager
+   */
+  public alluxio.master.file.loadmanager.LoadManager getLoadManager() {
+    return mLoadManager;
   }
 }

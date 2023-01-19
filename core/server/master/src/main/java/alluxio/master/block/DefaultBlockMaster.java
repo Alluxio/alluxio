@@ -63,7 +63,7 @@ import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -341,11 +341,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     services.put(ServiceType.BLOCK_MASTER_CLIENT_SERVICE,
         new GrpcService(ServerInterceptors
             .intercept(new BlockMasterClientServiceHandler(this),
-                new ClientIpAddressInjector())));
+                new ClientContextServerInjector())));
     services.put(ServiceType.BLOCK_MASTER_WORKER_SERVICE,
         new GrpcService(ServerInterceptors
             .intercept(new BlockMasterWorkerServiceHandler(this),
-                new ClientIpAddressInjector())));
+                new ClientContextServerInjector())));
     return services;
   }
 
@@ -494,6 +494,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public void stop() throws IOException {
+    LOG.info("Next container id before close: {}", mBlockContainerIdGenerator.peekNewContainerId());
     super.stop();
   }
 
@@ -1046,7 +1047,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * @param workerId the worker id to register
    */
   @Nullable
-  private MasterWorkerInfo recordWorkerRegistration(long workerId) {
+  protected MasterWorkerInfo recordWorkerRegistration(long workerId) {
     for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers,
         mLostWorkers, mDecommissionedWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
@@ -1197,19 +1198,18 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   protected void workerRegisterStart(WorkerRegisterContext context,
       RegisterWorkerPRequest chunk) {
+    MasterWorkerInfo workerInfo = context.getWorkerInfo();
+    Preconditions.checkState(workerInfo != null,
+        "No workerInfo metadata found in the WorkerRegisterContext!");
+
     final List<String> storageTiers = chunk.getStorageTiersList();
     final Map<String, Long> totalBytesOnTiers = chunk.getTotalBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = chunk.getUsedBytesOnTiersMap();
     final Map<String, StorageList> lostStorage = chunk.getLostStorageMap();
-
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
         BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(
             chunk.getCurrentBlocksList(), context.getWorkerId());
     RegisterWorkerPOptions options = chunk.getOptions();
-
-    MasterWorkerInfo workerInfo = context.getWorkerInfo();
-    Preconditions.checkState(workerInfo != null,
-        "No workerInfo metadata found in the WorkerRegisterContext!");
     mActiveRegisterContexts.put(workerInfo.getId(), context);
 
     // The workerInfo is locked so we can operate on its blocks without race conditions

@@ -94,7 +94,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockWorker.class);
 
   /** Used to close resources during stop. */
-  private final Closer mResourceCloser = Closer.create();
+  protected final Closer mResourceCloser = Closer.create();
   /**
    * Block master clients. commitBlock is the only reason to keep a pool of block master clients
    * on each worker. We should either improve our RPC model in the master or get rid of the
@@ -103,14 +103,14 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private final BlockMasterClientPool mBlockMasterClientPool;
 
   /** Client for all file system master communication. */
-  private final FileSystemMasterClient mFileSystemMasterClient;
+  protected final FileSystemMasterClient mFileSystemMasterClient;
 
   /** Block store delta reporter for master heartbeat. */
   private final BlockHeartbeatReporter mHeartbeatReporter;
   /** Session metadata, used to keep track of session heartbeats. */
   private final Sessions mSessions;
   /** Block Store manager. */
-  private final BlockStore mBlockStore;
+  protected final BlockStore mBlockStore;
   /** List of paths to always keep in memory. */
   private final PrefixList mWhitelist;
 
@@ -118,12 +118,12 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    * The worker ID for this worker. This is initialized in {@link #start(WorkerNetAddress)} and may
    * be updated by the block sync thread if the master requests re-registration.
    */
-  private final AtomicReference<Long> mWorkerId;
+  protected final AtomicReference<Long> mWorkerId;
 
   private final CacheRequestManager mCacheManager;
   private final FuseManager mFuseManager;
 
-  private WorkerNetAddress mAddress;
+  protected WorkerNetAddress mAddress;
 
   /**
    * Constructs a default block worker.
@@ -207,12 +207,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     Preconditions.checkNotNull(mAddress, "mAddress");
 
     // Setup BlockMasterSync
-    BlockMasterSync blockMasterSync = mResourceCloser
-        .register(new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
-    getExecutorService()
-        .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, blockMasterSync,
-            () -> Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
-            Configuration.global(), ServerUserState.global()));
+    setupBlockMasterSync();
+
 
     // Setup PinListSyncer
     PinListSync pinListSync = mResourceCloser.register(
@@ -240,6 +236,15 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     if (Configuration.getBoolean(PropertyKey.WORKER_FUSE_ENABLED)) {
       mFuseManager.start();
     }
+  }
+
+  protected void setupBlockMasterSync() throws IOException {
+    BlockMasterSync blockMasterSync = mResourceCloser
+        .register(new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
+    getExecutorService()
+        .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, blockMasterSync,
+            () -> Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            Configuration.global(), ServerUserState.global()));
   }
 
   /**

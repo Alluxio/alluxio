@@ -14,6 +14,8 @@ package alluxio.client.cli;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -23,6 +25,7 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.SystemOutRule;
 import alluxio.client.WriteType;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.conf.Configuration;
@@ -139,6 +142,34 @@ public class JournalToolTest extends BaseIntegrationTest {
         "REPLICATION_LIMITED_FILE_IDS", "TO_BE_PERSISTED_FILE_IDS")) {
       assertNonemptyFileExists(PathUtils.concatPath(checkpointDir, "INODE_TREE", subPath));
     }
+  }
+
+  @Test
+  public void dumpBlockMasterCheckpointFromUfsJournal() throws Throwable {
+    blockMasterCheckpointUfsJournal();
+    JournalTool.main(new String[] {"-outputDir", mDumpDir.getAbsolutePath(),
+        "-master", Constants.BLOCK_MASTER_NAME});
+
+    assertNonemptyFileWithPrefixExist(mDumpDir, "checkpoints");
+  }
+
+  private void assertNonemptyFileWithPrefixExist(File parent, String prefix) {
+    File[] files = parent.listFiles();
+    assertNotNull(files);
+    List<File> checkpointFiles = Arrays.stream(files)
+        .filter(File::isFile)
+        .filter(file -> file.getName().startsWith(prefix)).collect(toList());
+    assertFalse(checkpointFiles.isEmpty());
+  }
+
+  private void blockMasterCheckpointUfsJournal() throws Exception {
+    // Perform operations to generate a checkpoint.
+    for (int i = 0; i < CHECKPOINT_SIZE * 2; i++) {
+      FileOutStream out = mFs.createFile(new AlluxioURI("/" + i));
+      out.write(new byte[1]);
+      out.close();
+    }
+    IntegrationTestUtils.waitForUfsJournalCheckpoint(Constants.BLOCK_MASTER_NAME);
   }
 
   @Test

@@ -150,7 +150,8 @@ public class LocalCacheManager implements CacheManager {
    * @param pageId page identifier
    * @return the page lock id
    */
-  private int getPageLockId(PageId pageId) {
+  @VisibleForTesting
+  public int getPageLockId(PageId pageId) {
     return Math.floorMod((int) (pageId.getFileId().hashCode() + pageId.getPageIndex()), LOCK_SIZE);
   }
 
