@@ -30,16 +30,6 @@ public class ByteBufferTargetBuffer implements PageReadTargetBuffer {
     mTarget = target;
   }
 
-  /**
-   * Constructor.
-   * @param target
-   * @param offset
-   */
-  public ByteBufferTargetBuffer(ByteBuffer target, int offset) {
-    mTarget = target;
-    mTarget.position(offset);
-  }
-
   @Override
   public byte[] byteArray() {
     throw new UnsupportedOperationException();

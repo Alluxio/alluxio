@@ -155,7 +155,7 @@ public class LocalCacheFileInStreamTest {
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(fileData, manager);
 
-    byte[] readData = new byte[fileSize + 1];
+    byte[] readData = new byte[fileSize];
     ByteBuffer buffer = ByteBuffer.wrap(readData);
     int totalBytesRead = stream.read(buffer, 0, fileSize + 1);
     Assert.assertEquals(-1, totalBytesRead);

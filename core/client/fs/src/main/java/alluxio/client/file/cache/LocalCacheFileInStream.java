@@ -226,8 +226,6 @@ public class LocalCacheFileInStream extends FileInStream {
     Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(offset >= 0, "offset should be non-negative");
     Preconditions.checkArgument(position >= 0, "position should be non-negative");
-    Preconditions.checkArgument(length <= targetBuffer.remaining(),
-        "to be read content must be equal or shorter than target buffer length");
     if (length == 0) {
       return 0;
     }
