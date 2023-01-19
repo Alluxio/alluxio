@@ -35,10 +35,12 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
+import alluxio.underfs.s3a.S3AUnderFileSystemFactory;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,15 +52,18 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Add unit tests for {@link UfsBaseFileSystem}.
  */
 @RunWith(Parameterized.class)
 public class UfsBaseFileSystemTest {
+  private static final String TEST_S3A_PATH_CONF = "alluxio.test.s3a.path";
   private InstancedConfiguration mConf;
   private AlluxioURI mRootUfs;
   private FileSystem mFileSystem;
+  private boolean mIsLocalUFS;
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
@@ -90,9 +95,18 @@ public class UfsBaseFileSystemTest {
    */
   @Before
   public void before() {
-    String ufs = AlluxioTestDirectory.createTemporaryDirectory("ufs").toString();
+    String s3Path = System.getProperty(TEST_S3A_PATH_CONF);
+    String ufs;
+    if (s3Path != null) { // test against S3
+      ufs = new AlluxioURI(s3Path).join(UUID.randomUUID().toString()).toString();
+      UnderFileSystemFactoryRegistry.register(new S3AUnderFileSystemFactory());
+    } else { // test against local
+      ufs = AlluxioTestDirectory.createTemporaryDirectory("ufs").toString();
+      UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
+      mIsLocalUFS = true;
+    }
     mRootUfs = new AlluxioURI(ufs);
-    UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
+    mConf.set(PropertyKey.FUSE_MOUNT_POINT, "/t/mountPoint", Source.RUNTIME);
     mFileSystem = FileSystem.Factory.create(FileSystemContext.create(
         ClientContext.create(mConf)), FileSystemOptions.create(mConf,
         Optional.of(new UfsFileSystemOptions(ufs))));
@@ -124,11 +138,10 @@ public class UfsBaseFileSystemTest {
     Assert.assertFalse(mFileSystem.exists(uri));
   }
 
-  /**
-   * Failed in S3. S3 does not have mode concept.
-   */
   @Test
   public void createWithMode() throws IOException, AlluxioException {
+    // S3 does not have mode concept
+    Assume.assumeTrue(mIsLocalUFS);
     AlluxioURI uri = mRootUfs.join("createWithMode");
     Mode mode = new Mode(Mode.Bits.EXECUTE, Mode.Bits.WRITE, Mode.Bits.READ);
     mFileSystem.createFile(uri,
@@ -136,11 +149,10 @@ public class UfsBaseFileSystemTest {
     Assert.assertEquals(mode.toShort(), mFileSystem.getStatus(uri).getMode());
   }
 
-  /**
-   * Failed in S3. S3 can create file without recursive
-   */
   @Test
   public void createWithRecursive() throws IOException, AlluxioException {
+    // Failed in S3. S3 can create file without recursive
+    Assume.assumeTrue(mIsLocalUFS);
     AlluxioURI uri = mRootUfs.join("nonexistingfolder").join("createWithRecursive");
     Assert.assertThrows(NotFoundRuntimeException.class,
         () -> mFileSystem.createFile(uri).close());
@@ -181,11 +193,10 @@ public class UfsBaseFileSystemTest {
     Assert.assertFalse(mFileSystem.exists(dir));
   }
 
-  /**
-   * S3 does not have mode concept.
-   */
   @Test
   public void createDirectoryWithMode() throws IOException, AlluxioException {
+    // S3 does not have mode concept
+    Assume.assumeTrue(mIsLocalUFS);
     AlluxioURI dir = mRootUfs.join("createDirectoryWithMode");
     Mode mode = new Mode(Mode.Bits.EXECUTE, Mode.Bits.WRITE, Mode.Bits.READ);
     mFileSystem.createDirectory(dir,
@@ -243,11 +254,10 @@ public class UfsBaseFileSystemTest {
     Assert.assertTrue(status.getGroup() != null && !status.getGroup().isEmpty());
   }
 
-  /**
-   * S3 does not have mode concept.
-   */
   @Test
   public void setMode() throws IOException, AlluxioException {
+    // S3 does not have mode concept
+    Assume.assumeTrue(mIsLocalUFS);
     AlluxioURI uri = mRootUfs.join("setMode");
     mFileSystem.createFile(uri).close();
     Mode mode = new Mode(Mode.Bits.EXECUTE, Mode.Bits.WRITE, Mode.Bits.READ);
@@ -279,22 +289,21 @@ public class UfsBaseFileSystemTest {
 
   @Test
   public void renameWhenDestinationFileExist() throws IOException, AlluxioException {
+    Assume.assumeTrue(mIsLocalUFS);
     AlluxioURI src = mRootUfs.join("original");
     AlluxioURI dst = mRootUfs.join("dst");
     mFileSystem.createFile(src).close();
     mFileSystem.createFile(dst).close();
-    // local can overwrite destination file
-    // TODO(lu) test S3
+    // S3 cannot rename
     mFileSystem.rename(src, dst);
     Assert.assertFalse(mFileSystem.exists(src));
     Assert.assertFalse(mFileSystem.getStatus(dst).isFolder());
   }
 
-  /**
-   * Local can overwrite dest dir but S3 cannot.
-   */
   @Test
   public void renameWhenDestinationDirExist() throws IOException, AlluxioException {
+    // local can overwrite dest dir but S3 cannot.
+    Assume.assumeTrue(mIsLocalUFS);
     AlluxioURI src = mRootUfs.join("original");
     AlluxioURI dst = mRootUfs.join("dst");
     mFileSystem.createDirectory(src);
