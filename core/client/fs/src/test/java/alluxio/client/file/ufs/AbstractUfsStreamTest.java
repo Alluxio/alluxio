@@ -27,6 +27,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
+import alluxio.underfs.s3a.S3AUnderFileSystemFactory;
 
 import org.junit.After;
 import org.junit.Before;
@@ -44,6 +45,7 @@ import java.util.UUID;
  */
 @RunWith(Parameterized.class)
 public abstract class AbstractUfsStreamTest {
+  private static final String TEST_S3A_PATH_CONF = "alluxio.test.s3a.path";
   protected static final int CHUNK_SIZE = 100;
   protected InstancedConfiguration mConf;
   protected AlluxioURI mRootUfs;
@@ -70,9 +72,17 @@ public abstract class AbstractUfsStreamTest {
    */
   @Before
   public void before() {
-    String ufs = AlluxioTestDirectory.createTemporaryDirectory("ufsInStream").toString();
+    String s3Path = System.getProperty(TEST_S3A_PATH_CONF);
+    String ufs;
+    if (s3Path != null) { // test against S3
+      ufs = new AlluxioURI(s3Path).join(UUID.randomUUID().toString()).toString();
+      UnderFileSystemFactoryRegistry.register(new S3AUnderFileSystemFactory());
+    } else { // test against local
+      ufs = AlluxioTestDirectory.createTemporaryDirectory("ufs").toString();
+      UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
+    }
     mRootUfs = new AlluxioURI(ufs);
-    UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
+    mConf.set(PropertyKey.FUSE_MOUNT_POINT, "/t/mountPoint", Source.RUNTIME);
     mFileSystem = FileSystem.Factory.create(FileSystemContext.create(
         ClientContext.create(mConf)), FileSystemOptions.create(mConf,
         Optional.of(new UfsFileSystemOptions(ufs))));
