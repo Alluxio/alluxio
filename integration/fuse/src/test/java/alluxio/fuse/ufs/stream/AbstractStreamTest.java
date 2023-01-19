@@ -34,7 +34,7 @@ import java.util.UUID;
  * This class includes the shared stream related tests
  * for {@link FuseFileStream} with local UFS.
  */
-public class AbstractStreamTest extends AbstractTest {
+public abstract class AbstractStreamTest extends AbstractTest {
   protected static final Mode DEFAULT_MODE = new Mode(
       Mode.Bits.ALL, Mode.Bits.READ, Mode.Bits.READ);
   protected FuseFileStream.Factory mStreamFactory;
