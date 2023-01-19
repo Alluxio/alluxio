@@ -218,8 +218,8 @@ public class S3Handler {
     // Reject unsupported subresources.
     rejectUnsupportedResources();
     // Init utils
-    mMetaFS = ProxyWebServer.sFileSystem;
-    mAsyncAuditLogWriter = ProxyWebServer.sAsyncAuditLogWriter;
+    mMetaFS = ProxyWebServer.getInstance().getMetaFileSystem();
+    mAsyncAuditLogWriter = ProxyWebServer.getInstance().getAsyncAuditLogWriter();
     // Initiate the S3 API metadata directories
     if (!mMetaFS.exists(new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR))) {
       mMetaFS.createDirectory(new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR),

@@ -670,8 +670,9 @@ public final class S3RestUtils {
         tagData = S3RestUtils.deserializeTaggingHeader(
             taggingHeader, S3Handler.MAX_HEADER_METADATA_SIZE);
       } catch (IllegalArgumentException e) {
-        if (e.getCause() instanceof S3Exception) {
-          throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath,
+        Throwable cause = e.getCause();
+        if (cause instanceof S3Exception) {
+          throw S3RestUtils.toObjectS3Exception((S3Exception) cause, objectPath,
                   auditContext);
         }
         throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);

@@ -15,8 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
 
+import alluxio.web.ProxyWebServer;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.eclipse.jetty.server.Request;
 import org.slf4j.Logger;
@@ -41,6 +43,7 @@ import javax.ws.rs.core.Response;
  * in replacement of JAX-RS.
  */
 public class S3RequestServlet extends HttpServlet {
+  private static final long serialVersionUID = 2966302125671934038L;
   public static final String SERVICE_PREFIX = "s3";
   public static final String S3_SERVICE_PATH_PREFIX = Constants.REST_API_PREFIX
           + AlluxioURI.SEPARATOR + SERVICE_PREFIX;
@@ -48,13 +51,6 @@ public class S3RequestServlet extends HttpServlet {
   private static S3RequestServlet sInstance = null;
   private static ReentrantLock sCreateInstanceLock = new ReentrantLock();
   public ConcurrentHashMap<Request, S3Handler> mS3HandlerMap = new ConcurrentHashMap<>();
-  public ExecutorService mLightRequestsPool = new ThreadPoolExecutor(8, 64, 0,
-          TimeUnit.SECONDS, new ArrayBlockingQueue<>(64 * 1024),
-          new ThreadFactoryBuilder().setNameFormat("S3-LIGHPOOL-%d").build());
-  public ExecutorService mHeavyRequestsPool = new ThreadPoolExecutor(8, 64, 0,
-          TimeUnit.SECONDS, new ArrayBlockingQueue<>(64 * 1024),
-          new ThreadFactoryBuilder().setNameFormat("S3-HEAVYPOOL-%d").build());
-
   /**
    * @return the singleton instance of the S3RequestServlet
    */
@@ -100,8 +96,7 @@ public class S3RequestServlet extends HttpServlet {
       // Handle request async
       if (Configuration.getBoolean(PropertyKey.PROXY_S3_ASYNC_PROCESSING_ENABLED)) {
         S3BaseTask.OpTag opTag = s3Handler.getS3Task().mOPType.getOpTag();
-        ExecutorService es = opTag == S3BaseTask.OpTag.LIGHT
-                ? mLightRequestsPool : mHeavyRequestsPool;
+        ExecutorService es = ProxyWebServer.getInstance().getRequestsExecutor(opTag);
 
         final AsyncContext asyncCtx = request.startAsync();
         final S3Handler s3HandlerAsync = s3Handler;
@@ -160,5 +155,6 @@ public class S3RequestServlet extends HttpServlet {
       S3Handler.processResponse(s3Handler.getServletResponse(), errorResponse);
     }
   }
+
 }
 
