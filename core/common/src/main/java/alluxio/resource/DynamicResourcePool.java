@@ -123,6 +123,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
      * {@link #acquire()} tends to reuse the most fresh resource if possible.
      */
     private SelectionPolicy mSelectionPolicy = SelectionPolicy.LIFO;
+
     /**
      * @return the max capacity
      */
