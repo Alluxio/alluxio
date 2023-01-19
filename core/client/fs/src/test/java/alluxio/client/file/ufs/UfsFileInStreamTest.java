@@ -154,6 +154,7 @@ public class UfsFileInStreamTest extends AbstractUfsStreamTest {
     int len = CHUNK_SIZE / 2; // 75
     try (FileInStream inStream = getStream(ufsPath)) {
       ByteBuffer buffer = ByteBuffer.allocate(CHUNK_SIZE);
+      buffer.position(start);
       assertEquals(CHUNK_SIZE / 2, inStream.read(buffer, start, len));
       for (int i = start; i < start + len; i++) {
         assertEquals(i - start, buffer.get(i));
