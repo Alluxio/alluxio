@@ -146,6 +146,18 @@ public class BlockStoreRandomReadBench {
   }
 
   @Benchmark
+  public void pagedBlockStoreRandReadLocal(RandomReadParams params) throws Exception {
+    randReadLocal(params.mBlockStoreBase.mPagedBlockStore,
+        params.mLocalBlockId, params.mBlockSize, params.mOffsets, params.mReadSize);
+  }
+
+  @Benchmark
+  public void pagedBlockStoreRandTransferLocal(RandomReadParams params) throws Exception {
+    randTransferLocal(params.mBlockStoreBase.mPagedBlockStore,
+        params.mLocalBlockId, params.mBlockSize, params.mOffsets, params.mReadSize);
+  }
+
+  @Benchmark
   public void pagedBlockStoreRandReadUfs(RandomReadParams params) throws Exception {
     randReadUfs(params.mBlockStoreBase.mPagedBlockStore, params.mUfsBlockId,
         params.mUfsMountId, params.mUfsPath, params.mBlockSize, params.mOffsets, params.mReadSize);
