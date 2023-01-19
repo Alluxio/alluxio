@@ -11,18 +11,32 @@
 
 package alluxio.client.file.ufs;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.FileSystemOptions;
+import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
+import alluxio.exception.AlluxioException;
+import alluxio.grpc.DeletePOptions;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
+import alluxio.underfs.local.LocalUnderFileSystemFactory;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -49,6 +63,27 @@ public abstract class AbstractUfsStreamTest {
     mConf = Configuration.copyGlobal();
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED,
         PropertyKey.USER_CLIENT_CACHE_ENABLED.formatValue(localDataCacheEnabled), Source.RUNTIME);
+  }
+
+  /**
+   * Sets up the file system and the context before a test runs.
+   */
+  @Before
+  public void before() {
+    String ufs = AlluxioTestDirectory.createTemporaryDirectory("ufsInStream").toString();
+    mRootUfs = new AlluxioURI(ufs);
+    UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
+    mFileSystem = FileSystem.Factory.create(FileSystemContext.create(
+        ClientContext.create(mConf)), FileSystemOptions.create(mConf,
+        Optional.of(new UfsFileSystemOptions(ufs))));
+  }
+
+  @After
+  public void after() throws IOException, AlluxioException {
+    for (URIStatus status : mFileSystem.listStatus(mRootUfs)) {
+      mFileSystem.delete(new AlluxioURI(status.getUfsPath()),
+          DeletePOptions.newBuilder().setRecursive(true).build());
+    }
   }
 
   protected AlluxioURI getUfsPath() {

@@ -15,32 +15,18 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
 import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.FileSystemOptions;
-import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.grpc.DeletePOptions;
-import alluxio.underfs.UnderFileSystemFactoryRegistry;
-import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.io.BufferUtils;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.Optional;
 import java.util.Random;
 
 /**
@@ -55,27 +41,6 @@ public class UfsFileInStreamTest extends AbstractUfsStreamTest {
    */
   public UfsFileInStreamTest(boolean localDataCacheEnabled) {
     super(localDataCacheEnabled);
-  }
-
-  /**
-   * Sets up the file system and the context before a test runs.
-   */
-  @Before
-  public void before() {
-    String ufs = AlluxioTestDirectory.createTemporaryDirectory("ufsInStream").toString();
-    mRootUfs = new AlluxioURI(ufs);
-    UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
-    mFileSystem = FileSystem.Factory.create(FileSystemContext.create(
-        ClientContext.create(mConf)), FileSystemOptions.create(mConf,
-        Optional.of(new UfsFileSystemOptions(ufs))));
-  }
-
-  @After
-  public void after() throws IOException, AlluxioException {
-    for (URIStatus status : mFileSystem.listStatus(mRootUfs)) {
-      mFileSystem.delete(new AlluxioURI(status.getUfsPath()),
-          DeletePOptions.newBuilder().setRecursive(true).build());
-    }
   }
 
   @Test
