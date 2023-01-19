@@ -209,7 +209,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     // Setup BlockMasterSync
     setupBlockMasterSync();
 
-
     // Setup PinListSyncer
     PinListSync pinListSync = mResourceCloser.register(
         new PinListSync(this, mFileSystemMasterClient));
