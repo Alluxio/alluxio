@@ -27,6 +27,7 @@ import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.Random;
 
 /**
@@ -177,11 +178,9 @@ public class UfsFileInStreamTest extends AbstractUfsStreamTest {
     AlluxioURI ufsPath = getUfsPath();
     createFile(ufsPath, CHUNK_SIZE);
     ByteBuffer buffer = ByteBuffer.allocate(CHUNK_SIZE * 2);
-    int position = buffer.position();
-    int length = buffer.remaining();
     try (FileInStream inStream = getStream(ufsPath)) {
       assertEquals(CHUNK_SIZE, inStream.read(buffer));
-      // assertTrue(BufferUtils.matchIncreasingByteBuffer(0, CHUNK_SIZE, buffer));
+      assertTrue(BufferUtils.matchIncreasingByteBuffer(0, CHUNK_SIZE, buffer));
       assertEquals(-1, inStream.read(buffer));
     }
   }
