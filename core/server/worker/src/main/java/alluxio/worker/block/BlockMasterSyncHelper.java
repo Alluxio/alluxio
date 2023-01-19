@@ -145,9 +145,10 @@ public class BlockMasterSyncHelper {
     } catch (Exception e) {
       // An error occurred, log and ignore it or error if heartbeat timeout is reached
       if (cmdFromMaster == null) {
-        LOG.error("Failed to receive master heartbeat command.", e);
+        LOG.error("Failed to receive master heartbeat command. worker id {}", workerId, e);
       } else {
-        LOG.error("Failed to receive or execute master heartbeat command: {}", cmdFromMaster, e);
+        LOG.error("Failed to receive or execute master heartbeat command: {}. worker id {}",
+            cmdFromMaster, workerId, e);
       }
       mMasterClient.disconnect();
       return false;

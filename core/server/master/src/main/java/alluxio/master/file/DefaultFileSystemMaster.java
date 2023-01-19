@@ -346,7 +346,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private final BlockMaster mBlockMaster;
 
   /** This manages the file system inode structure. This must be journaled. */
-  private final InodeTree mInodeTree;
+  protected final InodeTree mInodeTree;
 
   /** Store for holding inodes. */
   private final ReadOnlyInodeStore mInodeStore;
@@ -396,7 +396,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private final ActiveSyncManager mSyncManager;
 
   /** Log writer for user access audit log. */
-  private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+  protected AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
   /** Stores the time series for various metrics which are exposed in the UI. */
   private final TimeSeriesStore mTimeSeriesStore;
@@ -404,7 +404,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private final AccessTimeUpdater mAccessTimeUpdater;
 
   /** Used to check pending/running backup from RPCs. */
-  private final CallTracker mStateLockCallTracker;
+  protected final CallTracker mStateLockCallTracker;
   private final alluxio.master.file.loadmanager.LoadManager mLoadManager;
 
   final Clock mClock;
@@ -959,8 +959,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           Mode.Bits accessMode = Mode.Bits.fromProto(context.getOptions().getAccessMode());
           if (context.getOptions().getUpdateTimestamps() && context.getOptions().hasAccessMode()
               && (accessMode.imply(Mode.Bits.READ) || accessMode.imply(Mode.Bits.WRITE))) {
-            mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(),
-                inodePath.getInode(), opTimeMs);
+            updateAccessTime(rpcContext, inodePath.getInode(), opTimeMs);
           }
           auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
           ret = fileInfo;
@@ -1271,8 +1270,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         // in the remaining recursive calls, so we set partialPath to the empty list
         partialPath = Collections.emptyList();
       }
-      mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(), inode,
-          CommonUtils.getCurrentMs());
+      updateAccessTime(rpcContext, inode, CommonUtils.getCurrentMs());
       DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
           ? DescendantType.ALL : DescendantType.NONE;
       try (CloseableIterator<? extends Inode> childrenIterator = getChildrenIterator(
@@ -1343,7 +1341,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
   }
 
-  private boolean areDescendantsLoaded(InodeDirectoryView inode) {
+  protected boolean areDescendantsLoaded(InodeDirectoryView inode) {
     if (!inode.isDirectChildrenLoaded()) {
       return false;
     }
@@ -1366,7 +1364,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    *
    * @param inodePath the path to ensure
    */
-  private void ensureFullPathAndUpdateCache(LockedInodePath inodePath)
+  protected void ensureFullPathAndUpdateCache(LockedInodePath inodePath)
       throws InvalidPathException, FileDoesNotExistException {
     boolean exists = false;
     try {
@@ -3263,7 +3261,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param path the path to load metadata for
    * @param context the {@link LoadMetadataContext}
    */
-  private void loadMetadataIfNotExist(RpcContext rpcContext, AlluxioURI path,
+  protected void loadMetadataIfNotExist(RpcContext rpcContext, AlluxioURI path,
       LoadMetadataContext context)
       throws InvalidPathException, AccessControlException {
     DescendantType syncDescendantType =
@@ -5199,7 +5197,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param srcInode the source inode of this command
    * @return newly-created {@link FileSystemMasterAuditContext} instance
    */
-  private FileSystemMasterAuditContext createAuditContext(String command, AlluxioURI srcPath,
+  protected FileSystemMasterAuditContext createAuditContext(String command, AlluxioURI srcPath,
       @Nullable AlluxioURI dstPath, @Nullable Inode srcInode) {
     // Audit log may be enabled during runtime
     AsyncUserAccessAuditLogWriter auditLogWriter = null;
@@ -5238,7 +5236,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     return auditContext;
   }
 
-  private BlockDeletionContext createBlockDeletionContext() {
+  protected BlockDeletionContext createBlockDeletionContext() {
     return new DefaultBlockDeletionContext(this::removeBlocks,
         blocks -> blocks.forEach(mUfsBlockLocationCache::invalidate));
   }
@@ -5285,11 +5283,15 @@ public class DefaultFileSystemMaster extends CoreMaster
        getSyncPathCache(), DescendantType.NONE);
   }
 
-  private LockingScheme createSyncLockingScheme(AlluxioURI path,
+  protected LockingScheme createSyncLockingScheme(AlluxioURI path,
       FileSystemMasterCommonPOptions options, DescendantType descendantType)
       throws InvalidPathException {
     return new LockingScheme(path, LockPattern.READ, options,
         getSyncPathCache(), descendantType);
+  }
+
+  protected void updateAccessTime(RpcContext rpcContext, Inode inode, long opTimeMs) {
+    mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(), inode, opTimeMs);
   }
 
   boolean isAclEnabled() {

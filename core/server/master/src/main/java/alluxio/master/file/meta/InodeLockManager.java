@@ -164,6 +164,17 @@ public class InodeLockManager implements Closeable {
   }
 
   /**
+   * Acquires an inode lock using {@link Lock#lock()}.
+   *
+   * @param inodeId the inode id of the inode to lock
+   * @param mode the mode to lock in
+   * @return a lock resource which must be closed to release the lock
+   */
+  public RWLockResource lockInode(Long inodeId, LockMode mode) {
+    return mInodeLocks.get(inodeId, mode, false);
+  }
+
+  /**
    * Attempts to acquire an inode lock.
    *
    * @param inodeId the inode id to try locking
