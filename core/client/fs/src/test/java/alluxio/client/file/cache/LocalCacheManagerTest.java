@@ -46,13 +46,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-<<<<<<< HEAD
-||||||| parent of 7a4e0a53a3 (Fix hanging page store test)
-import org.junit.Assume;
-=======
 import org.junit.After;
-import org.junit.Assume;
->>>>>>> 7a4e0a53a3 (Fix hanging page store test)
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
