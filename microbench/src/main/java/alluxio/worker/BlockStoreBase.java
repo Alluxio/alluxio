@@ -124,7 +124,12 @@ public class BlockStoreBase implements AutoCloseable {
     }
     mMonoBlockStore.commitBlock(1, blockId, false);
 
-    // todo(yangchen): create local block for PagedBlockStore
+    mPagedBlockStore.createBlock(1, blockId, 0,
+            new CreateBlockOptions(null, null, blockSize));
+    try (BlockWriter writer = mPagedBlockStore.createBlockWriter(1, blockId)) {
+      writer.append(ByteBuffer.wrap(data));
+    }
+    mPagedBlockStore.commitBlock(1, blockId, false);
   }
 
   /**
