@@ -1009,7 +1009,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void PutObjectToNonExistingBucket() throws Exception {
+  public void putObjectToNonExistingBucket() throws Exception {
     String bucket = "bucket";
     String objectKey = "object";
     String object = CommonUtils.randomAlphaNumString(DATA_SIZE);
@@ -1028,7 +1028,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void PutDirectoryToNonExistingBucket() throws Exception {
+  public void putDirectoryToNonExistingBucket() throws Exception {
     String bucket = "bucket";
     String directory = "directory";
     String fullObjectKey = bucket + AlluxioURI.SEPARATOR + directory + AlluxioURI.SEPARATOR;

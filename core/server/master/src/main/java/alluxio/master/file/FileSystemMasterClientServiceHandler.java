@@ -201,13 +201,15 @@ public final class FileSystemMasterClientServiceHandler
       StreamObserver<CreateFilePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
-      String bucketPath =
-          AlluxioURI.SEPARATOR + request.getPath().split(AlluxioURI.SEPARATOR, 3)[1];
-      boolean exists = mFileSystemMaster.exists(getAlluxioURI(bucketPath),
-          ExistsContext.create(ExistsPOptions.getDefaultInstance().toBuilder()));
-      if (exists == false) {
-        throw new InvalidPathException("Bucket " + bucketPath
-            + " is not a valid Alluxio directory.");
+      if (request.getOptions().getIsS3Operation()) {
+        String bucketPath =
+            AlluxioURI.SEPARATOR + request.getPath().split(AlluxioURI.SEPARATOR, 3)[1];
+        boolean exists = mFileSystemMaster.exists(getAlluxioURI(bucketPath),
+            ExistsContext.create(ExistsPOptions.getDefaultInstance().toBuilder()));
+        if (exists == false) {
+          throw new InvalidPathException("Bucket " + bucketPath
+              + " is not a valid Alluxio directory.");
+        }
       }
 
       return CreateFilePResponse.newBuilder()
