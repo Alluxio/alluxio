@@ -34,10 +34,20 @@ import java.util.UUID;
  * This class includes the shared stream related tests
  * for {@link FuseFileStream} with local UFS.
  */
-public class AbstractStreamTest extends AbstractTest {
+public abstract class AbstractStreamTest extends AbstractTest {
   protected static final Mode DEFAULT_MODE = new Mode(
       Mode.Bits.ALL, Mode.Bits.READ, Mode.Bits.READ);
   protected FuseFileStream.Factory mStreamFactory;
+
+  /**
+   * Runs {@link AbstractStreamTest} with different configuration combinations.
+   *
+   * @param localDataCacheEnabled     whether local data cache is enabled
+   * @param localMetadataCacheEnabled whether local metadata cache is enabled
+   */
+  public AbstractStreamTest(boolean localDataCacheEnabled, boolean localMetadataCacheEnabled) {
+    super(localDataCacheEnabled, localMetadataCacheEnabled);
+  }
 
   @Before
   public void beforeActions() {
