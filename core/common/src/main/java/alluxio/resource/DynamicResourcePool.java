@@ -46,6 +46,16 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class DynamicResourcePool<T> implements Pool<T> {
+  /**
+   * A policy specifying in what order to pick a resource item from a pool.
+   */
+  public enum SelectionPolicy {
+    // first-in-first-out, use the hottest resource
+    FIFO,
+    // last-in-first-out, use the coldest resource
+    LIFO,
+  }
+
   private static final Logger LOG = LoggerFactory.getLogger(DynamicResourcePool.class);
 
   /**
@@ -110,7 +120,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
      * If set to false, the first returned resource will take priority.
      * {@link #acquire()} tends to reuse the most fresh resource if possible.
      */
-    private boolean mFIFO = false;
+    private SelectionPolicy mSelectionPolicy = SelectionPolicy.LIFO;
 
     /**
      * @return the max capacity
@@ -148,18 +158,18 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     }
 
     /**
-     * @return if resources are returned in a FIFO manner
+     * @return the selection policy
      */
-    public boolean getFIFO() {
-      return mFIFO;
+    public SelectionPolicy getSelectionPolicy() {
+      return mSelectionPolicy;
     }
 
     /**
-     * @param fifo if resources should be returned in a FIFO manner
+     * @param policy how to select a client from the pool
      * @return the updated object
      */
-    public Options setFIFO(boolean fifo) {
-      mFIFO = fifo;
+    public Options setSelectionPolicy(SelectionPolicy policy) {
+      mSelectionPolicy = policy;
       return this;
     }
 
@@ -233,12 +243,9 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   private final int mMinCapacity;
 
   /**
-   * If set to true, when a resource needs to be taken from the pool, the last returned resource
-   * will take priority. {@link #acquire()} tends to return a different object every time.
-   * If set to false, the first returned resource will take priority.
-   * {@link #acquire()} tends to reuse the most fresh resource if possible.
+   * the selection policy of the resource pool. see {@link SelectionPolicy} for details
    */
-  private final boolean mFIFO;
+  protected final SelectionPolicy mSelectionPolicy;
 
   // Tracks the resources that are available ordered by lastAccessTime (the head is
   // the most recently used resource).
@@ -251,7 +258,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   // put/delete operations are guarded by "mLock" so that we can control its size to be within
   // a [min, max] range. mLock is reused for simplicity. A separate lock can be used if we see
   // any performance overhead.
-  private final ConcurrentHashMap<T, ResourceInternal<T>> mResources =
+  protected final ConcurrentHashMap<T, ResourceInternal<T>> mResources =
       new ConcurrentHashMap<>(32);
   private final Counter mCounter;
 
@@ -272,7 +279,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
         "cannot find resource count metric for %s", getClass().getName());
     mMaxCapacity = options.getMaxCapacity();
     mMinCapacity = options.getMinCapacity();
-    mFIFO = options.getFIFO();
+    mSelectionPolicy = options.getSelectionPolicy();
     mAvailableResources = new ArrayDeque<>(Math.min(mMaxCapacity, 32));
     mGcFuture = mExecutor.scheduleAtFixedRate(() -> {
       List<T> resourcesToGc = new ArrayList<>();
@@ -494,10 +501,15 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   private ResourceInternal<T> poll() {
     try {
       mLock.lock();
-      if (mFIFO) {
-        return mAvailableResources.pollLast();
+      switch (mSelectionPolicy) {
+        case FIFO:
+          return mAvailableResources.pollLast();
+        case LIFO:
+          return mAvailableResources.pollFirst();
+        default:
+          throw new UnsupportedOperationException(
+              "Policy " + mSelectionPolicy + " is not supported!");
       }
-      return mAvailableResources.pollFirst();
     } finally {
       mLock.unlock();
     }
