@@ -727,8 +727,7 @@ public final class S3RestServiceHandler {
       String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
       try (S3AuditContext auditContext =
           createAuditContext("createObject", user, bucket, object)) {
-        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
-            BUCKET_PATH_CACHE);
+
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
 
         if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
@@ -736,6 +735,7 @@ public final class S3RestServiceHandler {
           // TODO(czhu): verify S3 behaviour when ending an object path with a delimiter
           // - this is a convenience method for the Alluxio fs which does not have a
           //   direct counterpart for S3, since S3 does not have "folders" as actual objects
+          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
           try {
             CreateDirectoryPOptions dirOptions = CreateDirectoryPOptions.newBuilder()
                 .setRecursive(true)
@@ -754,7 +754,8 @@ public final class S3RestServiceHandler {
           }
           return Response.ok().build();
         }
-
+        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+            BUCKET_PATH_CACHE);
         if (partNumber != null) {
           // This object is part of a multipart upload, should be uploaded into the temporary
           // directory first.

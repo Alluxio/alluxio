@@ -16,6 +16,7 @@ import alluxio.RpcUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -30,6 +31,7 @@ import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.DeletePResponse;
+import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.ExistsPRequest;
 import alluxio.grpc.ExistsPResponse;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
@@ -199,6 +201,15 @@ public final class FileSystemMasterClientServiceHandler
       StreamObserver<CreateFilePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
+      String bucketPath =
+          AlluxioURI.SEPARATOR + request.getPath().split(AlluxioURI.SEPARATOR, 3)[1];
+      boolean exists = mFileSystemMaster.exists(getAlluxioURI(bucketPath),
+          ExistsContext.create(ExistsPOptions.getDefaultInstance().toBuilder()));
+      if (exists == false) {
+        throw new InvalidPathException("Bucket " + bucketPath
+            + " is not a valid Alluxio directory.");
+      }
+
       return CreateFilePResponse.newBuilder()
           .setFileInfo(GrpcUtils.toProto(mFileSystemMaster.createFile(pathUri,
               CreateFileContext.create(request.getOptions().toBuilder())

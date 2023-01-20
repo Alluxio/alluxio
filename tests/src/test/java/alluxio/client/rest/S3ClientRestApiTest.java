@@ -1009,7 +1009,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void PutObjectToUnknownBucket() throws Exception {
+  public void PutObjectToNonExistingBucket() throws Exception {
     String bucket = "bucket";
     String objectKey = "object";
     String object = CommonUtils.randomAlphaNumString(DATA_SIZE);
@@ -1020,12 +1020,28 @@ public final class S3ClientRestApiTest extends RestApiTest {
     mFileSystem.delete(bucketURI);
     try {
       createObject(fullObjectKey, object.getBytes(), null, null);
-    }
-    catch (AssertionError e) {
+    } catch (AssertionError e) {
       // expected
       return;
     }
     Assert.fail("create object under non-existent bucket should fail");
+  }
+
+  @Test
+  public void PutDirectoryToNonExistingBucket() throws Exception {
+    String bucket = "bucket";
+    String directory = "directory";
+    String fullObjectKey = bucket + AlluxioURI.SEPARATOR + directory + AlluxioURI.SEPARATOR;
+    createBucketRestCall(bucket);
+    // delete the bucket in alluxio and delete it in UFS
+    mFileSystem.delete(new AlluxioURI(AlluxioURI.SEPARATOR + bucket));
+    try {
+      createObject(fullObjectKey, new byte[] {}, null, null);
+    } catch (AssertionError e) {
+      // expected
+      return;
+    }
+    Assert.fail("create object as alluxio directory under non-existent bucket should fail");
   }
 
   @Test
