@@ -24,6 +24,7 @@ public abstract class CoreMaster extends AbstractMaster {
   protected final SafeModeManager mSafeModeManager;
   protected final BackupManager mBackupManager;
   protected final JournalSystem mJournalSystem;
+  protected final PrimarySelector mPrimarySelector;
   protected final long mStartTimeMs;
   protected final int mPort;
 
@@ -38,6 +39,7 @@ public abstract class CoreMaster extends AbstractMaster {
     mSafeModeManager = context.getSafeModeManager();
     mBackupManager = context.getBackupManager();
     mJournalSystem = context.getJournalSystem();
+    mPrimarySelector = context.getPrimarySelector();
     mStartTimeMs = context.getStartTimeMs();
     mPort = context.getPort();
   }

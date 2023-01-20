@@ -2981,7 +2981,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "UFS), EMBEDDED (use a journal embedded in the masters), and NOOP (do not use a "
               + "journal)")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
       dataSizeBuilder(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX)

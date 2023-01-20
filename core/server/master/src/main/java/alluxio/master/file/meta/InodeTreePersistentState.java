@@ -203,6 +203,13 @@ public class InodeTreePersistentState implements Journaled {
     return Collections.unmodifiableSet(mToBePersistedIds);
   }
 
+  /**
+   * @return the list of TTL buckets for tracking inode TTLs
+   */
+  public TtlBucketList getTtlBuckets() {
+    return mTtlBuckets;
+  }
+
   ////
   /// The applyAndJournal() methods make sure the in-memory metadata state and the journal are
   /// BOTH updated. Any exception seen here will crash the master! So if an exception should be
