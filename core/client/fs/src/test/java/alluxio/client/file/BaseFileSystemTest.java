@@ -24,10 +24,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
-import alluxio.TestLoggerRule;
-import alluxio.conf.Configuration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -41,16 +37,11 @@ import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.resource.CloseableResource;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.FileInfo;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -62,63 +53,7 @@ import java.util.List;
 */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class})
-public final class BaseFileSystemTest {
-
-  private static final RuntimeException EXCEPTION = new RuntimeException("test exception");
-  private static final String SHOULD_HAVE_PROPAGATED_MESSAGE =
-      "Exception should have been propagated";
-
-  private InstancedConfiguration mConf = Configuration.copyGlobal();
-
-  @Rule
-  private TestLoggerRule mTestLogger = new TestLoggerRule();
-
-  private FileSystem mFileSystem;
-  private FileSystemContext mFileContext;
-  private ClientContext mClientContext;
-  private FileSystemMasterClient mFileSystemMasterClient;
-
-  private class DummyAlluxioFileSystem extends BaseFileSystem {
-    public DummyAlluxioFileSystem(FileSystemContext fsContext) {
-      super(fsContext);
-    }
-  }
-
-  /**
-   * Sets up the file system and the context before a test runs.
-   */
-  @Before
-  public void before() {
-    mConf.set(PropertyKey.USER_FILE_INCLUDE_OPERATION_ID, false);
-    mClientContext = ClientContext.create(mConf);
-    mFileContext = PowerMockito.mock(FileSystemContext.class);
-    mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-    when(mFileContext.acquireMasterClientResource()).thenReturn(
-        new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClient) {
-          @Override
-          public void closeResource() {
-            // Noop.
-          }
-        });
-    when(mFileContext.getClientContext()).thenReturn(mClientContext);
-    when(mFileContext.getClusterConf()).thenReturn(mConf);
-    when(mFileContext.getPathConf(any())).thenReturn(mConf);
-    when(mFileContext.getUriValidationEnabled()).thenReturn(true);
-    mFileSystem = new DummyAlluxioFileSystem(mFileContext);
-  }
-
-  @After
-  public void after() {
-    mConf = Configuration.copyGlobal();
-  }
-
-  /**
-   * Verifies and releases the master client after a test with a filesystem operation.
-   */
-  public void verifyFilesystemContextAcquiredAndReleased() {
-    verify(mFileContext).acquireMasterClientResource();
-  }
-
+public final class BaseFileSystemTest extends FileSystemTestBase {
   /**
    * Tests the creation of a file via the
    * {@link BaseFileSystem#createFile(AlluxioURI, CreateFilePOptions)} method.

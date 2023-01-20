@@ -100,6 +100,10 @@ public class BaseFileSystem implements FileSystem {
 
   protected volatile boolean mClosed = false;
 
+  protected static final Error UNREACHABLE_CODE_ERROR = new Error("We should never reach here. "
+      + "wrapAndThrowAlluxioStatusException is guaranteed "
+      + "to throw an exception and never returns.");
+
   /**
    * Constructs a new base file system.
    *
@@ -617,22 +621,38 @@ public class BaseFileSystem implements FileSystem {
       // Explicitly connect to trigger loading configuration from meta master.
       client.get().connect();
       return fn.call(client.get());
-    } catch (NotFoundException e) {
+    } catch (AlluxioStatusException e) {
+      wrapAndThrowAlluxioStatusException(e);
+      throw UNREACHABLE_CODE_ERROR;
+    }
+  }
+
+  protected void wrapAndThrowAlluxioStatusException(AlluxioStatusException e)
+      throws AlluxioException, IOException {
+    if (e instanceof NotFoundException) {
       throw new FileDoesNotExistException(e.getMessage());
-    } catch (AlreadyExistsException e) {
+    }
+    if (e instanceof AlreadyExistsException) {
       throw new FileAlreadyExistsException(e.getMessage());
-    } catch (InvalidArgumentException e) {
+    }
+    if (e instanceof InvalidArgumentException) {
       throw new InvalidPathException(e.getMessage());
-    } catch (FailedPreconditionException e) {
+    }
+    if (e instanceof FailedPreconditionException) {
       // A little sketchy, but this should be the only case that throws FailedPrecondition.
       throw new DirectoryNotEmptyException(e.getMessage());
-    } catch (UnavailableException e) {
-      throw e;
-    } catch (UnauthenticatedException e) {
-      throw e;
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
     }
+    if (e instanceof UnavailableException || e instanceof UnauthenticatedException) {
+      throw e;
+    }
+    throw e.toAlluxioException();
+  }
+
+  /**
+   * @return the file system context
+   */
+  public FileSystemContext getFileSystemContext() {
+    return mFsContext;
   }
 
   /**
