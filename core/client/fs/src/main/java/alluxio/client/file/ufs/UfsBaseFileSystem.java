@@ -405,15 +405,8 @@ public class UfsBaseFileSystem implements FileSystem {
     String path = CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mRootUFS.getPath());
     AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mRootUFS, path));
     FileInfo info = new FileInfo().setName(ufsUri.getName())
-<<<<<<< HEAD
         .setPath(path)
         .setFileId(ufsUri.hashCode())
-||||||| 3051ba25d0
-        .setPath(ufsStatus.getName())
-=======
-        .setPath(ufsStatus.getName())
-        .setFileId(ufsUri.hashCode())
->>>>>>> c7a272f1750099a43afbd422241da14b88d23c58
         .setUfsPath(ufsUri.toString())
         .setFolder(ufsStatus.isDirectory())
         .setOwner(ufsStatus.getOwner())
