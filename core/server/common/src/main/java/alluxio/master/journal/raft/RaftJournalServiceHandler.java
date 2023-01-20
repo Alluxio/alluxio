@@ -39,6 +39,8 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
       RaftJournalSystem raftJournalSystem) {
     mManager = manager;
     mRaftJournalSystem = raftJournalSystem;
+    LOG.debug("RaftJournalServiceHandler initialized, journal system {}",
+        mRaftJournalSystem);
   }
 
   @Override

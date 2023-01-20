@@ -58,6 +58,7 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
     mRemovedBlocks = new ArrayList<>(100);
     mAddedBlocks = new HashMap<>(20);
     mLostStorage = new HashMap<>();
+    LOG.debug("BlockHeartbeatReporter initialized");
   }
 
   /**
