@@ -2096,6 +2096,11 @@
                 "id": 4,
                 "name": "operationId",
                 "type": "FsOpPId"
+              },
+              {
+                "id": 5,
+                "name": "checkS3BucketPath",
+                "type": "bool"
               }
             ]
           },
@@ -2404,11 +2409,6 @@
                     "value": "NEW_PATHS"
                   }
                 ]
-              },
-              {
-                "id": 13,
-                "name": "isS3Operation",
-                "type": "bool"
               }
             ],
             "maps": [

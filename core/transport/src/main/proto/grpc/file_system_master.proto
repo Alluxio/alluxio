@@ -44,6 +44,7 @@ message FileSystemMasterCommonPOptions {
   optional int64 ttl = 2;
   optional grpc.TtlAction ttlAction = 3;
   optional FsOpPId operationId = 4;
+  optional bool checkS3BucketPath = 5;
 }
 
 message CheckAccessPRequest {
@@ -137,7 +138,6 @@ message CreateFilePOptions {
   optional int64 persistenceWaitTime = 10;
   map<string, bytes> xattr = 11;
   optional XAttrPropagationStrategy xattrPropStrat = 12 [default = NEW_PATHS];
-  optional bool isS3Operation = 13;
 }
 message CreateFilePRequest {
   /** the path of the file */

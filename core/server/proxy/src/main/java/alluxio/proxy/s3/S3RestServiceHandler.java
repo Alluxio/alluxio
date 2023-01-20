@@ -32,6 +32,8 @@ import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.PMode;
@@ -242,8 +244,7 @@ public final class S3RestServiceHandler {
       final FileSystem userFs = S3RestUtils.createFileSystemForUser(user, mMetaFS);
 
       try (S3AuditContext auditContext = createAuditContext("headBucket", user, bucket, null)) {
-        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
-            BUCKET_PATH_CACHE);
+        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
       }
       return Response.ok().build();
     });
@@ -309,7 +310,7 @@ public final class S3RestServiceHandler {
       final FileSystem userFs = S3RestUtils.createFileSystemForUser(user, mMetaFS);
 
       try (S3AuditContext auditContext = createAuditContext("listObjects", user, bucket, null)) {
-        S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext, BUCKET_PATH_CACHE);
+        S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext);
         if (tagging != null) { // GetBucketTagging
           AlluxioURI uri = new AlluxioURI(path);
           try {
@@ -356,20 +357,21 @@ public final class S3RestServiceHandler {
           // TODO(czhu): allow non-"/" delimiters by parsing the prefix & delimiter pair to
           //             determine what directory to list the contents of
           //             only list the direct children if delimiter is not null
+          ListStatusPOptions.Builder optionsBuilder =
+              ListStatusPOptions.newBuilder();
           if (StringUtils.isNotEmpty(delimiterParam)) {
             if (prefixParam == null) {
               path = parsePathWithDelimiter(path, "", delimiterParam);
             } else {
               path = parsePathWithDelimiter(path, prefixParam, delimiterParam);
             }
-            children = userFs.listStatus(new AlluxioURI(path));
           } else {
             if (prefixParam != null) {
               path = parsePathWithDelimiter(path, prefixParam, AlluxioURI.SEPARATOR);
             }
-            ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
-            children = userFs.listStatus(new AlluxioURI(path), options);
+            optionsBuilder.setRecursive(true);
           }
+          children = userFs.listStatus(new AlluxioURI(path), optionsBuilder.build());
         } catch (FileDoesNotExistException e) {
           // Since we've called S3RestUtils.checkPathIsAlluxioDirectory() on the bucket path
           // already, this indicates that the prefix was unable to be found in the Alluxio FS
@@ -501,8 +503,8 @@ public final class S3RestServiceHandler {
       try (S3AuditContext auditContext =
           createAuditContext("createBucket", user, bucket, null)) {
         if (tagging != null) { // PutBucketTagging
-          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
-              BUCKET_PATH_CACHE);
+//          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+//              BUCKET_PATH_CACHE);
           try {
             TaggingData tagData = new XmlMapper().readerFor(TaggingData.class)
                 .readValue(is);
@@ -512,6 +514,8 @@ public final class S3RestServiceHandler {
             SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
                 .putAllXattr(xattrMap)
                 .setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
+                .setCommonOptions(
+                    FileSystemMasterCommonPOptions.newBuilder().setCheckS3BucketPath(true).build())
                 .build();
             userFs.setAttribute(new AlluxioURI(bucketPath), attrPOptions);
           } catch (IOException e) {
@@ -584,7 +588,7 @@ public final class S3RestServiceHandler {
         } catch (Exception e) {
           throw S3RestUtils.toBucketS3Exception(e, bucketPath, auditContext);
         }
-        BUCKET_PATH_CACHE.put(new AlluxioURI(bucketPath), true);
+//        BUCKET_PATH_CACHE.put(new AlluxioURI(bucketPath), true);
         return Response.Status.OK;
       }
     });
@@ -616,8 +620,8 @@ public final class S3RestServiceHandler {
 
       try (S3AuditContext auditContext =
           createAuditContext("deleteBucket", user, bucket, null)) {
-        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
-            BUCKET_PATH_CACHE);
+//        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+//            BUCKET_PATH_CACHE);
 
         if (tagging != null) { // DeleteBucketTagging
           LOG.debug("DeleteBucketTagging bucket={}", bucketPath);
@@ -626,6 +630,8 @@ public final class S3RestServiceHandler {
           SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
               .putAllXattr(xattrMap)
               .setXattrUpdateStrategy(File.XAttrUpdateStrategy.DELETE_KEYS)
+              .setCommonOptions(
+                  FileSystemMasterCommonPOptions.newBuilder().setCheckS3BucketPath(true).build())
               .build();
           try {
             userFs.setAttribute(new AlluxioURI(bucketPath), attrPOptions);
@@ -637,8 +643,10 @@ public final class S3RestServiceHandler {
 
         // Delete the bucket.
         DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(Configuration
-            .get(PropertyKey.PROXY_S3_DELETE_TYPE)
-            .equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
+                .get(PropertyKey.PROXY_S3_DELETE_TYPE)
+                .equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
+            .setCommonOptions(
+                FileSystemMasterCommonPOptions.newBuilder().setCheckS3BucketPath(true).build())
             .build();
         try {
           userFs.delete(new AlluxioURI(bucketPath), options);
@@ -735,7 +743,7 @@ public final class S3RestServiceHandler {
           // TODO(czhu): verify S3 behaviour when ending an object path with a delimiter
           // - this is a convenience method for the Alluxio fs which does not have a
           //   direct counterpart for S3, since S3 does not have "folders" as actual objects
-          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
+//          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
           try {
             CreateDirectoryPOptions dirOptions = CreateDirectoryPOptions.newBuilder()
                 .setRecursive(true)
@@ -744,6 +752,8 @@ public final class S3RestServiceHandler {
                     .setGroupBits(Bits.ALL)
                     .setOtherBits(Bits.NONE).build())
                 .setAllowExists(true)
+                .setCommonOptions(
+                    FileSystemMasterCommonPOptions.newBuilder().setCheckS3BucketPath(true).build())
                 .build();
             userFs.createDirectory(new AlluxioURI(objectPath), dirOptions);
           } catch (FileAlreadyExistsException e) {
@@ -754,8 +764,8 @@ public final class S3RestServiceHandler {
           }
           return Response.ok().build();
         }
-        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
-            BUCKET_PATH_CACHE);
+//        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+//            BUCKET_PATH_CACHE);
         if (partNumber != null) {
           // This object is part of a multipart upload, should be uploaded into the temporary
           // directory first.
@@ -816,6 +826,8 @@ public final class S3RestServiceHandler {
             SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
                 .putAllXattr(xattrMap)
                 .setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
+                .setCommonOptions(
+                    FileSystemMasterCommonPOptions.newBuilder().setCheckS3BucketPath(true).build())
                 .build();
             userFs.setAttribute(objectUri, attrPOptions);
           } catch (Exception e) {
@@ -838,7 +850,8 @@ public final class S3RestServiceHandler {
                     .setOtherBits(Bits.NONE).build())
                 .setWriteType(S3RestUtils.getS3WriteType())
                 .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-                .setIsS3Operation(true).build();
+                .setCommonOptions(
+                    FileSystemMasterCommonPOptions.newBuilder().setCheckS3BucketPath(true)).build();
 
         // not copying from an existing file
         if (copySourceParam == null) {
@@ -913,7 +926,8 @@ public final class S3RestServiceHandler {
                   .setOwnerBits(Bits.ALL)
                   .setGroupBits(Bits.ALL)
                   .setOtherBits(Bits.NONE).build())
-              .setIsS3Operation(true);
+              .setCommonOptions(
+                  FileSystemMasterCommonPOptions.newBuilder().setCheckS3BucketPath(true));
           // Handle metadata directive
           if (metadataDirective == S3Constants.Directive.REPLACE
               && filePOptions.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
@@ -1028,8 +1042,8 @@ public final class S3RestServiceHandler {
       TaggingData tagData = null;
       try (S3AuditContext auditContext =
           createAuditContext("initiateMultipartUpload", user, bucket, object)) {
-        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
-            BUCKET_PATH_CACHE);
+//        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+//            BUCKET_PATH_CACHE);
         if (taggingHeader != null) { // Parse the tagging header if it exists for PutObject
           try {
             tagData = S3RestUtils.deserializeTaggingHeader(taggingHeader, mMaxHeaderMetadataSize);
@@ -1066,7 +1080,9 @@ public final class S3RestServiceHandler {
                   .setOwnerBits(Bits.ALL)
                   .setGroupBits(Bits.ALL)
                   .setOtherBits(Bits.NONE).build())
-              .setWriteType(S3RestUtils.getS3WriteType()).build());
+              .setWriteType(S3RestUtils.getS3WriteType()).setCommonOptions(
+                  FileSystemMasterCommonPOptions.newBuilder().setCheckS3BucketPath(true).build())
+              .build());
 
           // Create the Alluxio multipart upload metadata file
           if (contentType != null) {
@@ -1090,7 +1106,6 @@ public final class S3RestServiceHandler {
                   .setWriteType(S3RestUtils.getS3WriteType())
                   .putAllXattr(xattrMap)
                   .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-                  .setIsS3Operation(true)
                   .build()
           );
           SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
@@ -1214,8 +1229,8 @@ public final class S3RestServiceHandler {
       String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
       try (S3AuditContext auditContext =
           createAuditContext("listParts", user, bucket, object)) {
-        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
-            BUCKET_PATH_CACHE);
+//        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+//            BUCKET_PATH_CACHE);
 
         AlluxioURI tmpDir = new AlluxioURI(
             S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, uploadId));
@@ -1223,8 +1238,8 @@ public final class S3RestServiceHandler {
           S3RestUtils.checkStatusesForUploadId(mMetaFS, userFs, tmpDir, uploadId);
         } catch (Exception e) {
           throw S3RestUtils.toObjectS3Exception((e instanceof FileDoesNotExistException)
-                          ? new S3Exception(object, S3ErrorCode.NO_SUCH_UPLOAD) : e,
-                  object, auditContext);
+                  ? new S3Exception(object, S3ErrorCode.NO_SUCH_UPLOAD) : e,
+              object, auditContext);
         }
 
         try {
@@ -1318,10 +1333,14 @@ public final class S3RestServiceHandler {
       AlluxioURI uri = new AlluxioURI(objectPath);
       try (S3AuditContext auditContext =
           createAuditContext("getObjectTags", user, bucket, object)) {
-        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
-            BUCKET_PATH_CACHE);
+//        S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+//            BUCKET_PATH_CACHE);
         try {
-          TaggingData tagData = S3RestUtils.deserializeTags(userFs.getStatus(uri).getXAttr());
+          TaggingData tagData = S3RestUtils.deserializeTags(userFs.getStatus(uri,
+              GetStatusPOptions.newBuilder().setCommonOptions(
+                      FileSystemMasterCommonPOptions.newBuilder()
+                          .setCheckS3BucketPath(true).build())
+                  .build()).getXAttr());
           LOG.debug("GetObjectTagging tagData={}", tagData);
           return tagData != null ? tagData : new TaggingData();
         } catch (Exception e) {
@@ -1376,7 +1395,7 @@ public final class S3RestServiceHandler {
         new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object, uploadId));
     try (S3AuditContext auditContext =
         createAuditContext("abortMultipartUpload", user, bucket, object)) {
-      S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext, BUCKET_PATH_CACHE);
+//      S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext, );
       try {
         S3RestUtils.checkStatusesForUploadId(mMetaFS, userFs, multipartTemporaryDir, uploadId);
       } catch (Exception e) {
@@ -1407,11 +1426,13 @@ public final class S3RestServiceHandler {
     // Delete the object.
     String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
     DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(Configuration
-        .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
+            .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
+        .setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setCheckS3BucketPath(true).build())
         .build();
     try (S3AuditContext auditContext =
         createAuditContext("deleteObject", user, bucket, object)) {
-      S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext, BUCKET_PATH_CACHE);
+//      S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext, );
       try {
         userFs.delete(new AlluxioURI(objectPath), options);
       } catch (FileDoesNotExistException | DirectoryNotEmptyException e) {
@@ -1434,10 +1455,12 @@ public final class S3RestServiceHandler {
     xattrMap.put(S3Constants.TAGGING_XATTR_KEY, ByteString.copyFrom(new byte[0]));
     SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
         .putAllXattr(xattrMap).setXattrUpdateStrategy(File.XAttrUpdateStrategy.DELETE_KEYS)
+        .setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setCheckS3BucketPath(true).build())
         .build();
     try (S3AuditContext auditContext =
         createAuditContext("deleteObjectTags", user, bucket, object)) {
-      S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext, BUCKET_PATH_CACHE);
+//      S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext, );
       try {
         userFs.setAttribute(new AlluxioURI(objectPath), attrPOptions);
       } catch (Exception e) {

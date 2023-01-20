@@ -25,6 +25,8 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.proto.journal.File;
@@ -328,7 +330,10 @@ public final class S3RestUtils {
       FileSystem metaFs, FileSystem userFs, AlluxioURI multipartTempDirUri, String uploadId)
       throws AlluxioException, IOException {
     // Verify the multipart upload dir exists and is a folder
-    URIStatus multipartTempDirStatus = userFs.getStatus(multipartTempDirUri);
+    URIStatus multipartTempDirStatus = userFs.getStatus(multipartTempDirUri,
+        GetStatusPOptions.newBuilder().setCommonOptions(
+                FileSystemMasterCommonPOptions.newBuilder().setCheckS3BucketPath(true).build())
+            .build());
     if (!multipartTempDirStatus.isFolder()) {
       //TODO(czhu): determine intended behavior in this edge-case
       throw new RuntimeException(

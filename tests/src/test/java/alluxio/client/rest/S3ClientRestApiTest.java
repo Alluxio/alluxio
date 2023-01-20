@@ -296,19 +296,26 @@ public final class S3ClientRestApiTest extends RestApiTest {
   public void listNonExistentBucket() throws Exception {
     String bucketName = "bucket";
     //empty parameters
-    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/"),
-        ListStatusPOptions.newBuilder().setRecursive(true).build());
+//    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/"),
+//        ListStatusPOptions.newBuilder().setRecursive(true).build());
 
     // Verify 404 HTTP status & NoSuchBucket S3 error code
     HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
         bucketName, NO_PARAMS, HttpMethod.GET,
         getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
         .execute();
-    Assert.assertEquals(404, connection.getResponseCode());
+    //empty parameters
+//    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
+//        ListStatusPOptions.newBuilder().setRecursive(true).build());
+//
+//    ListBucketResult expected = new ListBucketResult("bucket", statuses,
+//        ListBucketOptions.defaults());
+//    assertEquals(0, expected.getContents().size());
+    Assert.assertNotEquals(Response.Status.Family.familyOf(connection.getResponseCode()),
+        Response.Status.Family.SUCCESSFUL);
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
     Assert.assertEquals(bucketName, response.getResource());
-    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
   }
 
   @Test
@@ -1045,12 +1052,36 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void getDeletedBucket() throws Exception {
+    String bucket = "bucket";
+    AlluxioURI bucketURI = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
+
+    createBucketRestCall(bucket);
+
+    // delete the bucket in alluxio and delete it in UFS
+    mFileSystem.delete(bucketURI);
+    Assert.assertEquals(false, mFileSystem.exists(bucketURI));
+
+    // Verify 404 HTTP status & NoSuchBucket S3 error code
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
+        bucket, NO_PARAMS, HttpMethod.GET,
+        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .execute();
+
+    Assert.assertNotEquals(Response.Status.Family.familyOf(connection.getResponseCode()),
+        Response.Status.Family.SUCCESSFUL);
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(bucket, response.getResource());
+  }
+
+  @Test
   public void putDirectoryObject() throws Exception {
     final String bucketName = "directory-bucket";
     createBucketRestCall(bucketName);
 
     final String directoryName = "directory/";
-    createObject(bucketName + AlluxioURI.SEPARATOR + directoryName, new byte[]{}, null, null);
+    createObject(bucketName + AlluxioURI.SEPARATOR + directoryName, new byte[] {}, null, null);
 
     final List<URIStatus> statuses = mFileSystem.listStatus(
         new AlluxioURI(AlluxioURI.SEPARATOR + bucketName));

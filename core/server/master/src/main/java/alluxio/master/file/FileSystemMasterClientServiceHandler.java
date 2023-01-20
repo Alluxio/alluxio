@@ -16,6 +16,7 @@ import alluxio.RpcUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
@@ -105,6 +106,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -139,6 +141,9 @@ public final class FileSystemMasterClientServiceHandler
       StreamObserver<CheckAccessPResponse> responseObserver) {
     RpcUtils.call(LOG,
         () -> {
+          if (request.getOptions().getCommonOptions().getCheckS3BucketPath()) {
+            checkBucketPathExists(request.getPath());
+          }
           AlluxioURI pathUri = getAlluxioURI(request.getPath());
           mFileSystemMaster.checkAccess(pathUri,
               CheckAccessContext.create(request.getOptions().toBuilder()));
@@ -151,6 +156,9 @@ public final class FileSystemMasterClientServiceHandler
       StreamObserver<CheckConsistencyPResponse> responseObserver) {
     CheckConsistencyPOptions options = request.getOptions();
     RpcUtils.call(LOG, () -> {
+      if (request.getOptions().getCommonOptions().getCheckS3BucketPath()) {
+        checkBucketPathExists(request.getPath());
+      }
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       List<AlluxioURI> inconsistentUris = mFileSystemMaster.checkConsistency(pathUri,
           CheckConsistencyContext.create(options.toBuilder()));
@@ -166,6 +174,10 @@ public final class FileSystemMasterClientServiceHandler
   public void exists(ExistsPRequest request,
           StreamObserver<ExistsPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
+      if (request.getOptions().getCommonOptions().getCheckS3BucketPath()) {
+        checkBucketPathExists(request.getPath());
+      }
+
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       boolean exists = mFileSystemMaster.exists(pathUri,
           ExistsContext.create(request.getOptions().toBuilder()));
@@ -177,6 +189,9 @@ public final class FileSystemMasterClientServiceHandler
   public void completeFile(CompleteFilePRequest request,
       StreamObserver<CompleteFilePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
+      if (request.getOptions().getCommonOptions().getCheckS3BucketPath()) {
+        checkBucketPathExists(request.getPath());
+      }
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.completeFile(pathUri,
           CompleteFileContext.create(request.getOptions().toBuilder()));
@@ -188,7 +203,11 @@ public final class FileSystemMasterClientServiceHandler
   public void createDirectory(CreateDirectoryPRequest request,
       StreamObserver<CreateDirectoryPResponse> responseObserver) {
     CreateDirectoryPOptions options = request.getOptions();
+
     RpcUtils.call(LOG, () -> {
+      if (request.getOptions().getCommonOptions().getCheckS3BucketPath()) {
+        checkBucketPathExists(request.getPath());
+      }
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.createDirectory(pathUri, CreateDirectoryContext.create(options.toBuilder())
           .withTracker(new GrpcCallTracker(responseObserver)));
@@ -196,22 +215,27 @@ public final class FileSystemMasterClientServiceHandler
     }, "CreateDirectory", "request=%s", responseObserver, request);
   }
 
+  private void checkBucketPathExists(String path)
+      throws AlluxioException, IOException {
+
+    String bucketPath =
+        AlluxioURI.SEPARATOR + path.split(AlluxioURI.SEPARATOR, 3)[1];
+    boolean exists = mFileSystemMaster.exists(getAlluxioURI(bucketPath),
+        ExistsContext.create(ExistsPOptions.getDefaultInstance().toBuilder()));
+    if (!exists) {
+      throw new FileDoesNotExistException("Bucket " + bucketPath
+          + " doesn't exist.");
+    }
+  }
+
   @Override
   public void createFile(CreateFilePRequest request,
-      StreamObserver<CreateFilePResponse> responseObserver) {
+                         StreamObserver<CreateFilePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      AlluxioURI pathUri = getAlluxioURI(request.getPath());
-      if (request.getOptions().getIsS3Operation()) {
-        String bucketPath =
-            AlluxioURI.SEPARATOR + request.getPath().split(AlluxioURI.SEPARATOR, 3)[1];
-        boolean exists = mFileSystemMaster.exists(getAlluxioURI(bucketPath),
-            ExistsContext.create(ExistsPOptions.getDefaultInstance().toBuilder()));
-        if (exists == false) {
-          throw new InvalidPathException("Bucket " + bucketPath
-              + " is not a valid Alluxio directory.");
-        }
+      if (request.getOptions().getCommonOptions().getCheckS3BucketPath()) {
+        checkBucketPathExists(request.getPath());
       }
-
+      AlluxioURI pathUri = getAlluxioURI(request.getPath());
       return CreateFilePResponse.newBuilder()
           .setFileInfo(GrpcUtils.toProto(mFileSystemMaster.createFile(pathUri,
               CreateFileContext.create(request.getOptions().toBuilder())
@@ -223,6 +247,10 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void free(FreePRequest request, StreamObserver<FreePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
+      if (request.getOptions().getCommonOptions().getCheckS3BucketPath()) {
+        checkBucketPathExists(request.getPath());
+      }
+
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.free(pathUri, FreeContext.create(request.getOptions().toBuilder()));
       return FreePResponse.newBuilder().build();
@@ -233,6 +261,10 @@ public final class FileSystemMasterClientServiceHandler
   public void getNewBlockIdForFile(GetNewBlockIdForFilePRequest request,
       StreamObserver<GetNewBlockIdForFilePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
+      if (request.getOptions().getCommonOptions().getCheckS3BucketPath()) {
+        checkBucketPathExists(request.getPath());
+      }
+
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       return GetNewBlockIdForFilePResponse.newBuilder()
           .setId(mFileSystemMaster.getNewBlockIdForFile(pathUri)).build();
@@ -254,6 +286,10 @@ public final class FileSystemMasterClientServiceHandler
       StreamObserver<GetStatusPResponse> responseObserver) {
     GetStatusPOptions options = request.getOptions();
     RpcUtils.call(LOG, () -> {
+      if (request.getOptions().getCommonOptions().getCheckS3BucketPath()) {
+        checkBucketPathExists(request.getPath());
+      }
+
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       return GetStatusPResponse.newBuilder()
           .setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(pathUri, GetStatusContext
@@ -274,6 +310,10 @@ public final class FileSystemMasterClientServiceHandler
 
     try {
       RpcUtils.callAndReturn(LOG, () -> {
+        if (request.getOptions().getCommonOptions().getCheckS3BucketPath()) {
+          checkBucketPathExists(request.getPath());
+        }
+
         AlluxioURI pathUri = getAlluxioURI(request.getPath());
         mFileSystemMaster.listStatus(pathUri,
             ListStatusContext.create(request.getOptions().toBuilder())
@@ -372,6 +412,10 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void remove(DeletePRequest request, StreamObserver<DeletePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
+      if (request.getOptions().getCommonOptions().getCheckS3BucketPath()) {
+        checkBucketPathExists(request.getPath());
+      }
+
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.delete(pathUri, DeleteContext.create(request.getOptions().toBuilder())
           .withTracker(new GrpcCallTracker(responseObserver)));
@@ -415,6 +459,10 @@ public final class FileSystemMasterClientServiceHandler
   public void setAttribute(SetAttributePRequest request,
       StreamObserver<SetAttributePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
+      if (request.getOptions().getCommonOptions().getCheckS3BucketPath()) {
+        checkBucketPathExists(request.getPath());
+      }
+
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.setAttribute(pathUri,
           SetAttributeContext.create(request.getOptions().toBuilder())
