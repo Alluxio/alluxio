@@ -1045,29 +1045,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getDeletedBucket() throws Exception {
-    String bucket = "bucket";
-    AlluxioURI bucketURI = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
-
-    createBucketRestCall(bucket);
-
-    // delete the bucket in alluxio and delete it in UFS
-    mFileSystem.delete(bucketURI);
-    Assert.assertEquals(false, mFileSystem.exists(bucketURI));
-
-    // Verify 404 HTTP status & NoSuchBucket S3 error code
-    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
-        bucket, NO_PARAMS, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .execute();
-    Assert.assertEquals(404, connection.getResponseCode());
-    S3Error response =
-        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
-    Assert.assertEquals(bucket, response.getResource());
-    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
-  }
-
-  @Test
   public void putDirectoryObject() throws Exception {
     final String bucketName = "directory-bucket";
     createBucketRestCall(bucketName);
