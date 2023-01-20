@@ -399,6 +399,7 @@ public class UfsBaseFileSystem implements FileSystem {
         CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mRootUFS.getPath())));
     FileInfo info = new FileInfo().setName(ufsUri.getName())
         .setPath(ufsStatus.getName())
+        .setFileId(ufsUri.hashCode())
         .setUfsPath(ufsUri.toString())
         .setFolder(ufsStatus.isDirectory())
         .setOwner(ufsStatus.getOwner())

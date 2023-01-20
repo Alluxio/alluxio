@@ -32,8 +32,12 @@ import alluxio.util.io.FileUtils;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -41,6 +45,7 @@ import java.util.UUID;
  * The abstract test for testing {@link alluxio.fuse.AlluxioJniFuseFileSystem}
  * with local UFS.
  */
+@RunWith(Parameterized.class)
 public abstract class AbstractTest {
   protected static final String FILE = "/file";
   protected static final String DIR = "/dir";
@@ -51,15 +56,40 @@ public abstract class AbstractTest {
       Mode.Bits.ALL, Mode.Bits.READ, Mode.Bits.READ);
   private static final String TEST_S3A_PATH_CONF = "alluxio.test.s3a.path";
 
+  protected InstancedConfiguration mConf;
   protected AlluxioURI mRootUfs;
   protected FileSystem mFileSystem;
   protected FileSystemContext mContext;
   protected UfsFileSystemOptions mUfsOptions;
   protected boolean mIsLocalUFS;
 
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+        {false, false},
+        {true, false},
+        {false, true},
+        {true, true}
+    });
+  }
+
+  /**
+   * Runs {@link AbstractTest} with different configuration combinations.
+   *
+   * @param localDataCacheEnabled whether local data cache is enabled
+   * @param localMetadataCacheEnabled whether local metadata cache is enabled
+   */
+  public AbstractTest(boolean localDataCacheEnabled, boolean localMetadataCacheEnabled) {
+    mConf = Configuration.copyGlobal();
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED,
+        PropertyKey.USER_CLIENT_CACHE_ENABLED.formatValue(localDataCacheEnabled), Source.RUNTIME);
+    mConf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE,
+        PropertyKey.USER_METADATA_CACHE_MAX_SIZE.formatValue(localMetadataCacheEnabled ? 20000 : 0),
+        Source.RUNTIME);
+  }
+
   @Before
   public void before() throws Exception {
-    InstancedConfiguration conf = Configuration.copyGlobal();
     String s3Path = System.getProperty(TEST_S3A_PATH_CONF);
     String ufs;
     if (s3Path != null) { // test against S3
@@ -71,9 +101,8 @@ public abstract class AbstractTest {
       mIsLocalUFS = true;
     }
     mRootUfs = new AlluxioURI(ufs);
-    conf.set(PropertyKey.FUSE_MOUNT_POINT, "/t/mountPoint", Source.RUNTIME);
-    conf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 0);
-    mContext = FileSystemContext.create(ClientContext.create(conf));
+    mConf.set(PropertyKey.FUSE_MOUNT_POINT, "/t/mountPoint", Source.RUNTIME);
+    mContext = FileSystemContext.create(ClientContext.create(mConf));
     LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
     mUfsOptions = new UfsFileSystemOptions(ufs);
     mFileSystem = new UfsBaseFileSystem(mContext, mUfsOptions);

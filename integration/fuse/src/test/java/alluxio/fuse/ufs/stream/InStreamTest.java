@@ -29,6 +29,16 @@ import java.nio.ByteBuffer;
  * This class includes the tests for {@link alluxio.fuse.file.FuseFileInStream}.
  */
 public class InStreamTest extends AbstractStreamTest {
+  /**
+   * Runs {@link InStreamTest} with different configuration combinations.
+   *
+   * @param localDataCacheEnabled     whether local data cache is enabled
+   * @param localMetadataCacheEnabled whether local metadata cache is enabled
+   */
+  public InStreamTest(boolean localDataCacheEnabled, boolean localMetadataCacheEnabled) {
+    super(localDataCacheEnabled, localMetadataCacheEnabled);
+  }
+
   protected FuseFileStream createStream(AlluxioURI uri) {
     return mStreamFactory
         .create(uri, OpenFlags.O_RDONLY.intValue(), DEFAULT_MODE.toShort());

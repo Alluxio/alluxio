@@ -41,6 +41,16 @@ import java.util.function.Function;
  * This test covers the basic file system read write operations.
  */
 public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
+  /**
+   * Runs FUSE with UFS related tests with different configuration combinations.
+   *
+   * @param localDataCacheEnabled     whether local data cache is enabled
+   * @param localMetadataCacheEnabled whether local metadata cache is enabled
+   */
+  public FuseFileSystemDataTest(boolean localDataCacheEnabled, boolean localMetadataCacheEnabled) {
+    super(localDataCacheEnabled, localMetadataCacheEnabled);
+  }
+
   @Test
   public void createWithLengthLimit() {
     mFileInfo.get().flags.set(O_WRONLY.intValue());
