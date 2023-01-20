@@ -939,8 +939,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         getDefaultOptionsWithAuth()
             .setBody(object)
             .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
-            .setMD5(computeObjectChecksum(object))
-            .setIsS3Operation(true));
+            .setMD5(computeObjectChecksum(object)));
   }
 
   private void putObjectTest(String bucket, String objectKey, byte[] object, String uploadId,
