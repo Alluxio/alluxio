@@ -136,16 +136,16 @@ public final class S3ClientRestApiTest extends RestApiTest {
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
             {new ImmutableMap.Builder<Object, Boolean>()
-                    .put(PropertyKey.PROXY_S3_OPTIMIZED_VERSION_ENABLED, false)
-                    .put(PropertyKey.PROXY_S3_ASYNC_PROCESSING_ENABLED, false)
+                    .put(PropertyKey.PROXY_S3_V2_VERSION_ENABLED, false)
+                    .put(PropertyKey.PROXY_S3_V2_ASYNC_PROCESSING_ENABLED, false)
                     .build()},
             {new ImmutableMap.Builder<Object, Boolean>()
-                    .put(PropertyKey.PROXY_S3_OPTIMIZED_VERSION_ENABLED, true)
-                    .put(PropertyKey.PROXY_S3_ASYNC_PROCESSING_ENABLED, false)
+                    .put(PropertyKey.PROXY_S3_V2_VERSION_ENABLED, true)
+                    .put(PropertyKey.PROXY_S3_V2_ASYNC_PROCESSING_ENABLED, false)
                     .build()},
             {new ImmutableMap.Builder<Object, Boolean>()
-                    .put(PropertyKey.PROXY_S3_OPTIMIZED_VERSION_ENABLED, true)
-                    .put(PropertyKey.PROXY_S3_ASYNC_PROCESSING_ENABLED, true)
+                    .put(PropertyKey.PROXY_S3_V2_VERSION_ENABLED, true)
+                    .put(PropertyKey.PROXY_S3_V2_ASYNC_PROCESSING_ENABLED, true)
                     .build()},
     });
   }
