@@ -54,8 +54,6 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     FIFO,
     // last-in-first-out, use the coldest resource
     LIFO,
-    // pick randomly
-    RANDOM
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(DynamicResourcePool.class);
