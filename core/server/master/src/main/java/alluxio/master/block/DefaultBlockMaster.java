@@ -1575,20 +1575,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           }
         }
       }
-      // If it has been too long before a worker can successfully register,
-      // forget this worker because it is probably gone
-      for (MasterWorkerInfo worker : mTempWorkers) {
-        try (LockResource r = worker.lockWorkerMeta(
-            EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
-          final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
-          if ((lastUpdate - masterWorkerTimeoutMs) > masterWorkerDeleteTimeoutMs) {
-            LOG.error("The worker {}({}) did not register after {}ms! "
-                + "Master will forget about this worker.", worker.getId(),
-                worker.getWorkerAddress(), lastUpdate);
-            deleteWorkerMetadata(worker);
-          }
-        }
-      }
     }
 
     @Override
