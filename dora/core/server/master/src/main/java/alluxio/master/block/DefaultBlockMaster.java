@@ -362,6 +362,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       long length = blockInfoEntry.getLength();
       Optional<BlockMeta> block = mBlockMetaStore.getBlock(blockInfoEntry.getBlockId());
       if (block.isPresent()) {
+        // If we write multiple replicas, multiple streams will all write BlockInfoEntry
+        // when they CommitBlock. We rely on the idempotence to handle duplicate entries
+        // and only warning when there are inconsistencies.
         long oldLen = block.get().getLength();
         if (oldLen != Constants.UNKNOWN_SIZE) {
           LOG.warn("Attempting to update block length ({}) to a different length ({}).", oldLen,
@@ -1074,6 +1077,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public long getWorkerId(WorkerNetAddress workerNetAddress) {
+    LOG.info("Worker {} requesting for an ID", workerNetAddress);
     MasterWorkerInfo existingWorker = mWorkers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
     if (existingWorker != null) {
       // This worker address is already mapped to a worker id.

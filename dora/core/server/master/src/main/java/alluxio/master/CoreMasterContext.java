@@ -19,6 +19,8 @@ import alluxio.underfs.MasterUfsManager;
 
 import com.google.common.base.Preconditions;
 
+import javax.annotation.Nullable;
+
 /**
  * This class stores fields that are specific to core masters.
  */
@@ -28,6 +30,8 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
   private final BlockMetaStore.Factory mBlockStoreFactory;
   private final InodeStore.Factory mInodeStoreFactory;
   private final JournalSystem mJournalSystem;
+  @Nullable
+  private final PrimarySelector mPrimarySelector;
   private final long mStartTimeMs;
   private final int mPort;
 
@@ -44,6 +48,7 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
     mJournalSystem = Preconditions.checkNotNull(builder.mJournalSystem, "journalSystem");
     mStartTimeMs = builder.mStartTimeMs;
     mPort = builder.mPort;
+    mPrimarySelector = builder.mPrimarySelector;
   }
 
   /**
@@ -91,6 +96,13 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
    */
   public int getPort() {
     return mPort;
+  }
+
+  /**
+   * @return the leader selector
+   */
+  public @Nullable PrimarySelector getPrimarySelector() {
+    return mPrimarySelector;
   }
 
   /**
