@@ -2479,7 +2479,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL =
       intBuilder(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL)
-          .setDefaultValue(-1)
+          .setDefaultValue(1)
           .setDescription("The zip compression level of checkpointing rocksdb, the zip"
                   + " format defines ten levels of compression, ranging from 0"
                   + " (no compression, but very fast) to 9 (best compression, but slow)."
@@ -2981,7 +2981,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "UFS), EMBEDDED (use a journal embedded in the masters), and NOOP (do not use a "
               + "journal)")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
       dataSizeBuilder(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX)
@@ -7012,7 +7012,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.JOB_REQUEST_BATCH_SIZE)
           .setDescription("The batch size client uses to make requests to the "
               + "job master.")
-          .setDefaultValue(20)
+          .setDefaultValue(1)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey JOB_WORKER_BIND_HOST =

@@ -36,5 +36,10 @@ public class SelectionPolicySpecifiedMaster extends AbstractMasterSelectionPolic
       MasterInquireClient masterInquireClient) throws UnavailableException {
     return mMasterAddressToConnect;
   }
+
+  @Override
+  public Type getType() {
+    return Type.SPECIFIED_MASTER;
+  }
 }
 

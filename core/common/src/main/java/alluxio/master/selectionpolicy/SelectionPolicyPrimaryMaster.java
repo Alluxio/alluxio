@@ -28,4 +28,9 @@ public class SelectionPolicyPrimaryMaster extends AbstractMasterSelectionPolicy 
     mPrimaryMasterAddress = masterInquireClient.getPrimaryRpcAddress();
     return mPrimaryMasterAddress;
   }
+
+  @Override
+  public Type getType() {
+    return Type.PRIMARY_MASTER;
+  }
 }

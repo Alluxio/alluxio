@@ -106,6 +106,8 @@ Master.JobCount:
   'The number of all status job'
 Master.JobCreated:
   'The number of created status job'
+Master.JobDistributedLoadBlockSizes:
+  'The total block size loaded by load commands'
 Master.JobDistributedLoadCancel:
   'The number of cancelled DistributedLoad operations'
 Master.JobDistributedLoadFail:
@@ -120,6 +122,16 @@ Master.JobDistributedLoadSuccess:
   'The number of successful DistributedLoad operations'
 Master.JobFailed:
   'The number of failed status job'
+Master.JobLoadBlockCount:
+  'The number of blocks loaded by load commands'
+Master.JobLoadBlockFail:
+  'The number of blocks failed to be loaded by load commands'
+Master.JobLoadFail:
+  'The number of failed Load commands'
+Master.JobLoadRate:
+  'The average loading rate of Load commands'
+Master.JobLoadSuccess:
+  'The number of successful Load commands'
 Master.JobRunning:
   'The number of running status job'
 Master.JournalCheckpointWarn:

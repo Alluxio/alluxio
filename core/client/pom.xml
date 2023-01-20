@@ -25,6 +25,7 @@
   <modules>
     <module>fs</module>
     <module>hdfs</module>
+    <module>hdfs3</module>
   </modules>
 
   <properties>

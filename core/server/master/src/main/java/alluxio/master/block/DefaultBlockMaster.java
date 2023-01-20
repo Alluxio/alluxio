@@ -362,6 +362,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       long length = blockInfoEntry.getLength();
       Optional<BlockMeta> block = mBlockMetaStore.getBlock(blockInfoEntry.getBlockId());
       if (block.isPresent()) {
+        // If we write multiple replicas, multiple streams will all write BlockInfoEntry
+        // when they CommitBlock. We rely on the idempotence to handle duplicate entries
+        // and only warning when there are inconsistencies.
         long oldLen = block.get().getLength();
         if (oldLen != Constants.UNKNOWN_SIZE) {
           LOG.warn("Attempting to update block length ({}) to a different length ({}).", oldLen,
@@ -1047,7 +1050,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * @param workerId the worker id to register
    */
   @Nullable
-  private MasterWorkerInfo recordWorkerRegistration(long workerId) {
+  protected MasterWorkerInfo recordWorkerRegistration(long workerId) {
     for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers,
         mLostWorkers, mDecommissionedWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
@@ -1074,6 +1077,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public long getWorkerId(WorkerNetAddress workerNetAddress) {
+    LOG.info("Worker {} requesting for an ID", workerNetAddress);
     MasterWorkerInfo existingWorker = mWorkers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
     if (existingWorker != null) {
       // This worker address is already mapped to a worker id.
@@ -1198,19 +1202,18 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   protected void workerRegisterStart(WorkerRegisterContext context,
       RegisterWorkerPRequest chunk) {
+    MasterWorkerInfo workerInfo = context.getWorkerInfo();
+    Preconditions.checkState(workerInfo != null,
+        "No workerInfo metadata found in the WorkerRegisterContext!");
+
     final List<String> storageTiers = chunk.getStorageTiersList();
     final Map<String, Long> totalBytesOnTiers = chunk.getTotalBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = chunk.getUsedBytesOnTiersMap();
     final Map<String, StorageList> lostStorage = chunk.getLostStorageMap();
-
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
         BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(
             chunk.getCurrentBlocksList(), context.getWorkerId());
     RegisterWorkerPOptions options = chunk.getOptions();
-
-    MasterWorkerInfo workerInfo = context.getWorkerInfo();
-    Preconditions.checkState(workerInfo != null,
-        "No workerInfo metadata found in the WorkerRegisterContext!");
     mActiveRegisterContexts.put(workerInfo.getId(), context);
 
     // The workerInfo is locked so we can operate on its blocks without race conditions

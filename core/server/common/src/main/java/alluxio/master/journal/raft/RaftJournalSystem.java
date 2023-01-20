@@ -656,7 +656,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized Map<alluxio.grpc.ServiceType, GrpcService> getJournalServices() {
     Map<alluxio.grpc.ServiceType, GrpcService> services = new HashMap<>();
     services.put(alluxio.grpc.ServiceType.RAFT_JOURNAL_SERVICE, new GrpcService(
-        new RaftJournalServiceHandler(mStateMachine.getSnapshotReplicationManager())));
+        new RaftJournalServiceHandler(mStateMachine.getSnapshotReplicationManager(), this)));
     return services;
   }
 
