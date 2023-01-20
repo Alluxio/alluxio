@@ -37,7 +37,6 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
 import alluxio.util.ThreadUtils;
-import alluxio.web.ProxyWebServer;
 
 import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -66,6 +65,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
@@ -950,7 +950,9 @@ public class S3ObjectTask extends S3BaseTask {
         httpServletResponse.setContentType(MediaType.APPLICATION_XML);
 
         CompletableFuture<Response> respFut = new CompletableFuture<>();
-        ProxyWebServer.getInstance().getRequestsExecutor(OpTag.HEAVY).submit(() -> {
+        ExecutorService es = (ExecutorService) mHandler.getServletContext().getAttribute(
+            S3RequestServlet.PROXY_S3_V2_HEAVY_POOL);
+        es.submit(() -> {
           Response completeMpUploadResponse = mHandler.getS3Task().continueTask();
           respFut.complete(completeMpUploadResponse);
         });

@@ -15,17 +15,19 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
-import alluxio.web.ProxyWebServer;
 
 import org.eclipse.jetty.server.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -40,30 +42,27 @@ import javax.ws.rs.core.Response;
 public class S3RequestServlet extends HttpServlet {
   private static final long serialVersionUID = 2966302125671934038L;
   public static final String SERVICE_PREFIX = "s3";
-  public static final String S3_SERVICE_PATH_PREFIX = Constants.REST_API_PREFIX
-          + AlluxioURI.SEPARATOR + SERVICE_PREFIX;
+  public static final String S3_V2_SERVICE_PATH_PREFIX = Constants.REST_API_PREFIX
+      + AlluxioURI.SEPARATOR + SERVICE_PREFIX;
   private static final Logger LOG = LoggerFactory.getLogger(S3RequestServlet.class);
-  private static S3RequestServlet sInstance = null;
-  private static ReentrantLock sCreateInstanceLock = new ReentrantLock();
+  public static final String PROXY_S3_HANDLER_MAP = "Proxy S3 Handler Map";
   public ConcurrentHashMap<Request, S3Handler> mS3HandlerMap = new ConcurrentHashMap<>();
+  /* (Experimental for new architecture enabled by PROXY_S3_OPTIMIZED_VERSION_ENABLED)
+   * Processing threadpools for group of requests (for now, distinguish between
+   * light-weighted metadata-centric requests and heavy io requests */
+  public static final String PROXY_S3_V2_LIGHT_POOL = "Proxy S3 V2 Light Pool";
+  public static final String PROXY_S3_V2_HEAVY_POOL = "Proxy S3 V2 Heavy Pool";
 
-  /**
-   * @return the singleton instance of the S3RequestServlet
-   */
-  public static S3RequestServlet getInstance() {
-    if (sInstance != null) {
-      return sInstance;
-    }
-    try {
-      sCreateInstanceLock.lock();
-      if (sInstance != null) {
-        return sInstance;
-      }
-      sInstance = new S3RequestServlet();
-      return sInstance;
-    } finally {
-      sCreateInstanceLock.unlock();
-    }
+  @Override
+  public void init() throws ServletException {
+    super.init();
+    getServletContext().setAttribute(PROXY_S3_V2_LIGHT_POOL, new ThreadPoolExecutor(8, 64, 0,
+        TimeUnit.SECONDS, new ArrayBlockingQueue<>(64 * 1024),
+        ThreadFactoryUtils.build("S3-LIGHTPOOL-%d", false)));
+    getServletContext().setAttribute(PROXY_S3_V2_HEAVY_POOL, new ThreadPoolExecutor(8, 64, 0,
+        TimeUnit.SECONDS, new ArrayBlockingQueue<>(64 * 1024),
+        ThreadFactoryUtils.build("S3-HEAVYPOOL-%d", false)));
+    getServletContext().setAttribute(PROXY_S3_HANDLER_MAP, mS3HandlerMap);
   }
 
   /**
@@ -83,16 +82,18 @@ public class S3RequestServlet extends HttpServlet {
   public void service(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
     String target = request.getRequestURI();
-    if (!target.startsWith(S3_SERVICE_PATH_PREFIX)) {
+    if (!target.startsWith(S3_V2_SERVICE_PATH_PREFIX)) {
       return;
     }
     try {
       S3Handler s3Handler = S3Handler.createHandler(target, request, response);
       mS3HandlerMap.put((Request) request, s3Handler);
       // Handle request async
-      if (Configuration.getBoolean(PropertyKey.PROXY_S3_ASYNC_PROCESSING_ENABLED)) {
+      if (Configuration.getBoolean(PropertyKey.PROXY_S3_V2_ASYNC_PROCESSING_ENABLED)) {
         S3BaseTask.OpTag opTag = s3Handler.getS3Task().mOPType.getOpTag();
-        ExecutorService es = ProxyWebServer.getInstance().getRequestsExecutor(opTag);
+        ExecutorService es = (ExecutorService) (opTag == S3BaseTask.OpTag.LIGHT
+            ? getServletContext().getAttribute(PROXY_S3_V2_LIGHT_POOL)
+            : getServletContext().getAttribute(PROXY_S3_V2_HEAVY_POOL));
 
         final AsyncContext asyncCtx = request.startAsync();
         final S3Handler s3HandlerAsync = s3Handler;

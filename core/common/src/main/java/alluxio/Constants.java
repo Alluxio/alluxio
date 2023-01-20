@@ -135,6 +135,7 @@ public final class Constants {
   public static final String TESTS_LOG = "./target/logs/tests.log";
 
   public static final String REST_API_PREFIX = "/api/v1";
+  public static final String REST_API_V2_PREFIX = "/api/v2";
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
 

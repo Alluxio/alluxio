@@ -76,7 +76,7 @@ public final class AlluxioProxyProcess implements ProxyProcess {
 
   @Override
   public void start() throws Exception {
-    mWebServer = ProxyWebServer.createInstance(ServiceType.PROXY_WEB.getServiceName(),
+    mWebServer = new ProxyWebServer(ServiceType.PROXY_WEB.getServiceName(),
         NetworkAddressUtils.getBindAddress(ServiceType.PROXY_WEB, Configuration.global()),
         this);
     // reset proxy web port

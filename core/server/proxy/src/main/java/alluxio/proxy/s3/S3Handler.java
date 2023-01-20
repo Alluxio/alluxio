@@ -43,6 +43,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -67,11 +68,11 @@ public class S3Handler {
   public static final Pattern BUCKET_VALID_NAME_PATTERN =
           Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
   public static final Pattern BASE_PATH_PATTERN =
-          Pattern.compile("^" + S3RequestServlet.S3_SERVICE_PATH_PREFIX + "$");
+          Pattern.compile("^" + S3RequestServlet.S3_V2_SERVICE_PATH_PREFIX + "$");
   public static final Pattern BUCKET_PATH_PATTERN =
-          Pattern.compile("^" + S3RequestServlet.S3_SERVICE_PATH_PREFIX + "/[^/]*$");
+          Pattern.compile("^" + S3RequestServlet.S3_V2_SERVICE_PATH_PREFIX + "/[^/]*$");
   public static final Pattern OBJECT_PATH_PATTERN =
-          Pattern.compile("^" + S3RequestServlet.S3_SERVICE_PATH_PREFIX + "/[^/]*/.*$");
+          Pattern.compile("^" + S3RequestServlet.S3_V2_SERVICE_PATH_PREFIX + "/[^/]*/.*$");
   private static final Logger LOG = LoggerFactory.getLogger(S3Handler.class);
   private static final ThreadLocal<byte[]> TLS_BYTES =
           ThreadLocal.withInitial(() -> new byte[8 * 1024]);
@@ -131,10 +132,10 @@ public class S3Handler {
     S3Handler handler = null;
     try {
       if (bucketMatcher.matches()) {
-        pathStr = path.substring(S3RequestServlet.S3_SERVICE_PATH_PREFIX.length() + 1);
+        pathStr = path.substring(S3RequestServlet.S3_V2_SERVICE_PATH_PREFIX.length() + 1);
         bucket = URLDecoder.decode(pathStr, "UTF-8");
       } else if (objectMatcher.matches()) {
-        pathStr = path.substring(S3RequestServlet.S3_SERVICE_PATH_PREFIX.length() + 1);
+        pathStr = path.substring(S3RequestServlet.S3_V2_SERVICE_PATH_PREFIX.length() + 1);
         bucket = URLDecoder.decode(
           pathStr.substring(0, pathStr.indexOf(AlluxioURI.SEPARATOR)), "UTF-8");
         object = URLDecoder.decode(
@@ -152,7 +153,7 @@ public class S3Handler {
       handler.setS3Task(task);
       return handler;
     } catch (Exception ex) {
-      LOG.error("Exception during create s3handler:", ThreadUtils.formatStackTrace(ex));
+      LOG.error("Exception during create s3handler:{}", ThreadUtils.formatStackTrace(ex));
       throw ex;
     }
   }
@@ -218,8 +219,10 @@ public class S3Handler {
     // Reject unsupported subresources.
     rejectUnsupportedResources();
     // Init utils
-    mMetaFS = ProxyWebServer.getInstance().getMetaFileSystem();
-    mAsyncAuditLogWriter = ProxyWebServer.getInstance().getAsyncAuditLogWriter();
+    ServletContext context = getServletContext();
+    mMetaFS = (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
+    mAsyncAuditLogWriter = (AsyncUserAccessAuditLogWriter) context.getAttribute(
+        ProxyWebServer.ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY);
     // Initiate the S3 API metadata directories
     if (!mMetaFS.exists(new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR))) {
       mMetaFS.createDirectory(new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR),
@@ -296,6 +299,14 @@ public class S3Handler {
    */
   public HttpServletRequest getServletRequest() {
     return mServletRequest;
+  }
+
+  /**
+   * get ServletContext from current http conversation.
+   * @return ServletContext
+   */
+  public ServletContext getServletContext() {
+    return mServletRequest.getServletContext();
   }
 
   /**
