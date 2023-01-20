@@ -693,29 +693,34 @@ public final class AlluxioFuseUtils {
     return CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new AlluxioFuseUtils.PathCacheLoader(
-            new AlluxioURI(getMountedRootPath(conf, options))));
+            new AlluxioURI(getMountedRootPath(conf, options)), options));
   }
 
   /**
    * Resolves a FUSE path into {@link AlluxioURI} and possibly keeps it in the cache.
    */
   static final class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
-    private final AlluxioURI mRootURI;
+    private final Optional<AlluxioURI> mRootURI;
 
     /**
      * Constructs a new {@link PathCacheLoader}.
      *
      * @param rootURI the root URI
      */
-    PathCacheLoader(AlluxioURI rootURI) {
-      mRootURI = Preconditions.checkNotNull(rootURI);
+    PathCacheLoader(AlluxioURI rootURI, FuseOptions options) {
+      if (options.getFileSystemOptions().getUfsFileSystemOptions().isPresent()) {
+        mRootURI = Optional.empty();
+      } else {
+        mRootURI = Optional.of(Preconditions.checkNotNull(rootURI));
+      }
     }
 
     @Override
     public AlluxioURI load(String fusePath) {
       // fusePath is guaranteed to always be an absolute path (i.e., starts
       // with a fwd slash) - relative to the FUSE mount point
-      return mRootURI.join(fusePath);
+      return mRootURI.map(alluxioURI -> alluxioURI.join(fusePath))
+          .orElseGet(() -> new AlluxioURI(fusePath));
     }
   }
 

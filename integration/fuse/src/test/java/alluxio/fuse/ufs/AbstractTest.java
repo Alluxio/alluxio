@@ -58,6 +58,7 @@ public abstract class AbstractTest {
 
   protected InstancedConfiguration mConf;
   protected AlluxioURI mRootUfs;
+  protected String mMountPoint;
   protected FileSystem mFileSystem;
   protected FileSystemContext mContext;
   protected UfsFileSystemOptions mUfsOptions;
@@ -100,8 +101,9 @@ public abstract class AbstractTest {
       UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
       mIsLocalUFS = true;
     }
+    mMountPoint = AlluxioTestDirectory.createTemporaryDirectory("ufs").toString();
     mRootUfs = new AlluxioURI(ufs);
-    mConf.set(PropertyKey.FUSE_MOUNT_POINT, "/t/mountPoint", Source.RUNTIME);
+    mConf.set(PropertyKey.FUSE_MOUNT_POINT, mMountPoint, Source.RUNTIME);
     mContext = FileSystemContext.create(ClientContext.create(mConf));
     LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
     mUfsOptions = new UfsFileSystemOptions(ufs);
@@ -118,7 +120,7 @@ public abstract class AbstractTest {
   /**
    * Add extra before actions.
    */
-  public abstract void beforeActions();
+  public abstract void beforeActions() throws IOException;
 
   /**
    * Add extra after actions.

@@ -44,19 +44,25 @@ public abstract class AbstractFuseFileSystemTest extends AbstractTest {
   }
 
   @Override
-  public void beforeActions() {
+  public void beforeActions() throws IOException {
     mFuseFs = new AlluxioJniFuseFileSystem(mContext, mFileSystem,
         FuseOptions.create(Configuration.global(), FileSystemOptions.create(
             mContext.getClusterConf(), Optional.of(mUfsOptions)), false));
     mFileStat = FileStat.of(ByteBuffer.allocateDirect(256));
     mFileInfo = new AlluxioFuseUtils.CloseableFuseFileInfo();
+    fuseFileSystemBeforeActions();
   }
 
   @Override
   public void afterActions() throws IOException {
     BufferUtils.cleanDirectBuffer(mFileStat.getBuffer());
     mFileInfo.close();
+    fuseFileSystemAfterActions();
   }
+
+  public void fuseFileSystemBeforeActions() throws IOException {}
+
+  public void fuseFileSystemAfterActions() throws IOException {}
 
   protected void createEmptyFile(String path) {
     mFileInfo.get().flags.set(O_WRONLY.intValue());
