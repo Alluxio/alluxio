@@ -103,8 +103,17 @@ public abstract class AbstractTest {
     }
     mMountPoint = AlluxioTestDirectory.createTemporaryDirectory("ufs").toString();
     mRootUfs = new AlluxioURI(ufs);
+<<<<<<< HEAD
     mConf.set(PropertyKey.FUSE_MOUNT_POINT, mMountPoint, Source.RUNTIME);
     mContext = FileSystemContext.create(ClientContext.create(mConf));
+||||||| 3051ba25d0
+    conf.set(PropertyKey.FUSE_MOUNT_POINT, "/t/mountPoint", Source.RUNTIME);
+    conf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 0);
+    mContext = FileSystemContext.create(ClientContext.create(conf));
+=======
+    mConf.set(PropertyKey.FUSE_MOUNT_POINT, "/t/mountPoint", Source.RUNTIME);
+    mContext = FileSystemContext.create(ClientContext.create(mConf));
+>>>>>>> c7a272f1750099a43afbd422241da14b88d23c58
     LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
     mUfsOptions = new UfsFileSystemOptions(ufs);
     mFileSystem = new UfsBaseFileSystem(mContext, mUfsOptions);
