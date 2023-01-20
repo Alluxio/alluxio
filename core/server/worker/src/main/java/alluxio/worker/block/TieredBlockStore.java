@@ -233,7 +233,7 @@ public class TieredBlockStore implements LocalBlockStore {
       BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
-          listener.onCommitBlock(blockId, loc);
+          listener.onCommitBlockToLocal(blockId, loc);
         }
       }
     }
@@ -253,7 +253,7 @@ public class TieredBlockStore implements LocalBlockStore {
     }
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onCommitBlock(blockId, loc);
+        listener.onCommitBlockToLocal(blockId, loc);
       }
     }
     return lock;
@@ -498,7 +498,8 @@ public class TieredBlockStore implements LocalBlockStore {
    * @param pinOnCreate is block pinned on create
    * @return destination location to move the block
    */
-  private BlockStoreLocation commitBlockInternal(long sessionId, long blockId,
+  @VisibleForTesting
+  BlockStoreLocation commitBlockInternal(long sessionId, long blockId,
       boolean pinOnCreate) {
     if (mMetaManager.hasBlockMeta(blockId)) {
       LOG.debug("Block {} has been in block store, this could be a retry due to master-side RPC "
@@ -658,7 +659,7 @@ public class TieredBlockStore implements LocalBlockStore {
    * TODO(ggezer): Remove synchronized.
    *
    * @param sessionId the session id
-   * @param minContiguousBytes the minimum amount of contigious free space in bytes
+   * @param minContiguousBytes the minimum amount of contiguous free space in bytes
    * @param minAvailableBytes the minimum amount of free space in bytes
    * @param location the location to free space
    */

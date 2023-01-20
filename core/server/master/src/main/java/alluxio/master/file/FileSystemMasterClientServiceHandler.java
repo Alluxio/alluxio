@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.RpcUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -92,6 +93,7 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.recorder.Recorder;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -115,15 +117,19 @@ public final class FileSystemMasterClientServiceHandler
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMasterClientServiceHandler.class);
   private final FileSystemMaster mFileSystemMaster;
+  private final alluxio.master.file.loadmanager.LoadManager mLoadManager;
 
   /**
    * Creates a new instance of {@link FileSystemMasterClientServiceHandler}.
    *
    * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
+   * @param loadManager the {@link alluxio.master.file.loadmanager.LoadManager}
    */
-  public FileSystemMasterClientServiceHandler(FileSystemMaster fileSystemMaster) {
+  public FileSystemMasterClientServiceHandler(FileSystemMaster fileSystemMaster,
+      alluxio.master.file.loadmanager.LoadManager loadManager) {
     Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
     mFileSystemMaster = fileSystemMaster;
+    mLoadManager = Preconditions.checkNotNull(loadManager, "loadManager");
   }
 
   @Override
@@ -294,10 +300,19 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void mount(MountPRequest request, StreamObserver<MountPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.mount(new AlluxioURI(request.getAlluxioPath()),
-          new AlluxioURI(request.getUfsPath()),
-          MountContext.create(request.getOptions().toBuilder())
-              .withTracker(new GrpcCallTracker(responseObserver)));
+      MountContext mountContext = MountContext.create(request.getOptions().toBuilder())
+          .withTracker(new GrpcCallTracker(responseObserver));
+      // the mount execution process is recorded so that
+      // when an exception occurs during mounting, the user can get detailed debugging messages
+      try {
+        mFileSystemMaster.mount(new AlluxioURI(request.getAlluxioPath()),
+            new AlluxioURI(request.getUfsPath()), mountContext);
+      } catch (Exception e) {
+        Recorder recorder = mountContext.getRecorder();
+        recorder.record(e.getMessage());
+        // put the messages in an exception and let it carry over to the user
+        throw new AlluxioException(String.join("\n", recorder.takeRecords()), e);
+      }
       return MountPResponse.newBuilder().build();
     }, "Mount", "request=%s", responseObserver, request);
   }
@@ -470,6 +485,53 @@ public final class FileSystemMasterClientServiceHandler
       mFileSystemMaster.needsSync(new AlluxioURI(request.getPath()));
       return NeedsSyncResponse.getDefaultInstance();
     }, "NeedsSync", true, "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void loadPath(alluxio.grpc.LoadPathPRequest request,
+      StreamObserver<alluxio.grpc.LoadPathPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      boolean submitted = mLoadManager.submitLoad(
+          request.getPath(),
+          request.getOptions().hasBandwidth()
+              ? java.util.OptionalLong.of(request.getOptions().getBandwidth())
+              : java.util.OptionalLong.empty(),
+          request.getOptions().hasPartialListing() && request.getOptions().getPartialListing(),
+          request.getOptions().hasVerify() && request.getOptions().getVerify());
+      return alluxio.grpc.LoadPathPResponse.newBuilder()
+          .setNewLoadSubmitted(submitted)
+          .build();
+    }, "LoadPath", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void stopLoadPath(alluxio.grpc.StopLoadPathPRequest request,
+      StreamObserver<alluxio.grpc.StopLoadPathPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      boolean stopped = mLoadManager.stopLoad(request.getPath());
+      return alluxio.grpc.StopLoadPathPResponse.newBuilder()
+          .setExistingLoadStopped(stopped)
+          .build();
+    }, "stopLoadPath", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getLoadProgress(alluxio.grpc.GetLoadProgressPRequest request,
+      StreamObserver<alluxio.grpc.GetLoadProgressPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      alluxio.grpc.LoadProgressReportFormat format = alluxio.grpc.LoadProgressReportFormat.TEXT;
+      if (request.hasOptions() && request.getOptions().hasFormat()) {
+        format = request.getOptions().getFormat();
+      }
+      boolean verbose = false;
+      if (request.hasOptions() && request.getOptions().hasVerbose()) {
+        verbose = request.getOptions().getVerbose();
+      }
+      return alluxio.grpc.GetLoadProgressPResponse.newBuilder()
+          .setProgressReport(mLoadManager.getLoadProgress(
+              request.getPath(), format, verbose))
+          .build();
+    }, "getLoadProgress", "request=%s", responseObserver, request);
   }
 
   /**

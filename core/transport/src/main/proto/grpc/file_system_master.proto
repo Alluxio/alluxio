@@ -433,10 +433,16 @@ message FileSystemCommand {
   optional FileSystemCommandOptions commandOptions = 2;
 }
 
+message S3SyntaxOptions {
+  optional bool overwrite = 1;
+  optional bool isMultipartUpload = 2;
+}
+
 message RenamePResponse {}
 message RenamePOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
   optional bool persist = 2;
+  optional S3SyntaxOptions s3SyntaxOptions = 3;
 }
 message RenamePRequest {
   /** the source path of the file or directory */
@@ -468,6 +474,7 @@ message SetAttributePOptions {
   repeated string pinnedMedia = 10;
   map<string, bytes> xattr = 11;
   optional alluxio.proto.journal.XAttrUpdateStrategy xattrUpdateStrategy = 12;
+  optional bool directChildrenLoaded = 13;
 }
 message SetAttributePRequest {
   /** the path of the file */
@@ -580,6 +587,48 @@ message NeedsSyncRequest {
 
 message NeedsSyncResponse {}
 
+message LoadPathPOptions {
+  optional int64 bandwidth = 1;
+  optional bool verify = 2;
+  optional bool partialListing = 3;
+}
+
+message LoadPathPRequest {
+  required string path = 1;
+  optional LoadPathPOptions options = 2;
+}
+
+message LoadPathPResponse {
+  optional bool newLoadSubmitted = 1;
+}
+
+message StopLoadPathPRequest {
+  required string path = 1;
+}
+
+message StopLoadPathPResponse {
+  optional bool existingLoadStopped = 1;
+}
+
+enum LoadProgressReportFormat {
+  TEXT = 1;
+  JSON = 2;
+}
+
+message LoadProgressPOptions {
+  optional LoadProgressReportFormat format = 1;
+  optional bool verbose = 2;
+}
+
+message GetLoadProgressPRequest {
+  required string path = 1;
+  optional LoadProgressPOptions options = 2;
+}
+
+message GetLoadProgressPResponse {
+  optional string progressReport = 1;
+  optional LoadProgressReportFormat format = 2;
+}
 
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
@@ -726,6 +775,15 @@ service FileSystemMasterClientService {
   rpc GetStateLockHolders(GetStateLockHoldersPRequest) returns (GetStateLockHoldersPResponse);
 
   rpc NeedsSync(NeedsSyncRequest) returns (NeedsSyncResponse);
+
+  /**
+   * Load a directory into Alluxio.
+   */
+  rpc LoadPath(LoadPathPRequest) returns (LoadPathPResponse);
+
+  rpc StopLoadPath(StopLoadPathPRequest) returns (StopLoadPathPResponse);
+
+  rpc GetLoadProgress(GetLoadProgressPRequest) returns (GetLoadProgressPResponse);
 }
 
 message FileSystemHeartbeatPResponse {

@@ -16,6 +16,7 @@ import static org.junit.Assert.fail;
 import alluxio.Constants;
 import alluxio.conf.ConfigurationBuilder;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.ServiceType;
 import alluxio.network.RejectingServer;
 import alluxio.retry.CountingRetry;
 import alluxio.util.network.NetworkAddressUtils;
@@ -43,7 +44,8 @@ public class PollingMasterInquireClientTest {
     List<InetSocketAddress> addrs = Arrays.asList(InetSocketAddress
         .createUnresolved(NetworkAddressUtils.getLocalHostName(Constants.SECOND_MS), port));
     PollingMasterInquireClient client = new PollingMasterInquireClient(addrs,
-        () -> new CountingRetry(0), new ConfigurationBuilder().build());
+        () -> new CountingRetry(0), new ConfigurationBuilder().build(),
+        ServiceType.META_MASTER_CLIENT_SERVICE);
     try {
       client.getPrimaryRpcAddress();
       fail("Expected polling to fail");

@@ -90,7 +90,8 @@ public class UfsSyncPathCache {
   @VisibleForTesting
   UfsSyncPathCache(Clock clock, @Nullable BiConsumer<String, SyncState> onRemoval) {
     mClock = Preconditions.checkNotNull(clock);
-    mItems = CacheBuilder.newBuilder()
+    mItems = CacheBuilder.newBuilder().concurrencyLevel(
+            Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_THREADS))
         .removalListener(
             (removal) -> {
               if (removal.wasEvicted() && removal.getKey() != null && removal.getValue() != null) {
@@ -319,8 +320,9 @@ public class UfsSyncPathCache {
    * @param syncTime the time to set the sync success to, if null then the current
    *                 clock time is used
    * @param isFile true if the synced path is a file
+   * @return the sync state
    */
-  public void notifySyncedPath(
+  public SyncState notifySyncedPath(
       AlluxioURI path, DescendantType descendantType, long startTime, @Nullable Long syncTime,
       boolean isFile) {
     long time = syncTime == null ? startTime :
@@ -329,9 +331,10 @@ public class UfsSyncPathCache {
       try (LockResource ignored = new LockResource(mRootLock)) {
         Preconditions.checkState(!isFile);
         updateSyncState(mRoot, time, startTime, false, descendantType);
+        return mRoot;
       }
     } else {
-      mItems.asMap().compute(path.getPath(), (key, state) -> {
+      return mItems.asMap().compute(path.getPath(), (key, state) -> {
         if (state == null) {
           state = new SyncState(isFile);
         }

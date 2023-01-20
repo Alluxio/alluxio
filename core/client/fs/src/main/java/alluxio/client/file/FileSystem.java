@@ -17,6 +17,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.client.file.options.FileSystemOptions;
+import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -40,6 +41,7 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.LoadProgressReportFormat;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -66,6 +68,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import javax.security.auth.Subject;
@@ -161,7 +164,9 @@ public interface FileSystem extends Closeable {
     public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
       AlluxioConfiguration conf = context.getClusterConf();
       checkSortConf(conf);
-      FileSystem fs = new BaseFileSystem(context);
+      FileSystem fs = options.getUfsFileSystemOptions().isPresent()
+          ? new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get())
+          : new BaseFileSystem(context);
       if (options.isMetadataCacheEnabled()) {
         fs = new MetadataCachingFileSystem(fs, context);
       }
@@ -734,4 +739,32 @@ public interface FileSystem extends Closeable {
    * @param path the path needing synchronization
    */
   void needsSync(AlluxioURI path) throws IOException, AlluxioException;
+
+  /**
+   * Submit a load job.
+   * @param path alluxio path to be loaded
+   * @param bandwidth bandwidth allocated to this load, unlimited if empty
+   * @param usePartialListing whether to use partial listing
+   * @param verify whether to verify after load finishes
+   * @return true if job is submitted, false if a load of the same path already exists
+   */
+  boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
+      boolean usePartialListing, boolean verify);
+
+  /**
+   * Stop a load job.
+   * @param path alluxio path to be stopped
+   * @return true if job is stopped, false if cannot find job
+   */
+  boolean stopLoad(AlluxioURI path);
+
+  /**
+   * Get progress of a load job.
+   * @param path alluxio path to get progress
+   * @param format progress report format
+   * @param verbose whether to return verbose report
+   * @return the load job progress
+   */
+  String getLoadProgress(AlluxioURI path,
+      Optional<LoadProgressReportFormat> format, boolean verbose);
 }

@@ -150,6 +150,7 @@ message UfsReadOptions{
   // We introduce a heuristic to choose which API to use.
   required bool position_short = 2;
   optional int64 bandwidth = 3;
+  optional string user = 4;
 }
 
 

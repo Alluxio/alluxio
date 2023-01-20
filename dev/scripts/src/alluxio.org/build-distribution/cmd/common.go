@@ -42,6 +42,12 @@ var hadoopDistributions = map[string]version{
 	"default": parseVersion("2.7.3"),
 }
 
+type GenerateTarballOpts struct {
+	SkipUI   bool
+	SkipHelm bool
+	Fuse     bool
+}
+
 type module struct {
 	name      string // the name used in the generated tarball
 	ufsType   string // the source module type
@@ -65,27 +71,37 @@ var ufsModules = map[string]module{
 	"ufs-hadoop-3.2":  {"hadoop-3.2", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.2.1 -PhdfsActiveSync"},
 	"ufs-hadoop-3.3":  {"hadoop-3.3", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1 -PhdfsActiveSync"},
 
-	"ufs-hadoop-ozone-1.2.1": {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
-	"ufs-hadoop-cosn-3.1.0-5.8.5":  {"hadoop-cosn-3.1.0-5.8.5", "cosn", true, "-pl underfs/cosn -Dufs.cosn.version=3.1.0-5.8.5"},
+	"ufs-hadoop-ozone-1.2.1":      {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
+	"ufs-hadoop-cosn-3.1.0-5.8.5": {"hadoop-cosn-3.1.0-5.8.5", "cosn", true, "-pl underfs/cosn -Dufs.cosn.version=3.1.0-5.8.5"},
+}
+
+var fuseUfsModuleNames = []string{
+	"ufs-hadoop-2.7",
+	"ufs-hadoop-3.3",
 }
 
 var libJars = map[string]struct{}{
 	"integration-tools-hms":        {},
 	"integration-tools-validation": {},
-	"underfs-abfs":                 {},
-	"underfs-adl":                  {},
-	"underfs-gcs":                  {},
-	"underfs-local":                {},
-	"underfs-s3a":                  {},
-	"underfs-obs":                  {},
-	"underfs-wasb":                 {},
 
+	"underfs-abfs":          {},
+	"underfs-adl":           {},
+	"underfs-cos":           {},
 	"underfs-cephfs":        {},
 	"underfs-cephfs-hadoop": {},
-	"underfs-cos":           {},
+	"underfs-gcs":           {},
+	"underfs-local":         {},
+	"underfs-obs":           {},
 	"underfs-oss":           {},
+	"underfs-s3a":           {},
 	"underfs-swift":         {},
+	"underfs-wasb":          {},
 	"underfs-web":           {},
+}
+
+var fuseLibJars = map[string]struct{}{
+	"underfs-s3a":   {},
+	"underfs-local": {},
 }
 
 func validModules(modules map[string]module) []string {

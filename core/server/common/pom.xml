@@ -26,7 +26,7 @@
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.parent.basedir}/build</build.path>
-    <alluxio.ratis.version>2.4.0</alluxio.ratis.version>
+    <alluxio.ratis.version>2.4.1</alluxio.ratis.version>
   </properties>
 
   <dependencies>

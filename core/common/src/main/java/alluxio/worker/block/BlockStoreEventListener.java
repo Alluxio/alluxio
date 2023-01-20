@@ -42,11 +42,18 @@ public interface BlockStoreEventListener {
   void onAbortBlock(long blockId);
 
   /**
-   * Actions when committing a temporary block to a {@link BlockStoreLocation}.
+   * Actions when committing a temporary block to a {@link BlockStoreLocation} at local block store.
    * @param blockId the id of the block to commit
    * @param location the location of the block to be committed
    */
-  void onCommitBlock(long blockId, BlockStoreLocation location);
+  void onCommitBlockToLocal(long blockId, BlockStoreLocation location);
+
+  /**
+   * Actions when a temporary block has been committed to the alluxio master.
+   * @param blockId the id of the block to commit
+   * @param location the location of the block to be committed
+   */
+  void onCommitBlockToMaster(long blockId, BlockStoreLocation location);
 
   /**
    * Actions when moving a block by a client from a {@link BlockStoreLocation} to another.

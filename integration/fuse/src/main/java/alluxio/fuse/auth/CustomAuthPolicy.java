@@ -98,12 +98,21 @@ public class CustomAuthPolicy extends LaunchUserGroupAuthPolicy {
   }
 
   @Override
-  public Optional<Long> getUid(String owner) {
+  public void setUserGroup(AlluxioURI uri, long uid, long gid) {
+    if (uid == mUid && gid == mGid) {
+      setUserGroupIfNeeded(uri);
+      return;
+    }
+    super.setUserGroup(uri, uid, gid);
+  }
+
+  @Override
+  public Optional<Long> getUid() {
     return Optional.of(mUid);
   }
 
   @Override
-  public Optional<Long> getGid(String group) {
+  public Optional<Long> getGid() {
     return Optional.of(mGid);
   }
 }

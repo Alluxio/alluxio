@@ -335,7 +335,7 @@ public final class TieredBlockStoreTestUtils {
     cache2(sessionId, blockId, bytes, dir, meta, (BlockStoreEventListener) null);
     if (iterator != null) {
       for (BlockStoreEventListener listener : iterator.getListeners()) {
-        listener.onCommitBlock(blockId, dir.toBlockStoreLocation());
+        listener.onCommitBlockToLocal(blockId, dir.toBlockStoreLocation());
       }
     }
   }
@@ -360,7 +360,7 @@ public final class TieredBlockStoreTestUtils {
 
     // update iterator if a listener.
     if (listener != null) {
-      listener.onCommitBlock(blockId, dir.toBlockStoreLocation());
+      listener.onCommitBlockToLocal(blockId, dir.toBlockStoreLocation());
     }
   }
 

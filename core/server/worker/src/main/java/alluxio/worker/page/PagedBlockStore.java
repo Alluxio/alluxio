@@ -88,9 +88,9 @@ public class PagedBlockStore implements BlockStore {
 
   /**
    * Create an instance of PagedBlockStore.
-   * @param ufsManager
-   * @param pool
-   * @param workerId
+   * @param ufsManager the UFS manager
+   * @param pool a client pool for talking to the block master
+   * @param workerId the worker id
    * @return an instance of PagedBlockStore
    */
   public static PagedBlockStore create(UfsManager ufsManager, BlockMasterClientPool pool,
@@ -166,7 +166,19 @@ public class PagedBlockStore implements BlockStore {
         pageStoreDir.commit(BlockPageId.tempFileIdOf(blockId),
             BlockPageId.fileIdOf(blockId, blockMeta.getBlockSize()));
         final PagedBlockMeta committed = mPageMetaStore.commit(blockId);
+        BlockStoreLocation blockLocation =
+                new BlockStoreLocation(DEFAULT_TIER, getDirIndexOfBlock(blockId));
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          synchronized (listener) {
+            listener.onCommitBlockToLocal(blockId, blockLocation);
+          }
+        }
         commitBlockToMaster(committed);
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          synchronized (listener) {
+            listener.onCommitBlockToMaster(blockId, blockLocation);
+          }
+        }
       } catch (IOException e) {
         throw AlluxioRuntimeException.from(e);
       } finally {
@@ -194,13 +206,6 @@ public class PagedBlockStore implements BlockStore {
           false);
     } finally {
       mBlockMasterClientPool.release(bmc);
-    }
-    BlockStoreLocation blockLocation =
-        new BlockStoreLocation(DEFAULT_TIER, getDirIndexOfBlock(blockId));
-    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-      synchronized (listener) {
-        listener.onCommitBlock(blockId, blockLocation);
-      }
     }
   }
 
@@ -363,6 +368,14 @@ public class PagedBlockStore implements BlockStore {
     }
     throw new AlreadyExistsRuntimeException(new BlockAlreadyExistsException(
         String.format("Cannot overwrite an existing block %d", blockId)));
+  }
+
+  /**
+   * Return mCacheManager.mState.get() for CommitTest.
+   * @return the mState, like READ_ONLY, READ_WRITE, NOT_IN_USE
+   */
+  public CacheManager.State getCacheManagerState() {
+    return mCacheManager.state();
   }
 
   @Override

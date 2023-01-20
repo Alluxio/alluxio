@@ -12,6 +12,8 @@
 package alluxio.worker.block;
 
 import com.google.common.collect.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,10 +26,12 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Represents the delta of the block store within one heartbeat period. For now, newly committed
  * blocks do not pass through this master communication mechanism, instead it is synchronized
- * through {@link alluxio.worker.block.BlockWorker#commitBlock(long, long)}.
+ * through {@link alluxio.worker.block.BlockWorker#commitBlock(long, long, boolean)}.
  */
 @ThreadSafe
 public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListener {
+  private static final Logger LOG = LoggerFactory.getLogger(BlockHeartbeatReporter.class);
+
   /** Lock for operations on the removed and added block collections. */
   private final Object mLock;
 
@@ -54,6 +58,7 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
     mRemovedBlocks = new ArrayList<>(100);
     mAddedBlocks = new HashMap<>(20);
     mLostStorage = new HashMap<>();
+    LOG.debug("BlockHeartbeatReporter initialized");
   }
 
   /**

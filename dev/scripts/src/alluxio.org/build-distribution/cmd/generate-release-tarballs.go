@@ -14,12 +14,17 @@ package cmd
 import (
 	"flag"
 	"fmt"
+	"strings"
 )
 
 func Release(args []string) error {
 	releaseCmd := flag.NewFlagSet("release", flag.ExitOnError)
 	// flags
-	generateFlags(releaseCmd)
+	addCommonFlags(releaseCmd, &FlagsOpts{
+		TargetName: fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker),
+		UfsModules: strings.Join(defaultModules(ufsModules), ","),
+		LibJars:    libJarsAll,
+	})
 	releaseCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
 	if err := handleUfsModulesAndLibJars(); err != nil {
@@ -34,7 +39,11 @@ func Release(args []string) error {
 func generateTarballs() error {
 	fmt.Printf("Generating tarball %v\n", fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker))
 	// Do not skip UI and Helm
-	if err := generateTarball(false, false); err != nil {
+	if err := generateTarball(&GenerateTarballOpts{
+		SkipUI:   false,
+		SkipHelm: false,
+		Fuse:     false,
+	}); err != nil {
 		return err
 	}
 	return nil

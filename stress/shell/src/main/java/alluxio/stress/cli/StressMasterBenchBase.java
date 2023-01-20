@@ -14,11 +14,15 @@ package alluxio.stress.cli;
 import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.PMode;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.common.FileSystemClientType;
@@ -79,7 +83,7 @@ public abstract class StressMasterBenchBase
     mParameters = parameters;
   }
 
-  protected abstract BenchContext getContext();
+  protected abstract BenchContext getContext() throws IOException, AlluxioException;
 
   @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   protected void deletePaths(FileSystem fs, Path basePath) throws Exception {
@@ -346,6 +350,7 @@ public abstract class StressMasterBenchBase
       Path basePath, Path fixedBasePath, int fixedCount)
       throws IOException, AlluxioException {
     Path path;
+    AlluxioURI uri;
     switch (operation) {
       case CREATE_DIR:
         if (counter < fixedCount) {
@@ -416,6 +421,45 @@ public abstract class StressMasterBenchBase
 
         fs.delete(new AlluxioURI(path.toString()),
             DeletePOptions.newBuilder().setRecursive(false).build());
+        break;
+      case CREATE_DELETE_FILE:
+        path = new Path(basePath, Long.toString(counter));
+        uri = new AlluxioURI(path.toString());
+        fs.createFile(uri, CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
+        fs.delete(uri);
+        break;
+      case SET_ATTRIBUTE:
+        if (counter < fixedCount) {
+          path = new Path(fixedBasePath, Long.toString(counter));
+        } else {
+          path = new Path(basePath, Long.toString(counter));
+        }
+        fs.setAttribute(new AlluxioURI(path.toString()), SetAttributePOptions.newBuilder()
+                .setMode(PMode.newBuilder()
+                    .setOwnerBits(Bits.ALL)
+                    .setGroupBits(Bits.ALL)
+                    .setOtherBits(Bits.ALL).build()).build());
+        break;
+      case CRURD:
+        path = new Path(basePath, Long.toString(counter));
+        uri = new AlluxioURI(path.toString());
+        fs.createFile(uri, CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
+        if (!fs.exists(uri)) {
+          throw new IOException("[INCONSISTENCY] file doesn't exist after creation");
+        }
+        fs.setAttribute(new AlluxioURI(path.toString()), SetAttributePOptions.newBuilder()
+            .setMode(PMode.newBuilder()
+                .setOwnerBits(Bits.ALL)
+                .setGroupBits(Bits.ALL)
+                .setOtherBits(Bits.ALL).build()).build());
+        URIStatus us = fs.getStatus(uri);
+        if (us.getMode() != 0777) {
+          throw new IOException("[INCONSISTENCY] file update doesn't reflect");
+        }
+        fs.delete(uri);
+        if (fs.exists(uri)) {
+          throw new IOException("[INCONSISTENCY] file still exists after deletion");
+        }
         break;
       default:
         throw new IllegalStateException("Unknown operation: " + operation);

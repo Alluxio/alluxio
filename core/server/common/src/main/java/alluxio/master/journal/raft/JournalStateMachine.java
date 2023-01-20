@@ -367,6 +367,11 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public void close() {
     mClosed = true;
+    MetricsSystem.removeMetrics(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX.getName());
+    MetricsSystem.removeMetrics(MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName());
+    MetricsSystem.removeMetrics(MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName());
+    MetricsSystem.removeMetrics(MetricKey.MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX.getName());
+    MetricsSystem.removeMetrics(MetricKey.MASTER_JOURNAL_CHECKPOINT_WARN.getName());
     synchronized (mSnapshotManager) {
       mSnapshotManager.notifyAll();
     }
@@ -396,8 +401,8 @@ public class JournalStateMachine extends BaseStateMachine {
   }
 
   @Override
-  public void notifyTermIndexUpdated(long term, long index) {
-    super.notifyTermIndexUpdated(term, index);
+  public void notifyConfigurationChanged(long term, long index,
+      RaftProtos.RaftConfigurationProto newRaftConfiguration) {
     CompletableFuture.runAsync(mJournalSystem::updateGroup, mJournalPool);
   }
 

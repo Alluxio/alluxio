@@ -661,6 +661,32 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
 
+  public static final MetricKey PROXY_CHECK_UPLOADID_STATUS_LATENCY =
+          new Builder("Proxy.CheckUploadIDStatusLatency")
+                  .setDescription("Latency of check uploadId status in CompleteMultipartUpload")
+                  .setMetricType(MetricType.TIMER)
+                  .build();
+  public static final MetricKey PROXY_COMPLETE_MP_UPLOAD_MERGE_LATENCY =
+          new Builder("Proxy.CompleteMPUploadMergeLatency")
+                  .setDescription("Latency of merging parts into one object"
+                          + "in CompleteMultipartUpload")
+                  .setMetricType(MetricType.TIMER)
+                  .build();
+
+  public static final MetricKey PROXY_CLEANUP_MULTIPART_UPLOAD_LATENCY =
+          new Builder("Proxy.CleanupMultipartUploadLatency")
+                  .setDescription("Latency of cleaning up temp folder and meta"
+                          + "file from CompleteMultipartUpload")
+                  .setMetricType(MetricType.TIMER)
+                  .build();
+
+  public static final MetricKey PROXY_CLEANUP_TEMP_MULTIPART_UPLOAD_OBJ_LATENCY =
+          new Builder("Proxy.CleanupTempMultipartUploadObjectLatency")
+                  .setDescription("Latency of cleaning up temp target obj during"
+                          + "CompleteMultipartUpload")
+                  .setMetricType(MetricType.TIMER)
+                  .build();
+
   // Metadata sync metrics
   public static final MetricKey MASTER_METADATA_SYNC_UFS_MOUNT =
       new Builder("Master.MetadataSyncUfsMount.")
@@ -957,7 +983,38 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The number of running status job")
           .setMetricType(MetricType.COUNTER)
           .build();
-
+// new job metrics
+  public static final MetricKey MASTER_JOB_LOAD_SUCCESS =
+      new Builder("Master.JobLoadSuccess")
+          .setDescription("The number of successful Load commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_LOAD_FAIL =
+      new Builder("Master.JobLoadFail")
+          .setDescription("The number of failed Load commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_LOAD_BLOCK_COUNT =
+      new Builder("Master.JobLoadBlockCount")
+          .setDescription("The number of blocks loaded by load commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_LOAD_BLOCK_FAIL =
+      new Builder("Master.JobLoadBlockFail")
+          .setDescription("The number of blocks failed to be loaded by load commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_LOAD_BLOCK_SIZE =
+      new Builder("Master.JobDistributedLoadBlockSizes")
+          .setDescription("The total block size loaded by load commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_LOAD_RATE =
+      new Builder("Master.JobLoadRate")
+          .setDescription("The average loading rate of Load commands")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(true)
+          .build();
   // Distributed command related metrics
   public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_SUCCESS =
       new Builder("Master.JobDistributedLoadSuccess")
@@ -2360,6 +2417,18 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+
+  public static final MetricKey CLOSE_UFS_OUTSTREAM_LATENCY =
+          new Builder("Client.CloseUFSOutStreamLatency")
+                  .setDescription("Latency of close UFS outstream latency")
+                  .setMetricType(MetricType.TIMER)
+                  .build();
+
+  public static final MetricKey CLOSE_ALLUXIO_OUTSTREAM_LATENCY =
+          new Builder("Client.CloseAlluxioOutStreamLatency")
+                  .setDescription("Latency of close Alluxio outstream latency")
+                  .setMetricType(MetricType.TIMER)
+                  .build();
 
   // Fuse operation timer and failure counter metrics are added dynamically.
   // Other Fuse related metrics are added here

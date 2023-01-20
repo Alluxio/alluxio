@@ -579,7 +579,7 @@ Usage: alluxio fs [generic options]
 For `fs` subcommands that take Alluxio URIs as argument (e.g. `ls`, `mkdir`), the argument should
 be either a complete Alluxio URI, such as `alluxio://<master-hostname>:<master-port>/<path>`,
 or a path without its header, such as `/<path>`, to use the default hostname and port set in the
-`conf/allluxio-site.properties`.
+`conf/alluxio-site.properties`.
 
 > Note: This command requires the Alluxio cluster to be running.
 
@@ -1101,18 +1101,52 @@ $ ./bin/alluxio fs leader
 ### load
 
 The `load` command moves data from the under storage system into Alluxio storage.
+For example, `load` can be used to prefetch data for analytics jobs.
+If `load` is run on a directory, files in the directory will be recursively loaded.
+```console
+$ ./bin/alluxio fs load <path> --submit [--bandwidth N] [--verify] [--partial-listing]
+```
+Options:
+* `--bandwidth` option specify how much ufs bandwidth we want to use to load files.
+* `--verify` option specify whether we want to verify that all the files are loaded.
+* `--partial-listing` option specify using batch listStatus API or traditional listStatus. We would retire this option when batch listStatus API gets mature.
+
+After submit the command, you can check the status by running the following
+```console
+$ ./bin/alluxio fs load <path> --progress [--format TEXT|JSON] [--verbose]
+```
+And you would get the following output:
+```console
+Progress for loading path '/dir-99':
+        Settings:       bandwidth: unlimited    verify: false
+        Job State: SUCCEEDED
+        Files Processed: 1000
+        Bytes Loaded: 125.00MB
+        Throughput: 2509.80KB/s
+        Block load failure rate: 0.00%
+        Files Failed: 0
+```
+Options:
+* `--format` option specify output format. TEXT as default
+* `--verbose` option output job details. 
+
+If you want to stop the command by running the following
+```console
+$ ./bin/alluxio fs load <path> --stop
+```
+
+If you just want sequential execution for couple files. You can use the following old version
+```console
+$ ./bin/alluxio fs load <path>
+```
 If there is a Alluxio worker on the machine this command is run from, the data will be loaded to that worker.
 Otherwise, a random worker will be selected to serve the data.
 
 If the data is already loaded into Alluxio, load is a no-op unless the `--local flag` is used.
 The `--local` flag forces the data to be loaded to a local worker
 even if the data is already available on a remote worker.
-If `load` is run on a directory, files in the directory will be recursively loaded.
-
-For example, `load` can be used to prefetch data for analytics jobs.
-
 ```console
-$ ./bin/alluxio fs load /data/today
+$ ./bin/alluxio fs load <path> --local
 ```
 
 ### location

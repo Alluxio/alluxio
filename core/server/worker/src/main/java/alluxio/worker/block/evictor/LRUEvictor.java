@@ -82,7 +82,7 @@ public class LRUEvictor extends AbstractEvictor {
   }
 
   @Override
-  public void onCommitBlock(long blockId, BlockStoreLocation location) {
+  public void onCommitBlockToLocal(long blockId, BlockStoreLocation location) {
     // Since the temp block has been committed, update Evictor about the new added blocks
     mLRUCache.put(blockId, UNUSED_MAP_VALUE);
   }

@@ -218,7 +218,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
         }
       }
     }
-    return returnPaths.toArray(new UfsStatus[returnPaths.size()]);
+    return returnPaths.toArray(new UfsStatus[0]);
   }
 
   @Override

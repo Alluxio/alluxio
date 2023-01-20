@@ -14,6 +14,7 @@ package alluxio.cli.fsadmin.report;
 import alluxio.Constants;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.options.GetWorkerReportOptions;
+import alluxio.conf.Configuration;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -52,7 +53,8 @@ public class CapacityCommandTest {
          PrintStream printStream = new PrintStream(outputStream, true, "utf-8")) {
       CapacityCommand capacityCommand = new CapacityCommand(mBlockMasterClient,
           printStream);
-      capacityCommand.generateCapacityReport(GetWorkerReportOptions.defaults());
+      capacityCommand.generateCapacityReport(GetWorkerReportOptions.defaults(),
+          Configuration.global());
       String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
       // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
       List<String> expectedOutput = Arrays.asList("Capacity information for all workers: ",
@@ -93,7 +95,8 @@ public class CapacityCommandTest {
          PrintStream printStream = new PrintStream(outputStream, true, "utf-8")) {
       CapacityCommand capacityCommand = new CapacityCommand(mBlockMasterClient,
           printStream);
-      capacityCommand.generateCapacityReport(GetWorkerReportOptions.defaults());
+      capacityCommand.generateCapacityReport(GetWorkerReportOptions.defaults(),
+          Configuration.global());
       String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
       // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
       List<String> expectedOutput = Arrays.asList("Capacity information for all workers: ",
@@ -125,7 +128,8 @@ public class CapacityCommandTest {
          PrintStream printStream = new PrintStream(outputStream, true, "utf-8")) {
       CapacityCommand capacityCommand = new CapacityCommand(mBlockMasterClient,
           printStream);
-      capacityCommand.generateCapacityReport(GetWorkerReportOptions.defaults());
+      capacityCommand.generateCapacityReport(GetWorkerReportOptions.defaults(),
+          Configuration.global());
       String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
       List<String> testRst = Arrays.asList(output.split("\n"));
       // CHECKSTYLE.OFF: LineLengthExceed - Much more readable

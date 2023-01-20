@@ -37,7 +37,7 @@ public abstract class AbstractStressBench<T extends TaskResult, P extends FileSy
   /**
    * Validates the parameters.
    */
-  public void validateParams() throws Exception {}
+  public abstract void validateParams() throws Exception;
 
   @Override
   public String run(String[] args) throws Exception {

@@ -192,6 +192,11 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
         rateLimiter, mParameters.mOperation, mParameters.mDuration);
   }
 
+  @Override
+  public void validateParams() throws Exception {
+    // no-op
+  }
+
   protected abstract class BenchThread implements Callable<Void> {
     private final BenchContext mContext;
     private final Histogram mResponseTimeNs;

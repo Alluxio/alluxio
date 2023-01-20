@@ -221,6 +221,11 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     return context.getResult();
   }
 
+  @Override
+  public void validateParams() throws Exception {
+    //no-op
+  }
+
   private static final class BenchContext {
     private final long mStartMs;
     private final long mEndMs;

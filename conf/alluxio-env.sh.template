@@ -80,6 +80,10 @@
 # E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60001"
 # ALLUXIO_MASTER_ATTACH_OPTS
 
+# Configuring remote debugging for Alluxio secondary master process. (Default: "")
+# E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60010"
+# ALLUXIO_SECONDARY_MASTER_ATTACH_OPTS
+
 # Configuring remote debugging for Alluxio job master process. (Default: "")
 # E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60002"
 # ALLUXIO_JOB_MASTER_ATTACH_OPTS

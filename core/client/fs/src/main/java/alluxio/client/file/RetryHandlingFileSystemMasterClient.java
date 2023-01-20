@@ -418,6 +418,49 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
         RPC_LOG, "NeedsSync", "path=%s", path);
   }
 
+  @Override
+  public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
+      boolean usePartialListing, boolean verify) {
+    alluxio.grpc.LoadPathPOptions.Builder options = alluxio.grpc.LoadPathPOptions
+        .newBuilder().setPartialListing(usePartialListing).setVerify(verify);
+    if (bandwidth.isPresent()) {
+      options.setBandwidth(bandwidth.getAsLong());
+    }
+    connectWithRuntimeException();
+    alluxio.grpc.LoadPathPResponse response = mClient.loadPath(
+        alluxio.grpc.LoadPathPRequest.newBuilder()
+            .setPath(path.getPath())
+            .setOptions(options.build())
+            .build());
+    return response.getNewLoadSubmitted();
+  }
+
+  @Override
+  public boolean stopLoad(AlluxioURI path) {
+    connectWithRuntimeException();
+    alluxio.grpc.StopLoadPathPResponse response = mClient.stopLoadPath(
+        alluxio.grpc.StopLoadPathPRequest.newBuilder()
+            .setPath(path.getPath())
+            .build());
+    return response.getExistingLoadStopped();
+  }
+
+  @Override
+  public String getLoadProgress(AlluxioURI path,
+      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
+    alluxio.grpc.LoadProgressPOptions.Builder options =
+        alluxio.grpc.LoadProgressPOptions.newBuilder()
+            .setVerbose(verbose);
+    format.map(options::setFormat);
+    connectWithRuntimeException();
+    alluxio.grpc.GetLoadProgressPResponse response = mClient.getLoadProgress(
+        alluxio.grpc.GetLoadProgressPRequest.newBuilder()
+            .setPath(path.getPath())
+            .setOptions(options.build())
+            .build());
+    return response.getProgressReport();
+  }
+
   /**
    * Gets the path that will be transported to master.
    *

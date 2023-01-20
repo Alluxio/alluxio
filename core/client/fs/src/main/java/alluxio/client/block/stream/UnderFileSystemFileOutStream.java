@@ -14,7 +14,11 @@ package alluxio.client.block.stream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.grpc.RequestType;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.wire.WorkerNetAddress;
+
+import com.codahale.metrics.Timer;
 
 import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -57,5 +61,13 @@ public class UnderFileSystemFileOutStream extends BlockOutStream {
    */
   public DataWriter getDataWriter() {
     return mDataWriter;
+  }
+
+  @Override
+  public void close() throws IOException {
+    try (Timer.Context ctx = MetricsSystem
+            .uniformTimer(MetricKey.CLOSE_UFS_OUTSTREAM_LATENCY.getName()).time()) {
+      super.close();
+    }
   }
 }

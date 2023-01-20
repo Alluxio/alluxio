@@ -11,10 +11,7 @@
 
 package alluxio;
 
-import org.openjdk.jmh.annotations.Level;
-import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import site.ycsb.generator.NumberGenerator;
 import site.ycsb.generator.UniformLongGenerator;
@@ -27,20 +24,6 @@ import java.util.ArrayList;
  */
 @State(Scope.Benchmark)
 public class BaseFileStructure {
-
-  @Param({"0", "1", "10"})
-  public int mDepth;
-
-  @Param({"0"})
-  public int mWidth;
-
-  @Param({"0", "10", "100", "1000"})
-  public int mFileCount;
-
-  // is used in read benchmark to simulate different file access patterns
-  @Param({"UNIFORM", "ZIPF"})
-  public Distribution mDistribution;
-
   // each depth level needs its own file id generator
   public ArrayList<NumberGenerator> mFileGenerators;
   public NumberGenerator mDepthGenerator;
@@ -48,22 +31,21 @@ public class BaseFileStructure {
 
   public enum Distribution { UNIFORM, ZIPF }
 
-  @Setup(Level.Trial)
-  public void init() {
+  public void init(int depth, int width, int fileCount, Distribution distribution) {
     mFileGenerators = new ArrayList<>();
-    switch (mDistribution) {
+    switch (distribution) {
       case ZIPF:
-        mDepthGenerator = new ZipfianGenerator(0, mDepth);
-        mWidthGenerator = new ZipfianGenerator(0, mWidth);
-        for (int i = 0; i < mDepth + 1; i++) {
-          mFileGenerators.add(new ZipfianGenerator(0, mFileCount - 1));
+        mDepthGenerator = new ZipfianGenerator(0, depth);
+        mWidthGenerator = new ZipfianGenerator(0, width);
+        for (int i = 0; i < depth + 1; i++) {
+          mFileGenerators.add(new ZipfianGenerator(0, fileCount - 1));
         }
         break;
       default:
-        mDepthGenerator = new UniformLongGenerator(0, mDepth);
-        mWidthGenerator = new UniformLongGenerator(0, mWidth);
-        for (int i = 0; i < mDepth + 1; i++) {
-          mFileGenerators.add(new UniformLongGenerator(0, mFileCount - 1));
+        mDepthGenerator = new UniformLongGenerator(0, depth);
+        mWidthGenerator = new UniformLongGenerator(0, width);
+        for (int i = 0; i < depth + 1; i++) {
+          mFileGenerators.add(new UniformLongGenerator(0, fileCount - 1));
         }
     }
   }
