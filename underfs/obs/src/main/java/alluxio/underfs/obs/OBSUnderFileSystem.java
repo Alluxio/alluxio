@@ -25,6 +25,9 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Preconditions;
 import com.obs.services.ObsClient;
 import com.obs.services.exception.ObsException;
+import com.obs.services.model.DeleteObjectsRequest;
+import com.obs.services.model.DeleteObjectsResult;
+import com.obs.services.model.KeyAndVersion;
 import com.obs.services.model.ListObjectsRequest;
 import com.obs.services.model.ObjectListing;
 import com.obs.services.model.ObjectMetadata;
@@ -38,6 +41,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
@@ -169,6 +173,25 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
       return false;
     }
     return true;
+  }
+
+  @Override
+  protected List<String> deleteObjects(List<String> keys) {
+    List<String> results = new ArrayList<>();
+    KeyAndVersion[] kv = new KeyAndVersion[keys.size()];
+    int i = 0;
+    for (String key : keys) {
+      kv[i++] = new KeyAndVersion(key);
+    }
+    DeleteObjectsRequest request = new DeleteObjectsRequest(mBucketName, false, kv);
+    try {
+      DeleteObjectsResult result = mClient.deleteObjects(request);
+      results.add(result.toString());
+    } catch (ObsException e) {
+      LOG.error("Failed to batch delete {} keys, first is {}", i, keys.get(0), e);
+      return results;
+    }
+    return results;
   }
 
   @Override
@@ -365,6 +388,27 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
       }
     } catch (ObsException e) {
       LOG.error("Failed to rename directory from {} to {}.", src, dst, e);
+      return false;
+    }
+  }
+
+  @Override
+  public boolean renameFile(String src, String dst) throws IOException {
+    if (!isEnvironmentPFS()) {
+      return super.renameFile(src, dst);
+    }
+    try {
+      RenameRequest request = new RenameRequest(
+              mBucketName, stripPrefixIfPresent(src), stripPrefixIfPresent(dst));
+      RenameResult response = mClient.renameFile(request);
+      if (isSuccessResponse(response.getStatusCode())) {
+        return true;
+      } else {
+        LOG.error("Failed to rename file from {} to {}.", src, dst);
+        return false;
+      }
+    } catch (ObsException e) {
+      LOG.error("Failed to rename file from {} to {}.", src, dst, e);
       return false;
     }
   }
