@@ -838,7 +838,7 @@ public final class S3RestServiceHandler {
                     .setOtherBits(Bits.NONE).build())
                 .setWriteType(S3RestUtils.getS3WriteType())
                 .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-                .build();
+                .setIsS3Operation(true).build();
 
         // not copying from an existing file
         if (copySourceParam == null) {
@@ -912,7 +912,8 @@ public final class S3RestServiceHandler {
               .setMode(PMode.newBuilder()
                   .setOwnerBits(Bits.ALL)
                   .setGroupBits(Bits.ALL)
-                  .setOtherBits(Bits.NONE).build());
+                  .setOtherBits(Bits.NONE).build())
+              .setIsS3Operation(true);
           // Handle metadata directive
           if (metadataDirective == S3Constants.Directive.REPLACE
               && filePOptions.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
@@ -1089,6 +1090,7 @@ public final class S3RestServiceHandler {
                   .setWriteType(S3RestUtils.getS3WriteType())
                   .putAllXattr(xattrMap)
                   .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                  .setIsS3Operation(true)
                   .build()
           );
           SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()

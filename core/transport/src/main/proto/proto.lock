@@ -2404,6 +2404,11 @@
                     "value": "NEW_PATHS"
                   }
                 ]
+              },
+              {
+                "id": 13,
+                "name": "isS3Operation",
+                "type": "bool"
               }
             ],
             "maps": [

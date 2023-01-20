@@ -137,6 +137,7 @@ message CreateFilePOptions {
   optional int64 persistenceWaitTime = 10;
   map<string, bytes> xattr = 11;
   optional XAttrPropagationStrategy xattrPropStrat = 12 [default = NEW_PATHS];
+  optional bool isS3Operation = 13;
 }
 message CreateFilePRequest {
   /** the path of the file */
