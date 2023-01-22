@@ -58,9 +58,13 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
 
-  /** The Block Worker. */
+  /**
+   * The Block Worker.
+   */
   private final BlockWorker mWorker;
-  /** The transfer type used by the data server. */
+  /**
+   * The transfer type used by the data server.
+   */
   private final FileTransferType mTransferType;
 
   /**
@@ -68,9 +72,13 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
    */
   @NotThreadSafe
   public final class BlockPacketReader extends PacketReader {
-    /** The Block Worker. */
+    /**
+     * The Block Worker.
+     */
     private final BlockWorker mWorker;
-    /** An object storing the mapping of tier aliases to ordinals. */
+    /**
+     * An object storing the mapping of tier aliases to ordinals.
+     */
     private final StorageTierAssoc mStorageTierAssoc = new DefaultStorageTierAssoc(
         PropertyKey.WORKER_TIERED_STORE_LEVELS,
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS);
@@ -103,7 +111,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
 
     @Override
     protected DataBuffer getDataBuffer(BlockReadRequestContext context, Channel channel,
-        long offset, int len) throws Exception {
+                                       long offset, int len) throws Exception {
       openBlock(context, channel);
       BlockReader blockReader = context.getBlockReader();
       Preconditions.checkState(blockReader != null);
@@ -151,75 +159,41 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       }
 
       do {
-        long lockId;
-        if (request.isPersisted()) {
-          lockId = mWorker.lockBlockNoException(request.getSessionId(), request.getId());
-        } else {
-          lockId = mWorker.lockBlock(request.getSessionId(), request.getId());
-        }
-        if (lockId != BlockLockManager.INVALID_LOCK_ID) {
-          try {
-            BlockReader reader = mWorker.createBlockReader(request.getSessionId(), request.getId(),
-                request.getStart(), false, request.getOpenUfsBlockOptions());
-            String metricName = "BytesReadAlluxio";
-            context.setBlockReader(reader);
-            context.setCounter(MetricsSystem.counter(metricName));
-            mWorker.accessBlock(request.getSessionId(), request.getId());
-            if (reader.getChannel() instanceof FileChannel) {
-              ((FileChannel) reader.getChannel()).position(request.getStart());
-            }
-            return;
-          } catch (Exception e) {
-            mWorker.unlockBlock(lockId);
-            throw e;
+        try {
+          BlockReader reader = mWorker.createBlockReader(request.getSessionId(), request.getId(),
+              request.getStart(), false, request.getOpenUfsBlockOptions());
+          String metricName = "BytesReadAlluxio";
+          context.setBlockReader(reader);
+          context.setCounter(MetricsSystem.counter(metricName));
+          mWorker.accessBlock(request.getSessionId(), request.getId());
+          if (reader.getChannel() instanceof FileChannel) {
+            ((FileChannel) reader.getChannel()).position(request.getStart());
           }
+          return;
+        } catch (Exception e) {
+          throw e;
         }
 
-        // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
-        Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
-        if (mWorker.openUfsBlock(request.getSessionId(), request.getId(), openUfsBlockOptions)) {
-          try {
-            BlockReader reader =
-                mWorker.createBlockReader(request.getSessionId(), request.getId(),
-                    request.getStart(), false, request.getOpenUfsBlockOptions());
-                //mWorker.readUfsBlock(request.getSessionId(), request.getId(), request.getStart());
-            AlluxioURI ufsMountPointUri =
-                new AlluxioURI(request.getOpenUfsBlockOptions().getUfsPath());
-            String ufsString = MetricsSystem.escape(ufsMountPointUri);
-            String metricName = String.format("BytesReadUfs-Ufs:%s", ufsString);
-            context.setBlockReader(reader);
-            context.setCounter(MetricsSystem.counter(metricName));
-            return;
-          } catch (Exception e) {
-            // TODO(binfan): remove the closeUfsBlock here as the exception will be handled in
-            // AbstractReadHandler. Current approach to use context.blockReader as a flag is a
-            // workaround.
-            mWorker.closeUfsBlock(request.getSessionId(), request.getId());
-            context.setBlockReader(null);
-            throw e;
-          }
-        }
-
+        /*
         ProtoMessage heartbeat = new ProtoMessage(Protocol.ReadResponse.newBuilder()
             .setType(Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT).build());
         // Sends an empty buffer to the client to make sure that the client does not timeout when
         // the server is waiting for the UFS block access.
         channel.writeAndFlush(new RPCProtoMessage(heartbeat));
+        */
       } while (retryPolicy.attempt());
-      throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
-          .getMessage(request.getId(), request.getOpenUfsBlockOptions().getUfsPath()));
     }
   }
 
   /**
    * Creates an instance of {@link AbstractReadHandler}.
    *
-   * @param executorService the executor service to run {@link PacketReader}s
-   * @param blockWorker the block worker
+   * @param executorService  the executor service to run {@link PacketReader}s
+   * @param blockWorker      the block worker
    * @param fileTransferType the file transfer type
    */
   public BlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
-      FileTransferType fileTransferType) {
+                          FileTransferType fileTransferType) {
     super(executorService);
     mWorker = blockWorker;
     mTransferType = fileTransferType;
