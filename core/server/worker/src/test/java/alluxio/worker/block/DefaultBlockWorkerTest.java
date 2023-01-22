@@ -507,4 +507,29 @@ public class DefaultBlockWorkerTest extends DefaultBlockWorkerTestBase {
     // now another session should be able to grab write lock on the block
     mBlockWorker.removeBlock(anotherSessionId, blockId);
   }
+
+  @Test
+  public void heartbeatReport() throws Exception {
+    long sessionId = mRandom.nextLong();
+    long blockId = mRandom.nextLong();
+
+    // Successfully create and commit a block.
+    mBlockWorker.createBlock(
+            sessionId,
+            blockId,
+            0,
+            new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
+    mBlockWorker.commitBlock(sessionId, blockId, false);
+    BlockHeartbeatReport report = mBlockWorker.getReport();
+
+    // Report's addedBlock map should contain one entry,
+    // which maps storage location to a list of one blockIds just added.
+    assertEquals(1, report.getAddedBlocks().size());
+
+    for (Map.Entry<BlockStoreLocation, List<Long>> entry : report.getAddedBlocks().entrySet()) {
+      List<Long> blockIds = entry.getValue();
+      assertEquals(1, blockIds.size());
+      assertEquals(blockId, (long) blockIds.get(0));
+    }
+  }
 }
