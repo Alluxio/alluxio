@@ -229,6 +229,12 @@ message ListStatusPOptions {
   optional bool recursive = 4;
   // No data will be transferred.
   optional bool loadMetadataOnly = 5;
+  // Setting this to true will disable checking during metadata sync to see if the children
+  // of a directory has been loaded. This will avoid a costly full traversal of the file
+  // system during recursive listings, but may result in the children of directories not
+  // being loaded. It is recommended to set this to true after the first call of a
+  // recursive partial listing.
+  optional bool disableAreDescendantsLoadedCheck = 6;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */
