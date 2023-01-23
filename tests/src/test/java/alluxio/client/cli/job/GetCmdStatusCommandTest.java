@@ -77,7 +77,7 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
     String jobControlId = output[1].split("=\\s+")[1];
 
     mOutput.reset();
-    sJobShell.run("getCmdStatus -v", jobControlId);
+    sJobShell.run("getCmdStatus", "-v", jobControlId);
     Assert.assertTrue(mOutput.toString().contains("Get command status information below:"));
     Assert.assertTrue(mOutput.toString().contains(
             "Successfully loaded path /testRoot/testFileA\n"));
@@ -88,7 +88,7 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
 
     mOutput.reset();
     sJobShell.run("getCmdStatus", jobControlId);
-    Assert.assertEquals(mOutput.toString(), Status.COMPLETED.name());
+    Assert.assertTrue(mOutput.toString().contains(Status.COMPLETED.toString()));
   }
 
   @Test
@@ -103,7 +103,7 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
     String[] output = mOutput.toString().split("\n");
     String jobControlId = output[1].split("=\\s+")[1];
     mOutput.reset();
-    sJobShell.run("getCmdStatus -v ", jobControlId);
+    sJobShell.run("getCmdStatus", "-v", jobControlId);
     Assert.assertTrue(mOutput.toString().contains(
             "Successfully loaded path /testBatchRoot/testBatchFileA\n"));
     Assert.assertTrue(mOutput.toString().contains(
@@ -115,7 +115,7 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
 
     mOutput.reset();
     sJobShell.run("getCmdStatus", jobControlId);
-    Assert.assertEquals(mOutput.toString(), Status.COMPLETED.name());
+    Assert.assertTrue(mOutput.toString().contains(Status.COMPLETED.toString()));
   }
 
   @Test
@@ -123,7 +123,7 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
     String jobControlId = String.valueOf(1L);
 
     mOutput.reset();
-    sJobShell.run("getCmdStatus -v", jobControlId);
+    sJobShell.run("getCmdStatus", "-v", jobControlId);
     Assert.assertTrue(mOutput.toString().contains(
             String.format("Unable to get detailed information for command %s.\n", jobControlId)));
 
