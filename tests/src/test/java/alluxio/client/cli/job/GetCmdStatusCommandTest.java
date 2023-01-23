@@ -18,7 +18,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioJobCluster;
@@ -126,11 +125,11 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
     mOutput.reset();
     sJobShell.run("getCmdStatus -v", jobControlId);
     Assert.assertTrue(mOutput.toString().contains(
-            String.format("Unable to get detailed information for command %s.\n",jobControlId)));
+            String.format("Unable to get detailed information for command %s.\n", jobControlId)));
 
     mOutput.reset();
     sJobShell.run("getCmdStatus", jobControlId);
     Assert.assertTrue(mOutput.toString().contains(
-            String.format("Unable to get the status for command %s.\n",jobControlId)));
+            String.format("Unable to get the status for command %s.\n", jobControlId)));
   }
 }
