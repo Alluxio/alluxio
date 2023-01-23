@@ -107,12 +107,12 @@ public class GetCmdStatusCommand extends AbstractFileSystemCommand {
     } catch (Exception e) {
       if (cl.hasOption("v")) {
         LOG.error("Failed to get detailed status of the command", e);
-        System.out.printf("Unable to get detailed information for command %s.%n"
+        System.out.format("Unable to get detailed information for command %s.%n"
                         + "Please retry using `getCmdStatus` to check command detailed status.%n",
                 jobControlId);
       } else {
         LOG.error("Failed to get the status of the command", e);
-        System.out.printf("Unable to get the status for command %s.%n"
+        System.out.format("Unable to get the status for command %s.%n"
                         + "Please retry using `getCmdStatus` to check command status.%n",
                 jobControlId);
       }
