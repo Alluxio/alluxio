@@ -145,7 +145,7 @@ public class UfsBaseFileSystem implements FileSystem {
       if (options.hasRecursive()) {
         ufsOptions.setCreateParent(options.getRecursive());
       }
-      mUfs.get().mkdirs(transformToUfsPath(path).getPath(), ufsOptions);
+      mUfs.get().mkdirs(path.getPath(), ufsOptions);
     });
   }
 
@@ -160,16 +160,14 @@ public class UfsBaseFileSystem implements FileSystem {
       if (options.hasRecursive()) {
         ufsOptions.setCreateParent(options.getRecursive());
       }
-      AlluxioURI ufsPath = transformToUfsPath(path);
-      String resolvedPath = ufsPath.getPath();
-      return new UfsFileOutStream(mUfs.get().create(resolvedPath, ufsOptions));
+      return new UfsFileOutStream(mUfs.get().create(path.getPath(), ufsOptions));
     });
   }
 
   @Override
   public void delete(AlluxioURI path, DeletePOptions options) {
     call(() -> {
-      String ufsPath = transformToUfsPath(path).getPath();
+      String ufsPath = path.getPath();
       if (mUfs.get().isFile(ufsPath)) {
         mUfs.get().deleteFile(ufsPath);
         return;
@@ -184,8 +182,7 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public boolean exists(AlluxioURI path, final ExistsPOptions options) {
-    return Boolean.TRUE.equals(callWithReturn(
-        () -> mUfs.get().exists(transformToUfsPath(path).getPath())));
+    return Boolean.TRUE.equals(callWithReturn(() -> mUfs.get().exists(path.getPath())));
   }
 
   @Override
@@ -215,8 +212,7 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options) {
-    return callWithReturn(() -> transformStatus(
-        mUfs.get().getStatus(transformToUfsPath(path).getPath())));
+    return callWithReturn(() -> transformStatus(mUfs.get().getStatus(path.getPath())));
   }
 
   @Override
@@ -226,8 +222,7 @@ public class UfsBaseFileSystem implements FileSystem {
       if (options.hasRecursive()) {
         ufsOptions.setRecursive(options.getRecursive());
       }
-      UfsStatus[] ufsStatuses = mUfs.get()
-          .listStatus(transformToUfsPath(path).getPath(), ufsOptions);
+      UfsStatus[] ufsStatuses = mUfs.get().listStatus(path.getPath(), ufsOptions);
       if (ufsStatuses == null || ufsStatuses.length == 0) {
         return Collections.emptyList();
       }
@@ -243,8 +238,7 @@ public class UfsBaseFileSystem implements FileSystem {
       if (options.hasRecursive()) {
         ufsOptions.setRecursive(options.getRecursive());
       }
-      UfsStatus[] ufsStatuses = mUfs.get()
-          .listStatus(transformToUfsPath(path).getPath(), ufsOptions);
+      UfsStatus[] ufsStatuses = mUfs.get().listStatus(path.getPath(), ufsOptions);
       if (ufsStatuses == null || ufsStatuses.length == 0) {
         return;
       }
@@ -299,7 +293,7 @@ public class UfsBaseFileSystem implements FileSystem {
       // TODO(lu) deal with other options e.g. maxUfsReadConcurrency
       return new UfsFileInStream(offset -> {
         try {
-          return mUfs.get().open(status.getUfsPath(), OpenOptions.defaults().setOffset(offset));
+          return mUfs.get().open(status.getPath(), OpenOptions.defaults().setOffset(offset));
         } catch (IOException e) {
           throw AlluxioRuntimeException.from(e);
         }
@@ -310,8 +304,8 @@ public class UfsBaseFileSystem implements FileSystem {
   @Override
   public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options) {
     call(() -> {
-      String srcPath = transformToUfsPath(src).getPath();
-      String dstPath = transformToUfsPath(dst).getPath();
+      String srcPath = src.getPath();
+      String dstPath = dst.getPath();
       boolean renamed;
       if (mUfs.get().isFile(srcPath)) {
         renamed = mUfs.get().renameFile(srcPath, dstPath);
@@ -338,22 +332,21 @@ public class UfsBaseFileSystem implements FileSystem {
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclPOptions options) {
-    call(() -> mUfs.get().setAclEntries(transformToUfsPath(path).getPath(), entries));
+    call(() -> mUfs.get().setAclEntries(path.getPath(), entries));
   }
 
   @Override
   public void setAttribute(AlluxioURI path, SetAttributePOptions options) {
     call(() -> {
-      String ufsPath = transformToUfsPath(path).getPath();
       if (options.hasMode()) {
-        mUfs.get().setMode(ufsPath, ModeUtils.protoToShort(options.getMode()));
+        mUfs.get().setMode(path.getPath(), ModeUtils.protoToShort(options.getMode()));
       }
       if (options.hasOwner() && options.hasGroup()) {
-        mUfs.get().setOwner(ufsPath, options.getOwner(), options.getGroup());
+        mUfs.get().setOwner(path.getPath(), options.getOwner(), options.getGroup());
       } else if (options.hasOwner()) {
-        mUfs.get().setOwner(ufsPath, options.getOwner(), null);
+        mUfs.get().setOwner(path.getPath(), options.getOwner(), null);
       } else if (options.hasGroup()) {
-        mUfs.get().setOwner(ufsPath, null, options.getOwner());
+        mUfs.get().setOwner(path.getPath(), null, options.getOwner());
       }
       if (options.hasPinned() || options.hasPersisted() || options.hasRecursive()
           || options.hasReplicationMax() || options.hasReplicationMin()
@@ -402,10 +395,10 @@ public class UfsBaseFileSystem implements FileSystem {
    * @return the client-side status
    */
   private URIStatus transformStatus(UfsStatus ufsStatus) {
-    String path = CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mRootUFS.getPath());
-    AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mRootUFS, path));
+    AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mRootUFS,
+        CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mRootUFS.getPath())));
     FileInfo info = new FileInfo().setName(ufsUri.getName())
-        .setPath(path)
+        .setPath(ufsUri.toString())
         .setFileId(ufsUri.hashCode())
         .setUfsPath(ufsUri.toString())
         .setFolder(ufsStatus.isDirectory())
@@ -427,10 +420,6 @@ public class UfsBaseFileSystem implements FileSystem {
       info.setLength(0);
     }
     return new URIStatus(info);
-  }
-
-  private AlluxioURI transformToUfsPath(AlluxioURI relativePath) {
-    return mRootUFS.join(relativePath);
   }
 
   private static void call(UfsCallable callable) {

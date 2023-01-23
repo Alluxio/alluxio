@@ -12,6 +12,7 @@
 package alluxio.client.fuse.ufs;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
@@ -45,8 +46,8 @@ public abstract class AbstractFuseDoraTest {
   protected static final int DEFAULT_FILE_LEN = 64;
   protected static final Mode DEFAULT_MODE = new Mode(
       Mode.Bits.ALL, Mode.Bits.READ, Mode.Bits.READ);
-  private static final String UFS_ROOT =
-      AlluxioTestDirectory.createTemporaryDirectory("ufs_root").getAbsolutePath();
+  protected static final AlluxioURI UFS_ROOT =
+      new AlluxioURI(AlluxioTestDirectory.createTemporaryDirectory("ufs_root").getAbsolutePath());
   private static final String MOUNT_POINT = AlluxioTestDirectory
       .createTemporaryDirectory("fuse_mount").toString();
 
@@ -58,7 +59,9 @@ public abstract class AbstractFuseDoraTest {
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, true)
-          .setProperty(PropertyKey.DORA_CLIENT_UFS_ROOT, UFS_ROOT)
+          // TODO(lu) support dora client metadata cache in read-write tests
+          .setProperty(PropertyKey.DORA_CLIENT_METADATA_CACHE_ENABLED, false)
+          .setProperty(PropertyKey.DORA_CLIENT_UFS_ROOT, UFS_ROOT.toString())
           .setProperty(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false)
           .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
           .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
@@ -70,13 +73,13 @@ public abstract class AbstractFuseDoraTest {
     LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
     mContext = FileSystemContext.create(ClientContext.create(Configuration.global()));
     mFileSystem = mClusterResource.get().getClient();
-    mUfsOptions = new UfsFileSystemOptions(UFS_ROOT);
+    mUfsOptions = new UfsFileSystemOptions(UFS_ROOT.toString());
     beforeActions();
   }
 
   @After
   public void after() throws IOException {
-    File dir = new File(UFS_ROOT);
+    File dir = new File(UFS_ROOT.toString());
     File[] files = dir.listFiles();
     if (files != null) {
       for (File file : files) {

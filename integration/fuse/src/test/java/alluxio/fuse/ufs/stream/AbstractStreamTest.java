@@ -61,7 +61,7 @@ public abstract class AbstractStreamTest extends AbstractTest {
   public void afterActions() {}
 
   protected AlluxioURI getTestFileUri() {
-    return new AlluxioURI("/file" + UUID.randomUUID());
+    return mRootUfs.join("/file" + UUID.randomUUID());
   }
 
   /**

@@ -106,7 +106,7 @@ public class UfsBaseFileSystemTest {
 
   @Test
   public void createEmptyFileRead() throws IOException, AlluxioException {
-    AlluxioURI uri = new AlluxioURI("/emptyFile");
+    AlluxioURI uri = mRootUfs.join("/emptyFile");
     mFileSystem.createFile(uri).close();
     try (FileInStream inStream = mFileSystem.openFile(uri)) {
       Assert.assertEquals(-1, inStream.read());
@@ -115,7 +115,7 @@ public class UfsBaseFileSystemTest {
 
   @Test
   public void createDelete() throws IOException, AlluxioException {
-    AlluxioURI uri = new AlluxioURI("/createDelete");
+    AlluxioURI uri = mRootUfs.join("/createDelete");
     Assert.assertFalse(mFileSystem.exists(uri));
     mFileSystem.createFile(uri).close();
     Assert.assertTrue(mFileSystem.exists(uri));
@@ -129,7 +129,7 @@ public class UfsBaseFileSystemTest {
    */
   @Test
   public void createWithMode() throws IOException, AlluxioException {
-    AlluxioURI uri = new AlluxioURI("/createWithMode");
+    AlluxioURI uri = mRootUfs.join("/createWithMode");
     Mode mode = new Mode(Mode.Bits.EXECUTE, Mode.Bits.WRITE, Mode.Bits.READ);
     mFileSystem.createFile(uri,
         CreateFilePOptions.newBuilder().setMode(mode.toProto()).build()).close();
@@ -141,7 +141,7 @@ public class UfsBaseFileSystemTest {
    */
   @Test
   public void createWithRecursive() throws IOException, AlluxioException {
-    AlluxioURI uri = new AlluxioURI("/nonexistingfolder/createWithRecursive");
+    AlluxioURI uri = mRootUfs.join("/nonexistingfolder/createWithRecursive");
     Assert.assertThrows(NotFoundRuntimeException.class,
         () -> mFileSystem.createFile(uri).close());
     mFileSystem.createFile(uri, CreateFilePOptions.newBuilder().setRecursive(true).build());
@@ -150,7 +150,7 @@ public class UfsBaseFileSystemTest {
 
   @Test
   public void createListDirectory() throws IOException, AlluxioException {
-    AlluxioURI dir = new AlluxioURI("/createListDirectory");
+    AlluxioURI dir = mRootUfs.join("/createListDirectory");
     mFileSystem.createDirectory(dir);
     Assert.assertEquals(0, mFileSystem.listStatus(dir).size());
     String fileName = "subfile";
@@ -167,7 +167,7 @@ public class UfsBaseFileSystemTest {
 
   @Test
   public void createDeleteDirectory() throws IOException, AlluxioException {
-    AlluxioURI dir = new AlluxioURI("/createDeleteDirectory");
+    AlluxioURI dir = mRootUfs.join("/createDeleteDirectory");
     mFileSystem.createDirectory(dir);
     mFileSystem.delete(dir);
     Assert.assertFalse(mFileSystem.exists(dir));
@@ -186,7 +186,7 @@ public class UfsBaseFileSystemTest {
    */
   @Test
   public void createDirectoryWithMode() throws IOException, AlluxioException {
-    AlluxioURI dir = new AlluxioURI("/createDirectoryWithMode");
+    AlluxioURI dir = mRootUfs.join("/createDirectoryWithMode");
     Mode mode = new Mode(Mode.Bits.EXECUTE, Mode.Bits.WRITE, Mode.Bits.READ);
     mFileSystem.createDirectory(dir,
         CreateDirectoryPOptions.newBuilder().setMode(mode.toProto()).build());
@@ -195,7 +195,7 @@ public class UfsBaseFileSystemTest {
 
   @Test
   public void createDirectoryWithRecursive() throws IOException, AlluxioException {
-    AlluxioURI dir = new AlluxioURI("/dir1/dir2");
+    AlluxioURI dir = mRootUfs.join("/dir1/dir2");
     // local filesystem does not need recursive option to create parent
     mFileSystem.createDirectory(dir,
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
@@ -204,7 +204,7 @@ public class UfsBaseFileSystemTest {
 
   @Test
   public void deleteDirectoryWithRecursive() throws IOException, AlluxioException {
-    AlluxioURI parentDir = new AlluxioURI("/dir1");
+    AlluxioURI parentDir = mRootUfs.join("/dir1");
     AlluxioURI currentDir = parentDir.join("dir2");
     mFileSystem.createDirectory(currentDir,
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
@@ -214,14 +214,14 @@ public class UfsBaseFileSystemTest {
 
   @Test
   public void getFileStatus() throws IOException, AlluxioException {
-    AlluxioURI uri = new AlluxioURI("/getFileStatusFolder/getFileStatus");
+    AlluxioURI uri = mRootUfs.join("/getFileStatusFolder/getFileStatus");
     mRootUfs.getPath();
     mFileSystem.createFile(uri,
         CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertEquals(uri.getName(), status.getName());
     Assert.assertEquals(uri.getPath(), status.getPath());
-    Assert.assertEquals(mRootUfs.join(uri).toString(), status.getUfsPath());
+    Assert.assertEquals(uri.toString(), status.getUfsPath());
     Assert.assertTrue(status.isCompleted());
     Assert.assertFalse(status.isFolder());
     Assert.assertEquals(0, status.getLength());
@@ -231,12 +231,12 @@ public class UfsBaseFileSystemTest {
 
   @Test
   public void getDirectoryStatus() throws IOException, AlluxioException {
-    AlluxioURI uri = new AlluxioURI("/getDirectoryStatus");
+    AlluxioURI uri = mRootUfs.join("/getDirectoryStatus");
     mFileSystem.createDirectory(uri);
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertEquals(uri.getName(), status.getName());
     Assert.assertEquals(uri.getPath(), status.getPath());
-    Assert.assertEquals(mRootUfs.join(uri).toString(), status.getUfsPath());
+    Assert.assertEquals(uri.toString(), status.getUfsPath());
     Assert.assertTrue(status.isCompleted());
     Assert.assertTrue(status.isFolder());
     Assert.assertTrue(status.getOwner() != null && !status.getOwner().isEmpty());
@@ -248,7 +248,7 @@ public class UfsBaseFileSystemTest {
    */
   @Test
   public void setMode() throws IOException, AlluxioException {
-    AlluxioURI uri = new AlluxioURI("/setMode");
+    AlluxioURI uri = mRootUfs.join("/setMode");
     mFileSystem.createFile(uri).close();
     Mode mode = new Mode(Mode.Bits.EXECUTE, Mode.Bits.WRITE, Mode.Bits.READ);
     mFileSystem.setAttribute(uri, SetAttributePOptions.newBuilder()
@@ -259,8 +259,8 @@ public class UfsBaseFileSystemTest {
 
   @Test
   public void rename() throws IOException, AlluxioException {
-    AlluxioURI src = new AlluxioURI("/original");
-    AlluxioURI dst = new AlluxioURI("/dst");
+    AlluxioURI src = mRootUfs.join("/original");
+    AlluxioURI dst = mRootUfs.join("/dst");
     mFileSystem.createFile(src).close();
     mFileSystem.rename(src, dst);
     Assert.assertFalse(mFileSystem.exists(src));
@@ -269,8 +269,8 @@ public class UfsBaseFileSystemTest {
 
   @Test
   public void renameDirectory() throws IOException, AlluxioException {
-    AlluxioURI src = new AlluxioURI("/original");
-    AlluxioURI dst = new AlluxioURI("/dst");
+    AlluxioURI src = mRootUfs.join("/original");
+    AlluxioURI dst = mRootUfs.join("/dst");
     mFileSystem.createDirectory(src);
     mFileSystem.rename(src, dst);
     Assert.assertFalse(mFileSystem.exists(src));
@@ -279,8 +279,8 @@ public class UfsBaseFileSystemTest {
 
   @Test
   public void renameWhenDestinationFileExist() throws IOException, AlluxioException {
-    AlluxioURI src = new AlluxioURI("/original");
-    AlluxioURI dst = new AlluxioURI("/dst");
+    AlluxioURI src = mRootUfs.join("/original");
+    AlluxioURI dst = mRootUfs.join("/dst");
     mFileSystem.createFile(src).close();
     mFileSystem.createFile(dst).close();
     // local can overwrite destination file
@@ -295,8 +295,8 @@ public class UfsBaseFileSystemTest {
    */
   @Test
   public void renameWhenDestinationDirExist() throws IOException, AlluxioException {
-    AlluxioURI src = new AlluxioURI("/original");
-    AlluxioURI dst = new AlluxioURI("/dst");
+    AlluxioURI src = mRootUfs.join("/original");
+    AlluxioURI dst = mRootUfs.join("/dst");
     mFileSystem.createDirectory(src);
     mFileSystem.createDirectory(dst);
     mFileSystem.rename(src, dst);
@@ -309,8 +309,8 @@ public class UfsBaseFileSystemTest {
    */
   @Test
   public void renameWhenDestinationDirNotEmpty() throws IOException, AlluxioException {
-    AlluxioURI src = new AlluxioURI("/original");
-    AlluxioURI dst = new AlluxioURI("/dst");
+    AlluxioURI src = mRootUfs.join("/original");
+    AlluxioURI dst = mRootUfs.join("/dst");
     AlluxioURI dstFile = dst.join("file");
     mFileSystem.createDirectory(src);
     mFileSystem.createDirectory(dst);
@@ -323,7 +323,7 @@ public class UfsBaseFileSystemTest {
 
   @Test
   public void writeThenRead() throws IOException, AlluxioException {
-    AlluxioURI uri = new AlluxioURI("/writeThenRead");
+    AlluxioURI uri = mRootUfs.join("/writeThenRead");
     int chunkSize = 512;
     try (FileOutStream outStream = mFileSystem.createFile(uri)) {
       outStream.write(BufferUtils.getIncreasingByteArray(chunkSize));
@@ -337,7 +337,7 @@ public class UfsBaseFileSystemTest {
 
   @Test
   public void writeThenGetStatus() throws IOException, AlluxioException {
-    AlluxioURI uri = new AlluxioURI("/writeThenGetStatus");
+    AlluxioURI uri = mRootUfs.join("/writeThenGetStatus");
     int chunkSize = 512;
     try (FileOutStream outStream = mFileSystem.createFile(uri)) {
       outStream.write(BufferUtils.getIncreasingByteArray(chunkSize));

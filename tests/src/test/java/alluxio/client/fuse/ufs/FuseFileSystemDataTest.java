@@ -286,6 +286,7 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
   }
 
   @Test
+  // TODO
   public void openReadEmpty() {
     createEmptyFile(FILE);
     mFileInfo.get().flags.set(O_RDONLY.intValue());

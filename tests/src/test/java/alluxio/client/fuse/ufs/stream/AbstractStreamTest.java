@@ -51,7 +51,7 @@ public abstract class AbstractStreamTest extends AbstractFuseDoraTest {
   public void afterActions() {}
 
   protected AlluxioURI getTestFileUri() {
-    return new AlluxioURI("/file" + UUID.randomUUID());
+    return UFS_ROOT.join("/file" + UUID.randomUUID());
   }
 
   /**
