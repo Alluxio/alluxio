@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.fuse.ufs;
+package alluxio.client.fuse.ufs;
 
 import static jnr.constants.platform.OpenFlags.O_WRONLY;
 
@@ -27,21 +27,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
-public abstract class AbstractFuseFileSystemTest extends AbstractTest {
+public abstract class AbstractFuseFileSystemTest extends AbstractFuseDoraTest {
   protected AlluxioJniFuseFileSystem mFuseFs;
   protected AlluxioFuseUtils.CloseableFuseFileInfo mFileInfo;
   protected FileStat mFileStat;
-
-  /**
-   * Runs FUSE with UFS related tests with different configuration combinations.
-   *
-   * @param localDataCacheEnabled     whether local data cache is enabled
-   * @param localMetadataCacheEnabled whether local metadata cache is enabled
-   */
-  public AbstractFuseFileSystemTest(boolean localDataCacheEnabled,
-      boolean localMetadataCacheEnabled) {
-    super(localDataCacheEnabled, localMetadataCacheEnabled);
-  }
 
   @Override
   public void beforeActions() {
