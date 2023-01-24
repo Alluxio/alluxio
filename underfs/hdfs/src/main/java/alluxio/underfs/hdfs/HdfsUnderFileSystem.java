@@ -25,6 +25,8 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.ConsistentUnderFileSystem;
+import alluxio.underfs.SeekableReadChannel;
+import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
@@ -860,5 +862,10 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     } catch (ExecutionException e) {
       throw new IOException("Failed get FileSystem for " + mUri, e.getCause());
     }
+  }
+
+  @Override
+  public SeekableReadChannel openChannel(String path, OpenOptions options) throws IOException {
+    return new SeekableReadChannel((SeekableUnderFileInputStream) open(path, options));
   }
 }

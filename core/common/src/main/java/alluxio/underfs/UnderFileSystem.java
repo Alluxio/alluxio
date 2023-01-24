@@ -652,6 +652,27 @@ public interface UnderFileSystem extends Closeable {
   /**
    * Opens an {@link InputStream} for a file in under filesystem at the indicated path.
    *
+   * @param path the file name
+   * @return The {@code InputStream} object
+   */
+  default SeekableReadChannel openChannel(String path) throws IOException {
+    return openChannel(path, OpenOptions.defaults());
+  }
+
+  /**
+   * Opens an {@link InputStream} for a file in under filesystem at the indicated path.
+   *
+   * @param path    the file name
+   * @param options to open input stream
+   * @return The {@code InputStream} object
+   */
+  default SeekableReadChannel openChannel(String path, OpenOptions options) throws IOException {
+    throw new UnsupportedOperationException("openChannel is not supported");
+  }
+
+  /**
+   * Opens an {@link InputStream} for a file in under filesystem at the indicated path.
+   * <p>
    * Similar to {@link #open(String)} but
    * deals with the write-then-read eventual consistency issue.
    *
