@@ -34,21 +34,24 @@ public class FuseFileSystemMetadataTest extends AbstractFuseFileSystemTest {
 
   @Test
   public void createDeleteFile() {
-    createEmptyFile(FILE);
-    Assert.assertEquals(0, mFuseFs.getattr(FILE, mFileStat));
-    Assert.assertEquals(0, mFuseFs.unlink(FILE));
-    Assert.assertEquals(-ErrorCodes.ENOENT(), mFuseFs.getattr(FILE, mFileStat));
+    String path = "/createDeleteFile";
+    createEmptyFile(path);
+    Assert.assertEquals(0, mFuseFs.getattr(path, mFileStat));
+    Assert.assertEquals(0, mFuseFs.unlink(path));
+    Assert.assertEquals(-ErrorCodes.ENOENT(), mFuseFs.getattr(path, mFileStat));
   }
 
   @Test
   public void getAttrNonExisting() {
-    Assert.assertEquals(-ErrorCodes.ENOENT(), mFuseFs.getattr(FILE, mFileStat));
+    String path = "/getAttrNonExisting";
+    Assert.assertEquals(-ErrorCodes.ENOENT(), mFuseFs.getattr(path, mFileStat));
   }
 
   @Test
   public void createDirectory() {
-    Assert.assertEquals(0, mFuseFs.mkdir(DIR, DEFAULT_MODE.toShort()));
-    Assert.assertEquals(0, mFuseFs.getattr(DIR, mFileStat));
+    String path = "/createDirectory";
+    Assert.assertEquals(0, mFuseFs.mkdir(path, DEFAULT_MODE.toShort()));
+    Assert.assertEquals(0, mFuseFs.getattr(path, mFileStat));
   }
 
   @Test
@@ -58,33 +61,37 @@ public class FuseFileSystemMetadataTest extends AbstractFuseFileSystemTest {
   }
 
   @Test
-  public void createDeleteDirectory() {
-    Assert.assertEquals(0, mFuseFs.mkdir(DIR, DEFAULT_MODE.toShort()));
-    Assert.assertEquals(0, mFuseFs.getattr(DIR, mFileStat));
-    Assert.assertEquals(0, mFuseFs.unlink(DIR));
-    Assert.assertEquals(-ErrorCodes.ENOENT(), mFuseFs.getattr(DIR, mFileStat));
+  public void createDeletepathectory() {
+    String path = "/createDeletepathectory";
+    Assert.assertEquals(0, mFuseFs.mkdir(path, DEFAULT_MODE.toShort()));
+    Assert.assertEquals(0, mFuseFs.getattr(path, mFileStat));
+    Assert.assertEquals(0, mFuseFs.unlink(path));
+    Assert.assertEquals(-ErrorCodes.ENOENT(), mFuseFs.getattr(path, mFileStat));
   }
 
   @Test
   public void createDeleteNonEmptyDirectory() {
-    Assert.assertEquals(0, mFuseFs.mkdir("dir", DEFAULT_MODE.toShort()));
-    createEmptyFile("/dir/file");
-    Assert.assertEquals(0, mFuseFs.unlink(DIR));
+    String path = "/createDeleteNonEmptyDirectory";
+    Assert.assertEquals(0, mFuseFs.mkdir(path, DEFAULT_MODE.toShort()));
+    createEmptyFile(path + "/file");
+    Assert.assertEquals(0, mFuseFs.unlink(path));
   }
 
   @Test
   public void rmdir() {
-    Assert.assertEquals(0, mFuseFs.mkdir(DIR, DEFAULT_MODE.toShort()));
-    Assert.assertEquals(0, mFuseFs.getattr(DIR, mFileStat));
-    Assert.assertEquals(0, mFuseFs.rmdir(DIR));
-    Assert.assertEquals(-ErrorCodes.ENOENT(), mFuseFs.getattr(DIR, mFileStat));
+    String path = "/rmdir";
+    Assert.assertEquals(0, mFuseFs.mkdir(path, DEFAULT_MODE.toShort()));
+    Assert.assertEquals(0, mFuseFs.getattr(path, mFileStat));
+    Assert.assertEquals(0, mFuseFs.rmdir(path));
+    Assert.assertEquals(-ErrorCodes.ENOENT(), mFuseFs.getattr(path, mFileStat));
   }
 
   @Test
   public void rmdirNotEmpty() {
-    Assert.assertEquals(0, mFuseFs.mkdir("dir", DEFAULT_MODE.toShort()));
-    createEmptyFile("/dir/file");
-    Assert.assertEquals(0, mFuseFs.rmdir(DIR));
+    String path = "/rmdirNotEmpty";
+    Assert.assertEquals(0, mFuseFs.mkdir(path, DEFAULT_MODE.toShort()));
+    createEmptyFile(path + "/file");
+    Assert.assertEquals(0, mFuseFs.rmdir(path));
   }
 
   @Test
@@ -156,17 +163,19 @@ public class FuseFileSystemMetadataTest extends AbstractFuseFileSystemTest {
 
   @Test
   public void overwriteExistingDirectoryLocalS3Ufs() {
-    Assert.assertEquals(0, mFuseFs.mkdir(DIR, DEFAULT_MODE.toShort()));
-    Assert.assertEquals(0, mFuseFs.mkdir(DIR, DEFAULT_MODE.toShort()));
+    String path = "/overwriteExistingDirectoryLocalS3Ufs";
+    Assert.assertEquals(0, mFuseFs.mkdir(path, DEFAULT_MODE.toShort()));
+    Assert.assertEquals(0, mFuseFs.mkdir(path, DEFAULT_MODE.toShort()));
   }
 
   @Test
   public void chmod() {
-    createEmptyFile(FILE);
+    String path = "/chmod";
+    createEmptyFile(path);
     Mode mode = new Mode(Mode.Bits.EXECUTE, Mode.Bits.WRITE, Mode.Bits.READ);
-    mFuseFs.chmod(FILE, mode.toShort());
+    mFuseFs.chmod(path, mode.toShort());
     FileStat stat = FileStat.of(ByteBuffer.allocateDirect(256));
-    Assert.assertEquals(0, mFuseFs.getattr(FILE, stat));
+    Assert.assertEquals(0, mFuseFs.getattr(path, stat));
     Mode res = new Mode(stat.st_mode.shortValue());
     Assert.assertEquals(mode.getOwnerBits(), res.getOwnerBits());
     Assert.assertEquals(mode.getGroupBits(), res.getGroupBits());
