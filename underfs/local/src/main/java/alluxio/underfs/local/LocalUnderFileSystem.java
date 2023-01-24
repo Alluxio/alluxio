@@ -130,24 +130,17 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
       implements UnderFileSystemOutputStream {
 
     private final String mPath;
-    private String mContentHash;
 
-    public LocalOutputStream(OutputStream out, String path) {
+    LocalOutputStream(OutputStream out, String path) {
       super(out);
       mPath = path;
     }
 
     @Override
-    public void close() throws IOException {
-      super.close();
-      File file = new File(mPath);
-      mContentHash = UnderFileSystemUtils.approximateContentHash(
-          file.length(), file.lastModified());
-    }
-
-    @Override
     public Optional<String> getContentHash() {
-      return Optional.ofNullable(mContentHash);
+      File file = new File(mPath);
+      return Optional.of(UnderFileSystemUtils.approximateContentHash(
+          file.length(), file.lastModified()));
     }
   }
 

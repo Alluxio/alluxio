@@ -32,7 +32,6 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.SecurityUtils;
-import alluxio.wire.FileInfo;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
@@ -611,13 +610,12 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public Fingerprint getParsedFingerprint(String path, FileInfo fileInfo,
-      @Nullable String contentHash) {
+  public Fingerprint getParsedFingerprint(String path, @Nullable String contentHash) {
     try {
       return call(new UfsCallable<Fingerprint>() {
         @Override
-        public Fingerprint call() throws IOException {
-          return mUnderFileSystem.getParsedFingerprint(path, fileInfo, contentHash);
+        public Fingerprint call() {
+          return mUnderFileSystem.getParsedFingerprint(path, contentHash);
         }
 
         @Override
@@ -627,7 +625,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
 
         @Override
         public String toString() {
-          return String.format("path=%s fileInfo=%s, contentHash=%s", path, fileInfo, contentHash);
+          return String.format("path=%s, contentHash=%s", path, contentHash);
         }
       });
     } catch (IOException e) {

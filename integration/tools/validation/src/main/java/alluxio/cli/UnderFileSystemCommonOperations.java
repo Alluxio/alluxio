@@ -13,10 +13,12 @@ package alluxio.cli;
 
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemOutputStream;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
@@ -50,6 +52,8 @@ public final class UnderFileSystemCommonOperations {
       = "The content length of the written file is %s but expected %s";
   private static final String FILE_CONTENT_INCORRECT
       = "The content of the written file is incorrect";
+  private static final String FILE_CONTENT_HASH_DOES_NOT_MATCH_UFS
+      = "Content hash computed during file upload does not match content hash on UFS";
   private static final String FILE_EXISTS_CHECK_SHOULD_SUCCEED
       = "Should succeed in UnderFileSystem.exists() check, but failed";
   private static final String FILE_EXISTS_CHECK_SHOULD_FAILED
@@ -102,6 +106,7 @@ public final class UnderFileSystemCommonOperations {
       throw new IOException(IS_FAIL_CHECK_SHOULD_FAILED);
     }
     stream.close();
+    checkContentHash(testFile, stream);
     if (!mUfs.isFile(testFile)) {
       throw new IOException(IS_FAIL_CHECK_SHOULD_SUCCEED);
     }
@@ -151,6 +156,7 @@ public final class UnderFileSystemCommonOperations {
     OutputStream o = mUfs.create(testFile, CreateOptions.defaults(mConfiguration)
         .setCreateParent(true));
     o.close();
+    checkContentHash(testFile, o);
     if (!mUfs.exists(testFile)) {
       throw new IOException(FILE_EXISTS_CHECK_SHOULD_SUCCEED);
     }
@@ -1173,12 +1179,30 @@ public final class UnderFileSystemCommonOperations {
   private void createEmptyFile(String path) throws IOException {
     OutputStream o = mUfs.create(path);
     o.close();
+    checkContentHash(path, o);
   }
 
   private void createTestBytesFile(String path) throws IOException {
     OutputStream o = mUfs.create(path);
     o.write(TEST_BYTES);
     o.close();
+    checkContentHash(path, o);
+  }
+
+  // should be called after the stream is closed, to be sure the content hash computed
+  // by the stream is equal to the content hash on the UFS
+  private void checkContentHash(String path, OutputStream stream) throws IOException {
+    if (stream instanceof UnderFileSystemOutputStream) {
+      if (((UnderFileSystemOutputStream) stream).getContentHash().isPresent()) {
+        String ufsHash = mUfs.getParsedFingerprint(path).getTag(Fingerprint.Tag.CONTENT_HASH);
+        String streamHash = mUfs.getParsedFingerprint(path,
+            ((UnderFileSystemOutputStream) stream).getContentHash().get())
+            .getTag(Fingerprint.Tag.CONTENT_HASH);
+        if (!streamHash.equals(ufsHash)) {
+          throw new IOException(FILE_CONTENT_HASH_DOES_NOT_MATCH_UFS);
+        }
+      }
+    }
   }
 
   // Prepare directory tree for pagination tests
@@ -1262,6 +1286,7 @@ public final class UnderFileSystemCommonOperations {
       outputStream.write(TEST_BYTES);
     }
     outputStream.close();
+    checkContentHash(testFile, outputStream);
     return numCopies;
   }
 
@@ -1283,12 +1308,18 @@ public final class UnderFileSystemCommonOperations {
     String[] childrenFiles = {"sample1.jpg", "sample2.jpg", "sample3.jpg"};
     // Populate children of base directory
     for (String child : childrenFiles) {
-      mUfs.create(String.format("%s/%s", baseDirectoryKey, child)).close();
+      String path = String.format("%s/%s", baseDirectoryKey, child);
+      OutputStream stream = mUfs.create(path);
+      stream.close();
+      checkContentHash(path, stream);
     }
     // Populate children of sub-directories
     for (String subdir : subDirectories) {
       for (String child : childrenFiles) {
-        mUfs.create(String.format("%s/%s/%s", baseDirectoryKey, subdir, child)).close();
+        String path = String.format("%s/%s/%s", baseDirectoryKey, subdir, child);
+        OutputStream stream = mUfs.create(path);
+        stream.close();
+        checkContentHash(path, stream);
       }
     }
     return new ObjectStorePreConfig(baseDirectoryPath, childrenFiles, subDirectories);

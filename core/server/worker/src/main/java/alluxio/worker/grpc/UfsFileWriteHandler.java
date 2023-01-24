@@ -85,8 +85,12 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
     Preconditions.checkState(context.getOutputStream() != null);
     context.getOutputStream().close();
     if (context.getOutputStream() instanceof UnderFileSystemOutputStream) {
-      ((UnderFileSystemOutputStream) context.getOutputStream()).getContentHash()
-          .ifPresent(context::setContentHash);
+      try {
+        ((UnderFileSystemOutputStream) context.getOutputStream()).getContentHash()
+            .ifPresent(context::setContentHash);
+      } catch (IOException e) {
+        LOG.warn("Error getting content hash after completing file", e);
+      }
     }
     CreateOptions createOptions = context.getCreateOptions();
     if (createOptions != null) {

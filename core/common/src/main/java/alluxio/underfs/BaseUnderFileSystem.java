@@ -25,7 +25,6 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -120,35 +119,18 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public Fingerprint getParsedFingerprint(String path, FileInfo fileInfo,
-      @Nullable String contentHash) {
-    try {
-      Pair<AccessControlList, DefaultAccessControlList> aclPair = getAclPair(path);
-
-      if (contentHash == null) {
-        UfsStatus status = getStatus(path);
-        if (status instanceof UfsFileStatus) {
-          contentHash = ((UfsFileStatus) status).getContentHash();
-        }
-      }
-      if (aclPair == null || aclPair.getFirst() == null || !aclPair.getFirst().hasExtended()) {
-        return Fingerprint.create(getUnderFSType(), fileInfo, null, contentHash);
-      } else {
-        return Fingerprint.create(getUnderFSType(), fileInfo, aclPair.getFirst(), contentHash);
-      }
-    } catch (IOException e) {
-      return Fingerprint.INVALID_FINGERPRINT;
-    }
+  public Fingerprint getParsedFingerprint(String path) {
+    return getParsedFingerprint(path, null);
   }
 
   @Override
-  public Fingerprint getParsedFingerprint(String path) {
+  public Fingerprint getParsedFingerprint(String path, @Nullable String contentHash) {
     try {
       UfsStatus status = getStatus(path);
       Pair<AccessControlList, DefaultAccessControlList> aclPair = getAclPair(path);
 
       if (aclPair == null || aclPair.getFirst() == null || !aclPair.getFirst().hasExtended()) {
-        return Fingerprint.create(getUnderFSType(), status, null);
+        return Fingerprint.create(getUnderFSType(), status);
       } else {
         return Fingerprint.create(getUnderFSType(), status, aclPair.getFirst());
       }

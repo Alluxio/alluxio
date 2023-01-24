@@ -132,7 +132,7 @@ public final class GCSOutputStream extends OutputStream implements UnderFileSyst
       } else {
         LOG.warn("MD5 was not computed for: {}", mKey);
       }
-      mClient.putObject(mBucketName, obj).getMd5HashAsBase64();
+      mContentHash = mClient.putObject(mBucketName, obj).getMd5HashAsBase64();
     } catch (ServiceException e) {
       LOG.error("Failed to upload {}.", mKey);
       throw new IOException(e);

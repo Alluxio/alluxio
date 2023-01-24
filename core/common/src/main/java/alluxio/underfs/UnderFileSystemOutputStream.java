@@ -11,6 +11,7 @@
 
 package alluxio.underfs;
 
+import java.io.IOException;
 import java.util.Optional;
 
 /**
@@ -24,5 +25,5 @@ public interface UnderFileSystemOutputStream {
    * @return the content hash of the file written to the UFS if available
    * after the stream has been closed
    */
-  Optional<String> getContentHash();
+  Optional<String> getContentHash() throws IOException;
 }

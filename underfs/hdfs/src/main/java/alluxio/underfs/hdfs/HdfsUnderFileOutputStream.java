@@ -36,7 +36,6 @@ public class HdfsUnderFileOutputStream extends OutputStream implements UnderFile
   private final FSDataOutputStream mOut;
   private final FileSystem mFs;
   private final String mPath;
-  private String mContentHash = null;
 
   /**
    * Basic constructor.
@@ -54,14 +53,6 @@ public class HdfsUnderFileOutputStream extends OutputStream implements UnderFile
   @Override
   public void close() throws IOException {
     mOut.close();
-    FileStatus fs = mFs.getFileStatus(new Path(mPath));
-    // get the content hash immediately after the file has completed writing
-    // which will be used for generating the fingerprint of the file in Alluxio
-    // ideally this value would be received as a result from the close call
-    // so that we would be sure to have the hash relating to the file uploaded
-    // (but such an API is not available for HDFS)
-    mContentHash = UnderFileSystemUtils.approximateContentHash(
-        fs.getLen(), fs.getModificationTime());
   }
 
   @Override
@@ -92,7 +83,14 @@ public class HdfsUnderFileOutputStream extends OutputStream implements UnderFile
   }
 
   @Override
-  public Optional<String> getContentHash() {
-    return Optional.ofNullable(mContentHash);
+  public Optional<String> getContentHash() throws IOException {
+    FileStatus fs = mFs.getFileStatus(new Path(mPath));
+    // get the content hash immediately after the file has completed writing
+    // which will be used for generating the fingerprint of the file in Alluxio
+    // ideally this value would be received as a result from the close call
+    // so that we would be sure to have the hash relating to the file uploaded
+    // (but such an API is not available for HDFS)
+    return Optional.of(UnderFileSystemUtils.approximateContentHash(
+        fs.getLen(), fs.getModificationTime()));
   }
 }

@@ -11,6 +11,8 @@
 
 package alluxio.underfs.gcs.v2;
 
+import alluxio.underfs.UnderFileSystemOutputStream;
+
 import com.google.cloud.WriteChannel;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
@@ -25,6 +27,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -34,7 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * to arrive in Alluxio worker.
  */
 @NotThreadSafe
-public final class GCSV2OutputStream extends OutputStream {
+public final class GCSV2OutputStream extends OutputStream implements UnderFileSystemOutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(GCSV2OutputStream.class);
 
   /** Bucket name of the Alluxio GCS bucket. */
@@ -55,6 +61,9 @@ public final class GCSV2OutputStream extends OutputStream {
   /** The write channel of Google storage object. */
   private WriteChannel mWriteChannel;
 
+  /** The MD5 hash of the file. */
+  private MessageDigest mHash;
+
   /** Flag to indicate this stream has been closed, to ensure close is only done once. */
   private AtomicBoolean mClosed = new AtomicBoolean(false);
 
@@ -73,10 +82,19 @@ public final class GCSV2OutputStream extends OutputStream {
     mClient = client;
     mSingleByteBuffer = ByteBuffer.allocate(1);
     mBlobInfo = BlobInfo.newBuilder(BlobId.of(mBucketName, mKey)).build();
+    try {
+      mHash = MessageDigest.getInstance("MD5");
+    } catch (NoSuchAlgorithmException e) {
+      LOG.warn("Algorithm not available for MD5 hash.", e);
+      mHash = null;
+    }
   }
 
   @Override
   public void write(int b) throws IOException {
+    if (mHash != null) {
+      mHash.update((byte) b);
+    }
     if (mWriteChannel == null) {
       createWriteChannel();
     }
@@ -98,6 +116,9 @@ public final class GCSV2OutputStream extends OutputStream {
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
+    if (mHash != null) {
+      mHash.update(b, off, len);
+    }
     if (mWriteChannel == null) {
       createWriteChannel();
     }
@@ -145,5 +166,13 @@ public final class GCSV2OutputStream extends OutputStream {
       throw new IOException(String
           .format("Failed to create write channel of %s in %s", mKey, mBucketName), e);
     }
+  }
+
+  @Override
+  public Optional<String> getContentHash() {
+    if (mHash != null) {
+      return Optional.of(Base64.getEncoder().encodeToString(mHash.digest()));
+    }
+    return Optional.empty();
   }
 }

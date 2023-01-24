@@ -27,7 +27,6 @@ import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
-import alluxio.wire.FileInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -471,12 +470,11 @@ public interface UnderFileSystem extends Closeable {
    * a fingerprint is being created based on that file where the content hash has already
    * been computed.
    * @param path the path to compute the fingerprint for
-   * @param fileInfo the {@link FileInfo} from which to compute the fingerprint
    * @param contentHash is used as the {@link alluxio.underfs.Fingerprint.Tag#CONTENT_HASH}
    *                    field when creating the fingerprint.
    * @return the string representing the fingerprint
    */
-  Fingerprint getParsedFingerprint(String path, FileInfo fileInfo, @Nullable String contentHash);
+  Fingerprint getParsedFingerprint(String path, @Nullable String contentHash);
 
   /**
    * An {@link UnderFileSystem} may be composed of one or more "physical UFS"s. This method is used

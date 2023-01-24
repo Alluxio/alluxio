@@ -13,7 +13,6 @@ package alluxio.underfs;
 
 import alluxio.Constants;
 import alluxio.security.authorization.AccessControlList;
-import alluxio.wire.FileInfo;
 
 import com.google.common.base.Splitter;
 
@@ -95,25 +94,7 @@ public final class Fingerprint {
     if (status == null) {
       return new Fingerprint(Collections.emptyMap());
     }
-    return finishCreate(Fingerprint.createTags(ufsName, status), acl);
-  }
-
-  /**
-   * Parses the input string and returns the fingerprint object.
-   *
-   * @param ufsName the name of the ufs, should be {@link UnderFileSystem#getUnderFSType()}
-   * @param status the {@link FileInfo} to create the fingerprint from
-   * @param acl the {@link AccessControlList} to create the fingerprint from
-   * @param contentHash the content hash of the file, or null if the value from the status
-   *                    parameter should be used
-   * @return the fingerprint object
-   */
-  public static Fingerprint create(String ufsName, @Nullable FileInfo status,
-      @Nullable AccessControlList acl, @Nullable String contentHash) {
-    if (status == null) {
-      return new Fingerprint(Collections.emptyMap());
-    }
-    return finishCreate(Fingerprint.createTags(ufsName, status, contentHash), acl);
+    return finishCreate(Fingerprint.createTags(ufsName, status, null), acl);
   }
 
   private static Fingerprint finishCreate(Map<Tag, String> tagMap,
@@ -129,9 +110,12 @@ public final class Fingerprint {
    *
    * @param ufsName the name of the ufs, should be {@link UnderFileSystem#getUnderFSType()}
    * @param status the {@link UfsStatus} to create the tagmap from
+   * @param contentHash the hash of the contents, if null the hash will be taken from
+   *                    the {@link UfsStatus} parameter
    * @return the tag map object
    */
-  private static Map<Tag, String> createTags(String ufsName, UfsStatus status) {
+  private static Map<Tag, String> createTags(String ufsName, UfsStatus status,
+      @Nullable String contentHash) {
     Map<Tag, String> tagMap = new HashMap<>();
     tagMap.put(Tag.UFS, ufsName);
     tagMap.put(Tag.OWNER, status.getOwner());
@@ -139,22 +123,8 @@ public final class Fingerprint {
     tagMap.put(Tag.MODE, String.valueOf(status.getMode()));
     if (status instanceof UfsFileStatus) {
       tagMap.put(Tag.TYPE, Type.FILE.name());
-      tagMap.put(Tag.CONTENT_HASH, ((UfsFileStatus) status).getContentHash());
-    } else {
-      tagMap.put(Tag.TYPE, Type.DIRECTORY.name());
-    }
-    return tagMap;
-  }
-
-  private static Map<Tag, String> createTags(String ufsName, FileInfo info, String contentHash) {
-    Map<Tag, String> tagMap = new HashMap<>();
-    tagMap.put(Tag.UFS, ufsName);
-    tagMap.put(Tag.OWNER, info.getOwner());
-    tagMap.put(Tag.GROUP, info.getGroup());
-    tagMap.put(Tag.MODE, String.valueOf(info.getMode()));
-    if (!info.isFolder()) {
-      tagMap.put(Tag.TYPE, Type.FILE.name());
-      tagMap.put(Tag.CONTENT_HASH, contentHash);
+      tagMap.put(Tag.CONTENT_HASH, contentHash == null
+          ? ((UfsFileStatus) status).getContentHash() : contentHash);
     } else {
       tagMap.put(Tag.TYPE, Type.DIRECTORY.name());
     }

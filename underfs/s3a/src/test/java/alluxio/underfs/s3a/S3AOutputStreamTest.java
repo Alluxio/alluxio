@@ -11,6 +11,9 @@
 
 package alluxio.underfs.s3a;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -18,6 +21,7 @@ import alluxio.conf.PropertyKey;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.Upload;
+import com.amazonaws.services.s3.transfer.model.UploadResult;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +48,7 @@ public class S3AOutputStreamTest {
   private File mFile;
   private BufferedOutputStream mLocalOutputStream;
   private S3AOutputStream mStream;
+  private String mContentHash;
 
   /**
    * Sets the properties and configuration before each test runs.
@@ -54,6 +59,10 @@ public class S3AOutputStreamTest {
     mLocalOutputStream = Mockito.mock(BufferedOutputStream.class);
     TransferManager manager = Mockito.mock(TransferManager.class);
     Upload result = Mockito.mock(Upload.class);
+    UploadResult uploadResult = Mockito.mock(UploadResult.class);
+    Mockito.doReturn(uploadResult).when(result).waitForUploadResult();
+    mContentHash = "someHash";
+    Mockito.doReturn(mContentHash).when(uploadResult).getETag();
 
     Mockito.when(manager.upload(Mockito.any(PutObjectRequest.class))).thenReturn(result);
     PowerMockito.whenNew(BufferedOutputStream.class)
@@ -64,6 +73,7 @@ public class S3AOutputStreamTest {
     mStream = new S3AOutputStream(BUCKET_NAME, KEY, manager,
         sConf.getList(PropertyKey.TMP_DIRS),
         sConf.getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED));
+    assertFalse(mStream.getContentHash().isPresent());
   }
 
   /**
@@ -73,6 +83,7 @@ public class S3AOutputStreamTest {
   public void writeByte() throws Exception {
     mStream.write(1);
     mStream.close();
+    assertEquals(mContentHash, mStream.getContentHash().get());
     Mockito.verify(mLocalOutputStream).write(1);
   }
 
@@ -84,6 +95,7 @@ public class S3AOutputStreamTest {
     byte[] b = new byte[10];
     mStream.write(b);
     mStream.close();
+    assertEquals(mContentHash, mStream.getContentHash().get());
     Mockito.verify(mLocalOutputStream).write(b, 0, b.length);
   }
 
@@ -96,6 +108,7 @@ public class S3AOutputStreamTest {
     byte[] b = new byte[10];
     mStream.write(b, 0, b.length);
     mStream.close();
+    assertEquals(mContentHash, mStream.getContentHash().get());
     Mockito.verify(mLocalOutputStream).write(b, 0, b.length);
   }
 
@@ -105,6 +118,7 @@ public class S3AOutputStreamTest {
   @Test
   public void close() throws Exception {
     mStream.close();
+    assertEquals(mContentHash, mStream.getContentHash().get());
     Mockito.verify(mFile).delete();
   }
 
@@ -115,6 +129,7 @@ public class S3AOutputStreamTest {
   public void flush() throws Exception {
     mStream.flush();
     mStream.close();
+    assertEquals(mContentHash, mStream.getContentHash().get());
     Mockito.verify(mLocalOutputStream).flush();
   }
 }
