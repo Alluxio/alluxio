@@ -124,6 +124,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
                   .setLastModificationTimeMs(status.getLastModifiedTime())
                   .setOwner(status.getOwner())
                   .setGroup(status.getGroup())
+                  .setCompleted(true)
                   .build()
           ).build();
       responseObserver.onNext(response);

@@ -81,12 +81,12 @@ public abstract class AbstractUfsStreamTest {
   @After
   public void after() throws IOException, AlluxioException {
     for (URIStatus status : mFileSystem.listStatus(mRootUfs)) {
-      mFileSystem.delete(new AlluxioURI(status.getUfsPath()),
+      mFileSystem.delete(new AlluxioURI(status.getPath()),
           DeletePOptions.newBuilder().setRecursive(true).build());
     }
   }
 
   protected AlluxioURI getUfsPath() {
-    return new AlluxioURI(mRootUfs, String.valueOf(UUID.randomUUID()), true);
+    return mRootUfs.join("streamTest" + UUID.randomUUID());
   }
 }

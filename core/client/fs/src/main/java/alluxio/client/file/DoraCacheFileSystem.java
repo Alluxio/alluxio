@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.file.dora.DoraCacheClient;
 import alluxio.client.file.dora.WorkerLocationPolicy;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -32,6 +33,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(DoraCacheFileSystem.class);
   public static final int DUMMY_MOUNT_ID = 0;
   private final DoraCacheClient mDoraClient;
+  private final boolean mMetadataCacheEnabled;
 
   /**
    * Wraps a file system instance to forward messages.
@@ -42,11 +44,16 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public DoraCacheFileSystem(FileSystem fs, FileSystemContext context) {
     super(fs);
     mDoraClient = new DoraCacheClient(context, new WorkerLocationPolicy(2000));
+    mMetadataCacheEnabled = context.getClusterConf()
+        .getBoolean(PropertyKey.DORA_CLIENT_METADATA_CACHE_ENABLED);
   }
 
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws IOException, AlluxioException {
+    if (!mMetadataCacheEnabled) {
+      return mDelegatedFileSystem.getStatus(path, options);
+    }
     try {
       return mDoraClient.getStatus(path.getPath(), options);
     } catch (RuntimeException ex) {

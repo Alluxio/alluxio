@@ -398,7 +398,7 @@ public class UfsBaseFileSystem implements FileSystem {
     AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mRootUFS,
         CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mRootUFS.getPath())));
     FileInfo info = new FileInfo().setName(ufsUri.getName())
-        .setPath(ufsStatus.getName())
+        .setPath(ufsUri.toString())
         .setFileId(ufsUri.hashCode())
         .setUfsPath(ufsUri.toString())
         .setFolder(ufsStatus.isDirectory())
