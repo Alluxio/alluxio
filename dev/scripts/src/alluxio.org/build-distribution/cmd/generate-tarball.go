@@ -337,8 +337,7 @@ func generateTarball(opts *GenerateTarballOpts) error {
 	if opts.Fuse {
 		run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "lib", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
 		fuseDstPath := filepath.Join(dstPath, "bin", "alluxio-fuse")
-		run("adding Alluxio fuse script", "mv", "integration/fuse/bin/alluxio-fuse-sdk", fuseDstPath)
-		replace(fuseDstPath, "alluxio-fuse-sdk", "alluxio-fuse")
+		run("adding Alluxio fuse script", "mv", "integration/fuse/bin/alluxio-fuse", fuseDstPath)
 		replace(fuseDstPath, "target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar", "lib/alluxio-fuse-${VERSION}.jar")
 		replace(fuseDstPath, "/../../../libexec", "/../libexec")
 	} else {
