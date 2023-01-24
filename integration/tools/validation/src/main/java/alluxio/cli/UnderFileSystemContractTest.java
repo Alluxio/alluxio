@@ -107,7 +107,8 @@ public final class UnderFileSystemContractTest {
     }
     System.out.printf("Tests completed with %d failed.%n", failedCnt);
     if (failedCnt > 0) {
-      throw new RuntimeException(String.format("UFS contract test failed with %d failures", failedCnt));
+      throw new RuntimeException(String.format("UFS contract test failed with %d failures",
+          failedCnt));
     }
   }
 
