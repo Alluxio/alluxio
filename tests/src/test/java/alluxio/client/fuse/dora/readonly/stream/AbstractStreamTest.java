@@ -9,17 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.fuse.ufs.stream;
+package alluxio.client.fuse.dora.readonly.stream;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
-import alluxio.client.fuse.ufs.AbstractFuseDoraTest;
+import alluxio.client.fuse.dora.readonly.AbstractFuseDoraReadOnlyTest;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.LaunchUserGroupAuthPolicy;
 import alluxio.fuse.file.FuseFileStream;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.util.io.BufferUtils;
@@ -27,6 +26,7 @@ import alluxio.util.io.BufferUtils;
 import org.junit.Assert;
 import org.junit.Before;
 
+import java.io.FileOutputStream;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,7 +34,7 @@ import java.util.UUID;
  * This class includes the shared stream related tests
  * for {@link FuseFileStream} with local UFS.
  */
-public abstract class AbstractStreamTest extends AbstractFuseDoraTest {
+public abstract class AbstractStreamTest extends AbstractFuseDoraReadOnlyTest {
   protected static final Mode DEFAULT_MODE = new Mode(
       Mode.Bits.ALL, Mode.Bits.READ, Mode.Bits.READ);
   protected FuseFileStream.Factory mStreamFactory;
@@ -62,8 +62,7 @@ public abstract class AbstractStreamTest extends AbstractFuseDoraTest {
    * @param fileLen length of the file
    */
   protected void writeIncreasingByteArrayToFile(AlluxioURI filePath, int fileLen) throws Exception {
-    try (FileOutStream os = mFileSystem.createFile(filePath,
-        CreateFilePOptions.newBuilder().setRecursive(true).build())) {
+    try (FileOutputStream os = new FileOutputStream(filePath.toString())) {
       os.write(BufferUtils.getIncreasingByteArray(fileLen));
     }
   }

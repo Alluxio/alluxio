@@ -9,9 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.fuse.ufs;
-
-import static jnr.constants.platform.OpenFlags.O_WRONLY;
+package alluxio.client.fuse.dora.readonly;
 
 import alluxio.client.file.options.FileSystemOptions;
 import alluxio.conf.Configuration;
@@ -21,13 +19,12 @@ import alluxio.fuse.options.FuseOptions;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.util.io.BufferUtils;
 
-import org.junit.Assert;
-
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
-public abstract class AbstractFuseFileSystemTest extends AbstractFuseDoraTest {
+public abstract class AbstractFuseFileSystemTest extends AbstractFuseDoraReadOnlyTest {
   protected AlluxioJniFuseFileSystem mFuseFs;
   protected AlluxioFuseUtils.CloseableFuseFileInfo mFileInfo;
   protected FileStat mFileStat;
@@ -47,18 +44,13 @@ public abstract class AbstractFuseFileSystemTest extends AbstractFuseDoraTest {
     mFileInfo.close();
   }
 
-  protected void createEmptyFile(String path) {
-    mFileInfo.get().flags.set(O_WRONLY.intValue());
-    Assert.assertEquals(0, mFuseFs.create(path, DEFAULT_MODE.toShort(), mFileInfo.get()));
-    Assert.assertEquals(0, mFuseFs.release(path, mFileInfo.get()));
+  protected void createEmptyFile(String path) throws IOException {
+    new FileOutputStream(path).close();
   }
 
-  protected void createFile(String path, int size) {
-    mFileInfo.get().flags.set(O_WRONLY.intValue());
-    Assert.assertEquals(0, mFuseFs.create(path, DEFAULT_MODE.toShort(), mFileInfo.get()));
-    ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(size);
-    Assert.assertEquals(size,
-        mFuseFs.write(FILE, buffer, size, 0, mFileInfo.get()));
-    Assert.assertEquals(0, mFuseFs.release(path, mFileInfo.get()));
+  protected void createFile(String path, int size) throws IOException {
+    try (FileOutputStream stream = new FileOutputStream(path)) {
+      stream.write(BufferUtils.getIncreasingByteArray(size));
+    }
   }
 }

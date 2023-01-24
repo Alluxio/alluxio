@@ -9,13 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.fuse.ufs.stream;
+package alluxio.client.fuse.dora.readonly.stream;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
-import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
-import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.util.io.BufferUtils;
 
@@ -67,28 +65,6 @@ public class InStreamTest extends AbstractStreamTest {
           inStream.read(buffer, DEFAULT_FILE_LEN / 2, DEFAULT_FILE_LEN / 3));
       Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(
           DEFAULT_FILE_LEN / 3, DEFAULT_FILE_LEN / 2, buffer));
-    }
-  }
-
-  @Test (expected = FailedPreconditionRuntimeException.class)
-  public void write() throws Exception {
-    AlluxioURI alluxioURI = getTestFileUri();
-    writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
-    try (FuseFileStream inStream = createStream(alluxioURI)) {
-      ByteBuffer buffer = ByteBuffer.allocate(1);
-      buffer.put((byte) 'a');
-      inStream.write(buffer, 1, 0);
-    }
-  }
-
-  @Test (expected = UnimplementedRuntimeException.class)
-  public void truncate() throws Exception {
-    AlluxioURI alluxioURI = getTestFileUri();
-    writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
-    try (FuseFileStream inStream = createStream(alluxioURI)) {
-      ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_FILE_LEN);
-      Assert.assertEquals(DEFAULT_FILE_LEN, inStream.read(buffer, DEFAULT_FILE_LEN, 0));
-      inStream.truncate(0);
     }
   }
 

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.fuse.ufs;
+package alluxio.client.fuse.dora;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

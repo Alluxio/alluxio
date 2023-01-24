@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.fuse.ufs;
+package alluxio.client.fuse.dora;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
@@ -60,7 +60,7 @@ public abstract class AbstractFuseDoraTest {
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, true)
           // TODO(lu) support dora client metadata cache in read-write tests
-          .setProperty(PropertyKey.DORA_CLIENT_METADATA_CACHE_ENABLED, false)
+          .setProperty(PropertyKey.DORA_CLIENT_METADATA_CACHE_ENABLED, true)
           .setProperty(PropertyKey.DORA_CLIENT_UFS_ROOT, UFS_ROOT.toString())
           .setProperty(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false)
           .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)

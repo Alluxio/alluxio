@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.fuse.ufs;
+package alluxio.client.fuse.dora;
 
 import static jnr.constants.platform.OpenFlags.O_RDONLY;
 import static jnr.constants.platform.OpenFlags.O_RDWR;
@@ -286,7 +286,6 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
   }
 
   @Test
-  // TODO
   public void openReadEmpty() {
     createEmptyFile(FILE);
     mFileInfo.get().flags.set(O_RDONLY.intValue());

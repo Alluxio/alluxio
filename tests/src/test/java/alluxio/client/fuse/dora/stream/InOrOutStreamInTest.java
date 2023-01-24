@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.fuse.ufs.stream;
+package alluxio.client.fuse.dora.stream;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.runtime.AlreadyExistsRuntimeException;
