@@ -1124,7 +1124,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             boolean isLoaded = true;
             if (inodePath.fullPathExists()) {
               inode = inodePath.getInode();
-              if (inode.isDirectory()
+              if (inode.isDirectory() && !context.getOptions().getDisableAreDescendantsLoadedCheck()
                   && context.getOptions().getLoadMetadataType() != LoadMetadataPType.ALWAYS) {
                 InodeDirectory inodeDirectory = inode.asDirectory();
                 isLoaded = inodeDirectory.isDirectChildrenLoaded();
