@@ -119,7 +119,7 @@ public final class AlluxioFuse {
       .longOpt("update-check")
       .hasArg()
       .desc("Enables or disables the FUSE version update check. "
-          + "Disabled by default when connecting to Alluxio system cache. "
+          + "Disabled by default when connecting to Alluxio system cache or Dora cache. "
           + "Enabled by default when connecting an under storage directly.")
       .build();
   private static final Option HELP_OPTION = Option.builder(HELP_OPTION_NAME)
@@ -336,7 +336,9 @@ public final class AlluxioFuse {
     boolean updateCheckEnabled = false;
     if (cli.hasOption(UPDATE_CHECK_OPTION_NAME)) {
       updateCheckEnabled = Boolean.parseBoolean(cli.getOptionValue(UPDATE_CHECK_OPTION_NAME));
-    } else if (cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)) {
+    } else if (!conf.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED)
+        && cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)) {
+      // Standalone FUSE SDK without distributed cache
       updateCheckEnabled = true;
     }
     return cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)
