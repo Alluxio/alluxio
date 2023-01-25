@@ -11,6 +11,9 @@
 
 package alluxio.underfs.oss;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -18,6 +21,7 @@ import alluxio.conf.PropertyKey;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.ObjectMetadata;
+import com.aliyun.oss.model.PutObjectResult;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,6 +51,7 @@ public class OSSOutputStreamTest {
   private File mFile;
   private BufferedOutputStream mLocalOutputStream;
   private static AlluxioConfiguration sConf = Configuration.global();
+  private final String mEtag = "someTag";
 
   /**
    * The exception expected to be thrown.
@@ -60,6 +65,10 @@ public class OSSOutputStreamTest {
   @Before
   public void before() throws Exception {
     mOssClient = Mockito.mock(OSS.class);
+    PutObjectResult result = Mockito.mock(PutObjectResult.class);
+    Mockito.when(result.getETag()).thenReturn(mEtag);
+    Mockito.when(mOssClient.putObject(any(), any(), any(InputStream.class), any()))
+        .thenReturn(result);
     mFile = Mockito.mock(File.class);
     mLocalOutputStream = Mockito.mock(BufferedOutputStream.class);
   }
@@ -87,13 +96,14 @@ public class OSSOutputStreamTest {
   @PrepareForTest(OSSOutputStream.class)
   public void testWrite1() throws Exception {
     PowerMockito.whenNew(BufferedOutputStream.class)
-            .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
+            .withArguments(any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
     PowerMockito.whenNew(BufferedOutputStream.class)
-            .withArguments(Mockito.any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
+            .withArguments(any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
     OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient,
         sConf.getList(PropertyKey.TMP_DIRS));
     stream.write(1);
     stream.close();
+    assertEquals(mEtag, stream.getContentHash().get());
     Mockito.verify(mLocalOutputStream).write(1);
   }
 
@@ -105,14 +115,15 @@ public class OSSOutputStreamTest {
   @PrepareForTest(OSSOutputStream.class)
   public void testWrite2() throws Exception {
     PowerMockito.whenNew(BufferedOutputStream.class)
-            .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
+            .withArguments(any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
     PowerMockito.whenNew(BufferedOutputStream.class)
-            .withArguments(Mockito.any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
+            .withArguments(any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
     OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient,
         sConf.getList(PropertyKey.TMP_DIRS));
     byte[] b = new byte[1];
     stream.write(b, 0, 1);
     stream.close();
+    assertEquals(mEtag, stream.getContentHash().get());
     Mockito.verify(mLocalOutputStream).write(b, 0, 1);
   }
 
@@ -123,14 +134,15 @@ public class OSSOutputStreamTest {
   @PrepareForTest(OSSOutputStream.class)
   public void testWrite3() throws Exception {
     PowerMockito.whenNew(BufferedOutputStream.class)
-            .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
+            .withArguments(any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
     PowerMockito.whenNew(BufferedOutputStream.class)
-            .withArguments(Mockito.any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
+            .withArguments(any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
     OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient, sConf
         .getList(PropertyKey.TMP_DIRS));
     byte[] b = new byte[1];
     stream.write(b);
     stream.close();
+    assertEquals(mEtag, stream.getContentHash().get());
     Mockito.verify(mLocalOutputStream).write(b, 0, 1);
   }
 
@@ -145,16 +157,17 @@ public class OSSOutputStreamTest {
     String errorMessage = "Invoke the createEmptyObject method error.";
     BufferedInputStream inputStream = PowerMockito.mock(BufferedInputStream.class);
     PowerMockito.whenNew(BufferedInputStream.class)
-            .withArguments(Mockito.any(FileInputStream.class)).thenReturn(inputStream);
+            .withArguments(any(FileInputStream.class)).thenReturn(inputStream);
     PowerMockito
             .when(mOssClient.putObject(Mockito.anyString(), Mockito.anyString(),
-                    Mockito.any(InputStream.class), Mockito.any(ObjectMetadata.class)))
+                    any(InputStream.class), any(ObjectMetadata.class)))
             .thenThrow(new OSSException(errorMessage));
     OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient, sConf
         .getList(PropertyKey.TMP_DIRS));
     mThrown.expect(IOException.class);
     mThrown.expectMessage(errorMessage);
     stream.close();
+    assertEquals(mEtag, stream.getContentHash().get());
   }
 
   /**
@@ -172,6 +185,7 @@ public class OSSOutputStreamTest {
     OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient, sConf
         .getList(PropertyKey.TMP_DIRS));
     stream.close();
+    assertEquals(mEtag, stream.getContentHash().get());
     Mockito.verify(mFile).delete();
   }
 
@@ -182,11 +196,12 @@ public class OSSOutputStreamTest {
   @PrepareForTest(OSSOutputStream.class)
   public void testFlush() throws Exception {
     PowerMockito.whenNew(BufferedOutputStream.class)
-            .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
+            .withArguments(any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
     OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient, sConf
         .getList(PropertyKey.TMP_DIRS));
     stream.flush();
     stream.close();
+    assertEquals(mEtag, stream.getContentHash().get());
     Mockito.verify(mLocalOutputStream).flush();
   }
 }
