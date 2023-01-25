@@ -14,6 +14,8 @@ package alluxio.worker.page;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.worker.block.io.BlockWriter;
@@ -31,7 +33,7 @@ import java.nio.channels.WritableByteChannel;
  */
 public class PagedBlockWriter extends BlockWriter {
   private static final Logger LOG = LoggerFactory.getLogger(PagedBlockWriter.class);
-  private static final CacheContext TEMP_CACHE_CONTEXT = CacheContext.defaults().setTemporary(true);
+  private final CacheContext TEMP_CACHE_CONTEXT;
 
   private final CacheManager mCacheManager;
   private final long mBlockId;
@@ -39,6 +41,13 @@ public class PagedBlockWriter extends BlockWriter {
   private long mPosition;
 
   PagedBlockWriter(CacheManager cacheManager, long blockId, long pageSize) {
+    boolean nettyTransEnabled =
+        Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
+    if (nettyTransEnabled) {
+      TEMP_CACHE_CONTEXT = CacheContext.defaults().setTemporary(true);
+    } else {
+      TEMP_CACHE_CONTEXT = CacheContext.defaults().setTemporary(true);
+    }
     mCacheManager = cacheManager;
     mBlockId = blockId;
     mPageSize = pageSize;

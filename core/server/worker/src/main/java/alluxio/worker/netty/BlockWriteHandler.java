@@ -12,6 +12,7 @@
 package alluxio.worker.netty;
 
 import alluxio.DefaultStorageTierAssoc;
+import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;

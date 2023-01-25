@@ -23,6 +23,8 @@ import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.metrics.MetricKey;
@@ -229,7 +231,9 @@ public class LocalCacheManager implements CacheManager {
       return false;
     }
     int originPosition = page.position();
-    if (!mOptions.isAsyncWriteEnabled()) {
+    boolean nettyTransEnabled =
+        Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
+    if (!mOptions.isAsyncWriteEnabled() || nettyTransEnabled) {
       boolean ok = putInternal(pageId, page, cacheContext);
       LOG.debug("put({},{} bytes) exits: {}", pageId, page.position() - originPosition, ok);
       if (!ok) {
@@ -496,6 +500,39 @@ public class LocalCacheManager implements CacheManager {
     }
   }
 
+  public boolean delete(PageId pageId, CacheContext cacheContext) {
+    if (!cacheContext.isTemporary()) {
+      return delete(pageId);
+    }
+    // TODO(JiamingMai): implement this method
+    if (mState.get() != READ_WRITE) {
+      Metrics.DELETE_NOT_READY_ERRORS.inc();
+      Metrics.DELETE_ERRORS.inc();
+      return false;
+    }
+    ReadWriteLock pageLock = getPageLock(pageId);
+    try (LockResource r = new LockResource(pageLock.writeLock())) {
+      PageInfo pageInfo;
+      try (LockResource r1 = new LockResource(mPageMetaStore.getLock().writeLock())) {
+        try {
+          pageInfo = mPageMetaStore.removeTempPage(pageId, cacheContext);
+        } catch (PageNotFoundException e) {
+          LOG.error("Failed to delete page {} from metaStore ", pageId, e);
+          Metrics.DELETE_NON_EXISTING_PAGE_ERRORS.inc();
+          Metrics.DELETE_ERRORS.inc();
+          return false;
+        }
+      }
+      boolean ok = deletePage(pageInfo, cacheContext.isTemporary());
+      LOG.debug("delete({}) exits, success: {}", pageId, ok);
+      if (!ok) {
+        Metrics.DELETE_STORE_DELETE_ERRORS.inc();
+        Metrics.DELETE_ERRORS.inc();
+      }
+      return ok;
+    }
+  }
+
   @Override
   public boolean delete(PageId pageId) {
     LOG.debug("delete({}) enters", pageId);
@@ -517,7 +554,7 @@ public class LocalCacheManager implements CacheManager {
           return false;
         }
       }
-      boolean ok = deletePage(pageInfo);
+      boolean ok = deletePage(pageInfo, false);
       LOG.debug("delete({}) exits, success: {}", pageId, ok);
       if (!ok) {
         Metrics.DELETE_STORE_DELETE_ERRORS.inc();
@@ -541,8 +578,9 @@ public class LocalCacheManager implements CacheManager {
     }
     if (appendAt > 0) {
       byte[] newPage = new byte[appendAt + page.length];
-      get(pageId, 0, appendAt, new ByteArrayTargetBuffer(newPage, 0),  cacheContext);
-      delete(pageId);
+      int readBytes = get(pageId, 0, appendAt, new ByteArrayTargetBuffer(newPage, 0),  cacheContext);
+      boolean success = delete(pageId, cacheContext);
+      LOG.info("delete pageId: " + pageId + ", appendAt: " + appendAt);
       System.arraycopy(page, 0, newPage, appendAt, page.length);
       return put(pageId, newPage, cacheContext);
     }
@@ -656,9 +694,9 @@ public class LocalCacheManager implements CacheManager {
    * @param pageInfo page info
    * @return true if successful, false otherwise
    */
-  private boolean deletePage(PageInfo pageInfo) {
+  private boolean deletePage(PageInfo pageInfo, boolean isTemporary) {
     try {
-      pageInfo.getLocalCacheDir().getPageStore().delete(pageInfo.getPageId());
+      pageInfo.getLocalCacheDir().getPageStore().delete(pageInfo.getPageId(), isTemporary);
     } catch (IOException | PageNotFoundException e) {
       LOG.error("Failed to delete page {} from pageStore", pageInfo.getPageId(), e);
       return false;

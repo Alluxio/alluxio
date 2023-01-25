@@ -11,6 +11,7 @@
 
 package alluxio.worker.page;
 
+import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.DefaultPageMetaStore;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
@@ -78,7 +79,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
         }
       };
   private static final
-      IndexDefinition<PagedTempBlockMeta, PagedBlockStoreDir> INDEX_TEMP_STORE_DIR =
+  IndexDefinition<PagedTempBlockMeta, PagedBlockStoreDir> INDEX_TEMP_STORE_DIR =
       new IndexDefinition<PagedTempBlockMeta, PagedBlockStoreDir>(false) {
         @Override
         public PagedBlockStoreDir getFieldValue(PagedTempBlockMeta o) {
@@ -116,7 +117,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
   }
 
   /**
-   * @param dirs dirs
+   * @param dirs      dirs
    * @param allocator allocator
    */
   public PagedBlockMetaStore(List<PagedBlockStoreDir> dirs, Allocator allocator) {
@@ -166,7 +167,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
    * However, it is unspecified whether the same directory will be chosen for a block, when all
    * of its pages are removed from the page store and then added back.
    *
-   * @param fileId the block ID
+   * @param fileId   the block ID
    * @param pageSize size of the page
    * @return the allocated page store dir
    */
@@ -217,8 +218,14 @@ public class PagedBlockMetaStore implements PageMetaStore {
     mDelegate.addPage(pageId, pageInfo);
   }
 
+  private boolean containsBlockMetaOfPage(PageId pageId) {
+    long blockId = BlockPageId.downcast(pageId).getBlockId();
+    return mBlocks.contains(INDEX_BLOCK_ID, blockId);
+  }
+
   /**
    * Gets the block meta for a page of the block.
+   *
    * @param pageId the page ID
    * @return block meta
    * @throws BlockDoesNotExistRuntimeException when the block is not being stored in the store
@@ -226,6 +233,27 @@ public class PagedBlockMetaStore implements PageMetaStore {
   private PagedBlockMeta getBlockMetaOfPage(PageId pageId) {
     long blockId = BlockPageId.downcast(pageId).getBlockId();
     PagedBlockMeta blockMeta = mBlocks.getFirstByField(INDEX_BLOCK_ID, blockId);
+    if (blockMeta == null) {
+      throw new BlockDoesNotExistRuntimeException(blockId);
+    }
+    return blockMeta;
+  }
+
+  private boolean containsTempBlockMetaOfPage(PageId pageId) {
+    long blockId = BlockPageId.downcast(pageId).getBlockId();
+    return mTempBlocks.contains(INDEX_TEMP_BLOCK_ID, blockId);
+  }
+
+  /**
+   * Gets the temporary block meta for a page of the block.
+   *
+   * @param pageId the page ID
+   * @return temporary block meta
+   * @throws BlockDoesNotExistRuntimeException when the temporary block is not being stored in the store
+   */
+  private PagedBlockMeta getTempBlockMetaOfPage(PageId pageId) {
+    long blockId = BlockPageId.downcast(pageId).getBlockId();
+    PagedBlockMeta blockMeta = mTempBlocks.getFirstByField(INDEX_TEMP_BLOCK_ID, blockId);
     if (blockMeta == null) {
       throw new BlockDoesNotExistRuntimeException(blockId);
     }
@@ -277,6 +305,35 @@ public class PagedBlockMetaStore implements PageMetaStore {
   @Override
   public List<PageStoreDir> getStoreDirs() {
     return mDelegate.getStoreDirs();
+  }
+
+  @Override
+  @GuardedBy("getLock().writeLock()")
+  public PageInfo removeTempPage(PageId pageId, CacheContext cacheContext)
+      throws PageNotFoundException {
+    if (!cacheContext.isTemporary()) {
+      return removePage(pageId);
+    }
+    PagedBlockMeta blockMeta = getTempBlockMetaOfPage(pageId);
+    long blockId = blockMeta.getBlockId();
+    LOG.info("blockMeta.getBlockSize(): " + blockMeta.getBlockSize() +
+        ", blockMeta.getDir().getTempBlockCachedBytes(blockId): " +
+        blockMeta.getDir().getTempBlockCachedBytes(blockId));
+    PagedBlockStoreDir dir = blockMeta.getDir();
+    PageInfo pageInfo = mDelegate.removeTempPage(pageId, cacheContext);
+    ((PagedTempBlockMeta) blockMeta).setBlockSize(blockMeta.getBlockSize() - pageInfo.getPageSize());
+    /*
+    if (dir.getBlockCachedPages(blockId) == 0) { // last page of this block has been removed
+        mTempBlocks.remove(blockMeta);
+      BlockStoreLocation location = dir.getLocation();
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        synchronized (listener) {
+          listener.onRemoveBlock(blockId, location);
+        }
+      }
+    }
+    */
+    return pageInfo;
   }
 
   @Override
@@ -333,6 +390,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
   /**
    * Adds a temp block for writing. The block is always pinned so that its pages don't get
    * evicted before the block is committed.
+   *
    * @param blockMeta the temp block to add
    */
   public void addTempBlock(PagedTempBlockMeta blockMeta) {
@@ -410,6 +468,6 @@ public class PagedBlockMetaStore implements PageMetaStore {
     }
     throw new IllegalArgumentException(
         String.format("Unexpected page store dir type %s, for worker page store it should be %s",
-        pageStoreDir.getClass().getSimpleName(), PagedBlockStoreDir.class.getSimpleName()));
+            pageStoreDir.getClass().getSimpleName(), PagedBlockStoreDir.class.getSimpleName()));
   }
 }

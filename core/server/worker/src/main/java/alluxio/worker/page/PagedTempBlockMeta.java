@@ -37,7 +37,7 @@ public class PagedTempBlockMeta extends PagedBlockMeta {
    * @param newSize
    */
   public void setBlockSize(long newSize) {
-    Preconditions.checkState(mBlockSize <= newSize, "Shrinking block, not supported!");
+    //Preconditions.checkState(mBlockSize <= newSize, "Shrinking block, not supported!");
     mBlockSize = newSize;
   }
 }

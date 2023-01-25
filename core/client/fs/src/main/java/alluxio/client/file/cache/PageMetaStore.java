@@ -11,9 +11,11 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
 import alluxio.exception.PageNotFoundException;
+import alluxio.proto.client.Cache;
 
 import java.io.IOException;
 import java.util.List;
@@ -90,6 +92,14 @@ public interface PageMetaStore {
    * @return page info
    */
   PageInfo getPageInfo(PageId pageId) throws PageNotFoundException;
+
+  /**
+   * Removes temporary a page.
+   *
+   * @param pageId page identifier
+   * @return page info removed
+   */
+  PageInfo removeTempPage(PageId pageId, CacheContext cacheContext) throws PageNotFoundException;
 
   /**
    * Removes a page.

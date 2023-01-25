@@ -66,6 +66,8 @@ public class LocalPageStore implements PageStore {
       boolean isTemporary) throws ResourceExhaustedException, IOException {
     Path pagePath = getPagePath(pageId, isTemporary);
     try {
+      LOG.info("Put page: " + pageId + ", page's position: " + page.position() +
+          ", page's limit: " + page.limit() + ", page's capacity: " + page.capacity());
       if (!Files.exists(pagePath)) {
         Path parent = Preconditions.checkNotNull(pagePath.getParent(),
             "parent of cache file should not be null");
@@ -117,9 +119,8 @@ public class LocalPageStore implements PageStore {
     }
   }
 
-  @Override
-  public void delete(PageId pageId) throws IOException, PageNotFoundException {
-    Path pagePath = getPagePath(pageId, false);
+  public void delete(PageId pageId, boolean isTemporary) throws IOException, PageNotFoundException {
+    Path pagePath = getPagePath(pageId, isTemporary);
     if (!Files.exists(pagePath)) {
       throw new PageNotFoundException(pagePath.toString());
     }

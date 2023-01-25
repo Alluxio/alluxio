@@ -13,6 +13,7 @@ package alluxio.client.file.cache;
 
 import static java.util.Objects.requireNonNull;
 
+import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.allocator.Allocator;
 import alluxio.client.file.cache.allocator.HashAllocator;
 import alluxio.client.file.cache.evictor.CacheEvictor;
@@ -148,6 +149,21 @@ public class DefaultPageMetaStore implements PageMetaStore {
     }
     PageInfo pageInfo = mPages.getFirstByField(INDEX_PAGE_ID, pageId);
     pageInfo.getLocalCacheDir().getEvictor().updateOnGet(pageId);
+    return pageInfo;
+  }
+
+  @Override
+  @GuardedBy("getLock()")
+  public PageInfo removeTempPage(PageId pageId, CacheContext cacheContext) throws PageNotFoundException {
+    if (!mPages.contains(INDEX_PAGE_ID, pageId)) {
+      throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
+    }
+
+    PageInfo pageInfo = mPages.getFirstByField(INDEX_PAGE_ID, pageId);
+    mPages.remove(pageInfo);
+    mBytes.addAndGet(-pageInfo.getPageSize());
+    Metrics.SPACE_USED.dec(pageInfo.getPageSize());
+    pageInfo.getLocalCacheDir().deleteTempPage(pageInfo);
     return pageInfo;
   }
 

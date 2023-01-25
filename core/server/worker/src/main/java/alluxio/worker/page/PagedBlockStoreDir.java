@@ -171,6 +171,14 @@ public class PagedBlockStoreDir implements PageStoreDir {
   }
 
   @Override
+  public void deleteTempPage(PageInfo pageInfo) {
+    long blockId = BlockPageId.downcast(pageInfo.getPageId()).getBlockId();
+    if (mTempBlockToPagesMap.remove(blockId, pageInfo)) {
+      mDelegate.deleteTempPage(pageInfo);
+    }
+  }
+
+  @Override
   public long deletePage(PageInfo pageInfo) {
     long blockId = BlockPageId.downcast(pageInfo.getPageId()).getBlockId();
     if (mBlockToPagesMap.remove(blockId, pageInfo)) {
