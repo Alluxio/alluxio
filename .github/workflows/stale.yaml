@@ -19,7 +19,7 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           ascending: true # old issues/PRs first
-          operations-per-run: 100 # default is 30, enlarge for dealing with more issues/PRs
+          operations-per-run: 1000 # default is 30, enlarge for dealing with more issues/PRs
           days-before-stale: 30
           days-before-close: -1
           stale-issue-message: >
