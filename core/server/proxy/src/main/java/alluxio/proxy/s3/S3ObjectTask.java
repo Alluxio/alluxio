@@ -316,6 +316,14 @@ public class S3ObjectTask extends S3BaseTask {
                 .header(S3Constants.S3_CONTENT_LENGTH_HEADER,
                     s3Range.getLength(status.getLength()));
 
+            // Check range
+            if (s3Range.isValid()) {
+              res.status(Response.Status.PARTIAL_CONTENT)
+                  .header(S3Constants.S3_ACCEPT_RANGES_HEADER, S3Constants.S3_ACCEPT_RANGES_VALUE)
+                  .header(S3Constants.S3_CONTENT_RANGE_HEADER,
+                      s3Range.getRealRange(status.getLength()));
+            }
+
             // Check for the object's ETag
             String entityTag = S3RestUtils.getEntityTag(status);
             if (entityTag != null) {

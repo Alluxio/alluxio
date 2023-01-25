@@ -45,6 +45,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletInputStream;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MultivaluedMap;
@@ -80,6 +81,7 @@ public class S3Handler {
   private final String mObject;
   private final HttpServletRequest mServletRequest;
   private final HttpServletResponse mServletResponse;
+  private final ServletContext mServletContext;
   public AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
   String[] mUnsupportedSubResources = {"acl", "policy", "versioning", "cors",
     "encryption", "intelligent-tiering", "inventory", "lifecycle",
@@ -108,6 +110,7 @@ public class S3Handler {
     mObject = object;
     mServletRequest = request;
     mServletResponse = response;
+    mServletContext = request.getServletContext();
   }
 
   /**
@@ -187,21 +190,36 @@ public class S3Handler {
       }
       // Entity
       if (response.hasEntity()) {
+        ServletOutputStream servletOut = servletResponse.getOutputStream();
         Object entity = response.getEntity();
         if (entity instanceof InputStream) {
           InputStream is = (InputStream) entity;
           byte[] bytesArray = TLS_BYTES.get();
           int read;
-          while ((read = is.read(bytesArray)) != -1) {
-            servletResponse.getOutputStream().write(bytesArray, 0, read);
-          }
+          do {
+            try {
+              read = is.read(bytesArray);
+            } catch (IOException ex) {
+              /* Alluxio thrown IOException, remapping the exception
+              and send new response to downstream again */
+              Response errorResponse = S3ErrorResponse.createErrorResponse(ex, "");
+              S3Handler.processResponse(servletResponse, errorResponse);
+              return;
+            }
+            if (read == -1) {
+              break;
+            }
+            servletOut.write(bytesArray, 0, read);
+          } while (true);
         } else {
           String contentStr = entity.toString();
           int contentLen = contentStr.length();
           servletResponse.setContentLength(contentLen);
-          servletResponse.getOutputStream().write(contentStr.getBytes());
+          servletOut.write(contentStr.getBytes());
         }
       }
+    } catch (IOException ioex) {
+      throw ioex;
     } finally {
       response.close();
     }
@@ -306,7 +324,7 @@ public class S3Handler {
    * @return ServletContext
    */
   public ServletContext getServletContext() {
-    return mServletRequest.getServletContext();
+    return mServletContext;
   }
 
   /**
