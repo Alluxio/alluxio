@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-integration-jnifuse</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>2.10.0-SNAPSHOT</version>
+    <version>291-alpha-SNAPSHOT</version>
   </parent>
 
   <artifactId>alluxio-integration-jnifuse-fs</artifactId>
