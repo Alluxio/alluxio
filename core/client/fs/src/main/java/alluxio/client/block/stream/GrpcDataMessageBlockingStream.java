@@ -109,6 +109,7 @@ public class GrpcDataMessageBlockingStream<ReqT, ResT> extends GrpcBlockingStrea
     if (mResponseMarshaller == null) {
       return super.waitForComplete(timeoutMs);
     }
+    // loop until the last response is received, whose result will be returned
     DataMessage<ResT, DataBuffer> message;
     DataMessage<ResT, DataBuffer> prevMessage = null;
     while (!isCanceled() && (message = receiveDataMessage(timeoutMs)) != null) {
@@ -117,6 +118,7 @@ public class GrpcDataMessageBlockingStream<ReqT, ResT> extends GrpcBlockingStrea
       }
       prevMessage = message;
     }
+    // note that the combineData call is responsible for releasing the buffer of prevMessage
     ResT result = mResponseMarshaller.combineData(prevMessage);
     return Optional.ofNullable(super.waitForComplete(timeoutMs).orElse(result));
   }

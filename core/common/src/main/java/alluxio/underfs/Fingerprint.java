@@ -86,15 +86,31 @@ public final class Fingerprint {
    *
    * @param ufsName the name of the ufs, should be {@link UnderFileSystem#getUnderFSType()}
    * @param status the {@link UfsStatus} to create the fingerprint from
+   * @param contentHash the hash of the contents, if null the hash will be taken from
+   *                    the {@link UfsStatus} parameter
+   * @return the fingerprint object
+   */
+  public static Fingerprint create(String ufsName, UfsStatus status,
+      @Nullable String contentHash) {
+    return create(ufsName, status, contentHash, null);
+  }
+
+  /**
+   * Parses the input string and returns the fingerprint object.
+   *
+   * @param ufsName the name of the ufs, should be {@link UnderFileSystem#getUnderFSType()}
+   * @param status the {@link UfsStatus} to create the fingerprint from
+   * @param contentHash the hash of the contents, if null the hash will be taken from
+   *                    the {@link UfsStatus} parameter
    * @param acl the {@link AccessControlList} to create the fingerprint from
    * @return the fingerprint object
    */
   public static Fingerprint create(String ufsName, UfsStatus status,
-      @Nullable AccessControlList acl) {
+      @Nullable String contentHash, @Nullable AccessControlList acl) {
     if (status == null) {
       return new Fingerprint(Collections.emptyMap());
     }
-    return finishCreate(Fingerprint.createTags(ufsName, status, null), acl);
+    return finishCreate(Fingerprint.createTags(ufsName, status, contentHash), acl);
   }
 
   private static Fingerprint finishCreate(Map<Tag, String> tagMap,

@@ -109,7 +109,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
       if (aclPair == null || aclPair.getFirst() == null || !aclPair.getFirst().hasExtended()) {
         return Fingerprint.create(getUnderFSType(), status).serialize();
       } else {
-        return Fingerprint.create(getUnderFSType(), status, aclPair.getFirst()).serialize();
+        return Fingerprint.create(getUnderFSType(), status, null, aclPair.getFirst()).serialize();
       }
     } catch (Exception e) {
       // In certain scenarios, it is expected that the UFS path does not exist.
@@ -130,9 +130,9 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
       Pair<AccessControlList, DefaultAccessControlList> aclPair = getAclPair(path);
 
       if (aclPair == null || aclPair.getFirst() == null || !aclPair.getFirst().hasExtended()) {
-        return Fingerprint.create(getUnderFSType(), status);
+        return Fingerprint.create(getUnderFSType(), status, contentHash);
       } else {
-        return Fingerprint.create(getUnderFSType(), status, aclPair.getFirst());
+        return Fingerprint.create(getUnderFSType(), status, contentHash, aclPair.getFirst());
       }
     } catch (IOException e) {
       return Fingerprint.INVALID_FINGERPRINT;

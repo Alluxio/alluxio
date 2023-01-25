@@ -1710,10 +1710,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           String contentHash = context.getOptions().hasContentHash()
               ? context.getOptions().getContentHash() : null;
           ufsFingerprint = ufs.getParsedFingerprint(ufsPath, contentHash).serialize();
-          String ufsFingerprint2 = ufs.getParsedFingerprint(ufsPath).serialize();
-          if (!ufsFingerprint.equals(ufsFingerprint2)) {
-            LOG.warn("fingerprint mismatch local {}, ufs {}", ufsFingerprint, ufsFingerprint2);
-          }
         } else {
           ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
         }
