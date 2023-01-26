@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-core-client</artifactId>
-    <version>291-alpha-SNAPSHOT</version>
+    <version>291-alpha</version>
   </parent>
   <artifactId>alluxio-core-client-hdfs</artifactId>
   <packaging>jar</packaging>

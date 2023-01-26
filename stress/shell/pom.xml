@@ -15,7 +15,7 @@
   <parent>
       <artifactId>alluxio-stress</artifactId>
       <groupId>org.alluxio</groupId>
-      <version>291-alpha-SNAPSHOT</version>
+      <version>291-alpha</version>
   </parent>
   <name>Alluxio Stress - Shell</name>
   <artifactId>alluxio-stress-shell</artifactId>
@@ -72,7 +72,7 @@
       <dependency>
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-shell</artifactId>
-          <version>291-alpha-SNAPSHOT</version>
+          <version>291-alpha</version>
       </dependency>
   </dependencies>
 </project>

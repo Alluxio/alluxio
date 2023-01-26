@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-core</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>291-alpha-SNAPSHOT</version>
+    <version>291-alpha</version>
   </parent>
   <artifactId>alluxio-core-server</artifactId>
   <packaging>pom</packaging>

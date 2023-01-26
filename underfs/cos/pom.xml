@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>291-alpha-SNAPSHOT</version>
+    <version>291-alpha</version>
   </parent>
   <artifactId>alluxio-underfs-cos</artifactId>
   <name>Alluxio Under File System - Tencent Cloud COS</name>

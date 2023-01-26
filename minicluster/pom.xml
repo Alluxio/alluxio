@@ -14,7 +14,7 @@
   <parent>
     <artifactId>alluxio-parent</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>291-alpha-SNAPSHOT</version>
+    <version>291-alpha</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
