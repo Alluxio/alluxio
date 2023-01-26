@@ -29,6 +29,7 @@ import java.io.OutputStream;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -48,6 +49,7 @@ public final class TtlBucketList implements Checkpointed {
    */
   private final ConcurrentSkipListSet<TtlBucket> mBucketList;
   private final ReadOnlyInodeStore mInodeStore;
+  private final AtomicLong mNumInodes = new AtomicLong();
 
   /**
    * Creates a new list of {@link TtlBucket}s.
@@ -57,6 +59,20 @@ public final class TtlBucketList implements Checkpointed {
   public TtlBucketList(ReadOnlyInodeStore inodeStore) {
     mInodeStore = inodeStore;
     mBucketList = new ConcurrentSkipListSet<>();
+  }
+
+  /**
+   * @return the number of TTL buckets
+   */
+  public int getNumBuckets() {
+    return mBucketList.size();
+  }
+
+  /**
+   * @return the total number of inodes in all the buckets
+   */
+  public long getNumInodes() {
+    return mNumInodes.get();
   }
 
   /**
@@ -123,7 +139,9 @@ public final class TtlBucketList implements Checkpointed {
     // TODO(zhouyufa): Consider the concurrent situation that the bucket is expired and processed by
     // the InodeTtlChecker, then adding the inode into the bucket is meaningless since the bucket
     // will not be accessed again. (c.f. ALLUXIO-2821)
-    bucket.addInode(inode);
+    if (bucket.addInode(inode)) {
+      mNumInodes.incrementAndGet();
+    }
   }
 
   /**
@@ -140,7 +158,9 @@ public final class TtlBucketList implements Checkpointed {
   public void remove(InodeView inode) {
     TtlBucket bucket = getBucketContaining(inode);
     if (bucket != null) {
-      bucket.removeInode(inode);
+      if (bucket.removeInode(inode)) {
+        mNumInodes.decrementAndGet();
+      }
     }
   }
 
@@ -163,6 +183,9 @@ public final class TtlBucketList implements Checkpointed {
    */
   public void removeBuckets(Set<TtlBucket> buckets) {
     mBucketList.removeAll(buckets);
+    for (TtlBucket nxt : buckets) {
+      mNumInodes.addAndGet(-nxt.size());
+    }
   }
 
   @Override
@@ -183,6 +206,7 @@ public final class TtlBucketList implements Checkpointed {
   @Override
   public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
     mBucketList.clear();
+    mNumInodes.set(0);
     Preconditions.checkState(input.getType() == CheckpointType.LONGS,
         "Unexpected checkpoint type: %s", input.getType());
     while (true) {

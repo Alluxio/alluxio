@@ -5145,6 +5145,12 @@ public class DefaultFileSystemMaster extends CoreMaster
           inodeTree::getPinnedSize);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_TO_PERSIST.getName(),
           () -> inodeTree.getToBePersistedIds().size());
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_REPLICATION_LIMITED_FILES.getName(),
+          () -> inodeTree.getReplicationLimitedFileIds().size());
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TTL_BUCKETS.getName(),
+          () -> inodeTree.getTtlBuckets().getNumBuckets());
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TTL_INODES.getName(),
+          () -> inodeTree.getTtlBuckets().getNumInodes());
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_PATHS.getName(),
           inodeTree::getInodeCount);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILE_SIZE.getName(),
