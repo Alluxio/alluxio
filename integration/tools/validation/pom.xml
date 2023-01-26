@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-integration-tools</artifactId>
-    <version>291-alpha</version>
+    <version>292-alpha-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-integration-tools-validation</artifactId>
   <packaging>jar</packaging>

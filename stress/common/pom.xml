@@ -15,7 +15,7 @@
   <parent>
       <artifactId>alluxio-stress</artifactId>
       <groupId>org.alluxio</groupId>
-      <version>291-alpha</version>
+      <version>292-alpha-SNAPSHOT</version>
   </parent>
   <name>Alluxio Stress - Common</name>
   <artifactId>alluxio-stress-common</artifactId>

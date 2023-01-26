@@ -15,7 +15,7 @@
   <parent>
       <artifactId>alluxio-table</artifactId>
       <groupId>org.alluxio</groupId>
-      <version>291-alpha</version>
+      <version>292-alpha-SNAPSHOT</version>
   </parent>
   <name>Alluxio Table - Shell</name>
   <artifactId>alluxio-table-shell</artifactId>
