@@ -77,6 +77,8 @@ public final class ProxyWebServer extends WebServer {
         ProxyWebServer.logAccess(s3Hdlr.getServletRequest(), s3Hdlr.getServletResponse(),
             s3Hdlr.getStopwatch(), s3Hdlr.getS3Task() != null
                 ? s3Hdlr.getS3Task().getOPType() : S3BaseTask.OpType.Unknown);
+      } else {
+        LOG.info("[ACCESSLOG] Request:{} onComplete.", request);
       }
     }
   }
@@ -137,8 +139,8 @@ public final class ProxyWebServer extends WebServer {
       }
     };
 
-    super.getServerConnector().addBean(new ProxyListener());
     if (Configuration.getBoolean(PropertyKey.PROXY_S3_V2_VERSION_ENABLED)) {
+      super.getServerConnector().addBean(new ProxyListener());
       ServletHolder s3ServletHolder = new ServletHolder("Alluxio Proxy V2 S3 Service",
           new S3RequestServlet() {
             @Override
