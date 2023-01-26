@@ -119,7 +119,7 @@ All new contributors are recommended to resolve one and only one **New Contribut
 larger tasks. This is a good way to familiarize yourself with the entire process of contributing to
 the Alluxio project.
 
-Browse any of the open [New Contributor Alluxio Tasks](https://github.com/Alluxio/new-contributor-tasks/issues)
+Browse any of the open [New Contributor Alluxio Tasks](https://github.com/Alluxio/alluxio/labels/task-good-first-issue)
 and find one that is unassigned. 
 In order to assign an issue to yourself, leave a comment in the issue like `/assign @yourUserName`
 to indicate that you are working on the issue.
@@ -130,14 +130,7 @@ Notice that all New Contributor issues on Github are assigned with a number. The
 found after the issue title, like `#123`.
 When you create a pull request to address the issue, you should add a link/pointer back to the
 issue itself. In order to do that you have to add certain text in the pull request description.
-For example, if your issue number is `#123`, you should include one of the following in your
-pull request description.
-  * `Fixes Alluxio/new-contributor-tasks#123`
-  * `Fixed Alluxio/new-contributor-tasks#123`
-  * `Fix Alluxio/new-contributor-tasks#123`
-  * `Closes Alluxio/new-contributor-tasks#123`
-  * `Closed Alluxio/new-contributor-tasks#123`
-  * `Close Alluxio/new-contributor-tasks#123`
+For example, if your issue number is `#123`, the PR description should include `Fix new contributor task Alluxio/alluxio#123`.
 
 ### Creating a Branch in your Clone
 
