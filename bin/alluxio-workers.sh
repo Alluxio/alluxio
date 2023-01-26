@@ -39,7 +39,7 @@ echo "Executing the following command on all worker nodes and logging to ${ALLUX
 
 for worker in ${HOSTLIST[@]}; do
   echo "[${worker}] Connecting as ${USER}..." >> ${ALLUXIO_TASK_LOG}
-  nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${worker} which java;${LAUNCHER} \
+  nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${worker} ${LAUNCHER} \
     $"${@// /\\ }" 2>&1 | while read line; do echo "[$(date '+%F %T')][${worker}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
   pids[${#pids[@]}]=$!
 done
