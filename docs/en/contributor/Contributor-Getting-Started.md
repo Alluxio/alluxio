@@ -131,7 +131,6 @@ found after the issue title, like `#123`.
 When you create a pull request to address the issue, you should add a link/pointer back to the
 issue itself. In order to do that you have to add certain text in the pull request description.
 For example, if your issue number is `#123`, the PR description should include `Fix new contributor task Alluxio/alluxio#123`.
-  * `Fix new contributor tasks: Alluxio/alluxio#123`
 
 ### Creating a Branch in your Clone
 
