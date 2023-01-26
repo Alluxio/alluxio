@@ -218,8 +218,6 @@ public class S3Handler {
           servletOut.write(contentStr.getBytes());
         }
       }
-    } catch (IOException ioex) {
-      throw ioex;
     } finally {
       response.close();
     }
