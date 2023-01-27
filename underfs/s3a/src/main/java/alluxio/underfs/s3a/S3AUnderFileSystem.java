@@ -34,6 +34,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.auth.AnonymousAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
@@ -129,10 +130,15 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       UnderFileSystemConfiguration conf) {
     // Set the aws credential system properties based on Alluxio properties, if they are set;
     // otherwise, use the default credential provider.
-    if (conf.isSet(PropertyKey.S3A_ACCESS_KEY)
-        && conf.isSet(PropertyKey.S3A_SECRET_KEY)) {
-      return new AWSStaticCredentialsProvider(new BasicAWSCredentials(
-          conf.getString(PropertyKey.S3A_ACCESS_KEY), conf.getString(PropertyKey.S3A_SECRET_KEY)));
+    if (conf.isSet(PropertyKey.S3A_ANONYMOUS)){
+        return new AWSStaticCredentialsProvider(new AnonymousAWSCredentials());
+    }
+    else
+    {
+        if (conf.isSet(PropertyKey.S3A_ACCESS_KEY) && conf.isSet(PropertyKey.S3A_SECRET_KEY)) {
+            return new AWSStaticCredentialsProvider(new BasicAWSCredentials(
+                conf.getString(PropertyKey.S3A_ACCESS_KEY), conf.getString(PropertyKey.S3A_SECRET_KEY)));
+	    }
     }
     // Checks, in order, env variables, system properties, profile file, and instance profile.
     return new DefaultAWSCredentialsProviderChain();

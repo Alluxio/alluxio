@@ -1755,6 +1755,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
+  public static final PropertyKey S3A_ANONYMOUS = booleanBuilder(Name.S3A_ANONYMOUS)
+      .setAlias(Name.AWS_ANONYMOUS)
+      .setDefaultValue(false)
+      .setDescription("The anonymous credentials for S3 bucket.")
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setScope(Scope.SERVER)
+      .setDisplayType(DisplayType.CREDENTIALS)
+      .build();
   public static final PropertyKey S3A_ACCESS_KEY = stringBuilder(Name.S3A_ACCESS_KEY)
       .setAlias(Name.AWS_ACCESS_KEY)
       .setDescription("The access key of S3 bucket.")
@@ -7542,8 +7550,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String OSS_ACCESS_KEY = "fs.oss.accessKeyId";
     public static final String OSS_ENDPOINT_KEY = "fs.oss.endpoint";
     public static final String OSS_SECRET_KEY = "fs.oss.accessKeySecret";
+    public static final String S3A_ANONYMOUS = "s3a.anonymous";
     public static final String S3A_ACCESS_KEY = "s3a.accessKeyId";
     public static final String S3A_SECRET_KEY = "s3a.secretKey";
+    public static final String AWS_ANONYMOUS = "aws.anonymous";
     public static final String AWS_ACCESS_KEY = "aws.accessKeyId";
     public static final String AWS_SECRET_KEY = "aws.secretKey";
     public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
