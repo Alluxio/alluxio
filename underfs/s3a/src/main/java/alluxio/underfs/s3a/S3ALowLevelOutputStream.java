@@ -49,7 +49,7 @@ public class S3ALowLevelOutputStream extends ObjectLowLevelOutputStream {
   /** Server side encrypt enabled. */
   private final boolean mSseEnabled;
   /** The Amazon S3 client to interact with S3. */
-  protected final AmazonS3 mClient;
+  protected AmazonS3 mClient;
   /** Tags for the uploaded part, provided by S3 after uploading. */
   private final List<PartETag> mTags = Collections.synchronizedList(new ArrayList<>());
 
