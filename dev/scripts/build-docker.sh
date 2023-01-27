@@ -32,12 +32,15 @@ function build_docker_image {
   # example tarball: /path/to/workdir/alluxio-1.4.0-SNAPSHOT.tar.gz
   # docker image tags must be lowercase
   local tarball_basename=$(basename ${tarball})
-  local tag=$(echo ${tarball_basename%.tar.gz}${platform} | tr '[:upper:]' '[:lower:]')
-  echo "Building ${tag} image..."
+
   if [[ "${build_mode}" == "buildx" ]]
   then
+    local tag=$(echo ${tarball_basename%.tar.gz}${platform} | tr '[:upper:]' '[:lower:]')
+    echo "Building ${tag} image..."
     docker buildx build -t "${tag}" --platform="${platform}" --build-arg "ALLUXIO_TARBALL=${tarball_basename}" .
   else
+    local tag=$(echo ${tarball_basename%.tar.gz} | tr '[:upper:]' '[:lower:]')
+    echo "Building ${tag} image..."
     docker build -t "${tag}" --build-arg "ALLUXIO_TARBALL=${tarball_basename}" .
   fi
   rm -rf "${tmp_dir}"
