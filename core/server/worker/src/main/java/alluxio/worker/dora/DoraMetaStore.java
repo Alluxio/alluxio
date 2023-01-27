@@ -54,7 +54,7 @@ public interface DoraMetaStore {
   void close();
 
   /**
-   * @return size of the dora meta store
+   * @return number of metadata records currently stored in this store
    */
   long size();
 }

@@ -21,7 +21,6 @@ import alluxio.Sessions;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.PrefixList;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
@@ -378,8 +377,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
               Configuration.global(), ServerUserState.global()));
     }
 
-    AlluxioConfiguration conf = Configuration.global();
-    String dbDir = conf.getString(PropertyKey.DORA_WORKER_META_STORE_ROCKSDB_DIR);
+    String dbDir = Configuration.getString(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR);
     mMetaStore = new RocksDBDoraMetaStore(dbDir + ".worker." + mWorkerId);
 
     // Mounts the embedded Fuse application

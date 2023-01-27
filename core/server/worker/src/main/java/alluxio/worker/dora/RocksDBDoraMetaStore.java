@@ -108,7 +108,9 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
     try {
       return Optional.of(DoraMeta.FileStatus.parseFrom(status));
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      removeDoraMeta(path);
+      LOG.error("Cannot parse get result for {} : {}", path, e);
+      return Optional.empty();
     }
   }
 
@@ -124,7 +126,7 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
       db().put(mFileStatusColumn.get(), mWriteOption, path.getBytes(),
               meta.toByteString().toByteArray());
     } catch (RocksDBException e) {
-      throw new RuntimeException(e);
+      LOG.error("Cannot put {} : {}", path, e);
     }
   }
 
@@ -139,7 +141,7 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
     try {
       db().delete(mFileStatusColumn.get(), mWriteOption, path.getBytes());
     } catch (RocksDBException e) {
-      throw new RuntimeException(e);
+      LOG.error("Cannot remove {} : {}", path, e);
     }
   }
 
@@ -175,8 +177,8 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
       String res = db().getProperty(mFileStatusColumn.get(), "rocksdb.estimate-num-keys");
       long s = Long.parseLong(res);
       return s;
-    } catch (org.rocksdb.RocksDBException e) {
-      LOG.error("Can not getProperty for rocksdb.estimate-num-keys:" + e);
+    } catch (RocksDBException e) {
+      LOG.error("Cannot getProperty for rocksdb.estimate-num-keys:" + e);
     }
     return 0;
   }

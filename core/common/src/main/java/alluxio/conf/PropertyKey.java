@@ -7394,8 +7394,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
-  public static final PropertyKey DORA_WORKER_META_STORE_ROCKSDB_DIR =
-      stringBuilder(Name.DORA_WORKER_META_STORE_ROCKSDB_DIR)
+  public static final PropertyKey DORA_WORKER_METASTORE_ROCKSDB_DIR =
+      stringBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_DIR)
           .setDefaultValue(format("${%s}/metastore", Name.WORK_DIR))
           .setDescription("The base dir of RocksDB to store Dora meta data")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -8921,8 +8921,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String DORA_UFS_FILE_STATUS_CACHE_TTL =
         "alluxio.dora.ufs.file.status.cache.ttl";
 
-    public static final String DORA_WORKER_META_STORE_ROCKSDB_DIR =
-        "alluxio.dora.worker.meta.store.rocksdb.dir";
+    public static final String DORA_WORKER_METASTORE_ROCKSDB_DIR =
+        "alluxio.dora.worker.metastore.rocksdb.dir";
 
     private Name() {} // prevent instantiation
   }
