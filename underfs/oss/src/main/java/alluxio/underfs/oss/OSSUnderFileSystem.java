@@ -21,17 +21,25 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.aliyun.oss.ClientBuilderConfiguration;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.ServiceException;
+import com.aliyun.oss.model.AbortMultipartUploadRequest;
+import com.aliyun.oss.model.ListMultipartUploadsRequest;
 import com.aliyun.oss.model.ListObjectsRequest;
+import com.aliyun.oss.model.MultipartUpload;
+import com.aliyun.oss.model.MultipartUploadListing;
 import com.aliyun.oss.model.OSSObjectSummary;
 import com.aliyun.oss.model.ObjectListing;
 import com.aliyun.oss.model.ObjectMetadata;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Suppliers;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +49,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -59,6 +69,8 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
+
+  private final Supplier<ListeningExecutorService> mStreamingUploadExecutor;
 
   private StsOssClientProvider mClientProvider;
 
@@ -114,6 +126,34 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     mBucketName = bucketName;
+    mStreamingUploadExecutor = Suppliers.memoize(() -> {
+      int numTransferThreads =
+          conf.getInt(PropertyKey.UNDERFS_OSS_STREAMING_UPLOAD_THREADS);
+      ExecutorService service = ExecutorServiceFactories
+          .fixedThreadPool("alluxio-oss-streaming-upload-worker",
+              numTransferThreads).create();
+      return MoreExecutors.listeningDecorator(service);
+    });
+  }
+
+  @Override
+  public void cleanup() throws IOException {
+    long cleanAge = mUfsConf.getMs(PropertyKey.UNDERFS_OSS_INTERMEDIATE_UPLOAD_CLEAN_AGE);
+    Date cleanBefore = new Date(new Date().getTime() - cleanAge);
+    MultipartUploadListing uploadListing = mClient.listMultipartUploads(
+        new ListMultipartUploadsRequest(mBucketName));
+    do {
+      for (MultipartUpload upload : uploadListing.getMultipartUploads()) {
+        if (upload.getInitiated().compareTo(cleanBefore) < 0) {
+          mClient.abortMultipartUpload(new AbortMultipartUploadRequest(
+              mBucketName, upload.getKey(), upload.getUploadId()));
+        }
+      }
+      ListMultipartUploadsRequest request = new ListMultipartUploadsRequest(mBucketName);
+      request.setUploadIdMarker(uploadListing.getNextUploadIdMarker());
+      request.setKeyMarker(uploadListing.getKeyMarker());
+      uploadListing = mClient.listMultipartUploads(request);
+    } while (uploadListing.isTruncated());
   }
 
   @Override
@@ -156,6 +196,10 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
+    if (mUfsConf.getBoolean(PropertyKey.UNDERFS_OSS_STREAMING_UPLOAD_ENABLED)) {
+      return new OSSLowLevelOutputStream(mBucketName, key, mClient,
+          mStreamingUploadExecutor.get(), mUfsConf);
+    }
     return new OSSOutputStream(mBucketName, key, mClient,
         mUfsConf.getList(PropertyKey.TMP_DIRS));
   }
