@@ -23,6 +23,8 @@ readonly GENERATE_TARBALLS_SCRIPT="${SCRIPT_DIR}/generate-tarballs"
 # Builds a docker image from the specified tarball.
 function build_docker_image {
   local tarball=$1
+  local build_mode=$2
+  local platform=$3
   local tmp_dir="$(mktemp -d)"
   cp -r "${DOCKER_DIR}" "${tmp_dir}"
   cp "${tarball}" "${tmp_dir}/docker"
@@ -30,18 +32,30 @@ function build_docker_image {
   # example tarball: /path/to/workdir/alluxio-1.4.0-SNAPSHOT.tar.gz
   # docker image tags must be lowercase
   local tarball_basename=$(basename ${tarball})
-  local tag=$(echo ${tarball_basename%.tar.gz} | tr '[:upper:]' '[:lower:]')
+  local tag=$(echo ${tarball_basename%.tar.gz}${platform} | tr '[:upper:]' '[:lower:]')
   echo "Building ${tag} image..."
-  docker build -t "${tag}" --build-arg "ALLUXIO_TARBALL=${tarball_basename}" .
+  if [[ "${build_mode}" == "buildx" ]]
+  then
+    docker buildx build -t "${tag}" --platform="${platform}" --build-arg "ALLUXIO_TARBALL=${tarball_basename}" .
+  else
+    docker build -t "${tag}" --build-arg "ALLUXIO_TARBALL=${tarball_basename}" .
+  fi
   rm -rf "${tmp_dir}"
 }
 
 function main {
+  local build_mode="default"
+  local platform="linux/arm64"
+  if [[ $1 == "buildx" ]]
+  then
+    build_mode="buildx"
+    platform=$2
+  fi
   cd "${SCRIPT_DIR}"
   local tmp_dir="$(mktemp -d)"
   "${GENERATE_TARBALLS_SCRIPT}" single -target "${tmp_dir}/alluxio-\${VERSION}.tar.gz"
   local tarball="${tmp_dir}/$(ls -tr ${tmp_dir} | tail -1)"
-  build_docker_image "${tarball}"
+  build_docker_image "${tarball}" "${build_mode}" "${platform}"
   rm -rf ${tmp_dir}
 }
 
