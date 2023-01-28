@@ -11,8 +11,6 @@
 
 package alluxio.worker.page;
 
-import com.google.common.base.Preconditions;
-
 /**
  * Temp block meta for a paged block.
  */

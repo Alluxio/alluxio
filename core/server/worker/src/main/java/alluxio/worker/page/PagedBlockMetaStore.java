@@ -78,8 +78,8 @@ public class PagedBlockMetaStore implements PageMetaStore {
           return o.getBlockId();
         }
       };
-  private static final
-  IndexDefinition<PagedTempBlockMeta, PagedBlockStoreDir> INDEX_TEMP_STORE_DIR =
+  private static final IndexDefinition<PagedTempBlockMeta, PagedBlockStoreDir>
+      INDEX_TEMP_STORE_DIR =
       new IndexDefinition<PagedTempBlockMeta, PagedBlockStoreDir>(false) {
         @Override
         public PagedBlockStoreDir getFieldValue(PagedTempBlockMeta o) {
@@ -249,7 +249,8 @@ public class PagedBlockMetaStore implements PageMetaStore {
    *
    * @param pageId the page ID
    * @return temporary block meta
-   * @throws BlockDoesNotExistRuntimeException when the temporary block is not being stored in the store
+   * @throws BlockDoesNotExistRuntimeException when the temporary block is not being stored
+   * in the store
    */
   private PagedBlockMeta getTempBlockMetaOfPage(PageId pageId) {
     long blockId = BlockPageId.downcast(pageId).getBlockId();
@@ -316,12 +317,13 @@ public class PagedBlockMetaStore implements PageMetaStore {
     }
     PagedBlockMeta blockMeta = getTempBlockMetaOfPage(pageId);
     long blockId = blockMeta.getBlockId();
-    LOG.info("blockMeta.getBlockSize(): " + blockMeta.getBlockSize() +
-        ", blockMeta.getDir().getTempBlockCachedBytes(blockId): " +
-        blockMeta.getDir().getTempBlockCachedBytes(blockId));
+    LOG.debug("blockMeta.getBlockSize(): " + blockMeta.getBlockSize()
+        + ", blockMeta.getDir().getTempBlockCachedBytes(blockId): "
+        + blockMeta.getDir().getTempBlockCachedBytes(blockId));
     PagedBlockStoreDir dir = blockMeta.getDir();
     PageInfo pageInfo = mDelegate.removeTempPage(pageId, cacheContext);
-    ((PagedTempBlockMeta) blockMeta).setBlockSize(blockMeta.getBlockSize() - pageInfo.getPageSize());
+    ((PagedTempBlockMeta) blockMeta).setBlockSize(
+        blockMeta.getBlockSize() - pageInfo.getPageSize());
     /*
     if (dir.getBlockCachedPages(blockId) == 0) { // last page of this block has been removed
         mTempBlocks.remove(blockMeta);

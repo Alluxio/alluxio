@@ -154,7 +154,8 @@ public class DefaultPageMetaStore implements PageMetaStore {
 
   @Override
   @GuardedBy("getLock()")
-  public PageInfo removeTempPage(PageId pageId, CacheContext cacheContext) throws PageNotFoundException {
+  public PageInfo removeTempPage(PageId pageId, CacheContext cacheContext)
+      throws PageNotFoundException {
     if (!mPages.contains(INDEX_PAGE_ID, pageId)) {
       throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }

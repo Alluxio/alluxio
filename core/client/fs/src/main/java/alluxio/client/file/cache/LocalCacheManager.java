@@ -500,6 +500,12 @@ public class LocalCacheManager implements CacheManager {
     }
   }
 
+  /**
+   * delete the specified page.
+   * @param pageId page identifier
+   * @param cacheContext cache context
+   * @return whether the page is deleted successfully or not
+   */
   public boolean delete(PageId pageId, CacheContext cacheContext) {
     if (!cacheContext.isTemporary()) {
       return delete(pageId);
@@ -578,9 +584,11 @@ public class LocalCacheManager implements CacheManager {
     }
     if (appendAt > 0) {
       byte[] newPage = new byte[appendAt + page.length];
-      int readBytes = get(pageId, 0, appendAt, new ByteArrayTargetBuffer(newPage, 0),  cacheContext);
+      int readBytes = get(pageId, 0, appendAt,
+          new ByteArrayTargetBuffer(newPage, 0),  cacheContext);
       boolean success = delete(pageId, cacheContext);
-      LOG.info("delete pageId: " + pageId + ", appendAt: " + appendAt);
+      LOG.debug("delete pageId: " + pageId
+          + ", appendAt: " + appendAt + ", readBytes: " + readBytes);
       System.arraycopy(page, 0, newPage, appendAt, page.length);
       return put(pageId, newPage, cacheContext);
     }

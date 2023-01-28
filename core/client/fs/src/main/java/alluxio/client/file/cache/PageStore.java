@@ -170,6 +170,7 @@ public interface PageStore extends AutoCloseable {
    * Deletes a temporary page from the store.
    *
    * @param pageId page identifier
+   * @param isTemporary whether is to delete the temporary page or not
    * @throws IOException when the store fails to delete this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
@@ -177,6 +178,7 @@ public interface PageStore extends AutoCloseable {
       throws IOException, PageNotFoundException {
     delete(pageId);
   }
+
   /**
    * Deletes a page from the store.
    *
