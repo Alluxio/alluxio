@@ -56,7 +56,9 @@ function main {
   fi
   cd "${SCRIPT_DIR}"
   local tmp_dir="$(mktemp -d)"
-  "${GENERATE_TARBALLS_SCRIPT}" single -target "${tmp_dir}/alluxio-\${VERSION}.tar.gz"
+  "${GENERATE_TARBALLS_SCRIPT}" single \
+    -mvn-args "-Pufs-hadoop-3,-amd,-Dmaven.javadoc.skip=true,-DskipTests,-Dlicense.skip=true,-Dcheckstyle.skip=true,-Dfindbugs.skip=true" \
+    -target "${tmp_dir}/alluxio-\${VERSION}.tar.gz"
   local tarball="${tmp_dir}/$(ls -tr ${tmp_dir} | tail -1)"
   build_docker_image "${tarball}" "${build_mode}" "${platform}"
   rm -rf ${tmp_dir}
