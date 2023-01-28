@@ -57,8 +57,7 @@ function main {
   cd "${SCRIPT_DIR}"
   local tmp_dir="$(mktemp -d)"
   "${GENERATE_TARBALLS_SCRIPT}" single \
-      -mvn-args "-Dmaven.javadoc.skip=true,-DskipTests,-Dlicense.skip=true,-Dcheckstyle.skip=true,-Dfindbugs.skip=true,-Pufs-hadoop-3,-Pno-webui-linter,-Pweb,-Dhadoop.version=3.3.1" \
-      -lib-jars "underfs-s3a" \
+      -mvn-args "-Pufs-hadoop-3,-amd,-Dmaven.javadoc.skip=true,-DskipTests,-Dlicense.skip=true,-Dcheckstyle.skip=true,-Dfindbugs.skip=true" \
       -target "${tmp_dir}/alluxio-\${VERSION}.tar.gz"
   local tarball="${tmp_dir}/$(ls -tr ${tmp_dir} | tail -1)"
   build_docker_image "${tarball}" "${build_mode}" "${platform}"
