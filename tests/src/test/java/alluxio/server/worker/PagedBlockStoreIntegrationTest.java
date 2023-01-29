@@ -68,7 +68,81 @@ public class PagedBlockStoreIntegrationTest extends BaseIntegrationTest {
       PropertyKey.Name.WORKER_PAGE_STORE_TYPE, "LOCAL",
   })
   @Test
-  public void localPageStorePreservesPagesAfterRestart() throws Exception {
+  public void testLocalPageStorePreservesPagesAfterRestartWithGrpc() throws Exception {
+    testLocalPageStorePreservesPagesAfterRestart();
+  }
+
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.WORKER_PAGE_STORE_TYPE, "LOCAL",
+      PropertyKey.Name.USER_NETTY_DATA_TRANSMISSION_ENABLED, "true",
+      PropertyKey.Name.WORKER_NETWORK_NETTY_CHANNEL, "nio",
+      PropertyKey.Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, "TRANSFER"
+  })
+  @Test
+  public void testLocalPageStorePreservesPagesAfterRestartWithNetty() throws Exception {
+    testLocalPageStorePreservesPagesAfterRestart();
+  }
+
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.WORKER_PAGE_STORE_PAGE_SIZE, "64",
+      PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "16",
+      PropertyKey.Name.WORKER_NETWORK_READER_BUFFER_POOLED, "false"
+  })
+  @Test
+  public void testReadUnpooledWithGrpc() throws Exception {
+    testRead();
+  }
+
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.WORKER_PAGE_STORE_PAGE_SIZE, "64",
+      PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "16",
+      PropertyKey.Name.WORKER_NETWORK_READER_BUFFER_POOLED, "false",
+      PropertyKey.Name.USER_NETTY_DATA_TRANSMISSION_ENABLED, "true",
+      PropertyKey.Name.WORKER_NETWORK_NETTY_CHANNEL, "nio",
+      PropertyKey.Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, "TRANSFER"
+  })
+  @Test
+  public void testReadUnpooledWithNetty() throws Exception {
+    testRead();
+  }
+
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.WORKER_PAGE_STORE_PAGE_SIZE, "64",
+      PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "16",
+      PropertyKey.Name.WORKER_NETWORK_READER_BUFFER_POOLED, "true"
+  })
+  @Test
+  public void testReadPooledWithGrpc() throws Exception {
+    testRead();
+  }
+
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.WORKER_PAGE_STORE_PAGE_SIZE, "64",
+      PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "16",
+      PropertyKey.Name.WORKER_NETWORK_READER_BUFFER_POOLED, "true",
+      PropertyKey.Name.USER_NETTY_DATA_TRANSMISSION_ENABLED, "true",
+      PropertyKey.Name.WORKER_NETWORK_NETTY_CHANNEL, "nio",
+      PropertyKey.Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, "TRANSFER"
+  })
+  @Test
+  public void testReadPooledWithNetty() throws Exception {
+    testRead();
+  }
+
+  private void testRead() throws Exception {
+    final int fileSize = 1024;
+    FileSystem client = mLocalCluster.get().getLocalAlluxioMaster().getClient();
+    try (FileOutStream os = client.createFile(new AlluxioURI("/test"))) {
+      os.write(BufferUtils.getIncreasingByteArray((fileSize)));
+    }
+    try (FileInStream is = client.openFile(new AlluxioURI("/test"),
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build())) {
+      byte[] content = ByteStreams.toByteArray(is);
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(fileSize, content));
+    }
+  }
+
+  private void testLocalPageStorePreservesPagesAfterRestart() throws Exception {
     // prepare data in UFS
     try (UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(Configuration.global());
          OutputStream os = ufs.create(PathUtils.concatPath(mUfsPath, "read-from-ufs"))) {
@@ -117,39 +191,6 @@ public class PagedBlockStoreIntegrationTest extends BaseIntegrationTest {
       for (long block : blocks) {
         assertTrue(worker.getBlockStore().hasBlockMeta(block));
       }
-    }
-  }
-
-  @LocalAlluxioClusterResource.Config(confParams = {
-      PropertyKey.Name.WORKER_PAGE_STORE_PAGE_SIZE, "64",
-      PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "16",
-      PropertyKey.Name.WORKER_NETWORK_READER_BUFFER_POOLED, "false"
-  })
-  @Test
-  public void testReadUnpooled() throws Exception {
-    testRead();
-  }
-
-  @LocalAlluxioClusterResource.Config(confParams = {
-      PropertyKey.Name.WORKER_PAGE_STORE_PAGE_SIZE, "64",
-      PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "16",
-      PropertyKey.Name.WORKER_NETWORK_READER_BUFFER_POOLED, "true"
-  })
-  @Test
-  public void testReadPooled() throws Exception {
-    testRead();
-  }
-
-  private void testRead() throws Exception {
-    final int fileSize = 1024;
-    FileSystem client = mLocalCluster.get().getLocalAlluxioMaster().getClient();
-    try (FileOutStream os = client.createFile(new AlluxioURI("/test"))) {
-      os.write(BufferUtils.getIncreasingByteArray((fileSize)));
-    }
-    try (FileInStream is = client.openFile(new AlluxioURI("/test"),
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build())) {
-      byte[] content = ByteStreams.toByteArray(is);
-      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(fileSize, content));
     }
   }
 }
