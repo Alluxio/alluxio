@@ -118,6 +118,12 @@ public interface CacheManager extends AutoCloseable {
       try {
         boolean isShadowCacheEnabled =
             conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_ENABLED);
+        boolean isNettyDataTransmissionEnable =
+            conf.getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
+        // Note that Netty data transmission doesn't support async write
+        if (isNettyDataTransmissionEnable) {
+          options.setIsAsyncWriteEnabled(false);
+        }
         if (isShadowCacheEnabled) {
           return new NoExceptionCacheManager(
               new CacheManagerWithShadowCache(LocalCacheManager.create(options, pageMetaStore),

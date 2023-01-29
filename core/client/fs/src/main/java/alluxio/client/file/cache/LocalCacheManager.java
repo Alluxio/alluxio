@@ -23,8 +23,6 @@ import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.metrics.MetricKey;
@@ -231,9 +229,7 @@ public class LocalCacheManager implements CacheManager {
       return false;
     }
     int originPosition = page.position();
-    boolean nettyTransEnabled =
-        Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
-    if (!mOptions.isAsyncWriteEnabled() || nettyTransEnabled) {
+    if (!mOptions.isAsyncWriteEnabled()) {
       boolean ok = putInternal(pageId, page, cacheContext);
       LOG.debug("put({},{} bytes) exits: {}", pageId, page.position() - originPosition, ok);
       if (!ok) {
