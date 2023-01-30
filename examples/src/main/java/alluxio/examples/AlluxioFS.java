@@ -33,13 +33,14 @@ public class AlluxioFS
       alluxio.exception.AlluxioException,
       java.io.IOException
   {
+    final int bufSize = alluxio.Constants.KB * 4;
     System.out.println("Start Alluxio Native FS write/read");
     FileSystem fs = FileSystem.Factory.get();
     AlluxioURI path = new AlluxioURI("/AlluxioFS.txt");
 
     FileOutStream out = fs.createFile(path);
-    byte[] buffout = new byte[4096];
-    for (int i = 0; i < 4096; i++) {
+    byte[] buffout = new byte[bufSize];
+    for (int i = 0; i < bufSize; i++) {
       buffout[i] = (byte) ('A' + i % 26);
     }
     out.write(buffout);
@@ -47,7 +48,7 @@ public class AlluxioFS
     System.out.println("End write");
 
     FileInStream in = fs.openFile(path);
-    byte[] buffin = new byte[4096];
+    byte[] buffin = new byte[bufSize];
     in.read(buffin);
     in.close();
     System.out.println("End read:" + new String(buffin));

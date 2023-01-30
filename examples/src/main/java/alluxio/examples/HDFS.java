@@ -31,6 +31,7 @@ public class HDFS
   public static void main(String[] args) throws
       java.io.IOException
   {
+    final int bufSize = alluxio.Constants.KB * 4;
     System.out.println("Starting write");
 
     Configuration conf = new Configuration();
@@ -42,15 +43,15 @@ public class HDFS
     String filename = "/HDFS.txt";
 
     FSDataOutputStream out = fs.create(new Path(filename));
-    byte[] buffout = new byte[4096];
-    for (int i = 0; i < 4096; i++) {
+    byte[] buffout = new byte[bufSize];
+    for (int i = 0; i < bufSize; i++) {
       buffout[i] = (byte) ('a' + i % 26);
     }
     out.write(buffout);
     out.close();
 
     FSDataInputStream in = fs.open(new Path(filename));
-    byte[] buffin = new byte[4096];
+    byte[] buffin = new byte[bufSize];
     in.read(buffin);
     in.close();
     System.out.println("Got: " + (new String(buffin)));
