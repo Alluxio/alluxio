@@ -669,14 +669,42 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return false;
     }
 
-    MountPointInfo mountPointInfo = mountPointInfoMap.get(uri.getPath());
+    MountPointInfo mountPointInfo = findClosedMountPointInfo(mountPointInfoMap, uri.getPath());
     if (mountPointInfo == null) {
-      LOG.error("Failed to statfs {}: cannot get mount point info from {}", path, uri.getPath());
+      LOG.warn("Failed to statfs {}: cannot get mount point info from {}", path, uri.getPath());
       return false;
     }
     setSize(stbuf, mountPointInfo.getUfsCapacityBytes(),
         mountPointInfo.getUfsCapacityBytes() - mountPointInfo.getUfsUsedBytes());
     return true;
+  }
+
+  private MountPointInfo findClosedMountPointInfo(Map<String, MountPointInfo> mountPointInfoMap,
+      String path) {
+    Set<String> mountPointInfos = mountPointInfoMap.keySet();
+    int maxLength = 0;
+    MountPointInfo closedMountPoint = null;
+    String[] splitPath = path.split("/");
+    for (String mountPoint : mountPointInfos) {
+      if (path.startsWith(mountPoint) && maxLength < mountPoint.length()) {
+        //double check
+        String[] splitMountPoint = mountPoint.split("/");
+        int minSize = Math.min(splitMountPoint.length, splitPath.length);
+        boolean isFind = true;
+        for (int i = 0; i < minSize; i++) {
+          if (!splitPath[i].equals(splitMountPoint[i])) {
+            isFind = false;
+            break;
+          }
+        }
+        if (!isFind) {
+          continue;
+        }
+        maxLength = mountPoint.length();
+        closedMountPoint = mountPointInfoMap.get(mountPoint);
+      }
+    }
+    return closedMountPoint;
   }
 
   private void setSize(Statvfs stbuf, long capacityBytes, long freeBytes) {
