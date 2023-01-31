@@ -119,16 +119,20 @@ public class RocksBlockMetaStore implements BlockMetaStore {
           .setCreateMissingColumnFamilies(true)
           .setCreateIfMissing(true)
           .setMaxOpenFiles(-1);
+      // This is a field instead of a constant because it depends on the call to RocksDB.loadLibrary().
+      CompressionType compressionType =
+          Configuration.getEnum(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE,
+              CompressionType.class);
       columns.add(new ColumnFamilyDescriptor(BLOCK_META_COLUMN.getBytes(),
           new ColumnFamilyOptions()
               .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by block id
               .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains single value
-              .setCompressionType(CompressionType.NO_COMPRESSION)));
+              .setCompressionType(compressionType)));
       columns.add(new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(),
           new ColumnFamilyOptions()
               .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by block id
               .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains worker info
-              .setCompressionType(CompressionType.NO_COMPRESSION)));
+              .setCompressionType(compressionType)));
     }
 
     mToClose.addAll(columns.stream().map(
