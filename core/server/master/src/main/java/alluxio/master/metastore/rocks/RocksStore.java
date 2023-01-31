@@ -209,10 +209,12 @@ public final class RocksStore implements Closeable {
       // createCheckpoint requires that the directory not already exist.
       FileUtils.deletePathRecursively(mDbCheckpointPath);
       mCheckpoint.createCheckpoint(mDbCheckpointPath);
+      LOG.info("Completed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
     } catch (RocksDBException e) {
       throw new IOException(e);
     }
-
+    LOG.info("Compressing rocksdb checkpoint at {}", mDbCheckpointPath);
+    startNano = System.nanoTime();
     if (mParallelBackup) {
       CheckpointOutputStream out = new CheckpointOutputStream(output,
           CheckpointType.ROCKS_PARALLEL);
@@ -225,7 +227,7 @@ public final class RocksStore implements Closeable {
       TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out, mCompressLevel);
     }
 
-    LOG.info("Completed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
+    LOG.info("Compressed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
     // Checkpoint is no longer needed, delete to save space.
     FileUtils.deletePathRecursively(mDbCheckpointPath);
   }

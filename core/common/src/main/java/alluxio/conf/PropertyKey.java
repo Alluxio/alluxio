@@ -67,6 +67,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.sun.management.OperatingSystemMXBean;
 import io.netty.util.ResourceLeakDetector;
+import org.rocksdb.CompressionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -2560,6 +2561,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + " format defines ten levels of compression, ranging from 0"
                   + " (no compression, but very fast) to 9 (best compression, but slow)."
                   + " Or -1 for the system default compression level.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE =
+      enumBuilder(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE, CompressionType.class)
+          // default value informed by https://github.com/facebook/rocksdb/wiki/Compression
+          .setDefaultValue(CompressionType.NO_COMPRESSION)
+          .setDescription("The compression algorithm that RocksDB uses internally. One of "
+              + "{NO_COMPRESSION SNAPPY_COMPRESSION ZLIB_COMPRESSION BZLIB2_COMPRESSION "
+              + "LZ4_COMPRESSION LZ4HC_COMPRESSION XPRESS_COMPRESSION ZSTD_COMPRESSION "
+              + "DISABLE_COMPRESSION_OPTION}")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -7855,6 +7867,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.dir.block";
     public static final String MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL =
         "alluxio.master.metastore.rocks.checkpoint.compression.level";
+    public static final String MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE =
+        "alluxio.master.metastore.rocks.checkpoint.compression.type";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
         "alluxio.master.metastore.rocks.parallel.backup";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =
