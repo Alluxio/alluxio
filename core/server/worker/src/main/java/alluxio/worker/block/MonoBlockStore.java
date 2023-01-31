@@ -152,6 +152,7 @@ public class MonoBlockStore implements BlockStore {
     Optional<? extends BlockMeta> blockMeta = mLocalBlockStore.getVolatileBlockMeta(blockId);
     if (blockMeta.isPresent()) {
       reader = mLocalBlockStore.createBlockReader(sessionId, blockId, offset);
+      DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.inc();
     } else {
       boolean checkUfs = options != null && (options.hasUfsPath() || options.getBlockInUfsTier());
       if (!checkUfs) {
@@ -160,7 +161,6 @@ public class MonoBlockStore implements BlockStore {
       // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
       reader = createUfsBlockReader(sessionId, blockId, offset, positionShort, options);
     }
-    DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.inc();
     return reader;
   }
 
