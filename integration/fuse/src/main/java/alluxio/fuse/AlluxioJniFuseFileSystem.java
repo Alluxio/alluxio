@@ -681,11 +681,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private MountPointInfo findClosedMountPointInfo(Map<String, MountPointInfo> mountPointInfoMap,
       String path) {
-    Set<String> mountPointInfos = mountPointInfoMap.keySet();
+    MountPointInfo mountPointInfo = mountPointInfoMap.get(path);
+    if (mountPointInfo != null) {
+      return mountPointInfo;
+    }
     int maxLength = 0;
     MountPointInfo closedMountPoint = null;
     String[] splitPath = path.split("/");
-    for (String mountPoint : mountPointInfos) {
+    for (Map.Entry<String, MountPointInfo> entry : mountPointInfoMap.entrySet()) {
+      String mountPoint = entry.getKey();
       if (path.startsWith(mountPoint) && maxLength < mountPoint.length()) {
         //double check
         String[] splitMountPoint = mountPoint.split("/");
@@ -701,7 +705,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           continue;
         }
         maxLength = mountPoint.length();
-        closedMountPoint = mountPointInfoMap.get(mountPoint);
+        closedMountPoint = entry.getValue();
       }
     }
     return closedMountPoint;
