@@ -18,6 +18,8 @@ import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
 import alluxio.client.file.cache.CacheManager;
+import alluxio.client.file.cache.CacheManagerOptions;
+import alluxio.client.file.cache.PageMetaStore;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -77,7 +79,9 @@ public class PagedDoraWorker implements DoraWorker {
     mUfsStreamCache = new UfsInputStreamCache();
     mPageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
     try {
-      mCacheManager = CacheManager.Factory.create(Configuration.global());
+      CacheManagerOptions options = CacheManagerOptions.createForWorker(Configuration.global());
+      PageMetaStore metaStore = PageMetaStore.create(options);
+      mCacheManager = CacheManager.Factory.create(Configuration.global(), options, metaStore);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
