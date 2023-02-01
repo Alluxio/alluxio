@@ -56,5 +56,5 @@ public interface DoraMetaStore {
   /**
    * @return number of metadata records currently stored in this store
    */
-  long size();
+  Optional<Long> size();
 }

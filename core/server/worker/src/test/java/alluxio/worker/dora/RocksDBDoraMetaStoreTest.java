@@ -119,8 +119,8 @@ public class RocksDBDoraMetaStoreTest extends TestCase {
     long end = System.currentTimeMillis();
     System.out.println("PutAndGet()/sec = " + N + "/" + (end - start) + "ms = "
         + (N * 1000 / (end - start)));
-    long s = mTestMetastore.size();
-    System.out.println("Number of key/value pairs = " + s);
+    Optional<Long> s = mTestMetastore.size();
+    System.out.println("Number of key/value pairs = " + (s.isPresent() ? s.get() : 0));
 
     System.out.println("End testPutAndGetMulti");
   }

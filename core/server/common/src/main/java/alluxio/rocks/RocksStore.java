@@ -289,7 +289,7 @@ public final class RocksStore implements Closeable {
   }
 
   /**
-   * helper function to load RockDB configuration options based on property key configurations.
+   * loads RockDB configuration options based on property key configurations.
    *
    * @param cacheSize integer PropertyKey for cache size
    * @param bloomFilter boolean PropertyKey for bloom filter

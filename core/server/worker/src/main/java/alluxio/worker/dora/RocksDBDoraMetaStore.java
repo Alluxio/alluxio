@@ -172,15 +172,15 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
    * @return the estimated number of records
    */
   @Override
-  public long size() {
+  public Optional<Long> size() {
     try {
       String res = db().getProperty(mFileStatusColumn.get(), "rocksdb.estimate-num-keys");
-      long s = Long.parseLong(res);
-      return s;
+      Long s = Long.parseLong(res);
+      return Optional.of(s);
     } catch (RocksDBException e) {
       LOG.error("Cannot getProperty for rocksdb.estimate-num-keys:" + e);
+      return Optional.empty();
     }
-    return 0;
   }
 
   private RocksDB db() {
