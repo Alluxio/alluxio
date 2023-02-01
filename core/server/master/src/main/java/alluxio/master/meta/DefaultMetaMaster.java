@@ -640,11 +640,15 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   public Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap) {
     Map<String, Boolean> result = new HashMap<>();
     int successCount = 0;
+    if (!Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)) {
+      LOG.warn("Dynamic configuration update disabled but attempted, set {} to true to enable it",
+          PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED.getName());
+      return result;
+    }
     for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
       try {
         PropertyKey key = PropertyKey.fromString(entry.getKey());
-        if (Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
-            && key.isDynamic()) {
+        if (key.isDynamic()) {
           Object oldValue = Configuration.get(key);
           Object value = key.parseValue(entry.getValue());
           Configuration.set(key, value, Source.RUNTIME);
@@ -661,7 +665,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         LOG.error("Failed to update property {} to {}", entry.getKey(), entry.getValue(), e);
       }
     }
-    LOG.debug("Update {} properties, succeed {}.", propertiesMap.size(), successCount);
+    LOG.info("Update {} properties, succeed {}.", propertiesMap.size(), successCount);
     return result;
   }
 
