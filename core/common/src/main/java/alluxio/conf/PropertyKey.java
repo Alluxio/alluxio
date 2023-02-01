@@ -5918,6 +5918,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_TTL_ENABLED =
+     booleanBuilder(Name.USER_CLIENT_CACHE_TTL_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to support cache quota.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_TTL_CHECK_INTERVAL_SECONDS =
+     longBuilder(Name.USER_CLIENT_CACHE_TTL_CHECK_INTERVAL_SECONDS)
+          .setDefaultValue(3600)
+          .setDescription("TTL check interval time in seconds.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_TTL_THRESHOLD_SECONDS =
+     longBuilder(Name.USER_CLIENT_CACHE_TTL_THRESHOLD_SECONDS)
+          .setDefaultValue(3600 * 3)
+          .setDescription("TTL threshold time in seconds.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_SIZE =
       listBuilder(Name.USER_CLIENT_CACHE_SIZE)
           .setDefaultValue("512MB")
@@ -8468,6 +8489,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.page.size";
     public static final String USER_CLIENT_CACHE_QUOTA_ENABLED =
         "alluxio.user.client.cache.quota.enabled";
+    public static final String USER_CLIENT_CACHE_TTL_ENABLED =
+            "alluxio.user.client.cache.ttl.enabled";
+    public static final String USER_CLIENT_CACHE_TTL_CHECK_INTERVAL_SECONDS =
+            "alluxio.user.client.cache.ttl.check.interval.seconds";
+    public static final String USER_CLIENT_CACHE_TTL_THRESHOLD_SECONDS =
+            "alluxio.user.client.cache.ttl.threshold.seconds";
     public static final String USER_CLIENT_CACHE_SIZE =
         "alluxio.user.client.cache.size";
     public static final String USER_CLIENT_CACHE_STORE_OVERHEAD =

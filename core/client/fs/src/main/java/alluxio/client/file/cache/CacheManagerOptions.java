@@ -30,6 +30,9 @@ public class CacheManagerOptions {
   private long mPageSize;
   private List<PageStoreOptions> mPageStoreOptions;
   private boolean mQuotaEnabled;
+  private boolean mTtlEnabled;
+  private long mTtlCheckIntervalSeconds;
+  private long mTtlThresholdSeconds;
 
   /**
    * @param conf
@@ -50,6 +53,9 @@ public class CacheManagerOptions {
         .setMaxEvictionRetries(conf.getInt(PropertyKey.USER_CLIENT_CACHE_EVICTION_RETRIES))
         .setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE))
         .setQuotaEnabled(conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED))
+        .setTtlEnabled(conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_TTL_ENABLED))
+        .setTtlCheckIntervalSeconds(conf.getLong(PropertyKey.USER_CLIENT_CACHE_TTL_CHECK_INTERVAL_SECONDS))
+        .setTtlThresholdSeconds(conf.getLong(PropertyKey.USER_CLIENT_CACHE_TTL_THRESHOLD_SECONDS))
         .setCacheEvictorOptions(cacheEvictorOptions)
         .setPageStoreOptions(PageStoreOptions.create(conf));
     return options;
@@ -111,6 +117,28 @@ public class CacheManagerOptions {
    */
   public boolean isQuotaEnabled() {
     return mQuotaEnabled;
+  }
+
+  /**
+   * @return if cache ttl is enabled
+   */
+  public boolean isTtlEnabled() {
+    return mTtlEnabled;
+  }
+
+  /**
+   * @return the check interval of ttl
+   */
+  public long getTtlCheckIntervalSeconds() {
+    return mTtlCheckIntervalSeconds;
+  }
+
+  /**
+   *
+   * @return the time threshold of cache ttl
+   */
+  public long getTtlThresholdSeconds() {
+    return mTtlThresholdSeconds;
   }
 
   /**
@@ -211,6 +239,33 @@ public class CacheManagerOptions {
   public CacheManagerOptions setPageStoreOptions(
       List<PageStoreOptions> pageStoreOptions) {
     mPageStoreOptions = pageStoreOptions;
+    return this;
+  }
+
+  /**
+   * @param isTtlEnabled
+   * @return the updated options
+   */
+  public CacheManagerOptions setTtlEnabled(boolean isTtlEnabled) {
+    mTtlEnabled = isTtlEnabled;
+    return this;
+  }
+
+  /**
+   * @param checkIntervalSeconds
+   * @return the updated options
+   */
+  public CacheManagerOptions setTtlCheckIntervalSeconds(long checkIntervalSeconds) {
+    mTtlCheckIntervalSeconds = checkIntervalSeconds;
+    return this;
+  }
+
+  /**
+   * @param thresholdSeconds
+   * @return the updated options
+   */
+  public CacheManagerOptions setTtlThresholdSeconds(long thresholdSeconds) {
+    mTtlThresholdSeconds = thresholdSeconds;
     return this;
   }
 }
