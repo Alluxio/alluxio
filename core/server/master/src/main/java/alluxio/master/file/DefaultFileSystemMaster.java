@@ -1091,11 +1091,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
       // load metadata for 1 level of descendants, or all descendants if recursive
       LoadMetadataContext loadMetadataContext = LoadMetadataContext.mergeFrom(
-          LoadMetadataPOptions.newBuilder()
-              .setCreateAncestors(true)
+          LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
               .setLoadType(context.getOptions().getLoadMetadataType())
-              .setLoadDescendantType(GrpcUtils.toProto(loadDescendantType))
-              .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+              .setLoadDescendantType(GrpcUtils.toProto(loadDescendantType)).setCommonOptions(
+              FileSystemMasterCommonPOptions.newBuilder()
                   .setTtl(context.getOptions().getCommonOptions().getTtl())
                   .setTtlAction(context.getOptions().getCommonOptions().getTtlAction())));
       boolean loadMetadata = false;
@@ -1187,8 +1186,8 @@ public class DefaultFileSystemMaster extends CoreMaster
           }
           auditContext.setSucceeded(true);
           Metrics.FILE_INFOS_GOT.inc();
-        } // lock inodepath
-      } // end while(run)
+        }
+      }
     }
   }
 
