@@ -337,6 +337,6 @@ org.apache.orc.Reader orc = org.apache.orc.OrcFile.createReader(
 ### Examples in Source Code
 
 There are several example Java programs. They are:
-* [`Alluxio native API`](/examples/src/main/java/alluxio/examples/AlluxioFS.java) 
-* [`Alluxio Hadoop-Compatible File System`](/examples/src/main/java/alluxio/examples/AlluxioHDFS.java)
-* [`HDFS`](/examples/src/main/java/alluxio/examples/HDFS.java)
+* [`Alluxio native API`](https://github.com/Alluxio/alluxio/tree/master/examples/src/main/java/alluxio/examples/AlluxioFS.java)
+* [`Alluxio Hadoop-Compatible File System`](https://github.com/Alluxio/alluxio/tree/master/examples/src/main/java/alluxio/examples/AlluxioHDFS.java)
+* [`HDFS`](https://github.com/Alluxio/alluxio/tree/master/examples/src/main/java/alluxio/examples/HDFS.java)
