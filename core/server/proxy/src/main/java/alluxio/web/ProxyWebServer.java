@@ -167,12 +167,12 @@ public final class ProxyWebServer extends WebServer {
           });
       mServletContextHandler
           .addServlet(s3ServletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
-    } else {
-      addHandler(new CompleteMultipartUploadHandler(mFileSystem, Constants.REST_API_PREFIX));
-      ServletHolder rsServletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
-      mServletContextHandler
-          .addServlet(rsServletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+      return;
     }
+    addHandler(new CompleteMultipartUploadHandler(mFileSystem, Constants.REST_API_PREFIX));
+    ServletHolder rsServletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
+    mServletContextHandler
+        .addServlet(rsServletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
   }
 
   @Override

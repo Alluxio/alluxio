@@ -23,14 +23,7 @@ public abstract class S3BaseTask {
 
   /**
    * Instantiate a S3BaseTask.
-   * @param handler S3Handler object
-   */
-  public S3BaseTask(S3Handler handler) {
-    this(handler, OpType.Unsupported);
-  }
-
-  /**
-   * Instantiate a S3BaseTask.
+   *
    * @param handler S3Handler object
    * @param opType  the enum indicate the S3 API name
    */
@@ -41,6 +34,7 @@ public abstract class S3BaseTask {
 
   /**
    * Return the OpType (S3 API enum).
+   *
    * @return OpType (S3 API enum)
    */
   public OpType getOPType() {
@@ -49,6 +43,7 @@ public abstract class S3BaseTask {
 
   /**
    * Run core S3 API logic from different S3 task.
+   *
    * @return Response object containing common HTTP response properties
    */
   public abstract Response continueTask();
