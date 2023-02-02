@@ -236,13 +236,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   /**
    * Operations added to this buffer are performed concurrently.
+   * Note that {@link #getResult()} method blocks {@link #add(Object)} method.
    *
    * @param <T> input type for operation
    */
   @ThreadSafe
   protected abstract class OperationBuffer<T> {
-    /** A list of inputs in batches to be operated on in parallel. */
-    private final ArrayList<List<T>> mBatches;
     /** A list of the successful operations for each batch. */
     private final ArrayList<Future<List<T>>> mBatchesResult;
     /** Buffer for a batch of inputs. */
@@ -254,7 +253,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * Construct a new {@link OperationBuffer} instance.
      */
     protected OperationBuffer() {
-      mBatches = new ArrayList<>();
       mBatchesResult = new ArrayList<>();
       mCurrentBatchBuffer = new ArrayList<>();
       mEntriesAdded = 0;
@@ -324,11 +322,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      */
     private void submitBatch() throws IOException {
       if (mCurrentBatchBuffer.size() != 0) {
-        int batchNumber = mBatches.size();
-        mBatches.add(new ArrayList<>(mCurrentBatchBuffer));
+        List<T> batch = new ArrayList<>(mCurrentBatchBuffer);
         mCurrentBatchBuffer.clear();
-        List<T> batch = mBatches.get(batchNumber);
-        mBatchesResult.add(batchNumber, mExecutorService.submit(() -> {
+        mBatchesResult.add(mExecutorService.submit(() -> {
           try {
             return operate(batch);
           } catch (IOException e) {
