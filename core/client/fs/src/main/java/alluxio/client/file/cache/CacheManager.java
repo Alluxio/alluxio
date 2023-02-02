@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Predicate;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
@@ -297,4 +298,12 @@ public interface CacheManager extends AutoCloseable {
    * @return true if append was successful
    */
   boolean append(PageId pageId, int appendAt, byte[] page, CacheContext cacheContext);
+
+  /**
+   * Invalidate the pages that match the given predicate.
+   * @param predicate
+   */
+  default void invalidate(Predicate<PageInfo> predicate) {
+    throw new UnsupportedOperationException();
+  }
 }
