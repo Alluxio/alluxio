@@ -93,14 +93,6 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
               context.getRequest().getId(), e.getMessage());
         }
       }
-      /*
-      if (!mWorker.unlockBlock(context.getRequest().getSessionId(), context.getRequest().getId())) {
-        if (reader != null) {
-          mWorker.closeUfsBlock(context.getRequest().getSessionId(), context.getRequest().getId());
-          context.setBlockReader(null);
-        }
-      }
-      */
     }
 
     @Override

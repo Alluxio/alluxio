@@ -11,7 +11,6 @@
 
 package alluxio.worker.page;
 
-import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.DefaultPageMetaStore;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
@@ -117,7 +116,7 @@ public class PagedBlockMetaStore implements PageMetaStore {
   }
 
   /**
-   * @param dirs      dirs
+   * @param dirs dirs
    * @param allocator allocator
    */
   public PagedBlockMetaStore(List<PagedBlockStoreDir> dirs, Allocator allocator) {
@@ -310,31 +309,15 @@ public class PagedBlockMetaStore implements PageMetaStore {
 
   @Override
   @GuardedBy("getLock().writeLock()")
-  public PageInfo removeTempPage(PageId pageId, CacheContext cacheContext)
-      throws PageNotFoundException {
-    if (!cacheContext.isTemporary()) {
-      return removePage(pageId);
-    }
+  public PageInfo removePage(PageId pageId, boolean isTemporary) throws PageNotFoundException {
     PagedBlockMeta blockMeta = getTempBlockMetaOfPage(pageId);
     long blockId = blockMeta.getBlockId();
     LOG.debug("blockMeta.getBlockSize(): " + blockMeta.getBlockSize()
         + ", blockMeta.getDir().getTempBlockCachedBytes(blockId): "
         + blockMeta.getDir().getTempBlockCachedBytes(blockId));
-    PagedBlockStoreDir dir = blockMeta.getDir();
-    PageInfo pageInfo = mDelegate.removeTempPage(pageId, cacheContext);
+    PageInfo pageInfo = mDelegate.removePage(pageId, isTemporary);
     ((PagedTempBlockMeta) blockMeta).setBlockSize(
         blockMeta.getBlockSize() - pageInfo.getPageSize());
-    /*
-    if (dir.getBlockCachedPages(blockId) == 0) { // last page of this block has been removed
-        mTempBlocks.remove(blockMeta);
-      BlockStoreLocation location = dir.getLocation();
-      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-        synchronized (listener) {
-          listener.onRemoveBlock(blockId, location);
-        }
-      }
-    }
-    */
     return pageInfo;
   }
 

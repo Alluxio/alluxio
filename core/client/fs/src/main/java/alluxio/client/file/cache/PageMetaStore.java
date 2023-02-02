@@ -11,7 +11,6 @@
 
 package alluxio.client.file.cache;
 
-import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
 import alluxio.exception.PageNotFoundException;
@@ -93,13 +92,13 @@ public interface PageMetaStore {
   PageInfo getPageInfo(PageId pageId) throws PageNotFoundException;
 
   /**
-   * Removes temporary a page.
+   * Removes a page.
    *
    * @param pageId page identifier
-   * @param cacheContext cache context
+   * @param isTemporary whether is it temporary page or not
    * @return page info removed
    */
-  PageInfo removeTempPage(PageId pageId, CacheContext cacheContext) throws PageNotFoundException;
+  PageInfo removePage(PageId pageId, boolean isTemporary) throws PageNotFoundException;
 
   /**
    * Removes a page.
