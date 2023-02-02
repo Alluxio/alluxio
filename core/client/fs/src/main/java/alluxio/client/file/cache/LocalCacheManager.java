@@ -15,7 +15,6 @@ import static alluxio.client.file.cache.CacheManager.State.NOT_IN_USE;
 import static alluxio.client.file.cache.CacheManager.State.READ_ONLY;
 import static alluxio.client.file.cache.CacheManager.State.READ_WRITE;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import alluxio.client.file.CacheContext;
@@ -151,15 +150,15 @@ public class LocalCacheManager implements CacheManager {
     if (options.isTtlEnabled()) {
       mTtlEnforcerExecutor = Optional.of(newScheduledThreadPool(1));
       mTtlEnforcerExecutor.get().scheduleAtFixedRate(() ->
-              LocalCacheManager.this.invalidate(pageInfo -> {
-        try {
-          return System.currentTimeMillis() - pageInfo.getCreatedTimestamp() >=
-                  options.getTtlThresholdSeconds() * 1000;
-        } catch (Exception ex) {
-          // In case of any exception, do not invalidate the cache
-          return false;
-        }
-      }), 0, options.getTtlCheckIntervalSeconds(), SECONDS);
+          LocalCacheManager.this.invalidate(pageInfo -> {
+            try {
+              return System.currentTimeMillis() - pageInfo.getCreatedTimestamp()
+                  >= options.getTtlThresholdSeconds() * 1000;
+            } catch (Exception ex) {
+              // In case of any exception, do not invalidate the cache
+              return false;
+            }
+          }), 0, options.getTtlCheckIntervalSeconds(), SECONDS);
     } else {
       mTtlEnforcerExecutor = Optional.empty();
     }

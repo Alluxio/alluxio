@@ -54,7 +54,8 @@ public class CacheManagerOptions {
         .setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE))
         .setQuotaEnabled(conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED))
         .setTtlEnabled(conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_TTL_ENABLED))
-        .setTtlCheckIntervalSeconds(conf.getLong(PropertyKey.USER_CLIENT_CACHE_TTL_CHECK_INTERVAL_SECONDS))
+        .setTtlCheckIntervalSeconds(
+            conf.getLong(PropertyKey.USER_CLIENT_CACHE_TTL_CHECK_INTERVAL_SECONDS))
         .setTtlThresholdSeconds(conf.getLong(PropertyKey.USER_CLIENT_CACHE_TTL_THRESHOLD_SECONDS))
         .setCacheEvictorOptions(cacheEvictorOptions)
         .setPageStoreOptions(PageStoreOptions.create(conf));
