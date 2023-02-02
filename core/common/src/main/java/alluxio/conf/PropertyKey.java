@@ -3838,6 +3838,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("Whether a standby master runs a grpc server")
           .setScope(Scope.ALL)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
 
   //
