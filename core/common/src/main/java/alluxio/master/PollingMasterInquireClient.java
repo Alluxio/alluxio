@@ -18,6 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannel;
@@ -140,7 +141,11 @@ public class PollingMasterInquireClient implements MasterInquireClient {
         LOG.debug("Timeout while connecting to {}", address);
       } catch (CancelledException e) {
         LOG.debug("Cancelled while connecting to {}", address);
-      } catch (AlluxioStatusException e) {
+      } catch (NotFoundException e) {
+        // If the gRPC server is enabled but the metadata service isn't enabled,
+        // try the next master address.
+        LOG.debug("Meta service rpc endpoint not found on {}. {}", address, e);
+      }  catch (AlluxioStatusException e) {
         LOG.error("Error while connecting to {}. {}", address, e);
         // Breaking the loop on non filtered error.
         break;

@@ -256,6 +256,33 @@ public final class AlluxioMasterProcessTest {
     startStopTest(master);
   }
 
+  @Test
+  public void startStopStandbyStandbyServer() throws Exception {
+    Configuration.set(PropertyKey.STANDBY_MASTER_GRPC_ENABLED, true);
+    AlluxioMasterProcess master =
+        new AlluxioMasterProcess(new NoopJournalSystem(), new AlwaysStandbyPrimarySelector());
+    master.registerService(
+        RpcServerService.Factory.create(
+            master.getRpcBindAddress(), master, master.getRegistry()));
+    master.registerService(WebServerService.Factory.create(master.getWebBindAddress(), master));
+    master.registerService(MetricsService.Factory.create());
+
+    Thread t = new Thread(() -> {
+      try {
+        master.start();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+    t.start();
+    final int TIMEOUT_MS = 10_000;
+    master.waitForGrpcServerReady(TIMEOUT_MS);
+    startStopTest(master,
+        true,
+        Configuration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED),
+        Configuration.getBoolean(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED));
+  }
+
   private void startStopTest(AlluxioMasterProcess master) throws Exception {
     startStopTest(master, true, true, true);
   }

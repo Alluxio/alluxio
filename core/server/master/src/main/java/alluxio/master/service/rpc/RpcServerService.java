@@ -219,6 +219,9 @@ public class RpcServerService implements SimpleService {
         InetSocketAddress bindAddress,
         MasterProcess masterProcess,
         MasterRegistry masterRegistry) {
+      if (Configuration.getBoolean(PropertyKey.STANDBY_MASTER_GRPC_ENABLED)) {
+        return new RpcServerStandbyGrpcService(bindAddress, masterProcess, masterRegistry);
+      }
       return new RpcServerService(bindAddress, masterProcess, masterRegistry);
     }
   }

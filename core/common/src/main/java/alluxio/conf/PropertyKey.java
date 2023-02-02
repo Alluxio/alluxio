@@ -3833,6 +3833,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether a standby master runs a web server")
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey STANDBY_MASTER_GRPC_ENABLED =
+      booleanBuilder(Name.STANDBY_MASTER_GRPC_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether a standby master runs a grpc server")
+          .setScope(Scope.ALL)
+          .build();
 
   //
   // Throttle
@@ -8119,6 +8125,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.standby.master.metrics.sink.enabled";
     public static final String STANDBY_MASTER_WEB_ENABLED =
         "alluxio.standby.master.web.enabled";
+    public static final String STANDBY_MASTER_GRPC_ENABLED =
+        "alluxio.standby.master.grpc.enabled";
 
     //
     // Worker related properties
