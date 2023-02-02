@@ -1,7 +1,7 @@
 ---
 layout: global
 title: 升级
-nickname: Upgrading
+nickname: 升级
 group: Administration
 priority: 7
 ---
