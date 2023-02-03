@@ -15,11 +15,15 @@ import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.file.dora.DoraCacheClient;
 import alluxio.client.file.dora.WorkerLocationPolicy;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileIncompleteException;
+import alluxio.exception.OpenDirectoryException;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.FileSystemOptionsUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +37,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(DoraCacheFileSystem.class);
   public static final int DUMMY_MOUNT_ID = 0;
   private final DoraCacheClient mDoraClient;
+  private final FileSystemContext mFsContext;
   private final boolean mMetadataCacheEnabled;
 
   /**
@@ -44,6 +49,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public DoraCacheFileSystem(FileSystem fs, FileSystemContext context) {
     super(fs);
     mDoraClient = new DoraCacheClient(context, new WorkerLocationPolicy(2000));
+    mFsContext = context;
     mMetadataCacheEnabled = context.getClusterConf()
         .getBoolean(PropertyKey.DORA_CLIENT_METADATA_CACHE_ENABLED);
   }
@@ -71,18 +77,28 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   @Override
   public FileInStream openFile(URIStatus status, OpenFilePOptions options)
       throws IOException, AlluxioException {
+    AlluxioURI path = new AlluxioURI(status.getPath());
+    if (status.isFolder()) {
+      throw new OpenDirectoryException(path);
+    }
+    if (!status.isCompleted()) {
+      throw new FileIncompleteException(path);
+    }
+    AlluxioConfiguration conf = mFsContext.getPathConf(path);
+    OpenFilePOptions mergedOptions = FileSystemOptionsUtils.openFileDefaults(conf)
+        .toBuilder().mergeFrom(options).build();
     try {
       Protocol.OpenUfsBlockOptions openUfsBlockOptions =
           Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(status.getUfsPath())
               .setOffsetInFile(0).setBlockSize(status.getLength())
-              .setMaxUfsReadConcurrency(options.getMaxUfsReadConcurrency())
-              .setNoCache(!ReadType.fromProto(options.getReadType()).isCache())
+              .setMaxUfsReadConcurrency(mergedOptions.getMaxUfsReadConcurrency())
+              .setNoCache(!ReadType.fromProto(mergedOptions.getReadType()).isCache())
               .setMountId(DUMMY_MOUNT_ID)
               .build();
       return mDoraClient.getInStream(status, openUfsBlockOptions);
     } catch (RuntimeException ex) {
       LOG.debug("Dora client open file error", ex);
-      return mDelegatedFileSystem.openFile(status, options);
+      return mDelegatedFileSystem.openFile(status, mergedOptions);
     }
   }
 }
