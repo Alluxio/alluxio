@@ -11,7 +11,7 @@
 
 package alluxio.master.metastore.rocks;
 
-import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
+import static alluxio.rocks.RocksStore.checkSetTableConfig;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -21,6 +21,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.resource.CloseableIterator;
+import alluxio.rocks.RocksStore;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
@@ -157,7 +158,7 @@ public class RocksBlockMetaStore implements BlockMetaStore {
       }
     }
     mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, opts, columns,
-        Arrays.asList(mBlockMetaColumn, mBlockLocationsColumn));
+        Arrays.asList(mBlockMetaColumn, mBlockLocationsColumn), true);
 
     // metrics
     final long CACHED_GAUGE_TIMEOUT_S =

@@ -11,7 +11,7 @@
 
 package alluxio.master.metastore.rocks;
 
-import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
+import static alluxio.rocks.RocksStore.checkSetTableConfig;
 
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
@@ -29,6 +29,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.resource.CloseableIterator;
+import alluxio.rocks.RocksStore;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -166,7 +167,7 @@ public class RocksInodeStore implements InodeStore {
         .ifPresent(cfg -> columns.get(1).getOptions().setTableFormatConfig(cfg));
 
     mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, opts, columns,
-        Arrays.asList(mInodesColumn, mEdgesColumn));
+        Arrays.asList(mInodesColumn, mEdgesColumn), true);
 
     // metrics
     final long CACHED_GAUGE_TIMEOUT_S =

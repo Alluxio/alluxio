@@ -61,6 +61,8 @@ import alluxio.worker.SessionCleaner;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.dora.DoraMetaStore;
+import alluxio.worker.dora.RocksDBDoraMetaStore;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.page.PagedBlockStore;
@@ -150,6 +152,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private final FuseManager mFuseManager;
 
   private WorkerNetAddress mAddress;
+
+  private RocksDBDoraMetaStore mMetaStore;
 
   /**
    * Constructs a default block worker.
@@ -372,6 +376,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
               (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
               Configuration.global(), ServerUserState.global()));
     }
+
+    String dbDir = Configuration.getString(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR);
+    mMetaStore = new RocksDBDoraMetaStore(dbDir + ".worker." + mWorkerId);
 
     // Mounts the embedded Fuse application
     if (Configuration.getBoolean(PropertyKey.WORKER_FUSE_ENABLED)) {
@@ -630,6 +637,14 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void cleanupSession(long sessionId) {
     mBlockStore.cleanupSession(sessionId);
     Metrics.WORKER_ACTIVE_CLIENTS.dec();
+  }
+
+  /**
+   * Get the Worker's DoraMetaStore.
+   * @return the DoraMetastore of this Worker
+   */
+  public DoraMetaStore getMetaStore() {
+    return mMetaStore;
   }
 
   /**

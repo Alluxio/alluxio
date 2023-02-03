@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.metastore.rocks;
+package alluxio.rocks;
 
 import static org.junit.Assert.assertArrayEquals;
 
@@ -55,7 +55,7 @@ public class RocksStoreTest {
         .setAllowConcurrentMemtableWrite(false);
     RocksStore store =
         new RocksStore("test", dbDir, backupsDir, dbOpts, columnDescriptors,
-            Arrays.asList(testColumn));
+            Arrays.asList(testColumn), true);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RocksDB db = store.getDb();
     int count = 10;
@@ -72,7 +72,7 @@ public class RocksStoreTest {
         .setAllowConcurrentMemtableWrite(false);
     store =
         new RocksStore("test-new", newBbDir, backupsDir, dbOpts, columnDescriptors,
-            Arrays.asList(testColumn));
+            Arrays.asList(testColumn), true);
     store.restoreFromCheckpoint(
         new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
     db = store.getDb();

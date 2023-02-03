@@ -10268,6 +10268,36 @@
       }
     },
     {
+      "protopath": "proto:/:meta:/:dora_meta.proto",
+      "def": {
+        "messages": [
+          {
+            "name": "FileStatus",
+            "fields": [
+              {
+                "id": 1,
+                "name": "fileInfo",
+                "type": "alluxio.grpc.file.FileInfo"
+              },
+              {
+                "id": 2,
+                "name": "ts",
+                "type": "int64"
+              }
+            ]
+          }
+        ],
+        "imports": [
+          {
+            "path": "grpc/file_system_master.proto"
+          }
+        ],
+        "package": {
+          "name": "alluxio.proto.meta"
+        }
+      }
+    },
+    {
       "protopath": "proto:/:meta:/:inode_meta.proto",
       "def": {
         "messages": [
