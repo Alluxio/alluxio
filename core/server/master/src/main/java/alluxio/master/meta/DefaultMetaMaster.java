@@ -20,6 +20,7 @@ import alluxio.collections.IndexedSet;
 import alluxio.conf.Configuration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ReconfigurableRegistry;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.NotFoundException;
@@ -662,6 +663,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       }
     }
     LOG.debug("Update {} properties, succeed {}.", propertiesMap.size(), successCount);
+    if (successCount > 0) {
+      ReconfigurableRegistry.update();
+    }
     return result;
   }
 
