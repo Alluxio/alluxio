@@ -309,15 +309,15 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
    */
   protected boolean fileExistsInAlluxio(AlluxioURI path) {
     try {
-      return sFileSystem.exists(path, ExistsPOptions.newBuilder().setLoadMetadataType(
-          LoadMetadataPType.NEVER).setCommonOptions(
-              FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build())
-          .build());
+      return sFileSystem.exists(path,
+          ExistsPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
+              FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build()).build());
     } catch (IOException e) {
       return false;
     } catch (AlluxioException e) {
       return false;
     }
+  }
 
   /**
    * Checks whether the given file is actually persisted by freeing it, then
