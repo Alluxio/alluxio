@@ -288,7 +288,7 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public BlockReader createBlockReader(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
+      throws BlockDoesNotExistException, IOException {
     LOG.debug("getBlockReader: sessionId={}, blockId={}, lockId={}", sessionId, blockId, lockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       BlockMeta blockMeta = mPageMetaStore.getBlock(blockId).get();

@@ -95,6 +95,15 @@ public interface PageMetaStore {
    * Removes a page.
    *
    * @param pageId page identifier
+   * @param isTemporary whether is it temporary page or not
+   * @return page info removed
+   */
+  PageInfo removePage(PageId pageId, boolean isTemporary) throws PageNotFoundException;
+
+  /**
+   * Removes a page.
+   *
+   * @param pageId page identifier
    * @return page info removed
    */
   PageInfo removePage(PageId pageId) throws PageNotFoundException;

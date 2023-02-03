@@ -11,8 +11,6 @@
 
 package alluxio.worker.page;
 
-import com.google.common.base.Preconditions;
-
 /**
  * Temp block meta for a paged block.
  */
@@ -37,7 +35,6 @@ public class PagedTempBlockMeta extends PagedBlockMeta {
    * @param newSize
    */
   public void setBlockSize(long newSize) {
-    Preconditions.checkState(mBlockSize <= newSize, "Shrinking block, not supported!");
     mBlockSize = newSize;
   }
 }

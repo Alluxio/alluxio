@@ -153,7 +153,7 @@ public class DefaultPageMetaStore implements PageMetaStore {
 
   @Override
   @GuardedBy("getLock()")
-  public PageInfo removePage(PageId pageId) throws PageNotFoundException {
+  public PageInfo removePage(PageId pageId, boolean isTemporary) throws PageNotFoundException {
     if (!mPages.contains(INDEX_PAGE_ID, pageId)) {
       throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }
@@ -162,8 +162,18 @@ public class DefaultPageMetaStore implements PageMetaStore {
     mPages.remove(pageInfo);
     mBytes.addAndGet(-pageInfo.getPageSize());
     Metrics.SPACE_USED.dec(pageInfo.getPageSize());
-    pageInfo.getLocalCacheDir().deletePage(pageInfo);
+    if (isTemporary) {
+      pageInfo.getLocalCacheDir().deleteTempPage(pageInfo);
+    } else {
+      pageInfo.getLocalCacheDir().deletePage(pageInfo);
+    }
     return pageInfo;
+  }
+
+  @Override
+  @GuardedBy("getLock()")
+  public PageInfo removePage(PageId pageId) throws PageNotFoundException {
+    return removePage(pageId, false);
   }
 
   @Override

@@ -170,6 +170,11 @@ public interface PageStoreDir {
 
   /**
    * @param bytes
+   */
+  void deleteTempPage(PageInfo bytes);
+
+  /**
+   * @param bytes
    * @return the bytes used after release
    */
   long deletePage(PageInfo bytes);

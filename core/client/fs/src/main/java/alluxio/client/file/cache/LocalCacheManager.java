@@ -498,9 +498,13 @@ public class LocalCacheManager implements CacheManager {
     }
   }
 
-  @Override
-  public boolean delete(PageId pageId) {
-    LOG.debug("delete({}) enters", pageId);
+  /**
+   * delete the specified page.
+   * @param pageId page identifier
+   * @param isTemporary whether is it temporary or not
+   * @return whether the page is deleted successfully or not
+   */
+  public boolean delete(PageId pageId, boolean isTemporary) {
     if (mState.get() != READ_WRITE) {
       Metrics.DELETE_NOT_READY_ERRORS.inc();
       Metrics.DELETE_ERRORS.inc();
@@ -511,7 +515,7 @@ public class LocalCacheManager implements CacheManager {
       PageInfo pageInfo;
       try (LockResource r1 = new LockResource(mPageMetaStore.getLock().writeLock())) {
         try {
-          pageInfo = mPageMetaStore.removePage(pageId);
+          pageInfo = mPageMetaStore.removePage(pageId, isTemporary);
         } catch (PageNotFoundException e) {
           LOG.error("Failed to delete page {} from metaStore ", pageId, e);
           Metrics.DELETE_NON_EXISTING_PAGE_ERRORS.inc();
@@ -519,7 +523,7 @@ public class LocalCacheManager implements CacheManager {
           return false;
         }
       }
-      boolean ok = deletePage(pageInfo);
+      boolean ok = deletePage(pageInfo, isTemporary);
       LOG.debug("delete({}) exits, success: {}", pageId, ok);
       if (!ok) {
         Metrics.DELETE_STORE_DELETE_ERRORS.inc();
@@ -527,6 +531,11 @@ public class LocalCacheManager implements CacheManager {
       }
       return ok;
     }
+  }
+
+  @Override
+  public boolean delete(PageId pageId) {
+    return delete(pageId, false);
   }
 
   @Override
@@ -543,8 +552,11 @@ public class LocalCacheManager implements CacheManager {
     }
     if (appendAt > 0) {
       byte[] newPage = new byte[appendAt + page.length];
-      get(pageId, 0, appendAt, new ByteArrayTargetBuffer(newPage, 0),  cacheContext);
-      delete(pageId);
+      int readBytes = get(pageId, 0, appendAt,
+          new ByteArrayTargetBuffer(newPage, 0),  cacheContext);
+      boolean success = delete(pageId, cacheContext.isTemporary());
+      LOG.debug("delete pageId: " + pageId
+          + ", appendAt: " + appendAt + ", readBytes: " + readBytes + ", success: " + success);
       System.arraycopy(page, 0, newPage, appendAt, page.length);
       return put(pageId, newPage, cacheContext);
     }
@@ -673,11 +685,12 @@ public class LocalCacheManager implements CacheManager {
    * @param pageInfo page info
    * @return true if successful, false otherwise
    */
-  private boolean deletePage(PageInfo pageInfo) {
+  private boolean deletePage(PageInfo pageInfo, boolean isTemporary) {
     try {
-      pageInfo.getLocalCacheDir().getPageStore().delete(pageInfo.getPageId());
+      pageInfo.getLocalCacheDir().getPageStore().delete(pageInfo.getPageId(), isTemporary);
     } catch (IOException | PageNotFoundException e) {
-      LOG.error("Failed to delete page {} from pageStore", pageInfo.getPageId(), e);
+      LOG.error("Failed to delete page {} (isTemporary: {}) from pageStore.",
+          pageInfo.getPageId(), isTemporary, e);
       return false;
     }
     return true;

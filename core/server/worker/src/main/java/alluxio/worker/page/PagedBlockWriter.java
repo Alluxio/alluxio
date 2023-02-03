@@ -31,7 +31,7 @@ import java.nio.channels.WritableByteChannel;
  */
 public class PagedBlockWriter extends BlockWriter {
   private static final Logger LOG = LoggerFactory.getLogger(PagedBlockWriter.class);
-  private static final CacheContext TEMP_CACHE_CONTEXT = CacheContext.defaults().setTemporary(true);
+  private final CacheContext mTempCacheContext;
 
   private final CacheManager mCacheManager;
   private final long mBlockId;
@@ -39,6 +39,7 @@ public class PagedBlockWriter extends BlockWriter {
   private long mPosition;
 
   PagedBlockWriter(CacheManager cacheManager, long blockId, long pageSize) {
+    mTempCacheContext = CacheContext.defaults().setTemporary(true);
     mCacheManager = cacheManager;
     mBlockId = blockId;
     mPageSize = pageSize;
@@ -53,7 +54,7 @@ public class PagedBlockWriter extends BlockWriter {
       int bytesLeftInPage = getBytesLeftInPage(currentPageOffset, inputBuf.remaining());
       byte[] page = new byte[bytesLeftInPage];
       inputBuf.get(page);
-      if (!mCacheManager.append(pageId, currentPageOffset, page, TEMP_CACHE_CONTEXT)) {
+      if (!mCacheManager.append(pageId, currentPageOffset, page, mTempCacheContext)) {
         throw new InternalRuntimeException("Append failed for block " + mBlockId);
       }
       bytesWritten += bytesLeftInPage;
@@ -71,7 +72,7 @@ public class PagedBlockWriter extends BlockWriter {
       int bytesLeftInPage = getBytesLeftInPage(currentPageOffset, buf.readableBytes());
       byte[] page = new byte[bytesLeftInPage];
       buf.readBytes(page);
-      if (!mCacheManager.append(pageId, currentPageOffset, page, TEMP_CACHE_CONTEXT)) {
+      if (!mCacheManager.append(pageId, currentPageOffset, page, mTempCacheContext)) {
         throw new IOException("Append failed for block " + mBlockId);
       }
       bytesWritten += bytesLeftInPage;
