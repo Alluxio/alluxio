@@ -121,7 +121,8 @@ public final class RmCommand extends AbstractFileSystemCommand {
         DeletePOptions.newBuilder().setRecursive(recursive).setAlluxioOnly(isAlluxioOnly)
             .setDeleteMountPoint(isDeleteMountPoint)
             .setSyncParentNextTime(
-                cl.hasOption(SYNC_PARENT_NEXT_TIME.getLongOpt()))
+                cl.hasOption(SYNC_PARENT_NEXT_TIME.getLongOpt())
+                    && Boolean.parseBoolean(cl.getOptionValue(SYNC_PARENT_NEXT_TIME.getLongOpt())))
             .setUnchecked(cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)).build();
 
     mFileSystem.delete(path, options);

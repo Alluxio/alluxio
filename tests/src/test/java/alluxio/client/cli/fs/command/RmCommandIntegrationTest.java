@@ -145,7 +145,7 @@ public final class RmCommandIntegrationTest extends AbstractFileSystemShellTest 
     Assert.assertTrue(fileExists(testFolder1));
     Assert.assertTrue(fileExists(testFolder2));
     Assert.assertTrue(fileExists(testFile2));
-    sFsShell.run("rm", "-s", "/testFolder1/testFolder2/testFile2");
+    sFsShell.run("rm", "-s", "true", "/testFolder1/testFolder2/testFile2");
     toCompare.append(getCommandOutput(new String[] {"rm", "/testFolder1/testFolder2/testFile2"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
     Assert.assertTrue(fileExists(testFolder1));
