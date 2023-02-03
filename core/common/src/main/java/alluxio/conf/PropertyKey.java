@@ -7274,6 +7274,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+
+  public static final PropertyKey PERMISSION_CHECKER_CLASS =
+      stringBuilder(Name.PERMISSION_CHECKER_CLASS)
+              .setDescription("Permission checker class name.")
+              .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+              .setScope(Scope.SERVER)
+              .build();
+
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -8738,6 +8746,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL =
         "alluxio.hadoop.kerberos.keytab.login.autorenewal";
+
+    public static final String PERMISSION_CHECKER_CLASS =
+            "alluxio.permission.checker.class";
 
     private Name() {} // prevent instantiation
   }
