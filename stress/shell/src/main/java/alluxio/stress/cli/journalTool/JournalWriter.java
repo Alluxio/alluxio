@@ -1,0 +1,4 @@
+package alluxio.stress.cli.journalTool;
+
+public class JournalWriter {
+}
