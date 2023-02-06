@@ -4527,6 +4527,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_REGISTER_TO_ALL_MASTERS =
+      booleanBuilder(Name.WORKER_REGISTER_TO_ALL_MASTERS)
+          .setDefaultValue(false)
+          .setDescription("If enabled, workers will register themselves to all masters, "
+              + "instead of primary master only. This can be used to save the "
+              + "master failover time because workers don't need to report the block locations "
+              + " to the new primary master. Can only be enabled when "
+              + Name.STANDBY_MASTER_GRPC_ENABLED + " is turned on.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey WORKER_ALL_MASTER_REGISTRATION_TIMEOUT_MS =
+      durationBuilder(Name.WORKER_ALL_MASTER_REGISTRATION_TIMEOUT_MS)
+          .setDefaultValue(format("${%s}", Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT))
+          .setDescription("The timeout of all master registration. If the worker can't "
+              + "connect to masters before this interval expires, the worker will exit. "
+              + "This timeout only takes effect when " + Name.WORKER_REGISTER_TO_ALL_MASTERS
+              + " is enabled.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_REMOTE_IO_SLOW_THRESHOLD =
       durationBuilder(Name.WORKER_REMOTE_IO_SLOW_THRESHOLD)
           .setDefaultValue("10s")
@@ -8287,6 +8308,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.register.stream.response.timeout";
     public static final String WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT =
         "alluxio.worker.register.stream.complete.timeout";
+    public static final String WORKER_REGISTER_TO_ALL_MASTERS =
+        "alluxio.worker.register.to.all.masters";
+    public static final String WORKER_ALL_MASTER_REGISTRATION_TIMEOUT_MS =
+        "alluxio.worker.all.master.registration.timeout";
     public static final String WORKER_REMOTE_IO_SLOW_THRESHOLD =
         "alluxio.worker.remote.io.slow.threshold";
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =

@@ -2,6 +2,8 @@ syntax = "proto2";
 
 package alluxio.proto.journal;
 
+import "grpc/common.proto";
+
 // Journal entry messages for the block master.
 
 // next available id: 2
@@ -13,6 +15,7 @@ message BlockContainerIdGeneratorEntry {
 message BlockInfoEntry {
   optional int64 block_id = 1;
   optional int64 length = 2;
+  optional grpc.BlockLocation block_location = 3;
 }
 
 // next available id: 2
