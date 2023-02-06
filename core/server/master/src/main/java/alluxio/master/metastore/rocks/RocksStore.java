@@ -247,6 +247,18 @@ public final class RocksStore implements Closeable {
     FileUtils.deletePathRecursively(mDbCheckpointPath);
   }
 
+  public synchronized void restoreFromCheckpoint(File file) throws IOException {
+    stopDb();
+    File dbPath = new File(mDbPath);
+    org.apache.commons.io.FileUtils.deleteDirectory(dbPath);
+    org.apache.commons.io.FileUtils.moveDirectory(file, dbPath);
+    try {
+      createDb();
+    } catch (RocksDBException e) {
+      throw new IOException(e);
+    }
+  }
+
   /**
    * Restores the database from a checkpoint.
    *

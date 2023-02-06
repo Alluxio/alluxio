@@ -285,6 +285,15 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   }
 
   @Override
+  public void restoreFromCheckpoint(File file) throws IOException {
+    mInodeCache.clear();
+    mEdgeCache.clear();
+    mListingCache.clear();
+    mBackingStore.restoreFromCheckpoint(file);
+    mBackingStoreEmpty = false;
+  }
+
+  @Override
   public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
     mInodeCache.clear();
     mEdgeCache.clear();

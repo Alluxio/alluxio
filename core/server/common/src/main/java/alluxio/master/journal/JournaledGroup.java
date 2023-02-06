@@ -84,6 +84,13 @@ public class JournaledGroup implements Journaled {
   }
 
   @Override
+  public void restoreFromCheckpoint(File directory) throws IOException {
+      for (Journaled j : mJournaled) {
+        j.restoreFromCheckpoint(directory);
+      }
+  }
+
+  @Override
   public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
     JournalUtils.restoreFromCheckpoint(input, mJournaled);
   }
