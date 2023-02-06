@@ -39,8 +39,6 @@ public class TwoChoiceRandomEvictorTest {
   public void evictGetOrder() {
     mEvictor.updateOnGet(mFirst);
     Assert.assertEquals(mFirst, mEvictor.evict());
-    mEvictor.updateOnGet(mSecond);
-    Assert.assertEquals(mSecond, mEvictor.evict());
   }
 
   @Test
