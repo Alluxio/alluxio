@@ -12,6 +12,7 @@
 package alluxio.master.block;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
@@ -514,5 +515,30 @@ public class BlockMasterTest {
     mRegistry.stop();
     assertTrue(mExecutorService.isShutdown());
     assertTrue(mExecutorService.isTerminated());
+  }
+
+  @Test
+  public void generateWorkerId() {
+    WorkerNetAddress address1 = new WorkerNetAddress().setHost("FB");
+    WorkerNetAddress address2 = new WorkerNetAddress().setHost("Ea");
+    WorkerNetAddress address3 = new WorkerNetAddress().setHost("localhost");
+
+    // FB and Ea have the same hash code in java
+    assertEquals(address1.hashCode(), address2.hashCode());
+
+    long id1 = ((DefaultBlockMaster) mBlockMaster).generateWorkerId(address1, false);
+    long id2 = ((DefaultBlockMaster) mBlockMaster).generateWorkerId(address2, false);
+    long id3 = ((DefaultBlockMaster) mBlockMaster).generateWorkerId(address3, false);
+
+    assertNotEquals(id1, id2);
+    assertNotEquals(id2, id3);
+    assertNotEquals(id1, id3);
+
+    long id4 = ((DefaultBlockMaster) mBlockMaster).generateWorkerId(address1, true);
+    long id5 = ((DefaultBlockMaster) mBlockMaster).generateWorkerId(address2, true);
+    long id6 = ((DefaultBlockMaster) mBlockMaster).generateWorkerId(address3, true);
+    assertNotEquals(id4, id5);
+    assertNotEquals(id4, id6);
+    assertNotEquals(id5, id6);
   }
 }

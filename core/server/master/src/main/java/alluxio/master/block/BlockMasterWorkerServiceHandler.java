@@ -218,4 +218,17 @@ public final class BlockMasterWorkerServiceHandler extends
                     + "with LocationBlockIdListEntry objects %s", workerId, entryReport));
             }));
   }
+
+  @Override
+  public void addWorkerId(alluxio.grpc.AddWorkerIdPRequest request,
+                          StreamObserver<alluxio.grpc.AddWorkerIdPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Received AddWorkerId {}", request);
+    }
+    RpcUtils.call(LOG, () -> {
+      mBlockMaster.addWorkerId(request.getWorkerId(),
+          GrpcUtils.fromProto(request.getWorkerNetAddress()));
+      return alluxio.grpc.AddWorkerIdPResponse.getDefaultInstance();
+    }, "addWorkerId", "request=%s", responseObserver, request);
+  }
 }

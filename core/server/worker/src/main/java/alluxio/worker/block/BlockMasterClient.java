@@ -38,6 +38,7 @@ import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
+import alluxio.master.selectionpolicy.MasterSelectionPolicy;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 
@@ -46,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -72,6 +74,17 @@ public class BlockMasterClient extends AbstractMasterClient {
    */
   public BlockMasterClient(MasterClientContext conf) {
     super(conf);
+  }
+
+  /**
+   * Creates a new instance of {@link BlockMasterClient} for the worker and
+   * connects to a specific master.
+   *
+   * @param conf master client configuration
+   * @param address the master address
+   */
+  public BlockMasterClient(MasterClientContext conf, InetSocketAddress address) {
+    super(conf, MasterSelectionPolicy.Factory.specifiedMaster(address));
   }
 
   @Override
@@ -358,5 +371,21 @@ public class BlockMasterClient extends AbstractMasterClient {
     if (ioe.get() != null) {
       throw ioe.get();
     }
+  }
+
+  /**
+   * Notify all masters about the worker ID.
+   * @param workerId the worker id
+   * @param address the worker address
+   */
+  public void addWorkerId(long workerId, WorkerNetAddress address) throws IOException {
+    retryRPC(() -> {
+      LOG.info("Adding workerID to master {} with workerId {}, workerAddress {}",
+          mServerAddress,
+          workerId,
+          address);
+      return mClient.addWorkerId(alluxio.grpc.AddWorkerIdPRequest.newBuilder()
+          .setWorkerId(workerId).setWorkerNetAddress(GrpcUtils.toProto(address)).build());
+    }, LOG, "AddWorkerId", "workerId=%d, workerAddress=%s", workerId, address);
   }
 }

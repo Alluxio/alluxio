@@ -239,7 +239,10 @@ public abstract class AbstractLocalAlluxioCluster {
         FileUtils.createDir(dirPath);
       }
     }
+    formatJournal();
+  }
 
+  protected void formatJournal() throws IOException {
     // Formats the journal
     Format.format(Format.Mode.MASTER, Configuration.global());
   }

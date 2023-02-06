@@ -11,26 +11,26 @@
 
 package alluxio.master;
 
-import alluxio.AlluxioTestDirectory;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.NodeState;
 import alluxio.master.journal.JournalType;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.DeleteOptions;
+import alluxio.multi.process.MasterNetAddress;
+import alluxio.multi.process.PortCoordination;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.WorkerProcess;
 
-import com.google.common.base.Throwables;
-import org.apache.curator.test.TestingServer;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -40,41 +40,50 @@ import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A local Alluxio cluster with multiple masters.
+ * A local Alluxio cluster with multiple masters using embedded journal.
  */
 @NotThreadSafe
-public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCluster {
-  private static final Logger LOG = LoggerFactory.getLogger(MultiMasterLocalAlluxioCluster.class);
+public final class MultiMasterEmbeddedJournalLocalAlluxioCluster
+    extends AbstractLocalAlluxioCluster {
+  private static final Logger LOG = LoggerFactory.getLogger(
+      MultiMasterEmbeddedJournalLocalAlluxioCluster.class);
 
-  private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
 
   private final List<LocalAlluxioMaster> mMasters = new ArrayList<>();
+  private final List<PortCoordination.ReservedPort> mPorts;
 
-  /**
-   * Runs a multi master local Alluxio cluster with a single worker.
-   *
-   * @param numMasters the number masters to run
-   */
-  public MultiMasterLocalAlluxioCluster(int numMasters) {
-    this(numMasters, 1);
-  }
+  private List<MasterNetAddress> mMasterAddresses;
+  private List<String> mJournalFolders = new ArrayList<>();
 
   /**
    * @param numMasters the number of masters to run
    * @param numWorkers the number of workers to run
+   * @param reservedPorts reserved ports
    */
-  public MultiMasterLocalAlluxioCluster(int numMasters, int numWorkers) {
+  public MultiMasterEmbeddedJournalLocalAlluxioCluster(
+      int numMasters, int numWorkers, List<PortCoordination.ReservedPort> reservedPorts)
+      throws IOException {
     super(numWorkers);
     mNumOfMasters = numMasters;
+    mPorts = new ArrayList<>(reservedPorts);
+    mMasterAddresses = generateMasterAddresses(numMasters);
+  }
 
-    try {
-      mCuratorServer =
-              new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk"));
-      LOG.info("Started testing zookeeper: {}", mCuratorServer.getConnectString());
-    } catch (Exception e) {
-      throw Throwables.propagate(e);
+  private List<MasterNetAddress> generateMasterAddresses(int numMasters) throws IOException {
+    List<MasterNetAddress> addrs = new ArrayList<>();
+    for (int i = 0; i < numMasters; i++) {
+      addrs.add(new MasterNetAddress(NetworkAddressUtils
+          .getLocalHostName((int) Configuration
+              .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
+          getNewPort(), getNewPort(), getNewPort()));
     }
+    return addrs;
+  }
+
+  private int getNewPort() throws IOException {
+    Preconditions.checkState(!mPorts.isEmpty(), "Out of ports to reserve");
+    return mPorts.remove(mPorts.size() - 1).getPort();
   }
 
   @Override
@@ -86,14 +95,26 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
             mHostname, mWorkDirectory).entrySet()) {
       Configuration.set(entry.getKey(), entry.getValue());
     }
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, 0);
     Configuration.set(PropertyKey.TEST_MODE, true);
     Configuration.set(PropertyKey.JOB_WORKER_THROTTLING, false);
-    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, 0);
     Configuration.set(PropertyKey.MASTER_WEB_PORT, 0);
     Configuration.set(PropertyKey.PROXY_WEB_PORT, 0);
     Configuration.set(PropertyKey.WORKER_RPC_PORT, 0);
     Configuration.set(PropertyKey.WORKER_WEB_PORT, 0);
+
+    List<String> journalAddresses = new ArrayList<>();
+    List<String> rpcAddresses = new ArrayList<>();
+    for (MasterNetAddress address : mMasterAddresses) {
+      journalAddresses
+          .add(String.format("%s:%d", address.getHostname(), address.getEmbeddedJournalPort()));
+      rpcAddresses.add(String.format("%s:%d", address.getHostname(), address.getRpcPort()));
+    }
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED);
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
+        com.google.common.base.Joiner.on(",").join(journalAddresses));
+    Configuration.set(PropertyKey.MASTER_RPC_ADDRESSES,
+        com.google.common.base.Joiner.on(",").join(rpcAddresses));
   }
 
   @Override
@@ -106,18 +127,12 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     return getLocalAlluxioMaster().getClient(context);
   }
 
-  /**
-   * @return the URI of the master
-   */
-  public String getUri() {
-    return Constants.HEADER + "zk@" + mCuratorServer.getConnectString();
-  }
-
   @Override
   public LocalAlluxioMaster getLocalAlluxioMaster() {
     for (LocalAlluxioMaster master : mMasters) {
       // Return the leader master, if possible.
-      if (master.isServing()) {
+      if (master.isServing()
+          && master.getMasterProcess().mLeaderSelector.getState() == NodeState.PRIMARY) {
         return master;
       }
     }
@@ -125,8 +140,16 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   /**
-   * @param index the worker index
-   * @return the worker process
+   * @param index the index
+   * @return the local alluxio master
+   */
+  public LocalAlluxioMaster getLocalAlluxioMasterByIndex(int index) {
+    return mMasters.get(index);
+  }
+
+  /**
+   * @param index the index
+   * @return the worker process by index
    */
   public WorkerProcess getWorkerProcess(int index) {
     return mWorkers.get(index);
@@ -137,7 +160,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    */
   public int getLeaderIndex() {
     for (int i = 0; i < mNumOfMasters; i++) {
-      if (mMasters.get(i).isServing()) {
+      if (mMasters.get(i).getMasterProcess().mLeaderSelector.getState() == NodeState.PRIMARY) {
         return i;
       }
     }
@@ -200,39 +223,32 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   /**
-   * Waits for a new master to start until a timeout occurs.
+   * Waits for the primary master to start until a timeout occurs.
    *
    * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
    */
-  public void waitForNewMaster(int timeoutMs) throws TimeoutException, InterruptedException {
-    CommonUtils.waitFor("the new leader master to start", () -> getLeaderIndex() != -1,
+  public void waitForPrimaryMasterServing(int timeoutMs)
+      throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("the primary leader master to start",
+        () -> getLeaderIndex() != -1,
         WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-  }
-
-  /**
-   * Stops the cluster's Zookeeper service.
-   */
-  public void stopZk() throws Exception {
-    mCuratorServer.stop();
-  }
-
-  /**
-   * Restarts the cluster's Zookeeper service. It must first be stopped with {@link #stopZk()}.
-   */
-  public void restartZk() throws Exception {
-    mCuratorServer.restart();
   }
 
   @Override
   protected void startMasters() throws IOException {
-    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, true);
-    Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
-    Configuration.set(PropertyKey.ZOOKEEPER_ELECTION_PATH, "/alluxio/election");
-    Configuration.set(PropertyKey.ZOOKEEPER_LEADER_PATH, "/alluxio/leader");
-
     for (int k = 0; k < mNumOfMasters; k++) {
       Configuration.set(PropertyKey.MASTER_METASTORE_DIR,
           PathUtils.concatPath(mWorkDirectory, "metastore-" + k));
+      MasterNetAddress address = mMasterAddresses.get(k);
+      Configuration.set(PropertyKey.LOGGER_TYPE, "MASTER_LOGGER");
+      Configuration.set(PropertyKey.MASTER_HOSTNAME, address.getHostname());
+      Configuration.set(PropertyKey.MASTER_RPC_PORT, address.getRpcPort());
+      Configuration.set(PropertyKey.MASTER_WEB_PORT, address.getWebPort());
+      Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
+          address.getEmbeddedJournalPort());
+      // foobar
+      Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, mJournalFolders.get(k));
+
       final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory, false);
       master.start();
       LOG.info("master NO.{} started, isServing: {}, address: {}", k, master.isServing(),
@@ -241,17 +257,6 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       // Each master should generate a new port for binding
       Configuration.set(PropertyKey.MASTER_RPC_PORT, 0);
       Configuration.set(PropertyKey.MASTER_WEB_PORT, 0);
-    }
-
-    // Create the UFS directory after LocalAlluxioMaster construction, because LocalAlluxioMaster
-    // sets MASTER_MOUNT_TABLE_ROOT_UFS.
-    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(Configuration.global());
-    String path = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    if (ufs.isDirectory(path)) {
-      ufs.deleteExistingDirectory(path, DeleteOptions.defaults().setRecursive(true));
-    }
-    if (!ufs.mkdirs(path)) {
-      throw new IOException("Failed to make folder: " + path);
     }
 
     LOG.info("all {} masters started.", mNumOfMasters);
@@ -274,14 +279,22 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   @Override
   public void stopFS() throws Exception {
     super.stopFS();
-    LOG.info("Stopping testing zookeeper: {}", mCuratorServer.getConnectString());
-    mCuratorServer.close();
   }
 
   @Override
   public void stopMasters() throws Exception {
     for (int k = 0; k < mNumOfMasters; k++) {
       mMasters.get(k).stop();
+    }
+  }
+
+  @Override
+  protected void formatJournal() {
+    for (int i = 0; i < mNumOfMasters; ++i) {
+      String extension = "-" + i;
+      File journalDir = new File(mWorkDirectory, "journal" + extension);
+      journalDir.mkdirs();
+      mJournalFolders.add(journalDir.getAbsolutePath());
     }
   }
 }

@@ -26,6 +26,8 @@ import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.MasterClientContext;
+import alluxio.master.selectionpolicy.MasterSelectionPolicy;
+import alluxio.retry.RetryPolicy;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
@@ -35,9 +37,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -57,6 +61,29 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    */
   public RetryHandlingBlockMasterClient(MasterClientContext conf) {
     super(conf);
+  }
+
+  /**
+   * Creates a new block master client.
+   *
+   * @param conf master client configuration
+   * @param address the master address the client connects to
+   */
+  public RetryHandlingBlockMasterClient(MasterClientContext conf, InetSocketAddress address) {
+    super(conf, MasterSelectionPolicy.Factory.specifiedMaster(address));
+  }
+
+  /**
+   * Creates a new block master client.
+   *
+   * @param conf master client configuration
+   * @param address the master address the client connects to
+   * @param retryPolicy retry policy to use
+   */
+  public RetryHandlingBlockMasterClient(
+      MasterClientContext conf, InetSocketAddress address,
+      Supplier<RetryPolicy> retryPolicy) {
+    super(conf, MasterSelectionPolicy.Factory.specifiedMaster(address), retryPolicy);
   }
 
   @Override
