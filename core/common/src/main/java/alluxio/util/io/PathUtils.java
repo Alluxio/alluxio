@@ -197,9 +197,9 @@ public final class PathUtils {
    * @throws InvalidPathException if the path is the root
    */
   public static String getFirstLevelDirectory(String path) throws InvalidPathException {
-    String[] paths=path.split(AlluxioURI.SEPARATOR);
-    if (paths.length<2) {
-      throw new InvalidPathException(path+" has no first level directory");
+    String[] paths = path.split(AlluxioURI.SEPARATOR);
+    if (paths.length < 2) {
+      throw new InvalidPathException(path + " has no first level directory");
     }
     return AlluxioURI.SEPARATOR + paths[1];
   }

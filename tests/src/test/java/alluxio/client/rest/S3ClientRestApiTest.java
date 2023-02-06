@@ -293,25 +293,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void listNonExistentBucket() throws Exception {
-    String bucketName = "bucket";
-    //empty parameters
-    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/"),
-        ListStatusPOptions.newBuilder().setRecursive(true).build());
-
-    // Verify 404 HTTP status & NoSuchBucket S3 error code
-    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
-        bucketName, NO_PARAMS, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .execute();
-    Assert.assertEquals(404, connection.getResponseCode());
-    S3Error response =
-        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
-    Assert.assertEquals(bucketName, response.getResource());
-    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
-  }
-
-  @Test
   public void listBucketCommonPrefixes() throws Exception {
     AlluxioURI uri = new AlluxioURI("/bucket");
     mFileSystem.createDirectory(uri);

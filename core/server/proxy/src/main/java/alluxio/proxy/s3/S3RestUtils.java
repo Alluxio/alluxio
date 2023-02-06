@@ -214,8 +214,8 @@ public final class S3RestUtils {
   /**
    * Convert an exception to instance of {@link S3Exception}.
    *
-   * @param exception    Exception thrown when process s3 object rest request
-   * @param resource     complete bucket path
+   * @param exception Exception thrown when process s3 object rest request
+   * @param resource complete bucket path
    * @param auditContext the audit context for exception
    * @return instance of {@link S3Exception}
    */

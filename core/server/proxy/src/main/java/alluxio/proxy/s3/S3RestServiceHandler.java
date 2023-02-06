@@ -32,7 +32,6 @@ import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.PMode;
@@ -112,9 +111,9 @@ public final class S3RestServiceHandler {
   public static final String BUCKET_PARAM = "{bucket}/";
   /* Object is after bucket in the URL path */
   public static final String OBJECT_PARAM = "{bucket}/{object:.+}";
-
+  public static final int BUCKET_PATH_CACHE_SIZE = 65536;
   private static final Cache<AlluxioURI, Boolean> BUCKET_PATH_CACHE = CacheBuilder.newBuilder()
-      .maximumSize(65536)
+      .maximumSize(BUCKET_PATH_CACHE_SIZE)
       .expireAfterWrite(
           max(0, Configuration.global().getMs(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS)),
           TimeUnit.MILLISECONDS)
@@ -738,7 +737,6 @@ public final class S3RestServiceHandler {
           // TODO(czhu): verify S3 behaviour when ending an object path with a delimiter
           // - this is a convenience method for the Alluxio fs which does not have a
           //   direct counterpart for S3, since S3 does not have "folders" as actual objects
-//          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
           try {
             CreateDirectoryPOptions dirOptions = CreateDirectoryPOptions.newBuilder()
                 .setRecursive(true)
@@ -832,11 +830,17 @@ public final class S3RestServiceHandler {
           xattrMap.put(S3Constants.CONTENT_TYPE_XATTR_KEY,
               ByteString.copyFrom(contentTypeParam, S3Constants.HEADER_CHARSET));
         }
-        CreateFilePOptions filePOptions = CreateFilePOptions.newBuilder().setRecursive(true)
-            .setMode(PMode.newBuilder().setOwnerBits(Bits.ALL).setGroupBits(Bits.ALL)
-                .setOtherBits(Bits.NONE).build()).setWriteType(S3RestUtils.getS3WriteType())
-            .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-            .setCheckS3BucketPath(true).build();
+        CreateFilePOptions filePOptions =
+            CreateFilePOptions.newBuilder()
+                .setRecursive(true)
+                .setMode(PMode.newBuilder()
+                    .setOwnerBits(Bits.ALL)
+                    .setGroupBits(Bits.ALL)
+                    .setOtherBits(Bits.NONE).build())
+                .setWriteType(S3RestUtils.getS3WriteType())
+                .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                .setCheckS3BucketPath(true)
+                .build();
 
         // not copying from an existing file
         if (copySourceParam == null) {
@@ -1319,9 +1323,7 @@ public final class S3RestServiceHandler {
         S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
             BUCKET_PATH_CACHE);
         try {
-          TaggingData tagData = S3RestUtils.deserializeTags(userFs.getStatus(uri,
-              GetStatusPOptions.newBuilder()
-                  .build()).getXAttr());
+          TaggingData tagData = S3RestUtils.deserializeTags(userFs.getStatus(uri).getXAttr());
           LOG.debug("GetObjectTagging tagData={}", tagData);
           return tagData != null ? tagData : new TaggingData();
         } catch (Exception e) {
@@ -1406,8 +1408,9 @@ public final class S3RestServiceHandler {
     String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
     // Delete the object.
     String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
-    DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(Configuration
-            .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
+    DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(
+            Configuration.get(PropertyKey.PROXY_S3_DELETE_TYPE)
+                .equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
         .build();
     try (S3AuditContext auditContext =
         createAuditContext("deleteObject", user, bucket, object)) {
