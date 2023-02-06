@@ -80,6 +80,7 @@ public abstract class S3BaseTask {
     CreateMultipartUpload(OpTag.LIGHT),
     AbortMultipartUpload(OpTag.LIGHT),
     CompleteMultipartUpload(OpTag.HEAVY),
+
     // Bucket Task
     ListBuckets(OpTag.LIGHT),
     ListMultipartUploads(OpTag.LIGHT),
