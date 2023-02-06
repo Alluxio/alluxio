@@ -57,6 +57,11 @@ public interface DelegatingJournaled extends Journaled {
   }
 
   @Override
+  default void restoreFromCheckpoint(File directory) throws IOException {
+    getDelegate().restoreFromCheckpoint(directory);
+  }
+
+  @Override
   default void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
     getDelegate().restoreFromCheckpoint(input);
   }

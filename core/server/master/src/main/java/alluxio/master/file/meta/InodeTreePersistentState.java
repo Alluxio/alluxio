@@ -843,6 +843,14 @@ public class InodeTreePersistentState implements Journaled {
   }
 
   @Override
+  public void restoreFromCheckpoint(File directory) throws IOException {
+    for (Checkpointed j : Arrays.asList(mInodeStore, mPinnedInodeFileIds,
+        mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter)) {
+      j.restoreFromCheckpoint(directory);
+    }
+  }
+
+  @Override
   public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
     // mTtlBuckets must come after mInodeStore so that it can query the inode store to resolve inode
     // ids to inodes.

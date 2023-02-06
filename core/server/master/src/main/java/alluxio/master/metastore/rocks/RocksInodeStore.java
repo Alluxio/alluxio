@@ -529,6 +529,12 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
+  public void restoreFromCheckpoint(File directory) throws IOException {
+    File subDir = new File(directory, getCheckpointName().toString());
+    mRocksStore.restoreFromCheckpoint(subDir);
+  }
+
+  @Override
   public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
     mRocksStore.restoreFromCheckpoint(input);
   }

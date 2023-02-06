@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
 
 /**
  * Base class for Alluxio classes which can be written to and read from metadata checkpoints.
@@ -41,6 +42,13 @@ public interface Checkpointed {
    * @param output the output stream to write to
    */
   void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException;
+
+  default void restoreFromCheckpoint(File directory) throws IOException {
+    File file = new File(directory, getCheckpointName().toString());
+    try (CheckpointInputStream is = new CheckpointInputStream(Files.newInputStream(file.toPath()))) {
+      restoreFromCheckpoint(is);
+    }
+  }
 
   /**
    * Restores state from a checkpoint.

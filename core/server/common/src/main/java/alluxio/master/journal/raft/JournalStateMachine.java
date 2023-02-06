@@ -24,7 +24,6 @@ import alluxio.master.StateLockOptions;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
-import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -57,6 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -227,7 +227,7 @@ public class JournalStateMachine extends BaseStateMachine {
     try {
       resetState();
       setLastAppliedTermIndex(snapshot.getTermIndex());
-      install(snapshotFile);
+      install(snapshot);
       mSnapshotLastIndex = getLatestSnapshot() != null ? getLatestSnapshot().getIndex() : -1;
       synchronized (mSnapshotManager) {
         mSnapshotManager.notifyAll();
@@ -601,6 +601,11 @@ public class JournalStateMachine extends BaseStateMachine {
       for (Journaled j : getStateMachines()) {
         j.writeToCheckpoint(tempDir);
       }
+      long snapshotId = mNextSequenceNumberToRead - 1;
+      try (DataOutputStream idFile = new DataOutputStream(
+          new FileOutputStream(new File(tempDir, "SNAPSHOT_ID")))) {
+        idFile.writeLong(snapshotId);
+      }
       final File snapshotFile = mStorage.getSnapshotFile(last.getTerm(), last.getIndex());
       try (FileOutputStream outputStream = new FileOutputStream(snapshotFile)) {
         int poolSize = Configuration.getInt(
@@ -623,7 +628,7 @@ public class JournalStateMachine extends BaseStateMachine {
     }
   }
 
-  private void install(File snapshotFile) {
+  private void install(SingleFileSnapshotInfo snapshot) {
     if (mClosed) {
       return;
     }
@@ -632,14 +637,26 @@ public class JournalStateMachine extends BaseStateMachine {
       return;
     }
 
+    File tempDir = new File(mStorage.getSmDir().getParentFile(), String.format("tmp-%s_%s",
+        snapshot.getTerm(), snapshot.getIndex()));
     long snapshotId = 0L;
-    try (Timer.Context ctx = MetricsSystem.timer(MetricKey
-        .MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER.getName()).time();
-         DataInputStream stream =  new DataInputStream(new FileInputStream(snapshotFile))) {
-      snapshotId = stream.readLong();
-      JournalUtils.restoreFromCheckpoint(new CheckpointInputStream(stream), getStateMachines());
+    try (AutoCloseable c = () -> FileUtils.deleteDirectory(tempDir);
+        Timer.Context ctx = MetricsSystem.timer(MetricKey
+        .MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER.getName()).time()) {
+      int poolSize = Configuration.getInt(
+          PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS);
+      ParallelZipUtils.decompress(tempDir.toPath(), snapshot.getFile().getPath().toString(),
+          poolSize);
+      try (DataInputStream is = new DataInputStream(new FileInputStream(new File(tempDir,
+          "SNAPSHOT_ID")))) {
+        snapshotId = is.readLong();
+      }
+      for (Journaled j : getStateMachines()) {
+        j.restoreFromCheckpoint(tempDir);
+      }
     } catch (Exception e) {
-      JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to install snapshot: %s", snapshotId);
+      JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to install snapshot: %s",
+          snapshot.getTermIndex());
       if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
         return;
       }
