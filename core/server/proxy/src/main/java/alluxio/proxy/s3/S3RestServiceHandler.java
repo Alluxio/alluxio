@@ -32,7 +32,6 @@ import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -639,11 +638,9 @@ public final class S3RestServiceHandler {
         }
 
         // Delete the bucket.
-        DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(Configuration
-                .get(PropertyKey.PROXY_S3_DELETE_TYPE)
-                .equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
-            .setCommonOptions(
-                FileSystemMasterCommonPOptions.newBuilder().setCheckS3BucketPath(true).build())
+        DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(
+                Configuration.get(PropertyKey.PROXY_S3_DELETE_TYPE)
+                    .equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
             .build();
         try {
           userFs.delete(new AlluxioURI(bucketPath), options);
@@ -835,16 +832,11 @@ public final class S3RestServiceHandler {
           xattrMap.put(S3Constants.CONTENT_TYPE_XATTR_KEY,
               ByteString.copyFrom(contentTypeParam, S3Constants.HEADER_CHARSET));
         }
-        CreateFilePOptions filePOptions =
-            CreateFilePOptions.newBuilder()
-                .setRecursive(true)
-                .setMode(PMode.newBuilder()
-                    .setOwnerBits(Bits.ALL)
-                    .setGroupBits(Bits.ALL)
-                    .setOtherBits(Bits.NONE).build())
-                .setWriteType(S3RestUtils.getS3WriteType())
-                .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-                .setCheckS3BucketPath(true);
+        CreateFilePOptions filePOptions = CreateFilePOptions.newBuilder().setRecursive(true)
+            .setMode(PMode.newBuilder().setOwnerBits(Bits.ALL).setGroupBits(Bits.ALL)
+                .setOtherBits(Bits.NONE).build()).setWriteType(S3RestUtils.getS3WriteType())
+            .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+            .setCheckS3BucketPath(true).build();
 
         // not copying from an existing file
         if (copySourceParam == null) {

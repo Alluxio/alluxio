@@ -106,6 +106,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -189,11 +190,10 @@ public final class FileSystemMasterClientServiceHandler
       throws AlluxioException, IOException {
 
     String bucketPath = PathUtils.getFirstLevelDirectory(path);
-
     boolean exists = mFileSystemMaster.exists(getAlluxioURI(bucketPath),
         ExistsContext.create(ExistsPOptions.getDefaultInstance().toBuilder()));
     if (!exists) {
-      throw new FileDoesNotExistException("Bucket " + bucketPath
+      throw new InvalidPathException("Bucket " + bucketPath
           + " doesn't exist.");
     }
   }

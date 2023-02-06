@@ -214,17 +214,19 @@ public final class S3RestUtils {
   /**
    * Convert an exception to instance of {@link S3Exception}.
    *
-   * @param exception Exception thrown when process s3 object rest request
-   * @param resource complete bucket path
+   * @param exception    Exception thrown when process s3 object rest request
+   * @param resource     complete bucket path
    * @param auditContext the audit context for exception
    * @return instance of {@link S3Exception}
    */
   public static S3Exception toBucketS3Exception(Exception exception, String resource,
-                                                @Nonnull S3AuditContext auditContext) {
-    if (exception instanceof AccessControlException) {
-      auditContext.setAllowed(false);
+                                                @Nullable S3AuditContext auditContext) {
+    if (auditContext != null) {
+      if (exception instanceof AccessControlException) {
+        auditContext.setAllowed(false);
+      }
+      auditContext.setSucceeded(false);
     }
-    auditContext.setSucceeded(false);
     return toBucketS3Exception(exception, resource);
   }
 
@@ -247,6 +249,8 @@ public final class S3RestUtils {
       return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_KEY);
     } catch (AccessControlException e) {
       return new S3Exception(e, resource, S3ErrorCode.ACCESS_DENIED_ERROR);
+    } catch (InvalidPathException e) {
+      return new S3Exception(e, resource, S3ErrorCode.INVALID_BUCKET_NAME);
     } catch (Exception e) {
       return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
     }
@@ -282,14 +286,11 @@ public final class S3RestUtils {
     try {
       URIStatus status = fs.getStatus(new AlluxioURI(bucketPath));
       if (!status.isFolder()) {
-        throw new InvalidPathException("Bucket " + bucketPath
-            + " is not a valid Alluxio directory.");
+        throw toBucketS3Exception(new InvalidPathException("Bucket " + bucketPath
+            + " doesn't exist."), bucketPath, auditContext);
       }
     } catch (Exception e) {
-      if (auditContext != null) {
-        throw toBucketS3Exception(e, bucketPath, auditContext);
-      }
-      throw toBucketS3Exception(e, bucketPath);
+      throw toBucketS3Exception(e, bucketPath, auditContext);
     }
   }
 

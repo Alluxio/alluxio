@@ -2303,6 +2303,11 @@
                     "value": "NEW_PATHS"
                   }
                 ]
+              },
+              {
+                "id": 8,
+                "name": "checkS3BucketPath",
+                "type": "bool"
               }
             ],
             "maps": [
@@ -2407,7 +2412,7 @@
               },
               {
                 "id": 13,
-                "name": "isS3Operation",
+                "name": "checkS3BucketPath",
                 "type": "bool"
               }
             ],

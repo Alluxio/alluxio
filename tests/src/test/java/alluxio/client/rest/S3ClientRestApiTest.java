@@ -993,7 +993,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     FileUtils.deleteQuietly(
         new File(sResource.get().getAlluxioHome() + "/underFSStorage/" + fullObjectKey));
 
-    // Verify the object is exist in the alluxio.
+    // Verify the object is existent in the alluxio.
     List<FileInfo> fileInfos =
         mFileSystemMaster.listStatus(bucketURI, ListStatusContext.defaults());
     Assert.assertEquals(1, fileInfos.size());
@@ -1009,39 +1009,45 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void putObjectToNonExistingBucket() throws Exception {
-    String bucket = "bucket";
-    String objectKey = "object";
+  public void putObjectToDeletedBucket() throws Exception {
     String object = CommonUtils.randomAlphaNumString(DATA_SIZE);
-    final String fullObjectKey = bucket + AlluxioURI.SEPARATOR + objectKey;
-    AlluxioURI bucketURI = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
-    createBucketRestCall(bucket);
-    // delete the bucket in alluxio and delete it in UFS
-    mFileSystem.delete(bucketURI);
-    try {
-      createObject(fullObjectKey, object.getBytes(), null, null);
-    } catch (AssertionError e) {
-      // expected
-      return;
-    }
-    Assert.fail("create object under non-existent bucket should fail");
+    createBucketRestCall("bucket");
+    // delete the bucket in alluxio and UFS, but the bucket remains in BUCKET_PATH_CACHE
+    mFileSystem.delete(new AlluxioURI("/bucket"));
+    // put object to non-existent bucket
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
+        "bucket/object", NO_PARAMS, HttpMethod.PUT,
+        getDefaultOptionsWithAuth()
+            .setBody(object.getBytes())
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(object.getBytes())))
+        .execute();
+
+    Assert.assertEquals(400, connection.getResponseCode());
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(S3ErrorCode.Name.INVALID_BUCKET_NAME, response.getCode());
   }
 
   @Test
-  public void putDirectoryToNonExistingBucket() throws Exception {
-    String bucket = "bucket";
-    String directory = "directory";
-    String fullObjectKey = bucket + AlluxioURI.SEPARATOR + directory + AlluxioURI.SEPARATOR;
-    createBucketRestCall(bucket);
-    // delete the bucket in alluxio and delete it in UFS
-    mFileSystem.delete(new AlluxioURI(AlluxioURI.SEPARATOR + bucket));
-    try {
-      createObject(fullObjectKey, new byte[] {}, null, null);
-    } catch (AssertionError e) {
-      // expected
-      return;
-    }
-    Assert.fail("create object as alluxio directory under non-existent bucket should fail");
+  public void putDirectoryToDeletedBucket() throws Exception {
+    String object = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    createBucketRestCall("bucket");
+    // delete the bucket in alluxio and UFS, but the bucket remains in BUCKET_PATH_CACHE
+    mFileSystem.delete(new AlluxioURI("/bucket"));
+    // put directory to non-existent bucket
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
+        "bucket/directory/", NO_PARAMS, HttpMethod.PUT,
+        getDefaultOptionsWithAuth()
+            .setBody(new byte[] {})
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(new byte[] {})))
+        .execute();
+
+    Assert.assertEquals(400, connection.getResponseCode());
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(S3ErrorCode.Name.INVALID_BUCKET_NAME, response.getCode());
   }
 
   @Test
