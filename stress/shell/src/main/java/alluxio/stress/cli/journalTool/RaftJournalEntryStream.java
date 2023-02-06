@@ -23,8 +23,8 @@ public class RaftJournalEntryStream extends EntryStream {
   private SegmentedRaftLogInputStream mIn = null;
   private RaftProtos.LogEntryProto mProto = null;
 
-  public RaftJournalEntryStream(String inputDir) {
-    super(inputDir);
+  public RaftJournalEntryStream(String master, long start, long end, String inputDir) {
+    super(master, start, end, inputDir);
     try (
         RaftStorage storage = StorageImplUtils.newRaftStorage(getJournalDir(),
         RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
@@ -42,6 +42,9 @@ public class RaftJournalEntryStream extends EntryStream {
   public Journal.JournalEntry nextEntry() {
     // check current stream is ok, or open next stream. need a condition to stop and return null.
     if (mIn == null) {
+      if (mCurrentPathIndex == mPaths.size()) {
+        return null;
+      }
       LogSegmentPath path = mPaths.get(mCurrentPathIndex);
       try {
         mIn = new SegmentedRaftLogInputStream(path.getPath().toFile(), path.getStartEnd().getStartIndex(), path.getStartEnd().getEndIndex(), path.getStartEnd().isOpen());
@@ -56,32 +59,12 @@ public class RaftJournalEntryStream extends EntryStream {
       if (mProto != null) {
         return processProto(mProto);
       } else {
-
+        mIn = null;
+        return nextEntry();
       }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    return null;
-
-    try {
-      for (LogSegmentPath path: mPaths) {
-        final int entryCount = LogSegment.readSegmentFile(path.getPath().toFile(),
-            path.getStartEnd(), RaftServerConfigKeys.Log.CorruptionPolicy.EXCEPTION,
-            null, (proto) -> {
-              if (proto.hasStateMachineLogEntry()) {
-                try {
-                  Journal.JournalEntry entry = Journal.JournalEntry.parseFrom(
-                      proto.getStateMachineLogEntry().getLogData().asReadOnlyByteBuffer());
-                } catch (Exception e) {
-
-                }
-              }
-            });
-      }
-    } catch (Exception e) {
-      // Do sth
-    }
-
   }
 
   private Journal.JournalEntry processProto(RaftProtos.LogEntryProto proto) {

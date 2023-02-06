@@ -21,19 +21,19 @@ public class JournalReader {
 
   private String mJournalPath;
   private JournalType mJournalType;
-  private AbstractJournalDumper journalDumper;
+  private EntryStream mStream;
 
 
-  public JournalReader() {
+  public JournalReader(String mMaster, long mStart, long mEnd, String mInputDir) {
     switch (mJournalType) {
       case UFS:
-        journalDumper = new UfsJournalDumper(sMaster, sStart, sEnd, sOutputDir, sInputDir);
+        mStream = new UfsJournalEntryStream(mMaster, mStart, mEnd, mInputDir);
         break;
       case EMBEDDED:
-        journalDumper = new RaftJournalDumper(sMaster, sStart, sEnd, sOutputDir, sInputDir);
+        mStream = new RaftJournalEntryStream(mMaster, mStart, mEnd, mInputDir);
         break;
       default:
-        System.err.printf("Unsupported journal type: %s%n", journalType.name());
+        System.err.printf("Unsupported journal type: %s%n", mJournalType.name());
         return;
     }
   }
