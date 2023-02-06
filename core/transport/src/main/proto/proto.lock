@@ -2696,6 +2696,11 @@
                 "id": 5,
                 "name": "loadMetadataOnly",
                 "type": "bool"
+              },
+              {
+                "id": 6,
+                "name": "disableAreDescendantsLoadedCheck",
+                "type": "bool"
               }
             ]
           },

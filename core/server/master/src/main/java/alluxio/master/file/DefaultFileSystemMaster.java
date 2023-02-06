@@ -27,8 +27,6 @@ import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.Reconfigurable;
-import alluxio.conf.ReconfigurableRegistry;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
@@ -235,7 +233,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public class DefaultFileSystemMaster extends CoreMaster
-    implements FileSystemMaster, DelegatingJournaled, Reconfigurable {
+    implements FileSystemMaster, DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
 
@@ -694,31 +692,31 @@ public class DefaultFileSystemMaster extends CoreMaster
       if (blockIntegrityCheckInterval > 0) { // negative or zero interval implies disabled
         getExecutorService().submit(
             new HeartbeatThread(HeartbeatContext.MASTER_BLOCK_INTEGRITY_CHECK,
-                new BlockIntegrityChecker(this), blockIntegrityCheckInterval,
+                new BlockIntegrityChecker(this), () ->
+                Configuration.getMs(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL),
                 Configuration.global(), mMasterContext.getUserState()));
       }
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
               new InodeTtlChecker(this, mInodeTree),
-              Configuration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS),
+              () -> Configuration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS),
               Configuration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
               new LostFileDetector(this, mBlockMaster, mInodeTree),
-              Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL),
+              () -> Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL),
               Configuration.global(), mMasterContext.getUserState()));
       mReplicationCheckHeartbeatThread = new HeartbeatThread(
           HeartbeatContext.MASTER_REPLICATION_CHECK,
           new alluxio.master.file.replication.ReplicationChecker(mInodeTree, mBlockMaster,
               mSafeModeManager, mJobMasterClientPool),
-          Configuration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS),
+          () -> Configuration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS),
           Configuration.global(), mMasterContext.getUserState());
-      ReconfigurableRegistry.register(this);
       getExecutorService().submit(mReplicationCheckHeartbeatThread);
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER,
               new PersistenceScheduler(),
-              Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS),
+              () -> Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS),
               Configuration.global(), mMasterContext.getUserState()));
       mPersistCheckerPool =
           new java.util.concurrent.ThreadPoolExecutor(PERSIST_CHECKER_POOL_THREADS,
@@ -729,12 +727,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_CHECKER,
               new PersistenceChecker(),
-              Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS),
+              () -> Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS),
               Configuration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_METRICS_TIME_SERIES,
               new TimeSeriesRecorder(),
-              Configuration.getMs(PropertyKey.MASTER_METRICS_TIME_SERIES_INTERVAL),
+              () -> Configuration.getMs(PropertyKey.MASTER_METRICS_TIME_SERIES_INTERVAL),
               Configuration.global(), mMasterContext.getUserState()));
       if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("AUDIT_LOG");
@@ -747,7 +745,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       if (Configuration.getBoolean(PropertyKey.UNDERFS_CLEANUP_ENABLED)) {
         getExecutorService().submit(
             new HeartbeatThread(HeartbeatContext.MASTER_UFS_CLEANUP, new UfsCleaner(this),
-                Configuration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL),
+                () -> Configuration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL),
                 Configuration.global(), mMasterContext.getUserState()));
       }
       mAccessTimeUpdater.start();
@@ -797,7 +795,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       Thread.currentThread().interrupt();
       LOG.warn("Failed to wait for active sync executor to shut down.");
     }
-    ReconfigurableRegistry.unregister(this);
   }
 
   @Override
@@ -1020,7 +1017,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       mBlockMaster.removeBlocks(fileInfo.getBlockIds(), true);
       // Commit all the file blocks (without locations) so the metadata for the block exists.
       commitBlockInfosForFile(
-          fileInfo.getBlockIds(), fileInfo.getLength(), fileInfo.getBlockSizeBytes());
+          fileInfo.getBlockIds(), fileInfo.getLength(), fileInfo.getBlockSizeBytes(), null);
       // Reset file-block-info list with the new list.
       try {
         fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
@@ -1124,7 +1121,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             boolean isLoaded = true;
             if (inodePath.fullPathExists()) {
               inode = inodePath.getInode();
-              if (inode.isDirectory()
+              if (inode.isDirectory() && !context.getOptions().getDisableAreDescendantsLoadedCheck()
                   && context.getOptions().getLoadMetadataType() != LoadMetadataPType.ALWAYS) {
                 InodeDirectory inodeDirectory = inode.asDirectory();
                 isLoaded = inodeDirectory.isDirectChildrenLoaded();
@@ -1761,7 +1758,8 @@ public class DefaultFileSystemMaster extends CoreMaster
 
     if (inode.isPersisted()) {
       // Commit all the file blocks (without locations) so the metadata for the block exists.
-      commitBlockInfosForFile(entry.getSetBlocksList(), length, inode.getBlockSizeBytes());
+      commitBlockInfosForFile(entry.getSetBlocksList(), length, inode.getBlockSizeBytes(),
+          rpcContext.getJournalContext());
       // The path exists in UFS, so it is no longer absent
       mUfsAbsentPathCache.processExisting(inodePath.getUri());
     }
@@ -1807,13 +1805,18 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param blockIds the list of block ids
    * @param fileLength length of the file in bytes
    * @param blockSize the block size in bytes
+   * @param context the journal context, if null a new context will be created
    */
-  private void commitBlockInfosForFile(List<Long> blockIds, long fileLength, long blockSize)
-      throws UnavailableException {
+  private void commitBlockInfosForFile(List<Long> blockIds, long fileLength, long blockSize,
+      @Nullable JournalContext context) throws UnavailableException {
     long currLength = fileLength;
     for (long blockId : blockIds) {
       long currentBlockSize = Math.min(currLength, blockSize);
-      mBlockMaster.commitBlockInUFS(blockId, currentBlockSize);
+      if (context != null) {
+        mBlockMaster.commitBlockInUFS(blockId, currentBlockSize, context);
+      } else {
+        mBlockMaster.commitBlockInUFS(blockId, currentBlockSize);
+      }
       currLength -= currentBlockSize;
     }
   }
@@ -3993,18 +3996,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     return sync.sync();
   }
 
-  @Override
-  public void update() {
-    if (mReplicationCheckHeartbeatThread != null) {
-      long newValue = Configuration.getMs(
-          PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS);
-      mReplicationCheckHeartbeatThread.updateIntervalMs(
-          newValue);
-      LOG.info("The interval of {} updated to {}",
-          HeartbeatContext.MASTER_REPLICATION_CHECK, newValue);
-    }
-  }
-
   @FunctionalInterface
   interface PermissionCheckFunction {
 
@@ -5139,6 +5130,12 @@ public class DefaultFileSystemMaster extends CoreMaster
           inodeTree::getPinnedSize);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_TO_PERSIST.getName(),
           () -> inodeTree.getToBePersistedIds().size());
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_REPLICATION_LIMITED_FILES.getName(),
+          () -> inodeTree.getReplicationLimitedFileIds().size());
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TTL_BUCKETS.getName(),
+          () -> inodeTree.getTtlBuckets().getNumBuckets());
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TTL_INODES.getName(),
+          () -> inodeTree.getTtlBuckets().getNumInodes());
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_PATHS.getName(),
           inodeTree::getInodeCount);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILE_SIZE.getName(),

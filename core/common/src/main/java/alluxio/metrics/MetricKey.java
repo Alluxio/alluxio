@@ -322,12 +322,14 @@ public final class MetricKey implements Comparable<MetricKey> {
   // Master file statistics
   public static final MetricKey MASTER_FILES_PINNED =
       new Builder("Master.FilesPinned")
-          .setDescription("Total number of currently pinned files")
+          .setDescription("Total number of currently pinned files. "
+              + "Note that IDs for these files are stored in memory.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_FILES_TO_PERSIST =
       new Builder("Master.FilesToBePersisted")
-          .setDescription("Total number of currently to be persisted files")
+          .setDescription("Total number of currently to be persisted files."
+              + " Note that the IDs for these files are stored in memory.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_FILE_SIZE =
@@ -419,6 +421,20 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Master.BlockReplicaCount")
           .setDescription("Total number of block replicas in Alluxio")
           .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_TTL_BUCKETS =
+      new Builder("Master.TTLBuckets")
+          .setDescription("The number of TTL buckets at the master. Note that these buckets"
+              + " are stored in memory.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_TTL_INODES =
+      new Builder("Master.TTLInodes")
+          .setDescription("The total number of inodes contained in TTL buckets at the mater."
+              + " Note that these inodes are stored in memory.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey MASTER_INODE_HEAP_SIZE =
       new Builder("Master.InodeHeapSize")
@@ -615,6 +631,13 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_MOUNT_OPS =
       new Builder("Master.MountOps")
           .setDescription("Total number of Mount operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_REPLICATION_LIMITED_FILES =
+      new Builder("Master.ReplicationLimitedFiles")
+          .setDescription("Number of files that have a replication count set to a "
+              + "non-default value. Note that these files have IDs that are stored "
+              + "in memory.")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_RENAME_PATH_OPS =

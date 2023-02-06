@@ -13,8 +13,13 @@ package alluxio.master;
 
 import alluxio.Server;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * This interface contains common operations for all masters.
@@ -29,4 +34,12 @@ public interface Master extends Journaled, Server<Boolean> {
    * @return a master context
    */
   MasterContext getMasterContext();
+
+  /**
+   * @return a map from service names to gRPC services that serve RPCs for this master,
+   * if the master is a standby master.
+   */
+  default Map<ServiceType, GrpcService> getStandbyServices() {
+    return Collections.emptyMap();
+  }
 }

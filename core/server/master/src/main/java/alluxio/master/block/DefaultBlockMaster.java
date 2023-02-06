@@ -483,7 +483,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     if (isLeader) {
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
-          (int) Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL),
+          () -> Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL),
           Configuration.global(), mMasterContext.getUserState()));
     }
 
@@ -491,7 +491,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_WORKER_REGISTER_SESSION_CLEANER,
             new WorkerRegisterStreamGCExecutor(),
-            (int) Configuration.getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT),
+            () -> Configuration.getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT),
             Configuration.global(), mMasterContext.getUserState()));
   }
 
@@ -947,10 +947,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void commitBlockInUFS(long blockId, long length) throws UnavailableException {
+  public void commitBlockInUFS(long blockId, long length, JournalContext journalContext) {
     LOG.debug("Commit block in ufs. blockId: {}, length: {}", blockId, length);
-    try (JournalContext journalContext = createJournalContext();
-         LockResource r = lockBlock(blockId)) {
+    try (LockResource r = lockBlock(blockId)) {
       if (mBlockMetaStore.getBlock(blockId).isPresent()) {
         // Block metadata already exists, so do not need to create a new one.
         return;
@@ -1570,7 +1569,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       }
       for (MasterWorkerInfo worker : mLostWorkers) {
         try (LockResource r = worker.lockWorkerMeta(
-                EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+            EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
           final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
           if ((lastUpdate - masterWorkerTimeoutMs) > masterWorkerDeleteTimeoutMs) {
             LOG.error("The worker {}({}) timed out after {}ms without a heartbeat! "
@@ -1613,6 +1612,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private void processLostWorker(MasterWorkerInfo worker) {
     mLostWorkers.add(worker);
     mWorkers.remove(worker);
+    // If a worker is gone before registering, avoid it getting stuck in mTempWorker forever
+    mTempWorkers.remove(worker);
     WorkerNetAddress workerAddress = worker.getWorkerAddress();
     for (Consumer<Address> function : mWorkerLostListeners) {
       function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
@@ -1626,6 +1627,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private void deleteWorkerMetadata(MasterWorkerInfo worker) {
     mWorkers.remove(worker);
     mLostWorkers.remove(worker);
+    // If a worker is gone before registering, avoid it getting stuck in mTempWorker forever
     mTempWorkers.remove(worker);
     WorkerNetAddress workerAddress = worker.getWorkerAddress();
     for (Consumer<Address> function : mWorkerDeleteListeners) {

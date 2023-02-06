@@ -27,6 +27,7 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.basedir}/build</build.path>
     <failIfNoTests>false</failIfNoTests>
+    <hadoop.version>3.2.1</hadoop.version>
   </properties>
 
   <dependencies>
@@ -50,22 +51,26 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-hdfs</artifactId>
+      <version>${hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
-
-    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client-fs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-common</artifactId>
-      <version>${project.version}</version>
+      <artifactId>alluxio-shaded-client</artifactId>
+      <version>2.9.0</version>
     </dependency>
   </dependencies>
 </project>
