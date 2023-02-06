@@ -19,6 +19,7 @@ import alluxio.util.StreamUtils;
 
 import com.google.common.collect.Lists;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -68,6 +69,13 @@ public class JournaledGroup implements Journaled {
   @Override
   public CheckpointName getCheckpointName() {
     return mCheckpointName;
+  }
+
+  @Override
+  public void writeToCheckpoint(File directory) throws IOException, InterruptedException {
+    for (Journaled j : mJournaled) {
+      j.writeToCheckpoint(directory);
+    }
   }
 
   @Override

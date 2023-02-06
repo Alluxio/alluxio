@@ -130,9 +130,12 @@ public final class JournalUtils {
     OutputChunked chunked = new OutputChunked(
         new CheckpointOutputStream(output, CheckpointType.COMPOUND), 64 * Constants.KB);
     for (Checkpointed component : components) {
+      long start = System.currentTimeMillis();
       chunked.writeString(component.getCheckpointName().toString());
       component.writeToCheckpoint(chunked);
       chunked.endChunks();
+      LOG.info("Checkpointed {} in {}ms", component.getCheckpointName(),
+          System.currentTimeMillis() - start);
     }
     chunked.flush();
   }

@@ -52,6 +52,7 @@ import org.rocksdb.WriteOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -514,6 +515,12 @@ public class RocksInodeStore implements InodeStore {
   @Override
   public CheckpointName getCheckpointName() {
     return CheckpointName.ROCKS_INODE_STORE;
+  }
+
+  @Override
+  public void writeToCheckpoint(File directory) throws IOException, InterruptedException {
+    File subDir = new File(directory, getCheckpointName().toString());
+    mRocksStore.writeToCheckpoint(subDir);
   }
 
   @Override

@@ -11,6 +11,8 @@
 
 package alluxio.master.journal.checkpoint;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -22,6 +24,13 @@ public interface Checkpointed {
    * @return a name for this checkpointed class
    */
   CheckpointName getCheckpointName();
+
+  default void writeToCheckpoint(File directory) throws IOException, InterruptedException {
+    File file = new File(directory, getCheckpointName().toString());
+    try (FileOutputStream outputStream = new FileOutputStream(file)) {
+      writeToCheckpoint(outputStream);
+    }
+  }
 
   /**
    * Writes a checkpoint of all state to the given output stream.
