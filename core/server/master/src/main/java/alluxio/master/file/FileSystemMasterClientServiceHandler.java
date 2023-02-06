@@ -97,6 +97,7 @@ import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.recorder.Recorder;
 import alluxio.underfs.UfsMode;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
@@ -184,11 +185,27 @@ public final class FileSystemMasterClientServiceHandler
     }, "CompleteFile", "request=%s", responseObserver, request);
   }
 
+  private void checkBucketPathExists(String path)
+      throws AlluxioException, IOException {
+
+    String bucketPath = PathUtils.getFirstLevelDirectory(path);
+
+    boolean exists = mFileSystemMaster.exists(getAlluxioURI(bucketPath),
+        ExistsContext.create(ExistsPOptions.getDefaultInstance().toBuilder()));
+    if (!exists) {
+      throw new FileDoesNotExistException("Bucket " + bucketPath
+          + " doesn't exist.");
+    }
+  }
+
   @Override
   public void createDirectory(CreateDirectoryPRequest request,
       StreamObserver<CreateDirectoryPResponse> responseObserver) {
     CreateDirectoryPOptions options = request.getOptions();
     RpcUtils.call(LOG, () -> {
+      if (request.getOptions().getCheckS3BucketPath()) {
+        checkBucketPathExists(request.getPath());
+      }
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.createDirectory(pathUri, CreateDirectoryContext.create(options.toBuilder())
           .withTracker(new GrpcCallTracker(responseObserver)));
@@ -200,18 +217,10 @@ public final class FileSystemMasterClientServiceHandler
   public void createFile(CreateFilePRequest request,
       StreamObserver<CreateFilePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      AlluxioURI pathUri = getAlluxioURI(request.getPath());
-      if (request.getOptions().getIsS3Operation()) {
-        String bucketPath =
-            AlluxioURI.SEPARATOR + request.getPath().split(AlluxioURI.SEPARATOR, 3)[1];
-        boolean exists = mFileSystemMaster.exists(getAlluxioURI(bucketPath),
-            ExistsContext.create(ExistsPOptions.getDefaultInstance().toBuilder()));
-        if (exists == false) {
-          throw new InvalidPathException("Bucket " + bucketPath
-              + " is not a valid Alluxio directory.");
-        }
+      if (request.getOptions().getCheckS3BucketPath()) {
+        checkBucketPathExists(request.getPath());
       }
-
+      AlluxioURI pathUri = getAlluxioURI(request.getPath());
       return CreateFilePResponse.newBuilder()
           .setFileInfo(GrpcUtils.toProto(mFileSystemMaster.createFile(pathUri,
               CreateFileContext.create(request.getOptions().toBuilder())
