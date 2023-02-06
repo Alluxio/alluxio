@@ -29,14 +29,13 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.LockResource;
-import alluxio.util.FormatUtils;
-import alluxio.util.LogUtils;
+import alluxio.util.ParallelZipUtils;
 import alluxio.util.StreamUtils;
 import alluxio.util.logging.SamplingLogger;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
-import org.apache.ratis.io.MD5Hash;
+import org.apache.commons.io.FileUtils;
 import org.apache.ratis.proto.RaftProtos;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftGroup;
@@ -54,17 +53,16 @@ import org.apache.ratis.statemachine.impl.BaseStateMachine;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.apache.ratis.util.LifeCycle;
-import org.apache.ratis.util.MD5FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -590,57 +588,33 @@ public class JournalStateMachine extends BaseStateMachine {
     LOG.debug("Calling snapshot");
     Preconditions.checkState(!mSnapshotting, "Cannot call snapshot multiple times concurrently");
     mSnapshotting = true;
-    try (Timer.Context ctx = MetricsSystem
-        .timer(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER.getName()).time()) {
+    TermIndex last = getLastAppliedTermIndex();
+    File tempDir = new File(mStorage.getSmDir().getParentFile(), String.format("tmp-%s_%s",
+        last.getTerm(), last.getIndex()));
+    if (!tempDir.isDirectory() && !tempDir.mkdir()) {
+      return RaftLog.INVALID_LOG_INDEX;
+    }
+    try (AutoCloseable c = () -> FileUtils.deleteDirectory(tempDir);
+         Timer.Context ctx = MetricsSystem.timer(
+             MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER.getName()).time()) {
       // The start time of the most recent snapshot
-      long lastSnapshotStartTime = System.currentTimeMillis();
-      long snapshotId = mNextSequenceNumberToRead - 1;
-      TermIndex last = getLastAppliedTermIndex();
-      File tempFile;
-      try {
-        tempFile = RaftJournalUtils.createTempSnapshotFile(mStorage);
-      } catch (IOException e) {
-        LogUtils.warnWithException(LOG, "Failed to create temp snapshot file", e);
-        return RaftLog.INVALID_LOG_INDEX;
+      for (Journaled j : getStateMachines()) {
+        j.writeToCheckpoint(tempDir);
       }
-      LOG.info("Taking a snapshot to file {}", tempFile);
       final File snapshotFile = mStorage.getSnapshotFile(last.getTerm(), last.getIndex());
-      try (DataOutputStream outputStream = new DataOutputStream(new FileOutputStream(tempFile))) {
-        outputStream.writeLong(snapshotId);
-        JournalUtils.writeToCheckpoint(outputStream, getStateMachines());
-      } catch (Exception e) {
-        tempFile.delete();
-        LogUtils.warnWithException(LOG,
-            "Failed to write snapshot {} to file {}", snapshotId, tempFile, e);
-        return RaftLog.INVALID_LOG_INDEX;
+      try (FileOutputStream outputStream = new FileOutputStream(snapshotFile)) {
+        int poolSize = Configuration.getInt(
+            PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS);
+        int compressionLevel = Configuration.getInt(
+            PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
+        ParallelZipUtils.compress(Paths.get(tempDir.getAbsolutePath()), outputStream, poolSize,
+            compressionLevel);
       }
-      try {
-        final MD5Hash digest = MD5FileUtil.computeMd5ForFile(tempFile);
-        LOG.info("Saving digest for snapshot file {}", snapshotFile);
-        MD5FileUtil.saveMD5File(snapshotFile, digest);
-        LOG.info("Renaming a snapshot file {} to {}", tempFile, snapshotFile);
-        if (!tempFile.renameTo(snapshotFile)) {
-          tempFile.delete();
-          LOG.warn("Failed to rename snapshot from {} to {}", tempFile, snapshotFile);
-          return RaftLog.INVALID_LOG_INDEX;
-        }
-        LOG.info("Completed snapshot with size {} up to SN {} in {}ms",
-            FormatUtils.getSizeFromBytes(snapshotFile.length()),
-            snapshotId, System.currentTimeMillis() - lastSnapshotStartTime);
-      } catch (Exception e) {
-        tempFile.delete();
-        LogUtils.warnWithException(LOG,
-            "Failed to complete snapshot: {} - {}", snapshotId, snapshotFile, e);
-        return RaftLog.INVALID_LOG_INDEX;
-      }
-      try {
-        mStorage.loadLatestSnapshot();
-      } catch (Exception e) {
-        snapshotFile.delete();
-        LogUtils.warnWithException(LOG, "Failed to refresh latest snapshot: {}", snapshotId, e);
-        return RaftLog.INVALID_LOG_INDEX;
-      }
+      mStorage.loadLatestSnapshot();
       return last.getIndex();
+    } catch (Exception e) {
+      LOG.error("error taking snapshot", e);
+      return RaftLog.INVALID_LOG_INDEX;
     } finally {
       mSnapshotting = false;
       synchronized (mSnapshotManager) {

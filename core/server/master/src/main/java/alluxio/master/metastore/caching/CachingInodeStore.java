@@ -51,6 +51,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
@@ -263,6 +264,15 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   @Override
   public CheckpointName getCheckpointName() {
     return CheckpointName.CACHING_INODE_STORE;
+  }
+
+  @Override
+  public void writeToCheckpoint(File directory) throws IOException, InterruptedException {
+    LOG.info("Flushing inodes to backing store");
+    mInodeCache.flush();
+    mEdgeCache.flush();
+    LOG.info("Finished flushing inodes to backing store");
+    mBackingStore.writeToCheckpoint(directory);
   }
 
   @Override

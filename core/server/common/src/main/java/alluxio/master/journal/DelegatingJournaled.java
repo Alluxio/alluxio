@@ -16,6 +16,7 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableIterator;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.function.Supplier;
@@ -43,6 +44,11 @@ public interface DelegatingJournaled extends Journaled {
   @Override
   default CheckpointName getCheckpointName() {
     return getDelegate().getCheckpointName();
+  }
+
+  @Override
+  default void writeToCheckpoint(File directory) throws IOException, InterruptedException {
+    getDelegate().writeToCheckpoint(directory);
   }
 
   @Override

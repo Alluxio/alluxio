@@ -23,6 +23,7 @@ import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.journal.checkpoint.Checkpointed;
 import alluxio.master.metastore.InodeStore;
 import alluxio.proto.journal.File.AsyncPersistRequestEntry;
 import alluxio.proto.journal.File.CompleteFileEntry;
@@ -56,6 +57,7 @@ import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
@@ -822,6 +824,14 @@ public class InodeTreePersistentState implements Journaled {
     mReplicationLimitedFileIds.clear();
     mPinnedInodeFileIds.clear();
     mOpIdCache.invalidateAll();
+  }
+
+  @Override
+  public void writeToCheckpoint(File directory) throws IOException, InterruptedException {
+    for (Checkpointed j : Arrays.asList(mInodeStore, mPinnedInodeFileIds,
+        mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter)) {
+      j.writeToCheckpoint(directory);
+    }
   }
 
   @Override
