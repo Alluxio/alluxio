@@ -4,6 +4,9 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalType;
+import alluxio.master.journal.JournalWriter;
+import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.proto.journal.Journal.JournalEntry ;
 
 import org.apache.commons.cli.CommandLine;
@@ -98,4 +101,15 @@ public class JournalTool {
     }
     throw new RuntimeException();
   }
+
+  private static JournalWriter initJournal() {
+    JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+    switch (journalType) {
+      case UFS:
+      case EMBEDDED:
+      default:
+    }
+    return null;
+  }
+
 }
