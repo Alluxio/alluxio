@@ -222,9 +222,6 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void addWorkerId(alluxio.grpc.AddWorkerIdPRequest request,
                           StreamObserver<alluxio.grpc.AddWorkerIdPResponse> responseObserver) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Received AddWorkerId {}", request);
-    }
     RpcUtils.call(LOG, () -> {
       mBlockMaster.addWorkerId(request.getWorkerId(),
           GrpcUtils.fromProto(request.getWorkerNetAddress()));
