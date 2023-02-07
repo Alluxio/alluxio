@@ -9,7 +9,9 @@ import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.raft.JournalStateMachine;
 import alluxio.master.journal.raft.RaftJournal;
 import alluxio.master.journal.raft.RaftJournalAppender;
+import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.raft.RaftJournalUtils;
+import alluxio.master.journal.raft.RaftJournalWriter;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalLogWriter;
 import alluxio.master.journal.ufs.UfsJournalReader;
@@ -30,6 +32,8 @@ import org.apache.ratis.retry.RetryPolicy;
 import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.util.TimeDuration;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -66,37 +70,55 @@ public class JournalExporter {
     }
   }
 
-  private void initUfsJournal() throws IOException {
-    UfsJournal journal = new UfsJournalSystem(getJournalLocation(mInputDir), 0).createJournal(new NoopMaster(mMaster));
-    JournalWriter reader = new UfsJournalLogWriter(journal, mStart);
+  public JournalWriter getWriter() {
+    return mJournalWriter;
   }
 
-  private void initRaftJournal() throws IOException {
-    final UUID RAFT_GROUP_UUID = UUID.fromString("02511d47-d67c-49a3-9011-abb3109a44c1");
-    RaftGroupId RAFT_GROUP_ID = RaftGroupId.valueOf(RAFT_GROUP_UUID);
-    List<InetSocketAddress> mClusterAddresses = ConfigurationUtils.getEmbeddedJournalAddresses(Configuration.global(), NetworkAddressUtils.ServiceType.MASTER_RAFT);
-    ConcurrentHashMap<String, RaftJournal> mJournals = new ConcurrentHashMap<>();
-    JournalStateMachine mStateMachine;
-    Set<RaftPeer> peers = mClusterAddresses.stream()
-      .map(addr -> RaftPeer.newBuilder()
-                .setId(RaftJournalUtils.getPeerId(addr))
-                .setAddress(addr)
-                .build()
-        )
-        .collect(Collectors.toSet());
-    mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
-    mStateMachine = new JournalStateMachine(mJournals, this);
-    RaftServer mServer = RaftServer.newBuilder()
-        .setServerId(RaftJournalUtils.getPeerId(NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RAFT, Configuration.global())))
-        .setGroup(mRaftGroup)
-        .setStateMachine(mStateMachine)
-        .setProperties(properties)
-        .setParameters(parameters)
-        .build();
-    RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient)
+  private void initUfsJournal() throws IOException {
     UfsJournal journal = new UfsJournalSystem(getJournalLocation(mInputDir), 0).createJournal(new NoopMaster(mMaster));
-    JournalWriter reader = new UfsJournalLogWriter(journal, mStart);
+    JournalWriter writer = new UfsJournalLogWriter(journal, mStart);
+    mJournalWriter = writer;
   }
+
+  private void initRaftJournal() {
+    try {
+      RaftJournalSystem sys = new RaftJournalSystem(new URI(""), NetworkAddressUtils.ServiceType.MASTER_RAFT);
+      Class<?> clazz = sys.getClass();
+      Field writer = clazz.getDeclaredField("mRaftJournalWriter");
+      writer.setAccessible(true);
+      RaftJournalWriter raftJournalWriter = (RaftJournalWriter) writer.get(sys);
+      mJournalWriter = raftJournalWriter;
+    } catch (Exception e) {
+      // do sth
+    }
+  }
+
+  // private void initRaftJournal() throws IOException {
+  //   final UUID RAFT_GROUP_UUID = UUID.fromString("02511d47-d67c-49a3-9011-abb3109a44c1");
+  //   RaftGroupId RAFT_GROUP_ID = RaftGroupId.valueOf(RAFT_GROUP_UUID);
+  //   List<InetSocketAddress> mClusterAddresses = ConfigurationUtils.getEmbeddedJournalAddresses(Configuration.global(), NetworkAddressUtils// .ServiceType.MASTER_RAFT);
+  //   ConcurrentHashMap<String, RaftJournal> mJournals = new ConcurrentHashMap<>();
+  //   JournalStateMachine mStateMachine;
+  //   Set<RaftPeer> peers = mClusterAddresses.stream()
+  //     .map(addr -> RaftPeer.newBuilder()
+  //               .setId(RaftJournalUtils.getPeerId(addr))
+  //               .setAddress(addr)
+  //               .build()
+  //       )
+  //       .collect(Collectors.toSet());
+  //   mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
+  //   mStateMachine = new JournalStateMachine(mJournals, this);
+  //   RaftServer mServer = RaftServer.newBuilder()
+  //       .setServerId(RaftJournalUtils.getPeerId(NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RAFT, // Configuration.global())))
+  //       .setGroup(mRaftGroup)
+  //       .setStateMachine(mStateMachine)
+  //       .setProperties(properties)
+  //       .setParameters(parameters)
+  //       .build();
+  //   RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient)
+  //   UfsJournal journal = new UfsJournalSystem(getJournalLocation(mInputDir), 0).createJournal(new NoopMaster(mMaster));
+  //   JournalWriter reader = new UfsJournalLogWriter(journal, mStart);
+  // }
 
   private RaftClient createClient() {
     return createClient(Configuration.getMs(

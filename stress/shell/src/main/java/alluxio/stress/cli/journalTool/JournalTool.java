@@ -16,6 +16,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import java.io.File;
+import java.io.IOException;
 
 public class JournalTool {
 
@@ -102,14 +103,10 @@ public class JournalTool {
     throw new RuntimeException();
   }
 
-  private static JournalWriter initJournal() {
+  private static JournalWriter initJournal() throws IOException {
     JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
-    switch (journalType) {
-      case UFS:
-      case EMBEDDED:
-      default:
-    }
-    return null;
+    JournalExporter ex = new JournalExporter(journalType, sInputDir, sMaster, sStart);
+    return ex.getWriter();
   }
 
 }
