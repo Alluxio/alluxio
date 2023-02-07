@@ -285,6 +285,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private final boolean mWorkerRegisterToAllMasters = Configuration.getBoolean(
       PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS);
 
+  private final boolean mStandbyMasterRpcEnabled = Configuration.getBoolean(
+      PropertyKey.STANDBY_MASTER_GRPC_ENABLED);
+
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
@@ -1131,7 +1134,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public long getWorkerId(WorkerNetAddress workerNetAddress) {
-    if (mPrimarySelector.getState() == NodeState.STANDBY) {
+    if (mStandbyMasterRpcEnabled && mPrimarySelector.getState() == NodeState.STANDBY) {
       throw new UnavailableRuntimeException(
           "GetWorkerId operation is not supported on standby masters");
     }
