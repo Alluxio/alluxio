@@ -98,7 +98,7 @@ public class AllMasterRegistrationBlockWorker extends DefaultBlockWorker {
       // Register each BlockMasterSync to the block events on this worker
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, blockMasterSync,
-              (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+              () -> Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
               Configuration.global(), ServerUserState.global()));
       mMasterSyncOperators.put(masterAddr, blockMasterSync);
       LOG.info("Kick off BlockMasterSync with master {}", masterAddr);

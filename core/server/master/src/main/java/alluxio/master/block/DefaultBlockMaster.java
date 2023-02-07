@@ -25,6 +25,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
@@ -349,6 +350,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         new GrpcService(ServerInterceptors
             .intercept(new BlockMasterClientServiceHandler(this),
                 new ClientContextServerInjector())));
+    services.put(ServiceType.BLOCK_MASTER_WORKER_SERVICE,
+        new GrpcService(ServerInterceptors
+            .intercept(new BlockMasterWorkerServiceHandler(this),
+                new ClientContextServerInjector())));
+    return services;
+  }
+
+  @Override
+  public Map<ServiceType, GrpcService> getStandbyServices() {
+    Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(ServiceType.BLOCK_MASTER_WORKER_SERVICE,
         new GrpcService(ServerInterceptors
             .intercept(new BlockMasterWorkerServiceHandler(this),
@@ -1120,6 +1131,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public long getWorkerId(WorkerNetAddress workerNetAddress) {
+    if (mPrimarySelector.getState() == NodeState.STANDBY) {
+      throw new UnavailableRuntimeException(
+          "GetWorkerId operation is not supported on standby masters");
+    }
     LOG.info("Worker {} requesting for an ID", workerNetAddress);
     MasterWorkerInfo existingWorker = mWorkers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
     if (existingWorker != null) {
@@ -1141,11 +1156,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
     LOG.info("getWorkerId(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
     return workerId;
-  }
-
-  @Override
-  public Map<ServiceType, GrpcService> getStandbyServices() {
-    return getServices();
   }
 
   @Override
