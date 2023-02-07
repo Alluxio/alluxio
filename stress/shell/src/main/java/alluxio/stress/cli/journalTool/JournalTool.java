@@ -4,6 +4,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalType;
+import alluxio.proto.journal.Journal.JournalEntry ;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -46,17 +47,19 @@ public class JournalTool {
   private static String sOutputDir;
 
   public static void main(String[] args) {
-    mainInternal(args);
-  }
-
-  private static void mainInternal(String[] args) {
     if (!parseInputArgs(args)) {
       System.exit(-1);
     }
     if (sHelp) {
       System.exit(0);
     }
-    initStream();
+
+    EntryStream stream = initStream();
+    JournalEntry entry = stream.nextEntry();
+    JournalEntry hold = stream.nextEntry();
+    long sq = hold.getSequenceNumber();
+    long step = 5;
+    hold.toBuilder().setSequenceNumber(sq + step);
   }
 
    private static boolean parseInputArgs(String[] args) {
