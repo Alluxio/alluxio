@@ -35,7 +35,6 @@ import alluxio.master.service.SimpleService;
 import alluxio.master.service.jvmmonitor.JvmMonitorService;
 import alluxio.master.service.metrics.MetricsService;
 import alluxio.master.service.rpc.RpcServerService;
-import alluxio.master.service.rpc.RpcServerStandbyGrpcService;
 import alluxio.master.service.web.WebServerService;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -450,14 +449,8 @@ public class AlluxioMasterProcess extends MasterProcess {
         primarySelector = new UfsJournalSingleMasterPrimarySelector();
       }
       AlluxioMasterProcess amp = new AlluxioMasterProcess(journalSystem, primarySelector);
-      if (Configuration.getBoolean(PropertyKey.STANDBY_MASTER_GRPC_ENABLED)) {
-        amp.registerService(
-            RpcServerStandbyGrpcService.Factory.create(
-                amp.getRpcBindAddress(), amp, amp.getRegistry()));
-      } else {
-        amp.registerService(
-            RpcServerService.Factory.create(amp.getRpcBindAddress(), amp, amp.getRegistry()));
-      }
+      amp.registerService(
+          RpcServerService.Factory.create(amp.getRpcBindAddress(), amp, amp.getRegistry()));
       amp.registerService(WebServerService.Factory.create(amp.getWebBindAddress(), amp));
       amp.registerService(MetricsService.Factory.create());
       amp.registerService(JvmMonitorService.Factory.create());
