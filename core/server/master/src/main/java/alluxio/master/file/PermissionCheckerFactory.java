@@ -14,6 +14,7 @@ package alluxio.master.file;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.file.meta.InodeTree;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,9 +32,14 @@ public final class PermissionCheckerFactory {
   public PermissionCheckerFactory() {
   }
 
+  /**
+   * Create an object with class that implements the interface of PermissionChecker.
+   * @param inodeTree Instance of InodeTree
+   * @return return the object of PermissionChecker
+   */
   public PermissionChecker create(InodeTree inodeTree) {
     String permissionClass =
-            Configuration.getOrDefault(PropertyKey.PERMISSION_CHECKER_CLASS, null);
+        Configuration.getOrDefault(PropertyKey.PERMISSION_CHECKER_CLASS, null);
 
     if (permissionClass == null) {
       return new DefaultPermissionChecker(inodeTree);

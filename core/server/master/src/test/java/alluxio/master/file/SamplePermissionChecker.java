@@ -16,6 +16,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.security.authorization.Mode;
+
 import org.apache.commons.lang3.NotImplementedException;
 
 /**
@@ -25,10 +26,10 @@ public final class SamplePermissionChecker implements PermissionChecker {
 
   // This variable is not used. It is just to show that the InodeTree variable
   // is available to use
-  private InodeTree inodeTree;
+  private InodeTree mInodeTree;
 
-  public SamplePermissionChecker(InodeTree inodeTree) {
-    this.inodeTree = inodeTree;
+  public SamplePermissionChecker(InodeTree mInodeTree) {
+    mInodeTree = mInodeTree;
   }
 
   public void checkParentPermission(Mode.Bits bits, LockedInodePath inodePath)
@@ -73,10 +74,10 @@ public final class SamplePermissionChecker implements PermissionChecker {
        * In reality, the policy can determine based on if the path is under a given
        * table and if a user has that table.
        */
-      return (path != null &&
-              path.equalsIgnoreCase("/a/b/c") &&
-              uid != null &&
-              uid.equalsIgnoreCase("foo@bar.com"));
+      return (path != null
+              && path.equalsIgnoreCase("/a/b/c")
+              && uid != null
+              && uid.equalsIgnoreCase("foo@bar.com"));
     }
   }
 }
