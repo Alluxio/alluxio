@@ -19,8 +19,6 @@ import alluxio.conf.Configuration;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.service.SimpleService;
-import alluxio.master.service.rpc.RpcServerService;
-import alluxio.master.service.web.WebServerService;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -44,8 +42,7 @@ import java.util.function.Supplier;
 /**
  * Defines a set of methods which any {@link MasterProcess} should implement.
  *
- * This class serves as a common implementation for functions that both the
- * {@link AlluxioMasterProcess} and {@link AlluxioJobMasterProcess} use.
+ * This class serves as a common implementation for functions.
  * Each master should have an RPC server, web server, and journaling
  * system which can serve client requests.
  */
@@ -211,16 +208,16 @@ public abstract class MasterProcess implements Process {
    * @return true if the system is the leader (serving the rpc server), false otherwise
    */
   public boolean isGrpcServing() {
-    return mServices.stream().anyMatch(service -> service instanceof RpcServerService
-        && ((RpcServerService) service).isServing());
+    return isServing(SimpleService.ServerServiceType.RPC);
   }
 
   /**
-   * @return true if the system is serving the web server, false otherwise
+   * @param type the service type
+   * @return true if the system is serving the specific type server, false otherwise
    */
-  public boolean isWebServing() {
-    return mServices.stream().anyMatch(service -> service instanceof WebServerService
-        && ((WebServerService) service).isServing());
+  public boolean isServing(SimpleService.ServerServiceType type) {
+    return mServices.stream().anyMatch(service -> service.getType().equals(type)
+        && service.isServing());
   }
 
   /**
@@ -231,23 +228,14 @@ public abstract class MasterProcess implements Process {
   }
 
   /**
-   * Waits until the grpc server is ready to serve requests.
+   * Waits until the specific server is ready to serve requests.
    *
    * @param timeoutMs how long to wait in milliseconds
-   * @return whether the grpc server became ready before the specified timeout
-   */
-  public boolean waitForGrpcServerReady(int timeoutMs) {
-    return pollFor(this + " to start", this::isGrpcServing, timeoutMs);
-  }
-
-  /**
-   * Waits until the web server is ready to serve requests.
-   *
-   * @param timeoutMs how long to wait in milliseconds
+   * @param type the type of the {@link SimpleService}
    * @return whether the web server became ready before the specified timeout
    */
-  public boolean waitForWebServerReady(int timeoutMs) {
-    return pollFor(this + " to start", this::isWebServing, timeoutMs);
+  public boolean waitForServerReady(int timeoutMs, SimpleService.ServerServiceType type) {
+    return pollFor(this + " to start", () -> isServing(type), timeoutMs);
   }
 
   /**
@@ -274,6 +262,13 @@ public abstract class MasterProcess implements Process {
 
   @Override
   public boolean waitForReady(int timeoutMs) {
-    return waitForGrpcServerReady(timeoutMs);
+    return waitForServerReady(timeoutMs, SimpleService.ServerServiceType.RPC);
+  }
+
+  /**
+   * @return true if support standby web, false otherwise
+   */
+  public boolean supportStandbyWeb() {
+    return false;
   }
 }

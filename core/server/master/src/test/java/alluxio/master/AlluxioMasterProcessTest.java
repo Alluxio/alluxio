@@ -23,6 +23,7 @@ import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
+import alluxio.master.service.SimpleService;
 import alluxio.master.service.metrics.MetricsService;
 import alluxio.master.service.rpc.RpcServerService;
 import alluxio.master.service.web.WebServerService;
@@ -276,7 +277,7 @@ public final class AlluxioMasterProcessTest {
     });
     t.start();
     final int TIMEOUT_MS = 10_000;
-    master.waitForGrpcServerReady(TIMEOUT_MS);
+    master.waitForServerReady(TIMEOUT_MS, SimpleService.ServerServiceType.RPC);
     startStopTest(master,
         true,
         Configuration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED),
@@ -296,10 +297,10 @@ public final class AlluxioMasterProcessTest {
     assertTrue(isBound(master.getRpcAddress().getPort()));
     assertTrue(isBound(master.getWebAddress().getPort()));
     if (expectGrpcServiceStarted) {
-      assertTrue(master.waitForGrpcServerReady(TIMEOUT_MS));
+      assertTrue(master.waitForServerReady(TIMEOUT_MS, SimpleService.ServerServiceType.RPC));
     }
     if (expectWebServiceStarted) {
-      assertTrue(master.waitForWebServerReady(TIMEOUT_MS));
+      assertTrue(master.waitForServerReady(TIMEOUT_MS, SimpleService.ServerServiceType.WEB));
     }
     if (expectMetricsSinkStarted) {
       assertTrue(master.waitForMetricSinkServing(TIMEOUT_MS));

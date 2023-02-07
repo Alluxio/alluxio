@@ -47,4 +47,31 @@ public interface SimpleService {
    * Can only be called once.
    */
   void stop();
+
+  /**
+   * Is service serving.
+   *
+   * @return is service serving
+   */
+  default boolean isServing() {
+    return false;
+  }
+
+  /**
+   * Gets the service type.
+   *
+   * @return the service type
+   */
+  default ServerServiceType getType() {
+    return ServerServiceType.DEFAULT;
+  }
+
+  /**
+   * Represent the type of service.
+   */
+  enum ServerServiceType {
+    DEFAULT,
+    RPC,
+    WEB
+  }
 }
