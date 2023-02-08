@@ -354,21 +354,20 @@ public final class S3RestServiceHandler {
           // TODO(czhu): allow non-"/" delimiters by parsing the prefix & delimiter pair to
           //             determine what directory to list the contents of
           //             only list the direct children if delimiter is not null
-          ListStatusPOptions.Builder optionsBuilder =
-              ListStatusPOptions.newBuilder();
           if (StringUtils.isNotEmpty(delimiterParam)) {
             if (prefixParam == null) {
               path = parsePathWithDelimiter(path, "", delimiterParam);
             } else {
               path = parsePathWithDelimiter(path, prefixParam, delimiterParam);
             }
+            children = userFs.listStatus(new AlluxioURI(path));
           } else {
             if (prefixParam != null) {
               path = parsePathWithDelimiter(path, prefixParam, AlluxioURI.SEPARATOR);
             }
-            optionsBuilder.setRecursive(true);
+            ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
+            children = userFs.listStatus(new AlluxioURI(path), options);
           }
-          children = userFs.listStatus(new AlluxioURI(path), optionsBuilder.build());
         } catch (FileDoesNotExistException e) {
           // Since we've called S3RestUtils.checkPathIsAlluxioDirectory() on the bucket path
           // already, this indicates that the prefix was unable to be found in the Alluxio FS

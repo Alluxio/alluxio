@@ -192,7 +192,7 @@ public final class PathUtils {
   }
 
   /**
-   * Gets the first level directory of the path
+   * Gets the first level directory of the path.
    * For example,
    *
    * <pre>
