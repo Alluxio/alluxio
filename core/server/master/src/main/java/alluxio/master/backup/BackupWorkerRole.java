@@ -168,10 +168,10 @@ public class BackupWorkerRole extends AbstractBackupRole {
     try {
       mJournalSystem.suspend(this::interruptBackup);
       LOG.info("Suspended journals for backup.");
-    } catch (IOException e) {
-      String failMessage = "Failed to suspended journals for backup.";
-      LOG.error(failMessage, e);
-      throw new RuntimeException(failMessage, e);
+    } catch (Exception e) {
+      CompletableFuture<Void> future = new CompletableFuture<>();
+      future.completeExceptionally(e);
+      return future;
     }
     // Schedule a timeout task to resume journals if protocol is not followed by the leader.
     mBackupTimeoutTask = mTaskScheduler.schedule(() -> {

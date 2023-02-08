@@ -332,9 +332,12 @@ public class UfsJournal implements Journal {
     Preconditions.checkState(!mSuspended, "journal is already suspended");
     Preconditions.checkState(mState.get() == State.STANDBY, "unexpected state " + mState.get());
     Preconditions.checkState(mSuspendSequence == -1, "suspend sequence already set");
-    // The standby suspends first in order to take a snapshot/backup
-    // So if the tailing thread has crashed before that,
-    // the crash will propagate and kill the standby master here
+    // if the journal has not caught up then it cannot be suspended
+    UfsJournalCheckpointThread.CatchupState state = mTailerThread.getCatchupState();
+    if (state != UfsJournalCheckpointThread.CatchupState.DONE) {
+      throw new RuntimeException(String.format("%s is not caught up. State is %s but should be %s.",
+          mMaster.getName(), state, UfsJournalCheckpointThread.CatchupState.DONE));
+    }
     mTailerThread.awaitTermination(false);
     mSuspendSequence = mTailerThread.getNextSequenceNumber() - 1;
     mTailerThread = null;
