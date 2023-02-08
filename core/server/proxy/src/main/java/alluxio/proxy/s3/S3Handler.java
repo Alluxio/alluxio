@@ -68,8 +68,6 @@ public class S3Handler {
   public static final Pattern BUCKET_INVALID_SUFFIX_PATTERN = Pattern.compile(".*-s3alias$");
   public static final Pattern BUCKET_VALID_NAME_PATTERN =
           Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
-  public static final Pattern BASE_PATH_PATTERN =
-          Pattern.compile("^" + S3RequestServlet.S3_V2_SERVICE_PATH_PREFIX + "$");
   public static final Pattern BUCKET_PATH_PATTERN =
           Pattern.compile("^" + S3RequestServlet.S3_V2_SERVICE_PATH_PREFIX + "/[^/]*$");
   public static final Pattern OBJECT_PATH_PATTERN =
@@ -229,7 +227,7 @@ public class S3Handler {
    */
   public void init() throws Exception {
     // Do Authentication of the request.
-    doAuthorization();
+    doAuthentication();
     // Extract x-amz- headers.
     extractAMZHeaders();
     // Reject unsupported subresources.
@@ -451,10 +449,10 @@ public class S3Handler {
   }
 
   /**
-   * Do S3 request authorization.
+   * Do S3 request authentication.
    * @throws Exception
    */
-  public void doAuthorization() throws Exception {
+  public void doAuthentication() throws Exception {
     try {
       String authorization = mServletRequest.getHeader("Authorization");
       String user = S3RestUtils.getUser(authorization, mServletRequest);
