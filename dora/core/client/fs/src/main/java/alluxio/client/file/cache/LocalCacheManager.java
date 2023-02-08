@@ -776,7 +776,7 @@ public class LocalCacheManager implements CacheManager {
         return -1;
       }
     } catch (IOException | PageNotFoundException e) {
-      LOG.error("Failed to get existing page {} from pageStore", pageInfo.getPageId(), e);
+      LOG.debug("Failed to get existing page {} from pageStore", pageInfo.getPageId(), e);
       return -1;
     }
     return bytesToRead;
