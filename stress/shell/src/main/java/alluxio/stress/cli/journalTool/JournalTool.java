@@ -2,12 +2,15 @@ package alluxio.stress.cli.journalTool;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.JournalClosedException;
 import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.proto.journal.Journal.JournalEntry ;
+import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -15,8 +18,11 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 
 public class JournalTool {
 
@@ -57,13 +63,23 @@ public class JournalTool {
     if (sHelp) {
       System.exit(0);
     }
-
-    EntryStream stream = initStream();
-    JournalEntry entry = stream.nextEntry();
-    JournalEntry hold = stream.nextEntry();
-    long sq = hold.getSequenceNumber();
-    long step = 5;
-    hold.toBuilder().setSequenceNumber(sq + step);
+    test();
+    String testpath = "/Users/dengxinyu/test.txt";
+    try (PrintStream test =
+          new PrintStream(new BufferedOutputStream(new FileOutputStream(testpath)))) {
+      System.out.println("testing0");
+      test.println("hello");
+      System.out.println("testing1");
+    } catch (Exception e) {
+      System.out.println("test fail");
+      System.out.print(e);
+    }
+    // EntryStream stream = initStream();
+    // JournalEntry entry = stream.nextEntry();
+    // JournalEntry hold = stream.nextEntry();
+    // long sq = hold.getSequenceNumber();
+    // long step = 5;
+    // hold.toBuilder().setSequenceNumber(sq + step);
   }
 
    private static boolean parseInputArgs(String[] args) {
@@ -107,6 +123,45 @@ public class JournalTool {
     JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
     JournalExporter ex = new JournalExporter(journalType, sInputDir, sMaster, sStart);
     return ex.getWriter();
+  }
+
+  private static void test() {
+
+    EntryStream stream = initStream();
+    JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+    JournalExporter ex;
+    JournalWriter writer;
+    String outputfile = PathUtils.concatPath(sOutputDir, "test.txt");
+    System.out.println(outputfile);
+    try (PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputfile)))) {
+      ex = new JournalExporter(journalType, sOutputDir, sMaster, sStart);
+      writer = ex.getWriter();
+      Journal journal = ex.getJournal();
+      JournalContext ctx = journal.createJournalContext();
+      JournalEntry entry = stream.nextEntry();
+      JournalEntry hold = stream.nextEntry();
+      System.out.print(entry);
+      System.out.println("read success");
+      writer.write(entry);
+      System.out.println("printstrea ok");
+      out.println("test");
+      writer.write(entry);
+      out.print(entry);
+      out.println("----------------------");
+      entry = entry.toBuilder().setSequenceNumber(entry.getSequenceNumber()+100).build();
+      out.print(entry);
+      writer.write(entry);
+      System.out.println("print success");
+      long sq = hold.getSequenceNumber();
+      System.out.println("1");
+      long step = 5;
+      hold.toBuilder().setSequenceNumber(sq + step);
+      System.out.println("2");
+    } catch (IOException e) {
+      System.out.print(e);
+    } catch (JournalClosedException e) {
+      throw new RuntimeException(e);
+    }
   }
 
 }

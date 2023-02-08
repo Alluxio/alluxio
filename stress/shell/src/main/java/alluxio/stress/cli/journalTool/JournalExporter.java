@@ -4,6 +4,7 @@ import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.NoopMaster;
+import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.raft.JournalStateMachine;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -45,11 +47,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+
 public class JournalExporter {
+  static String mOutputDir = "/Users/dengxinyu/journal-tool/";
   protected final String mInputDir;
   protected final String mMaster;
   protected final long mStart;
   public JournalWriter mJournalWriter;
+  public Journal mJournal;
 
   private RaftGroup mRaftGroup;
 
@@ -74,8 +79,17 @@ public class JournalExporter {
     return mJournalWriter;
   }
 
+  public Journal getJournal() {
+    return mJournal;
+  }
+
   private void initUfsJournal() throws IOException {
-    UfsJournal journal = new UfsJournalSystem(getJournalLocation(mInputDir), 0).createJournal(new NoopMaster(mMaster));
+    // UfsJournal journal = new UfsJournalSystem(getJournalLocation(mInputDir), 0).createJournal(new NoopMaster(mMaster));
+    UfsJournal journal = new UfsJournal(getJournalLocation(mOutputDir), new NoopMaster(), 0, Collections::emptySet);
+    mJournal = journal;
+    journal.start();
+    journal.suspend();
+    journal.gainPrimacy();
     JournalWriter writer = new UfsJournalLogWriter(journal, mStart);
     mJournalWriter = writer;
   }
