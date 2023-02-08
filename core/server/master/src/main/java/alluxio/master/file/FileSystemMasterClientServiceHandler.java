@@ -16,7 +16,8 @@ import alluxio.RpcUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.InvalidPathException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -193,8 +194,8 @@ public final class FileSystemMasterClientServiceHandler
     boolean exists = mFileSystemMaster.exists(getAlluxioURI(bucketPath),
         ExistsContext.create(ExistsPOptions.getDefaultInstance().toBuilder()));
     if (!exists) {
-      throw new InvalidPathException("Bucket " + bucketPath
-          + " doesn't exist.");
+      throw new FileDoesNotExistException(
+          ExceptionMessage.BUCKET_DOES_NOT_EXIST.getMessage(bucketPath));
     }
   }
 

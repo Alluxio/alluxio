@@ -21,6 +21,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -58,6 +59,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
@@ -220,13 +222,11 @@ public final class S3RestUtils {
    * @return instance of {@link S3Exception}
    */
   public static S3Exception toBucketS3Exception(Exception exception, String resource,
-                                                @Nullable S3AuditContext auditContext) {
-    if (auditContext != null) {
-      if (exception instanceof AccessControlException) {
-        auditContext.setAllowed(false);
-      }
-      auditContext.setSucceeded(false);
+                                                @Nonnull S3AuditContext auditContext) {
+    if (exception instanceof AccessControlException) {
+      auditContext.setAllowed(false);
     }
+    auditContext.setSucceeded(false);
     return toBucketS3Exception(exception, resource);
   }
 
@@ -246,11 +246,13 @@ public final class S3RestUtils {
     } catch (DirectoryNotEmptyException e) {
       return new S3Exception(e, resource, S3ErrorCode.PRECONDITION_FAILED);
     } catch (FileDoesNotExistException e) {
+      if (Pattern.matches(ExceptionMessage.BUCKET_DOES_NOT_EXIST.getMessage(".*"),
+          e.getMessage())) {
+        return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_BUCKET);
+      }
       return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_KEY);
     } catch (AccessControlException e) {
       return new S3Exception(e, resource, S3ErrorCode.ACCESS_DENIED_ERROR);
-    } catch (InvalidPathException e) {
-      return new S3Exception(e, resource, S3ErrorCode.INVALID_BUCKET_NAME);
     } catch (Exception e) {
       return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
     }
@@ -286,11 +288,14 @@ public final class S3RestUtils {
     try {
       URIStatus status = fs.getStatus(new AlluxioURI(bucketPath));
       if (!status.isFolder()) {
-        throw toBucketS3Exception(new InvalidPathException("Bucket " + bucketPath
-            + " doesn't exist."), bucketPath, auditContext);
+        throw new FileDoesNotExistException(
+            ExceptionMessage.BUCKET_DOES_NOT_EXIST.getMessage(bucketPath));
       }
     } catch (Exception e) {
-      throw toBucketS3Exception(e, bucketPath, auditContext);
+      if (auditContext != null) {
+        throw toBucketS3Exception(e, bucketPath, auditContext);
+      }
+      throw toBucketS3Exception(e, bucketPath);
     }
   }
 

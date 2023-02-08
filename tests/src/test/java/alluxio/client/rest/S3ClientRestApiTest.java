@@ -1004,10 +1004,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
             .setMD5(computeObjectChecksum(object.getBytes())))
         .execute();
 
-    Assert.assertEquals(400, connection.getResponseCode());
+    Assert.assertEquals(404, connection.getResponseCode());
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
-    Assert.assertEquals(S3ErrorCode.Name.INVALID_BUCKET_NAME, response.getCode());
+    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
   }
 
   @Test
@@ -1025,10 +1025,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
             .setMD5(computeObjectChecksum(new byte[] {})))
         .execute();
 
-    Assert.assertEquals(400, connection.getResponseCode());
+    Assert.assertEquals(404, connection.getResponseCode());
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
-    Assert.assertEquals(S3ErrorCode.Name.INVALID_BUCKET_NAME, response.getCode());
+    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
   }
 
   @Test

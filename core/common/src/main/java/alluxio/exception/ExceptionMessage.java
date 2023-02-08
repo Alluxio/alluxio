@@ -27,6 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public enum ExceptionMessage {
   // general
   PATH_DOES_NOT_EXIST("Path \"{0}\" does not exist."),
+  BUCKET_DOES_NOT_EXIST("Bucket \"{0}\" does not exist."),
   PATH_DOES_NOT_EXIST_PARTIAL_LISTING("Path \"{0}\" was removed during listing."),
   INODE_NOT_FOUND_PARTIAL_LISTING("\"{0}\" Inode was not found during partial listing. It was "
       + "likely removed across listing calls."),

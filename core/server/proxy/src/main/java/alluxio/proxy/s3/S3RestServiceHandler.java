@@ -11,8 +11,6 @@
 
 package alluxio.proxy.s3;
 
-import static java.lang.Math.max;
-
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileInStream;
@@ -115,7 +113,7 @@ public final class S3RestServiceHandler {
   private static final Cache<AlluxioURI, Boolean> BUCKET_PATH_CACHE = CacheBuilder.newBuilder()
       .maximumSize(BUCKET_PATH_CACHE_SIZE)
       .expireAfterWrite(
-          max(0, Configuration.global().getMs(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS)),
+          Configuration.global().getMs(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS),
           TimeUnit.MILLISECONDS)
       .build();
   private final FileSystem mMetaFS;
