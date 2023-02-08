@@ -206,6 +206,7 @@ public final class UfsJournalTest {
     UfsJournal standbyJournal =
         new UfsJournal(new URI(parentPath), countingMaster, 0, Collections::emptySet);
     standbyJournal.start();
+    waitForCaughtUp(standbyJournal);
 
     // Suspend standby journal
     standbyJournal.suspend();
@@ -241,6 +242,7 @@ public final class UfsJournalTest {
     UfsJournal standbyJournal =
         new UfsJournal(new URI(parentPath), countingMaster, 0, Collections::emptySet);
     standbyJournal.start();
+    waitForCaughtUp(standbyJournal);
 
     // Suspend standby journal.
     standbyJournal.suspend();
@@ -274,6 +276,7 @@ public final class UfsJournalTest {
     UfsJournal standbyJournal =
         new UfsJournal(new URI(parentPath), countingMaster, 0, Collections::emptySet);
     standbyJournal.start();
+    waitForCaughtUp(standbyJournal);
 
     // Suspend standby journal.
     standbyJournal.suspend();
@@ -309,6 +312,7 @@ public final class UfsJournalTest {
     UfsJournal standbyJournal =
         new UfsJournal(new URI(parentPath), countingMaster, 0, Collections::emptySet);
     standbyJournal.start();
+    waitForCaughtUp(standbyJournal);
 
     // Suspend standby journal.
     standbyJournal.suspend();
@@ -345,6 +349,7 @@ public final class UfsJournalTest {
     UfsJournal standbyJournal =
         new UfsJournal(new URI(parentPath), countingMaster, 0, Collections::emptySet);
     standbyJournal.start();
+    waitForCaughtUp(standbyJournal);
 
     // Suspend standby journal.
     standbyJournal.suspend();
@@ -372,5 +377,11 @@ public final class UfsJournalTest {
     });
     assertTrue(exception.getMessage()
         .contains(CountingNoopFileSystemMaster.ENTRY_DOES_NOT_EXIST));
+  }
+
+  private void waitForCaughtUp(UfsJournal ufsJournal) throws Exception {
+    CommonUtils.waitFor("journal to be caught up", () ->
+        ufsJournal.getCatchupState() == UfsJournalCheckpointThread.CatchupState.DONE,
+        WaitForOptions.defaults().setInterval(10).setTimeoutMs(1_000));
   }
 }
