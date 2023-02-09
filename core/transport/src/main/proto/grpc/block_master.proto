@@ -329,8 +329,8 @@ service BlockMasterWorkerService {
   rpc GetWorkerId(GetWorkerIdPRequest) returns (GetWorkerIdPResponse);
 
   /**
-    * Notify all masters about the worker ID.
-    */
+  * Notify all masters about the worker ID.
+  */
   rpc AddWorkerId(AddWorkerIdPRequest) returns (AddWorkerIdPResponse);
 
   /**

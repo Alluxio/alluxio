@@ -18,14 +18,18 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.grpc.Command;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicReference;
@@ -42,7 +46,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *  should not a soft failure and can be retried later.
  */
 @NotThreadSafe
-public final class SpecificMasterBlockSync implements HeartbeatExecutor {
+public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(SpecificMasterBlockSync.class);
   private static final long ACQUIRE_LEASE_WAIT_MAX_DURATION =
       Configuration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
@@ -60,27 +64,38 @@ public final class SpecificMasterBlockSync implements HeartbeatExecutor {
    */
   private volatile WorkerMasterState mWorkerState = WorkerMasterState.NOT_REGISTERED;
 
-  /** An async service to remove block. */
+  /**
+   * An async service to remove block.
+   */
   private final AsyncBlockRemover mAsyncBlockRemover;
 
-  /** The worker ID for the worker. This may change if the master asks the worker to re-register. */
+  /**
+   * The worker ID for the worker. This may change if the master asks the worker to re-register.
+   */
   private final AtomicReference<Long> mWorkerId;
 
-  /** Client for all master communication. */
+  /**
+   * Client for all master communication.
+   */
   private final BlockMasterClient mMasterClient;
 
-  /** The net address of the worker. */
+  /**
+   * The net address of the worker.
+   */
   private final WorkerNetAddress mWorkerAddress;
 
-  /** Client-pool for all master communication. */
-  private final BlockMasterClientPool mMasterClientPool;
-
-  /** The helper instance for sync related methods. */
+  /**
+   * The helper instance for sync related methods.
+   */
   private final BlockMasterSyncHelper mBlockMasterSyncHelper;
 
-  /** The block worker responsible for interacting with Alluxio and UFS storage. */
+  /**
+   * The block worker responsible for interacting with Alluxio and UFS storage.
+   */
   private final BlockWorker mBlockWorker;
-  /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
+  /**
+   * Last System.currentTimeMillis() timestamp when a heartbeat successfully completed.
+   */
   private long mLastSuccessfulHeartbeatMs = 0;
 
   private final BlockHeartbeatReporter mBlockHeartbeatReporter;
@@ -89,24 +104,20 @@ public final class SpecificMasterBlockSync implements HeartbeatExecutor {
    * Creates a new instance of {@link SpecificMasterBlockSync}.
    *
    * @param blockWorker the {@link BlockWorker} this syncer is updating to
-   * @param workerId the worker id of the worker, assigned by the block master
-   * @param workerAddress the net address of the worker
-   * @param masterClientPool the Alluxio master client pool
+   * @param masterClient the block master client
    * @param heartbeatReporter the heartbeat reporter
    */
   public SpecificMasterBlockSync(
-      BlockWorker blockWorker, AtomicReference<Long> workerId,
-      WorkerNetAddress workerAddress, BlockMasterClientPool masterClientPool,
-      BlockHeartbeatReporter heartbeatReporter)
+      BlockWorker blockWorker,
+      BlockMasterClient masterClient, BlockHeartbeatReporter heartbeatReporter)
       throws IOException {
     mBlockWorker = blockWorker;
-    mWorkerId = workerId;
-    mWorkerAddress = workerAddress;
-    mMasterClientPool = masterClientPool;
-    mMasterClient = mMasterClientPool.acquire();
+    mWorkerId = blockWorker.getWorkerId();
+    mWorkerAddress = blockWorker.getWorkerAddress();
+    mMasterClient = masterClient;
     mAsyncBlockRemover = new AsyncBlockRemover(mBlockWorker);
     mBlockMasterSyncHelper = new BlockMasterSyncHelper(mMasterClient);
-    mMasterAddress = masterClientPool.acquire().getRemoteSockAddress();
+    mMasterAddress = masterClient.getRemoteSockAddress();
     mBlockHeartbeatReporter = heartbeatReporter;
   }
 
@@ -129,11 +140,12 @@ public final class SpecificMasterBlockSync implements HeartbeatExecutor {
         "Failed to register with master %s", mMasterAddress);
   }
 
-  private void registerWithMasterInternal()
+  protected void registerWithMasterInternal()
       throws IOException, FailedToAcquireRegisterLeaseException {
     // The target master is not necessarily the one that allocated the workerID
     LOG.info("Notify the master {} about the workerID {}", mMasterAddress, mWorkerId);
-    mMasterClientPool.acquire().addWorkerId(mWorkerId.get(), mWorkerAddress);
+    mMasterClient.addWorkerId(mWorkerId.get(), mWorkerAddress);
+
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
 
     try {
@@ -147,7 +159,9 @@ public final class SpecificMasterBlockSync implements HeartbeatExecutor {
     }
     mWorkerState = WorkerMasterState.REGISTERING;
     mBlockMasterSyncHelper.registerToMaster(mWorkerId.get(), storeMeta);
+
     mWorkerState = WorkerMasterState.REGISTERED;
+    Metrics.WORKER_MASTER_REGISTRATION_SUCCESS_COUNT.inc();
     mLastSuccessfulHeartbeatMs = CommonUtils.getCurrentMs();
   }
 
@@ -175,9 +189,15 @@ public final class SpecificMasterBlockSync implements HeartbeatExecutor {
     RetryPolicy endlessRetry = createEndlessRetry();
     while (endlessRetry.attempt()) {
       BlockHeartbeatReport report = mBlockHeartbeatReporter.generateReportAndClear();
-      boolean success = mBlockMasterSyncHelper.heartbeat(
-          mWorkerId.get(), report,
-          mBlockWorker.getStoreMeta(), this::handleMasterCommand);
+      boolean success = false;
+      try {
+        beforeHeartbeat();
+        success = mBlockMasterSyncHelper.heartbeat(
+            mWorkerId.get(), report,
+            mBlockWorker.getStoreMeta(), this::handleMasterCommand);
+      } catch (Exception e) {
+        LOG.error("Failed to receive master heartbeat command. worker id {}", mWorkerId, e);
+      }
       if (success) {
         mLastSuccessfulHeartbeatMs = CommonUtils.getCurrentMs();
         break;
@@ -191,10 +211,13 @@ public final class SpecificMasterBlockSync implements HeartbeatExecutor {
     }
   }
 
+  protected void beforeHeartbeat() {
+  }
+
   @Override
   public void close() {
     mAsyncBlockRemover.shutDown();
-    mMasterClientPool.release(mMasterClient);
+    mMasterClient.close();
   }
 
   /**
@@ -209,7 +232,7 @@ public final class SpecificMasterBlockSync implements HeartbeatExecutor {
    * This call will block until the command is complete.
    *
    * @param cmd the command to execute
-   * @throws IOException if I/O errors occur
+   * @throws IOException               if I/O errors occur
    * @throws ConnectionFailedException if connection fails
    */
   private void handleMasterCommand(Command cmd) throws IOException, ConnectionFailedException {
@@ -244,5 +267,13 @@ public final class SpecificMasterBlockSync implements HeartbeatExecutor {
     REGISTERED,
     NOT_REGISTERED,
     REGISTERING
+  }
+
+  /**
+   * Metrics.
+   */
+  public static final class Metrics {
+    private static final Counter WORKER_MASTER_REGISTRATION_SUCCESS_COUNT
+        = MetricsSystem.counter(MetricKey.WORKER_MASTER_REGISTRATION_SUCCESS_COUNT.getName());
   }
 }

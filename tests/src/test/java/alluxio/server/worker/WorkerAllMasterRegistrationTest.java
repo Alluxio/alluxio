@@ -12,6 +12,7 @@
 package alluxio.server.worker;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
@@ -28,11 +29,14 @@ import alluxio.master.block.DefaultBlockMaster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.worker.block.AllMasterRegistrationBlockWorker;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.SpecificMasterBlockSync;
+import alluxio.worker.block.TestSpecificMasterBlockSync;
 
+import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -40,9 +44,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class WorkerAllMasterRegistrationTest {
@@ -55,6 +62,8 @@ public class WorkerAllMasterRegistrationTest {
   private AllMasterRegistrationBlockWorker mWorker;
   private final int mNumMasters = 3;
   private final int mNumWorkers = 1;
+
+  private WaitForOptions mDefaultWaitForOptions = WaitForOptions.defaults().setTimeoutMs(20000);
 
   @Before
   public void before() throws Exception {
@@ -80,6 +89,7 @@ public class WorkerAllMasterRegistrationTest {
   @After
   public void after() throws Exception {
     mCluster.stop();
+    mWorker.stop();
     mWorker = null;
     mBlockMasters.clear();
   }
@@ -87,12 +97,8 @@ public class WorkerAllMasterRegistrationTest {
   @Test
   public void happyPath() throws Exception {
     CommonUtils.waitFor("wait for worker registration complete", () ->
-        mWorker.getMasterSyncOperators().values().stream().allMatch(
-            SpecificMasterBlockSync::isRegistered));
+        mWorker.getBlockSyncMasterGroup().isRegisteredToAllMasters(), mDefaultWaitForOptions);
 
-    AllMasterRegistrationBlockWorker worker =
-        (AllMasterRegistrationBlockWorker)
-            mCluster.getWorkerProcess(0).getWorker(BlockWorker.class);
     AlluxioURI fileUri = new AlluxioURI("/foobar");
     String fileContent = "foobar";
 
@@ -111,19 +117,138 @@ public class WorkerAllMasterRegistrationTest {
 
     CommonUtils.waitFor("wait for blocks being committed to all masters", () ->
         mBlockMasters.stream().allMatch(
-            it -> it.getBlockMetaStore().getLocations(blockId).size() == 1));
+            it -> it.getBlockMetaStore().getLocations(blockId).size() == 1),
+        mDefaultWaitForOptions);
 
-    worker.removeBlock(new Random().nextLong(), blockId);
+    mWorker.removeBlock(new Random().nextLong(), blockId);
     CommonUtils.waitFor("wait for blocks being removed to all masters", () ->
         mBlockMasters.stream().allMatch(
-            it -> it.getBlockMetaStore().getLocations(blockId).size() == 0));
+            it -> it.getBlockMetaStore().getLocations(blockId).size() == 0),
+        mDefaultWaitForOptions);
 
-    assertTrue(worker.getMasterSyncOperators().values().stream().allMatch(
-        SpecificMasterBlockSync::isRegistered));
+    assertTrue(mWorker.getBlockSyncMasterGroup().isRegisteredToAllMasters());
 
     fis = mCluster.getClient().openFile(fileUri);
     FileInStream finalFis = fis;
+
+    // Make sure registration only happen once to each master
+    assertTrue(getBlockSyncOperators().values().stream()
+        .allMatch(it -> it.getRegistrationSuccessCount() == 1));
+
     assertThrows(UnavailableException.class,
         () -> IOUtils.toString(finalFis, Charset.defaultCharset()));
+  }
+
+  @Test
+  public void workerHeartbeatPaused() throws Exception {
+    CommonUtils.waitFor("wait for worker registration complete", () ->
+        mWorker.getBlockSyncMasterGroup().isRegisteredToAllMasters(), mDefaultWaitForOptions);
+
+    // Pause all heartbeats
+    getBlockSyncOperators().values().forEach(TestSpecificMasterBlockSync::pauseHeartbeat);
+
+    // Write a file
+    AlluxioURI fileUri = new AlluxioURI("/foobar");
+    String fileContent = "foobar";
+
+    FileOutStream fos = mCluster.getClient().createFile(fileUri);
+    fos.write(fileContent.getBytes());
+    fos.close();
+
+    // Committed block is on primary master even if the heartbeat is paused.
+    List<BlockLocationInfo> blockLocations =
+        mCluster.getClient().getBlockLocations(fileUri);
+    assertEquals(1, blockLocations.size());
+    assertEquals(1, blockLocations.get(0).getLocations().size());
+    long blockId = blockLocations.get(0).getBlockInfo().getBlockInfo().getBlockId();
+
+    // Resume all heartbeats and the block location should be sent to standby masters
+    getBlockSyncOperators().values().forEach(TestSpecificMasterBlockSync::resumeHeartbeat);
+
+    CommonUtils.waitFor("wait for blocks being committed to all masters by heartbeats",
+        () ->
+        mBlockMasters.stream().allMatch(
+            it -> it.getBlockMetaStore().getLocations(blockId).size() == 1),
+        mDefaultWaitForOptions);
+
+    // Make sure registration only happen once to each master
+    assertTrue(getBlockSyncOperators().values().stream()
+        .allMatch(it -> it.getRegistrationSuccessCount() == 1));
+  }
+
+  @Test
+  public void masterFailover() throws Exception {
+    CommonUtils.waitFor("wait for worker registration complete", () ->
+        mWorker.getBlockSyncMasterGroup().isRegisteredToAllMasters(), mDefaultWaitForOptions);
+
+    AlluxioURI fileUri = new AlluxioURI("/foobar");
+    String fileContent = "foobar";
+
+    FileOutStream fos = mCluster.getClient().createFile(fileUri);
+    fos.write(fileContent.getBytes());
+    fos.close();
+
+    FileInStream fis = mCluster.getClient().openFile(fileUri);
+    assertEquals(fileContent, IOUtils.toString(fis, Charset.defaultCharset()));
+
+    // Make sure registration only happen once to each master
+    assertTrue(getBlockSyncOperators().values().stream()
+        .allMatch(it -> it.getRegistrationSuccessCount() == 1));
+
+    // Kill the master and let the failover happen
+    int leaderId = mCluster.getLeaderIndex();
+    mCluster.stopLeader();
+    mCluster.waitForPrimaryMasterServing(5000);
+    assertNotEquals(mCluster.getLeaderIndex(), leaderId);
+
+    fis = mCluster.getClient().openFile(fileUri);
+    FileInStream finalFis = fis;
+    CommonUtils.waitFor("wait for heartbeat sending the block location info",
+        () -> {
+          try {
+            return fileContent.equals(IOUtils.toString(finalFis, Charset.defaultCharset()));
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        },
+        mDefaultWaitForOptions);
+
+    // Make sure no more registration happens
+    assertTrue(getBlockSyncOperators().values().stream()
+        .allMatch(it -> it.getRegistrationSuccessCount() == 1));
+  }
+
+  @Test
+  public void workerRestart() throws Exception {
+    CommonUtils.waitFor("wait for worker registration complete", () ->
+        mWorker.getBlockSyncMasterGroup().isRegisteredToAllMasters(), mDefaultWaitForOptions);
+
+    AlluxioURI fileUri = new AlluxioURI("/foobar");
+    String fileContent = "foobar";
+
+    FileOutStream fos = mCluster.getClient().createFile(fileUri);
+    fos.write(fileContent.getBytes());
+    fos.close();
+
+    FileInStream fis = mCluster.getClient().openFile(fileUri);
+    assertEquals(fileContent, IOUtils.toString(fis, Charset.defaultCharset()));
+
+    mCluster.stopWorkers();
+    mCluster.startWorkers();
+
+    mWorker = (AllMasterRegistrationBlockWorker)
+        mCluster.getWorkerProcess(0).getWorker(BlockWorker.class);
+
+    CommonUtils.waitFor("wait for worker registration complete", () ->
+        getBlockSyncOperators().values().stream().allMatch(
+            SpecificMasterBlockSync::isRegistered), mDefaultWaitForOptions);
+
+    fis = mCluster.getClient().openFile(fileUri);
+    assertEquals(fileContent, IOUtils.toString(fis, Charset.defaultCharset()));
+  }
+
+  private Map<InetSocketAddress, TestSpecificMasterBlockSync> getBlockSyncOperators() {
+    return Maps.transformValues(mWorker.getBlockSyncMasterGroup().getMasterSyncOperators(),
+        it -> (TestSpecificMasterBlockSync) it);
   }
 }

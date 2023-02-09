@@ -15,6 +15,8 @@ import alluxio.RpcUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.RegisterLeaseNotFoundException;
+import alluxio.grpc.AddWorkerIdPRequest;
+import alluxio.grpc.AddWorkerIdPResponse;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
@@ -220,8 +222,9 @@ public final class BlockMasterWorkerServiceHandler extends
   }
 
   @Override
-  public void addWorkerId(alluxio.grpc.AddWorkerIdPRequest request,
-                          StreamObserver<alluxio.grpc.AddWorkerIdPResponse> responseObserver) {
+  public void addWorkerId(
+      AddWorkerIdPRequest request,
+      StreamObserver<AddWorkerIdPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       mBlockMaster.addWorkerId(request.getWorkerId(),
           GrpcUtils.fromProto(request.getWorkerNetAddress()));

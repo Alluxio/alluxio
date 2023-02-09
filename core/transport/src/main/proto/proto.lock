@@ -8582,11 +8582,6 @@
                 "id": 2,
                 "name": "length",
                 "type": "int64"
-              },
-              {
-                "id": 3,
-                "name": "block_location",
-                "type": "grpc.BlockLocation"
               }
             ]
           },
@@ -8599,11 +8594,6 @@
                 "type": "int64"
               }
             ]
-          }
-        ],
-        "imports": [
-          {
-            "path": "grpc/common.proto"
           }
         ],
         "package": {

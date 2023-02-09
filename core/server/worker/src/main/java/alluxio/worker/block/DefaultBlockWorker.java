@@ -171,6 +171,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
+  public WorkerNetAddress getWorkerAddress() {
+    return mAddress;
+  }
+
+  @Override
   public Set<Class<? extends Server>> getDependencies() {
     return new HashSet<>();
   }

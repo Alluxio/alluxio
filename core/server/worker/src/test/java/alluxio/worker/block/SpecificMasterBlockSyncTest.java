@@ -51,8 +51,7 @@ public class SpecificMasterBlockSyncTest {
     TestBlockMasterClient.INSTANCE.setReturnRegisterCommand(false);
 
     SpecificMasterBlockSync sync = new SpecificMasterBlockSync(
-        getMockedBlockWorker(), new AtomicReference<>(0L), WorkerNetAddress.DUMMY, mClientPool,
-        new BlockHeartbeatReporter()
+        getMockedBlockWorker(), TestBlockMasterClient.INSTANCE, new BlockHeartbeatReporter()
     );
     assertFalse(sync.isRegistered());
 
@@ -147,10 +146,6 @@ public class SpecificMasterBlockSyncTest {
     }
 
     @Override
-    public void addWorkerId(long workerId, WorkerNetAddress address) throws IOException {
-    }
-
-    @Override
     public synchronized Command heartbeat(
         long workerId, Map<String, Long> capacityBytesOnTiers,
         Map<String, Long> usedBytesOnTiers,
@@ -168,6 +163,10 @@ public class SpecificMasterBlockSyncTest {
     public void acquireRegisterLeaseWithBackoff(
         long workerId, int estimatedBlockCount, RetryPolicy retry)
         throws IOException, FailedToAcquireRegisterLeaseException {
+    }
+
+    @Override
+    public void addWorkerId(long workerId, WorkerNetAddress address) throws IOException {
     }
   }
 
@@ -195,6 +194,10 @@ public class SpecificMasterBlockSyncTest {
     Mockito.when(blockWorker.getReport())
         .thenReturn(new BlockHeartbeatReport(Collections.emptyMap(),
         Collections.emptyList(), Collections.emptyMap()));
+    Mockito.when(blockWorker.getWorkerAddress())
+        .thenReturn(null);
+    Mockito.when(blockWorker.getWorkerId())
+        .thenReturn(new AtomicReference<>(0L));
     return blockWorker;
   }
 }

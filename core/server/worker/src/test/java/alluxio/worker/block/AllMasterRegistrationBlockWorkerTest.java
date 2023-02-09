@@ -15,7 +15,6 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -29,7 +28,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.annotation.Nullable;
 
 /**
  * Unit tests for {@link DefaultBlockWorker}.
@@ -51,25 +49,25 @@ public class AllMasterRegistrationBlockWorkerTest extends DefaultBlockWorkerTest
     mBlockWorker = new AllMasterRegistrationBlockWorker(
         mBlockMasterClientPool, mFileSystemMasterClient,
         mock(Sessions.class), mBlockStore, new AtomicReference<>(INVALID_WORKER_ID));
-    ((AllMasterRegistrationBlockWorker) mBlockWorker)
-        .setBlockMasterClientPoolFactory(new BlockMasterClientPool.Factory() {
+    BlockSyncMasterGroup.setBlockMasterClientFactory(
+        new BlockSyncMasterGroup.BlockMasterClientFactory() {
           @Override
-          BlockMasterClientPool create(@Nullable InetSocketAddress address) {
-            return mBlockMasterClientPool;
+          BlockMasterClient create(InetSocketAddress address) {
+            return mBlockMasterClient;
           }
         });
   }
 
   @Test
-  public void workerStandbyMasterRegistrationFailed() throws IOException {
-    doThrow(new RuntimeException("error")).when(mBlockMasterClient).addWorkerId(anyLong(), any());
+  public void workerMasterRegistrationFailed() throws IOException {
+    doThrow(new RuntimeException("error")).when(mBlockMasterClient).registerWithStream(
+        anyLong(), any(), any(), any(), any(), any(), any());
     Exception e = assertThrows(Exception.class, () -> mBlockWorker.start(WORKER_ADDRESS));
     assertTrue(e.getMessage().contains("Fatal error: Failed to register with primary master"));
   }
 
   @Test
   public void workerMasterRegistration() throws IOException {
-    doNothing().when(mBlockMasterClient).addWorkerId(anyLong(), any());
     mBlockWorker.start(WORKER_ADDRESS);
   }
 

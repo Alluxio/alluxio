@@ -163,6 +163,11 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
+  public WorkerNetAddress getWorkerAddress() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public Set<Class<? extends Server>> getDependencies() {
     return null;
   }
