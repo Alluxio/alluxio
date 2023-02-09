@@ -18,7 +18,6 @@ import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.retry.TimeoutRetry;
-import alluxio.util.FormatUtils;
 import alluxio.util.ParallelZipUtils;
 import alluxio.util.TarUtils;
 import alluxio.util.io.FileUtils;
@@ -47,8 +46,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -213,36 +210,29 @@ public final class RocksStore implements Closeable {
   public synchronized void writeToCheckpoint(OutputStream output)
       throws IOException, InterruptedException {
     LOG.info("Creating rocksdb checkpoint at {}", mDbCheckpointPath);
+    long startNano = System.nanoTime();
 
-    Path cpPath = Paths.get(mDbCheckpointPath);
     try {
       // createCheckpoint requires that the directory not already exist.
       FileUtils.deletePathRecursively(mDbCheckpointPath);
-      long startNano = System.nanoTime();
       mCheckpoint.createCheckpoint(mDbCheckpointPath);
-      LOG.info("Completed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
-      long size = Files.walk(cpPath)
-          .filter(p -> p.toFile().isFile())
-          .mapToLong(p -> p.toFile().length())
-          .sum();
-      LOG.info("RocksDB checkpoint size: {}", FormatUtils.getSizeFromBytes(size));
     } catch (RocksDBException e) {
       throw new IOException(e);
     }
-    LOG.info("Compressing rocksdb checkpoint at {}", mDbCheckpointPath);
-    long startNano = System.nanoTime();
+
     if (mParallelBackup) {
       CheckpointOutputStream out = new CheckpointOutputStream(output,
           CheckpointType.ROCKS_PARALLEL);
       LOG.info("Checkpoint complete, compressing with {} threads", mParallelBackupPoolSize);
-      ParallelZipUtils.compress(cpPath, out,
+      ParallelZipUtils.compress(Paths.get(mDbCheckpointPath), out,
           mParallelBackupPoolSize, mCompressLevel);
     } else {
       CheckpointOutputStream out = new CheckpointOutputStream(output, CheckpointType.ROCKS_SINGLE);
       LOG.info("Checkpoint complete, compressing with one thread");
-      TarUtils.writeTarGz(cpPath, out, mCompressLevel);
+      TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out, mCompressLevel);
     }
-    LOG.info("Compressed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
+
+    LOG.info("Completed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
     // Checkpoint is no longer needed, delete to save space.
     FileUtils.deletePathRecursively(mDbCheckpointPath);
   }
@@ -251,7 +241,7 @@ public final class RocksStore implements Closeable {
     stopDb();
     File dbPath = new File(mDbPath);
     org.apache.commons.io.FileUtils.deleteDirectory(dbPath);
-    org.apache.commons.io.FileUtils.moveDirectory(file, dbPath);
+    org.apache.commons.io.FileUtils.copyDirectory(file, dbPath);
     try {
       createDb();
     } catch (RocksDBException e) {

@@ -373,7 +373,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         TimeUnit.MILLISECONDS));
 
     // snapshot retention
-    RaftServerConfigKeys.Snapshot.setRetentionFileNum(properties, 3);
+    RaftServerConfigKeys.Snapshot.setRetentionFileNum(properties, 1);
 
     // unsafe flush
     RaftServerConfigKeys.Log.setUnsafeFlushEnabled(properties,
