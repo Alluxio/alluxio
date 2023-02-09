@@ -28,13 +28,11 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.LockResource;
-import alluxio.util.ParallelZipUtils;
 import alluxio.util.StreamUtils;
 import alluxio.util.logging.SamplingLogger;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
-import org.apache.commons.io.FileUtils;
 import org.apache.ratis.proto.RaftProtos;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftGroup;
@@ -49,7 +47,6 @@ import org.apache.ratis.statemachine.SnapshotInfo;
 import org.apache.ratis.statemachine.StateMachineStorage;
 import org.apache.ratis.statemachine.TransactionContext;
 import org.apache.ratis.statemachine.impl.BaseStateMachine;
-import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.apache.ratis.util.LifeCycle;
 import org.slf4j.Logger;
@@ -58,11 +55,9 @@ import org.slf4j.LoggerFactory;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -142,7 +137,7 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile long mSnapshotLastIndex = -1;
   /** Used to control applying to masters. */
   private BufferedJournalApplier mJournalApplier;
-  private final SimpleStateMachineStorage mStorage = new SimpleStateMachineStorage();
+  private final SnapshotDirStateMachineStorage mStorage = new SnapshotDirStateMachineStorage();
   private RaftGroupId mRaftGroupId;
   private RaftServer mServer;
   private long mLastCheckPointTime = -1;
@@ -589,31 +584,21 @@ public class JournalStateMachine extends BaseStateMachine {
     Preconditions.checkState(!mSnapshotting, "Cannot call snapshot multiple times concurrently");
     mSnapshotting = true;
     TermIndex last = getLastAppliedTermIndex();
-    File tempDir = new File(mStorage.getSmDir().getParentFile(), String.format("tmp-%s_%s",
-        last.getTerm(), last.getIndex()));
-    if (!tempDir.isDirectory() && !tempDir.mkdir()) {
+
+    File snapshotDir = mStorage.getSnapshotFile(last.getTerm(), last.getIndex());
+    if (!snapshotDir.isDirectory() && !snapshotDir.mkdir()) {
       return RaftLog.INVALID_LOG_INDEX;
     }
-    try (AutoCloseable c = () -> FileUtils.deleteDirectory(tempDir);
-         Timer.Context ctx = MetricsSystem.timer(
+    try (Timer.Context ctx = MetricsSystem.timer(
              MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER.getName()).time()) {
       // The start time of the most recent snapshot
       for (Journaled j : getStateMachines()) {
-        j.writeToCheckpoint(tempDir);
+        j.writeToCheckpoint(snapshotDir);
       }
       long snapshotId = mNextSequenceNumberToRead - 1;
       try (DataOutputStream idFile = new DataOutputStream(
-          new FileOutputStream(new File(tempDir, "SNAPSHOT_ID")))) {
+          Files.newOutputStream(new File(snapshotDir, "SNAPSHOT_ID").toPath()))) {
         idFile.writeLong(snapshotId);
-      }
-      final File snapshotFile = mStorage.getSnapshotFile(last.getTerm(), last.getIndex());
-      try (FileOutputStream outputStream = new FileOutputStream(snapshotFile)) {
-        int poolSize = Configuration.getInt(
-            PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS);
-        int compressionLevel = Configuration.getInt(
-            PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
-        ParallelZipUtils.compress(Paths.get(tempDir.getAbsolutePath()), outputStream, poolSize,
-            compressionLevel);
       }
       mStorage.loadLatestSnapshot();
       return last.getIndex();
@@ -637,22 +622,16 @@ public class JournalStateMachine extends BaseStateMachine {
       return;
     }
 
-    File tempDir = new File(mStorage.getSmDir().getParentFile(), String.format("tmp-%s_%s",
-        snapshot.getTerm(), snapshot.getIndex()));
+    File snapshotDir = snapshot.getFile().getPath().toFile();
     long snapshotId = 0L;
-    try (AutoCloseable c = () -> FileUtils.deleteDirectory(tempDir);
-        Timer.Context ctx = MetricsSystem.timer(MetricKey
+    try (Timer.Context ctx = MetricsSystem.timer(MetricKey
         .MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER.getName()).time()) {
-      int poolSize = Configuration.getInt(
-          PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS);
-      ParallelZipUtils.decompress(tempDir.toPath(), snapshot.getFile().getPath().toString(),
-          poolSize);
-      try (DataInputStream is = new DataInputStream(new FileInputStream(new File(tempDir,
-          "SNAPSHOT_ID")))) {
+      try (DataInputStream is = new DataInputStream(Files.newInputStream(new File(snapshotDir,
+          "SNAPSHOT_ID").toPath()))) {
         snapshotId = is.readLong();
       }
       for (Journaled j : getStateMachines()) {
-        j.restoreFromCheckpoint(tempDir);
+        j.restoreFromCheckpoint(snapshotDir);
       }
     } catch (Exception e) {
       JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to install snapshot: %s",
