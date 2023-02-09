@@ -563,32 +563,13 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
-    services.put(ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE, new GrpcService(ServerInterceptors
-<<<<<<< HEAD
-        .intercept(new FileSystemMasterClientServiceHandler(this), new ClientIpAddressInjector())));
+    services.put(ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE, new GrpcService(
+        ServerInterceptors.intercept(new FileSystemMasterClientServiceHandler(this, mLoadManager),
+            new ClientIpAddressInjector())));
     services.put(ServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE,
         new GrpcService(new FileSystemMasterJobServiceHandler(this)));
     services.put(ServiceType.FILE_SYSTEM_MASTER_WORKER_SERVICE,
         new GrpcService(new FileSystemMasterWorkerServiceHandler(this)));
-||||||| parent of db9f07a50e... Add new distributed load
-        .intercept(new FileSystemMasterClientServiceHandler(this),
-            new ClientContextServerInjector())));
-    services.put(ServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE, new GrpcService(ServerInterceptors
-        .intercept(new FileSystemMasterJobServiceHandler(this),
-            new ClientContextServerInjector())));
-    services.put(ServiceType.FILE_SYSTEM_MASTER_WORKER_SERVICE, new GrpcService(ServerInterceptors
-        .intercept(new FileSystemMasterWorkerServiceHandler(this),
-            new ClientContextServerInjector())));
-=======
-        .intercept(new FileSystemMasterClientServiceHandler(this, mLoadManager),
-            new ClientContextServerInjector())));
-    services.put(ServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE, new GrpcService(ServerInterceptors
-        .intercept(new FileSystemMasterJobServiceHandler(this),
-            new ClientContextServerInjector())));
-    services.put(ServiceType.FILE_SYSTEM_MASTER_WORKER_SERVICE, new GrpcService(ServerInterceptors
-        .intercept(new FileSystemMasterWorkerServiceHandler(this),
-            new ClientContextServerInjector())));
->>>>>>> db9f07a50e... Add new distributed load
     return services;
   }
 
