@@ -168,7 +168,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
     try {
       mJournalSystem.suspend(this::interruptBackup);
       LOG.info("Suspended journals for backup.");
-    } catch (Exception e) {
+    } catch (IOException e) {
       CompletableFuture<Void> future = new CompletableFuture<>();
       future.completeExceptionally(e);
       return future;
