@@ -65,6 +65,7 @@ public class JournalExporter {
 
     switch (journalType) {
       case UFS:
+        System.out.println("ufs");
         initUfsJournal();
         break;
       case EMBEDDED:
@@ -85,6 +86,7 @@ public class JournalExporter {
 
   private void initUfsJournal() throws IOException {
     // UfsJournal journal = new UfsJournalSystem(getJournalLocation(mInputDir), 0).createJournal(new NoopMaster(mMaster));
+    System.out.println("ufsing");
     UfsJournal journal = new UfsJournal(getJournalLocation(mOutputDir), new NoopMaster(), 0, Collections::emptySet);
     mJournal = journal;
     journal.start();

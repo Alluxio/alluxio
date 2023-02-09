@@ -63,15 +63,22 @@ public class JournalTool {
     if (sHelp) {
       System.exit(0);
     }
-    test();
+    JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+    switch (journalType) {
+      case UFS:
+        ufstest();
+        break;
+      case EMBEDDED:
+        rafttest();
+        break;
+      default:
+        System.out.println("no such type journal, no test shall be executed");
+    }
     String testpath = "/Users/dengxinyu/test.txt";
     try (PrintStream test =
           new PrintStream(new BufferedOutputStream(new FileOutputStream(testpath)))) {
-      System.out.println("testing0");
       test.println("hello");
-      System.out.println("testing1");
     } catch (Exception e) {
-      System.out.println("test fail");
       System.out.print(e);
     }
     // EntryStream stream = initStream();
@@ -125,42 +132,54 @@ public class JournalTool {
     return ex.getWriter();
   }
 
-  private static void test() {
-
+  /**
+   * test pass!
+   * read 10 entries from 0x0-0x21, decode, encode, and write them to another journal file
+   */
+  private static void ufstest() {
     EntryStream stream = initStream();
     JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
     JournalExporter ex;
     JournalWriter writer;
     String outputfile = PathUtils.concatPath(sOutputDir, "test.txt");
-    System.out.println(outputfile);
     try (PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputfile)))) {
       ex = new JournalExporter(journalType, sOutputDir, sMaster, sStart);
-      writer = ex.getWriter();
       Journal journal = ex.getJournal();
+      writer = ex.getWriter();
       JournalContext ctx = journal.createJournalContext();
-      JournalEntry entry = stream.nextEntry();
-      JournalEntry hold = stream.nextEntry();
-      System.out.print(entry);
-      System.out.println("read success");
-      writer.write(entry);
-      System.out.println("printstrea ok");
-      out.println("test");
-      writer.write(entry);
-      out.print(entry);
-      out.println("----------------------");
-      entry = entry.toBuilder().setSequenceNumber(entry.getSequenceNumber()+100).build();
-      out.print(entry);
-      writer.write(entry);
-      System.out.println("print success");
-      long sq = hold.getSequenceNumber();
-      System.out.println("1");
-      long step = 5;
-      hold.toBuilder().setSequenceNumber(sq + step);
-      System.out.println("2");
+      for (int i = 0; i < 10; i++) {
+        JournalEntry entry = stream.nextEntry();
+        writer.write(entry);
+      }
+      writer.flush();
+      ex.getJournal().close();
     } catch (IOException e) {
       System.out.print(e);
     } catch (JournalClosedException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  private static void rafttest() {
+    EntryStream stream = initStream();
+    JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+    JournalExporter ex;
+    JournalWriter writer;
+    String outputfile = PathUtils.concatPath(sOutputDir, "test.txt");
+    try (PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputfile)))) {
+      ex = new JournalExporter(journalType, sOutputDir, sMaster, sStart);
+      Journal journal = ex.getJournal();
+      // writer = ex.getWriter();
+      JournalContext ctx = journal.createJournalContext();
+      for (int i = 0; i < 10; i++) {
+        JournalEntry entry = stream.nextEntry();
+        // writer.write(entry);
+        out.println(entry);
+      }
+      // writer.flush();
+      ex.getJournal().close();
+    } catch (IOException e) {
+
     }
   }
 
