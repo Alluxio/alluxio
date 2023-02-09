@@ -32,9 +32,11 @@ public class RaftJournalEntryStream extends EntryStream {
         RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize())
         ) {
       storage.initialize();
+      System.out.printf("storage is: %s", storage);
       mPaths = LogSegmentPath.getLogSegmentPaths(storage);
     } catch (Exception e) {
       // do sth
+      System.out.println(e);
     }
   }
 

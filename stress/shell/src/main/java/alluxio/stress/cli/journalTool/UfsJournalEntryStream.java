@@ -21,6 +21,8 @@ public class UfsJournalEntryStream extends EntryStream {
     super(master, start, end, inputDir);
     journal = new UfsJournalSystem(getJournalLocation(mInputDir), 0).createJournal(new NoopMaster(mMaster));
     reader = new UfsJournalReader(journal, mStart, true);
+    System.out.println(journal);
+    System.out.println(getJournalLocation(mInputDir));
   }
 
   @Override

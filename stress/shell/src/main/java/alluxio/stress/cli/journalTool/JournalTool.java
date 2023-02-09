@@ -63,24 +63,23 @@ public class JournalTool {
     if (sHelp) {
       System.exit(0);
     }
+    System.out.println("1");
     JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+    System.out.println(journalType);
+    System.out.println(sMaster);
     switch (journalType) {
       case UFS:
+        System.out.println("3");
         ufstest();
         break;
       case EMBEDDED:
+        System.out.println("3");
         rafttest();
         break;
       default:
         System.out.println("no such type journal, no test shall be executed");
     }
-    String testpath = "/Users/dengxinyu/test.txt";
-    try (PrintStream test =
-          new PrintStream(new BufferedOutputStream(new FileOutputStream(testpath)))) {
-      test.println("hello");
-    } catch (Exception e) {
-      System.out.print(e);
-    }
+    System.out.println("4");
     // EntryStream stream = initStream();
     // JournalEntry entry = stream.nextEntry();
     // JournalEntry hold = stream.nextEntry();
@@ -108,6 +107,7 @@ public class JournalTool {
     } else {
       sInputDir = Configuration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     }
+    sInputDir = "/Users/dengxinyu/alluxio-2.8.0/tmp/journal";
     sOutputDir = new File(cmd.getOptionValue(OUTPUT_DIR_OPTION_NAME,
         "journal_dump-" + System.currentTimeMillis())).getAbsolutePath();
     return true;
@@ -115,8 +115,10 @@ public class JournalTool {
 
   private static EntryStream initStream() {
     JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+    journalType = JournalType.UFS;
     switch (journalType) {
       case UFS:
+        System.out.println(sInputDir);
         return new UfsJournalEntryStream(sMaster, sStart, sEnd, sInputDir);
       case EMBEDDED:
         return new RaftJournalEntryStream(sMaster, sStart, sEnd, sInputDir);
@@ -150,6 +152,7 @@ public class JournalTool {
       for (int i = 0; i < 10; i++) {
         JournalEntry entry = stream.nextEntry();
         writer.write(entry);
+        out.println(entry);
       }
       writer.flush();
       ex.getJournal().close();
@@ -168,19 +171,29 @@ public class JournalTool {
     String outputfile = PathUtils.concatPath(sOutputDir, "test.txt");
     try (PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputfile)))) {
       ex = new JournalExporter(journalType, sOutputDir, sMaster, sStart);
+      System.out.println("ex ok");
       Journal journal = ex.getJournal();
+      System.out.println("journal ok");
       // writer = ex.getWriter();
-      JournalContext ctx = journal.createJournalContext();
+      // JournalContext ctx = journal.createJournalContext();
+      // System.out.println("ctx ok");
+      System.out.println("before loop");
       for (int i = 0; i < 10; i++) {
         JournalEntry entry = stream.nextEntry();
         // writer.write(entry);
+        System.out.println("i is:" + i);
         out.println(entry);
       }
+      System.out.println("after loop");
       // writer.flush();
+      out.flush();
+      out.close();
       ex.getJournal().close();
     } catch (IOException e) {
 
+      System.out.println(e);
     }
+    System.out.println("raft test fin");
   }
 
 }
