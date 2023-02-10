@@ -5305,7 +5305,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey PROXY_S3_READ_RATE_LIMIT_MB =
       longBuilder(Name.PROXY_S3_READ_RATE_LIMIT_MB)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setDescription("Limit the maximum read speed for each getObject request")
+          .setDescription("Limit the maximum read speed for each getObject request.")
           .setDefaultValue(0)
           .setScope(Scope.SERVER)
           .build();

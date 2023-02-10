@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * This class is a wrap for InputStream which limit rate when reading bytes.
+ * This class is a wrapper for InputStream which limit rate when reading bytes.
  */
 public class RateLimitInputStream extends InputStream {
 
