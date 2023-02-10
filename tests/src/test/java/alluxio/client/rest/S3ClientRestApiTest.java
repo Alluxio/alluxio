@@ -119,6 +119,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
       .setProperty(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED, false)
       .setProperty(
           PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED, false) // default
+      .setProperty(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS, "0min")
       .build();
 
   @Rule
@@ -290,6 +291,22 @@ public final class S3ClientRestApiTest extends RestApiTest {
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
     Assert.assertEquals(response.getCode(), S3ErrorCode.ACCESS_DENIED_ERROR.getCode());
+  }
+
+  @Test
+  public void listNonExistentBucket() throws Exception {
+    String bucketName = "bucket";
+
+    // Verify 404 HTTP status & NoSuchBucket S3 error code
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
+        bucketName, NO_PARAMS, HttpMethod.GET,
+        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .execute();
+    Assert.assertEquals(404, connection.getResponseCode());
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(bucketName, response.getResource());
+    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
   }
 
   @Test
@@ -991,6 +1008,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void putObjectToDeletedBucket() throws Exception {
+    //    enable the cache
+    sResource.setProperty(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS, "1min");
     String object = CommonUtils.randomAlphaNumString(DATA_SIZE);
     createBucketRestCall("bucket");
     // delete the bucket in alluxio and UFS, but the bucket remains in BUCKET_PATH_CACHE
@@ -1008,11 +1027,16 @@ public final class S3ClientRestApiTest extends RestApiTest {
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
     Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
+
+    // disable the cache
+    sResource.setProperty(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS, "0min");
   }
 
   @Test
   public void putDirectoryToDeletedBucket() throws Exception {
-    String object = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    //    enable the cache
+    sResource.setProperty(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS, "1min");
+
     createBucketRestCall("bucket");
     // delete the bucket in alluxio and UFS, but the bucket remains in BUCKET_PATH_CACHE
     mFileSystem.delete(new AlluxioURI("/bucket"));
@@ -1029,6 +1053,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
     Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
+    // disable the cache
+    sResource.setProperty(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS, "0min");
   }
 
   @Test
