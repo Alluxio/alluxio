@@ -17,6 +17,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.ratis.proto.RaftProtos;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -110,12 +111,16 @@ public class JournalTool {
     sInputDir = "/Users/dengxinyu/alluxio-2.8.0/tmp/journal";
     sOutputDir = new File(cmd.getOptionValue(OUTPUT_DIR_OPTION_NAME,
         "journal_dump-" + System.currentTimeMillis())).getAbsolutePath();
+    System.out.printf("in parseInputArgs sOutputDir is: %s%n", new File(cmd.getOptionValue(OUTPUT_DIR_OPTION_NAME,
+        "journal_dump-" + System.currentTimeMillis())));
+    System.out.printf("in parseInputArgs sOutputDir is: %s%n", new File("~/journal-tool"));
+    System.out.printf("in parseInputArgs sOutputDir is: %s%n", new File("~/journal-tool").getAbsolutePath());
+    sOutputDir = "/Users/dengxinyu/journal-tool";
     return true;
   }
 
   private static EntryStream initStream() {
     JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
-    journalType = JournalType.UFS;
     switch (journalType) {
       case UFS:
         System.out.println(sInputDir);
@@ -169,7 +174,11 @@ public class JournalTool {
     JournalExporter ex;
     JournalWriter writer;
     String outputfile = PathUtils.concatPath(sOutputDir, "test.txt");
+    System.out.printf("raft outputfile is: %s%n", outputfile);
+    System.out.println("gonna try printstream");
     try (PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputfile)))) {
+      out.println("hello test");
+      System.out.println("got printstream out");
       ex = new JournalExporter(journalType, sOutputDir, sMaster, sStart);
       System.out.println("ex ok");
       Journal journal = ex.getJournal();
@@ -178,22 +187,74 @@ public class JournalTool {
       // JournalContext ctx = journal.createJournalContext();
       // System.out.println("ctx ok");
       System.out.println("before loop");
+
+      // this loop is use used to go through the journal entries
       for (int i = 0; i < 10; i++) {
-        JournalEntry entry = stream.nextEntry();
+        RaftProtos.LogEntryProto proto = stream.nextProto();
+        if (proto.hasStateMachineLogEntry()) {
+          int j = 0;
+          JournalEntry entry = JournalEntry.parseFrom(proto.getStateMachineLogEntry().getLogData().asReadOnlyByteBuffer());
+          JournalEntry tmp;
+          try {
+            while ((tmp = entry.getJournalEntries(j)) != null) {
+              System.out.println(tmp);
+              out.println(tmp);
+              j += 1;
+            }
+          } catch (Exception e) {
+            System.out.println("error!!!");
+            System.out.println(e);
+          }
+        } else {
+          System.out.println(proto);
+          // out.println(proto);
+        }
+
+        // JournalEntry entry = stream.nextEntry();
+        // if (entry != null) {
+        //   // do sth
+        //   // entry from mStream in RaftJournalEntryStream
+        //   System.out.println("got entry!");
+        //   out.print(entry);
+        //   out.print("---------test---------");
+        // } else {
+        //   RaftProtos.LogEntryProto proto;
+        //   while ((proto = stream.nextProto()) != null && !stream.processProto(proto)) {
+        //     System.out.println("one proto is not entry");
+        //     out.print(proto);
+        //   }
+        //   if (proto == null) {
+        //     System.out.println("proto is null");
+        //     System.out.println("break loop");
+        //     break;
+        //   }
+        // }
         // writer.write(entry);
         System.out.println("i is:" + i);
-        out.println(entry);
       }
+
       System.out.println("after loop");
       // writer.flush();
       out.flush();
-      out.close();
-      ex.getJournal().close();
+      // ex.getJournal().close();
     } catch (IOException e) {
 
       System.out.println(e);
     }
     System.out.println("raft test fin");
+  }
+
+  private static JournalEntry processProto(RaftProtos.LogEntryProto proto) {
+    try {
+      JournalEntry entry = JournalEntry.parseFrom(
+          proto.getStateMachineLogEntry().getLogData().asReadOnlyByteBuffer());
+      return entry;
+    } catch (Exception e) {
+
+    }
+    // temporary
+    // throw new RuntimeException();
+    return null;
   }
 
 }
