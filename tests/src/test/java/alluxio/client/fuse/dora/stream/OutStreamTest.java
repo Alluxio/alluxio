@@ -83,6 +83,8 @@ public class OutStreamTest extends AbstractStreamTest {
   @Test (expected = FailedPreconditionRuntimeException.class)
   public void read() throws Exception {
     AlluxioURI alluxioURI = getTestFileUri();
+    mFileSystem.createDirectory(alluxioURI.getParent(),
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
       outStream.write(buffer, DEFAULT_FILE_LEN, 0);
