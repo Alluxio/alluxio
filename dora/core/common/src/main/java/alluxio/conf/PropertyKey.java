@@ -5388,6 +5388,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_V2_VERSION_ENABLED =
+          booleanBuilder(Name.PROXY_S3_V2_VERSION_ENABLED)
+                  .setDefaultValue(false)
+                  .setDescription("(Experimental) V2, an optimized version of "
+                          + "Alluxio s3 proxy service.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .build();
+  public static final PropertyKey PROXY_S3_V2_ASYNC_PROCESSING_ENABLED =
+          booleanBuilder(Name.PROXY_S3_V2_ASYNC_PROCESSING_ENABLED)
+                  .setDefaultValue(false)
+                  .setDescription("(Experimental) If enabled, handle S3 request "
+                          + "in async mode when v2 version of Alluxio s3 "
+                          + "proxy service is enabled.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .build();
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       durationBuilder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
           .setAlias("alluxio.proxy.stream.cache.timeout.ms")
@@ -8650,6 +8667,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
     public static final String PROXY_AUDIT_LOGGING_ENABLED =
         "alluxio.proxy.audit.logging.enabled";
+    public static final String PROXY_S3_V2_VERSION_ENABLED =
+            "alluxio.proxy.s3.v2.version.enabled";
+    public static final String PROXY_S3_V2_ASYNC_PROCESSING_ENABLED =
+            "alluxio.proxy.s3.v2.async.processing.enabled";
     public static final String S3_UPLOADS_ID_XATTR_KEY = "s3_uploads_mulitpartupload_id";
 
     //
