@@ -2099,6 +2099,12 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
 
         deleteInternal(rpcContext, inodePath, context, false);
+        if (context.getOptions().getAlluxioOnly()
+            && context.getOptions().hasSyncParentNextTime()) {
+          boolean syncParentNextTime = context.getOptions().getSyncParentNextTime();
+          mInodeTree.setDirectChildrenLoaded(
+              rpcContext, inodePath.getParentInodeDirectory(), !syncParentNextTime);
+        }
         auditContext.setSucceeded(true);
         cacheOperation(context);
       }
