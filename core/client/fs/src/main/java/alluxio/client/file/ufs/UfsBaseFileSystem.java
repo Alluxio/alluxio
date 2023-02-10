@@ -395,11 +395,11 @@ public class UfsBaseFileSystem implements FileSystem {
    * @return the client-side status
    */
   private URIStatus transformStatus(UfsStatus ufsStatus) {
-    AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mRootUFS,
-        CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mRootUFS.getPath())));
+    String path = CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mRootUFS.toString());
+    AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mRootUFS, path));
     FileInfo info = new FileInfo().setName(ufsUri.getName())
-        .setPath(ufsUri.toString())
-        .setFileId(ufsUri.hashCode())
+        .setPath(path)
+        .setFileId(ufsUri.toString().hashCode())
         .setUfsPath(ufsUri.toString())
         .setFolder(ufsStatus.isDirectory())
         .setOwner(ufsStatus.getOwner())
@@ -407,7 +407,7 @@ public class UfsBaseFileSystem implements FileSystem {
         .setMode(ufsStatus.getMode())
         .setCompleted(true);
     if (ufsStatus.getLastModifiedTime() != null) {
-      info.setLastModificationTimeMs(info.getLastModificationTimeMs());
+      info.setLastModificationTimeMs(ufsStatus.getLastModifiedTime());
     }
     if (ufsStatus.getXAttr() != null) {
       info.setXAttr(ufsStatus.getXAttr());

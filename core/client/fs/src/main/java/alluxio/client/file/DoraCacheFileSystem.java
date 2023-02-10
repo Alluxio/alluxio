@@ -69,7 +69,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       return mDoraClient.getStatus(path.getPath(), options);
     } catch (RuntimeException ex) {
       LOG.debug("Dora client get status error. Fall back to UFS.", ex);
-      return mDelegatedFileSystem.getStatus(path, options);
+      UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
+      String ufsFullPath = PathUtils.concatPath(under.getRootUFS(), path.getPath());
+      return mDelegatedFileSystem.getStatus(new AlluxioURI(ufsFullPath), options);
     }
   }
 
