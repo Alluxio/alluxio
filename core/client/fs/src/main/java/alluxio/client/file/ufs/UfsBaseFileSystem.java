@@ -293,7 +293,7 @@ public class UfsBaseFileSystem implements FileSystem {
       // TODO(lu) deal with other options e.g. maxUfsReadConcurrency
       return new UfsFileInStream(offset -> {
         try {
-          return mUfs.get().open(status.getPath(), OpenOptions.defaults().setOffset(offset));
+          return mUfs.get().open(status.getUfsPath(), OpenOptions.defaults().setOffset(offset));
         } catch (IOException e) {
           throw AlluxioRuntimeException.from(e);
         }
