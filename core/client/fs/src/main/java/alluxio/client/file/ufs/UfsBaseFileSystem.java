@@ -87,7 +87,7 @@ public class UfsBaseFileSystem implements FileSystem {
   private final Closer mCloser = Closer.create();
   protected final FileSystemContext mFsContext;
   protected final CloseableResource<UnderFileSystem> mUfs;
-  protected final AlluxioURI mRootUFS;
+  private final AlluxioURI mRootUFS;
   protected volatile boolean mClosed = false;
 
   /**
@@ -420,6 +420,15 @@ public class UfsBaseFileSystem implements FileSystem {
       info.setLength(0);
     }
     return new URIStatus(info);
+  }
+
+  /**
+   * Gets the UFS Root.
+   *
+   * @return AlluxioURI of UFS Root
+   */
+  public AlluxioURI getRootUFS() {
+    return mRootUFS;
   }
 
   private static void call(UfsCallable callable) {

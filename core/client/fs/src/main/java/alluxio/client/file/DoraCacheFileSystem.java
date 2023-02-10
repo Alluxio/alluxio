@@ -15,20 +15,25 @@ import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.file.dora.DoraCacheClient;
 import alluxio.client.file.dora.WorkerLocationPolicy;
+import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.exception.OpenDirectoryException;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.FileSystemOptionsUtils;
+import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Dora Cache file system implementation.
@@ -63,7 +68,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     try {
       return mDoraClient.getStatus(path.getPath(), options);
     } catch (RuntimeException ex) {
-      LOG.debug("Dora client get status error", ex);
+      LOG.debug("Dora client get status error. Fall back to UFS.", ex);
       return mDelegatedFileSystem.getStatus(path, options);
     }
   }
@@ -97,8 +102,17 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
               .build();
       return mDoraClient.getInStream(status, openUfsBlockOptions);
     } catch (RuntimeException ex) {
-      LOG.debug("Dora client open file error", ex);
+      LOG.debug("Dora client open file error. Fall back to UFS.", ex);
       return mDelegatedFileSystem.openFile(status, mergedOptions);
     }
+  }
+
+  @Override
+  public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
+
+    String ufsFullPath = PathUtils.concatPath(under.getRootUFS(), path.getPath());
+    return mDelegatedFileSystem.listStatus(new AlluxioURI(ufsFullPath), options);
   }
 }
