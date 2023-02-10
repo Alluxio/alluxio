@@ -107,6 +107,8 @@ public final class S3RestServiceHandler {
   /* Object is after bucket in the URL path */
   public static final String OBJECT_PARAM = "{bucket}/{object:.+}";
 
+  public static final long MB = 1024 * 1024L;
+
   private final FileSystem mMetaFS;
   private final InstancedConfiguration mSConf;
 
@@ -1244,7 +1246,15 @@ public final class S3RestServiceHandler {
           S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
           RangeFileInStream ris = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
 
-          Response.ResponseBuilder res = Response.ok(ris)
+          InputStream rateLimitInputStream;
+          long rate = mSConf.getLong(PropertyKey.PROXY_S3_READ_RATE_LIMIT_MB) * MB;
+          if (rate <= 0) {
+            rateLimitInputStream = ris;
+          } else {
+            rateLimitInputStream = new RateLimitInputStream(ris, rate);
+          }
+
+          Response.ResponseBuilder res = Response.ok(rateLimitInputStream)
               .lastModified(new Date(status.getLastModificationTimeMs()))
               .header(S3Constants.S3_CONTENT_LENGTH_HEADER, s3Range.getLength(status.getLength()));
 

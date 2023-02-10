@@ -5302,6 +5302,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_READ_RATE_LIMIT_MB =
+      longBuilder(Name.PROXY_S3_READ_RATE_LIMIT_MB)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setDescription("Limit the maximum read speed for each getObject request")
+          .setDefaultValue(0)
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // Locality related properties
@@ -8417,6 +8424,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_S3_V2_ASYNC_PROCESSING_ENABLED =
             "alluxio.proxy.s3.v2.async.processing.enabled";
     public static final String S3_UPLOADS_ID_XATTR_KEY = "s3_uploads_mulitpartupload_id";
+    public static final String PROXY_S3_READ_RATE_LIMIT_MB = "alluxio.proxy.s3.read.rate.limit.mb";
 
     //
     // Locality related properties
