@@ -15,6 +15,9 @@ import com.google.common.util.concurrent.RateLimiter;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * This class is a wrap for InputStream which limit rate when reading bytes.
+ */
 public class RateLimitInputStream extends InputStream {
 
   private final InputStream inputStream;
