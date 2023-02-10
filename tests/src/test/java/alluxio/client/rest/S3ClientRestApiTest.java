@@ -119,7 +119,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
       .setProperty(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED, false)
       .setProperty(
           PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED, false) // default
-      .setProperty(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS, "0min")
+      .setProperty(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS,
+          "0min") // disable the bucket path cache
       .build();
 
   @Rule
