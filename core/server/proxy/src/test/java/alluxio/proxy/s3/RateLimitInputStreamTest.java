@@ -11,22 +11,23 @@
 
 package alluxio.proxy.s3;
 
+import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.UUID;
-import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 
 public class RateLimitInputStreamTest {
 
   public static final int MB = 1024 * 1024;
   public static final int KB = 1024;
 
-  private byte[] data;
+  private byte[] mData;
 
   @Before
   public void init() throws IOException {
@@ -37,13 +38,13 @@ public class RateLimitInputStreamTest {
       byteArrayOutputStream.write(bytes);
       count += bytes.length;
     }
-    data = Arrays.copyOf(byteArrayOutputStream.toByteArray(), MB);
+    mData = Arrays.copyOf(byteArrayOutputStream.toByteArray(), MB);
   }
 
   @Test
   public void testRead() throws IOException {
     long rate = 100 * KB;
-    ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
+    ByteArrayInputStream inputStream = new ByteArrayInputStream(mData);
     RateLimitInputStream rateLimitInputStream = new RateLimitInputStream(inputStream, rate);
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(MB);
     long start = System.currentTimeMillis();
@@ -52,7 +53,6 @@ public class RateLimitInputStreamTest {
     long duration = end - start;
     long expectedDuration = MB / rate * 1000;
     Assert.assertTrue(duration >= expectedDuration && duration <= expectedDuration + 1000);
-    Assert.assertArrayEquals(data, byteArrayOutputStream.toByteArray());
+    Assert.assertArrayEquals(mData, byteArrayOutputStream.toByteArray());
   }
-
 }

@@ -12,6 +12,7 @@
 package alluxio.proxy.s3;
 
 import com.google.common.util.concurrent.RateLimiter;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -20,18 +21,23 @@ import java.io.InputStream;
  */
 public class RateLimitInputStream extends InputStream {
 
-  private final InputStream inputStream;
-  private final RateLimiter rateLimiter;
+  private final InputStream mInputStream;
+  private final RateLimiter mRateLimiter;
 
+  /**
+   * Constructs a new {@link RateLimitInputStream}.
+   * @param inputStream Original stream to be limited
+   * @param rate Maximal reading bytes per second
+   */
   public RateLimitInputStream(InputStream inputStream, long rate) {
-    this.inputStream = inputStream;
-    this.rateLimiter = RateLimiter.create(rate);
+    mInputStream = inputStream;
+    mRateLimiter = RateLimiter.create(rate);
   }
 
   @Override
   public int read() throws IOException {
-    rateLimiter.acquire(1);
-    return inputStream.read();
+    mRateLimiter.acquire(1);
+    return mInputStream.read();
   }
 
   @Override
@@ -41,12 +47,12 @@ public class RateLimitInputStream extends InputStream {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    rateLimiter.acquire(Math.min(b.length - off, len));
-    return inputStream.read(b, off, len);
+    mRateLimiter.acquire(Math.min(b.length - off, len));
+    return mInputStream.read(b, off, len);
   }
 
   @Override
   public void close() throws IOException {
-    inputStream.close();
+    mInputStream.close();
   }
 }
