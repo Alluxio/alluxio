@@ -136,6 +136,14 @@ spec:
               mountPropagation: "Bidirectional"
             - name: csi-fuse-config
               mountPath: /opt/alluxio/integration/kubernetes/csi
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | trim | nindent 8 }}
+      {{- end }}
+      nodeSelector:
+      {{- if .Values.nodeSelector }}
+        {{- toYaml .Values.nodeSelector | trim | nindent 8 }}
+      {{- end }}
       volumes:
         - name: plugin-dir
           hostPath:
