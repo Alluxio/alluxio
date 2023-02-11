@@ -29,6 +29,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.util.concurrent.RateLimiter;
 import org.eclipse.jetty.server.HttpChannel;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -64,6 +65,9 @@ public final class ProxyWebServer extends WebServer {
 
   public static final String SERVER_CONFIGURATION_RESOURCE_KEY = "Server Configuration";
   public static final String ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY = "Alluxio Proxy Audit Log Writer";
+  public static final String GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY = "Global Rate Limiter";
+
+  private final RateLimiter mGlobalRateLimiter;
   private final FileSystem mFileSystem;
   private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
   public static final String PROXY_S3_HANDLER_MAP = "Proxy S3 Handler Map";
@@ -102,6 +106,12 @@ public final class ProxyWebServer extends WebServer {
         .register(S3RestExceptionMapper.class);
 
     mFileSystem = FileSystem.Factory.create(Configuration.global());
+    long rate =
+        Configuration.getLong(PropertyKey.PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB) * Constants.MB;
+    if (rate <= 0) {
+      rate = Long.MAX_VALUE;
+    }
+    mGlobalRateLimiter = RateLimiter.create(rate);
 
     if (Configuration.getBoolean(PropertyKey.PROXY_AUDIT_LOGGING_ENABLED)) {
       mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("PROXY_AUDIT_LOG");
@@ -124,6 +134,8 @@ public final class ProxyWebServer extends WebServer {
         getServletContext().setAttribute(STREAM_CACHE_SERVLET_RESOURCE_KEY,
                 new StreamCache(Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
         getServletContext().setAttribute(ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY, mAsyncAuditLogWriter);
+        getServletContext().setAttribute(GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY,
+            mGlobalRateLimiter);
       }
 
       @Override

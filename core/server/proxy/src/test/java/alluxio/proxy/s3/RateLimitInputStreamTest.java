@@ -11,6 +11,9 @@
 
 package alluxio.proxy.s3;
 
+import static alluxio.Constants.KB;
+import static alluxio.Constants.MB;
+
 import com.google.common.util.concurrent.RateLimiter;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
@@ -30,9 +33,6 @@ import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 
 public class RateLimitInputStreamTest {
-
-  public static final int MB = 1024 * 1024;
-  public static final int KB = 1024;
 
   private byte[] mData;
 

@@ -108,8 +108,6 @@ public final class S3RestServiceHandler {
   /* Object is after bucket in the URL path */
   public static final String OBJECT_PARAM = "{bucket}/{object:.+}";
 
-  public static final long MB = 1024 * 1024L;
-
   private final FileSystem mMetaFS;
   private final InstancedConfiguration mSConf;
 
@@ -174,11 +172,8 @@ public final class S3RestServiceHandler {
       );
     }
 
-    long globalRate = mSConf.getLong(PropertyKey.PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB) * MB;
-    if (globalRate <= 0) {
-      globalRate = Long.MAX_VALUE;
-    }
-    mGlobalRateLimiter = RateLimiter.create(globalRate);
+    mGlobalRateLimiter = (RateLimiter) context.getAttribute(
+        ProxyWebServer.GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY);
   }
 
   /**
@@ -1257,7 +1252,8 @@ public final class S3RestServiceHandler {
 
           InputStream rateLimitInputStream;
           long rate =
-              mSConf.getLong(PropertyKey.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB) * MB;
+              mSConf.getLong(PropertyKey.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB)
+                  * Constants.MB;
           if (rate <= 0) {
             rateLimitInputStream = new RateLimitInputStream(ris, mGlobalRateLimiter);
           } else {
