@@ -88,6 +88,10 @@ spec:
       {{- if .Values.imagePullSecrets }}
 {{ include "alluxio.imagePullSecrets" . | indent 6 }}
       {{- end}}
+      initContainers:
+        - name: wait-master
+          image: busybox:1.28
+          command: ['sh', '-c', "until nslookup alluxio-master-0.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for master; sleep 2; done"]
       containers:
         {{- if .Values.worker.extraContainers }}
 {{ include "alluxio.extraContainers" (dict "extraContainers" .Values.worker.extraContainers) | indent 8 }}
