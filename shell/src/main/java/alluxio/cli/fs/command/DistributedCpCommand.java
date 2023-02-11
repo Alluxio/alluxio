@@ -140,12 +140,12 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
 
     long jobControlId = distributedCp(srcPath, dstPath, overwrite, batchSize);
     if (!async) {
-      System.out.format("Submitted successfully, jobControlId = %s%n"
-              + "Waiting for the command to finish ...%n", jobControlId);
+      System.out.format("Submitted successfully, jobControlId = %s"
+              + "Waiting for the command to finish ...", jobControlId);
       waitForCmd(jobControlId);
       postProcessing(jobControlId);
     } else {
-      System.out.format("Submitted migrate job successfully, jobControlId = %s%n",
+      System.out.format("Submitted migrate job successfully, jobControlId = %s",
               jobControlId);
     }
 
