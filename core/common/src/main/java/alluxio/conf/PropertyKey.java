@@ -5302,10 +5302,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey PROXY_S3_READ_RATE_LIMIT_MB =
-      longBuilder(Name.PROXY_S3_READ_RATE_LIMIT_MB)
+  public static final PropertyKey PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB =
+      longBuilder(Name.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setDescription("Limit the maximum read speed for each getObject request.")
+          .setDescription("Limit the maximum read speed for each connection. "
+              + "Set value less than or equal to 0 to disable rate limits.")
+          .setDefaultValue(0)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB =
+      longBuilder(Name.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setDescription("Limit the maximum read speed for all connections. "
+              + "Set value less than or equal to 0 to disable rate limits.")
           .setDefaultValue(0)
           .setScope(Scope.SERVER)
           .build();
@@ -8424,7 +8433,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_S3_V2_ASYNC_PROCESSING_ENABLED =
             "alluxio.proxy.s3.v2.async.processing.enabled";
     public static final String S3_UPLOADS_ID_XATTR_KEY = "s3_uploads_mulitpartupload_id";
-    public static final String PROXY_S3_READ_RATE_LIMIT_MB = "alluxio.proxy.s3.read.rate.limit.mb";
+    public static final String PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB =
+        "alluxio.proxy.s3.global.read.rate.limit.mb";
+    public static final String PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB =
+        "alluxio.proxy.s3.single.connection.read.rate.limit.mb";
 
     //
     // Locality related properties

@@ -22,21 +22,22 @@ import java.io.InputStream;
 public class RateLimitInputStream extends InputStream {
 
   private final InputStream mInputStream;
-  private final RateLimiter mRateLimiter;
+  private final RateLimiter[] mRateLimiters;
 
   /**
    * Constructs a new {@link RateLimitInputStream}.
-   * @param inputStream Original stream to be limited
-   * @param rate Maximal reading bytes per second
+   *
+   * @param inputStream  Original stream to be limited
+   * @param rateLimiters RateLimiters to limit Maximal reading bytes per second
    */
-  public RateLimitInputStream(InputStream inputStream, long rate) {
+  public RateLimitInputStream(InputStream inputStream, RateLimiter... rateLimiters) {
     mInputStream = inputStream;
-    mRateLimiter = RateLimiter.create(rate);
+    mRateLimiters = rateLimiters;
   }
 
   @Override
   public int read() throws IOException {
-    mRateLimiter.acquire(1);
+    acquire(1);
     return mInputStream.read();
   }
 
@@ -47,12 +48,21 @@ public class RateLimitInputStream extends InputStream {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    mRateLimiter.acquire(Math.min(b.length - off, len));
+    acquire(Math.min(b.length - off, len));
     return mInputStream.read(b, off, len);
   }
 
   @Override
   public void close() throws IOException {
     mInputStream.close();
+  }
+
+  private void acquire(int permits) {
+    for (RateLimiter rateLimiter : mRateLimiters) {
+      if (rateLimiter == null) {
+        continue;
+      }
+      rateLimiter.acquire(permits);
+    }
   }
 }

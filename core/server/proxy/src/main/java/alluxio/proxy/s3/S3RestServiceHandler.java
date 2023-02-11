@@ -46,6 +46,7 @@ import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
 import com.google.common.net.InetAddresses;
 import com.google.common.primitives.Longs;
+import com.google.common.util.concurrent.RateLimiter;
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
@@ -128,6 +129,8 @@ public final class S3RestServiceHandler {
   private final Pattern mBucketInvalidSuffixPattern;
   private final Pattern mBucketValidNamePattern;
 
+  private final RateLimiter mGlobalRateLimiter;
+
   /**
    * Constructs a new {@link S3RestServiceHandler}.
    *
@@ -170,6 +173,12 @@ public final class S3RestServiceHandler {
               .build()
       );
     }
+
+    long globalRate = mSConf.getLong(PropertyKey.PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB) * MB;
+    if (globalRate <= 0) {
+      globalRate = Long.MAX_VALUE;
+    }
+    mGlobalRateLimiter = RateLimiter.create(globalRate);
   }
 
   /**
@@ -1247,11 +1256,13 @@ public final class S3RestServiceHandler {
           RangeFileInStream ris = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
 
           InputStream rateLimitInputStream;
-          long rate = mSConf.getLong(PropertyKey.PROXY_S3_READ_RATE_LIMIT_MB) * MB;
+          long rate =
+              mSConf.getLong(PropertyKey.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB) * MB;
           if (rate <= 0) {
-            rateLimitInputStream = ris;
+            rateLimitInputStream = new RateLimitInputStream(ris, mGlobalRateLimiter);
           } else {
-            rateLimitInputStream = new RateLimitInputStream(ris, rate);
+            rateLimitInputStream = new RateLimitInputStream(ris, mGlobalRateLimiter,
+                RateLimiter.create(rate));
           }
 
           Response.ResponseBuilder res = Response.ok(rateLimitInputStream)

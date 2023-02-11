@@ -11,6 +11,7 @@
 
 package alluxio.proxy.s3;
 
+import com.google.common.util.concurrent.RateLimiter;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -19,8 +20,14 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+import java.util.stream.Collectors;
 
 public class RateLimitInputStreamTest {
 
@@ -42,10 +49,12 @@ public class RateLimitInputStreamTest {
   }
 
   @Test
-  public void testRead() throws IOException {
+  public void testSingleThreadRead() throws IOException {
     long rate = 100 * KB;
+    long globalRate = 200 * KB;
     ByteArrayInputStream inputStream = new ByteArrayInputStream(mData);
-    RateLimitInputStream rateLimitInputStream = new RateLimitInputStream(inputStream, rate);
+    RateLimitInputStream rateLimitInputStream = new RateLimitInputStream(inputStream,
+        RateLimiter.create(rate), RateLimiter.create(globalRate));
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(MB);
     long start = System.currentTimeMillis();
     IOUtils.copy(rateLimitInputStream, byteArrayOutputStream, KB);
@@ -54,5 +63,45 @@ public class RateLimitInputStreamTest {
     long expectedDuration = MB / rate * 1000;
     Assert.assertTrue(duration >= expectedDuration && duration <= expectedDuration + 1000);
     Assert.assertArrayEquals(mData, byteArrayOutputStream.toByteArray());
+  }
+
+  @Test
+  public void testMultiThreadRead() {
+    int threadNum = 3;
+    long rate = 100 * KB;
+    long globalRate = 200 * KB;
+    long totalSize = (long) threadNum * mData.length;
+    RateLimiter globalRateLimiter = RateLimiter.create(globalRate);
+    ExecutorService threadPool = Executors.newFixedThreadPool(threadNum);
+    List<FutureTask<byte[]>> tasks = new ArrayList<>();
+    for (int i = 1; i <= threadNum; i++) {
+      tasks.add(new FutureTask<>(() -> {
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(mData);
+        RateLimitInputStream rateLimitInputStream = new RateLimitInputStream(inputStream,
+            RateLimiter.create(rate), globalRateLimiter);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(MB);
+        IOUtils.copy(rateLimitInputStream, byteArrayOutputStream, KB);
+        return byteArrayOutputStream.toByteArray();
+      }));
+    }
+    long start = System.currentTimeMillis();
+    tasks.forEach(threadPool::submit);
+    List<byte[]> results;
+    try {
+      results = tasks.stream().map(task -> {
+        try {
+          return task.get();
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }).collect(Collectors.toList());
+    } finally {
+      threadPool.shutdownNow();
+    }
+    long end = System.currentTimeMillis();
+    long duration = end - start;
+    long expectedDuration = totalSize / globalRate * 1000;
+    Assert.assertTrue(duration >= expectedDuration && duration <= expectedDuration + 1000);
+    results.forEach(bytes -> Assert.assertArrayEquals(mData, bytes));
   }
 }
