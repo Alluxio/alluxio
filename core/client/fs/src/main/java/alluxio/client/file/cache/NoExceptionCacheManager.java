@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A wrapper class of CacheManager without throwing unchecked exceptions.
@@ -144,6 +145,11 @@ public class NoExceptionCacheManager implements CacheManager {
   @Override
   public List<PageId> getCachedPageIdsByFileId(String fileId, long fileLength) {
     return mCacheManager.getCachedPageIdsByFileId(fileId, fileLength);
+  }
+
+  @Override
+  public Optional<CacheUsage> getUsage() {
+    return mCacheManager.getUsage();
   }
 
   private static final class Metrics {

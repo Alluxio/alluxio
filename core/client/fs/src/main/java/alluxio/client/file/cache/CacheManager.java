@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -36,7 +37,7 @@ import javax.annotation.concurrent.GuardedBy;
 /**
  * Interface for managing cached pages.
  */
-public interface CacheManager extends AutoCloseable {
+public interface CacheManager extends AutoCloseable, CacheStatus {
 
   /**
    * State of a cache.
@@ -312,4 +313,7 @@ public interface CacheManager extends AutoCloseable {
   default void invalidate(Predicate<PageInfo> predicate) {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  Optional<CacheUsage> getUsage();
 }

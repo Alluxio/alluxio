@@ -13,12 +13,14 @@ package alluxio.worker.page;
 
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
+import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Implementation of cache manager that stores cached data in byte arrays in memory.
@@ -69,6 +71,33 @@ class ByteArrayCacheManager implements CacheManager {
   @Override
   public boolean append(PageId pageId, int appendAt, byte[] page, CacheContext cacheContext) {
     return false;
+  }
+
+  @Override
+  public Optional<CacheUsage> getUsage() {
+    return Optional.of(new Usage());
+  }
+
+  class Usage implements CacheUsage {
+    @Override
+    public Optional<CacheUsage> partitionedBy(PartitionDescriptor<?> partition) {
+      return Optional.empty();
+    }
+
+    @Override
+    public long used() {
+      return mPages.values().stream().mapToInt(page -> page.length).sum();
+    }
+
+    @Override
+    public long available() {
+      return Integer.MAX_VALUE;
+    }
+
+    @Override
+    public long capacity() {
+      return Integer.MAX_VALUE;
+    }
   }
 
   @Override

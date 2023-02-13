@@ -12,6 +12,7 @@
 package alluxio.client.file.cache.store;
 
 import alluxio.client.file.cache.CacheManagerOptions;
+import alluxio.client.file.cache.CacheStatus;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.evictor.CacheEvictor;
@@ -33,7 +34,7 @@ import java.util.stream.Stream;
 /**
  * Directory of page store.
  */
-public interface PageStoreDir {
+public interface PageStoreDir extends CacheStatus {
   Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
 
   /**

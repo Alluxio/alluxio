@@ -13,6 +13,7 @@ package alluxio.client.file.cache.store;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.resource.LockResource;
@@ -162,6 +163,24 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
       checkState(mTempFileIdSet.contains(fileId), "temp file does not exist " + fileId);
       getPageStore().abort(fileId);
       mTempFileIdSet.remove(fileId);
+    }
+  }
+
+  abstract class Usage implements CacheUsage {
+    @Override
+    public long used() {
+      return getCachedBytes();
+    }
+
+    @Override
+    public long available() {
+      // TODO(bowen): take reserved bytes into account
+      return getCapacityBytes() - getCachedBytes();
+    }
+
+    @Override
+    public long capacity() {
+      return getCapacityBytes();
     }
   }
 }
