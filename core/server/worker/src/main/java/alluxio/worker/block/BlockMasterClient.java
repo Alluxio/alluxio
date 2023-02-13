@@ -33,6 +33,7 @@ import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.Metric;
+import alluxio.grpc.NotifyWorkerIdPRequest;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
@@ -378,14 +379,14 @@ public class BlockMasterClient extends AbstractMasterClient {
    * @param workerId the worker id
    * @param address the worker address
    */
-  public void addWorkerId(long workerId, WorkerNetAddress address) throws IOException {
+  public void notifyWorkerId(long workerId, WorkerNetAddress address) throws IOException {
     retryRPC(() -> {
       LOG.info("Adding workerID to master {} with workerId {}, workerAddress {}",
           mServerAddress,
           workerId,
           address);
-      return mClient.addWorkerId(alluxio.grpc.AddWorkerIdPRequest.newBuilder()
+      return mClient.notifyWorkerId(NotifyWorkerIdPRequest.newBuilder()
           .setWorkerId(workerId).setWorkerNetAddress(GrpcUtils.toProto(address)).build());
-    }, LOG, "AddWorkerId", "workerId=%d, workerAddress=%s", workerId, address);
+    }, LOG, "NotifyWorkerId", "workerId=%d, workerAddress=%s", workerId, address);
   }
 }

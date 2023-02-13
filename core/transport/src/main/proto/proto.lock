@@ -596,10 +596,10 @@
             "name": "CommitBlockInUfsPResponse"
           },
           {
-            "name": "AddWorkerIdPOptions"
+            "name": "NotifyWorkerIdPOptions"
           },
           {
-            "name": "AddWorkerIdPRequest",
+            "name": "NotifyWorkerIdPRequest",
             "fields": [
               {
                 "id": 1,
@@ -614,12 +614,12 @@
               {
                 "id": 3,
                 "name": "options",
-                "type": "AddWorkerIdPOptions"
+                "type": "NotifyWorkerIdPOptions"
               }
             ]
           },
           {
-            "name": "AddWorkerIdPResponse"
+            "name": "NotifyWorkerIdPResponse"
           },
           {
             "name": "GetWorkerIdPOptions"
@@ -858,9 +858,9 @@
                 "out_type": "GetWorkerIdPResponse"
               },
               {
-                "name": "AddWorkerId",
-                "in_type": "AddWorkerIdPRequest",
-                "out_type": "AddWorkerIdPResponse"
+                "name": "NotifyWorkerId",
+                "in_type": "NotifyWorkerIdPRequest",
+                "out_type": "NotifyWorkerIdPResponse"
               },
               {
                 "name": "RegisterWorker",

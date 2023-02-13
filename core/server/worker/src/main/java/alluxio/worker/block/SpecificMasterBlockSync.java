@@ -62,7 +62,8 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
    * the state will be reset to NOT_REGISTERED and the sync will attempt to register it again
    * in the next heartbeat.
    */
-  private volatile WorkerMasterState mWorkerState = WorkerMasterState.NOT_REGISTERED;
+  private volatile WorkerMasterRegistrationState mWorkerState =
+      WorkerMasterRegistrationState.NOT_REGISTERED;
 
   /**
    * An async service to remove block.
@@ -132,7 +133,7 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
       } catch (Exception e) {
         LOG.error("Failed to register with master {}, error {}, retry count {} Will retry...",
             mMasterAddress, e, retry.getAttemptCount());
-        mWorkerState = WorkerMasterState.NOT_REGISTERED;
+        mWorkerState = WorkerMasterRegistrationState.NOT_REGISTERED;
       }
     }
     // Should not reach here because the retry is indefinite
@@ -144,7 +145,7 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
       throws IOException, FailedToAcquireRegisterLeaseException {
     // The target master is not necessarily the one that allocated the workerID
     LOG.info("Notify the master {} about the workerID {}", mMasterAddress, mWorkerId);
-    mMasterClient.addWorkerId(mWorkerId.get(), mWorkerAddress);
+    mMasterClient.notifyWorkerId(mWorkerId.get(), mWorkerAddress);
 
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
 
@@ -157,10 +158,10 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
       }
       throw e;
     }
-    mWorkerState = WorkerMasterState.REGISTERING;
+    mWorkerState = WorkerMasterRegistrationState.REGISTERING;
     mBlockMasterSyncHelper.registerToMaster(mWorkerId.get(), storeMeta);
 
-    mWorkerState = WorkerMasterState.REGISTERED;
+    mWorkerState = WorkerMasterRegistrationState.REGISTERED;
     Metrics.WORKER_MASTER_REGISTRATION_SUCCESS_COUNT.inc();
     mLastSuccessfulHeartbeatMs = CommonUtils.getCurrentMs();
   }
@@ -172,7 +173,7 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
 
   @Override
   public synchronized void heartbeat() throws InterruptedException {
-    if (mWorkerState == WorkerMasterState.NOT_REGISTERED) {
+    if (mWorkerState == WorkerMasterRegistrationState.NOT_REGISTERED) {
       // Not registered because:
       // 1. The worker just started, we kick off the 1st registration here.
       // 2. Master sends a registration command during
@@ -182,7 +183,7 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
       registerWithMaster();
       LOG.info("BlockMasterSync to master {} has started", mMasterAddress);
     }
-    if (mWorkerState == WorkerMasterState.REGISTERING) {
+    if (mWorkerState == WorkerMasterRegistrationState.REGISTERING) {
       return;
     }
 
@@ -202,7 +203,7 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
         mLastSuccessfulHeartbeatMs = CommonUtils.getCurrentMs();
         break;
       } else {
-        mBlockHeartbeatReporter.revert(report);
+        mBlockHeartbeatReporter.mergeBack(report);
         LOG.warn(
             "Heartbeat failed, worker id {}, worker host {} # of attempts {}, last success ts {}",
             mWorkerId.get(), mWorkerAddress.getHost(), endlessRetry.getAttemptCount(),
@@ -224,7 +225,7 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
    * @return if the worker has registered with the master successfully
    */
   public boolean isRegistered() {
-    return mWorkerState == WorkerMasterState.REGISTERED;
+    return mWorkerState == WorkerMasterRegistrationState.REGISTERED;
   }
 
   /**
@@ -252,7 +253,7 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
         break;
       // Master requests re-registration
       case Register:
-        mWorkerState = WorkerMasterState.NOT_REGISTERED;
+        mWorkerState = WorkerMasterRegistrationState.NOT_REGISTERED;
         break;
       // Unknown request
       case Unknown:
@@ -261,12 +262,6 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
       default:
         throw new RuntimeException("Un-recognized command from master " + cmd);
     }
-  }
-
-  enum WorkerMasterState {
-    REGISTERED,
-    NOT_REGISTERED,
-    REGISTERING
   }
 
   /**

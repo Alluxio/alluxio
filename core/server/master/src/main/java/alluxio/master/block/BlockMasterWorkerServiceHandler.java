@@ -15,8 +15,6 @@ import alluxio.RpcUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.RegisterLeaseNotFoundException;
-import alluxio.grpc.AddWorkerIdPRequest;
-import alluxio.grpc.AddWorkerIdPResponse;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
@@ -30,6 +28,8 @@ import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
+import alluxio.grpc.NotifyWorkerIdPRequest;
+import alluxio.grpc.NotifyWorkerIdPResponse;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
@@ -222,13 +222,13 @@ public final class BlockMasterWorkerServiceHandler extends
   }
 
   @Override
-  public void addWorkerId(
-      AddWorkerIdPRequest request,
-      StreamObserver<AddWorkerIdPResponse> responseObserver) {
+  public void notifyWorkerId(
+      NotifyWorkerIdPRequest request,
+      StreamObserver<NotifyWorkerIdPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mBlockMaster.addWorkerId(request.getWorkerId(),
+      mBlockMaster.notifyWorkerId(request.getWorkerId(),
           GrpcUtils.fromProto(request.getWorkerNetAddress()));
-      return alluxio.grpc.AddWorkerIdPResponse.getDefaultInstance();
-    }, "addWorkerId", "request=%s", responseObserver, request);
+      return alluxio.grpc.NotifyWorkerIdPResponse.getDefaultInstance();
+    }, "notifyWorkerId", "request=%s", responseObserver, request);
   }
 }

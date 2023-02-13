@@ -1125,7 +1125,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void addWorkerId(long workerId, WorkerNetAddress workerNetAddress) {
+  public void notifyWorkerId(long workerId, WorkerNetAddress workerNetAddress) {
     MasterWorkerInfo existingWorker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (existingWorker != null) {
       LOG.warn("A registered worker {} comes again from {}",
@@ -1143,6 +1143,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     if (!mTempWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
       throw new RuntimeException("Duplicated worker ID for " + workerId + ": " + workerNetAddress);
     }
+    LOG.info("notifyWorkerId(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
   }
 
   @Override
@@ -1414,7 +1415,14 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     try {
       CommonUtils.waitFor(
           "Wait for blocks being committed on master before adding block locations",
-          () -> blockIdsToWait.stream().allMatch(it -> mBlockMetaStore.getBlock(it).isPresent()),
+          () -> {
+            for (long blockId: blockIdsToWait) {
+              if (!mBlockMetaStore.getBlock(blockId).isPresent()) {
+                return false;
+              }
+            }
+            return true;
+          },
           WaitForOptions.defaults().setInterval(200).setTimeoutMs(1000)
       );
     } catch (InterruptedException | TimeoutException e) {

@@ -166,7 +166,7 @@ public class SpecificMasterBlockSyncTest {
     }
 
     @Override
-    public void addWorkerId(long workerId, WorkerNetAddress address) throws IOException {
+    public void notifyWorkerId(long workerId, WorkerNetAddress address) throws IOException {
     }
   }
 

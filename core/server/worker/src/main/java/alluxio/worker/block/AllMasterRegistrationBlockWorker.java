@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The class is responsible for managing all top level components of the Block Worker.
+ * The class is responsible for managing all top level components of BlockWorker.
  *
  * This block worker implementation register workers to all masters.
  */

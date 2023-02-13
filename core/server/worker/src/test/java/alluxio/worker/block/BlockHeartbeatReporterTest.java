@@ -172,9 +172,10 @@ public final class BlockHeartbeatReporterTest {
     mReporter.onCommitBlockToMaster(2, MEM_LOC);
     mReporter.onCommitBlockToMaster(3, SSD_LOC);
     mReporter.onRemoveBlockByClient(4);
-    mReporter.onStorageLost(HDD_LOC);
+    mReporter.onStorageLost(Constants.MEDIUM_MEM, "/foo");
+    mReporter.onStorageLost(Constants.MEDIUM_MEM, "/bar");
     BlockHeartbeatReport originalReport = mReporter.generateReportAndClear();
-    mReporter.revert(originalReport);
+    mReporter.mergeBack(originalReport);
     BlockHeartbeatReport newReport = mReporter.generateReportAndClear();
     assertEquals(originalReport.getAddedBlocks(), newReport.getAddedBlocks());
     assertEquals(originalReport.getRemovedBlocks(), newReport.getRemovedBlocks());
@@ -187,19 +188,26 @@ public final class BlockHeartbeatReporterTest {
     mReporter.onCommitBlockToMaster(2, MEM_LOC);
     mReporter.onCommitBlockToMaster(3, SSD_LOC);
     mReporter.onRemoveBlockByClient(4);
+    mReporter.onStorageLost(Constants.MEDIUM_MEM, "/foo");
+    mReporter.onStorageLost(Constants.MEDIUM_HDD, "/bar");
     BlockHeartbeatReport originalReport = mReporter.generateReportAndClear();
+
     mReporter.onRemoveBlockByClient(1);
     mReporter.onRemoveBlockByClient(3);
     mReporter.onRemoveBlockByClient(5);
     mReporter.onCommitBlockToMaster(6, HDD_LOC);
-    mReporter.revert(originalReport);
-
+    mReporter.onCommitBlockToMaster(7, MEM_LOC);
+    mReporter.onStorageLost(Constants.MEDIUM_MEM, "/baz");
+    mReporter.mergeBack(originalReport);
     BlockHeartbeatReport newReport = mReporter.generateReportAndClear();
+
     assertEquals(ImmutableMap.of(
-        MEM_LOC, Collections.singletonList(2L),
+        MEM_LOC, Arrays.asList(7L, 2L),
         HDD_LOC, Collections.singletonList(6L)
     ), newReport.getAddedBlocks());
     assertEquals(new HashSet<>(Arrays.asList(1L, 3L, 4L, 5L)),
         new HashSet<>(newReport.getRemovedBlocks()));
+    assertEquals(2, newReport.getLostStorage().get(Constants.MEDIUM_MEM).size());
+    assertEquals(1, newReport.getLostStorage().get(Constants.MEDIUM_HDD).size());
   }
 }

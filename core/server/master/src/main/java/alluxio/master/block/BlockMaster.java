@@ -394,9 +394,9 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   void removeDecommissionedWorker(long workerId) throws NotFoundException;
 
   /**
-   * Adds the worker id to a master. Both primary and standby master implement this endpoint.
+   * Notify the worker id to a master.
    * @param workerId the worker id
    * @param workerNetAddress the worker address
    */
-  void addWorkerId(long workerId, WorkerNetAddress workerNetAddress);
+  void notifyWorkerId(long workerId, WorkerNetAddress workerNetAddress);
 }

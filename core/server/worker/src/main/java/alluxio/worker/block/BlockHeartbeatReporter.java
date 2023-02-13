@@ -87,12 +87,12 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   }
 
   /**
-   * Reverts the cleared block lists/maps given a generated report.
+   * Merges back the cleared block lists/maps given a generated report.
    * used when the worker heartbeat rpc fails.
    *
    * @param previousReport the previous generated report
    */
-  public void revert(BlockHeartbeatReport previousReport) {
+  public void mergeBack(BlockHeartbeatReport previousReport) {
     synchronized (mLock) {
       Set<Long> removedBlocksSet = new HashSet<>(mRemovedBlocks);
       for (Entry<BlockStoreLocation, List<Long>> addedBlockEntry:
@@ -107,21 +107,37 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
             break;
           }
         }
+        final List<Long> blockIdsToAdd;
         if (!needToRemoveBlock) {
-          mAddedBlocks.put(addedBlockEntry.getKey(), blockIds);
-          continue;
-        }
-        List<Long> blockIdsToAdd = new ArrayList<>();
-        for (long blockId: blockIds) {
-          if (!removedBlocksSet.contains(blockId)) {
-            blockIdsToAdd.add(blockId);
+          blockIdsToAdd = blockIds;
+        } else {
+          blockIdsToAdd = new ArrayList<>();
+          for (long blockId: blockIds) {
+            if (!removedBlocksSet.contains(blockId)) {
+              blockIdsToAdd.add(blockId);
+            }
           }
         }
-        if (blockIdsToAdd.size() > 0) {
+        if (blockIdsToAdd.size() == 0) {
+          continue;
+        }
+        if (mAddedBlocks.containsKey(addedBlockEntry.getKey())) {
+          mAddedBlocks.get(addedBlockEntry.getKey()).addAll(blockIdsToAdd);
+        } else {
           mAddedBlocks.put(addedBlockEntry.getKey(), blockIdsToAdd);
         }
       }
-      mLostStorage.putAll(previousReport.getLostStorage());
+      for (Map.Entry<String, List<String>> lostStorageEntry:
+          previousReport.getLostStorage().entrySet()) {
+        if (lostStorageEntry.getValue().size() == 0) {
+          continue;
+        }
+        if (mLostStorage.containsKey(lostStorageEntry.getKey())) {
+          mLostStorage.get(lostStorageEntry.getKey()).addAll(lostStorageEntry.getValue());
+        } else {
+          mLostStorage.put(lostStorageEntry.getKey(), lostStorageEntry.getValue());
+        }
+      }
       mRemovedBlocks.addAll(previousReport.getRemovedBlocks());
     }
   }
@@ -190,7 +206,6 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   }
 
   private void removeBlockInternal(long blockId) {
-//    System.out.println("removeBlockInternal " + blockId + " " + this);
     // Remove the block from list of added blocks, in case it was added in this heartbeat period.
     removeBlockFromAddedBlocks(blockId);
     // Add to the list of removed blocks in this heartbeat period.

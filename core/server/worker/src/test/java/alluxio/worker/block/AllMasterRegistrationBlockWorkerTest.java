@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class AllMasterRegistrationBlockWorkerTest extends DefaultBlockWorkerTestBase {
   @Override
   public void before() throws Exception {
-    mConfigurationRule.set(PropertyKey.WORKER_ALL_MASTER_REGISTRATION_TIMEOUT_MS, "5s");
+    mConfigurationRule.set(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT, "5s");
     mConfigurationRule.set(PropertyKey.TEST_MODE, true);
     mConfigurationRule.set(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS, true);
     mConfigurationRule.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED);
