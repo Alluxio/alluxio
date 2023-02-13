@@ -102,27 +102,13 @@ public class JournalExporter {
     try {
       RaftJournalSystem sys = new RaftJournalSystem(new URI("/Users/dengxinyu/journal-tool/raft"), NetworkAddressUtils.ServiceType.MASTER_RAFT);
       mJournal = sys.createJournal(new NoopMaster());
-      System.out.println("1");
       sys.start();
-      System.out.println("2");
       sys.gainPrimacy();
-      System.out.println("3");
       Class<?> clazz = RaftJournalSystem.class;
-      System.out.println("creating clazz");
-      System.out.println(clazz);
       Field writer = clazz.getDeclaredField("mRaftJournalWriter");
-      System.out.println("getting mRaftJournalWriter");
-      System.out.println(writer);
       writer.setAccessible(true);
-      System.out.println("setting mRaftJournalWriter accessible");
-      System.out.println(writer);
       Object raftJournalWriter = writer.get(sys);
-      System.out.println("Value of private writer: " + raftJournalWriter);
-      if (raftJournalWriter == null) {
-        System.out.println("raftJournalWriter is NULL!!!");
-      }
       mJournalWriter = (JournalWriter) raftJournalWriter;
-      System.out.println("ok when initiating raft writer");
     } catch (Exception e) {
       // do sth
       System.out.println("failed when initiating raft writer");

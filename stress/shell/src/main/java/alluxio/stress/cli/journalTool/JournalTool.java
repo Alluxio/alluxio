@@ -65,17 +65,14 @@ public class JournalTool {
     if (sHelp) {
       System.exit(0);
     }
-    System.out.println("1");
     JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
     System.out.println(journalType);
     System.out.println(sMaster);
     switch (journalType) {
       case UFS:
-        System.out.println("3");
         ufstest();
         break;
       case EMBEDDED:
-        System.out.println("3");
         rafttest();
         break;
       default:
@@ -175,24 +172,9 @@ public class JournalTool {
     JournalExporter ex;
     JournalWriter writer;
     String outputfile = PathUtils.concatPath(sOutputDir, "test.txt");
-    System.out.printf("raft outputfile is: %s%n", outputfile);
-    System.out.println("gonna try printstream");
     try (PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputfile)))) {
-      System.out.println("got printstream out");
       ex = new JournalExporter(journalType, sOutputDir, sMaster, sStart);
-      System.out.println("ex ok");
-      Journal journal = ex.getJournal();
       writer = ex.getWriter();
-      if (ex == null) {
-        System.out.println("ex is somehow null");
-      } else {
-        System.out.println("ex is not null");
-      }
-      if (writer == null) {
-        System.out.println("writer is somehow null");
-      }
-      System.out.println("journal ok");
-
       // this loop is use used to go through the journal entries
       for (int i = 0; i < 10; i++) {
         RaftProtos.LogEntryProto proto = stream.nextProto();
@@ -212,7 +194,6 @@ public class JournalTool {
             System.out.println(e);
             // trying to flush the entries in one proto
             try {
-              System.out.println("flushing");
               writer.flush();
             } catch (Exception flushException) {
               System.out.println("Exception when flushing");
@@ -220,46 +201,21 @@ public class JournalTool {
             }
           }
         } else {
-          // don't know how to deal with non-Journal Entry
-          System.out.println("this is just a meaningless proto");
           System.out.println(proto);
           // out.println(proto);
         }
-        // JournalEntry entry = stream.nextEntry();
-        // if (entry != null) {
-        //   // do sth
-        //   // entry from mStream in RaftJournalEntryStream
-        //   System.out.println("got entry!");
-        //   out.print(entry);
-        //   out.print("---------test---------");
-        // } else {
-        //   RaftProtos.LogEntryProto proto;
-        //   while ((proto = stream.nextProto()) != null && !stream.processProto(proto)) {
-        //     System.out.println("one proto is not entry");
-        //     out.print(proto);
-        //   }
-        //   if (proto == null) {
-        //     System.out.println("proto is null");
-        //     System.out.println("break loop");
-        //     break;
-        //   }
-        // }
-        // writer.write(entry);
+
         System.out.println("i is:" + i);
       }
       try {
         writer.flush();
       } catch (Exception e) {
-        System.out.println("error when flushing before close");
         System.out.println(e);
       }
       Thread.sleep(1000);
       writer.close();
       ex.getJournal().close();
-      System.out.println("after loop");
-      // writer.flush();
       out.flush();
-      // ex.getJournal().close();
     } catch (IOException e) {
       System.out.println(e);
     } catch (InterruptedException e) {
