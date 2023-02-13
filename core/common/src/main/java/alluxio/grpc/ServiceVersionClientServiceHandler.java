@@ -13,6 +13,8 @@ package alluxio.grpc;
 
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.collect.ImmutableSet;
 import io.grpc.Status;
@@ -20,6 +22,8 @@ import io.grpc.stub.StreamObserver;
 
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
 /**
  * This class is a gRPC handler that serves Alluxio service versions.
@@ -28,19 +32,32 @@ public final class ServiceVersionClientServiceHandler
     extends ServiceVersionClientServiceGrpc.ServiceVersionClientServiceImplBase {
   /** Set of services that are going to be recognized by this versioning service. */
   private final Set<ServiceType> mServices;
+  @Nullable private final Supplier<NodeState> mNodeStateSupplier;
+  private final boolean mStandbyRpcEnabled =
+      Configuration.getBoolean(PropertyKey.STANDBY_MASTER_GRPC_ENABLED);
 
   /**
    * Creates service version handler that allows given services.
    * @param services services to allow
+   * @param nodeStateSupplier the supplier to get the node state
    */
-  public ServiceVersionClientServiceHandler(Set<ServiceType> services) {
+  public ServiceVersionClientServiceHandler(
+      Set<ServiceType> services, @Nullable Supplier<NodeState> nodeStateSupplier) {
     mServices = ImmutableSet.copyOf(Objects.requireNonNull(services, "services is null"));
+    mNodeStateSupplier = nodeStateSupplier;
   }
 
   @Override
   @SuppressFBWarnings(value = "DB_DUPLICATE_SWITCH_CLAUSES")
   public void getServiceVersion(GetServiceVersionPRequest request,
       StreamObserver<GetServiceVersionPResponse> responseObserver) {
+    if (mStandbyRpcEnabled
+        && mNodeStateSupplier != null && mNodeStateSupplier.get() == NodeState.STANDBY) {
+      responseObserver.onError(Status.UNAVAILABLE
+          .withDescription("GetServiceVersion is not supported on standby master")
+          .asException());
+      return;
+    }
 
     ServiceType serviceType = request.getServiceType();
     if (serviceType != ServiceType.UNKNOWN_SERVICE && !mServices.contains(serviceType)) {
