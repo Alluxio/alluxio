@@ -17,7 +17,7 @@ priority: 7
 以下两种情况下master日志无法向后兼容，需要采取额外的步骤来升级 Alluxio 集群：
 
 - 从 Alluxio 1.x 版本升级到 Alluxio 2.x 版本
-- 使用[内嵌日志]({{ '/cn/operation/Journal.html#xxx embedded journal' | relativize_url}})的情况下从 Alluxio 2.3.x 及以下版本升级到 Alluxio 2.4.0 及以上版本
+- 使用[内嵌日志]({{ '/cn/operation/Journal.html#Configuring Embedded Journal' | relativize_url}})的情况下从 Alluxio 2.3.x 及以下版本升级到 Alluxio 2.4.0 及以上版本
 
 本文档介绍了如何将 Alluxio 升级到非向后兼容版本。 即使是要升级到可向后兼容的版本，仍然建议按照以下步骤在升级前创建备份。
 
