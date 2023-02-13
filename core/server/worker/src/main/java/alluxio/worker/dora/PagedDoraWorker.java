@@ -32,6 +32,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.PooledResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
@@ -138,12 +139,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     Preconditions.checkState(mAddress != null, "worker not started");
     RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
     while (true) {
-      BlockMasterClient masterClient = mBlockMasterClientPool.acquire();
-      try {
-        mWorkerId.set(masterClient.getId(mAddress));
+      try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
+        mWorkerId.set(bmc.get().getId(mAddress));
         StorageTierAssoc storageTierAssoc =
             new DefaultStorageTierAssoc(ImmutableList.of(Constants.MEDIUM_MEM));
-        masterClient.register(
+        bmc.get().register(
             mWorkerId.get(),
             storageTierAssoc.getOrderedStorageAliases(),
             ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.GB),
@@ -157,8 +157,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         if (!retry.attempt()) {
           throw ioe;
         }
-      } finally {
-        mBlockMasterClientPool.release(masterClient);
       }
     }
   }
@@ -227,9 +225,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     @Override
     public void heartbeat() throws InterruptedException {
       final Command cmdFromMaster;
-      BlockMasterClient masterClient = mBlockMasterClientPool.acquire();
-      try {
-        cmdFromMaster = masterClient.heartbeat(mWorkerId.get(),
+      try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
+        cmdFromMaster = bmc.get().heartbeat(mWorkerId.get(),
             ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.GB),
             ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
             ImmutableList.of(),
@@ -239,8 +236,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       } catch (IOException e) {
         LOG.warn("failed to heartbeat to master", e);
         return;
-      } finally {
-        mBlockMasterClientPool.release(masterClient);
       }
 
       LOG.debug("received master command: {}", cmdFromMaster.getCommandType());
