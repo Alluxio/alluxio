@@ -58,8 +58,8 @@ public final class MultiMasterEmbeddedJournalLocalAlluxioCluster
   private final List<String> mJournalFolders = new ArrayList<>();
 
   /**
-   * @param numMasters    the number of masters to run
-   * @param numWorkers    the number of workers to run
+   * @param numMasters the number of masters to run
+   * @param numWorkers the number of workers to run
    * @param reservedPorts reserved ports
    */
   public MultiMasterEmbeddedJournalLocalAlluxioCluster(
