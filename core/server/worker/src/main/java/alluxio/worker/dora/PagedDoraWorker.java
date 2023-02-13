@@ -170,12 +170,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public void close() throws IOException {
-    super.close();
-    mResourceCloser.close();
-    try {
-      mCacheManager.close();
+    try (AutoCloseable ignoredCloser = mResourceCloser;
+         AutoCloseable ignoredCacheManager = mCacheManager
+    ) {
+      // do nothing as we are closing
     } catch (Exception e) {
       throw new IOException(e);
+    } finally {
+      super.close();
     }
   }
 
