@@ -67,9 +67,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws IOException, AlluxioException {
-    UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
-    AlluxioURI ufsFullPath = new AlluxioURI(
-        PathUtils.concatPath(under.getRootUFS(), path.getPath()));
+    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
 
     if (!mMetadataCacheEnabled) {
       return mDelegatedFileSystem.getStatus(ufsFullPath, options);
@@ -119,40 +117,48 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   @Override
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
-
-    String ufsFullPath = PathUtils.concatPath(under.getRootUFS(), path.getPath());
-    return mDelegatedFileSystem.listStatus(new AlluxioURI(ufsFullPath), options);
+    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
+    return mDelegatedFileSystem.listStatus(ufsFullPath, options);
   }
 
   @Override
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-    UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
-    String ufsFullPath = PathUtils.concatPath(under.getRootUFS(), path.getPath());
+    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
     LOG.warn("Dora Client does not support create/write. This is only for test.");
-    return mDelegatedFileSystem.createFile(new AlluxioURI(ufsFullPath), options);
+    return mDelegatedFileSystem.createFile(ufsFullPath, options);
   }
 
   @Override
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-    UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
-    String ufsFullPath = PathUtils.concatPath(under.getRootUFS(), path.getPath());
+    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
     LOG.warn("Dora Client does not support create/write. This is only for test.");
 
-    mDelegatedFileSystem.createDirectory(new AlluxioURI(ufsFullPath), options);
+    mDelegatedFileSystem.createDirectory(ufsFullPath, options);
   }
 
   @Override
   public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
-    String srcUfsFullPath = PathUtils.concatPath(under.getRootUFS(), src.getPath());
-    String dstUfsFullPath = PathUtils.concatPath(under.getRootUFS(), dst.getPath());
+    AlluxioURI srcUfsFullPath = convertAlluxioPathToUFSPath(src);
+    AlluxioURI dstUfsFullPath = convertAlluxioPathToUFSPath(dst);
     LOG.warn("Dora Client does not support create/write. This is only for test.");
 
-    mDelegatedFileSystem.rename(new AlluxioURI(srcUfsFullPath),
-        new AlluxioURI(dstUfsFullPath), options);
+    mDelegatedFileSystem.rename(srcUfsFullPath, dstUfsFullPath, options);
+  }
+
+  /**
+   * Converts the Alluxio based path to UfsBaseFileSystem based path.
+   *
+   * UfsBaseFileSystem expects absolute/full file path.
+   *
+   * @param alluxioPath Alluxio based path
+   * @return UfsBaseFileSystem based full path
+   */
+  private AlluxioURI convertAlluxioPathToUFSPath(AlluxioURI alluxioPath) {
+    UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
+    String ufsFullPath = PathUtils.concatPath(under.getRootUFS(), alluxioPath.getPath());
+    return new AlluxioURI(ufsFullPath);
   }
 }
