@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Dora Cache file system implementation.
@@ -146,6 +147,15 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     LOG.warn("Dora Client does not support create/write. This is only for test.");
 
     mDelegatedFileSystem.rename(srcUfsFullPath, dstUfsFullPath, options);
+  }
+
+  @Override
+  public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
+                            Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
+
+    mDelegatedFileSystem.iterateStatus(ufsFullPath, options, action);
   }
 
   /**
