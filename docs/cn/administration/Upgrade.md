@@ -11,21 +11,21 @@ priority: 7
 
 ## 基础升级流程
 
-正常情况下，用户可以直接关闭当前的 Alluxio 进程，将 Alluxio 二进制文件更改为更新的版本，同时还按之前的方式配置 Alluxio 集群，并使用现有的日志文件夹/地址来启动 Alluxio 进程
-进行升级。Alluxio 可读取以前的日志文件并自动恢复 Alluxio 元数据。
+正常情况下，用户可以直接关闭当前的 Alluxio 进程，将 Alluxio 二进制文件更改为更高的版本，同时还按之前的方式配置 Alluxio 集群，并使用现有的日志文件夹/地址来启动 Alluxio 进程
+进行升级。Alluxio 可读取以前的日志文件并从 Journal 日志中自动恢复 Alluxio 元数据。
 
 以下两种情况下master日志无法向后兼容，需要采取额外的步骤来升级 Alluxio 集群：
 
 - 从 Alluxio 1.x 版本升级到 Alluxio 2.x 版本
-- 使用[内嵌日志]({{ '/cn/operation/Journal.html' | relativize_url}})的情况下从 Alluxio 2.3.x 及以下版本升级到 Alluxio 2.4.0 及以上版本
+- 使用[内嵌日志]({{ '/cn/operation/Journal.html#xxx embedded journal' | relativize_url}})的情况下从 Alluxio 2.3.x 及以下版本升级到 Alluxio 2.4.0 及以上版本
 
 本文档介绍了如何将 Alluxio 升级到非向后兼容版本。 即使是要升级到可向后兼容的版本，仍然建议按照以下步骤在升级前创建备份。
 
 ## 创建当前版本的备份
 
-Alluxio-1.8.1 版本引入了日志备份功能。
+Alluxio-1.8.1 版本引入了日志备份（backup）功能。
 注意，请不要在备份前修改 Alluxio 二进制文件。
-在运行 1.8.1 之前版本的 master 时，通过运行以下命令创建日志备份：
+通过运行以下命令创建日志备份：
 
 ```console
 $ ./bin/alluxio fsadmin backup
@@ -44,7 +44,7 @@ Successfully backed up journal to ${BACKUP_PATH}
 ```console
 $ ./bin/alluxio format
 ```
-- **警告：** 该操作会对 Alluxio worker 上的内存虚拟硬盘进行格式化（即：删除其中的内容）。
+- **警告：** 该操作会对 Alluxio worker 上的内存虚拟硬盘（ramdisk）进行格式化（即：删除其中的内容）。
 如果您希望保留 worker 上的内存虚拟硬盘，请参阅
  [Alluxio worker 内存虚拟硬盘缓存持久化]({{ '/cn/administration/Upgrade.html' | relativize_url}}#alluxio-worker-ramdisk-cache-persistence)。
 
@@ -62,7 +62,7 @@ $ ./bin/alluxio-start.sh -i ${BACKUP_PATH} all
 
 Alluxio 2.x 版本对 RPC 层进行了重大修改，
 因此 2.0.0 之前版本的客户端不能与 2.0.0 之后版本的服务器一起运行，反之亦然。
-如果要使用 Alluxio-2.x 客户端需升级所有应用程序 。
+如果要使用 Alluxio-2.x 客户端需升级所有应用程序中的 Alluxio 客户端。
 
 请参阅以下步骤：
 1. 备份 Alluxio 中文件的元数据。请参阅有关 `backup` 命令的[文档]({{ '/cn/operation/Admin-CLI.html' | relativize_url }}#backup)。
@@ -74,7 +74,7 @@ $ ./bin/alluxio-stop.sh all
 ```console
 $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
-	如下所示：
+如下所示：
    ![locality]({{ '/img/screenshot_cdh_compute_hadoop_classpath.png' | relativize_url }})
 4. 启动Alluxio集群
 ```console
