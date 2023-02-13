@@ -27,7 +27,7 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.basedir}/build</build.path>
     <failIfNoTests>false</failIfNoTests>
-    <hadoop.version>3.2.1</hadoop.version>
+    <hadoop.version>3.2.4</hadoop.version>
   </properties>
 
   <dependencies>
