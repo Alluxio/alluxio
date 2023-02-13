@@ -119,8 +119,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
       .setProperty(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED, false)
       .setProperty(
           PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED, false) // default
-      .setProperty(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS,
-          "0min") // disable the bucket path cache
       .build();
 
   @Rule
@@ -296,7 +294,9 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void listNonExistentBucket() throws Exception {
-    String bucketName = "bucket";
+//    the bucket name should never be used in other unit tests
+//    to ensure the bucket path cache doesn't have this bucket name
+    String bucketName = "non_existent_bucket";
 
     // Verify 404 HTTP status & NoSuchBucket S3 error code
     HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
@@ -1009,8 +1009,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void putObjectToDeletedBucket() throws Exception {
-    //    enable the cache
-    sResource.setProperty(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS, "1min");
     String object = CommonUtils.randomAlphaNumString(DATA_SIZE);
     createBucketRestCall("bucket");
     // delete the bucket in alluxio and UFS, but the bucket remains in BUCKET_PATH_CACHE
@@ -1028,16 +1026,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
     Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
-
-    // disable the cache
-    sResource.setProperty(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS, "0min");
   }
 
   @Test
   public void putDirectoryToDeletedBucket() throws Exception {
-    //    enable the cache
-    sResource.setProperty(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS, "1min");
-
     createBucketRestCall("bucket");
     // delete the bucket in alluxio and UFS, but the bucket remains in BUCKET_PATH_CACHE
     mFileSystem.delete(new AlluxioURI("/bucket"));
@@ -1054,8 +1046,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
     Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
-    // disable the cache
-    sResource.setProperty(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS, "0min");
   }
 
   @Test
