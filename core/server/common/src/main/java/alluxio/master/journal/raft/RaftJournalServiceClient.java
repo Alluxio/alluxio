@@ -12,16 +12,24 @@
 package alluxio.master.journal.raft;
 
 import alluxio.AbstractMasterClient;
+import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.DownloadSnapshotPRequest;
 import alluxio.grpc.DownloadSnapshotPResponse;
 import alluxio.grpc.RaftJournalServiceGrpc;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.SnapshotMetadata;
 import alluxio.grpc.UploadSnapshotPRequest;
 import alluxio.grpc.UploadSnapshotPResponse;
 import alluxio.master.MasterClientContext;
 
+import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
+
+import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A client for raft journal service.
@@ -29,11 +37,14 @@ import io.grpc.stub.StreamObserver;
 public class RaftJournalServiceClient extends AbstractMasterClient {
   private RaftJournalServiceGrpc.RaftJournalServiceStub mClient = null;
 
+  private final long mRequestInfoTimeoutMs =
+      Configuration.getMs(PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT);
+
   /**
-   * @param clientContext master client context
+   *
    */
-  public RaftJournalServiceClient(MasterClientContext clientContext) {
-    super(clientContext);
+  public RaftJournalServiceClient() {
+    super(MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build());
   }
 
   @Override
@@ -54,6 +65,21 @@ public class RaftJournalServiceClient extends AbstractMasterClient {
   @Override
   protected void afterConnect() {
     mClient = RaftJournalServiceGrpc.newStub(mChannel);
+  }
+
+
+  public SnapshotMetadata requestLatestSnapshotInfo() {
+    RaftJournalServiceGrpc.RaftJournalServiceBlockingStub client =
+        RaftJournalServiceGrpc.newBlockingStub(mChannel);
+    return client.withDeadlineAfter(mRequestInfoTimeoutMs, TimeUnit.MILLISECONDS)
+        .requestLatestSnapshotInfo(Empty.newBuilder().build());
+  }
+
+  public void downloadLatestSnapshot(File outputDir) {
+
+//    RaftJournalServiceGrpc.RaftJournalServiceBlockingStub client =
+//        RaftJournalServiceGrpc.newBlockingStub(mChannel);
+//    client.downloadLatestSnapshot(Empty.newBuilder().build()).forEachRemaining();
   }
 
   /**

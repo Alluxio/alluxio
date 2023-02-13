@@ -6537,6 +6537,16 @@
                 "id": 5,
                 "name": "eof",
                 "type": "bool"
+              },
+              {
+                "id": 6,
+                "name": "filename",
+                "type": "string"
+              },
+              {
+                "id": 7,
+                "name": "finished",
+                "type": "bool"
               }
             ]
           },
@@ -6598,6 +6608,17 @@
                 "out_type": "DownloadSnapshotPResponse",
                 "in_streamed": true,
                 "out_streamed": true
+              },
+              {
+                "name": "RequestLatestSnapshotInfo",
+                "in_type": "google.protobuf.Empty",
+                "out_type": "SnapshotMetadata"
+              },
+              {
+                "name": "DownloadLatestSnapshot",
+                "in_type": "google.protobuf.Empty",
+                "out_type": "SnapshotData",
+                "out_streamed": true
               }
             ]
           }
@@ -6605,6 +6626,9 @@
         "imports": [
           {
             "path": "grpc/common.proto"
+          },
+          {
+            "path": "google/protobuf/empty.proto"
           }
         ],
         "package": {

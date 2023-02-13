@@ -373,7 +373,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         TimeUnit.MILLISECONDS));
 
     // snapshot retention
-    RaftServerConfigKeys.Snapshot.setRetentionFileNum(properties, 1);
+    RaftServerConfigKeys.Snapshot.setRetentionFileNum(properties, 10);
 
     // unsafe flush
     RaftServerConfigKeys.Log.setUnsafeFlushEnabled(properties,
@@ -1169,6 +1169,10 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .add("Cluster", mClusterAddresses)
         .add("RaftGroup", mRaftGroup)
         .toString();
+  }
+
+  Optional<JournalStateMachine> getStateMachine() {
+    return Optional.of(mStateMachine);
   }
 
   /**

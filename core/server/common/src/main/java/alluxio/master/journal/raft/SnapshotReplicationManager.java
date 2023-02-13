@@ -11,7 +11,6 @@
 
 package alluxio.master.journal.raft;
 
-import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
@@ -31,7 +30,6 @@ import alluxio.grpc.SnapshotData;
 import alluxio.grpc.SnapshotMetadata;
 import alluxio.grpc.UploadSnapshotPRequest;
 import alluxio.grpc.UploadSnapshotPResponse;
-import alluxio.master.MasterClientContext;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
@@ -612,8 +610,7 @@ public class SnapshotReplicationManager {
   @VisibleForTesting
   synchronized RaftJournalServiceClient createJournalServiceClient()
       throws AlluxioStatusException {
-    RaftJournalServiceClient client = new RaftJournalServiceClient(MasterClientContext
-        .newBuilder(ClientContext.create(Configuration.global())).build());
+    RaftJournalServiceClient client = new RaftJournalServiceClient();
     client.connect();
     return client;
   }

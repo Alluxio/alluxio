@@ -14,10 +14,17 @@ package alluxio.master.journal.raft;
 import alluxio.grpc.DownloadSnapshotPRequest;
 import alluxio.grpc.DownloadSnapshotPResponse;
 import alluxio.grpc.RaftJournalServiceGrpc;
+import alluxio.grpc.SnapshotData;
+import alluxio.grpc.SnapshotMetadata;
 import alluxio.grpc.UploadSnapshotPRequest;
 import alluxio.grpc.UploadSnapshotPResponse;
 
+import com.google.protobuf.Empty;
+import io.grpc.Context;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.ratis.statemachine.SnapshotInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +48,31 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
     mRaftJournalSystem = raftJournalSystem;
     LOG.debug("RaftJournalServiceHandler initialized, journal system {}",
         mRaftJournalSystem);
+  }
+
+  @Override
+  public void requestLatestSnapshotInfo(Empty request,
+      StreamObserver<SnapshotMetadata> responseObserver) {
+    // https://grpc.io/blog/deadlines/
+    if (Context.current().isCancelled()) {
+      responseObserver.onError(
+          Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
+      return;
+    }
+    SnapshotMetadata.Builder builder =
+        SnapshotMetadata.newBuilder().setSnapshotTerm(1).setSnapshotIndex(1);
+    mRaftJournalSystem.getStateMachine().ifPresent(statemachine -> {
+      SnapshotInfo snapshot = statemachine.getLatestSnapshot();
+      builder.setSnapshotTerm(snapshot.getTerm());
+      builder.setSnapshotIndex(snapshot.getIndex());
+    });
+    responseObserver.onNext(builder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void downloadLatestSnapshot(Empty request, StreamObserver<SnapshotData> responseObserver) {
+    responseObserver.onError(new NotImplementedException("not implemented"));
   }
 
   @Override

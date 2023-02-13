@@ -182,9 +182,9 @@ public class AlluxioMasterProcess extends MasterProcess {
   public void start() throws Exception {
     LOG.info("Process starting.");
     mRunning = true;
-    mServices.forEach(SimpleService::start);
     mJournalSystem.start();
     startMasterComponents(false);
+    mServices.forEach(SimpleService::start);
 
     // Perform the initial catchup before joining leader election,
     // to avoid potential delay if this master is selected as leader

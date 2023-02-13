@@ -7,6 +7,7 @@ option java_outer_classname = "RaftJournalProto";
 package alluxio.grpc.meta;
 
 import "grpc/common.proto";
+import "google/protobuf/empty.proto";
 
 message JournalQueryRequest {
   optional GetSnapshotInfoRequest snapshotInfoRequest = 1;
@@ -44,6 +45,8 @@ message SnapshotData {
   optional bytes chunk = 3;
   optional int64 offset = 4;
   optional bool eof = 5;
+  optional string filename = 6;
+  optional bool finished = 7;
 }
 
 message UploadSnapshotPRequest {
@@ -76,4 +79,14 @@ service RaftJournalService {
    * Downloads a snapshot from primary master.
    */
   rpc DownloadSnapshot (stream DownloadSnapshotPRequest) returns (stream DownloadSnapshotPResponse);
+
+  /**
+   * Requests information about snapshots on a particular machine.
+   */
+  rpc RequestLatestSnapshotInfo(google.protobuf.Empty) returns (SnapshotMetadata) {}
+
+  /**
+   *
+   */
+  rpc DownloadLatestSnapshot(google.protobuf.Empty) returns (stream SnapshotData) {}
 }
