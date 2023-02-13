@@ -18,6 +18,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.ratis.proto.RaftProtos;
+import org.apache.ratis.util.Preconditions;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -177,16 +178,20 @@ public class JournalTool {
     System.out.printf("raft outputfile is: %s%n", outputfile);
     System.out.println("gonna try printstream");
     try (PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputfile)))) {
-      out.println("hello test");
       System.out.println("got printstream out");
       ex = new JournalExporter(journalType, sOutputDir, sMaster, sStart);
       System.out.println("ex ok");
       Journal journal = ex.getJournal();
+      writer = ex.getWriter();
+      if (ex == null) {
+        System.out.println("ex is somehow null");
+      } else {
+        System.out.println("ex is not null");
+      }
+      if (writer == null) {
+        System.out.println("writer is somehow null");
+      }
       System.out.println("journal ok");
-      // writer = ex.getWriter();
-      // JournalContext ctx = journal.createJournalContext();
-      // System.out.println("ctx ok");
-      System.out.println("before loop");
 
       // this loop is use used to go through the journal entries
       for (int i = 0; i < 10; i++) {
@@ -198,18 +203,28 @@ public class JournalTool {
           try {
             while ((tmp = entry.getJournalEntries(j)) != null) {
               System.out.println(tmp);
+              writer.write(tmp);
               out.println(tmp);
               j += 1;
             }
           } catch (Exception e) {
-            System.out.println("error!!!");
+            System.out.println("error!!!, no more Journal entries in this proto, normal Exception, no need to worry");
             System.out.println(e);
+            // trying to flush the entries in one proto
+            try {
+              System.out.println("flushing");
+              writer.flush();
+            } catch (Exception flushException) {
+              System.out.println("Exception when flushing");
+              System.out.println(flushException);
+            }
           }
         } else {
+          // don't know how to deal with non-Journal Entry
+          System.out.println("this is just a meaningless proto");
           System.out.println(proto);
           // out.println(proto);
         }
-
         // JournalEntry entry = stream.nextEntry();
         // if (entry != null) {
         //   // do sth
@@ -232,14 +247,23 @@ public class JournalTool {
         // writer.write(entry);
         System.out.println("i is:" + i);
       }
-
+      try {
+        writer.flush();
+      } catch (Exception e) {
+        System.out.println("error when flushing before close");
+        System.out.println(e);
+      }
+      Thread.sleep(1000);
+      writer.close();
+      ex.getJournal().close();
       System.out.println("after loop");
       // writer.flush();
       out.flush();
       // ex.getJournal().close();
     } catch (IOException e) {
-
       System.out.println(e);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
     }
     System.out.println("raft test fin");
   }

@@ -7,6 +7,7 @@ import alluxio.master.NoopMaster;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.JournalWriter;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.JournalStateMachine;
 import alluxio.master.journal.raft.RaftJournal;
 import alluxio.master.journal.raft.RaftJournalAppender;
@@ -69,6 +70,7 @@ public class JournalExporter {
         initUfsJournal();
         break;
       case EMBEDDED:
+        System.out.println("raft");
         initRaftJournal();
         break;
       default:
@@ -98,21 +100,40 @@ public class JournalExporter {
 
   private void initRaftJournal() {
     try {
-      RaftJournalSystem sys = new RaftJournalSystem(new URI(""), NetworkAddressUtils.ServiceType.MASTER_RAFT);
-      Class<?> clazz = sys.getClass();
+      RaftJournalSystem sys = new RaftJournalSystem(new URI("/Users/dengxinyu/journal-tool/raft"), NetworkAddressUtils.ServiceType.MASTER_RAFT);
+      mJournal = sys.createJournal(new NoopMaster());
+      System.out.println("1");
+      sys.start();
+      System.out.println("2");
+      sys.gainPrimacy();
+      System.out.println("3");
+      Class<?> clazz = RaftJournalSystem.class;
+      System.out.println("creating clazz");
+      System.out.println(clazz);
       Field writer = clazz.getDeclaredField("mRaftJournalWriter");
+      System.out.println("getting mRaftJournalWriter");
+      System.out.println(writer);
       writer.setAccessible(true);
-      RaftJournalWriter raftJournalWriter = (RaftJournalWriter) writer.get(sys);
-      mJournalWriter = raftJournalWriter;
+      System.out.println("setting mRaftJournalWriter accessible");
+      System.out.println(writer);
+      Object raftJournalWriter = writer.get(sys);
+      System.out.println("Value of private writer: " + raftJournalWriter);
+      if (raftJournalWriter == null) {
+        System.out.println("raftJournalWriter is NULL!!!");
+      }
+      mJournalWriter = (JournalWriter) raftJournalWriter;
+      System.out.println("ok when initiating raft writer");
     } catch (Exception e) {
       // do sth
+      System.out.println("failed when initiating raft writer");
+      System.out.println(e);
     }
   }
 
   // private void initRaftJournal() throws IOException {
   //   final UUID RAFT_GROUP_UUID = UUID.fromString("02511d47-d67c-49a3-9011-abb3109a44c1");
   //   RaftGroupId RAFT_GROUP_ID = RaftGroupId.valueOf(RAFT_GROUP_UUID);
-  //   List<InetSocketAddress> mClusterAddresses = ConfigurationUtils.getEmbeddedJournalAddresses(Configuration.global(), NetworkAddressUtils// .ServiceType.MASTER_RAFT);
+  //   List<InetSocketAddress> mClusterAddresses = ConfigurationUtils.getEmbeddedJournalAddresses(Configuration.global(), NetworkAddressUtils // .ServiceType.MASTER_RAFT);
   //   ConcurrentHashMap<String, RaftJournal> mJournals = new ConcurrentHashMap<>();
   //   JournalStateMachine mStateMachine;
   //   Set<RaftPeer> peers = mClusterAddresses.stream()
@@ -123,7 +144,7 @@ public class JournalExporter {
   //       )
   //       .collect(Collectors.toSet());
   //   mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
-  //   mStateMachine = new JournalStateMachine(mJournals, this);
+  //   mStateMachine = new JournalStateMachine(mJournals, new RaftJournalSystem(new URI(""), NetworkAddressUtils.ServiceType.MASTER_RAFT));
   //   RaftServer mServer = RaftServer.newBuilder()
   //       .setServerId(RaftJournalUtils.getPeerId(NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RAFT, // Configuration.global())))
   //       .setGroup(mRaftGroup)
@@ -136,10 +157,10 @@ public class JournalExporter {
   //   JournalWriter reader = new UfsJournalLogWriter(journal, mStart);
   // }
 
-  private RaftClient createClient() {
-    return createClient(Configuration.getMs(
-        PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT));
-  }
+  // private RaftClient createClient() {
+  //   return createClient(Configuration.getMs(
+  //       PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT));
+  // }
 
   private RaftClient createClient(long timeoutMs) {
     long retryBaseMs =
