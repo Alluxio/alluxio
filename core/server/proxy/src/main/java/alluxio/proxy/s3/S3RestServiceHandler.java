@@ -838,12 +838,18 @@ public final class S3RestServiceHandler {
             } else {
               toRead = Long.parseLong(contentLength);
             }
+//            try {
+//              S3RestUtils.deleteExistObject(userFs, objectUri);
+//            } catch (IOException | AlluxioException e) {
+//              throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath(), auditContext);
+//            }
+            FileOutStream os;
             try {
+              os = userFs.createFile(objectUri, filePOptions);
+            } catch (AlluxioException e) {
               S3RestUtils.deleteExistObject(userFs, objectUri);
-            } catch (IOException | AlluxioException e) {
-              throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath(), auditContext);
+              os = userFs.createFile(objectUri, filePOptions);
             }
-            FileOutStream os = userFs.createFile(objectUri, filePOptions);
             try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
               long read = ByteStreams.copy(ByteStreams.limit(readStream, toRead),
                   digestOutputStream);
@@ -940,13 +946,21 @@ public final class S3RestServiceHandler {
             throw new S3Exception("Copying an object to itself invalid.",
                 objectPath, S3ErrorCode.INVALID_REQUEST);
           }
-          try {
-            S3RestUtils.deleteExistObject(userFs, objectUri);
-          } catch (IOException | AlluxioException e) {
-            throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath(), auditContext);
-          }
-          try (FileInStream in = userFs.openFile(new AlluxioURI(copySource));
-               FileOutStream out = userFs.createFile(objectUri, copyFilePOptionsBuilder.build())) {
+//          try {
+//            S3RestUtils.deleteExistObject(userFs, objectUri);
+//          } catch (IOException | AlluxioException e) {
+//            throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath(), auditContext);
+//          }
+//          try (FileInStream in = userFs.openFile(new AlluxioURI(copySource));
+//               FileOutStream out = userFs.createFile(objectUri, copyFilePOptionsBuilder.build())) {
+          try (FileInStream in = userFs.openFile(new AlluxioURI(copySource));) {
+            FileOutStream out;
+            try {
+              out = userFs.createFile(objectUri, copyFilePOptionsBuilder.build());
+            } catch (AlluxioException e) {
+              S3RestUtils.deleteExistObject(userFs, objectUri);
+              out = userFs.createFile(objectUri, copyFilePOptionsBuilder.build());
+            }
             MessageDigest md5 = MessageDigest.getInstance("MD5");
             try (DigestOutputStream digestOut = new DigestOutputStream(out, md5)) {
               IOUtils.copyLarge(in, digestOut, new byte[8 * Constants.MB]);
