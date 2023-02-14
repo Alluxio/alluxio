@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -515,54 +514,6 @@ public class ListBucketResult {
     } else {
       return "";
     }
-  }
-
-  /**
-   * Add partial {@link Content} to current result collection.
-   * @param partialContent
-   */
-  public void addContent(List<Content> partialContent) {
-    mContents.addAll(partialContent);
-    if (mContents.size() < mMaxKeys || mMaxKeys == 0) {
-      mKeyCount = mKeyCount == null ? null : mContents.size();
-      return;
-    }
-    if (mContents.size() > mMaxKeys) {
-      mIsTruncated = true;
-      mContents = mContents.subList(0, mMaxKeys);
-    }
-
-    String path = mContents.get(mContents.size() - 1).mKey;
-    try {
-      path = URLDecoder.decode(path, "UTF-8");
-    } catch (UnsupportedEncodingException ex) {
-      // IGNORE, return as is
-    }
-    if (StringUtils.isEmpty(mDelimiter)) {
-      mNextMarker = path;
-    } else {
-      int delimiterIndex = path.substring(mPrefix.length()).indexOf(mDelimiter);
-      if (delimiterIndex == -1) {
-        mNextMarker = path;
-      } else {
-        mNextMarker = path.substring(0, mPrefix.length() + delimiterIndex
-            + mDelimiter.length());
-      }
-    }
-    if (mIsTruncated) {
-      mNextContinuationToken = null;
-      if (isVersion2()) {
-        if (mNextMarker != null) {
-          mNextContinuationToken = encodeToken(mNextMarker);
-        }
-        mNextMarker = null;
-      }
-    } else {
-      mNextContinuationToken = null;
-      mNextMarker = null;
-    }
-
-    mKeyCount = mKeyCount == null ? null : mContents.size();
   }
 
   /**

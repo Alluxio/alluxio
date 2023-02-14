@@ -347,6 +347,12 @@ public final class S3RestServiceHandler {
         }
 
         List<URIStatus> children;
+        List<URIStatus> allChildren = new ArrayList<>();
+        ListStatusPartialPOptions options = ListStatusPartialPOptions.newBuilder()
+            .setStartAfter(startAfter)
+            .setBatchSize(maxKeys)
+            .setOptions(ListStatusPOptions.newBuilder().setRecursive(true))
+            .buildPartial();
         try {
           // TODO(czhu): allow non-"/" delimiters by parsing the prefix & delimiter pair to
           //             determine what directory to list the contents of
@@ -357,57 +363,44 @@ public final class S3RestServiceHandler {
             } else {
               path = parsePathWithDelimiter(path, prefixParam, delimiterParam);
             }
-            children = userFs.listStatus(new AlluxioURI(path));
+            options = options.toBuilder().clearOptions().build();
           } else {
             if (prefixParam != null) {
               path = parsePathWithDelimiter(path, prefixParam, AlluxioURI.SEPARATOR);
             }
-
-            ListStatusPartialPOptions options = ListStatusPartialPOptions.newBuilder()
-                .setStartAfter(startAfter)
-                .setBatchSize(maxKeys)
-                .setOptions(ListStatusPOptions.newBuilder().setRecursive(true))
-                .buildPartial();
-
-            ListStatusPartialResult partialResult =
-                userFs.listStatusPartial(new AlluxioURI(path), options);
-            children = partialResult.getListings();
-
-            ListBucketResult bucketResult =
-                new ListBucketResult(bucket, children, listBucketOptions);
-
-            while (bucketResult.getContents().size() < maxKeys && !children.isEmpty()) {
-              options = options.toBuilder()
-                  .setStartAfter(children.get(children.size() - 1).getPath())
-                  .buildPartial();
-              partialResult = userFs.listStatusPartial(new AlluxioURI(path), options);
-              children = partialResult.getListings();
-              bucketResult.addContent(new ListBucketResult(bucket, children, listBucketOptions)
-                  .getContents());
-            }
-            // check for more results to tell the client whether the response is truncated
-            if (children.size() > 0 && !bucketResult.isTruncated()) {
-              options = options.toBuilder()
-                  .setStartAfter(children.get(children.size() - 1).getPath())
-                  .setBatchSize(1).buildPartial();
-              partialResult = userFs.listStatusPartial(new AlluxioURI(path), options);
-              children = partialResult.getListings();
-              bucketResult.addContent(new ListBucketResult(bucket, children, listBucketOptions)
-                  .getContents());
-            }
-            return bucketResult;
           }
+
+          ListStatusPartialResult partialResult =
+              userFs.listStatusPartial(new AlluxioURI(path), options);
+          children = partialResult.getListings();
+
+          allChildren.addAll(children);
+
+          ListBucketResult bucketResult =
+              new ListBucketResult(bucket, allChildren, listBucketOptions);
+          while ((bucketResult.getKeyCount() == null || bucketResult.getKeyCount() <= maxKeys)
+              && !children.isEmpty()) {
+            options = options.toBuilder()
+                .setStartAfter(children.get(children.size() - 1).getPath()).buildPartial();
+            partialResult = userFs.listStatusPartial(new AlluxioURI(path), options);
+            children = partialResult.getListings();
+            allChildren.addAll(children);
+            bucketResult = new ListBucketResult(bucket, allChildren, listBucketOptions);
+            if (bucketResult.isTruncated()) {
+              break;
+            }
+          }
+          return bucketResult;
         } catch (FileDoesNotExistException e) {
           // Since we've called S3RestUtils.checkPathIsAlluxioDirectory() on the bucket path
           // already, this indicates that the prefix was unable to be found in the Alluxio FS
-          children = new ArrayList<>();
         } catch (IOException | AlluxioException e) {
           auditContext.setSucceeded(false);
           throw S3RestUtils.toBucketS3Exception(e, bucket);
         }
         return new ListBucketResult(
             bucket,
-            children,
+            allChildren,
             listBucketOptions);
       } // end try-with-resources block
     });
