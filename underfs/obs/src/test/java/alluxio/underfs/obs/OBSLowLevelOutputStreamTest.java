@@ -114,7 +114,8 @@ public class OBSLowLevelOutputStreamTest {
     Mockito.verify(mMockObsClient, never())
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
     assertTrue(mStream.getContentHash().isPresent());
-    assertEquals("putTag", mStream.getContentHash().get());  }
+    assertEquals("putTag", mStream.getContentHash().get());
+  }
 
   @Test
   public void writeByteArrayForLargeFile() throws Exception {
@@ -134,7 +135,8 @@ public class OBSLowLevelOutputStreamTest {
     Mockito.verify(mMockObsClient)
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
     assertTrue(mStream.getContentHash().isPresent());
-    assertEquals("multiTag", mStream.getContentHash().get());  }
+    assertEquals("multiTag", mStream.getContentHash().get());
+  }
 
   @Test
   public void createEmptyFile() throws Exception {
@@ -146,7 +148,8 @@ public class OBSLowLevelOutputStreamTest {
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
     Mockito.verify(mMockObsClient).putObject(any());
     assertTrue(mStream.getContentHash().isPresent());
-    assertEquals("putTag", mStream.getContentHash().get());  }
+    assertEquals("putTag", mStream.getContentHash().get());
+  }
 
   @Test
   public void flush() throws Exception {
