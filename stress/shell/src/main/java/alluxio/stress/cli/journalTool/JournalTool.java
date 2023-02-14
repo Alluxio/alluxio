@@ -18,6 +18,8 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.ratis.proto.RaftProtos;
+import org.apache.ratis.server.RaftConfiguration;
+import org.apache.ratis.server.raftlog.LogProtoUtils;
 import org.apache.ratis.util.Preconditions;
 
 import java.io.BufferedOutputStream;
@@ -176,31 +178,60 @@ public class JournalTool {
       ex = new JournalExporter(journalType, sOutputDir, sMaster, sStart);
       writer = ex.getWriter();
       // this loop is use used to go through the journal entries
-      for (int i = 0; i < 10; i++) {
+      // here read 22 alluxio journal entries
+      for (int i = 0; i < 11; i++) {
         RaftProtos.LogEntryProto proto = stream.nextProto();
+        if (proto == null) {
+          System.out.println("proto is null");
+          break;
+        }
         if (proto.hasStateMachineLogEntry()) {
+          System.out.println("looping");
           int j = 0;
           JournalEntry entry = JournalEntry.parseFrom(proto.getStateMachineLogEntry().getLogData().asReadOnlyByteBuffer());
-          JournalEntry tmp;
+          System.out.println("parsed entry: " + entry);
           try {
-            while ((tmp = entry.getJournalEntries(j)) != null) {
-              System.out.println(tmp);
-              writer.write(tmp);
+            if (entry.getJournalEntriesCount() > 0) {
+              for (JournalEntry tmp : entry.getJournalEntriesList()) {
+              System.out.println("inside JournalEntriesList: " + tmp);
+              System.out.println("before write");
+              try {
+                writer.write(tmp.toBuilder().clearSequenceNumber().build());
+              } catch (Exception e) {
+                System.out.println("writer Exception when writing " + e);
+              }
+              System.out.println("after write");
               out.println(tmp);
-              j += 1;
+              }
+              writer.flush();
             }
+            // while ((tmp = entry.getJournalEntries(j)) != null) {
+            //   System.out.println(tmp);
+            //   System.out.println("before write");
+            //   writer.write(tmp);
+            //   System.out.println("after write");
+            //   out.println(tmp);
+            //   j += 1;
+            // }
           } catch (Exception e) {
             System.out.println("error!!!, no more Journal entries in this proto, normal Exception, no need to worry");
             System.out.println(e);
             // trying to flush the entries in one proto
             try {
+              System.out.println("before flush");
               writer.flush();
+              System.out.println("after flush");
             } catch (Exception flushException) {
               System.out.println("Exception when flushing");
               System.out.println(flushException);
             }
           }
+        } else if (proto.hasConfigurationEntry()) {
+          RaftConfiguration conf = LogProtoUtils.toRaftConfiguration(proto);
+          System.out.println("this is configuration: ");
+          System.out.println(proto);
         } else {
+          System.out.println("other than sm and conf: ");
           System.out.println(proto);
           // out.println(proto);
         }
