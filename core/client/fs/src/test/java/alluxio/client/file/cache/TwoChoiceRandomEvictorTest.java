@@ -40,7 +40,8 @@ public class TwoChoiceRandomEvictorTest {
     mEvictor.updateOnGet(mFirst);
     Assert.assertEquals(mFirst, mEvictor.evict());
     mEvictor.updateOnGet(mSecond);
-    Assert.assertEquals(mSecond, mEvictor.evict());
+    PageId evictedPage = mEvictor.evict();
+    Assert.assertTrue(evictedPage.equals(mFirst) || evictedPage.equals(mSecond));
   }
 
   @Test

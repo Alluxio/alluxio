@@ -111,7 +111,7 @@ public class RpcServerService implements SimpleService {
         LOG.info("registered service {}", type.name());
       });
     });
-    mGrpcServer = builder.build();
+    mGrpcServer = builder.build(() -> mMasterProcess.getPrimarySelector().getStateUnsafe());
     try {
       mGrpcServer.start();
       mMasterProcess.getSafeModeManager().ifPresent(SafeModeManager::notifyRpcServerStarted);

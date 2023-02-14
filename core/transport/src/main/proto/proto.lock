@@ -2459,6 +2459,11 @@
                 "type": "FileSystemMasterCommonPOptions"
               },
               {
+                "id": 5,
+                "name": "syncParentNextTime",
+                "type": "bool"
+              },
+              {
                 "id": 6,
                 "name": "deleteMountPoint",
                 "type": "bool"
