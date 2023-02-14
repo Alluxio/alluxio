@@ -1252,7 +1252,7 @@ public final class S3RestServiceHandler {
 
           InputStream inputStream;
           long rate =
-              mSConf.getLong(PropertyKey.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB)
+              (long) mSConf.getInt(PropertyKey.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB)
                   * Constants.MB;
           RateLimiter currentRateLimiter = S3RestUtils.createRateLimiter(rate).orElse(null);
           if (currentRateLimiter == null && mGlobalRateLimiter == null) {

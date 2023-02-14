@@ -108,7 +108,7 @@ public final class ProxyWebServer extends WebServer {
 
     mFileSystem = FileSystem.Factory.create(Configuration.global());
     long rate =
-        Configuration.getLong(PropertyKey.PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB) * Constants.MB;
+        (long) Configuration.getInt(PropertyKey.PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB) * Constants.MB;
     mGlobalRateLimiter = S3RestUtils.createRateLimiter(rate).orElse(null);
 
     if (Configuration.getBoolean(PropertyKey.PROXY_AUDIT_LOGGING_ENABLED)) {
