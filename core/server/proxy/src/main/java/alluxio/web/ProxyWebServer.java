@@ -25,6 +25,7 @@ import alluxio.proxy.s3.S3BaseTask;
 import alluxio.proxy.s3.S3Handler;
 import alluxio.proxy.s3.S3RequestServlet;
 import alluxio.proxy.s3.S3RestExceptionMapper;
+import alluxio.proxy.s3.S3RestUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 
@@ -108,10 +109,7 @@ public final class ProxyWebServer extends WebServer {
     mFileSystem = FileSystem.Factory.create(Configuration.global());
     long rate =
         Configuration.getLong(PropertyKey.PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB) * Constants.MB;
-    if (rate <= 0) {
-      rate = Long.MAX_VALUE;
-    }
-    mGlobalRateLimiter = RateLimiter.create(rate);
+    mGlobalRateLimiter = S3RestUtils.createRateLimiter(rate).orElse(null);
 
     if (Configuration.getBoolean(PropertyKey.PROXY_AUDIT_LOGGING_ENABLED)) {
       mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("PROXY_AUDIT_LOG");
@@ -134,8 +132,10 @@ public final class ProxyWebServer extends WebServer {
         getServletContext().setAttribute(STREAM_CACHE_SERVLET_RESOURCE_KEY,
                 new StreamCache(Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
         getServletContext().setAttribute(ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY, mAsyncAuditLogWriter);
-        getServletContext().setAttribute(GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY,
-            mGlobalRateLimiter);
+        if (mGlobalRateLimiter != null) {
+          getServletContext().setAttribute(GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY,
+              mGlobalRateLimiter);
+        }
       }
 
       @Override

@@ -1250,18 +1250,18 @@ public final class S3RestServiceHandler {
           S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
           RangeFileInStream ris = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
 
-          InputStream rateLimitInputStream;
+          InputStream inputStream;
           long rate =
               mSConf.getLong(PropertyKey.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB)
                   * Constants.MB;
-          if (rate <= 0) {
-            rateLimitInputStream = new RateLimitInputStream(ris, mGlobalRateLimiter);
+          RateLimiter currentRateLimiter = S3RestUtils.createRateLimiter(rate).orElse(null);
+          if (currentRateLimiter == null && mGlobalRateLimiter == null) {
+            inputStream = ris;
           } else {
-            rateLimitInputStream = new RateLimitInputStream(ris, mGlobalRateLimiter,
-                RateLimiter.create(rate));
+            inputStream = new RateLimitInputStream(ris, mGlobalRateLimiter, currentRateLimiter);
           }
 
-          Response.ResponseBuilder res = Response.ok(rateLimitInputStream)
+          Response.ResponseBuilder res = Response.ok(inputStream)
               .lastModified(new Date(status.getLastModificationTimeMs()))
               .header(S3Constants.S3_CONTENT_LENGTH_HEADER, s3Range.getLength(status.getLength()));
 

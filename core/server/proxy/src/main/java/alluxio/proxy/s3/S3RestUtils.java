@@ -40,6 +40,7 @@ import alluxio.util.SecurityUtils;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.Longs;
+import com.google.common.util.concurrent.RateLimiter;
 import com.google.protobuf.ByteString;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -56,6 +57,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -687,6 +689,18 @@ public final class S3RestUtils {
         throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
       }
     }
+  }
+
+  /**
+   * Create a rate limiter for given rate.
+   * @param rate bytes per second
+   * @return empty if rate <= 0
+   */
+  public static Optional<RateLimiter> createRateLimiter(long rate) {
+    if (rate <= 0) {
+      return Optional.empty();
+    }
+    return Optional.of(RateLimiter.create(rate));
   }
 
     /**
