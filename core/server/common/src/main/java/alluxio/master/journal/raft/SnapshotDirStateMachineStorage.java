@@ -1,50 +1,99 @@
 package alluxio.master.journal.raft;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.ratis.io.MD5Hash;
+import org.apache.ratis.server.protocol.TermIndex;
 import org.apache.ratis.server.storage.FileInfo;
+import org.apache.ratis.server.storage.RaftStorage;
+import org.apache.ratis.statemachine.SnapshotInfo;
 import org.apache.ratis.statemachine.SnapshotRetentionPolicy;
+import org.apache.ratis.statemachine.StateMachineStorage;
+import org.apache.ratis.statemachine.impl.FileListSnapshotInfo;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
-import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
+import org.apache.ratis.util.MD5FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.stream.Stream;
 
 /**
  * Simple state machine storage that can handle directories.
  */
-public class SnapshotDirStateMachineStorage extends SimpleStateMachineStorage {
+public class SnapshotDirStateMachineStorage implements StateMachineStorage {
   private static final Logger LOG = LoggerFactory.getLogger(SnapshotDirStateMachineStorage.class);
+
+  private RaftStorage mStorage;
+
   private Matcher match(Path path) {
-    return SNAPSHOT_REGEX.matcher(path.getFileName().toString());
+    return SimpleStateMachineStorage.SNAPSHOT_REGEX.matcher(path.getFileName().toString());
   }
 
-  // inspired by https://github.com/apache/ratis/blob/31efad1e973348f3a81ccf71523c1d85dce408ef/ratis-server/src/main/java/org/apache/ratis/statemachine/impl/SimpleStateMachineStorage.java#L78-L107
+  @Override
+  public void init(RaftStorage raftStorage) throws IOException {
+    mStorage = raftStorage;
+  }
+
+  @Override
+  public SnapshotInfo getLatestSnapshot() {
+    try (Stream<Path> stream = Files.list(getSnapshotDir().toPath())) {
+      Optional<Path> max = stream.filter(path -> match(path).matches())
+          .max(Comparator.comparingLong(path -> {
+            TermIndex ti = SimpleStateMachineStorage.getTermIndexFromSnapshotFile(path.toFile());
+            return ti.getIndex();
+          }));
+      if (max.isPresent()) {
+        TermIndex ti = SimpleStateMachineStorage.getTermIndexFromSnapshotFile(max.get().toFile());
+        List<FileInfo> fileInfos = new ArrayList<>();
+        for (File file : FileUtils.listFiles(max.get().toFile(), null, true)) {
+          MD5Hash md5Hash = MD5FileUtil.computeMd5ForFile(file);
+          Path relativePath = max.get().relativize(file.toPath());
+          fileInfos.add(new FileInfo(relativePath, md5Hash));
+        }
+        return new FileListSnapshotInfo(fileInfos, ti.getTerm(), ti.getIndex());
+      }
+    } catch (IOException e) {
+      // do nothing and return null
+    }
+    return null;
+  }
+
+  @Override
+  public void format() throws IOException {}
+
   @Override
   public void cleanupOldSnapshots(SnapshotRetentionPolicy retentionPolicy) throws IOException {
-    try (Stream<Path> stream = Files.list(getSmDir().toPath())) {
-      stream.map(path -> new ImmutablePair<>(path, match(path)))
-          .filter(pair -> pair.getRight().matches())
-          .map(pair -> {
-            final long endIndex = Long.parseLong(pair.getRight().group(2));
-            final long term = Long.parseLong(pair.getRight().group(1));
-            final FileInfo fileInfo = new FileInfo(pair.getLeft(), null);
-            LOG.info("found {}", pair.getLeft().getFileName());
-            return new SingleFileSnapshotInfo(fileInfo, term, endIndex);
-          })
-          .sorted((file1, file2) -> (int) (file2.getIndex() - file1.getIndex()))
+    try (Stream<Path> stream = Files.list(getSnapshotDir().toPath())) {
+      stream.filter(path -> match(path).matches())
+          .sorted(Comparator.comparingLong(path -> {
+            TermIndex ti = SimpleStateMachineStorage.getTermIndexFromSnapshotFile(path.toFile());
+            // - to reverse the order
+            return -ti.getIndex();
+          }))
           .skip(retentionPolicy.getNumSnapshotsRetained())
-          .map(snapshotFile -> snapshotFile.getFile().getPath().toFile())
-          .forEach(file -> {
-            LOG.info("removing dir {}", file.getName());
-            boolean b = FileUtils.deleteQuietly(file);
-            LOG.info("{}successful deletion", b ? "" : "un");
+          .forEach(path -> {
+            LOG.debug("removing dir {}", path.getFileName());
+            boolean b = FileUtils.deleteQuietly(path.toFile());
+            LOG.debug("{}successful deletion", b ? "" : "un");
           });
     }
+  }
+
+  @Override
+  public File getSnapshotDir() {
+    return mStorage.getStorageDir().getStateMachineDir();
+  }
+
+  @Override
+  public File getTmpDir() {
+    return mStorage.getStorageDir().getTmpDir();
   }
 }

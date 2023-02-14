@@ -47,7 +47,7 @@ import org.apache.ratis.statemachine.SnapshotInfo;
 import org.apache.ratis.statemachine.StateMachineStorage;
 import org.apache.ratis.statemachine.TransactionContext;
 import org.apache.ratis.statemachine.impl.BaseStateMachine;
-import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
+import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.util.LifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +55,6 @@ import org.slf4j.LoggerFactory;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collection;
@@ -137,7 +136,7 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile long mSnapshotLastIndex = -1;
   /** Used to control applying to masters. */
   private BufferedJournalApplier mJournalApplier;
-  private final SnapshotDirStateMachineStorage mStorage = new SnapshotDirStateMachineStorage();
+  private final StateMachineStorage mStorage = new SnapshotDirStateMachineStorage();
   private RaftGroupId mRaftGroupId;
   private RaftServer mServer;
   private long mLastCheckPointTime = -1;
@@ -159,7 +158,8 @@ public class JournalStateMachine extends BaseStateMachine {
     resetState();
     LOG.info("Initialized new journal state machine");
     mJournalSystem = journalSystem;
-    mSnapshotManager = new SnapshotReplicationManager(journalSystem, mStorage);
+    mSnapshotManager = new SnapshotReplicationManager(journalSystem,
+        new SimpleStateMachineStorage());
 
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX.getName(),
@@ -200,7 +200,6 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public void reinitialize() throws IOException {
     LOG.info("Reinitializing state machine.");
-    mStorage.loadLatestSnapshot();
     loadSnapshot(mStorage.getLatestSnapshot());
     unpause();
     synchronized (mSnapshotManager) {
@@ -208,17 +207,12 @@ public class JournalStateMachine extends BaseStateMachine {
     }
   }
 
-  private synchronized void loadSnapshot(SingleFileSnapshotInfo snapshot) throws IOException {
+  private synchronized void loadSnapshot(SnapshotInfo snapshot) throws IOException {
     if (snapshot == null) {
       LOG.info("No snapshot to load");
       return;
     }
     LOG.info("Loading Snapshot {}", snapshot);
-    final File snapshotFile = snapshot.getFile().getPath().toFile();
-    if (!snapshotFile.exists()) {
-      throw new FileNotFoundException(
-          String.format("The snapshot file %s does not exist", snapshotFile.getPath()));
-    }
     try {
       resetState();
       setLastAppliedTermIndex(snapshot.getTermIndex());
@@ -585,7 +579,7 @@ public class JournalStateMachine extends BaseStateMachine {
     mSnapshotting = true;
     TermIndex last = getLastAppliedTermIndex();
 
-    File snapshotDir = mStorage.getSnapshotFile(last.getTerm(), last.getIndex());
+    File snapshotDir = getSnapshotDir(last.getTerm(), last.getIndex());
     if (!snapshotDir.isDirectory() && !snapshotDir.mkdir()) {
       return RaftLog.INVALID_LOG_INDEX;
     }
@@ -600,7 +594,6 @@ public class JournalStateMachine extends BaseStateMachine {
           Files.newOutputStream(new File(snapshotDir, "SNAPSHOT_ID").toPath()))) {
         idFile.writeLong(snapshotId);
       }
-      mStorage.loadLatestSnapshot();
       return last.getIndex();
     } catch (Exception e) {
       LOG.error("error taking snapshot", e);
@@ -613,7 +606,7 @@ public class JournalStateMachine extends BaseStateMachine {
     }
   }
 
-  private void install(SingleFileSnapshotInfo snapshot) {
+  private void install(SnapshotInfo snapshot) {
     if (mClosed) {
       return;
     }
@@ -622,7 +615,7 @@ public class JournalStateMachine extends BaseStateMachine {
       return;
     }
 
-    File snapshotDir = snapshot.getFile().getPath().toFile();
+    File snapshotDir = getSnapshotDir(snapshot.getTerm(), snapshot.getIndex());
     long snapshotId = 0L;
     try (Timer.Context ctx = MetricsSystem.timer(MetricKey
         .MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER.getName()).time()) {
@@ -647,6 +640,11 @@ public class JournalStateMachine extends BaseStateMachine {
     }
     mNextSequenceNumberToRead = snapshotId + 1;
     LOG.info("Successfully installed snapshot up to SN {}", snapshotId);
+  }
+
+  private File getSnapshotDir(long term, long index) {
+    String dirName = SimpleStateMachineStorage.getSnapshotFileName(term, index);
+    return new File(mStorage.getSnapshotDir(), dirName);
   }
 
   /**
