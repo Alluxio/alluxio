@@ -5303,7 +5303,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB =
-      longBuilder(Name.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB)
+      intBuilder(Name.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setDescription("Limit the maximum read speed for each connection. "
               + "Set value less than or equal to 0 to disable rate limits.")
@@ -5311,7 +5311,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB =
-      longBuilder(Name.PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB)
+      intBuilder(Name.PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setDescription("Limit the maximum read speed for all connections. "
               + "Set value less than or equal to 0 to disable rate limits.")
