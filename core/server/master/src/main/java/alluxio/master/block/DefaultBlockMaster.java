@@ -395,6 +395,28 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       }
       mBlockMetaStore.putBlock(blockInfoEntry.getBlockId(),
           BlockMeta.newBuilder().setLength(blockInfoEntry.getLength()).build());
+      // This can be called when
+      // 1. The master is replaying the journal.
+      // 2. A standby master is applying a journal entry from the primary master.
+      if (blockInfoEntry.hasBlockLocation()) {
+        alluxio.grpc.BlockLocation blockLocation = blockInfoEntry.getBlockLocation();
+        long workerId = blockLocation.getWorkerId();
+        MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+        if (worker == null) {
+          // The master is replaying journal or somehow the worker is not there anymore
+          // We do not add the BlockLocation because the workerId is not reliable anymore
+          // If the worker comes back, it will register and BlockLocation will be added then
+          return true;
+        }
+        // The master is running and the journal is from an existing worker
+        mBlockMetaStore.addLocation(blockInfoEntry.getBlockId(), BlockLocation.newBuilder()
+            .setWorkerId(workerId)
+            .setTier(blockLocation.getTierAlias())
+            .setMediumType(blockLocation.getMediumType())
+            .build());
+        worker.addBlock(blockInfoEntry.getBlockId());
+        LOG.debug("Added BlockLocation for {} to worker {}", blockInfoEntry.getBlockId(), workerId);
+      }
     } else {
       return false;
     }
@@ -941,9 +963,24 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                   block.get().getLength(), length);
             } else {
               mBlockMetaStore.putBlock(blockId, BlockMeta.newBuilder().setLength(length).build());
-              BlockInfoEntry blockInfo =
-                  BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
-              journalContext.append(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
+              BlockInfoEntry.Builder blockInfoBuilder =
+                  BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length);
+              if (mWorkerRegisterToAllMasters) {
+                blockInfoBuilder
+                    .setBlockId(blockId)
+                    .setLength(length)
+                    .setBlockLocation(
+                        alluxio.grpc.BlockLocation.newBuilder()
+                            .setWorkerId(workerId)
+                            .setMediumType(mediumType)
+                            .setTierAlias(tierAlias)
+                            // Worker addresses are not journaled because adding a block location
+                            // into the meta store only needs a worker id.
+                            .build()
+                    );
+              }
+              journalContext.append(
+                  JournalEntry.newBuilder().setBlockInfo(blockInfoBuilder.build()).build());
             }
           }
           // Update the block metadata with the new worker location.

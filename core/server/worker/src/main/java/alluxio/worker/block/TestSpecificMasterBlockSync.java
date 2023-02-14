@@ -29,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @VisibleForTesting
 public final class TestSpecificMasterBlockSync extends SpecificMasterBlockSync {
   private static final Logger LOG = LoggerFactory.getLogger(TestSpecificMasterBlockSync.class);
-  private volatile boolean mPauseHeartbeat = false;
+  private volatile boolean mFailHeartbeat = false;
   private final AtomicInteger mRegistrationSuccessCount = new AtomicInteger(0);
 
   /**
@@ -46,17 +46,17 @@ public final class TestSpecificMasterBlockSync extends SpecificMasterBlockSync {
   }
 
   /**
-   * Resumes the heartbeat.
+   * Restores the heartbeat.
    */
-  public void resumeHeartbeat() {
-    mPauseHeartbeat = false;
+  public void restoreHeartbeat() {
+    mFailHeartbeat = false;
   }
 
   /**
-   * Pauses the heartbeat.
+   * Fails the heartbeat and lets it throws an exception.
    */
-  public void pauseHeartbeat() {
-    mPauseHeartbeat = true;
+  public void failHeartbeat() {
+    mFailHeartbeat = true;
   }
 
   /**
@@ -75,7 +75,7 @@ public final class TestSpecificMasterBlockSync extends SpecificMasterBlockSync {
 
   @Override
   protected void beforeHeartbeat() {
-    if (mPauseHeartbeat) {
+    if (mFailHeartbeat) {
       throw new UnavailableRuntimeException("Heartbeat paused");
     }
   }

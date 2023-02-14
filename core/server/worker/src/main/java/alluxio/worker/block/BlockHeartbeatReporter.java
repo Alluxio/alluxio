@@ -143,15 +143,6 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   }
 
   @Override
-  public void onCommitBlockToMaster(long blockId, BlockStoreLocation location) {
-    if (mWorkerRegisterToAllMasters) {
-      synchronized (mLock) {
-        addBlockToAddedBlocks(blockId, location);
-      }
-    }
-  }
-
-  @Override
   public void onMoveBlockByClient(long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     synchronized (mLock) {

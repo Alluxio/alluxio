@@ -168,9 +168,9 @@ public final class BlockHeartbeatReporterTest {
 
   @Test
   public void generateAndRevert() {
-    mReporter.onCommitBlockToMaster(1, MEM_LOC);
-    mReporter.onCommitBlockToMaster(2, MEM_LOC);
-    mReporter.onCommitBlockToMaster(3, SSD_LOC);
+    mReporter.onMoveBlockByWorker(1, MEM_LOC, SSD_LOC);
+    mReporter.onMoveBlockByWorker(2, MEM_LOC, SSD_LOC);
+    mReporter.onMoveBlockByWorker(3, SSD_LOC, HDD_LOC);
     mReporter.onRemoveBlockByClient(4);
     mReporter.onStorageLost(Constants.MEDIUM_MEM, "/foo");
     mReporter.onStorageLost(Constants.MEDIUM_MEM, "/bar");
@@ -184,9 +184,9 @@ public final class BlockHeartbeatReporterTest {
 
   @Test
   public void generateUpdateThenRevert() {
-    mReporter.onCommitBlockToMaster(1, MEM_LOC);
-    mReporter.onCommitBlockToMaster(2, MEM_LOC);
-    mReporter.onCommitBlockToMaster(3, SSD_LOC);
+    mReporter.onMoveBlockByWorker(1, HDD_LOC, MEM_LOC);
+    mReporter.onMoveBlockByWorker(2, HDD_LOC, MEM_LOC);
+    mReporter.onMoveBlockByWorker(3, HDD_LOC, SSD_LOC);
     mReporter.onRemoveBlockByClient(4);
     mReporter.onStorageLost(Constants.MEDIUM_MEM, "/foo");
     mReporter.onStorageLost(Constants.MEDIUM_HDD, "/bar");
@@ -195,8 +195,8 @@ public final class BlockHeartbeatReporterTest {
     mReporter.onRemoveBlockByClient(1);
     mReporter.onRemoveBlockByClient(3);
     mReporter.onRemoveBlockByClient(5);
-    mReporter.onCommitBlockToMaster(6, HDD_LOC);
-    mReporter.onCommitBlockToMaster(7, MEM_LOC);
+    mReporter.onMoveBlockByWorker(6, SSD_LOC, HDD_LOC);
+    mReporter.onMoveBlockByWorker(7, HDD_LOC, MEM_LOC);
     mReporter.onStorageLost(Constants.MEDIUM_MEM, "/baz");
     mReporter.mergeBack(originalReport);
     BlockHeartbeatReport newReport = mReporter.generateReportAndClear();

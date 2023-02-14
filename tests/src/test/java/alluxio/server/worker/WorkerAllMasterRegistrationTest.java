@@ -44,7 +44,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -94,6 +93,9 @@ public class WorkerAllMasterRegistrationTest {
     mBlockMasters.clear();
   }
 
+  /**
+   * Tests a happy path where added and removed blocks can all be reported to standby masters.
+   */
   @Test
   public void happyPath() throws Exception {
     CommonUtils.waitFor("wait for worker registration complete", () ->
@@ -115,11 +117,13 @@ public class WorkerAllMasterRegistrationTest {
     assertEquals(1, blockLocations.get(0).getLocations().size());
     long blockId = blockLocations.get(0).getBlockInfo().getBlockInfo().getBlockId();
 
+    // New blocks are added by committing journals
     CommonUtils.waitFor("wait for blocks being committed to all masters", () ->
         mBlockMasters.stream().allMatch(
             it -> it.getBlockMetaStore().getLocations(blockId).size() == 1),
         mDefaultWaitForOptions);
 
+    // Removed blocks are reported by worker-master heartbeats
     mWorker.removeBlock(new Random().nextLong(), blockId);
     CommonUtils.waitFor("wait for blocks being removed to all masters", () ->
         mBlockMasters.stream().allMatch(
@@ -139,13 +143,16 @@ public class WorkerAllMasterRegistrationTest {
         () -> IOUtils.toString(finalFis, Charset.defaultCharset()));
   }
 
+  /**
+   * Tests a scenario where the worker to master heartbeat fails.
+   */
   @Test
-  public void workerHeartbeatPaused() throws Exception {
+  public void workerHeartbeatFail() throws Exception {
     CommonUtils.waitFor("wait for worker registration complete", () ->
         mWorker.getBlockSyncMasterGroup().isRegisteredToAllMasters(), mDefaultWaitForOptions);
 
-    // Pause all heartbeats
-    getBlockSyncOperators().values().forEach(TestSpecificMasterBlockSync::pauseHeartbeat);
+    // Fails all heartbeats
+    getBlockSyncOperators().values().forEach(TestSpecificMasterBlockSync::failHeartbeat);
 
     // Write a file
     AlluxioURI fileUri = new AlluxioURI("/foobar");
@@ -162,13 +169,24 @@ public class WorkerAllMasterRegistrationTest {
     assertEquals(1, blockLocations.get(0).getLocations().size());
     long blockId = blockLocations.get(0).getBlockInfo().getBlockInfo().getBlockId();
 
-    // Resume all heartbeats and the block location should be sent to standby masters
-    getBlockSyncOperators().values().forEach(TestSpecificMasterBlockSync::resumeHeartbeat);
-
+    // Added blocks are replicated to standbys by journals,
+    // so even if the heartbeat fails, standby are still in sync with primary.
     CommonUtils.waitFor("wait for blocks being committed to all masters by heartbeats",
         () ->
         mBlockMasters.stream().allMatch(
             it -> it.getBlockMetaStore().getLocations(blockId).size() == 1),
+        mDefaultWaitForOptions);
+
+    // Remove a block
+    mWorker.removeBlock(new Random().nextLong(), blockId);
+
+    // Resume all heartbeats and the block location should be moved on standby masters,
+    // by heartbeats
+    getBlockSyncOperators().values().forEach(TestSpecificMasterBlockSync::restoreHeartbeat);
+    CommonUtils.waitFor("wait for blocks being removed on all masters by heartbeats",
+        () ->
+            mBlockMasters.stream().allMatch(
+                it -> it.getBlockMetaStore().getLocations(blockId).size() == 0),
         mDefaultWaitForOptions);
 
     // Make sure registration only happen once to each master
@@ -176,6 +194,10 @@ public class WorkerAllMasterRegistrationTest {
         .allMatch(it -> it.getRegistrationSuccessCount() == 1));
   }
 
+  /**
+   * Tests the master failover case and makes sure the re-registration does not happen,
+   * on the new elected primary master.
+   */
   @Test
   public void masterFailover() throws Exception {
     CommonUtils.waitFor("wait for worker registration complete", () ->
@@ -203,21 +225,18 @@ public class WorkerAllMasterRegistrationTest {
 
     fis = mCluster.getClient().openFile(fileUri);
     FileInStream finalFis = fis;
-    CommonUtils.waitFor("wait for heartbeat sending the block location info",
-        () -> {
-          try {
-            return fileContent.equals(IOUtils.toString(finalFis, Charset.defaultCharset()));
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        },
-        mDefaultWaitForOptions);
+    // The new elected primary master should be able to serve the request immediately,
+    // because the added block location is replicated by journal.
+    assertEquals(fileContent, IOUtils.toString(finalFis, Charset.defaultCharset()));
 
     // Make sure no more registration happens
     assertTrue(getBlockSyncOperators().values().stream()
         .allMatch(it -> it.getRegistrationSuccessCount() == 1));
   }
 
+  /**
+   * Tests worker being able to worker and re-register to all masters after its restart.
+   */
   @Test
   public void workerRestart() throws Exception {
     CommonUtils.waitFor("wait for worker registration complete", () ->
