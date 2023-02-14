@@ -28,6 +28,7 @@ public class PageInfo {
   private final long mPageSize;
   private final CacheScope mCacheScope;
   private final PageStoreDir mLocalCacheDir;
+  private final long mCreatedTimestamp;
 
   /**
    * @param pageId page id
@@ -46,10 +47,23 @@ public class PageInfo {
    */
   public PageInfo(PageId pageId, long pageSize, CacheScope cacheScope,
                   PageStoreDir pageStoreDir) {
+    this(pageId, pageSize, cacheScope, pageStoreDir, System.currentTimeMillis());
+  }
+
+  /**
+   * @param pageId page id
+   * @param pageSize page size in bytes
+   * @param cacheScope scope of this page
+   * @param pageStoreDir directory of this page
+   * @param createdTimestamp created time
+   */
+  public PageInfo(PageId pageId, long pageSize, CacheScope cacheScope,
+      PageStoreDir pageStoreDir, long createdTimestamp) {
     mPageId = pageId;
     mPageSize = pageSize;
     mCacheScope = cacheScope;
     mLocalCacheDir = pageStoreDir;
+    mCreatedTimestamp = createdTimestamp;
   }
 
   /**
@@ -78,6 +92,13 @@ public class PageInfo {
    */
   public PageStoreDir getLocalCacheDir() {
     return mLocalCacheDir;
+  }
+
+  /**
+   * @return the created time
+   */
+  public long getCreatedTimestamp() {
+    return mCreatedTimestamp;
   }
 
   @Override

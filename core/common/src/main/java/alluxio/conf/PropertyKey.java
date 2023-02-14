@@ -1223,6 +1223,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT =
+      durationBuilder(Name.UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT)
+          .setDescription("Timeout for uploading part when using streaming uploads.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED =
       booleanBuilder(Name.UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED)
           .setDefaultValue(true)
@@ -1755,6 +1761,41 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
+  public static final PropertyKey UNDERFS_OSS_INTERMEDIATE_UPLOAD_CLEAN_AGE =
+      durationBuilder(Name.UNDERFS_OSS_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+          .setDefaultValue("3day")
+          .setDescription("Streaming uploads may not have been completed/aborted correctly "
+              + "and need periodical ufs cleanup. If ufs cleanup is enabled, "
+              + "intermediate multipart uploads in all non-readonly OSS mount points "
+              + "older than this age will be cleaned. This may impact other "
+              + "ongoing upload operations, so a large clean age is encouraged.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_STREAMING_UPLOAD_ENABLED =
+      booleanBuilder(Name.UNDERFS_OSS_STREAMING_UPLOAD_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If true, using streaming upload to write to OSS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_STREAMING_UPLOAD_PARTITION_SIZE =
+      dataSizeBuilder(Name.UNDERFS_OSS_STREAMING_UPLOAD_PARTITION_SIZE)
+          .setDefaultValue("64MB")
+          .setDescription("Maximum allowable size of a single buffer file when using "
+              + "OSS streaming upload. When the buffer file reaches the partition size, "
+              + "it will be uploaded and the upcoming data will write to other buffer files."
+              + "If the partition size is too small, OSS upload speed might be affected. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_STREAMING_UPLOAD_THREADS =
+      intBuilder(Name.UNDERFS_OSS_STREAMING_UPLOAD_THREADS)
+          .setDefaultValue(20)
+          .setDescription("the number of threads to use for streaming upload data to OSS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey S3A_ACCESS_KEY = stringBuilder(Name.S3A_ACCESS_KEY)
       .setAlias(Name.AWS_ACCESS_KEY)
       .setDescription("The access key of S3 bucket.")
@@ -1904,6 +1945,41 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("obs")
           .setDescription("The type of bucket (obs/pfs).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBS_INTERMEDIATE_UPLOAD_CLEAN_AGE =
+      durationBuilder(Name.UNDERFS_OBS_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+          .setDefaultValue("3day")
+          .setDescription("Streaming uploads may not have been completed/aborted correctly "
+              + "and need periodical ufs cleanup. If ufs cleanup is enabled, "
+              + "intermediate multipart uploads in all non-readonly OBS mount points "
+              + "older than this age will be cleaned. This may impact other "
+              + "ongoing upload operations, so a large clean age is encouraged.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBS_STREAMING_UPLOAD_ENABLED =
+      booleanBuilder(Name.UNDERFS_OBS_STREAMING_UPLOAD_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If true, using streaming upload to write to OBS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBS_STREAMING_UPLOAD_PARTITION_SIZE =
+      dataSizeBuilder(Name.UNDERFS_OBS_STREAMING_UPLOAD_PARTITION_SIZE)
+          .setDefaultValue("64MB")
+          .setDescription("Maximum allowable size of a single buffer file when using "
+              + "S3A streaming upload. When the buffer file reaches the partition size, "
+              + "it will be uploaded and the upcoming data will write to other buffer files."
+              + "If the partition size is too small, OBS upload speed might be affected. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBS_STREAMING_UPLOAD_THREADS =
+      intBuilder(Name.UNDERFS_OBS_STREAMING_UPLOAD_THREADS)
+          .setDefaultValue(20)
+          .setDescription("the number of threads to use for streaming upload data to OBS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   //
@@ -3757,6 +3833,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether a standby master runs a web server")
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey STANDBY_MASTER_GRPC_ENABLED =
+      booleanBuilder(Name.STANDBY_MASTER_GRPC_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether a standby master runs a grpc server")
+          .setScope(Scope.ALL)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .build();
 
   //
   // Throttle
@@ -5166,6 +5249,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_V2_VERSION_ENABLED =
+          booleanBuilder(Name.PROXY_S3_V2_VERSION_ENABLED)
+                  .setDefaultValue(false)
+                  .setDescription("(Experimental) V2, an optimized version of "
+                          + "Alluxio s3 proxy service.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .build();
+  public static final PropertyKey PROXY_S3_V2_ASYNC_PROCESSING_ENABLED =
+          booleanBuilder(Name.PROXY_S3_V2_ASYNC_PROCESSING_ENABLED)
+                  .setDefaultValue(false)
+                  .setDescription("(Experimental) If enabled, handle S3 request "
+                          + "in async mode when v2 version of Alluxio s3 "
+                          + "proxy service is enabled.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .build();
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       durationBuilder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
           .setAlias("alluxio.proxy.stream.cache.timeout.ms")
@@ -5840,6 +5940,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("Whether to support cache quota.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_TTL_ENABLED =
+      booleanBuilder(Name.USER_CLIENT_CACHE_TTL_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to support cache quota.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_TTL_CHECK_INTERVAL_SECONDS =
+      longBuilder(Name.USER_CLIENT_CACHE_TTL_CHECK_INTERVAL_SECONDS)
+          .setDefaultValue(3600)
+          .setDescription("TTL check interval time in seconds.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_TTL_THRESHOLD_SECONDS =
+      longBuilder(Name.USER_CLIENT_CACHE_TTL_THRESHOLD_SECONDS)
+          .setDefaultValue(3600 * 3)
+          .setDescription("TTL threshold time in seconds.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_SIZE =
@@ -7427,6 +7548,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_WEB_PARENT_NAMES = "alluxio.underfs.web.parent.names";
     public static final String UNDERFS_WEB_TITLES = "alluxio.underfs.web.titles";
     public static final String UNDERFS_VERSION = "alluxio.underfs.version";
+    public static final String UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT =
+        "alluxio.underfs.object.store.streaming.upload.part.timeout";
     public static final String UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED =
         "alluxio.underfs.object.store.breadcrumbs.enabled";
     public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
@@ -7449,6 +7572,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_OSS_STS_ENABLED = "alluxio.underfs.oss.sts.enabled";
     public static final String UNDERFS_OSS_STS_TOKEN_REFRESH_INTERVAL_MS =
         "alluxio.underfs.oss.sts.token.refresh.interval.ms";
+    public static final String UNDERFS_OSS_INTERMEDIATE_UPLOAD_CLEAN_AGE =
+        "alluxio.underfs.oss.intermediate.upload.clean.age";
+    public static final String UNDERFS_OSS_STREAMING_UPLOAD_ENABLED =
+        "alluxio.underfs.oss.streaming.upload.enabled";
+    public static final String UNDERFS_OSS_STREAMING_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.oss.streaming.upload.partition.size";
+    public static final String UNDERFS_OSS_STREAMING_UPLOAD_THREADS =
+        "alluxio.underfs.oss.streaming.upload.threads";
     public static final String UNDERFS_S3_BULK_DELETE_ENABLED =
         "alluxio.underfs.s3.bulk.delete.enabled";
     public static final String UNDERFS_S3_DEFAULT_MODE = "alluxio.underfs.s3.default.mode";
@@ -7520,6 +7651,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.cephfs.mount.point";
     public static final String UNDERFS_CEPHFS_LOCALIZE_READS =
         "alluxio.underfs.cephfs.localize.reads";
+    public static final String UNDERFS_OBS_INTERMEDIATE_UPLOAD_CLEAN_AGE =
+        "alluxio.underfs.obs.intermediate.upload.clean.age";
+    public static final String UNDERFS_OBS_STREAMING_UPLOAD_ENABLED =
+        "alluxio.underfs.obs.streaming.upload.enabled";
+    public static final String UNDERFS_OBS_STREAMING_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.obs.streaming.upload.partition.size";
+    public static final String UNDERFS_OBS_STREAMING_UPLOAD_THREADS =
+        "alluxio.underfs.obs.streaming.upload.threads";
 
     //
     // UFS access control related properties
@@ -8025,6 +8164,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.standby.master.metrics.sink.enabled";
     public static final String STANDBY_MASTER_WEB_ENABLED =
         "alluxio.standby.master.web.enabled";
+    public static final String STANDBY_MASTER_GRPC_ENABLED =
+        "alluxio.standby.master.grpc.enabled";
 
     //
     // Worker related properties
@@ -8271,6 +8412,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
     public static final String PROXY_AUDIT_LOGGING_ENABLED =
         "alluxio.proxy.audit.logging.enabled";
+    public static final String PROXY_S3_V2_VERSION_ENABLED =
+            "alluxio.proxy.s3.v2.version.enabled";
+    public static final String PROXY_S3_V2_ASYNC_PROCESSING_ENABLED =
+            "alluxio.proxy.s3.v2.async.processing.enabled";
     public static final String S3_UPLOADS_ID_XATTR_KEY = "s3_uploads_mulitpartupload_id";
 
     //
@@ -8374,6 +8519,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.page.size";
     public static final String USER_CLIENT_CACHE_QUOTA_ENABLED =
         "alluxio.user.client.cache.quota.enabled";
+    public static final String USER_CLIENT_CACHE_TTL_ENABLED =
+            "alluxio.user.client.cache.ttl.enabled";
+    public static final String USER_CLIENT_CACHE_TTL_CHECK_INTERVAL_SECONDS =
+            "alluxio.user.client.cache.ttl.check.interval.seconds";
+    public static final String USER_CLIENT_CACHE_TTL_THRESHOLD_SECONDS =
+            "alluxio.user.client.cache.ttl.threshold.seconds";
     public static final String USER_CLIENT_CACHE_SIZE =
         "alluxio.user.client.cache.size";
     public static final String USER_CLIENT_CACHE_STORE_OVERHEAD =

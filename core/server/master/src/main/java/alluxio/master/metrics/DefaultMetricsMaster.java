@@ -180,7 +180,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     if (isLeader) {
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER, new ClusterMetricsUpdater(),
-          Configuration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
+          () -> Configuration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
           Configuration.global(), mMasterContext.getUserState()));
     }
   }
