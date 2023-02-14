@@ -11,6 +11,8 @@
 
 package alluxio.underfs.oss;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -30,6 +32,7 @@ import com.aliyun.oss.model.InitiateMultipartUploadResult;
 import com.aliyun.oss.model.ObjectMetadata;
 import com.aliyun.oss.model.PartETag;
 import com.aliyun.oss.model.PutObjectRequest;
+import com.aliyun.oss.model.PutObjectResult;
 import com.aliyun.oss.model.UploadPartRequest;
 import com.aliyun.oss.model.UploadPartResult;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -94,6 +97,8 @@ public class OSSLowLevelOutputStreamTest {
         .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
     Mockito.verify(mMockOssClient, never())
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
+    assertTrue(mStream.getContentHash().isPresent());
+    assertEquals("putTag", mStream.getContentHash().get());
   }
 
   @Test
@@ -111,6 +116,8 @@ public class OSSLowLevelOutputStreamTest {
         .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
     Mockito.verify(mMockOssClient, never())
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
+    assertTrue(mStream.getContentHash().isPresent());
+    assertEquals("putTag", mStream.getContentHash().get());
   }
 
   @Test
@@ -130,6 +137,8 @@ public class OSSLowLevelOutputStreamTest {
     Assert.assertEquals(mStream.getPartNumber(), 3);
     Mockito.verify(mMockOssClient)
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
+    assertTrue(mStream.getContentHash().isPresent());
+    assertEquals("multiTag", mStream.getContentHash().get());
   }
 
   @Test
@@ -142,6 +151,8 @@ public class OSSLowLevelOutputStreamTest {
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
     Mockito.verify(mMockOssClient).putObject(eq(BUCKET_NAME), eq(KEY), any(InputStream.class),
         any(ObjectMetadata.class));
+    assertTrue(mStream.getContentHash().isPresent());
+    assertEquals("emptyTag", mStream.getContentHash().get());
   }
 
   @Test
@@ -163,6 +174,8 @@ public class OSSLowLevelOutputStreamTest {
     mStream.close();
     Mockito.verify(mMockOssClient)
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
+    assertTrue(mStream.getContentHash().isPresent());
+    assertEquals("multiTag", mStream.getContentHash().get());
   }
 
   @Test
@@ -172,6 +185,8 @@ public class OSSLowLevelOutputStreamTest {
         .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
     Mockito.verify(mMockOssClient, never())
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
+    assertTrue(mStream.getContentHash().isPresent());
+    assertEquals("emptyTag", mStream.getContentHash().get());
   }
 
   /**
@@ -193,8 +208,19 @@ public class OSSLowLevelOutputStreamTest {
           return uploadResult;
         });
 
+    PutObjectResult putResult = new PutObjectResult();
+    putResult.setETag("putTag");
+    when(mMockOssClient.putObject(any(PutObjectRequest.class))).thenReturn(putResult);
+
+    PutObjectResult emptyPutResult = new PutObjectResult();
+    emptyPutResult.setETag("emptyTag");
+    when(mMockOssClient.putObject(any(String.class), any(String.class), any(InputStream.class),
+        any(ObjectMetadata.class))).thenReturn(emptyPutResult);
+
+    CompleteMultipartUploadResult multiPartResult = new CompleteMultipartUploadResult();
+    multiPartResult.setETag("multiTag");
     when(mMockOssClient.completeMultipartUpload(any(CompleteMultipartUploadRequest.class)))
-        .thenReturn(new CompleteMultipartUploadResult());
+        .thenReturn(multiPartResult);
 
     mMockTag = (ListenableFuture<PartETag>) PowerMockito.mock(ListenableFuture.class);
     when(mMockTag.get()).thenReturn(new PartETag(1, "someTag"));
