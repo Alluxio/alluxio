@@ -12,7 +12,9 @@
 package alluxio.resource;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -26,8 +28,8 @@ public class PooledResourceTest {
   @Test
   public void releaseOnClose() {
     TestPool pool = new TestPool(5);
-    try (PooledResource<Integer> i = new PooledResource<>(pool.acquire(), pool)) {
-      assertEquals(1, (int) i.get());
+    try (PooledResource<Resource> i = new PooledResource<>(pool.acquire(), pool)) {
+      assertFalse(i.get().isClosed());
       assertEquals(0, pool.getAvailableCount());
       assertEquals(1, pool.getLeakCount());
     }
@@ -41,14 +43,16 @@ public class PooledResourceTest {
     TestPool pool = new TestPool(5);
     ReferenceQueue<TestPool> referenceQueue = new ReferenceQueue<>();
     PhantomReference<TestPool> poolRef = new PhantomReference<>(pool, referenceQueue);
-    PooledResource<Integer> i = new PooledResource<>(pool.acquire(), pool);
-    PooledResource<Integer> toLeak = new PooledResource<>(pool.acquire(), pool);
-    assertEquals(1, (int) i.get());
-    assertEquals(2, (int) toLeak.get());
+    PooledResource<Resource> notLeaked = new PooledResource<>(pool.acquire(), pool);
+    PooledResource<Resource> leaked = new PooledResource<>(pool.acquire(), pool);
+    assertFalse(notLeaked.get().isClosed());
+    assertFalse(leaked.get().isClosed());
     assertEquals(0, pool.getAvailableCount());
     assertEquals(2, pool.getLeakCount());
 
-    i.close();
+    notLeaked.close();
+    // we don't assert on the closed-ness of the resource wrapped in notLeaked here,
+    // since it's released to the pool, and the pool will decide when to close it
     assertEquals(1, pool.getLeakCount());
     assertEquals(1, pool.getAvailableCount());
 
@@ -63,12 +67,25 @@ public class PooledResourceTest {
     enqueued.clear();
 
     // we should still be able to close this without getting an exception
-    toLeak.close();
+    Resource leakedResource = leaked.get();
+    leaked.close();
+    assertTrue(leakedResource.isClosed());
   }
 
-  static class TestPool extends ResourcePool<Integer> {
-    int mCounter = 0;
+  static class Resource implements AutoCloseable {
+    private boolean mIsClosed = false;
 
+    @Override
+    public void close() throws Exception {
+      mIsClosed = true;
+    }
+
+    public boolean isClosed() {
+      return mIsClosed;
+    }
+  }
+
+  static class TestPool extends ResourcePool<Resource> {
     TestPool(int capacity) {
       super(capacity, new ConcurrentLinkedQueue<>());
     }
@@ -79,9 +96,8 @@ public class PooledResourceTest {
     }
 
     @Override
-    public Integer createNewResource() {
-      mCounter += 1;
-      return mCounter;
+    public Resource createNewResource() {
+      return new Resource();
     }
 
     /**
