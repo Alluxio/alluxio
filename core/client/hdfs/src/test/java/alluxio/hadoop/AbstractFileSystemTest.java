@@ -665,13 +665,15 @@ public class AbstractFileSystemTest {
     when(alluxioFs.exists(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
         .thenReturn(true);
     when(alluxioFs.createFile(eq(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))), any()))
-        .thenThrow(new FileAlreadyExistsException(path.toString()));
+        .thenThrow(new FileAlreadyExistsException("Not allowed to create() (overwrite=false) for "
+            + "existing Alluxio path: " + path.toString()));
 
     try (FileSystem alluxioHadoopFs = new FileSystem(alluxioFs)) {
       alluxioHadoopFs.create(path, false, 100, (short) 1, 1000);
       fail("create() of existing file is expected to fail");
     } catch (IOException e) {
-      assertEquals("Not allowed to create() (overwrite=false) for existing Alluxio path: " + path,
+      assertEquals("alluxio.exception.FileAlreadyExistsException: "
+              + "Not allowed to create() (overwrite=false) for existing Alluxio path: " + path,
           e.getMessage());
     }
   }

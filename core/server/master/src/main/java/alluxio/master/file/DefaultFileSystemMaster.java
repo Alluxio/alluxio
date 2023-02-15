@@ -1888,8 +1888,13 @@ public class DefaultFileSystemMaster extends CoreMaster
       FileAlreadyExistsException {
     if (inodePath.fullPathExists()) {
       Inode currentInode = inodePath.getInode();
+      if (!context.getOptions().getOverwrite()) {
+        throw new FileAlreadyExistsException(
+            "Not allowed to create() (overwrite=false) for existing Alluxio path: "
+                + inodePath.getUri());
+      }
       // if the fullpath is a file and the option is to overwrite, delete it
-      if (currentInode instanceof InodeFile && context.getOptions().getOverwrite()) {
+      if (currentInode instanceof InodeFile) {
         try {
           deleteInternal(rpcContext, inodePath, DeleteContext.mergeFrom(
               DeletePOptions.newBuilder().setRecursive(true)
