@@ -70,16 +70,17 @@ public class JournalTool {
     JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
     System.out.println(journalType);
     System.out.println(sMaster);
-    switch (journalType) {
-      case UFS:
-        ufstest();
-        break;
-      case EMBEDDED:
-        newrafttest();
-        break;
-      default:
-        System.out.println("no such type journal, no test shall be executed");
-    }
+    // switch (journalType) {
+    //   case UFS:
+    //     ufstest();
+    //     break;
+    //   case EMBEDDED:
+    //     newrafttest();
+    //     break;
+    //   default:
+    //     System.out.println("no such type journal, no test shall be executed");
+    // }
+    disrupttest();
     System.out.println("4");
     System.exit(0);
     // EntryStream stream = initStream();
@@ -112,8 +113,9 @@ public class JournalTool {
     sInputDir = "/Users/dengxinyu/alluxio-2.8.0/tmp/journal";
     sOutputDir = new File(cmd.getOptionValue(OUTPUT_DIR_OPTION_NAME,
         "journal_dump-" + System.currentTimeMillis())).getAbsolutePath();
+    System.out.println(sOutputDir);
     System.out.printf("in parseInputArgs sOutputDir is: %s%n", new File(cmd.getOptionValue(OUTPUT_DIR_OPTION_NAME,
-        "journal_dump-" + System.currentTimeMillis())));
+        "journal_dump-" + System.currentTimeMillis())).getAbsolutePath());
     System.out.printf("in parseInputArgs sOutputDir is: %s%n", new File("~/journal-tool"));
     System.out.printf("in parseInputArgs sOutputDir is: %s%n", new File("~/journal-tool").getAbsolutePath());
     sOutputDir = "/Users/dengxinyu/journal-tool";
@@ -146,6 +148,7 @@ public class JournalTool {
    */
   private static void ufstest() {
     EntryStream stream = initStream();
+    JournalReader reader = new JournalReader(sMaster, sStart, sEnd, sInputDir);
     JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
     JournalExporter ex;
     JournalWriter writer;
@@ -171,6 +174,7 @@ public class JournalTool {
 
   private static void rafttest() {
     EntryStream stream = initStream();
+    JournalReader reader = new JournalReader(sMaster, sStart, sEnd, sInputDir);
     JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
     JournalExporter ex;
     JournalWriter writer;
@@ -295,6 +299,50 @@ public class JournalTool {
       throw new RuntimeException(e);
     }
     System.out.println("raft test fin");
+  }
+
+  public static void disrupttest() {
+    JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+    JournalExporter ex;
+    JournalWriter writer;
+    JournalReader reader = new JournalReader(sMaster, sStart, sEnd, sInputDir);
+    JournalDisruptor disruptor = new JournalDisruptor(reader, 3, 6);
+    String outputfile = PathUtils.concatPath(sOutputDir, "test.txt");
+
+    try (PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputfile)))) {
+      out.println("hello test");
+      ex = new JournalExporter(journalType, sOutputDir, sMaster, sStart);
+      writer = ex.getWriter();
+      // this loop is use used to go through the journal entries
+      // here read 22 alluxio journal entries
+      for (int i = 0; i < 23; i++) {
+        JournalEntry entry = disruptor.test();
+        if (entry != null) {
+          System.out.println("entry: " + entry);
+          try {
+            writer.write(entry.toBuilder().clearSequenceNumber().build());
+            out.println(entry.toBuilder().clearSequenceNumber().build());
+          } catch (JournalClosedException e) {
+            System.out.println("failed when writing entry: " + e);
+          }
+        } else {
+          break;
+        }
+      }
+      try {
+        writer.flush();
+      } catch (Exception e) {
+        System.out.println(e);
+      }
+      Thread.sleep(1000);
+      writer.close();
+      ex.getJournal().close();
+      out.flush();
+    } catch (IOException e) {
+      System.out.println(e);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private static JournalEntry processProto(RaftProtos.LogEntryProto proto) {

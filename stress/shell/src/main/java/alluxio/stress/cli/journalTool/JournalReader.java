@@ -23,7 +23,6 @@ import alluxio.proto.journal.Journal;
 public class JournalReader {
   private EntryStream mStream;
 
-
   public JournalReader(String mMaster, long mStart, long mEnd, String mInputDir) {
     JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
     switch (journalType) {
@@ -39,7 +38,7 @@ public class JournalReader {
     }
   }
 
-    public Journal.JournalEntry readJournal() {
+    public Journal.JournalEntry nextEntry() {
       return mStream.nextEntry();
     }
 }

@@ -1,10 +1,12 @@
 package alluxio.stress.cli.journalTool;
 
+import alluxio.master.block.BlockId;
+import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 
 public class JournalDisruptor {
-  EntryStream mStream;
   long mDisruptStep;
+  JournalReader mReader;
   long mStepCounter;
   int mEntryType;
   Journal.JournalEntry mEntry;
@@ -12,8 +14,8 @@ public class JournalDisruptor {
   boolean mHoldFlag;
   long mHoldEntrySequenceNumber;
 
-  public JournalDisruptor(EntryStream stream, long step, int type) {
-    mStream = stream;
+  public JournalDisruptor(JournalReader reader, long step, int type) {
+    mReader = reader;
     mDisruptStep = step;
     mEntryType = type;
     mHoldFlag = false;
@@ -24,9 +26,12 @@ public class JournalDisruptor {
    *  The Disruptor will put the entries with target entry-type back for given steps.
    *
    * I think the Disrupt cannot handle two target type entry within the given steps, it will only process the first one.
+   *
+   *  2.15 update:
+   *    Now in my imagination the disruptor likes a gun, and the JournalReader likes the magazine
    */
   public void Disrupt() {
-    while ((mEntry = mStream.nextEntry()) != null) {
+    while ((mEntry = mReader.nextEntry()) != null) {
       if (mHoldFlag) {
         if (mStepCounter == 0) {
           writeEntry(mHoldEntry.toBuilder().setSequenceNumber(mHoldEntrySequenceNumber).build());
@@ -47,6 +52,42 @@ public class JournalDisruptor {
       }
       writeEntry(mEntry);
     }
+  }
+
+  public Journal.JournalEntry nextEntry() {
+    if (mHoldFlag && mStepCounter == 0) {
+      mEntry = mHoldEntry;
+      mHoldEntry = null;
+      mHoldFlag = false;
+      mStepCounter = mDisruptStep;
+      return mEntry;
+    }
+
+    if ((mEntry = mReader.nextEntry()) != null) {
+      if (mHoldFlag) {
+        mStepCounter -= 1;
+        return mEntry;
+      }
+      if (targetEntry(mEntry)) {
+        mHoldFlag = true;
+        // writer will set SN, no need to worry
+        // mHoldEntrySequenceNumber = mEntry.getSequenceNumber();
+        mHoldEntry = mEntry;
+        return nextEntry();
+      }
+      return mEntry;
+    }
+    return mHoldEntry;
+  }
+
+  public Journal.JournalEntry test() {
+    if ((mEntry = mReader.nextEntry()) != null) {
+      if (targetEntry(mEntry)) {
+        // return mEntry.toBuilder().setUpdateInode(File.UpdateInodeEntry.newBuilder().setId(BlockId.createBlockId(mEntry.getUpdateInode().getId()+100, BlockId.getMaxSequenceNumber())).build()).build();
+        return mEntry.toBuilder().setUpdateInode(mEntry.getUpdateInode().toBuilder().setId(mEntry.getUpdateInode().getId()+100).build()).build();
+      }
+    }
+    return mEntry;
   }
 
   /**
