@@ -166,7 +166,6 @@ public class PollingMasterInquireClient implements MasterInquireClient {
                 TimeUnit.MILLISECONDS);
     try {
       versionClient.getServiceVersion(GetServiceVersionPRequest.newBuilder()
-          .setRejectOnStandbyMasters(true)
           .setServiceType(mServiceType).build());
     } catch (StatusRuntimeException e) {
       throw AlluxioStatusException.fromThrowable(e);

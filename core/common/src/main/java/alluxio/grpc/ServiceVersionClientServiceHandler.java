@@ -51,7 +51,7 @@ public final class ServiceVersionClientServiceHandler
   @SuppressFBWarnings(value = "DB_DUPLICATE_SWITCH_CLAUSES")
   public void getServiceVersion(GetServiceVersionPRequest request,
       StreamObserver<GetServiceVersionPResponse> responseObserver) {
-    if (request.getRejectOnStandbyMasters() && mStandbyRpcEnabled
+    if (!request.getAllowOnStandbyMasters() && mStandbyRpcEnabled
         && mNodeStateSupplier != null && mNodeStateSupplier.get() == NodeState.STANDBY) {
       responseObserver.onError(Status.UNAVAILABLE
           .withDescription("GetServiceVersion is not supported on standby master")

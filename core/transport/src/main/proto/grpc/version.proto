@@ -37,12 +37,14 @@ message GetServiceVersionPRequest {
   // This field is added for backwards compatibility.
   // When gRPC services are enabled on standby masters, PollingMasterInquireClient will not be able to
   // tell which master is the primary and which is the standby by calling this endpoint.
-  // By adding this field and letting standby master reject the request,
-  // we enable gRPC services on standby masters without making client side code change.
-  // We don't make the standby master always reject the request because this endpoint
-  // is also used when a client connects to a master where the service version is checked and
-  // we don't want to affect that logic.
-  optional bool rejectOnStandbyMasters = 2;
+  // So we rejected get service version requests on standby masters,
+  // which allows us to enable gRPC services on standby masters without making client side code change.
+  // However, this endpoint is also used outside the PollingMasterInquireClient.
+  // When a client makes a request to a master, it will also call this endpoint to verify the version.
+  // And hence the request to standby master will never succeed because it will constantly be rejected.
+  // We added this field as a backdoor to let these version verification requests pass through
+  // so that a client can make requests to standby masters successfully.
+  optional bool allowOnStandbyMasters = 2;
 }
 message GetServiceVersionPResponse {
   optional int64 version = 1;
