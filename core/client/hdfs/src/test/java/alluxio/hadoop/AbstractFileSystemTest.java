@@ -38,6 +38,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
@@ -405,7 +406,10 @@ public class AbstractFileSystemTest {
     Path path = new Path("/dir");
     alluxio.client.file.FileSystem alluxioFs =
         mock(alluxio.client.file.FileSystem.class);
-    when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
+    ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
+        .setNoNeedUseMountInfo(true).build();
+    when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
+        listStatusPOptions))
         .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
     FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
 
@@ -425,7 +429,10 @@ public class AbstractFileSystemTest {
     try {
       Path path = new Path("/ALLUXIO-2036");
       alluxio.client.file.FileSystem alluxioFs = mock(alluxio.client.file.FileSystem.class);
-      when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
+      ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
+          .setNoNeedUseMountInfo(true).build();
+      when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
+          listStatusPOptions))
           .thenThrow(new FileNotFoundException("ALLUXIO-2036 not Found"));
       alluxioHadoopFs = new FileSystem(alluxioFs);
       FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
