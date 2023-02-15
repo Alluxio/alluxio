@@ -34,6 +34,15 @@ enum ServiceType {
 
 message GetServiceVersionPRequest {
   optional ServiceType serviceType = 1;
+  // This field is added for backwards compatibility.
+  // When gRPC services are enabled on standby masters, PollingMasterInquireClient will not be able to
+  // tell which master is the primary and which is the standby by calling this endpoint.
+  // By adding this field and letting standby master reject the request,
+  // we enable gRPC services on standby masters without making client side code change.
+  // We don't make the standby master always reject the request because this endpoint
+  // is also used when a client connects to a master where the service version is checked and
+  // we don't want to affect that logic.
+  optional bool rejectOnStandbyMasters = 2;
 }
 message GetServiceVersionPResponse {
   optional int64 version = 1;
