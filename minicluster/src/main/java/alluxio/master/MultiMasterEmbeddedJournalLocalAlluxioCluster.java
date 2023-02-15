@@ -42,6 +42,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A local Alluxio cluster with multiple masters using embedded journal.
+ * Because the cluster run in a single process, a single configuration instance
+ * is shared across masters and workers.
+ * If this causes issues, considering switching to {@link alluxio.multi.process.MultiProcessCluster}
  */
 @NotThreadSafe
 public final class MultiMasterEmbeddedJournalLocalAlluxioCluster
@@ -72,12 +75,11 @@ public final class MultiMasterEmbeddedJournalLocalAlluxioCluster
   }
 
   private List<MasterNetAddress> generateMasterAddresses(int numMasters) throws IOException {
+    int timeout = (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     List<MasterNetAddress> addrs = new ArrayList<>();
     for (int i = 0; i < numMasters; i++) {
-      addrs.add(new MasterNetAddress(NetworkAddressUtils
-          .getLocalHostName((int) Configuration
-              .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
-          getNewPort(), getNewPort(), getNewPort()));
+      addrs.add(new MasterNetAddress(
+          NetworkAddressUtils.getLocalHostName(timeout), getNewPort(), getNewPort(), getNewPort()));
     }
     return addrs;
   }
@@ -98,8 +100,6 @@ public final class MultiMasterEmbeddedJournalLocalAlluxioCluster
     }
     Configuration.set(PropertyKey.TEST_MODE, true);
     Configuration.set(PropertyKey.JOB_WORKER_THROTTLING, false);
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, 0);
-    Configuration.set(PropertyKey.MASTER_WEB_PORT, 0);
     Configuration.set(PropertyKey.PROXY_WEB_PORT, 0);
     Configuration.set(PropertyKey.WORKER_RPC_PORT, 0);
     Configuration.set(PropertyKey.WORKER_WEB_PORT, 0);
@@ -246,6 +246,17 @@ public final class MultiMasterEmbeddedJournalLocalAlluxioCluster
 
   @Override
   protected void startMasters() throws IOException {
+    // Because all masters run in the same process, they share the same configuration.
+    // Whenever we start a master, we modify these configurations to its dedicated ones.
+    // Masters are started one by one so that each can read the correct configurations.
+    // These configurations are mostly ports and will only be used when the master starts.
+    // However, if unluckily some places read these configurations during runtime,
+    // it might cause incorrect behaviors or errors because these configurations might be
+    // overridden by the late coming masters.
+    // If this happens, considering switching to MultiProcessCluster.
+    // Also, please do not rely on these configurations in your test cases
+    // because these configurations essentially reflect the configurations of
+    // the last master we started.
     for (int k = 0; k < mNumOfMasters; k++) {
       Configuration.set(PropertyKey.MASTER_METASTORE_DIR,
           PathUtils.concatPath(mWorkDirectory, "metastore-" + k));
@@ -256,7 +267,6 @@ public final class MultiMasterEmbeddedJournalLocalAlluxioCluster
       Configuration.set(PropertyKey.MASTER_WEB_PORT, address.getWebPort());
       Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
           address.getEmbeddedJournalPort());
-      // foobar
       Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, mJournalFolders.get(k));
 
       final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory, false);
@@ -264,9 +274,6 @@ public final class MultiMasterEmbeddedJournalLocalAlluxioCluster
       LOG.info("master NO.{} started, isServing: {}, address: {}", k, master.isServing(),
           master.getAddress());
       mMasters.add(master);
-      // Each master should generate a new port for binding
-      Configuration.set(PropertyKey.MASTER_RPC_PORT, 0);
-      Configuration.set(PropertyKey.MASTER_WEB_PORT, 0);
     }
 
     LOG.info("all {} masters started.", mNumOfMasters);
