@@ -1,13 +1,13 @@
 package alluxio.stress.cli.journalTool;
 
 import alluxio.master.journal.JournalEntryStreamReader;
-import alluxio.master.journal.JournalReader;
 import alluxio.proto.journal.Journal;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.raft.RaftJournalUtils;
 import alluxio.util.proto.ProtoUtils;
 
 // import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.ratis.proto.RaftProtos;
 import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.server.raftlog.segmented.LogSegment;
@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +35,11 @@ public class RaftJournalEntryStream extends EntryStream {
   private InputStream mStream;
   private JournalEntryStreamReader mReader;
   private byte[] mBuffer = new byte[4096];
+
+  private RaftProtos.LogEntryProto proto;
+  private Journal.JournalEntry entry;
+  private List<Journal.JournalEntry> list = new ArrayList<>();
+  private int index = 0;
 
   public RaftJournalEntryStream(String master, long start, long end, String inputDir) {
     super(master, start, end, inputDir);
@@ -54,24 +60,23 @@ public class RaftJournalEntryStream extends EntryStream {
 
   @Override
   public Journal.JournalEntry nextEntry() {
-    if (mReader == null) {
+    System.out.println("nexting entry");
+    if (index < list.size()) {
+      return list.get(index++);
+    }
+    while ((proto = nextProto()) != null && !proto.hasStateMachineLogEntry()) {}
+    if (proto == null) {
+      // no proto, stream comes to the end
       return null;
     }
-    Journal.JournalEntry entry = null;
     try {
-      entry = mReader.readEntry();
+      entry = Journal.JournalEntry.parseFrom(proto.getStateMachineLogEntry().getLogData().asReadOnlyByteBuffer());
     } catch (Exception e) {
-      System.out.println("IOException when mReader trying to readEntry()");
-      System.out.print(e);
-      try {
-        mReader.close();
-      } catch (IOException ee) {
-        System.out.println("error when closing the mReader");
-        System.out.print(ee);
-      }
-      return null;
+      System.out.println("failed to parse proto to entry: " + e);
     }
-    return entry;
+    list = entry.getJournalEntriesList();
+    index = 0;
+    return nextEntry();
   }
 
   /**
@@ -189,5 +194,10 @@ public class RaftJournalEntryStream extends EntryStream {
   private File getJournalDir() {
     return new File(RaftJournalUtils.getRaftJournalDir(new File(mInputDir)),
         RaftJournalSystem.RAFT_GROUP_UUID.toString());
+  }
+
+  @Override
+  public void close() throws IOException {
+    mReader.close();
   }
 }

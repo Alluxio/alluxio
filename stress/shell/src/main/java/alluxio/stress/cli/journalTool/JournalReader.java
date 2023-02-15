@@ -4,6 +4,7 @@ import alluxio.master.journal.JournalType;
 import alluxio.master.journal.tool.AbstractJournalDumper;
 import alluxio.master.journal.tool.UfsJournalDumper;
 import alluxio.master.journal.tool.RaftJournalDumper;
+import alluxio.proto.journal.Journal;
 
 /**
  *  I assume here should use alluxio.master.journal.tool.AbstractJournalDumper.
@@ -38,7 +39,7 @@ public class JournalReader {
     }
   }
 
-    public void readJournal() {
-
+    public Journal.JournalEntry readJournal() {
+      return mStream.nextEntry();
     }
 }

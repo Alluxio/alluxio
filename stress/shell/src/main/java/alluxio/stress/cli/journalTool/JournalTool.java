@@ -75,12 +75,13 @@ public class JournalTool {
         ufstest();
         break;
       case EMBEDDED:
-        rafttest();
+        newrafttest();
         break;
       default:
         System.out.println("no such type journal, no test shall be executed");
     }
     System.out.println("4");
+    System.exit(0);
     // EntryStream stream = initStream();
     // JournalEntry entry = stream.nextEntry();
     // JournalEntry hold = stream.nextEntry();
@@ -179,7 +180,7 @@ public class JournalTool {
       writer = ex.getWriter();
       // this loop is use used to go through the journal entries
       // here read 22 alluxio journal entries
-      for (int i = 0; i < 11; i++) {
+      for (int i = 0; i < 22; i++) {
         RaftProtos.LogEntryProto proto = stream.nextProto();
         if (proto == null) {
           System.out.println("proto is null");
@@ -203,7 +204,7 @@ public class JournalTool {
               System.out.println("after write");
               out.println(tmp);
               }
-              writer.flush();
+              // writer.flush();
             }
             // while ((tmp = entry.getJournalEntries(j)) != null) {
             //   System.out.println(tmp);
@@ -237,6 +238,47 @@ public class JournalTool {
         }
 
         System.out.println("i is:" + i);
+      }
+      try {
+        writer.flush();
+      } catch (Exception e) {
+        System.out.println(e);
+      }
+      Thread.sleep(1000);
+      writer.close();
+      ex.getJournal().close();
+      out.flush();
+    } catch (IOException e) {
+      System.out.println(e);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    System.out.println("raft test fin");
+  }
+
+   private static void newrafttest() {
+    EntryStream stream = initStream();
+    JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+    JournalExporter ex;
+    JournalWriter writer;
+    String outputfile = PathUtils.concatPath(sOutputDir, "test.txt");
+    try (PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputfile)))) {
+      ex = new JournalExporter(journalType, sOutputDir, sMaster, sStart);
+      writer = ex.getWriter();
+      // this loop is use used to go through the journal entries
+      // here read 22 alluxio journal entries
+      for (int i = 0; i < 22; i++) {
+        JournalEntry entry = stream.nextEntry();
+        if (entry != null) {
+          System.out.println("entry: " + entry);
+          try {
+            writer.write(entry.toBuilder().clearSequenceNumber().build());
+          } catch (JournalClosedException e) {
+            System.out.println("failed when writing entry: " + e);
+          }
+        } else {
+          break;
+        }
       }
       try {
         writer.flush();
