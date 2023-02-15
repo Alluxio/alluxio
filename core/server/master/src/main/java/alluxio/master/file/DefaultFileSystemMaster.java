@@ -1868,10 +1868,41 @@ public class DefaultFileSystemMaster extends CoreMaster
           // Check if ufs is writable
           checkUfsMode(path, OperationType.WRITE);
         }
+        overwriteFileInternal(rpcContext, inodePath, context);
         createFileInternal(rpcContext, inodePath, context);
         auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
         cacheOperation(context);
         return getFileInfoInternal(inodePath);
+      }
+    }
+  }
+
+  /**
+   * @param rpcContext the rpc context
+   * @param inodePath the path to be created
+   * @param context the method context
+   */
+  private void overwriteFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
+                                     CreateFileContext context)
+      throws FileDoesNotExistException, IOException, InvalidPathException,
+      FileAlreadyExistsException {
+    if (inodePath.fullPathExists()) {
+      Inode currentInode = inodePath.getInode();
+      // if the fullpath is a file and the option is to overwrite, delete it
+      if (currentInode instanceof InodeFile && context.getOptions().getOverwrite()) {
+        try {
+          deleteInternal(rpcContext, inodePath, DeleteContext.mergeFrom(
+              DeletePOptions.newBuilder().setRecursive(true)
+                  .setAlluxioOnly(!context.isPersisted())), true);
+          inodePath.removeLastInode();
+        } catch (DirectoryNotEmptyException e) {
+          // IGNORE, this will never happen
+        }
+      } else {
+        String errorMessage =
+            String.format("Not allowed to create file because path already exists: %s",
+                inodePath.getUri());
+        throw new FileAlreadyExistsException(errorMessage);
       }
     }
   }

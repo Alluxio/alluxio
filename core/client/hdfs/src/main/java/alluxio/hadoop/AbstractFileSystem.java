@@ -60,7 +60,6 @@ import java.net.URI;
 import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -172,29 +171,14 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
 
     AlluxioURI uri = getAlluxioPath(path);
     CreateFilePOptions options = CreateFilePOptions.newBuilder().setBlockSizeBytes(blockSize)
-        .setMode(new Mode(permission.toShort()).toProto()).setRecursive(true).build();
+        .setMode(new Mode(permission.toShort()).toProto()).setRecursive(true)
+        .setOverwrite(overwrite).build();
 
     FileOutStream outStream;
     try {
       outStream = mFileSystem.createFile(uri, options);
     } catch (AlluxioException e) {
-      //now we should consider the override parameter
-      try {
-        if (mFileSystem.exists(uri)) {
-          if (!overwrite) {
-            throw new IOException(
-                "Not allowed to create() (overwrite=false) for existing Alluxio path: " + uri);
-          }
-          if (mFileSystem.getStatus(uri).isFolder()) {
-            throw new IOException(MessageFormat
-                .format("{0} already exists. Directories cannot be overwritten with create", uri));
-          }
-          mFileSystem.delete(uri);
-        }
-        outStream = mFileSystem.createFile(uri, options);
-      } catch (AlluxioException e2) {
-        throw new IOException(e2);
-      }
+      throw new IOException(e);
     }
     return new FSDataOutputStream(outStream, mStatistics);
   }
