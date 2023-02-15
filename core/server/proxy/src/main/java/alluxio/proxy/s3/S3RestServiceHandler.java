@@ -348,9 +348,10 @@ public final class S3RestServiceHandler {
 
         List<URIStatus> children;
         List<URIStatus> allChildren = new ArrayList<>();
+        int batchSize = maxKeys + 1;
         ListStatusPartialPOptions options = ListStatusPartialPOptions.newBuilder()
             .setStartAfter(startAfter)
-            .setBatchSize(maxKeys + 1)
+            .setBatchSize(batchSize)
             .setOptions(ListStatusPOptions.newBuilder().setRecursive(true))
             .buildPartial();
         try {
@@ -369,7 +370,6 @@ public final class S3RestServiceHandler {
               path = parsePathWithDelimiter(path, prefixParam, AlluxioURI.SEPARATOR);
             }
           }
-
           ListStatusPartialResult partialResult =
               userFs.listStatusPartial(new AlluxioURI(path), options);
           children = partialResult.getListings();
@@ -377,7 +377,7 @@ public final class S3RestServiceHandler {
           allChildren.addAll(children);
           ListBucketResult bucketResult =
               new ListBucketResult(bucket, allChildren, listBucketOptions);
-          while (!bucketResult.isTruncated() && !children.isEmpty()) {
+          while (!bucketResult.isTruncated() && children.size() == batchSize) {
             options = options.toBuilder()
                 .setStartAfter(children.get(children.size() - 1).getPath()).buildPartial();
             partialResult = userFs.listStatusPartial(new AlluxioURI(path), options);
