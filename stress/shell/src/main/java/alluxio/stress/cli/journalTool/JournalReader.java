@@ -1,5 +1,7 @@
 package alluxio.stress.cli.journalTool;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.tool.AbstractJournalDumper;
 import alluxio.master.journal.tool.UfsJournalDumper;
@@ -19,14 +21,12 @@ import alluxio.proto.journal.Journal;
  */
 
 public class JournalReader {
-
-  private String mJournalPath;
-  private JournalType mJournalType;
   private EntryStream mStream;
 
 
   public JournalReader(String mMaster, long mStart, long mEnd, String mInputDir) {
-    switch (mJournalType) {
+    JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+    switch (journalType) {
       case UFS:
         mStream = new UfsJournalEntryStream(mMaster, mStart, mEnd, mInputDir);
         break;
@@ -34,7 +34,7 @@ public class JournalReader {
         mStream = new RaftJournalEntryStream(mMaster, mStart, mEnd, mInputDir);
         break;
       default:
-        System.err.printf("Unsupported journal type: %s%n", mJournalType.name());
+        System.err.printf("Unsupported journal type: %s%n", journalType.name());
         return;
     }
   }
