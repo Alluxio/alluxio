@@ -111,8 +111,9 @@ public final class AlluxioFuse {
           + "Mount options includes operating system mount options, "
           + "many FUSE specific mount options (e.g. direct_io,attr_timeout=10s.allow_other), "
           + "Alluxio property key=value pairs, and Alluxio FUSE special mount options "
-          + "data_cache=<local_cache_directory>,data_cache_size=<size>,"
-          + "metadata_cache_size=<size>,metadata_cache_expire=<timeout>")
+          + "distributed_cache=<true/false>,"
+          + "local_data_cache=<local_cache_directory>,local_cache_size=<size>,"
+          + "local_metadata_cache_size=<size>,local_metadata_cache_expire=<timeout>")
       .build();
   private static final Option UPDATE_CHECK_OPTION = Option.builder(UPDATE_CHECK_OPTION_NAME)
       .required(false)
@@ -283,7 +284,15 @@ public final class AlluxioFuse {
         }
         String[] optArray = trimedOpt.split("=");
         if (optArray.length == 1) {
-          fuseOptions.add(trimedOpt);
+          if (trimedOpt.equals("distributed_cache")) {
+            conf.set(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED,
+                true, Source.RUNTIME);
+            conf.set(PropertyKey.USER_SHORT_CIRCUIT_ENABLED,
+                true, Source.RUNTIME);
+            LOG.info("Set dora distributed cache enabled as true from command line input");
+          } else {
+            fuseOptions.add(trimedOpt);
+          }
           continue;
         }
         String key = optArray[0];
@@ -296,20 +305,20 @@ public final class AlluxioFuse {
           conf.set(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION,
               PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION.parseValue(value), Source.RUNTIME);
           LOG.info("Set libfuse version to {} from command line input", value);
-        } else if (key.equals("data_cache")) {
+        } else if (key.equals("local_cache")) {
           conf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED, true, Source.RUNTIME);
           conf.set(PropertyKey.USER_CLIENT_CACHE_DIRS,
               PropertyKey.USER_CLIENT_CACHE_DIRS.parseValue(value), Source.RUNTIME);
           LOG.info("Set data cache to {} from command line input", value);
-        } else if (key.equals("data_cache_size")) {
+        } else if (key.equals("local_cache_size")) {
           conf.set(PropertyKey.USER_CLIENT_CACHE_SIZE,
               PropertyKey.USER_CLIENT_CACHE_SIZE.parseValue(value), Source.RUNTIME);
           LOG.info("Set data cache size as {} from command line input", value);
-        } else if (key.equals("metadata_cache_size")) {
+        } else if (key.equals("local_metadata_cache_size")) {
           conf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE,
               PropertyKey.USER_METADATA_CACHE_MAX_SIZE.parseValue(value), Source.RUNTIME);
           LOG.info("Set metadata cache size as {} from command line input", value);
-        } else if (key.equals("metadata_cache_expire")) {
+        } else if (key.equals("local_metadata_cache_expire")) {
           conf.set(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME,
               PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME.parseValue(value), Source.RUNTIME);
           LOG.info("Set metadata cache expiration time as {} from command line input", value);
