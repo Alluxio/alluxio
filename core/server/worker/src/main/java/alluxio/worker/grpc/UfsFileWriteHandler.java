@@ -22,9 +22,9 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.ContentHashableOutputStream;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.ContentHashableOutputStream;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.proto.ProtoUtils;
 
