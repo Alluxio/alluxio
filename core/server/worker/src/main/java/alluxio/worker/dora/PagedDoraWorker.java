@@ -12,7 +12,6 @@
 package alluxio.worker.dora;
 
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
@@ -24,27 +23,39 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.Command;
+import alluxio.grpc.CommandType;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
-import alluxio.master.MasterClientContext;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.HeartbeatThread;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.PooledResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
+import alluxio.security.user.ServerUserState;
 import alluxio.underfs.FileId;
 import alluxio.underfs.PagedUfsReader;
 import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.AbstractWorker;
 import alluxio.worker.block.BlockMasterClient;
+import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.page.UfsBlockReadOptions;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Closer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -55,7 +66,8 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Page store based dora worker.
  */
-public class PagedDoraWorker implements DoraWorker {
+public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
+  private static final Logger LOG = LoggerFactory.getLogger(PagedDoraWorker.class);
   // for now Dora Worker does not support Alluxio <-> UFS mapping,
   // and assumes all UFS paths belong to the same UFS.
   private static final int MOUNT_POINT = 1;
@@ -66,6 +78,8 @@ public class PagedDoraWorker implements DoraWorker {
   private final UfsInputStreamCache mUfsStreamCache;
   private final long mPageSize;
   private final AlluxioConfiguration mConf;
+  private final BlockMasterClientPool mBlockMasterClientPool;
+  private WorkerNetAddress mAddress;
 
   /**
    * Constructor.
@@ -73,11 +87,13 @@ public class PagedDoraWorker implements DoraWorker {
    * @param conf
    */
   public PagedDoraWorker(AtomicReference<Long> workerId, AlluxioConfiguration conf) {
+    super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
     mWorkerId = workerId;
     mConf = conf;
     mUfsManager = mResourceCloser.register(new DoraUfsManager());
     mUfsStreamCache = new UfsInputStreamCache();
     mPageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
+    mBlockMasterClientPool = new BlockMasterClientPool();
     try {
       CacheManagerOptions options = CacheManagerOptions.createForWorker(Configuration.global());
       PageMetaStore metaStore = PageMetaStore.create(options);
@@ -104,14 +120,30 @@ public class PagedDoraWorker implements DoraWorker {
 
   @Override
   public void start(WorkerNetAddress address) throws IOException {
+    super.start(address);
+    mAddress = address;
+    register();
+
+    // setup worker-master heartbeat
+    // the heartbeat is only used to notify the aliveness of this worker, so that clients
+    // can get the latest worker list from master.
+    // TODO(bowen): once we set up a worker discovery service in place of master, remove this
+    getExecutorService()
+        .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
+            mResourceCloser.register(new BlockMasterSync()),
+            (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            mConf, ServerUserState.global()));
+  }
+
+  private void register() throws IOException {
+    Preconditions.checkState(mAddress != null, "worker not started");
     RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
-    MasterClientContext ctx = MasterClientContext.newBuilder(ClientContext.create()).build();
     while (true) {
-      try (BlockMasterClient masterClient = new BlockMasterClient(ctx)) {
-        mWorkerId.set(masterClient.getId(address));
+      try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
+        mWorkerId.set(bmc.get().getId(mAddress));
         StorageTierAssoc storageTierAssoc =
             new DefaultStorageTierAssoc(ImmutableList.of(Constants.MEDIUM_MEM));
-        masterClient.register(
+        bmc.get().register(
             mWorkerId.get(),
             storageTierAssoc.getOrderedStorageAliases(),
             ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.GB),
@@ -119,6 +151,7 @@ public class PagedDoraWorker implements DoraWorker {
             ImmutableMap.of(),
             ImmutableMap.of(),
             Configuration.getConfiguration(Scope.WORKER));
+        LOG.info("Worker registered with worker ID: {}", mWorkerId.get());
         break;
       } catch (IOException ioe) {
         if (!retry.attempt()) {
@@ -130,15 +163,19 @@ public class PagedDoraWorker implements DoraWorker {
 
   @Override
   public void stop() throws IOException {
+    super.stop();
   }
 
   @Override
   public void close() throws IOException {
-    mResourceCloser.close();
-    try {
-      mCacheManager.close();
+    try (AutoCloseable ignoredCloser = mResourceCloser;
+         AutoCloseable ignoredCacheManager = mCacheManager
+    ) {
+      // do nothing as we are closing
     } catch (Exception e) {
       throw new IOException(e);
+    } finally {
+      super.close();
     }
   }
 
@@ -182,5 +219,39 @@ public class PagedDoraWorker implements DoraWorker {
 
   @Override
   public void cleanupSession(long sessionId) {
+  }
+
+  private class BlockMasterSync implements HeartbeatExecutor {
+    @Override
+    public void heartbeat() throws InterruptedException {
+      final Command cmdFromMaster;
+      try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
+        cmdFromMaster = bmc.get().heartbeat(mWorkerId.get(),
+            ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.GB),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
+            ImmutableList.of(),
+            ImmutableMap.of(),
+            ImmutableMap.of(),
+            ImmutableList.of());
+      } catch (IOException e) {
+        LOG.warn("failed to heartbeat to master", e);
+        return;
+      }
+
+      LOG.debug("received master command: {}", cmdFromMaster.getCommandType());
+      // only handles re-register command
+      if (cmdFromMaster.getCommandType() == CommandType.Register) {
+        try {
+          register();
+        } catch (IOException e) {
+          LOG.warn("failed to re-register to master during heartbeat", e);
+        }
+      }
+    }
+
+    @Override
+    public void close() {
+      // do nothing
+    }
   }
 }
