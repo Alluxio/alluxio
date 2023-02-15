@@ -11,7 +11,7 @@
 
 package alluxio.underfs.hdfs;
 
-import alluxio.underfs.ContentHashableOutputStream;
+import alluxio.underfs.ContentHashable;
 import alluxio.util.UnderFileSystemUtils;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -31,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * flush intend the functionality to be sync.
  */
 @NotThreadSafe
-public class HdfsUnderFileOutputStream extends OutputStream implements ContentHashableOutputStream {
+public class HdfsUnderFileOutputStream extends OutputStream implements ContentHashable {
   /** Underlying output stream. */
   private final FSDataOutputStream mOut;
   private final FileSystem mFs;

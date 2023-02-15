@@ -13,7 +13,7 @@ package alluxio.cli;
 
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.underfs.ContentHashableOutputStream;
+import alluxio.underfs.ContentHashable;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
@@ -1192,11 +1192,11 @@ public final class UnderFileSystemCommonOperations {
   // should be called after the stream is closed, to be sure the content hash computed
   // by the stream is equal to the content hash on the UFS
   private void checkContentHash(String path, OutputStream stream) throws IOException {
-    if (stream instanceof ContentHashableOutputStream) {
-      if (((ContentHashableOutputStream) stream).getContentHash().isPresent()) {
+    if (stream instanceof ContentHashable) {
+      if (((ContentHashable) stream).getContentHash().isPresent()) {
         String ufsHash = mUfs.getParsedFingerprint(path).getTag(Fingerprint.Tag.CONTENT_HASH);
         String streamHash = mUfs.getParsedFingerprint(path,
-            ((ContentHashableOutputStream) stream).getContentHash().get())
+            ((ContentHashable) stream).getContentHash().get())
             .getTag(Fingerprint.Tag.CONTENT_HASH);
         if (!streamHash.equals(ufsHash)) {
           throw new IOException(FILE_CONTENT_HASH_DOES_NOT_MATCH_UFS);

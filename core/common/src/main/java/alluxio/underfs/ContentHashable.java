@@ -20,7 +20,7 @@ import java.util.Optional;
  * content written when the stream is closed. The content hash will then be used as part of
  * the metadata fingerprint when the file is completed on the Alluxio master.
  */
-public interface ContentHashableOutputStream {
+public interface ContentHashable {
   /**
    * @return the content hash of the file written to the UFS if available
    * after the stream has been closed

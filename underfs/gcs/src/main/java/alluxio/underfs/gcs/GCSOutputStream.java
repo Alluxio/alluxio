@@ -11,7 +11,7 @@
 
 package alluxio.underfs.gcs;
 
-import alluxio.underfs.ContentHashableOutputStream;
+import alluxio.underfs.ContentHashable;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -42,7 +42,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * local disk and copied as a complete file when the {@link #close()} method is called.
  */
 @NotThreadSafe
-public final class GCSOutputStream extends OutputStream implements ContentHashableOutputStream {
+public final class GCSOutputStream extends OutputStream implements ContentHashable {
   private static final Logger LOG = LoggerFactory.getLogger(GCSOutputStream.class);
 
   /** Bucket name of the Alluxio GCS bucket. */

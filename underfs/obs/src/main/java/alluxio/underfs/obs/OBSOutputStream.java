@@ -11,7 +11,7 @@
 
 package alluxio.underfs.obs;
 
-import alluxio.underfs.ContentHashableOutputStream;
+import alluxio.underfs.ContentHashable;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -44,7 +44,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * local disk and copied as a complete file when the {@link #close()} method is called.
  */
 @NotThreadSafe
-public final class OBSOutputStream extends OutputStream implements ContentHashableOutputStream {
+public final class OBSOutputStream extends OutputStream implements ContentHashable {
   private static final Logger LOG = LoggerFactory.getLogger(OBSOutputStream.class);
 
   /**

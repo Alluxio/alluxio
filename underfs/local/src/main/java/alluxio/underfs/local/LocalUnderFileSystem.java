@@ -18,7 +18,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.ConsistentUnderFileSystem;
-import alluxio.underfs.ContentHashableOutputStream;
+import alluxio.underfs.ContentHashable;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
@@ -127,7 +127,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   static class LocalOutputStream extends BufferedOutputStream
-      implements ContentHashableOutputStream {
+      implements ContentHashable {
 
     private final String mPath;
 
