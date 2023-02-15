@@ -236,6 +236,10 @@ message ListStatusPOptions {
   // being loaded. It is recommended to set this to true after the first call of a
   // recursive partial listing.
   optional bool disableAreDescendantsLoadedCheck = 6;
+  // Setting this to true will not sets mount point info. Some Hadoop-compatible systems
+  // do not require UFS information. If there are many mount points and many sub-files
+  // in the directory, the performance will be seriously affected
+  optional bool noNeedUseMountInfo = 7;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */

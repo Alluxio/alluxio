@@ -31,6 +31,7 @@ import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.CurrentUser;
@@ -596,7 +597,9 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     AlluxioURI uri = getAlluxioPath(path);
     List<URIStatus> statuses;
     try {
-      statuses = mFileSystem.listStatus(uri);
+      ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
+          .setNoNeedUseMountInfo(true).build();
+      statuses = mFileSystem.listStatus(uri, listStatusPOptions);
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(getAlluxioPath(path).toString());
     } catch (AlluxioException e) {

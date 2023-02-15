@@ -973,14 +973,15 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   private FileInfo getFileInfoInternal(LockedInodePath inodePath)
       throws UnavailableException, FileDoesNotExistException {
-    return getFileInfoInternal(inodePath, null);
+    return getFileInfoInternal(inodePath, null, false);
   }
 
   /**
    * @param inodePath the {@link LockedInodePath} to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given inode
    */
-  private FileInfo getFileInfoInternal(LockedInodePath inodePath, Counter counter)
+  private FileInfo getFileInfoInternal(LockedInodePath inodePath, Counter counter,
+      boolean noNeedUseMountInfo)
       throws FileDoesNotExistException, UnavailableException {
     int inMemoryPercentage;
     int inAlluxioPercentage;
@@ -1027,20 +1028,22 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
     }
     fileInfo.setXAttr(inode.getXAttr());
-    MountTable.Resolution resolution;
-    try {
-      resolution = mMountTable.resolve(uri);
-    } catch (InvalidPathException e) {
-      throw new FileDoesNotExistException(e.getMessage(), e);
-    }
-    AlluxioURI resolvedUri = resolution.getUri();
-    fileInfo.setUfsPath(resolvedUri.toString());
-    fileInfo.setMountId(resolution.getMountId());
-    if (counter == null) {
-      Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
-          Metrics.UFSOps.GET_FILE_INFO).inc();
-    } else {
-      counter.inc();
+    if (!noNeedUseMountInfo) {
+      MountTable.Resolution resolution;
+      try {
+        resolution = mMountTable.resolve(uri);
+      } catch (InvalidPathException e) {
+        throw new FileDoesNotExistException(e.getMessage(), e);
+      }
+      AlluxioURI resolvedUri = resolution.getUri();
+      fileInfo.setUfsPath(resolvedUri.toString());
+      fileInfo.setMountId(resolution.getMountId());
+      if (counter == null) {
+        Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
+            Metrics.UFSOps.GET_FILE_INFO).inc();
+      } else {
+        counter.inc();
+      }
     }
 
     Metrics.FILE_INFOS_GOT.inc();
@@ -1146,13 +1149,16 @@ public class DefaultFileSystemMaster extends CoreMaster
           ensureFullPathAndUpdateCache(inodePath);
 
           auditContext.setSrcInode(inodePath.getInode());
-          MountTable.Resolution resolution;
+          MountTable.Resolution resolution = null;
           if (!context.getOptions().hasLoadMetadataOnly()
               || !context.getOptions().getLoadMetadataOnly()) {
             DescendantType descendantTypeForListStatus =
                 (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
             try {
-              resolution = mMountTable.resolve(path);
+              if (!(context.getOptions().hasNoNeedUseMountInfo() && context.getOptions()
+                  .getNoNeedUseMountInfo())) {
+                resolution = mMountTable.resolve(path);
+              }
             } catch (InvalidPathException e) {
               throw new FileDoesNotExistException(e.getMessage(), e);
             }
@@ -1172,11 +1178,11 @@ public class DefaultFileSystemMaster extends CoreMaster
             }
             // perform the listing
             listStatusInternal(context, rpcContext, inodePath, auditContext,
-                descendantTypeForListStatus, resultStream, 0,
-                Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
-                    Metrics.UFSOps.GET_FILE_INFO),
+                descendantTypeForListStatus, resultStream, 0, resolution == null ? null :
+                    Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
+                        Metrics.UFSOps.GET_FILE_INFO),
                 partialPathNames, prefixComponents);
-            if (!ufsAccessed) {
+            if (!ufsAccessed && resolution != null) {
               Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
                   Metrics.UFSOps.LIST_STATUS).inc();
             }
@@ -1242,7 +1248,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       // at this depth.
       if ((depth != 0 || inode.isFile()) && prefixComponents.size() <= depth) {
         if (context.listedItem()) {
-          resultStream.submit(getFileInfoInternal(currInodePath, counter));
+          boolean noNeedUseMountInfo =
+              context.getOptions().hasNoNeedUseMountInfo() && context.getOptions()
+                  .getNoNeedUseMountInfo() ? true : false;
+          resultStream.submit(getFileInfoInternal(currInodePath, counter, noNeedUseMountInfo));
         }
         if (context.isDoneListing()) {
           return;
