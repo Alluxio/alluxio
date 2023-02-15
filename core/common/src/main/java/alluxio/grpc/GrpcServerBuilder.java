@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 /**
@@ -262,7 +263,18 @@ public final class GrpcServerBuilder {
    * @return the built {@link GrpcServer}
    */
   public GrpcServer build() {
-    addService(new GrpcService(new ServiceVersionClientServiceHandler(mServices))
+    return build(null);
+  }
+
+  /**
+   * Build the server.
+   * It attaches required services and interceptors for authentication.
+   *
+   * @param nodeStateSupplier a supplier to provide the node state (PRIMARY/STANDBY)
+   * @return the built {@link GrpcServer}
+   */
+  public GrpcServer build(@Nullable Supplier<NodeState> nodeStateSupplier) {
+    addService(new GrpcService(new ServiceVersionClientServiceHandler(mServices, nodeStateSupplier))
         .disableAuthentication());
     if (mGrpcReflectionEnabled) {
       // authentication needs to be disabled so that the grpc command line tools can call

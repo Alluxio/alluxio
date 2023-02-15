@@ -48,6 +48,7 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.LoadProgressReportFormat;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -80,6 +81,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -97,6 +99,10 @@ public class BaseFileSystem implements FileSystem {
   protected final BlockStoreClient mBlockStore;
 
   protected volatile boolean mClosed = false;
+
+  protected static final Error UNREACHABLE_CODE_ERROR = new Error("We should never reach here. "
+      + "wrapAndThrowAlluxioStatusException is guaranteed "
+      + "to throw an exception and never returns.");
 
   /**
    * Constructs a new base file system.
@@ -535,7 +541,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public String getLoadProgress(AlluxioURI path,
-      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
+      Optional<LoadProgressReportFormat> format, boolean verbose) {
     try (CloseableResource<FileSystemMasterClient> client =
             mFsContext.acquireMasterClientResource()) {
       return client.get().getLoadProgress(path, format, verbose);
@@ -615,22 +621,38 @@ public class BaseFileSystem implements FileSystem {
       // Explicitly connect to trigger loading configuration from meta master.
       client.get().connect();
       return fn.call(client.get());
-    } catch (NotFoundException e) {
+    } catch (AlluxioStatusException e) {
+      wrapAndThrowAlluxioStatusException(e);
+      throw UNREACHABLE_CODE_ERROR;
+    }
+  }
+
+  protected void wrapAndThrowAlluxioStatusException(AlluxioStatusException e)
+      throws AlluxioException, IOException {
+    if (e instanceof NotFoundException) {
       throw new FileDoesNotExistException(e.getMessage());
-    } catch (AlreadyExistsException e) {
+    }
+    if (e instanceof AlreadyExistsException) {
       throw new FileAlreadyExistsException(e.getMessage());
-    } catch (InvalidArgumentException e) {
+    }
+    if (e instanceof InvalidArgumentException) {
       throw new InvalidPathException(e.getMessage());
-    } catch (FailedPreconditionException e) {
+    }
+    if (e instanceof FailedPreconditionException) {
       // A little sketchy, but this should be the only case that throws FailedPrecondition.
       throw new DirectoryNotEmptyException(e.getMessage());
-    } catch (UnavailableException e) {
-      throw e;
-    } catch (UnauthenticatedException e) {
-      throw e;
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
     }
+    if (e instanceof UnavailableException || e instanceof UnauthenticatedException) {
+      throw e;
+    }
+    throw e.toAlluxioException();
+  }
+
+  /**
+   * @return the file system context
+   */
+  public FileSystemContext getFileSystemContext() {
+    return mFsContext;
   }
 
   /**

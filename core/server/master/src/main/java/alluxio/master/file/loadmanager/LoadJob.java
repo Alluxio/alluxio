@@ -564,6 +564,9 @@ public class LoadJob {
     }
 
     private void partialListFileInfos() {
+      if (!mStartAfter.isEmpty()) {
+        mListOptions.setDisableAreDescendantsLoadedCheck(true);
+      }
       ListStatusContext context = ListStatusContext.create(ListStatusPartialPOptions.newBuilder()
           .setOptions(mListOptions)
           .setBatchSize(PARTIAL_LISTING_BATCH_SIZE)

@@ -27,10 +27,12 @@ import com.amazonaws.services.s3.model.CompleteMultipartUploadResult;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
 import com.amazonaws.services.s3.model.PartETag;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.services.s3.model.UploadPartResult;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,33 +75,49 @@ public class S3ALowLevelOutputStreamTest {
   public void before() throws Exception {
     mockS3ClientAndExecutor();
     mockFileAndOutputStream();
+
     sConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE, PARTITION_SIZE);
-    mStream = new S3ALowLevelOutputStream(BUCKET_NAME, KEY, mMockS3Client, mMockExecutor,
-        sConf.getBytes(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE),
-        sConf.getList(PropertyKey.TMP_DIRS),
-        sConf.getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED));
+    mStream = new S3ALowLevelOutputStream(BUCKET_NAME, KEY, mMockS3Client, mMockExecutor, sConf);
   }
 
   @Test
   public void writeByte() throws Exception {
     mStream.write(1);
-    Mockito.verify(mMockS3Client)
-        .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
-    Mockito.verify(mMockOutputStream).write(new byte[]{1}, 0, 1);
-    Mockito.verify(mMockExecutor, never()).submit(any(Callable.class));
 
     mStream.close();
-    Mockito.verify(mMockExecutor).submit(any(Callable.class));
-    Mockito.verify(mMockS3Client)
+    Mockito.verify(mMockOutputStream).write(new byte[] {1}, 0, 1);
+    Mockito.verify(mMockExecutor, never()).submit(any(Callable.class));
+    Mockito.verify(mMockS3Client).putObject(any(PutObjectRequest.class));
+    Mockito.verify(mMockS3Client, never())
+        .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
+    Mockito.verify(mMockS3Client, never())
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
   }
 
   @Test
-  public void writeByteArray() throws Exception {
+  public void writeByteArrayForSmallFile() throws Exception {
     int partSize = (int) FormatUtils.parseSpaceSize(PARTITION_SIZE);
-    byte[] b = new byte[partSize + 1];
+    byte[] b = new byte[partSize];
 
     mStream.write(b, 0, b.length);
+    Mockito.verify(mMockOutputStream).write(b, 0, b.length);
+
+    mStream.close();
+    Mockito.verify(mMockExecutor, never()).submit(any(Callable.class));
+    Mockito.verify(mMockS3Client).putObject(any(PutObjectRequest.class));
+    Mockito.verify(mMockS3Client, never())
+        .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
+    Mockito.verify(mMockS3Client, never())
+        .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
+  }
+
+  @Test
+  public void writeByteArrayForLargeFile() throws Exception {
+    int partSize = (int) FormatUtils.parseSpaceSize(PARTITION_SIZE);
+    byte[] b = new byte[partSize + 1];
+    Assert.assertEquals(mStream.getPartNumber(), 1);
+    mStream.write(b, 0, b.length);
+    Assert.assertEquals(mStream.getPartNumber(), 2);
     Mockito.verify(mMockS3Client)
         .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
     Mockito.verify(mMockOutputStream).write(b, 0, b.length - 1);
@@ -107,8 +125,20 @@ public class S3ALowLevelOutputStreamTest {
     Mockito.verify(mMockExecutor).submit(any(Callable.class));
 
     mStream.close();
+    Assert.assertEquals(mStream.getPartNumber(), 3);
     Mockito.verify(mMockS3Client)
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
+  }
+
+  @Test
+  public void createEmptyFile() throws Exception {
+    mStream.close();
+    Mockito.verify(mMockExecutor, never()).submit(any(Callable.class));
+    Mockito.verify(mMockS3Client, never())
+        .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
+    Mockito.verify(mMockS3Client, never())
+        .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
+    Mockito.verify(mMockS3Client).putObject(any(PutObjectRequest.class));
   }
 
   @Test

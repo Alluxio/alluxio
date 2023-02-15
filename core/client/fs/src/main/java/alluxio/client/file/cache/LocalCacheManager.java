@@ -14,6 +14,8 @@ package alluxio.client.file.cache;
 import static alluxio.client.file.cache.CacheManager.State.NOT_IN_USE;
 import static alluxio.client.file.cache.CacheManager.State.READ_ONLY;
 import static alluxio.client.file.cache.CacheManager.State.READ_WRITE;
+import static java.util.concurrent.Executors.newScheduledThreadPool;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
@@ -44,12 +46,14 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -88,6 +92,8 @@ public class LocalCacheManager implements CacheManager {
   private final Optional<ExecutorService> mInitService;
   /** Executor service for execute the async cache tasks. */
   private final Optional<ExecutorService> mAsyncCacheExecutor;
+  /** Executor service for execute the cache ttl check tasks. */
+  private final Optional<ScheduledExecutorService> mTtlEnforcerExecutor;
   private final ConcurrentHashSet<PageId> mPendingRequests;
   /** State of this cache. */
   private final AtomicReference<CacheManager.State> mState = new AtomicReference<>();
@@ -141,6 +147,21 @@ public class LocalCacheManager implements CacheManager {
     mInitService =
         options.isAsyncRestoreEnabled() ? Optional.of(Executors.newSingleThreadExecutor()) :
             Optional.empty();
+    if (options.isTtlEnabled()) {
+      mTtlEnforcerExecutor = Optional.of(newScheduledThreadPool(1));
+      mTtlEnforcerExecutor.get().scheduleAtFixedRate(() ->
+          LocalCacheManager.this.invalidate(pageInfo -> {
+            try {
+              return System.currentTimeMillis() - pageInfo.getCreatedTimestamp()
+                  >= options.getTtlThresholdSeconds() * 1000;
+            } catch (Exception ex) {
+              // In case of any exception, do not invalidate the cache
+              return false;
+            }
+          }), 0, options.getTtlCheckIntervalSeconds(), SECONDS);
+    } else {
+      mTtlEnforcerExecutor = Optional.empty();
+    }
     Metrics.registerGauges(mCacheSize, mPageMetaStore);
     mState.set(READ_ONLY);
     Metrics.STATE.inc();
@@ -641,6 +662,21 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
+  public void invalidate(Predicate<PageInfo> predicate) {
+    mPageStoreDirs.forEach(dir -> {
+      try {
+        dir.scanPages(pageInfo -> {
+          if (pageInfo.isPresent() && predicate.test(pageInfo.get())) {
+            delete(pageInfo.get().getPageId());
+          }
+        });
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
+  }
+
+  @Override
   public void close() throws Exception {
     for (PageStoreDir pageStoreDir: mPageStoreDirs) {
       pageStoreDir.close();
@@ -648,6 +684,7 @@ public class LocalCacheManager implements CacheManager {
     mPageMetaStore.reset();
     mInitService.ifPresent(ExecutorService::shutdownNow);
     mAsyncCacheExecutor.ifPresent(ExecutorService::shutdownNow);
+    mTtlEnforcerExecutor.ifPresent(ExecutorService::shutdownNow);
   }
 
   /**
@@ -680,7 +717,7 @@ public class LocalCacheManager implements CacheManager {
         return -1;
       }
     } catch (IOException | PageNotFoundException e) {
-      LOG.error("Failed to get existing page {} from pageStore", pageInfo.getPageId(), e);
+      LOG.debug("Failed to get existing page {} from pageStore", pageInfo.getPageId(), e);
       return -1;
     }
     return bytesToRead;

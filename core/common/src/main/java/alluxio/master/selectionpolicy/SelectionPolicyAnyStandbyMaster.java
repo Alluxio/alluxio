@@ -65,4 +65,9 @@ public class SelectionPolicyAnyStandbyMaster extends AbstractMasterSelectionPoli
     }
     throw new UnavailableException("No standby masters available");
   }
+
+  @Override
+  public Type getType() {
+    return Type.ANY_STANDBY_MASTER;
+  }
 }
