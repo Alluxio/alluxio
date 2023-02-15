@@ -33,6 +33,7 @@ import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.worker.block.DefaultBlockWorker.Metrics;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.DelegatingBlockReader;
@@ -161,6 +162,7 @@ public class MonoBlockStore implements BlockStore {
     Optional<? extends BlockMeta> blockMeta = mLocalBlockStore.getVolatileBlockMeta(blockId);
     if (blockMeta.isPresent()) {
       reader = mLocalBlockStore.createBlockReader(sessionId, blockId, offset);
+      DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.inc();
     } else {
       boolean checkUfs = options != null && (options.hasUfsPath() || options.getBlockInUfsTier());
       if (!checkUfs) {
@@ -169,7 +171,6 @@ public class MonoBlockStore implements BlockStore {
       // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
       reader = createUfsBlockReader(sessionId, blockId, offset, positionShort, options);
     }
-    DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.inc();
     return reader;
   }
 
@@ -181,7 +182,10 @@ public class MonoBlockStore implements BlockStore {
     try {
       BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
           positionShort, options);
-      return new DelegatingBlockReader(reader, () -> closeUfsBlock(sessionId, blockId));
+      BlockReader blockReader = new DelegatingBlockReader(reader,
+          () -> closeUfsBlock(sessionId, blockId));
+      Metrics.WORKER_ACTIVE_CLIENTS.inc();
+      return blockReader;
     } catch (Exception e) {
       try {
         closeUfsBlock(sessionId, blockId);
