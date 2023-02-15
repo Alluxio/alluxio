@@ -8213,7 +8213,7 @@
               },
               {
                 "id": 2,
-                "name": "allowOnStandbyMasters",
+                "name": "allowedOnStandbyMasters",
                 "type": "bool"
               }
             ]

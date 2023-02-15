@@ -34,17 +34,27 @@ enum ServiceType {
 
 message GetServiceVersionPRequest {
   optional ServiceType serviceType = 1;
-  // This field is added for backwards compatibility.
-  // When gRPC services are enabled on standby masters, PollingMasterInquireClient will not be able to
-  // tell which master is the primary and which is the standby by calling this endpoint.
-  // So we rejected get service version requests on standby masters,
-  // which allows us to enable gRPC services on standby masters without making client side code change.
-  // However, this endpoint is also used outside the PollingMasterInquireClient.
-  // When a client makes a request to a master, it will also call this endpoint to verify the version.
-  // And hence the request to standby master will never succeed because it will constantly be rejected.
-  // We added this field as a backdoor to let these version verification requests pass through
-  // so that a client can make requests to standby masters successfully.
-  optional bool allowOnStandbyMasters = 2;
+  // The purpose of this field is to make grpc service on standby masters work without
+  // making client changes and keeps backwards compatibility.
+  // This requests of this endpoint will be rejected on standby masters by default,
+  // unless this field is set.
+  // Two places use this request:
+  // 1. PollingMasterInquireClient uses this endpoint to tell who is the primary master.
+  // 2. AbstractClient uses this endpoint to verify the version before it RPCs with the master.
+  //
+  // Behaviors:
+  // 1. old clients -> new cluster standby masters
+  // PollingMasterInquireClient does not set this field and is able to tell which one is primary master because
+  // the request will be rejected on the standby master.
+  // AbstractClient does not set this field.
+  // Old clients only connects to primary so this doesn't break the existing behavior.
+  //
+  // 2. new clients -> new cluster standby masters
+  // PollingMasterInquireClient does not set this field and is able to tell which one is primary master because
+  // the request will be rejected on the standby master.
+  // AbstractClient sets this field to true. Rpcs to standby masters can go through and pass the version verification.
+
+  optional bool allowedOnStandbyMasters = 2;
 }
 message GetServiceVersionPResponse {
   optional int64 version = 1;
