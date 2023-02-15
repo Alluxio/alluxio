@@ -345,6 +345,46 @@ public class JournalTool {
     }
   }
 
+  public static void mainInternal() {
+    JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+    JournalExporter ex;
+    JournalWriter writer;
+    JournalReader reader = new JournalReader(sMaster, sStart, sEnd, sInputDir);
+    JournalDisruptor disruptor = new JournalDisruptor(reader, 3, 6);
+    String outputfile = PathUtils.concatPath(sOutputDir, "test.txt");
+
+    try (PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputfile)))) {
+      out.println("hello test");
+      ex = new JournalExporter(journalType, sOutputDir, sMaster, sStart);
+      writer = ex.getWriter();
+      JournalEntry entry;
+      // this means process all journal
+      while ((entry = disruptor.nextEntry()) != null) {
+        System.out.println("entry: " + entry);
+        try {
+          writer.write(entry.toBuilder().clearSequenceNumber().build());
+          out.println(entry.toBuilder().clearSequenceNumber().build());
+        } catch (JournalClosedException e) {
+          System.out.println("failed when writing entry: " + e);
+        }
+      }
+      try {
+        writer.flush();
+      } catch (Exception e) {
+        System.out.println(e);
+      }
+      Thread.sleep(1000);
+      writer.close();
+      ex.getJournal().close();
+      out.flush();
+      out.close();
+    } catch (IOException e) {
+      System.out.println(e);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   private static JournalEntry processProto(RaftProtos.LogEntryProto proto) {
     try {
       JournalEntry entry = JournalEntry.parseFrom(
