@@ -377,8 +377,7 @@ public final class S3RestServiceHandler {
           allChildren.addAll(children);
           ListBucketResult bucketResult =
               new ListBucketResult(bucket, allChildren, listBucketOptions);
-          while ((bucketResult.getKeyCount() == null || bucketResult.getKeyCount() <= maxKeys)
-              && !bucketResult.isTruncated() && !children.isEmpty()) {
+          while (!bucketResult.isTruncated() && !children.isEmpty()) {
             options = options.toBuilder()
                 .setStartAfter(children.get(children.size() - 1).getPath()).buildPartial();
             partialResult = userFs.listStatusPartial(new AlluxioURI(path), options);
