@@ -35,7 +35,6 @@ import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
 import org.apache.ratis.proto.RaftProtos;
 import org.apache.ratis.protocol.Message;
-import org.apache.ratis.protocol.RaftGroup;
 import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftGroupMemberId;
 import org.apache.ratis.protocol.RaftPeerId;
@@ -137,6 +136,7 @@ public class JournalStateMachine extends BaseStateMachine {
   /** Used to control applying to masters. */
   private BufferedJournalApplier mJournalApplier;
   private final StateMachineStorage mStorage = new SnapshotDirStateMachineStorage();
+  private final RaftSnapshotManager mDownloadManager = new RaftSnapshotManager(mStorage);
   private RaftGroupId mRaftGroupId;
   private RaftServer mServer;
   private long mLastCheckPointTime = -1;
@@ -261,7 +261,7 @@ public class JournalStateMachine extends BaseStateMachine {
   }
 
   @Override
-  public long takeSnapshot() {
+  public synchronized long takeSnapshot() {
     long index;
     StateLockManager stateLockManager = mStateLockManagerRef.get();
     if (!mIsLeader) {
@@ -275,29 +275,7 @@ public class JournalStateMachine extends BaseStateMachine {
         return RaftLog.INVALID_LOG_INDEX;
       }
     } else {
-      RaftGroup group;
-      try (LockResource ignored = new LockResource(mGroupLock)) {
-        if (mServerClosing) {
-          return RaftLog.INVALID_LOG_INDEX;
-        }
-        // These calls are protected by mGroupLock and mServerClosing
-        // as they will access the lock in RaftServerProxy.java
-        // which is also accessed during raft server shutdown which
-        // can cause a deadlock as the shutdown takes the lock while
-        // waiting for this thread to finish
-        Preconditions.checkState(mServer.getGroups().iterator().hasNext());
-        group = mServer.getGroups().iterator().next();
-      } catch (IOException e) {
-        SAMPLING_LOG.warn("Failed to get raft group info: {}", e.getMessage());
-        return RaftLog.INVALID_LOG_INDEX;
-      }
-      if (group.getPeers().size() < 2) {
-        SAMPLING_LOG.warn("No follower to perform delegated snapshot. Please add more masters to "
-            + "the quorum or manually take snapshot using 'alluxio fsadmin journal checkpoint'");
-        return RaftLog.INVALID_LOG_INDEX;
-      } else {
-        index = mSnapshotManager.maybeCopySnapshotFromFollower();
-      }
+      index = mDownloadManager.downloadSnapshotFromFollowers();
     }
     // update metrics if took a snapshot
     if (index != RaftLog.INVALID_LOG_INDEX) {
@@ -307,6 +285,9 @@ public class JournalStateMachine extends BaseStateMachine {
     return index;
   }
 
+  /**
+   * @return the latest snapshot information, or null of no snapshot exists
+   */
   @Override
   public SnapshotInfo getLatestSnapshot() {
     return mStorage.getLatestSnapshot();

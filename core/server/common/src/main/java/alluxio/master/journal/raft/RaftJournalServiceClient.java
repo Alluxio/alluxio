@@ -18,14 +18,15 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.DownloadSnapshotPRequest;
 import alluxio.grpc.DownloadSnapshotPResponse;
+import alluxio.grpc.LatestSnapshotInfoPRequest;
 import alluxio.grpc.RaftJournalServiceGrpc;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SnapshotMetadata;
 import alluxio.grpc.UploadSnapshotPRequest;
 import alluxio.grpc.UploadSnapshotPResponse;
 import alluxio.master.MasterClientContext;
+import alluxio.master.selectionpolicy.MasterSelectionPolicy;
 
-import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
 
 import java.io.File;
@@ -41,10 +42,19 @@ public class RaftJournalServiceClient extends AbstractMasterClient {
       Configuration.getMs(PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT);
 
   /**
-   *
+   * Create a client that talks to the leading master.
    */
   public RaftJournalServiceClient() {
-    super(MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build());
+    this(MasterSelectionPolicy.Factory.primaryMaster());
+  }
+
+  /**
+   * Create a client that talks to a specific master.
+   * @param selectionPolicy specifies which master is targeted
+   */
+  public RaftJournalServiceClient(MasterSelectionPolicy selectionPolicy) {
+    super(MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build(),
+        selectionPolicy);
   }
 
   @Override
@@ -67,14 +77,20 @@ public class RaftJournalServiceClient extends AbstractMasterClient {
     mClient = RaftJournalServiceGrpc.newStub(mChannel);
   }
 
-
+  /**
+   * @return {@link SnapshotMetadata} from specified master
+   */
   public SnapshotMetadata requestLatestSnapshotInfo() {
     RaftJournalServiceGrpc.RaftJournalServiceBlockingStub client =
         RaftJournalServiceGrpc.newBlockingStub(mChannel);
     return client.withDeadlineAfter(mRequestInfoTimeoutMs, TimeUnit.MILLISECONDS)
-        .requestLatestSnapshotInfo(Empty.newBuilder().build());
+        .requestLatestSnapshotInfo(LatestSnapshotInfoPRequest.getDefaultInstance());
   }
 
+  /**
+   * Receive snapshot data from specified follower.
+   * @param outputDir marks where the data should be outputted
+   */
   public void downloadLatestSnapshot(File outputDir) {
 
 //    RaftJournalServiceGrpc.RaftJournalServiceBlockingStub client =

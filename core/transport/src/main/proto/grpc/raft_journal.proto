@@ -37,6 +37,12 @@ message GetSnapshotRequest {
 message SnapshotMetadata {
   optional int64 snapshotTerm = 1;
   optional int64 snapshotIndex = 2;
+  required bool exists = 3;
+  repeated FileMetadata fileMetadataList = 4;
+}
+
+message FileMetadata {
+  required string relativePath = 1;
 }
 
 message SnapshotData {
@@ -45,8 +51,6 @@ message SnapshotData {
   optional bytes chunk = 3;
   optional int64 offset = 4;
   optional bool eof = 5;
-  optional string filename = 6;
-  optional bool finished = 7;
 }
 
 message UploadSnapshotPRequest {
@@ -63,6 +67,14 @@ message DownloadSnapshotPRequest {
 
 message DownloadSnapshotPResponse {
   optional SnapshotData data = 1;
+}
+
+message LatestSnapshotInfoPRequest {}
+
+message DownloadFilePRequest {
+  required int64 snapshotTerm = 1;
+  required int64 snapshotIndex = 2;
+  required FileMetadata fileMetadata = 3;
 }
 
 /**
@@ -83,10 +95,10 @@ service RaftJournalService {
   /**
    * Requests information about snapshots on a particular machine.
    */
-  rpc RequestLatestSnapshotInfo(google.protobuf.Empty) returns (SnapshotMetadata) {}
+  rpc RequestLatestSnapshotInfo(LatestSnapshotInfoPRequest) returns (SnapshotMetadata) {}
 
   /**
-   *
+   * Request to download the snapshot information from a particular machine.
    */
-  rpc DownloadLatestSnapshot(google.protobuf.Empty) returns (stream SnapshotData) {}
+  rpc DownloadLatestSnapshot(DownloadFilePRequest) returns (stream SnapshotData) {}
 }
