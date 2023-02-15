@@ -36,7 +36,8 @@ public final class RuntimeConstants {
     }
   }
 
-  public static final String REVISION_SHORT = ProjectConstants.REVISION.substring(0, 8);
+  public static final String REVISION_SHORT = VERSION.length() > 8 ?
+      VERSION.substring(0, 8) : VERSION;
   public static final String VERSION_AND_REVISION_SHORT =
       VERSION + "-" + REVISION_SHORT;
 
