@@ -17,13 +17,13 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
+import alluxio.underfs.ContentHashableOutputStream;
 import alluxio.underfs.ConsistentUnderFileSystem;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.UnderFileSystemOutputStream;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -127,7 +127,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   static class LocalOutputStream extends BufferedOutputStream
-      implements UnderFileSystemOutputStream {
+      implements ContentHashableOutputStream {
 
     private final String mPath;
 

@@ -29,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * that writing to the stream is atomic, i.e., all writes become readable only after a close.
  */
 @NotThreadSafe
-public class AtomicFileOutputStream extends OutputStream implements UnderFileSystemOutputStream {
+public class AtomicFileOutputStream extends OutputStream implements ContentHashableOutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(AtomicFileOutputStream.class);
 
   private AtomicFileOutputStreamCallback mUfs;

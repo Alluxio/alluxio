@@ -11,7 +11,7 @@
 
 package alluxio.underfs.s3a;
 
-import alluxio.underfs.UnderFileSystemOutputStream;
+import alluxio.underfs.ContentHashableOutputStream;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -44,7 +44,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * multipart upload.
  */
 @NotThreadSafe
-public class S3AOutputStream extends OutputStream implements UnderFileSystemOutputStream {
+public class S3AOutputStream extends OutputStream implements ContentHashableOutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(S3AOutputStream.class);
 
   private final boolean mSseEnabled;

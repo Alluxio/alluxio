@@ -11,7 +11,7 @@
 
 package alluxio.underfs.gcs.v2;
 
-import alluxio.underfs.UnderFileSystemOutputStream;
+import alluxio.underfs.ContentHashableOutputStream;
 
 import com.google.cloud.WriteChannel;
 import com.google.cloud.storage.Blob;
@@ -40,7 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * to arrive in Alluxio worker.
  */
 @NotThreadSafe
-public final class GCSV2OutputStream extends OutputStream implements UnderFileSystemOutputStream {
+public final class GCSV2OutputStream extends OutputStream implements ContentHashableOutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(GCSV2OutputStream.class);
 
   /** Bucket name of the Alluxio GCS bucket. */

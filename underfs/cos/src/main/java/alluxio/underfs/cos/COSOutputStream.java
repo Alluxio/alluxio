@@ -11,7 +11,7 @@
 
 package alluxio.underfs.cos;
 
-import alluxio.underfs.UnderFileSystemOutputStream;
+import alluxio.underfs.ContentHashableOutputStream;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -44,7 +44,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * local disk and copied as a complete file when the {@link #close()} method is called.
  */
 @NotThreadSafe
-public final class COSOutputStream extends OutputStream implements UnderFileSystemOutputStream {
+public final class COSOutputStream extends OutputStream implements ContentHashableOutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(COSOutputStream.class);
 
   /** Bucket name of the Alluxio COS bucket. */

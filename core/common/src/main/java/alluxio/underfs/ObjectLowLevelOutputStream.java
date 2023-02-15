@@ -76,7 +76,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class ObjectLowLevelOutputStream extends OutputStream
-    implements UnderFileSystemOutputStream {
+    implements ContentHashableOutputStream {
   protected static final Logger LOG = LoggerFactory.getLogger(ObjectLowLevelOutputStream.class);
 
   protected final List<String> mTmpDirs;
