@@ -350,7 +350,7 @@ public final class S3RestServiceHandler {
         List<URIStatus> allChildren = new ArrayList<>();
         ListStatusPartialPOptions options = ListStatusPartialPOptions.newBuilder()
             .setStartAfter(startAfter)
-            .setBatchSize(maxKeys)
+            .setBatchSize(maxKeys + 1)
             .setOptions(ListStatusPOptions.newBuilder().setRecursive(true))
             .buildPartial();
         try {
@@ -375,23 +375,20 @@ public final class S3RestServiceHandler {
           children = partialResult.getListings();
 
           allChildren.addAll(children);
-
           ListBucketResult bucketResult =
               new ListBucketResult(bucket, allChildren, listBucketOptions);
           while ((bucketResult.getKeyCount() == null || bucketResult.getKeyCount() <= maxKeys)
-              && !children.isEmpty()) {
+              && !bucketResult.isTruncated() && !children.isEmpty()) {
             options = options.toBuilder()
                 .setStartAfter(children.get(children.size() - 1).getPath()).buildPartial();
             partialResult = userFs.listStatusPartial(new AlluxioURI(path), options);
             children = partialResult.getListings();
             allChildren.addAll(children);
             bucketResult = new ListBucketResult(bucket, allChildren, listBucketOptions);
-            if (bucketResult.isTruncated()) {
-              break;
-            }
           }
           return bucketResult;
         } catch (FileDoesNotExistException e) {
+          allChildren.clear();
           // Since we've called S3RestUtils.checkPathIsAlluxioDirectory() on the bucket path
           // already, this indicates that the prefix was unable to be found in the Alluxio FS
         } catch (IOException | AlluxioException e) {
