@@ -139,7 +139,10 @@ public abstract class AbstractClient implements Client {
     try {
       return mVersionService
           .getServiceVersion(
-              GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType()).build())
+              GetServiceVersionPRequest.newBuilder()
+                  .setServiceType(getRemoteServiceType())
+                  .setAllowedOnStandbyMasters(true)
+                  .build())
           .getVersion();
     } catch (Throwable t) {
       throw AlluxioStatusException.fromThrowable(t);

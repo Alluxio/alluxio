@@ -8487,6 +8487,11 @@
                 "id": 1,
                 "name": "serviceType",
                 "type": "ServiceType"
+              },
+              {
+                "id": 2,
+                "name": "allowedOnStandbyMasters",
+                "type": "bool"
               }
             ]
           },
