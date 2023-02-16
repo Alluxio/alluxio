@@ -104,7 +104,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 }
                 mTtlBuckets.remove(inode);
                 break;
-              case DELETE:// Default if not set is DELETE
+              case DELETE:
                 // public delete method will lock the path, and check WRITE permission required at
                 // parent of file
                 if (inode.isDirectory()) {
@@ -112,6 +112,19 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                       DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
                 } else {
                   mFileSystemMaster.delete(path, DeleteContext.defaults());
+                }
+                break;
+              case DELETE_ALLUXIO: // Default: DELETE_ALLUXIO
+                // public delete method will lock the path, and check WRITE permission required at
+                // parent of file
+                if (inode.isDirectory()) {
+                  mFileSystemMaster.delete(path,
+                          DeleteContext.mergeFrom(DeletePOptions.newBuilder()
+                                  .setRecursive(true).setAlluxioOnly(true)));
+                } else {
+                  mFileSystemMaster.delete(path,
+                          DeleteContext.mergeFrom(DeletePOptions.newBuilder()
+                                  .setAlluxioOnly(true)));
                 }
                 break;
               default:
