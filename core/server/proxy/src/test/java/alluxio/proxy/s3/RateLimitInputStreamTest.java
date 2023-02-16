@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -50,19 +51,22 @@ public class RateLimitInputStreamTest {
 
   @Test
   public void testSingleThreadRead() throws IOException {
-    long rate1 = 100 * KB;
-    long rate2 = 200 * KB;
-    ByteArrayInputStream inputStream = new ByteArrayInputStream(mData);
-    RateLimitInputStream rateLimitInputStream = new RateLimitInputStream(inputStream,
-        RateLimiter.create(rate1), RateLimiter.create(rate2));
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(MB);
-    long start = System.currentTimeMillis();
-    IOUtils.copy(rateLimitInputStream, byteArrayOutputStream, KB);
-    long end = System.currentTimeMillis();
-    long duration = end - start;
-    long expectedDuration = MB / Math.min(rate1, rate2) * 1000;
-    Assert.assertTrue(duration >= expectedDuration && duration <= expectedDuration + 1000);
-    Assert.assertArrayEquals(mData, byteArrayOutputStream.toByteArray());
+    Random random = new Random();
+    for (int i = 1; i <= 5; i++) {
+      long rate1 = (random.nextInt(4) + 1) * 100 * KB;
+      long rate2 = (random.nextInt(4) + 1) * 100 * KB;
+      ByteArrayInputStream inputStream = new ByteArrayInputStream(mData);
+      RateLimitInputStream rateLimitInputStream = new RateLimitInputStream(inputStream,
+          RateLimiter.create(rate1), RateLimiter.create(rate2));
+      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(MB);
+      long start = System.currentTimeMillis();
+      IOUtils.copy(rateLimitInputStream, byteArrayOutputStream, KB);
+      long end = System.currentTimeMillis();
+      long duration = end - start;
+      long expectedDuration = MB / Math.min(rate1, rate2) * 1000;
+      Assert.assertTrue(duration >= expectedDuration && duration <= expectedDuration + 1000);
+      Assert.assertArrayEquals(mData, byteArrayOutputStream.toByteArray());
+    }
   }
 
   private void testMultiThreadRead(long globalRate, long rate, int threadNum) {
