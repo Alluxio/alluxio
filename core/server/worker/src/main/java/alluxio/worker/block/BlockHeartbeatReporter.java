@@ -34,7 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * through {@link alluxio.worker.block.BlockWorker#commitBlock(long, long, boolean)}.
  */
 @ThreadSafe
-public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListener {
+public class BlockHeartbeatReporter extends AbstractBlockStoreEventListener {
   private static final Logger LOG = LoggerFactory.getLogger(BlockHeartbeatReporter.class);
 
   /** Lock for operations on the removed and added block collections. */
@@ -83,6 +83,17 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
       mRemovedBlocks.clear();
       mLostStorage.clear();
       return report;
+    }
+  }
+
+  /**
+   * Clears the internal states of the reporter.
+   */
+  public void clear() {
+    synchronized (mLock) {
+      mAddedBlocks.clear();
+      mRemovedBlocks.clear();
+      mLostStorage.clear();
     }
   }
 

@@ -51,6 +51,9 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
   private static final long ACQUIRE_LEASE_WAIT_MAX_DURATION =
       Configuration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
 
+  private final long mWorkerBlockHeartbeatReportCapacityThreshold =
+      Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_REPORT_CAPACITY_THRESHOLD);
+
   private final SocketAddress mMasterAddress;
 
   /**
@@ -127,6 +130,9 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
     while (retry.attempt()) {
       try {
         LOG.info("Registering with master {}", mMasterAddress);
+        // The content in the report can be cleared because registration will
+        // report these block information anyways.
+        mBlockHeartbeatReporter.clear();
         registerWithMasterInternal();
         LOG.info("Finished registration with {}", mMasterAddress);
         return;
@@ -146,7 +152,8 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
     // The target master is not necessarily the one that allocated the workerID
     LOG.info("Notify the master {} about the workerID {}", mMasterAddress, mWorkerId);
     mMasterClient.notifyWorkerId(mWorkerId.get(), mWorkerAddress);
-
+    // TODO(elega) If worker registration to all masters happens at the same time,
+    // this might cause OOM issue. Consider limiting the worker registration concurrency.
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
 
     try {
@@ -203,11 +210,18 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
         mLastSuccessfulHeartbeatMs = CommonUtils.getCurrentMs();
         break;
       } else {
-        mBlockHeartbeatReporter.mergeBack(report);
         LOG.warn(
             "Heartbeat failed, worker id {}, worker host {} # of attempts {}, last success ts {}",
             mWorkerId.get(), mWorkerAddress.getHost(), endlessRetry.getAttemptCount(),
             mLastSuccessfulHeartbeatMs);
+        if (report.getBlockCount() >= mWorkerBlockHeartbeatReportCapacityThreshold) {
+          // If the report becomes too big, merging it back to the reporter might cause OOM issue.
+          // We throw away the result and let the worker re-register with the master.
+          mWorkerState = WorkerMasterRegistrationState.NOT_REGISTERED;
+          return;
+        } else {
+          mBlockHeartbeatReporter.mergeBack(report);
+        }
       }
     }
   }

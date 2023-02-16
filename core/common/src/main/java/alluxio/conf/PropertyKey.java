@@ -4557,7 +4557,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-
+  public static final PropertyKey WORKER_BLOCK_HEARTBEAT_REPORT_CAPACITY_THRESHOLD =
+      intBuilder(Name.WORKER_BLOCK_HEARTBEAT_REPORT_CAPACITY_THRESHOLD)
+          .setDefaultValue(1_000_000)
+          .setDescription("To avoid OOM issue, in all master registration mode, "
+              + "after a failed worker-master block sync,"
+              + "if the block heartbeat report capacity exceeds a threshold, "
+              + "the worker will clear the reporter and set the worker state unregistered, "
+              + "so that the heartbeat thread can trigger a registration again.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_PAGE_STORE_ASYNC_RESTORE_ENABLED =
       booleanBuilder(Name.WORKER_PAGE_STORE_ASYNC_RESTORE_ENABLED)
           .setDefaultValue(true)
@@ -8304,6 +8314,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.remote.io.slow.threshold";
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
         "alluxio.worker.block.master.client.pool.size";
+    public static final String WORKER_BLOCK_HEARTBEAT_REPORT_CAPACITY_THRESHOLD =
+        "alluxio.worker.block.heartbeat.reporter.capacity.threshold";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_PAGE_STORE_ASYNC_RESTORE_ENABLED =
         "alluxio.worker.page.store.async.restore.enabled";

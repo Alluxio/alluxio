@@ -381,7 +381,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    */
   public void notifyWorkerId(long workerId, WorkerNetAddress address) throws IOException {
     retryRPC(() -> {
-      LOG.info("Adding workerID to master {} with workerId {}, workerAddress {}",
+      LOG.info("Notifying workerID to master {} with workerId {}, workerAddress {}",
           mServerAddress,
           workerId,
           address);

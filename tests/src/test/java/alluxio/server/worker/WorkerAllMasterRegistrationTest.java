@@ -62,7 +62,7 @@ public class WorkerAllMasterRegistrationTest {
   private final int mNumMasters = 3;
   private final int mNumWorkers = 1;
 
-  private WaitForOptions mDefaultWaitForOptions = WaitForOptions.defaults().setTimeoutMs(20000);
+  private WaitForOptions mDefaultWaitForOptions = WaitForOptions.defaults().setTimeoutMs(30000);
 
   @Before
   public void before() throws Exception {
@@ -75,6 +75,12 @@ public class WorkerAllMasterRegistrationTest {
     Configuration.set(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS, true);
     Configuration.set(PropertyKey.STANDBY_MASTER_GRPC_ENABLED, true);
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE);
+    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_REPORT_CAPACITY_THRESHOLD, 5);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "30sec");
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT, "10sec");
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "3s");
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "6s");
+
     mCluster.start();
 
     mWorker = (AllMasterRegistrationBlockWorker)
@@ -220,7 +226,7 @@ public class WorkerAllMasterRegistrationTest {
     // Kill the master and let the failover happen
     int leaderId = mCluster.getLeaderIndex();
     mCluster.stopLeader();
-    mCluster.waitForPrimaryMasterServing(5000);
+    mCluster.waitForPrimaryMasterServing(10000);
     assertNotEquals(mCluster.getLeaderIndex(), leaderId);
 
     fis = mCluster.getClient().openFile(fileUri);
@@ -264,6 +270,88 @@ public class WorkerAllMasterRegistrationTest {
 
     fis = mCluster.getClient().openFile(fileUri);
     assertEquals(fileContent, IOUtils.toString(fis, Charset.defaultCharset()));
+  }
+
+  /**
+   * Tests the worker can re-register with masters if its heartbeat failed too many times.
+   * The registration is used to address OOM issue.
+   */
+  @Test
+  public void blockHeartbeatReportOOM() throws Exception {
+    CommonUtils.waitFor("wait for worker registration complete", () ->
+        mWorker.getBlockSyncMasterGroup().isRegisteredToAllMasters(), mDefaultWaitForOptions);
+
+    // Create a test file whose block will be removed later
+    AlluxioURI testFileUri = new AlluxioURI("/foo");
+    FileOutStream fos = mCluster.getLocalAlluxioMaster().getClient().createFile(
+        new AlluxioURI("/foo"));
+    fos.write("foo".getBytes());
+    fos.close();
+    List<BlockLocationInfo> blockLocations =
+        mCluster.getClient().getBlockLocations(testFileUri);
+    long testFileBlockId = blockLocations.get(0).getBlockInfo().getBlockInfo().getBlockId();
+
+    List<Long> blockIdsToRemove = new ArrayList<>();
+    int numFiles = 10;
+    // Create 10 files and corresponding 10 blocks.
+    // These blocks are added to standby masters by journals.
+    for (int i = 0; i < numFiles; ++i) {
+      AlluxioURI fileUri = new AlluxioURI("/" + i);
+      fos = mCluster.getLocalAlluxioMaster().getClient().createFile(
+          fileUri);
+      fos.write("foo".getBytes());
+      fos.close();
+      blockLocations = mCluster.getClient().getBlockLocations(fileUri);
+      long blockId = blockLocations.get(0).getBlockInfo().getBlockInfo().getBlockId();
+      blockIdsToRemove.add(blockId);
+    }
+
+    // Make heartbeat return fail
+    getBlockSyncOperators().values().forEach(TestSpecificMasterBlockSync::failHeartbeat);
+
+    // Removing the blocks for these 10 files,
+    // heartbeat report containing these blocks will be generated during the heartbeat.
+    // However, the heartbeat RPC to master will not succeed because
+    // we made the heartbeat fail.
+    // So the heartbeat report will become larger and larger as we merge the report
+    // back to the reporter on RPC failures.
+    Thread fileGenerationThread = new Thread(() -> {
+      for (long blockId: blockIdsToRemove) {
+        try {
+          mWorker.removeBlock(0, blockId);
+          Thread.sleep(500);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
+    fileGenerationThread.start();
+
+    // Registration should trigger after heartbeat throws exceptions,
+    // because the heartbeat report contains too many block ids and exceeds the
+    // WORKER_BLOCK_HEARTBEAT_REPORT_CAPACITY_THRESHOLD and
+    // the worker will trigger re-registration.
+    CommonUtils.waitFor("wait for re-registration sending the block location info",
+        () -> getBlockSyncOperators().values().stream()
+            .allMatch(it -> it.getRegistrationSuccessCount() >= 2),
+        WaitForOptions.defaults().setTimeoutMs(60000));
+
+    // Remove one block and resume the heartbeats,
+    // and make sure all blocks are propagated to all masters after heartbeat resumes;
+    fileGenerationThread.join();
+    getBlockSyncOperators().values().forEach(TestSpecificMasterBlockSync::restoreHeartbeat);
+    mWorker.removeBlock(1, testFileBlockId);
+
+    // We have removed the test block id + 10 other block ids,
+    // so the block meta store should not contain any block location
+    blockIdsToRemove.add(testFileBlockId);
+    CommonUtils.waitFor("wait for blocks propagated to masters by heartbeats",
+        () -> mBlockMasters.stream()
+            .allMatch(it ->
+                blockIdsToRemove.stream()
+                    .allMatch(blockId -> it.getBlockMetaStore().getLocations(blockId).size() == 0)
+            ),
+        mDefaultWaitForOptions);
   }
 
   private Map<InetSocketAddress, TestSpecificMasterBlockSync> getBlockSyncOperators() {

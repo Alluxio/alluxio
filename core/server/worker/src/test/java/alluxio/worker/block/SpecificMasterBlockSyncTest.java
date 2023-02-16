@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -38,6 +39,7 @@ import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class SpecificMasterBlockSyncTest {
@@ -46,12 +48,17 @@ public class SpecificMasterBlockSyncTest {
 
   @Test
   public void heartbeatThread() throws Exception {
+    int heartbeatReportCapacityThreshold = 3;
+    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_REPORT_CAPACITY_THRESHOLD,
+        heartbeatReportCapacityThreshold);
+    BlockHeartbeatReporter blockHeartbeatReporter = new TestBlockHeartbeatReporter();
+
     // Flaky registration succeeds every other time.
     TestBlockMasterClient.INSTANCE.setFlakyRegistration(true);
     TestBlockMasterClient.INSTANCE.setReturnRegisterCommand(false);
 
     SpecificMasterBlockSync sync = new SpecificMasterBlockSync(
-        getMockedBlockWorker(), TestBlockMasterClient.INSTANCE, new BlockHeartbeatReporter()
+        getMockedBlockWorker(), TestBlockMasterClient.INSTANCE, blockHeartbeatReporter
     );
     assertFalse(sync.isRegistered());
 
@@ -76,8 +83,36 @@ public class SpecificMasterBlockSyncTest {
     sync.heartbeat();
     assertTrue(sync.isRegistered());
 
+    // TestBlockHeartbeatReporter generates the report with one more removed block id each time.
+    // The heartbeat should retry 3 times before it succeeds because
+    // heartbeatReportCapacityThreshold is 3.
+    TestBlockMasterClient.INSTANCE.mHeartbeatCallCount = 0;
+    TestBlockMasterClient.INSTANCE.setHeartbeatError(true);
+    sync.heartbeat();
+    assertFalse(sync.isRegistered());
+    assertEquals(
+        heartbeatReportCapacityThreshold, TestBlockMasterClient.INSTANCE.mHeartbeatCallCount);
+
+    // registration should happen on the next heartbeat and the reporter should be cleared,
+    // except the newly generated ones.
+    TestBlockMasterClient.INSTANCE.setHeartbeatError(false);
+    sync.heartbeat();
+    assertTrue(sync.isRegistered());
+    assertEquals(1, blockHeartbeatReporter.generateReportAndClear().getBlockCount());
+
     assertTrue(TestBlockMasterClient.INSTANCE.mRegisterCalled);
     assertTrue(TestBlockMasterClient.INSTANCE.mRegisterWithStreamCalled);
+  }
+
+  private static class TestBlockHeartbeatReporter extends BlockHeartbeatReporter {
+    AtomicInteger mId = new AtomicInteger(0);
+
+    @Override
+    public BlockHeartbeatReport generateReportAndClear() {
+      // On generation, add one block each time.
+      onRemoveBlockByWorker(mId.incrementAndGet());
+      return super.generateReportAndClear();
+    }
   }
 
   private static class TestBlockMasterClient extends BlockMasterClient {
@@ -86,10 +121,12 @@ public class SpecificMasterBlockSyncTest {
     private boolean mLastRegisterSuccess = true;
     private boolean mFlakyRegistration = false;
     private boolean mReturnRegisterCommand = false;
+    private boolean mHeartbeatFailed = false;
 
     private boolean mRegisterCalled = false;
 
     private boolean mRegisterWithStreamCalled = false;
+    private int mHeartbeatCallCount = 0;
 
     public void setFlakyRegistration(boolean value) {
       mFlakyRegistration = value;
@@ -97,6 +134,10 @@ public class SpecificMasterBlockSyncTest {
 
     public void setReturnRegisterCommand(boolean value) {
       mReturnRegisterCommand = value;
+    }
+
+    public void setHeartbeatError(boolean value) {
+      mHeartbeatFailed = value;
     }
 
     public TestBlockMasterClient() {
@@ -153,6 +194,10 @@ public class SpecificMasterBlockSyncTest {
         Map<BlockStoreLocation, List<Long>> addedBlocks,
         Map<String, List<String>> lostStorage,
         List<Metric> metrics) throws IOException {
+      mHeartbeatCallCount++;
+      if (mHeartbeatFailed) {
+        throw new IOException("heartbeat failed");
+      }
       if (mReturnRegisterCommand) {
         return Command.newBuilder().setCommandType(CommandType.Register).build();
       }
@@ -195,7 +240,7 @@ public class SpecificMasterBlockSyncTest {
         .thenReturn(new BlockHeartbeatReport(Collections.emptyMap(),
         Collections.emptyList(), Collections.emptyMap()));
     Mockito.when(blockWorker.getWorkerAddress())
-        .thenReturn(null);
+        .thenReturn(new WorkerNetAddress());
     Mockito.when(blockWorker.getWorkerId())
         .thenReturn(new AtomicReference<>(0L));
     return blockWorker;
