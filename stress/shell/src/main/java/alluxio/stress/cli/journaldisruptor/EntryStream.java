@@ -6,7 +6,7 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * the abstract class of EntryStream, can be implemented for both Ufs Journal and Raft Journal
+ * the abstract class of EntryStream, can be implemented for both Ufs Journal and Raft Journal.
  * Has two method, nextEntry will return next Alluxio entry
  * null when the stream comes the end. Close is decoration, do nothing now.
  */

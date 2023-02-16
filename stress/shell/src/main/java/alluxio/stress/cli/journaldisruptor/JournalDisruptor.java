@@ -3,7 +3,7 @@ package alluxio.stress.cli.journaldisruptor;
 import alluxio.proto.journal.Journal;
 
 /**
- * Disruptor should be like a gun, the EntryStream like the magazine, and the entry like bullet
+ * Disruptor should be like a gun, the EntryStream like the magazine, and the entry like bullet.
  */
 public class JournalDisruptor {
   long mDisruptStep;
@@ -15,6 +15,12 @@ public class JournalDisruptor {
   boolean mHoldFlag;
   long mHoldEntrySequenceNumber;
 
+  /**
+   * init a JournalDisruptor.
+   * @param reader
+   * @param step
+   * @param type
+   */
   public JournalDisruptor(JournalReader reader, long step, int type) {
     mReader = reader;
     mDisruptStep = step;
@@ -27,7 +33,7 @@ public class JournalDisruptor {
    * The journal tool should lay down after call the Disrupt()
    * Here will read, disrupt, and write
    *
-   * TODO: add writer to Disruptor inorder to complete the Disrupt()
+   * TODO(voddle): add writer to Disruptor inorder to complete the Disrupt()
    */
   public void Disrupt() {
     Journal.JournalEntry entry;
@@ -38,11 +44,12 @@ public class JournalDisruptor {
   }
 
   /**
-   * Here ought to do the order disruption
+   * Here ought to do the order disruption.
    *
    * Hold entry if the entry is target type, and return next type
    * If it comes to the end of the Stream, return the hold entry (could be null)
-   * @return
+   *
+   * @return return next Alluxio journal entry
    */
   public Journal.JournalEntry nextEntry() {
     if (mHoldFlag && mStepCounter == 0) {
@@ -71,21 +78,21 @@ public class JournalDisruptor {
   }
 
   /**
-   * Temporary nextEntry(), inside define the disrupt action
+   * Temporary nextEntry(), inside define the disrupt action.
    * @return JournalEntry in target order
    */
   public Journal.JournalEntry test() {
     if ((mEntry = mReader.nextEntry()) != null) {
       if (targetEntry(mEntry)) {
-        // return mEntry.toBuilder().setUpdateInode(File.UpdateInodeEntry.newBuilder().setId(BlockId.createBlockId(mEntry.getUpdateInode().getId()+100, BlockId.getMaxSequenceNumber())).build()).build();
-        return mEntry.toBuilder().setUpdateInode(mEntry.getUpdateInode().toBuilder().setId(mEntry.getUpdateInode().getId()+100).build()).build();
+        return mEntry.toBuilder().setUpdateInode(mEntry.getUpdateInode().toBuilder()
+            .setId(mEntry.getUpdateInode().getId() + 100).build()).build();
       }
     }
     return mEntry;
   }
 
   /**
-   * the targetEntry can only handle the hard coded entry type below
+   * the targetEntry can only handle the hard coded entry type below.
    * @param entry
    * @return true if the given entry has the target entry type
    */
@@ -131,10 +138,10 @@ public class JournalDisruptor {
   }
 
   /**
-   * TODO: need writer
+   * the write function of the JournalDisruptor.
+   *
+   * TODO(voddle): need writer
    * @param entry
    */
-  private void writeEntry(Journal.JournalEntry entry) {
-
-  }
+  private void writeEntry(Journal.JournalEntry entry) {}
 }
