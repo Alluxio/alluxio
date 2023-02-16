@@ -15,9 +15,13 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
+import alluxio.ConfigurationRule;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
+import com.google.common.collect.ImmutableMap;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -27,6 +31,11 @@ import java.net.SocketException;
 
 public class ObjectUnderFileSystemTest {
   private static final AlluxioConfiguration CONF = Configuration.global();
+
+  @Rule
+  public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap.of(
+      PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM, 20),
+      Configuration.modifiableGlobal());
 
   private ObjectUnderFileSystem mObjectUFS = new MockObjectUnderFileSystem(new AlluxioURI("/"),
       UnderFileSystemConfiguration.defaults(CONF));

@@ -1286,12 +1286,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM =
       intBuilder(Name.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM)
-          .setDefaultValue(20)
+          .setDefaultValue(0)
           .setDescription("To handle eventually consistent storage semantics "
               + "for certain under storages, Alluxio will perform retries "
               + "when under storage metadata doesn't match Alluxio's expectations. "
               + "These retries use exponential backoff. "
-              + "This property determines the maximum number of retries.")
+              + "This property determines the maximum number of retries. "
+              + "This property defaults to 0 as modern object store UFSs provide strong "
+              + "consistency.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
