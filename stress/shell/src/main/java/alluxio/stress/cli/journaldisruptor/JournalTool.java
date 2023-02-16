@@ -1,9 +1,8 @@
-package alluxio.stress.cli.journalTool;
+package alluxio.stress.cli.journaldisruptor;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.JournalClosedException;
-import alluxio.master.journal.JournalType;
 import alluxio.master.journal.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry ;
 import alluxio.util.io.PathUtils;

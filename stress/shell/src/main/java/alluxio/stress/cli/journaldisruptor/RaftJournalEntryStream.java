@@ -1,30 +1,23 @@
-package alluxio.stress.cli.journalTool;
+package alluxio.stress.cli.journaldisruptor;
 
 import alluxio.master.journal.JournalEntryStreamReader;
 import alluxio.proto.journal.Journal;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.raft.RaftJournalUtils;
-import alluxio.util.proto.ProtoUtils;
 
 // import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.ratis.proto.RaftProtos;
 import org.apache.ratis.server.RaftServerConfigKeys;
-import org.apache.ratis.server.raftlog.segmented.LogSegment;
 import org.apache.ratis.server.raftlog.segmented.LogSegmentPath;
 import org.apache.ratis.server.raftlog.segmented.SegmentedRaftLogInputStream;
 import org.apache.ratis.server.storage.RaftStorage;
 import org.apache.ratis.server.storage.StorageImplUtils;
-import org.apache.ratis.thirdparty.com.google.protobuf.Descriptors;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class RaftJournalEntryStream extends EntryStream {
 

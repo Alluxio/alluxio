@@ -1,10 +1,9 @@
-package alluxio.stress.cli.journalTool;
+package alluxio.stress.cli.journaldisruptor;
 
 import alluxio.AlluxioURI;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.ufs.UfsJournal;
-import alluxio.master.journal.ufs.UfsJournalFile;
 import alluxio.master.journal.ufs.UfsJournalReader;
 import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.proto.journal.Journal;

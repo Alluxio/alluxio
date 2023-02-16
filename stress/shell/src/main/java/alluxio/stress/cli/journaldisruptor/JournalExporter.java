@@ -1,4 +1,4 @@
-package alluxio.stress.cli.journalTool;
+package alluxio.stress.cli.journaldisruptor;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
@@ -7,46 +7,18 @@ import alluxio.master.NoopMaster;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.noop.NoopJournalSystem;
-import alluxio.master.journal.raft.JournalStateMachine;
-import alluxio.master.journal.raft.RaftJournal;
-import alluxio.master.journal.raft.RaftJournalAppender;
 import alluxio.master.journal.raft.RaftJournalSystem;
-import alluxio.master.journal.raft.RaftJournalUtils;
-import alluxio.master.journal.raft.RaftJournalWriter;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalLogWriter;
-import alluxio.master.journal.ufs.UfsJournalReader;
-import alluxio.master.journal.ufs.UfsJournalSystem;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
-import org.apache.ratis.client.RaftClient;
-import org.apache.ratis.client.RaftClientConfigKeys;
-import org.apache.ratis.conf.Parameters;
-import org.apache.ratis.conf.RaftProperties;
-import org.apache.ratis.protocol.ClientId;
 import org.apache.ratis.protocol.RaftGroup;
-import org.apache.ratis.protocol.RaftGroupId;
-import org.apache.ratis.protocol.RaftPeer;
-import org.apache.ratis.retry.ExponentialBackoffRetry;
-import org.apache.ratis.retry.RetryPolicy;
-import org.apache.ratis.server.RaftServer;
-import org.apache.ratis.util.TimeDuration;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Member;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 
 public class JournalExporter {

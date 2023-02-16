@@ -1,11 +1,8 @@
-package alluxio.stress.cli.journalTool;
+package alluxio.stress.cli.journaldisruptor;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
-import alluxio.master.journal.tool.AbstractJournalDumper;
-import alluxio.master.journal.tool.UfsJournalDumper;
-import alluxio.master.journal.tool.RaftJournalDumper;
 import alluxio.proto.journal.Journal;
 
 /**

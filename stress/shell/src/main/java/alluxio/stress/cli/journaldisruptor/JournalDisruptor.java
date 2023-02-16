@@ -1,7 +1,5 @@
-package alluxio.stress.cli.journalTool;
+package alluxio.stress.cli.journaldisruptor;
 
-import alluxio.master.block.BlockId;
-import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 
 /**
