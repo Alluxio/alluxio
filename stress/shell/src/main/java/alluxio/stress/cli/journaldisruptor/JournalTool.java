@@ -4,7 +4,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.JournalClosedException;
 import alluxio.master.journal.JournalWriter;
-import alluxio.proto.journal.Journal.JournalEntry ;
+import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -19,6 +19,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
+/**
+ * JournalTool (Journal Disruptor).
+ */
 public class JournalTool {
 
   private static final String HELP_OPTION_NAME = "help";
@@ -51,6 +54,10 @@ public class JournalTool {
   private static long sEnd;
   private static String sOutputDir;
 
+  /**
+   * the main method.
+   * @param args
+   */
   public static void main(String[] args) {
     if (!parseInputArgs(args)) {
       System.exit(-1);
@@ -63,7 +70,7 @@ public class JournalTool {
     System.exit(0);
   }
 
-   private static boolean parseInputArgs(String[] args) {
+  private static boolean parseInputArgs(String[] args) {
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd;
     try {
@@ -104,7 +111,8 @@ public class JournalTool {
     JournalReader reader = new JournalReader(sMaster, sStart, sEnd, sInputDir);
     JournalDisruptor disruptor = new JournalDisruptor(reader, 3, 6);
     String outputfile = PathUtils.concatPath(sOutputDir, "test.txt");
-    try (PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputfile)))) {
+    try (PrintStream out = new PrintStream(new BufferedOutputStream(
+        new FileOutputStream(outputfile)))) {
       ex = new JournalExporter(sOutputDir, sMaster, sStart);
       writer = ex.getWriter();
       // this loop is use used to go through the journal entries
@@ -141,6 +149,9 @@ public class JournalTool {
     }
   }
 
+  /**
+   * the actually main action.
+   */
   public static void mainInternal() {
     JournalExporter ex;
     JournalWriter writer;
@@ -148,7 +159,8 @@ public class JournalTool {
     JournalDisruptor disruptor = new JournalDisruptor(reader, 3, 6);
     String outputfile = PathUtils.concatPath(sOutputDir, "test.txt");
 
-    try (PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputfile)))) {
+    try (PrintStream out = new PrintStream(new BufferedOutputStream(
+        new FileOutputStream(outputfile)))) {
       ex = new JournalExporter(sOutputDir, sMaster, sStart);
       writer = ex.getWriter();
       JournalEntry entry;
