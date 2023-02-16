@@ -89,6 +89,7 @@ message ConfigProperty {
 enum TtlAction {
   DELETE = 0; // Delete the file after TTL expires.
   FREE = 1;   // Free the file after TTL expires.
+  DELETE_ALLUXIO = 2; // Delete the data and metadata in Alluxio after TTL expires.
 }
 
 message Command {
