@@ -50,26 +50,22 @@ public class RateLimitInputStreamTest {
 
   @Test
   public void testSingleThreadRead() throws IOException {
-    long rate = 100 * KB;
-    long globalRate = 200 * KB;
+    long rate1 = 100 * KB;
+    long rate2 = 200 * KB;
     ByteArrayInputStream inputStream = new ByteArrayInputStream(mData);
     RateLimitInputStream rateLimitInputStream = new RateLimitInputStream(inputStream,
-        RateLimiter.create(rate), RateLimiter.create(globalRate));
+        RateLimiter.create(rate1), RateLimiter.create(rate2));
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(MB);
     long start = System.currentTimeMillis();
     IOUtils.copy(rateLimitInputStream, byteArrayOutputStream, KB);
     long end = System.currentTimeMillis();
     long duration = end - start;
-    long expectedDuration = MB / rate * 1000;
+    long expectedDuration = MB / Math.min(rate1, rate2) * 1000;
     Assert.assertTrue(duration >= expectedDuration && duration <= expectedDuration + 1000);
     Assert.assertArrayEquals(mData, byteArrayOutputStream.toByteArray());
   }
 
-  @Test
-  public void testMultiThreadRead() {
-    int threadNum = 3;
-    long rate = 100 * KB;
-    long globalRate = 200 * KB;
+  private void testMultiThreadRead(long globalRate, long rate, int threadNum) {
     long totalSize = (long) threadNum * mData.length;
     RateLimiter globalRateLimiter = RateLimiter.create(globalRate);
     ExecutorService threadPool = Executors.newFixedThreadPool(threadNum);
@@ -100,8 +96,18 @@ public class RateLimitInputStreamTest {
     }
     long end = System.currentTimeMillis();
     long duration = end - start;
-    long expectedDuration = totalSize / globalRate * 1000;
+    long expectedDuration = totalSize / Math.min(globalRate, (long) threadNum * rate) * 1000;
     Assert.assertTrue(duration >= expectedDuration && duration <= expectedDuration + 1000);
     results.forEach(bytes -> Assert.assertArrayEquals(mData, bytes));
+  }
+
+  @Test
+  public void testMultiThreadReadWithBiggerGlobalRate() {
+    testMultiThreadRead(400 * KB, 100 * KB, 3);
+  }
+
+  @Test
+  public void testMultiThreadReadWithSmallerGlobalRate() {
+    testMultiThreadRead(100 * KB, 200 * KB, 3);
   }
 }
