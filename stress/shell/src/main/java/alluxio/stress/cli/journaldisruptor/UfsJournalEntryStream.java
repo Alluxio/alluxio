@@ -11,30 +11,40 @@ import alluxio.proto.journal.Journal;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+/**
+ * Ufs version of EntryStream.
+ */
 public class UfsJournalEntryStream extends EntryStream {
-  private boolean done = false;
-  private UfsJournal journal;
-  private JournalReader reader;
+  private UfsJournal mJournal;
+  private JournalReader mReader;
 
+  /**
+   * init UfsJournalEntryStream.
+   * @param master
+   * @param start
+   * @param end
+   * @param inputDir
+   */
   public UfsJournalEntryStream(String master, long start, long end, String inputDir) {
     super(master, start, end, inputDir);
-    journal = new UfsJournalSystem(getJournalLocation(mInputDir), 0).createJournal(new NoopMaster(mMaster));
-    reader = new UfsJournalReader(journal, mStart, true);
-    System.out.println(journal);
+    mJournal = new UfsJournalSystem(
+        getJournalLocation(mInputDir), 0).createJournal(new NoopMaster(mMaster));
+    mReader = new UfsJournalReader(mJournal, mStart, true);
+    System.out.println(mJournal);
     System.out.println(getJournalLocation(mInputDir));
   }
 
   @Override
   public Journal.JournalEntry nextEntry() {
-    if (reader.getNextSequenceNumber() < mEnd) {
-      try{
-        JournalReader.State state = reader.advance();
+    if (mReader.getNextSequenceNumber() < mEnd) {
+      try {
+        JournalReader.State state = mReader.advance();
         switch (state) {
           case CHECKPOINT:
             // for now don't want to work with checkpoint now
             break;
           case LOG:
-            return reader.getEntry();
+            return mReader.getEntry();
           case DONE:
             return null;
           default:
