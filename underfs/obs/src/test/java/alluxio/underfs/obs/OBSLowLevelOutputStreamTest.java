@@ -11,6 +11,8 @@
 
 package alluxio.underfs.obs;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -92,6 +94,8 @@ public class OBSLowLevelOutputStreamTest {
         .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
     Mockito.verify(mMockObsClient, never())
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
+    assertTrue(mStream.getContentHash().isPresent());
+    assertEquals("putTag", mStream.getContentHash().get());
   }
 
   @Test
@@ -109,14 +113,17 @@ public class OBSLowLevelOutputStreamTest {
         .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
     Mockito.verify(mMockObsClient, never())
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
+    assertTrue(mStream.getContentHash().isPresent());
+    assertEquals("putTag", mStream.getContentHash().get());
   }
 
   @Test
   public void writeByteArrayForLargeFile() throws Exception {
     int partSize = (int) FormatUtils.parseSpaceSize(PARTITION_SIZE);
     byte[] b = new byte[partSize + 1];
-
+    assertEquals(mStream.getPartNumber(), 1);
     mStream.write(b, 0, b.length);
+    assertEquals(mStream.getPartNumber(), 2);
     Mockito.verify(mMockObsClient)
         .initiateMultipartUpload(any(InitiateMultipartUploadRequest.class));
     Mockito.verify(mMockOutputStream).write(b, 0, b.length - 1);
@@ -124,8 +131,11 @@ public class OBSLowLevelOutputStreamTest {
     Mockito.verify(mMockExecutor).submit(any(Callable.class));
 
     mStream.close();
+    assertEquals(mStream.getPartNumber(), 3);
     Mockito.verify(mMockObsClient)
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
+    assertTrue(mStream.getContentHash().isPresent());
+    assertEquals("multiTag", mStream.getContentHash().get());
   }
 
   @Test
@@ -137,6 +147,8 @@ public class OBSLowLevelOutputStreamTest {
     Mockito.verify(mMockObsClient, never())
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
     Mockito.verify(mMockObsClient).putObject(any());
+    assertTrue(mStream.getContentHash().isPresent());
+    assertEquals("putTag", mStream.getContentHash().get());
   }
 
   @Test
@@ -158,6 +170,8 @@ public class OBSLowLevelOutputStreamTest {
     mStream.close();
     Mockito.verify(mMockObsClient)
         .completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
+    assertTrue(mStream.getContentHash().isPresent());
+    assertEquals("multiTag", mStream.getContentHash().get());
   }
 
   @Test
@@ -180,7 +194,8 @@ public class OBSLowLevelOutputStreamTest {
     when(mMockObsClient.initiateMultipartUpload(any(InitiateMultipartUploadRequest.class)))
         .thenReturn(initResult);
     when(mMockObsClient.putObject(any(PutObjectRequest.class)))
-        .thenReturn(new PutObjectResult(BUCKET_NAME, KEY, "", "", "", new HashMap<>(), 200));
+        .thenReturn(new PutObjectResult(BUCKET_NAME, KEY, "putTag", "", "", new HashMap<>(),
+            200));
 
     when(mMockObsClient.uploadPart(any(UploadPartRequest.class)))
         .thenAnswer((InvocationOnMock invocation) -> {
@@ -191,7 +206,7 @@ public class OBSLowLevelOutputStreamTest {
         });
 
     when(mMockObsClient.completeMultipartUpload(any(CompleteMultipartUploadRequest.class)))
-        .thenReturn(new CompleteMultipartUploadResult(BUCKET_NAME, KEY, "", "", "", ""));
+        .thenReturn(new CompleteMultipartUploadResult(BUCKET_NAME, KEY, "multiTag", "", "", ""));
 
     mMockTag = (ListenableFuture<PartEtag>) PowerMockito.mock(ListenableFuture.class);
     when(mMockTag.get()).thenReturn(new PartEtag("someTag", 1));
