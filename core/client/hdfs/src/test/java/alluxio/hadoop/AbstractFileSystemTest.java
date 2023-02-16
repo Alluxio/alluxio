@@ -406,12 +406,15 @@ public class AbstractFileSystemTest {
     Path path = new Path("/dir");
     alluxio.client.file.FileSystem alluxioFs =
         mock(alluxio.client.file.FileSystem.class);
+    FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
+    URI uri = URI.create(Constants.HEADER + "host:1");
+    alluxioHadoopFs.initialize(uri, getConf());
     ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
-        .setNoNeedUseMountInfo(true).build();
+        .setNoNeedUseMountInfo(alluxioHadoopFs.mAlluxioConf.getBoolean(
+            PropertyKey.USER_HDFS_LISTSTATUS_MOUNTINFO_DISABLE)).build();
     when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
         listStatusPOptions))
         .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
-    FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
 
     FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
     assertFileInfoEqualsFileStatus(fileInfo1, fileStatuses[0]);
@@ -429,12 +432,15 @@ public class AbstractFileSystemTest {
     try {
       Path path = new Path("/ALLUXIO-2036");
       alluxio.client.file.FileSystem alluxioFs = mock(alluxio.client.file.FileSystem.class);
+      alluxioHadoopFs = new FileSystem(alluxioFs);
+      URI uri = URI.create(Constants.HEADER + "host:1");
+      alluxioHadoopFs.initialize(uri, getConf());
       ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
-          .setNoNeedUseMountInfo(true).build();
+          .setNoNeedUseMountInfo(alluxioHadoopFs.mAlluxioConf.getBoolean(
+              PropertyKey.USER_HDFS_LISTSTATUS_MOUNTINFO_DISABLE)).build();
       when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
           listStatusPOptions))
           .thenThrow(new FileNotFoundException("ALLUXIO-2036 not Found"));
-      alluxioHadoopFs = new FileSystem(alluxioFs);
       FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
       // if we reach here, FileNotFoundException is not thrown hence Fail the test case
       assertTrue(false);
