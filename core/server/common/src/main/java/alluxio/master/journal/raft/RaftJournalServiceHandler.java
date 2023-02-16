@@ -87,7 +87,7 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
         metadata.setExists(true)
             .setSnapshotTerm(snapshot.getTerm())
             .setSnapshotIndex(snapshot.getIndex())
-            .addAllFileMetadataList(fileMetadata);
+            .addAllFilesMetadata(fileMetadata);
       }
       responseObserver.onNext(metadata.build());
       responseObserver.onCompleted();

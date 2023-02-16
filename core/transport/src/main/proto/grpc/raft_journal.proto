@@ -38,7 +38,7 @@ message SnapshotMetadata {
   optional int64 snapshotTerm = 1;
   optional int64 snapshotIndex = 2;
   required bool exists = 3;
-  repeated FileMetadata fileMetadataList = 4;
+  repeated FileMetadata filesMetadata = 4;
 }
 
 message FileMetadata {

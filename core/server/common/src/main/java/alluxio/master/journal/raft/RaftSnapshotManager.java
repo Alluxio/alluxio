@@ -127,7 +127,7 @@ public class RaftSnapshotManager {
       MasterSelectionPolicy policy = MasterSelectionPolicy.Factory.specifiedMaster(address);
       try (RaftJournalServiceClient client = new RaftJournalServiceClient(policy)) {
         client.connect();
-        List<FileMetadata> metadataList = snapshotMetadata.getFileMetadataListList();
+        List<FileMetadata> metadataList = snapshotMetadata.getFilesMetadataList();
         LOG.debug("Downloading {} snapshot files from {}", metadataList.size(), address);
         for (int i = 0; i < metadataList.size(); i++) {
           FileMetadata fileMetadata = metadataList.get(i);
@@ -167,7 +167,7 @@ public class RaftSnapshotManager {
     Iterator<SnapshotData> data = client.downloadLatestSnapshot(request);
     try (OutputStream out = Files.newOutputStream(file.toPath())) {
       while (data.hasNext()) {
-        out.write(data.next().toByteArray());
+        out.write(data.next().getChunk().toByteArray());
       }
     }
   }
