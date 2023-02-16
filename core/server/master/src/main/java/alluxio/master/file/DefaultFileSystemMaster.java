@@ -1576,10 +1576,13 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Retrieve the UFS fingerprint for this file.
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       AlluxioURI resolvedUri = resolution.getUri();
+      String ufsPath = resolvedUri.toString();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
         if (ufsStatus == null) {
-          ufsFingerprint = ufs.getParsedFingerprint(resolvedUri.toString()).serialize();
+          String contentHash = context.getOptions().hasContentHash()
+              ? context.getOptions().getContentHash() : null;
+          ufsFingerprint = ufs.getParsedFingerprint(ufsPath, contentHash).serialize();
         } else {
           ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
         }

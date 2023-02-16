@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -120,6 +121,11 @@ public final class LocalFileDataWriter implements DataWriter {
   @Override
   public int chunkSize() {
     return (int) mChunkSize;
+  }
+
+  @Override
+  public Optional<String> getUfsContentHash() {
+    return Optional.empty();
   }
 
   @Override
