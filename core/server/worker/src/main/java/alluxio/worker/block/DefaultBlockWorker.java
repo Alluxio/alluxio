@@ -138,8 +138,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
       AtomicReference<Long> workerId) {
-    super(ExecutorServiceFactories.fixedThreadPool("block-worker-executor",
-        Configuration.getBoolean(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS) ? 10 : 5));
+    super(
+        Configuration.getBoolean(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS)
+            ? ExecutorServiceFactories.cachedThreadPool("block-worker-executor")
+            : ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5)
+    );
     mBlockMasterClientPool = mResourceCloser.register(blockMasterClientPool);
     mFileSystemMasterClient = mResourceCloser.register(fileSystemMasterClient);
     mHeartbeatReporter = new BlockHeartbeatReporter();

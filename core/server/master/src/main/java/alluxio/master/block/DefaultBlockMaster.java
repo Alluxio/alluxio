@@ -1419,7 +1419,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       processWorkerRemovedBlocks(worker, removedBlockIds, false);
       processWorkerAddedBlocks(worker, addedBlocks);
       Set<Long> toRemoveBlocks = worker.getToRemoveBlocks();
-      if (toRemoveBlocks.isEmpty()) {
+      if (toRemoveBlocks.isEmpty() || mPrimarySelector.getState() == NodeState.STANDBY) {
         workerCommand = Command.newBuilder().setCommandType(CommandType.Nothing).build();
       } else {
         workerCommand = Command.newBuilder().setCommandType(CommandType.Free)

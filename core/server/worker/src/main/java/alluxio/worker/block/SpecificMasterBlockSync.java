@@ -41,9 +41,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 1. The registration takes place asynchronously and the caller can poll the registration state.
  *  We need to make the process async because when standby master read is enabled, workers have to
  *  register to all masters and these registrations can happen concurrently to speed up the process.
- * 2. A registration fail doesn't throw a fatal exception. Instead, it retries endlessly.
+ * 2. A registration failure doesn't throw a fatal exception. Instead, it retries endlessly.
  *  This is because a standby master registration failure
- *  should not a soft failure and can be retried later.
+ *  should be a soft failure and can be retried later.
  */
 @NotThreadSafe
 public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
@@ -51,8 +51,8 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
   private static final long ACQUIRE_LEASE_WAIT_MAX_DURATION =
       Configuration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
 
-  private final long mWorkerBlockHeartbeatReportCapacityThreshold =
-      Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_REPORT_CAPACITY_THRESHOLD);
+  private final long mWorkerBlockHeartbeatReportSizeThreshold =
+      Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_REPORT_SIZE_THRESHOLD);
 
   private final SocketAddress mMasterAddress;
 
@@ -153,7 +153,10 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
     LOG.info("Notify the master {} about the workerID {}", mMasterAddress, mWorkerId);
     mMasterClient.notifyWorkerId(mWorkerId.get(), mWorkerAddress);
     // TODO(elega) If worker registration to all masters happens at the same time,
-    // this might cause OOM issue. Consider limiting the worker registration concurrency.
+    // this might cause worker OOM issues because each block sync thread will hold a BlockStoreMeta
+    // instance during the registration.
+    // If this happens, consider limiting the worker registration concurrency,
+    // e.g. register the worker to masters one by one.
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
 
     try {
@@ -184,7 +187,8 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
       // Not registered because:
       // 1. The worker just started, we kick off the 1st registration here.
       // 2. Master sends a registration command during
-      // the heartbeat and resets the registration state.
+      // the heartbeat and resets the registration state. (e.g. master restarted)
+      // 3. The heartbeat message becomes too big that we decide to fall back to a full re-register
       LOG.info("The worker needs to register with master {}", mMasterAddress);
       // This will retry indefinitely and essentially block here if the master is not ready
       registerWithMaster();
@@ -214,7 +218,7 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
             "Heartbeat failed, worker id {}, worker host {} # of attempts {}, last success ts {}",
             mWorkerId.get(), mWorkerAddress.getHost(), endlessRetry.getAttemptCount(),
             mLastSuccessfulHeartbeatMs);
-        if (report.getBlockCount() >= mWorkerBlockHeartbeatReportCapacityThreshold) {
+        if (report.getBlockChangeCount() >= mWorkerBlockHeartbeatReportSizeThreshold) {
           // If the report becomes too big, merging it back to the reporter might cause OOM issue.
           // We throw away the result and let the worker re-register with the master.
           mWorkerState = WorkerMasterRegistrationState.NOT_REGISTERED;

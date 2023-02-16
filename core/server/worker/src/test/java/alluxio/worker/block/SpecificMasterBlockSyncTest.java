@@ -49,7 +49,7 @@ public class SpecificMasterBlockSyncTest {
   @Test
   public void heartbeatThread() throws Exception {
     int heartbeatReportCapacityThreshold = 3;
-    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_REPORT_CAPACITY_THRESHOLD,
+    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_REPORT_SIZE_THRESHOLD,
         heartbeatReportCapacityThreshold);
     BlockHeartbeatReporter blockHeartbeatReporter = new TestBlockHeartbeatReporter();
 
@@ -98,7 +98,7 @@ public class SpecificMasterBlockSyncTest {
     TestBlockMasterClient.INSTANCE.setHeartbeatError(false);
     sync.heartbeat();
     assertTrue(sync.isRegistered());
-    assertEquals(1, blockHeartbeatReporter.generateReportAndClear().getBlockCount());
+    assertEquals(1, blockHeartbeatReporter.generateReportAndClear().getBlockChangeCount());
 
     assertTrue(TestBlockMasterClient.INSTANCE.mRegisterCalled);
     assertTrue(TestBlockMasterClient.INSTANCE.mRegisterWithStreamCalled);

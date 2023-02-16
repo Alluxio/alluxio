@@ -63,6 +63,9 @@ public class AllMasterRegistrationBlockWorker extends DefaultBlockWorker {
 
     InetSocketAddress primaryMasterAddress =
         (InetSocketAddress) mFileSystemMasterClient.getRemoteSockAddress();
+    // Registrations on standby masters are not required to complete for starting a worker
+    // because standby masters do not serve read requests.
+    // Standby masters will catch up following block location changes via worker heartbeats.
     mBlockSyncMasterGroup.waitForPrimaryMasterRegistrationComplete(primaryMasterAddress);
   }
 

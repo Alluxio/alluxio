@@ -39,10 +39,11 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * An abstraction layer that manages the worker heartbeats with multiple block masters.
+ * This is only active when worker.register.to.all.masters=true.
  */
 public class BlockSyncMasterGroup implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(SpecificMasterBlockSync.class);
-  private boolean mStarted = false;
+  private volatile boolean mStarted = false;
 
   private final boolean mTestMode = Configuration.getBoolean(PropertyKey.TEST_MODE);
 
@@ -61,7 +62,8 @@ public class BlockSyncMasterGroup implements Closeable {
       List<InetSocketAddress> masterAddresses,
       BlockWorker blockWorker
   ) throws IOException {
-    // TODO(jiacheng/elega): handle master quorum changes
+    // TODO(elega): handle master membership changes
+    // https://github.com/Alluxio/alluxio/issues/16898
     for (InetSocketAddress masterAddr : masterAddresses) {
       BlockMasterClient masterClient = sBlockMasterClientFactory.create(masterAddr);
       BlockHeartbeatReporter heartbeatReporter = new BlockHeartbeatReporter();

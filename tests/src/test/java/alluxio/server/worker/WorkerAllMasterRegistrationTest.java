@@ -75,7 +75,7 @@ public class WorkerAllMasterRegistrationTest {
     Configuration.set(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS, true);
     Configuration.set(PropertyKey.STANDBY_MASTER_GRPC_ENABLED, true);
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE);
-    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_REPORT_CAPACITY_THRESHOLD, 5);
+    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_REPORT_SIZE_THRESHOLD, 5);
     Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "30sec");
     Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT, "10sec");
     Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "3s");
@@ -273,11 +273,11 @@ public class WorkerAllMasterRegistrationTest {
   }
 
   /**
-   * Tests the worker can re-register with masters if its heartbeat failed too many times.
-   * The registration is used to address OOM issue.
+   * Tests the worker can re-register with masters if its heartbeat failed too many times,
+   * and the block report becomes too big and takes up too many memory.
    */
   @Test
-  public void blockHeartbeatReportOOM() throws Exception {
+  public void heartbeatFallsBackToRegister() throws Exception {
     CommonUtils.waitFor("wait for worker registration complete", () ->
         mWorker.getBlockSyncMasterGroup().isRegisteredToAllMasters(), mDefaultWaitForOptions);
 
