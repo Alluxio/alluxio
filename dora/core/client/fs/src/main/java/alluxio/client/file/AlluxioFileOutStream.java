@@ -170,6 +170,8 @@ public class AlluxioFileOutStream extends FileOutStream {
         } else {
           mUnderStorageOutputStream.close();
           optionsBuilder.setUfsLength(mBytesWritten);
+          mUnderStorageOutputStream.getDataWriter().getUfsContentHash().ifPresent(
+              optionsBuilder::setContentHash);
         }
       }
 

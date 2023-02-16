@@ -830,7 +830,7 @@ public class InodeSyncStream {
                 || !aclPair.getFirst().hasExtended()) {
               ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus);
             } else {
-              ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus,
+              ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus, null,
                   aclPair.getFirst());
             }
           }
