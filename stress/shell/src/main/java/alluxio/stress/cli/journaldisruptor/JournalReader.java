@@ -6,22 +6,23 @@ import alluxio.master.journal.JournalType;
 import alluxio.proto.journal.Journal;
 
 /**
- *  I assume here should use alluxio.master.journal.tool.AbstractJournalDumper.
- *  two Dumper: UFSJournalDumper/RaftJournalDumper, read and parse binary journal file from proto to JournalEntry.
- *  For now, I think JournalReader should be able to return something like JournalEntry stream.
- *  and should be able to be specified by path and journal type.
+ * JournalReader, an extra(redundant) wrap of EntryStream.
  *
- *  But do we have anything like EntryStream now?
- *
- *  TO_BE_DECIDED:
- *      1. read one journal file specified by given path or read all journal entries from both checkpoint and normal log.
  */
 
 public class JournalReader {
   private EntryStream mStream;
 
+  /**
+   * Init JournalReader that corresponding to the journal type.
+   * @param mMaster
+   * @param mStart
+   * @param mEnd
+   * @param mInputDir
+   */
   public JournalReader(String mMaster, long mStart, long mEnd, String mInputDir) {
-    JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+    JournalType journalType = Configuration
+        .getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
     switch (journalType) {
       case UFS:
         mStream = new UfsJournalEntryStream(mMaster, mStart, mEnd, mInputDir);
@@ -35,7 +36,11 @@ public class JournalReader {
     }
   }
 
-    public Journal.JournalEntry nextEntry() {
-      return mStream.nextEntry();
-    }
+  /**
+   * the nextEntry method, call the EntryStream.nextEntry().
+   * @return next Alluxio journal entry
+   */
+  public Journal.JournalEntry nextEntry() {
+    return mStream.nextEntry();
+  }
 }
