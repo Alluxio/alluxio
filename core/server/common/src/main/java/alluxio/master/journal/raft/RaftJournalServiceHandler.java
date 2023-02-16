@@ -39,7 +39,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -51,99 +50,86 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
   private final int mSnapshotReplicationChunkSize = (int) Configuration.getBytes(
       PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE);
   private final SnapshotReplicationManager mManager;
-  private final RaftJournalSystem mRaftJournalSystem;
+  private final StateMachineStorage mStateMachineStorage;
 
   /**
-   * @param manager           the snapshot replication manager
-   * @param raftJournalSystem the raft journal system
+   * @param manager the snapshot replication manager
+   * @param storage the storage that the state machine uses for its snapshots
    */
-  public RaftJournalServiceHandler(
-      SnapshotReplicationManager manager,
-      RaftJournalSystem raftJournalSystem) {
+  public RaftJournalServiceHandler(SnapshotReplicationManager manager,
+                                   StateMachineStorage storage) {
     mManager = manager;
-    mRaftJournalSystem = raftJournalSystem;
-    LOG.debug("RaftJournalServiceHandler initialized, journal system {}",
-        mRaftJournalSystem);
+    mStateMachineStorage = storage;
   }
 
   @Override
   public void requestLatestSnapshotInfo(LatestSnapshotInfoPRequest request,
                                         StreamObserver<SnapshotMetadata> responseObserver) {
     LOG.debug("Received request for latest snapshot info");
-    if (invalidResponseObserver(responseObserver)) {
+    if (Context.current().isCancelled()) {
+      responseObserver.onError(
+          Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
       return;
     }
-    SnapshotInfo snapshot = mRaftJournalSystem.getStateMachine().get().getLatestSnapshot();
-    SnapshotMetadata.Builder metadata = SnapshotMetadata.newBuilder();
-    if (snapshot == null) {
-      LOG.debug("No snapshot to send");
-      metadata.setExists(false);
-    } else {
-      LOG.debug("Found snapshot {}", snapshot.getTermIndex());
-      List<FileMetadata> fileMetadata = snapshot.getFiles().stream()
-          .map(fileInfo -> FileMetadata.newBuilder()
-              .setRelativePath(fileInfo.getPath().toString())
-              .build())
-          .collect(Collectors.toList());
-      metadata.setExists(true)
-          .setSnapshotTerm(snapshot.getTerm())
-          .setSnapshotIndex(snapshot.getIndex())
-          .addAllFileMetadataList(fileMetadata);
+    synchronized (mStateMachineStorage) {
+      SnapshotInfo snapshot = mStateMachineStorage.getLatestSnapshot();
+      SnapshotMetadata.Builder metadata = SnapshotMetadata.newBuilder();
+      if (snapshot == null) {
+        LOG.debug("No snapshot to send");
+        metadata.setExists(false);
+      } else {
+        LOG.debug("Found snapshot {}", snapshot.getTermIndex());
+        List<FileMetadata> fileMetadata = snapshot.getFiles().stream()
+            .map(fileInfo -> FileMetadata.newBuilder()
+                .setRelativePath(fileInfo.getPath().toString())
+                .build())
+            .collect(Collectors.toList());
+        metadata.setExists(true)
+            .setSnapshotTerm(snapshot.getTerm())
+            .setSnapshotIndex(snapshot.getIndex())
+            .addAllFileMetadataList(fileMetadata);
+      }
+      responseObserver.onNext(metadata.build());
+      responseObserver.onCompleted();
     }
-    responseObserver.onNext(metadata.build());
-    responseObserver.onCompleted();
   }
 
   @Override
   public void downloadLatestSnapshot(DownloadFilePRequest request,
                                      StreamObserver<SnapshotData> plainResponseObserver) {
-    if (invalidResponseObserver(plainResponseObserver)) {
+    if (Context.current().isCancelled()) {
+      plainResponseObserver.onError(
+          Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
       return;
     }
     ServerCallStreamObserver<SnapshotData> responseObserver =
         (ServerCallStreamObserver<SnapshotData>) plainResponseObserver;
     responseObserver.setCompression("gzip");
 
-    StateMachineStorage storage =
-        mRaftJournalSystem.getStateMachine().get().getStateMachineStorage();
-    String snapshotFileName = SimpleStateMachineStorage
-        .getSnapshotFileName(request.getSnapshotTerm(), request.getSnapshotIndex());
-    File file1 = new File(snapshotFileName, request.getFileMetadata().getRelativePath());
-    File file = new File(storage.getSnapshotDir(), file1.toString());
-    LOG.debug("Uploading file {}", file);
-    try (InputStream inputStream = Files.newInputStream(file.toPath())) {
-      byte[] buffer = new byte[mSnapshotReplicationChunkSize];
-      int bytesRead;
-      while ((bytesRead = inputStream.read(buffer)) != -1) {
-        responseObserver.onNext(SnapshotData.newBuilder()
-            .setSnapshotTerm(request.getSnapshotTerm())
-            .setSnapshotIndex(request.getSnapshotIndex())
-            .setChunk(ByteString.copyFrom(buffer, 0, bytesRead))
-            .build());
+    synchronized (mStateMachineStorage) {
+      String snapshotFileName = SimpleStateMachineStorage
+          .getSnapshotFileName(request.getSnapshotTerm(), request.getSnapshotIndex());
+      File file1 = new File(snapshotFileName, request.getFileMetadata().getRelativePath());
+      File file = new File(mStateMachineStorage.getSnapshotDir(), file1.toString());
+      LOG.debug("Uploading file {}", file);
+      try (InputStream inputStream = Files.newInputStream(file.toPath())) {
+        byte[] buffer = new byte[mSnapshotReplicationChunkSize];
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+          responseObserver.onNext(SnapshotData.newBuilder()
+              .setSnapshotTerm(request.getSnapshotTerm())
+              .setSnapshotIndex(request.getSnapshotIndex())
+              .setChunk(ByteString.copyFrom(buffer, 0, bytesRead))
+              .build());
+        }
+        responseObserver.onCompleted();
+        LOG.debug("Successfully uploaded {}", file);
+      } catch (Exception e) {
+        LOG.debug("Failed to upload file {}", request.getFileMetadata().getRelativePath(), e);
+        responseObserver.onError(e);
+        responseObserver.onCompleted();
       }
-      responseObserver.onCompleted();
-      LOG.debug("Successfully uploaded {}", file);
-    } catch (Exception e) {
-      LOG.debug("Failed to upload file {}", request.getFileMetadata().getRelativePath(), e);
-      responseObserver.onError(e);
-      responseObserver.onCompleted();
     }
-  }
-
-  private <T> boolean invalidResponseObserver(StreamObserver<T> observer) {
-    if (Context.current().isCancelled()) {
-      observer.onError(
-          Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
-      return true;
-    }
-    Optional<JournalStateMachine> stateMachine = mRaftJournalSystem.getStateMachine();
-    if (!stateMachine.isPresent()) {
-      observer.onError(
-          new IllegalStateException("Raft journal system does not have a state machine"));
-      observer.onCompleted();
-      return true;
-    }
-    return false;
   }
 
   @Override

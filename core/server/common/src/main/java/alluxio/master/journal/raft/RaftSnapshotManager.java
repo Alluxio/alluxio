@@ -11,19 +11,12 @@
 
 package alluxio.master.journal.raft;
 
-import alluxio.ClientContext;
 import alluxio.concurrent.jsr.CompletableFuture;
 import alluxio.conf.Configuration;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.DownloadFilePRequest;
 import alluxio.grpc.FileMetadata;
-import alluxio.grpc.GrpcChannel;
-import alluxio.grpc.GrpcChannelBuilder;
-import alluxio.grpc.GrpcServerAddress;
-import alluxio.grpc.RaftJournalServiceGrpc;
 import alluxio.grpc.SnapshotData;
 import alluxio.grpc.SnapshotMetadata;
-import alluxio.master.MasterClientContext;
 import alluxio.master.selectionpolicy.MasterSelectionPolicy;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -70,17 +63,16 @@ public class RaftSnapshotManager {
    */
   public synchronized long downloadSnapshotFromFollowers() {
     if (mDownloadFuture == null) {
-      mDownloadFuture = CompletableFuture.supplyAsync(this::core).whenComplete((index, err) -> {
-        LOG.debug("Finished download routine with index {} and error {}", index, err.getMessage());
+      mDownloadFuture = CompletableFuture.supplyAsync(this::core).exceptionally(err -> {
+        LOG.debug("Failed to download snapshot", err);
+        return RaftLog.INVALID_LOG_INDEX;
       });
     } else if (mDownloadFuture.isDone()) {
-      try {
-        return mDownloadFuture.get();
-      } catch (Exception e) {
-       // do nothing and return -1
-      } finally {
-        mDownloadFuture = null;
-      }
+      LOG.debug("Download operation is done");
+      Long snapshotIndex = mDownloadFuture.join();
+      LOG.debug("Retrieved downloaded snapshot at index {}", snapshotIndex);
+      mDownloadFuture = null;
+      return snapshotIndex;
     }
     return RaftLog.INVALID_LOG_INDEX;
   }
@@ -132,16 +124,25 @@ public class RaftSnapshotManager {
     for (Map.Entry<InetSocketAddress, SnapshotMetadata> info : followerInfos) {
       InetSocketAddress address = info.getKey();
       SnapshotMetadata snapshotMetadata = info.getValue();
-      try (GrpcChannel channel = buildGrpcChannel(address)) {
-        RaftJournalServiceGrpc.RaftJournalServiceBlockingStub client =
-            RaftJournalServiceGrpc.newBlockingStub(channel);
-        for (FileMetadata fileMetadata : snapshotMetadata.getFileMetadataListList()) {
+      MasterSelectionPolicy policy = MasterSelectionPolicy.Factory.specifiedMaster(address);
+      try (RaftJournalServiceClient client = new RaftJournalServiceClient(policy)) {
+        client.connect();
+        List<FileMetadata> metadataList = snapshotMetadata.getFileMetadataListList();
+        LOG.debug("Downloading {} snapshot files from {}", metadataList.size(), address);
+        for (int i = 0; i < metadataList.size(); i++) {
+          FileMetadata fileMetadata = metadataList.get(i);
+          LOG.debug("Downloading snapshot file {} of {}: {}", i + 1, metadataList.size(),
+              fileMetadata.getRelativePath());
           downloadFile(snapshotMetadata, fileMetadata, client);
+          LOG.debug("Successfully downloaded snapshot file {}", fileMetadata.getRelativePath());
         }
         File finalSnapshotDestination = new File(mStorage.getSnapshotDir(),
             SimpleStateMachineStorage.getSnapshotFileName(snapshotMetadata.getSnapshotTerm(),
                 snapshotMetadata.getSnapshotIndex()));
-        FileUtils.moveDirectory(mStorage.getTmpDir(), finalSnapshotDestination);
+        synchronized (mStorage) {
+          FileUtils.moveDirectory(mStorage.getTmpDir(), finalSnapshotDestination);
+        }
+        LOG.debug("Finished snapshot download {}", snapshotMetadata.getSnapshotIndex());
         return snapshotMetadata.getSnapshotIndex();
       } catch (Exception e) {
         LOG.debug("Failed to download snapshot from {}", info.getKey());
@@ -153,8 +154,7 @@ public class RaftSnapshotManager {
   }
 
   private void downloadFile(SnapshotMetadata snapshotMetadata, FileMetadata fileMetadata,
-      RaftJournalServiceGrpc.RaftJournalServiceBlockingStub client) throws IOException {
-    LOG.debug("Downloading snapshot file {}", fileMetadata.getRelativePath());
+      RaftJournalServiceClient client) throws IOException {
     File file = new File(mStorage.getTmpDir(), fileMetadata.getRelativePath());
     file.getParentFile().mkdirs();
     file.createNewFile();
@@ -164,19 +164,11 @@ public class RaftSnapshotManager {
         .setSnapshotIndex(snapshotMetadata.getSnapshotIndex())
         .setFileMetadata(fileMetadata)
         .build();
-    Iterator<SnapshotData> data = client.withCompression("gzip").downloadLatestSnapshot(request);
+    Iterator<SnapshotData> data = client.downloadLatestSnapshot(request);
     try (OutputStream out = Files.newOutputStream(file.toPath())) {
       while (data.hasNext()) {
         out.write(data.next().toByteArray());
       }
     }
-    LOG.debug("Successfully downloaded snapshot file {}", fileMetadata.getRelativePath());
-  }
-
-  private GrpcChannel buildGrpcChannel(InetSocketAddress target) throws AlluxioStatusException {
-    MasterClientContext context = MasterClientContext.newBuilder(ClientContext.create()).build();
-    return GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(target), context.getClusterConf())
-        .setSubject(context.getSubject())
-        .build();
   }
 }

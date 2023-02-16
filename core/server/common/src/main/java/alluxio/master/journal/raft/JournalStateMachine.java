@@ -135,8 +135,8 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile long mSnapshotLastIndex = -1;
   /** Used to control applying to masters. */
   private BufferedJournalApplier mJournalApplier;
-  private final StateMachineStorage mStorage = new SnapshotDirStateMachineStorage();
-  private final RaftSnapshotManager mDownloadManager = new RaftSnapshotManager(mStorage);
+  private final StateMachineStorage mStorage;
+  private final RaftSnapshotManager mDownloadManager;
   private RaftGroupId mRaftGroupId;
   private RaftServer mServer;
   private long mLastCheckPointTime = -1;
@@ -145,8 +145,10 @@ public class JournalStateMachine extends BaseStateMachine {
    * @param journals      master journals; these journals are still owned by the caller, not by the
    *                      journal state machine
    * @param journalSystem the raft journal system
+   * @param storage the {@link StateMachineStorage} that this state machine will use
    */
-  public JournalStateMachine(Map<String, RaftJournal> journals, RaftJournalSystem journalSystem) {
+  public JournalStateMachine(Map<String, RaftJournal> journals, RaftJournalSystem journalSystem,
+                             StateMachineStorage storage) {
     int maxConcurrencyPoolSize =
         Configuration.getInt(PropertyKey.MASTER_JOURNAL_LOG_CONCURRENCY_MAX);
     mJournalPool = new ForkJoinPool(maxConcurrencyPoolSize);
@@ -160,6 +162,8 @@ public class JournalStateMachine extends BaseStateMachine {
     mJournalSystem = journalSystem;
     mSnapshotManager = new SnapshotReplicationManager(journalSystem,
         new SimpleStateMachineStorage());
+    mStorage = storage;
+    mDownloadManager = new RaftSnapshotManager(mStorage);
 
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX.getName(),
@@ -265,17 +269,22 @@ public class JournalStateMachine extends BaseStateMachine {
     long index;
     StateLockManager stateLockManager = mStateLockManagerRef.get();
     if (!mIsLeader) {
+      LOG.debug("Taking local snapshot as follower");
       index = takeLocalSnapshot(false);
     } else if (stateLockManager != null) {
       // the leader has been allowed to take a local snapshot by being given a non-null
       // StateLockManager through the #allowLeaderSnapshots method
       try (LockResource stateLock = stateLockManager.lockExclusive(StateLockOptions.defaults())) {
+        LOG.debug("Taking local snapshot as leader");
         index = takeLocalSnapshot(true);
       } catch (Exception e) {
         return RaftLog.INVALID_LOG_INDEX;
       }
     } else {
       index = mDownloadManager.downloadSnapshotFromFollowers();
+      if (index != RaftLog.INVALID_LOG_INDEX) {
+        LOG.debug("Downloaded a snapshot up to index {}", index);
+      }
     }
     // update metrics if took a snapshot
     if (index != RaftLog.INVALID_LOG_INDEX) {
@@ -566,14 +575,16 @@ public class JournalStateMachine extends BaseStateMachine {
     }
     try (Timer.Context ctx = MetricsSystem.timer(
              MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER.getName()).time()) {
-      // The start time of the most recent snapshot
-      for (Journaled j : getStateMachines()) {
-        j.writeToCheckpoint(snapshotDir);
-      }
-      long snapshotId = mNextSequenceNumberToRead - 1;
-      try (DataOutputStream idFile = new DataOutputStream(
-          Files.newOutputStream(new File(snapshotDir, "SNAPSHOT_ID").toPath()))) {
-        idFile.writeLong(snapshotId);
+      synchronized (mStorage) {
+        // The start time of the most recent snapshot
+        for (Journaled j : getStateMachines()) {
+          j.writeToCheckpoint(snapshotDir);
+        }
+        long snapshotId = mNextSequenceNumberToRead - 1;
+        try (DataOutputStream idFile = new DataOutputStream(
+            Files.newOutputStream(new File(snapshotDir, "SNAPSHOT_ID").toPath()))) {
+          idFile.writeLong(snapshotId);
+        }
       }
       return last.getIndex();
     } catch (Exception e) {
@@ -600,12 +611,14 @@ public class JournalStateMachine extends BaseStateMachine {
     long snapshotId = 0L;
     try (Timer.Context ctx = MetricsSystem.timer(MetricKey
         .MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER.getName()).time()) {
-      try (DataInputStream is = new DataInputStream(Files.newInputStream(new File(snapshotDir,
-          "SNAPSHOT_ID").toPath()))) {
-        snapshotId = is.readLong();
-      }
-      for (Journaled j : getStateMachines()) {
-        j.restoreFromCheckpoint(snapshotDir);
+      synchronized (mStorage) {
+        try (DataInputStream is = new DataInputStream(Files.newInputStream(new File(snapshotDir,
+            "SNAPSHOT_ID").toPath()))) {
+          snapshotId = is.readLong();
+        }
+        for (Journaled j : getStateMachines()) {
+          j.restoreFromCheckpoint(snapshotDir);
+        }
       }
     } catch (Exception e) {
       JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to install snapshot: %s",

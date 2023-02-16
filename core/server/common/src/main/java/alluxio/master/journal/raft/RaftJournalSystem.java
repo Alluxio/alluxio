@@ -74,6 +74,7 @@ import org.apache.ratis.retry.RetryPolicy;
 import org.apache.ratis.rpc.SupportedRpcType;
 import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.server.RaftServerConfigKeys;
+import org.apache.ratis.statemachine.StateMachineStorage;
 import org.apache.ratis.thirdparty.com.google.protobuf.UnsafeByteOperations;
 import org.apache.ratis.util.LifeCycle;
 import org.apache.ratis.util.NetUtils;
@@ -209,6 +210,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * and installing snapshots.
    */
   private JournalStateMachine mStateMachine;
+
+  /**
+   * Serves as the storage object for the above state machine.
+   */
+  private final StateMachineStorage mStateMachineStorage = new SnapshotDirStateMachineStorage();
   /**
    * Ratis server.
    */
@@ -294,7 +300,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     if (mStateMachine != null) {
       mStateMachine.close();
     }
-    mStateMachine = new JournalStateMachine(mJournals, this);
+    mStateMachine = new JournalStateMachine(mJournals, this, mStateMachineStorage);
 
     RaftProperties properties = new RaftProperties();
     Parameters parameters = new Parameters();
@@ -656,7 +662,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized Map<alluxio.grpc.ServiceType, GrpcService> getJournalServices() {
     Map<alluxio.grpc.ServiceType, GrpcService> services = new HashMap<>();
     services.put(alluxio.grpc.ServiceType.RAFT_JOURNAL_SERVICE, new GrpcService(
-        new RaftJournalServiceHandler(mStateMachine.getSnapshotReplicationManager(), this)));
+        new RaftJournalServiceHandler(mStateMachine.getSnapshotReplicationManager(),
+            mStateMachineStorage)));
     return services;
   }
 

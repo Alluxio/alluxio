@@ -43,7 +43,7 @@ public class SnapshotDirStateMachineStorage implements StateMachineStorage {
   }
 
   @Override
-  public SnapshotInfo getLatestSnapshot() {
+  public synchronized SnapshotInfo getLatestSnapshot() {
     try (Stream<Path> stream = Files.list(getSnapshotDir().toPath())) {
       Optional<Path> max = stream.filter(path -> match(path).matches())
           .max(Comparator.comparingLong(path -> {
@@ -70,7 +70,8 @@ public class SnapshotDirStateMachineStorage implements StateMachineStorage {
   public void format() throws IOException {}
 
   @Override
-  public void cleanupOldSnapshots(SnapshotRetentionPolicy retentionPolicy) throws IOException {
+  public synchronized void cleanupOldSnapshots(SnapshotRetentionPolicy retentionPolicy)
+      throws IOException {
     try (Stream<Path> stream = Files.list(getSnapshotDir().toPath())) {
       stream.filter(path -> match(path).matches())
           .sorted(Comparator.comparingLong(path -> {
