@@ -141,7 +141,7 @@ public abstract class AbstractClient implements Client {
           .getServiceVersion(
               GetServiceVersionPRequest.newBuilder()
                   .setServiceType(getRemoteServiceType())
-                  .setAllowOnStandbyMasters(true)
+                  .setAllowedOnStandbyMasters(true)
                   .build())
           .getVersion();
     } catch (Throwable t) {

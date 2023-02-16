@@ -36,7 +36,7 @@ message GetServiceVersionPRequest {
   optional ServiceType serviceType = 1;
   // The purpose of this field is to make grpc service on standby masters work without
   // making client changes and keeps backwards compatibility.
-  // This requests of this endpoint will be rejected on standby masters by default,
+  // This requests to this endpoint will be rejected on standby masters by default,
   // unless this field is set.
   // Two places use this request:
   // 1. PollingMasterInquireClient uses this endpoint to tell who is the primary master.
