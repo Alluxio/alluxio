@@ -4532,8 +4532,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("If enabled, workers will register themselves to all masters, "
               + "instead of primary master only. This can be used to save the "
-              + "master failover time because workers don't need to report the block locations "
-              + " to the new primary master. Can only be enabled when "
+              + "master failover time because the new primary immediately knows "
+              + "all existing workers and blocks. Can only be enabled when "
               + Name.STANDBY_MASTER_GRPC_ENABLED + " is turned on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
