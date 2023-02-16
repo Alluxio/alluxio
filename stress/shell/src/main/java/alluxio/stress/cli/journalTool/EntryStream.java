@@ -26,21 +26,6 @@ public abstract class EntryStream implements Closeable {
    */
   abstract public Journal.JournalEntry nextEntry();
 
-  public RaftProtos.LogEntryProto nextProto() {
-    return null;
-  }
-
-  public boolean processProto(RaftProtos.LogEntryProto proto) {
-    return false;
-  }
-
-  /**
-   * @return whether next entry exist
-   * true if exist
-   * false if not exist
-   */
-  abstract public boolean checkNext();
-
   @Override
   public void close() throws IOException {
 

@@ -49,11 +49,6 @@ public class UfsJournalEntryStream extends EntryStream {
     throw new RuntimeException("SequenceNumber exceed");
   }
 
-  @Override
-  public boolean checkNext() {
-    return false;
-  }
-
   private URI getJournalLocation(String inputDir) {
     if (!inputDir.endsWith(AlluxioURI.SEPARATOR)) {
       inputDir += AlluxioURI.SEPARATOR;

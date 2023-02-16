@@ -4,6 +4,9 @@ import alluxio.master.block.BlockId;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 
+/**
+ * Disruptor should be like a gun, the EntryStream like the magazine, and the entry like bullet
+ */
 public class JournalDisruptor {
   long mDisruptStep;
   JournalReader mReader;
@@ -22,38 +25,27 @@ public class JournalDisruptor {
   }
 
   /**
-   * For now the Disrupt() implements only a very simple behavior pattern:
-   *  The Disruptor will put the entries with target entry-type back for given steps.
+   * the Disrupt() do every thing.
+   * The journal tool should lay down after call the Disrupt()
+   * Here will read, disrupt, and write
    *
-   * I think the Disrupt cannot handle two target type entry within the given steps, it will only process the first one.
-   *
-   *  2.15 update:
-   *    Now in my imagination the disruptor likes a gun, and the JournalReader likes the magazine
+   * TODO: add writer to Disruptor inorder to complete the Disrupt()
    */
   public void Disrupt() {
-    while ((mEntry = mReader.nextEntry()) != null) {
-      if (mHoldFlag) {
-        if (mStepCounter == 0) {
-          writeEntry(mHoldEntry.toBuilder().setSequenceNumber(mHoldEntrySequenceNumber).build());
-          mHoldFlag = false;
-          continue;
-        }
-        writeEntry(mEntry.toBuilder().setSequenceNumber(mHoldEntrySequenceNumber).build());
-        mHoldEntrySequenceNumber += 1;
-        mStepCounter -= 1;
-        continue;
-      }
-      if (targetEntry(mEntry)) {
-        mHoldFlag = true;
-        mHoldEntrySequenceNumber = mEntry.getSequenceNumber();
-        mHoldEntry = mEntry;
-        mStepCounter = mDisruptStep;
-        continue;
-      }
-      writeEntry(mEntry);
+    Journal.JournalEntry entry;
+    while ((entry = nextEntry()) != null) {
+      System.out.println("entry: " + entry);
+      writeEntry(entry.toBuilder().clearSequenceNumber().build());
     }
   }
 
+  /**
+   * Here ought to do the order disruption
+   *
+   * Hold entry if the entry is target type, and return next type
+   * If it comes to the end of the Stream, return the hold entry (could be null)
+   * @return
+   */
   public Journal.JournalEntry nextEntry() {
     if (mHoldFlag && mStepCounter == 0) {
       mEntry = mHoldEntry;
@@ -80,6 +72,10 @@ public class JournalDisruptor {
     return mHoldEntry;
   }
 
+  /**
+   * Temporary nextEntry(), inside define the disrupt action
+   * @return JournalEntry in target order
+   */
   public Journal.JournalEntry test() {
     if ((mEntry = mReader.nextEntry()) != null) {
       if (targetEntry(mEntry)) {
@@ -136,6 +132,10 @@ public class JournalDisruptor {
     return type == mEntryType;
   }
 
+  /**
+   * TODO: need writer
+   * @param entry
+   */
   private void writeEntry(Journal.JournalEntry entry) {
 
   }

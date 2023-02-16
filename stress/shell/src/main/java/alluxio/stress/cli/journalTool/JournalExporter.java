@@ -59,7 +59,8 @@ public class JournalExporter {
 
   private RaftGroup mRaftGroup;
 
-  public JournalExporter(JournalType journalType, String inputDir, String master, long start) throws IOException {
+  public JournalExporter(String inputDir, String master, long start) throws IOException {
+    JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
     mInputDir = inputDir;
     mMaster = master;
     mStart = start;
@@ -114,61 +115,6 @@ public class JournalExporter {
       System.out.println("failed when initiating raft writer");
       System.out.println(e);
     }
-  }
-
-  // private void initRaftJournal() throws IOException {
-  //   final UUID RAFT_GROUP_UUID = UUID.fromString("02511d47-d67c-49a3-9011-abb3109a44c1");
-  //   RaftGroupId RAFT_GROUP_ID = RaftGroupId.valueOf(RAFT_GROUP_UUID);
-  //   List<InetSocketAddress> mClusterAddresses = ConfigurationUtils.getEmbeddedJournalAddresses(Configuration.global(), NetworkAddressUtils // .ServiceType.MASTER_RAFT);
-  //   ConcurrentHashMap<String, RaftJournal> mJournals = new ConcurrentHashMap<>();
-  //   JournalStateMachine mStateMachine;
-  //   Set<RaftPeer> peers = mClusterAddresses.stream()
-  //     .map(addr -> RaftPeer.newBuilder()
-  //               .setId(RaftJournalUtils.getPeerId(addr))
-  //               .setAddress(addr)
-  //               .build()
-  //       )
-  //       .collect(Collectors.toSet());
-  //   mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
-  //   mStateMachine = new JournalStateMachine(mJournals, new RaftJournalSystem(new URI(""), NetworkAddressUtils.ServiceType.MASTER_RAFT));
-  //   RaftServer mServer = RaftServer.newBuilder()
-  //       .setServerId(RaftJournalUtils.getPeerId(NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RAFT, // Configuration.global())))
-  //       .setGroup(mRaftGroup)
-  //       .setStateMachine(mStateMachine)
-  //       .setProperties(properties)
-  //       .setParameters(parameters)
-  //       .build();
-  //   RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient)
-  //   UfsJournal journal = new UfsJournalSystem(getJournalLocation(mInputDir), 0).createJournal(new NoopMaster(mMaster));
-  //   JournalWriter reader = new UfsJournalLogWriter(journal, mStart);
-  // }
-
-  // private RaftClient createClient() {
-  //   return createClient(Configuration.getMs(
-  //       PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT));
-  // }
-
-  private RaftClient createClient(long timeoutMs) {
-    long retryBaseMs =
-        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL);
-    long maxSleepTimeMs =
-        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
-    RaftProperties properties = new RaftProperties();
-    Parameters parameters = new Parameters();
-    RaftClientConfigKeys.Rpc.setRequestTimeout(properties,
-        TimeDuration.valueOf(timeoutMs, TimeUnit.MILLISECONDS));
-    RetryPolicy retryPolicy = ExponentialBackoffRetry.newBuilder()
-        .setBaseSleepTime(TimeDuration.valueOf(retryBaseMs, TimeUnit.MILLISECONDS))
-        .setMaxSleepTime(TimeDuration.valueOf(maxSleepTimeMs, TimeUnit.MILLISECONDS))
-        .build();
-    return RaftClient.newBuilder()
-        .setRaftGroup(mRaftGroup)
-        .setClientId(ClientId.randomId())
-        .setLeaderId(null)
-        .setProperties(properties)
-        .setParameters(parameters)
-        .setRetryPolicy(retryPolicy)
-        .build();
   }
 
  private URI getJournalLocation(String inputDir) {

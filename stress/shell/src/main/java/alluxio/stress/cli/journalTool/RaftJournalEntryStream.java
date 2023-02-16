@@ -58,9 +58,14 @@ public class RaftJournalEntryStream extends EntryStream {
     }
   }
 
+  /**
+   * the nextEntry function of EntryStream
+   * Because in Raft Journal one proto may contain several Alluxio entries, we declare a List to record current entry list. And every time when trying to return next entry the Stream will check whether current entry list has been finished. If not read one entry, if yes read next proto till met the proto that contains the Alluxio entry.
+   *
+   * @returny next JournalEntry
+   */
   @Override
   public Journal.JournalEntry nextEntry() {
-    System.out.println("nexting entry");
     if (index < list.size()) {
       return list.get(index++);
     }
@@ -82,9 +87,14 @@ public class RaftJournalEntryStream extends EntryStream {
   /**
    * since the non-log entry proto needs to be process/print by the journal tool,
    * here cannot integrate the process proto
-   * @return
+   *
+   * non Alluxio entry was generated and wrote by RaftJournalWriter, no need to worry about
+   *
+   * Here check SegmentedRaftLogInputStream first, if null read the path of next journal file and open the stream of it, till all paths were used
+   *
+   * the type of the proto was judged by the caller
+   * @return all LogEntryProto
    */
-  @Override
   public RaftProtos.LogEntryProto nextProto() {
     // check current stream is ok, or open next stream. need a condition to stop and return null.
     if (mIn == null) {
@@ -115,82 +125,8 @@ public class RaftJournalEntryStream extends EntryStream {
   }
 
   /**
-   * the func processProto will update EntryStream.mStream with given proto
-   * if proto has the StateMachineLogEntry the mSteam will be updated successfully and the function will return true.
-   * if proto doesn't have the StateMachineLogEntry the mSteam will not be changed and the function will return false.
-   * @param proto
-   * @return boolean
+   * @return Journal Directory
    */
-  @Override
-  public boolean processProto(RaftProtos.LogEntryProto proto) {
-    System.out.print("processing proto!");
-    if (proto.hasStateMachineLogEntry()) {
-      // mStream = new ByteArrayInputStream(proto.getStateMachineLogEntry().getLogData().asReadOnlyByteBuffer().array());
-      mStream = new ByteArrayInputStream(proto.toByteArray());
-      // mStream = new ByteArrayInputStream(proto.getStateMachineLogEntry().toByteArray());
-      mReader = new JournalEntryStreamReader(mStream);
-      System.out.println("got a entry reader");
-      try {
-        Journal.JournalEntry entry = Journal.JournalEntry.parseFrom(proto.getStateMachineLogEntry().getLogData().asReadOnlyByteBuffer());
-        Journal.JournalEntry tmp;
-        int i = 0;
-        while ((tmp = entry.getJournalEntries(i)) != null) {
-          System.out.println(tmp);
-          i += 1;
-        }
-        System.out.println();
-      } catch (Exception e) {
-        System.out.print(e);
-      }
-      return true;
-
-    }
-    System.out.print("fail to got a entry reader");
-    return false;
-  }
-
-   public Journal.JournalEntry readEntry() throws IOException {
-    int firstByte = mStream.read();
-    if (firstByte == -1) {
-      return null;
-    }
-    // All journal entries start with their size in bytes written as a varint.
-    int size;
-    try {
-      size = ProtoUtils.readRawVarint32(firstByte, mStream);
-    } catch (IOException e) {
-      System.out.println(e);
-      System.out.println("get byte with size from stream fail");
-      throw e;
-    }
-    if (mBuffer.length < size) {
-      mBuffer = new byte[size];
-    }
-    // Total bytes read so far for journal entry.
-    int totalBytesRead = 0;
-    while (totalBytesRead < size) {
-      // Bytes read in last read request.
-      int latestBytesRead = mStream.read(mBuffer, totalBytesRead, size - totalBytesRead);
-      if (latestBytesRead < 0) {
-        break;
-      }
-      totalBytesRead += latestBytesRead;
-    }
-    if (totalBytesRead < size) {
-      // This could happen if the master crashed partway through writing the final journal entry. In
-      // this case, we can ignore the last entry because it was not acked to the client.
-      System.out.printf("Journal entry was truncated. Expected to read {} bytes but only got {}", size,
-          totalBytesRead);
-      return null;
-    }
-    return Journal.JournalEntry.parser().parseFrom(mBuffer, 0, size);
-  }
-
-  @Override
-  public boolean checkNext() {
-    return false;
-  }
-
   private File getJournalDir() {
     return new File(RaftJournalUtils.getRaftJournalDir(new File(mInputDir)),
         RaftJournalSystem.RAFT_GROUP_UUID.toString());
