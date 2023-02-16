@@ -288,7 +288,7 @@ public final class AlluxioFuse {
             conf.set(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED,
                 true, Source.RUNTIME);
             conf.set(PropertyKey.USER_SHORT_CIRCUIT_ENABLED,
-                true, Source.RUNTIME);
+                false, Source.RUNTIME);
             LOG.info("Set dora distributed cache enabled as true from command line input");
           } else {
             fuseOptions.add(trimedOpt);

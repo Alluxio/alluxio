@@ -447,7 +447,8 @@ When encountering the out of direct memory issue, add the following JVM opts to 
 ALLUXIO_FUSE_JAVA_OPTS+=" -XX:MaxDirectMemorySize=8G"
 ```
 
-## Connect to distributed cache
+## Distributed Cache
+
 
 ```console
 $ alluxio-fuse mount under_storage_dataset mount_point -o distributed_cache=true
