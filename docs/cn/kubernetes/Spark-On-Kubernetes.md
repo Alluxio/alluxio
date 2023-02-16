@@ -11,19 +11,19 @@ Alluxio可以在Kubernetes上运行。本指南介绍了如何在Kubernetes环�
 * Table of Contents
 {:toc}
 
-## Overview
+## 概览
 在Kubernetes上运行Spark时可将Alluxio作为数据访问层。本指南介绍了在Kubernetes中的Alluxio上运行Spark作业的示例。教程中使用的示例是一个计算文件行数的作业。下文中称该作业为`count`。
 
-## Prerequisites
+## 部署条件
 
 - 已安装一个Kubernetes集群（版本不低于1.8）
 - Alluxio部署在Kubernetes集群上。有关如何部署Alluxio，请参见[此页]({{ '/cn/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url }})。
 
-## Basic Setup
+## 基本设置
 
 首先，我们准备一个包含Alluxio client和其他所需jar包的Spark Docker镜像。此镜像应在所有Kubernetes节点上可用。
 
-### Download Binaries
+### 下载Spark软件
 [下载](https://spark.apache.org/downloads.html)所需的Spark版本。我们将预编译的二进制文件用于`spark-submit` 命令，并使用Alluxio中包含的Dockerfile来构建Docker镜像。
 
 > 注：下载用于Hadoop的预编译文件包
@@ -158,7 +158,7 @@ WARN ExecutorPodsWatchSnapshotSource: Kubernetes client has been closed
 ERROR SparkContext: Error initializing SparkContext.
 io.fabric8.kubernetes.client.KubernetesClientException
 ```
-这可能是由某个[已知问题](https://issues.apache.org/jira/browse/SPARK-28921)导致，该问题可以通过将 `kubernetes-client.jar`升级到4.4.x来解决。您可以在构建`spark-alluxio`镜像之前通过更新`kubernetes-client-x.x.jar`来修补docker镜像。
+这可能是由一个[已知问题](https://issues.apache.org/jira/browse/SPARK-28921)导致，该问题可以通过将 `kubernetes-client.jar`升级到4.4.x来解决。您可以在构建`spark-alluxio`镜像之前通过更新`kubernetes-client-x.x.jar`来修补docker镜像。
 
 ```console
 rm spark-2.4.4-bin-hadoop2.7/jars/kubernetes-client-*.jar
@@ -167,7 +167,7 @@ cp kubernetes-client-4.4.2.jar spark-2.4.4-bin-hadoop2.7/jars
 ```
 然后构建`spark-alluxio`镜像并分发到所有节点。
 
-### Service account does not have access
+### 服务帐户没有访问权限
 
 如果您看到某些操作被禁止的错误（如下所示），那是因为用于spark作业的服务帐户没有足够的访问权限来执行该操作。
 
@@ -179,4 +179,5 @@ Message: Forbidden!Configured service account doesn't have access. Service accou
 pods "spark-alluxiolatest-exec-1" is forbidden: User "system:serviceaccount:default:default" \
 cannot delete resource "pods" in API group "" in the namespace "default".
 ```
+
 您应该通过[创建服务帐户]({{ '/cn/kubernetes/Spark-On-Kubernetes.html#create-the-service-account-optional' | relativize_url }})来确保账户具有合理的访问权限。
