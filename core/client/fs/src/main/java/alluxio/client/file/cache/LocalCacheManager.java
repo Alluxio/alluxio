@@ -614,6 +614,9 @@ public class LocalCacheManager implements CacheManager {
       LOG.error("Failed to restore PageStore", e);
       return false;
     }
+    if (mInitService.isPresent()) {
+      mPageMetaStore.reportBlocks(pageStoreDir);
+    }
     LOG.info("PageStore ({}) restored with {} pages ({} bytes), "
             + "discarded {} pages ({} bytes)",
         pageStoreDir.getRootPath(), mPageMetaStore.numPages(), mPageMetaStore.bytes(),

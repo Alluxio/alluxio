@@ -55,6 +55,8 @@ public interface PageMetaStore {
    */
   void addPage(PageId pageId, PageInfo pageInfo);
 
+  default void reportBlocks(PageStoreDir pageStoreDir) {}
+
   /**
    * Adds a new temp page to the cache.
    *
