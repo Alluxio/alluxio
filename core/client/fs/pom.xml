@@ -84,6 +84,13 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- External test dependencies -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-inline</artifactId>
+      <scope>test</scope>
+    </dependency>
+
     <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>

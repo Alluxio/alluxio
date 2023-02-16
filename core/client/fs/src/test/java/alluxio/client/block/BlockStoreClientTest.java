@@ -61,14 +61,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.Closeable;
 import java.io.File;
@@ -87,8 +84,6 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Tests for {@link BlockStoreClient}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class})
 public final class BlockStoreClientTest {
 
   private static final InstancedConfiguration S_CONF = Configuration.copyGlobal();
@@ -153,19 +148,18 @@ public final class BlockStoreClientTest {
   private BlockWorkerClient mWorkerClient;
   private BlockStoreClient mBlockStore;
   private FileSystemContext mContext;
-  private ClientContext mClientContext;
 
   @Before
   public void before() throws Exception {
-    mMasterClient = PowerMockito.mock(BlockMasterClient.class);
-    mWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
+    mMasterClient = mock(BlockMasterClient.class);
+    mWorkerClient = mock(BlockWorkerClient.class);
 
-    mClientContext = ClientContext.create(S_CONF);
+    ClientContext clientContext = ClientContext.create(S_CONF);
 
-    mContext = PowerMockito.mock(FileSystemContext.class);
+    mContext = mock(FileSystemContext.class);
     when(mContext.acquireBlockMasterClientResource())
         .thenReturn(new DummyCloseableResource<>(mMasterClient));
-    when(mContext.getClientContext()).thenReturn(mClientContext);
+    when(mContext.getClientContext()).thenReturn(clientContext);
     when(mContext.getClusterConf()).thenReturn(S_CONF);
     when(mContext.getReadBlockLocationPolicy(any(AlluxioConfiguration.class)))
         .thenAnswer((Answer) invocation -> {
@@ -180,7 +174,7 @@ public final class BlockStoreClientTest {
 
     when(mContext.acquireBlockWorkerClient(any(WorkerNetAddress.class)))
         .thenReturn(new NoopClosableResource<>(mWorkerClient));
-    mStreamObserver = PowerMockito.mock(ClientCallStreamObserver.class);
+    mStreamObserver = mock(ClientCallStreamObserver.class);
     when(mWorkerClient.writeBlock(any(StreamObserver.class)))
         .thenReturn(mStreamObserver);
     when(mWorkerClient.openLocalBlock(any(StreamObserver.class)))
@@ -550,17 +544,17 @@ public final class BlockStoreClientTest {
     Map<WorkerNetAddress, Long> failedWorkerAddresses = failedWorkers.entrySet().stream()
         .map(x -> new AbstractMap.SimpleImmutableEntry<>(workers[x.getKey()], x.getValue()))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-    BlockInStream inStream = null;
-    int i = 2;
-    while (i-- > 0) {
-      try {
-        inStream = mBlockStore.getInStream(BLOCK_ID, options,
-                failedWorkerAddresses);
-      } catch (Exception e) {
-        //do nothing
-      }
-    }
+    Assume.assumeTrue(
+        "Only LocalFileDataReaderFactory throws exception during BlockInStream construction. "
+            + "When short circuit is disabled, GrpcDataReader is used and we don't know if the "
+            + "worker is available or not during construction.",
+        S_CONF.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED));
+    assertThrows(UnavailableException.class, () -> {
+      BlockInStream ignored = mBlockStore.getInStream(BLOCK_ID, options,
+          failedWorkerAddresses);
+    });
+    // the second time we try to acquire a stream, a different worker is chosen
+    BlockInStream inStream = mBlockStore.getInStream(BLOCK_ID, options, failedWorkerAddresses);
     Objects.requireNonNull(inStream);
     assertEquals(workers[expectedWorker], inStream.getAddress());
   }

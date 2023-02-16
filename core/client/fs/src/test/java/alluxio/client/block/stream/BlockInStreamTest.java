@@ -24,6 +24,7 @@ import alluxio.ConfigurationRule;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -38,15 +39,12 @@ import alluxio.worker.block.BlockWorker;
 
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.Closeable;
 import java.util.Collections;
@@ -55,8 +53,6 @@ import java.util.Optional;
 /**
  * Tests the {@link BlockInStream} class's static methods.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({NettyUtils.class})
 public class BlockInStreamTest {
   private FileSystemContext mMockContext;
   private BlockInfo mInfo;
@@ -80,7 +76,7 @@ public class BlockInStreamTest {
       return null;
     }).when(requestObserver).onNext(any(OpenLocalBlockRequest.class));
     mMockContext = Mockito.mock(FileSystemContext.class);
-    when(mMockContext.acquireBlockWorkerClient(ArgumentMatchers.any(WorkerNetAddress.class)))
+    when(mMockContext.acquireBlockWorkerClient(any(WorkerNetAddress.class)))
         .thenReturn(new NoopClosableResource<>(workerClient));
     when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));
     when(mMockContext.getClusterConf()).thenReturn(mConf);
@@ -120,6 +116,9 @@ public class BlockInStreamTest {
 
   @Test
   public void createShortCircuit() throws Exception {
+    Assume.assumeTrue("Even if data source is node-local, LocalFileDataReader won't be used when "
+        + "short circuit I/O is disabled.",
+        mConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED));
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.NODE_LOCAL;
     BlockInStream stream =
@@ -166,20 +165,20 @@ public class BlockInStreamTest {
 
   @Test
   public void createDomainSocketEnabled() throws Exception {
-    PowerMockito.mockStatic(NettyUtils.class);
-    PowerMockito.when(
-        NettyUtils.isDomainSocketAccessible(ArgumentMatchers.any(WorkerNetAddress.class),
-            ArgumentMatchers.any(InstancedConfiguration.class)))
-        .thenReturn(true);
-    PowerMockito.when(
-        NettyUtils.isDomainSocketSupported(ArgumentMatchers.any(WorkerNetAddress.class)))
-        .thenReturn(true);
-    WorkerNetAddress dataSource = new WorkerNetAddress();
-    BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.NODE_LOCAL;
-    BlockInStream stream = BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType,
-        mOptions);
-    assertEquals(GrpcDataReader.Factory.class.getName(),
-        stream.getDataReaderFactory().getClass().getName());
+    try (MockedStatic<NettyUtils> nettyUtils = Mockito.mockStatic(NettyUtils.class)) {
+      nettyUtils.when(() -> NettyUtils.isDomainSocketAccessible(any(WorkerNetAddress.class),
+          any(AlluxioConfiguration.class)))
+          .thenReturn(true);
+      nettyUtils.when(() -> NettyUtils.isDomainSocketSupported(any(WorkerNetAddress.class)))
+          .thenReturn(true);
+      WorkerNetAddress dataSource = new WorkerNetAddress();
+      BlockInStream.BlockInStreamSource dataSourceType =
+          BlockInStream.BlockInStreamSource.NODE_LOCAL;
+      BlockInStream stream = BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType,
+          mOptions);
+      assertEquals(GrpcDataReader.Factory.class.getName(),
+          stream.getDataReaderFactory().getClass().getName());
+    }
   }
 
   @Test
