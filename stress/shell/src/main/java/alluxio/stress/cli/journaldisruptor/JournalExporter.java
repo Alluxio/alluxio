@@ -14,15 +14,17 @@ import alluxio.util.network.NetworkAddressUtils;
 
 import org.apache.ratis.protocol.RaftGroup;
 
-import java.lang.reflect.Field;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 
-
+/**
+ * The JournalExporter, contains journal and journal writer.
+ */
 public class JournalExporter {
-  static String mOutputDir = "/Users/dengxinyu/journal-tool/";
+  String mOutputDir = "/Users/dengxinyu/journal-tool/";
   protected final String mInputDir;
   protected final String mMaster;
   protected final long mStart;
@@ -31,8 +33,18 @@ public class JournalExporter {
 
   private RaftGroup mRaftGroup;
 
+  /**
+   * Init JournalExporter.
+   * Will call the init method that corresponding to the journal type
+   * from the configure file.
+   * @param inputDir
+   * @param master
+   * @param start
+   * @throws IOException
+   */
   public JournalExporter(String inputDir, String master, long start) throws IOException {
-    JournalType journalType = Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+    JournalType journalType = Configuration
+        .getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
     mInputDir = inputDir;
     mMaster = master;
     mStart = start;
@@ -51,18 +63,25 @@ public class JournalExporter {
     }
   }
 
+  /**
+   * getter of JournalWriter.
+   * @return JournalWriter
+   */
   public JournalWriter getWriter() {
     return mJournalWriter;
   }
 
+  /**
+   * getter of Journal.
+   * @return Journal
+   */
   public Journal getJournal() {
     return mJournal;
   }
 
   private void initUfsJournal() throws IOException {
-    // UfsJournal journal = new UfsJournalSystem(getJournalLocation(mInputDir), 0).createJournal(new NoopMaster(mMaster));
-    System.out.println("ufsing");
-    UfsJournal journal = new UfsJournal(getJournalLocation(mOutputDir), new NoopMaster(), 0, Collections::emptySet);
+    UfsJournal journal =
+        new UfsJournal(getJournalLocation(mOutputDir), new NoopMaster(), 0, Collections::emptySet);
     mJournal = journal;
     journal.start();
     journal.suspend();
@@ -73,7 +92,8 @@ public class JournalExporter {
 
   private void initRaftJournal() {
     try {
-      RaftJournalSystem sys = new RaftJournalSystem(new URI("/Users/dengxinyu/journal-tool/raft"), NetworkAddressUtils.ServiceType.MASTER_RAFT);
+      RaftJournalSystem sys = new RaftJournalSystem(new URI("/Users/dengxinyu/journal-tool/raft"),
+          NetworkAddressUtils.ServiceType.MASTER_RAFT);
       mJournal = sys.createJournal(new NoopMaster());
       sys.start();
       sys.gainPrimacy();
@@ -89,14 +109,14 @@ public class JournalExporter {
     }
   }
 
- private URI getJournalLocation(String inputDir) {
-  if (!inputDir.endsWith(AlluxioURI.SEPARATOR)) {
-    inputDir += AlluxioURI.SEPARATOR;
+  private URI getJournalLocation(String inputDir) {
+    if (!inputDir.endsWith(AlluxioURI.SEPARATOR)) {
+      inputDir += AlluxioURI.SEPARATOR;
+    }
+    try {
+      return new URI(inputDir);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
   }
-  try {
-    return new URI(inputDir);
-  } catch (URISyntaxException e) {
-    throw new RuntimeException(e);
-  }
-}
 }
