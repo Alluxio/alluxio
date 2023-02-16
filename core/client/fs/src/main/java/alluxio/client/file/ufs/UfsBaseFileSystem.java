@@ -87,7 +87,7 @@ public class UfsBaseFileSystem implements FileSystem {
   private final Closer mCloser = Closer.create();
   protected final FileSystemContext mFsContext;
   protected final CloseableResource<UnderFileSystem> mUfs;
-  protected final AlluxioURI mRootUFS;
+  private final AlluxioURI mRootUFS;
   protected volatile boolean mClosed = false;
 
   /**
@@ -212,23 +212,17 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options) {
-    String ufsFullPath = PathUtils.concatPath(mRootUFS,
-        CommonUtils.stripPrefixIfPresent(path.getPath(), mRootUFS.getPath()));
-
-    return callWithReturn(() -> transformStatus(mUfs.get().getStatus(ufsFullPath)));
+    return callWithReturn(() -> transformStatus(mUfs.get().getStatus(path.getPath())));
   }
 
   @Override
   public List<URIStatus> listStatus(AlluxioURI path, final ListStatusPOptions options) {
-    String ufsFullPath = PathUtils.concatPath(mRootUFS,
-        CommonUtils.stripPrefixIfPresent(path.getPath(), mRootUFS.getPath()));
-
     return callWithReturn(() -> {
       ListOptions ufsOptions = ListOptions.defaults();
       if (options.hasRecursive()) {
         ufsOptions.setRecursive(options.getRecursive());
       }
-      UfsStatus[] ufsStatuses = mUfs.get().listStatus(ufsFullPath, ufsOptions);
+      UfsStatus[] ufsStatuses = mUfs.get().listStatus(path.getPath(), ufsOptions);
       if (ufsStatuses == null || ufsStatuses.length == 0) {
         return Collections.emptyList();
       }
@@ -239,15 +233,12 @@ public class UfsBaseFileSystem implements FileSystem {
   @Override
   public void iterateStatus(AlluxioURI path, final ListStatusPOptions options,
       Consumer<? super URIStatus> action) {
-    String ufsFullPath = PathUtils.concatPath(mRootUFS,
-        CommonUtils.stripPrefixIfPresent(path.getPath(), mRootUFS.getPath()));
-
     call(() -> {
       ListOptions ufsOptions = ListOptions.defaults();
       if (options.hasRecursive()) {
         ufsOptions.setRecursive(options.getRecursive());
       }
-      UfsStatus[] ufsStatuses = mUfs.get().listStatus(ufsFullPath, ufsOptions);
+      UfsStatus[] ufsStatuses = mUfs.get().listStatus(path.getPath(), ufsOptions);
       if (ufsStatuses == null || ufsStatuses.length == 0) {
         return;
       }
@@ -298,14 +289,11 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public FileInStream openFile(URIStatus status, OpenFilePOptions options) {
-    String ufsFullPath = PathUtils.concatPath(mRootUFS,
-        CommonUtils.stripPrefixIfPresent(status.getPath(), mRootUFS.getPath()));
-
     return callWithReturn(() -> {
       // TODO(lu) deal with other options e.g. maxUfsReadConcurrency
       return new UfsFileInStream(offset -> {
         try {
-          return mUfs.get().open(ufsFullPath, OpenOptions.defaults().setOffset(offset));
+          return mUfs.get().open(status.getUfsPath(), OpenOptions.defaults().setOffset(offset));
         } catch (IOException e) {
           throw AlluxioRuntimeException.from(e);
         }
@@ -400,23 +388,6 @@ public class UfsBaseFileSystem implements FileSystem {
     throw new UnsupportedOperationException();
   }
 
-  @Override
-  public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
-      boolean usePartialListing, boolean verify) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public boolean stopLoad(AlluxioURI path) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public String getLoadProgress(AlluxioURI path,
-      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
-    throw new UnsupportedOperationException();
-  }
-
   /**
    * Transform UFS file/directory status to client-side status.
    *
@@ -424,21 +395,19 @@ public class UfsBaseFileSystem implements FileSystem {
    * @return the client-side status
    */
   private URIStatus transformStatus(UfsStatus ufsStatus) {
-    String path = CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mRootUFS.getPath());
+    String path = CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mRootUFS.toString());
     AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mRootUFS, path));
     FileInfo info = new FileInfo().setName(ufsUri.getName())
         .setPath(path)
-        .setFileId(ufsUri.hashCode())
+        .setFileId(ufsUri.toString().hashCode())
         .setUfsPath(ufsUri.toString())
         .setFolder(ufsStatus.isDirectory())
         .setOwner(ufsStatus.getOwner())
         .setGroup(ufsStatus.getGroup())
         .setMode(ufsStatus.getMode())
-        .setLastModificationTimeMs(ufsStatus.getLastModifiedTime())
-        .setLastAccessTimeMs(ufsStatus.getLastModifiedTime())
         .setCompleted(true);
     if (ufsStatus.getLastModifiedTime() != null) {
-      info.setLastModificationTimeMs(info.getLastModificationTimeMs());
+      info.setLastModificationTimeMs(ufsStatus.getLastModifiedTime());
     }
     if (ufsStatus.getXAttr() != null) {
       info.setXAttr(ufsStatus.getXAttr());
@@ -451,6 +420,15 @@ public class UfsBaseFileSystem implements FileSystem {
       info.setLength(0);
     }
     return new URIStatus(info);
+  }
+
+  /**
+   * Gets the UFS Root.
+   *
+   * @return AlluxioURI of UFS Root
+   */
+  public AlluxioURI getRootUFS() {
+    return mRootUFS;
   }
 
   private static void call(UfsCallable callable) {

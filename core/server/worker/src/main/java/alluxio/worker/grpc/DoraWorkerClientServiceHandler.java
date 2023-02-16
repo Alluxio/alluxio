@@ -11,10 +11,10 @@
 
 package alluxio.worker.grpc;
 
+import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.InvalidPathException;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPRequest;
@@ -25,7 +25,6 @@ import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.dora.DoraWorker;
@@ -107,7 +106,6 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
     FileReadHandler readHandler = new FileReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR,
         mWorker, callStreamObserver);
     callStreamObserver.setOnReadyHandler(readHandler::onReady);
-    LOG.info("Read Handler created" + this.mRootUFS);
     return readHandler;
   }
 
@@ -117,24 +115,14 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
     try {
       String alluxioFilePath = request.getPath();
 
-      String ufsFullPath = PathUtils.concatPath(mRootUFS,
-          CommonUtils.stripPrefixIfPresent(alluxioFilePath, mRootUFS));
-      String fn;
-      try {
-        String[] paths = PathUtils.getPathComponents(alluxioFilePath);
-        if (paths.length > 0) {
-          fn = paths[paths.length - 1];
-        } else {
-          fn = alluxioFilePath;
-        }
-      } catch (InvalidPathException e) {
-        fn = alluxioFilePath;
-      }
+      String ufsFullPath = PathUtils.concatPath(mRootUFS, alluxioFilePath);
+      String fn = new AlluxioURI(alluxioFilePath).getName();
 
       UfsFileStatus status = mUfsFileStatusCache.get(ufsFullPath);
       GetStatusPResponse response = GetStatusPResponse.newBuilder()
           .setFileInfo(
               FileInfo.newBuilder()
+                  .setFileId(ufsFullPath.hashCode())
                   .setName(fn)
                   .setPath(alluxioFilePath)
                   .setUfsPath(ufsFullPath)
@@ -150,7 +138,6 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
           ).build();
       responseObserver.onNext(response);
       responseObserver.onCompleted();
-      LOG.info(status.toString());
     } catch (ExecutionException e) {
       LOG.error(String.format("Failed to get status of %s: ", request.getPath()), e);
       responseObserver.onError(e);
