@@ -86,7 +86,7 @@ $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
   {% endnavtab %}
   {% navtab PersistententVolumeClaim %}
 
-  如果您使用的是`PersistententVolumeClaim` domain socket，则应将下述属性传递给 Spark：
+  如果您使用的是`PersistententVolumeClaim`domain socket，则应将下述属性传递给Spark：
   
   ```properties
   spark.kubernetes.executor.volumes.persistentVolumeClaim.alluxio-domain.mount.path=/opt/domain \
