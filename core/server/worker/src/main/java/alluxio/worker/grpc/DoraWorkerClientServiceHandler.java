@@ -14,6 +14,7 @@ package alluxio.worker.grpc;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPRequest;
@@ -24,6 +25,8 @@ import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.dora.DoraWorker;
 
@@ -55,6 +58,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   private final ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
   private final DoraWorker mWorker;
 
+  private final String mRootUFS;
   private final LoadingCache<String, UfsFileStatus> mUfsFileStatusCache;
 
   /**
@@ -63,8 +67,9 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
    */
   public DoraWorkerClientServiceHandler(WorkerProcess workerProcess) {
     mWorker = workerProcess.getWorker(DoraWorker.class);
+    mRootUFS = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     UnderFileSystem ufs = UnderFileSystem.Factory.create(
-        Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT),
+        mRootUFS,
         UnderFileSystemConfiguration.defaults(Configuration.global()));
     mUfsFileStatusCache = CacheBuilder.newBuilder()
         .maximumSize(Configuration.getInt(PropertyKey.DORA_UFS_FILE_STATUS_CACHE_SIZE))
@@ -102,6 +107,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
     FileReadHandler readHandler = new FileReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR,
         mWorker, callStreamObserver);
     callStreamObserver.setOnReadyHandler(readHandler::onReady);
+    LOG.info("Read Handler created" + this.mRootUFS);
     return readHandler;
   }
 
@@ -109,14 +115,29 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   public void getStatus(GetStatusPRequest request,
                         StreamObserver<GetStatusPResponse> responseObserver) {
     try {
-      String ufsFilePath = request.getPath();
-      UfsFileStatus status = mUfsFileStatusCache.get(request.getPath());
+      String alluxioFilePath = request.getPath();
+
+      String ufsFullPath = PathUtils.concatPath(mRootUFS,
+          CommonUtils.stripPrefixIfPresent(alluxioFilePath, mRootUFS));
+      String fn;
+      try {
+        String[] paths = PathUtils.getPathComponents(alluxioFilePath);
+        if (paths.length > 0) {
+          fn = paths[paths.length - 1];
+        } else {
+          fn = alluxioFilePath;
+        }
+      } catch (InvalidPathException e) {
+        fn = alluxioFilePath;
+      }
+
+      UfsFileStatus status = mUfsFileStatusCache.get(ufsFullPath);
       GetStatusPResponse response = GetStatusPResponse.newBuilder()
           .setFileInfo(
               FileInfo.newBuilder()
-                  .setName(status.getName())
-                  .setPath(ufsFilePath)
-                  .setUfsPath(ufsFilePath)
+                  .setName(fn)
+                  .setPath(alluxioFilePath)
+                  .setUfsPath(ufsFullPath)
                   .setLength(status.getContentLength())
                   .setBlockSizeBytes(status.getBlockSize())
                   .setMode(status.getMode())
@@ -129,6 +150,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
           ).build();
       responseObserver.onNext(response);
       responseObserver.onCompleted();
+      LOG.info(status.toString());
     } catch (ExecutionException e) {
       LOG.error(String.format("Failed to get status of %s: ", request.getPath()), e);
       responseObserver.onError(e);
