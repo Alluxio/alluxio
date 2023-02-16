@@ -11,23 +11,40 @@
 
 package alluxio.master.journal.raft;
 
+import alluxio.ClientContext;
 import alluxio.concurrent.jsr.CompletableFuture;
 import alluxio.conf.Configuration;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.DownloadFilePRequest;
+import alluxio.grpc.FileMetadata;
+import alluxio.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.RaftJournalServiceGrpc;
+import alluxio.grpc.SnapshotData;
 import alluxio.grpc.SnapshotMetadata;
+import alluxio.master.MasterClientContext;
 import alluxio.master.selectionpolicy.MasterSelectionPolicy;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.amazonaws.annotation.GuardedBy;
+import org.apache.commons.io.FileUtils;
 import org.apache.ratis.server.protocol.TermIndex;
 import org.apache.ratis.server.raftlog.RaftLog;
 import org.apache.ratis.statemachine.SnapshotInfo;
 import org.apache.ratis.statemachine.StateMachineStorage;
+import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.file.Files;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -112,11 +129,54 @@ public class RaftSnapshotManager {
       return RaftLog.INVALID_LOG_INDEX;
     }
 
-    followerInfos.forEach(entry -> {
-      LOG.debug("Would request data from {} at index {}", entry.getKey(), TermIndex.valueOf(
-          entry.getValue().getSnapshotTerm(), entry.getValue().getSnapshotIndex()));
-    });
-
+    for (Map.Entry<InetSocketAddress, SnapshotMetadata> info : followerInfos) {
+      InetSocketAddress address = info.getKey();
+      SnapshotMetadata snapshotMetadata = info.getValue();
+      try (GrpcChannel channel = buildGrpcChannel(address)) {
+        RaftJournalServiceGrpc.RaftJournalServiceBlockingStub client =
+            RaftJournalServiceGrpc.newBlockingStub(channel);
+        for (FileMetadata fileMetadata : snapshotMetadata.getFileMetadataListList()) {
+          downloadFile(snapshotMetadata, fileMetadata, client);
+        }
+        File finalSnapshotDestination = new File(mStorage.getSnapshotDir(),
+            SimpleStateMachineStorage.getSnapshotFileName(snapshotMetadata.getSnapshotTerm(),
+                snapshotMetadata.getSnapshotIndex()));
+        FileUtils.moveDirectory(mStorage.getTmpDir(), finalSnapshotDestination);
+        return snapshotMetadata.getSnapshotIndex();
+      } catch (Exception e) {
+        LOG.debug("Failed to download snapshot from {}", info.getKey());
+      } finally {
+        FileUtils.deleteQuietly(mStorage.getTmpDir());
+      }
+    }
     return RaftLog.INVALID_LOG_INDEX;
+  }
+
+  private void downloadFile(SnapshotMetadata snapshotMetadata, FileMetadata fileMetadata,
+      RaftJournalServiceGrpc.RaftJournalServiceBlockingStub client) throws IOException {
+    LOG.debug("Downloading snapshot file {}", fileMetadata.getRelativePath());
+    File file = new File(mStorage.getTmpDir(), fileMetadata.getRelativePath());
+    file.getParentFile().mkdirs();
+    file.createNewFile();
+
+    DownloadFilePRequest request = DownloadFilePRequest.newBuilder()
+        .setSnapshotTerm(snapshotMetadata.getSnapshotTerm())
+        .setSnapshotIndex(snapshotMetadata.getSnapshotIndex())
+        .setFileMetadata(fileMetadata)
+        .build();
+    Iterator<SnapshotData> data = client.withCompression("gzip").downloadLatestSnapshot(request);
+    try (OutputStream out = Files.newOutputStream(file.toPath())) {
+      while (data.hasNext()) {
+        out.write(data.next().toByteArray());
+      }
+    }
+    LOG.debug("Successfully downloaded snapshot file {}", fileMetadata.getRelativePath());
+  }
+
+  private GrpcChannel buildGrpcChannel(InetSocketAddress target) throws AlluxioStatusException {
+    MasterClientContext context = MasterClientContext.newBuilder(ClientContext.create()).build();
+    return GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(target), context.getClusterConf())
+        .setSubject(context.getSubject())
+        .build();
   }
 }
