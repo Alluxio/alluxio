@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -55,6 +56,8 @@ public class S3ALowLevelOutputStream extends ObjectLowLevelOutputStream {
 
   /** The upload id of this multipart upload. */
   protected volatile String mUploadId;
+
+  private String mContentHash;
 
   /**
    * Constructs a new stream for writing a file.
@@ -127,8 +130,8 @@ public class S3ALowLevelOutputStream extends ObjectLowLevelOutputStream {
   protected void completeMultiPartUploadInternal() throws IOException {
     try {
       LOG.debug("complete multi part {}", mUploadId);
-      getClient().completeMultipartUpload(new CompleteMultipartUploadRequest(
-          mBucketName, mKey, mUploadId, mTags));
+      mContentHash = getClient().completeMultipartUpload(new CompleteMultipartUploadRequest(
+          mBucketName, mKey, mUploadId, mTags)).getETag();
     } catch (SdkClientException e) {
       LOG.debug("failed to complete multi part upload", e);
       throw new IOException(
@@ -156,8 +159,9 @@ public class S3ALowLevelOutputStream extends ObjectLowLevelOutputStream {
       ObjectMetadata meta = new ObjectMetadata();
       meta.setContentLength(0);
       meta.setContentType(Mimetypes.MIMETYPE_OCTET_STREAM);
-      getClient().putObject(
-          new PutObjectRequest(mBucketName, key, new ByteArrayInputStream(new byte[0]), meta));
+      mContentHash = getClient().putObject(
+          new PutObjectRequest(mBucketName, key, new ByteArrayInputStream(new byte[0]), meta))
+          .getETag();
     } catch (SdkClientException e) {
       throw new IOException(e);
     }
@@ -177,7 +181,7 @@ public class S3ALowLevelOutputStream extends ObjectLowLevelOutputStream {
       meta.setContentType(Mimetypes.MIMETYPE_OCTET_STREAM);
       PutObjectRequest putReq = new PutObjectRequest(mBucketName, key, file);
       putReq.setMetadata(meta);
-      getClient().putObject(putReq);
+      mContentHash = getClient().putObject(putReq).getETag();
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -185,5 +189,10 @@ public class S3ALowLevelOutputStream extends ObjectLowLevelOutputStream {
 
   protected AmazonS3 getClient() {
     return mClient;
+  }
+
+  @Override
+  public Optional<String> getContentHash() {
+    return Optional.ofNullable(mContentHash);
   }
 }
