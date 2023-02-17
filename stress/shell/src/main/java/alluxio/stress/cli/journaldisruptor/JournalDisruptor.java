@@ -24,7 +24,6 @@ public class JournalDisruptor {
   Journal.JournalEntry mEntry;
   Journal.JournalEntry mHoldEntry;
   boolean mHoldFlag;
-  long mHoldEntrySequenceNumber;
 
   /**
    * init a JournalDisruptor.

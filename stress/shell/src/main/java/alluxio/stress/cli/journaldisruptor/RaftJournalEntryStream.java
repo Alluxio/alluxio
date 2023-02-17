@@ -38,10 +38,6 @@ public class RaftJournalEntryStream extends EntryStream {
   private int mCurrentPathIndex = 0;
   private SegmentedRaftLogInputStream mIn = null;
   private RaftProtos.LogEntryProto mProto = null;
-  private InputStream mStream;
-  private JournalEntryStreamReader mReader;
-  private byte[] mBuffer = new byte[4096];
-
   private RaftProtos.LogEntryProto mNextProto;
   private Journal.JournalEntry mEntry;
   private List<Journal.JournalEntry> mList = new ArrayList<>();
@@ -129,6 +125,8 @@ public class RaftJournalEntryStream extends EntryStream {
         mCurrentPathIndex += 1;
       } catch (Exception e) {
         // LOG sth, but how to init log with destination...
+        System.out.println("wrong path in path list");
+        return null;
       }
     }
 
@@ -155,7 +153,5 @@ public class RaftJournalEntryStream extends EntryStream {
   }
 
   @Override
-  public void close() throws IOException {
-    mReader.close();
-  }
+  public void close() throws IOException {}
 }

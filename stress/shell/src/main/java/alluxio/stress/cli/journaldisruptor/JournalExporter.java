@@ -42,7 +42,6 @@ public class JournalExporter {
   public JournalWriter mJournalWriter;
   public Journal mJournal;
 
-  private RaftGroup mRaftGroup;
 
   /**
    * Init JournalExporter.
