@@ -22,6 +22,16 @@ import java.net.InetSocketAddress;
  */
 public interface MasterSelectionPolicy {
   /**
+   * The enum for master selection policies.
+   */
+  enum Type {
+    PRIMARY_MASTER,
+    ANY_STANDBY_MASTER,
+    ANY_MASTER,
+    SPECIFIED_MASTER,
+  }
+
+  /**
    * Get and cache the primary master address.
    *
    * @param masterInquireClient master inquire client
@@ -47,6 +57,11 @@ public interface MasterSelectionPolicy {
    * Resets the cached primary master address.
    */
   void resetPrimaryMasterAddressCache();
+
+  /**
+   * @return the type of the master selection policy
+   */
+  Type getType();
 
   /**
    * Factory for {@link MasterSelectionPolicy}.

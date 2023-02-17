@@ -34,6 +34,27 @@ enum ServiceType {
 
 message GetServiceVersionPRequest {
   optional ServiceType serviceType = 1;
+  // The purpose of this field is to make grpc service on standby masters work without
+  // making client changes and keeps backwards compatibility.
+  // This requests to this endpoint will be rejected on standby masters by default,
+  // unless this field is set.
+  // Two places use this request:
+  // 1. PollingMasterInquireClient uses this endpoint to tell who is the primary master.
+  // 2. AbstractClient uses this endpoint to verify the version before it RPCs with the master.
+  //
+  // Behaviors:
+  // 1. old clients -> new cluster standby masters
+  // PollingMasterInquireClient does not set this field and is able to tell which one is primary master because
+  // the request will be rejected on the standby master.
+  // AbstractClient does not set this field.
+  // Old clients only connects to primary so this doesn't break the existing behavior.
+  //
+  // 2. new clients -> new cluster standby masters
+  // PollingMasterInquireClient does not set this field and is able to tell which one is primary master because
+  // the request will be rejected on the standby master.
+  // AbstractClient sets this field to true. Rpcs to standby masters can go through and pass the version verification.
+
+  optional bool allowedOnStandbyMasters = 2;
 }
 message GetServiceVersionPResponse {
   optional int64 version = 1;

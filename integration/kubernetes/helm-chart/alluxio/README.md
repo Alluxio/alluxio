@@ -52,7 +52,7 @@ please talk to your admin user and get the PersistentVolumes provisioned for All
 To install the Alluxio Chart into your Kubernetes cluster :
 
 ```
-helm install --namespace "alluxio" --name "alluxio" alluxio
+helm install --namespace "alluxio" "alluxio" alluxio
 ```
 
 After installation succeeds, you can get a status of Chart

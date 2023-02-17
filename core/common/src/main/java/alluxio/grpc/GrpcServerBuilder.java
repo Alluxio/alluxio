@@ -24,6 +24,7 @@ import io.grpc.ServerInterceptor;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.netty.NettyServerBuilder;
+import io.grpc.protobuf.services.ProtoReflectionService;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
@@ -33,6 +34,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 /**
@@ -51,10 +53,13 @@ public final class GrpcServerBuilder {
   /** Alluxio configuration.  */
   private final AlluxioConfiguration mConfiguration;
 
+  private final boolean mGrpcReflectionEnabled;
+
   private GrpcServerBuilder(GrpcServerAddress serverAddress,
       AuthenticationServer authenticationServer, AlluxioConfiguration conf) {
     mNettyServerBuilder = NettyServerBuilder.forAddress(serverAddress.getSocketAddress());
     mConfiguration = conf;
+    mGrpcReflectionEnabled = conf.getBoolean(PropertyKey.GRPC_REFLECTION_ENABLED);
 
     if (conf.getBoolean(alluxio.conf.PropertyKey.NETWORK_TLS_ENABLED)) {
       sslContext(SslContextProvider.Factory.create(mConfiguration).getServerSSLContext());
@@ -258,8 +263,24 @@ public final class GrpcServerBuilder {
    * @return the built {@link GrpcServer}
    */
   public GrpcServer build() {
-    addService(new GrpcService(new ServiceVersionClientServiceHandler(mServices))
+    return build(null);
+  }
+
+  /**
+   * Build the server.
+   * It attaches required services and interceptors for authentication.
+   *
+   * @param nodeStateSupplier a supplier to provide the node state (PRIMARY/STANDBY)
+   * @return the built {@link GrpcServer}
+   */
+  public GrpcServer build(@Nullable Supplier<NodeState> nodeStateSupplier) {
+    addService(new GrpcService(new ServiceVersionClientServiceHandler(mServices, nodeStateSupplier))
         .disableAuthentication());
+    if (mGrpcReflectionEnabled) {
+      // authentication needs to be disabled so that the grpc command line tools can call
+      // this reflection endpoint and get the current grpc services and their interfaces.
+      addService(new GrpcService(ProtoReflectionService.newInstance()).disableAuthentication());
+    }
     return new GrpcServer(mNettyServerBuilder.build(), mAuthenticationServer, mCloser,
         mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT));
   }

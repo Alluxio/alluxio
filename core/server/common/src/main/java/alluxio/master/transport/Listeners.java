@@ -70,7 +70,7 @@ public class Listeners<T> implements Iterable<Listener<T>> {
         listener.getListener().accept(event);
       }
     }
-    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
+    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
   }
 
   @Override

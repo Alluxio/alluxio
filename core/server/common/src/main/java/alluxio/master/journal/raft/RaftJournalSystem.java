@@ -545,6 +545,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
     mTransferLeaderAllowed.set(true);
+    super.registerMetrics();
     LOG.info("Gained primacy.");
   }
 
@@ -655,7 +656,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized Map<alluxio.grpc.ServiceType, GrpcService> getJournalServices() {
     Map<alluxio.grpc.ServiceType, GrpcService> services = new HashMap<>();
     services.put(alluxio.grpc.ServiceType.RAFT_JOURNAL_SERVICE, new GrpcService(
-        new RaftJournalServiceHandler(mStateMachine.getSnapshotReplicationManager())));
+        new RaftJournalServiceHandler(mStateMachine.getSnapshotReplicationManager(), this)));
     return services;
   }
 
@@ -1191,6 +1192,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     return mServer;
   }
 
+  @VisibleForTesting
+  ConcurrentHashMap<String, RaftJournal> getJournals() {
+    return mJournals;
+  }
+
   /**
    * Updates raft group with the current values from raft server.
    */
@@ -1202,8 +1208,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
   }
 
+  @VisibleForTesting
   @Nullable
-  private RaftProtos.RoleInfoProto getRaftRoleInfo() {
+  RaftProtos.RoleInfoProto getRaftRoleInfo() {
     GroupInfoReply groupInfo = null;
     try {
       groupInfo = getGroupInfo();

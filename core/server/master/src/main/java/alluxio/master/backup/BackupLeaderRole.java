@@ -30,7 +30,7 @@ import alluxio.master.StateLockOptions;
 import alluxio.master.transport.GrpcMessagingConnection;
 import alluxio.master.transport.GrpcMessagingServiceClientHandler;
 import alluxio.resource.LockResource;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BackupStatus;
@@ -144,7 +144,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
                             Configuration.global()),
                         (conn) -> activateWorkerConnection(conn), mGrpcMessagingContext,
                         mExecutorService, mCatalystRequestTimeout),
-                    new ClientIpAddressInjector())).withCloseable(this));
+                    new ClientContextServerInjector())).withCloseable(this));
     return services;
   }
 

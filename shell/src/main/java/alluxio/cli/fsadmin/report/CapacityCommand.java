@@ -17,7 +17,10 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.Scope;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
 
@@ -78,7 +81,8 @@ public class CapacityCommand {
     }
 
     GetWorkerReportOptions options = getOptions(cl);
-    generateCapacityReport(options);
+    Configuration.loadClusterDefaults(mBlockMasterClient.getConfAddress(), Scope.CLIENT);
+    generateCapacityReport(options, Configuration.global());
     return 0;
   }
 
@@ -86,8 +90,10 @@ public class CapacityCommand {
    * Generates capacity report.
    *
    * @param options GetWorkerReportOptions to get worker report
+   * @param conf the cluster configuration
    */
-  public void generateCapacityReport(GetWorkerReportOptions options) throws IOException {
+  public void generateCapacityReport(GetWorkerReportOptions options, AlluxioConfiguration conf)
+      throws IOException {
     List<WorkerInfo> workerInfoList = mBlockMasterClient.getWorkerReport(options);
     if (workerInfoList.size() == 0) {
       print("No workers found.");
@@ -288,7 +294,8 @@ public class CapacityCommand {
     Set<WorkerInfoField> fieldRange = EnumSet.of(WorkerInfoField.ADDRESS,
         WorkerInfoField.WORKER_CAPACITY_BYTES, WorkerInfoField.WORKER_CAPACITY_BYTES_ON_TIERS,
         WorkerInfoField.LAST_CONTACT_SEC, WorkerInfoField.WORKER_USED_BYTES,
-        WorkerInfoField.WORKER_USED_BYTES_ON_TIERS, WorkerInfoField.BUILD_VERSION);
+        WorkerInfoField.WORKER_USED_BYTES_ON_TIERS, WorkerInfoField.BUILD_VERSION,
+        WorkerInfoField.ID, WorkerInfoField.STATE);
     workerOptions.setFieldRange(fieldRange);
 
     if (cl.hasOption(ReportCommand.LIVE_OPTION_NAME)) {

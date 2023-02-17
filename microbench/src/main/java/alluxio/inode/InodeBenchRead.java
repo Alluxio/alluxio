@@ -11,8 +11,6 @@
 
 package alluxio.inode;
 
-import static alluxio.inode.InodeBenchBase.HEAP;
-import static alluxio.inode.InodeBenchBase.ROCKS;
 import static alluxio.inode.InodeBenchBase.ROCKSCACHE;
 
 import alluxio.BaseFileStructure;
@@ -56,23 +54,35 @@ public class InodeBenchRead {
 
   @State(Scope.Benchmark)
   public static class Db extends BaseFileStructure {
+    @Param({"10"})
+    public int mDepth;
+
+    @Param({"0"})
+    public int mWidth;
+
+    @Param({"1000"})
+    public int mFileCount;
+
+    @Param({"ZIPF"})
+    public Distribution mDistribution;
 
     @Param({"true", "false"})
     public boolean mSingleFile;
 
-    @Param({HEAP, ROCKS, ROCKSCACHE})
+    @Param({ROCKSCACHE})
     public String mType;
 
-    @Param({RocksBenchConfig.JAVA_CONFIG, RocksBenchConfig.BASE_CONFIG,
-        RocksBenchConfig.EMPTY_CONFIG, RocksBenchConfig.BLOOM_CONFIG})
+    @Param({RocksBenchConfig.JAVA_CONFIG})
     public String mRocksConfig;
 
     InodeBenchBase mBase;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
+      super.init(mDepth, mWidth, mFileCount, mDistribution);
       Assert.assertTrue("mFileCount needs to be > 0 if mSingleFile is true",
           !mSingleFile || mFileCount > 0);
+
       mBase = new InodeBenchBase(mType, mRocksConfig);
       mBase.createBasePath(mDepth);
       for (int d = 0; d <= mDepth; d++) {

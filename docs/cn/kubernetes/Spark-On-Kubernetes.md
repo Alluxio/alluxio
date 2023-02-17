@@ -1,49 +1,41 @@
 ---
 layout: global
-title: Kubernetes环境下在Alluxio上运行Spark
+title: 在Kubernetes上通过Alluxio运行Spark
 nickname: Spark on Kubernetes
 group: Compute Integrations
 priority: 1
 ---
 
-Alluxio可以在Kubernetes上运行。本指南演示了如何在Kubernetes环境下运行的Alluxio上跑一个Spark作业。
+Alluxio可以在Kubernetes上运行。本指南介绍了如何在Kubernetes环境中利用Alluxio运行Spark作业。
 
 * Table of Contents
 {:toc}
 
-## 概述
+## 概览
+在Kubernetes上运行Spark时可将Alluxio作为数据访问层。本指南介绍了在Kubernetes中的Alluxio上运行Spark作业的示例。教程中使用的示例是一个计算文件行数的作业。下文中称该作业为`count`。
 
-在Kubernetes上运行的Spark可以将Alluxio用作数据访问层。
-本指南介绍了Kubernetes环境下在Alluxio上运行Spark作业示例。
-本教程中使用的示例是一个计算一个文件中有多少行的作业。
-在下文中，我们将此作业称为 count。
+## 部署条件
 
-## 先决条件
-
-- Kubernetes集群(版本>=1.8)。
-- Alluxio已部署在Kubernetes集群上。有关如何部署Alluxio的说明，请参考
-[本页]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url}})
+- 已安装一个Kubernetes集群（版本不低于1.8）
+- Alluxio部署在Kubernetes集群上。有关如何部署Alluxio，请参见[此页]({{ '/cn/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url }})。
 
 ## 基本设置
 
-首先，我们准备一个Spark Docker镜像，其中包括Alluxio客户端和任何其他必需的jar文件。
-在所有Kubernetes节点上都需提供此镜像。
+首先，我们准备一个包含Alluxio client和其他所需jar包的Spark Docker镜像。此镜像应在所有Kubernetes节点上可用。
 
-### 下载二进制文件
+### 下载Spark软件
+[下载](https://spark.apache.org/downloads.html)所需的Spark版本。我们将预编译的二进制文件用于`spark-submit` 命令，并使用Alluxio中包含的Dockerfile来构建Docker镜像。
 
-[下载](https://spark.apache.org/downloads.html)所需的Spark版本。
-对于`spark-submit`命令和使用Alluxio所含的Dockerfile编译Docker镜像
-我们都使用预生成的二进制文件，。
->注:下载为Hadoop预制的软件包
+> 注：下载用于Hadoop的预编译文件包
 
 ```console
 $ tar -xf spark-2.4.4-bin-hadoop2.7.tgz
 $ cd spark-2.4.4-bin-hadoop2.7
 ```
 
-### 编译Spark Docker镜像
+### 构建Spark Docker镜像
 
-从Alluxio Docker镜像中提取Alluxio客户端jar:
+解压Alluxio Docker镜像中的Alluxio client：
 
 ```console
 $ id=$(docker create alluxio/alluxio:{{site.ALLUXIO_VERSION_STRING}})
@@ -52,58 +44,49 @@ $ docker cp $id:/opt/alluxio/client/alluxio-{{site.ALLUXIO_VERSION_STRING}}-clie
 $ docker rm -v $id 1>/dev/null
 ```
 
-添加所需的Alluxio客户端jar并构建用于Spark驱动程序和执行程序pods的Docker镜像。
-从Spark发行版目录运行以下命令以添加Alluxio客户端jar。
+添加所需的Alluxio client jar并构建用于Spark driver和executor pod的Docker镜像。从Spark发行版目录运行以下命令，从而添加Alluxio client jar。
 
 ```console
 $ cp <path_to_alluxio_client>/alluxio-{{site.ALLUXIO_VERSION_STRING}}-client.jar jars/
 ```
->注意:任何复制到`jars`目录的jar文件在编译时都会被包含到Spark Docker镜像中。
+> 注：任何拷贝到jars目录的jar 文件在构建时都包含在Spark Docker镜像中。
 
-编译Spark Docker镜像
+构建Spark Docker镜像
 
 ```console
 $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 ```
->注意:确保所有节点(spark-driver和spark-executor pods将运行的所在节点) 
-都有该镜像。
+> 注：**确保所有（运行spark-driver和spark-executor pod的）节点都包含此镜像。**
 
 ## 示例
 
-本节说明如何使用编译的Docker镜像来发起一个以Alluxio作为数据源的Spark作业。
+本节介绍如何使用构建的Docker镜像来启动一个以Alluxio为数据源的Spark作业。
 
 ### 短路操作
 
-短路访问使Spark执行器中的Alluxio客户端可以直接访问主机上的Alluxio worker存储。
-因为不通过网络堆栈来与Alluxio worker通信，这样可以提高性能。
+短路访问使得Spark executor中的Alluxio client能够直接访问主机上的Alluxio worker存储，而无需通过网络传输与Alluxio worker通信，因而实现了性能提升。
 
-如果在部署Alluxio时未按照指令设置domain socket
-[本页]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url}}＃short-circuit-access)，则
-可以跳过将`hostPath`卷挂载到Spark执行器步骤。
+如果未按照[此页]({{ '/cn/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#enable-short-circuit-access)的说明在部署Alluxio时设置domain socket（域套接字），则可以跳过将`hostPath`卷挂载到Spark executor的操作。
 
-如果在运行Alluxio worker进程的主机上将domain socket位置设置为
-`/tmp/alluxio-domain`，并且Alluxio配置为`alluxio.worker.data.server.domain.socket.address=/opt/domain`，使用以下Spark
-配置将`/tmp/alluxio-domain`挂载到Spark执行器pod中的`/opt/domain`。
-下一节中的`spark-submit`命令包含这些属性。
+如果在运行Alluxio worker进程的主机上将domain socket位置设置成 `/tmp/alluxio-domain` ，而Alluxio配置为 `alluxio.worker.data.server.domain.socket.address=/opt/domain`，则应使用以下Spark配置将 `/tmp/alluxio-domain` 挂载到Spark executor pod上的 `/opt/domain`。下节中提到的`spark-submit`命令将包括这些属性。
 
-取决于你的设置，Alluxio worker上的domain socket可以是`hostPath`卷或`PersistententVolumeClaim`两种之一。可以再[此处]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html#short-circuit-access' | relativize_url}})找到有关如何配置Alluxio worker以使用短路操作的更多详细信息。
-这两个选项的spark-submit参数将有所不同。
-可以在以下Spark文档中找到有关如何将卷挂载到Spark执行器的更多[信息](https://spark.apache.org/docs/2.4.4/running-on-kubernetes.html#using-kubernetes-volumes)。
+根据设置不同，Alluxio worker上的domain socket可以是`hostPath`卷，也可以是`PersistententVolumeClaim`。有关如何配置Alluxio worker来使用短路读的详细信息，请点击[此处]({{ '/cn/kubernetes/Running-Alluxio-On-Kubernetes.html#short-circuit-access' | relativize_url }})。上述两个选项的spark-submit参数会有所不同。有关如何将卷挂载到 Spark executor的详细信息，请参见Spark[文档](https://spark.apache.org/docs/2.4.4/running-on-kubernetes.html#using-kubernetes-volumes)。
 
 {% navtabs domainSocket %}
   {% navtab hostPath %}
-  如果使用的是`hostPath` domain socket，则应将以下属性传递给Spark:
-  
+
+  如果您使用的是`hostPath` domain socket，则应将下述属性传递给Spark：
+
   ```properties
   spark.kubernetes.executor.volumes.hostPath.alluxio-domain.mount.path=/opt/domain
   spark.kubernetes.executor.volumes.hostPath.alluxio-domain.mount.readOnly=true
   spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.path=/tmp/alluxio-domain
   spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.type=Directory
   ```
- 
   {% endnavtab %}
   {% navtab PersistententVolumeClaim %}
-  如果使用的是`PersistententVolumeClaim` domain socket，则应将以下属性传递给Spark:
+
+  如果您使用的是`PersistententVolumeClaim`domain socket，则应将下述属性传递给Spark：
   
   ```properties
   spark.kubernetes.executor.volumes.persistentVolumeClaim.alluxio-domain.mount.path=/opt/domain \
@@ -114,18 +97,15 @@ $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
   {% endnavtab %}
 {% endnavtabs %}
 
-注意: 
-- Spark中的卷支持是在2.4.0版中添加的。
-- 当不通过domain socket使用短路访问时，可能会观察到性能下降。
+> 注: 
+> - Spark 2.4.0版本中新增了卷支持。
+> - 当不通过domain socket使用短路访问时可能会出现性能下降。
 
 ### 运行Spark作业
 
-以下命令在Alluxio位置`/LICENSE`运行一个计字数作业样例。
-可以在Spark驱动程序pod的日志中看到运行的输出和所花费的时间。更进一步[说明参考Spark](https://spark.apache.org/docs/latest/running-on-kubernetes.html)。
+#### 创建服务账户（可选）
 
-#### 创建服务帐户(可选)
-
-如果没有可使用的服务帐户，可以按如下指令创建一个具有所需访问权限的服务账户来运行spark作业。
+如果您没有服务帐户可用，可创建一个具有所需访问权限的服务帐户来运行spark作业，如下所示：
 
 ```console
 $ kubectl create serviceaccount spark
@@ -135,10 +115,13 @@ $ kubectl create clusterrolebinding spark-role --clusterrole=edit \
 
 #### 提交Spark作业
 
-从Spark发行版目录运行Spark作业
+下述命令在Alluxio `/LICENSE`位置运行字数统计作业。请确保此文件存在于您的Alluxio集群中，或者将路径更改为已存在的文件。
 
+您可以在Spark driver pod的日志中看到输出和所用时间。有关在Kubernetes上运行Spark的更多详细信息，请参阅Spark[文档](https://spark.apache.org/docs/latest/running-on-kubernetes.html)。比如，点击[此处](https://spark.apache.org/docs/latest/running-on-kubernetes.html?q=cluster-info#cluster-mode)可查看该命令中使用的部分flag的详细信息。
+
+从Spark发行版目录运行Spark作业
 ```console
-$ ./bin/spark-submit --master k8s://https://<kubernetes-api-server>:8443 \
+$ ./bin/spark-submit --master k8s://https://<kubernetes-api-server>:6443 \
 --deploy-mode cluster --name spark-alluxio --conf spark.executor.instances=1 \
 --class org.apache.spark.examples.JavaWordCount \
 --driver-memory 500m --executor-memory 1g \
@@ -151,41 +134,42 @@ $ ./bin/spark-submit --master k8s://https://<kubernetes-api-server>:8443 \
 local:///opt/spark/examples/jars/spark-examples_2.11-2.4.4.jar \
 alluxio://<alluxio-master>:19998/LICENSE
 ```
-> 注意:可以通过运行`kubectl cluster-info`找到Kubernetes API服务器地址。
-您可以在Spark[文档](https://spark.apache.org/docs/latest/running-on-kubernetes.html?q=cluster-info#cluster-mode)中找到更多详细信息。
-你应该使用与你的domain socket卷类型相应的属性 
-[domain socket卷类型]({{ '/en/kubernetes/Spark-On-Kubernetes.html#short-circuit-operations' | relativize_url}}。
 
-## 故障排除
+> 注:
+> - 您可通过运行`kubectl cluster-info`找到Kubernetes API服务器的地址和端口。
+>   - 默认的 Kubernetes API 服务器端口为 6443，但可能会因集群配置而异
+> - 建议将此命令中的 `<alluxio-master>` 主机名设置为Alluxio master的Kubernetes服务名（例如，`alluxio-master-0`）。
+> - 如果您使用的是不同版本的 Spark，请确保根据Spark 版本正确设置`spark-examples_2.11-2.4.4.jar`的路径
+> - 此外，应注意确保卷属性与[domain socket卷类型]({{ '/cn/kubernetes/Spark-On-Kubernetes.html#short-circuit-operations' | relativize_url }})一致。
 
-### 访问Alluxio客户端日志
+## 故障排查
 
-可在Spark驱动和执行器日志中找到Alluxio客户端日志。
-有关更多说明参考[Spark文档](https://spark.apache.org/docs/latest/running-on-kubernetes.html#debugging)
+### 访问Alluxio Client日志
 
-### Kubernetes客户端上的HTTP 403
+Alluxio client日志可以在Spark driver和executor日志中查看。详细说明请参见[Spark文档](https://spark.apache.org/docs/latest/running-on-kubernetes.html#debugging)。
 
-如果你的Spark作业因Kubernetes客户端中如下错误而失败:
+
+### Kubernetes client上出现HTTP 403错误
+
+如果您的Spark作业由于Kubernetes client故障而运行失败，如下所示：
 ```
 WARN ExecutorPodsWatchSnapshotSource: Kubernetes client has been closed
 ...
 ERROR SparkContext: Error initializing SparkContext.
 io.fabric8.kubernetes.client.KubernetesClientException
 ```
-
-这可能是由于一个[已知问题](https://issues.apache.org/jira/browse/SPARK-28921)导致的，可以通过将`kubernetes- client.jar`升级至4.4.x来解决。
-您可以在编译`spark-alluxio`镜像之前通过更新`kubernetes-client-xxjar`来修补docker镜像。
+这可能是由一个[已知问题](https://issues.apache.org/jira/browse/SPARK-28921)导致，该问题可以通过将 `kubernetes-client.jar`升级到4.4.x来解决。您可以在构建`spark-alluxio`镜像之前通过更新`kubernetes-client-x.x.jar`来修补docker镜像。
 
 ```console
 rm spark-2.4.4-bin-hadoop2.7/jars/kubernetes-client-*.jar
 wget https://repo1.maven.org/maven2/io/fabric8/kubernetes-client/4.4.2/kubernetes-client-4.4.2.jar 
 cp kubernetes-client-4.4.2.jar spark-2.4.4-bin-hadoop2.7/jars
 ```
-然后编译`spark-alluxio`镜像，并分发到所有节点。
+然后构建`spark-alluxio`镜像并分发到所有节点。
 
 ### 服务帐户没有访问权限
 
-如果你看到类似以下某些操作被禁止的错误，这是因为用于Spark作业服务帐户没有足够的访问权限来执行操作引起的。
+如果您看到某些操作被禁止的错误（如下所示），那是因为用于spark作业的服务帐户没有足够的访问权限来执行该操作。
 
 ```
 ERROR Utils: Uncaught exception in thread main
@@ -196,4 +180,4 @@ pods "spark-alluxiolatest-exec-1" is forbidden: User "system:serviceaccount:defa
 cannot delete resource "pods" in API group "" in the namespace "default".
 ```
 
-你应该参考[创建服务帐户]({{ '/en/kubernetes/Spark-On-Kubernetes.html#create-the-service-account-optional' | relativize_url}}确保有正确访问权限。
+您应该通过[创建服务帐户]({{ '/cn/kubernetes/Spark-On-Kubernetes.html#create-the-service-account-optional' | relativize_url }})来确保账户具有合理的访问权限。

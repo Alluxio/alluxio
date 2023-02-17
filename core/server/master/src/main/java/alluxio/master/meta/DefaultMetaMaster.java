@@ -20,6 +20,7 @@ import alluxio.collections.IndexedSet;
 import alluxio.conf.Configuration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ReconfigurableRegistry;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.NotFoundException;
@@ -53,6 +54,7 @@ import alluxio.master.meta.checkconf.ConfigurationStore;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Meta;
 import alluxio.resource.CloseableIterator;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
@@ -67,6 +69,7 @@ import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigHash;
 
 import com.google.common.collect.ImmutableSet;
+import io.grpc.ServerInterceptors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -257,11 +260,17 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(ServiceType.META_MASTER_CONFIG_SERVICE,
-        new GrpcService(new MetaMasterConfigurationServiceHandler(this)).disableAuthentication());
+        new GrpcService(ServerInterceptors.intercept(
+            new MetaMasterConfigurationServiceHandler(this),
+            new ClientContextServerInjector())).disableAuthentication());
     services.put(ServiceType.META_MASTER_CLIENT_SERVICE,
-        new GrpcService(new MetaMasterClientServiceHandler(this)));
+        new GrpcService(ServerInterceptors.intercept(
+            new MetaMasterClientServiceHandler(this),
+            new ClientContextServerInjector())));
     services.put(ServiceType.META_MASTER_MASTER_SERVICE,
-        new GrpcService(new MetaMasterMasterServiceHandler(this)));
+        new GrpcService(ServerInterceptors.intercept(
+            new MetaMasterMasterServiceHandler(this),
+            new ClientContextServerInjector())));
     // Add backup role services.
     services.putAll(mBackupRole.getRoleServices());
     services.putAll(mJournalSystem.getJournalServices());
@@ -292,12 +301,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
           new LostMasterDetectionHeartbeatExecutor(),
-          (int) Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
+          () -> Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
           Configuration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
               new LogConfigReportHeartbeatExecutor(),
-              (int) Configuration
+              () -> Configuration
                   .getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL),
               Configuration.global(), mMasterContext.getUserState()));
 
@@ -309,7 +318,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       if (mJournalSpaceMonitor != null) {
         getExecutorService().submit(new HeartbeatThread(
             HeartbeatContext.MASTER_JOURNAL_SPACE_MONITOR, mJournalSpaceMonitor,
-            Configuration.getMs(PropertyKey.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL),
+            () -> Configuration.getMs(PropertyKey.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL),
             Configuration.global(), mMasterContext.getUserState()));
       }
       if (mState.getClusterID().equals(INVALID_CLUSTER_ID)) {
@@ -322,7 +331,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
             && !Configuration.getBoolean(PropertyKey.TEST_MODE)) {
           getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_UPDATE_CHECK,
               new UpdateChecker(this),
-              (int) Configuration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL),
+              () -> Configuration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL),
               Configuration.global(), mMasterContext.getUserState()));
         }
       } else {
@@ -337,7 +346,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
                 .newBuilder(ClientContext.create(Configuration.global())).build());
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
             new MetaMasterSync(mMasterAddress, metaMasterClient),
-            (int) Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
+            () -> Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
             Configuration.global(), mMasterContext.getUserState()));
         LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
             mMasterAddress);
@@ -681,6 +690,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       }
     }
     LOG.debug("Update {} properties, succeed {}.", propertiesMap.size(), successCount);
+    if (successCount > 0) {
+      ReconfigurableRegistry.update();
+    }
     return result;
   }
 

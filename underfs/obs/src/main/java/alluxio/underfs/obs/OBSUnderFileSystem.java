@@ -20,12 +20,23 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Suppliers;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.obs.services.ObsClient;
 import com.obs.services.exception.ObsException;
+import com.obs.services.model.AbortMultipartUploadRequest;
+import com.obs.services.model.DeleteObjectsRequest;
+import com.obs.services.model.DeleteObjectsResult;
+import com.obs.services.model.KeyAndVersion;
+import com.obs.services.model.ListMultipartUploadsRequest;
 import com.obs.services.model.ListObjectsRequest;
+import com.obs.services.model.MultipartUpload;
+import com.obs.services.model.MultipartUploadListing;
 import com.obs.services.model.ObjectListing;
 import com.obs.services.model.ObjectMetadata;
 import com.obs.services.model.ObsObject;
@@ -40,6 +51,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -65,6 +79,7 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   private final String mBucketName;
 
   private final String mBucketType;
+  private final Supplier<ListeningExecutorService> mStreamingUploadExecutor;
 
   /**
    * Constructs a new instance of {@link OBSUnderFileSystem}.
@@ -107,10 +122,34 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
     mClient = obsClient;
     mBucketName = bucketName;
     mBucketType = bucketType;
+    mStreamingUploadExecutor = Suppliers.memoize(() -> {
+      int numTransferThreads =
+          conf.getInt(PropertyKey.UNDERFS_OBS_STREAMING_UPLOAD_THREADS);
+      ExecutorService service = ExecutorServiceFactories
+          .fixedThreadPool("alluxio-obs-streaming-upload-worker",
+              numTransferThreads).create();
+      return MoreExecutors.listeningDecorator(service);
+    });
   }
 
   @Override
   public void cleanup() {
+    long cleanAge = mUfsConf.getMs(PropertyKey.UNDERFS_OBS_INTERMEDIATE_UPLOAD_CLEAN_AGE);
+    Date cleanBefore = new Date(new Date().getTime() - cleanAge);
+    MultipartUploadListing uploadListing = mClient.listMultipartUploads(
+        new ListMultipartUploadsRequest(mBucketName));
+    do {
+      for (MultipartUpload upload : uploadListing.getMultipartTaskList()) {
+        if (upload.getInitiatedDate().compareTo(cleanBefore) < 0) {
+          mClient.abortMultipartUpload(new AbortMultipartUploadRequest(
+              mBucketName, upload.getObjectKey(), upload.getUploadId()));
+        }
+      }
+      ListMultipartUploadsRequest request = new ListMultipartUploadsRequest(mBucketName);
+      request.setUploadIdMarker(uploadListing.getNextUploadIdMarker());
+      request.setKeyMarker(uploadListing.getKeyMarker());
+      uploadListing = mClient.listMultipartUploads(request);
+    } while (uploadListing.isTruncated());
   }
 
   @Override
@@ -156,6 +195,10 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
+    if (mUfsConf.getBoolean(PropertyKey.UNDERFS_OBS_STREAMING_UPLOAD_ENABLED)) {
+      return new OBSLowLevelOutputStream(mBucketName, key, mClient,
+          mStreamingUploadExecutor.get(), mUfsConf);
+    }
     return new OBSOutputStream(mBucketName, key, mClient,
         mUfsConf.getList(PropertyKey.TMP_DIRS));
   }
@@ -169,6 +212,23 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
       return false;
     }
     return true;
+  }
+
+  @Override
+  protected List<String> deleteObjects(List<String> keys) throws IOException {
+    KeyAndVersion[] kvs = keys.stream()
+        .map(KeyAndVersion::new)
+        .toArray(KeyAndVersion[]::new);
+    DeleteObjectsRequest request = new DeleteObjectsRequest(mBucketName, false, kvs);
+    try {
+      DeleteObjectsResult result = mClient.deleteObjects(request);
+      return result.getDeletedObjectResults()
+          .stream()
+          .map(DeleteObjectsResult.DeleteObjectResult::getObjectKey)
+          .collect(Collectors.toList());
+    } catch (ObsException e) {
+      throw new IOException("Failed to delete objects", e);
+    }
   }
 
   @Override
@@ -257,7 +317,7 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
     @Override
     public String[] getCommonPrefixes() {
       List<String> res = mResult.getCommonPrefixes();
-      return res.toArray(new String[res.size()]);
+      return res.toArray(new String[0]);
     }
 
     @Override

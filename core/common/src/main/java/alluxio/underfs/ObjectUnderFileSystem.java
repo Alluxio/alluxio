@@ -50,13 +50,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -105,7 +103,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Information about a single object in object UFS.
    */
-  protected class ObjectStatus {
+  protected static class ObjectStatus {
     private static final long INVALID_CONTENT_LENGTH = -1L;
 
     private final String mContentHash;
@@ -196,7 +194,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Permissions in object UFS.
    */
-  public class ObjectPermissions {
+  public static class ObjectPermissions {
     final String mOwner;
     final String mGroup;
     final short mMode;
@@ -238,16 +236,16 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   /**
    * Operations added to this buffer are performed concurrently.
+   * Note that {@link #getResult()} method blocks {@link #add(Object)} method.
    *
-   * @param T input type for operation
+   * @param <T> input type for operation
    */
+  @ThreadSafe
   protected abstract class OperationBuffer<T> {
-    /** A list of inputs in batches to be operated on in parallel. */
-    private ArrayList<List<T>> mBatches;
     /** A list of the successful operations for each batch. */
-    private ArrayList<Future<List<T>>> mBatchesResult;
+    private final ArrayList<Future<List<T>>> mBatchesResult;
     /** Buffer for a batch of inputs. */
-    private List<T> mCurrentBatchBuffer;
+    private final List<T> mCurrentBatchBuffer;
     /** Total number of inputs to be operated on across batches. */
     protected int mEntriesAdded;
 
@@ -255,7 +253,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * Construct a new {@link OperationBuffer} instance.
      */
     protected OperationBuffer() {
-      mBatches = new ArrayList<>();
       mBatchesResult = new ArrayList<>();
       mCurrentBatchBuffer = new ArrayList<>();
       mEntriesAdded = 0;
@@ -282,7 +279,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * @param input the input to operate on
      * @throws IOException if a non-Alluxio error occurs
      */
-    public void add(T input) throws IOException {
+    public synchronized void add(T input) throws IOException {
       if (mCurrentBatchBuffer.size() == getBatchSize()) {
         // Batch is full
         submitBatch();
@@ -297,7 +294,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * @return a list of inputs for successful operations
      * @throws IOException if a non-Alluxio error occurs
      */
-    public List<T> getResult() throws IOException {
+    public synchronized List<T> getResult() throws IOException {
       submitBatch();
       List<T> result = new ArrayList<>();
       for (Future<List<T>> list : mBatchesResult) {
@@ -325,38 +322,16 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      */
     private void submitBatch() throws IOException {
       if (mCurrentBatchBuffer.size() != 0) {
-        int batchNumber = mBatches.size();
-        mBatches.add(new ArrayList<>(mCurrentBatchBuffer));
+        List<T> batch = new ArrayList<>(mCurrentBatchBuffer);
         mCurrentBatchBuffer.clear();
-        mBatchesResult.add(batchNumber,
-            mExecutorService.submit(new OperationThread(mBatches.get(batchNumber))));
-      }
-    }
-
-    /**
-     * Thread class to operate on a batch of objects.
-     */
-    @NotThreadSafe
-    protected class OperationThread implements Callable<List<T>> {
-      List<T> mBatch;
-
-      /**
-       * Operate on a batch of inputs.
-       *
-       * @param batch a list of inputs for the current batch
-       */
-      public OperationThread(List<T> batch) {
-        mBatch = batch;
-      }
-
-      @Override
-      public List<T> call() {
-        try {
-          return operate(mBatch);
-        } catch (IOException e) {
-          // Do not append to success list
-          return Collections.emptyList();
-        }
+        mBatchesResult.add(mExecutorService.submit(() -> {
+          try {
+            return operate(batch);
+          } catch (IOException e) {
+            // Do not append to success list
+            return Collections.emptyList();
+          }
+        }));
       }
     }
   }
@@ -465,7 +440,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Object keys added to a {@link DeleteBuffer} will be deleted in batches.
    */
-  @NotThreadSafe
+  @ThreadSafe
   protected class DeleteBuffer extends OperationBuffer<String> {
     /**
      * Construct a new {@link DeleteBuffer} instance.
@@ -665,31 +640,47 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
+    if (exists(dst)) {
+      LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
+      return false;
+    }
+    // Use a global delete buffer, in order to merge delete object requests
+    DeleteBuffer deleteBuffer = new DeleteBuffer();
+    boolean result = renameDirectoryInternal(src, dst, deleteBuffer);
+    int fileDeleted = deleteBuffer.getResult().size();
+    if (fileDeleted != deleteBuffer.mEntriesAdded) {
+      LOG.warn("Failed to rename directory, successfully deleted {} files out of {}.",
+          fileDeleted, deleteBuffer.mEntriesAdded);
+      return false;
+    }
+    return result;
+  }
+
+  private boolean renameDirectoryInternal(String src, String dst, DeleteBuffer deleteBuffer)
+      throws IOException {
     UfsStatus[] children = listInternal(src, ListOptions.defaults());
     if (children == null) {
       LOG.error("Failed to list directory {}, aborting rename.", src);
       return false;
     }
-    if (exists(dst)) {
-      LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
-      return false;
-    }
     // Source exists and is a directory, and destination does not exist
     // Rename the source folder first
-    if (!copyObject(stripPrefixIfPresent(convertToFolderName(src)),
-        stripPrefixIfPresent(convertToFolderName(dst)))) {
+    String srcKey = stripPrefixIfPresent(convertToFolderName(src));
+    if (!copyObject(srcKey, stripPrefixIfPresent(convertToFolderName(dst)))) {
       return false;
     }
+    deleteBuffer.add(srcKey);
+
     // Rename each child in the src folder to destination/child
     // a. Since renames are a copy operation, files are added to a buffer and processed concurrently
     // b. Pseudo-directories are metadata only operations are not added to the buffer
-    RenameBuffer buffer = new RenameBuffer();
+    RenameBuffer buffer = new RenameBuffer(deleteBuffer);
     for (UfsStatus child : children) {
       String childSrcPath = PathUtils.concatPath(src, child.getName());
       String childDstPath = PathUtils.concatPath(dst, child.getName());
       if (child.isDirectory()) {
         // Recursive call
-        if (!renameDirectory(childSrcPath, childDstPath)) {
+        if (!renameDirectoryInternal(childSrcPath, childDstPath, deleteBuffer)) {
           LOG.error("Failed to rename path {} to {}, aborting rename.", childSrcPath, childDstPath);
           return false;
         }
@@ -704,8 +695,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           filesRenamed, buffer.mEntriesAdded);
       return false;
     }
-    // Delete src and everything under src
-    return deleteDirectory(src, DeleteOptions.defaults().setRecursive(true));
+    return true;
   }
 
   @Override
@@ -717,12 +707,18 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * File paths added to a {@link RenameBuffer} will be renamed concurrently.
    */
-  @NotThreadSafe
+  @ThreadSafe
   protected class RenameBuffer extends OperationBuffer<Pair<String, String>> {
+    private final DeleteBuffer mDeleteBuffer;
+
     /**
      * Construct a new {@link RenameBuffer} instance.
+     *
+     * @param deleteBuffer delete object buffer
      */
-    public RenameBuffer() {}
+    public RenameBuffer(DeleteBuffer deleteBuffer) {
+      mDeleteBuffer = deleteBuffer;
+    }
 
     @Override
     protected int getBatchSize() {
@@ -734,7 +730,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         throws IOException {
       List<Pair<String, String>> succeeded = new ArrayList<>();
       for (Pair<String, String> pathPair : paths) {
-        if (renameFile(pathPair.getFirst(), pathPair.getSecond())) {
+        String src = stripPrefixIfPresent(pathPair.getFirst());
+        String dst = stripPrefixIfPresent(pathPair.getSecond());
+        if (copyObject(src, dst)) {
+          mDeleteBuffer.add(src);
           succeeded.add(pathPair);
         }
       }
@@ -857,8 +856,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @return length of each list request
    */
   protected int getListingChunkLength(AlluxioConfiguration conf) {
-    return conf.getInt(PropertyKey.UNDERFS_LISTING_LENGTH) > getListingChunkLengthMax()
-        ? getListingChunkLengthMax() : conf.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
+    return Math.min(conf.getInt(PropertyKey.UNDERFS_LISTING_LENGTH), getListingChunkLengthMax());
   }
 
   /**
@@ -1050,7 +1048,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
             }
           }
         }
-        commonPrefixes = prefixes.toArray(new String[prefixes.size()]);
+        commonPrefixes = prefixes.toArray(new String[0]);
       } else {
         commonPrefixes = chunk.getCommonPrefixes();
       }

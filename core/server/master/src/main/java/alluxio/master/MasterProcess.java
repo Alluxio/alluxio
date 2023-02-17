@@ -278,4 +278,11 @@ public abstract class MasterProcess implements Process {
   public boolean waitForReady(int timeoutMs) {
     return waitForGrpcServerReady(timeoutMs);
   }
+
+  /**
+   * @return the primary selector
+   */
+  public PrimarySelector getPrimarySelector() {
+    return mLeaderSelector;
+  }
 }

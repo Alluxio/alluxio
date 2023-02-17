@@ -97,7 +97,7 @@ public interface BlockStore extends Closeable, SessionCleanable {
 
   /**
    * Creates a block reader to read a UFS block starting from given block offset.
-   * Owner of this block reader must close it to cleanup state.
+   * Owner of this block reader must close it to clean up state.
    *
    * @param sessionId the client session ID
    * @param blockId the ID of the UFS block to read

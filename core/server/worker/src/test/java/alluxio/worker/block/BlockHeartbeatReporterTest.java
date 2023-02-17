@@ -16,10 +16,16 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -40,6 +46,7 @@ public final class BlockHeartbeatReporterTest {
    */
   @Before
   public final void before() {
+    Configuration.set(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS, true);
     mReporter = new BlockHeartbeatReporter();
   }
 
@@ -54,18 +61,18 @@ public final class BlockHeartbeatReporterTest {
   }
 
   /**
-   * Tests the {@link BlockHeartbeatReporter#generateReport()} method for an empty report.
+   * Tests the {@link BlockHeartbeatReporter#generateReportAndClear()} method for an empty report.
    */
   @Test
   public void generateReportEmpty() {
-    BlockHeartbeatReport report = mReporter.generateReport();
+    BlockHeartbeatReport report = mReporter.generateReportAndClear();
     assertTrue(report.getAddedBlocks().isEmpty());
     assertTrue(report.getRemovedBlocks().isEmpty());
   }
 
   /**
-   * Tests the {@link BlockHeartbeatReporter#generateReport()} method to correctly generate a report
-   * after moving block.
+   * Tests the {@link BlockHeartbeatReporter#generateReportAndClear()}
+   * method to correctly generate a report after moving block.
    */
   @Test
   public void generateReportMove() {
@@ -75,7 +82,7 @@ public final class BlockHeartbeatReporterTest {
     moveBlock(block1, MEM_LOC);
     moveBlock(block2, SSD_LOC);
     moveBlock(block3, HDD_LOC);
-    BlockHeartbeatReport report = mReporter.generateReport();
+    BlockHeartbeatReport report = mReporter.generateReportAndClear();
     Map<BlockStoreLocation, List<Long>> addedBlocks = report.getAddedBlocks();
 
     // Block1 moved to memory
@@ -95,8 +102,8 @@ public final class BlockHeartbeatReporterTest {
   }
 
   /**
-   * Tests the {@link BlockHeartbeatReporter#generateReport()} method that generating a report
-   * clears the state of the reporter.
+   * Tests the {@link BlockHeartbeatReporter#generateReportAndClear()}
+   * method that generating a report clears the state of the reporter.
    */
   @Test
   public void generateReportStateClear() {
@@ -104,18 +111,18 @@ public final class BlockHeartbeatReporterTest {
     moveBlock(block1, MEM_LOC);
 
     // First report should have updates
-    BlockHeartbeatReport report = mReporter.generateReport();
+    BlockHeartbeatReport report = mReporter.generateReportAndClear();
     assertFalse(report.getAddedBlocks().isEmpty());
 
     // Second report should not have updates
-    BlockHeartbeatReport nextReport = mReporter.generateReport();
+    BlockHeartbeatReport nextReport = mReporter.generateReportAndClear();
     assertTrue(nextReport.getAddedBlocks().isEmpty());
     assertTrue(nextReport.getRemovedBlocks().isEmpty());
   }
 
   /**
-   * Tests the {@link BlockHeartbeatReporter#generateReport()} method to correctly generate a report
-   * after removing blocks.
+   * Tests the {@link BlockHeartbeatReporter#generateReportAndClear()}
+   * method to correctly generate a report after removing blocks.
    */
   @Test
   public void generateReportRemove() {
@@ -125,7 +132,7 @@ public final class BlockHeartbeatReporterTest {
     removeBlock(block1);
     removeBlock(block2);
     removeBlock(block3);
-    BlockHeartbeatReport report = mReporter.generateReport();
+    BlockHeartbeatReport report = mReporter.generateReportAndClear();
 
     // All blocks should be removed
     List<Long> removedBlocks = report.getRemovedBlocks();
@@ -140,8 +147,8 @@ public final class BlockHeartbeatReporterTest {
   }
 
   /**
-   * Tests the {@link BlockHeartbeatReporter#generateReport()} method to correctly generate a report
-   * after moving a block and the removing it.
+   * Tests the {@link BlockHeartbeatReporter#generateReportAndClear()}
+   * method to correctly generate a report after moving a block and the removing it.
    */
   @Test
   public void generateReportMoveThenRemove() {
@@ -150,12 +157,57 @@ public final class BlockHeartbeatReporterTest {
     removeBlock(block1);
 
     // The block should not be in the added blocks list
-    BlockHeartbeatReport report = mReporter.generateReport();
+    BlockHeartbeatReport report = mReporter.generateReportAndClear();
     assertEquals(null, report.getAddedBlocks().get(MEM_LOC));
 
     // The block should be in the removed blocks list
     List<Long> removedBlocks = report.getRemovedBlocks();
     assertEquals(1, removedBlocks.size());
     assertTrue(removedBlocks.contains(block1));
+  }
+
+  @Test
+  public void generateAndRevert() {
+    mReporter.onMoveBlockByWorker(1, MEM_LOC, SSD_LOC);
+    mReporter.onMoveBlockByWorker(2, MEM_LOC, SSD_LOC);
+    mReporter.onMoveBlockByWorker(3, SSD_LOC, HDD_LOC);
+    mReporter.onRemoveBlockByClient(4);
+    mReporter.onStorageLost(Constants.MEDIUM_MEM, "/foo");
+    mReporter.onStorageLost(Constants.MEDIUM_MEM, "/bar");
+    BlockHeartbeatReport originalReport = mReporter.generateReportAndClear();
+    mReporter.mergeBack(originalReport);
+    BlockHeartbeatReport newReport = mReporter.generateReportAndClear();
+    assertEquals(originalReport.getAddedBlocks(), newReport.getAddedBlocks());
+    assertEquals(originalReport.getRemovedBlocks(), newReport.getRemovedBlocks());
+    assertEquals(originalReport.getLostStorage(), newReport.getLostStorage());
+  }
+
+  @Test
+  public void generateUpdateThenRevert() {
+    mReporter.onMoveBlockByWorker(1, HDD_LOC, MEM_LOC);
+    mReporter.onMoveBlockByWorker(2, HDD_LOC, MEM_LOC);
+    mReporter.onMoveBlockByWorker(3, HDD_LOC, SSD_LOC);
+    mReporter.onRemoveBlockByClient(4);
+    mReporter.onStorageLost(Constants.MEDIUM_MEM, "/foo");
+    mReporter.onStorageLost(Constants.MEDIUM_HDD, "/bar");
+    BlockHeartbeatReport originalReport = mReporter.generateReportAndClear();
+
+    mReporter.onRemoveBlockByClient(1);
+    mReporter.onRemoveBlockByClient(3);
+    mReporter.onRemoveBlockByClient(5);
+    mReporter.onMoveBlockByWorker(6, SSD_LOC, HDD_LOC);
+    mReporter.onMoveBlockByWorker(7, HDD_LOC, MEM_LOC);
+    mReporter.onStorageLost(Constants.MEDIUM_MEM, "/baz");
+    mReporter.mergeBack(originalReport);
+    BlockHeartbeatReport newReport = mReporter.generateReportAndClear();
+
+    assertEquals(ImmutableMap.of(
+        MEM_LOC, Arrays.asList(7L, 2L),
+        HDD_LOC, Collections.singletonList(6L)
+    ), newReport.getAddedBlocks());
+    assertEquals(new HashSet<>(Arrays.asList(1L, 3L, 4L, 5L)),
+        new HashSet<>(newReport.getRemovedBlocks()));
+    assertEquals(2, newReport.getLostStorage().get(Constants.MEDIUM_MEM).size());
+    assertEquals(1, newReport.getLostStorage().get(Constants.MEDIUM_HDD).size());
   }
 }

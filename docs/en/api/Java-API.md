@@ -333,3 +333,10 @@ org.apache.orc.OrcFile.ReaderOptions options = new org.apache.orc.OrcFile.Reader
 org.apache.orc.Reader orc = org.apache.orc.OrcFile.createReader(
     new Path("alluxio://localhost:19998/path/file.orc"), options);
 ```
+
+### Examples in Source Code
+
+There are several example Java programs. They are:
+* [`Alluxio native API`](https://github.com/Alluxio/alluxio/tree/master/examples/src/main/java/alluxio/examples/AlluxioFS.java)
+* [`Alluxio Hadoop-Compatible File System`](https://github.com/Alluxio/alluxio/tree/master/examples/src/main/java/alluxio/examples/AlluxioHDFS.java)
+* [`HDFS`](https://github.com/Alluxio/alluxio/tree/master/examples/src/main/java/alluxio/examples/HDFS.java)

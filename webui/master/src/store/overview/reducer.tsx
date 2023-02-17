@@ -48,6 +48,7 @@ export const initialOverviewState: IOverviewState = {
     uptime: '',
     usedCapacity: '',
     version: '',
+    revision: '',
   },
   errors: undefined,
   loading: false,

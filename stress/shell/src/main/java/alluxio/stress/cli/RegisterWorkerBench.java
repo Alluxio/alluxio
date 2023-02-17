@@ -25,7 +25,7 @@ import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.stress.rpc.TierAlias;
 import alluxio.worker.block.BlockMasterClient;
-import alluxio.worker.block.BlockMasterSync;
+import alluxio.worker.block.BlockMasterSyncHelper;
 import alluxio.worker.block.BlockStoreLocation;
 
 import com.beust.jcommander.ParametersDelegate;
@@ -163,7 +163,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
           blockCount += entry.getValue().getBlockIdCount();
         }
         client.acquireRegisterLeaseWithBackoff(workerId, blockCount,
-            BlockMasterSync.getDefaultAcquireLeaseRetryPolicy());
+            BlockMasterSyncHelper.getDefaultAcquireLeaseRetryPolicy());
         LOG.info("Lease acquired for {}", workerId);
       }
 

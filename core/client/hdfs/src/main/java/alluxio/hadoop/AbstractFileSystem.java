@@ -325,7 +325,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
               info.getBlockInfo().getLength()));
         }
       });
-      BlockLocation[] ret = blockLocations.toArray(new BlockLocation[blockLocations.size()]);
+      BlockLocation[] ret = blockLocations.toArray(new BlockLocation[0]);
       if (LOG.isDebugEnabled()) {
         LOG.debug("getFileBlockLocations({}, {}, {}) returned {}",
             file.getPath().getName(), start, len, Arrays.toString(ret));

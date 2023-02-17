@@ -33,6 +33,7 @@ import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.worker.block.DefaultBlockWorker.Metrics;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.DelegatingBlockReader;
@@ -53,6 +54,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -70,16 +72,20 @@ public class MonoBlockStore implements BlockStore {
   private final UnderFileSystemBlockStore mUnderFileSystemBlockStore;
   private final BlockMasterClientPool mBlockMasterClientPool;
   private final AtomicReference<Long> mWorkerId;
+
+  private final List<BlockStoreEventListener> mBlockStoreEventListeners =
+          new CopyOnWriteArrayList<>();
+
   private final ScheduledExecutorService mDelayer =
       new ScheduledThreadPoolExecutor(1, ThreadFactoryUtils.build("LoadTimeOut", true));
 
   /**
    * Constructor of MonoBlockStore.
    *
-   * @param localBlockStore
-   * @param blockMasterClientPool
-   * @param ufsManager
-   * @param workerId
+   * @param localBlockStore the local block store
+   * @param blockMasterClientPool a client pool for talking to the block master
+   * @param ufsManager the UFS manager
+   * @param workerId the worker id
    */
   public MonoBlockStore(LocalBlockStore localBlockStore,
       BlockMasterClientPool blockMasterClientPool,
@@ -118,6 +124,11 @@ public class MonoBlockStore implements BlockStore {
       blockMasterClient.commitBlock(mWorkerId.get(),
           mLocalBlockStore.getBlockStoreMeta().getUsedBytesOnTiers().get(loc.tierAlias()),
           loc.tierAlias(), loc.mediumType(), blockId, meta.getBlockSize());
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        synchronized (listener) {
+          listener.onCommitBlockToMaster(blockId, loc);
+        }
+      }
     } catch (AlluxioStatusException e) {
       throw AlluxioRuntimeException.from(e);
     } finally {
@@ -151,6 +162,7 @@ public class MonoBlockStore implements BlockStore {
     Optional<? extends BlockMeta> blockMeta = mLocalBlockStore.getVolatileBlockMeta(blockId);
     if (blockMeta.isPresent()) {
       reader = mLocalBlockStore.createBlockReader(sessionId, blockId, offset);
+      DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.inc();
     } else {
       boolean checkUfs = options != null && (options.hasUfsPath() || options.getBlockInUfsTier());
       if (!checkUfs) {
@@ -159,7 +171,6 @@ public class MonoBlockStore implements BlockStore {
       // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
       reader = createUfsBlockReader(sessionId, blockId, offset, positionShort, options);
     }
-    DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.inc();
     return reader;
   }
 
@@ -171,7 +182,10 @@ public class MonoBlockStore implements BlockStore {
     try {
       BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
           positionShort, options);
-      return new DelegatingBlockReader(reader, () -> closeUfsBlock(sessionId, blockId));
+      BlockReader blockReader = new DelegatingBlockReader(reader,
+          () -> closeUfsBlock(sessionId, blockId));
+      Metrics.WORKER_ACTIVE_CLIENTS.inc();
+      return blockReader;
     } catch (Exception e) {
       try {
         closeUfsBlock(sessionId, blockId);
@@ -266,6 +280,8 @@ public class MonoBlockStore implements BlockStore {
 
   @Override
   public void registerBlockStoreEventListener(BlockStoreEventListener listener) {
+    LOG.debug("registerBlockStoreEventListener: listener={}", listener);
+    mBlockStoreEventListeners.add(listener);
     mLocalBlockStore.registerBlockStoreEventListener(listener);
   }
 
