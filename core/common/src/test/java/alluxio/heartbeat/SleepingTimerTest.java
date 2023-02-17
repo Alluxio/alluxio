@@ -47,7 +47,8 @@ public final class SleepingTimerTest {
   @Test
   public void warnWhenExecutionTakesLongerThanInterval() throws Exception {
     SleepingTimer timer =
-        new SleepingTimer(THREAD_NAME, INTERVAL_MS, mMockLogger, mFakeClock, mMockSleeper);
+        new SleepingTimer(THREAD_NAME, mMockLogger, mFakeClock, mMockSleeper, () -> INTERVAL_MS,
+            null);
 
     timer.tick();
     mFakeClock.addTimeMs(5 * INTERVAL_MS);
@@ -60,7 +61,8 @@ public final class SleepingTimerTest {
   @Test
   public void sleepForSpecifiedInterval() throws Exception {
     final SleepingTimer timer =
-        new SleepingTimer(THREAD_NAME, INTERVAL_MS, mMockLogger, mFakeClock, mMockSleeper);
+        new SleepingTimer(THREAD_NAME, mMockLogger, mFakeClock, mMockSleeper, () -> INTERVAL_MS,
+            null);
     timer.tick(); // first tick won't sleep
     verify(mMockSleeper, times(0)).sleep(any(Duration.class));
     timer.tick();
@@ -75,7 +77,8 @@ public final class SleepingTimerTest {
   @Test
   public void maintainInterval() throws Exception {
     SleepingTimer stimer =
-        new SleepingTimer(THREAD_NAME, INTERVAL_MS, mMockLogger, mFakeClock, mMockSleeper);
+        new SleepingTimer(THREAD_NAME, mMockLogger, mFakeClock, mMockSleeper, () -> INTERVAL_MS,
+            null);
 
     stimer.tick();
     mFakeClock.addTimeMs(INTERVAL_MS / 3);

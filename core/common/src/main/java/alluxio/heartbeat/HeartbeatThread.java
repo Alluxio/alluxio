@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Clock;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -71,16 +72,20 @@ public final class HeartbeatThread implements Runnable, Reconfigurable {
    * @param executor identifies the heartbeat thread executor; an instance of a class that
    *        implements the HeartbeatExecutor interface
    * @param intervalSupplier Sleep time between different heartbeat supplier
+   * @param periodCronExpressionSupplier the period cron expression
    * @param conf Alluxio configuration
    * @param userState the user state for this heartbeat thread
+   * @param clock the clock used to compute the current time
    */
   public HeartbeatThread(String executorName, String threadId, HeartbeatExecutor executor,
-      Supplier<Long> intervalSupplier, AlluxioConfiguration conf, UserState userState) {
+      Supplier<Long> intervalSupplier, Supplier<String> periodCronExpressionSupplier,
+      AlluxioConfiguration conf, UserState userState, Clock clock) {
     mThreadName = generateThreadName(executorName, threadId);
     mExecutor = Preconditions.checkNotNull(executor, "executor");
     Class<? extends HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(executorName);
-    mTimer = CommonUtils.createNewClassInstance(timerClass, new Class[] {String.class, long.class},
-        new Object[] {mThreadName, intervalSupplier.get()});
+    mTimer = CommonUtils.createNewClassInstance(timerClass,
+        new Class[] {String.class, Clock.class, Supplier.class, Supplier.class},
+        new Object[] {mThreadName, clock, intervalSupplier, periodCronExpressionSupplier});
     mConfiguration = conf;
     mUserState = userState;
     mIntervalSupplier = intervalSupplier;
@@ -91,8 +96,8 @@ public final class HeartbeatThread implements Runnable, Reconfigurable {
   /**
    * Convenience method for
    * {@link
-   * #HeartbeatThread(String, String, HeartbeatExecutor, Supplier, AlluxioConfiguration,
-   * UserState)} where threadId is null.
+   * #HeartbeatThread(String, String, HeartbeatExecutor, Supplier, Supplier, AlluxioConfiguration,
+   * UserState, Clock)} where threadId is null.
    *
    * @param executorName the executor name that is one of those defined in {@link HeartbeatContext}
    * @param executor the heartbeat executor
@@ -102,11 +107,53 @@ public final class HeartbeatThread implements Runnable, Reconfigurable {
    */
   public HeartbeatThread(String executorName, HeartbeatExecutor executor,
       Supplier<Long> intervalSupplier, AlluxioConfiguration conf, UserState userState) {
-    this(executorName, null, executor, intervalSupplier, conf, userState);
+    this(executorName, null, executor, intervalSupplier, null, conf, userState, Clock.systemUTC());
+  }
+
+  /**
+   * Convenience method for
+   * {@link
+   * #HeartbeatThread(String, String, HeartbeatExecutor, Supplier, Supplier, AlluxioConfiguration,
+   * UserState, Clock)} where threadId is null.
+   *
+   * @param executorName the executor name that is one of those defined in {@link HeartbeatContext}
+   * @param executor the heartbeat executor
+   * @param intervalSupplier the interval between heartbeats supplier
+   * @param periodCronExpressionSupplier the period cron expression
+   * @param conf the Alluxio configuration
+   * @param userState the user state for this heartbeat thread
+   */
+  public HeartbeatThread(String executorName, HeartbeatExecutor executor,
+      Supplier<Long> intervalSupplier, Supplier<String> periodCronExpressionSupplier,
+      AlluxioConfiguration conf, UserState userState) {
+    this(executorName, null, executor, intervalSupplier, periodCronExpressionSupplier,
+        conf, userState, Clock.systemUTC());
+  }
+
+  /**
+   * Convenience method for
+   * {@link
+   * #HeartbeatThread(String, String, HeartbeatExecutor, Supplier, Supplier, AlluxioConfiguration,
+   * UserState, Clock)} where threadId is null.
+   *
+   * @param executorName the executor name that is one of those defined in {@link HeartbeatContext}
+   * @param executor the heartbeat executor
+   * @param intervalSupplier the interval between heartbeats supplier
+   * @param periodCronExpressionSupplier the period cron expression
+   * @param conf the Alluxio configuration
+   * @param userState the user state for this heartbeat thread
+   * @param clock the clock used to compute the current time
+   */
+  public HeartbeatThread(String executorName, HeartbeatExecutor executor,
+      Supplier<Long> intervalSupplier, Supplier<String> periodCronExpressionSupplier,
+      AlluxioConfiguration conf, UserState userState, Clock clock) {
+    this(executorName, null, executor, intervalSupplier, periodCronExpressionSupplier,
+        conf, userState, clock);
   }
 
   @Override
   public void run() {
+    long counter = 0L;
     try {
       if (SecurityUtils.isSecurityEnabled(mConfiguration)
           && AuthenticatedClientUser.get(mConfiguration) == null) {
@@ -123,9 +170,10 @@ public final class HeartbeatThread implements Runnable, Reconfigurable {
       while (!Thread.interrupted()) {
         // TODO(peis): Fix this. The current implementation consumes one thread even when ticking.
         mStatus = Status.WAITING;
-        mTimer.tick();
+        long limitTime = mTimer.tick();
         mStatus = Status.RUNNING;
-        mExecutor.heartbeat();
+        LOG.debug("{} #{} will run limited in {}s", mThreadName, counter++, limitTime / 1000);
+        mExecutor.heartbeat(limitTime);
       }
     } catch (InterruptedException e) {
       // Allow thread to exit.
@@ -135,15 +183,6 @@ public final class HeartbeatThread implements Runnable, Reconfigurable {
       mStatus = Status.STOPPED;
       mExecutor.close();
     }
-  }
-
-  /**
-   * Updates the heartbeat interval.
-   *
-   * @param intervalMs the heartbeat interval in ms
-   */
-  public void updateIntervalMs(long intervalMs) {
-    mTimer.setIntervalMs(intervalMs);
   }
 
   /**
@@ -159,10 +198,7 @@ public final class HeartbeatThread implements Runnable, Reconfigurable {
       ReconfigurableRegistry.unregister(this);
       return;
     }
-    long interval = mIntervalSupplier.get();
-    if (interval != mTimer.getIntervalMs()) {
-      updateIntervalMs(interval);
-    }
+    mTimer.update();
   }
 
   /**

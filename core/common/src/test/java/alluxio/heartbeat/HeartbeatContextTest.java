@@ -21,10 +21,11 @@ import org.junit.Test;
  */
 public final class HeartbeatContextTest {
   @Test
-  public void allThreadsUseSleepingTimer() {
+  public void allThreadsUseProductionTimer() {
     for (String threadName : HeartbeatContext.getTimerClasses().keySet()) {
       Class<? extends HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(threadName);
-      assertTrue(timerClass.isAssignableFrom(SleepingTimer.class));
+      assertTrue(timerClass.isAssignableFrom(SleepingTimer.class)
+          || timerClass.isAssignableFrom(CronTimer.class));
     }
   }
 

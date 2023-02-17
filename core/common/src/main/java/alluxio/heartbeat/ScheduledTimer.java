@@ -14,7 +14,9 @@ package alluxio.heartbeat;
 import alluxio.resource.LockResource;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
 
+import java.time.Clock;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -46,9 +48,13 @@ public final class ScheduledTimer implements HeartbeatTimer {
    * Creates a new instance of {@link ScheduledTimer}.
    *
    * @param threadName the thread name
-   * @param intervalMs the heartbeat interval (unused)
+   * @param clock for telling the current time (unused)
+   * @param clock for telling the current time (unused)
+   * @param intervalSupplier Sleep time between different heartbeat supplier (unused)
+   * @param periodCronExpressionSupplier the period cron expression (unused)
    */
-  public ScheduledTimer(String threadName, long intervalMs) {
+  public ScheduledTimer(String threadName, Clock clock, Supplier<Long> intervalSupplier,
+      Supplier<String> periodCronExpressionSupplier) {
     mThreadName = threadName;
     mLock = new ReentrantLock();
     mTickCondition = mLock.newCondition();
@@ -77,7 +83,7 @@ public final class ScheduledTimer implements HeartbeatTimer {
   }
 
   @Override
-  public void tick() throws InterruptedException {
+  public long tick() throws InterruptedException {
     try (LockResource r = new LockResource(mLock)) {
       HeartbeatScheduler.addTimer(this);
       // Wait in a loop to handle spurious wakeups
@@ -87,5 +93,6 @@ public final class ScheduledTimer implements HeartbeatTimer {
 
       mScheduled = false;
     }
+    return Long.MAX_VALUE;
   }
 }
