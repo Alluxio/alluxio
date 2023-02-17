@@ -20,7 +20,6 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.HashFunction;
 
 import java.util.HashSet;
@@ -75,7 +74,7 @@ public class WorkerLocationPolicy {
 
     private final AtomicBoolean mNeedUpdate = new AtomicBoolean(false);
 
-    private static final long WORKER_INFO_UPDATE_INTERVAL_MS = 30_000L;
+    private static final long WORKER_INFO_UPDATE_INTERVAL_MS = 3000L;
 
     public void refresh(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
       // check if we need to update worker info
@@ -97,12 +96,11 @@ public class WorkerLocationPolicy {
       if (workerInfoList == anotherWorkerInfoList) {
         return false;
       }
-      List<WorkerNetAddress> workerAddressList = workerInfoList.stream()
-          .map(info -> info.getNetAddress()).collect(Collectors.toList());
-      List<WorkerNetAddress> anotherWorkerAddressList = anotherWorkerInfoList.stream()
-          .map(info -> info.getNetAddress()).collect(Collectors.toList());
-      return !ImmutableSet.copyOf(workerAddressList)
-          .equals(ImmutableSet.copyOf(anotherWorkerAddressList));
+      Set<WorkerNetAddress> workerAddressSet = workerInfoList.stream()
+          .map(info -> info.getNetAddress()).collect(Collectors.toSet());
+      Set<WorkerNetAddress> anotherWorkerAddressSet = anotherWorkerInfoList.stream()
+          .map(info -> info.getNetAddress()).collect(Collectors.toSet());
+      return !workerAddressSet.equals(anotherWorkerAddressSet);
     }
 
     public List<BlockWorkerInfo> getMultiple(String key, int count) {
@@ -132,7 +130,7 @@ public class WorkerLocationPolicy {
       for (BlockWorkerInfo workerInfo : workerInfos) {
         for (int i = 0; i < weight; i++) {
           activeNodesByConsistentHashing.put(
-              HASH_FUNCTION.hashString(format("%s%d", workerInfo.getNetAddress().toString(), i),
+              HASH_FUNCTION.hashString(format("%s%d", workerInfo.getNetAddress().dumpMainInfo(), i),
                   UTF_8).asInt(),
               workerInfo);
         }

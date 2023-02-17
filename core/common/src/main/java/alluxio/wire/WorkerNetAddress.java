@@ -213,6 +213,17 @@ public final class WorkerNetAddress implements Serializable {
         mDomainSocketPath, mTieredIdentity);
   }
 
+  public String dumpMainInfo() {
+    return MoreObjects.toStringHelper(this)
+        .add("host", mHost)
+        .add("containerHost", mContainerHost)
+        .add("rpcPort", mRpcPort)
+        .add("dataPort", mDataPort)
+        .add("webPort", mWebPort)
+        .add("domainSocketPath", mDomainSocketPath)
+        .toString();
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
