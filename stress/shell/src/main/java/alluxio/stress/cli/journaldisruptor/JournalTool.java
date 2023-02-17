@@ -11,6 +11,7 @@
 
 package alluxio.stress.cli.journaldisruptor;
 
+import alluxio.RuntimeConstants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.JournalClosedException;
@@ -21,6 +22,7 @@ import alluxio.util.io.PathUtils;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
@@ -199,5 +201,15 @@ public class JournalTool {
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Prints the usage.
+   */
+  private static void usage() {
+    new HelpFormatter().printHelp(
+        "./bin/alluxio runClass alluxio.stress.cli..journalTool.JournalTool",
+        "Read, disrupt an Alluxio journal and print it in binary.", OPTIONS,
+        "", true);
   }
 }

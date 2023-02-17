@@ -23,8 +23,6 @@ import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalLogWriter;
 import alluxio.util.network.NetworkAddressUtils;
 
-import org.apache.ratis.protocol.RaftGroup;
-
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URI;
@@ -41,7 +39,6 @@ public class JournalExporter {
   protected final long mStart;
   public JournalWriter mJournalWriter;
   public Journal mJournal;
-
 
   /**
    * Init JournalExporter.

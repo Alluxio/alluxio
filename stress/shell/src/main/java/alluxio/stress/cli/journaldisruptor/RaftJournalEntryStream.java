@@ -11,7 +11,6 @@
 
 package alluxio.stress.cli.journaldisruptor;
 
-import alluxio.master.journal.JournalEntryStreamReader;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.raft.RaftJournalUtils;
 import alluxio.proto.journal.Journal;
@@ -25,7 +24,6 @@ import org.apache.ratis.server.storage.StorageImplUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
