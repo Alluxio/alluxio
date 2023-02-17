@@ -55,6 +55,11 @@ public interface PageMetaStore {
    */
   void addPage(PageId pageId, PageInfo pageInfo);
 
+  /**
+   * Report all block locations in a pageStoreDir to master using BlockHeartbeat.
+   *
+   * @param pageStoreDir the page store dir targeted to report
+   */
   default void reportBlocks(PageStoreDir pageStoreDir) {}
 
   /**

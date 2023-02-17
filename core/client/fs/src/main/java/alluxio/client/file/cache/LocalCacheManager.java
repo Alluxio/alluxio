@@ -615,7 +615,9 @@ public class LocalCacheManager implements CacheManager {
       return false;
     }
     if (mInitService.isPresent()) {
-      mPageMetaStore.reportBlocks(pageStoreDir);
+      try (LockResource r = new LockResource(mPageMetaStore.getLock().readLock())) {
+        mPageMetaStore.reportBlocks(pageStoreDir);
+      }
     }
     LOG.info("PageStore ({}) restored with {} pages ({} bytes), "
             + "discarded {} pages ({} bytes)",
