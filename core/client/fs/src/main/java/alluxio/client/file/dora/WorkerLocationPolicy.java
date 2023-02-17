@@ -17,9 +17,9 @@ import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.HashFunction;
 
 import java.util.HashSet;
@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * An impl of WorkerLocationPolicy.
@@ -53,8 +55,8 @@ public class WorkerLocationPolicy {
    * @return a list of preferred workers
    */
   public List<BlockWorkerInfo> getPreferredWorkers(List<BlockWorkerInfo> blockWorkerInfos,
-      String fileId,
-      int count) {
+                                                   String fileId,
+                                                   int count) {
     if (blockWorkerInfos.size() == 0) {
       return ImmutableList.of();
     }
@@ -68,11 +70,37 @@ public class WorkerLocationPolicy {
     private List<BlockWorkerInfo> mLastWorkerInfos = ImmutableList.of();
     private NavigableMap<Integer, BlockWorkerInfo> mActiveNodesByConsistentHashing;
 
+    private volatile long mLastUpdatedTimestamp = 0L;
+
+    private final AtomicBoolean mNeedUpdate = new AtomicBoolean(false);
+
+    private static final long WORKER_INFO_UPDATE_INTERVAL_MS = 1000L;
+
     public void refresh(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
-      if (workerInfos != mLastWorkerInfos
-          && !ImmutableSet.copyOf(workerInfos).equals(ImmutableSet.copyOf(mLastWorkerInfos))) {
-        build(workerInfos, numVirtualNodes);
+      // check if we need to update worker info
+      if (mLastUpdatedTimestamp <= 0L
+          || System.currentTimeMillis() - mLastUpdatedTimestamp > WORKER_INFO_UPDATE_INTERVAL_MS) {
+        mNeedUpdate.set(true);
       }
+      // update worker info if needed
+      if (mNeedUpdate.compareAndSet(true, false)) {
+        if (isWorkerInfoUpdated(workerInfos, mLastWorkerInfos)) {
+          build(workerInfos, numVirtualNodes);
+        }
+        mLastUpdatedTimestamp = System.currentTimeMillis();
+      }
+    }
+
+    private boolean isWorkerInfoUpdated(List<BlockWorkerInfo> workerInfoList,
+                                        List<BlockWorkerInfo> anotherWorkerInfoList) {
+      if (workerInfoList == anotherWorkerInfoList) {
+        return false;
+      }
+      Set<WorkerNetAddress> workerAddressSet = workerInfoList.stream()
+          .map(info -> info.getNetAddress()).collect(Collectors.toSet());
+      Set<WorkerNetAddress> anotherWorkerAddressSet = anotherWorkerInfoList.stream()
+          .map(info -> info.getNetAddress()).collect(Collectors.toSet());
+      return !workerAddressSet.equals(anotherWorkerAddressSet);
     }
 
     public List<BlockWorkerInfo> getMultiple(String key, int count) {
@@ -102,7 +130,7 @@ public class WorkerLocationPolicy {
       for (BlockWorkerInfo workerInfo : workerInfos) {
         for (int i = 0; i < weight; i++) {
           activeNodesByConsistentHashing.put(
-              HASH_FUNCTION.hashString(format("%s%d", workerInfo.getNetAddress().toString(), i),
+              HASH_FUNCTION.hashString(format("%s%d", workerInfo.getNetAddress().dumpMainInfo(), i),
                   UTF_8).asInt(),
               workerInfo);
         }
