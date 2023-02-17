@@ -214,13 +214,14 @@ public class UfsBaseFileSystemTest {
 
   @Test
   public void getFileStatus() throws IOException, AlluxioException {
-    AlluxioURI uri = mRootUfs.join("/getFileStatusFolder/getFileStatus");
+    String fileName = "/getFileStatusFolder/getFileStatus";
+    AlluxioURI uri = mRootUfs.join(fileName);
     mRootUfs.getPath();
     mFileSystem.createFile(uri,
         CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertEquals(uri.getName(), status.getName());
-    Assert.assertEquals(uri.getPath(), status.getPath());
+    Assert.assertEquals(fileName, status.getPath());
     Assert.assertEquals(uri.toString(), status.getUfsPath());
     Assert.assertTrue(status.isCompleted());
     Assert.assertFalse(status.isFolder());
@@ -231,11 +232,12 @@ public class UfsBaseFileSystemTest {
 
   @Test
   public void getDirectoryStatus() throws IOException, AlluxioException {
-    AlluxioURI uri = mRootUfs.join("/getDirectoryStatus");
+    String fileName = "/getDirectoryStatus";
+    AlluxioURI uri = mRootUfs.join(fileName);
     mFileSystem.createDirectory(uri);
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertEquals(uri.getName(), status.getName());
-    Assert.assertEquals(uri.getPath(), status.getPath());
+    Assert.assertEquals(fileName, status.getPath());
     Assert.assertEquals(uri.toString(), status.getUfsPath());
     Assert.assertTrue(status.isCompleted());
     Assert.assertTrue(status.isFolder());

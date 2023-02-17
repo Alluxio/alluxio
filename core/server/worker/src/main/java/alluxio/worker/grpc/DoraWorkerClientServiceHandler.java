@@ -11,6 +11,7 @@
 
 package alluxio.worker.grpc;
 
+import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -24,6 +25,7 @@ import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.dora.DoraWorker;
 
@@ -55,6 +57,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   private final ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
   private final DoraWorker mWorker;
 
+  private final String mRootUFS;
   private final LoadingCache<String, UfsFileStatus> mUfsFileStatusCache;
 
   /**
@@ -63,8 +66,9 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
    */
   public DoraWorkerClientServiceHandler(WorkerProcess workerProcess) {
     mWorker = workerProcess.getWorker(DoraWorker.class);
+    mRootUFS = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     UnderFileSystem ufs = UnderFileSystem.Factory.create(
-        Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT),
+        mRootUFS,
         UnderFileSystemConfiguration.defaults(Configuration.global()));
     mUfsFileStatusCache = CacheBuilder.newBuilder()
         .maximumSize(Configuration.getInt(PropertyKey.DORA_UFS_FILE_STATUS_CACHE_SIZE))
@@ -109,14 +113,19 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   public void getStatus(GetStatusPRequest request,
                         StreamObserver<GetStatusPResponse> responseObserver) {
     try {
-      String ufsFilePath = request.getPath();
-      UfsFileStatus status = mUfsFileStatusCache.get(request.getPath());
+      String alluxioFilePath = request.getPath();
+
+      String ufsFullPath = PathUtils.concatPath(mRootUFS, alluxioFilePath);
+      String fn = new AlluxioURI(alluxioFilePath).getName();
+
+      UfsFileStatus status = mUfsFileStatusCache.get(ufsFullPath);
       GetStatusPResponse response = GetStatusPResponse.newBuilder()
           .setFileInfo(
               FileInfo.newBuilder()
-                  .setName(status.getName())
-                  .setPath(ufsFilePath)
-                  .setUfsPath(ufsFilePath)
+                  .setFileId(ufsFullPath.hashCode())
+                  .setName(fn)
+                  .setPath(alluxioFilePath)
+                  .setUfsPath(ufsFullPath)
                   .setLength(status.getContentLength())
                   .setBlockSizeBytes(status.getBlockSize())
                   .setMode(status.getMode())

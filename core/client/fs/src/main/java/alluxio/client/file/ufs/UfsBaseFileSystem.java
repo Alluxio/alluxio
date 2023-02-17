@@ -87,7 +87,7 @@ public class UfsBaseFileSystem implements FileSystem {
   private final Closer mCloser = Closer.create();
   protected final FileSystemContext mFsContext;
   protected final CloseableResource<UnderFileSystem> mUfs;
-  protected final AlluxioURI mRootUFS;
+  private final AlluxioURI mRootUFS;
   protected volatile boolean mClosed = false;
 
   /**
@@ -293,7 +293,7 @@ public class UfsBaseFileSystem implements FileSystem {
       // TODO(lu) deal with other options e.g. maxUfsReadConcurrency
       return new UfsFileInStream(offset -> {
         try {
-          return mUfs.get().open(status.getPath(), OpenOptions.defaults().setOffset(offset));
+          return mUfs.get().open(status.getUfsPath(), OpenOptions.defaults().setOffset(offset));
         } catch (IOException e) {
           throw AlluxioRuntimeException.from(e);
         }
@@ -412,11 +412,11 @@ public class UfsBaseFileSystem implements FileSystem {
    * @return the client-side status
    */
   private URIStatus transformStatus(UfsStatus ufsStatus) {
-    AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mRootUFS,
-        CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mRootUFS.getPath())));
+    String path = CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mRootUFS.toString());
+    AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mRootUFS, path));
     FileInfo info = new FileInfo().setName(ufsUri.getName())
-        .setPath(ufsUri.toString())
-        .setFileId(ufsUri.hashCode())
+        .setPath(path)
+        .setFileId(ufsUri.toString().hashCode())
         .setUfsPath(ufsUri.toString())
         .setFolder(ufsStatus.isDirectory())
         .setOwner(ufsStatus.getOwner())
@@ -424,7 +424,7 @@ public class UfsBaseFileSystem implements FileSystem {
         .setMode(ufsStatus.getMode())
         .setCompleted(true);
     if (ufsStatus.getLastModifiedTime() != null) {
-      info.setLastModificationTimeMs(info.getLastModificationTimeMs());
+      info.setLastModificationTimeMs(ufsStatus.getLastModifiedTime());
     }
     if (ufsStatus.getXAttr() != null) {
       info.setXAttr(ufsStatus.getXAttr());
@@ -437,6 +437,15 @@ public class UfsBaseFileSystem implements FileSystem {
       info.setLength(0);
     }
     return new URIStatus(info);
+  }
+
+  /**
+   * Gets the UFS Root.
+   *
+   * @return AlluxioURI of UFS Root
+   */
+  public AlluxioURI getRootUFS() {
+    return mRootUFS;
   }
 
   private static void call(UfsCallable callable) {
