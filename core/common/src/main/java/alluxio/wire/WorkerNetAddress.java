@@ -213,6 +213,11 @@ public final class WorkerNetAddress implements Serializable {
         mDomainSocketPath, mTieredIdentity);
   }
 
+  /**
+   * dump the main info of the WorkerNetAddress object.
+   *
+   * @return the main info string of the WorkerNetAddress object
+   */
   public String dumpMainInfo() {
     return MoreObjects.toStringHelper(this)
         .add("host", mHost)

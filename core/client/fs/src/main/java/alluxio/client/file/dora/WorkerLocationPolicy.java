@@ -74,7 +74,7 @@ public class WorkerLocationPolicy {
 
     private final AtomicBoolean mNeedUpdate = new AtomicBoolean(false);
 
-    private static final long WORKER_INFO_UPDATE_INTERVAL_MS = 3000L;
+    private static final long WORKER_INFO_UPDATE_INTERVAL_MS = 1000L;
 
     public void refresh(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
       // check if we need to update worker info
