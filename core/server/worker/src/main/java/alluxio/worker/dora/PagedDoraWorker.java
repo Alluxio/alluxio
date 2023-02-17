@@ -81,6 +81,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final BlockMasterClientPool mBlockMasterClientPool;
   private WorkerNetAddress mAddress;
 
+  private RocksDBDoraMetaStore mMetaStore;
+
   /**
    * Constructor.
    * @param workerId
@@ -152,6 +154,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             ImmutableMap.of(),
             Configuration.getConfiguration(Scope.WORKER));
         LOG.info("Worker registered with worker ID: {}", mWorkerId.get());
+        String dbDir = Configuration.getString(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR);
+        mMetaStore = new RocksDBDoraMetaStore(dbDir + ".worker." + mWorkerId);
         break;
       } catch (IOException ioe) {
         if (!retry.attempt()) {
@@ -168,6 +172,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public void close() throws IOException {
+    mMetaStore.close();
     try (AutoCloseable ignoredCloser = mResourceCloser;
          AutoCloseable ignoredCacheManager = mCacheManager
     ) {
@@ -253,5 +258,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     public void close() {
       // do nothing
     }
+  }
+
+  /**
+   * Get the Worker's DoraMetaStore.
+   * @return the DoraMetastore of this Worker
+   */
+  public DoraMetaStore getMetaStore() {
+    return mMetaStore;
   }
 }
