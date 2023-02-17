@@ -30,7 +30,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 /**
- * An impl of WorkerLocationPolicy.
+ * An implement of WorkerLocationPolicy.
  */
 public class WorkerLocationPolicy {
   private static final ConsistentHashProvider HASH_PROVIDER = new ConsistentHashProvider();
