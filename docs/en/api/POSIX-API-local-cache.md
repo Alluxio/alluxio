@@ -40,11 +40,6 @@ Differences between the two solutions are listed below, choose your desired solu
         <td>Single node training with large dataset. Distributed training with no data shuffle between nodes</td>
         <td>Multiple training nodes or training tasks share the same dataset</td>
     </tr>
-    <tr>
-        <td>Storage</td>
-        <td>Only supports one storage</td>
-        <td>Supports multiple storage services including all listed Alluxio under storage</td>
-    </tr>
 </table>
 
 Local caching solution supports under storage [S3A]({{ '/en/ufs/S3.html' | relativize_url }}) and [HDFS (Version 2.7 and 3.3)]({{ '/en/ufs/HDFS.html' | relativize_url }}).
@@ -64,7 +59,7 @@ The followings are the basic requirements running ALLUXIO POSIX API.
 - Install libfuse
     - On Linux, we support libfuse both version 2 and 3
         - To use with libfuse2, install [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been reported to also work with some warnings). For example on a Redhat, run `yum install fuse`
-        - To use with libfuse3, install [libfuse](https://github.com/libfuse/libfuse) 3.2.6 or newer (We are currently testing against 3.2.6). For example on a Redhat, run `yum install fuse3`
+        - To use with libfuse3 (Default), install [libfuse](https://github.com/libfuse/libfuse) 3.2.6 or newer (We are currently testing against 3.2.6). For example on a Redhat, run `yum install fuse3`
         - See [Select which libfuse version to use](#select-libfuse-version) to learn more about the libfuse version used by alluxio
     - On MacOS, install [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer. For example, run `brew install osxfuse`
 
@@ -226,7 +221,7 @@ Some examples are listed below:
 - data cache: `Node A` may read a cached file without knowing that Node B had already deleted or overwritten the file in the underlying persistent data storage.
   When this happens the content read by `Node A` is stale.
 
-#### Metadata Cache
+#### Local Metadata Cache
 
 Metadata cache may significantly improve the read training performance especially when loading a large amount of small files repeatedly.
 FUSE kernel issues extra metadata read operations (sometimes can be 3 - 7 times more) compared to [Alluxio Java API]({{ '/en/api/Java-API.html' | relativize_url }}))
@@ -281,7 +276,7 @@ For example, if AlluxioFuse is launched with `-Xmx=16GB` and metadata cache can 
 {% endnavtab %}
 {% endnavtabs %}
 
-#### Data Cache
+#### Local Data Cache
 
 {% navtabs dataCache %}
 {% navtab Kernel Data Cache Configuration %}
@@ -448,6 +443,21 @@ ALLUXIO_FUSE_JAVA_OPTS+=" -XX:MaxDirectMemorySize=8G"
 
 ## Distributed Cache
 
+<p align="center">
+<img src="{{ '/img/posix-distributed-cache.png' | relativize_url }}" alt="Alluxio stack with its POSIX API"/>
+</p>
+
+If FUSE SDK can optional provide L1 cache (local node metadata/data cache) capability,
+Alluxio cluster can provide L2 cache (local/nearby cluster metadata/data cache).
+
+This suits the use cases that
+- Need data sharing between nodes or tasks
+- The total data accessed by a single node is bigger than the local node cache capability
+
+Limitations:
+- Only support one under storage dataset and is not modifiable
+- Only support read-only workloads
+
 ### Launch dora distributed cache cluster
 
 Launch an Alluxio cluster with one master and multiple workers.
@@ -482,3 +492,6 @@ Other configuration is the same as launching a standalone FUSE SDK.
 $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o option
 ```
 `<under_storage_dataset>` should be exactly the same as the configured `alluxio.dora.client.ufs.root`.
+
+All the metadata and data will be cached by Alluxio workers.
+Optional disable default FUSE SDK local metadata cache with `-o local_metadata_cache_size=0`.
