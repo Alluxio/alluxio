@@ -27,9 +27,11 @@ import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.AlwaysPrimaryPrimarySelector;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.proto.meta.Block;
@@ -109,7 +111,9 @@ public class ConcurrentBlockMasterTest {
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
-    mMasterContext = MasterTestUtils.testMasterContext();
+    mMasterContext = MasterTestUtils.testMasterContext(
+        new NoopJournalSystem(), null, new AlwaysPrimaryPrimarySelector()
+    );
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, mMasterContext);
     mClock = new ManualClock();
     mExecutorService =
