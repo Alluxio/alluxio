@@ -73,9 +73,7 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
   @Override
   protected AbstractReadHandler<BlockReadRequestContext>.PacketReader createPacketReader(
       BlockReadRequestContext context, Channel channel) {
-
-    //TODO(JiamingMai): implement this method
-    return null;
+    return new BlockPacketReader(context, channel, mWorker);
   }
 
   /**
@@ -110,14 +108,6 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
               context.getRequest().getId(), e.getMessage());
         }
       }
-      /*
-      if (!mWorker.unlockBlock(context.getRequest().getSessionId(), context.getRequest().getId())) {
-        if (reader != null) {
-          mWorker.closeUfsBlock(context.getRequest().getSessionId(), context.getRequest().getId());
-          context.setBlockReader(null);
-        }
-      }
-      */
     }
 
     @Override

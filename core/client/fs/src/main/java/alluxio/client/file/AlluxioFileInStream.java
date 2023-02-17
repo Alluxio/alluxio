@@ -110,6 +110,10 @@ public class AlluxioFileInStream extends FileInStream {
 
   private Closer mCloser;
 
+  private final boolean mNettyTransEnabled;
+
+  private final boolean mDoraEnabled;
+
   protected AlluxioFileInStream(URIStatus status, InStreamOptions options,
       FileSystemContext context) {
     mCloser = Closer.create();
@@ -121,6 +125,8 @@ public class AlluxioFileInStream extends FileInStream {
     try {
       AlluxioConfiguration conf = mContext.getPathConf(new AlluxioURI(status.getPath()));
       mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
+      mNettyTransEnabled = conf.getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
+      mDoraEnabled = conf.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
       final Duration blockReadRetryMaxDuration =
           conf.getDuration(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION);
       final Duration blockReadRetrySleepBase =
@@ -431,9 +437,8 @@ public class AlluxioFileInStream extends FileInStream {
         return;
       }
       // trigger async caching
-      boolean nettyTransEnabled =
-          Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
-      if (nettyTransEnabled) {
+      // dora don't need to trigger async caching as the PagedFileReader will cache it after reading
+      if (mNettyTransEnabled && !mDoraEnabled) {
         triggerNettyAsyncCaching(stream);
       } else {
         triggerAsyncCaching(stream);

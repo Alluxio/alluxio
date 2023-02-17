@@ -48,9 +48,13 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
     mWorkerProcess = workerProcess;
     mFileTransferType = Configuration
         .getEnum(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
-    // TODO(JiamingMai): AsyncCacheRequestManager need to use DoraWorker if we want to enable Dora
-    mRequestManager = new AsyncCacheRequestManager(
-        NettyExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class));
+    if (DORA_WORKER_ENABLED) {
+      // TODO(JiamingMai): AsyncCacheRequestManager need to use DoraWorker if we want to enable Dora
+      mRequestManager = null;
+    } else {
+      mRequestManager = new AsyncCacheRequestManager(
+          NettyExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class));
+    }
   }
 
   @Override
@@ -72,15 +76,29 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
 
     // Block Handlers
     if (DORA_WORKER_ENABLED) {
-      pipeline.addLast("blockReadHandler",
-          new FileReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR,
-              mWorkerProcess.getWorker(DoraWorker.class), mFileTransferType));
+      addBlockHandlerForDora(pipeline);
     } else {
-      pipeline.addLast("blockReadHandler",
-          new BlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR,
-              mWorkerProcess.getWorker(BlockWorker.class), mFileTransferType));
+      addBlockHandlerByDefault(pipeline);
     }
-    // TODO(JiamingMai): WriteHandle also needs to be replaced, but it has not been implemented yet
+
+    // UFS Handlers
+    pipeline.addLast("ufsFileWriteHandler", new UfsFileWriteHandler(
+        NettyExecutors.FILE_WRITER_EXECUTOR, mWorkerProcess.getUfsManager()));
+    // Unsupported Mess nage Handler
+    pipeline.addLast("unsupportedMessageHandler", new UnsupportedMessageHandler());
+  }
+
+  private void addBlockHandlerForDora(ChannelPipeline pipeline) {
+    pipeline.addLast("blockReadHandler",
+        new FileReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR,
+            mWorkerProcess.getWorker(DoraWorker.class), mFileTransferType));
+    //TODO(JiamingMai): WriteHandle also needs to be replaced, but it has not been implemented yet
+  }
+
+  private void addBlockHandlerByDefault(ChannelPipeline pipeline) {
+    pipeline.addLast("blockReadHandler",
+        new BlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR,
+            mWorkerProcess.getWorker(BlockWorker.class), mFileTransferType));
     pipeline.addLast("blockWriteHandler", new BlockWriteHandler(
         NettyExecutors.BLOCK_WRITER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class),
         mWorkerProcess.getUfsManager()));
@@ -91,12 +109,11 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
         new ShortCircuitBlockWriteHandler(NettyExecutors.RPC_EXECUTOR,
             mWorkerProcess.getWorker(BlockWorker.class)));
     pipeline.addLast("asyncCacheHandler", new AsyncCacheHandler(mRequestManager));
-
     // UFS Handlers
     pipeline.addLast("ufsFileWriteHandler", new UfsFileWriteHandler(
         NettyExecutors.FILE_WRITER_EXECUTOR, mWorkerProcess.getUfsManager()));
-
     // Unsupported Message Handler
     pipeline.addLast("unsupportedMessageHandler", new UnsupportedMessageHandler());
   }
+
 }

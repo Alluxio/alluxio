@@ -13,11 +13,15 @@ package alluxio.client.file.dora;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import alluxio.client.ReadType;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.block.stream.DataReader;
 import alluxio.client.block.stream.GrpcDataReader;
+import alluxio.client.block.stream.NettyDataReader;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPOptions;
@@ -41,8 +45,11 @@ public class DoraCacheClient {
   private final long mChunkSize;
   private final WorkerLocationPolicy mWorkerLocationPolicy;
 
+  private final boolean mNettyTransEnabled;
+
   /**
    * Constructor.
+   *
    * @param context
    * @param workerLocationPolicy
    */
@@ -51,36 +58,65 @@ public class DoraCacheClient {
     mWorkerLocationPolicy = workerLocationPolicy;
     mChunkSize = mContext.getClusterConf().getBytes(
         PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
+    mNettyTransEnabled =
+        context.getClusterConf().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
   }
 
   /**
    * Get a stream to read the data from dora cache cluster.
+   *
    * @param status
    * @param ufsOptions
    * @return the input stream
    */
   public DoraCacheFileInStream getInStream(URIStatus status,
-      Protocol.OpenUfsBlockOptions ufsOptions) {
+                                           Protocol.OpenUfsBlockOptions ufsOptions) {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getPath());
     // Construct the partial read request
+    DataReader.Factory readerFactory;
+    if (mNettyTransEnabled) {
+      readerFactory = createNettyDataReader(workerNetAddress, ufsOptions);
+    } else {
+      readerFactory = createGrpcDataReader(workerNetAddress, ufsOptions);
+    }
+    return new DoraCacheFileInStream(readerFactory, status.getLength());
+  }
+
+  private GrpcDataReader.Factory createGrpcDataReader(
+      WorkerNetAddress workerNetAddress,
+      Protocol.OpenUfsBlockOptions ufsOptions) {
     ReadRequest.Builder builder = ReadRequest.newBuilder()
         .setBlockId(DUMMY_BLOCK_ID)
         .setOpenUfsBlockOptions(ufsOptions)
         .setChunkSize(mChunkSize);
-    GrpcDataReader.Factory grpcReaderFactory =
-        new GrpcDataReader.Factory(mContext, workerNetAddress, builder);
-    return new DoraCacheFileInStream(grpcReaderFactory, status.getLength());
+    return new GrpcDataReader.Factory(mContext, workerNetAddress, builder);
   }
+
+  private NettyDataReader.Factory createNettyDataReader(
+      WorkerNetAddress workerNetAddress,
+      Protocol.OpenUfsBlockOptions ufsOptions) {
+    Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder()
+        .setBlockId(DUMMY_BLOCK_ID)
+        .setOpenUfsBlockOptions(ufsOptions)
+        .setChunkSize(mChunkSize);
+    return new NettyDataReader.Factory(mContext, workerNetAddress, builder);
+  }
+
 
   /**
    * Get status.
+   *
    * @param path
    * @param options
    * @return uri status
    */
   public URIStatus getStatus(String path, GetStatusPOptions options) {
+    return getStatusByGrpc(path, options);
+  }
+
+  private URIStatus getStatusByGrpc(String path, GetStatusPOptions options) {
     try (CloseableResource<BlockWorkerClient> client =
-          mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       GetStatusPRequest request = GetStatusPRequest.newBuilder()
           .setPath(path)
           .setOptions(options)
