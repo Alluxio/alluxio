@@ -145,7 +145,8 @@ public final class UnderFileSystemBlockReader extends BlockReader {
 
   @Override
   public ReadableByteChannel getChannel() {
-    throw new UnsupportedOperationException("UFSFileBlockReader#getChannel is not supported");
+    LOG.warn("UFSFileBlockReader#getChannel is not supported");
+    return null;
   }
 
   @Override
