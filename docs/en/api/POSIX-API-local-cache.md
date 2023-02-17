@@ -16,8 +16,7 @@ and provides caching capabilities to speed up I/O access to frequently used data
 ## Local Cache vs Distributed Cache
 
 There are two kinds of caching capabilities: 1. local caching only 2. local caching + distributed caching.
-This doc will only talk about the local caching only solution.
-local caching and distributed caching solution will be documented later.
+This doc will focus on the first solution and will talk about the [second distributed cache solution here](#distributed-cache).
 
 Differences between the two solutions are listed below, choose your desired solution based on training requirements and available resources.
 <table class="table table-striped">
@@ -43,7 +42,7 @@ Differences between the two solutions are listed below, choose your desired solu
     </tr>
     <tr>
         <td>Storage</td>
-        <td>Only supports one storage. Only support S3A and HDFS (2.7/3.3) now</td>
+        <td>Only supports one storage</td>
         <td>Supports multiple storage services including all listed Alluxio under storage</td>
     </tr>
 </table>
@@ -94,7 +93,7 @@ Alluxio POSIX API allows accessing data from under storage as local directories.
 This is enabled by using the `mount` command to mount a dataset from under storage to local mount point:
 ```console
 $ sudo yum install fuse3
-$ alluxio-fuse mount under_storage_dataset mount_point -o option
+$ alluxio-fuse mount <under_storage_dataset> <mount_point> -o option
 ```
 - `under_storage_dataset`: The full under storage dataset address. e.g. `s3://bucket_name/path/to/dataset`, `hdfs://namenode_address:port/path/to/dataset`
 - `mount_point`: The local mount point to mount the under storage dataset to.
@@ -176,7 +175,7 @@ Data will be read from the under storage dataset directly.
 
 Unmount a mounted FUSE mount point
 ```console
-$ alluxio-fuse unmount mount_point
+$ alluxio-fuse unmount <mount_point>
 ```
 After unmounting the FUSE mount point, the corresponding `AlluxioFuse` process should be killed
 and the mount point should be removed. For example:
@@ -249,7 +248,7 @@ Kernel metadata cache is defined by the following FUSE mount options:
 
 The timeout time can be enlarged via Fuse mount command:
 ```console
-$ bin/alluxio-fuse mount ufs_path mount_point -o attr_timeout=600 -o entry_timeout=600 
+$ bin/alluxio-fuse mount <under_storage_dataset> <mount_point> -o attr_timeout=600 -o entry_timeout=600 
 ```
 
 Recommend to set the timeout values based on the following factors:
@@ -271,7 +270,7 @@ Test against your common workloads to find out the optimal value.
 
 Userspace metadata cache can be enabled via
 ```console
-$ alluxio-fuse mount ufs_path mount_point -o local_metadata_cache_size=<size> -o local_metadata_cache_expire=<timeout>
+$ alluxio-fuse mount <under_storage_dataset> <mount_point> -o local_metadata_cache_size=<size> -o local_metadata_cache_expire=<timeout>
 ```
 `local_metadata_cache_size` (Default = `20000` around 40MB memory): Maximum number of entries in the metadata cache. Each 1000 entries cause about 2MB memory.
 `local_metadata_cache_expire` (Default = not_set, which means never expire): Specify expire time for entries in the metadata cache
@@ -294,7 +293,7 @@ FUSE has the following I/O modes controlling whether data will be cached and the
 
 Set up to one of the data cache option via mount command:
 ```console
-$ bin/alluxio-fuse mount under_storage_dataset mount_point -o direct_io
+$ bin/alluxio-fuse mount <under_storage_dataset> <mount_point> -o direct_io
 ```
 
 Kernel data cache will significantly improve the I/O performance but is easy to consume a large amount of node memory.
@@ -311,7 +310,7 @@ To avoid this circumstances, use `direct_io` mode or use a script to cleanup the
 
 Userspace data cache can be enabled via
 ```console
-$ bin/alluxio-fuse mount under_storage_dataset mount_point -o local_data_cache=<local_cache_directory> -o local_data_cache_size=<size>
+$ bin/alluxio-fuse mount <under_storage_dataset> <mount_point> -o local_data_cache=<local_cache_directory> -o local_data_cache_size=<size>
 ```
 `local_data_cache` (Default = "" which means disabled): Local folder to use for local data cache
 `local_data_cache_size` (Default = `512MB`): Maximum cache size for local data cache directory
@@ -407,7 +406,7 @@ Some mount options (e.g. `allow_other` and `allow_root`) need additional set-up
 and the set-up process may be different depending on the platform.
 
 ```console
-$ alluxio-fuse mount under_storage_dataset mount_point -o mount_option
+$ alluxio-fuse mount <under_storage_dataset> <mount_point> -o mount_option
 ```
 {% accordion example %}
 {% collapsible Example: `allow_other` and `allow_root` %}
@@ -427,9 +426,9 @@ to allow other users to use the `allow_other` and `allow_root` mount options.
 After setting up, pass the `allow_other` or `allow_root` mount options when mounting Alluxio-FUSE:
 ```console
 # All users (including root) can access the files.
-$ alluxio-fuse mount under_storage_dataset mount_point -o allow_other
+$ alluxio-fuse mount <under_storage_dataset> <mount_point> -o allow_other
 # The user mounting the filesystem and root can access the files.
-$ alluxio-fuse mount under_storage_dataset mount_point -o allow_root
+$ alluxio-fuse mount <under_storage_dataset> <mount_point> -o allow_root
 ```
 Note that only one of the `allow_other` or `allow_root` could be set.
 {% endcollapsible %}
@@ -449,7 +448,37 @@ ALLUXIO_FUSE_JAVA_OPTS+=" -XX:MaxDirectMemorySize=8G"
 
 ## Distributed Cache
 
+### Launch dora distributed cache cluster
 
-```console
-$ alluxio-fuse mount under_storage_dataset mount_point -o distributed_cache=true
+Launch an Alluxio cluster with one master and multiple workers.
+Each worker should have its own unique worker hostname
 ```
+alluxio.master.hostname=<master_hostname>
+alluxio.worker.hostname=<worker_hostname_id>
+```
+
+Enable dora distributed cache:
+```
+alluxio.master.worker.register.lease.enabled=false
+alluxio.dora.client.read.location.policy.enabled=true
+alluxio.dora.client.ufs.root=<under_storage_dataset>
+alluxio.user.short.circuit.enabled=false
+```
+Make sure the `<under_storage_dataset>` is exactly the same path that is going to mount to local mount point via `alluxio-fuse` command.
+
+Follow [page worker storage documentation]({{ '/en/core-services/Caching.html' | relativize_url }}#experimental-paging-worker-storage) to add page storage configuration.
+
+Launch the Alluxio cluster with the configuration
+```console
+$ bin/alluxio-start.sh master
+$ bin/alluxio-start.sh worker
+```
+
+### Launch FUSE SDK to connect to the distributed cache cluster
+
+Launch FUSE SDK with the same configuration (same `<ALLUXIO_HOME>/conf/`) as launching the Alluxio cluster.
+Other configuration is the same as launching a standalone FUSE SDK.
+```console
+$ alluxio-fuse mount <under_storage_dataset> <mount_point> -o option
+```
+`<under_storage_dataset>` should be exactly the same as the configured `alluxio.dora.client.ufs.root`.

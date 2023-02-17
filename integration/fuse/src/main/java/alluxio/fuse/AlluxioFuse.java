@@ -111,7 +111,6 @@ public final class AlluxioFuse {
           + "Mount options includes operating system mount options, "
           + "many FUSE specific mount options (e.g. direct_io,attr_timeout=10s.allow_other), "
           + "Alluxio property key=value pairs, and Alluxio FUSE special mount options "
-          + "distributed_cache=<true/false>,"
           + "local_data_cache=<local_cache_directory>,local_cache_size=<size>,"
           + "local_metadata_cache_size=<size>,local_metadata_cache_expire=<timeout>")
       .build();
@@ -284,15 +283,7 @@ public final class AlluxioFuse {
         }
         String[] optArray = trimedOpt.split("=");
         if (optArray.length == 1) {
-          if (trimedOpt.equals("distributed_cache")) {
-            conf.set(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED,
-                true, Source.RUNTIME);
-            conf.set(PropertyKey.USER_SHORT_CIRCUIT_ENABLED,
-                false, Source.RUNTIME);
-            LOG.info("Set dora distributed cache enabled as true from command line input");
-          } else {
-            fuseOptions.add(trimedOpt);
-          }
+          fuseOptions.add(trimedOpt);
           continue;
         }
         String key = optArray[0];
@@ -305,12 +296,12 @@ public final class AlluxioFuse {
           conf.set(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION,
               PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION.parseValue(value), Source.RUNTIME);
           LOG.info("Set libfuse version to {} from command line input", value);
-        } else if (key.equals("local_cache")) {
+        } else if (key.equals("local_data_cache")) {
           conf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED, true, Source.RUNTIME);
           conf.set(PropertyKey.USER_CLIENT_CACHE_DIRS,
               PropertyKey.USER_CLIENT_CACHE_DIRS.parseValue(value), Source.RUNTIME);
           LOG.info("Set data cache to {} from command line input", value);
-        } else if (key.equals("local_cache_size")) {
+        } else if (key.equals("local_data_cache_size")) {
           conf.set(PropertyKey.USER_CLIENT_CACHE_SIZE,
               PropertyKey.USER_CLIENT_CACHE_SIZE.parseValue(value), Source.RUNTIME);
           LOG.info("Set data cache size as {} from command line input", value);
