@@ -322,13 +322,13 @@ public final class AlluxioFuse {
         LOG.info("Set fuse mount point options as {} from command line input",
             String.join(",", fuseOptions));
       }
-      Source metadataCacheSizeSource = conf.getSource(PropertyKey.USER_METADATA_CACHE_MAX_SIZE);
-      if (metadataCacheSizeSource == Source.DEFAULT
-          || metadataCacheSizeSource == Source.CLUSTER_DEFAULT) {
-        conf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 20000, Source.RUNTIME);
-        LOG.info("Set default metadata cache size to 20,000 entries "
-            + "with around 40MB memory consumption for FUSE");
-      }
+    }
+    Source metadataCacheSizeSource = conf.getSource(PropertyKey.USER_METADATA_CACHE_MAX_SIZE);
+    if (metadataCacheSizeSource == Source.DEFAULT
+        || metadataCacheSizeSource == Source.CLUSTER_DEFAULT) {
+      conf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 20000, Source.RUNTIME);
+      LOG.info("Set default metadata cache size to 20,000 entries "
+          + "with around 40MB memory consumption for FUSE");
     }
   }
 
