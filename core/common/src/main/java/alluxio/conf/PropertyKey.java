@@ -4527,6 +4527,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_REGISTER_TO_ALL_MASTERS =
+      booleanBuilder(Name.WORKER_REGISTER_TO_ALL_MASTERS)
+          .setDefaultValue(false)
+          .setDescription("If enabled, workers will register themselves to all masters, "
+              + "instead of primary master only. This can be used to save the "
+              + "master failover time because the new primary immediately knows "
+              + "all existing workers and blocks. Can only be enabled when "
+              + Name.STANDBY_MASTER_GRPC_ENABLED + " is turned on.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey WORKER_REMOTE_IO_SLOW_THRESHOLD =
       durationBuilder(Name.WORKER_REMOTE_IO_SLOW_THRESHOLD)
           .setDefaultValue("10s")
@@ -4546,7 +4557,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-
+  public static final PropertyKey WORKER_BLOCK_HEARTBEAT_REPORT_SIZE_THRESHOLD =
+      intBuilder(Name.WORKER_BLOCK_HEARTBEAT_REPORT_SIZE_THRESHOLD)
+          .setDefaultValue(1_000_000)
+          .setDescription(
+              "When " + Name.WORKER_REGISTER_TO_ALL_MASTERS + "=true, "
+              + "because a worker will send block reports to all masters, "
+              + "we use a threshold to limit the unsent block report size in worker's memory. "
+              + "If the worker block heartbeat is larger than the threshold, "
+              + "we discard the heartbeat message and force "
+              + "the worker to register with that master with a full report."
+          )
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_PAGE_STORE_ASYNC_RESTORE_ENABLED =
       booleanBuilder(Name.WORKER_PAGE_STORE_ASYNC_RESTORE_ENABLED)
           .setDefaultValue(true)
@@ -8287,10 +8311,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.register.stream.response.timeout";
     public static final String WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT =
         "alluxio.worker.register.stream.complete.timeout";
+    public static final String WORKER_REGISTER_TO_ALL_MASTERS =
+        "alluxio.worker.register.to.all.masters";
     public static final String WORKER_REMOTE_IO_SLOW_THRESHOLD =
         "alluxio.worker.remote.io.slow.threshold";
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
         "alluxio.worker.block.master.client.pool.size";
+    public static final String WORKER_BLOCK_HEARTBEAT_REPORT_SIZE_THRESHOLD =
+        "alluxio.worker.block.heartbeat.report.size.threshold";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_PAGE_STORE_ASYNC_RESTORE_ENABLED =
         "alluxio.worker.page.store.async.restore.enabled";
