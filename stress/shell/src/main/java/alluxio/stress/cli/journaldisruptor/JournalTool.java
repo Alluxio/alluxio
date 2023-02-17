@@ -11,7 +11,6 @@
 
 package alluxio.stress.cli.journaldisruptor;
 
-import alluxio.RuntimeConstants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.JournalClosedException;
