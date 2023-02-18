@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.runtime.AlluxioRuntimeException;
@@ -33,7 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class FuseFileInStream implements FuseFileStream {
-  private final FileInStream mInStream;
+  private final SeekableBufferedInputStream mInStream;
   private final long mFileLength;
   private final AlluxioURI mURI;
 
@@ -56,13 +58,15 @@ public class FuseFileInStream implements FuseFileStream {
 
     try {
       FileInStream is = fileSystem.openFile(uri);
-      return new FuseFileInStream(is, status.get().getLength(), uri);
+      SeekableBufferedInputStream stream = new SeekableBufferedInputStream(is,
+          Configuration.getInt(PropertyKey.FUSE_INSTREAM_BUFFER_SIZE));
+      return new FuseFileInStream(stream, status.get().getLength(), uri);
     } catch (IOException | AlluxioException e) {
       throw AlluxioRuntimeException.from(e);
     }
   }
 
-  private FuseFileInStream(FileInStream inStream, long fileLength, AlluxioURI uri) {
+  private FuseFileInStream(SeekableBufferedInputStream inStream, long fileLength, AlluxioURI uri) {
     mInStream = Preconditions.checkNotNull(inStream);
     mURI = Preconditions.checkNotNull(uri);
     mFileLength = fileLength;
@@ -83,12 +87,14 @@ public class FuseFileInStream implements FuseFileStream {
     int currentRead = 0;
     try {
       mInStream.seek(offset);
+      byte[] bytes = buf.hasArray() ? buf.array() : new byte[sz];
       while (currentRead >= 0 && totalRead < sz) {
-        currentRead = mInStream.read(buf, totalRead, sz - totalRead);
+        currentRead = mInStream.read(bytes, totalRead, sz - totalRead);
         if (currentRead > 0) {
           totalRead += currentRead;
         }
       }
+      buf.put(bytes, 0, totalRead);
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
     }
