@@ -39,6 +39,7 @@ public class UnderFileSystemReadRateLimiter {
    * Set the rate.
    *
    * @param permitsPerSecond new rate of the RateLimiter
+   * if permitsPerSecond > 0, the rate limit is enabled.
    */
   public synchronized void setRate(long permitsPerSecond) {
     if (permitsPerSecond > 0) {
@@ -57,6 +58,7 @@ public class UnderFileSystemReadRateLimiter {
    */
   public synchronized double acquire(int permits) {
     if (isLimiterEnabled()) {
+      LOG.debug("Read from ufs, acquire permits {}", permits);
       mReadBytes += permits;
       return mReadLimiter.acquire(permits);
     }

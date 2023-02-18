@@ -138,6 +138,7 @@ public class BlockMasterSyncHelper {
     List<alluxio.grpc.Metric> metrics = MetricsSystem.reportWorkerMetrics();
 
     try {
+      // There is no reading from ufs, set throughput to 0
       long throughput = rateLimiter.hasRead() ? rateLimiter.getRate() : 0;
       BlockHeartbeatPResponse response = mMasterClient.heartbeat(workerId,
           storeMeta.getCapacityBytesOnTiers(), storeMeta.getUsedBytesOnTiers(),

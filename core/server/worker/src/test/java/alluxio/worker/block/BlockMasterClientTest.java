@@ -255,6 +255,7 @@ public class BlockMasterClientTest {
     final Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 1024 * 1024L);
     final Map<String, Long> usedBytesOnTiers = ImmutableMap.of("MEM", 1024L);
     final List<Long> removedBlocks = ImmutableList.of();
+    final long throughput = 0;
     final Map<BlockStoreLocation, List<Long>> addedBlocks = ImmutableMap.of(
         new BlockStoreLocation("MEM", 0, "MEM"),
         ImmutableList.of(11L, 12L, 13L)
@@ -316,7 +317,7 @@ public class BlockMasterClientTest {
         removedBlocks,
         addedBlocks,
         lostStorage,
-        0,
+        throughput,
         metrics).getCommand().getCommandType());
   }
 

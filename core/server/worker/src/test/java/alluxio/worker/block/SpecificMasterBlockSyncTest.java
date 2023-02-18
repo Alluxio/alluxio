@@ -203,11 +203,11 @@ public class SpecificMasterBlockSyncTest {
       if (mReturnRegisterCommand) {
         return BlockHeartbeatPResponse.newBuilder()
             .setCommand(Command.newBuilder().setCommandType(CommandType.Register).build())
-            .setThroughput(0).build();
+            .setThroughput(throughput).build();
       }
       return BlockHeartbeatPResponse.newBuilder()
           .setCommand(Command.newBuilder().setCommandType(CommandType.Nothing).build())
-          .setThroughput(0).build();
+          .setThroughput(throughput).build();
     }
 
     @Override

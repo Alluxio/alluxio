@@ -20,6 +20,7 @@ import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
 import alluxio.worker.block.UfsInputStreamCache;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 import alluxio.worker.block.meta.BlockMeta;
 
 import com.google.common.base.Preconditions;
@@ -47,22 +48,25 @@ public class PagedUfsBlockReader extends BlockReader {
   private long mLastPageIndex = -1;
   private boolean mClosed = false;
   private long mPosition;
+  private UnderFileSystemReadRateLimiter mRateLimiter;
 
   /**
    * @param ufsManager
+   * @param rateLimiter
    * @param ufsInStreamCache
    * @param blockMeta
    * @param offset
    * @param ufsBlockReadOptions
    * @param pageSize
    */
-  public PagedUfsBlockReader(UfsManager ufsManager,
+  public PagedUfsBlockReader(UfsManager ufsManager, UnderFileSystemReadRateLimiter rateLimiter,
       UfsInputStreamCache ufsInStreamCache, BlockMeta blockMeta,
       long offset, UfsBlockReadOptions ufsBlockReadOptions, long pageSize) {
     Preconditions.checkArgument(offset >= 0 && offset <= blockMeta.getBlockSize(),
         "Attempt to read block %s which is %s bytes long at invalid byte offset %s",
         blockMeta.getBlockId(), blockMeta.getBlockSize(), offset);
     mUfsManager = ufsManager;
+    mRateLimiter = rateLimiter;
     mUfsInStreamCache = ufsInStreamCache;
     mBlockMeta = blockMeta;
     mUfsBlockOptions = ufsBlockReadOptions;
@@ -95,6 +99,9 @@ public class PagedUfsBlockReader extends BlockReader {
           throw new IOException(String.format(
               "Unexpected EOF when reading %d bytes from offset %d of block %d",
               length, offset, mBlockMeta.getBlockId()));
+        }
+        if (mRateLimiter != null) {
+          mRateLimiter.acquire(bytesRead);
         }
         totalBytesRead += bytesRead;
       }
@@ -138,6 +145,9 @@ public class PagedUfsBlockReader extends BlockReader {
             return bytesRead;
           }
           break;
+        }
+        if (mRateLimiter != null) {
+          mRateLimiter.acquire(bytesRead);
         }
         totalBytesRead += bytesRead;
       }
@@ -205,6 +215,9 @@ public class PagedUfsBlockReader extends BlockReader {
     buffer.flip();
     buf.writeBytes(buffer);
     NioDirectBufferPool.release(buffer);
+    if (mRateLimiter != null) {
+      mRateLimiter.acquire(bytesRead);
+    }
     return bytesRead;
   }
 

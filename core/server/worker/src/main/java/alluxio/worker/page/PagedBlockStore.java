@@ -232,7 +232,8 @@ public class PagedBlockStore implements BlockStore {
       if (blockMeta.isPresent()) {
         final BlockPageEvictor evictor = blockMeta.get().getDir().getEvictor();
         evictor.addPinnedBlock(blockId);
-        return new DelegatingBlockReader(getBlockReader(blockMeta.get(), offset, options), () -> {
+        return new DelegatingBlockReader(getBlockReader(blockMeta.get(), offset, options,
+            rateLimiter), () -> {
           evictor.removePinnedBlock(blockId);
           unpinBlock(blockLock);
         });
@@ -245,7 +246,8 @@ public class PagedBlockStore implements BlockStore {
       Optional<PagedBlockMeta> blockMeta = mPageMetaStore.getBlock(blockId);
       if (blockMeta.isPresent()) {
         blockMeta.get().getDir().getEvictor().addPinnedBlock(blockId);
-        return new DelegatingBlockReader(getBlockReader(blockMeta.get(), offset, options), () -> {
+        return new DelegatingBlockReader(getBlockReader(blockMeta.get(), offset, options,
+            rateLimiter), () -> {
           blockMeta.get().getDir().getEvictor().removePinnedBlock(blockId);
           unpinBlock(blockLock);
         });
@@ -266,12 +268,13 @@ public class PagedBlockStore implements BlockStore {
               String.format("Block %d may need to be read from UFS, but key UFS read options "
                   + "is missing in client request", blockId), e, ErrorType.Internal, false);
         }
-        return new PagedUfsBlockReader(mUfsManager, mUfsInStreamCache, newBlockMeta,
+        return new PagedUfsBlockReader(mUfsManager, rateLimiter, mUfsInStreamCache, newBlockMeta,
             offset, readOptions, mPageSize);
       }
       mPageMetaStore.addBlock(newBlockMeta);
       dir.getEvictor().addPinnedBlock(blockId);
-      return new DelegatingBlockReader(getBlockReader(newBlockMeta, offset, options), () -> {
+      return new DelegatingBlockReader(getBlockReader(newBlockMeta, offset, options,
+          rateLimiter), () -> {
         commitBlockToMaster(newBlockMeta);
         newBlockMeta.getDir().getEvictor().removePinnedBlock(blockId);
         unpinBlock(blockLock);
@@ -280,7 +283,7 @@ public class PagedBlockStore implements BlockStore {
   }
 
   private BlockReader getBlockReader(PagedBlockMeta blockMeta, long offset,
-      Protocol.OpenUfsBlockOptions options) {
+      Protocol.OpenUfsBlockOptions options, UnderFileSystemReadRateLimiter rateLimiter) {
     final long blockId = blockMeta.getBlockId();
     Optional<UfsBlockReadOptions> readOptions = Optional.empty();
     try {
@@ -295,7 +298,7 @@ public class PagedBlockStore implements BlockStore {
     }
     final Optional<PagedUfsBlockReader> ufsBlockReader =
         readOptions.map(opt -> new PagedUfsBlockReader(
-            mUfsManager, mUfsInStreamCache, blockMeta, offset, opt, mPageSize));
+            mUfsManager, rateLimiter, mUfsInStreamCache, blockMeta, offset, opt, mPageSize));
     return new PagedBlockReader(mCacheManager, blockMeta, offset, ufsBlockReader, mPageSize);
   }
 
@@ -313,7 +316,7 @@ public class PagedBlockStore implements BlockStore {
           return new PagedBlockMeta(blockId, blockSize, dir);
         });
     UfsBlockReadOptions readOptions = UfsBlockReadOptions.fromProto(options);
-    return new PagedUfsBlockReader(mUfsManager, mUfsInStreamCache, blockMeta,
+    return new PagedUfsBlockReader(mUfsManager, rateLimiter, mUfsInStreamCache, blockMeta,
         offset, readOptions, mPageSize);
   }
 
