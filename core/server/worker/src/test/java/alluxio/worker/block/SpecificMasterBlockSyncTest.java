@@ -206,8 +206,8 @@ public class SpecificMasterBlockSyncTest {
             .setThroughput(0).build();
       }
       return BlockHeartbeatPResponse.newBuilder()
-              .setCommand(Command.newBuilder().setCommandType(CommandType.Nothing).build())
-              .setThroughput(0).build();
+          .setCommand(Command.newBuilder().setCommandType(CommandType.Nothing).build())
+          .setThroughput(0).build();
     }
 
     @Override

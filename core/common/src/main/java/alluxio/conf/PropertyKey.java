@@ -5165,21 +5165,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey WORKER_UFS_READ_TOTAL_THROUGHPUT =
-      stringBuilder(Name.WORKER_UFS_READ_TOTAL_THROUGHPUT)
+      dataSizeBuilder(Name.WORKER_UFS_READ_TOTAL_THROUGHPUT)
           .setDefaultValue("5GB")
           .setDescription("The total throughput limit for cluster to read from ufs.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey WORKER_UFS_READ_DEFAULT_THROUGHPUT =
-      stringBuilder(Name.WORKER_UFS_READ_DEFAULT_THROUGHPUT)
+      dataSizeBuilder(Name.WORKER_UFS_READ_DEFAULT_THROUGHPUT)
           .setDefaultValue("500MB")
           .setDescription("The default throughput limit for worker to read from ufs.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey WORKER_UFS_READ_MIN_THROUGHPUT =
-      stringBuilder(Name.WORKER_UFS_READ_MIN_THROUGHPUT)
+      dataSizeBuilder(Name.WORKER_UFS_READ_MIN_THROUGHPUT)
           .setDefaultValue("100MB")
           .setDescription("The min throughput limit for worker to read from ufs.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)

@@ -42,15 +42,9 @@ public class UnderFileSystemReadRateLimiter {
    */
   public synchronized void setRate(long permitsPerSecond) {
     if (permitsPerSecond > 0) {
-      if (!isLimiterEnabled()) {
-        LOG.info("The throughput limit is enabled.");
-      }
       mLimiterEnabled = true;
       mReadLimiter.setRate(permitsPerSecond);
     } else {
-      if (isLimiterEnabled()) {
-        LOG.warn("The throughput limit is disabled.");
-      }
       mLimiterEnabled = false;
     }
     mReadBytes = 0;

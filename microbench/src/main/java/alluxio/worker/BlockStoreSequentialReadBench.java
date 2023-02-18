@@ -54,8 +54,8 @@ public class BlockStoreSequentialReadBench {
   private static final int MAX_SIZE = 64 * 1024 * 1024;
 
   private static final UnderFileSystemReadRateLimiter RATE_LIMITER =
-          new UnderFileSystemReadRateLimiter(Configuration.getBytes(
-                  PropertyKey.WORKER_UFS_READ_DEFAULT_THROUGHPUT));
+      new UnderFileSystemReadRateLimiter(Configuration.getBytes(
+          PropertyKey.WORKER_UFS_READ_DEFAULT_THROUGHPUT));
 
   /**
    * A mock consumer of the data read from the store.

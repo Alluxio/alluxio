@@ -1497,7 +1497,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       worker.setReadUfsThroughput(throughput);
       newThroughput = mThroughputPolicy.updateWorkerThroughput(mWorkers, worker);
       LOG.debug("New throughput for worker {} is {}/s", workerId,
-          FormatUtils.getSizeFromBytes((long) newThroughput));
+          FormatUtils.getSizeFromBytes(newThroughput));
     }
     return newThroughput;
   }

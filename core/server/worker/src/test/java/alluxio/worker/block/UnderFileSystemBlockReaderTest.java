@@ -270,4 +270,15 @@ public final class UnderFileSystemBlockReaderTest {
         mUfsBytesRead, mUfsBytesReadThroughput);
     assertTrue(mReader.getLocation().startsWith(mOpenUfsBlockOptions.getUfsPath()));
   }
+
+  @Test
+  public void readWithRateLimiter() throws Exception {
+    Configuration.set(PropertyKey.WORKER_UFS_READ_THROUGHPUT_LIMIT_ENABLED, true);
+    mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
+        mAlluxioBlockStore, mUfsClient, mUfsInstreamCache, mRateLimiter,
+        mUfsBytesRead, mUfsBytesReadThroughput);
+    mRateLimiter.setRate(TEST_BLOCK_SIZE);
+    mReader.read(0, TEST_BLOCK_SIZE);
+    assertTrue(mRateLimiter.hasRead());
+  }
 }

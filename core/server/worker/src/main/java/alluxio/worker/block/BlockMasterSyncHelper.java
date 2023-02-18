@@ -145,7 +145,6 @@ public class BlockMasterSyncHelper {
           blockReport.getLostStorage(), throughput, metrics);
       cmdFromMaster = response.getCommand();
       handler.handle(cmdFromMaster);
-      cmdFromMaster = response.getCommand();
       rateLimiter.setRate(response.getThroughput());
       return true;
     } catch (Exception e) {
