@@ -166,11 +166,11 @@ public interface FileSystem extends Closeable {
       FileSystem fs = options.getUfsFileSystemOptions().isPresent()
           ? new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get())
           : new BaseFileSystem(context);
-      if (options.isMetadataCacheEnabled()) {
-        fs = new MetadataCachingFileSystem(fs, context);
-      }
       if (options.isDoraCacheEnabled()) {
         fs = new DoraCacheFileSystem(fs, context);
+      }
+      if (options.isMetadataCacheEnabled()) {
+        fs = new MetadataCachingFileSystem(fs, context);
       }
       if (options.isDataCacheEnabled()
           && CommonUtils.PROCESS_TYPE.get() == CommonUtils.ProcessType.CLIENT) {
