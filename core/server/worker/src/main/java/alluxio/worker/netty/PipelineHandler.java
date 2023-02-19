@@ -115,5 +115,4 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
     // Unsupported Message Handler
     pipeline.addLast("unsupportedMessageHandler", new UnsupportedMessageHandler());
   }
-
 }

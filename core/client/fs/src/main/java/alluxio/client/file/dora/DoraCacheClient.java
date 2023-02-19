@@ -13,7 +13,6 @@ package alluxio.client.file.dora;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import alluxio.client.ReadType;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.DataReader;
@@ -21,7 +20,6 @@ import alluxio.client.block.stream.GrpcDataReader;
 import alluxio.client.block.stream.NettyDataReader;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPOptions;
@@ -101,7 +99,6 @@ public class DoraCacheClient {
         .setChunkSize(mChunkSize);
     return new NettyDataReader.Factory(mContext, workerNetAddress, builder);
   }
-
 
   /**
    * Get status.

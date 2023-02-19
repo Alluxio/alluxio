@@ -232,7 +232,7 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public void iterateStatus(AlluxioURI path, final ListStatusPOptions options,
-      Consumer<? super URIStatus> action) {
+                            Consumer<? super URIStatus> action) {
     call(() -> {
       ListOptions ufsOptions = ListOptions.defaults();
       if (options.hasRecursive()) {
@@ -331,7 +331,7 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
-      SetAclPOptions options) {
+                     SetAclPOptions options) {
     call(() -> mUfs.get().setAclEntries(path.getPath(), entries));
   }
 
@@ -387,6 +387,7 @@ public class UfsBaseFileSystem implements FileSystem {
   public void needsSync(AlluxioURI path) throws IOException, AlluxioException {
     throw new UnsupportedOperationException();
   }
+
   @Override
   public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
                             boolean usePartialListing, boolean verify) {
@@ -400,7 +401,8 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public String getLoadProgress(AlluxioURI path,
-                                java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
+                                java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format,
+                                boolean verbose) {
     throw new UnsupportedOperationException();
   }
 

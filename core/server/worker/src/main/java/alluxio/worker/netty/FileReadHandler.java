@@ -12,8 +12,6 @@
 package alluxio.worker.netty;
 
 import alluxio.Constants;
-import alluxio.DefaultStorageTierAssoc;
-import alluxio.StorageTierAssoc;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricsSystem;
@@ -27,15 +25,17 @@ import alluxio.retry.TimeoutRetry;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.dora.DoraWorker;
-import javax.annotation.concurrent.NotThreadSafe;
-import java.io.File;
-import java.nio.channels.FileChannel;
-import java.util.concurrent.ExecutorService;
+
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.nio.channels.FileChannel;
+import java.util.concurrent.ExecutorService;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Handles file read request.
@@ -58,8 +58,10 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
    *
    * @param executorService the executor service to run data readers
    * @param worker block worker
+   * @param fileTransferType the file transfer type
    */
-  public FileReadHandler(ExecutorService executorService, DoraWorker worker, FileTransferType fileTransferType) {
+  public FileReadHandler(ExecutorService executorService,
+                         DoraWorker worker, FileTransferType fileTransferType) {
     super(executorService);
     mWorker = worker;
     mTransferType = fileTransferType;
@@ -85,12 +87,6 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
      * The Block Worker.
      */
     private final DoraWorker mWorker;
-    /**
-     * An object storing the mapping of tier aliases to ordinals.
-     */
-    private final StorageTierAssoc mStorageTierAssoc = new DefaultStorageTierAssoc(
-        PropertyKey.WORKER_TIERED_STORE_LEVELS,
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS);
 
     BlockPacketReader(BlockReadRequestContext context, Channel channel, DoraWorker worker) {
       super(context, channel);
@@ -105,7 +101,7 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
           reader.close();
         } catch (Exception e) {
           LOG.warn("Failed to close block reader for block {} with error {}.",
-              context.getRequest().getId(), e.getMessage());
+              context.getRequest(), e.getMessage());
         }
       }
     }
@@ -143,21 +139,28 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
       if (context.getBlockReader() != null) {
         return;
       }
-      alluxio.worker.netty.BlockReadRequest request = context.getRequest();
+      ReadRequest readRequest = context.getRequest();
+      if (readRequest instanceof BlockReadRequest == false) {
+        throw new UnsupportedOperationException("Cast exception from " + readRequest.getClass()
+            + " to " + BlockReadRequest.class);
+      }
+      BlockReadRequest blockReadRequest = (BlockReadRequest) readRequest;
       int retryInterval = Constants.SECOND_MS;
       RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
       do {
         try {
-          BlockReader reader = mWorker.createFileReader(request.getOpenUfsBlockOptions().getUfsPath(),
-              request.getStart(), false, request.getOpenUfsBlockOptions());
+          BlockReader reader =
+              mWorker.createFileReader(blockReadRequest.getOpenUfsBlockOptions().getUfsPath(),
+              blockReadRequest.getStart(),
+                  false, blockReadRequest.getOpenUfsBlockOptions());
           String metricName = "BytesReadAlluxio";
           context.setBlockReader(reader);
           context.setCounter(MetricsSystem.counter(metricName));
           //TODO(JiamingMai): Do we still need to access block?
           // It seems that it is not necessary any more.
-          //mWorker.accessBlock(request.getSessionId(), request.getId());
+          //mWorker.accessBlock(blockReadRequest.getSessionId(), blockReadRequest.getId());
           if (reader.getChannel() instanceof FileChannel) {
-            ((FileChannel) reader.getChannel()).position(request.getStart());
+            ((FileChannel) reader.getChannel()).position(blockReadRequest.getStart());
           }
           return;
         } catch (Exception e) {

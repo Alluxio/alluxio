@@ -12,7 +12,6 @@
 package alluxio.client.file.dora;
 
 import alluxio.client.block.stream.DataReader;
-import alluxio.client.block.stream.GrpcDataReader;
 import alluxio.client.file.FileInStream;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.OutOfRangeException;
