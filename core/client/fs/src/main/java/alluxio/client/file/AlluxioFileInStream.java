@@ -23,9 +23,11 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.OutOfRangeException;
+import alluxio.grpc.Bits;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
@@ -76,7 +78,7 @@ public class AlluxioFileInStream extends FileInStream {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFileInStream.class);
 
   private Supplier<RetryPolicy> mRetryPolicySupplier;
-  private final URIStatus mStatus;
+  private URIStatus mStatus;
   private final InStreamOptions mOptions;
   private final BlockStoreClient mBlockStore;
   private final FileSystemContext mContext;
@@ -173,6 +175,7 @@ public class AlluxioFileInStream extends FileInStream {
         if (e instanceof OutOfRangeException) {
           refreshMetadataOnMismatchedLength((OutOfRangeException) e);
         }
+        refreshUriStatusIfNeeded(e);
       }
     }
     throw lastException;
@@ -216,6 +219,7 @@ public class AlluxioFileInStream extends FileInStream {
         if (e instanceof OutOfRangeException) {
           refreshMetadataOnMismatchedLength((OutOfRangeException) e);
         }
+        refreshUriStatusIfNeeded(e);
       }
     }
     if (lastException != null) {
@@ -331,6 +335,7 @@ public class AlluxioFileInStream extends FileInStream {
           handleRetryableException(mCachedPositionedReadStream, e);
           mCachedPositionedReadStream = null;
         }
+        refreshUriStatusIfNeeded(e);
       }
     }
     if (lastException != null) {
@@ -517,6 +522,35 @@ public class AlluxioFileInStream extends FileInStream {
     // TODO(lu) consider recovering failed workers
     if (!causedByClientOOM) {
       mFailedWorkers.put(workerAddress, System.currentTimeMillis());
+    }
+  }
+
+  /**
+   * Refresh URIStatus if needed.
+   * @param e what exception occurs
+   * @throws IOException if failed to refresh URIStatus
+   */
+  public void refreshUriStatusIfNeeded(IOException e) throws IOException {
+    if (!mOptions.getOptions().getUpdateURIStatusWhenRetry()) {
+      return;
+    }
+    try (CloseableResource<FileSystemMasterClient> client
+             = mContext.acquireMasterClientResource()) {
+      client.close();
+      URIStatus update = client.get().getStatus(new AlluxioURI(mOptions.getStatus().getPath()),
+              FileSystemOptionsUtils.getStatusDefaults(mContext.getClusterConf()).toBuilder()
+                      .setAccessMode(Bits.READ)
+                      .setLoadMetadataType(LoadMetadataPType.NEVER)
+                      .setUpdateTimestamps(mOptions.getOptions().getUpdateLastAccessTime())
+                      .build());
+      if (!update.equals(mOptions.getStatus())) {
+        LOG.info("refresh status because some exception occurs: {}, new: {}, old: {}",
+            e.getMessage(), update, mStatus);
+        mOptions.setStatus(update);
+        mStatus = update;
+      }
+    } catch (Throwable throwable) {
+      LOG.warn("try to refresh status for {} but failed!", mStatus.getPath(), throwable);
     }
   }
 }
