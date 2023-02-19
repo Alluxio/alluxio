@@ -109,10 +109,5 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
         new ShortCircuitBlockWriteHandler(NettyExecutors.RPC_EXECUTOR,
             mWorkerProcess.getWorker(BlockWorker.class)));
     pipeline.addLast("asyncCacheHandler", new AsyncCacheHandler(mRequestManager));
-    // UFS Handlers
-    pipeline.addLast("ufsFileWriteHandler", new UfsFileWriteHandler(
-        NettyExecutors.FILE_WRITER_EXECUTOR, mWorkerProcess.getUfsManager()));
-    // Unsupported Message Handler
-    pipeline.addLast("unsupportedMessageHandler", new UnsupportedMessageHandler());
   }
 }
