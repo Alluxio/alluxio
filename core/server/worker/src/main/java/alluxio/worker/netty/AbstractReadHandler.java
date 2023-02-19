@@ -119,7 +119,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       mContext = createRequestContext(msg);
     }
 
-    validateReadRequest(msg);
+    //TODO(JiamingMai): dora client will send -1 as the block id
+    //validateReadRequest(msg);
 
     try (LockResource lr = new LockResource(mLock)) {
       mContext.setPosToQueue(mContext.getRequest().getStart());
