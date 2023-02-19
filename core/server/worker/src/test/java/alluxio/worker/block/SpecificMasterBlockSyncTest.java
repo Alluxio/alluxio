@@ -28,6 +28,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.SingleMasterInquireClient;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -249,6 +250,8 @@ public class SpecificMasterBlockSyncTest {
         .thenReturn(new WorkerNetAddress());
     Mockito.when(blockWorker.getWorkerId())
         .thenReturn(new AtomicReference<>(0L));
+    Mockito.when(blockWorker.getUfsReadRateLimiter())
+        .thenReturn(new UnderFileSystemReadRateLimiter(1));
     return blockWorker;
   }
 }

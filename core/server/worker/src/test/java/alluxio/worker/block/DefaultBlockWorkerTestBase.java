@@ -29,6 +29,7 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
@@ -74,6 +75,8 @@ public class DefaultBlockWorkerTestBase {
 
   // invalid initial worker id
   protected static final long INVALID_WORKER_ID = -1L;
+
+  protected static final long THROUGHPUT = 0;
 
   // test subject
   protected DefaultBlockWorker mBlockWorker;
@@ -238,7 +241,8 @@ public class DefaultBlockWorkerTestBase {
         .getId(any(WorkerNetAddress.class));
 
     // return Command.Nothing for heartbeat
-    doReturn(Command.newBuilder().setCommandType(CommandType.Nothing).build())
+    doReturn(BlockHeartbeatPResponse.newBuilder().setThroughput(THROUGHPUT)
+        .setCommand(Command.newBuilder().setCommandType(CommandType.Nothing).build()).build())
         .when(client)
         .heartbeat(
             anyLong(),
