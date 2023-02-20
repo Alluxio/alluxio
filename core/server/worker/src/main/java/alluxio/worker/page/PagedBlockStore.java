@@ -17,11 +17,13 @@ import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.PageId;
+import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.PageNotFoundException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
@@ -520,7 +522,7 @@ public class PagedBlockStore implements BlockStore {
     }
     try (BlockLock blockLock = optionalLock.get()) {
       Set<PageId> pageIds;
-      try (LockResource metaLock = new LockResource(mPageMetaStore.getLock().readLock())) {
+      try (LockResource metaLock = new LockResource(mPageMetaStore.getLock().writeLock())) {
         if (mPageMetaStore.hasTempBlock(blockId)) {
           throw new IllegalStateException(
             ExceptionMessage.REMOVE_UNCOMMITTED_BLOCK.getMessage(blockId));
@@ -528,10 +530,14 @@ public class PagedBlockStore implements BlockStore {
         pageIds = mPageMetaStore.getBlock(blockId)
           .orElseThrow(() -> new BlockDoesNotExistRuntimeException(blockId))
           .getDir().getBlockPages(blockId);
+
+        for (PageId pageId : pageIds) {
+          PageInfo pageInfo = mPageMetaStore.removePage(pageId);
+          pageInfo.getLocalCacheDir().getPageStore().delete(pageId);
+        }
       }
-      for (PageId pageId : pageIds) {
-        mCacheManager.delete(pageId);
-      }
+    } catch (PageNotFoundException e) {
+      throw AlluxioRuntimeException.from(e);
     }
   }
 }
