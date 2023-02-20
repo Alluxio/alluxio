@@ -115,9 +115,9 @@ import javax.annotation.Nullable;
  * are completed and there are no new inodes left in the queue.
  *
  * Syncing inode metadata requires making calls to the UFS. This implementation will schedule UFS
- * RPCs with the {@link UfsStatusCache#prefetchChildren(AlluxioURI, MountTable)}. Then, once the
- * inode begins processing, it can retrieve the results. After processing, it can then remove its
- * {@link UfsStatus} from the cache. This strategy helps reduce memory pressure on the master
+ * RPCs with the {@link UfsStatusCache#prefetchChildren(AlluxioURI, MountTable)}. Then, once
+ * the inode begins processing, it can retrieve the results. After processing, it can then remove
+ * its {@link UfsStatus} from the cache. This strategy helps reduce memory pressure on the master
  * while performing a sync for a large tree. Additionally, by using a prefetch mechanism we can
  * concurrently process other inodes while waiting for UFS RPCs to complete.
  *
@@ -806,7 +806,7 @@ public class InodeSyncStream {
       } catch (FileNotFoundException e) {
         fileNotFound = true;
       }
-      MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+      MountTable.Resolution resolution = mMountTable.resolve(inodePath);
       AlluxioURI ufsUri = resolution.getUri();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
@@ -837,7 +837,7 @@ public class InodeSyncStream {
             }
           }
         }
-        boolean containsMountPoint = mMountTable.containsMountPoint(inodePath.getUri(), true);
+        boolean containsMountPoint = mMountTable.containsMountPoint(inodePath, true);
 
         UfsSyncUtils.SyncPlan syncPlan =
             UfsSyncUtils.computeSyncPlan(inode, ufsFpParsed, containsMountPoint);
@@ -1003,7 +1003,7 @@ public class InodeSyncStream {
       throws AccessControlException, BlockInfoException, FileAlreadyCompletedException,
       FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException {
     AlluxioURI path = inodePath.getUri();
-    MountTable.Resolution resolution = mMountTable.resolve(path);
+    MountTable.Resolution resolution = mMountTable.resolve(inodePath);
     int failedSync = 0;
     try {
       if (context.getUfsStatus() == null) {

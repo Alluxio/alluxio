@@ -33,6 +33,7 @@ import alluxio.master.file.BlockDeletionContext;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CallTracker;
 import alluxio.master.file.contexts.OperationContext;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.NoopUfsAbsentPathCache;
 import alluxio.master.file.meta.UfsAbsentPathCache;

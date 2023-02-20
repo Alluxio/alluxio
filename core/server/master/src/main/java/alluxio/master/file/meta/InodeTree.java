@@ -58,6 +58,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.interfaces.Scoped;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.OperationId;
 
 import com.google.common.base.Preconditions;
@@ -385,6 +386,39 @@ public class InodeTree implements DelegatingJournaled {
    */
   public boolean inodeIdExists(long id) {
     return mInodeStore.get(id).isPresent();
+  }
+
+  /**
+   * Translates a path into a list of inodes. This method is NOT thread safe, please lock
+   * the target path with {@link LockedInodePath} before calling. 
+   * @param path the target alluxio path
+   * @return non-empty list if all inodes are successfully loaded
+   * @throws InvalidPathException handle invalid path when getting components by calling
+   * {@link PathUtils#getPathComponents(String)}
+   */
+  public List<InodeView> getInodesByPath(String path)
+      throws InvalidPathException {
+    String[] components = PathUtils.getPathComponents(path);
+    List<InodeView> inodeViews = new ArrayList<>(components.length);
+    InodeView currentDirectory = null;
+    int i = 0;
+    while (i < components.length) {
+      if (i == 0) {
+        // acquire the InodeView of root inode by its id(which is 0).
+        currentDirectory = mInodeStore.get(0).orElse(null);
+      } else {
+        // try to acquire the child Inode by the parent inode and child's name
+        currentDirectory = mInodeStore
+            .getChild((InodeDirectoryView) currentDirectory, components[i]).orElse(null);
+      }
+      if (currentDirectory == null) {
+        throw new InvalidPathException(ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(components[i]));
+      }
+      inodeViews.add(currentDirectory);
+      i++;
+    }
+
+    return inodeViews;
   }
 
   /**

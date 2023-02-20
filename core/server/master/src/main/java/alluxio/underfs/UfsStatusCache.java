@@ -18,6 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.RpcContext;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.resource.CloseableResource;
@@ -202,7 +203,7 @@ public class UfsStatusCache {
    */
   @Nullable
   public UfsStatus fetchStatusIfAbsent(AlluxioURI path, MountTable mountTable)
-      throws InvalidPathException {
+      throws InvalidPathException, IOException {
     UfsStatus status;
     try {
       status = getStatus(path);
