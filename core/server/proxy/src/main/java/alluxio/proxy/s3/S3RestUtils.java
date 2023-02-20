@@ -60,6 +60,7 @@ import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -540,6 +541,38 @@ public final class S3RestUtils {
   }
 
   /**
+   * Get username from header info from HttpServletRequest.
+   *
+   * @param authorization
+   * @param request
+   * @return user name
+   * @throws S3Exception
+   */
+  public static String getUser(String authorization, HttpServletRequest request)
+          throws S3Exception {
+    if (S3RestUtils.isAuthenticationEnabled(Configuration.global())) {
+      return getUserFromSignature(request);
+    }
+    try {
+      return getUserFromAuthorization(authorization, Configuration.global());
+    } catch (RuntimeException e) {
+      throw new S3Exception(new S3ErrorCode(S3ErrorCode.INTERNAL_ERROR.getCode(),
+              e.getMessage(), S3ErrorCode.INTERNAL_ERROR.getStatus()));
+    }
+  }
+
+  private static String getUserFromSignature(HttpServletRequest request)
+          throws S3Exception {
+    AwsSignatureProcessor signatureProcessor = new AwsSignatureProcessor(request);
+    Authenticator authenticator = Authenticator.Factory.create(Configuration.global());
+    AwsAuthInfo authInfo = signatureProcessor.getAuthInfo();
+    if (authenticator.isAuthenticated(authInfo)) {
+      return authInfo.getAccessID();
+    }
+    throw new S3Exception(authInfo.toString(), S3ErrorCode.INVALID_IDENTIFIER);
+  }
+
+  /**
    * Get username from parsed header info.
    *
    * @return username
@@ -608,8 +641,57 @@ public final class S3RestUtils {
   }
 
   /**
-   * Comparator based on uri name， treat uri name as a Long number.
+   * Populate xattr with content type info from header.
+   * @param xattrMap
+   * @param contentTypeHeader
    */
+  public static void populateContentTypeInXAttr(Map<String, ByteString> xattrMap,
+                                                String contentTypeHeader) {
+    if (contentTypeHeader != null) {
+      xattrMap.put(S3Constants.CONTENT_TYPE_XATTR_KEY,
+              ByteString.copyFrom(contentTypeHeader, S3Constants.HEADER_CHARSET));
+    }
+  }
+
+  /**
+   * Populate xattr map with tagging info from tagging header.
+   * @param xattrMap
+   * @param taggingHeader
+   * @param auditContext
+   * @param objectPath
+   * @throws S3Exception
+   */
+  public static void populateTaggingInXAttr(Map<String, ByteString> xattrMap, String taggingHeader,
+                                            S3AuditContext auditContext, String objectPath)
+      throws S3Exception {
+    TaggingData tagData = null;
+    if (taggingHeader != null) { // Parse the tagging header if it exists for PutObject
+      try {
+        tagData = S3RestUtils.deserializeTaggingHeader(
+            taggingHeader, S3Handler.MAX_HEADER_METADATA_SIZE);
+      } catch (IllegalArgumentException e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof S3Exception) {
+          throw S3RestUtils.toObjectS3Exception((S3Exception) cause, objectPath,
+                  auditContext);
+        }
+        throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
+      }
+    }
+    LOG.debug("tagData={}", tagData);
+    // Populate the xattr Map with the metadata tags if provided
+    if (tagData != null) {
+      try {
+        xattrMap.put(S3Constants.TAGGING_XATTR_KEY, TaggingData.serialize(tagData));
+      } catch (Exception e) {
+        throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
+      }
+    }
+  }
+
+    /**
+     * Comparator based on uri name， treat uri name as a Long number.
+     */
   public static class URIStatusNameComparator implements Comparator<URIStatus>, Serializable {
 
     private static final long serialVersionUID = 733270188584155565L;

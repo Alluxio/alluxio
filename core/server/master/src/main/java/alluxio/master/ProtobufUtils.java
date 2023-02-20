@@ -32,9 +32,11 @@ public final class ProtobufUtils {
    */
   public static TtlAction fromProtobuf(PTtlAction pTtlAction) {
     if (pTtlAction == null) {
-      return TtlAction.DELETE;
+      return TtlAction.DELETE_ALLUXIO;
     }
     switch (pTtlAction) {
+      case DELETE_ALLUXIO:
+        return TtlAction.DELETE_ALLUXIO;
       case DELETE:
         return TtlAction.DELETE;
       case FREE:
@@ -52,9 +54,11 @@ public final class ProtobufUtils {
    */
   public static PTtlAction toProtobuf(TtlAction ttlAction) {
     if (ttlAction == null) {
-      return PTtlAction.DELETE;
+      return PTtlAction.DELETE_ALLUXIO;
     }
     switch (ttlAction) {
+      case DELETE_ALLUXIO:
+        return PTtlAction.DELETE_ALLUXIO;
       case DELETE:
         return PTtlAction.DELETE;
       case FREE:

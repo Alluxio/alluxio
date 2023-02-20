@@ -100,7 +100,7 @@ public class SnapshotReplicationManagerTest {
     String serverName = InProcessServerBuilder.generateName();
     mServer = InProcessServerBuilder.forName(serverName)
         .directExecutor()
-        .addService(new RaftJournalServiceHandler(mLeaderSnapshotManager)).build();
+        .addService(new RaftJournalServiceHandler(mLeaderSnapshotManager, null)).build();
     mServer.start();
     ManagedChannel channel = InProcessChannelBuilder.forName(serverName).directExecutor().build();
     RaftJournalServiceGrpc.RaftJournalServiceStub stub = RaftJournalServiceGrpc.newStub(channel);

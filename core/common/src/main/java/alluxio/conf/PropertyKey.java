@@ -586,6 +586,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .setIsHidden(true)
           .build();
+  public static final PropertyKey GRPC_REFLECTION_ENABLED =
+      booleanBuilder(Name.GRPC_REFLECTION_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If true, grpc reflection will be enabled on alluxio grpc servers, "
+              + "including masters, workers, job masters and job workers. "
+              + " This makes grpc tools such as grpcurl or grpcui can send grpc requests to "
+              + "the master server easier without knowing the protobufs. "
+              + "This is a debug option.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey HOME =
       stringBuilder(Name.HOME)
           .setDefaultValue("/opt/alluxio")
@@ -1212,6 +1223,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT =
+      durationBuilder(Name.UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT)
+          .setDescription("Timeout for uploading part when using streaming uploads.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED =
       booleanBuilder(Name.UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED)
           .setDefaultValue(true)
@@ -1269,12 +1286,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM =
       intBuilder(Name.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM)
-          .setDefaultValue(20)
+          .setDefaultValue(0)
           .setDescription("To handle eventually consistent storage semantics "
               + "for certain under storages, Alluxio will perform retries "
               + "when under storage metadata doesn't match Alluxio's expectations. "
               + "These retries use exponential backoff. "
-              + "This property determines the maximum number of retries.")
+              + "This property determines the maximum number of retries. "
+              + "This property defaults to 0 as modern object store UFSs provide strong "
+              + "consistency.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -1316,6 +1335,46 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setAlias("alluxio.underfs.oss.socket.timeout.ms")
           .setDefaultValue("50sec")
           .setDescription("The timeout of OSS socket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_ECS_RAM_ROLE =
+      stringBuilder(Name.UNDERFS_OSS_ECS_RAM_ROLE)
+          .setAlias("alluxio.underfs.oss.ecs.ram.role")
+          .setDescription("The RAM role of current owner of ECS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_RETRY_MAX =
+      intBuilder(Name.UNDERFS_OSS_RETRY_MAX)
+          .setAlias("alluxio.underfs.oss.retry.max")
+          .setDefaultValue(3)
+          .setDescription("The maximum number of OSS error retry.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT =
+      stringBuilder(Name.UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT)
+          .setAlias("alluxio.underfs.oss.sts.ecs.metadata.service.endpoint")
+          .setDefaultValue("http://100.100.100.200/latest/meta-data/ram/security-credentials/")
+          .setDescription("The ECS metadata service endpoint for Aliyun STS")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_STS_ENABLED =
+      booleanBuilder(Name.UNDERFS_OSS_STS_ENABLED)
+          .setAlias("alluxio.underfs.oss.sts.enabled")
+          .setDefaultValue(false)
+          .setDescription("Whether to enable oss STS(Security Token Service).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_STS_TOKEN_REFRESH_INTERVAL_MS =
+      durationBuilder(Name.UNDERFS_OSS_STS_TOKEN_REFRESH_INTERVAL_MS)
+          .setAlias("alluxio.underfs.oss.sts.token.refresh.interval.ms")
+          .setDefaultValue("30m")
+          .setDescription("Time before an OSS Security Token is considered expired "
+              + "and will be automatically renewed")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -1704,6 +1763,41 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
+  public static final PropertyKey UNDERFS_OSS_INTERMEDIATE_UPLOAD_CLEAN_AGE =
+      durationBuilder(Name.UNDERFS_OSS_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+          .setDefaultValue("3day")
+          .setDescription("Streaming uploads may not have been completed/aborted correctly "
+              + "and need periodical ufs cleanup. If ufs cleanup is enabled, "
+              + "intermediate multipart uploads in all non-readonly OSS mount points "
+              + "older than this age will be cleaned. This may impact other "
+              + "ongoing upload operations, so a large clean age is encouraged.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_STREAMING_UPLOAD_ENABLED =
+      booleanBuilder(Name.UNDERFS_OSS_STREAMING_UPLOAD_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If true, using streaming upload to write to OSS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_STREAMING_UPLOAD_PARTITION_SIZE =
+      dataSizeBuilder(Name.UNDERFS_OSS_STREAMING_UPLOAD_PARTITION_SIZE)
+          .setDefaultValue("64MB")
+          .setDescription("Maximum allowable size of a single buffer file when using "
+              + "OSS streaming upload. When the buffer file reaches the partition size, "
+              + "it will be uploaded and the upcoming data will write to other buffer files."
+              + "If the partition size is too small, OSS upload speed might be affected. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_STREAMING_UPLOAD_THREADS =
+      intBuilder(Name.UNDERFS_OSS_STREAMING_UPLOAD_THREADS)
+          .setDefaultValue(20)
+          .setDescription("the number of threads to use for streaming upload data to OSS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey S3A_ACCESS_KEY = stringBuilder(Name.S3A_ACCESS_KEY)
       .setAlias(Name.AWS_ACCESS_KEY)
       .setDescription("The access key of S3 bucket.")
@@ -1853,6 +1947,41 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("obs")
           .setDescription("The type of bucket (obs/pfs).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBS_INTERMEDIATE_UPLOAD_CLEAN_AGE =
+      durationBuilder(Name.UNDERFS_OBS_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+          .setDefaultValue("3day")
+          .setDescription("Streaming uploads may not have been completed/aborted correctly "
+              + "and need periodical ufs cleanup. If ufs cleanup is enabled, "
+              + "intermediate multipart uploads in all non-readonly OBS mount points "
+              + "older than this age will be cleaned. This may impact other "
+              + "ongoing upload operations, so a large clean age is encouraged.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBS_STREAMING_UPLOAD_ENABLED =
+      booleanBuilder(Name.UNDERFS_OBS_STREAMING_UPLOAD_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If true, using streaming upload to write to OBS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBS_STREAMING_UPLOAD_PARTITION_SIZE =
+      dataSizeBuilder(Name.UNDERFS_OBS_STREAMING_UPLOAD_PARTITION_SIZE)
+          .setDefaultValue("64MB")
+          .setDescription("Maximum allowable size of a single buffer file when using "
+              + "S3A streaming upload. When the buffer file reaches the partition size, "
+              + "it will be uploaded and the upcoming data will write to other buffer files."
+              + "If the partition size is too small, OBS upload speed might be affected. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBS_STREAMING_UPLOAD_THREADS =
+      intBuilder(Name.UNDERFS_OBS_STREAMING_UPLOAD_THREADS)
+          .setDefaultValue(20)
+          .setDescription("the number of threads to use for streaming upload data to OBS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   //
@@ -2428,7 +2557,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL =
       intBuilder(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL)
-          .setDefaultValue(-1)
+          .setDefaultValue(1)
           .setDescription("The zip compression level of checkpointing rocksdb, the zip"
                   + " format defines ten levels of compression, ranging from 0"
                   + " (no compression, but very fast) to 9 (best compression, but slow)."
@@ -2930,7 +3059,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "UFS), EMBEDDED (use a journal embedded in the masters), and NOOP (do not use a "
               + "journal)")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
       dataSizeBuilder(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX)
@@ -3706,6 +3835,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether a standby master runs a web server")
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey STANDBY_MASTER_GRPC_ENABLED =
+      booleanBuilder(Name.STANDBY_MASTER_GRPC_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether a standby master runs a grpc server")
+          .setScope(Scope.ALL)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .build();
 
   //
   // Throttle
@@ -4391,6 +4527,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_REGISTER_TO_ALL_MASTERS =
+      booleanBuilder(Name.WORKER_REGISTER_TO_ALL_MASTERS)
+          .setDefaultValue(false)
+          .setDescription("If enabled, workers will register themselves to all masters, "
+              + "instead of primary master only. This can be used to save the "
+              + "master failover time because the new primary immediately knows "
+              + "all existing workers and blocks. Can only be enabled when "
+              + Name.STANDBY_MASTER_GRPC_ENABLED + " is turned on.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey WORKER_REMOTE_IO_SLOW_THRESHOLD =
       durationBuilder(Name.WORKER_REMOTE_IO_SLOW_THRESHOLD)
           .setDefaultValue("10s")
@@ -4410,7 +4557,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-
+  public static final PropertyKey WORKER_BLOCK_HEARTBEAT_REPORT_SIZE_THRESHOLD =
+      intBuilder(Name.WORKER_BLOCK_HEARTBEAT_REPORT_SIZE_THRESHOLD)
+          .setDefaultValue(1_000_000)
+          .setDescription(
+              "When " + Name.WORKER_REGISTER_TO_ALL_MASTERS + "=true, "
+              + "because a worker will send block reports to all masters, "
+              + "we use a threshold to limit the unsent block report size in worker's memory. "
+              + "If the worker block heartbeat is larger than the threshold, "
+              + "we discard the heartbeat message and force "
+              + "the worker to register with that master with a full report."
+          )
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_PAGE_STORE_ASYNC_RESTORE_ENABLED =
       booleanBuilder(Name.WORKER_PAGE_STORE_ASYNC_RESTORE_ENABLED)
           .setDefaultValue(true)
@@ -5115,6 +5275,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_V2_VERSION_ENABLED =
+          booleanBuilder(Name.PROXY_S3_V2_VERSION_ENABLED)
+                  .setDefaultValue(false)
+                  .setDescription("(Experimental) V2, an optimized version of "
+                          + "Alluxio s3 proxy service.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .build();
+  public static final PropertyKey PROXY_S3_V2_ASYNC_PROCESSING_ENABLED =
+          booleanBuilder(Name.PROXY_S3_V2_ASYNC_PROCESSING_ENABLED)
+                  .setDefaultValue(false)
+                  .setDescription("(Experimental) If enabled, handle S3 request "
+                          + "in async mode when v2 version of Alluxio s3 "
+                          + "proxy service is enabled.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .build();
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       durationBuilder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
           .setAlias("alluxio.proxy.stream.cache.timeout.ms")
@@ -5538,9 +5715,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_CREATE_TTL_ACTION =
       enumBuilder(Name.USER_FILE_CREATE_TTL_ACTION, TtlAction.class)
-          .setDefaultValue(TtlAction.DELETE)
+          .setDefaultValue(TtlAction.DELETE_ALLUXIO)
           .setDescription("When file's ttl is expired, the action performs on it. Options: "
-              + "DELETE (default) or FREE")
+              + "DELETE_ALLUXIO(default), FREE or DELETE")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_UFS_TIER_ENABLED =
@@ -5791,6 +5968,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_TTL_ENABLED =
+      booleanBuilder(Name.USER_CLIENT_CACHE_TTL_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to support cache quota.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_TTL_CHECK_INTERVAL_SECONDS =
+      longBuilder(Name.USER_CLIENT_CACHE_TTL_CHECK_INTERVAL_SECONDS)
+          .setDefaultValue(3600)
+          .setDescription("TTL check interval time in seconds.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_TTL_THRESHOLD_SECONDS =
+      longBuilder(Name.USER_CLIENT_CACHE_TTL_THRESHOLD_SECONDS)
+          .setDefaultValue(3600 * 3)
+          .setDescription("TTL threshold time in seconds.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_SIZE =
       listBuilder(Name.USER_CLIENT_CACHE_SIZE)
           .setDefaultValue("512MB")
@@ -5812,6 +6010,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+
+  public static final PropertyKey USER_CLIENT_REPORT_VERSION_ENABLED =
+      booleanBuilder(Name.USER_CLIENT_REPORT_VERSION_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether the client reports version information to the server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       enumBuilder(Name.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
           .setDefaultValue(WriteType.ASYNC_THROUGH)
@@ -6834,6 +7041,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .build();
 
+  // new job service
+  public static final PropertyKey JOB_BATCH_SIZE =
+      intBuilder(Name.JOB_BATCH_SIZE)
+          .setDescription("The number of tasks would be included in a job request.")
+          .setDefaultValue(20)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey JOB_RETENTION_TIME =
+      durationBuilder(Name.JOB_RETENTION_TIME)
+      .setDescription("The length of time the Alluxio should save information about "
+          + "completed jobs before they are discarded.")
+      .setDefaultValue("1d")
+      .setScope(Scope.MASTER)
+      .build();
+
   //
   // Job service
   //
@@ -6928,7 +7150,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.JOB_REQUEST_BATCH_SIZE)
           .setDescription("The batch size client uses to make requests to the "
               + "job master.")
-          .setDefaultValue(20)
+          .setDefaultValue(1)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey JOB_WORKER_BIND_HOST =
@@ -7116,7 +7338,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("(Experimental) Enables the table service.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_CATALOG_PATH =
       stringBuilder(Name.TABLE_CATALOG_PATH)
@@ -7124,7 +7345,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The Alluxio file path for the table catalog metadata.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_CATALOG_UDB_SYNC_TIMEOUT =
       durationBuilder(Name.TABLE_CATALOG_UDB_SYNC_TIMEOUT)
@@ -7133,7 +7353,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "takes longer than this timeout, the sync will be terminated.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE =
       intBuilder(Name.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE)
@@ -7141,7 +7360,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum table partitions number in a single journal entry.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
       durationBuilder(Name.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL)
@@ -7152,7 +7370,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "locations after transformation.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
       durationBuilder(Name.TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME)
@@ -7161,7 +7378,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "about finished transformation jobs before they are discarded.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MIN =
       intBuilder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MIN)
@@ -7169,7 +7385,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The minimum capacity of the hive client pool per hive metastore")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MAX =
       intBuilder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MAX)
@@ -7177,7 +7392,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum capacity of the hive client pool per hive metastore")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_LOAD_DEFAULT_REPLICATION =
       intBuilder(Name.TABLE_LOAD_DEFAULT_REPLICATION)
@@ -7185,7 +7399,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The default replication number of files under the SDS table after "
                   + "load option.")
           .setScope(Scope.CLIENT)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey HADOOP_SECURITY_AUTHENTICATION =
       stringBuilder(Name.HADOOP_SECURITY_AUTHENTICATION)
@@ -7239,6 +7452,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String CONF_VALIDATION_ENABLED = "alluxio.conf.validation.enabled";
     public static final String DEBUG = "alluxio.debug";
     public static final String EXTENSIONS_DIR = "alluxio.extensions.dir";
+    public static final String GRPC_REFLECTION_ENABLED =
+        "alluxio.grpc.reflection.enabled";
     public static final String HOME = "alluxio.home";
     public static final String INTEGRATION_MASTER_RESOURCE_CPU =
         "alluxio.integration.master.resource.cpu";
@@ -7359,6 +7574,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_WEB_PARENT_NAMES = "alluxio.underfs.web.parent.names";
     public static final String UNDERFS_WEB_TITLES = "alluxio.underfs.web.titles";
     public static final String UNDERFS_VERSION = "alluxio.underfs.version";
+    public static final String UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT =
+        "alluxio.underfs.object.store.streaming.upload.part.timeout";
     public static final String UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED =
         "alluxio.underfs.object.store.breadcrumbs.enabled";
     public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
@@ -7374,6 +7591,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.oss.connection.timeout";
     public static final String UNDERFS_OSS_CONNECT_TTL = "alluxio.underfs.oss.connection.ttl";
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout";
+    public static final String UNDERFS_OSS_ECS_RAM_ROLE = "alluxio.underfs.oss.ecs.ram.role";
+    public static final String UNDERFS_OSS_RETRY_MAX = "alluxio.underfs.oss.retry.max";
+    public static final String UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT =
+        "alluxio.underfs.oss.sts.ecs.metadata.service.endpoint";
+    public static final String UNDERFS_OSS_STS_ENABLED = "alluxio.underfs.oss.sts.enabled";
+    public static final String UNDERFS_OSS_STS_TOKEN_REFRESH_INTERVAL_MS =
+        "alluxio.underfs.oss.sts.token.refresh.interval.ms";
+    public static final String UNDERFS_OSS_INTERMEDIATE_UPLOAD_CLEAN_AGE =
+        "alluxio.underfs.oss.intermediate.upload.clean.age";
+    public static final String UNDERFS_OSS_STREAMING_UPLOAD_ENABLED =
+        "alluxio.underfs.oss.streaming.upload.enabled";
+    public static final String UNDERFS_OSS_STREAMING_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.oss.streaming.upload.partition.size";
+    public static final String UNDERFS_OSS_STREAMING_UPLOAD_THREADS =
+        "alluxio.underfs.oss.streaming.upload.threads";
     public static final String UNDERFS_S3_BULK_DELETE_ENABLED =
         "alluxio.underfs.s3.bulk.delete.enabled";
     public static final String UNDERFS_S3_DEFAULT_MODE = "alluxio.underfs.s3.default.mode";
@@ -7445,6 +7677,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.cephfs.mount.point";
     public static final String UNDERFS_CEPHFS_LOCALIZE_READS =
         "alluxio.underfs.cephfs.localize.reads";
+    public static final String UNDERFS_OBS_INTERMEDIATE_UPLOAD_CLEAN_AGE =
+        "alluxio.underfs.obs.intermediate.upload.clean.age";
+    public static final String UNDERFS_OBS_STREAMING_UPLOAD_ENABLED =
+        "alluxio.underfs.obs.streaming.upload.enabled";
+    public static final String UNDERFS_OBS_STREAMING_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.obs.streaming.upload.partition.size";
+    public static final String UNDERFS_OBS_STREAMING_UPLOAD_THREADS =
+        "alluxio.underfs.obs.streaming.upload.threads";
 
     //
     // UFS access control related properties
@@ -7950,6 +8190,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.standby.master.metrics.sink.enabled";
     public static final String STANDBY_MASTER_WEB_ENABLED =
         "alluxio.standby.master.web.enabled";
+    public static final String STANDBY_MASTER_GRPC_ENABLED =
+        "alluxio.standby.master.grpc.enabled";
 
     //
     // Worker related properties
@@ -8069,10 +8311,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.register.stream.response.timeout";
     public static final String WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT =
         "alluxio.worker.register.stream.complete.timeout";
+    public static final String WORKER_REGISTER_TO_ALL_MASTERS =
+        "alluxio.worker.register.to.all.masters";
     public static final String WORKER_REMOTE_IO_SLOW_THRESHOLD =
         "alluxio.worker.remote.io.slow.threshold";
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
         "alluxio.worker.block.master.client.pool.size";
+    public static final String WORKER_BLOCK_HEARTBEAT_REPORT_SIZE_THRESHOLD =
+        "alluxio.worker.block.heartbeat.report.size.threshold";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_PAGE_STORE_ASYNC_RESTORE_ENABLED =
         "alluxio.worker.page.store.async.restore.enabled";
@@ -8196,6 +8442,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
     public static final String PROXY_AUDIT_LOGGING_ENABLED =
         "alluxio.proxy.audit.logging.enabled";
+    public static final String PROXY_S3_V2_VERSION_ENABLED =
+            "alluxio.proxy.s3.v2.version.enabled";
+    public static final String PROXY_S3_V2_ASYNC_PROCESSING_ENABLED =
+            "alluxio.proxy.s3.v2.async.processing.enabled";
     public static final String S3_UPLOADS_ID_XATTR_KEY = "s3_uploads_mulitpartupload_id";
 
     //
@@ -8299,6 +8549,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.page.size";
     public static final String USER_CLIENT_CACHE_QUOTA_ENABLED =
         "alluxio.user.client.cache.quota.enabled";
+    public static final String USER_CLIENT_CACHE_TTL_ENABLED =
+            "alluxio.user.client.cache.ttl.enabled";
+    public static final String USER_CLIENT_CACHE_TTL_CHECK_INTERVAL_SECONDS =
+            "alluxio.user.client.cache.ttl.check.interval.seconds";
+    public static final String USER_CLIENT_CACHE_TTL_THRESHOLD_SECONDS =
+            "alluxio.user.client.cache.ttl.threshold.seconds";
     public static final String USER_CLIENT_CACHE_SIZE =
         "alluxio.user.client.cache.size";
     public static final String USER_CLIENT_CACHE_STORE_OVERHEAD =
@@ -8309,6 +8565,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.timeout.duration";
     public static final String USER_CLIENT_CACHE_TIMEOUT_THREADS =
         "alluxio.user.client.cache.timeout.threads";
+    public static final String USER_CLIENT_REPORT_VERSION_ENABLED =
+        "alluxio.user.client.report.version.enabled";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
@@ -8561,6 +8819,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME =
         "alluxio.network.tls.ssl.context.provider.classname";
     public static final String NETWORK_TLS_ENABLED = "alluxio.network.tls.enabled";
+
+    // new job service
+    public static final String JOB_BATCH_SIZE = "alluxio.job.batch.size";
+    public static final String JOB_RETENTION_TIME = "alluxio.job.retention.time";
 
     //
     // Job service

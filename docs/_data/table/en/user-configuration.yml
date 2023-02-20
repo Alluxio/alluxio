@@ -88,6 +88,8 @@ alluxio.user.client.cache.timeout.duration:
   'The timeout duration for local cache I/O operations (reading/writing/deleting). When this property is a positive value,local cache operations after timing out will fail and fallback to external file system but transparent to applications; when this property is a negative value, this feature is disabled.'
 alluxio.user.client.cache.timeout.threads:
   'The number of threads to handle cache I/O operation timeout, when alluxio.user.client.cache.timeout.duration is positive.'
+alluxio.user.client.report.version.enabled:
+  'Whether the client reports version information to the server.'
 alluxio.user.conf.cluster.default.enabled:
   'When this property is true, an Alluxio client will load the default values of cluster-wide configuration and path-specific configuration set by Alluxio master.'
 alluxio.user.conf.sync.interval:

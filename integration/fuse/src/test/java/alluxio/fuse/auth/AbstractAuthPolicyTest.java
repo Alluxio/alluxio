@@ -33,6 +33,7 @@ import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.grpc.LoadProgressReportFormat;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -293,6 +294,23 @@ public abstract class AbstractAuthPolicyTest {
 
     @Override
     public void needsSync(AlluxioURI path) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
+        boolean usePartialListing, boolean verify) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean stopLoad(AlluxioURI path) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getLoadProgress(AlluxioURI path,
+        Optional<LoadProgressReportFormat> format, boolean verbose) {
       throw new UnsupportedOperationException();
     }
 

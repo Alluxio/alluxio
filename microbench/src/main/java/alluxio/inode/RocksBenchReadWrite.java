@@ -142,20 +142,28 @@ public class RocksBenchReadWrite {
 
   @State(Scope.Benchmark)
   public static class Db extends BaseFileStructure {
-    @Param({SER_READ, NO_SER_READ, SER_NO_ALLOC_READ, NO_SER_NO_ALLOC_READ})
+    @Param({"0"})
+    public int mWidth;
+
+    @Param({"1000"})
+    public int mFileCount;
+
+    // is used in read benchmark to simulate different file access patterns
+    @Param({"ZIPF"})
+    public Distribution mDistribution;
+    @Param({SER_READ})
     public String mReadType;
 
-    @Param({"false", "true"})
+    @Param({"true"})
     public boolean mWriteSerialization;
 
     @Param({"true", "false"})
     public boolean mIsDirectory;
 
-    @Param({"1", "10"})
+    @Param({"20"})
     public int mWritePercentage;
 
-    @Param({RocksBenchConfig.JAVA_CONFIG, RocksBenchConfig.BASE_CONFIG,
-        RocksBenchConfig.EMPTY_CONFIG, RocksBenchConfig.BLOOM_CONFIG})
+    @Param({RocksBenchConfig.JAVA_CONFIG})
     public String mRocksConfig;
 
     RocksBenchBase mBase;
@@ -164,8 +172,9 @@ public class RocksBenchReadWrite {
     public void setup() throws IOException {
       Preconditions.checkState(mWritePercentage >= 0 && mWritePercentage <= 100,
           "write percentage must be between 0 and 100");
-      Assert.assertEquals("mDepth is not used in this benchmark", 0, mDepth);
       Assert.assertTrue("mFileCount has to be greater than 0", 0 < mFileCount);
+      super.init(0, mWidth, mFileCount, mDistribution);
+
       mBase = new RocksBenchBase(mRocksConfig);
     }
 
