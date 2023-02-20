@@ -99,7 +99,7 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * Returns the underlying writelock of the MountTable. This method will be called when
+   * Returns the underlying write lock of the MountTable. This method will be called when
    * fileSystemMaster is adding a new MountPoint.
    *
    * @return the write lock of the mountTable
@@ -160,7 +160,7 @@ public final class MountTable implements DelegatingJournaled {
    * Verify if the given (alluxioPath, ufsPath) can be inserted into MountTable. This method is
    * NOT ThreadSafe. This method will not acquire any locks, so the caller MUST apply the lock
    * first before calling this method.
-   * @param alluxioUri the alluxio path that is about to be the mountpoint
+   * @param alluxioUri the alluxio path that is about to be the mount point
    * @param ufsUri the UFS path that is about to mount
    * @param mountId the mount id
    * @param options the mount options
@@ -257,7 +257,7 @@ public final class MountTable implements DelegatingJournaled {
           for (String mountPath : mState.getMountTable().keySet()) {
             try {
               if (PathUtils.hasPrefix(mountPath, path) && (!path.equals(mountPath))) {
-                LOG.warn("The path to unmount {} contains another nested mountpoint {}",
+                LOG.warn("The path to unmount {} contains another nested mount point {}",
                     path, mountPath);
                 return false;
               }
@@ -324,7 +324,7 @@ public final class MountTable implements DelegatingJournaled {
     try (LockResource r = new LockResource(mReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
         String mount = entry.getKey();
-        // we choose a new candidate path if the previous candidatepath is a prefix
+        // we choose a new candidate path if the previous candidate path is a prefix
         // of the current alluxioPath and the alluxioPath is a prefix of the path
         if (!mount.equals(ROOT) && PathUtils.hasPrefix(path, mount)
             && lastMount.length() < mount.length()) {
