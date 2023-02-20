@@ -20,7 +20,27 @@ import java.util.Optional;
 
 /**
  * Cache usage.
+ * <br>
+ * <b>Granularity</b>
+ * A usage object of this interface is associated with a certain granularity, either global,
+ * of a cache directory, of a application-defined scope, or of a particular file. Coarse-grained
+ * cache usage objects may be partitioned into a finer-grained one, for example the global usage
+ * can be partitioned into usages of each cache directory.
+ * <br>
+ * <b>Stats</b>
+ * The following cache usage stats are reported for the granularity of the object:
+ * <ul>
+ *   <li><b>Used</b>: size of pages currently cached</li>
+ *   <li><b>Available</b>: size of free space, plus size of evictable pages</li>
+ *   <li><b>Capacity</b>: total capacity</li>
+ * </ul>
+ * <b>Snapshot</b>
+ * Cache usage object does not offer atomic view of their stats. Two subsequent calls to get the
+ * same stats may return different results, as the underlying cached contents may have changed
+ * between the calls. To get a snapshot of the cache stats, call {@link #snapshot()} to obtain
+ * an immutable view of the cache usage.
  */
+//todo(bowen): allow introspection of the granularity of the cache usage object
 public interface CacheUsage extends CacheUsageView {
   /**
    * Creates an immutable snapshot of the current cache usage.
@@ -35,12 +55,12 @@ public interface CacheUsage extends CacheUsageView {
    * Gets a finer-grained view of cache usage.
    * <br> Example of getting cache usage of a particular file:
    * <br>
-   * <code><pre>
+   * <pre>{@code
    * cacheManager.getUsage()
    *     .flatMap(usage -> usage.partitionedBy(PartitionDescriptor.file(fileId))
    *     .map(CacheUsage::used)
    *     .orElse(0)
-   * </pre></code>
+   * }</pre>
    *
    * @param partition how to partition the cache
    * @return partitioned view of cache usage, none if this usage object does not support

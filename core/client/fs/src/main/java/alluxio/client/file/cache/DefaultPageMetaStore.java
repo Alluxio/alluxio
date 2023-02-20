@@ -246,7 +246,7 @@ public class DefaultPageMetaStore implements PageMetaStore {
         Set<PageInfo> pages = mPages.getByField(INDEX_FILE_ID, fileId);
         long used = pages.stream().mapToLong(PageInfo::getPageSize).sum();
         long capacity = capacity();
-        long available = capacity - used;
+        long available = capacity - bytes();
         return Optional.of(new ImmutableCacheUsageView(used, available, capacity));
       }
       if (partition instanceof DirPartition) {

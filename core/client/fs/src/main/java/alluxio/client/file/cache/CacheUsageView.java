@@ -22,7 +22,7 @@ import java.util.Optional;
 public interface CacheUsageView {
   /**
    * Bytes currently used by the cache.
-   * This includes both evictable and unevictable pages.
+   * This includes both evictable and inevitable pages.
    *
    * @return number of bytes being used
    */
@@ -30,7 +30,7 @@ public interface CacheUsageView {
 
   /**
    * Bytes that are available for caching.
-   * This includes the space used by evictable pages.
+   * This includes free space, as well as the space occupied by evictable pages.
    *
    * @return number of bytes that can be used for caching
    */
