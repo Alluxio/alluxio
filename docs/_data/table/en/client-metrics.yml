@@ -112,6 +112,10 @@ Client.CacheStorePutTimeout:
   'Number of timeouts when writing new pages to page store.'
 Client.CacheStoreThreadsRejected:
   'Number of rejection of I/O threads on submitting tasks to thread pool, likely due to unresponsive local file system.'
+Client.CloseAlluxioOutStreamLatency:
+  'Latency of close Alluxio outstream latency'
+Client.CloseUFSOutStreamLatency:
+  'Latency of close UFS outstream latency'
 Client.DefaultHiveClientCount:
   'Number of instances in the DefaultHiveClientPool.'
 Client.FileSystemMasterClientCount:

@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A PageStore can hang on put, get or delete.
@@ -29,6 +30,7 @@ class HangingPageStore extends LocalPageStore {
   private AtomicBoolean mGetHanging = new AtomicBoolean(false);
   private AtomicBoolean mPutHanging = new AtomicBoolean(false);
   private AtomicInteger mPut = new AtomicInteger(0);
+  private AtomicLong mStopHangingThread = new AtomicLong(-1);
 
   public HangingPageStore(PageStoreOptions options) {
     super(options);
@@ -45,6 +47,7 @@ class HangingPageStore extends LocalPageStore {
   public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
       boolean isTemporary)
       throws IOException, PageNotFoundException {
+    checkStopHanging();
     // never quit
     while (mGetHanging.get()) {}
     return super.get(pageId, pageOffset, bytesToRead, target, isTemporary);
@@ -52,10 +55,18 @@ class HangingPageStore extends LocalPageStore {
 
   @Override
   public void put(PageId pageId, ByteBuffer page, boolean isTemporary) throws IOException {
+    checkStopHanging();
     // never quit
     while (mPutHanging.get()) {}
     super.put(pageId, page, isTemporary);
     mPut.getAndIncrement();
+  }
+
+  private void checkStopHanging() {
+    if (mStopHangingThread.get() == Thread.currentThread().getId()) {
+      mPutHanging.set(false);
+      mGetHanging.set(false);
+    }
   }
 
   /**
@@ -77,6 +88,15 @@ class HangingPageStore extends LocalPageStore {
    */
   public void setPutHanging(boolean value) {
     mPutHanging.set(value);
+  }
+
+  /**
+   * Set a thread id so that if a thread with the given id reaches
+   * the line where it should hang, it will disable hanging.
+   * @param id the thread id to stop the hanging
+   */
+  public void setStopHangingThread(long id) {
+    mStopHangingThread.set(id);
   }
 
   /**

@@ -202,6 +202,23 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
+  public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
+      boolean usePartialListing, boolean verify) {
+    return false;
+  }
+
+  @Override
+  public boolean stopLoad(AlluxioURI path) {
+    return false;
+  }
+
+  @Override
+  public String getLoadProgress(AlluxioURI path,
+      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
+    return null;
+  }
+
+  @Override
   public void connect() throws IOException {
   }
 

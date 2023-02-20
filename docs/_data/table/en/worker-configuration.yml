@@ -242,8 +242,6 @@ alluxio.worker.tieredstore.level2.watermark.low.ratio:
   'The low watermark of the space in the third storage tier (a value between 0 and 1).'
 alluxio.worker.tieredstore.levels:
   'The number of storage tiers on the worker.'
-alluxio.worker.ufs.block.open.timeout:
-  'Timeout to open a block from UFS.'
 alluxio.worker.ufs.instream.cache.enabled:
   'Enable caching for seekable under storage input stream, so that subsequent seek operations on the same file will reuse the cached input stream. This will improve position read performance as the open operations of some under file system would be expensive. The cached input stream would be stale, when the UFS file is modified without notifying alluxio. '
 alluxio.worker.ufs.instream.cache.expiration.time:

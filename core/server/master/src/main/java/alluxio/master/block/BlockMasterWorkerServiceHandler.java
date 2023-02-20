@@ -28,6 +28,8 @@ import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
+import alluxio.grpc.NotifyWorkerIdPRequest;
+import alluxio.grpc.NotifyWorkerIdPResponse;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
@@ -149,11 +151,12 @@ public final class BlockMasterWorkerServiceHandler extends
 
     final long workerId = request.getWorkerId();
     RegisterWorkerPOptions options = request.getOptions();
+    final boolean leaseEnabled =
+        Configuration.getBoolean(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED);
     RpcUtils.call(LOG,
         () -> {
           // The exception will be propagated to the worker side and the worker should retry.
-          if (Configuration.getBoolean(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED)
-              && !mBlockMaster.hasRegisterLease(workerId)) {
+          if (leaseEnabled && !mBlockMaster.hasRegisterLease(workerId)) {
             String errorMsg = String.format("Worker %s does not have a lease or the lease "
                 + "has expired. The worker should acquire a new lease and retry to register.",
                 workerId);
@@ -172,9 +175,13 @@ public final class BlockMasterWorkerServiceHandler extends
           // If the register is unsuccessful, the lease will be kept around until the expiry.
           // The worker can retry and use the existing lease.
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-                  currBlocksOnLocationMap, lostStorageMap, options);
-          LOG.info("Worker {} finished registering, releasing its lease.", workerId);
-          mBlockMaster.releaseRegisterLease(workerId);
+              currBlocksOnLocationMap, lostStorageMap, options);
+          if (leaseEnabled) {
+            LOG.info("Worker {} finished registering, releasing its lease.", workerId);
+            mBlockMaster.releaseRegisterLease(workerId);
+          } else {
+            LOG.info("Worker {} finished registering.", workerId);
+          }
           return RegisterWorkerPResponse.getDefaultInstance();
         }, "registerWorker", true, "request=%s", responseObserver, workerId);
   }
@@ -212,5 +219,16 @@ public final class BlockMasterWorkerServiceHandler extends
                 String.format("Duplicate locations found for worker %s "
                     + "with LocationBlockIdListEntry objects %s", workerId, entryReport));
             }));
+  }
+
+  @Override
+  public void notifyWorkerId(
+      NotifyWorkerIdPRequest request,
+      StreamObserver<NotifyWorkerIdPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mBlockMaster.notifyWorkerId(request.getWorkerId(),
+          GrpcUtils.fromProto(request.getWorkerNetAddress()));
+      return alluxio.grpc.NotifyWorkerIdPResponse.getDefaultInstance();
+    }, "notifyWorkerId", "request=%s", responseObserver, request);
   }
 }

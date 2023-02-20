@@ -82,6 +82,7 @@ message CompleteFilePOptions {
   optional int64 ufsLength = 1;
   optional ScheduleAsyncPersistencePOptions asyncPersistOptions = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
+  optional string contentHash = 4;
 }
 message CompleteFilePRequest {
   /** the path of the file */
@@ -150,6 +151,7 @@ message DeletePOptions {
   optional bool alluxioOnly = 2;
   optional bool unchecked = 3;
   optional FileSystemMasterCommonPOptions commonOptions = 4;
+  optional bool syncParentNextTime = 5;
   optional bool deleteMountPoint = 6;
 }
 message DeletePRequest {
@@ -229,6 +231,12 @@ message ListStatusPOptions {
   optional bool recursive = 4;
   // No data will be transferred.
   optional bool loadMetadataOnly = 5;
+  // Setting this to true will disable checking during metadata sync to see if the children
+  // of a directory has been loaded. This will avoid a costly full traversal of the file
+  // system during recursive listings, but may result in the children of directories not
+  // being loaded. It is recommended to set this to true after the first call of a
+  // recursive partial listing.
+  optional bool disableAreDescendantsLoadedCheck = 6;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */
@@ -586,6 +594,48 @@ message NeedsSyncRequest {
 
 message NeedsSyncResponse {}
 
+message LoadPathPOptions {
+  optional int64 bandwidth = 1;
+  optional bool verify = 2;
+  optional bool partialListing = 3;
+}
+
+message LoadPathPRequest {
+  required string path = 1;
+  optional LoadPathPOptions options = 2;
+}
+
+message LoadPathPResponse {
+  optional bool newLoadSubmitted = 1;
+}
+
+message StopLoadPathPRequest {
+  required string path = 1;
+}
+
+message StopLoadPathPResponse {
+  optional bool existingLoadStopped = 1;
+}
+
+enum LoadProgressReportFormat {
+  TEXT = 1;
+  JSON = 2;
+}
+
+message LoadProgressPOptions {
+  optional LoadProgressReportFormat format = 1;
+  optional bool verbose = 2;
+}
+
+message GetLoadProgressPRequest {
+  required string path = 1;
+  optional LoadProgressPOptions options = 2;
+}
+
+message GetLoadProgressPResponse {
+  optional string progressReport = 1;
+  optional LoadProgressReportFormat format = 2;
+}
 
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
@@ -732,6 +782,15 @@ service FileSystemMasterClientService {
   rpc GetStateLockHolders(GetStateLockHoldersPRequest) returns (GetStateLockHoldersPResponse);
 
   rpc NeedsSync(NeedsSyncRequest) returns (NeedsSyncResponse);
+
+  /**
+   * Load a directory into Alluxio.
+   */
+  rpc LoadPath(LoadPathPRequest) returns (LoadPathPResponse);
+
+  rpc StopLoadPath(StopLoadPathPRequest) returns (StopLoadPathPResponse);
+
+  rpc GetLoadProgress(GetLoadProgressPRequest) returns (GetLoadProgressPResponse);
 }
 
 message FileSystemHeartbeatPResponse {

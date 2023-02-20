@@ -162,6 +162,23 @@ public class FileSystemMasterSyncMetadataConcurrentTest
     assertEquals(InodeSyncStream.SyncStatus.OK, iss3.sync());
   }
 
+  @Test
+  public void syncWhenShouldSyncIsSetTrue() throws Exception {
+    Supplier<InodeSyncStream> inodeSyncStreamSupplier =  () -> new InodeSyncStream(
+        new LockingScheme(
+            new AlluxioURI("/"), InodeTree.LockPattern.READ, true),
+        mFileSystemMaster, mFileSystemMaster.getSyncPathCache(),
+        RpcContext.NOOP, DescendantType.ALL, FileSystemMasterCommonPOptions.getDefaultInstance(),
+        false,
+        false,
+        false);
+
+    InodeSyncStream iss1 = inodeSyncStreamSupplier.get();
+    InodeSyncStream iss2 = inodeSyncStreamSupplier.get();
+    assertSyncHappenTwice(syncConcurrent(iss1, iss2));
+    assertSyncHappenTwice(syncSequential(inodeSyncStreamSupplier, inodeSyncStreamSupplier));
+  }
+
   private void assertTheSecondSyncSkipped(
       Pair<InodeSyncStream.SyncStatus, InodeSyncStream.SyncStatus> results) {
     assertEquals(InodeSyncStream.SyncStatus.OK, results.getFirst());

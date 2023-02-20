@@ -68,6 +68,21 @@ public abstract class AbstractMasterClient extends AbstractClient {
     mMasterSelectionPolicy = MasterSelectionPolicy.Factory.primaryMaster();
   }
 
+  /**
+   * Creates a new master client without a specific address.
+   * @param clientConf master client configuration
+   * @param selectionPolicy master selection policy: which master the client should connect to
+   * @param retryPolicySupplier retry policy to use
+   */
+  public AbstractMasterClient(
+      MasterClientContext clientConf,
+      MasterSelectionPolicy selectionPolicy,
+      Supplier<RetryPolicy> retryPolicySupplier) {
+    super(clientConf, retryPolicySupplier);
+    mMasterInquireClient = clientConf.getMasterInquireClient();
+    mMasterSelectionPolicy = selectionPolicy;
+  }
+
   @Override
   public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
     return mMasterSelectionPolicy.getPrimaryMasterAddressCached(mMasterInquireClient);

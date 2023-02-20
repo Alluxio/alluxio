@@ -791,7 +791,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
-    // TTL is set to 0, the file and directory should have been deleted during last TTL check.
+    // TTL is set to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT);
     mFileSystemMaster.getFileInfo(NESTED_DIR_URI, GET_STATUS_CONTEXT);
@@ -817,7 +817,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
-    // TTL is reset to 0, the file should have been deleted during last TTL check.
+    // TTL is set to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
   }
@@ -840,7 +840,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
-    // TTL is reset to 0, the file should have been deleted during last TTL check.
+    // TTL is set to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT);
   }

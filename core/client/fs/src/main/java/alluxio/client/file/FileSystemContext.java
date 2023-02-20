@@ -431,7 +431,7 @@ public class FileSystemContext implements Closeable {
             + "meta master (%s) during reinitialization", masterAddr), e);
       }
       LOG.debug("Reinitializing FileSystemContext: update cluster conf: {}, update path conf:"
-          + " {}", updateClusterConf, updateClusterConf);
+          + " {}", updateClusterConf, updatePathConf);
       closeContext();
       ReconfigurableRegistry.update();
       initContext(getClientContext(), mMasterAddresses != null

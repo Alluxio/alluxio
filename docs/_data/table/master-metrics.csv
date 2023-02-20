@@ -53,6 +53,7 @@ Master.JobCanceled,COUNTER
 Master.JobCompleted,COUNTER
 Master.JobCount,GAUGE
 Master.JobCreated,COUNTER
+Master.JobDistributedLoadBlockSizes,COUNTER
 Master.JobDistributedLoadCancel,COUNTER
 Master.JobDistributedLoadFail,COUNTER
 Master.JobDistributedLoadFileCount,COUNTER
@@ -60,6 +61,11 @@ Master.JobDistributedLoadFileSizes,COUNTER
 Master.JobDistributedLoadRate,METER
 Master.JobDistributedLoadSuccess,COUNTER
 Master.JobFailed,COUNTER
+Master.JobLoadBlockCount,COUNTER
+Master.JobLoadBlockFail,COUNTER
+Master.JobLoadFail,COUNTER
+Master.JobLoadRate,METER
+Master.JobLoadSuccess,COUNTER
 Master.JobRunning,COUNTER
 Master.JournalCheckpointWarn,GAUGE
 Master.JournalEntriesSinceCheckPoint,GAUGE

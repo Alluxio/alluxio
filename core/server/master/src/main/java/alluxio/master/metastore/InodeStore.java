@@ -13,9 +13,13 @@ package alluxio.master.metastore;
 
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeLockManager;
+import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.MutableInode;
 import alluxio.master.journal.checkpoint.Checkpointed;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.util.Optional;
@@ -37,6 +41,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public interface InodeStore extends ReadOnlyInodeStore, Checkpointed, Closeable {
+  Logger LOG = LoggerFactory.getLogger(InodeStore.class);
+
   /**
    * Gets a mutable representation of the specified inode.
    *
@@ -177,6 +183,39 @@ public interface InodeStore extends ReadOnlyInodeStore, Checkpointed, Closeable 
 
   @Override
   default void close() {}
+
+  /**
+   * Traverses the inode path starting from the given inode up to the root. Used for debugging.
+   * @param inode the leaf inode
+   * @return the string that contains all inode proto on the path
+   */
+  default String getInodePathString(InodeView inode) {
+    int iterationCount = 100;
+    try {
+      StringBuilder sb = new StringBuilder();
+      InodeView currentInode = inode;
+      do {
+        sb.append('[');
+        sb.append(currentInode.toProto());
+        sb.append("]<-");
+        currentInode = get(currentInode.getParentId()).orElse(null);
+        if (currentInode == null) {
+          break;
+        }
+        iterationCount--;
+      } while (currentInode.getParentId() != InodeTree.NO_PARENT && iterationCount >= 0);
+      if (iterationCount == 0) {
+        sb.append("[Ignored]...");
+      } else {
+        sb.append("[ROOT]");
+      }
+      return sb.toString();
+    } catch (Exception e) {
+      LOG.error("Traverse and print inode path failed, {}{}", e.getClass().getName(),
+          e.getMessage());
+      return "ERROR";
+    }
+  }
 
   /**
    * Used to perform batched writes. Call {@link #createWriteBatch()} to use batched writes.

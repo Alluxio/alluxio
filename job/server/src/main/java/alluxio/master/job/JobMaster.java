@@ -60,7 +60,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -195,7 +195,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_WORKER_DETECTION,
               new LostWorkerDetectionHeartbeatExecutor(),
-              (int) Configuration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL),
+              () -> Configuration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL),
               Configuration.global(), mMasterContext.getUserState()));
       if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("JOB_MASTER_AUDIT_LOG");
@@ -222,7 +222,8 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     Map<ServiceType, GrpcService> services = Maps.newHashMap();
     services.put(ServiceType.JOB_MASTER_CLIENT_SERVICE,
         new GrpcService(ServerInterceptors
-            .intercept(new JobMasterClientServiceHandler(this), new ClientIpAddressInjector())));
+            .intercept(new JobMasterClientServiceHandler(this),
+                new ClientContextServerInjector())));
     services.put(ServiceType.JOB_MASTER_WORKER_SERVICE,
         new GrpcService(new JobMasterWorkerServiceHandler(this)));
     return services;
@@ -266,6 +267,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     try (JobMasterAuditContext auditContext =
         createAuditContext("run")) {
       auditContext.setJobId(jobId);
+      auditContext.setJobName(jobConfig.getName());
       if (jobConfig instanceof PlanConfig) {
         mPlanTracker.run((PlanConfig) jobConfig, mCommandManager, mJobServerContext,
             getWorkerInfoList(), jobId);
@@ -668,7 +670,8 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
           Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
       auditContext.setUgi(ugi)
           .setAuthType(authType)
-          .setIp(ClientIpAddressInjector.getIpAddress())
+          .setIp(ClientContextServerInjector.getIpAddress())
+          .setClientVersion(ClientContextServerInjector.getClientVersion())
           .setCommand(command)
           .setAllowed(true)
           .setCreationTimeNs(System.nanoTime());

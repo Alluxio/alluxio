@@ -17,7 +17,10 @@ import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 import alluxio.master.AlluxioExecutorService;
+import alluxio.master.Master;
 import alluxio.master.MasterProcess;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
@@ -34,8 +37,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
@@ -89,6 +94,11 @@ public class RpcServerService implements SimpleService {
     Preconditions.checkState(mGrpcServer == null, "rpc server must not be running");
     stopRejectingServer();
     waitForFree();
+    startGrpcServer(Master::getServices);
+  }
+
+  protected synchronized void startGrpcServer(
+      Function<Master, Map<ServiceType, GrpcService>> serviceProvider) {
     GrpcServerBuilder builder = mMasterProcess.createBaseRpcServer();
     Optional<AlluxioExecutorService> executorService = mMasterProcess.createRpcExecutorService();
     if (executorService.isPresent()) {
@@ -96,12 +106,12 @@ public class RpcServerService implements SimpleService {
       mRpcExecutor = executorService.get();
     }
     mMasterRegistry.getServers().forEach(master -> {
-      master.getServices().forEach((type, service) -> {
+      serviceProvider.apply(master).forEach((type, service) -> {
         builder.addService(type, service);
         LOG.info("registered service {}", type.name());
       });
     });
-    mGrpcServer = builder.build();
+    mGrpcServer = builder.build(() -> mMasterProcess.getPrimarySelector().getStateUnsafe());
     try {
       mGrpcServer.start();
       mMasterProcess.getSafeModeManager().ifPresent(SafeModeManager::notifyRpcServerStarted);
@@ -209,6 +219,9 @@ public class RpcServerService implements SimpleService {
         InetSocketAddress bindAddress,
         MasterProcess masterProcess,
         MasterRegistry masterRegistry) {
+      if (Configuration.getBoolean(PropertyKey.STANDBY_MASTER_GRPC_ENABLED)) {
+        return new RpcServerStandbyGrpcService(bindAddress, masterProcess, masterRegistry);
+      }
       return new RpcServerService(bindAddress, masterProcess, masterRegistry);
     }
   }

@@ -34,6 +34,7 @@ public class AlluxioMasterInfo {
   private Capacity mUfsCapacity;
   private long mUptimeMs;
   private String mVersion;
+  private String mRevision;
   private List<WorkerInfo> mWorkers;
 
   /**
@@ -116,6 +117,15 @@ public class AlluxioMasterInfo {
    */
   public String getVersion() {
     return mVersion;
+  }
+
+  /**
+   * Gets revision.
+   *
+   * @return the revision
+   */
+  public String getRevision() {
+    return mRevision;
   }
 
   /**
@@ -225,6 +235,15 @@ public class AlluxioMasterInfo {
   }
 
   /**
+   * @param revision the revision to use
+   * @return the Alluxio master information
+   */
+  public AlluxioMasterInfo setRevision(String revision) {
+    mRevision = revision;
+    return this;
+  }
+
+  /**
    * @param workers the list of workers to use
    * @return the Alluxio master information
    */
@@ -253,6 +272,7 @@ public class AlluxioMasterInfo {
         && Objects.equal(mUfsCapacity, that.mUfsCapacity)
         && mUptimeMs == that.mUptimeMs
         && Objects.equal(mVersion, that.mVersion)
+        && Objects.equal(mRevision, that.mRevision)
         && Objects.equal(mWorkers, that.mWorkers);
   }
 
@@ -261,7 +281,7 @@ public class AlluxioMasterInfo {
     return Objects
         .hashCode(mCapacity, mConfiguration, mLostWorkers, mMetrics, mMountPoints, mRpcAddress,
             mStartTimeMs, mTierCapacity, mUfsCapacity, mUptimeMs,
-            mVersion, mWorkers);
+            mVersion, mRevision, mWorkers);
   }
 
   @Override
@@ -278,6 +298,7 @@ public class AlluxioMasterInfo {
         .add("ufs capacity", mUfsCapacity)
         .add("uptime", mUptimeMs)
         .add("version", mVersion)
+        .add("revision", mRevision)
         .add("workers", mWorkers)
         .toString();
   }

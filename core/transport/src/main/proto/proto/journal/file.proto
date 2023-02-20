@@ -172,6 +172,7 @@ message InodeDirectoryIdGeneratorEntry {
 enum PTtlAction {
   DELETE = 0;
   FREE = 1;
+  DELETE_ALLUXIO = 2;
 }
 
 // next available id: 30

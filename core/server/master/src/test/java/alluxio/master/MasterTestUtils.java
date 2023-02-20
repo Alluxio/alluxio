@@ -50,7 +50,19 @@ public final class MasterTestUtils {
   public static CoreMasterContext testMasterContext(JournalSystem journalSystem,
       UserState userState) {
     return testMasterContext(journalSystem, userState,
-        HeapBlockMetaStore::new, x -> new HeapInodeStore());
+        HeapBlockMetaStore::new, x -> new HeapInodeStore(), new AlwaysStandbyPrimarySelector());
+  }
+
+  /**
+   * @return a basic master context for the purpose of testing
+   * @param journalSystem a journal system to use in the context
+   * @param userState the user state to use in the context
+   * @param primarySelector the primary selector
+   */
+  public static CoreMasterContext testMasterContext(JournalSystem journalSystem,
+      UserState userState, PrimarySelector primarySelector) {
+    return testMasterContext(journalSystem, userState,
+        HeapBlockMetaStore::new, x -> new HeapInodeStore(), primarySelector);
   }
 
   /**
@@ -63,10 +75,30 @@ public final class MasterTestUtils {
   public static CoreMasterContext testMasterContext(
       JournalSystem journalSystem, UserState userState,
       BlockMetaStore.Factory blockStoreFactory,
-      InodeStore.Factory inodeStoreFactory) {
+      InodeStore.Factory inodeStoreFactory
+  ) {
+    return testMasterContext(
+        journalSystem, userState, blockStoreFactory,
+        inodeStoreFactory, new AlwaysPrimaryPrimarySelector());
+  }
+
+  /**
+   * @return a basic master context for the purpose of testing
+   * @param journalSystem a journal system to use in the context
+   * @param userState the user state to use in the context
+   * @param blockStoreFactory a factory to create {@link BlockMetaStore}
+   * @param inodeStoreFactory a factory to create {@link InodeStore}
+   * @param primarySelector the primary selector
+   */
+  public static CoreMasterContext testMasterContext(
+      JournalSystem journalSystem, UserState userState,
+      BlockMetaStore.Factory blockStoreFactory,
+      InodeStore.Factory inodeStoreFactory,
+      PrimarySelector primarySelector
+  ) {
     return CoreMasterContext.newBuilder()
         .setJournalSystem(journalSystem)
-        .setPrimarySelector(new AlwaysStandbyPrimarySelector())
+        .setPrimarySelector(primarySelector)
         .setUserState(userState)
         .setSafeModeManager(new TestSafeModeManager())
         .setBackupManager(mock(BackupManager.class))
