@@ -27,11 +27,8 @@ import javax.annotation.concurrent.ThreadSafe;
 public enum ExceptionMessage {
   // general
   PATH_DOES_NOT_EXIST("Path \"{0}\" does not exist."),
-  PATH_DOES_NOT_EXIST_PARTIAL_LISTING("Path \"{0}\" was removed during listing."),
   INODE_NOT_FOUND_PARTIAL_LISTING("\"{0}\" Inode was not found during partial listing. It was "
       + "likely removed across listing calls."),
-  INODE_NOT_IN_PARTIAL_LISTING("Inode not found in root path \"{0}\" during partial listing. "
-      + "It was likely moved across listing calls."),
   PATH_MUST_BE_FILE("Path \"{0}\" must be a file."),
   PATH_INVALID("Path \"{0}\" is invalid."),
   STATE_LOCK_TIMED_OUT("Failed to acquire the lock after {0}ms"),
@@ -139,20 +136,12 @@ public enum ExceptionMessage {
       + "modify " + Constants.SITE_PROPERTIES + " to either set {2}, configure zookeeper with "
       + "{3}=true and {4}=[comma-separated zookeeper master addresses], or utilize internal HA by "
       + "setting {5}=[comma-separated alluxio {1} addresses]"),
-  DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Alluxio properties file does not exist"),
   INVALID_CONFIGURATION_KEY("Invalid property key {0}"),
   INVALID_CONFIGURATION_VALUE("Invalid value {0} for configuration key {1}"),
   KEY_NOT_BOOLEAN("Configuration cannot evaluate value {0} as boolean for key {1}"),
-  KEY_NOT_BYTES("Configuration cannot evaluate value {0} as bytes for key {1}"),
-  KEY_NOT_DOUBLE("Configuration cannot evaluate value {0} as double for key {1}"),
-  KEY_NOT_FLOAT("Configuration cannot evaluate value {0} as float for key {1}"),
   KEY_NOT_INTEGER("Configuration cannot evaluate value {0} as integer for key {1}"),
-  KEY_NOT_LONG("Configuration cannot evaluate value {0} as long for key {1}"),
-  KEY_NOT_MS("Configuration cannot evaluate value {0} as milliseconds for key {1}"),
   KEY_CIRCULAR_DEPENDENCY("Circular dependency found while resolving {0}"),
   UNDEFINED_CONFIGURATION_KEY("No value set for configuration key {0}"),
-  UNKNOWN_ENUM("Unrecognized configuration enum value <{0}> for key {1}. Acceptable values: {2}"),
-  UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security
   AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
