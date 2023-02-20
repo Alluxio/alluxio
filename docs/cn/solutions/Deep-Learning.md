@@ -20,7 +20,9 @@ priority: 4
 
 Alluxio 还包含一个 FUSE 接口，给用户带来便捷和熟悉的使用体验。Alluxio 实例可以通过 [Alluxio FUSE]({{ '/cn/api/POSIX-API.html' | relativize_url }}) 挂载到本地文件系统，因此与 Alluxio 交互就像与本地文件和目录交互一样简单。这使得用户能够继续使用熟悉的工具和范例来与其数据进行交互。由于 Alluxio 可以连接到多个不同的存储，因此用户可以像访问本地文件或目录一样访问任何存储中的数据。
 
-Alluxio还可以为常用数据提供[本地缓存]({{ '/cn/core-services/Caching.html' | relativize_url }})。这一功能在数据离计算较远时尤其有用。由于 Alluxio 可以将数据缓存在本地，访问数据时不会产生网络I/O，因此可以让深度学习训练更经济高效，并且减少训练所需时间。
+![Fuse]({{ '/img/fuse.png' | relativize_url }})
+
+Alluxio 还可以为常用数据提供[本地缓存]({{ '/cn/core-services/Caching.html' | relativize_url }})。这一功能在数据离计算较远时尤其有用。由于 Alluxio 可以将数据缓存在本地，访问数据时不会产生网络I/O，因此可以让深度学习训练更经济高效，并且减少训练所需时间。
 
 ## 在 Alluxio FUSE上 使用 Tensorflow
 本页中我们以 Tensorflow 深度学习框架为例，来介绍Alluxio如何帮助进行数据访问和管理。我们将按照 [Alluxio Tensorflow]({{ '/cn/compute/Tensorflow.html' | relativize_url }}) 文档的说明在 Alluxio Fuse 上运行 Tensorflow 基准测试。
@@ -28,8 +30,8 @@ Alluxio还可以为常用数据提供[本地缓存]({{ '/cn/core-services/Cachin
 在将Alluxio一次性挂载到底层存储后，各类底层存储中的数据都可以通过Alluxio立即访问，并且基准测试也可以在不对Tensorflow或基准测试脚本进行修改的情况下透明地访问数据。这极大地简化了应用程序开发，否则应用程序开发将需要集成每个特定的存储系统并对访问凭证进行配置。
 
 Alluxio还带来了性能上的优势。基准测试以图像/秒（images/sec.）为单位，根据输入训练图像评估训练模型的吞吐量。训练涉及各类资源利用的三个阶段：
- - 数据读取（I/O）：从数据源中选择和读取图像文件。
+ - 数据读取 (I/O)：从数据源中选择和读取图像文件。
  - 图像处理 (CPU)：将图像记录解码为图像、预处理并将其分成小批次。
- - 模型训练（GPU）：计算和更新多个卷积层中的参数
+ - 模型训练 (GPU)：计算和更新多个卷积层中的参数
 
 通过将 Alluxio worker 与深度学习框架并置部署，Alluxio 可将远程数据缓存到本地供将来访问，从而实现数据本地化。如果没有Alluxio，缓慢的远程存储访问可能会导致 I/O 瓶颈并致使 GPU 资源无法得到充分利用。例如，在基准测试模型中，我们发现 AlexNet 的架构相对简单，因此当存储访问变慢时更容易导致 I/O 瓶颈。 Alluxio 在 EC2 p2.8xlarge 机器上可实现近 2 倍的性能提升。
