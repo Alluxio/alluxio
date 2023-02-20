@@ -84,7 +84,7 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
     // UFS Handlers
     pipeline.addLast("ufsFileWriteHandler", new UfsFileWriteHandler(
         NettyExecutors.FILE_WRITER_EXECUTOR, mWorkerProcess.getUfsManager()));
-    // Unsupported Mess nage Handler
+    // Unsupported Message Handler
     pipeline.addLast("unsupportedMessageHandler", new UnsupportedMessageHandler());
   }
 

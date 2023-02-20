@@ -156,9 +156,6 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
           String metricName = "BytesReadAlluxio";
           context.setBlockReader(reader);
           context.setCounter(MetricsSystem.counter(metricName));
-          //TODO(JiamingMai): Do we still need to access block?
-          // It seems that it is not necessary any more.
-          //mWorker.accessBlock(blockReadRequest.getSessionId(), blockReadRequest.getId());
           if (reader.getChannel() instanceof FileChannel) {
             ((FileChannel) reader.getChannel()).position(blockReadRequest.getStart());
           }
