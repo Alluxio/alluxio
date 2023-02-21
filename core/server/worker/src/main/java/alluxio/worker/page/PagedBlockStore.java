@@ -27,6 +27,7 @@ import alluxio.exception.PageNotFoundException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
@@ -517,7 +518,9 @@ public class PagedBlockStore implements BlockStore {
         mLockManager.tryAcquireBlockLock(sessionId, blockId, BlockLockType.WRITE,
         timeoutMs, TimeUnit.MILLISECONDS);
     if (!optionalLock.isPresent()) {
-      throw new DeadlineExceededException("Cannot acquire lock to remove block");
+      throw new DeadlineExceededException(
+        String.format("Can not acquire lock to remove block %d for session %d after %d ms",
+        blockId, sessionId, timeoutMs));
     }
     try (BlockLock blockLock = optionalLock.get()) {
       Set<PageId> pageIds;
@@ -536,7 +539,7 @@ public class PagedBlockStore implements BlockStore {
         }
       }
     } catch (PageNotFoundException e) {
-      throw AlluxioRuntimeException.from(e);
+      throw new NotFoundRuntimeException(e.getMessage(), e.getCause());
     }
   }
 }
