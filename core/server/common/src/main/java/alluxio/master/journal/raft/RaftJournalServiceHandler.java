@@ -95,7 +95,7 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
   }
 
   @Override
-  public void downloadLatestSnapshot(DownloadFilePRequest request,
+  public void downloadSnapshotFile(DownloadFilePRequest request,
                                      StreamObserver<SnapshotData> plainResponseObserver) {
     if (Context.current().isCancelled()) {
       plainResponseObserver.onError(

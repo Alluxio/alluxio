@@ -6507,6 +6507,27 @@
                 "id": 2,
                 "name": "snapshotIndex",
                 "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "exists",
+                "type": "bool"
+              },
+              {
+                "id": 4,
+                "name": "filesMetadata",
+                "type": "FileMetadata",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "FileMetadata",
+            "fields": [
+              {
+                "id": 1,
+                "name": "relativePath",
+                "type": "string"
               }
             ]
           },
@@ -6536,16 +6557,6 @@
               {
                 "id": 5,
                 "name": "eof",
-                "type": "bool"
-              },
-              {
-                "id": 6,
-                "name": "filename",
-                "type": "string"
-              },
-              {
-                "id": 7,
-                "name": "finished",
                 "type": "bool"
               }
             ]
@@ -6589,6 +6600,29 @@
                 "type": "SnapshotData"
               }
             ]
+          },
+          {
+            "name": "LatestSnapshotInfoPRequest"
+          },
+          {
+            "name": "DownloadFilePRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "snapshotTerm",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "snapshotIndex",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "fileMetadata",
+                "type": "FileMetadata"
+              }
+            ]
           }
         ],
         "services": [
@@ -6611,12 +6645,12 @@
               },
               {
                 "name": "RequestLatestSnapshotInfo",
-                "in_type": "google.protobuf.Empty",
+                "in_type": "LatestSnapshotInfoPRequest",
                 "out_type": "SnapshotMetadata"
               },
               {
-                "name": "DownloadLatestSnapshot",
-                "in_type": "google.protobuf.Empty",
+                "name": "DownloadSnapshotFile",
+                "in_type": "DownloadFilePRequest",
                 "out_type": "SnapshotData",
                 "out_streamed": true
               }

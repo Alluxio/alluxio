@@ -95,8 +95,8 @@ public class RaftJournalServiceClient extends AbstractMasterClient {
    * @param request the request detailing which file to download
    * @return an iterator containing the snapshot data
    */
-  public Iterator<SnapshotData> downloadLatestSnapshot(DownloadFilePRequest request) {
-    return mBlockingClient.withCompression("gzip").downloadLatestSnapshot(request);
+  public Iterator<SnapshotData> downloadSnapshotFile(DownloadFilePRequest request) {
+    return mBlockingClient.withCompression("gzip").downloadSnapshotFile(request);
   }
 
   /**

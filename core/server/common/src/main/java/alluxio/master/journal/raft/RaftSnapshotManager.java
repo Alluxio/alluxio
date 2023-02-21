@@ -164,7 +164,7 @@ public class RaftSnapshotManager {
         .setSnapshotIndex(snapshotMetadata.getSnapshotIndex())
         .setFileMetadata(fileMetadata)
         .build();
-    Iterator<SnapshotData> data = client.downloadLatestSnapshot(request);
+    Iterator<SnapshotData> data = client.downloadSnapshotFile(request);
     try (OutputStream out = Files.newOutputStream(file.toPath())) {
       while (data.hasNext()) {
         out.write(data.next().getChunk().toByteArray());
