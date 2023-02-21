@@ -539,7 +539,7 @@ public class PagedBlockStore implements BlockStore {
         }
       }
     } catch (PageNotFoundException e) {
-      throw new NotFoundRuntimeException(e.getMessage(), e.getCause());
+      throw new NotFoundRuntimeException("Page not found: " + e.getMessage(), e);
     }
   }
 }
