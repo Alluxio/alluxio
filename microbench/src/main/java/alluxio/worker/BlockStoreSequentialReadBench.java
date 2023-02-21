@@ -133,6 +133,18 @@ public class BlockStoreSequentialReadBench {
         params.mLocalBlockId, params.mBlockSizeByte);
   }
 
+  @Benchmark
+  public void pagedBlockStoreReadLocal(BlockStoreParams params) throws Exception {
+    readFullyLocal(params.mBlockStoreBase.mPagedBlockStore,
+        params.mLocalBlockId, params.mBlockSizeByte);
+  }
+
+  @Benchmark
+  public void pagedBlockStoreTransferLocal(BlockStoreParams params) throws Exception {
+    transferFullyLocal(params.mBlockStoreBase.mPagedBlockStore,
+            params.mLocalBlockId, params.mBlockSizeByte);
+  }
+
   /**
    * Use {@link BlockReader#read} to read all block cached locally to memory.
    * This method simulates {@link alluxio.worker.grpc.BlockReadHandler}'s use of BlockStore
