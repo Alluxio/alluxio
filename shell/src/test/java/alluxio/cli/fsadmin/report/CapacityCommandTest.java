@@ -301,4 +301,6 @@ public class CapacityCommandTest {
     infoList.add(secondInfo);
     return infoList;
   }
+
+  // TODO(elega) Add unit tests for the case where worker all master registration is enabled
 }
