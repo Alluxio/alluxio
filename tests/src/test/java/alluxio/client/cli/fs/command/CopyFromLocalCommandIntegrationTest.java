@@ -237,15 +237,16 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
     File file = mTestFolder.newFile();
     try (Closeable c = new ConfigurationRule(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT,
         WriteType.MUST_CACHE.toString(), Configuration.modifiableGlobal()).toResource()) {
-      Assert.assertEquals(0, sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/"));
+      Assert.assertEquals(0, sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/test"));
     }
     try (Closeable c = new ConfigurationRule(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT,
         WriteType.CACHE_THROUGH.toString(), Configuration.modifiableGlobal()).toResource()) {
       mOutput.reset();
-      sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/");
+      sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/test");
     }
     Assert.assertThat(mOutput.toString(),
-        containsString("Not allowed to create() (overwrite=false) for existing Alluxio path"));
+        containsString(
+            ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage("/test")));
   }
 
   @Test

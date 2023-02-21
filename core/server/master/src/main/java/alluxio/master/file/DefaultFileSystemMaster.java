@@ -1904,6 +1904,7 @@ public class DefaultFileSystemMaster extends CoreMaster
                   .setAlluxioOnly(!context.isPersisted())), true);
           inodePath.removeLastInode();
         } catch (DirectoryNotEmptyException e) {
+          // Should not reach here
           throw new InvalidPathException(
               ExceptionMessage.CANNOT_OVERWRITE_DIRECTORY.getMessage(inodePath.getUri()));
         }
