@@ -163,6 +163,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mFuseManager = mResourceCloser.register(new FuseManager(fsContext));
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
     mRateLimiter = rateLimiter;
+
+    Metrics.registerGauges(this);
   }
 
   /**
