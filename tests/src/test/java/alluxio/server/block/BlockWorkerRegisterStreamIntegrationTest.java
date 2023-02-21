@@ -185,7 +185,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     Sessions sessions = mock(Sessions.class);
 
     mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, fileSystemMasterClient,
-        sessions, blockStore, workerId);
+        sessions, blockStore, workerId, ufsManager.getRateLimiter());
   }
 
   /**
