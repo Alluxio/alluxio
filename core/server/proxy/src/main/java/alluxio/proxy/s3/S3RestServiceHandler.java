@@ -819,6 +819,7 @@ public final class S3RestServiceHandler {
                     .setOtherBits(Bits.NONE).build())
                 .setWriteType(S3RestUtils.getS3WriteType())
                 .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                .setOverwrite(true)
                 .build();
 
         // not copying from an existing file
@@ -837,11 +838,6 @@ public final class S3RestServiceHandler {
               readStream = new ChunkedEncodingInputStream(is);
             } else {
               toRead = Long.parseLong(contentLength);
-            }
-            try {
-              S3RestUtils.deleteExistObject(userFs, objectUri);
-            } catch (IOException | AlluxioException e) {
-              throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath(), auditContext);
             }
             FileOutStream os = userFs.createFile(objectUri, filePOptions);
             try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
@@ -893,7 +889,8 @@ public final class S3RestServiceHandler {
               .setMode(PMode.newBuilder()
                   .setOwnerBits(Bits.ALL)
                   .setGroupBits(Bits.ALL)
-                  .setOtherBits(Bits.NONE).build());
+                  .setOtherBits(Bits.NONE).build())
+              .setOverwrite(true);
           // Handle metadata directive
           if (metadataDirective == S3Constants.Directive.REPLACE
               && filePOptions.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
@@ -939,11 +936,6 @@ public final class S3RestServiceHandler {
             auditContext.setSucceeded(false);
             throw new S3Exception("Copying an object to itself invalid.",
                 objectPath, S3ErrorCode.INVALID_REQUEST);
-          }
-          try {
-            S3RestUtils.deleteExistObject(userFs, objectUri);
-          } catch (IOException | AlluxioException e) {
-            throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath(), auditContext);
           }
           try (FileInStream in = userFs.openFile(new AlluxioURI(copySource));
                FileOutStream out = userFs.createFile(objectUri, copyFilePOptionsBuilder.build())) {

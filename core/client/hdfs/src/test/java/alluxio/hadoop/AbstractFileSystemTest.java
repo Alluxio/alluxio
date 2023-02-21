@@ -37,6 +37,7 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockInfo;
@@ -665,13 +666,15 @@ public class AbstractFileSystemTest {
     when(alluxioFs.exists(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
         .thenReturn(true);
     when(alluxioFs.createFile(eq(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))), any()))
-        .thenThrow(new FileAlreadyExistsException(path.toString()));
+        .thenThrow(new FileAlreadyExistsException(
+            ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage(path.toString())));
 
     try (FileSystem alluxioHadoopFs = new FileSystem(alluxioFs)) {
       alluxioHadoopFs.create(path, false, 100, (short) 1, 1000);
       fail("create() of existing file is expected to fail");
     } catch (IOException e) {
-      assertEquals("Not allowed to create() (overwrite=false) for existing Alluxio path: " + path,
+      assertEquals("alluxio.exception.FileAlreadyExistsException: "
+              + ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage(path),
           e.getMessage());
     }
   }
