@@ -264,14 +264,20 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       // Found in memory cache
       fi = buildFileInfoFromUfsFileStatus(status, fn, fileId, ufsFullPath);
     }
-    // because cache manager uses hased ufs path as file ID
+    // because cache manager uses hashed ufs path as file ID
     // TODO(bowen): we need a dedicated type for file IDs!
     String cacheManagerFileId = new AlluxioURI(ufsFullPath).hash();
 
-    long bytesInCache = mCacheManager.getUsage()
+    final long bytesInCache = mCacheManager.getUsage()
         .flatMap(usage -> usage.partitionedBy(file(cacheManagerFileId)))
         .map(CacheUsage::used).orElse(0L);
-    int cachedPercentage = (int) (bytesInCache / fi.getLength()) * 100;
+    final long fileLength = fi.getLength();
+    final int cachedPercentage;
+    if (fileLength > 0) {
+      cachedPercentage = (int) (bytesInCache * 100 / fileLength);
+    } else {
+      cachedPercentage = 0;
+    }
     return GrpcUtils.fromProto(fi)
         .setInAlluxioPercentage(cachedPercentage)
         .setInMemoryPercentage(cachedPercentage);
