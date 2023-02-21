@@ -169,15 +169,15 @@ public class MonoBlockStore implements BlockStore {
         throw new BlockDoesNotExistRuntimeException(blockId);
       }
       // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
-      reader = createUfsBlockReader(sessionId, blockId, offset,
-          positionShort, options);
+      reader = createUfsBlockReader(sessionId, blockId, offset, positionShort, options);
     }
     return reader;
   }
 
   @Override
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
-      boolean positionShort, Protocol.OpenUfsBlockOptions options)
+      boolean positionShort,
+      Protocol.OpenUfsBlockOptions options)
       throws IOException {
     try {
       BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,

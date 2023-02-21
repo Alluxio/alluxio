@@ -221,7 +221,7 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public BlockReader createBlockReader(long sessionId, long blockId, long offset,
-      boolean positionShort, Protocol.OpenUfsBlockOptions options)
+                                       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
     BlockLock blockLock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.READ);
 
@@ -299,7 +299,8 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
-      boolean positionShort, Protocol.OpenUfsBlockOptions options) throws IOException {
+                                          boolean positionShort,
+                                          Protocol.OpenUfsBlockOptions options) throws IOException {
     PagedBlockMeta blockMeta = mPageMetaStore
         .getBlock(blockId)
         .orElseGet(() -> {

@@ -18,7 +18,6 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;

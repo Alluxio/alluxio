@@ -27,7 +27,6 @@ import alluxio.master.NoopUfsManager;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.UfsInputStreamCache;
-import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -112,9 +111,6 @@ public class PagedBlockReaderTest {
     createTempUfsBlock(blockFilePath, BLOCK_SIZE);
 
     NoopUfsManager ufsManager = new NoopUfsManager();
-    UnderFileSystemReadRateLimiter rateLimiter =
-        new UnderFileSystemReadRateLimiter(Configuration.getBytes(
-            PropertyKey.WORKER_UFS_READ_DEFAULT_THROUGHPUT));
     ufsManager.addMount(MOUNT_ID, new AlluxioURI(tempFolder.getAbsolutePath()),
         new UnderFileSystemConfiguration(new InstancedConfiguration(new AlluxioProperties()),
             true));

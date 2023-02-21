@@ -12,8 +12,6 @@
 package alluxio.worker;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockStore;
