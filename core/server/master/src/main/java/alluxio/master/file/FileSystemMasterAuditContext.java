@@ -37,6 +37,7 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   private AuthType mAuthType;
   private String mIp;
   private Inode mSrcInode;
+  private String mCallerContext;
   private long mCreationTimeNs;
   private long mExecutionTimeNs;
   private String mClientVersion;
@@ -131,6 +132,17 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   }
 
   /**
+   * Sets mCallerContext field.
+   *
+   * @param callerContext the caller context of client
+   * @return this {@link AuditContext} instance
+   */
+  public FileSystemMasterAuditContext setCallerContext(String callerContext) {
+    mCallerContext = callerContext;
+    return this;
+  }
+
+  /**
    * Sets mCreationTimeNs field.
    *
    * @param creationTimeNs the System.nanoTime() when this operation create,
@@ -179,17 +191,17 @@ public final class FileSystemMasterAuditContext implements AuditContext {
       short mode = mSrcInode.getMode();
       auditLog.append(String.format(
           "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
-              + "perm=%s:%s:%s%s%s\texecutionTimeUs=%d",
+              + "perm=%s:%s:%s%s%s\tcallerContext=%s\texecutionTimeUs=%d",
           mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
           mSrcInode.getOwner(), mSrcInode.getGroup(),
           Mode.extractOwnerBits(mode), Mode.extractGroupBits(mode), Mode.extractOtherBits(mode),
-          mExecutionTimeNs / 1000));
+          mCallerContext,  mExecutionTimeNs / 1000));
     } else {
       auditLog.append(String.format(
           "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
-              + "perm=null\texecutionTimeUs=%d",
+              + "perm=null\tcallerContext=%s\texecutionTimeUs=%d",
           mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
-          mExecutionTimeNs / 1000));
+          mCallerContext, mExecutionTimeNs / 1000));
     }
     if (Configuration.global().getBoolean(PropertyKey.USER_CLIENT_REPORT_VERSION_ENABLED)) {
       auditLog.append(

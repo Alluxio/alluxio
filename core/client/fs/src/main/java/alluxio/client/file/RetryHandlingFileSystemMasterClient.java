@@ -34,7 +34,6 @@ import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
 import alluxio.grpc.GetFilePathPRequest;
 import alluxio.grpc.GetMountTablePRequest;
-import alluxio.grpc.GetNewBlockIdForFilePOptions;
 import alluxio.grpc.GetNewBlockIdForFilePRequest;
 import alluxio.grpc.GetStateLockHoldersPOptions;
 import alluxio.grpc.GetStateLockHoldersPRequest;
@@ -62,7 +61,6 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.SetAttributePRequest;
 import alluxio.grpc.StartSyncPRequest;
 import alluxio.grpc.StopSyncPRequest;
-import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateUfsModePOptions;
@@ -231,8 +229,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     return retryRPC(
         () -> mClient.getNewBlockIdForFile(
             GetNewBlockIdForFilePRequest.newBuilder().setPath(getTransportPath(path))
-                .setOptions(GetNewBlockIdForFilePOptions.newBuilder().build()).build())
-            .getId(),
+                .setOptions(FileSystemOptionsUtils
+                    .getNewBlockIdForFileDefaults(mContext.getClusterConf()))
+                .build()).getId(),
         RPC_LOG, "GetNewBlockIdForFile", "path=%s", path);
   }
 
@@ -242,7 +241,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     return retryRPC(() -> {
       Map<String, alluxio.wire.MountPointInfo> mountTableWire = new HashMap<>();
       for (Map.Entry<String, alluxio.grpc.MountPointInfo> entry : mClient
-          .getMountTable(GetMountTablePRequest.newBuilder().setCheckUfs(checkUfs).build())
+          .getMountTable(GetMountTablePRequest.newBuilder()
+              .setOptions(FileSystemOptionsUtils.getMountTableDefaults(mContext.getClusterConf()))
+              .setCheckUfs(checkUfs).build())
           .getMountPointsMap()
           .entrySet()) {
         mountTableWire.put(entry.getKey(), GrpcUtils.fromProto(entry.getValue()));
@@ -369,7 +370,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public synchronized void startSync(final AlluxioURI path) throws AlluxioStatusException {
     retryRPC(
         () -> mClient
-            .startSync(StartSyncPRequest.newBuilder().setPath(getTransportPath(path)).build()),
+            .startSync(StartSyncPRequest.newBuilder().setPath(getTransportPath(path))
+                .setOptions(FileSystemOptionsUtils.startSyncDefaults(mContext.getClusterConf()))
+                .build()),
         RPC_LOG, "StartSync", "path=%s", path);
   }
 
@@ -377,7 +380,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public synchronized void stopSync(final AlluxioURI path) throws AlluxioStatusException {
     retryRPC(
         () -> mClient
-            .stopSync(StopSyncPRequest.newBuilder().setPath(getTransportPath(path)).build()),
+            .stopSync(StopSyncPRequest.newBuilder().setPath(getTransportPath(path))
+                .setOptions(FileSystemOptionsUtils.stopSyncDefaults(mContext.getClusterConf()))
+                    .build()),
         RPC_LOG, "StopSync", "path=%s", path);
   }
 
@@ -385,16 +390,16 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public void unmount(final AlluxioURI alluxioPath) throws AlluxioStatusException {
     retryRPC(() -> mClient
         .unmount(UnmountPRequest.newBuilder().setAlluxioPath(getTransportPath(alluxioPath))
-            .setOptions(UnmountPOptions.newBuilder().build()).build()),
+            .setOptions(FileSystemOptionsUtils.unmountDefaults(mContext.getClusterConf())).build()),
         RPC_LOG, "Unmount", "path=%s", alluxioPath);
   }
 
   @Override
   public void updateUfsMode(final AlluxioURI ufsUri,
       final UpdateUfsModePOptions options) throws AlluxioStatusException {
-    retryRPC(
-        () -> mClient.updateUfsMode(UpdateUfsModePRequest.newBuilder()
-            .setUfsPath(ufsUri.getRootPath()).setOptions(options).build()),
+    retryRPC(() -> mClient.updateUfsMode(UpdateUfsModePRequest.newBuilder()
+        .setUfsPath(ufsUri.getRootPath()).setOptions(FileSystemOptionsUtils.updateUfsDefaults(
+            mContext.getClusterConf()).toBuilder().mergeFrom(options).build()).build()),
         RPC_LOG, "UpdateUfsMode", "ufsUri=%s,options=%s", ufsUri, options);
   }
 

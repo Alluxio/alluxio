@@ -2136,6 +2136,26 @@
                 "id": 4,
                 "name": "operationId",
                 "type": "FsOpPId"
+              },
+              {
+                "id": 5,
+                "name": "callerContext",
+                "type": "RPCCallerContext"
+              }
+            ]
+          },
+          {
+            "name": "RPCCallerContext",
+            "fields": [
+              {
+                "id": 1,
+                "name": "context",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "signature",
+                "type": "bytes"
               }
             ]
           },
@@ -3230,6 +3250,21 @@
                 "id": 1,
                 "name": "checkUfs",
                 "type": "bool"
+              },
+              {
+                "id": 2,
+                "name": "options",
+                "type": "GetMountTablePOptions"
+              }
+            ]
+          },
+          {
+            "name": "GetMountTablePOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "commonOptions",
+                "type": "FileSystemMasterCommonPOptions"
               }
             ]
           },
@@ -3723,6 +3758,11 @@
                 "id": 1,
                 "name": "ufsMode",
                 "type": "UfsPMode"
+              },
+              {
+                "id": 2,
+                "name": "commonOptions",
+                "type": "FileSystemMasterCommonPOptions"
               }
             ]
           },

@@ -11,6 +11,7 @@
 
 package alluxio.util;
 
+import alluxio.CallerContext;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.conf.AlluxioConfiguration;
@@ -23,6 +24,8 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
+import alluxio.grpc.GetMountTablePOptions;
+import alluxio.grpc.GetNewBlockIdForFilePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
@@ -31,14 +34,20 @@ import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.RPCCallerContext;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.StartSyncPOptions;
+import alluxio.grpc.StopSyncPOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.OperationId;
+
+import com.google.protobuf.ByteString;
 
 import java.util.UUID;
 
@@ -190,6 +199,15 @@ public class FileSystemOptionsUtils {
         .setTtlAction(conf.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class));
     if (withOpId && conf.getBoolean(PropertyKey.USER_FILE_INCLUDE_OPERATION_ID)) {
       builder.setOperationId(new OperationId(UUID.randomUUID()).toFsProto());
+    }
+    CallerContext callerContext = CallerContext.getCurrent();
+    if (callerContext != null && callerContext.isValid()) {
+      RPCCallerContext.Builder contextBuilder = RPCCallerContext.newBuilder()
+          .setContext(callerContext.getContext());
+      if (callerContext.getSignature() != null) {
+        contextBuilder.setSignature(ByteString.copyFrom(callerContext.getSignature()));
+      }
+      builder.setCallerContext(contextBuilder).build();
     }
     return builder.build();
   }
@@ -355,6 +373,61 @@ public class FileSystemOptionsUtils {
    */
   public static UnmountPOptions unmountDefaults(AlluxioConfiguration conf) {
     return UnmountPOptions.newBuilder()
+        .setCommonOptions(commonDefaults(conf))
+        .build();
+  }
+
+  /**
+   * @param conf Alluxio configuration
+   * @return options based on the configuration
+   */
+  public static GetMountTablePOptions getMountTableDefaults(AlluxioConfiguration conf) {
+    return GetMountTablePOptions.newBuilder()
+        .setCommonOptions(commonDefaults(conf))
+        .build();
+  }
+
+  /**
+   * @param conf Alluxio configuration
+   * @return options based on the configuration
+   */
+  public static GetNewBlockIdForFilePOptions getNewBlockIdForFileDefaults(
+      AlluxioConfiguration conf) {
+    return GetNewBlockIdForFilePOptions.newBuilder()
+        .setCommonOptions(commonDefaults(conf))
+        .build();
+  }
+
+  /**
+   * @param conf Alluxio configuration
+   * @return options based on the configuration
+   */
+  public static UpdateUfsModePOptions updateUfsDefaults(AlluxioConfiguration conf) {
+    return UpdateUfsModePOptions.newBuilder()
+        .setCommonOptions(commonDefaults(conf))
+        .build();
+  }
+
+  /**
+   * Defaults for the StartSync RPC which should only be used on the client side.
+   *
+   * @param conf Alluxio configuration
+   * @return options based on the configuration
+   */
+  public static StartSyncPOptions startSyncDefaults(AlluxioConfiguration conf) {
+    return StartSyncPOptions.newBuilder()
+        .setCommonOptions(commonDefaults(conf))
+        .build();
+  }
+
+  /**
+   * Defaults for the StopSync RPC which should only be used on the client side.
+   *
+   * @param conf Alluxio configuration
+   * @return options based on the configuration
+   */
+  public static StopSyncPOptions stopSyncDefaults(AlluxioConfiguration conf) {
+    return StopSyncPOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
         .build();
   }
