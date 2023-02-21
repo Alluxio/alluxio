@@ -363,8 +363,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
-    return mBlockStore.createUfsBlockReader(sessionId, blockId, offset,
-        positionShort, options);
+    return mBlockStore.createUfsBlockReader(sessionId, blockId, offset, positionShort, options);
   }
 
   @Override
@@ -467,8 +466,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
     BlockReader reader =
-        mBlockStore.createBlockReader(sessionId, blockId, offset,
-            positionShort, options);
+        mBlockStore.createBlockReader(sessionId, blockId, offset, positionShort, options);
     Metrics.WORKER_ACTIVE_CLIENTS.inc();
     return reader;
   }
