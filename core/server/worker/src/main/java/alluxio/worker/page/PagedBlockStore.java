@@ -402,7 +402,6 @@ public class PagedBlockStore implements BlockStore {
   @Override
   public void removeBlock(long sessionId, long blockId) throws IOException {
     LOG.debug("removeBlock: sessionId={}, blockId={}", sessionId, blockId);
-    // TODO(bowen): implement actual removal and replace placeholder values
     int dirIndex = getDirIndexOfBlock(blockId);
     removeBlockInternal(sessionId, blockId, REMOVE_BLOCK_TIMEOUT_MS);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
