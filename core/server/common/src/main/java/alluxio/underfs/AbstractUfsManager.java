@@ -20,6 +20,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.recorder.Recorder;
 import alluxio.util.IdUtils;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -105,9 +106,19 @@ public abstract class AbstractUfsManager implements UfsManager {
   private UfsClient mRootUfsClient;
   private UfsClient mJournalUfsClient;
   protected final Closer mCloser;
+  private final UnderFileSystemReadRateLimiter mRateLimiter;
 
   protected AbstractUfsManager() {
     mCloser = Closer.create();
+    mRateLimiter = new UnderFileSystemReadRateLimiter(Configuration.getBytes(
+        PropertyKey.WORKER_UFS_READ_DEFAULT_THROUGHPUT));
+  }
+
+  /**
+   * @return the ufs read rate limiter
+   */
+  public UnderFileSystemReadRateLimiter getRateLimiter() {
+    return mRateLimiter;
   }
 
   /**

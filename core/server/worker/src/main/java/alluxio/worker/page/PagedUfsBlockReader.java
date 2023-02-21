@@ -52,21 +52,20 @@ public class PagedUfsBlockReader extends BlockReader {
 
   /**
    * @param ufsManager
-   * @param rateLimiter
    * @param ufsInStreamCache
    * @param blockMeta
    * @param offset
    * @param ufsBlockReadOptions
    * @param pageSize
    */
-  public PagedUfsBlockReader(UfsManager ufsManager, UnderFileSystemReadRateLimiter rateLimiter,
+  public PagedUfsBlockReader(UfsManager ufsManager,
       UfsInputStreamCache ufsInStreamCache, BlockMeta blockMeta,
       long offset, UfsBlockReadOptions ufsBlockReadOptions, long pageSize) {
     Preconditions.checkArgument(offset >= 0 && offset <= blockMeta.getBlockSize(),
         "Attempt to read block %s which is %s bytes long at invalid byte offset %s",
         blockMeta.getBlockId(), blockMeta.getBlockSize(), offset);
     mUfsManager = ufsManager;
-    mRateLimiter = rateLimiter;
+    mRateLimiter = mUfsManager.getRateLimiter();
     mUfsInStreamCache = ufsInStreamCache;
     mBlockMeta = blockMeta;
     mUfsBlockOptions = ufsBlockReadOptions;

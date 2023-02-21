@@ -71,12 +71,12 @@ public final class BlockWorkerFactory implements WorkerFactory {
             new FileSystemMasterClient(
                 MasterClientContext.newBuilder(ClientContext.create(Configuration.global()))
                     .build()),
-            new Sessions(), blockStore, workerId)
+            new Sessions(), blockStore, workerId, ufsManager.getRateLimiter())
         : new DefaultBlockWorker(blockMasterClientPool,
             new FileSystemMasterClient(
                 MasterClientContext.newBuilder(ClientContext.create(Configuration.global()))
                     .build()),
-            new Sessions(), blockStore, workerId);
+            new Sessions(), blockStore, workerId, ufsManager.getRateLimiter());
     registry.add(BlockWorker.class, blockWorker);
     return blockWorker;
   }

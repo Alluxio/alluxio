@@ -135,11 +135,12 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    * @param sessions an object for tracking and cleaning up client sessions
    * @param blockStore an Alluxio block store
    * @param workerId worker id
+   * @param rateLimiter ufs read rate limiter
    */
   @VisibleForTesting
   public DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
-      AtomicReference<Long> workerId) {
+      AtomicReference<Long> workerId, UnderFileSystemReadRateLimiter rateLimiter) {
     super(
         Configuration.getBoolean(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS)
             ? ExecutorServiceFactories.cachedThreadPool("block-worker-executor")
@@ -161,9 +162,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, fsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(fsContext));
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
-    mRateLimiter = new UnderFileSystemReadRateLimiter(Configuration.getBytes(
-        PropertyKey.WORKER_UFS_READ_DEFAULT_THROUGHPUT));
-    Metrics.registerGauges(this);
+    mRateLimiter = rateLimiter;
   }
 
   /**
@@ -365,7 +364,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
     return mBlockStore.createUfsBlockReader(sessionId, blockId, offset,
-        positionShort, options, mRateLimiter);
+        positionShort, options);
   }
 
   @Override
@@ -469,7 +468,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       throws IOException {
     BlockReader reader =
         mBlockStore.createBlockReader(sessionId, blockId, offset,
-            positionShort, options, mRateLimiter);
+            positionShort, options);
     Metrics.WORKER_ACTIVE_CLIENTS.inc();
     return reader;
   }

@@ -114,7 +114,7 @@ public class CacheRequestManagerTest {
     BlockStore blockStore =
         new MonoBlockStore(tieredBlockStore, blockMasterClientPool, ufsManager, workerId);
     mBlockWorker = spy(new DefaultBlockWorker(blockMasterClientPool, fileSystemMasterClient,
-        sessions, blockStore, workerId));
+        sessions, blockStore, workerId, ufsManager.getRateLimiter()));
     mBlockStore = mBlockWorker.getBlockStore();
     FileSystemContext context = mock(FileSystemContext.class);
     mCacheRequestManager =

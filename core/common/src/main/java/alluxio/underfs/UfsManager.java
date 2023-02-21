@@ -17,6 +17,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.recorder.Recorder;
 import alluxio.resource.CloseableResource;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -149,4 +150,9 @@ public interface UfsManager extends Closeable {
    * @return whether the mountId has been occupied
    */
   boolean hasMount(long mountId);
+
+  /**
+   * @return read rate limiter
+   */
+  UnderFileSystemReadRateLimiter getRateLimiter();
 }

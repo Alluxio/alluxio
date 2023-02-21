@@ -127,7 +127,6 @@ public class PagedBlockReaderTest {
         new PagedBlockMeta(BLOCK_ID, BLOCK_SIZE, pagedBlockStoreDirs.get(0));
     PagedUfsBlockReader ufsBlockReader = new PagedUfsBlockReader(
         ufsManager,
-        rateLimiter,
         new UfsInputStreamCache(),
         blockMeta,
         mOffset,

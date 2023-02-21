@@ -164,7 +164,7 @@ public class DefaultBlockWorkerTestBase {
     );
 
     mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient,
-        sessions, mBlockStore, workerId);
+        sessions, mBlockStore, workerId, ufsManager.getRateLimiter());
   }
 
   protected void cacheBlock(boolean async) throws Exception {

@@ -18,7 +18,6 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -69,10 +68,6 @@ public class BlockStoreRandomReadBench {
 
   /** Consumer of block data. */
   private static final byte[] SINK = new byte[64 * 1024 * 1024];
-
-  private static final UnderFileSystemReadRateLimiter RATE_LIMITER =
-          new UnderFileSystemReadRateLimiter(Configuration.getBytes(
-                  PropertyKey.WORKER_UFS_READ_DEFAULT_THROUGHPUT));
 
   @State(Scope.Benchmark)
   public static class RandomReadParams {
@@ -161,7 +156,7 @@ public class BlockStoreRandomReadBench {
   private void randReadLocal(BlockStore store, long blockId,
                              long blockSize, long[] offsets, long readSize) throws IOException {
     try (BlockReader reader = store.createBlockReader(1L, blockId, 0, false,
-           Protocol.OpenUfsBlockOptions.newBuilder().build(), RATE_LIMITER)) {
+           Protocol.OpenUfsBlockOptions.newBuilder().build())) {
       for (long offset: offsets) {
         ByteBuffer buffer = reader.read(offset, readSize);
         ByteBuf buf = Unpooled.wrappedBuffer(buffer);
@@ -175,7 +170,7 @@ public class BlockStoreRandomReadBench {
                                  long blockSize, long[] offsets, long readSize) throws IOException {
 
     try (BlockReader reader = store.createBlockReader(1L, blockId, 0, false,
-            Protocol.OpenUfsBlockOptions.newBuilder().build(), RATE_LIMITER)) {
+            Protocol.OpenUfsBlockOptions.newBuilder().build())) {
       for (long offset: offsets) {
         ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer((int) readSize, (int) readSize);
         ((FileChannel) reader.getChannel()).position(offset);
@@ -195,7 +190,7 @@ public class BlockStoreRandomReadBench {
             .setMountId(mountId)
             .setUfsPath(ufsPath)
             .setBlockSize(blockSize)
-            .build(), RATE_LIMITER)) {
+            .build())) {
       for (long offset: offsets) {
         ByteBuffer buffer = reader.read(offset, readSize);
         ByteBuf buf = Unpooled.wrappedBuffer(buffer);

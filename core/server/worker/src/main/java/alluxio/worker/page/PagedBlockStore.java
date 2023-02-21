@@ -46,7 +46,6 @@ import alluxio.worker.block.UfsInputStreamCache;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.DelegatingBlockReader;
-import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
@@ -222,8 +221,7 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public BlockReader createBlockReader(long sessionId, long blockId, long offset,
-      boolean positionShort, Protocol.OpenUfsBlockOptions options,
-      UnderFileSystemReadRateLimiter rateLimiter)
+      boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
     BlockLock blockLock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.READ);
 
@@ -232,8 +230,7 @@ public class PagedBlockStore implements BlockStore {
       if (blockMeta.isPresent()) {
         final BlockPageEvictor evictor = blockMeta.get().getDir().getEvictor();
         evictor.addPinnedBlock(blockId);
-        return new DelegatingBlockReader(getBlockReader(blockMeta.get(), offset, options,
-            rateLimiter), () -> {
+        return new DelegatingBlockReader(getBlockReader(blockMeta.get(), offset, options), () -> {
           evictor.removePinnedBlock(blockId);
           unpinBlock(blockLock);
         });
@@ -246,8 +243,7 @@ public class PagedBlockStore implements BlockStore {
       Optional<PagedBlockMeta> blockMeta = mPageMetaStore.getBlock(blockId);
       if (blockMeta.isPresent()) {
         blockMeta.get().getDir().getEvictor().addPinnedBlock(blockId);
-        return new DelegatingBlockReader(getBlockReader(blockMeta.get(), offset, options,
-            rateLimiter), () -> {
+        return new DelegatingBlockReader(getBlockReader(blockMeta.get(), offset, options), () -> {
           blockMeta.get().getDir().getEvictor().removePinnedBlock(blockId);
           unpinBlock(blockLock);
         });
@@ -268,13 +264,12 @@ public class PagedBlockStore implements BlockStore {
               String.format("Block %d may need to be read from UFS, but key UFS read options "
                   + "is missing in client request", blockId), e, ErrorType.Internal, false);
         }
-        return new PagedUfsBlockReader(mUfsManager, rateLimiter, mUfsInStreamCache, newBlockMeta,
+        return new PagedUfsBlockReader(mUfsManager, mUfsInStreamCache, newBlockMeta,
             offset, readOptions, mPageSize);
       }
       mPageMetaStore.addBlock(newBlockMeta);
       dir.getEvictor().addPinnedBlock(blockId);
-      return new DelegatingBlockReader(getBlockReader(newBlockMeta, offset, options,
-          rateLimiter), () -> {
+      return new DelegatingBlockReader(getBlockReader(newBlockMeta, offset, options), () -> {
         commitBlockToMaster(newBlockMeta);
         newBlockMeta.getDir().getEvictor().removePinnedBlock(blockId);
         unpinBlock(blockLock);
@@ -283,7 +278,7 @@ public class PagedBlockStore implements BlockStore {
   }
 
   private BlockReader getBlockReader(PagedBlockMeta blockMeta, long offset,
-      Protocol.OpenUfsBlockOptions options, UnderFileSystemReadRateLimiter rateLimiter) {
+      Protocol.OpenUfsBlockOptions options) {
     final long blockId = blockMeta.getBlockId();
     Optional<UfsBlockReadOptions> readOptions = Optional.empty();
     try {
@@ -298,14 +293,13 @@ public class PagedBlockStore implements BlockStore {
     }
     final Optional<PagedUfsBlockReader> ufsBlockReader =
         readOptions.map(opt -> new PagedUfsBlockReader(
-            mUfsManager, rateLimiter, mUfsInStreamCache, blockMeta, offset, opt, mPageSize));
+            mUfsManager, mUfsInStreamCache, blockMeta, offset, opt, mPageSize));
     return new PagedBlockReader(mCacheManager, blockMeta, offset, ufsBlockReader, mPageSize);
   }
 
   @Override
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
-      boolean positionShort, Protocol.OpenUfsBlockOptions options,
-      UnderFileSystemReadRateLimiter rateLimiter) throws IOException {
+      boolean positionShort, Protocol.OpenUfsBlockOptions options) throws IOException {
     PagedBlockMeta blockMeta = mPageMetaStore
         .getBlock(blockId)
         .orElseGet(() -> {
@@ -316,7 +310,7 @@ public class PagedBlockStore implements BlockStore {
           return new PagedBlockMeta(blockId, blockSize, dir);
         });
     UfsBlockReadOptions readOptions = UfsBlockReadOptions.fromProto(options);
-    return new PagedUfsBlockReader(mUfsManager, rateLimiter, mUfsInStreamCache, blockMeta,
+    return new PagedUfsBlockReader(mUfsManager, mUfsInStreamCache, blockMeta,
         offset, readOptions, mPageSize);
   }
 
