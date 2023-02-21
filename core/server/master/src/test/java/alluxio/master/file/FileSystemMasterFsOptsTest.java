@@ -105,6 +105,37 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     assertEquals(100, info.getLastAccessTimeMs());
   }
 
+  @Test
+  public void createFileWithOverwrite() throws Exception {
+    AlluxioURI path = new AlluxioURI("/test");
+    mFileSystemMaster.createFile(path, CreateFileContext.defaults());
+    //create without overwrite
+    try {
+      mFileSystemMaster.createFile(path, CreateFileContext.defaults());
+      fail();
+    } catch (FileAlreadyExistsException e) {
+      assertTrue(e.getMessage()
+          .contains(ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage(path)));
+    }
+
+    //create with overwrite
+    CreateFileContext createFileContextWithOverwrite = CreateFileContext.defaults();
+    createFileContextWithOverwrite.getOptions().setOverwrite(true);
+    mFileSystemMaster.createFile(path, createFileContextWithOverwrite);
+    FileInfo info = mFileSystemMaster.getFileInfo(path, GetStatusContext.defaults());
+
+    //overwrite an existed directory
+    AlluxioURI testpath = new AlluxioURI("/test2");
+    mFileSystemMaster.createDirectory(testpath, CreateDirectoryContext.defaults());
+    try {
+      mFileSystemMaster.createFile(testpath, createFileContextWithOverwrite);
+      fail();
+    } catch (FileAlreadyExistsException e) {
+      assertTrue(e.getMessage()
+          .contains(ExceptionMessage.CANNOT_OVERWRITE_DIRECTORY.getMessage(testpath)));
+    }
+  }
+
   /**
    * Tests the {@link FileSystemMaster#delete(AlluxioURI, DeleteContext)} method.
    */

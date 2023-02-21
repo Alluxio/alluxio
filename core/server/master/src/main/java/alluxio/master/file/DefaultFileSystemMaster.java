@@ -1868,7 +1868,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           // Check if ufs is writable
           checkUfsMode(path, OperationType.WRITE);
         }
-        overwriteFileInternal(rpcContext, inodePath, context);
+        deleteFileIfOverwrite(rpcContext, inodePath, context);
         createFileInternal(rpcContext, inodePath, context);
         auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
         cacheOperation(context);
@@ -1882,32 +1882,31 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param inodePath the path to be created
    * @param context the method context
    */
-  private void overwriteFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
-                                     CreateFileContext context)
+  private void deleteFileIfOverwrite(RpcContext rpcContext, LockedInodePath inodePath,
+      CreateFileContext context)
       throws FileDoesNotExistException, IOException, InvalidPathException,
       FileAlreadyExistsException {
     if (inodePath.fullPathExists()) {
       Inode currentInode = inodePath.getInode();
-      if (!context.getOptions().getOverwrite()) {
+      if (!context.getOptions().hasOverwrite() || !context.getOptions().getOverwrite()) {
         throw new FileAlreadyExistsException(
-            "Not allowed to create() (overwrite=false) for existing Alluxio path: "
-                + inodePath.getUri());
+            ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage(
+                inodePath.getUri()));
       }
       // if the fullpath is a file and the option is to overwrite, delete it
-      if (currentInode instanceof InodeFile) {
+      if (currentInode.isDirectory()) {
+        throw new FileAlreadyExistsException(
+            ExceptionMessage.CANNOT_OVERWRITE_DIRECTORY.getMessage(inodePath.getUri()));
+      } else {
         try {
           deleteInternal(rpcContext, inodePath, DeleteContext.mergeFrom(
               DeletePOptions.newBuilder().setRecursive(true)
                   .setAlluxioOnly(!context.isPersisted())), true);
           inodePath.removeLastInode();
         } catch (DirectoryNotEmptyException e) {
-          // IGNORE, this will never happen
+          throw new InvalidPathException(
+              ExceptionMessage.CANNOT_OVERWRITE_DIRECTORY.getMessage(inodePath.getUri()));
         }
-      } else {
-        String errorMessage =
-            String.format("Not allowed to create file because path already exists: %s",
-                inodePath.getUri());
-        throw new FileAlreadyExistsException(errorMessage);
       }
     }
   }
