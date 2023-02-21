@@ -5328,6 +5328,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_OPTIMIZED_LIST_OBJECTS_ENABLE =
+      booleanBuilder(Name.PROXY_S3_OPTIMIZED_LIST_OBJECTS_ENABLE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setDescription("Whether to use an optimized way to list files. "
+              + "This results in more RPC calls, but is more memory friendly for s3 proxy.")
+          .setDefaultValue(false)
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // Locality related properties
@@ -8447,6 +8455,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_S3_V2_ASYNC_PROCESSING_ENABLED =
             "alluxio.proxy.s3.v2.async.processing.enabled";
     public static final String S3_UPLOADS_ID_XATTR_KEY = "s3_uploads_mulitpartupload_id";
+    public static final String PROXY_S3_OPTIMIZED_LIST_OBJECTS_ENABLE =
+        "alluxio.proxy.s3.optimized.list.objects.enable";
 
     //
     // Locality related properties

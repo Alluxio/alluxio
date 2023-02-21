@@ -57,6 +57,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
@@ -689,7 +691,58 @@ public final class S3RestUtils {
     }
   }
 
-    /**
+  /**
+   * List directories and files by given prefix and maxKeys.
+   * @param uriStatusProvider In order to unit tests, using function to mock filesystem.listStatus()
+   * @param prefix Prefix of file or directory
+   * @param maxKeys The number of Files and directories you want
+   * @return Directories and files with given prefix
+   */
+  public static List<URIStatus> listStatusByPrefix(
+      Function<AlluxioURI, List<URIStatus>> uriStatusProvider, String prefix, int maxKeys) {
+    AlluxioURI parent = new AlluxioURI(prefix);
+    if (!parent.isRoot()) {
+      parent = parent.getParent();
+    }
+    List<URIStatus> children = uriStatusProvider.apply(parent).stream()
+        .filter(uriStatus -> uriStatus.getPath().startsWith(prefix))
+        .limit(maxKeys).collect(Collectors.toList());
+    List<URIStatus> results = new ArrayList<>(children);
+    if (results.size() >= maxKeys) {
+      return results;
+    }
+    for (URIStatus child : children) {
+      if (!child.isFolder()) {
+        continue;
+      }
+      listStatus(uriStatusProvider, child, maxKeys, results);
+      if (results.size() >= maxKeys) {
+        return results;
+      }
+    }
+    return results;
+  }
+
+  private static void listStatus(Function<AlluxioURI, List<URIStatus>> uriStatusProvider,
+      URIStatus uri, int maxKeys, List<URIStatus> results) {
+    List<URIStatus> children = uriStatusProvider.apply(new AlluxioURI(uri.getPath())).stream()
+        .limit(maxKeys - results.size()).collect(Collectors.toList());
+    results.addAll(children);
+    if (results.size() >= maxKeys) {
+      return;
+    }
+    for (URIStatus child : children) {
+      if (!child.isFolder()) {
+        continue;
+      }
+      listStatus(uriStatusProvider, child, maxKeys, results);
+      if (results.size() >= maxKeys) {
+        return;
+      }
+    }
+  }
+
+  /**
      * Comparator based on uri name， treat uri name as a Long number.
      */
   public static class URIStatusNameComparator implements Comparator<URIStatus>, Serializable {
