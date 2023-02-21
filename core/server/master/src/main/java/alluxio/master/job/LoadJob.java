@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.loadmanager;
+package alluxio.master.job;
 
 import static java.util.Objects.requireNonNull;
 
@@ -25,12 +25,13 @@ import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.UnauthenticatedRuntimeException;
 import alluxio.grpc.Block;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
-import alluxio.grpc.LoadProgressReportFormat;
+import alluxio.job.Job;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.ListStatusContext;
-import alluxio.proto.journal.Job;
+import alluxio.master.scheduler.Scheduler;
 import alluxio.proto.journal.Journal;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.FormatUtils;
@@ -67,11 +68,11 @@ import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class should only be manipulated from the scheduler thread in LoadManager
+ * This class should only be manipulated from the scheduler thread in Scheduler
  * thus the state changing functions are not thread safe.
  */
 @NotThreadSafe
-public class LoadJob {
+public class LoadJob implements Job {
   private static final Logger LOG = LoggerFactory.getLogger(LoadJob.class);
   private static final double FAILURE_RATIO_THRESHOLD = 0.05;
   private static final int FAILURE_COUNT_THRESHOLD = 100;
@@ -99,7 +100,7 @@ public class LoadJob {
   private final AtomicLong mTotalFailureCount = new AtomicLong();
   private final AtomicLong mCurrentFailureCount = new AtomicLong();
   private final String mJobId;
-  private LoadJobState mState;
+  private JobState mState;
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
   private Optional<FileIterator> mFileIterator = Optional.empty();
   private FileInfo mCurrentFile;
@@ -142,7 +143,7 @@ public class LoadJob {
     mUsePartialListing = usePartialListing;
     mVerificationEnabled = verificationEnabled;
     mStartTime = System.currentTimeMillis();
-    mState = LoadJobState.LOADING;
+    mState = JobState.RUNNING;
   }
 
   /**
@@ -213,7 +214,7 @@ public class LoadJob {
    * Get load status.
    * @return the load job's status
    */
-  public LoadJobState getJobState() {
+  public JobState getJobState() {
     return mState;
   }
 
@@ -221,7 +222,7 @@ public class LoadJob {
    * Set load state.
    * @param state new state
    */
-  public void setJobState(LoadJobState state) {
+  public void setJobState(JobState state) {
     LOG.debug("Change JobState to {} for job {}", state, this);
     mState = state;
     if (!isRunning()) {
@@ -242,9 +243,9 @@ public class LoadJob {
    * @param reason failure exception
    */
   public void failJob(AlluxioRuntimeException reason) {
-    setJobState(LoadJobState.FAILED);
+    setJobState(JobState.FAILED);
     mFailedReason = Optional.of(reason);
-    LoadManager.JOB_LOAD_FAIL.inc();
+    Scheduler.JOB_LOAD_FAIL.inc();
   }
 
   /**
@@ -269,7 +270,7 @@ public class LoadJob {
    * @param verbose whether to include error details in the report
    * @return the load progress report
    */
-  public String getProgress(LoadProgressReportFormat format, boolean verbose) {
+  public String getProgress(JobProgressReportFormat format, boolean verbose) {
     return (new LoadProgressReport(this, verbose)).getReport(format);
   }
 
@@ -312,7 +313,7 @@ public class LoadJob {
    */
   public boolean isHealthy() {
     long currentFailureCount = mCurrentFailureCount.get();
-    return mState != LoadJobState.FAILED
+    return mState != JobState.FAILED
         && currentFailureCount <= FAILURE_COUNT_THRESHOLD
         || (double) currentFailureCount / mCurrentBlockCount.get() <= FAILURE_RATIO_THRESHOLD;
   }
@@ -322,7 +323,7 @@ public class LoadJob {
    * @return true if the load job is running, false if not
    */
   public boolean isRunning() {
-    return mState == LoadJobState.LOADING || mState == LoadJobState.VERIFYING;
+    return mState == JobState.RUNNING || mState == JobState.VERIFYING;
   }
 
   /**
@@ -330,7 +331,7 @@ public class LoadJob {
    * @return true if the load job is finished, false if not
    */
   public boolean isDone() {
-    return mState == LoadJobState.SUCCEEDED || mState == LoadJobState.FAILED;
+    return mState == JobState.SUCCEEDED || mState == JobState.FAILED;
   }
 
   /**
@@ -353,7 +354,7 @@ public class LoadJob {
     mTotalFailureCount.addAndGet(mCurrentFailureCount.get());
     mCurrentBlockCount.set(0);
     mCurrentFailureCount.set(0);
-    mState = LoadJobState.VERIFYING;
+    mState = JobState.VERIFYING;
   }
 
   /**
@@ -415,7 +416,7 @@ public class LoadJob {
     LOG.debug("Retry block {}", block);
     mRetryBlocks.add(block);
     mCurrentFailureCount.incrementAndGet();
-    LoadManager.JOB_LOAD_BLOCK_FAIL.inc();
+    Scheduler.JOB_LOAD_BLOCK_FAIL.inc();
     return true;
   }
 
@@ -433,7 +434,7 @@ public class LoadJob {
     mFailedFiles.put(block.getUfsPath(),
         String.format("Status code: %s, message: %s", code, message));
     mCurrentFailureCount.incrementAndGet();
-    LoadManager.JOB_LOAD_BLOCK_FAIL.inc();
+    Scheduler.JOB_LOAD_BLOCK_FAIL.inc();
   }
 
   private static Block buildBlock(FileInfo fileInfo, long blockId) {
@@ -476,10 +477,10 @@ public class LoadJob {
    * @return journal entry of job
    */
   public Journal.JournalEntry toJournalEntry() {
-    Job.LoadJobEntry.Builder jobEntry = Job.LoadJobEntry
+    alluxio.proto.journal.Job.LoadJobEntry.Builder jobEntry = alluxio.proto.journal.Job.LoadJobEntry
         .newBuilder()
         .setLoadPath(mPath)
-        .setState(LoadJobState.toProto(mState))
+        .setState(JobState.toProto(mState))
         .setPartialListing(mUsePartialListing)
         .setVerify(mVerificationEnabled)
         .setJobId(mJobId);
@@ -498,13 +499,13 @@ public class LoadJob {
    * @param loadJobEntry journal entry
    * @return journal entry of the job
    */
-  public static LoadJob fromJournalEntry(Job.LoadJobEntry loadJobEntry) {
+  public static LoadJob fromJournalEntry(alluxio.proto.journal.Job.LoadJobEntry loadJobEntry) {
     LoadJob job = new LoadJob(loadJobEntry.getLoadPath(),
         loadJobEntry.hasUser() ? Optional.of(loadJobEntry.getUser()) : Optional.empty(),
         loadJobEntry.getJobId(),
         loadJobEntry.hasBandwidth() ? OptionalLong.of(loadJobEntry.getBandwidth()) :
             OptionalLong.empty(), loadJobEntry.getPartialListing(), loadJobEntry.getVerify());
-    job.setJobState(LoadJobState.fromProto(loadJobEntry.getState()));
+    job.setJobState(JobState.fromProto(loadJobEntry.getState()));
     if (loadJobEntry.hasEndTime()) {
       job.setEndTime(loadJobEntry.getEndTime());
     }
@@ -610,7 +611,7 @@ public class LoadJob {
 
   private static class LoadProgressReport {
     private final boolean mVerbose;
-    private final LoadJobState mJobState;
+    private final JobState mJobState;
     private final Long mBandwidth;
     private final boolean mVerificationEnabled;
     private final long mProcessedFileCount;
@@ -664,7 +665,7 @@ public class LoadJob {
       }
     }
 
-    public String getReport(LoadProgressReportFormat format)
+    public String getReport(JobProgressReportFormat format)
     {
       switch (format) {
         case TEXT:

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.loadmanager;
+package alluxio.master.scheduler;
 
 import static java.lang.String.format;
 
@@ -31,13 +31,15 @@ import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
-import alluxio.grpc.LoadProgressReportFormat;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CheckAccessContext;
+import alluxio.master.job.JobState;
+import alluxio.master.job.LoadJob;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
@@ -84,18 +86,18 @@ import javax.annotation.concurrent.ThreadSafe;
  * method is not thread-safe. But we should only have one thread call these two method.
  */
 @ThreadSafe
-public final class LoadManager implements Journaled {
-  private static final Logger LOG = LoggerFactory.getLogger(LoadManager.class);
+public final class Scheduler implements Journaled {
+  private static final Logger LOG = LoggerFactory.getLogger(Scheduler.class);
   private static final int CAPACITY = 100;
   private static final long WORKER_UPDATE_INTERVAL = Configuration.getMs(
       PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME);
   private static final int EXECUTOR_SHUTDOWN_MS = 10 * Constants.SECOND_MS;
   private final FileSystemMaster mFileSystemMaster;
   private final FileSystemContext mContext;
-  private final Map<String, LoadJob> mLoadJobs = new ConcurrentHashMap<>();
+  private final Map<String, LoadJob> mExistingJobs = new ConcurrentHashMap<>();
   private final Map<LoadJob, Set<WorkerInfo>> mRunningTasks = new ConcurrentHashMap<>();
   // initial thread in start method since we would stop and start thread when gainPrimacy
-  private ScheduledExecutorService mLoadScheduler;
+  private ScheduledExecutorService mSchedulerExecutor;
   private volatile boolean mRunning = false;
   private Map<WorkerInfo, CloseableResource<BlockWorkerClient>> mActiveWorkers = ImmutableMap.of();
 
@@ -103,7 +105,7 @@ public final class LoadManager implements Journaled {
    * Constructor.
    * @param fileSystemMaster fileSystemMaster
    */
-  public LoadManager(FileSystemMaster fileSystemMaster) {
+  public Scheduler(FileSystemMaster fileSystemMaster) {
     this(fileSystemMaster, FileSystemContext.create());
   }
 
@@ -113,7 +115,7 @@ public final class LoadManager implements Journaled {
    * @param context fileSystemContext
    */
   @VisibleForTesting
-  public LoadManager(FileSystemMaster fileSystemMaster, FileSystemContext context) {
+  public Scheduler(FileSystemMaster fileSystemMaster, FileSystemContext context) {
     mFileSystemMaster = fileSystemMaster;
     mContext = context;
   }
@@ -123,12 +125,12 @@ public final class LoadManager implements Journaled {
    */
   public void start() {
     if (!mRunning) {
-      mLoadScheduler = Executors.newSingleThreadScheduledExecutor(
+      mSchedulerExecutor = Executors.newSingleThreadScheduledExecutor(
           ThreadFactoryUtils.build("load-manager-scheduler", false));
-      mLoadScheduler.scheduleAtFixedRate(this::updateWorkers, 0, WORKER_UPDATE_INTERVAL,
+      mSchedulerExecutor.scheduleAtFixedRate(this::updateWorkers, 0, WORKER_UPDATE_INTERVAL,
           TimeUnit.MILLISECONDS);
-      mLoadScheduler.scheduleWithFixedDelay(this::processJobs, 0, 100, TimeUnit.MILLISECONDS);
-      mLoadScheduler.scheduleWithFixedDelay(this::cleanupStaleJob, 1, 1, TimeUnit.HOURS);
+      mSchedulerExecutor.scheduleWithFixedDelay(this::processJobs, 0, 100, TimeUnit.MILLISECONDS);
+      mSchedulerExecutor.scheduleWithFixedDelay(this::cleanupStaleJob, 1, 1, TimeUnit.HOURS);
       mRunning = true;
     }
   }
@@ -140,7 +142,7 @@ public final class LoadManager implements Journaled {
     if (mRunning) {
       mActiveWorkers.values().forEach(CloseableResource::close);
       mActiveWorkers = ImmutableMap.of();
-      ThreadUtils.shutdownAndAwaitTermination(mLoadScheduler, EXECUTOR_SHUTDOWN_MS);
+      ThreadUtils.shutdownAndAwaitTermination(mSchedulerExecutor, EXECUTOR_SHUTDOWN_MS);
       mRunning = false;
     }
   }
@@ -153,7 +155,7 @@ public final class LoadManager implements Journaled {
    * @param verificationEnabled whether to run verification step or not
    * @return true if the job is new, false if the job has already been submitted
    */
-  public boolean submitLoad(String loadPath, OptionalLong bandwidth,
+  public boolean submitJob(String loadPath, OptionalLong bandwidth,
       boolean usePartialListing, boolean verificationEnabled) {
     try {
       mFileSystemMaster.checkAccess(new AlluxioURI(loadPath), CheckAccessContext.defaults());
@@ -164,7 +166,7 @@ public final class LoadManager implements Journaled {
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
     }
-    return submitLoad(new LoadJob(
+    return submitJob(new LoadJob(
         loadPath,
         Optional.ofNullable(AuthenticatedClientUser.getOrNull()).map(User::getName), UUID
         .randomUUID().toString(), bandwidth,
@@ -178,8 +180,8 @@ public final class LoadManager implements Journaled {
    * @return true if the job is new, false if the job has already been submitted
    */
   @VisibleForTesting
-  public boolean submitLoad(LoadJob loadJob) {
-    LoadJob existingJob = mLoadJobs.get(loadJob.getPath());
+  public boolean submitJob(LoadJob loadJob) {
+    LoadJob existingJob = mExistingJobs.get(loadJob.getPath());
     if (existingJob != null && !existingJob.isDone()) {
       updateExistingJob(loadJob, existingJob);
       return false;
@@ -190,7 +192,7 @@ public final class LoadManager implements Journaled {
           "Too many load jobs running, please submit later.", true);
     }
     writeJournal(loadJob);
-    mLoadJobs.put(loadJob.getPath(), loadJob);
+    mExistingJobs.put(loadJob.getPath(), loadJob);
     mRunningTasks.put(loadJob, new HashSet<>());
     LOG.debug(format("start job: %s", loadJob));
     return true;
@@ -201,8 +203,8 @@ public final class LoadManager implements Journaled {
     existingJob.setVerificationEnabled(loadJob.isVerificationEnabled());
     writeJournal(existingJob);
     LOG.debug(format("updated existing job: %s from %s", existingJob, loadJob));
-    if (existingJob.getJobState() == LoadJobState.STOPPED) {
-      existingJob.setJobState(LoadJobState.LOADING);
+    if (existingJob.getJobState() == JobState.STOPPED) {
+      existingJob.setJobState(JobState.RUNNING);
       mRunningTasks.put(existingJob, new HashSet<>());
     }
   }
@@ -213,9 +215,9 @@ public final class LoadManager implements Journaled {
    * @return true if the job is stopped, false if the job does not exist or has already finished
    */
   public boolean stopLoad(String loadPath) {
-    LoadJob existingJob = mLoadJobs.get(loadPath);
+    LoadJob existingJob = mExistingJobs.get(loadPath);
     if (existingJob != null && existingJob.isRunning()) {
-      existingJob.setJobState(LoadJobState.STOPPED);
+      existingJob.setJobState(JobState.STOPPED);
       writeJournal(existingJob);
       // leftover tasks in mLoadTasks would be removed by scheduling thread.
       return true;
@@ -232,9 +234,9 @@ public final class LoadManager implements Journaled {
    */
   public String getLoadProgress(
       String loadPath,
-      LoadProgressReportFormat format,
+      JobProgressReportFormat format,
       boolean verbose) {
-    LoadJob job = mLoadJobs.get(loadPath);
+    LoadJob job = mExistingJobs.get(loadPath);
     if (job == null) {
       throw new NotFoundRuntimeException(format("Load for path %s cannot be found.", loadPath));
     }
@@ -256,7 +258,8 @@ public final class LoadManager implements Journaled {
   @VisibleForTesting
   public void cleanupStaleJob() {
     long current = System.currentTimeMillis();
-    mLoadJobs.entrySet().removeIf(job -> !job.getValue().isRunning()
+    mExistingJobs
+        .entrySet().removeIf(job -> !job.getValue().isRunning()
         && job.getValue().getEndTime().isPresent()
         && job.getValue().getEndTime().getAsLong() <= (current - Configuration.getMs(
         PropertyKey.JOB_RETENTION_TIME)));
@@ -326,7 +329,7 @@ public final class LoadManager implements Journaled {
    */
   @VisibleForTesting
   public Map<String, LoadJob> getLoadJobs() {
-    return mLoadJobs;
+    return mExistingJobs;
   }
 
   private void processJobs() {
@@ -371,7 +374,7 @@ public final class LoadManager implements Journaled {
         }
         else {
           if (loadJob.isHealthy()) {
-            loadJob.setJobState(LoadJobState.SUCCEEDED);
+            loadJob.setJobState(JobState.SUCCEEDED);
             JOB_LOAD_SUCCESS.inc();
           }
           else {
@@ -493,7 +496,7 @@ public final class LoadManager implements Journaled {
         LOG.error("Unexpected exception thrown in response future listener.", e);
         load.failJob(new InternalRuntimeException(e));
       }
-    }, mLoadScheduler);
+    }, mSchedulerExecutor);
     return true;
   }
 
@@ -523,7 +526,8 @@ public final class LoadManager implements Journaled {
   @Override
   public CloseableIterator<Journal.JournalEntry> getJournalEntryIterator() {
     return CloseableIterator.noopCloseable(
-        Iterators.transform(mLoadJobs.values().iterator(), LoadJob::toJournalEntry));
+        Iterators.transform(mExistingJobs
+            .values().iterator(), LoadJob::toJournalEntry));
   }
 
   @Override
@@ -533,7 +537,7 @@ public final class LoadManager implements Journaled {
     }
     Job.LoadJobEntry loadJobEntry = entry.getLoadJob();
     LoadJob job = LoadJob.fromJournalEntry(loadJobEntry);
-    mLoadJobs.put(loadJobEntry.getLoadPath(), job);
+    mExistingJobs.put(loadJobEntry.getLoadPath(), job);
     if (job.isDone()) {
       mRunningTasks.remove(job);
     }
@@ -546,7 +550,7 @@ public final class LoadManager implements Journaled {
   @Override
   public void resetState()
   {
-    mLoadJobs.clear();
+    mExistingJobs.clear();
     mRunningTasks.clear();
   }
 

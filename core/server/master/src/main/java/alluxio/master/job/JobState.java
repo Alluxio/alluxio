@@ -9,16 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.loadmanager;
+package alluxio.master.job;
 
 import alluxio.proto.journal.Job;
 
 /**
  * Load status.
  */
-public enum LoadJobState
+public enum JobState
 {
-  LOADING,
+  RUNNING,
   VERIFYING,
   STOPPED,
   SUCCEEDED,
@@ -30,10 +30,10 @@ public enum LoadJobState
    * @param state load job state
    * @return the corresponding PJobStatus
    */
-  public static Job.PJobState toProto(LoadJobState state)
+  public static Job.PJobState toProto(JobState state)
   {
     switch (state) {
-      case LOADING:
+      case RUNNING:
       case VERIFYING:
         return Job.PJobState.CREATED;
       case STOPPED:
@@ -53,11 +53,11 @@ public enum LoadJobState
    * @param jobStatus protobuf job status
    * @return the corresponding LoadStatus
    */
-  public static LoadJobState fromProto(Job.PJobState jobStatus)
+  public static JobState fromProto(Job.PJobState jobStatus)
   {
     switch (jobStatus) {
       case CREATED:
-        return LOADING;
+        return RUNNING;
       case STOPPED:
         return STOPPED;
       case SUCCEEDED:

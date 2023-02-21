@@ -27,8 +27,10 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CacheRequest;
-import alluxio.grpc.LoadProgressReportFormat;
+import alluxio.grpc.JobProgressReportFormat;
+import alluxio.grpc.LoadJobPOptions;
 import alluxio.grpc.OpenFilePOptions;
+import alluxio.job.LoadJobRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FileSystemOptionsUtils;
@@ -46,7 +48,6 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.OptionalLong;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -56,6 +57,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class LoadCommand extends AbstractFileSystemCommand {
+  private static final JobProgressReportFormat DEFAULT_FORMAT = JobProgressReportFormat.TEXT;
   private static final Option LOCAL_OPTION =
       Option.builder()
           .longOpt("local")
@@ -180,12 +182,10 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     if (cl.hasOption(STOP_OPTION.getLongOpt())) {
       return stopLoad(path);
     }
-
+    JobProgressReportFormat format = DEFAULT_FORMAT;
     if (cl.hasOption(PROGRESS_OPTION.getLongOpt())) {
-      Optional<LoadProgressReportFormat> format = Optional.empty();
       if (cl.hasOption(PROGRESS_FORMAT.getLongOpt())) {
-        format = Optional.of(LoadProgressReportFormat.valueOf(
-            cl.getOptionValue(PROGRESS_FORMAT.getLongOpt())));
+        format = JobProgressReportFormat.valueOf(cl.getOptionValue(PROGRESS_FORMAT.getLongOpt()));
       }
       return getProgress(path, format, cl.hasOption(PROGRESS_VERBOSE.getLongOpt()));
     }
@@ -229,8 +229,14 @@ public final class LoadCommand extends AbstractFileSystemCommand {
 
   private int submitLoad(AlluxioURI path, OptionalLong bandwidth,
       boolean usePartialListing, boolean verify) {
+    LoadJobPOptions.Builder options = alluxio.grpc.LoadJobPOptions
+        .newBuilder().setPartialListing(usePartialListing).setVerify(verify);
+    if (bandwidth.isPresent()) {
+      options.setBandwidth(bandwidth.getAsLong());
+    }
+    LoadJobRequest job = new LoadJobRequest(path.getPath(), options.build());
     try {
-      if (mFileSystem.submitLoad(path, bandwidth, usePartialListing, verify)) {
+      if (mFileSystem.submitJob(job).isPresent()) {
         System.out.printf("Load '%s' is successfully submitted.%n", path);
       } else {
         System.out.printf("Load already running for path '%s', updated the job with "
@@ -248,7 +254,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
 
   private int stopLoad(AlluxioURI path) {
     try {
-      if (mFileSystem.stopLoad(path)) {
+      if (mFileSystem.stopJob(path.getPath())) {
         System.out.printf("Load '%s' is successfully stopped.%n", path);
       }
       else {
@@ -262,11 +268,11 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     }
   }
 
-  private int getProgress(AlluxioURI path, Optional<LoadProgressReportFormat> format,
+  private int getProgress(AlluxioURI path, JobProgressReportFormat format,
       boolean verbose) {
     try {
       System.out.println("Progress for loading path '" + path + "':");
-      System.out.println(mFileSystem.getLoadProgress(path, format, verbose));
+      System.out.println(mFileSystem.getLoadProgress(path.getPath(), format, verbose));
       return 0;
     } catch (StatusRuntimeException e) {
       if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {

@@ -9,9 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.loadmanager;
+package alluxio.master.file.scheduler;
 
-import static alluxio.master.file.loadmanager.LoadTestUtils.generateRandomFileInfo;
+import static alluxio.master.file.scheduler.LoadTestUtils.generateRandomFileInfo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -26,8 +26,10 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.grpc.Block;
-import alluxio.grpc.LoadProgressReportFormat;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.job.JobState;
+import alluxio.master.job.LoadJob;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;
@@ -98,22 +100,22 @@ public class LoadJobTest {
         .thenReturn(fileInfos);
     LoadJob job = spy(new LoadJob("/test", "user", OptionalLong.empty()));
     when(job.getDurationInSec()).thenReturn(0L);
-    job.setJobState(LoadJobState.LOADING);
+    job.setJobState(JobState.RUNNING);
     List<Block> blocks = job.getNextBatch(fileSystemMaster, 25);
     job.addLoadedBytes(640 * Constants.MB);
     String expectedTextReport = "\tSettings:\tbandwidth: unlimited\tverify: false\n"
-        + "\tJob State: LOADING\n"
+        + "\tJob State: RUNNING\n"
         + "\tFiles Processed: 3 out of 10\n"
         + "\tBytes Loaded: 640.00MB out of 6.25GB\n"
         + "\tBlock load failure rate: 0.00%\n"
         + "\tFiles Failed: 0\n";
-    assertEquals(expectedTextReport, job.getProgress(LoadProgressReportFormat.TEXT, false));
-    assertEquals(expectedTextReport, job.getProgress(LoadProgressReportFormat.TEXT, true));
-    String expectedJsonReport = "{\"mVerbose\":false,\"mJobState\":\"LOADING\","
+    assertEquals(expectedTextReport, job.getProgress(JobProgressReportFormat.TEXT, false));
+    assertEquals(expectedTextReport, job.getProgress(JobProgressReportFormat.TEXT, true));
+    String expectedJsonReport = "{\"mVerbose\":false,\"mJobState\":\"RUNNING\","
         + "\"mVerificationEnabled\":false,\"mProcessedFileCount\":3,\"mTotalFileCount\":10,"
         + "\"mLoadedByteCount\":671088640,\"mTotalByteCount\":6710886400,"
         + "\"mFailurePercentage\":0.0,\"mFailedFileCount\":0}";
-    assertEquals(expectedJsonReport, job.getProgress(LoadProgressReportFormat.JSON, false));
+    assertEquals(expectedJsonReport, job.getProgress(JobProgressReportFormat.JSON, false));
     job.addBlockFailure(blocks.get(0), "Test error 1", 2);
     job.addBlockFailure(blocks.get(4), "Test error 2", 2);
     job.addBlockFailure(blocks.get(10),  "Test error 3", 2);
@@ -125,16 +127,16 @@ public class LoadJobTest {
         + "\tBlock load failure rate: 12.00%\n"
         + "\tFiles Failed: 2\n";
     assertEquals(expectedTextReportWithError,
-        job.getProgress(LoadProgressReportFormat.TEXT, false));
-    String textReport = job.getProgress(LoadProgressReportFormat.TEXT, true);
+        job.getProgress(JobProgressReportFormat.TEXT, false));
+    String textReport = job.getProgress(JobProgressReportFormat.TEXT, true);
     assertFalse(textReport.contains("Test error 1"));
     assertTrue(textReport.contains("Test error 2"));
     assertTrue(textReport.contains("Test error 3"));
-    String jsonReport = job.getProgress(LoadProgressReportFormat.JSON, false);
+    String jsonReport = job.getProgress(JobProgressReportFormat.JSON, false);
     assertTrue(jsonReport.contains("FAILED"));
     assertTrue(jsonReport.contains("mFailureReason"));
     assertFalse(jsonReport.contains("Test error 2"));
-    jsonReport = job.getProgress(LoadProgressReportFormat.JSON, true);
+    jsonReport = job.getProgress(JobProgressReportFormat.JSON, true);
     assertFalse(jsonReport.contains("Test error 1"));
     assertTrue(jsonReport.contains("Test error 2"));
     assertTrue(jsonReport.contains("Test error 3"));

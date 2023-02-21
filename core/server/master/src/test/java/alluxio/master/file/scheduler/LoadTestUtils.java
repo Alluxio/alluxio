@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.loadmanager;
+package alluxio.master.file.scheduler;
 
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;

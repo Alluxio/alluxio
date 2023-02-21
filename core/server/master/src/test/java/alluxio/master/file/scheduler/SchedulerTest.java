@@ -9,11 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.loadmanager;
+package alluxio.master.file.scheduler;
 
-import static alluxio.master.file.loadmanager.LoadTestUtils.fileWithBlockLocations;
-import static alluxio.master.file.loadmanager.LoadTestUtils.generateRandomBlockStatus;
-import static alluxio.master.file.loadmanager.LoadTestUtils.generateRandomFileInfo;
+import static alluxio.master.file.scheduler.LoadTestUtils.fileWithBlockLocations;
+import static alluxio.master.file.scheduler.LoadTestUtils.generateRandomBlockStatus;
+import static alluxio.master.file.scheduler.LoadTestUtils.generateRandomFileInfo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
@@ -40,12 +40,15 @@ import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.exception.runtime.UnauthenticatedRuntimeException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.BlockStatus;
-import alluxio.grpc.LoadProgressReportFormat;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.job.JobState;
+import alluxio.master.job.LoadJob;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.scheduler.Scheduler;
 import alluxio.proto.journal.Job;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -68,7 +71,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
-public final class LoadManagerTest {
+public final class SchedulerTest {
 
   @BeforeClass
   public static void before() {
@@ -85,7 +88,7 @@ public final class LoadManagerTest {
     FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     CloseableResource<BlockWorkerClient> blockWorkerClient = mock(CloseableResource.class);
-    LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(fileSystemMaster, fileSystemContext);
     when(fileSystemMaster.getWorkerInfoList())
         .thenReturn(ImmutableList.of(
             new WorkerInfo().setId(1).setAddress(
@@ -102,15 +105,20 @@ public final class LoadManagerTest {
             new WorkerInfo().setId(2).setAddress(
                 new WorkerNetAddress().setHost("worker2").setRpcPort(1234))));
     when(fileSystemContext.acquireBlockWorkerClient(any())).thenReturn(blockWorkerClient);
-    assertEquals(0, loadManager.getActiveWorkers().size());
-    loadManager.updateWorkers();
-    assertEquals(2, loadManager.getActiveWorkers().size());
-    loadManager.updateWorkers();
-    assertEquals(2, loadManager.getActiveWorkers().size());
-    loadManager.updateWorkers();
-    assertEquals(1, loadManager.getActiveWorkers().size());
-    loadManager.updateWorkers();
-    assertEquals(2, loadManager.getActiveWorkers().size());
+    assertEquals(0, scheduler
+        .getActiveWorkers().size());
+    scheduler.updateWorkers();
+    assertEquals(2, scheduler
+        .getActiveWorkers().size());
+    scheduler.updateWorkers();
+    assertEquals(2, scheduler
+        .getActiveWorkers().size());
+    scheduler.updateWorkers();
+    assertEquals(1, scheduler
+        .getActiveWorkers().size());
+    scheduler.updateWorkers();
+    assertEquals(2, scheduler
+        .getActiveWorkers().size());
   }
 
   @Test
@@ -121,35 +129,41 @@ public final class LoadManagerTest {
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
-    LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
-    assertTrue(loadManager.submitLoad(validLoadPath, OptionalLong.empty(), false, true));
+    Scheduler scheduler = new Scheduler(fileSystemMaster, fileSystemContext);
+    assertTrue(scheduler.submitJob(validLoadPath, OptionalLong.empty(), false, true));
     verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
         && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
         && journalEntry.getLoadJob().getState() == Job.PJobState.CREATED
         && !journalEntry.getLoadJob().hasBandwidth()
         && journalEntry.getLoadJob().getVerify()));
-    assertEquals(1, loadManager.getLoadJobs().size());
-    assertEquals(OptionalLong.empty(), loadManager.getLoadJobs().get(validLoadPath).getBandwidth());
-    assertTrue(loadManager.getLoadJobs().get(validLoadPath).isVerificationEnabled());
-    assertFalse(loadManager.submitLoad(validLoadPath, OptionalLong.of(1000), true, false));
+    assertEquals(1, scheduler
+        .getLoadJobs().size());
+    assertEquals(OptionalLong.empty(), scheduler
+        .getLoadJobs().get(validLoadPath).getBandwidth());
+    assertTrue(scheduler
+        .getLoadJobs().get(validLoadPath).isVerificationEnabled());
+    assertFalse(scheduler.submitJob(validLoadPath, OptionalLong.of(1000), true, false));
     verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
         && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
         && journalEntry.getLoadJob().getState() == Job.PJobState.CREATED
         && journalEntry.getLoadJob().getBandwidth() == 1000
         && !journalEntry.getLoadJob().getPartialListing()  // we don't update partialListing
         && !journalEntry.getLoadJob().getVerify()));
-    assertEquals(1, loadManager.getLoadJobs().size());
-    assertEquals(1000, loadManager.getLoadJobs().get(validLoadPath).getBandwidth().getAsLong());
-    assertFalse(loadManager.getLoadJobs().get(validLoadPath).isVerificationEnabled());
+    assertEquals(1, scheduler
+        .getLoadJobs().size());
+    assertEquals(1000, scheduler
+        .getLoadJobs().get(validLoadPath).getBandwidth().getAsLong());
+    assertFalse(scheduler
+        .getLoadJobs().get(validLoadPath).isVerificationEnabled());
     doThrow(new FileDoesNotExistException("test")).when(fileSystemMaster).checkAccess(any(), any());
     assertThrows(NotFoundRuntimeException.class,
-        () -> loadManager.submitLoad(invalidLoadPath, OptionalLong.empty(), false, true));
+        () -> scheduler.submitJob(invalidLoadPath, OptionalLong.empty(), false, true));
     doThrow(new InvalidPathException("test")).when(fileSystemMaster).checkAccess(any(), any());
     assertThrows(NotFoundRuntimeException.class,
-        () -> loadManager.submitLoad(invalidLoadPath, OptionalLong.empty(), false, true));
+        () -> scheduler.submitJob(invalidLoadPath, OptionalLong.empty(), false, true));
     doThrow(new AccessControlException("test")).when(fileSystemMaster).checkAccess(any(), any());
     assertThrows(UnauthenticatedRuntimeException.class,
-        () -> loadManager.submitLoad(invalidLoadPath, OptionalLong.empty(), false, true));
+        () -> scheduler.submitJob(invalidLoadPath, OptionalLong.empty(), false, true));
   }
 
   @Test
@@ -159,15 +173,15 @@ public final class LoadManagerTest {
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
-    LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
-    assertTrue(loadManager.submitLoad(validLoadPath, OptionalLong.of(100), false, true));
+    Scheduler scheduler = new Scheduler(fileSystemMaster, fileSystemContext);
+    assertTrue(scheduler.submitJob(validLoadPath, OptionalLong.of(100), false, true));
     verify(journalContext, times(1)).append(any());
     verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
         && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
         && journalEntry.getLoadJob().getState() == Job.PJobState.CREATED
         && journalEntry.getLoadJob().getBandwidth() == 100
         && journalEntry.getLoadJob().getVerify()));
-    assertTrue(loadManager.stopLoad(validLoadPath));
+    assertTrue(scheduler.stopLoad(validLoadPath));
     verify(journalContext, times(2)).append(any());
     verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
         && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
@@ -175,13 +189,13 @@ public final class LoadManagerTest {
         && journalEntry.getLoadJob().getBandwidth() == 100
         && journalEntry.getLoadJob().getVerify()
         && journalEntry.getLoadJob().hasEndTime()));
-    assertFalse(loadManager.stopLoad(validLoadPath));
+    assertFalse(scheduler.stopLoad(validLoadPath));
     verify(journalContext, times(2)).append(any());
-    assertFalse(loadManager.stopLoad("/does/not/exist"));
+    assertFalse(scheduler.stopLoad("/does/not/exist"));
     verify(journalContext, times(2)).append(any());
-    assertFalse(loadManager.submitLoad(validLoadPath, OptionalLong.of(100), false, true));
+    assertFalse(scheduler.submitJob(validLoadPath, OptionalLong.of(100), false, true));
     verify(journalContext, times(3)).append(any());
-    assertTrue(loadManager.stopLoad(validLoadPath));
+    assertTrue(scheduler.stopLoad(validLoadPath));
     verify(journalContext, times(4)).append(any());
   }
 
@@ -191,13 +205,13 @@ public final class LoadManagerTest {
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
-    LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(fileSystemMaster, fileSystemContext);
     IntStream.range(0, 100).forEach(
-        i -> assertTrue(loadManager.submitLoad(
+        i -> assertTrue(scheduler.submitJob(
             String.format("/path/to/load/%d", i), OptionalLong.empty(), false, true)));
     assertThrows(
         ResourceExhaustedRuntimeException.class,
-        () -> loadManager.submitLoad("/path/to/load/101", OptionalLong.empty(), false, true));
+        () -> scheduler.submitJob("/path/to/load/101", OptionalLong.empty(), false, true));
   }
 
   @Test
@@ -285,26 +299,26 @@ public final class LoadManagerTest {
       return responseFuture;
     });
 
-    LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(fileSystemMaster, fileSystemContext);
     LoadJob loadJob = new LoadJob("test", Optional.of("user"), "1",
         OptionalLong.of(1000), false, true);
-    loadManager.submitLoad(loadJob);
+    scheduler.submitJob(loadJob);
     verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
         && journalEntry.getLoadJob().getLoadPath().equals("test")
         && journalEntry.getLoadJob().getState() == Job.PJobState.CREATED
         && journalEntry.getLoadJob().getBandwidth() == 1000
         && journalEntry.getLoadJob().getVerify()));
-    loadManager.start();
-    while (!loadManager
-        .getLoadProgress("test", LoadProgressReportFormat.TEXT, false)
+    scheduler.start();
+    while (!scheduler
+        .getLoadProgress("test", JobProgressReportFormat.TEXT, false)
         .contains("SUCCEEDED")) {
-      assertFalse(loadManager.submitLoad(
+      assertFalse(scheduler.submitJob(
           new LoadJob("test", Optional.of("user"), "1", OptionalLong.of(1000), false, true)));
       Thread.sleep(1000);
     }
     Thread.sleep(1000);
-    loadManager.stop();
-    assertEquals(LoadJobState.SUCCEEDED, loadJob.getJobState());
+    scheduler.stop();
+    assertEquals(JobState.SUCCEEDED, loadJob.getJobState());
     assertEquals(0, loadJob.getCurrentBlockCount());
     assertTrue(loadJob.getTotalBlockCount() > 5000);
     verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
@@ -312,7 +326,7 @@ public final class LoadManagerTest {
         && journalEntry.getLoadJob().getState() == Job.PJobState.SUCCEEDED
         && journalEntry.getLoadJob().getBandwidth() == 1000
         && journalEntry.getLoadJob().getVerify()));
-    assertTrue(loadManager.submitLoad(new LoadJob("test", "user", OptionalLong.of(1000))));
+    assertTrue(scheduler.submitJob(new LoadJob("test", "user", OptionalLong.of(1000))));
   }
 
   @Test
@@ -343,19 +357,20 @@ public final class LoadManagerTest {
       return responseFuture;
     });
 
-    LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(fileSystemMaster, fileSystemContext);
     for (int i = 0; i < 100; i++) {
       LoadJob loadJob = new LoadJob("test" + i, "user", OptionalLong.of(1000));
-      loadManager.submitLoad(loadJob);
+      scheduler.submitJob(loadJob);
     }
     assertThrows(ResourceExhaustedRuntimeException.class,
-        () -> loadManager.submitLoad(new LoadJob("/way/too/many", "user", OptionalLong.empty())));
-    loadManager.start();
-    while (loadManager.getLoadJobs().values().stream()
-        .anyMatch(loadJob -> loadJob.getJobState() != LoadJobState.SUCCEEDED)) {
+        () -> scheduler.submitJob(new LoadJob("/way/too/many", "user", OptionalLong.empty())));
+    scheduler.start();
+    while (scheduler
+        .getLoadJobs().values().stream()
+        .anyMatch(loadJob -> loadJob.getJobState() != JobState.SUCCEEDED)) {
       Thread.sleep(1000);
     }
-    loadManager.stop();
+    scheduler.stop();
   }
 
   @Test
@@ -381,10 +396,11 @@ public final class LoadManagerTest {
         // Retryable exception, second load job should succeed
         .thenThrow(new ResourceExhaustedRuntimeException("test", true))
         .thenReturn(fileInfos);
-    LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
-    loadManager.start();
-    loadManager.submitLoad("test", OptionalLong.of(1000), false, false);
-    while (!loadManager.getLoadProgress("test", LoadProgressReportFormat.TEXT, false)
+    Scheduler scheduler = new Scheduler(fileSystemMaster, fileSystemContext);
+    scheduler.start();
+    scheduler.submitJob("test", OptionalLong.of(1000), false, false);
+    while (!scheduler
+        .getLoadProgress("test", JobProgressReportFormat.TEXT, false)
         .contains("FAILED")) {
       Thread.sleep(1000);
     }
@@ -394,12 +410,13 @@ public final class LoadManagerTest {
       responseFuture.set(response.build());
       return responseFuture;
     });
-    loadManager.submitLoad("test", OptionalLong.of(1000), false, false);
-    while (!loadManager.getLoadProgress("test", LoadProgressReportFormat.TEXT, false)
+    scheduler.submitJob("test", OptionalLong.of(1000), false, false);
+    while (!scheduler
+        .getLoadProgress("test", JobProgressReportFormat.TEXT, false)
         .contains("SUCCEEDED")) {
       Thread.sleep(1000);
     }
-    loadManager.stop();
+    scheduler.stop();
   }
 
   @Test
@@ -409,22 +426,31 @@ public final class LoadManagerTest {
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
-    LoadManager loadManager = new LoadManager(fileSystemMaster, fileSystemContext);
-    loadManager.start();
+    Scheduler scheduler = new Scheduler(fileSystemMaster, fileSystemContext);
+    scheduler.start();
     IntStream.range(0, 5).forEach(
-        i -> assertTrue(loadManager.submitLoad(
+        i -> assertTrue(scheduler.submitJob(
             String.format("/load/%d", i), OptionalLong.empty(), false, true)));
-    assertEquals(5, loadManager.getLoadJobs().size());
-    loadManager.getLoadJobs().get("/load/1").setJobState(LoadJobState.VERIFYING);
-    loadManager.getLoadJobs().get("/load/2").setJobState(LoadJobState.FAILED);
-    loadManager.getLoadJobs().get("/load/3").setJobState(LoadJobState.SUCCEEDED);
-    loadManager.getLoadJobs().get("/load/4").setJobState(LoadJobState.STOPPED);
-    loadManager.cleanupStaleJob();
-    assertEquals(2, loadManager.getLoadJobs().size());
-    assertTrue(loadManager.getLoadJobs().containsKey("/load/0"));
-    assertTrue(loadManager.getLoadJobs().containsKey("/load/1"));
+    assertEquals(5, scheduler
+        .getLoadJobs().size());
+    scheduler
+        .getLoadJobs().get("/load/1").setJobState(JobState.VERIFYING);
+    scheduler
+        .getLoadJobs().get("/load/2").setJobState(JobState.FAILED);
+    scheduler
+        .getLoadJobs().get("/load/3").setJobState(JobState.SUCCEEDED);
+    scheduler
+        .getLoadJobs().get("/load/4").setJobState(JobState.STOPPED);
+    scheduler.cleanupStaleJob();
+    assertEquals(2, scheduler
+        .getLoadJobs().size());
+    assertTrue(scheduler
+        .getLoadJobs().containsKey("/load/0"));
+    assertTrue(scheduler
+        .getLoadJobs().containsKey("/load/1"));
     IntStream.range(2, 5).forEach(
-        i -> assertFalse(loadManager.getLoadJobs().containsKey(String.format("/load/%d", i))));
+        i -> assertFalse(scheduler
+            .getLoadJobs().containsKey(String.format("/load/%d", i))));
     Configuration.modifiableGlobal().unset(PropertyKey.JOB_RETENTION_TIME);
   }
 }

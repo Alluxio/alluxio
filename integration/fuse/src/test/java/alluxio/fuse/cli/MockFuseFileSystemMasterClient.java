@@ -26,6 +26,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
@@ -35,6 +36,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UpdateUfsModePOptions;
+import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -45,6 +47,7 @@ import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -202,19 +205,18 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
-      boolean usePartialListing, boolean verify) {
+  public Optional<String> submitJob(JobRequest job) {
+    return Optional.empty();
+  }
+
+  @Override
+  public boolean stopJob(String jobId) {
     return false;
   }
 
   @Override
-  public boolean stopLoad(AlluxioURI path) {
-    return false;
-  }
-
-  @Override
-  public String getLoadProgress(AlluxioURI path,
-      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
+  public String getJobProgress(String jobId,
+      JobProgressReportFormat format, boolean verbose) {
     return null;
   }
 
