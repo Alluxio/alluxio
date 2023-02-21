@@ -24,6 +24,7 @@ import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.proto.meta.DoraMeta;
 import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.UnderFileSystemUtils;
@@ -63,7 +64,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   private final DoraWorker mWorker;
 
   private final String mRootUFS;
-  private final LoadingCache<String, UfsFileStatus> mUfsFileStatusCache;
+  private final LoadingCache<String, UfsStatus> mUfsStatusCache;
 
   /**
    * Creates a new implementation of gRPC BlockWorker interface.
@@ -76,13 +77,13 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
     UnderFileSystem ufs = UnderFileSystem.Factory.create(
         mRootUFS,
         UnderFileSystemConfiguration.defaults(Configuration.global()));
-    mUfsFileStatusCache = CacheBuilder.newBuilder()
+    mUfsStatusCache = CacheBuilder.newBuilder()
         .maximumSize(Configuration.getInt(PropertyKey.DORA_UFS_FILE_STATUS_CACHE_SIZE))
         .expireAfterWrite(Configuration.getDuration(PropertyKey.DORA_UFS_FILE_STATUS_CACHE_TTL))
-        .build(new CacheLoader<String, UfsFileStatus>() {
+        .build(new CacheLoader<String, UfsStatus>() {
           @Override
-          public UfsFileStatus load(String path) throws Exception {
-            return ufs.getFileStatus(path);
+          public UfsStatus load(String path) throws Exception {
+            return ufs.getStatus(path);
           }
         });
   }
@@ -117,7 +118,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
 
   @Override
   public void getStatus(GetStatusPRequest request,
-                        StreamObserver<GetStatusPResponse> responseObserver) {
+      StreamObserver<GetStatusPResponse> responseObserver) {
     FileInfo fi;
     try {
       String alluxioFilePath = request.getPath();
@@ -125,7 +126,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       String ufsFullPath = PathUtils.concatPath(mRootUFS, alluxioFilePath);
       String fn = new AlluxioURI(alluxioFilePath).getName();
 
-      UfsFileStatus status = mUfsFileStatusCache.getIfPresent(ufsFullPath);
+      UfsStatus status = mUfsStatusCache.getIfPresent(ufsFullPath);
       if (status == null) {
         // The requested FileStatus is not present in memory cache.
         // Let's try to query local persistent DoraMetaStore.
@@ -139,11 +140,11 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
           UfsFileStatus ufs = new UfsFileStatus(fi.getPath(), contentHash, fi.getLength(),
               fi.getLastModificationTimeMs(),
               fi.getOwner(), fi.getGroup(), (short) fi.getMode(), fi.getBlockSizeBytes());
-          mUfsFileStatusCache.put(ufsFullPath, ufs);
+          mUfsStatusCache.put(ufsFullPath, ufs);
         } else {
           // This will load UfsFileStatus from UFS and put it in memory cache
-          status = mUfsFileStatusCache.get(ufsFullPath);
-          fi = buildFileInfoFromUfsFileStatus(status, fn, alluxioFilePath, ufsFullPath);
+          status = mUfsStatusCache.get(ufsFullPath);
+          fi = buildFileInfoFromUfsStatus(status, fn, alluxioFilePath, ufsFullPath);
 
           // Add this to persistent DoraMetaStore.
           long currentTimeMillis = System.currentTimeMillis();
@@ -152,7 +153,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
         }
       } else {
         // Found in memory cache
-        fi = buildFileInfoFromUfsFileStatus(status, fn, alluxioFilePath, ufsFullPath);
+        fi = buildFileInfoFromUfsStatus(status, fn, alluxioFilePath, ufsFullPath);
       }
 
       GetStatusPResponse response = GetStatusPResponse.newBuilder().setFileInfo(fi).build();
@@ -164,21 +165,24 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
     }
   }
 
-  private FileInfo buildFileInfoFromUfsFileStatus(UfsFileStatus status,
+  private FileInfo buildFileInfoFromUfsStatus(UfsStatus status,
       String filename, String alluxioFilePath, String ufsFullPath) {
-    return FileInfo.newBuilder()
+    FileInfo.Builder info = FileInfo.newBuilder()
         .setFileId(ufsFullPath.hashCode())
         .setName(filename)
         .setPath(alluxioFilePath)
         .setUfsPath(ufsFullPath)
-        .setLength(status.getContentLength())
-        .setBlockSizeBytes(status.getBlockSize())
         .setMode(status.getMode())
         .setFolder(status.isDirectory())
         .setLastModificationTimeMs(status.getLastModifiedTime())
         .setOwner(status.getOwner())
         .setGroup(status.getGroup())
-        .setCompleted(true)
-        .build();
+        .setCompleted(true);
+    if (status instanceof UfsFileStatus) {
+      UfsFileStatus fileStatus = (UfsFileStatus) status;
+      info.setLength(fileStatus.getContentLength())
+          .setBlockSizeBytes(fileStatus.getBlockSize());
+    }
+    return info.build();
   }
 }
