@@ -454,6 +454,7 @@ public class S3ObjectTask extends S3BaseTask {
                   .setWriteType(S3RestUtils.getS3WriteType())
                   .putAllXattr(xattrMap)
                   .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                  .setOverwrite(true)
                   .build();
 
           try {
@@ -560,11 +561,6 @@ public class S3ObjectTask extends S3BaseTask {
         } else {
           toRead = Long.parseLong(contentLength);
         }
-        try {
-          S3RestUtils.deleteExistObject(userFs, objectUri);
-        } catch (IOException | AlluxioException e) {
-          throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath(), auditContext);
-        }
         FileOutStream os = userFs.createFile(objectUri, createFilePOptions);
         try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
           long read = ByteStreams.copy(ByteStreams.limit(readStream, toRead),
@@ -657,11 +653,6 @@ public class S3ObjectTask extends S3BaseTask {
         throw new S3Exception("Copying an object to itself invalid.",
             targetPath, S3ErrorCode.INVALID_REQUEST);
       }
-      try {
-        S3RestUtils.deleteExistObject(userFs, objectUri);
-      } catch (IOException | AlluxioException e) {
-        throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath(), auditContext);
-      }
       try (FileInStream in = userFs.openFile(new AlluxioURI(sourcePath));
            FileOutStream out = userFs.createFile(objectUri, copyFilePOption)) {
         MessageDigest md5 = MessageDigest.getInstance("MD5");
@@ -726,6 +717,7 @@ public class S3ObjectTask extends S3BaseTask {
                       .setOtherBits(Bits.NONE).build())
                   .setWriteType(S3RestUtils.getS3WriteType())
                   .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                  .setOverwrite(true)
                   .build();
           return createObject(objectPath, userFs, filePOptions, auditContext);
         }
@@ -794,7 +786,8 @@ public class S3ObjectTask extends S3BaseTask {
                 .setMode(PMode.newBuilder()
                     .setOwnerBits(Bits.ALL)
                     .setGroupBits(Bits.ALL)
-                    .setOtherBits(Bits.NONE).build());
+                    .setOtherBits(Bits.NONE).build())
+                .setOverwrite(true);
             String entityTag = copyObject(userFs, auditContext, objectPath,
                 copySource, copyFilePOptionsBuilder.build());
             return new CopyPartResult(entityTag);
