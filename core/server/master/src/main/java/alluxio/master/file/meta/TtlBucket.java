@@ -17,10 +17,6 @@ import alluxio.conf.PropertyKey;
 import com.google.common.base.Objects;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -88,7 +84,6 @@ public final class TtlBucket implements Comparable<TtlBucket> {
   public Collection<Long> getInodes() {
     return mInodeList;
   }
-
 
   /**
    * Adds a inode to the bucket.

@@ -30,7 +30,6 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -61,6 +60,11 @@ public final class TtlBucketList implements Checkpointed {
     mBucketList = new ConcurrentSkipListSet<>();
   }
 
+  /**
+   * Load inode from inode store on processing the provided inode id.
+   * @param inodeId
+   * @return Inode
+   */
   public Inode loadInode(long inodeId) {
     return mInodeStore.get(inodeId).orElseGet(null);
   }
@@ -126,10 +130,11 @@ public final class TtlBucketList implements Checkpointed {
       bucket = getBucketContaining(inode);
       if (bucket == null) {
         long ttlEndTimeMs = inode.getCreationTimeMs() + inode.getTtl();
-        // No bucket contains the inode, so a new bucket should be added with an appropriate interval
-        // start. Assume the list of buckets have continuous intervals, and the first interval starts
-        // at 0, then ttlEndTimeMs should be in number (ttlEndTimeMs / interval) interval, so the
-        // start time of this interval should be (ttlEndTimeMs / interval) * interval.
+        // No bucket contains the inode, so a new bucket should be added with an appropriate
+        // interval start. Assume the list of buckets have continuous intervals, and the
+        // first interval starts at 0, then ttlEndTimeMs should be in number
+        // (ttlEndTimeMs / interval) interval, so the start time of this interval should be
+        // (ttlEndTimeMs / interval) * interval.
         long interval = TtlBucket.getTtlIntervalMs();
         bucket = new TtlBucket(interval == 0 ? ttlEndTimeMs : ttlEndTimeMs / interval * interval);
         if (!mBucketList.add(bucket)) {
@@ -139,9 +144,9 @@ public final class TtlBucketList implements Checkpointed {
         }
       }
       bucket.addInode(inode);
-      /* if we added to the bucket but it got concurrently polled by InodeTtlChecker, we're not sure
-       this newly-added inode will be processed by the checker, so we need to try insert again.
-       Resolve for (c.f. ALLUXIO-2821) */
+      /* if we added to the bucket but it got concurrently polled by InodeTtlChecker,
+      we're not sure this newly-added inode will be processed by the checker,
+      so we need to try insert again. Resolve for (c.f. ALLUXIO-2821) */
       if (mBucketList.contains(bucket)) {
         break;
       }
@@ -149,13 +154,14 @@ public final class TtlBucketList implements Checkpointed {
   }
 
   /**
-   * Removes an inode from the bucket containing it if the inode is in one of the buckets, otherwise,
-   * do nothing.
+   * Removes an inode from the bucket containing it if the inode is in one
+   * of the buckets, otherwise, do nothing.
    *
    * <p>
    * Assume that no inode in the buckets has ttl value that equals {@link Constants#NO_TTL}.
-   * If an inode with valid ttl value is inserted to the buckets and its ttl value is going to be set
-   * to {@link Constants#NO_TTL} later, be sure to remove the inode from the buckets first.
+   * If an inode with valid ttl value is inserted to the buckets and its ttl value is
+   * going to be set to {@link Constants#NO_TTL} later, be sure to remove the inode
+   * from the buckets first.
    *
    * @param inode the inode to be removed
    */
@@ -178,7 +184,7 @@ public final class TtlBucketList implements Checkpointed {
    */
   public Set<TtlBucket> pollExpiredBuckets(long time) {
     Set<TtlBucket> expiredBuckets = new HashSet<>();
-    TtlBucket upperBound = new TtlBucket(time- TtlBucket.getTtlIntervalMs());
+    TtlBucket upperBound = new TtlBucket(time - TtlBucket.getTtlIntervalMs());
     while (!mBucketList.isEmpty() && mBucketList.first().compareTo(upperBound) <= 0) {
       expiredBuckets.add(mBucketList.pollFirst());
     }
@@ -198,7 +204,7 @@ public final class TtlBucketList implements Checkpointed {
   public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
     CheckpointOutputStream cos = new CheckpointOutputStream(output, CheckpointType.LONGS);
     for (TtlBucket bucket : mBucketList) {
-      for(long inodeId : bucket.getInodes()) {
+      for (long inodeId : bucket.getInodes()) {
         cos.writeLong(inodeId);
       }
     }

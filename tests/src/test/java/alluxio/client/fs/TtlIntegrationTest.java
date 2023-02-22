@@ -235,10 +235,10 @@ public class TtlIntegrationTest extends BaseIntegrationTest {
     // Individual children file's ttl should not be changed.
     Random random = new Random();
     int fileNum = random.nextInt(numFiles);
-    URIStatus anyFileStatus = mFileSystem.getStatus(new AlluxioURI("/" + directoryName +
-        "/" + fileNamePrefix + fileNum));
-    assert(anyFileStatus.getFileInfo().getTtl() ==
-        (fileNum % 2 == 0 ? TTL_INTERVAL_MS * 2000 : TTL_INTERVAL_MS * 1000));
+    URIStatus anyFileStatus = mFileSystem.getStatus(new AlluxioURI("/" + directoryName
+        + "/" + fileNamePrefix + fileNum));
+    assert (anyFileStatus.getFileInfo().getTtl()
+        == (fileNum % 2 == 0 ? TTL_INTERVAL_MS * 2000 : TTL_INTERVAL_MS * 1000));
 
     CommonUtils.sleepMs(4 * TTL_INTERVAL_MS);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);

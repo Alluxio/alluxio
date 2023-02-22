@@ -63,7 +63,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
     Set<TtlBucket> expiredBuckets = mTtlBuckets.pollExpiredBuckets(System.currentTimeMillis());
     Set<Inode> failedInodes = new HashSet();
     for (TtlBucket bucket : expiredBuckets) {
-        for (long inodeId : bucket.getInodes()) {
+      for (long inodeId : bucket.getInodes()) {
         // Throw if interrupted.
         if (Thread.interrupted()) {
           throw new InterruptedException("InodeTtlChecker interrupted.");
@@ -87,8 +87,9 @@ final class InodeTtlChecker implements HeartbeatExecutor {
             inode = mTtlBuckets.loadInode(inodeId);
             // Check again if this inode is indeed expired.
             if (inode == null || inode.getTtl() == Constants.NO_TTL
-                || inode.getCreationTimeMs() + inode.getTtl() > System.currentTimeMillis())
+                || inode.getCreationTimeMs() + inode.getTtl() > System.currentTimeMillis()) {
               continue;
+            }
             TtlAction ttlAction = inode.getTtlAction();
             LOG.info("Path {} TTL has expired, performing action {}", path.getPath(), ttlAction);
             switch (ttlAction) {
@@ -148,7 +149,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
     }
     // Put back those failed-to-expire inodes for next round retry.
     if (!failedInodes.isEmpty()) {
-      for(Inode inode : failedInodes) {
+      for (Inode inode : failedInodes) {
         mTtlBuckets.insert(inode);
       }
     }
