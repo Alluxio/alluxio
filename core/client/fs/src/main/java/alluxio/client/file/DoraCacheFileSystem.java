@@ -74,7 +74,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       return mDelegatedFileSystem.getStatus(ufsFullPath, options);
     }
     try {
-      return mDoraClient.getStatus(path.getPath(), options);
+      return mDoraClient.getStatus(ufsFullPath.toString(), options);
     } catch (RuntimeException ex) {
       LOG.debug("Dora client get status error. Fall back to UFS.", ex);
       return mDelegatedFileSystem.getStatus(ufsFullPath, options);
@@ -119,6 +119,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
+    ufsFullPath = new AlluxioURI(PathUtils.normalizePath(ufsFullPath.toString(), "/"));
     return mDelegatedFileSystem.listStatus(ufsFullPath, options);
   }
 
@@ -159,16 +160,37 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   }
 
   /**
-   * Converts the Alluxio based path to UfsBaseFileSystem based path.
+   * Converts the Alluxio based path to UfsBaseFileSystem based path if needed.
    *
-   * UfsBaseFileSystem expects absolute/full file path.
+   * UfsBaseFileSystem expects absolute/full file path. The Dora Worker
+   * expects absolute/full file path, too. So we need to convert the input path from Alluxio
+   * relative path to full UFS path if it is an Alluxio relative path.
+   * We do this by checking if the path is leading with the UFS root. If the input path
+   * is already considered to be UFS path, it should be leading a UFS path with appropriate scheme.
+   * If local file system is used, please add "file://" scheme before the path.
    *
    * @param alluxioPath Alluxio based path
    * @return UfsBaseFileSystem based full path
    */
   private AlluxioURI convertAlluxioPathToUFSPath(AlluxioURI alluxioPath) {
-    UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
-    String ufsFullPath = PathUtils.concatPath(under.getRootUFS(), alluxioPath.getPath());
-    return new AlluxioURI(ufsFullPath);
+    if (mDelegatedFileSystem instanceof UfsBaseFileSystem) {
+      UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
+      AlluxioURI rootUFS = under.getRootUFS();
+      try {
+        if (rootUFS.isAncestorOf(alluxioPath)) {
+          // Treat this path as a full UFS path.
+          return alluxioPath;
+        }
+      } catch (InvalidPathException e) {
+        LOG.error("Invalid path {}", alluxioPath);
+        throw new RuntimeException(e);
+      }
+
+      // Treat this path as Alluxio relative, and add the UFS root before it.
+      String ufsFullPath = PathUtils.concatPath(rootUFS, alluxioPath.toString());
+      return new AlluxioURI(ufsFullPath);
+    } else {
+      return alluxioPath;
+    }
   }
 }

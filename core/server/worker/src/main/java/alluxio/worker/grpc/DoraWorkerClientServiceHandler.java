@@ -28,7 +28,6 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.UnderFileSystemUtils;
-import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.dora.DoraMetaStore;
 import alluxio.worker.dora.DoraWorker;
@@ -123,7 +122,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
     try {
       String alluxioFilePath = request.getPath();
 
-      String ufsFullPath = PathUtils.concatPath(mRootUFS, alluxioFilePath);
+      String ufsFullPath = alluxioFilePath; // Now the full UFS path is passed from client.
       String fn = new AlluxioURI(alluxioFilePath).getName();
 
       UfsStatus status = mUfsStatusCache.getIfPresent(ufsFullPath);

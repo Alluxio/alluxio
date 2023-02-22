@@ -32,8 +32,8 @@ public class InStreamTest extends AbstractStreamTest {
     AlluxioURI alluxioURI = getTestFileUri();
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
     AlluxioURI filePathInAlluxio = new AlluxioURI(alluxioURI.getName());
-    URIStatus uriStatus = mFileSystem.getStatus(filePathInAlluxio);
-    try (FuseFileStream inStream = createStream(filePathInAlluxio)) {
+    URIStatus uriStatus = mFileSystem.getStatus(alluxioURI);
+    try (FuseFileStream inStream = createStream(alluxioURI)) {
       Assert.assertEquals(uriStatus.getLength(), inStream.getFileStatus().getFileLength());
       ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_FILE_LEN);
       Assert.assertEquals(DEFAULT_FILE_LEN, inStream.read(buffer, DEFAULT_FILE_LEN, 0));
@@ -55,8 +55,7 @@ public class InStreamTest extends AbstractStreamTest {
   public void randomRead() throws Exception {
     AlluxioURI alluxioURI = getTestFileUri();
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
-    AlluxioURI fileNameInAlluxio = new AlluxioURI(alluxioURI.getName());
-    try (FuseFileStream inStream = createStream(fileNameInAlluxio)) {
+    try (FuseFileStream inStream = createStream(alluxioURI)) {
       ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_FILE_LEN / 2);
       Assert.assertEquals(DEFAULT_FILE_LEN / 2,
           inStream.read(buffer, DEFAULT_FILE_LEN / 2, DEFAULT_FILE_LEN / 2));
