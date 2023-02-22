@@ -6050,10 +6050,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "when Alluxio workers are required but not ready.")
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_HDFS_LISTSTATUS_MOUNTINFO_DISABLE =
-      booleanBuilder(Name.USER_HDFS_LISTSTATUS_MOUNTINFO_DISABLE)
-          .setDefaultValue(true)
-          .setIsHidden(true)
+  public static final PropertyKey USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS =
+      booleanBuilder(Name.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS)
+          .setDefaultValue(false)
           .setDescription("When a hdfs client listStatus a file, Whether not to use mount info")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
@@ -8599,7 +8598,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_WRITE_INIT_MAX_DURATION =
         "alluxio.user.file.write.init.max.duration";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
-    public static final String USER_HDFS_LISTSTATUS_MOUNTINFO_DISABLE =
+    public static final String USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS =
         "user.hdfs.liststatus.mountinfo.disable";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.reader.chunk.size.bytes";

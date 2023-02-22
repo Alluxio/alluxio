@@ -410,8 +410,8 @@ public class AbstractFileSystemTest {
     URI uri = URI.create(Constants.HEADER + "host:1");
     alluxioHadoopFs.initialize(uri, getConf());
     ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
-        .setNoNeedUseMountInfo(alluxioHadoopFs.mAlluxioConf.getBoolean(
-            PropertyKey.USER_HDFS_LISTSTATUS_MOUNTINFO_DISABLE)).build();
+        .setExcludeMountInfo(alluxioHadoopFs.mAlluxioConf.getBoolean(
+            PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS)).build();
     when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
         listStatusPOptions))
         .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
@@ -436,8 +436,8 @@ public class AbstractFileSystemTest {
       URI uri = URI.create(Constants.HEADER + "host:1");
       alluxioHadoopFs.initialize(uri, getConf());
       ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
-          .setNoNeedUseMountInfo(alluxioHadoopFs.mAlluxioConf.getBoolean(
-              PropertyKey.USER_HDFS_LISTSTATUS_MOUNTINFO_DISABLE)).build();
+          .setExcludeMountInfo(alluxioHadoopFs.mAlluxioConf.getBoolean(
+              PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS)).build();
       when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
           listStatusPOptions))
           .thenThrow(new FileNotFoundException("ALLUXIO-2036 not Found"));

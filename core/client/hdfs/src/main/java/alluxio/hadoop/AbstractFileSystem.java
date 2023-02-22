@@ -598,8 +598,9 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     List<URIStatus> statuses;
     try {
       ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
-          .setNoNeedUseMountInfo(
-              mAlluxioConf.getBoolean(PropertyKey.USER_HDFS_LISTSTATUS_MOUNTINFO_DISABLE)).build();
+          .setExcludeMountInfo(
+              mAlluxioConf.getBoolean(
+                  PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS)).build();
       statuses = mFileSystem.listStatus(uri, listStatusPOptions);
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(getAlluxioPath(path).toString());

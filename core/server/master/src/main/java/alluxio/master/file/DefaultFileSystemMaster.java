@@ -981,7 +981,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @return the {@link FileInfo} for the given inode
    */
   private FileInfo getFileInfoInternal(LockedInodePath inodePath, Counter counter,
-      boolean noNeedUseMountInfo)
+      boolean excludeMountInfo)
       throws FileDoesNotExistException, UnavailableException {
     int inMemoryPercentage;
     int inAlluxioPercentage;
@@ -1028,7 +1028,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
     }
     fileInfo.setXAttr(inode.getXAttr());
-    if (!noNeedUseMountInfo) {
+    if (!excludeMountInfo) {
       MountTable.Resolution resolution;
       try {
         resolution = mMountTable.resolve(uri);
@@ -1155,8 +1155,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             DescendantType descendantTypeForListStatus =
                 (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
             try {
-              if (!(context.getOptions().hasNoNeedUseMountInfo() && context.getOptions()
-                  .getNoNeedUseMountInfo())) {
+              if (!context.getOptions().getExcludeMountInfo()) {
                 resolution = mMountTable.resolve(path);
               }
             } catch (InvalidPathException e) {
@@ -1248,10 +1247,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       // at this depth.
       if ((depth != 0 || inode.isFile()) && prefixComponents.size() <= depth) {
         if (context.listedItem()) {
-          boolean noNeedUseMountInfo =
-              context.getOptions().hasNoNeedUseMountInfo() && context.getOptions()
-                  .getNoNeedUseMountInfo() ? true : false;
-          resultStream.submit(getFileInfoInternal(currInodePath, counter, noNeedUseMountInfo));
+          resultStream.submit(getFileInfoInternal(currInodePath, counter,
+              context.getOptions().getExcludeMountInfo()));
         }
         if (context.isDoneListing()) {
           return;
