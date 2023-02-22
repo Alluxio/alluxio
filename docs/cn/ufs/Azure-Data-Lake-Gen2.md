@@ -79,7 +79,7 @@ alluxio.master.mount.table.root.option.fs.azure.account.oauth2.client.secret=<CL
 
 ### 嵌套挂载
 
-Azure Data Lake 存储位置可以挂载在 Alluxio 命名空间中的嵌套目录下，以便统一访问多个底层存储系统。可使用 Alluxio 的 [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }})（命令行）来进行挂载。
+Azure Data Lake 存储位置可以挂载在 Alluxio 命名空间中的嵌套目录下，以便统一访问多个底层存储系统。可使用 Alluxio 的 [Command Line Interface]({{ '/cn/operation/User-CLI.html' | relativize_url }})（命令行）来进行挂载。
 
 ```console
 $ ./bin/alluxio fs mount \
@@ -117,7 +117,7 @@ alluxio.master.mount.table.root.option.fs.azure.account.oauth2.msi.tenant=<TENAN
 ```
 
 ### 嵌套挂载
-Azure Data Lake 存储位置可以挂载在 Alluxio 命名空间中的嵌套目录下，以便统一访问多个底层存储系统。可使用 Alluxio 的 [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }})（命令行）来进行挂载。
+Azure Data Lake 存储位置可以挂载在 Alluxio 命名空间中的嵌套目录下，以便统一访问多个底层存储系统。可使用 Alluxio 的 [Command Line Interface]({{ '/cn/operation/User-CLI.html' | relativize_url }})（命令行）来进行挂载。
 
 ```console
 $ ./bin/alluxio fs mount \
