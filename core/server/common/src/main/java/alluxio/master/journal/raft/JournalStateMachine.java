@@ -578,7 +578,9 @@ public class JournalStateMachine extends BaseStateMachine {
       synchronized (mStorage) {
         // The start time of the most recent snapshot
         for (Journaled j : getStateMachines()) {
+          LOG.debug("taking {} checkpoint started", j.getCheckpointName());
           j.writeToCheckpoint(snapshotDir);
+          LOG.debug("taking {} checkpoint finished", j.getCheckpointName());
         }
         long snapshotId = mNextSequenceNumberToRead - 1;
         try (DataOutputStream idFile = new DataOutputStream(
@@ -617,7 +619,9 @@ public class JournalStateMachine extends BaseStateMachine {
           snapshotId = is.readLong();
         }
         for (Journaled j : getStateMachines()) {
+          LOG.debug("loading {} checkpoint started", j.getCheckpointName());
           j.restoreFromCheckpoint(snapshotDir);
+          LOG.debug("loading {} checkpoint finished", j.getCheckpointName());
         }
       }
     } catch (Exception e) {

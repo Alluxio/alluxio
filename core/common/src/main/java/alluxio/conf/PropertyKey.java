@@ -2567,7 +2567,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE =
       enumBuilder(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE, CompressionType.class)
           // default value informed by https://github.com/facebook/rocksdb/wiki/Compression
-          .setDefaultValue(CompressionType.NO_COMPRESSION)
+          .setDefaultValue(CompressionType.LZ4_COMPRESSION)
           .setDescription("The compression algorithm that RocksDB uses internally. One of "
               + "{NO_COMPRESSION SNAPPY_COMPRESSION ZLIB_COMPRESSION BZLIB2_COMPRESSION "
               + "LZ4_COMPRESSION LZ4HC_COMPRESSION XPRESS_COMPRESSION ZSTD_COMPRESSION "
