@@ -479,6 +479,10 @@ public class InodeSyncStream {
         // If descendantType is ONE, then we shouldn't process any more paths except for those
         // currently in the queue
         stopNum = mPendingPaths.size();
+      } else if (mDescendantType == DescendantType.NONE) {
+        // If descendantType is NONE, do not process any path in the queue after
+        // the inode itself is loaded.
+        stopNum = 0;
       }
 
       // process the sync result for the original path
@@ -899,6 +903,8 @@ public class InodeSyncStream {
     if (mDescendantType == DescendantType.ONE) {
       syncChildren =
           syncChildren && mRootScheme.getPath().equals(inodePath.getUri());
+    } else if (mDescendantType == DescendantType.NONE) {
+      syncChildren = false;
     }
 
     int childCount = inode.isDirectory() ? (int) inode.asDirectory().getChildCount() : 0;

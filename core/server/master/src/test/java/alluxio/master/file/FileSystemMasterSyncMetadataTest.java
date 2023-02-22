@@ -325,6 +325,73 @@ public final class FileSystemMasterSyncMetadataTest {
     assertFalse(delegateMaster.mSynced.get());
   }
 
+  /**
+   * Tests the getStatus operation does not trigger a metadata sync that loads its children.
+   */
+  @Test
+  public void getStatusOnDirectory() throws Exception {
+    AlluxioURI ufsMount = setupMockUfsS3Mount();
+    short mode = ModeUtils.getUMask("0700").toShort();
+
+    // Mock dir1 ufs path
+    AlluxioURI dir1Path = ufsMount.join("dir1");
+    UfsDirectoryStatus dir1Status = new UfsDirectoryStatus(dir1Path.getPath(), "", "", mode);
+    Mockito.when(mUfs.getParsedFingerprint(dir1Path.toString()))
+        .thenReturn(Fingerprint.create("s3", dir1Status));
+    Mockito.when(mUfs.exists(dir1Path.toString())).thenReturn(true);
+    Mockito.when(mUfs.isDirectory(dir1Path.toString())).thenReturn(true);
+    Mockito.when(mUfs.isFile(dir1Path.toString())).thenReturn(false);
+    Mockito.when(mUfs.getStatus(dir1Path.toString())).thenReturn(dir1Status);
+    Mockito.when(mUfs.getDirectoryStatus(dir1Path.toString())).thenReturn(dir1Status);
+
+    // Mock nested ufs path /dir1/dir2
+    AlluxioURI nestedDirectoryPath = ufsMount.join("dir1").join("dir2");
+    UfsDirectoryStatus nestedDirStatus =
+        new UfsDirectoryStatus(dir1Path.getPath(), "", "", mode);
+
+    Mockito.when(mUfs.getParsedFingerprint(nestedDirectoryPath.toString()))
+        .thenReturn(Fingerprint.create("s3", nestedDirStatus));
+    Mockito.when(mUfs.exists(nestedDirectoryPath.toString())).thenReturn(true);
+    Mockito.when(mUfs.isDirectory(nestedDirectoryPath.toString())).thenReturn(true);
+    Mockito.when(mUfs.isFile(nestedDirectoryPath.toString())).thenReturn(false);
+    Mockito.when(mUfs.getStatus(nestedDirectoryPath.toString())).thenReturn(nestedDirStatus);
+    Mockito.when(mUfs.getDirectoryStatus(nestedDirectoryPath.toString()))
+        .thenReturn(nestedDirStatus);
+
+    // Mock creating the same directory and nested file in UFS out of band
+    AlluxioURI dir1 = new AlluxioURI("/mnt/local/dir1");
+    AlluxioURI dir2 = new AlluxioURI("/mnt/local/dir1/dir2");
+    Mockito.when(mUfs.listStatus(eq(dir1Path.toString())))
+        .thenReturn(new UfsStatus[]{new UfsDirectoryStatus("dir2", "", "", mode)});
+    Mockito.when(mUfs.listStatus(eq(nestedDirectoryPath.toString())))
+        .thenReturn(new UfsStatus[]{});
+
+    // List the nested directory
+    // listStatus is called on UFS /dir1/dir2
+    mFileSystemMaster.listStatus(dir2, ListStatusContext.mergeFrom(
+            ListStatusPOptions.newBuilder().setCommonOptions(
+                FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())));
+    Mockito.verify(mUfs, Mockito.times(0))
+        .listStatus(eq(dir1Path.toString()));
+    Mockito.verify(mUfs, Mockito.times(1))
+        .listStatus(eq(nestedDirectoryPath.toString()));
+    Mockito.verify(mUfs, Mockito.times(1))
+        .getStatus(eq(nestedDirectoryPath.toString()));
+
+    // Get the file info of the directory /dir1
+    // listStatus is called on UFS /dir1/dir2
+    // Make sure there is neither list nor get on UFS /dir1/dir2
+    mFileSystemMaster.getFileInfo(dir1, GetStatusContext.mergeFrom(
+        GetStatusPOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())));
+    Mockito.verify(mUfs, Mockito.times(0))
+        .listStatus(eq(dir1Path.toString()));
+    Mockito.verify(mUfs, Mockito.times(1))
+        .listStatus(eq(nestedDirectoryPath.toString()));
+    Mockito.verify(mUfs, Mockito.times(1))
+        .getStatus(eq(nestedDirectoryPath.toString()));
+  }
+
   private static class SyncAwareFileSystemMaster extends DefaultFileSystemMaster {
     AtomicBoolean mSynced = new AtomicBoolean(false);
 
