@@ -37,6 +37,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
 import alluxio.util.ThreadUtils;
+import alluxio.web.ProxyWebServer;
 
 import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -44,6 +45,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
 import com.google.common.primitives.Longs;
+import com.google.common.util.concurrent.RateLimiter;
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
@@ -311,7 +313,20 @@ public class S3ObjectTask extends S3BaseTask {
             RangeFileInStream ris = RangeFileInStream.Factory.create(
                 is, status.getLength(), s3Range);
 
-            Response.ResponseBuilder res = Response.ok(ris, MediaType.APPLICATION_OCTET_STREAM_TYPE)
+            InputStream inputStream;
+            RateLimiter globalRateLimiter = (RateLimiter) mHandler.getServletContext()
+                .getAttribute(ProxyWebServer.GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY);
+            long rate = (long) mHandler.getMetaFS().getConf()
+                .getInt(PropertyKey.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB) * Constants.MB;
+            RateLimiter currentRateLimiter = S3RestUtils.createRateLimiter(rate).orElse(null);
+            if (currentRateLimiter == null && globalRateLimiter == null) {
+              inputStream = ris;
+            } else {
+              inputStream = new RateLimitInputStream(ris, globalRateLimiter, currentRateLimiter);
+            }
+
+            Response.ResponseBuilder res = Response.ok(inputStream,
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE)
                 .lastModified(new Date(status.getLastModificationTimeMs()))
                 .header(S3Constants.S3_CONTENT_LENGTH_HEADER,
                     s3Range.getLength(status.getLength()));
