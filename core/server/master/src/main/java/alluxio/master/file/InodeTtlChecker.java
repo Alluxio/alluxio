@@ -34,6 +34,7 @@ import alluxio.proto.journal.File.UpdateInodeEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -59,9 +60,10 @@ final class InodeTtlChecker implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() throws InterruptedException {
-    Set<TtlBucket> expiredBuckets = mTtlBuckets.getExpiredBuckets(System.currentTimeMillis());
+    Set<TtlBucket> expiredBuckets = mTtlBuckets.pollExpiredBuckets(System.currentTimeMillis());
+    Set<Inode> failedInodes = new HashSet();
     for (TtlBucket bucket : expiredBuckets) {
-      for (Inode inode : bucket.getInodes()) {
+        for (long inodeId : bucket.getInodes()) {
         // Throw if interrupted.
         if (Thread.interrupted()) {
           throw new InterruptedException("InodeTtlChecker interrupted.");
@@ -69,18 +71,24 @@ final class InodeTtlChecker implements HeartbeatExecutor {
         AlluxioURI path = null;
         try (LockedInodePath inodePath =
             mInodeTree.lockFullInodePath(
-                inode.getId(), LockPattern.READ, NoopJournalContext.INSTANCE)
+                inodeId, LockPattern.READ, NoopJournalContext.INSTANCE)
         ) {
           path = inodePath.getUri();
         } catch (FileDoesNotExistException e) {
           // The inode has already been deleted, nothing needs to be done.
           continue;
         } catch (Exception e) {
-          LOG.error("Exception trying to clean up {} for ttl check: {}", inode.toString(),
-              e.toString());
+          LOG.error("Exception trying to clean up inode:{},path:{} for ttl check: {}", inodeId,
+              path, e.toString());
         }
         if (path != null) {
+          Inode inode = null;
           try {
+            inode = mTtlBuckets.loadInode(inodeId);
+            // Check again if this inode is indeed expired.
+            if (inode == null || inode.getTtl() == Constants.NO_TTL
+                || inode.getCreationTimeMs() + inode.getTtl() > System.currentTimeMillis())
+              continue;
             TtlAction ttlAction = inode.getTtlAction();
             LOG.info("Path {} TTL has expired, performing action {}", path.getPath(), ttlAction);
             switch (ttlAction) {
@@ -102,7 +110,6 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                       .setTtlAction(ProtobufUtils.toProtobuf(TtlAction.DELETE))
                       .build());
                 }
-                mTtlBuckets.remove(inode);
                 break;
               case DELETE:
                 // public delete method will lock the path, and check WRITE permission required at
@@ -131,12 +138,20 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 LOG.error("Unknown ttl action {}", ttlAction);
             }
           } catch (Exception e) {
-            LOG.error("Exception trying to clean up {} for ttl check", inode, e);
+            LOG.error("Exception trying to clean up {} for ttl check", path, e);
+            if (inode != null) {
+              failedInodes.add(inode);
+            }
           }
         }
       }
     }
-    mTtlBuckets.removeBuckets(expiredBuckets);
+    // Put back those failed-to-expire inodes for next round retry.
+    if (!failedInodes.isEmpty()) {
+      for(Inode inode : failedInodes) {
+        mTtlBuckets.insert(inode);
+      }
+    }
   }
 
   @Override

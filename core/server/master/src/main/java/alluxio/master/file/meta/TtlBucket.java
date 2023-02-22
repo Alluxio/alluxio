@@ -17,7 +17,11 @@ import alluxio.conf.PropertyKey;
 import com.google.common.base.Objects;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentSkipListSet;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -43,7 +47,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * A collection of inodes whose ttl value is in the range of this bucket's interval. The mapping
    * is from inode id to inode.
    */
-  private final ConcurrentHashMap<Long, Inode> mInodes;
+  private final ConcurrentSkipListSet<Long> mInodeList;
 
   /**
    * Creates a new instance of {@link TtlBucket}.
@@ -52,7 +56,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    */
   public TtlBucket(long startTimeMs) {
     mTtlIntervalStartTimeMs = startTimeMs;
-    mInodes = new ConcurrentHashMap<>();
+    mInodeList = new ConcurrentSkipListSet<>();
   }
 
   /**
@@ -81,9 +85,10 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * @return the set of all inodes in the bucket backed by the internal set, changes made to the
    *         returned set will be shown in the internal set, and vice versa
    */
-  public Collection<Inode> getInodes() {
-    return mInodes.values();
+  public Collection<Long> getInodes() {
+    return mInodeList;
   }
+
 
   /**
    * Adds a inode to the bucket.
@@ -92,24 +97,24 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * @return true if a new inode was added to the bucket
    */
   public boolean addInode(Inode inode) {
-    return mInodes.put(inode.getId(), inode) == null;
+    return mInodeList.add(inode.getId());
   }
 
   /**
-   * Removes a inode from the bucket.
+   * Removes an inode from the bucket.
    *
    * @param inode the inode to be removed
-   * @return true if a inode was removed
+   * @return true if an inode was removed
    */
   public boolean removeInode(InodeView inode) {
-    return mInodes.remove(inode.getId()) != null;
+    return mInodeList.remove(inode.getId());
   }
 
   /**
    * @return the number of inodes in the bucket
    */
   public int size() {
-    return mInodes.size();
+    return mInodeList.size();
   }
 
   /**

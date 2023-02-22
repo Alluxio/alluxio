@@ -16,7 +16,6 @@ import static org.mockito.Mockito.mock;
 import alluxio.master.metastore.InodeStore;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -24,6 +23,7 @@ import org.junit.Test;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Unit tests for {@link TtlBucketList}.
@@ -54,8 +54,8 @@ public final class TtlBucketListTest {
     mBucketList = new TtlBucketList(mock(InodeStore.class));
   }
 
-  private List<TtlBucket> getSortedExpiredBuckets(long expireTime) {
-    List<TtlBucket> buckets = Lists.newArrayList(mBucketList.getExpiredBuckets(expireTime));
+  private List<TtlBucket> pollSortedExpiredBuckets(long expireTime) {
+    List<TtlBucket> buckets = Lists.newArrayList(mBucketList.pollExpiredBuckets(expireTime));
     Collections.sort(buckets);
     return buckets;
   }
@@ -64,7 +64,9 @@ public final class TtlBucketListTest {
       Inode... inodes) {
     TtlBucket bucket = expiredBuckets.get(bucketIndex);
     Assert.assertEquals(inodes.length, bucket.getInodes().size());
-    Assert.assertTrue(bucket.getInodes().containsAll(Lists.newArrayList(inodes)));
+    List<Long> inodeIds = Lists.newArrayList(inodes).stream().map(Inode::getId)
+        .collect(Collectors.toList());
+    Assert.assertTrue(bucket.getInodes().containsAll(inodeIds));
   }
 
   /**
@@ -73,24 +75,27 @@ public final class TtlBucketListTest {
   @Test
   public void insert() {
     // No bucket should expire.
-    List<TtlBucket> expired = getSortedExpiredBuckets(BUCKET1_START);
+    List<TtlBucket> expired = pollSortedExpiredBuckets(BUCKET1_START);
     Assert.assertTrue(expired.isEmpty());
 
     mBucketList.insert(BUCKET1_FILE1);
     // The first bucket should expire.
-    expired = getSortedExpiredBuckets(BUCKET1_END);
+    expired = pollSortedExpiredBuckets(BUCKET1_END);
     assertExpired(expired, 0, BUCKET1_FILE1);
+    mBucketList.insert(BUCKET1_FILE1);
 
     mBucketList.insert(BUCKET1_FILE2);
     // Only the first bucket should expire.
     for (long end = BUCKET2_START; end < BUCKET2_END; end++) {
-      expired = getSortedExpiredBuckets(end);
+      expired = pollSortedExpiredBuckets(end);
       assertExpired(expired, 0, BUCKET1_FILE1, BUCKET1_FILE2);
+      mBucketList.insert(BUCKET1_FILE1);
+      mBucketList.insert(BUCKET1_FILE2);
     }
 
     mBucketList.insert(BUCKET2_FILE);
     // All buckets should expire.
-    expired = getSortedExpiredBuckets(BUCKET2_END);
+    expired = pollSortedExpiredBuckets(BUCKET2_END);
     assertExpired(expired, 0, BUCKET1_FILE1, BUCKET1_FILE2);
     assertExpired(expired, 1, BUCKET2_FILE);
   }
@@ -104,39 +109,28 @@ public final class TtlBucketListTest {
     mBucketList.insert(BUCKET1_FILE2);
     mBucketList.insert(BUCKET2_FILE);
 
-    List<TtlBucket> expired = getSortedExpiredBuckets(BUCKET1_END);
+    List<TtlBucket> expired = pollSortedExpiredBuckets(BUCKET1_END);
     assertExpired(expired, 0, BUCKET1_FILE1, BUCKET1_FILE2);
+    mBucketList.insert(BUCKET1_FILE1);
+    mBucketList.insert(BUCKET1_FILE2);
 
     mBucketList.remove(BUCKET1_FILE1);
-    expired = getSortedExpiredBuckets(BUCKET1_END);
+    expired = pollSortedExpiredBuckets(BUCKET1_END);
     // Only the first bucket should expire, and there should be only one BUCKET1_FILE2 in it.
     assertExpired(expired, 0, BUCKET1_FILE2);
+    mBucketList.insert(BUCKET1_FILE2);
 
     mBucketList.remove(BUCKET1_FILE2);
-    expired = getSortedExpiredBuckets(BUCKET1_END);
+    expired = pollSortedExpiredBuckets(BUCKET1_END);
     // Only the first bucket should expire, and there should be no files in it.
     assertExpired(expired, 0); // nothing in bucket 0.
 
-    expired = getSortedExpiredBuckets(BUCKET2_END);
-    // All buckets should expire.
-    assertExpired(expired, 0); // nothing in bucket 0.
-    assertExpired(expired, 1, BUCKET2_FILE);
-
-    // Remove bucket 0.
-    expired = getSortedExpiredBuckets(BUCKET1_END);
-    mBucketList.removeBuckets(Sets.newHashSet(expired));
-
-    expired = getSortedExpiredBuckets(BUCKET2_END);
-    // The only remaining bucket is bucket 1, it should expire.
+    expired = pollSortedExpiredBuckets(BUCKET2_END);
+    // Current bucket should expire.
     assertExpired(expired, 0, BUCKET2_FILE);
 
-    mBucketList.remove(BUCKET2_FILE);
-    expired = getSortedExpiredBuckets(BUCKET2_END);
-    assertExpired(expired, 0); // nothing in bucket.
-
-    mBucketList.removeBuckets(Sets.newHashSet(expired));
     // No bucket should exist now.
-    expired = getSortedExpiredBuckets(BUCKET2_END);
+    expired = pollSortedExpiredBuckets(BUCKET2_END);
     Assert.assertEquals(0, expired.size());
   }
 }
