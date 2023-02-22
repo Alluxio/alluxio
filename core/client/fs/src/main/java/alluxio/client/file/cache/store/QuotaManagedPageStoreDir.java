@@ -21,6 +21,7 @@ import alluxio.resource.LockResource;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -166,7 +167,12 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
     }
   }
 
-  abstract class Usage implements CacheUsage {
+  /**
+   * Generic implementation of cache usage stats.
+   * Subclasses may need to override the individual cache stat to reflect their own logic
+   * of usage accounting.
+   */
+  class Usage implements CacheUsage {
     @Override
     public long used() {
       return getCachedBytes();
@@ -181,6 +187,18 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
     @Override
     public long capacity() {
       return getCapacityBytes();
+    }
+
+    /**
+     * This generic implementation assumes the directory does not support finer-grained
+     * stats partitioning.
+     *
+     * @param partition how to partition the cache
+     * @return always empty
+     */
+    @Override
+    public Optional<CacheUsage> partitionedBy(PartitionDescriptor<?> partition) {
+      return Optional.empty();
     }
   }
 }

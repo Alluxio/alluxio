@@ -150,11 +150,6 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
 
   @Override
   public Optional<CacheUsage> getUsage() {
-    return Optional.of(new QuotaManagedPageStoreDir.Usage() {
-      @Override
-      public Optional<CacheUsage> partitionedBy(PartitionDescriptor<?> partition) {
-        return Optional.empty();
-      }
-    });
+    return Optional.of(new QuotaManagedPageStoreDir.Usage());
   }
 }
