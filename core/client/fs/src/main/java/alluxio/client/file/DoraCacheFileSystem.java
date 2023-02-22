@@ -119,6 +119,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
+    ufsFullPath = new AlluxioURI(PathUtils.normalizePath(ufsFullPath.toString(), "/"));
     return mDelegatedFileSystem.listStatus(ufsFullPath, options);
   }
 
@@ -186,7 +187,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       }
 
       // Treat this path as Alluxio relative, and add the UFS root before it.
-      String ufsFullPath = PathUtils.concatPath(rootUFS, alluxioPath.getPath());
+      String ufsFullPath = PathUtils.concatPath(rootUFS, alluxioPath.toString());
       return new AlluxioURI(ufsFullPath);
     } else {
       return alluxioPath;
