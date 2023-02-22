@@ -58,7 +58,7 @@ import javax.annotation.concurrent.GuardedBy;
  * Handles file read request.
  */
 public class FileReadHandler implements StreamObserver<ReadRequest> {
-  private static final Logger LOG = LoggerFactory.getLogger(BlockReadHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(FileReadHandler.class);
 
   private static final long MAX_CHUNK_SIZE =
       Configuration.getBytes(PropertyKey.WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES);

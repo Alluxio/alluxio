@@ -47,6 +47,7 @@ import alluxio.underfs.PagedUfsReader;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.UnderFileSystemUtils;
@@ -95,7 +96,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final AlluxioConfiguration mConf;
   private final BlockMasterClientPool mBlockMasterClientPool;
   private final String mRootUFS;
-  private final LoadingCache<String, UfsFileStatus> mUfsFileStatusCache;
+  private final LoadingCache<String, UfsStatus> mUfsStatusCache;
   private WorkerNetAddress mAddress;
 
   private RocksDBDoraMetaStore mMetaStore;
@@ -115,13 +116,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     UnderFileSystem ufs = UnderFileSystem.Factory.create(
         mRootUFS,
         UnderFileSystemConfiguration.defaults(Configuration.global()));
-    mUfsFileStatusCache = CacheBuilder.newBuilder()
+    mUfsStatusCache = CacheBuilder.newBuilder()
         .maximumSize(Configuration.getInt(PropertyKey.DORA_UFS_FILE_STATUS_CACHE_SIZE))
         .expireAfterWrite(Configuration.getDuration(PropertyKey.DORA_UFS_FILE_STATUS_CACHE_TTL))
-        .build(new CacheLoader<String, UfsFileStatus>() {
+        .build(new CacheLoader<String, UfsStatus>() {
           @Override
-          public UfsFileStatus load(String path) throws IOException {
-            return ufs.getFileStatus(path);
+          public UfsStatus load(String path) throws IOException {
+            return ufs.getStatus(path);
           }
         });
     mPageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
@@ -225,7 +226,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     String ufsFullPath = PathUtils.concatPath(mRootUFS, fileId);
     String fn = new AlluxioURI(fileId).getName();
 
-    UfsFileStatus status = mUfsFileStatusCache.getIfPresent(ufsFullPath);
+    UfsStatus status = mUfsStatusCache.getIfPresent(ufsFullPath);
     if (status == null) {
       // The requested FileStatus is not present in memory cache.
       // Let's try to query local persistent DoraMetaStore.
@@ -238,11 +239,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         UfsFileStatus ufs = new UfsFileStatus(fi.getPath(), contentHash, fi.getLength(),
             fi.getLastModificationTimeMs(),
             fi.getOwner(), fi.getGroup(), (short) fi.getMode(), fi.getBlockSizeBytes());
-        mUfsFileStatusCache.put(ufsFullPath, ufs);
+        mUfsStatusCache.put(ufsFullPath, ufs);
       } else {
         // This will load UfsFileStatus from UFS and put it in memory cache
         try {
-          status = mUfsFileStatusCache.get(ufsFullPath);
+          status = mUfsStatusCache.get(ufsFullPath);
         } catch (ExecutionException e) {
           Throwable throwable = e.getCause();
           // this should be the exception thrown by ufs.getFileStatus which is IOException
@@ -253,7 +254,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                 throwable);
           }
         }
-        fi = buildFileInfoFromUfsFileStatus(status, fn, fileId, ufsFullPath);
+        fi = buildFileInfoFromUfsStatus(status, fn, fileId, ufsFullPath);
 
         // Add this to persistent DoraMetaStore.
         long currentTimeMillis = System.currentTimeMillis();
@@ -262,7 +263,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       }
     } else {
       // Found in memory cache
-      fi = buildFileInfoFromUfsFileStatus(status, fn, fileId, ufsFullPath);
+      fi = buildFileInfoFromUfsStatus(status, fn, fileId, ufsFullPath);
     }
     // because cache manager uses hashed ufs path as file ID
     // TODO(bowen): we need a dedicated type for file IDs!
@@ -283,22 +284,25 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         .setInMemoryPercentage(cachedPercentage);
   }
 
-  private alluxio.grpc.FileInfo buildFileInfoFromUfsFileStatus(UfsFileStatus status,
+  private alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status,
       String filename, String alluxioFilePath, String ufsFullPath) {
-    return alluxio.grpc.FileInfo.newBuilder()
+    alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
         .setFileId(ufsFullPath.hashCode())
         .setName(filename)
         .setPath(alluxioFilePath)
         .setUfsPath(ufsFullPath)
-        .setLength(status.getContentLength())
-        .setBlockSizeBytes(status.getBlockSize())
         .setMode(status.getMode())
         .setFolder(status.isDirectory())
         .setLastModificationTimeMs(status.getLastModifiedTime())
         .setOwner(status.getOwner())
         .setGroup(status.getGroup())
-        .setCompleted(true)
-        .build();
+        .setCompleted(true);
+    if (status instanceof UfsFileStatus) {
+      UfsFileStatus fileStatus = (UfsFileStatus) status;
+      infoBuilder.setLength(fileStatus.getContentLength())
+          .setBlockSizeBytes(fileStatus.getBlockSize());
+    }
+    return infoBuilder.build();
   }
 
   @Override
