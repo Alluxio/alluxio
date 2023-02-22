@@ -12,7 +12,6 @@
 package alluxio.client.file.dora;
 
 import alluxio.client.block.stream.DataReader;
-import alluxio.client.block.stream.GrpcDataReader;
 import alluxio.client.file.FileInStream;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.OutOfRangeException;
@@ -29,7 +28,7 @@ import java.util.Objects;
  */
 public class DoraCacheFileInStream extends FileInStream {
 
-  private final GrpcDataReader.Factory mGrpcReaderFactory;
+  private final DataReader.Factory mReaderFactory;
   private final long mLength;
 
   private long mPos = 0;
@@ -39,12 +38,12 @@ public class DoraCacheFileInStream extends FileInStream {
 
   /**
    * Constructor.
-   * @param grpcReaderFactory
+   * @param readerFactory
    * @param length
    */
-  public DoraCacheFileInStream(GrpcDataReader.Factory grpcReaderFactory,
+  public DoraCacheFileInStream(DataReader.Factory readerFactory,
       long length) {
-    mGrpcReaderFactory = grpcReaderFactory;
+    mReaderFactory = readerFactory;
     mLength = length;
   }
 
@@ -104,7 +103,7 @@ public class DoraCacheFileInStream extends FileInStream {
     }
 
     int totalBytesRead = 0;
-    try (DataReader reader = mGrpcReaderFactory.create(position, length)) {
+    try (DataReader reader = mReaderFactory.create(position, length)) {
       while (totalBytesRead < length) {
         DataBuffer dataBuffer = null;
         try {
@@ -169,7 +168,7 @@ public class DoraCacheFileInStream extends FileInStream {
     try {
       closeDataReader();
     } finally {
-      mGrpcReaderFactory.close();
+      mReaderFactory.close();
     }
     mClosed = true;
   }
@@ -179,7 +178,7 @@ public class DoraCacheFileInStream extends FileInStream {
    */
   private void readChunk() throws IOException {
     if (mDataReader == null) {
-      mDataReader = mGrpcReaderFactory.create(mPos, mLength - mPos);
+      mDataReader = mReaderFactory.create(mPos, mLength - mPos);
     }
 
     if (mCurrentChunk != null && mCurrentChunk.readableBytes() == 0) {

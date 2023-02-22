@@ -20,6 +20,7 @@ import alluxio.network.protocol.RPCMessageEncoder;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.AsyncCacheRequestManager;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.dora.DoraWorker;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -37,6 +38,8 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
   private final WorkerProcess mWorkerProcess;
   private final FileTransferType mFileTransferType;
   private final AsyncCacheRequestManager mRequestManager;
+  private static final boolean DORA_WORKER_ENABLED =
+      Configuration.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
 
   /**
    * @param workerProcess the Alluxio worker process
@@ -45,8 +48,13 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
     mWorkerProcess = workerProcess;
     mFileTransferType = Configuration
         .getEnum(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
-    mRequestManager = new AsyncCacheRequestManager(
-        NettyExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class));
+    if (DORA_WORKER_ENABLED) {
+      // TODO(JiamingMai): AsyncCacheRequestManager need to use DoraWorker if we want to enable Dora
+      mRequestManager = null;
+    } else {
+      mRequestManager = new AsyncCacheRequestManager(
+          NettyExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class));
+    }
   }
 
   @Override
@@ -67,6 +75,27 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
     pipeline.addLast("heartbeatHandler", new HeartbeatHandler());
 
     // Block Handlers
+    if (DORA_WORKER_ENABLED) {
+      addBlockHandlerForDora(pipeline);
+    } else {
+      addBlockHandlerByDefault(pipeline);
+    }
+
+    // UFS Handlers
+    pipeline.addLast("ufsFileWriteHandler", new UfsFileWriteHandler(
+        NettyExecutors.FILE_WRITER_EXECUTOR, mWorkerProcess.getUfsManager()));
+    // Unsupported Message Handler
+    pipeline.addLast("unsupportedMessageHandler", new UnsupportedMessageHandler());
+  }
+
+  private void addBlockHandlerForDora(ChannelPipeline pipeline) {
+    pipeline.addLast("blockReadHandler",
+        new FileReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR,
+            mWorkerProcess.getWorker(DoraWorker.class), mFileTransferType));
+    //TODO(JiamingMai): WriteHandle also needs to be replaced, but it has not been implemented yet
+  }
+
+  private void addBlockHandlerByDefault(ChannelPipeline pipeline) {
     pipeline.addLast("blockReadHandler",
         new BlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR,
             mWorkerProcess.getWorker(BlockWorker.class), mFileTransferType));
@@ -80,12 +109,5 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
         new ShortCircuitBlockWriteHandler(NettyExecutors.RPC_EXECUTOR,
             mWorkerProcess.getWorker(BlockWorker.class)));
     pipeline.addLast("asyncCacheHandler", new AsyncCacheHandler(mRequestManager));
-
-    // UFS Handlers
-    pipeline.addLast("ufsFileWriteHandler", new UfsFileWriteHandler(
-        NettyExecutors.FILE_WRITER_EXECUTOR, mWorkerProcess.getUfsManager()));
-
-    // Unsupported Message Handler
-    pipeline.addLast("unsupportedMessageHandler", new UnsupportedMessageHandler());
   }
 }

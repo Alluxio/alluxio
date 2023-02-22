@@ -707,6 +707,34 @@ public final class NetworkAddressUtils {
   }
 
   /**
+   * Extracts rpcPort socket address from Alluxio representation of network address.
+   *
+   * @param netAddress the input network address representation
+   * @param conf Alluxio configuration
+   * @return the socket address
+   */
+  public static SocketAddress getRpcPortSocketAddress(WorkerNetAddress netAddress,
+                                                       AlluxioConfiguration conf) {
+    SocketAddress address;
+    if (NettyUtils.isDomainSocketAccessible(netAddress, conf)) {
+      address = new DomainSocketAddress(netAddress.getDomainSocketPath());
+    } else {
+      String host = netAddress.getHost();
+      // issues#11172: If the worker is in a container, use the container hostname
+      // to establish the connection.
+      if (!netAddress.getContainerHost().equals("")) {
+        LOG.debug("Worker is in a container. Use container host {} instead of physical host {}",
+            netAddress.getContainerHost(), host);
+        host = netAddress.getContainerHost();
+      }
+
+      int port = netAddress.getRpcPort();
+      address = new InetSocketAddress(host, port);
+    }
+    return address;
+  }
+
+  /**
    * Test if the input address is serving an Alluxio service. This method make use of the
    * gRPC protocol for performing service communication.
    * This method throws UnauthenticatedException if the user is not authenticated,
