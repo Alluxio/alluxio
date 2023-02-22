@@ -32,6 +32,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Optional;
 
 /**
  * Tests for the {@link LocalCacheManager} class.
@@ -258,6 +259,11 @@ public final class CacheManagerWithShadowCacheTest {
     @Override
     public boolean append(PageId pageId, int appendAt, byte[] page, CacheContext cacheContext) {
       return false;
+    }
+
+    @Override
+    public Optional<CacheUsage> getUsage() {
+      return Optional.empty();
     }
 
     @Override

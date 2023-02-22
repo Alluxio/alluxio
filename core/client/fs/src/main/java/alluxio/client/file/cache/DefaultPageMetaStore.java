@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -214,6 +215,49 @@ public class DefaultPageMetaStore implements PageMetaStore {
       return null;
     }
     return victimInfo;
+  }
+
+  @Override
+  public Optional<CacheUsage> getUsage() {
+    return Optional.of(new Usage());
+  }
+
+  class Usage implements CacheUsage {
+
+    @Override
+    public long used() {
+      return bytes();
+    }
+
+    @Override
+    public long available() {
+      return capacity() - used();
+    }
+
+    @Override
+    public long capacity() {
+      return mDirs.stream().mapToLong(PageStoreDir::getCapacityBytes).sum();
+    }
+
+    @Override
+    public Optional<CacheUsage> partitionedBy(PartitionDescriptor<?> partition) {
+      if (partition instanceof FilePartition) {
+        String fileId = ((FilePartition) partition).getIdentifier();
+        Set<PageInfo> pages = mPages.getByField(INDEX_FILE_ID, fileId);
+        long used = pages.stream().mapToLong(PageInfo::getPageSize).sum();
+        long capacity = capacity();
+        long available = capacity - bytes();
+        return Optional.of(new ImmutableCacheUsageView(used, available, capacity));
+      }
+      if (partition instanceof DirPartition) {
+        int dirIndex = ((DirPartition) partition).getIdentifier();
+        if (dirIndex < 0 || dirIndex >= mDirs.size()) {
+          return Optional.empty();
+        }
+        return mDirs.get(dirIndex).getUsage();
+      }
+      return Optional.empty();
+    }
   }
 
   private static final class Metrics {

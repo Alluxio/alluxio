@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache;
 
+import static alluxio.client.file.cache.CacheUsage.PartitionDescriptor.scope;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -30,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.file.Paths;
+import java.util.Optional;
 
 /**
  * Tests for the {@link QuotaPageMetaStore} class.
@@ -110,5 +112,43 @@ public class QuotaPageMetaStoreTest extends DefaultMetaStoreTest {
     assertEquals(0, mQuotaMetaStore.bytes(mTableScope));
     assertEquals(0, mQuotaMetaStore.bytes(mSchemaScope));
     assertEquals(0, mQuotaMetaStore.bytes(CacheScope.GLOBAL));
+  }
+
+  @Test
+  public void scopeCacheUsage() {
+    PageId pageId1 = new PageId("1", 0);
+    PageInfo page1Info = new PageInfo(pageId1, mPageSize, mPartitionScope, mPageStoreDir);
+    mQuotaMetaStore.addPage(pageId1, page1Info);
+    PageId pageId2 = new PageId("2", 0);
+    PageInfo page2Info = new PageInfo(pageId2, mPageSize, mSchemaScope, mPageStoreDir);
+    mQuotaMetaStore.addPage(pageId2, page2Info);
+    PageId pageId3 = new PageId("3", 0);
+    // this page does not belong to any scope
+    PageInfo page3Info = new PageInfo(pageId3, mPageSize, mPageStoreDir);
+    mQuotaMetaStore.addPage(pageId3, page3Info);
+
+    Optional<CacheUsage> partitionUsage = mQuotaMetaStore.getUsage()
+        .flatMap(usage -> usage.partitionedBy(scope(mPartitionScope)));
+    assertEquals(Optional.of(mPageSize),
+        partitionUsage.map(CacheUsage::used));
+    assertEquals(Optional.of(mPageStoreDir.getCapacityBytes() - mPageSize * 3),
+        partitionUsage.map(CacheUsage::available));
+
+    Optional<CacheUsage> schemaUsage = mQuotaMetaStore.getUsage()
+        .flatMap(usage -> usage.partitionedBy(scope(mSchemaScope)));
+    assertEquals(Optional.of(mPageSize * 2),
+        schemaUsage.map(CacheUsage::used));
+    assertEquals(Optional.of(mPageStoreDir.getCapacityBytes() - mPageSize * 3),
+        schemaUsage.map(CacheUsage::available));
+    assertEquals(Optional.of(mPageStoreDir.getCapacityBytes()),
+        schemaUsage.map(CacheUsage::capacity));
+
+    Optional<CacheUsage> globalUsage = mQuotaMetaStore.getUsage();
+    assertEquals(Optional.of(mPageSize * 3),
+        globalUsage.map(CacheUsage::used));
+    assertEquals(Optional.of(mPageStoreDir.getCapacityBytes() - mPageSize * 3),
+        globalUsage.map(CacheUsage::available));
+    assertEquals(Optional.of(mPageStoreDir.getCapacityBytes()),
+        globalUsage.map(CacheUsage::capacity));
   }
 }

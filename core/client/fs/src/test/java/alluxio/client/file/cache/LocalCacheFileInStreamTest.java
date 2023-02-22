@@ -81,6 +81,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiConsumer;
@@ -655,6 +656,33 @@ public class LocalCacheFileInStreamTest {
     @Override
     public void close() throws Exception {
       // no-op
+    }
+
+    @Override
+    public Optional<CacheUsage> getUsage() {
+      return Optional.of(new Usage());
+    }
+
+    class Usage implements CacheUsage {
+      @Override
+      public Optional<CacheUsage> partitionedBy(PartitionDescriptor<?> partition) {
+        return Optional.empty();
+      }
+
+      @Override
+      public long used() {
+        return mPages.values().stream().mapToInt(page -> page.length).sum();
+      }
+
+      @Override
+      public long available() {
+        return Integer.MAX_VALUE;
+      }
+
+      @Override
+      public long capacity() {
+        return Integer.MAX_VALUE;
+      }
     }
   }
 

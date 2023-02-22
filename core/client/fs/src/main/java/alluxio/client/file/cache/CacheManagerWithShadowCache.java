@@ -26,6 +26,7 @@ import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 
 /**
@@ -140,6 +141,11 @@ public class CacheManagerWithShadowCache implements CacheManager {
   @Override
   public void close() throws Exception {
     mCacheManager.close();
+  }
+
+  @Override
+  public Optional<CacheUsage> getUsage() {
+    return mCacheManager.getUsage();
   }
 
   /**
