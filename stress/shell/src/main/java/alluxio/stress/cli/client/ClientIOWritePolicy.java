@@ -65,7 +65,7 @@ public final class ClientIOWritePolicy implements BlockLocationPolicy {
    * @return the address of the worker to write to
    */
   @Override
-  public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
+  public synchronized Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
     Map<WorkerNetAddress, BlockWorkerInfo> eligibleWorkers = new HashMap<>();
     for (BlockWorkerInfo info : options.getBlockWorkerInfos()) {
       eligibleWorkers.put(info.getNetAddress(), info);
