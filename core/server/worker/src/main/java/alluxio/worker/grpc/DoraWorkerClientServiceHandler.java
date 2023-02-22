@@ -21,23 +21,6 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
-<<<<<<< HEAD
-||||||| 047e094360
-import alluxio.proto.meta.DoraMeta;
-import alluxio.underfs.UfsFileStatus;
-import alluxio.underfs.UfsStatus;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.util.UnderFileSystemUtils;
-import alluxio.util.io.PathUtils;
-=======
-import alluxio.proto.meta.DoraMeta;
-import alluxio.underfs.UfsFileStatus;
-import alluxio.underfs.UfsStatus;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.util.UnderFileSystemUtils;
->>>>>>> d154718e3611c17546896bcb1fb6a3cf9d40e7e5
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.dora.DoraWorker;
 
@@ -104,89 +87,13 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
 
   @Override
   public void getStatus(GetStatusPRequest request,
-                        StreamObserver<GetStatusPResponse> responseObserver) {
+      StreamObserver<GetStatusPResponse> responseObserver) {
     try {
-<<<<<<< HEAD
       alluxio.wire.FileInfo fileInfo = mWorker.getFileInfo(request.getPath());
       GetStatusPResponse response =
           GetStatusPResponse.newBuilder()
               .setFileInfo(GrpcUtils.toProto(fileInfo))
               .build();
-||||||| 047e094360
-      String alluxioFilePath = request.getPath();
-
-      String ufsFullPath = PathUtils.concatPath(mRootUFS, alluxioFilePath);
-      String fn = new AlluxioURI(alluxioFilePath).getName();
-
-      UfsStatus status = mUfsStatusCache.getIfPresent(ufsFullPath);
-      if (status == null) {
-        // The requested FileStatus is not present in memory cache.
-        // Let's try to query local persistent DoraMetaStore.
-        DoraMetaStore doraMetaStore = ((PagedDoraWorker) mWorker).getMetaStore();
-        Optional<DoraMeta.FileStatus> fs = doraMetaStore.getDoraMeta(ufsFullPath);
-        if (fs.isPresent()) {
-          // Found in persistent DoraMetaStore
-          fi = fs.get().getFileInfo();
-          String contentHash = UnderFileSystemUtils.approximateContentHash(fi.getLength(),
-              fi.getLastModificationTimeMs());
-          UfsFileStatus ufs = new UfsFileStatus(fi.getPath(), contentHash, fi.getLength(),
-              fi.getLastModificationTimeMs(),
-              fi.getOwner(), fi.getGroup(), (short) fi.getMode(), fi.getBlockSizeBytes());
-          mUfsStatusCache.put(ufsFullPath, ufs);
-        } else {
-          // This will load UfsFileStatus from UFS and put it in memory cache
-          status = mUfsStatusCache.get(ufsFullPath);
-          fi = buildFileInfoFromUfsStatus(status, fn, alluxioFilePath, ufsFullPath);
-
-          // Add this to persistent DoraMetaStore.
-          long currentTimeMillis = System.currentTimeMillis();
-          doraMetaStore.putDoraMeta(ufsFullPath,
-              DoraMeta.FileStatus.newBuilder().setFileInfo(fi).setTs(currentTimeMillis).build());
-        }
-      } else {
-        // Found in memory cache
-        fi = buildFileInfoFromUfsStatus(status, fn, alluxioFilePath, ufsFullPath);
-      }
-
-      GetStatusPResponse response = GetStatusPResponse.newBuilder().setFileInfo(fi).build();
-=======
-      String alluxioFilePath = request.getPath();
-
-      String ufsFullPath = alluxioFilePath; // Now the full UFS path is passed from client.
-      String fn = new AlluxioURI(alluxioFilePath).getName();
-
-      UfsStatus status = mUfsStatusCache.getIfPresent(ufsFullPath);
-      if (status == null) {
-        // The requested FileStatus is not present in memory cache.
-        // Let's try to query local persistent DoraMetaStore.
-        DoraMetaStore doraMetaStore = ((PagedDoraWorker) mWorker).getMetaStore();
-        Optional<DoraMeta.FileStatus> fs = doraMetaStore.getDoraMeta(ufsFullPath);
-        if (fs.isPresent()) {
-          // Found in persistent DoraMetaStore
-          fi = fs.get().getFileInfo();
-          String contentHash = UnderFileSystemUtils.approximateContentHash(fi.getLength(),
-              fi.getLastModificationTimeMs());
-          UfsFileStatus ufs = new UfsFileStatus(fi.getPath(), contentHash, fi.getLength(),
-              fi.getLastModificationTimeMs(),
-              fi.getOwner(), fi.getGroup(), (short) fi.getMode(), fi.getBlockSizeBytes());
-          mUfsStatusCache.put(ufsFullPath, ufs);
-        } else {
-          // This will load UfsFileStatus from UFS and put it in memory cache
-          status = mUfsStatusCache.get(ufsFullPath);
-          fi = buildFileInfoFromUfsStatus(status, fn, alluxioFilePath, ufsFullPath);
-
-          // Add this to persistent DoraMetaStore.
-          long currentTimeMillis = System.currentTimeMillis();
-          doraMetaStore.putDoraMeta(ufsFullPath,
-              DoraMeta.FileStatus.newBuilder().setFileInfo(fi).setTs(currentTimeMillis).build());
-        }
-      } else {
-        // Found in memory cache
-        fi = buildFileInfoFromUfsStatus(status, fn, alluxioFilePath, ufsFullPath);
-      }
-
-      GetStatusPResponse response = GetStatusPResponse.newBuilder().setFileInfo(fi).build();
->>>>>>> d154718e3611c17546896bcb1fb6a3cf9d40e7e5
       responseObserver.onNext(response);
       responseObserver.onCompleted();
     } catch (IOException e) {

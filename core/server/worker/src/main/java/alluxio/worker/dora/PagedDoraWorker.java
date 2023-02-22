@@ -52,7 +52,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
@@ -74,7 +73,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -223,7 +221,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Override
   public FileInfo getFileInfo(String fileId) throws IOException {
     alluxio.grpc.FileInfo fi;
-    String ufsFullPath = PathUtils.concatPath(mRootUFS, fileId);
+    String ufsFullPath = fileId; // File ID is full ufs path passed from client
     String fn = new AlluxioURI(fileId).getName();
 
     UfsStatus status = mUfsStatusCache.getIfPresent(ufsFullPath);
