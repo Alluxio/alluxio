@@ -6053,7 +6053,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS =
       booleanBuilder(Name.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS)
           .setDefaultValue(false)
-          .setDescription("When a hdfs client listStatus a file, Whether not to use mount info")
+          .setDescription("If enabled, the mount info will be excluded from the response "
+              + "when a HDFS client calls alluxio to list status on a directory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
