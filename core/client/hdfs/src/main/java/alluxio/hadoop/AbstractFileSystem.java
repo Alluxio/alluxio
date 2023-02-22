@@ -31,6 +31,7 @@ import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterInquireClient.Factory;
@@ -89,6 +90,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   private Statistics mStatistics = null;
   private String mAlluxioHeader = null;
   private boolean mExcludeMountInfoOnListStatus;
+  private boolean mExcludeMountInfoOnGetStatus;
 
   /**
    * Constructs a new {@link AbstractFileSystem} instance with specified a {@link FileSystem}
@@ -359,7 +361,9 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     AlluxioURI uri = getAlluxioPath(path);
     URIStatus fileStatus;
     try {
-      fileStatus = mFileSystem.getStatus(uri);
+      GetStatusPOptions getStatusPOptions = GetStatusPOptions.getDefaultInstance().toBuilder()
+          .setExcludeMountInfo(mExcludeMountInfoOnGetStatus).build();
+      fileStatus = mFileSystem.getStatus(uri, getStatusPOptions);
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(e.getMessage());
     } catch (AlluxioException e) {
@@ -509,6 +513,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     mAlluxioConf.validate();
     mExcludeMountInfoOnListStatus = mAlluxioConf.getBoolean(
         PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS);
+    mExcludeMountInfoOnGetStatus = mAlluxioConf.getBoolean(
+        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_GET_STATUS);
 
     if (mFileSystem != null) {
       return;

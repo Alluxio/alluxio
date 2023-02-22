@@ -950,7 +950,8 @@ public class DefaultFileSystemMaster extends CoreMaster
 
           ensureFullPathAndUpdateCache(inodePath);
 
-          FileInfo fileInfo = getFileInfoInternal(inodePath);
+          FileInfo fileInfo = getFileInfoInternal(inodePath,
+              context.getOptions().getExcludeMountInfo());
           if (!fileInfo.isFolder() && (!fileInfo.isCompleted())) {
             LOG.debug("File {} is not yet completed. getStatus will see incomplete metadata.",
                 fileInfo.getPath());
@@ -981,6 +982,11 @@ public class DefaultFileSystemMaster extends CoreMaster
   private FileInfo getFileInfoInternal(LockedInodePath inodePath)
       throws UnavailableException, FileDoesNotExistException {
     return getFileInfoInternal(inodePath, null, false);
+  }
+
+  private FileInfo getFileInfoInternal(LockedInodePath inodePath, boolean excludeMountInfo)
+      throws UnavailableException, FileDoesNotExistException {
+    return getFileInfoInternal(inodePath, null, excludeMountInfo);
   }
 
   /**

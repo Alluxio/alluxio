@@ -195,6 +195,11 @@ message GetStatusPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 2;
   optional Bits accessMode = 3;
   optional bool updateTimestamps = 4 [default = true];
+  // Mount info will be excluded from the get status response if this field is set to true.
+  // Resolving a path and obtain the mount info is an expensive operation.
+  // For clients that do not need this information such as hadoop-compatible clients,
+  // excluding mount info improves the endpoint performance.
+  optional bool excludeMountInfo = 5;
 }
 message GetStatusPRequest {
   /** the path of the file or directory */
