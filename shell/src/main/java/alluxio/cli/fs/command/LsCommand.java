@@ -89,6 +89,14 @@ public final class LsCommand extends AbstractFileSystemCommand {
     TIMESTAMP_FIELDS.put("lastModificationTime", URIStatus::getLastModificationTimeMs);
   }
 
+  private static final Option EXCLUDE_MOUNT_INFO =
+      Option.builder()
+          .required(false)
+          .longOpt("exclude-mount-info")
+          .hasArg(false)
+          .desc("")
+          .build();
+
   private static final Option FORCE_OPTION =
       Option.builder("f")
           .required(false)
@@ -231,6 +239,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
   @Override
   public Options getOptions() {
     return new Options()
+        .addOption(EXCLUDE_MOUNT_INFO)
         .addOption(FORCE_OPTION)
         .addOption(LIST_DIR_AS_FILE_OPTION)
         .addOption(LIST_HUMAN_READABLE_OPTION)
@@ -249,9 +258,11 @@ public final class LsCommand extends AbstractFileSystemCommand {
    * @param dirAsFile list the directory status as a plain file
    * @param hSize print human-readable format sizes
    * @param sortField sort the result by this field
+   * @param excludeMountInfo if enabled, the mount info will be excluded from the response
    */
   private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
-      boolean hSize, boolean pinnedOnly, String sortField, boolean reverse, String timestampOption)
+      boolean hSize, boolean pinnedOnly, String sortField, boolean reverse, String timestampOption,
+      boolean excludeMountInfo)
       throws AlluxioException, IOException {
     Function<URIStatus, Long> timestampFunction = TIMESTAMP_FIELDS.get(timestampOption);
     if (dirAsFile) {
@@ -265,6 +276,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
       optionsBuilder.setLoadMetadataType(LoadMetadataPType.ALWAYS);
     }
     optionsBuilder.setRecursive(recursive);
+    optionsBuilder.setExcludeMountInfo(excludeMountInfo);
 
     if (sortField == null) {
       mFileSystem.iterateStatus(path, optionsBuilder.build(),
@@ -303,7 +315,8 @@ public final class LsCommand extends AbstractFileSystemCommand {
     ls(path, cl.hasOption(RECURSIVE_OPTION.getOpt()), cl.hasOption("f"),
         cl.hasOption("d"), cl.hasOption("h"), cl.hasOption("p"),
         cl.getOptionValue("sort", null), cl.hasOption("r"),
-        cl.getOptionValue("timestamp", "lastModificationTime"));
+        cl.getOptionValue("timestamp", "lastModificationTime"),
+        cl.hasOption("exclude-mount-info"));
   }
 
   @Override
