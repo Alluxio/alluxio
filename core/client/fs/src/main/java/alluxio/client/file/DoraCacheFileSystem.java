@@ -31,6 +31,7 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.io.PathUtils;
 
@@ -74,7 +75,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       return mDelegatedFileSystem.getStatus(ufsFullPath, options);
     }
     try {
-      return mDoraClient.getStatus(path.getPath(), options);
+      return mDoraClient.getStatus(ufsFullPath.toString(), options);
     } catch (RuntimeException ex) {
       LOG.debug("Dora client get status error. Fall back to UFS.", ex);
       return mDelegatedFileSystem.getStatus(ufsFullPath, options);
@@ -167,8 +168,23 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
    * @return UfsBaseFileSystem based full path
    */
   private AlluxioURI convertAlluxioPathToUFSPath(AlluxioURI alluxioPath) {
-    UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
-    String ufsFullPath = PathUtils.concatPath(under.getRootUFS(), alluxioPath.getPath());
-    return new AlluxioURI(ufsFullPath);
+    if (mDelegatedFileSystem instanceof UfsBaseFileSystem) {
+      UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
+      AlluxioURI rootUFS = under.getRootUFS();
+      String relativePath = alluxioPath.getPath();
+      try {
+        if (alluxioPath.hasScheme() && rootUFS.isAncestorOf(alluxioPath)) {
+          relativePath = CommonUtils.stripPrefixIfPresent(alluxioPath.toString(),
+              rootUFS.toString());
+        }
+      } catch (InvalidPathException e) {
+        // Do thing. The actual operation on this Uri will report error.
+      }
+
+      String ufsFullPath = PathUtils.concatPath(rootUFS, relativePath);
+      return new AlluxioURI(ufsFullPath);
+    } else {
+      return alluxioPath;
+    }
   }
 }
