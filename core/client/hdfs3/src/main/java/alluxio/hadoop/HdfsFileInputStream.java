@@ -15,15 +15,22 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.fs.CanUnbuffer;
 import org.apache.hadoop.fs.FileSystem.Statistics;
+import org.apache.hadoop.fs.StreamCapabilities;
 
 import java.io.IOException;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * HdfsFileInputStream implement for hadoop 1 and hadoop 2.
+ * HdfsFileInputStream implement for hadoop 3.
+ * This is just a wrapper around {@link HdfsFileInputStream} with
+ * CanUnbuffer and StreamCapabilities support.
  */
-public class HdfsFileInputStream extends BaseHdfsFileInputStream {
-
+@NotThreadSafe
+public class HdfsFileInputStream extends BaseHdfsFileInputStream
+    implements CanUnbuffer, StreamCapabilities {
   /**
    * Constructs a new stream for reading a file from HDFS.
    *
@@ -31,7 +38,8 @@ public class HdfsFileInputStream extends BaseHdfsFileInputStream {
    * @param uri the Alluxio file URI
    * @param stats filesystem statistics
    */
-  public HdfsFileInputStream(FileSystem fs, AlluxioURI uri, Statistics stats) throws IOException {
+  public HdfsFileInputStream(FileSystem fs, AlluxioURI uri, Statistics stats)
+      throws IOException {
     super(fs, uri, stats);
   }
 
@@ -43,5 +51,16 @@ public class HdfsFileInputStream extends BaseHdfsFileInputStream {
    */
   public HdfsFileInputStream(FileInStream inputStream, Statistics stats) {
     super(inputStream, stats);
+  }
+
+  @Override
+  public boolean hasCapability(String capability) {
+    return StringUtils.equalsIgnoreCase("in:unbuffer", capability)
+        || StringUtils.equalsIgnoreCase("in:readbytebuffer", capability);
+  }
+
+  @Override
+  public void unbuffer() {
+    mInputStream.unbuffer();
   }
 }
