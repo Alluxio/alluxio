@@ -17,7 +17,7 @@ fullnameOverride: alluxio
 
 # Docker Image
 image: alluxio/alluxio
-imageTag: 291-beta-SNAPSHOT
+imageTag: 291-beta
 imagePullPolicy: IfNotPresent
 
 # Security Context
