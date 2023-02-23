@@ -3651,8 +3651,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey
-      MASTER_METADATA_SYNC_SKIP_LOADING_CHILDREN_ON_DESCENDANT_TYPE_NONE =
-      booleanBuilder(Name.MASTER_METADATA_SYNC_SKIP_LOADING_CHILDREN_ON_DESCENDANT_TYPE_NONE)
+      MASTER_METADATA_SYNC_GET_DIRECTORY_STATUS_SKIP_LOADING_CHILDREN =
+      booleanBuilder(Name.MASTER_METADATA_SYNC_GET_DIRECTORY_STATUS_SKIP_LOADING_CHILDREN)
           .setDescription(
               "If set to true, skip loading children during metadata sync when "
                   + "descendant type is set to NONE, for example, a metadata sync triggered "
@@ -7918,8 +7918,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.instrument.executor";
     public static final String MASTER_METADATA_SYNC_REPORT_FAILURE =
         "alluxio.master.metadata.sync.report.failure";
-    public static final String MASTER_METADATA_SYNC_SKIP_LOADING_CHILDREN_ON_DESCENDANT_TYPE_NONE =
-        "alluxio.master.metadata.skip.loading.children.on.descendant.type.none";
+    public static final String MASTER_METADATA_SYNC_GET_DIRECTORY_STATUS_SKIP_LOADING_CHILDREN =
+        "alluxio.master.metadata.sync.get.directory.status.skip.loading.children";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
         "alluxio.master.metadata.sync.ufs.prefetch.pool.size";
     public static final String MASTER_METADATA_SYNC_TRAVERSAL_ORDER =

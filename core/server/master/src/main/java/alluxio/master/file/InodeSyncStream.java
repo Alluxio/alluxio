@@ -296,9 +296,9 @@ public class InodeSyncStream {
   private final int mConcurrencyLevel =
       Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL);
 
-  private final boolean mSkipLoadChildrenOnDescendantTypeNone =
+  private final boolean mGetDirectoryStatusSkipLoadingChildren =
       Configuration.getBoolean(
-          PropertyKey.MASTER_METADATA_SYNC_SKIP_LOADING_CHILDREN_ON_DESCENDANT_TYPE_NONE);
+          PropertyKey.MASTER_METADATA_SYNC_GET_DIRECTORY_STATUS_SKIP_LOADING_CHILDREN);
 
   private final FileSystemMasterAuditContext mAuditContext;
   private final Function<LockedInodePath, Inode> mAuditContextSrcInodeFunc;
@@ -483,7 +483,7 @@ public class InodeSyncStream {
         // If descendantType is ONE, then we shouldn't process any more paths except for those
         // currently in the queue
         stopNum = mPendingPaths.size();
-      } else if (mSkipLoadChildrenOnDescendantTypeNone && mDescendantType == DescendantType.NONE) {
+      } else if (mGetDirectoryStatusSkipLoadingChildren && mDescendantType == DescendantType.NONE) {
         // If descendantType is NONE, do not process any path in the queue after
         // the inode itself is loaded.
         stopNum = 0;
@@ -907,7 +907,7 @@ public class InodeSyncStream {
     if (mDescendantType == DescendantType.ONE) {
       syncChildren =
           syncChildren && mRootScheme.getPath().equals(inodePath.getUri());
-    } else if (mDescendantType == DescendantType.NONE && mSkipLoadChildrenOnDescendantTypeNone) {
+    } else if (mDescendantType == DescendantType.NONE && mGetDirectoryStatusSkipLoadingChildren) {
       syncChildren = false;
     }
 
