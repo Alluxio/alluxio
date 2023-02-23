@@ -19,7 +19,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -41,7 +40,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -256,7 +254,7 @@ public class ConcurrentFileSystemMasterSetTtlIntegrationTest extends BaseIntegra
     // Now file2 inode should either be in ttlbucket or it is cleaned up as part of
     // the ttlchecker processing
     List<URIStatus> fileStatus = mFileSystem.listStatus(new AlluxioURI("/"));
-    assert(!fileStatus.stream().anyMatch(status -> new AlluxioURI(status.getFileInfo().getPath())
+    assert (!fileStatus.stream().anyMatch(status -> new AlluxioURI(status.getFileInfo().getPath())
         .equals(fileUri1)));
     if (fileStatus.stream().anyMatch(status -> new AlluxioURI(status.getFileInfo().getPath())
         .equals(fileUri2))) {
