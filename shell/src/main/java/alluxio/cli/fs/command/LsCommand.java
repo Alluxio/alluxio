@@ -89,14 +89,6 @@ public final class LsCommand extends AbstractFileSystemCommand {
     TIMESTAMP_FIELDS.put("lastModificationTime", URIStatus::getLastModificationTimeMs);
   }
 
-  private static final Option EXCLUDE_MOUNT_INFO =
-      Option.builder()
-          .required(false)
-          .longOpt("exclude-mount-info")
-          .hasArg(false)
-          .desc("")
-          .build();
-
   private static final Option FORCE_OPTION =
       Option.builder("f")
           .required(false)
@@ -123,6 +115,15 @@ public final class LsCommand extends AbstractFileSystemCommand {
           .required(false)
           .hasArg(false)
           .desc("list all pinned files")
+          .build();
+
+  private static final Option OMIT_MOUNT_INFO =
+      Option.builder("m")
+          .required(false)
+          .longOpt("omit-mount-info")
+          .hasArg(false)
+          .desc("if specified, the status will not include mount point related information, "
+              + "like the UFS path")
           .build();
 
   private static final Option RECURSIVE_OPTION =
@@ -239,11 +240,11 @@ public final class LsCommand extends AbstractFileSystemCommand {
   @Override
   public Options getOptions() {
     return new Options()
-        .addOption(EXCLUDE_MOUNT_INFO)
         .addOption(FORCE_OPTION)
         .addOption(LIST_DIR_AS_FILE_OPTION)
         .addOption(LIST_HUMAN_READABLE_OPTION)
         .addOption(LIST_PINNED_FILES_OPTION)
+        .addOption(OMIT_MOUNT_INFO)
         .addOption(RECURSIVE_OPTION)
         .addOption(REVERSE_SORT_OPTION)
         .addOption(SORT_OPTION)

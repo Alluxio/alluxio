@@ -423,6 +423,49 @@ public class AbstractFileSystemTest {
   }
 
   /**
+   * Tests that the {@link AbstractFileSystem#listStatus(Path)} method uses
+   * {@link URIStatus#getLastModificationTimeMs()} correctly without mount info.
+   */
+  @Test
+  public void listStatusWithoutMountInfo() throws Exception {
+    FileInfo fileInfo1 = new FileInfo()
+        .setLastModificationTimeMs(111L)
+        .setLastAccessTimeMs(123L)
+        .setFolder(false)
+        .setOwner("user1")
+        .setGroup("group1")
+        .setMode(00755);
+    FileInfo fileInfo2 = new FileInfo()
+        .setLastModificationTimeMs(222L)
+        .setLastAccessTimeMs(234L)
+        .setFolder(true)
+        .setOwner("user2")
+        .setGroup("group2")
+        .setMode(00644);
+
+    Path path = new Path("/dir");
+    alluxio.client.file.FileSystem alluxioFs =
+        mock(alluxio.client.file.FileSystem.class);
+    FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
+    URI uri = URI.create(Constants.HEADER + "host:1");
+    Configuration configuration = getConf();
+    configuration.setBoolean(
+        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS.getName(),
+        true);
+    alluxioHadoopFs.initialize(uri, configuration);
+    ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
+        .setExcludeMountInfo(true).build();
+    when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
+        listStatusPOptions))
+        .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
+
+    FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
+    assertFileInfoEqualsFileStatus(fileInfo1, fileStatuses[0]);
+    assertFileInfoEqualsFileStatus(fileInfo2, fileStatuses[1]);
+    alluxioHadoopFs.close();
+  }
+
+  /**
    * Tests that the {@link AbstractFileSystem#listStatus(Path)} method throws
    * FileNotFound Exception.
    */

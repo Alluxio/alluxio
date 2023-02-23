@@ -1224,7 +1224,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private void listStatusInternal(
       ListStatusContext context, RpcContext rpcContext, LockedInodePath currInodePath,
       AuditContext auditContext, DescendantType descendantType, ResultStream<FileInfo> resultStream,
-      int depth, Counter counter, List<String> partialPath,
+      int depth, @Nullable Counter counter, List<String> partialPath,
       List<String> prefixComponents)
       throws FileDoesNotExistException, UnavailableException,
       AccessControlException, InvalidPathException {
