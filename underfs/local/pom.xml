@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>291-beta-SNAPSHOT</version>
+    <version>291-beta</version>
   </parent>
   <artifactId>alluxio-underfs-local</artifactId>
   <name>Alluxio Under File System - Local FS</name>

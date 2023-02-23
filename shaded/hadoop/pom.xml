@@ -15,12 +15,12 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-shaded</artifactId>
-    <version>291-beta-SNAPSHOT</version>
+    <version>291-beta</version>
   </parent>
   <artifactId>alluxio-shaded-hadoop</artifactId>
   <packaging>jar</packaging>
   <name>Alluxio Shaded Libraries - Hadoop</name>
-  <version>${ufs.hadoop.version}</version>
+  <version>291-beta</version>
   <description>Shaded Hadoop Module</description>
 
   <properties>
