@@ -5179,8 +5179,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED =
       booleanBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("Whether or not to enable automatic cleanup of long-running "
+          .setDefaultValue(false)
+          .setDescription("Enable automatic cleanup of long-running "
               + "multipart uploads.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
