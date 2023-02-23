@@ -899,6 +899,8 @@ public class InodeSyncStream {
     if (mDescendantType == DescendantType.ONE) {
       syncChildren =
           syncChildren && mRootScheme.getPath().equals(inodePath.getUri());
+    } else if (mDescendantType == DescendantType.NONE) {
+      syncChildren = false;
     }
 
     int childCount = inode.isDirectory() ? (int) inode.asDirectory().getChildCount() : 0;
