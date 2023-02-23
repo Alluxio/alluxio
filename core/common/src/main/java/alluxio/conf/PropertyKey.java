@@ -5277,7 +5277,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey PROXY_S3_V2_VERSION_ENABLED =
           booleanBuilder(Name.PROXY_S3_V2_VERSION_ENABLED)
-                  .setDefaultValue(false)
+                  .setDefaultValue(true)
                   .setDescription("(Experimental) V2, an optimized version of "
                           + "Alluxio s3 proxy service.")
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
