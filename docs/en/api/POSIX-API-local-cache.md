@@ -42,9 +42,6 @@ Differences between the two solutions are listed below, choose your desired solu
     </tr>
 </table>
 
-Local caching solution supports under storage [S3A]({{ '/en/ufs/S3.html' | relativize_url }}) and [HDFS (Version 2.7 and 3.3)]({{ '/en/ufs/HDFS.html' | relativize_url }}).
-Contact our [community slack channel](https://slackin.alluxio.io/) if you want to use POSIX API local cache with other under storage.
-
 ## Prerequisites
 
 The followings are the basic requirements running ALLUXIO POSIX API.
@@ -197,6 +194,7 @@ The following illustration shows the layers of data provider — FUSE kernel cac
 <p align="center">
 <img src="{{ '/img/posix-local-cache.png' | relativize_url }}" alt="Alluxio stack with its POSIX API"/>
 </p>
+https://github.com/Alluxio/alluxio/blob/dora/docs/img/posix-local-cache.png
 
 Since FUSE kernel cache and userspace cache both provide caching capability, although they can be enabled at the same time,
 it is recommended to choose only one of them to avoid double memory consumption.
@@ -446,6 +444,7 @@ ALLUXIO_FUSE_JAVA_OPTS+=" -XX:MaxDirectMemorySize=8G"
 <p align="center">
 <img src="{{ '/img/posix-distributed-cache.png' | relativize_url }}" alt="Alluxio stack with its POSIX API"/>
 </p>
+https://github.com/Alluxio/alluxio/blob/dora/docs/img/posix-distributed-cache.png
 
 If FUSE SDK can optional provide L1 cache (local node metadata/data cache) capability,
 Alluxio cluster can provide L2 cache (local/nearby cluster metadata/data cache).
@@ -477,6 +476,14 @@ alluxio.user.short.circuit.enabled=false
 Make sure the `<under_storage_dataset>` is exactly the same path that is going to mount to local mount point via `alluxio-fuse` command.
 
 Follow [page worker storage documentation]({{ '/en/core-services/Caching.html' | relativize_url }}#experimental-paging-worker-storage) to add page storage configuration.
+
+Optionally enable netty RPC for better performance
+```
+alluxio.user.netty.data.transmission.enabled=true
+alluxio.worker.network.netty.channel=epoll
+alluxio.worker.network.netty.file.transfer=TRANSFER
+alluxio.worker.network.netty.backlog=40
+```
 
 Launch the Alluxio cluster with the configuration
 ```console
