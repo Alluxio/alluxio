@@ -13,6 +13,7 @@ package alluxio.client.file.cache.store;
 
 import static alluxio.client.file.cache.store.PageStoreDir.getFileBucket;
 
+import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
@@ -145,5 +146,10 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
       LOG.error("Illegal numbers in path " + path);
       return Optional.empty();
     }
+  }
+
+  @Override
+  public Optional<CacheUsage> getUsage() {
+    return Optional.of(new QuotaManagedPageStoreDir.Usage());
   }
 }

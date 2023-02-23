@@ -22,7 +22,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 /**
  * The metadata store for pages stored in cache.
  */
-public interface PageMetaStore {
+public interface PageMetaStore extends CacheStatus {
 
   /**
    * @param options the options of cache

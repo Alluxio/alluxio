@@ -13,6 +13,7 @@ package alluxio.client.file.cache.store;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
@@ -79,5 +80,10 @@ public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
       return Optional.of(new PageInfo(id, size, this));
     }
     return Optional.empty();
+  }
+
+  @Override
+  public Optional<CacheUsage> getUsage() {
+    return Optional.of(new QuotaManagedPageStoreDir.Usage());
   }
 }

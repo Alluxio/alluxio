@@ -11,6 +11,7 @@
 
 package alluxio.worker.page;
 
+import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.DefaultPageMetaStore;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
@@ -445,6 +446,12 @@ public class PagedBlockMetaStore implements PageMetaStore {
     }
     return new PagedBlockStoreMeta(dirPaths.build(), capacityOnDirs.build(),
         usedBytesOnDirs.build(), blockOnDirs.build());
+  }
+
+  @Override
+  public Optional<CacheUsage> getUsage() {
+    // TODO(bowen): implement partition by block
+    return mDelegate.getUsage();
   }
 
   private static PagedBlockStoreDir downcast(PageStoreDir pageStoreDir) {

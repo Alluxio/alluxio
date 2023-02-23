@@ -715,6 +715,42 @@ public class LocalCacheManager implements CacheManager {
     return bytesToRead;
   }
 
+  @Override
+  public Optional<CacheUsage> getUsage() {
+    return Optional.of(new Usage());
+  }
+
+  private final class Usage implements CacheUsage {
+    @Override
+    public long used() {
+      return mPageMetaStore.bytes();
+    }
+
+    @Override
+    public long available() {
+      return capacity() - used();
+    }
+
+    @Override
+    public long capacity() {
+      return mPageStoreDirs.stream().mapToLong(PageStoreDir::getCapacityBytes).sum();
+    }
+
+    @Override
+    public Optional<CacheUsage> partitionedBy(PartitionDescriptor<?> partitionDescriptor) {
+      if (partitionDescriptor instanceof DirPartition) {
+        int dirIndex = ((DirPartition) partitionDescriptor).getIdentifier();
+        if (dirIndex >= 0 && dirIndex < mPageStoreDirs.size()) {
+          return mPageStoreDirs.get(dirIndex).getUsage();
+        } else {
+          return Optional.empty();
+        }
+      }
+      return mPageMetaStore.getUsage()
+          .flatMap(usage -> usage.partitionedBy(partitionDescriptor));
+    }
+  }
+
   private static final class Metrics {
     // Note that only counter/guage can be added here.
     // Both meter and timer need to be used inline

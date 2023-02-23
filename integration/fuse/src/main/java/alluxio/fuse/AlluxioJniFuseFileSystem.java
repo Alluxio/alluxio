@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.FuseShell;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -177,9 +176,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return res;
     }
     try {
-      FuseFileStream stream = DoraCacheFileSystem.class.isInstance(mFileSystem)
-          ? mStreamFactory.create(new AlluxioURI(path), fi.flags.get(), mode) :
-          mStreamFactory.create(uri, fi.flags.get(), mode);
+      FuseFileStream stream = mStreamFactory.create(uri, fi.flags.get(), mode);
       long fd = mNextOpenFileId.getAndIncrement();
       mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
       fi.fh.set(fd);
@@ -222,9 +219,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         return 0;
       }
 
-      Optional<URIStatus> status = DoraCacheFileSystem.class.isInstance(mFileSystem)
-          ? AlluxioFuseUtils.getPathStatus(mFileSystem, new AlluxioURI(path)) :
-          AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
+      Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
       status.ifPresent(uriStatus -> AlluxioFuseUtils.fillStat(mAuthPolicy, stat, uriStatus));
 
       boolean hasWriteStream = false;
@@ -398,8 +393,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return res;
     }
     try {
-      uri = DoraCacheFileSystem.class.isInstance(mFileSystem)
-          ? new AlluxioURI(path) : uri;
       mFileSystem.createDirectory(uri,
           CreateDirectoryPOptions.newBuilder()
               .setMode(new Mode((short) mode).toProto())
@@ -461,10 +454,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int renameInternal(String sourcePath, String destPath, int flags) {
     AlluxioURI sourceUri = mPathResolverCache.getUnchecked(sourcePath);
     AlluxioURI destUri = mPathResolverCache.getUnchecked(destPath);
-    if (DoraCacheFileSystem.class.isInstance(mFileSystem)) {
-      sourceUri = new AlluxioURI(sourcePath);
-      destUri = new AlluxioURI(destPath);
-    }
     int res = AlluxioFuseUtils.checkNameLength(destUri);
     if (res != 0) {
       return res;

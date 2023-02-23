@@ -13,6 +13,7 @@ package alluxio.client.file.cache.store;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.resource.LockResource;
@@ -20,6 +21,7 @@ import alluxio.resource.LockResource;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -162,6 +164,41 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
       checkState(mTempFileIdSet.contains(fileId), "temp file does not exist " + fileId);
       getPageStore().abort(fileId);
       mTempFileIdSet.remove(fileId);
+    }
+  }
+
+  /**
+   * Generic implementation of cache usage stats.
+   * Subclasses may need to override the individual cache stat to reflect their own logic
+   * of usage accounting.
+   */
+  class Usage implements CacheUsage {
+    @Override
+    public long used() {
+      return getCachedBytes();
+    }
+
+    @Override
+    public long available() {
+      // TODO(bowen): take reserved bytes into account
+      return getCapacityBytes() - getCachedBytes();
+    }
+
+    @Override
+    public long capacity() {
+      return getCapacityBytes();
+    }
+
+    /**
+     * This generic implementation assumes the directory does not support finer-grained
+     * stats partitioning.
+     *
+     * @param partition how to partition the cache
+     * @return always empty
+     */
+    @Override
+    public Optional<CacheUsage> partitionedBy(PartitionDescriptor<?> partition) {
+      return Optional.empty();
     }
   }
 }

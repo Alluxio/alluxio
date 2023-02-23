@@ -11,11 +11,14 @@
 
 package alluxio.client.file.cache.store;
 
+import static alluxio.client.file.cache.CacheUsage.PartitionDescriptor.file;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.ProjectConstants;
 import alluxio.client.file.cache.CacheManagerOptions;
+import alluxio.client.file.cache.CacheUsage;
+import alluxio.client.file.cache.CacheUsageView;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.conf.AlluxioConfiguration;
@@ -34,14 +37,17 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 @RunWith(Parameterized.class)
 public class PageStoreDirTest {
+  public static final long CACHE_CAPACITY = 65536;
+  public static final long PAGE_SIZE = 1024;
   private final AlluxioConfiguration mConf = Configuration.global();
 
-  @Parameterized.Parameters
+  @Parameterized.Parameters(name = "{index}-{0}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
         {PageStoreType.ROCKS},
@@ -65,8 +71,8 @@ public class PageStoreDirTest {
     CacheManagerOptions cacheManagerOptions = CacheManagerOptions.create(mConf);
     mOptions = cacheManagerOptions.getPageStoreOptions().get(0);
     mOptions.setStoreType(mPageStoreType);
-    mOptions.setPageSize(1024);
-    mOptions.setCacheSize(65536);
+    mOptions.setPageSize(PAGE_SIZE);
+    mOptions.setCacheSize(CACHE_CAPACITY);
     mOptions.setAlluxioVersion(ProjectConstants.VERSION);
     mOptions.setRootDir(Paths.get(mTemp.getRoot().getAbsolutePath()));
 
@@ -119,5 +125,27 @@ public class PageStoreDirTest {
     } else {
       assertEquals(pages, restored);
     }
+  }
+
+  @Test
+  public void cacheUsage() throws Exception {
+    int len = 32;
+    int count = 16;
+    byte[] data = BufferUtils.getIncreasingByteArray(len);
+    for (int i = 0; i < count; i++) {
+      PageId id = new PageId("0", i);
+      mPageStoreDir.getPageStore().put(id, data);
+      mPageStoreDir.putPage(new PageInfo(id, data.length, mPageStoreDir));
+    }
+    Optional<CacheUsage> usage = mPageStoreDir.getUsage();
+    assertEquals(Optional.of(mPageStoreDir.getCapacityBytes()),
+        usage.map(CacheUsageView::capacity));
+    assertEquals(Optional.of((long) len * count), usage.map(CacheUsageView::used));
+    assertEquals(Optional.of(mPageStoreDir.getCapacityBytes() - (long) len * count),
+        usage.map(CacheUsageView::available));
+    // cache dir currently does not support get file level usage stat
+    Optional<CacheUsage> fileUsage = mPageStoreDir.getUsage()
+        .flatMap(usage1 -> usage1.partitionedBy(file("0")));
+    assertEquals(Optional.empty(), fileUsage);
   }
 }
