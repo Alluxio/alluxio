@@ -89,6 +89,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   private Path mWorkingDir = new Path(AlluxioURI.SEPARATOR);
   private Statistics mStatistics = null;
   private String mAlluxioHeader = null;
+  private boolean mExcludeMountInfoOnListStatus;
 
   /**
    * Constructs a new {@link AbstractFileSystem} instance with specified a {@link FileSystem}
@@ -522,6 +523,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     // Creating a new instanced configuration from an AlluxioProperties object isn't expensive.
     mAlluxioConf = new InstancedConfiguration(alluxioProps);
     mAlluxioConf.validate();
+    mExcludeMountInfoOnListStatus = mAlluxioConf.getBoolean(
+        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS);
 
     if (mFileSystem != null) {
       return;
@@ -598,9 +601,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     List<URIStatus> statuses;
     try {
       ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
-          .setExcludeMountInfo(
-              mAlluxioConf.getBoolean(
-                  PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS)).build();
+          .setExcludeMountInfo(mExcludeMountInfoOnListStatus).build();
       statuses = mFileSystem.listStatus(uri, listStatusPOptions);
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(getAlluxioPath(path).toString());
