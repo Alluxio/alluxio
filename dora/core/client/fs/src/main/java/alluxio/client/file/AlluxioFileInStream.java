@@ -433,6 +433,9 @@ public class AlluxioFileInStream extends FileInStream {
       if (stream == mBlockInStream) { // if stream is instance variable, set to null
         mBlockInStream = null;
       }
+      if (stream == mCachedPositionedReadStream) {
+        mCachedPositionedReadStream = null;
+      }
       if (blockSource == BlockInStream.BlockInStreamSource.NODE_LOCAL
           || blockSource == BlockInStream.BlockInStreamSource.PROCESS_LOCAL) {
         return;
@@ -576,6 +579,16 @@ public class AlluxioFileInStream extends FileInStream {
     // TODO(lu) consider recovering failed workers
     if (!causedByClientOOM) {
       mFailedWorkers.put(workerAddress, System.currentTimeMillis());
+    }
+  }
+
+  @Override
+  public void unbuffer() {
+    if (mBlockInStream != null) {
+      mBlockInStream.unbuffer();
+    }
+    if (mCachedPositionedReadStream != null) {
+      mCachedPositionedReadStream.unbuffer();
     }
   }
 }
