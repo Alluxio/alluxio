@@ -6602,6 +6602,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription(format("When an Alluxio client reads a file from the UFS, it "
               + "delegates the read to an Alluxio worker. The client uses this policy to choose "
               + "which worker to read through. Built-in choices: %s.", Arrays.asList(
+              javadocLink("alluxio.client.block.policy.CapacityBasedDeterministicHashPolicy"),
+              javadocLink("alluxio.client.block.policy.CapacityBaseRandomPolicy"),
               javadocLink("alluxio.client.block.policy.DeterministicHashPolicy"),
               javadocLink("alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy"),
               javadocLink("alluxio.client.block.policy.LocalFirstPolicy"),
@@ -6615,8 +6617,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS)
           .setDefaultValue(1)
           .setDescription("When alluxio.user.ufs.block.read.location.policy is set to "
-              + "alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of "
-              + "hash shards.")
+              + "alluxio.client.block.policy.DeterministicHashPolicy or "
+              + "alluxio.client.block.policy.CapacityBasedDeterministicHashPolicy, "
+              + "this specifies the number of hash shards.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
