@@ -37,6 +37,26 @@ import java.util.concurrent.atomic.AtomicLong;
  * If sharding is disabled, the same block is always assigned to the same worker. If sharding
  * is enabled, the block is assigned to a fixed set of workers.
  *
+ * The target worker is determined by the following algorithm:
+ * 1. build a cumulative distribution function by adding up all workers and their capacities.
+ *    workers are sorted by their host name alphabetically.
+ *    if worker A has 90 GB, B has 10 GB and C has 900 GB, the CDF looks like
+ *    | 0 ... 90 | 90 ... 100 | 100 ... 1000 |
+ *    | worker A |  worker B  |   worker C   |
+ * 2. find a fixed starting point in [0, totalCapacity) determined by the hashed block id.
+ *    | 0 ... 90 | 90 ... 100 | 100 ... 1000 |
+ *    | worker A |  worker B  |   worker C   |
+ *                     ^ start = 95
+ * 3. find the corresponding worker in the CDF.
+ *    which is worker B in this example
+ * 4. if #shards = 1, this worker is selected. otherwise, find a set of candidates:
+ *    4.1 hashed_block_id(0) = block id
+ *    4.2 for i in [1, #shards], hashed_block_id(i) = hash(hashed_block_id(i-1))
+ *    4.3 find the worker whose position corresponds to hashed_block_id(i) in the CDF,
+ *        and add it to the candidates set
+ *    4.4 repeat 4.2 - 4.4
+ * 5. select a random worker in the candidate set
+ *
  * The difference between this policy and {@link CapacityBaseRandomPolicy} is that this policy
  * uses the hashed block ID as the index to choose the target worker, so that the same block is
  * always routed to the same set of workers.
@@ -66,25 +86,6 @@ public class CapacityBasedDeterministicHashPolicy implements BlockLocationPolicy
 
   @Override
   public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
-    // the target worker is determined by the following algorithm:
-    // 1. build a cumulative distribution function by adding up all workers and their capacities.
-    //    workers are sorted by their host name alphabetically.
-    //    if worker A has 90 GB, B has 10 GB and C has 900 GB, the CDF looks like
-    //    | 0 ... 90 | 90 ... 100 | 100 ... 1000 |
-    //    | worker A |  worker B  |   worker C   |
-    // 2. find a fixed starting point in [0, totalCapacity) determined by the hashed block id.
-    //    | 0 ... 90 | 90 ... 100 | 100 ... 1000 |
-    //    | worker A |  worker B  |   worker C   |
-    //                     ^ start = 95
-    // 3. find the corresponding worker in the CDF.
-    //    which is worker B in this example
-    // 4. if #shards = 1, this worker is selected. otherwise, find a set of candidates:
-    //    4.1 hashed_block_id(0) = block id
-    //    4.2 for i in [1, #shards], hashed_block_id(i) = hash(hashed_block_id(i-1))
-    //    4.3 find the worker whose position corresponds to hashed_block_id(i) in the CDF,
-    //        and add it to the candidates set
-    //    4.4 repeat 4.2 - 4.4
-    // 5. select a random worker in the candidate set
     TreeMap<Long, BlockWorkerInfo> capacityCdf = new TreeMap<>();
     AtomicLong totalCapacity = new AtomicLong(0);
     Streams.stream(options.getBlockWorkerInfos())
