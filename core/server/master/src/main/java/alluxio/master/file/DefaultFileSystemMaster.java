@@ -3119,7 +3119,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         try {
           deleteInternal(rpcContext, dstInodePath, DeleteContext
                   .mergeFrom(DeletePOptions.newBuilder()
-                          .setRecursive(true).setAlluxioOnly(context.getPersist())), true);
+                          .setRecursive(true).setAlluxioOnly(!context.getPersist())), true);
           dstInodePath.removeLastInode();
         } catch (DirectoryNotEmptyException ex) {
           // IGNORE, this will never happen
