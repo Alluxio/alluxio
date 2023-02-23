@@ -11,7 +11,6 @@
 
 package alluxio.worker.dora;
 
-import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
@@ -22,7 +21,6 @@ import alluxio.client.file.cache.PageMetaStore;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.GrpcService;
@@ -40,7 +38,8 @@ import alluxio.underfs.FileId;
 import alluxio.underfs.PagedUfsReader;
 import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.WorkerUfsManager;
+import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -70,11 +69,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private static final Logger LOG = LoggerFactory.getLogger(PagedDoraWorker.class);
   // for now Dora Worker does not support Alluxio <-> UFS mapping,
   // and assumes all UFS paths belong to the same UFS.
-  private static final int MOUNT_POINT = 1;
+  private static final long MOUNT_POINT = IdUtils.ROOT_MOUNT_ID;
   private final Closer mResourceCloser = Closer.create();
   private final AtomicReference<Long> mWorkerId;
   private final CacheManager mCacheManager;
-  private final DoraUfsManager mUfsManager;
+  private final UfsManager mUfsManager;
   private final UfsInputStreamCache mUfsStreamCache;
   private final long mPageSize;
   private final AlluxioConfiguration mConf;
@@ -92,7 +91,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
     mWorkerId = workerId;
     mConf = conf;
-    mUfsManager = mResourceCloser.register(new DoraUfsManager());
+    mUfsManager = mResourceCloser.register(new WorkerUfsManager());
     mUfsStreamCache = new UfsInputStreamCache();
     mPageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
     mBlockMasterClientPool = new BlockMasterClientPool();
@@ -197,19 +196,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Override
   public BlockReader createFileReader(String fileId, long offset, boolean positionShort,
       Protocol.OpenUfsBlockOptions options) throws IOException {
-    UfsManager.UfsClient ufsClient;
-    try {
-      ufsClient = mUfsManager.get(MOUNT_POINT);
-    } catch (NotFoundException e) {
-      mUfsManager.addMount(MOUNT_POINT, new AlluxioURI(options.getUfsPath()),
-          UnderFileSystemConfiguration.defaults(mConf));
-      try {
-        ufsClient = mUfsManager.get(MOUNT_POINT);
-      } catch (NotFoundException e2) {
-        throw new RuntimeException(
-            String.format("Failed to get mount point for %s", options.getUfsPath()), e2);
-      }
-    }
+    UfsManager.UfsClient ufsClient = mUfsManager.get(MOUNT_POINT);
 
     FileId id = FileId.of(fileId);
     final long fileSize = options.getBlockSize();
