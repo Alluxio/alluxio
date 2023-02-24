@@ -863,14 +863,20 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     // delete the file and wait a bit
     new File(ufsPath("/delete/file")).delete();
-    CommonUtils.sleepMs(2000);
+    CommonUtils.sleepMs(3000);
 
     // getStatus (not listStatus) on the root, with a shorter interval than the sleep.
     // This will sync that directory. The sync interval has to be long enough for the internal
     // syncing process to finish within that time.
     mFileSystem.getStatus(new AlluxioURI(alluxioPath("/delete")), GetStatusPOptions.newBuilder()
         .setCommonOptions(
-            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(1000).build()).build());
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(2000).build()).build());
+
+    // a following list status should trigger a metadata sync even though the path was just synced,
+    // because the descendant type is ONE this time, and it was NONE previously.
+    mFileSystem.listStatus(new AlluxioURI(alluxioPath("/delete")),
+        ListStatusPOptions.newBuilder().setRecursive(false).setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(2000).build()).build());
 
     // verify that the file is deleted, without syncing
     try {
