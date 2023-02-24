@@ -317,7 +317,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
         cl.hasOption("d"), cl.hasOption("h"), cl.hasOption("p"),
         cl.getOptionValue("sort", null), cl.hasOption("r"),
         cl.getOptionValue("timestamp", "lastModificationTime"),
-        cl.hasOption("exclude-mount-info"));
+        cl.hasOption("m") || cl.hasOption("omit-mount-info"));
   }
 
   @Override
