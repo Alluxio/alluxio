@@ -102,7 +102,8 @@ public final class LoadTestUtils {
             .stream()
             .map(id -> LoadTestUtils.createFileBlockInfo(id, blockSizeLimit))
             .collect(ImmutableList.toImmutableList()))
-        .setCompleted(true);
+        .setCompleted(true)
+        .setPersisted(true);
     return info;
   }
 

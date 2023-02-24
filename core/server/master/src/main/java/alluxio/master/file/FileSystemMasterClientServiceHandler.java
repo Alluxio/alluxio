@@ -56,7 +56,6 @@ import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.ListStatusPartialPRequest;
 import alluxio.grpc.ListStatusPartialPResponse;
-import alluxio.grpc.LoadJobPOptions;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
 import alluxio.grpc.NeedsSyncRequest;
@@ -85,7 +84,7 @@ import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateMountPResponse;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
-import alluxio.job.LoadJobRequest;
+import alluxio.job.JobRequest;
 import alluxio.job.util.SerializationUtils;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
@@ -103,8 +102,10 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.job.JobFactoryProducer;
 import alluxio.master.scheduler.Scheduler;
 import alluxio.recorder.Recorder;
+import alluxio.scheduler.job.Job;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -503,40 +504,33 @@ public final class FileSystemMasterClientServiceHandler
       StreamObserver<SubmitJobPResponse> responseObserver) {
 
     RpcUtils.call(LOG, () -> {
-      LoadJobRequest loadJobRequest;
+      JobRequest jobRequest;
       try {
-        loadJobRequest =
-            (LoadJobRequest) SerializationUtils.deserialize(request.getRequestBody().toByteArray());
+        jobRequest = (JobRequest) SerializationUtils.deserialize(request
+            .getRequestBody()
+            .toByteArray());
       } catch (Exception e) {
         throw new IllegalArgumentException("fail to parse job request", e);
       }
-      LoadJobPOptions options = loadJobRequest.getOptions();
-      boolean submitted = mScheduler.submitJob(
-          loadJobRequest.getPath(),
-          options.hasBandwidth()
-              ? java.util.OptionalLong.of(loadJobRequest.getOptions().getBandwidth())
-              : java.util.OptionalLong.empty(),
-          options.hasPartialListing() && options.getPartialListing(),
-          options.hasVerify() && options.getVerify());
+      Job<?> job = JobFactoryProducer.create(jobRequest, mFileSystemMaster).create();
+      boolean submitted = mScheduler.submitJob(job);
       SubmitJobPResponse.Builder builder = SubmitJobPResponse.newBuilder();
       if (submitted) {
-        builder.setJobId(loadJobRequest.getPath());
+        builder.setJobId(job.getJobId());
       }
-      return builder
-          .setJobId(loadJobRequest.getPath())
-          .build();
-    }, "LoadPath", "request=%s", responseObserver, request);
+      return builder.build();
+    }, "submitJob", "request=%s", responseObserver, request);
   }
 
   @Override
   public void stopJob(StopJobPRequest request,
       StreamObserver<StopJobPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      boolean stopped = mScheduler.stopLoad(request.getJobId());
+      boolean stopped = mScheduler.stopJob(request.getJobDescription());
       return alluxio.grpc.StopJobPResponse.newBuilder()
           .setJobStopped(stopped)
           .build();
-    }, "stopLoadPath", "request=%s", responseObserver, request);
+    }, "stopJob", "request=%s", responseObserver, request);
   }
 
   @Override
@@ -552,10 +546,10 @@ public final class FileSystemMasterClientServiceHandler
         verbose = request.getOptions().getVerbose();
       }
       return GetJobProgressPResponse.newBuilder()
-          .setProgressReport(mScheduler.getLoadProgress(
-              request.getJobId(), format, verbose))
+          .setProgressReport(mScheduler.getJobProgress(
+              request.getJobDescription(), format, verbose))
           .build();
-    }, "getLoadProgress", "request=%s", responseObserver, request);
+    }, "getJobProgress", "request=%s", responseObserver, request);
   }
 
   /**

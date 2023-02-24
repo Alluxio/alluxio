@@ -606,7 +606,6 @@ message SubmitJobPRequest{
 
 message SubmitJobPResponse {
   optional string jobId = 1;
-  optional bool submitted = 2;
 }
 
 message LoadJobPOptions {
@@ -616,7 +615,7 @@ message LoadJobPOptions {
 }
 
 message StopJobPRequest {
-  required string jobId = 1;
+  required string jobDescription = 1;
 }
 
 message StopJobPResponse {
@@ -634,7 +633,7 @@ message JobProgressPOptions {
 }
 
 message GetJobProgressPRequest {
-  required string jobId = 1;
+  required string jobDescription = 1;
   optional JobProgressPOptions options = 2;
 }
 

@@ -443,17 +443,17 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public boolean stopJob(String jobId) {
+  public boolean stopJob(String jobDescription) {
     connectWithRuntimeException();
     StopJobPResponse response = mClient.stopJob(StopJobPRequest
         .newBuilder()
-        .setJobId(jobId)
+        .setJobDescription(jobDescription)
         .build());
     return response.getJobStopped();
   }
 
   @Override
-  public String getJobProgress(String jobId,
+  public String getJobProgress(String jobDescription,
       JobProgressReportFormat format, boolean verbose) {
     JobProgressPOptions.Builder options = JobProgressPOptions.newBuilder()
             .setVerbose(verbose)
@@ -461,7 +461,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     connectWithRuntimeException();
     GetJobProgressPResponse response = mClient.getJobProgress(
         GetJobProgressPRequest.newBuilder()
-            .setJobId(jobId)
+            .setJobDescription(jobDescription)
             .setOptions(options.build())
             .build());
     return response.getProgressReport();

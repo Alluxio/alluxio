@@ -210,12 +210,12 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public boolean stopJob(String jobId) {
+  public boolean stopJob(String jobDescription) {
     return false;
   }
 
   @Override
-  public String getJobProgress(String jobId,
+  public String getJobProgress(String jobDescription,
       JobProgressReportFormat format, boolean verbose) {
     return null;
   }

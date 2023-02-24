@@ -347,29 +347,29 @@ public interface FileSystemMasterClient extends Client {
   void needsSync(AlluxioURI path) throws AlluxioStatusException;
 
   /**
-   * Submit a directory load job.
+   * Submit a job to scheduler.
    *
    * @param job the job request to submit
-   * @return true if job is submitted, false if a load of the same path already exists
+   * @return jobId if job is submitted, empty if a job already exists
    */
   Optional<String> submitJob(JobRequest job);
 
   /**
-   * Stop a directory load.
+   * Stop a job.
    *
-   * @param jobId alluxio path to be stopped
-   * @return true if job is stopped, false if cannot find job
+   * @param jobDescription job description be stopped
+   * @return true if job is stopped, false if we cannot find job
    */
-  boolean stopJob(String jobId);
+  boolean stopJob(String jobDescription);
 
   /**
-   * Get progress of a load job.
+   * Get progress of a job.
    *
-   * @param jobId   job id to get progress
+   * @param jobDescription   job description to get progress
    * @param format  progress report format
    * @param verbose whether to return verbose report
    * @return the load job progress
    */
-  String getJobProgress(String jobId,
+  String getJobProgress(String jobDescription,
       JobProgressReportFormat format, boolean verbose);
 }

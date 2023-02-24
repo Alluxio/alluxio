@@ -3800,11 +3800,6 @@
                 "id": 1,
                 "name": "jobId",
                 "type": "string"
-              },
-              {
-                "id": 2,
-                "name": "submitted",
-                "type": "bool"
               }
             ]
           },
@@ -3833,7 +3828,7 @@
             "fields": [
               {
                 "id": 1,
-                "name": "jobId",
+                "name": "jobDescription",
                 "type": "string"
               }
             ]
@@ -3868,7 +3863,7 @@
             "fields": [
               {
                 "id": 1,
-                "name": "jobId",
+                "name": "jobDescription",
                 "type": "string"
               },
               {

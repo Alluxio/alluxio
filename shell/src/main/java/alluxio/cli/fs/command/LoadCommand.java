@@ -48,6 +48,7 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalLong;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -58,6 +59,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class LoadCommand extends AbstractFileSystemCommand {
   private static final JobProgressReportFormat DEFAULT_FORMAT = JobProgressReportFormat.TEXT;
+  private static final String JOB_DESCRIPTION_FORMAT = "load:%s";
   private static final Option LOCAL_OPTION =
       Option.builder()
           .longOpt("local")
@@ -107,7 +109,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       .longOpt("bandwidth")
       .required(false)
       .hasArg(true)
-      .desc("Run verification when load finish and load new files if any.")
+      .desc("Single worker read bandwidth limit.")
       .build();
 
   private static final Option PROGRESS_FORMAT = Option.builder()
@@ -236,8 +238,9 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     }
     LoadJobRequest job = new LoadJobRequest(path.getPath(), options.build());
     try {
-      if (mFileSystem.submitJob(job).isPresent()) {
-        System.out.printf("Load '%s' is successfully submitted.%n", path);
+      Optional<String> jobId = mFileSystem.submitJob(job);
+      if (jobId.isPresent()) {
+        System.out.printf("Load '%s' is successfully submitted. JobId: %s%n", path, jobId);
       } else {
         System.out.printf("Load already running for path '%s', updated the job with "
                 + "new bandwidth: %s, verify: %s%n",
@@ -254,7 +257,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
 
   private int stopLoad(AlluxioURI path) {
     try {
-      if (mFileSystem.stopJob(path.getPath())) {
+      if (mFileSystem.stopJob(String.format(JOB_DESCRIPTION_FORMAT, path.getPath()))) {
         System.out.printf("Load '%s' is successfully stopped.%n", path);
       }
       else {
@@ -272,7 +275,9 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       boolean verbose) {
     try {
       System.out.println("Progress for loading path '" + path + "':");
-      System.out.println(mFileSystem.getLoadProgress(path.getPath(), format, verbose));
+      System.out.println(
+          mFileSystem.getLoadProgress(String.format(JOB_DESCRIPTION_FORMAT, path.getPath()), format,
+              verbose));
       return 0;
     } catch (StatusRuntimeException e) {
       if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {

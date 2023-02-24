@@ -5402,10 +5402,10 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
-   * Get load manager.
-   * @return load manager
+   * Get scheduler.
+   * @return scheduler
    */
-  public Scheduler getLoadManager() {
+  public Scheduler getScheduler() {
     return mScheduler;
   }
 }

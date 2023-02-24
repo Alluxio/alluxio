@@ -532,19 +532,19 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public boolean stopJob(String jobId) {
+  public boolean stopJob(String jobDescription) {
     try (CloseableResource<FileSystemMasterClient> client =
             mFsContext.acquireMasterClientResource()) {
-      return client.get().stopJob(jobId);
+      return client.get().stopJob(jobDescription);
     }
   }
 
   @Override
-  public String getLoadProgress(String jobId,
+  public String getLoadProgress(String jobDescription,
       JobProgressReportFormat format, boolean verbose) {
     try (CloseableResource<FileSystemMasterClient> client =
             mFsContext.acquireMasterClientResource()) {
-      return client.get().getJobProgress(jobId, format, verbose);
+      return client.get().getJobProgress(jobDescription, format, verbose);
     }
   }
 

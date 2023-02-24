@@ -743,7 +743,7 @@ public interface FileSystem extends Closeable {
   void needsSync(AlluxioURI path) throws IOException, AlluxioException;
 
   /**
-   * Submit a job.
+   * Submit a job to scheduler.
    *
    * @param jobRequest the job request
    * @return job id if job is submitted, empty if a load of the same path already exists
@@ -751,21 +751,21 @@ public interface FileSystem extends Closeable {
   Optional<String> submitJob(JobRequest jobRequest);
 
   /**
-   * Stop a load job.
+   * Stop a job in scheduler.
    *
-   * @param jobId the job id
-   * @return true if job is stopped, false if cannot find job
+   * @param jobDescription the job description
+   * @return true if job is stopped, false if we cannot find job
    */
-  boolean stopJob(String jobId);
+  boolean stopJob(String jobDescription);
 
   /**
-   * Get progress of a load job.
+   * Get progress of a job.
    *
-   * @param jobId   the job id
+   * @param jobDescription   the job description
    * @param format  progress report format
    * @param verbose whether to return verbose report
    * @return the load job progress
    */
-  String getLoadProgress(String jobId,
+  String getLoadProgress(String jobDescription,
       JobProgressReportFormat format, boolean verbose);
 }

@@ -9,23 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
-import java.io.Serializable;
+package alluxio.scheduler.job;
 
 /**
- * A job request that can be used to create Job. All the subclasses are both Java and JSON
- * serializable.
+ * Factory for creating job instances.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@type")
-public interface JobRequest extends Serializable {
-
+public interface JobFactory {
   /**
-   * @return the type of the job
+   * @return the job
    */
-  String getType();
+  Job<?> create();
 }

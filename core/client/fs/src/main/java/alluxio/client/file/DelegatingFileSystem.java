@@ -250,14 +250,14 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public boolean stopJob(String jobId) {
-    return mDelegatedFileSystem.stopJob(jobId);
+  public boolean stopJob(String jobDescription) {
+    return mDelegatedFileSystem.stopJob(jobDescription);
   }
 
   @Override
-  public String getLoadProgress(String jobId,
+  public String getLoadProgress(String jobDescription,
       JobProgressReportFormat format, boolean verbose) {
-    return mDelegatedFileSystem.getLoadProgress(jobId, format, verbose);
+    return mDelegatedFileSystem.getLoadProgress(jobDescription, format, verbose);
   }
 
   @Override

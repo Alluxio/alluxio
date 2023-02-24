@@ -903,12 +903,12 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public boolean stopJob(String jobId) {
+    public boolean stopJob(String jobDescription) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public String getLoadProgress(String jobId,
+    public String getLoadProgress(String jobDescription,
         JobProgressReportFormat format, boolean verbose) {
       throw new UnsupportedOperationException();
     }
