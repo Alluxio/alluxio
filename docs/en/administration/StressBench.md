@@ -220,7 +220,7 @@ $ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation LocalRead
 For example,
 ```console
 $ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation LocalRead --local-path /mnt/FuseIOBenchRead --num-dirs 128 \
---num-files-per-dir 100 --files-size 1m --buffer-size 512k --warmup 5s --duration 30s 
+--num-files-per-dir 100 --file-size 1m --buffer-size 512k --warmup 5s --duration 30s 
 ```
 
 #### Demo
@@ -498,7 +498,7 @@ $ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation
 
 For example, we are testing Streaming read api, using byte buffers with buffer size 512k.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation ReadByteBuffer --files-size 1m --buffer-size 512k --warmup 5s --duration 30s 
+$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation ReadByteBuffer --file-size 1m --buffer-size 512k --warmup 5s --duration 30s 
 ```
 
 ### Cluster testing
