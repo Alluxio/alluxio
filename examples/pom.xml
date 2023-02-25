@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-parent</artifactId>
-    <version>291-gamma-SNAPSHOT</version>
+    <version>291-gamma</version>
   </parent>
   <artifactId>alluxio-examples</artifactId>
   <packaging>jar</packaging>

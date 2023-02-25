@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-integration</artifactId>
-    <version>291-gamma-SNAPSHOT</version>
+    <version>291-gamma</version>
   </parent>
   <artifactId>alluxio-integration-fuse</artifactId>
   <name>Alluxio Integration - FUSE</name>
