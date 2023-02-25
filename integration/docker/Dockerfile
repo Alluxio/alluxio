@@ -29,8 +29,8 @@ RUN cd /alluxio-csi && \
 # ADD with chown doesn't chown the files inside tarball
 #   See - https://github.com/moby/moby/issues/35525
 FROM alpine:3.10.2 AS alluxio-extractor
-# Note that downloads for *-SNAPSHOT tarballs are not available.
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/291-gamma-SNAPSHOT/alluxio-291-gamma-SNAPSHOT-bin.tar.gz
+# Note that downloads for *git tarballs are not available.
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/291-gamma/alluxio-291-gamma-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
 ARG ENABLE_DYNAMIC_USER=false
 
