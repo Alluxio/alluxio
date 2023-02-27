@@ -271,8 +271,8 @@ The built-in policies include:
 * [DeterministicHashPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/DeterministicHashPolicy.html)
 
   > This policy maps the blockId to several deterministic Alluxio workers. The number of workers a block
-  > can be mapped to can be passed through the constructor. The default is 1. It skips the workers
-  > that do not have enough capacity to hold the block.
+  > can be mapped to can be specified by `alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards`.
+  > The default is 1. It skips the workers that do not have enough capacity to hold the block.
   >
   > This policy is useful for limiting the amount of replication that occurs when reading blocks from
   > the UFS with high concurrency. With 30 workers and 100 remote clients reading the same block
@@ -283,6 +283,42 @@ The built-in policies include:
   >
   > Note that the hash function relies on the number of workers in the cluster, so if the number of
   > workers changes, the workers chosen by the policy for a given block will likely change.
+
+* [CapacityBaseRandomPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/CapacityBaseRandomPolicy.html)
+
+  > This policy chooses a worker with a probability equal to the worker's normalized capacity, 
+  > i.e. the ratio of its capacity over the total capacity of all workers. It randomly distributes
+  > workload based on the worker capacities so that larger workers get more requests.
+  > 
+  > This policy is useful for clusters where workers have heterogeneous storage capabilities, but
+  > the distribution of workload does not match that of storage. For example, in a cluster of 5
+  > workers, one of the workers has only half the capacity of the others, however, it is co-located
+  > with a client that generates twice the amount of read requests than others. In this scenario,
+  > the default LocalFirstPolicy will quickly cause the smaller worker to go out of space, while
+  > the larger workers has plenty of storage left unused. Although the client will retry with a
+  > different worker when the local worker is out of space, this will increase I/O latency.
+  >
+  > Note that the randomness is
+  > based on capacity instead of availability, because in the long run, all workers will be 
+  > filled up and have availability close to 0, which would cause this policy to degrade to a
+  > uniformly distributed random policy.
+
+* [CapacityBasedDeterministicHashPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/CapacityBasedDeterministicHashPolicy.html)
+
+  > This policy is a combination of DeterministicHashPolicy and CapacityBaseRandomPolicy.
+  > It ensures each block is always assigned to the same set of workers. Additionally, provided 
+  > that block requests follow a uniform distribution, they are assigned to each worker with a probability 
+  > equal to the worker's normalized capacity. The number of workers that a block can be assigned 
+  > to can be specified by `alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards`.
+  > 
+  > This policy is useful when CapacityBaseRandomPolicy causes too many replicas across multiple
+  > workers, and one wish to limit the number of replication, in a way similar to
+  > DeterministicHashPolicy.
+  > 
+  > Note that this is not a random policy in itself. The outcome distribution of this policy is
+  > dependent on the distribution of the block requests. When the distribution of block
+  > requests is highly skewed, the workers chosen will not follow a distribution based on workers'
+  > normalized capacities.
 
 Alluxio supports custom policies, so you can also develop your own policy appropriate for your
 workload by implementing the interface `alluxio.client.block.policy.BlockLocationPolicy`. Note that a

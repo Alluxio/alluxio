@@ -271,4 +271,11 @@ public abstract class MasterProcess implements Process {
   public boolean supportStandbyWeb() {
     return false;
   }
+
+  /**
+   * @return the primary selector
+   */
+  public PrimarySelector getPrimarySelector() {
+    return mLeaderSelector;
+  }
 }

@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /**
@@ -55,6 +56,8 @@ public class OBSLowLevelOutputStream extends ObjectLowLevelOutputStream {
    * The upload id of this multipart upload.
    */
   protected volatile String mUploadId;
+
+  private String mContentHash;
 
   /**
    * Constructs a new stream for writing a file.
@@ -124,7 +127,7 @@ public class OBSLowLevelOutputStream extends ObjectLowLevelOutputStream {
       LOG.debug("complete multi part {}", mUploadId);
       CompleteMultipartUploadRequest completeRequest = new CompleteMultipartUploadRequest(
           mBucketName, mKey, mUploadId, mTags);
-      getClient().completeMultipartUpload(completeRequest);
+      mContentHash = getClient().completeMultipartUpload(completeRequest).getEtag();
     } catch (ObsException e) {
       LOG.debug("failed to complete multi part upload", e);
       throw new IOException(
@@ -155,7 +158,7 @@ public class OBSLowLevelOutputStream extends ObjectLowLevelOutputStream {
       PutObjectRequest request =
           new PutObjectRequest(mBucketName, key, new ByteArrayInputStream(new byte[0]));
       request.setMetadata(meta);
-      getClient().putObject(request);
+      mContentHash = getClient().putObject(request).getEtag();
     } catch (ObsException e) {
       throw new IOException(e);
     }
@@ -172,7 +175,7 @@ public class OBSLowLevelOutputStream extends ObjectLowLevelOutputStream {
       PutObjectRequest request =
           new PutObjectRequest(mBucketName, key, file);
       request.setMetadata(meta);
-      getClient().putObject(request);
+      mContentHash = getClient().putObject(request).getEtag();
     } catch (ObsException e) {
       throw new IOException(e);
     }
@@ -180,5 +183,10 @@ public class OBSLowLevelOutputStream extends ObjectLowLevelOutputStream {
 
   protected IObsClient getClient() {
     return mClient;
+  }
+
+  @Override
+  public Optional<String> getContentHash() {
+    return Optional.ofNullable(mContentHash);
   }
 }

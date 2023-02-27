@@ -75,7 +75,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * older than clean age will be cleaned.
  */
 @NotThreadSafe
-public abstract class ObjectLowLevelOutputStream extends OutputStream {
+public abstract class ObjectLowLevelOutputStream extends OutputStream
+    implements ContentHashable {
   protected static final Logger LOG = LoggerFactory.getLogger(ObjectLowLevelOutputStream.class);
 
   protected final List<String> mTmpDirs;

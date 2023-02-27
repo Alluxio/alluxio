@@ -973,14 +973,15 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   private FileInfo getFileInfoInternal(LockedInodePath inodePath)
       throws UnavailableException, FileDoesNotExistException {
-    return getFileInfoInternal(inodePath, null);
+    return getFileInfoInternal(inodePath, null, false);
   }
 
   /**
    * @param inodePath the {@link LockedInodePath} to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given inode
    */
-  private FileInfo getFileInfoInternal(LockedInodePath inodePath, Counter counter)
+  private FileInfo getFileInfoInternal(LockedInodePath inodePath, Counter counter,
+      boolean excludeMountInfo)
       throws FileDoesNotExistException, UnavailableException {
     int inMemoryPercentage;
     int inAlluxioPercentage;
@@ -1027,20 +1028,22 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
     }
     fileInfo.setXAttr(inode.getXAttr());
-    MountTable.Resolution resolution;
-    try {
-      resolution = mMountTable.resolve(uri);
-    } catch (InvalidPathException e) {
-      throw new FileDoesNotExistException(e.getMessage(), e);
-    }
-    AlluxioURI resolvedUri = resolution.getUri();
-    fileInfo.setUfsPath(resolvedUri.toString());
-    fileInfo.setMountId(resolution.getMountId());
-    if (counter == null) {
-      Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
-          Metrics.UFSOps.GET_FILE_INFO).inc();
-    } else {
-      counter.inc();
+    if (!excludeMountInfo) {
+      MountTable.Resolution resolution;
+      try {
+        resolution = mMountTable.resolve(uri);
+      } catch (InvalidPathException e) {
+        throw new FileDoesNotExistException(e.getMessage(), e);
+      }
+      AlluxioURI resolvedUri = resolution.getUri();
+      fileInfo.setUfsPath(resolvedUri.toString());
+      fileInfo.setMountId(resolution.getMountId());
+      if (counter == null) {
+        Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
+            Metrics.UFSOps.GET_FILE_INFO).inc();
+      } else {
+        counter.inc();
+      }
     }
 
     Metrics.FILE_INFOS_GOT.inc();
@@ -1146,13 +1149,15 @@ public class DefaultFileSystemMaster extends CoreMaster
           ensureFullPathAndUpdateCache(inodePath);
 
           auditContext.setSrcInode(inodePath.getInode());
-          MountTable.Resolution resolution;
+          MountTable.Resolution resolution = null;
           if (!context.getOptions().hasLoadMetadataOnly()
               || !context.getOptions().getLoadMetadataOnly()) {
             DescendantType descendantTypeForListStatus =
                 (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
             try {
-              resolution = mMountTable.resolve(path);
+              if (!context.getOptions().getExcludeMountInfo()) {
+                resolution = mMountTable.resolve(path);
+              }
             } catch (InvalidPathException e) {
               throw new FileDoesNotExistException(e.getMessage(), e);
             }
@@ -1172,11 +1177,11 @@ public class DefaultFileSystemMaster extends CoreMaster
             }
             // perform the listing
             listStatusInternal(context, rpcContext, inodePath, auditContext,
-                descendantTypeForListStatus, resultStream, 0,
-                Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
-                    Metrics.UFSOps.GET_FILE_INFO),
+                descendantTypeForListStatus, resultStream, 0, resolution == null ? null :
+                    Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
+                        Metrics.UFSOps.GET_FILE_INFO),
                 partialPathNames, prefixComponents);
-            if (!ufsAccessed) {
+            if (!ufsAccessed && resolution != null) {
               Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
                   Metrics.UFSOps.LIST_STATUS).inc();
             }
@@ -1219,7 +1224,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private void listStatusInternal(
       ListStatusContext context, RpcContext rpcContext, LockedInodePath currInodePath,
       AuditContext auditContext, DescendantType descendantType, ResultStream<FileInfo> resultStream,
-      int depth, Counter counter, List<String> partialPath,
+      int depth, @Nullable Counter counter, List<String> partialPath,
       List<String> prefixComponents)
       throws FileDoesNotExistException, UnavailableException,
       AccessControlException, InvalidPathException {
@@ -1242,7 +1247,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       // at this depth.
       if ((depth != 0 || inode.isFile()) && prefixComponents.size() <= depth) {
         if (context.listedItem()) {
-          resultStream.submit(getFileInfoInternal(currInodePath, counter));
+          resultStream.submit(getFileInfoInternal(currInodePath, counter,
+              context.getOptions().getExcludeMountInfo()));
         }
         if (context.isDoneListing()) {
           return;
@@ -1704,7 +1710,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
         if (ufsStatus == null) {
-          ufsFingerprint = ufs.getParsedFingerprint(ufsPath).serialize();
+          String contentHash = context.getOptions().hasContentHash()
+              ? context.getOptions().getContentHash() : null;
+          ufsFingerprint = ufs.getParsedFingerprint(ufsPath, contentHash).serialize();
         } else {
           ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
         }
@@ -1868,10 +1876,46 @@ public class DefaultFileSystemMaster extends CoreMaster
           // Check if ufs is writable
           checkUfsMode(path, OperationType.WRITE);
         }
+        deleteFileIfOverwrite(rpcContext, inodePath, context);
         createFileInternal(rpcContext, inodePath, context);
         auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
         cacheOperation(context);
         return getFileInfoInternal(inodePath);
+      }
+    }
+  }
+
+  /**
+   * @param rpcContext the rpc context
+   * @param inodePath the path to be created
+   * @param context the method context
+   */
+  private void deleteFileIfOverwrite(RpcContext rpcContext, LockedInodePath inodePath,
+      CreateFileContext context)
+      throws FileDoesNotExistException, IOException, InvalidPathException,
+      FileAlreadyExistsException {
+    if (inodePath.fullPathExists()) {
+      Inode currentInode = inodePath.getInode();
+      if (!context.getOptions().hasOverwrite() || !context.getOptions().getOverwrite()) {
+        throw new FileAlreadyExistsException(
+            ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage(
+                inodePath.getUri()));
+      }
+      // if the fullpath is a file and the option is to overwrite, delete it
+      if (currentInode.isDirectory()) {
+        throw new FileAlreadyExistsException(
+            ExceptionMessage.CANNOT_OVERWRITE_DIRECTORY.getMessage(inodePath.getUri()));
+      } else {
+        try {
+          deleteInternal(rpcContext, inodePath, DeleteContext.mergeFrom(
+              DeletePOptions.newBuilder().setRecursive(true)
+                  .setAlluxioOnly(!context.isPersisted())), true);
+          inodePath.removeLastInode();
+        } catch (DirectoryNotEmptyException e) {
+          // Should not reach here
+          throw new InvalidPathException(
+              ExceptionMessage.CANNOT_OVERWRITE_DIRECTORY.getMessage(inodePath.getUri()));
+        }
       }
     }
   }
@@ -2089,6 +2133,12 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
 
         deleteInternal(rpcContext, inodePath, context, false);
+        if (context.getOptions().getAlluxioOnly()
+            && context.getOptions().hasSyncParentNextTime()) {
+          boolean syncParentNextTime = context.getOptions().getSyncParentNextTime();
+          mInodeTree.setDirectChildrenLoaded(
+              rpcContext, inodePath.getParentInodeDirectory(), !syncParentNextTime);
+        }
         auditContext.setSucceeded(true);
         cacheOperation(context);
       }
@@ -3075,7 +3125,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         try {
           deleteInternal(rpcContext, dstInodePath, DeleteContext
                   .mergeFrom(DeletePOptions.newBuilder()
-                          .setRecursive(true).setAlluxioOnly(context.getPersist())), true);
+                          .setRecursive(true).setAlluxioOnly(!context.getPersist())), true);
           dstInodePath.removeLastInode();
         } catch (DirectoryNotEmptyException ex) {
           // IGNORE, this will never happen

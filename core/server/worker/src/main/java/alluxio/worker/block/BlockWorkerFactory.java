@@ -34,6 +34,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BlockWorkerFactory implements WorkerFactory {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerFactory.class);
+  private final boolean mWorkerRegisterToAllMasters = Configuration.getBoolean(
+      PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS);
 
   /**
    * Constructs a new {@link BlockWorkerFactory}.
@@ -64,10 +66,17 @@ public final class BlockWorkerFactory implements WorkerFactory {
       default:
         throw new UnsupportedOperationException("Unsupported block store type.");
     }
-    BlockWorker blockWorker = new DefaultBlockWorker(blockMasterClientPool,
-        new FileSystemMasterClient(
-            MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build()),
-        new Sessions(), blockStore, workerId);
+    BlockWorker blockWorker = mWorkerRegisterToAllMasters
+        ? new AllMasterRegistrationBlockWorker(blockMasterClientPool,
+            new FileSystemMasterClient(
+                MasterClientContext.newBuilder(ClientContext.create(Configuration.global()))
+                    .build()),
+            new Sessions(), blockStore, workerId)
+        : new DefaultBlockWorker(blockMasterClientPool,
+            new FileSystemMasterClient(
+                MasterClientContext.newBuilder(ClientContext.create(Configuration.global()))
+                    .build()),
+            new Sessions(), blockStore, workerId);
     registry.add(BlockWorker.class, blockWorker);
     return blockWorker;
   }
