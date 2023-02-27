@@ -50,8 +50,8 @@ public class BlockSyncMasterGroup implements Closeable {
   private static BlockMasterClientFactory sBlockMasterClientFactory
       = new BlockMasterClientFactory();
 
-  private static final long WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
-      Configuration.getMs(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT);
+  private static final long WORKER_MASTER_CONNECT_RETRY_TIMEOUT = Math.min(
+      Configuration.getMs(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT), Integer.MAX_VALUE);
 
   /**
    * Creates a block sync master group.
