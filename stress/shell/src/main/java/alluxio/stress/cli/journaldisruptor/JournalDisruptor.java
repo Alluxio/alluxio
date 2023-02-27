@@ -87,6 +87,10 @@ public class JournalDisruptor {
     return mHoldEntry;
   }
 
+  /**
+   * Added a simple method to get pure next entry.
+   * @return next JournalEntry
+   */
   public Journal.JournalEntry justNextEntry() {
     mEntry = mReader.nextEntry();
     return mEntry;
