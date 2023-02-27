@@ -129,12 +129,14 @@ public class JournalTool {
       writer = ex.getWriter();
       // this loop is use used to go through the journal entries
       // here read 22 alluxio journal entries
-      for (int i = 0; i < 23; i++) {
-        JournalEntry entry = disruptor.test();
+      for (int i = 0; i < 140000; i++) {
+        // JournalEntry entry = disruptor.test();
+        JournalEntry entry = reader.nextEntry();
         if (entry != null) {
           System.out.println("entry: " + entry);
           try {
             writer.write(entry.toBuilder().clearSequenceNumber().build());
+            writer.flush();
             out.println(entry.toBuilder().clearSequenceNumber().build());
           } catch (JournalClosedException e) {
             System.out.println("failed when writing entry: " + e);
@@ -143,11 +145,11 @@ public class JournalTool {
           break;
         }
       }
-      try {
-        writer.flush();
-      } catch (Exception e) {
-        System.out.println(e);
-      }
+      // try {
+      //   writer.flush();
+      // } catch (Exception e) {
+      //   System.out.println(e);
+      // }
       // without this sleep RaftJournalClient won't be Master
       // 'is in LEADER state but not ready yet'
       Thread.sleep(2000);

@@ -87,6 +87,11 @@ public class JournalDisruptor {
     return mHoldEntry;
   }
 
+  public Journal.JournalEntry justNextEntry() {
+    mEntry = mReader.nextEntry();
+    return mEntry;
+  }
+
   /**
    * Temporary nextEntry(), inside define the disrupt action.
    * @return JournalEntry in target order
