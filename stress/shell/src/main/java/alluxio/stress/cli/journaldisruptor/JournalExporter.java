@@ -99,7 +99,7 @@ public class JournalExporter {
 
   private void initRaftJournal() {
     try {
-      RaftJournalSystem sys = new RaftJournalSystem(new URI("/Users/dengxinyu/journal-tool/raft"),
+      RaftJournalSystem sys = new RaftJournalSystem(new URI(mOutputDir),
           NetworkAddressUtils.ServiceType.MASTER_RAFT);
       mJournal = sys.createJournal(new NoopMaster());
       sys.start();

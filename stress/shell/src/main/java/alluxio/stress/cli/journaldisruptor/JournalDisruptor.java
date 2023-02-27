@@ -11,156 +11,206 @@
 
 package alluxio.stress.cli.journaldisruptor;
 
-import alluxio.proto.journal.Journal;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.JournalClosedException;
+import alluxio.master.journal.JournalWriter;
+import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.io.PathUtils;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 
 /**
- * Disruptor should be like a gun, the EntryStream like the magazine, and the entry like bullet.
+ * JournalTool (Journal Disruptor).
  */
 public class JournalDisruptor {
-  long mDisruptStep;
-  JournalReader mReader;
-  long mStepCounter;
-  int mEntryType;
-  Journal.JournalEntry mEntry;
-  Journal.JournalEntry mHoldEntry;
-  boolean mHoldFlag;
+
+  private static final String HELP_OPTION_NAME = "help";
+  private static final String MASTER_OPTION_NAME = "master";
+  private static final String START_OPTION_NAME = "start";
+  private static final String END_OPTION_NAME = "end";
+  private static final String INPUT_DIR_OPTION_NAME = "inputDir";
+  private static final String OUTPUT_DIR_OPTION_NAME = "outputDir";
+
+  private static final Options OPTIONS = new Options()
+      .addOption(HELP_OPTION_NAME, false, "Show help for this command.")
+      .addOption(MASTER_OPTION_NAME, true,
+          "The name of the master (e.g. FileSystemMaster, BlockMaster). "
+              + "Set to FileSystemMaster by default.")
+      .addOption(START_OPTION_NAME, true,
+          "The start log sequence number (inclusive). Set to 0 by default.")
+      .addOption(END_OPTION_NAME, true,
+          "The end log sequence number (exclusive). Set to +inf by default.")
+      .addOption(INPUT_DIR_OPTION_NAME, true,
+          "The input directory on-disk to read journal content from. "
+              + "(Default: Read from system configuration.)")
+      .addOption(OUTPUT_DIR_OPTION_NAME, true,
+          "The output directory to write journal content to. "
+          + "(Default: journal_dump-${timestamp})");
+
+  private static boolean sHelp;
+  private static String sMaster;
+  private static String sInputDir;
+  private static long sStart;
+  private static long sEnd;
+  private static String sOutputDir;
 
   /**
-   * init a JournalDisruptor.
-   * @param reader
-   * @param step
-   * @param type
+   * the main method.
+   * @param args
    */
-  public JournalDisruptor(JournalReader reader, long step, int type) {
-    mReader = reader;
-    mDisruptStep = step;
-    mEntryType = type;
-    mHoldFlag = false;
-  }
-
-  /**
-   * the Disrupt() do every thing.
-   * The journal tool should lay down after call the Disrupt()
-   * Here will read, disrupt, and write
-   *
-   * TODO(voddle): add writer to Disruptor inorder to complete the Disrupt()
-   */
-  public void Disrupt() {
-    Journal.JournalEntry entry;
-    while ((entry = nextEntry()) != null) {
-      System.out.println("entry: " + entry);
-      writeEntry(entry.toBuilder().clearSequenceNumber().build());
+  public static void main(String[] args) {
+    if (!parseInputArgs(args)) {
+      System.exit(-1);
     }
-  }
-
-  /**
-   * Here ought to do the order disruption.
-   *
-   * Hold entry if the entry is target type, and return next type
-   * If it comes to the end of the Stream, return the hold entry (could be null)
-   *
-   * @return return next Alluxio journal entry
-   */
-  public Journal.JournalEntry nextEntry() {
-    if (mHoldFlag && mStepCounter == 0) {
-      mEntry = mHoldEntry;
-      mHoldEntry = null;
-      mHoldFlag = false;
-      mStepCounter = mDisruptStep;
-      return mEntry;
+    if (sHelp) {
+      System.exit(0);
     }
 
-    if ((mEntry = mReader.nextEntry()) != null) {
-      if (mHoldFlag) {
-        mStepCounter -= 1;
-        return mEntry;
-      }
-      if (targetEntry(mEntry)) {
-        mHoldFlag = true;
-        // writer will set SN, no need to worry
-        // mHoldEntrySequenceNumber = mEntry.getSequenceNumber();
-        mHoldEntry = mEntry;
-        return nextEntry();
-      }
-      return mEntry;
+    disrupttest();
+    System.exit(0);
+  }
+
+  private static boolean parseInputArgs(String[] args) {
+    CommandLineParser parser = new DefaultParser();
+    CommandLine cmd;
+    try {
+      cmd = parser.parse(OPTIONS, args);
+    } catch (ParseException e) {
+      System.out.println("Failed to parse input args: " + e);
+      return false;
     }
-    return mHoldEntry;
-  }
-
-  /**
-   * Added a simple method to get pure next entry.
-   * @return next JournalEntry
-   */
-  public Journal.JournalEntry justNextEntry() {
-    mEntry = mReader.nextEntry();
-    return mEntry;
-  }
-
-  /**
-   * Temporary nextEntry(), inside define the disrupt action.
-   * @return JournalEntry in target order
-   */
-  public Journal.JournalEntry test() {
-    if ((mEntry = mReader.nextEntry()) != null) {
-      if (targetEntry(mEntry)) {
-        return mEntry.toBuilder().setUpdateInode(mEntry.getUpdateInode().toBuilder()
-            .setId(mEntry.getUpdateInode().getId() + 100).build()).build();
-      }
-    }
-    return mEntry;
-  }
-
-  /**
-   * the targetEntry can only handle the hard coded entry type below.
-   * @param entry
-   * @return true if the given entry has the target entry type
-   */
-  private boolean targetEntry(Journal.JournalEntry entry) {
-    int type = -1;
-    if (entry.hasDeleteFile()) {
-      type = 0;
-    } else if (entry.hasInodeDirectory()) {
-      type = 1;
-    } else if (entry.hasInodeFile()) {
-      type = 2;
-    } else if (entry.hasNewBlock()) {
-      type = 3;
-    } else if (entry.hasRename()) {
-      type = 4;
-    } else if (entry.hasSetAcl()) {
-      type = 5;
-    } else if (entry.hasUpdateInode()) {
-      type = 6;
-    } else if (entry.hasUpdateInodeDirectory()) {
-      type = 7;
-    } else if (entry.hasUpdateInodeFile()) {
-      type = 8;
-      // Deprecated entries
-    } else if (entry.hasAsyncPersistRequest()) {
-      type = 9;
-    } else if (entry.hasCompleteFile()) {
-      type = 10;
-    } else if (entry.hasInodeLastModificationTime()) {
-      type = 11;
-    } else if (entry.hasPersistDirectory()) {
-      type = 12;
-    } else if (entry.hasSetAttribute()) {
-      type = 13;
-    } else if (entry.hasInodeDirectoryIdGenerator()) {
-      type = 14;
-    } else if (entry.hasDeleteFile()) {
-      type = 15;
+    sHelp = cmd.hasOption(HELP_OPTION_NAME);
+    sMaster = cmd.getOptionValue(MASTER_OPTION_NAME, "FileSystemMaster");
+    sStart = Long.decode(cmd.getOptionValue(START_OPTION_NAME, "0"));
+    sEnd = Long.decode(cmd.getOptionValue(END_OPTION_NAME, Long.valueOf(Long.MAX_VALUE)
+        .toString()));
+    if (cmd.hasOption(INPUT_DIR_OPTION_NAME)) {
+      sInputDir = new File(cmd.getOptionValue(INPUT_DIR_OPTION_NAME)).getAbsolutePath();
     } else {
-      type = -1;
+      sInputDir = Configuration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     }
-    return type == mEntryType;
+    sInputDir = "/Users/dengxinyu/alluxio-2.8.0/tmp/journal";
+    sOutputDir = new File(cmd.getOptionValue(OUTPUT_DIR_OPTION_NAME,
+        "journal_dump-" + System.currentTimeMillis())).getAbsolutePath();
+    sOutputDir = "/Users/dengxinyu/journal-tool";
+    return true;
+  }
+
+  private static JournalWriter initJournal() throws IOException {
+    JournalExporter ex = new JournalExporter(sInputDir, sMaster, sStart);
+    return ex.getWriter();
   }
 
   /**
-   * the write function of the JournalDisruptor.
-   *
-   * TODO(voddle): need writer
-   * @param entry
+   * test pass!
+   * read 10 entries from 0x0-0x21, decode, encode, and write them to another journal file
    */
-  private void writeEntry(Journal.JournalEntry entry) {}
+  public static void disrupttest() {
+    JournalExporter ex;
+    JournalWriter writer;
+    JournalReader reader = new JournalReader(sMaster, sStart, sEnd, sInputDir);
+    StaticStorm storm = new StaticStorm(reader, 3, 6);
+    String outputfile = PathUtils.concatPath(sOutputDir, "test.txt");
+    try (PrintStream out = new PrintStream(new BufferedOutputStream(
+        new FileOutputStream(outputfile)))) {
+      ex = new JournalExporter(sOutputDir, sMaster, sStart);
+      writer = ex.getWriter();
+      // this loop is use used to go through the journal entries
+      // here read 22 alluxio journal entries
+      for (int i = 0; i < 140000; i++) {
+        // JournalEntry entry = storm.test();
+        JournalEntry entry = reader.nextEntry();
+        if (entry != null) {
+          System.out.println("entry: " + entry);
+          try {
+            writer.write(entry.toBuilder().clearSequenceNumber().build());
+            writer.flush();
+            out.println(entry.toBuilder().clearSequenceNumber().build());
+          } catch (JournalClosedException e) {
+            System.out.println("failed when writing entry: " + e);
+          }
+        } else {
+          break;
+        }
+      }
+      // try {
+      //   writer.flush();
+      // } catch (Exception e) {
+      //   System.out.println(e);
+      // }
+      // without this sleep RaftJournalClient won't be Master
+      // 'is in LEADER state but not ready yet'
+      Thread.sleep(2000);
+      writer.close();
+      ex.getJournal().close();
+      out.flush();
+    } catch (IOException e) {
+      System.out.println(e);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * the actually main action.
+   */
+  public static void mainInternal() {
+    JournalExporter ex;
+    JournalWriter writer;
+    JournalReader reader = new JournalReader(sMaster, sStart, sEnd, sInputDir);
+    StaticStorm storm = new StaticStorm(reader, 3, 6);
+    String outputfile = PathUtils.concatPath(sOutputDir, "test.txt");
+
+    try (PrintStream out = new PrintStream(new BufferedOutputStream(
+        new FileOutputStream(outputfile)))) {
+      ex = new JournalExporter(sOutputDir, sMaster, sStart);
+      writer = ex.getWriter();
+      JournalEntry entry;
+      // this means process all journal
+      while ((entry = storm.nextEntry()) != null) {
+        System.out.println("entry: " + entry);
+        try {
+          writer.write(entry.toBuilder().clearSequenceNumber().build());
+          out.println(entry.toBuilder().clearSequenceNumber().build());
+        } catch (JournalClosedException e) {
+          System.out.println("failed when writing entry: " + e);
+        }
+      }
+      try {
+        writer.flush();
+      } catch (Exception e) {
+        System.out.println(e);
+      }
+      Thread.sleep(1000);
+      writer.close();
+      ex.getJournal().close();
+      out.flush();
+    } catch (IOException e) {
+      System.out.println(e);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Prints the usage.
+   */
+  private static void usage() {
+    new HelpFormatter().printHelp(
+        "./bin/alluxio runClass alluxio.stress.cli..journalTool.JournalTool",
+        "Read, disrupt an Alluxio journal and print it in binary.", OPTIONS,
+        "", true);
+  }
 }
