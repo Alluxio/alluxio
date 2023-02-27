@@ -100,7 +100,6 @@ public class GrpcChannel extends Channel
       case NOSASL:
         return;
       case SIMPLE:
-      case CUSTOM:
         clientHandler =
             new alluxio.security.authentication.plain.SaslClientHandlerPlain(
                 subject, config);

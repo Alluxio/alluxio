@@ -31,14 +31,6 @@ public enum AuthType {
   SIMPLE,
 
   /**
-   * User is aware in Alluxio. On the client side, the login username is determined by the
-   * "alluxio.security.login.username" property, or the OS user upon failure.
-   * On the server side, the user is verified by a Custom authentication provider
-   * (Specified by property "alluxio.security.authentication.custom.provider.class").
-   */
-  CUSTOM,
-
-  /**
    * User is aware in Alluxio. The user is verified by Kerberos authentication. NOTE: this
    * authentication is not supported.
    */

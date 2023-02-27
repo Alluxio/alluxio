@@ -12,17 +12,16 @@
 package alluxio.security.authentication.plain;
 
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.security.authentication.AuthenticationProvider;
 import alluxio.security.authentication.ImpersonationAuthenticator;
 
-import com.google.common.base.Preconditions;
-
 import java.io.IOException;
+import java.util.Optional;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
+import javax.security.sasl.AuthenticationException;
 import javax.security.sasl.AuthorizeCallback;
 
 /**
@@ -31,19 +30,39 @@ import javax.security.sasl.AuthorizeCallback;
  * do verification operation.
  */
 public final class PlainSaslServerCallbackHandler implements CallbackHandler {
-  private final AuthenticationProvider mAuthenticationProvider;
+  /**
+   * Interface for the authentication function.
+   *
+   * @param <T> the type of the first argument to the operation
+   * @param <U> the type of the second argument to the operation
+   */
+  @FunctionalInterface
+  public interface AuthenticateConsumer<T, U> {
+    /**
+     * Performs authentication operation on the given arguments.
+     *
+     * @param t the first input argument
+     * @param u the second input argument
+     * @throws AuthenticationException if any exception occurs during authentication
+     */
+    void accept(T t, U u) throws AuthenticationException;
+  }
+
   private final ImpersonationAuthenticator mImpersonationAuthenticator;
+
+  private final AuthenticateConsumer<String, String> mAuthenticateConsumer;
 
   /**
    * Constructs a new callback handler.
    *
-   * @param authenticationProvider the authentication provider used
-   * @param authenticator the impersonation authenticator
+   * @param authenticator        the impersonation authenticator
+   * @param authenticateConsumer the function to implement additional authentication on username and
+   *                             password when necessary
    */
-  public PlainSaslServerCallbackHandler(AuthenticationProvider authenticationProvider,
-      ImpersonationAuthenticator authenticator) {
-    mAuthenticationProvider = Preconditions.checkNotNull(authenticationProvider,
-        "authenticationProvider");
+  public PlainSaslServerCallbackHandler(ImpersonationAuthenticator authenticator,
+                                        AuthenticateConsumer<String, String> authenticateConsumer) {
+    mAuthenticateConsumer = Optional.ofNullable(authenticateConsumer).orElse((user, password) -> {
+    });
     mImpersonationAuthenticator = authenticator;
   }
 
@@ -69,7 +88,7 @@ public final class PlainSaslServerCallbackHandler implements CallbackHandler {
       }
     }
 
-    mAuthenticationProvider.authenticate(username, password);
+    mAuthenticateConsumer.accept(username, password);
 
     if (ac != null) {
       ac.setAuthorized(true);

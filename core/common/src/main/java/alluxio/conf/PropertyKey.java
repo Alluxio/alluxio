@@ -6740,20 +6740,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // Security related properties
   //
-  public static final PropertyKey SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS =
-      classBuilder(Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS)
-          .setDescription("The class to provide customized authentication implementation, "
-              + "when alluxio.security.authentication.type is set to CUSTOM. It must "
-              + "implement the interface "
-              + "'alluxio.security.authentication.AuthenticationProvider'.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.ALL)
-          .build();
   public static final PropertyKey SECURITY_AUTHENTICATION_TYPE =
       enumBuilder(Name.SECURITY_AUTHENTICATION_TYPE, AuthType.class)
           .setDefaultValue(AuthType.SIMPLE)
-          .setDescription("The authentication mode. Currently three modes are supported: "
-              + "NOSASL, SIMPLE, CUSTOM. The default value SIMPLE indicates that a simple "
+          .setDescription("The authentication mode. Currently two modes are supported: "
+              + "NOSASL, SIMPLE. The default value SIMPLE indicates that a simple "
               + "authentication is enabled. Server trusts whoever the client claims to be.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
@@ -6806,7 +6797,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey SECURITY_LOGIN_IMPERSONATION_USERNAME =
       stringBuilder(Name.SECURITY_LOGIN_IMPERSONATION_USERNAME)
-          .setDescription(format("When %s is set to SIMPLE or CUSTOM, user application uses this "
+          .setDescription(format("When %s is set to SIMPLE, user application uses this "
               + "property to indicate the IMPERSONATED user requesting Alluxio service. If it is "
               + "not set explicitly, or set to %s, impersonation will not be used. A special "
               + "value of '%s' can be specified to impersonate the hadoop client user.",
@@ -6818,8 +6809,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey SECURITY_LOGIN_USERNAME =
       stringBuilder(Name.SECURITY_LOGIN_USERNAME)
-          .setDescription("When alluxio.security.authentication.type is set to SIMPLE or "
-              + "CUSTOM, user application uses this property to indicate the user requesting "
+          .setDescription("When alluxio.security.authentication.type is set to SIMPLE, "
+              + "user application uses this property to indicate the user requesting "
               + "Alluxio service. If it is not set explicitly, the OS login user will be used.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
@@ -8782,8 +8773,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // Security related properties
     //
-    public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS =
-        "alluxio.security.authentication.custom.provider.class";
     public static final String SECURITY_AUTHENTICATION_TYPE =
         "alluxio.security.authentication.type";
     public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =

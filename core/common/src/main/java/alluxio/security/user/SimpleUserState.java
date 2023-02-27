@@ -41,10 +41,10 @@ public class SimpleUserState extends BaseUserState {
     @Override
     public UserState create(Subject subject, AlluxioConfiguration conf, boolean isServer) {
       AuthType authType = conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
-      if (authType == AuthType.SIMPLE || authType == AuthType.CUSTOM) {
+      if (authType == AuthType.SIMPLE) {
         return new SimpleUserState(subject, conf);
       }
-      LOG.debug("N/A: auth type is not SIMPLE or CUSTOM. authType: {}", authType);
+      LOG.debug("N/A: auth type is not SIMPLE. authType: {}", authType);
       return null;
     }
   }

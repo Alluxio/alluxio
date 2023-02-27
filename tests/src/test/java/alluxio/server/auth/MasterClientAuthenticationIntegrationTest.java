@@ -16,10 +16,7 @@ import alluxio.ClientContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.UnauthenticatedException;
 import alluxio.master.MasterClientContext;
-import alluxio.security.authentication.AuthType;
-import alluxio.security.authentication.AuthenticationProvider;
 import alluxio.security.group.GroupMappingService;
 import alluxio.security.user.TestUserState;
 import alluxio.security.user.UserState;
@@ -37,11 +34,10 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collections;
 import java.util.List;
-import javax.security.sasl.AuthenticationException;
 
 /**
  * Though its name indicates that it provides the tests for Alluxio authentication. This class is
- * likely to test four authentication modes: NOSASL, SIMPLE, CUSTOM, KERBEROS.
+ * likely to test three authentication modes: NOSASL, SIMPLE, KERBEROS.
  */
 // TODO(bin): add tests for {@link MultiMasterLocalAlluxioCluster} in fault tolerant mode
 // TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
@@ -73,35 +69,6 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
       confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
   public void simpleAuthenticationOpenClose() throws Exception {
     authenticationOperationTest("/file-simple");
-  }
-
-  @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
-          PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
-          NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
-  public void customAuthenticationOpenClose() throws Exception {
-    authenticationOperationTest("/file-custom");
-  }
-
-  @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
-          PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
-          NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
-  public void customAuthenticationDenyConnect() throws Exception {
-    UserState s = new TestUserState("no-alluxio", Configuration.global());
-    try (FileSystemMasterClient masterClient = FileSystemMasterClient.Factory.create(
-        MasterClientContext
-            .newBuilder(ClientContext.create(s.getSubject(), Configuration.global()))
-            .build())) {
-      Assert.assertFalse(masterClient.isConnected());
-      // Using no-alluxio as loginUser to connect to Master, the IOException will be thrown
-      mThrown.expect(UnauthenticatedException.class);
-      masterClient.connect();
-    }
   }
 
   @Test
@@ -153,24 +120,6 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
             FileSystemOptionsUtils.getStatusDefaults(Configuration.global())));
     masterClient.disconnect();
     masterClient.close();
-  }
-
-  /**
-   * An authentication provider for {@link AuthType#CUSTOM}.
-   */
-  public static class NameMatchAuthenticationProvider implements AuthenticationProvider {
-    // The fullly qualified class name of this authentication provider. This is needed to configure
-    // the alluxio cluster
-    public static final String FULL_CLASS_NAME =
-        "alluxio.server.auth.MasterClientAuthenticationIntegrationTest$"
-            + "NameMatchAuthenticationProvider";
-
-    @Override
-    public void authenticate(String user, String password) throws AuthenticationException {
-      if (!user.equals("alluxio")) {
-        throw new AuthenticationException("Only allow the user alluxio to connect");
-      }
-    }
   }
 
   public static class UserGroupsMapping implements GroupMappingService {

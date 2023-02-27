@@ -11,10 +11,8 @@
 
 package alluxio.security.authentication;
 
-import alluxio.ConfigurationRule;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.plain.PlainSaslServerCallbackHandler;
 
 import org.junit.After;
@@ -44,19 +42,14 @@ public final class PlainSaslServerCallbackHandlerTest {
 
   private InstancedConfiguration mConfiguration = Configuration.copyGlobal();
 
-  @Rule
-  public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
-          NameMatchAuthenticationProvider.class.getName(), mConfiguration);
-
   /**
    * Sets up the configuration and callback handler before running a test.
    */
   @Before
   public void before() throws Exception {
     mPlainServerCBHandler = new PlainSaslServerCallbackHandler(
-        AuthenticationProvider.Factory.create(AuthType.CUSTOM, mConfiguration),
-        new ImpersonationAuthenticator(mConfiguration));
+        new ImpersonationAuthenticator(mConfiguration),
+        PlainSaslServerCallbackHandlerTest::authenticate);
   }
 
   @After
@@ -121,19 +114,12 @@ public final class PlainSaslServerCallbackHandlerTest {
     mPlainServerCBHandler.handle(callbacks);
   }
 
-  /**
-   * An {@link AuthenticationProvider} that only allows users starting with alluxio, password should
-   * be "password".
-   */
-  public static class NameMatchAuthenticationProvider implements AuthenticationProvider {
-    @Override
-    public void authenticate(String user, String password) throws AuthenticationException {
-      if (!user.matches("^alluxio.*")) {
-        throw new AuthenticationException("Only allow the user starting with alluxio");
-      }
-      if (!password.matches("^password")) {
-        throw new AuthenticationException("Wrong password");
-      }
+  static void authenticate(String user, String password) throws AuthenticationException {
+    if (!user.matches("^alluxio.*")) {
+      throw new AuthenticationException("Only allow the user starting with alluxio");
+    }
+    if (!password.matches("^password")) {
+      throw new AuthenticationException("Wrong password");
     }
   }
 }
