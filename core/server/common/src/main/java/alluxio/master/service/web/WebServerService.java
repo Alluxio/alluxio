@@ -11,9 +11,6 @@
 
 package alluxio.master.service.web;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.MasterProcess;
 import alluxio.master.service.SimpleService;
 import alluxio.web.WebServer;
@@ -79,8 +76,7 @@ public abstract class WebServerService implements SimpleService {
      */
     public static WebServerService create(InetSocketAddress bindAddress,
         MasterProcess masterProcess) {
-      if (masterProcess instanceof AlluxioMasterProcess
-          && Configuration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED)) {
+      if (masterProcess.supportStandbyWeb()) {
         return new AlwaysOnWebServerService(masterProcess);
       }
       return new PrimaryOnlyWebServerService(bindAddress, masterProcess);

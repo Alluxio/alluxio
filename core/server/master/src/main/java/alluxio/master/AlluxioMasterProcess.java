@@ -420,6 +420,11 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   @Override
+  public boolean supportStandbyWeb() {
+    return Configuration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED);
+  }
+
+  @Override
   public String toString() {
     return "Alluxio master @" + mRpcConnectAddress;
   }
