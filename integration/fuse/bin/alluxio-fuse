@@ -184,7 +184,7 @@ launch_fuse_process() {
   fi
 
   # launch fuse
-  cmd="${JAVA}${ALLUXIO_FUSE_ATTACH_OPTS} -cp ${CLASSPATH} ${ALLUXIO_FUSE_JAVA_OPTS} \
+  cmd="${JAVA} ${ALLUXIO_FUSE_ATTACH_OPTS} -cp ${CLASSPATH} ${ALLUXIO_FUSE_JAVA_OPTS} \
        alluxio.fuse.AlluxioFuse -m ${mount_point} -u ${ufs_address} ${mount_options}"
 
   if [[ "${foreground}" == 'true' ]]; then
