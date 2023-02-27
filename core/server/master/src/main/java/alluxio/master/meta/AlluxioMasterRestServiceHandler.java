@@ -864,16 +864,17 @@ public final class AlluxioMasterRestServiceHandler {
   @GET
   @Path(WEBUI_MASTERS)
   public Response getWebUIMasters() {
-    Gauge lastCheckpointGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
+    final Map<String, Gauge> gauges = MetricsSystem.METRIC_REGISTRY.getGauges();
+    Gauge lastCheckpointGauge = gauges
         .get(MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName());
     long lastCheckpointTime = lastCheckpointGauge == null ? 0
         : (long) lastCheckpointGauge.getValue();
-    Gauge journalEntriesGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
+    Gauge journalEntriesGauge = gauges
         .get(MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName());
     long journalEntriesSinceCheckpoint = journalEntriesGauge == null ? 0
         : (long) journalEntriesGauge.getValue();
 
-    Gauge lastGainPrimacyGuage = MetricsSystem.METRIC_REGISTRY.getGauges()
+    Gauge lastGainPrimacyGuage = gauges
         .get(MetricKey.MASTER_LAST_GAIN_PRIMACY_TIME.getName());
     long lastGainPrimacyTime = lastGainPrimacyGuage == null ? 0
         : (long) lastGainPrimacyGuage.getValue();

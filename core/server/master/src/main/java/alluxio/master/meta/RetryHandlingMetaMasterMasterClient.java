@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -95,9 +96,10 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    * @return whether this master should re-register
    */
   public MetaCommand heartbeat(final long masterId) throws IOException {
-    Gauge lastCheckpointGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
+    final Map<String, Gauge> gauges = MetricsSystem.METRIC_REGISTRY.getGauges();
+    Gauge lastCheckpointGauge = gauges
         .get(MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName());
-    Gauge journalEntriesGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
+    Gauge journalEntriesGauge = gauges
         .get(MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName());
     MasterHeartbeatPOptions.Builder optionsBuilder = MasterHeartbeatPOptions.newBuilder();
     if (lastCheckpointGauge != null) {
@@ -121,17 +123,16 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    */
   public void register(final long masterId, final List<ConfigProperty> configList)
       throws IOException {
+    final Map<String, Gauge> gauges = MetricsSystem.METRIC_REGISTRY.getGauges();
     RegisterMasterPOptions.Builder optionsBuilder = RegisterMasterPOptions.newBuilder()
         .addAllConfigs(configList)
         .setVersion(ProjectConstants.VERSION)
         .setRevision(ProjectConstants.REVISION);
-    Gauge startTimeGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
-        .get(MetricKey.MASTER_START_TIME.getName());
+    Gauge startTimeGauge = gauges.get(MetricKey.MASTER_START_TIME.getName());
     if (startTimeGauge != null) {
       optionsBuilder.setStartTimeMs((long) startTimeGauge.getValue());
     }
-    Gauge lastLosePrimacyGuage = MetricsSystem.METRIC_REGISTRY.getGauges()
-        .get(MetricKey.MASTER_LAST_LOSE_PRIMACY_TIME.getName());
+    Gauge lastLosePrimacyGuage = gauges.get(MetricKey.MASTER_LAST_LOSE_PRIMACY_TIME.getName());
     if (lastLosePrimacyGuage != null) {
       optionsBuilder.setLosePrimacyTimeMs((long) lastLosePrimacyGuage.getValue());
     }
