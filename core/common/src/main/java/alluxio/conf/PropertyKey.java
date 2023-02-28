@@ -5348,6 +5348,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "Set 0min to disable the cache.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
+          .build();
   public static final PropertyKey PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB =
       intBuilder(Name.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
