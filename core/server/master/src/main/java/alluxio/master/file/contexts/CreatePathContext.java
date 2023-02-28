@@ -64,6 +64,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   protected boolean mRecursive;
   protected long mTtl;
   protected TtlAction mTtlAction;
+  @Nullable protected String mFingerprint;
 
   /**
    * Creates context with given option data.
@@ -78,6 +79,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     mMetadataLoad = false;
     mGroup = "";
     mOwner = "";
+    mFingerprint = "";
     if (SecurityUtils.isAuthenticationEnabled(Configuration.global())) {
       mOwner = SecurityUtils.getOwnerFromGrpcClient(Configuration.global());
       mGroup = SecurityUtils.getGroupFromGrpcClient(Configuration.global());
@@ -296,6 +298,23 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   }
 
   /**
+   * @return the fingerprint
+   */
+  @Nullable
+  public String getFingerprint() {
+    return mFingerprint;
+  }
+
+  /**
+   * @param fingerprint the fingerprint
+   * @return the updated context
+   */
+  public K setFingerprint(String fingerprint) {
+    mFingerprint = fingerprint;
+    return getThis();
+  }
+
+  /**
    * @return extended attributes propagation strategy of this context
    */
   public XAttrPropagationStrategy getXAttrPropStrat() {
@@ -320,6 +339,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
         .add("MetadataLoad", mMetadataLoad)
         .add("writeType", mWriteType)
         .add("xattr", mXAttr)
+        .add("Fingerprint", mFingerprint)
         .toString();
   }
 }

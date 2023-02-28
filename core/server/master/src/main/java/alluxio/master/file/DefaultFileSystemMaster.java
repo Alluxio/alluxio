@@ -1659,13 +1659,54 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
+   * Creates a completed a file for metadata sync.
+   * This method is more efficient than a combination of individual
+   * createFile() and completeFile() methods, with less journal entries generated and
+   * less frequent metadata store updates.
+   * @param rpcContext the rpc context for journaling
+   * @param inodePath the inode path
+   * @param createFileContext the create file context
+   * @param ufsLength the file length from UFS
+   * @param ufsStatus the ufs status, used to generate fingerprint
+   */
+  void createCompleteFileInternalForMetadataSync(
+      RpcContext rpcContext, LockedInodePath inodePath, CreateFileContext createFileContext,
+      long ufsLength, UfsStatus ufsStatus
+  )
+      throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
+      BlockInfoException, IOException {
+    long containerId = mBlockMaster.getNewContainerId();
+    List<Long> blockIds = new ArrayList<>();
+
+    int sequenceNumber = 0;
+    long remainingBytes = ufsLength;
+    long blockSize = createFileContext.getOptions().getBlockSizeBytes();
+    while (remainingBytes > 0) {
+      blockIds.add(BlockId.createBlockId(containerId, sequenceNumber));
+      remainingBytes -= Math.min(remainingBytes, blockSize);
+      sequenceNumber++;
+    }
+    createFileContext.setBlockContainerId(containerId);
+    createFileContext.setBlockIds(blockIds);
+    createFileContext.setMetadataLoad(true);
+    createFileContext.setIsCompleted(true);
+    createFileContext.setLength(ufsLength);
+    createFileContext.setFingerprint(getUfsFingerprint(inodePath.getUri(), ufsStatus, null));
+
+    createFileInternal(rpcContext, inodePath, createFileContext);
+
+    commitBlockInfosForFile(blockIds, ufsLength, blockSize, rpcContext.getJournalContext());
+    mUfsAbsentPathCache.processExisting(inodePath.getUri());
+  }
+
+  /**
    * Completes a file. After a file is completed, it cannot be written to.
    *
    * @param rpcContext the rpc context
    * @param inodePath the {@link LockedInodePath} to complete
    * @param context the method context
    */
-  void completeFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
+  private void completeFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
       CompleteFileContext context)
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
       FileAlreadyCompletedException, InvalidFileSizeException, UnavailableException {
@@ -1702,21 +1743,9 @@ public class DefaultFileSystemMaster extends CoreMaster
 
     String ufsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
     if (fileInode.isPersisted()) {
-      UfsStatus ufsStatus = context.getUfsStatus();
-      // Retrieve the UFS fingerprint for this file.
-      MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-      AlluxioURI resolvedUri = resolution.getUri();
-      String ufsPath = resolvedUri.toString();
-      try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-        UnderFileSystem ufs = ufsResource.get();
-        if (ufsStatus == null) {
-          String contentHash = context.getOptions().hasContentHash()
-              ? context.getOptions().getContentHash() : null;
-          ufsFingerprint = ufs.getParsedFingerprint(ufsPath, contentHash).serialize();
-        } else {
-          ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
-        }
-      }
+      String contentHash = context.getOptions().hasContentHash()
+          ? context.getOptions().getContentHash() : null;
+      ufsFingerprint = getUfsFingerprint(inodePath.getUri(), context.getUfsStatus(), contentHash);
     }
 
     completeFileInternal(rpcContext, inodePath, length, context.getOperationTimeMs(),
@@ -1784,6 +1813,23 @@ public class DefaultFileSystemMaster extends CoreMaster
     mInodeTree.updateInodeFile(rpcContext, entry.build());
 
     Metrics.FILES_COMPLETED.inc();
+  }
+
+  String getUfsFingerprint(
+      AlluxioURI uri, @Nullable UfsStatus ufsStatus, @Nullable String contentHash)
+      throws InvalidPathException {
+    // Retrieve the UFS fingerprint for this file.
+    MountTable.Resolution resolution = mMountTable.resolve(uri);
+    AlluxioURI resolvedUri = resolution.getUri();
+    String ufsPath = resolvedUri.toString();
+    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      if (ufsStatus == null) {
+        return ufs.getParsedFingerprint(ufsPath, contentHash).serialize();
+      } else {
+        return Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
+      }
+    }
   }
 
   /**

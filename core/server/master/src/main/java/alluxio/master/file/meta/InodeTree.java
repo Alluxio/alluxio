@@ -1019,7 +1019,14 @@ public class InodeTree implements DelegatingJournaled {
       newInode = newDir;
     } else if (context instanceof CreateFileContext) {
       CreateFileContext fileContext = (CreateFileContext) context;
-      MutableInodeFile newFile = MutableInodeFile.create(mContainerIdGenerator.getNewContainerId(),
+      final long blockContainerId;
+      if (fileContext.getBlockContainerId() != null) {
+        blockContainerId = fileContext.getBlockContainerId();
+      } else {
+        blockContainerId = mContainerIdGenerator.getNewContainerId();
+      }
+
+      MutableInodeFile newFile = MutableInodeFile.create(blockContainerId,
           currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileContext);
 
       // if the parent has a default ACL, copy that default ACL ANDed with the umask as the new

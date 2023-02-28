@@ -18,6 +18,9 @@ import alluxio.wire.OperationId;
 
 import com.google.common.base.MoreObjects;
 
+import java.util.List;
+import javax.annotation.Nullable;
+
 /**
  * Implementation of {@link OperationContext} used to merge and wrap {@link CreateFilePOptions}.
  */
@@ -25,6 +28,15 @@ public class CreateFileContext
     extends CreatePathContext<CreateFilePOptions.Builder, CreateFileContext> {
 
   private boolean mCacheable;
+
+  private boolean mIsCompleted;
+  private long mLength;
+  @Nullable private List<Long> mBlockIds;
+
+  /**
+   * If set, the new file will use this id instead of a generated one when the file is created.
+   */
+  @Nullable private Long mBlockContainerId;
 
   /**
    * Creates context with given option data.
@@ -34,6 +46,10 @@ public class CreateFileContext
   private CreateFileContext(CreateFilePOptions.Builder optionsBuilder) {
     super(optionsBuilder);
     mCacheable = false;
+    mIsCompleted = false;
+    mLength = 0;
+    mBlockIds = null;
+    mBlockContainerId = null;
   }
 
   /**
@@ -90,11 +106,80 @@ public class CreateFileContext
     return super.getOperationId();
   }
 
+  /**
+   * @param isCompleted true if the file is completed, otherwise false
+   * @return the updated context object
+   */
+  public CreateFileContext setIsCompleted(boolean isCompleted) {
+    mIsCompleted = isCompleted;
+    return getThis();
+  }
+
+  /**
+   * @return true if the file is completed, otherwise false
+   */
+  public boolean isCompleted() {
+    return mIsCompleted;
+  }
+
+  /**
+   * @param length the file length
+   * @return the updated context object
+   */
+  public CreateFileContext setLength(long length) {
+    mLength = length;
+    return getThis();
+  }
+
+  /**
+   * @return the file length
+   */
+  public long getLength() {
+    return mLength;
+  }
+
+  /**
+   * @param blockIds the block ids of the file. Null if the file is incomplete
+   * @return the updated context object
+   */
+  public CreateFileContext setBlockIds(List<Long> blockIds) {
+    mBlockIds = blockIds;
+    return this;
+  }
+
+  /**
+   * @return the block ids of the file. Null if the file is incomplete
+   */
+  @Nullable
+  public List<Long> getBlockIds() {
+    return mBlockIds;
+  }
+
+  /**
+   * @param blockContainerId the block container id
+   * @return the updated context object
+   */
+  public CreateFileContext setBlockContainerId(long blockContainerId) {
+    mBlockContainerId = blockContainerId;
+    return this;
+  }
+
+  /**
+   * @return the block container id, null if auto generated one is used
+   */
+  @Nullable
+  public Long getBlockContainerId() {
+    return mBlockContainerId;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("PathContext", super.toString())
         .add("Cacheable", mCacheable)
+        .add("Length", mLength)
+        .add("IsCompleted", mIsCompleted)
+        .add("BlockContainerId", mBlockContainerId)
         .toString();
   }
 }
