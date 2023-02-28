@@ -114,6 +114,7 @@ import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.FileSystemMergeJournalContext;
+import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.JournaledGroup;
@@ -195,6 +196,8 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.concurrent.ConcurrentException;
+import org.apache.commons.lang3.concurrent.LazyInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -222,6 +225,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -4359,9 +4363,9 @@ public class DefaultFileSystemMaster extends CoreMaster
      *
      * @param fileId the file ID
      */
-    private void handleExpired(long fileId) throws AlluxioException, UnavailableException {
-      try (JournalContext journalContext = createJournalContext();
-          LockedInodePath inodePath = mInodeTree
+    private void handleExpired(long fileId, JournalContext journalContext, AtomicInteger journalCount)
+        throws AlluxioException, UnavailableException {
+      try (LockedInodePath inodePath = mInodeTree
               .lockFullInodePath(fileId, LockPattern.WRITE_INODE, journalContext)) {
         InodeFile inode = inodePath.getInodeFile();
         switch (inode.getPersistenceState()) {
@@ -4383,6 +4387,7 @@ public class DefaultFileSystemMaster extends CoreMaster
                 .setPersistJobId(Constants.PERSISTENCE_INVALID_JOB_ID)
                 .setTempUfsPath(Constants.PERSISTENCE_INVALID_UFS_PATH)
                 .build());
+            journalCount.addAndGet(2);
             break;
           default:
             throw new IllegalStateException(
@@ -4396,7 +4401,8 @@ public class DefaultFileSystemMaster extends CoreMaster
      *
      * @param fileId the file ID
      */
-    private void handleReady(long fileId) throws AlluxioException, IOException {
+    private void handleReady(long fileId, JournalContext journalContext, AtomicInteger journalCount)
+        throws AlluxioException, IOException {
       alluxio.time.ExponentialTimer timer = mPersistRequests.get(fileId);
       // Lookup relevant file information.
       AlluxioURI uri;
@@ -4462,8 +4468,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       mPersistJobs.put(fileId, new PersistJob(jobId, fileId, uri, tempUfsPath, timer));
 
       // Update the inode and journal the change.
-      try (JournalContext journalContext = createJournalContext();
-          LockedInodePath inodePath = mInodeTree
+      // TODO(jiacheng): this no longer creates a journal context
+      try (LockedInodePath inodePath = mInodeTree
               .lockFullInodePath(fileId, LockPattern.WRITE_INODE, journalContext)) {
         InodeFile inode = inodePath.getInodeFile();
         mInodeTree.updateInodeFile(journalContext, UpdateInodeFileEntry.newBuilder()
@@ -4471,6 +4477,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             .setPersistJobId(jobId)
             .setTempUfsPath(tempUfsPath)
             .build());
+        journalCount.incrementAndGet();
       }
     }
 
@@ -4486,78 +4493,94 @@ public class DefaultFileSystemMaster extends CoreMaster
     @Override
     public void heartbeat() throws InterruptedException {
       LOG.debug("Async Persist heartbeat start");
-      java.util.concurrent.TimeUnit.SECONDS.sleep(mQuietPeriodSeconds);
-      // Process persist requests.
-      for (long fileId : mPersistRequests.keySet()) {
-        // Throw if interrupted.
-        if (Thread.interrupted()) {
-          throw new InterruptedException("PersistenceScheduler interrupted.");
-        }
-        boolean remove = true;
-        alluxio.time.ExponentialTimer timer = mPersistRequests.get(fileId);
-        if (timer == null) {
-          // This could occur if a key is removed from mPersistRequests while we are iterating.
-          continue;
-        }
-        alluxio.time.ExponentialTimer.Result timerResult = timer.tick();
-        if (timerResult == alluxio.time.ExponentialTimer.Result.NOT_READY) {
-          // operation is not ready to be scheduled
-          continue;
-        }
-        AlluxioURI uri = null;
-        try {
-          try (LockedInodePath inodePath = mInodeTree
-              .lockFullInodePath(fileId, LockPattern.READ, NoopJournalContext.INSTANCE)) {
-            uri = inodePath.getUri();
-          } catch (FileDoesNotExistException e) {
-            LOG.debug("The file (id={}) to be persisted was not found. Likely this file has been "
-                + "removed by users", fileId, e);
+      AtomicInteger journalCounter = new AtomicInteger(0);
+      try (JournalContext journalContext = createJournalContext()) {
+        // Process persist requests.
+        for (long fileId : mPersistRequests.keySet()) {
+          if (journalCounter.get() > 100) {
+            // TODO(jiacheng): it is possible that flush here throws UnavailableException
+            //  And that means the journal is down. Those job IDs will not be added back to the queue.
+            //  However, this implies the master will failover, and the new master will reconstruct the persist job queue.
+            //  The un-persisted files will be identified because the relevant journal entries have not been flushed.
+            journalContext.flush();
+            journalCounter.set(0);
+          }
+          // Throw if interrupted.
+          if (Thread.interrupted()) {
+            throw new InterruptedException("PersistenceScheduler interrupted.");
+          }
+          boolean remove = true;
+          alluxio.time.ExponentialTimer timer = mPersistRequests.get(fileId);
+          if (timer == null) {
+            // This could occur if a key is removed from mPersistRequests while we are iterating.
             continue;
           }
+          alluxio.time.ExponentialTimer.Result timerResult = timer.tick();
+          if (timerResult == alluxio.time.ExponentialTimer.Result.NOT_READY) {
+            // operation is not ready to be scheduled
+            continue;
+          }
+          AlluxioURI uri = null;
           try {
-            checkUfsMode(uri, OperationType.WRITE);
-          } catch (Exception e) {
-            LOG.warn("Unable to schedule persist request for path {}: {}", uri, e.toString());
-            // Retry when ufs mode permits operation
+            try (LockedInodePath inodePath = mInodeTree
+                    .lockFullInodePath(fileId, LockPattern.READ, NoopJournalContext.INSTANCE)) {
+              uri = inodePath.getUri();
+            } catch (FileDoesNotExistException e) {
+              LOG.debug("The file (id={}) to be persisted was not found. Likely this file has been "
+                      + "removed by users", fileId, e);
+              continue;
+            }
+            try {
+              checkUfsMode(uri, OperationType.WRITE);
+            } catch (Exception e) {
+              LOG.warn("Unable to schedule persist request for path {}: {}", uri, e.toString());
+              // Retry when ufs mode permits operation
+              remove = false;
+              continue;
+            }
+            switch (timerResult) {
+              case EXPIRED:
+                handleExpired(fileId, journalContext, journalCounter);
+                break;
+              case READY:
+                handleReady(fileId, journalContext, journalCounter);
+                break;
+              default:
+                throw new IllegalStateException("Unrecognized timer state: " + timerResult);
+            }
+          } catch (FileDoesNotExistException | InvalidPathException e) {
+            LOG.warn("The file {} (id={}) to be persisted was not found : {}", uri, fileId,
+                    e.toString());
+            LOG.debug("Exception: ", e);
+          } catch (UnavailableException e) {
+            LOG.warn("Failed to persist file {}, will retry later: {}", uri, e.toString());
             remove = false;
-            continue;
-          }
-          switch (timerResult) {
-            case EXPIRED:
-              handleExpired(fileId);
-              break;
-            case READY:
-              handleReady(fileId);
-              break;
-            default:
-              throw new IllegalStateException("Unrecognized timer state: " + timerResult);
-          }
-        } catch (FileDoesNotExistException | InvalidPathException e) {
-          LOG.warn("The file {} (id={}) to be persisted was not found : {}", uri, fileId,
-              e.toString());
-          LOG.debug("Exception: ", e);
-        } catch (UnavailableException e) {
-          LOG.warn("Failed to persist file {}, will retry later: {}", uri, e.toString());
-          remove = false;
-        } catch (ResourceExhaustedException e) {
-          LOG.warn("The job service is busy, will retry later: {}", e.toString());
-          LOG.debug("Exception: ", e);
-          mQuietPeriodSeconds = (mQuietPeriodSeconds == 0) ? 1 :
-              Math.min(MAX_QUIET_PERIOD_SECONDS, mQuietPeriodSeconds * 2);
-          remove = false;
-          // End the method here until the next heartbeat. No more jobs should be scheduled during
-          // the current heartbeat if the job master is at full capacity.
-          return;
-        } catch (Exception e) {
-          LOG.warn("Unexpected exception encountered when scheduling the persist job for file {} "
-              + "(id={}) : {}", uri, fileId, e.toString());
-          LOG.debug("Exception: ", e);
-        } finally {
-          if (remove) {
-            mPersistRequests.remove(fileId);
+          } catch (ResourceExhaustedException e) {
+            LOG.warn("The job service is busy, will retry later: {}", e.toString());
+            LOG.debug("Exception: ", e);
+            mQuietPeriodSeconds = (mQuietPeriodSeconds == 0) ? 1 :
+                    Math.min(MAX_QUIET_PERIOD_SECONDS, mQuietPeriodSeconds * 2);
+            remove = false;
+            // End the method here until the next heartbeat. No more jobs should be scheduled during
+            // the current heartbeat if the job master is at full capacity.
+            return;
+          } catch (Exception e) {
+            LOG.warn("Unexpected exception encountered when scheduling the persist job for file {} "
+                    + "(id={}) : {}", uri, fileId, e.toString());
+            LOG.debug("Exception: ", e);
+          } finally {
+            if (remove) {
+              mPersistRequests.remove(fileId);
+            }
           }
         }
+      } catch (UnavailableException e) {
+        // TODO(jiacheng): two ways to arrive here:
+        //  1. outer createJournalContext() fails, we just do nothing
+        //  2. flush() fails and the queue is dirty, the JournalContext will be closed and flushed, but the flush will not succeed
+        LOG.warn("Journal is not running, cannot persist files");
       }
+      java.util.concurrent.TimeUnit.SECONDS.sleep(mQuietPeriodSeconds);
     }
   }
 
@@ -4770,6 +4793,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     @Override
     public void heartbeat() throws InterruptedException {
       boolean queueEmpty = mPersistCheckerPool.getQueue().isEmpty();
+
       // Check the progress of persist jobs.
       for (long fileId : mPersistJobs.keySet()) {
         // Throw if interrupted.
@@ -4834,6 +4858,8 @@ public class DefaultFileSystemMaster extends CoreMaster
               break;
             case COMPLETED:
               mPersistJobs.remove(fileId);
+              // Can't batch this easily because the exec in thread is async
+              // There's no good time to close this journal context
               mPersistCheckerPool.execute(() -> handleSuccess(job));
               break;
             default:
@@ -5275,6 +5301,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   @VisibleForTesting
   public RpcContext createRpcContext(OperationContext operationContext)
       throws UnavailableException {
+    // TODO(jiacheng): you only care about the state lock here, what about the grpc channel itself?
     return new RpcContext(createBlockDeletionContext(), createJournalContext(),
         operationContext.withTracker(mStateLockCallTracker));
   }
