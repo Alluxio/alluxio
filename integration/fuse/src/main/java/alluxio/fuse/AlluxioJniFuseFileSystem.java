@@ -311,6 +311,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return entry.getFileStream().read(buf, size, offset);
     } catch (NotFoundRuntimeException e) {
       LOG.error("Failed to read {}: File does not exist or is writing by other clients", path);
+      LOG.debug("Failed to read {}", path, e);
       return -ErrorCodes.ENOENT();
     }
   }

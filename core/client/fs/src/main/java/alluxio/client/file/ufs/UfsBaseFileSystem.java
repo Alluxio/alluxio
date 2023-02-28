@@ -145,7 +145,7 @@ public class UfsBaseFileSystem implements FileSystem {
       if (options.hasRecursive()) {
         ufsOptions.setCreateParent(options.getRecursive());
       }
-      mUfs.get().mkdirs(path.getPath(), ufsOptions);
+      mUfs.get().mkdirs(path.toString(), ufsOptions);
     });
   }
 
@@ -160,14 +160,14 @@ public class UfsBaseFileSystem implements FileSystem {
       if (options.hasRecursive()) {
         ufsOptions.setCreateParent(options.getRecursive());
       }
-      return new UfsFileOutStream(mUfs.get().create(path.getPath(), ufsOptions));
+      return new UfsFileOutStream(mUfs.get().create(path.toString(), ufsOptions));
     });
   }
 
   @Override
   public void delete(AlluxioURI path, DeletePOptions options) {
     call(() -> {
-      String ufsPath = path.getPath();
+      String ufsPath = path.toString();
       if (mUfs.get().isFile(ufsPath)) {
         mUfs.get().deleteFile(ufsPath);
         return;
@@ -182,7 +182,7 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public boolean exists(AlluxioURI path, final ExistsPOptions options) {
-    return Boolean.TRUE.equals(callWithReturn(() -> mUfs.get().exists(path.getPath())));
+    return Boolean.TRUE.equals(callWithReturn(() -> mUfs.get().exists(path.toString())));
   }
 
   @Override
@@ -212,7 +212,7 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options) {
-    return callWithReturn(() -> transformStatus(mUfs.get().getStatus(path.getPath())));
+    return callWithReturn(() -> transformStatus(mUfs.get().getStatus(path.toString())));
   }
 
   @Override
@@ -222,7 +222,7 @@ public class UfsBaseFileSystem implements FileSystem {
       if (options.hasRecursive()) {
         ufsOptions.setRecursive(options.getRecursive());
       }
-      UfsStatus[] ufsStatuses = mUfs.get().listStatus(path.getPath(), ufsOptions);
+      UfsStatus[] ufsStatuses = mUfs.get().listStatus(path.toString(), ufsOptions);
       if (ufsStatuses == null || ufsStatuses.length == 0) {
         return Collections.emptyList();
       }
@@ -238,7 +238,7 @@ public class UfsBaseFileSystem implements FileSystem {
       if (options.hasRecursive()) {
         ufsOptions.setRecursive(options.getRecursive());
       }
-      UfsStatus[] ufsStatuses = mUfs.get().listStatus(path.getPath(), ufsOptions);
+      UfsStatus[] ufsStatuses = mUfs.get().listStatus(path.toString(), ufsOptions);
       if (ufsStatuses == null || ufsStatuses.length == 0) {
         return;
       }
@@ -304,8 +304,8 @@ public class UfsBaseFileSystem implements FileSystem {
   @Override
   public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options) {
     call(() -> {
-      String srcPath = src.getPath();
-      String dstPath = dst.getPath();
+      String srcPath = src.toString();
+      String dstPath = dst.toString();
       boolean renamed;
       if (mUfs.get().isFile(srcPath)) {
         renamed = mUfs.get().renameFile(srcPath, dstPath);
@@ -332,21 +332,21 @@ public class UfsBaseFileSystem implements FileSystem {
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclPOptions options) {
-    call(() -> mUfs.get().setAclEntries(path.getPath(), entries));
+    call(() -> mUfs.get().setAclEntries(path.toString(), entries));
   }
 
   @Override
   public void setAttribute(AlluxioURI path, SetAttributePOptions options) {
     call(() -> {
       if (options.hasMode()) {
-        mUfs.get().setMode(path.getPath(), ModeUtils.protoToShort(options.getMode()));
+        mUfs.get().setMode(path.toString(), ModeUtils.protoToShort(options.getMode()));
       }
       if (options.hasOwner() && options.hasGroup()) {
-        mUfs.get().setOwner(path.getPath(), options.getOwner(), options.getGroup());
+        mUfs.get().setOwner(path.toString(), options.getOwner(), options.getGroup());
       } else if (options.hasOwner()) {
-        mUfs.get().setOwner(path.getPath(), options.getOwner(), null);
+        mUfs.get().setOwner(path.toString(), options.getOwner(), null);
       } else if (options.hasGroup()) {
-        mUfs.get().setOwner(path.getPath(), null, options.getOwner());
+        mUfs.get().setOwner(path.toString(), null, options.getOwner());
       }
       if (options.hasPinned() || options.hasPersisted() || options.hasRecursive()
           || options.hasReplicationMax() || options.hasReplicationMin()
