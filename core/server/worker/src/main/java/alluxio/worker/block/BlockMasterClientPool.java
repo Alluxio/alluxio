@@ -17,11 +17,14 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
 import alluxio.resource.ResourcePool;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Closer;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -34,14 +37,41 @@ public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
   private final Queue<BlockMasterClient> mClientList;
   private final MasterClientContext mMasterContext;
 
+  /** If not specified, the client pool will create clients connecting to the primary master. **/
+  @Nullable
+  private final InetSocketAddress mMasterAddress;
+
+  /**
+   * A factory class for testing purpose.
+   */
+  @VisibleForTesting
+  static class Factory {
+    BlockMasterClientPool create() {
+      return new BlockMasterClientPool();
+    }
+
+    BlockMasterClientPool create(@Nullable InetSocketAddress address) {
+      return new BlockMasterClientPool(address);
+    }
+  }
+
   /**
    * Creates a new block master client pool.
    */
   public BlockMasterClientPool() {
+    this(null);
+  }
+
+  /**
+   * Creates a new block master client pool.
+   * @param address the block master address
+   */
+  public BlockMasterClientPool(@Nullable InetSocketAddress address) {
     super(Configuration.getInt(PropertyKey.WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE));
     mClientList = new ConcurrentLinkedQueue<>();
     mMasterContext = MasterClientContext
         .newBuilder(ClientContext.create(Configuration.global())).build();
+    mMasterAddress = address;
   }
 
   @Override
@@ -56,7 +86,14 @@ public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
 
   @Override
   public BlockMasterClient createNewResource() {
-    BlockMasterClient client = new BlockMasterClient(mMasterContext);
+    final BlockMasterClient client;
+    if (mMasterAddress != null) {
+      // If an address is specified, that means all clients in this pool connect
+      // to the specific master no matter it is a primary or standby
+      client = new BlockMasterClient(mMasterContext, mMasterAddress);
+    } else {
+      client = new BlockMasterClient(mMasterContext);
+    }
     mClientList.add(client);
     return client;
   }

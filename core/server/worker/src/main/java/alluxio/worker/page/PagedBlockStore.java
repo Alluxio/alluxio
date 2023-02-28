@@ -16,14 +16,19 @@ import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
+import alluxio.client.file.cache.PageId;
+import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.PageNotFoundException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.ErrorType;
@@ -62,6 +67,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -85,6 +91,7 @@ public class PagedBlockStore implements BlockStore {
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new CopyOnWriteArrayList<>();
   private final long mPageSize;
+  private static final Long REMOVE_BLOCK_TIMEOUT_MS = 60_000L;
 
   /**
    * Create an instance of PagedBlockStore.
@@ -396,16 +403,13 @@ public class PagedBlockStore implements BlockStore {
   @Override
   public void removeBlock(long sessionId, long blockId) throws IOException {
     LOG.debug("removeBlock: sessionId={}, blockId={}", sessionId, blockId);
-    // TODO(bowen): implement actual removal and replace placeholder values
-    boolean removeSuccess = true;
     int dirIndex = getDirIndexOfBlock(blockId);
+    removeBlockInternal(sessionId, blockId, REMOVE_BLOCK_TIMEOUT_MS);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
         listener.onRemoveBlockByClient(blockId);
-        if (removeSuccess) {
-          BlockStoreLocation removedFrom = new BlockStoreLocation(DEFAULT_TIER, dirIndex);
-          listener.onRemoveBlock(blockId, removedFrom);
-        }
+        BlockStoreLocation removedFrom = new BlockStoreLocation(DEFAULT_TIER, dirIndex);
+        listener.onRemoveBlock(blockId, removedFrom);
       }
     }
   }
@@ -506,5 +510,36 @@ public class PagedBlockStore implements BlockStore {
         .orElseThrow(() -> new BlockDoesNotExistRuntimeException(blockId))
         .getDir()
         .getDirIndex();
+  }
+
+  private void removeBlockInternal(long sessionId, long blockId, long timeoutMs)
+      throws IOException {
+    Optional<BlockLock> optionalLock =
+        mLockManager.tryAcquireBlockLock(sessionId, blockId, BlockLockType.WRITE,
+        timeoutMs, TimeUnit.MILLISECONDS);
+    if (!optionalLock.isPresent()) {
+      throw new DeadlineExceededException(
+        String.format("Can not acquire lock to remove block %d for session %d after %d ms",
+        blockId, sessionId, timeoutMs));
+    }
+    try (BlockLock blockLock = optionalLock.get()) {
+      Set<PageId> pageIds;
+      try (LockResource metaLock = new LockResource(mPageMetaStore.getLock().writeLock())) {
+        if (mPageMetaStore.hasTempBlock(blockId)) {
+          throw new IllegalStateException(
+            ExceptionMessage.REMOVE_UNCOMMITTED_BLOCK.getMessage(blockId));
+        }
+        pageIds = mPageMetaStore.getBlock(blockId)
+          .orElseThrow(() -> new BlockDoesNotExistRuntimeException(blockId))
+          .getDir().getBlockPages(blockId);
+
+        for (PageId pageId : pageIds) {
+          PageInfo pageInfo = mPageMetaStore.removePage(pageId);
+          pageInfo.getLocalCacheDir().getPageStore().delete(pageId);
+        }
+      }
+    } catch (PageNotFoundException e) {
+      throw new NotFoundRuntimeException("Page not found: " + e.getMessage(), e);
+    }
   }
 }

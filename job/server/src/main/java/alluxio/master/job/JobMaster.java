@@ -184,6 +184,10 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   @Override
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
+
+    // Start serving metrics system, this will not block
+    MetricsSystem.startSinks(Configuration.getString(PropertyKey.METRICS_CONF_FILE));
+
     // Fail any jobs that were still running when the last job master stopped.
     for (PlanCoordinator planCoordinator : mPlanTracker.coordinators()) {
       if (!planCoordinator.isJobFinished()) {
@@ -195,7 +199,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_WORKER_DETECTION,
               new LostWorkerDetectionHeartbeatExecutor(),
-              (int) Configuration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL),
+              () -> Configuration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL),
               Configuration.global(), mMasterContext.getUserState()));
       if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("JOB_MASTER_AUDIT_LOG");

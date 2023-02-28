@@ -135,7 +135,7 @@ public class TransformManager implements DelegatingJournaled {
   public void start(ExecutorService executorService, UserState userState) {
     executorService.submit(
         new HeartbeatThread(HeartbeatContext.MASTER_TABLE_TRANSFORMATION_MONITOR, new JobMonitor(),
-            Configuration.getMs(PropertyKey.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL),
+            () -> Configuration.getMs(PropertyKey.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL),
             Configuration.global(), userState));
   }
 

@@ -28,6 +28,7 @@ public final class S3Constants {
    * mount:point:bucket represents Alluxio directory /mount/point/bucket.
    */
   public static final String BUCKET_SEPARATOR = ":";
+  public static final String EMPTY = "";
 
   /* Headers */
   // standard headers

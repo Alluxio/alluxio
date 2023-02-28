@@ -62,6 +62,10 @@ public abstract class WebServer {
   private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
       MetricsSystem.METRIC_REGISTRY);
 
+  protected ServerConnector getServerConnector() {
+    return mServerConnector;
+  }
+
   /**
    * Creates a new instance of {@link WebServer}. It pairs URLs with servlets and sets the webapp
    * folder.

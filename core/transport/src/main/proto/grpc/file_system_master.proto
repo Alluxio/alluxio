@@ -82,6 +82,7 @@ message CompleteFilePOptions {
   optional int64 ufsLength = 1;
   optional ScheduleAsyncPersistencePOptions asyncPersistOptions = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
+  optional string contentHash = 4;
 }
 message CompleteFilePRequest {
   /** the path of the file */
@@ -138,7 +139,8 @@ message CreateFilePOptions {
   optional int64 persistenceWaitTime = 10;
   map<string, bytes> xattr = 11;
   optional XAttrPropagationStrategy xattrPropStrat = 12 [default = NEW_PATHS];
-  optional bool checkS3BucketPath = 13;
+  optional bool overwrite = 13;
+  optional bool checkS3BucketPath = 14;
 }
 message CreateFilePRequest {
   /** the path of the file */
@@ -152,6 +154,7 @@ message DeletePOptions {
   optional bool alluxioOnly = 2;
   optional bool unchecked = 3;
   optional FileSystemMasterCommonPOptions commonOptions = 4;
+  optional bool syncParentNextTime = 5;
   optional bool deleteMountPoint = 6;
 }
 message DeletePRequest {
@@ -231,6 +234,17 @@ message ListStatusPOptions {
   optional bool recursive = 4;
   // No data will be transferred.
   optional bool loadMetadataOnly = 5;
+  // Setting this to true will disable checking during metadata sync to see if the children
+  // of a directory has been loaded. This will avoid a costly full traversal of the file
+  // system during recursive listings, but may result in the children of directories not
+  // being loaded. It is recommended to set this to true after the first call of a
+  // recursive partial listing.
+  optional bool disableAreDescendantsLoadedCheck = 6;
+  // Mount info will be excluded from the list status response if this field is set to true.
+  // Resolving a path and obtain the mount info is an expensive operation.
+  // For clients that do not need this information such as hadoop-compatible clients,
+  // excluding mount info improves the endpoint performance.
+  optional bool excludeMountInfo = 7;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */

@@ -240,6 +240,16 @@ message CommitBlockInUfsPRequest {
 message CommitBlockInUfsPOptions {}
 message CommitBlockInUfsPResponse {}
 
+message NotifyWorkerIdPOptions {}
+message NotifyWorkerIdPRequest {
+  optional int64 workerId = 1;
+  /** the worker network address */
+  optional grpc.WorkerNetAddress workerNetAddress = 2;
+  optional NotifyWorkerIdPOptions options = 3;
+}
+message NotifyWorkerIdPResponse {
+}
+
 message GetWorkerIdPOptions {}
 message GetWorkerIdPRequest {
   /** the worker network address */
@@ -317,6 +327,11 @@ service BlockMasterWorkerService {
    * Returns a worker id for the given network address.
    */
   rpc GetWorkerId(GetWorkerIdPRequest) returns (GetWorkerIdPResponse);
+
+  /**
+  * Notify all masters about the worker ID.
+  */
+  rpc NotifyWorkerId(NotifyWorkerIdPRequest) returns (NotifyWorkerIdPResponse);
 
   /**
    * Registers a worker.

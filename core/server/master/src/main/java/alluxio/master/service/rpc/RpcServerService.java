@@ -111,7 +111,7 @@ public class RpcServerService implements SimpleService {
         LOG.info("registered service {}", type.name());
       });
     });
-    mGrpcServer = builder.build();
+    mGrpcServer = builder.build(() -> mMasterProcess.getPrimarySelector().getStateUnsafe());
     try {
       mGrpcServer.start();
       mMasterProcess.getSafeModeManager().ifPresent(SafeModeManager::notifyRpcServerStarted);
@@ -219,6 +219,9 @@ public class RpcServerService implements SimpleService {
         InetSocketAddress bindAddress,
         MasterProcess masterProcess,
         MasterRegistry masterRegistry) {
+      if (Configuration.getBoolean(PropertyKey.STANDBY_MASTER_GRPC_ENABLED)) {
+        return new RpcServerStandbyGrpcService(bindAddress, masterProcess, masterRegistry);
+      }
       return new RpcServerService(bindAddress, masterProcess, masterRegistry);
     }
   }

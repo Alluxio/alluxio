@@ -24,6 +24,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.ByteStreams;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -71,18 +72,8 @@ public final class HeadCommand extends AbstractFileSystemCommand {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(plainPath));
     }
     try (FileInStream is = mFileSystem.openFile(plainPath)) {
-      long bytesToRead;
-      if (status.getLength() > mNumOfBytes) {
-        bytesToRead = mNumOfBytes;
-      } else {
-        bytesToRead = status.getLength();
-      }
-
-      byte[] buf = new byte[(int) bytesToRead];
-      int read = is.read(buf);
-      if (read != -1) {
-        System.out.write(buf, 0, read);
-      }
+      final long bytesToRead = Math.min(status.getLength(), mNumOfBytes);
+      ByteStreams.copy(ByteStreams.limit(is, bytesToRead), System.out);
     }
   }
 

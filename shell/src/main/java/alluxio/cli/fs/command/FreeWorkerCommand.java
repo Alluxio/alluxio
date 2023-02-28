@@ -15,6 +15,7 @@ import static java.util.stream.Collectors.toList;
 
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockMasterClient;
+import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
@@ -57,7 +58,11 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
 
     try (CloseableResource<BlockMasterClient> masterClientResource =
                  mFsContext.acquireBlockMasterClientResource()) {
-      totalWorkers = masterClientResource.get().getWorkerInfoList().stream()
+      totalWorkers = masterClientResource.get()
+              // the default option is to get all worker infos,
+              // as we want to make sure the worker by the name exists and is not a typo
+              .getWorkerReport(GetWorkerReportOptions.defaults())
+              .stream()
               .map(WorkerInfo::getAddress)
               .collect(toList());
     }

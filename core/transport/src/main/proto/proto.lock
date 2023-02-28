@@ -596,6 +596,32 @@
             "name": "CommitBlockInUfsPResponse"
           },
           {
+            "name": "NotifyWorkerIdPOptions"
+          },
+          {
+            "name": "NotifyWorkerIdPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerId",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "workerNetAddress",
+                "type": "grpc.WorkerNetAddress"
+              },
+              {
+                "id": 3,
+                "name": "options",
+                "type": "NotifyWorkerIdPOptions"
+              }
+            ]
+          },
+          {
+            "name": "NotifyWorkerIdPResponse"
+          },
+          {
             "name": "GetWorkerIdPOptions"
           },
           {
@@ -832,6 +858,11 @@
                 "out_type": "GetWorkerIdPResponse"
               },
               {
+                "name": "NotifyWorkerId",
+                "in_type": "NotifyWorkerIdPRequest",
+                "out_type": "NotifyWorkerIdPResponse"
+              },
+              {
                 "name": "RegisterWorker",
                 "in_type": "RegisterWorkerPRequest",
                 "out_type": "RegisterWorkerPResponse"
@@ -1061,6 +1092,11 @@
                 "id": 1,
                 "name": "offset",
                 "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "contentHash",
+                "type": "string"
               }
             ]
           },
@@ -1565,6 +1601,10 @@
               {
                 "name": "FREE",
                 "integer": 1
+              },
+              {
+                "name": "DELETE_ALLUXIO",
+                "integer": 2
               }
             ]
           },
@@ -2213,6 +2253,11 @@
                 "id": 3,
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
+              },
+              {
+                "id": 4,
+                "name": "contentHash",
+                "type": "string"
               }
             ]
           },
@@ -2412,6 +2457,11 @@
               },
               {
                 "id": 13,
+                "name": "overwrite",
+                "type": "bool"
+              },
+              {
+                "id": 14,
                 "name": "checkS3BucketPath",
                 "type": "bool"
               }
@@ -2467,6 +2517,11 @@
                 "id": 4,
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
+              },
+              {
+                "id": 5,
+                "name": "syncParentNextTime",
+                "type": "bool"
               },
               {
                 "id": 6,
@@ -2700,6 +2755,11 @@
               {
                 "id": 5,
                 "name": "loadMetadataOnly",
+                "type": "bool"
+              },
+              {
+                "id": 6,
+                "name": "disableAreDescendantsLoadedCheck",
                 "type": "bool"
               }
             ]
@@ -8210,6 +8270,11 @@
                 "id": 1,
                 "name": "serviceType",
                 "type": "ServiceType"
+              },
+              {
+                "id": 2,
+                "name": "allowedOnStandbyMasters",
+                "type": "bool"
               }
             ]
           },
@@ -8536,6 +8601,11 @@
                 "id": 2,
                 "name": "length",
                 "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "block_location",
+                "type": "grpc.BlockLocation"
               }
             ]
           },
@@ -8548,6 +8618,11 @@
                 "type": "int64"
               }
             ]
+          }
+        ],
+        "imports": [
+          {
+            "path": "grpc/common.proto"
           }
         ],
         "package": {
@@ -8589,6 +8664,10 @@
               {
                 "name": "FREE",
                 "integer": 1
+              },
+              {
+                "name": "DELETE_ALLUXIO",
+                "integer": 2
               }
             ]
           },

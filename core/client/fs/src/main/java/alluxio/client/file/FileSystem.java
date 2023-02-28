@@ -159,6 +159,7 @@ public interface FileSystem extends Closeable {
 
     /**
      * @param context the FileSystemContext to use with the FileSystem
+     * @param options the options associate with the FileSystem
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context, FileSystemOptions options) {

@@ -90,7 +90,8 @@ public class UfsSyncPathCache {
   @VisibleForTesting
   UfsSyncPathCache(Clock clock, @Nullable BiConsumer<String, SyncState> onRemoval) {
     mClock = Preconditions.checkNotNull(clock);
-    mItems = CacheBuilder.newBuilder()
+    mItems = CacheBuilder.newBuilder().concurrencyLevel(
+            Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_THREADS))
         .removalListener(
             (removal) -> {
               if (removal.wasEvicted() && removal.getKey() != null && removal.getValue() != null) {
