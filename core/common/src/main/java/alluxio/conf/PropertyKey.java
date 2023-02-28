@@ -7412,7 +7412,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey DORA_WORKER_METASTORE_ROCKSDB_DIR =
       stringBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_DIR)
           .setDefaultValue(format("${%s}/metastore", Name.WORK_DIR))
-          .setDescription("The base dir of RocksDB to store Dora meta data")
+          .setDescription("The base dir of RocksDB to store Dora metadata")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
+
+  public static final PropertyKey DORA_WORKER_METASTORE_ROCKSDB_TTL =
+      intBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_TTL)
+          .setDefaultValue(60 * 60 * 24) // 24 hours
+          .setDescription("The TTL (Time To Live) of RocksDB of Dora metadata")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
@@ -8942,6 +8950,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String DORA_WORKER_METASTORE_ROCKSDB_DIR =
         "alluxio.dora.worker.metastore.rocksdb.dir";
+
+    public static final String DORA_WORKER_METASTORE_ROCKSDB_TTL =
+        "alluxio.dora.worker.metastore.rocksdb.ttl";
 
     private Name() {} // prevent instantiation
   }

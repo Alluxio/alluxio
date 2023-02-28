@@ -185,7 +185,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             Configuration.getConfiguration(Scope.WORKER));
         LOG.info("Worker registered with worker ID: {}", mWorkerId.get());
         String dbDir = Configuration.getString(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR);
-        mMetaStore = new RocksDBDoraMetaStore(dbDir);
+        int ttl = Configuration.getInt(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_TTL);
+        mMetaStore = new RocksDBDoraMetaStore(dbDir, ttl);
         break;
       } catch (IOException ioe) {
         if (!retry.attempt()) {

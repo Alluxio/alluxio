@@ -15,6 +15,7 @@ import alluxio.proto.meta.DoraMeta;
 import alluxio.rocks.RocksStore;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Preconditions;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
@@ -50,6 +51,11 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
   private final WriteOptions mWriteOption;
   private final ReadOptions mReadOption;
   private final RocksStore mRocksStore;
+
+  // The TTL (in seconds) for metadata. It must be greater than 0, or -1.
+  // -1 means never expiring.
+  private final int mMetaTTL;
+
   private final List<RocksObject> mToClose = new ArrayList<>();
 
   private final AtomicReference<ColumnFamilyHandle> mFileStatusColumn = new AtomicReference<>();
@@ -58,9 +64,13 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
    * Creates and initializes a rocks block store.
    *
    * @param baseDir the base directory in which to store inode metadata
+   * @param metaTTL The TTL for this metastore
    */
-  public RocksDBDoraMetaStore(String baseDir) {
+  public RocksDBDoraMetaStore(String baseDir, int metaTTL) {
     RocksDB.loadLibrary();
+
+    Preconditions.checkState(metaTTL > 0 || metaTTL == -1);
+
     // the rocksDB objects must be initialized after RocksDB.loadLibrary() is called
     mWriteOption = new WriteOptions();
     mReadOption  = new ReadOptions();
@@ -86,6 +96,7 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
 
     mRocksStore = new RocksStore(DORA_META_STORE_NAME, dbPath, backupPath, opts, columns,
             Arrays.asList(mFileStatusColumn), false);
+    mMetaTTL = metaTTL;
   }
 
   /**
@@ -106,7 +117,15 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
       return Optional.empty();
     }
     try {
-      return Optional.of(DoraMeta.FileStatus.parseFrom(status));
+      DoraMeta.FileStatus fs = DoraMeta.FileStatus.parseFrom(status);
+      if (mMetaTTL != -1) {
+        if ((System.currentTimeMillis() - fs.getTs()) / 1000 > mMetaTTL) {
+          // The Metadata is out of date.
+          removeDoraMeta(path);
+          return Optional.empty();
+        }
+      }
+      return Optional.of(fs);
     } catch (Exception e) {
       removeDoraMeta(path);
       LOG.error("Cannot parse get result for {} : {}", path, e);
