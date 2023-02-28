@@ -29,6 +29,18 @@ public final class MasterInfo {
   private final long mId;
   /** Master's last updated time in ms. */
   private long mLastUpdatedTimeMs;
+  /** Master's start time in ms. */
+  private long mStartTimeMs = 0;
+  /** Master's last lose primacy time in ms. */
+  private long mLosePrimacyTimeMs = 0;
+  /** Master's version. */
+  private String mVersion = "";
+  /** Master's revision. */
+  private String mRevision = "";
+  /** Master's last checkpoint time in ms. */
+  private long mLastCheckpointTimeMs = 0;
+  /** Number of journal entries since last checkpoint. */
+  private long mJournalEntriesSinceCheckpoint = 0;
 
   /**
    * Creates a new instance of {@link MasterInfo}.
@@ -63,10 +75,82 @@ public final class MasterInfo {
     return mLastUpdatedTimeMs;
   }
 
+  /**
+   * @return the start time of the master in ms
+   */
+  public long getStartTimeMs() {
+    return mStartTimeMs;
+  }
+
+  /**
+   * @return the last lose primacy time of the master in ms
+   */
+  public long getLosePrimacyTimeMs() {
+    return mLosePrimacyTimeMs;
+  }
+
+  /**
+   * @return the version of the master
+   */
+  public String getVersion() {
+    return mVersion;
+  }
+
+  /**
+   * @return the revision of the master
+   */
+  public String getRevision() {
+    return mRevision;
+  }
+
+  /**
+   * @return the time of last checkpoint
+   */
+  public long getLastCheckpointTimeMs() {
+    return mLastCheckpointTimeMs;
+  }
+
+  /**
+   * @return number of journal entries since last checkpoint
+   */
+  public long getJournalEntriesSinceCheckpoint() {
+    return mJournalEntriesSinceCheckpoint;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
-        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).toString();
+        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("startTimeMs", mStartTimeMs)
+        .add("losePrimacyTimeMs", mLosePrimacyTimeMs)
+        .add("version", mVersion).add("revision", mRevision).toString();
+  }
+
+  /**
+   * @param startTimeMs the start time of the master in ms
+   */
+  public void setStartTimeMs(long startTimeMs) {
+    mStartTimeMs = startTimeMs;
+  }
+
+  /**
+   * @param losePrimacyTimeMs the last primacy state change time of the master in ms
+   */
+  public void setLosePrimacyTimeMs(long losePrimacyTimeMs) {
+    mLosePrimacyTimeMs = losePrimacyTimeMs;
+  }
+
+  /**
+   * @param version the version of the master
+   */
+  public void setVersion(String version) {
+    mVersion = version;
+  }
+
+  /**
+   * @param revision the revision of the master
+   */
+  public void setRevision(String revision) {
+    mRevision = revision;
   }
 
   /**
@@ -74,5 +158,19 @@ public final class MasterInfo {
    */
   public void updateLastUpdatedTimeMs() {
     mLastUpdatedTimeMs = System.currentTimeMillis();
+  }
+
+  /**
+   * @param lastCheckpointTimeMs the time of last checkpoint
+   */
+  public void setLastCheckpointTimeMs(long lastCheckpointTimeMs) {
+    mLastCheckpointTimeMs = lastCheckpointTimeMs;
+  }
+
+  /**
+   * @param journalEntriesSinceCheckpoint number of journal entries since last checkpoint
+   */
+  public void setJournalEntriesSinceCheckpoint(long journalEntriesSinceCheckpoint) {
+    mJournalEntriesSinceCheckpoint = journalEntriesSinceCheckpoint;
   }
 }
