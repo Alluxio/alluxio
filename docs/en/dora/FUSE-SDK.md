@@ -387,8 +387,9 @@ and the set-up process may be different depending on the platform.
 ```console
 $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o mount_option
 ```
-{% accordion example %}
-{% collapsible Example: `allow_other` and `allow_root` %}
+
+#### Example: `allow_other` and `allow_root`
+
 By default, Alluxio-FUSE mount point can only be accessed by the user
 mounting the Alluxio namespace to the local filesystem.
 
@@ -410,8 +411,6 @@ $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o allow_other
 $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o allow_root
 ```
 Note that only one of the `allow_other` or `allow_root` could be set.
-{% endcollapsible %}
-{% endaccordion %}
 
 ## Troubleshooting
 
