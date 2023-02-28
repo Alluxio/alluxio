@@ -100,6 +100,9 @@ categoryInfo:
   Reference:
     en: Reference
     cn: 参考
+  Dora:
+    en: Dora
+    cn: Dora
 
 # For no baseurl, leave blank
 # Anything other than blank: this should always START with a '/' and NEVER end with a '/' character
