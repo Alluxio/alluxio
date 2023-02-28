@@ -265,9 +265,6 @@ $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o local_metadata_cac
 The metadata is cached in the AlluxioFuse Java process heap so make sure `local_metadata_cache_size * 2KB * 2 < AlluxioFuse process maximum memory allocated`.
 For example, if AlluxioFuse is launched with `-Xmx=16GB` and metadata cache can use up to 8GB memory, then `local_metadata_cache_size` should be smaller than 4 million.
 
-{% endnavtab %}
-{% endnavtabs %}
-
 #### Local Data Cache
 
 #### Local Kernel Data Cache
