@@ -27,6 +27,7 @@ export interface IOverview {
   journalCheckpointTimeWarning: string;
   journalDiskWarnings: string[];
   leaderId: string;
+  systemStatus: string;
   liveWorkerNodes: number;
   masterNodeAddress: string;
   replicaBlockCount: string;
