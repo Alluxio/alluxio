@@ -38,10 +38,8 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * An Alluxio client compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
