@@ -53,6 +53,7 @@ categoryList:
   - Client APIs
   - Contributor Resources
   - Reference
+  - Dora
 
 # Each language has a particular version of category names
 # When supporting a new language version, do not change the 'group' attribute in .md page files
