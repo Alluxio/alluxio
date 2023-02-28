@@ -914,7 +914,7 @@ public final class S3RestServiceHandler {
                   .setOwnerBits(Bits.ALL)
                   .setGroupBits(Bits.ALL)
                   .setOtherBits(Bits.NONE).build())
-              .setCheckS3BucketPath(true);
+              .setCheckS3BucketPath(true)
               .setOverwrite(true);
           // Handle metadata directive
           if (metadataDirective == S3Constants.Directive.REPLACE
