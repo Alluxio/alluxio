@@ -21,6 +21,7 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.service.SimpleService;
 import alluxio.master.service.rpc.RpcServerService;
 import alluxio.master.service.web.WebServerService;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -90,6 +91,7 @@ public abstract class MasterProcess implements Process {
     mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(rpcService, Configuration.global());
     mWebConnectAddress = NetworkAddressUtils.getConnectAddress(webService, Configuration.global());
     mStartTimeMs = System.currentTimeMillis();
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_START_TIME.getName(), () -> mStartTimeMs);
   }
 
   private static InetSocketAddress configureAddress(ServiceType service) {

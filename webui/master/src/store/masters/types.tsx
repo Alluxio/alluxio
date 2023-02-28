@@ -15,9 +15,9 @@ import { IMasterInfo } from '../../constants';
 
 export interface IMasters {
   debug: boolean;
-  failedMasterInfos: IMasterInfo[];
-  normalMasterInfos: IMasterInfo[];
-  leaderMasterInfo: IMasterInfo;
+  lostMasterInfos: IMasterInfo[];
+  standbyMasterInfos: IMasterInfo[];
+  primaryMasterInfo: IMasterInfo;
 }
 
 export enum MastersActionTypes {
