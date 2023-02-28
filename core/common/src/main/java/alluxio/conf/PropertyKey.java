@@ -4316,7 +4316,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
       enumBuilder(Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class)
-          .setDefaultValue("MAPPED")
+          .setDefaultValue("TRANSFER")
           .setDescription("When returning files to the user, select how the data is "
               + "transferred; valid options are `MAPPED` (uses java MappedByteBuffer) and "
               + "`TRANSFER` (uses Java FileChannel.transferTo).")
