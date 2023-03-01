@@ -81,6 +81,8 @@ Master.LastBackupEntriesCount,GAUGE
 Master.LastBackupRestoreCount,GAUGE
 Master.LastBackupRestoreTimeMs,GAUGE
 Master.LastBackupTimeMs,GAUGE
+Master.LastGainPrimacyTime,GAUGE
+Master.LastLosePrimacyTime,GAUGE
 Master.ListingCacheEvictions,COUNTER
 Master.ListingCacheHits,COUNTER
 Master.ListingCacheLoadTimes,COUNTER
@@ -123,6 +125,7 @@ Master.PathsRenamed,COUNTER
 Master.PathsUnmounted,COUNTER
 Master.RenamePathOps,COUNTER
 Master.ReplicaMgmtActiveJobSize,GAUGE
+Master.ReplicationLimitedFiles,COUNTER
 Master.RocksBlockBackgroundErrors,GAUGE
 Master.RocksBlockBlockCacheCapacity,GAUGE
 Master.RocksBlockBlockCachePinnedUsage,GAUGE
@@ -176,6 +179,9 @@ Master.RpcThreadActiveCount,GAUGE
 Master.RpcThreadCurrentCount,GAUGE
 Master.SetAclOps,COUNTER
 Master.SetAttributeOps,COUNTER
+Master.StartTime,GAUGE
+Master.TTLBuckets,GAUGE
+Master.TTLInodes,GAUGE
 Master.ToRemoveBlockCount,GAUGE
 Master.TotalPaths,GAUGE
 Master.TotalRpcs,TIMER
