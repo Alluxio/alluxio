@@ -5317,7 +5317,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public List<String> getStateLockSharedWaitersAndHolders() {
+  public Collection<String> getStateLockSharedWaitersAndHolders() {
     return mMasterContext.getStateLockManager().getSharedWaitersAndHolders();
   }
 
