@@ -18,6 +18,8 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
@@ -108,6 +110,7 @@ public final class NettyDataReader implements DataReader {
   private boolean mDone = false;
 
   private boolean mClosed = false;
+  private final boolean mDebug;
 
   /**
    * Creates an instance of {@link NettyDataReader}. If this is used to read a block remotely, it
@@ -128,6 +131,10 @@ public final class NettyDataReader implements DataReader {
     mChannel.pipeline().addLast(new PacketReadHandler());
     mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(mReadRequest)))
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+    mDebug = Configuration.getBoolean(PropertyKey.FUSE_LU_ENABLED);
+    if (mDebug) {
+      LOG.info("Launched netty data reader");
+    }
   }
 
   @Override
@@ -164,6 +171,7 @@ public final class NettyDataReader implements DataReader {
       return null;
     }
     mPosToRead += buf.readableBytes();
+    MetricsSystem.counter(MetricKey.CLIENT_NETTY_BYTES_READ.getName()).inc(buf.readableBytes());
     Preconditions.checkState(mPosToRead - mReadRequest.getOffset() <= mReadRequest.getLength());
     return new NettyDataBuffer(buf);
   }
@@ -214,6 +222,7 @@ public final class NettyDataReader implements DataReader {
     do {
       buf = readChunk();
       if (buf != null) {
+        MetricsSystem.counter(MetricKey.CLIENT_NETTY_BYTES_READ_DISCARD.getName()).inc(buf.readableBytes());
         buf.release();
       }
       // A null packet indicates the end of the stream.

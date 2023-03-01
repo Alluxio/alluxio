@@ -21,6 +21,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -115,6 +116,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   /** df command will treat -1 as an unknown value. */
   @VisibleForTesting
   public static final int UNKNOWN_INODES = -1;
+  private final boolean mDebug;
 
   /**
    * Creates a new instance of {@link AlluxioJniFuseFileSystem}.
@@ -152,6 +154,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     MetricsSystem.registerGaugeIfAbsent(
         MetricsSystem.getMetricName(MetricKey.FUSE_CACHED_PATH_COUNT.getName()),
         mPathResolverCache::size);
+    mDebug = Configuration.getBoolean(PropertyKey.FUSE_LU_ENABLED);
   }
 
   @Override
@@ -302,13 +305,23 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int readInternal(
       String path, ByteBuffer buf, long size, long offset, long fd) {
+    if (mDebug) {
+      LOG.info("read {} size {} offset {}", path, size, offset);
+    }
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (entry == null) {
       LOG.error("Failed to read {}: Cannot find fd {}", path, fd);
       return -ErrorCodes.EBADFD();
     }
     try {
-      return entry.getFileStream().read(buf, size, offset);
+      int bytesRead = entry.getFileStream().read(buf, size, offset);
+      if (bytesRead > 0) {
+        MetricsSystem.counter(MetricKey.FUSE_BYTES_READ.getName()).inc(bytesRead);
+      }
+      if (mDebug) {
+        LOG.info("finished read {} size {} offset {}, read {}", path, size, offset, bytesRead);
+      }
+      return bytesRead;
     } catch (NotFoundRuntimeException e) {
       LOG.error("Failed to read {}: File does not exist or is writing by other clients", path);
       LOG.debug("Failed to read {}", path, e);

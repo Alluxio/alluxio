@@ -13,11 +13,17 @@ package alluxio.client.file.dora;
 
 import alluxio.client.block.stream.DataReader;
 import alluxio.client.file.FileInStream;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.OutOfRangeException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -27,6 +33,7 @@ import java.util.Objects;
  * Implementation of {@link FileInStream} that reads from a dora cache if possible.
  */
 public class DoraCacheFileInStream extends FileInStream {
+  private static final Logger LOG = LoggerFactory.getLogger(DoraCacheFileInStream.class);
 
   private final DataReader.Factory mReaderFactory;
   private final long mLength;
@@ -35,6 +42,7 @@ public class DoraCacheFileInStream extends FileInStream {
   private boolean mClosed;
   private DataReader mDataReader;
   private DataBuffer mCurrentChunk;
+  private final boolean mDebug;
 
   /**
    * Constructor.
@@ -45,6 +53,7 @@ public class DoraCacheFileInStream extends FileInStream {
       long length) {
     mReaderFactory = readerFactory;
     mLength = length;
+    mDebug = Configuration.getBoolean(PropertyKey.FUSE_LU_ENABLED);
   }
 
   @Override
@@ -88,6 +97,9 @@ public class DoraCacheFileInStream extends FileInStream {
     if (mPos == mLength) {
       // a performance improvement introduced by https://github.com/Alluxio/alluxio/issues/14020
       closeDataReader();
+    }
+    if (mDebug) {
+      LOG.info("Read {} at {}", toRead, off);
     }
     return toRead;
   }
@@ -144,6 +156,9 @@ public class DoraCacheFileInStream extends FileInStream {
         "Seek position past the end of the read region (block or file).");
     if (pos == mPos) {
       return;
+    }
+    if (mDebug) {
+      LOG.info("Seek to pos {}", pos);
     }
     closeDataReader();
     mPos = pos;

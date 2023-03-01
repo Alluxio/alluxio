@@ -2469,6 +2469,25 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The used direct memory")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey FUSE_BYTES_READ =
+      new Builder("Fuse.BytesRead")
+          .setDescription("Total number of bytes read by FUSE.")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_NETTY_BYTES_READ = 
+      new Builder("Client.NettyBytesRead")
+          .setDescription("Total bytes read by client via netty data reader.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_NETTY_BYTES_READ_DISCARD =
+      new Builder("Client.NettyBytesReadDiscard")
+          .setDescription("Total bytes read by client via netty data reader "
+              + "and discard when closing the data reader.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
 
   /**
    * A nested class to hold named string constants for their corresponding metrics.

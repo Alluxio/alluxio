@@ -6608,6 +6608,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_LU_ENABLED =
+      booleanBuilder(Name.FUSE_LU_DEBUG)
+          .setDefaultValue(false)
+          .setDescription("Special Lu debug property.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey FUSE_JNIFUSE_LIBFUSE_VERSION =
       intBuilder(Name.FUSE_JNIFUSE_LIBFUSE_VERSION)
           .setDefaultValue(3)
@@ -8752,6 +8759,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
     public static final String FUSE_JNIFUSE_ENABLED = "alluxio.fuse.jnifuse.enabled";
+    public static final String FUSE_LU_DEBUG = "alluxio.fuse.lu.debug";
     public static final String FUSE_SHARED_CACHING_READER_ENABLED
         = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
