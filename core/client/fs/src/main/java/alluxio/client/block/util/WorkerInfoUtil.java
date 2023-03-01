@@ -130,8 +130,9 @@ public class WorkerInfoUtil {
             return workerAddress;
           }
           if (!v.equals(workerAddress)) {
-            LOG.error("The same worker id {} corresponds to multiple worker name {} {}, "
-                + "ignoring the latter one", k, v, workerAddress);
+            throw new RuntimeException(String.format(
+                "The same worker id %d corresponds to multiple worker name %s %s",
+                k, v, workerAddress));
           }
           return v;
         });
