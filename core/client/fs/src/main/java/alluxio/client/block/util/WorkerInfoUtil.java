@@ -91,10 +91,10 @@ public class WorkerInfoUtil {
         masterAddressToWorkerInfoMap.put(masterAddress, workerInfos);
       } catch (Exception e) {
         if (masterAddress.equals(primaryMasterAddress)) {
-          LOG.error("Failed to get worker report from master : {} {}", masterContext, e);
+          LOG.error("Failed to get worker report from master: {}", masterContext, e);
           throw e;
         }
-        LOG.warn("Failed to get worker report from master : {} {}", masterContext, e);
+        LOG.warn("Failed to get worker report from master: {}", masterContext, e);
       }
     }
     return populateAllMastersWorkerInfo(primaryMasterAddress, masterAddressToWorkerInfoMap);
@@ -130,7 +130,7 @@ public class WorkerInfoUtil {
             return workerAddress;
           }
           if (!v.equals(workerAddress)) {
-            LOG.warn("The same worker id {} corresponds to multiple worker name {} {}, "
+            LOG.error("The same worker id {} corresponds to multiple worker name {} {}, "
                 + "ignoring the latter one", k, v, workerAddress);
           }
           return v;

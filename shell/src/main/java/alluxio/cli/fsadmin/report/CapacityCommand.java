@@ -18,6 +18,7 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
+import alluxio.client.block.util.WorkerInfoUtil;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -34,6 +35,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -105,10 +107,10 @@ public class CapacityCommand {
         conf.getBoolean(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS);
 
     final List<WorkerInfo> workerInfoList;
-    final alluxio.client.block.AllMastersWorkerInfo allMastersWorkerInfo;
+    final AllMastersWorkerInfo allMastersWorkerInfo;
     if (workerRegisterToAllMasters) {
       allMastersWorkerInfo =
-          alluxio.client.block.util.WorkerInfoUtil.getWorkerReportsFromAllMasters(
+          WorkerInfoUtil.getWorkerReportsFromAllMasters(
           conf, mBlockMasterClient, options);
       workerInfoList = allMastersWorkerInfo.getPrimaryMasterWorkerInfo();
     } else {
@@ -224,8 +226,8 @@ public class CapacityCommand {
   }
 
   private String masterAddressToString(
-      java.net.InetSocketAddress inetSocketAddress,
-      java.util.Collection<java.net.InetSocketAddress> masterAddresses) {
+      InetSocketAddress inetSocketAddress,
+      Collection<InetSocketAddress> masterAddresses) {
     // If multiple masters share the same host name, we will display the host name + port
     // otherwise just the host name.
     if (inetSocketAddress.getHostName().equals("localhost") || masterAddresses.stream()
