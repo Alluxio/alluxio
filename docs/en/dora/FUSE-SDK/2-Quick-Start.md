@@ -52,8 +52,8 @@ $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o option
 - `-o option`: All the `alluxio-fuse mount` options are provided using this format. Options include
     - Alluxio property key value pair in `-o alluxio_property_key=value` format
         - Under storage credentials and configuration. Detailed configuration can be found under the `Storage Integrations` tap of the left of the doc page.
-    - Local cache configuration. Detailed usage can be found in the [local cache section](#local-cache)
-    - Generic mount options. Detailed supported mount options information can be found in the [FUSE mount options section](#fuse-mount-options)
+    - Local cache configuration. Detailed usage can be found in the [local cache guide]((https://github.com/Alluxio/alluxio/blob/dora/docs/en/dora/FUSE-SDK/3-Local-Cache.md))
+    - Generic mount options. Detailed supported mount options information can be found in the [FUSE mount options section](https://github.com/Alluxio/alluxio/blob/dora/docs/en/dora/FUSE-SDK/6-Advanced-Tuning.md)
 
 After mounting, `alluxio-fuse` mount can be found locally
 ```console
