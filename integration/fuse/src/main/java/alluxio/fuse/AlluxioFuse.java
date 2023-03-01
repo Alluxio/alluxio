@@ -68,7 +68,6 @@ public final class AlluxioFuse {
   private static final CommandLineParser PARSER = new DefaultParser();
 
   private static final String MOUNT_POINT_OPTION_NAME = "m";
-  private static final String MOUNT_ALLUXIO_PATH_OPTION_NAME = "a";
   private static final String MOUNT_ROOT_UFS_OPTION_NAME = "u";
   private static final String MOUNT_OPTIONS_OPTION_NAME = "o";
   private static final String HELP_OPTION_NAME = "h";
@@ -79,16 +78,6 @@ public final class AlluxioFuse {
       .required(false)
       .longOpt("mount-point")
       .desc("The absolute local filesystem path that standalone Fuse will mount Alluxio path to.")
-      .build();
-  private static final Option MOUNT_ALLUXIO_PATH_OPTION
-      = Option.builder(MOUNT_ALLUXIO_PATH_OPTION_NAME)
-      .hasArg()
-      .required(false)
-      .longOpt("alluxio-path")
-      .desc("The Alluxio path to mount to the given Fuse mount point "
-          + "(for example, mount alluxio path `/alluxio` to fuse mount point `/mnt/alluxio-fuse`; "
-          + "local operations like `mkdir /mnt/alluxio-fuse/folder` will be translated to "
-          + "`alluxio fs mkdir /alluxio/folder`)")
       .build();
   private static final Option MOUNT_ROOT_UFS_OPTION
       = Option.builder(MOUNT_ROOT_UFS_OPTION_NAME)
@@ -128,7 +117,6 @@ public final class AlluxioFuse {
       .build();
   private static final Options OPTIONS = new Options()
       .addOption(MOUNT_POINT_OPTION)
-      .addOption(MOUNT_ALLUXIO_PATH_OPTION)
       .addOption(MOUNT_ROOT_UFS_OPTION)
       .addOption(MOUNT_OPTIONS)
       .addOption(UPDATE_CHECK_OPTION)
@@ -159,7 +147,9 @@ public final class AlluxioFuse {
     FuseOptions fuseOptions = getFuseOptions(cli, conf);
 
     FileSystemContext fsContext = FileSystemContext.create(conf);
-    if (!fuseOptions.getFileSystemOptions().getUfsFileSystemOptions().isPresent()) {
+    if (!fuseOptions.getFileSystemOptions().getUfsFileSystemOptions().isPresent()
+        && !fuseOptions.getFileSystemOptions().isDoraCacheEnabled()) {
+      // cases other than standalone fuse sdk
       conf = AlluxioFuseUtils.tryLoadingConfigFromMaster(fsContext);
     }
 
@@ -264,14 +254,15 @@ public final class AlluxioFuse {
       conf.set(PropertyKey.FUSE_MOUNT_POINT,
           cli.getOptionValue(MOUNT_POINT_OPTION_NAME), Source.RUNTIME);
     }
-    if (cli.hasOption(MOUNT_ALLUXIO_PATH_OPTION_NAME)) {
-      conf.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH,
-          cli.getOptionValue(MOUNT_ALLUXIO_PATH_OPTION_NAME), Source.RUNTIME);
-    }
     if (cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)) {
-      // Disable connections between FUSE and server
-      conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false, Source.RUNTIME);
-      conf.set(PropertyKey.USER_UPDATE_FILE_ACCESSTIME_DISABLED, true, Source.RUNTIME);
+      String ufs = cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME);
+      if (ufs.startsWith(Constants.SCHEME)) {
+        conf.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, ufs, Source.RUNTIME);
+      } else {
+        // Disable connections between FUSE and server
+        conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false, Source.RUNTIME);
+        conf.set(PropertyKey.USER_UPDATE_FILE_ACCESSTIME_DISABLED, true, Source.RUNTIME);
+      }
     }
     if (cli.hasOption(MOUNT_OPTIONS_OPTION_NAME)) {
       List<String> fuseOptions = new ArrayList<>();
@@ -342,6 +333,7 @@ public final class AlluxioFuse {
       updateCheckEnabled = true;
     }
     return cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)
+        && !cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME).startsWith(Constants.SCHEME)
         ? FuseOptions.create(conf, FileSystemOptions.create(conf,
         Optional.of(new UfsFileSystemOptions(cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME)))),
         updateCheckEnabled) : FuseOptions.create(conf, updateCheckEnabled);
