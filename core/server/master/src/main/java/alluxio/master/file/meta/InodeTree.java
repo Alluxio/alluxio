@@ -883,7 +883,7 @@ public class InodeTree implements DelegatingJournaled {
         }
       }
     }
-    if ((pathIndex < (pathComponents.length - 1)
+    if (context.getUpdateParentLastModifiedTime() && (pathIndex < (pathComponents.length - 1)
         || !mInodeStore.getChild(currentInodeDirectory, name).isPresent())
         && context.getOperationTimeMs() > currentInodeDirectory.getLastModificationTimeMs()) {
       // (1) There are components in parent paths that need to be created. Or

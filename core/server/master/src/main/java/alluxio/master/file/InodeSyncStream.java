@@ -296,6 +296,11 @@ public class InodeSyncStream {
   private final int mConcurrencyLevel =
       Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL);
 
+  private static final ParentLastModifiedTimeUpdatePolicy PARENT_LAST_MODIFIED_TIME_UPDATE_POLICY =
+      Configuration.getEnum(
+          PropertyKey.MASTER_PARENT_LAST_MODIFIED_TIME_UPDATE_POLICY,
+          ParentLastModifiedTimeUpdatePolicy.class);
+
   private final boolean mGetDirectoryStatusSkipLoadingChildren =
       Configuration.getBoolean(
           PropertyKey.MASTER_METADATA_SYNC_GET_DIRECTORY_STATUS_SKIP_LOADING_CHILDREN);
@@ -1216,6 +1221,9 @@ public class InodeSyncStream {
     createFileContext.setOwner(context.getUfsStatus().getOwner());
     createFileContext.setGroup(context.getUfsStatus().getGroup());
     createFileContext.setXAttr(context.getUfsStatus().getXAttr());
+    if (PARENT_LAST_MODIFIED_TIME_UPDATE_POLICY != ParentLastModifiedTimeUpdatePolicy.ALWAYS) {
+      createFileContext.setUpdateParentLastModifiedTime(false);
+    }
     short ufsMode = context.getUfsStatus().getMode();
     Mode mode = new Mode(ufsMode);
     Long ufsLastModified = context.getUfsStatus().getLastModifiedTime();

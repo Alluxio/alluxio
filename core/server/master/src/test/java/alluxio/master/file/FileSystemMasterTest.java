@@ -144,7 +144,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
 
   @Test
   public void createPathWithWhiteSpaces() throws Exception {
-    String[] paths = new String[]{
+    String[] paths = new String[] {
         "/ ",
         "/  ",
         "/ path",
@@ -1828,7 +1828,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
 
     ExistsContext alwaysSyncContext = ExistsContext.create(
         ExistsPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setCommonOptions(
-        FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build()));
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build()));
 
     Assert.assertFalse(mFileSystemMaster.exists(alluxioFileURI, alwaysSyncContext));
 
@@ -1843,5 +1843,34 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
 
     Assert.assertTrue(mFileSystemMaster.exists(alluxioFileURI, neverSyncContext));
     Assert.assertFalse(mFileSystemMaster.exists(alluxioFileURI, alwaysSyncContext));
+  }
+
+  @Test
+  public void lastModificationPolicy() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    mFileSystemMaster.mount(alluxioURI, ufsURI,
+        MountContext.mergeFrom(MountPOptions.newBuilder().setReadOnly(false)));
+
+    FileInfo directoryInfoBeforeChildrenSync =
+        mFileSystemMaster.getFileInfo(alluxioURI, GetStatusContext.defaults());
+    AlluxioURI alluxioUFSFileURI = new AlluxioURI("/hello/ufs_file");
+    createTempUfsFile("ufs/hello/ufs_file");
+    assertTrue(mFileSystemMaster.exists(alluxioUFSFileURI, ExistsContext.defaults()));
+    FileInfo directoryInfoAfterChildrenSync =
+        mFileSystemMaster.getFileInfo(alluxioURI, GetStatusContext.defaults());
+    assertEquals(
+        directoryInfoBeforeChildrenSync.getLastModificationTimeMs(),
+        directoryInfoAfterChildrenSync.getLastModificationTimeMs()
+    );
+
+    AlluxioURI alluxioFileURI = new AlluxioURI("/hello/alluxio_file");
+    mFileSystemMaster.createFile(alluxioFileURI, CreateFileContext.defaults());
+    FileInfo directoryInfoAfterFileCreation =
+        mFileSystemMaster.getFileInfo(alluxioURI, GetStatusContext.defaults());
+    assertNotEquals(
+        directoryInfoAfterChildrenSync.getLastModificationTimeMs(),
+        directoryInfoAfterFileCreation.getLastModificationTimeMs()
+    );
   }
 }

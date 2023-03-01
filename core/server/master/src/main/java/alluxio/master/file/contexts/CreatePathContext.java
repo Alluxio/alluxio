@@ -18,6 +18,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.grpc.XAttrPropagationStrategy;
+import alluxio.master.file.ParentLastModifiedTimeUpdatePolicy;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
@@ -41,6 +42,8 @@ import javax.annotation.Nullable;
  */
 public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     K extends CreatePathContext<?, ?>> extends OperationContext<T, K> {
+  private static final ParentLastModifiedTimeUpdatePolicy PARENT_LAST_MODIFIED_TIME_UPDATE_POLICY =
+      alluxio.master.file.ParentLastModifiedTimeUpdatePolicy.ALWAYS;
 
   protected boolean mMountPoint;
   protected long mOperationTimeMs;
@@ -51,6 +54,8 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   private WriteType mWriteType;
   protected Map<String, byte[]> mXAttr;
   protected XAttrPropagationStrategy mXAttrPropStrat;
+
+  protected boolean mUpdateLastModifiedTime;
 
   //
   // Values for the below fields will be extracted from given proto options
@@ -97,6 +102,8 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
       mXAttrPropStrat = ((CreateDirectoryPOptions.Builder) optionsBuilder).getXattrPropStrat();
     }
     mWriteType = WriteType.fromProto(writeType);
+    mUpdateLastModifiedTime =
+        PARENT_LAST_MODIFIED_TIME_UPDATE_POLICY == ParentLastModifiedTimeUpdatePolicy.ALWAYS;
   }
 
   private void loadExtractedFields() {
@@ -309,6 +316,23 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     return mMetadataLoad;
   }
 
+  /**
+   * @return extended attributes on this context
+   */
+  public boolean getUpdateParentLastModifiedTime() {
+    return mUpdateLastModifiedTime;
+  }
+
+  /**
+   * @param updateParentLastModifiedTime if the last modified time
+   *  of the inode parent should be updated
+   * @return the updated context
+   */
+  public K setUpdateParentLastModifiedTime(boolean updateParentLastModifiedTime) {
+    mUpdateLastModifiedTime = updateParentLastModifiedTime;
+    return getThis();
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
@@ -320,6 +344,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
         .add("MetadataLoad", mMetadataLoad)
         .add("writeType", mWriteType)
         .add("xattr", mXAttr)
+        .add("UpdateParentLastModifiedTime", mUpdateLastModifiedTime)
         .toString();
   }
 }

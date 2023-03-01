@@ -99,6 +99,7 @@ public final class InodeTreeTest {
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   private static final AlluxioURI NESTED_DIR_URI = new AlluxioURI("/nested/test/dir");
   private static final AlluxioURI NESTED_DIR_FILE_URI = new AlluxioURI("/nested/test/dir/file1");
+  private static final AlluxioURI NESTED_DIR_FILE2_URI = new AlluxioURI("/nested/test/dir/file2");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
   private static final AlluxioURI NESTED_MULTIDIR_FILE_URI
       = new AlluxioURI("/nested/test/dira/dirb/file");
@@ -361,10 +362,48 @@ public final class InodeTreeTest {
     }
   }
 
+  @Test
+  public void createPathTestUpdateLastModTime() throws Exception {
+    CreateDirectoryContext dirContext = CreateDirectoryContext.mergeFrom(
+            CreateDirectoryPOptions.newBuilder().setRecursive(true)
+                .setMode(TEST_DIR_MODE.toProto()))
+        .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
+    CreateFileContext nestedDirFileContext = CreateFileContext
+        .mergeFrom(
+            CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true))
+        .setOwner("").setGroup("");
+
+    // create nested directory
+    List<Inode> foobar = createPath(mTree, NESTED_DIR_URI, dirContext);
+    long directoryLastModTime1 = getInodeByPath(NESTED_DIR_URI).getLastModificationTimeMs();
+
+    // sleep to ensure a different last modification time
+    CommonUtils.sleepMs(10);
+
+    // create a file under nested directory, setting update parent last mod time to true
+    nestedDirFileContext.setUpdateParentLastModifiedTime(true);
+    nestedDirFileContext.setOperationTimeMs(System.currentTimeMillis());
+
+    createPath(mTree, NESTED_DIR_FILE_URI, nestedDirFileContext);
+    long directoryLastModTime2 = getInodeByPath(NESTED_DIR_URI).getLastModificationTimeMs();
+
+    // sleep to ensure a different last modification time
+    CommonUtils.sleepMs(10);
+
+    // setting update parent last mod time to false
+    nestedDirFileContext.setUpdateParentLastModifiedTime(false);
+    nestedDirFileContext.setOperationTimeMs(System.currentTimeMillis());
+    createPath(mTree, NESTED_DIR_FILE2_URI, nestedDirFileContext);
+    long directoryLastModTime3 = getInodeByPath(NESTED_DIR_URI).getLastModificationTimeMs();
+
+    assertNotEquals(directoryLastModTime1, directoryLastModTime2);
+    assertEquals(directoryLastModTime2, directoryLastModTime3);
+  }
+
   /**
-   * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext)} method
-   * for inheriting owner and group when empty.
-   */
+     * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext)} method
+     * for inheriting owner and group when empty.
+     */
   @Test
   public void createPathInheritanceTest() throws Exception {
     // create nested directory

@@ -44,6 +44,7 @@ import alluxio.grpc.WritePType;
 import alluxio.master.GraceMode;
 import alluxio.master.ZookeeperConnectionErrorPolicy;
 import alluxio.master.file.MetadataSyncTraversalOrder;
+import alluxio.master.file.ParentLastModifiedTimeUpdatePolicy;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.MetastoreType;
 import alluxio.master.metastore.rocks.DataBlockIndexType;
@@ -3191,6 +3192,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "but increases the memory consumption as alluxio holds more journal entries "
               + "in memory. This config is only available when "
               + Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS + "is enabled.")
+          .build();
+  public static final PropertyKey MASTER_PARENT_LAST_MODIFIED_TIME_UPDATE_POLICY =
+      enumBuilder(
+          Name.MASTER_PARENT_LAST_MODIFIED_TIME_UPDATE_POLICY,
+          ParentLastModifiedTimeUpdatePolicy.class)
+          .setDefaultValue(
+              ParentLastModifiedTimeUpdatePolicy.NON_METADATA_SYNC_INODE_CREATIONS_ONLY)
+          .setDescription("The policy that decides when an inode is created, "
+              + "if the last modified time of its parent should be updated.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
       booleanBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
@@ -8057,6 +8068,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.merge.journal.context.num.entries.logging.threshold";
     public static final String MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES =
         "alluxio.master.recursive.operation.journal.force.flush.max.entries";
+    public static final String MASTER_PARENT_LAST_MODIFIED_TIME_UPDATE_POLICY =
+        "alluxio.master.parent.last.modified.time.update.policy";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
         "alluxio.master.periodic.block.integrity.check.repair";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
