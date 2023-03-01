@@ -1686,11 +1686,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       remainingBytes -= Math.min(remainingBytes, blockSize);
       sequenceNumber++;
     }
-    createFileContext.setBlockContainerId(containerId);
-    createFileContext.setBlockIds(blockIds);
+    createFileContext.setCompleteFileInfo(
+        new CreateFileContext.CompleteFileInfo(containerId, ufsLength, blockIds)
+    );
     createFileContext.setMetadataLoad(true);
-    createFileContext.setIsCompleted(true);
-    createFileContext.setLength(ufsLength);
     createFileContext.setFingerprint(getUfsFingerprint(inodePath.getUri(), ufsStatus, null));
 
     createFileInternal(rpcContext, inodePath, createFileContext);

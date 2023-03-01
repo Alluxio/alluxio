@@ -1020,8 +1020,8 @@ public class InodeTree implements DelegatingJournaled {
     } else if (context instanceof CreateFileContext) {
       CreateFileContext fileContext = (CreateFileContext) context;
       final long blockContainerId;
-      if (fileContext.getBlockContainerId() != null) {
-        blockContainerId = fileContext.getBlockContainerId();
+      if (fileContext.getCompleteFileInfo() != null) {
+        blockContainerId = fileContext.getCompleteFileInfo().getContainerId();
       } else {
         blockContainerId = mContainerIdGenerator.getNewContainerId();
       }

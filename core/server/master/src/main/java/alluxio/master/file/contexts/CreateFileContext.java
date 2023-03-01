@@ -26,17 +26,58 @@ import javax.annotation.Nullable;
  */
 public class CreateFileContext
     extends CreatePathContext<CreateFilePOptions.Builder, CreateFileContext> {
+  /**
+   * A class for complete file info.
+   */
+  public static class CompleteFileInfo {
+    /**
+     * Constructs an instance.
+     * @param containerId the file container id
+     * @param length the file size
+     * @param blockIds the block ids in the file
+     */
+    public CompleteFileInfo(long containerId, long length, List<Long> blockIds) {
+      mBlockIds = blockIds;
+      mContainerId = containerId;
+      mLength = length;
+    }
+
+    /**
+     * If set, the new file will use this id instead of a generated one when the file is created.
+     */
+    private final long mContainerId;
+    private final long mLength;
+    private final List<Long> mBlockIds;
+
+    /**
+     * @return the container id
+     */
+    public long getContainerId() {
+      return mContainerId;
+    }
+
+    /**
+     * @return the file length
+     */
+    public long getLength() {
+      return mLength;
+    }
+
+    /**
+     * @return the block ids in the file
+     */
+    public List<Long> getBlockIds() {
+      return mBlockIds;
+    }
+  }
 
   private boolean mCacheable;
 
-  private boolean mIsCompleted;
-  private long mLength;
-  @Nullable private List<Long> mBlockIds;
-
   /**
-   * If set, the new file will use this id instead of a generated one when the file is created.
+   * If set, the file will be mark as completed when it gets created in the inode tree.
+   * Used in metadata sync.
    */
-  @Nullable private Long mBlockContainerId;
+  @Nullable private CompleteFileInfo mCompleteFileInfo;
 
   /**
    * Creates context with given option data.
@@ -46,10 +87,7 @@ public class CreateFileContext
   private CreateFileContext(CreateFilePOptions.Builder optionsBuilder) {
     super(optionsBuilder);
     mCacheable = false;
-    mIsCompleted = false;
-    mLength = 0;
-    mBlockIds = null;
-    mBlockContainerId = null;
+    mCompleteFileInfo = null;
   }
 
   /**
@@ -107,79 +145,32 @@ public class CreateFileContext
   }
 
   /**
-   * @param isCompleted true if the file is completed, otherwise false
+   * @param completeFileInfo if the file is expected to mark as completed when it is created
    * @return the updated context object
    */
-  public CreateFileContext setIsCompleted(boolean isCompleted) {
-    mIsCompleted = isCompleted;
+  public CreateFileContext setCompleteFileInfo(CompleteFileInfo completeFileInfo) {
+    mCompleteFileInfo = completeFileInfo;
     return getThis();
   }
 
   /**
-   * @return true if the file is completed, otherwise false
+   * @return the complete file info object
    */
-  public boolean isCompleted() {
-    return mIsCompleted;
-  }
-
-  /**
-   * @param length the file length
-   * @return the updated context object
-   */
-  public CreateFileContext setLength(long length) {
-    mLength = length;
-    return getThis();
-  }
-
-  /**
-   * @return the file length
-   */
-  public long getLength() {
-    return mLength;
-  }
-
-  /**
-   * @param blockIds the block ids of the file. Null if the file is incomplete
-   * @return the updated context object
-   */
-  public CreateFileContext setBlockIds(List<Long> blockIds) {
-    mBlockIds = blockIds;
-    return this;
-  }
-
-  /**
-   * @return the block ids of the file. Null if the file is incomplete
-   */
-  @Nullable
-  public List<Long> getBlockIds() {
-    return mBlockIds;
-  }
-
-  /**
-   * @param blockContainerId the block container id
-   * @return the updated context object
-   */
-  public CreateFileContext setBlockContainerId(long blockContainerId) {
-    mBlockContainerId = blockContainerId;
-    return this;
-  }
-
-  /**
-   * @return the block container id, null if auto generated one is used
-   */
-  @Nullable
-  public Long getBlockContainerId() {
-    return mBlockContainerId;
+  public CompleteFileInfo getCompleteFileInfo() {
+    return mCompleteFileInfo;
   }
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
+    MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(this)
         .add("PathContext", super.toString())
-        .add("Cacheable", mCacheable)
-        .add("Length", mLength)
-        .add("IsCompleted", mIsCompleted)
-        .add("BlockContainerId", mBlockContainerId)
-        .toString();
+        .add("Cacheable", mCacheable);
+
+    if (mCompleteFileInfo != null) {
+      helper.add("Length", mCompleteFileInfo.getLength())
+          .add("IsCompleted", true)
+          .add("BlockContainerId", mCompleteFileInfo.getContainerId());
+    }
+    return helper.toString();
   }
 }

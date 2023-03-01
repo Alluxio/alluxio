@@ -462,11 +462,14 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
             ? Constants.NO_AUTO_PERSIST :
             System.currentTimeMillis() + options.getPersistenceWaitTime())
         .setXAttr(context.getXAttr())
-        .setUfsFingerprint(context.getFingerprint())
-        .setCompleted(context.isCompleted())
-        .setLength(context.getLength());
-    if (context.getBlockIds() != null) {
-      inodeFile.setBlockIds(context.getBlockIds());
+        .setUfsFingerprint(context.getFingerprint());
+    if (context.getFingerprint() != null) {
+      inodeFile.setUfsFingerprint(context.getFingerprint());
+    }
+    if (context.getCompleteFileInfo() != null) {
+      inodeFile.setBlockIds(context.getCompleteFileInfo().getBlockIds());
+      inodeFile.setCompleted(true);
+      inodeFile.setLength(context.getCompleteFileInfo().getLength());
     }
     return inodeFile;
   }

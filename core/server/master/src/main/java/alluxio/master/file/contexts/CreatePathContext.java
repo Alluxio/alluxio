@@ -79,7 +79,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     mMetadataLoad = false;
     mGroup = "";
     mOwner = "";
-    mFingerprint = "";
+    mFingerprint = null;
     if (SecurityUtils.isAuthenticationEnabled(Configuration.global())) {
       mOwner = SecurityUtils.getOwnerFromGrpcClient(Configuration.global());
       mGroup = SecurityUtils.getGroupFromGrpcClient(Configuration.global());
