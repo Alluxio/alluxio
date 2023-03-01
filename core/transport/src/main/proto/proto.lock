@@ -2751,6 +2751,11 @@
                 "id": 6,
                 "name": "disableAreDescendantsLoadedCheck",
                 "type": "bool"
+              },
+              {
+                "id": 7,
+                "name": "excludeMountInfo",
+                "type": "bool"
               }
             ]
           },
