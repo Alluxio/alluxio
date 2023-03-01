@@ -127,6 +127,8 @@ public class JournalDisruptor {
         new FileOutputStream(outputfile)))) {
       ex = new JournalExporter(sOutputDir, sMaster, sStart);
       writer = ex.getWriter();
+
+      int toilet_counter = 0;
       // this loop is use used to go through the journal entries
       // here read 22 alluxio journal entries
       for (int i = 0; i < 140000; i++) {
@@ -136,7 +138,7 @@ public class JournalDisruptor {
           System.out.println("entry: " + entry);
           try {
             writer.write(entry.toBuilder().clearSequenceNumber().build());
-            writer.flush();
+            toilet_counter += 1;
             out.println(entry.toBuilder().clearSequenceNumber().build());
           } catch (JournalClosedException e) {
             System.out.println("failed when writing entry: " + e);
@@ -144,12 +146,20 @@ public class JournalDisruptor {
         } else {
           break;
         }
+        if (toilet_counter == 100) {
+          try {
+            writer.flush();
+            toilet_counter = 0;
+          } catch (JournalClosedException e) {
+
+          }
+        }
       }
-      // try {
-      //   writer.flush();
-      // } catch (Exception e) {
-      //   System.out.println(e);
-      // }
+      try {
+        writer.flush();
+      } catch (Exception e) {
+        System.out.println(e);
+      }
       // without this sleep RaftJournalClient won't be Master
       // 'is in LEADER state but not ready yet'
       Thread.sleep(2000);
