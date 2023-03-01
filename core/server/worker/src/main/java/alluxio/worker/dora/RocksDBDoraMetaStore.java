@@ -54,7 +54,7 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
 
   // The TTL (in seconds) for metadata. It must be greater than 0, or -1.
   // -1 means never expiring.
-  private final int mMetaTTL;
+  private final long mMetaTTL;
 
   private final List<RocksObject> mToClose = new ArrayList<>();
 
@@ -66,7 +66,7 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
    * @param baseDir the base directory in which to store inode metadata
    * @param metaTTL The TTL for this metastore
    */
-  public RocksDBDoraMetaStore(String baseDir, int metaTTL) {
+  public RocksDBDoraMetaStore(String baseDir, long metaTTL) {
     RocksDB.loadLibrary();
 
     Preconditions.checkState(metaTTL > 0 || metaTTL == -1);

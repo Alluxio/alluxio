@@ -7418,9 +7418,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   public static final PropertyKey DORA_WORKER_METASTORE_ROCKSDB_TTL =
-      intBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_TTL)
-          .setDefaultValue(60 * 60 * 24) // 24 hours
-          .setDescription("The TTL (Time To Live) of RocksDB of Dora metadata")
+      durationBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_TTL)
+          .setDefaultValue("-1s") // -1s means no expiry
+          .setDescription("The TTL (Time To Live) in duration of RocksDB of Dora metadata. "
+              + "0s or negative value means no expiry")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
