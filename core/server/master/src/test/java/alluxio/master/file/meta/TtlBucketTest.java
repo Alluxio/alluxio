@@ -90,7 +90,7 @@ public class TtlBucketTest {
     // Remove files;
     mBucket.removeInode(fileTtl1);
     Assert.assertEquals(1, mBucket.getInodes().size());
-    Assert.assertTrue(mBucket.getInodes().contains(fileTtl2));
+    Assert.assertTrue(mBucket.getInodes().contains(fileTtl2.getId()));
     mBucket.removeInode(fileTtl2);
     Assert.assertEquals(0, mBucket.getInodes().size());
   }
@@ -119,7 +119,7 @@ public class TtlBucketTest {
     // Remove directorys;
     mBucket.removeInode(directoryTtl1);
     Assert.assertEquals(1, mBucket.getInodes().size());
-    Assert.assertTrue(mBucket.getInodes().contains(directoryTtl2));
+    Assert.assertTrue(mBucket.getInodes().contains(directoryTtl2.getId()));
     mBucket.removeInode(directoryTtl2);
     Assert.assertEquals(0, mBucket.getInodes().size());
   }
