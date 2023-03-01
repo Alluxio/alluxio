@@ -1,0 +1,48 @@
+# FUSE SDK Overview
+
+The Alluxio POSIX API is a feature that allows mounting training datasets
+in specific storage services (e.g. S3, HDFS) to the local filesystem
+and provides caching capabilities to speed up I/O access to frequently used data.
+
+## Local Cache vs Distributed Cache
+
+There are two kinds of caching capabilities: 1. local caching only 2. local caching + distributed caching.
+
+Differences between the two solutions are listed below, choose your desired solution based on training requirements and available resources.
+<table class="table table-striped">
+    <tr>
+        <td>Category</td>
+        <td>Local Caching</td>
+        <td>Distributed Caching</td>
+    </tr>
+    <tr>
+        <td>Prerequisite</td>
+        <td>N/A</td>
+        <td>Require a running Alluxio cluster (master + worker)</td>
+    </tr>
+    <tr>
+        <td>Caching Capability</td>
+        <td>Bounded by local storage size</td>
+        <td>Bounded by Alluxio cluster storage size</td>
+    </tr>
+    <tr>
+        <td>Suited Workloads</td>
+        <td>Single node training with large dataset. Distributed training with no data shuffle between nodes</td>
+        <td>Multiple training nodes or training tasks share the same dataset</td>
+    </tr>
+</table>
+
+### Local Caching Solution
+
+See [Quick Start](https://github.com/Alluxio/alluxio/blob/dora/docs/en/dora/FUSE-SDK/2-Quick-Start.md) for quickly setup your FUSE SDK local cache solution
+which can connects to your desired storage services.
+
+[Local Cache Guide](https://github.com/Alluxio/alluxio/blob/dora/docs/en/dora/FUSE-SDK/3-Local-Cache.md) provides different local cache capabilities
+to speed up your workloads and reduce the pressure of storage services.
+
+[Advanced Tuning Guide](https://github.com/Alluxio/alluxio/blob/dora/docs/en/dora/FUSE-SDK/6-Advanced-Tuning.md) provides advanced FUSE SDK tuning tips
+for performance optimization or debugging.
+
+### Distributed Caching Solution
+
+FUSE SDK can connect to a shared distributed caching service. For more information, please refer to [here](https://github.com/Alluxio/alluxio/blob/dora/docs/en/dora/FUSE-SDK/7-Connect-to-Dora-Distributed-Cache.md)
