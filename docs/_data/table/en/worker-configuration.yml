@@ -10,6 +10,8 @@ alluxio.worker.block.annotator.lrfu.step.factor:
   'A factor in [0, 1] to control the behavior of LRFU: smaller value makes LRFU more similar to LFU; and larger value makes LRFU closer to LRU.'
 alluxio.worker.block.heartbeat.interval:
   'The interval between block workers'' heartbeats to update block status, storage health and other workers'' information to Alluxio Master.'
+alluxio.worker.block.heartbeat.report.size.threshold:
+  'When alluxio.worker.register.to.all.masters=true, because a worker will send block reports to all masters, we use a threshold to limit the unsent block report size in worker''s memory. If the worker block heartbeat is larger than the threshold, we discard the heartbeat message and force the worker to register with that master with a full report.'
 alluxio.worker.block.heartbeat.timeout:
   'The timeout value of block workers'' heartbeats. If the worker can''t connect to master before this interval expires, the worker will exit.'
 alluxio.worker.block.master.client.pool.size:
@@ -164,6 +166,8 @@ alluxio.worker.register.stream.enabled:
   'When the worker registers with the master, whether the request should be broken into a stream of smaller batches. This is useful when the worker''s storage is large and we expect a large number of blocks. '
 alluxio.worker.register.stream.response.timeout:
   'When the worker registers the master with streaming, the worker will be sending messages to the master during the streaming.During an active stream if the master have not responded to the worker for more than this timeout, the worker will consider the master is hanging and close the stream.'
+alluxio.worker.register.to.all.masters:
+  'If enabled, workers will register themselves to all masters, instead of primary master only. This can be used to save the master failover time because the new primary immediately knows all existing workers and blocks. Can only be enabled when alluxio.standby.master.grpc.enabled is turned on.'
 alluxio.worker.remote.io.slow.threshold:
   'The time threshold for when a worker remote IO (read or write) of a single buffer is considered slow. When slow IO occurs, it is logged by a sampling logger.'
 alluxio.worker.reviewer.class:

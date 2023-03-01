@@ -88,6 +88,12 @@ alluxio.user.client.cache.timeout.duration:
   'The timeout duration for local cache I/O operations (reading/writing/deleting). When this property is a positive value,local cache operations after timing out will fail and fallback to external file system but transparent to applications; when this property is a negative value, this feature is disabled.'
 alluxio.user.client.cache.timeout.threads:
   'The number of threads to handle cache I/O operation timeout, when alluxio.user.client.cache.timeout.duration is positive.'
+alluxio.user.client.cache.ttl.check.interval.seconds:
+  'TTL check interval time in seconds.'
+alluxio.user.client.cache.ttl.enabled:
+  'Whether to support cache quota.'
+alluxio.user.client.cache.ttl.threshold.seconds:
+  'TTL threshold time in seconds.'
 alluxio.user.client.report.version.enabled:
   'Whether the client reports version information to the server.'
 alluxio.user.conf.cluster.default.enabled:
@@ -103,7 +109,7 @@ alluxio.user.file.copyfromlocal.block.location.policy.class:
 alluxio.user.file.create.ttl:
   'Time to live for files created by a user, no ttl by default.'
 alluxio.user.file.create.ttl.action:
-  'When file''s ttl is expired, the action performs on it. Options: DELETE (default) or FREE'
+  'When file''s ttl is expired, the action performs on it. Options: DELETE_ALLUXIO(default), FREE or DELETE'
 alluxio.user.file.delete.unchecked:
   'Whether to check if the UFS contents are in sync with Alluxio before attempting to delete persisted directories recursively.'
 alluxio.user.file.include.operation.id:
@@ -154,6 +160,8 @@ alluxio.user.file.write.tier.default:
   'The default tier for choosing a where to write a block. Valid option is any integer. Non-negative values identify tiers starting from top going down (0 identifies the first tier, 1 identifies the second tier, and so on). If the provided value is greater than the number of tiers, it identifies the last tier. Negative values identify tiers starting from the bottom going up (-1 identifies the last tier, -2 identifies the second to last tier, and so on). If the absolute value of the provided value is greater than the number of tiers, it identifies the first tier.'
 alluxio.user.file.writetype.default:
   'Default write type when creating Alluxio files. Valid options are `MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to UnderFS synchronously), `ASYNC_THROUGH` (write to cache, write to UnderFS asynchronously, replicated alluxio.user.file.replication.durable times in Alluxio before data is persisted.'
+alluxio.user.hdfs.client.exclude.mount.info.on.list.status:
+  'If enabled, the mount info will be excluded from the response when a HDFS client calls alluxio to list status on a directory.'
 alluxio.user.hostname:
   'The hostname to use for an Alluxio client.'
 alluxio.user.local.reader.chunk.size.bytes:
@@ -267,12 +275,12 @@ alluxio.user.ufs.block.location.all.fallback.enabled:
 alluxio.user.ufs.block.read.concurrency.max:
   'The maximum concurrent readers for one UFS block on one Block Worker.'
 alluxio.user.ufs.block.read.location.policy:
-  'When an Alluxio client reads a file from the UFS, it delegates the read to an Alluxio worker. The client uses this policy to choose which worker to read through. Built-in choices: [&lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/DeterministicHashPolicy.html&quot;&gt;alluxio.client.block.policy.DeterministicHashPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/LocalFirstAvoidEvictionPolicy.html&quot;&gt;alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/LocalFirstPolicy.html&quot;&gt;alluxio.client.block.policy.LocalFirstPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/MostAvailableFirstPolicy.html&quot;&gt;alluxio.client.block.policy.MostAvailableFirstPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/RoundRobinPolicy.html&quot;&gt;alluxio.client.block.policy.RoundRobinPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/SpecificHostPolicy.html&quot;&gt;alluxio.client.block.policy.SpecificHostPolicy&lt;/a&gt;].'
+  'When an Alluxio client reads a file from the UFS, it delegates the read to an Alluxio worker. The client uses this policy to choose which worker to read through. Built-in choices: [&lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/CapacityBasedDeterministicHashPolicy.html&quot;&gt;alluxio.client.block.policy.CapacityBasedDeterministicHashPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/CapacityBaseRandomPolicy.html&quot;&gt;alluxio.client.block.policy.CapacityBaseRandomPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/DeterministicHashPolicy.html&quot;&gt;alluxio.client.block.policy.DeterministicHashPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/LocalFirstAvoidEvictionPolicy.html&quot;&gt;alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/LocalFirstPolicy.html&quot;&gt;alluxio.client.block.policy.LocalFirstPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/MostAvailableFirstPolicy.html&quot;&gt;alluxio.client.block.policy.MostAvailableFirstPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/RoundRobinPolicy.html&quot;&gt;alluxio.client.block.policy.RoundRobinPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/SpecificHostPolicy.html&quot;&gt;alluxio.client.block.policy.SpecificHostPolicy&lt;/a&gt;].'
 alluxio.user.ufs.block.read.location.policy.cache.expiration.time:
   'Deprecated - When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.CapacityBaseRandomPolicy, this specifies cache expire time of block location.'
 alluxio.user.ufs.block.read.location.policy.cache.size:
   'Deprecated - When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.CapacityBaseRandomPolicy, this specifies cache size of block location.'
 alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards:
-  'When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of hash shards.'
+  'When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.DeterministicHashPolicy or alluxio.client.block.policy.CapacityBasedDeterministicHashPolicy, this specifies the number of hash shards.'
 alluxio.user.worker.list.refresh.interval:
   'The interval used to refresh the live worker list on the client'
