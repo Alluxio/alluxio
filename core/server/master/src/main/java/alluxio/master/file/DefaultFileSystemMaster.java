@@ -4522,7 +4522,7 @@ public class DefaultFileSystemMaster extends CoreMaster
               uri = inodePath.getUri();
             } catch (FileDoesNotExistException e) {
               LOG.debug("The file (id={}) to be persisted was not found. Likely this file has been "
-                      + "removed by users", fileId, e);
+                  + "removed by users", fileId, e);
               continue;
             }
             try {
