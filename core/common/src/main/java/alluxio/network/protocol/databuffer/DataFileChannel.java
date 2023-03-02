@@ -77,6 +77,11 @@ public final class DataFileChannel implements DataBuffer {
   }
 
   @Override
+  public void skipBytes(int length) {
+    throw new UnsupportedOperationException("DataFileChannel#readableBytes is not implemented.");
+  }
+
+  @Override
   public void release() {
     // Nothing we need to release explicitly, let GC take care of all objects.
   }

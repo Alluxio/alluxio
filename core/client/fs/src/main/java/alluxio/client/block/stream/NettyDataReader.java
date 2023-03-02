@@ -132,9 +132,6 @@ public final class NettyDataReader implements DataReader {
     mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(mReadRequest)))
         .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
     mDebug = Configuration.getBoolean(PropertyKey.FUSE_LU_ENABLED);
-    if (mDebug) {
-      LOG.info("Launched netty data reader");
-    }
   }
 
   @Override

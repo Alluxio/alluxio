@@ -85,6 +85,11 @@ public class NioDataBuffer implements DataBuffer {
   }
 
   @Override
+  public void skipBytes(int length) {
+    mBuffer.position(mBuffer.position() + length);
+  }
+
+  @Override
   public void release() {
     if (mBuffer.isDirect()) {
       BufferUtils.cleanDirectBuffer(mBuffer);

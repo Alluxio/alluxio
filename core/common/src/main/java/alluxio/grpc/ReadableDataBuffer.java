@@ -69,6 +69,11 @@ public class ReadableDataBuffer implements DataBuffer {
   }
 
   @Override
+  public void skipBytes(int length) {
+    mBuffer.skipBytes(length);
+  }
+
+  @Override
   public void release() {
     mBuffer.close();
   }

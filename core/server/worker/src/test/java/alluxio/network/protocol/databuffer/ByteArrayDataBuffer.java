@@ -76,6 +76,12 @@ public final class ByteArrayDataBuffer implements DataBuffer {
   }
 
   @Override
+  public void skipBytes(int length) {
+    throw new UnsupportedOperationException(
+        "ByteArrayDataBuffer#skipBytes() is not implemented.");
+  }
+
+  @Override
   public void release() {
     // Nothing we need to release explicitly, let GC take care of all objects.
   }

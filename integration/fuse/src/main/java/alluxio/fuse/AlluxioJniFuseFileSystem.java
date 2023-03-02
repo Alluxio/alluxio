@@ -305,9 +305,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int readInternal(
       String path, ByteBuffer buf, long size, long offset, long fd) {
-    if (mDebug) {
-      LOG.info("read {} size {} offset {}", path, size, offset);
-    }
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (entry == null) {
       LOG.error("Failed to read {}: Cannot find fd {}", path, fd);
@@ -317,9 +314,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       int bytesRead = entry.getFileStream().read(buf, size, offset);
       if (bytesRead > 0) {
         MetricsSystem.counter(MetricKey.FUSE_BYTES_READ.getName()).inc(bytesRead);
-      }
-      if (mDebug) {
-        LOG.info("finished read {} size {} offset {}, read {}", path, size, offset, bytesRead);
       }
       return bytesRead;
     } catch (NotFoundRuntimeException e) {

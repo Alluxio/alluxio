@@ -71,6 +71,8 @@ public interface DataBuffer {
    * @return the number of readable bytes remaining
    */
   int readableBytes();
+  
+  void skipBytes(int length);
 
   /**
    * Releases the underlying buffer of this DataBuffer if no longer needed.

@@ -98,9 +98,6 @@ public class DoraCacheFileInStream extends FileInStream {
       // a performance improvement introduced by https://github.com/Alluxio/alluxio/issues/14020
       closeDataReader();
     }
-    if (mDebug) {
-      LOG.info("Read {} at {}", toRead, off);
-    }
     return toRead;
   }
 
@@ -157,10 +154,24 @@ public class DoraCacheFileInStream extends FileInStream {
     if (pos == mPos) {
       return;
     }
-    if (mDebug) {
-      LOG.info("Seek to pos {}", pos);
+    if (pos > mPos) {
+      long totalToSkip = mPos - pos;
+      long currentToSkip = 0;
+      while (totalToSkip > 0) {
+        readChunk();
+        currentToSkip = Math.min(totalToSkip, mCurrentChunk.readableBytes());
+        mCurrentChunk.skipBytes((int) (currentToSkip));
+        totalToSkip -= currentToSkip;
+      }
+      if (mDebug) {
+        LOG.info("Skip from {} to pos {}", mPos, pos);
+      }
+    } else {
+      closeDataReader();
+      if (mDebug) {
+        LOG.info("Seek from {} to pos {}", mPos, pos);
+      }
     }
-    closeDataReader();
     mPos = pos;
   }
 
