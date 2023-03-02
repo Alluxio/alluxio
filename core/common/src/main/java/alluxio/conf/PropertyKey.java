@@ -3223,7 +3223,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_STATE_LOCK_ERROR_THRESHOLD =
       intBuilder(Name.MASTER_STATE_LOCK_ERROR_THRESHOLD)
-          .setDefaultValue("20")
+          .setDefaultValue(20)
           .setDescription("Used to trace and debug state lock issues. When a thread recursively "
               + "acquires the state lock more than threshold, log an error for further debugging.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
