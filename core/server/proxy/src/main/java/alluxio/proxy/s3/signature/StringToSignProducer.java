@@ -11,14 +11,14 @@
 
 package alluxio.proxy.s3.signature;
 
-import static alluxio.proxy.s3.S3Constants.AUTHORIZATION_CHARSET;
-import static alluxio.proxy.s3.S3Constants.S3_SIGN_CONTENT_SHA256;
-import static alluxio.proxy.s3.S3Constants.S3_SIGN_SIGNATURE;
-import static alluxio.proxy.s3.S3Constants.TIME_FORMATTER;
+import static alluxio.s3.S3Constants.AUTHORIZATION_CHARSET;
+import static alluxio.s3.S3Constants.S3_SIGN_CONTENT_SHA256;
+import static alluxio.s3.S3Constants.S3_SIGN_SIGNATURE;
+import static alluxio.s3.S3Constants.TIME_FORMATTER;
 
-import alluxio.proxy.s3.S3ErrorCode;
-import alluxio.proxy.s3.S3Exception;
 import alluxio.proxy.s3.S3RestUtils;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3Exception;
 
 import org.apache.kerby.util.Hex;
 import org.slf4j.Logger;

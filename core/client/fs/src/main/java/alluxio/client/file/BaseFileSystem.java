@@ -18,6 +18,8 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
@@ -25,6 +27,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
@@ -62,6 +65,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.util.FileSystemOptionsUtils;
+import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
@@ -185,6 +189,31 @@ public class BaseFileSystem implements FileSystem {
         throw e;
       }
     });
+  }
+
+  @Override
+  public WorkerNetAddress chooseTargetForS3Api(AlluxioURI path, long blockSize)
+      throws AlluxioException, IOException {
+    WorkerNetAddress address;
+    BlockLocationPolicy locationPolicy = mFsContext.getWriteBlockLocationPolicy(getConf());
+    GetWorkerOptions workerOptions = GetWorkerOptions.defaults()
+        .setBlockWorkerInfos(new ArrayList<>(mFsContext.getCachedWorkers()))
+        .setBlockInfo(new BlockInfo().setBlockId(-1).setLength(blockSize));
+
+    address = locationPolicy.getWorker(workerOptions).orElseThrow(
+        () -> {
+          try {
+            if (mFsContext.getCachedWorkers().isEmpty()) {
+              return new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+            }
+          } catch (IOException e) {
+            return e;
+          }
+          return new UnavailableException(
+              ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
+        }
+    );
+    return address;
   }
 
   @Override

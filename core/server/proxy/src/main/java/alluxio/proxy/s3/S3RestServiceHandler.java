@@ -31,14 +31,21 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.proto.journal.File;
+import alluxio.s3.ChunkedEncodingInputStream;
+import alluxio.s3.S3Constants;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3Exception;
+import alluxio.s3.S3RangeSpec;
+import alluxio.s3.TaggingData;
 import alluxio.util.CommonUtils;
 import alluxio.web.ProxyWebServer;
+import alluxio.wire.BlockLocationInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Preconditions;
@@ -56,6 +63,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
@@ -1232,43 +1240,23 @@ public final class S3RestServiceHandler {
           createAuditContext("getObject", user, bucket, object)) {
         try {
           URIStatus status = userFs.getStatus(objectUri);
-          FileInStream is = userFs.openFile(status, OpenFilePOptions.getDefaultInstance());
           S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
-          RangeFileInStream ris = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
+          long offset = s3Range.getOffset(status.getLength());
+          long blockSize = status.getBlockSizeBytes();
 
-          Response.ResponseBuilder res = Response.ok(ris)
-              .lastModified(new Date(status.getLastModificationTimeMs()))
-              .header(S3Constants.S3_CONTENT_LENGTH_HEADER, s3Range.getLength(status.getLength()));
+          BlockLocationInfo locationInfo =
+              userFs.getBlockLocations(status).get(Math.toIntExact(offset / blockSize));
+          WorkerNetAddress workerNetAddress = locationInfo.getLocations().get(0);
+          StringBuilder queryParam = new StringBuilder();
+          queryParam.append("path=").append(objectPath);
+          queryParam.append("&username=").append(user);
+          queryParam.append("&range=").append(range);
 
-          // Check range
-          if (s3Range.isValid()) {
-            res.status(Response.Status.PARTIAL_CONTENT)
-                .header(S3Constants.S3_ACCEPT_RANGES_HEADER, S3Constants.S3_ACCEPT_RANGES_VALUE)
-                .header(S3Constants.S3_CONTENT_RANGE_HEADER,
-                    s3Range.getRealRange(status.getLength()));
-          }
-
-          // Check for the object's ETag
-          String entityTag = S3RestUtils.getEntityTag(status);
-          if (entityTag != null) {
-            res.header(S3Constants.S3_ETAG_HEADER, entityTag);
-          } else {
-            LOG.debug("Failed to find ETag for object: " + objectPath);
-          }
-
-          // Check if the object had a specified "Content-Type"
-          res.type(S3RestUtils.deserializeContentType(status.getXAttr()));
-
-          // Check if object had tags, if so we need to return the count
-          // in the header "x-amz-tagging-count"
-          TaggingData tagData = S3RestUtils.deserializeTags(status.getXAttr());
-          if (tagData != null) {
-            int taggingCount = tagData.getTagMap().size();
-            if (taggingCount > 0) {
-              res.header(S3Constants.S3_TAGGING_COUNT_HEADER, taggingCount);
-            }
-          }
-          return res.build();
+          final URI uri =
+              new URI("http", null, workerNetAddress.getHost(), 30000,
+                  "/api/v1/worker/openfile", queryParam.toString(), null);
+          LOG.warn("redirect to the uri [{}]", uri);
+          return Response.temporaryRedirect(uri).type(MediaType.APPLICATION_OCTET_STREAM).build();
         } catch (Exception e) {
           throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
         }

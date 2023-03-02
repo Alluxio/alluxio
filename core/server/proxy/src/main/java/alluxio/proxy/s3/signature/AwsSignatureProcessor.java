@@ -11,15 +11,15 @@
 
 package alluxio.proxy.s3.signature;
 
-import static alluxio.proxy.s3.S3Constants.S3_SIGN_DATE;
+import static alluxio.s3.S3Constants.S3_SIGN_DATE;
 
-import alluxio.proxy.s3.S3ErrorCode;
-import alluxio.proxy.s3.S3Exception;
 import alluxio.proxy.s3.S3RestUtils;
 import alluxio.proxy.s3.auth.AwsAuthInfo;
 import alluxio.proxy.s3.signature.utils.AwsAuthV2HeaderParserUtils;
 import alluxio.proxy.s3.signature.utils.AwsAuthV4HeaderParserUtils;
 import alluxio.proxy.s3.signature.utils.AwsAuthV4QueryParserUtils;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3Exception;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3;
+package alluxio.s3;
 
 import org.apache.commons.lang3.StringUtils;
 

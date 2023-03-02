@@ -267,6 +267,15 @@ public interface FileSystem extends Closeable {
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
 
   /**
+   * xxxx.
+   * @param path
+   * @param blockSize
+   * @return WorkerNetAddress
+   */
+  WorkerNetAddress chooseTargetForS3Api(AlluxioURI path, long blockSize)
+      throws AlluxioException, IOException;
+
+  /**
    * Convenience method for {@link #delete(AlluxioURI, DeletePOptions)} with default options.
    *
    * @param path the path to delete in Alluxio space

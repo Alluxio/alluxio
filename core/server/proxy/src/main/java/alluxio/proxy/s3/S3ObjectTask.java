@@ -13,6 +13,7 @@ package alluxio.proxy.s3;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -36,12 +37,18 @@ import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
+import alluxio.s3.S3Constants;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3Exception;
+import alluxio.s3.S3RangeSpec;
+import alluxio.s3.TaggingData;
 import alluxio.util.ThreadUtils;
+import alluxio.wire.BlockLocationInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Preconditions;
-import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
 import com.google.common.primitives.Longs;
 import com.google.protobuf.ByteString;
@@ -52,8 +59,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.DigestOutputStream;
@@ -306,45 +313,23 @@ public class S3ObjectTask extends S3BaseTask {
             mOPType.name(), user, mHandler.getBucket(), mHandler.getObject())) {
           try {
             URIStatus status = userFs.getStatus(objectUri);
-            FileInStream is = userFs.openFile(objectUri);
             S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
-            RangeFileInStream ris = RangeFileInStream.Factory.create(
-                is, status.getLength(), s3Range);
+            long offset = s3Range.getOffset(status.getLength());
+            long blockSize = status.getBlockSizeBytes();
 
-            Response.ResponseBuilder res = Response.ok(ris, MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                .lastModified(new Date(status.getLastModificationTimeMs()))
-                .header(S3Constants.S3_CONTENT_LENGTH_HEADER,
-                    s3Range.getLength(status.getLength()));
+            BlockLocationInfo locationInfo =
+                userFs.getBlockLocations(status).get(Math.toIntExact(offset / blockSize));
+            WorkerNetAddress workerNetAddress = locationInfo.getLocations().get(0);
+            StringBuilder queryParam = new StringBuilder();
+            queryParam.append("path=").append(objectPath);
+            queryParam.append("&username=").append(user);
+            queryParam.append("&range=").append(range);
 
-            // Check range
-            if (s3Range.isValid()) {
-              res.status(Response.Status.PARTIAL_CONTENT)
-                  .header(S3Constants.S3_ACCEPT_RANGES_HEADER, S3Constants.S3_ACCEPT_RANGES_VALUE)
-                  .header(S3Constants.S3_CONTENT_RANGE_HEADER,
-                      s3Range.getRealRange(status.getLength()));
-            }
-
-            // Check for the object's ETag
-            String entityTag = S3RestUtils.getEntityTag(status);
-            if (entityTag != null) {
-              res.header(S3Constants.S3_ETAG_HEADER, entityTag);
-            } else {
-              LOG.debug("Failed to find ETag for object: " + objectPath);
-            }
-
-            // Check if the object had a specified "Content-Type"
-            res.type(S3RestUtils.deserializeContentType(status.getXAttr()));
-
-            // Check if object had tags, if so we need to return the count
-            // in the header "x-amz-tagging-count"
-            TaggingData tagData = S3RestUtils.deserializeTags(status.getXAttr());
-            if (tagData != null) {
-              int taggingCount = tagData.getTagMap().size();
-              if (taggingCount > 0) {
-                res.header(S3Constants.S3_TAGGING_COUNT_HEADER, taggingCount);
-              }
-            }
-            return res.build();
+            final URI uri =
+                new URI("http", null, workerNetAddress.getHost(), 30000,
+                    "/api/v1/worker/openfile", queryParam.toString(), null);
+            LOG.warn("redirect to the uri [{}]", uri);
+            return Response.temporaryRedirect(uri).type(MediaType.APPLICATION_OCTET_STREAM).build();
           } catch (Exception e) {
             throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
           }
@@ -535,62 +520,32 @@ public class S3ObjectTask extends S3BaseTask {
      * current logic introduces unhandled race conditions
      * @param objectPath
      * @param userFs
-     * @param createFilePOptions
+     * @param user
      * @param auditContext
      * @return Response
      * @throws S3Exception
      */
     public Response createObject(String objectPath, FileSystem userFs,
-                                 CreateFilePOptions createFilePOptions, S3AuditContext auditContext)
+                                 String user, S3AuditContext auditContext)
         throws S3Exception {
-      AlluxioURI objectUri = new AlluxioURI(objectPath);
-      final String decodedLengthHeader = mHandler.getHeader("x-amz-decoded-content-length");
-      final String contentLength = mHandler.getHeader("Content-Length");
       try {
-        MessageDigest md5 = MessageDigest.getInstance("MD5");
-
-        // The request body can be in the aws-chunked encoding format, or not encoded at all
-        // determine if it's encoded, and then which parts of the stream to read depending on
-        // the encoding type.
-        boolean isChunkedEncoding = decodedLengthHeader != null;
-        long toRead;
-        InputStream readStream = mHandler.getInputStream();
-        if (isChunkedEncoding) {
-          toRead = Long.parseLong(decodedLengthHeader);
-          readStream = new ChunkedEncodingInputStream(readStream);
-        } else {
-          toRead = Long.parseLong(contentLength);
+        UnderStorageType underStorageType =
+            WriteType.fromProto(S3RestUtils.getS3WriteType()).getUnderStorageType();
+        long blockSize = 0;
+        if (!underStorageType.isSyncPersist()) {
+          blockSize = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
         }
-        FileOutStream os = userFs.createFile(objectUri, createFilePOptions);
-        try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
-          long read = ByteStreams.copy(ByteStreams.limit(readStream, toRead),
-              digestOutputStream);
-          if (read < toRead) {
-            throw new IOException(String.format(
-                "Failed to read all required bytes from the stream. Read %d/%d",
-                read, toRead));
-          }
-        }
+        WorkerNetAddress workerNetAddress =
+            userFs.chooseTargetForS3Api(new AlluxioURI(objectPath), blockSize);
 
-        byte[] digest = md5.digest();
-        String base64Digest = BaseEncoding.base64().encode(digest);
-        final String contentMD5 = mHandler.getHeader("Content-MD5");
-        if (contentMD5 != null && !contentMD5.equals(base64Digest)) {
-          // The object may be corrupted, delete the written object and return an error.
-          try {
-            userFs.delete(objectUri, DeletePOptions.newBuilder().setRecursive(true).build());
-          } catch (Exception e2) {
-            // intend to continue and return BAD_DIGEST S3Exception.
-          }
-          throw new S3Exception(objectUri.getPath(), S3ErrorCode.BAD_DIGEST);
-        }
-
-        String entityTag = Hex.encodeHexString(digest);
-        // persist the ETag via xAttr
-        // TODO(czhu): try to compute the ETag prior to creating the file
-        //  to reduce total RPC RTT
-        S3RestUtils.setEntityTag(userFs, objectUri, entityTag);
-        return Response.ok().header(S3Constants.S3_ETAG_HEADER, entityTag).build();
+        StringBuilder queryParam = new StringBuilder();
+        queryParam.append("path=").append(objectPath);
+        queryParam.append("&username=").append(user);
+        final URI uri =
+            new URI("http", null, workerNetAddress.getHost(), 30000, "/api/v1/worker/writefile",
+                queryParam.toString(), null);
+        return Response.temporaryRedirect(uri)
+            .type(MediaType.APPLICATION_OCTET_STREAM).build();
       } catch (Exception e) {
         throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
       }
@@ -719,7 +674,7 @@ public class S3ObjectTask extends S3BaseTask {
                   .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
                   .setOverwrite(true)
                   .build();
-          return createObject(objectPath, userFs, filePOptions, auditContext);
+          return createObject(objectPath, userFs, user, auditContext);
         }
       });
     }
@@ -802,7 +757,7 @@ public class S3ObjectTask extends S3BaseTask {
                       .setOtherBits(Bits.NONE).build())
                   .setWriteType(S3RestUtils.getS3WriteType())
                   .build();
-          return createObject(objectPath, userFs, filePOptions, auditContext);
+          return createObject(objectPath, userFs, user, auditContext);
         }
       });
     }

@@ -42,6 +42,7 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
 import java.util.List;
@@ -85,6 +86,12 @@ public class DelegatingFileSystem implements FileSystem {
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     return mDelegatedFileSystem.createFile(path, options);
+  }
+
+  @Override
+  public WorkerNetAddress chooseTargetForS3Api(AlluxioURI path, long blockSize)
+      throws AlluxioException, IOException {
+    return mDelegatedFileSystem.chooseTargetForS3Api(path, blockSize);
   }
 
   @Override

@@ -59,6 +59,7 @@ import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
@@ -691,6 +692,12 @@ public class LocalCacheFileInStreamTest {
     @Override
     public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
         throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public WorkerNetAddress chooseTargetForS3Api(AlluxioURI path, long blockSize)
+        throws AlluxioException, IOException {
       throw new UnsupportedOperationException();
     }
 

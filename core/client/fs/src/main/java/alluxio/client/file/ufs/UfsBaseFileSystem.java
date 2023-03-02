@@ -60,6 +60,7 @@ import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -165,6 +166,12 @@ public class UfsBaseFileSystem implements FileSystem {
       }
       return new UfsFileOutStream(mUfs.get().create(path.getPath(), ufsOptions));
     });
+  }
+
+  @Override
+  public WorkerNetAddress chooseTargetForS3Api(AlluxioURI path, long blockSize)
+      throws AlluxioException, IOException {
+    throw new UnsupportedOperationException();
   }
 
   @Override

@@ -11,14 +11,21 @@
 
 package alluxio;
 
+import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.s3.S3Constants;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3ErrorResponse;
+import alluxio.s3.S3Exception;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +85,57 @@ public final class RestUtils {
   }
 
   /**
+   * Calls the given {@link RestUtils.RestCallable} and handles any exceptions thrown.
+   *
+   * @param <T> the return type of the callable
+   * @param resource the resource (bucket or object) to be operated on
+   * @param callable the callable to call
+   * @return the response object
+   */
+  public static <T> Response s3call(String resource, RestUtils.RestCallable<T> callable) {
+    try {
+      // TODO(cc): reconsider how to enable authentication
+      if (SecurityUtils.isSecurityEnabled(Configuration.global())
+          && AuthenticatedClientUser.get(Configuration.global()) == null) {
+        AuthenticatedClientUser.set(ServerUserState.global().getUser().getName());
+      }
+    } catch (IOException e) {
+      LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.toString());
+      return S3ErrorResponse.createErrorResponse(new S3Exception(
+          e, resource, S3ErrorCode.INTERNAL_ERROR), resource);
+    }
+
+    try {
+      T result = callable.call();
+      if (result == null) {
+        return Response.ok().build();
+      }
+      if (result instanceof Response) {
+        return (Response) result;
+      }
+      if (result instanceof Response.Status) {
+        switch ((Response.Status) result) {
+          case OK:
+            return Response.ok().build();
+          case ACCEPTED:
+            return Response.accepted().build();
+          case NO_CONTENT:
+            return Response.noContent().build();
+          default:
+            return S3ErrorResponse.createErrorResponse(new S3Exception(
+                "Response status is invalid", resource, S3ErrorCode.INTERNAL_ERROR), resource);
+        }
+      }
+      // Need to explicitly encode the string as XML because Jackson will not do it automatically.
+      XmlMapper mapper = new XmlMapper();
+      return Response.ok(mapper.writeValueAsString(result)).build();
+    } catch (Exception e) {
+      LOG.warn("Error invoking REST endpoint for {}:\n{}", resource, e.getMessage());
+      return S3ErrorResponse.createErrorResponse(e, resource);
+    }
+  }
+
+  /**
    * An interface representing a callable.
    *
    * @param <T>  the return type of the callable
@@ -102,6 +160,9 @@ public final class RestUtils {
       @Nullable Map<String, Object> headers) {
     if (object instanceof Void) {
       return Response.ok().build();
+    }
+    if (object instanceof Response) {
+      return (Response) object;
     }
     if (object instanceof String) {
       // Need to explicitly encode the string as JSON because Jackson will not do it automatically.
@@ -176,4 +237,18 @@ public final class RestUtils {
 
   private RestUtils() {
   } // prevent instantiation
+
+  /**
+   * This helper method is used to get the ETag xAttr on an object.
+   * @param status The {@link URIStatus} of the object
+   * @return the entityTag String, or null if it does not exist
+   */
+  public static String getEntityTag(URIStatus status) {
+    if (status.getXAttr() == null
+        || !status.getXAttr().containsKey(S3Constants.ETAG_XATTR_KEY)) {
+      return null;
+    }
+    return new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
+        S3Constants.XATTR_STR_CHARSET);
+  }
 }
