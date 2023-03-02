@@ -26,6 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -140,6 +141,7 @@ public class StateLockManagerTest {
   }
 
   @Test
+  // TODO(jiacheng): run this test before committing
   public void testGetStateLockSharedWaitersAndHolders() throws Throwable {
     final StateLockManager stateLockManager = new StateLockManager();
 
@@ -149,10 +151,10 @@ public class StateLockManagerTest {
       StateLockingThread sharedHolderThread = new StateLockingThread(stateLockManager, false);
       sharedHolderThread.start();
       sharedHolderThread.waitUntilStateLockAcquired();
-      final List<String> sharedWaitersAndHolders = stateLockManager.getSharedWaitersAndHolders();
+      final Collection<String> sharedWaitersAndHolders = stateLockManager.getSharedWaitersAndHolders();
       assertEquals(i, sharedWaitersAndHolders.size());
       assertTrue(sharedWaitersAndHolders.contains(
-          ThreadUtils.getThreadIdentifier(sharedHolderThread)));
+          sharedHolderThread.getName()));
     }
   }
 

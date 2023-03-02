@@ -28,6 +28,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -186,7 +188,7 @@ public class StateLockManager {
     // Return the resource.
     // Register an action to remove the thread from holders registry before releasing the lock.
     return new LockResource(mStateLock.readLock(), false, false, () -> {
-      // this is invoked in the same thread at the end of try-with-resource so should be okay
+      // This is invoked in the same thread at the end of try-with-resource
       Thread removedFrom = Thread.currentThread();
       mSharedLockHolders.computeIfPresent(removedFrom.getName(), (k, v) -> {
         mSharedWaitersAndHolders.remove(Thread.currentThread());
@@ -294,8 +296,8 @@ public class StateLockManager {
   /**
    * @return the list of thread identifiers that are waiting and holding on the shared lock
    */
-  public List<String> getSharedWaitersAndHolders() {
-    return new ArrayList<>(mSharedLockHolders.keySet());
+  public Collection<String> getSharedWaitersAndHolders() {
+    return Collections.unmodifiableSet(mSharedLockHolders.keySet());
   }
 
   /**
