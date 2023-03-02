@@ -18,7 +18,6 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
-import alluxio.util.ThreadUtils;
 
 import com.google.common.util.concurrent.SettableFuture;
 import org.junit.Assert;
@@ -27,7 +26,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
@@ -151,7 +149,8 @@ public class StateLockManagerTest {
       StateLockingThread sharedHolderThread = new StateLockingThread(stateLockManager, false);
       sharedHolderThread.start();
       sharedHolderThread.waitUntilStateLockAcquired();
-      final Collection<String> sharedWaitersAndHolders = stateLockManager.getSharedWaitersAndHolders();
+      final Collection<String> sharedWaitersAndHolders =
+          stateLockManager.getSharedWaitersAndHolders();
       assertEquals(i, sharedWaitersAndHolders.size());
       assertTrue(sharedWaitersAndHolders.contains(
           sharedHolderThread.getName()));
