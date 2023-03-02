@@ -363,12 +363,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public Map<ServiceType, GrpcService> getStandbyServices() {
-    Map<ServiceType, GrpcService> services = new HashMap<>();
-    services.put(ServiceType.BLOCK_MASTER_WORKER_SERVICE,
-        new GrpcService(ServerInterceptors
-            .intercept(new BlockMasterWorkerServiceHandler(this),
-                new ClientContextServerInjector())));
-    return services;
+    return getServices();
   }
 
   @Override
@@ -656,6 +651,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public void removeDecommissionedWorker(long workerId) throws NotFoundException {
+    if (mStandbyMasterRpcEnabled && mPrimarySelector.getStateUnsafe() == NodeState.STANDBY) {
+      throw new UnavailableRuntimeException(
+          "RemoveDecommissionedWorker operation is not supported on standby masters");
+    }
     MasterWorkerInfo worker = getWorker(workerId);
     Preconditions.checkNotNull(mDecommissionedWorkers
         .getFirstByField(ADDRESS_INDEX, worker.getWorkerAddress()));
@@ -1150,7 +1149,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public long getWorkerId(WorkerNetAddress workerNetAddress) {
-    if (mStandbyMasterRpcEnabled && mPrimarySelector.getState() == NodeState.STANDBY) {
+    if (mStandbyMasterRpcEnabled && mPrimarySelector.getStateUnsafe() == NodeState.STANDBY) {
       throw new UnavailableRuntimeException(
           "GetWorkerId operation is not supported on standby masters");
     }
@@ -1472,7 +1471,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       processWorkerRemovedBlocks(worker, removedBlockIds, false);
       processWorkerAddedBlocks(worker, addedBlocks);
       Set<Long> toRemoveBlocks = worker.getToRemoveBlocks();
-      if (toRemoveBlocks.isEmpty() || mPrimarySelector.getState() == NodeState.STANDBY) {
+      if (toRemoveBlocks.isEmpty() || mPrimarySelector.getStateUnsafe() == NodeState.STANDBY) {
         workerCommand = Command.newBuilder().setCommandType(CommandType.Nothing).build();
       } else {
         workerCommand = Command.newBuilder().setCommandType(CommandType.Free)
