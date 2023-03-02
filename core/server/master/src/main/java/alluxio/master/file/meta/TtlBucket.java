@@ -18,8 +18,6 @@ import alluxio.conf.PropertyKey;
 import com.google.common.base.Objects;
 
 import java.util.Collection;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
