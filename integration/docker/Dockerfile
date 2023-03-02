@@ -14,7 +14,7 @@
 ARG JAVA_VERSION=8
 
 # Setup CSI
-FROM golang:1.15.13-alpine AS csi-dev
+FROM golang:1.18-alpine:3.17 AS csi-dev
 ENV GO111MODULE=on
 RUN mkdir -p /alluxio-csi
 COPY ./csi /alluxio-csi
@@ -28,7 +28,7 @@ RUN cd /alluxio-csi && \
 #       - https://github.com/moby/moby/issues/6119
 # ADD with chown doesn't chown the files inside tarball
 #   See - https://github.com/moby/moby/issues/35525
-FROM alpine:3.10.2 AS alluxio-extractor
+FROM alpine:3.17 AS alluxio-extractor
 # Note that downloads for *-SNAPSHOT tarballs are not available.
 ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.10.0-SNAPSHOT/alluxio-2.10.0-SNAPSHOT-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
