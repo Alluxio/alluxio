@@ -43,7 +43,7 @@ public final class MountTableTrie {
   }
 
   /**
-   * Insert the root inode into Trie, and the MountTableTrie will be built.
+   * Inserts the root inode into Trie, and the MountTableTrie will be built.
    * @param rootInode the target root inode
    */
   protected void setRootInode(InodeView rootInode) {
