@@ -320,3 +320,6 @@
 
 - Improve indentation in worker daemonset template
 - Configure ports in master service following values.yaml
+
+0.6.54
+- Update CSI driver and provisioner image
