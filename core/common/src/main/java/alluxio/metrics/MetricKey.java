@@ -2475,7 +2475,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey CLIENT_NETTY_BYTES_READ = 
+  public static final MetricKey CLIENT_NETTY_BYTES_READ =
       new Builder("Client.NettyBytesRead")
           .setDescription("Total bytes read by client via netty data reader.")
           .setMetricType(MetricType.COUNTER)
