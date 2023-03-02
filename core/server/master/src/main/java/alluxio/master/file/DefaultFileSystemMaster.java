@@ -4364,9 +4364,9 @@ public class DefaultFileSystemMaster extends CoreMaster
      * @param fileId the file ID
      */
     private void handleExpired(long fileId, JournalContext journalContext, AtomicInteger journalCount)
-        throws AlluxioException, UnavailableException {
+        throws AlluxioException {
       try (LockedInodePath inodePath = mInodeTree
-              .lockFullInodePath(fileId, LockPattern.WRITE_INODE, journalContext)) {
+          .lockFullInodePath(fileId, LockPattern.WRITE_INODE, journalContext)) {
         InodeFile inode = inodePath.getInodeFile();
         switch (inode.getPersistenceState()) {
           case LOST:
@@ -4468,9 +4468,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       mPersistJobs.put(fileId, new PersistJob(jobId, fileId, uri, tempUfsPath, timer));
 
       // Update the inode and journal the change.
-      // TODO(jiacheng): this no longer creates a journal context
       try (LockedInodePath inodePath = mInodeTree
-              .lockFullInodePath(fileId, LockPattern.WRITE_INODE, journalContext)) {
+          .lockFullInodePath(fileId, LockPattern.WRITE_INODE, journalContext)) {
         InodeFile inode = inodePath.getInodeFile();
         mInodeTree.updateInodeFile(journalContext, UpdateInodeFileEntry.newBuilder()
             .setId(inode.getId())
@@ -4498,10 +4497,8 @@ public class DefaultFileSystemMaster extends CoreMaster
         // Process persist requests.
         for (long fileId : mPersistRequests.keySet()) {
           if (journalCounter.get() > 100) {
-            // TODO(jiacheng): it is possible that flush here throws UnavailableException
-            //  And that means the journal is down. Those job IDs will not be added back to the queue.
-            //  However, this implies the master will failover, and the new master will reconstruct the persist job queue.
-            //  The un-persisted files will be identified because the relevant journal entries have not been flushed.
+            // The only exception thrown from flush() will be UnavailableException
+            // See catch (UnavailableException e)
             journalContext.flush();
             journalCounter.set(0);
           }
@@ -4523,7 +4520,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           AlluxioURI uri = null;
           try {
             try (LockedInodePath inodePath = mInodeTree
-                    .lockFullInodePath(fileId, LockPattern.READ, NoopJournalContext.INSTANCE)) {
+                .lockFullInodePath(fileId, LockPattern.READ, NoopJournalContext.INSTANCE)) {
               uri = inodePath.getUri();
             } catch (FileDoesNotExistException e) {
               LOG.debug("The file (id={}) to be persisted was not found. Likely this file has been "
@@ -4550,23 +4547,20 @@ public class DefaultFileSystemMaster extends CoreMaster
             }
           } catch (FileDoesNotExistException | InvalidPathException e) {
             LOG.warn("The file {} (id={}) to be persisted was not found : {}", uri, fileId,
-                    e.toString());
+                e.toString());
             LOG.debug("Exception: ", e);
-          } catch (UnavailableException e) {
-            LOG.warn("Failed to persist file {}, will retry later: {}", uri, e.toString());
-            remove = false;
           } catch (ResourceExhaustedException e) {
             LOG.warn("The job service is busy, will retry later: {}", e.toString());
             LOG.debug("Exception: ", e);
             mQuietPeriodSeconds = (mQuietPeriodSeconds == 0) ? 1 :
-                    Math.min(MAX_QUIET_PERIOD_SECONDS, mQuietPeriodSeconds * 2);
+                Math.min(MAX_QUIET_PERIOD_SECONDS, mQuietPeriodSeconds * 2);
             remove = false;
             // End the method here until the next heartbeat. No more jobs should be scheduled during
             // the current heartbeat if the job master is at full capacity.
             return;
           } catch (Exception e) {
             LOG.warn("Unexpected exception encountered when scheduling the persist job for file {} "
-                    + "(id={}) : {}", uri, fileId, e.toString());
+                + "(id={}) : {}", uri, fileId, e.toString());
             LOG.debug("Exception: ", e);
           } finally {
             if (remove) {
@@ -4575,9 +4569,14 @@ public class DefaultFileSystemMaster extends CoreMaster
           }
         }
       } catch (UnavailableException e) {
-        // TODO(jiacheng): two ways to arrive here:
-        //  1. outer createJournalContext() fails, we just do nothing
-        //  2. flush() fails and the queue is dirty, the JournalContext will be closed and flushed, but the flush will not succeed
+        // Two ways to arrive here:
+        // 1. createJournalContext() fails, the batch processing has not started yet
+        // 2. flush() fails and the queue is dirty, the JournalContext will be closed and flushed,
+        //    but the flush will not succeed
+        // The context is MasterJournalContext, so an UnavailableException indicates either
+        // the primary failed over, or journal is closed
+        // In either case, it is fine to close JournalContext and throw away the journal entries
+        // The next primary will process all TO_BE_PERSISTED files and create new persist jobs
         LOG.warn("Journal is not running, cannot persist files");
       }
       java.util.concurrent.TimeUnit.SECONDS.sleep(mQuietPeriodSeconds);
@@ -4610,6 +4609,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       String tempUfsPath = job.getTempUfsPath();
       List<Long> blockIds = new ArrayList<>();
       UfsManager.UfsClient ufsClient = null;
+      // This journal flush is per job and cannot be batched easily,
+      // because easy execution is in a separate thread
       try (JournalContext journalContext = createJournalContext();
           LockedInodePath inodePath = mInodeTree
               .lockFullInodePath(fileId, LockPattern.WRITE_INODE, journalContext)) {
@@ -4793,7 +4794,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     @Override
     public void heartbeat() throws InterruptedException {
       boolean queueEmpty = mPersistCheckerPool.getQueue().isEmpty();
-
       // Check the progress of persist jobs.
       for (long fileId : mPersistJobs.keySet()) {
         // Throw if interrupted.
@@ -4858,8 +4858,6 @@ public class DefaultFileSystemMaster extends CoreMaster
               break;
             case COMPLETED:
               mPersistJobs.remove(fileId);
-              // Can't batch this easily because the exec in thread is async
-              // There's no good time to close this journal context
               mPersistCheckerPool.execute(() -> handleSuccess(job));
               break;
             default:
@@ -5301,7 +5299,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   @VisibleForTesting
   public RpcContext createRpcContext(OperationContext operationContext)
       throws UnavailableException {
-    // TODO(jiacheng): you only care about the state lock here, what about the grpc channel itself?
     return new RpcContext(createBlockDeletionContext(), createJournalContext(),
         operationContext.withTracker(mStateLockCallTracker));
   }
