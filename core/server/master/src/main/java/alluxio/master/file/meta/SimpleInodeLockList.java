@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -261,7 +262,7 @@ public class SimpleInodeLockList implements InodeLockList {
   @Override
   public List<InodeView> getLockedInodeViews() {
     // Override the default implementation to avoid an additional copy.
-    return new ArrayList<>(mInodes);
+    return Collections.unmodifiableList(mInodes);
   }
 
   @Override
