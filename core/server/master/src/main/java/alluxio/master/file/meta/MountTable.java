@@ -252,7 +252,6 @@ public final class MountTable implements DelegatingJournaled {
    */
   public boolean delete(Supplier<JournalContext> journalContext, LockedInodePath alluxioLockedPath,
       boolean checkNestedMount) {
-    // an empty list tells delete that there is no need to update the MountTableTrie.
     String path = alluxioLockedPath.getUri().getPath();
     LOG.info("Unmounting {}", path);
     if (path.equals(ROOT)) {
@@ -346,13 +345,13 @@ public final class MountTable implements DelegatingJournaled {
    * @throws InvalidPathException
    */
   public String getMountPoint(AlluxioURI uri) throws InvalidPathException {
+    String path = uri.getPath();
+    String lastMount = ROOT;
     try (LockResource r = new LockResource(mReadLock)) {
-      String path = uri.getPath();
-      String lastMount = ROOT;
       for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
         String mount = entry.getKey();
         // we choose a new candidate path if the previous candidate path is a prefix
-        // of the current alluxioPath and the alluxioPath is a prefix of the path.
+        // of the current alluxioPath and the alluxioPath is a prefix of the path
         if (!mount.equals(ROOT) && PathUtils.hasPrefix(path, mount)
             && PathUtils.hasPrefix(mount, lastMount)) {
           lastMount = mount;
@@ -395,6 +394,7 @@ public final class MountTable implements DelegatingJournaled {
    * @param rootInode the rootInode set in MountTableTrie
    */
   public void buildMountTableTrie(InodeView rootInode) {
+    Preconditions.checkNotNull(rootInode, "Root inode connot be null");
     try (LockResource r = new LockResource(mWriteLock)) {
       mMountTableTrie.setRootInode(rootInode);
     }
@@ -502,8 +502,9 @@ public final class MountTable implements DelegatingJournaled {
 
   /**
    * Resolves the given Alluxio path. If the given Alluxio path is nested under a mount point, the
-   * resolution maps the Alluxio path to the corresponding UFS path. Otherwise, the resolution is a
-   * no-op. It will call {@link MountTable#resolve(AlluxioURI, List)}.
+   * resolution maps the Alluxio path to the corresponding UFS path.
+   * If the full path exists, the search will utilize the `MountTable` and therefore be fast.
+   * Otherwise, the search is based on the URI string and be slower.
    *
    * @param alluxioLockedInodePath an Alluxio LockedInodePath
    * @return the {@link Resolution} representing the UFS path
@@ -529,15 +530,7 @@ public final class MountTable implements DelegatingJournaled {
     return resolve(uri, Collections.emptyList());
   }
 
-  /**
-   * Underlying implementation of resolve. If the calling context has no LockedInodePath, then
-   * call this method and pass an empty array list as the second parameter.
-   * @param uri target alluxio path's uri
-   * @param inodeViewList target alluxio path's inodes
-   * @return the {@link Resolution} representing the UFS path
-   * @throws InvalidPathException if an invalid path is encountered
-   */
-  public Resolution resolve(AlluxioURI uri, List<InodeView> inodeViewList)
+  private Resolution resolve(AlluxioURI uri, List<InodeView> inodeViewList)
       throws InvalidPathException {
     try (LockResource r = new LockResource(mReadLock)) {
       String path = uri.getPath();
