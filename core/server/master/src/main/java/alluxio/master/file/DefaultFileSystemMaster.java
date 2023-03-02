@@ -114,7 +114,6 @@ import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.FileSystemMergeJournalContext;
-import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.JournaledGroup;
@@ -196,8 +195,6 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.concurrent.ConcurrentException;
-import org.apache.commons.lang3.concurrent.LazyInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -4363,8 +4360,8 @@ public class DefaultFileSystemMaster extends CoreMaster
      *
      * @param fileId the file ID
      */
-    private void handleExpired(long fileId, JournalContext journalContext, AtomicInteger journalCount)
-        throws AlluxioException {
+    private void handleExpired(long fileId, JournalContext journalContext,
+       AtomicInteger journalCount) throws AlluxioException {
       try (LockedInodePath inodePath = mInodeTree
           .lockFullInodePath(fileId, LockPattern.WRITE_INODE, journalContext)) {
         InodeFile inode = inodePath.getInodeFile();
@@ -4492,6 +4489,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     @Override
     public void heartbeat() throws InterruptedException {
       LOG.debug("Async Persist heartbeat start");
+      java.util.concurrent.TimeUnit.SECONDS.sleep(mQuietPeriodSeconds);
       AtomicInteger journalCounter = new AtomicInteger(0);
       try (JournalContext journalContext = createJournalContext()) {
         // Process persist requests.
@@ -4579,7 +4577,6 @@ public class DefaultFileSystemMaster extends CoreMaster
         // The next primary will process all TO_BE_PERSISTED files and create new persist jobs
         LOG.warn("Journal is not running, cannot persist files");
       }
-      java.util.concurrent.TimeUnit.SECONDS.sleep(mQuietPeriodSeconds);
     }
   }
 
