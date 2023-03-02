@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-table-server</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>291-gamma-SNAPSHOT</version>
+    <version>291-gamma</version>
   </parent>
   <artifactId>alluxio-table-server-master</artifactId>
   <packaging>jar</packaging>
