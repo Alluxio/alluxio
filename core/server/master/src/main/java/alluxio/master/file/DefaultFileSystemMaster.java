@@ -4361,7 +4361,7 @@ public class DefaultFileSystemMaster extends CoreMaster
      * @param fileId the file ID
      */
     private void handleExpired(long fileId, JournalContext journalContext,
-       AtomicInteger journalCount) throws AlluxioException {
+        AtomicInteger journalCount) throws AlluxioException {
       try (LockedInodePath inodePath = mInodeTree
           .lockFullInodePath(fileId, LockPattern.WRITE_INODE, journalContext)) {
         InodeFile inode = inodePath.getInodeFile();

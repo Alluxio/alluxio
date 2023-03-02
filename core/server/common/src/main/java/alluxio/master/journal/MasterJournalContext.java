@@ -61,6 +61,7 @@ public final class MasterJournalContext implements JournalContext {
 
   @Override
   public synchronized void append(JournalEntry entry) {
+    // TODO(jiacheng): add flushing on batch
     mFlushCounter = mAsyncJournalWriter.appendEntry(entry);
   }
 
