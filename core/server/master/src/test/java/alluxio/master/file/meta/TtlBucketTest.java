@@ -74,25 +74,25 @@ public class TtlBucketTest {
   public void addAndRemoveInodeFile() {
     Inode fileTtl1 = TtlTestUtils.createFileWithIdAndTtl(0, 1);
     Inode fileTtl2 = TtlTestUtils.createFileWithIdAndTtl(1, 2);
-    Assert.assertTrue(mBucket.getInodes().isEmpty());
+    Assert.assertTrue(mBucket.getInodeIds().isEmpty());
 
     mBucket.addInode(fileTtl1);
-    Assert.assertEquals(1, mBucket.getInodes().size());
+    Assert.assertEquals(1, mBucket.getInodeIds().size());
 
     // The same file, won't be added.
     mBucket.addInode(fileTtl1);
-    Assert.assertEquals(1, mBucket.getInodes().size());
+    Assert.assertEquals(1, mBucket.getInodeIds().size());
 
     // Different file, will be added.
     mBucket.addInode(fileTtl2);
-    Assert.assertEquals(2, mBucket.getInodes().size());
+    Assert.assertEquals(2, mBucket.getInodeIds().size());
 
     // Remove files;
     mBucket.removeInode(fileTtl1);
-    Assert.assertEquals(1, mBucket.getInodes().size());
-    Assert.assertTrue(mBucket.getInodes().contains(fileTtl2.getId()));
+    Assert.assertEquals(1, mBucket.getInodeIds().size());
+    Assert.assertTrue(mBucket.getInodeIds().contains(fileTtl2.getId()));
     mBucket.removeInode(fileTtl2);
-    Assert.assertEquals(0, mBucket.getInodes().size());
+    Assert.assertEquals(0, mBucket.getInodeIds().size());
   }
 
   /**
@@ -103,25 +103,25 @@ public class TtlBucketTest {
   public void addAndRemoveInodeDirectory() {
     Inode directoryTtl1 = TtlTestUtils.createDirectoryWithIdAndTtl(0, 1);
     Inode directoryTtl2 = TtlTestUtils.createDirectoryWithIdAndTtl(1, 2);
-    Assert.assertTrue(mBucket.getInodes().isEmpty());
+    Assert.assertTrue(mBucket.getInodeIds().isEmpty());
 
     mBucket.addInode(directoryTtl1);
-    Assert.assertEquals(1, mBucket.getInodes().size());
+    Assert.assertEquals(1, mBucket.getInodeIds().size());
 
     // The same directory, won't be added.
     mBucket.addInode(directoryTtl1);
-    Assert.assertEquals(1, mBucket.getInodes().size());
+    Assert.assertEquals(1, mBucket.getInodeIds().size());
 
     // Different directory, will be added.
     mBucket.addInode(directoryTtl2);
-    Assert.assertEquals(2, mBucket.getInodes().size());
+    Assert.assertEquals(2, mBucket.getInodeIds().size());
 
     // Remove directorys;
     mBucket.removeInode(directoryTtl1);
-    Assert.assertEquals(1, mBucket.getInodes().size());
-    Assert.assertTrue(mBucket.getInodes().contains(directoryTtl2.getId()));
+    Assert.assertEquals(1, mBucket.getInodeIds().size());
+    Assert.assertTrue(mBucket.getInodeIds().contains(directoryTtl2.getId()));
     mBucket.removeInode(directoryTtl2);
-    Assert.assertEquals(0, mBucket.getInodes().size());
+    Assert.assertEquals(0, mBucket.getInodeIds().size());
   }
 
   /**

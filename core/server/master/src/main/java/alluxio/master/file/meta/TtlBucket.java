@@ -11,12 +11,14 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 
 import com.google.common.base.Objects;
 
 import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -43,7 +45,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * A collection of inodes whose ttl value is in the range of this bucket's interval. The mapping
    * is from inode id to inode.
    */
-  private final ConcurrentSkipListSet<Long> mInodeList;
+  private final ConcurrentHashSet<Long> mInodeList;
 
   /**
    * Creates a new instance of {@link TtlBucket}.
@@ -52,7 +54,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    */
   public TtlBucket(long startTimeMs) {
     mTtlIntervalStartTimeMs = startTimeMs;
-    mInodeList = new ConcurrentSkipListSet<>();
+    mInodeList = new ConcurrentHashSet<>();
   }
 
   /**
@@ -78,10 +80,10 @@ public final class TtlBucket implements Comparable<TtlBucket> {
   }
 
   /**
-   * @return the set of all inodes in the bucket backed by the internal set, changes made to the
-   *         returned set will be shown in the internal set, and vice versa
+   * @return the set of all inodes ids in the bucket backed by the internal set,
+   * changes made to the returned set will be shown in the internal set, and vice versa.
    */
-  public Collection<Long> getInodes() {
+  public Collection<Long> getInodeIds() {
     return mInodeList;
   }
 

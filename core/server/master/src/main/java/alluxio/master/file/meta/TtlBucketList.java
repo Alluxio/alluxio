@@ -204,7 +204,7 @@ public final class TtlBucketList implements Checkpointed {
   public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
     CheckpointOutputStream cos = new CheckpointOutputStream(output, CheckpointType.LONGS);
     for (TtlBucket bucket : mBucketList) {
-      for (long inodeId : bucket.getInodes()) {
+      for (long inodeId : bucket.getInodeIds()) {
         cos.writeLong(inodeId);
       }
     }

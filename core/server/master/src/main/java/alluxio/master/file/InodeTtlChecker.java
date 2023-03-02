@@ -63,7 +63,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
     Set<TtlBucket> expiredBuckets = mTtlBuckets.pollExpiredBuckets(System.currentTimeMillis());
     Set<Inode> failedInodes = new HashSet();
     for (TtlBucket bucket : expiredBuckets) {
-      for (long inodeId : bucket.getInodes()) {
+      for (long inodeId : bucket.getInodeIds()) {
         // Throw if interrupted.
         if (Thread.interrupted()) {
           throw new InterruptedException("InodeTtlChecker interrupted.");
