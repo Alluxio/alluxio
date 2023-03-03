@@ -124,7 +124,7 @@ Hadoop versions >= 3.0.0 与新版本的Alluxio有最好的兼容性。
 $ mvn clean install -pl underfs/hdfs/ \
   -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true \
   -Dcheckstyle.skip=true -Dfindbugs.skip=true \
-  -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1
+  -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.4
 ```
 要启用`active sync`，请确保使用 `hdfsActiveSync` 属性来构建，
 请参考 [Active Sync for HDFS]({{ '/cn/core-services/Unified-Namespace.html' | relativize_url }}#hdfs元数据主动同步) 获得更多关于使用Active Sync的信息。

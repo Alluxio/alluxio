@@ -15,7 +15,7 @@ priority: 3
 
 要在一组机器上运行一个Alluxio集群，需要在每台机器上部署Alluxio二进制服务端包。你可以[下载带有正确Hadoop版本的预编译二进制包](Running-Alluxio-Locally.html)，对于高级用户，也可[源码编译Alluxio](Building-Alluxio-From-Source.html)，
 
-注意，在编译源码包的时候，默认的Alluxio二进制包适用于HDFS `3.3.1`，若使用其他版本的Hadoop，需要指定正确的Hadoop版本，并且在Alluxio源码目录下运行如下命令：
+注意，在编译源码包的时候，默认的Alluxio二进制包适用于HDFS `3.3.4`，若使用其他版本的Hadoop，需要指定正确的Hadoop版本，并且在Alluxio源码目录下运行如下命令：
 
 ```console
 $ mvn install -P<YOUR_HADOOP_PROFILE> -D<HADOOP_VERSION> -DskipTests
@@ -74,9 +74,9 @@ alluxio.master.mount.table.root.ufs=hdfs://nameservice/
 Alluxio支持类POSIX文件系统[用户和权限检查]({{ '/cn/security/Security.html' | relativize_url }})，这从v1.3开始默认启用。
 为了确保文件/目录的权限信息，即HDFS上的用户，组和访问模式，与Alluxio一致，(例如，在Alluxio中被用户Foo创建的文件在HDFS中也以Foo作为用户持久化)，用户**需要**以以下方式启动:
 
-1. [HDFS超级用户](http://hadoop.apache.org/docs/r3.3.1/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#The_Super-User)。即，使用启动HDFS namenode进程的同一用户也启动Alluxio master和worker进程。也就是说，使用与启动HDFS的namenode进程相同的用户名启动Alluxio master和worker进程。
+1. [HDFS超级用户](http://hadoop.apache.org/docs/r3.3.4/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#The_Super-User)。即，使用启动HDFS namenode进程的同一用户也启动Alluxio master和worker进程。也就是说，使用与启动HDFS的namenode进程相同的用户名启动Alluxio master和worker进程。
 
-2. [HDFS超级用户组](http://hadoop.apache.org/docs/r3.3.1/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#Configuration_Parameters)的成员。编辑HDFS配置文件`hdfs-site.xml`并检查配置属性`dfs.permissions.superusergroup`的值。如果使用组（例如，"hdfs"）设置此属性，则将用户添加到此组（"hdfs"）以启动Alluxio进程（例如，"alluxio"）;如果未设置此属性，请将一个组添加到此属性，其中Alluxio运行用户是此新添加组的成员。
+2. [HDFS超级用户组](http://hadoop.apache.org/docs/r3.3.4/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#Configuration_Parameters)的成员。编辑HDFS配置文件`hdfs-site.xml`并检查配置属性`dfs.permissions.superusergroup`的值。如果使用组（例如，"hdfs"）设置此属性，则将用户添加到此组（"hdfs"）以启动Alluxio进程（例如，"alluxio"）;如果未设置此属性，请将一个组添加到此属性，其中Alluxio运行用户是此新添加组的成员。
 
 注意，上面设置的用户只是启动Alluxio master和worker进程的标识。一旦Alluxio服务器启动，就**不必**使用此用户运行Alluxio客户端应用程序。
 

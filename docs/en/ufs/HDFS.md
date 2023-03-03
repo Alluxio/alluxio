@@ -23,7 +23,7 @@ with the correct Hadoop version (recommended), or
 (for advanced users).
 
 Note that, when building Alluxio from source code, by default Alluxio server binaries are built to
-work with Apache Hadoop HDFS of version `3.3.1`. To work with Hadoop distributions of other
+work with Apache Hadoop HDFS of version `3.3.4`. To work with Hadoop distributions of other
 versions, one needs to specify the correct Hadoop profile and run the following in your Alluxio
 directory:
 
@@ -159,7 +159,7 @@ alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/
 To configure Alluxio to work with HDFS namenodes in HA mode, first configure Alluxio servers to [access HDFS with the proper configuration files](#specify-hdfs-configuration-location).
 
 In addition, set the under storage address to `hdfs://nameservice/` (`nameservice` is 
-the [HDFS nameservice](https://hadoop.apache.org/docs/r3.3.1/hadoop-project-dist/hadoop-hdfs/HDFSHighAvailabilityWithQJM.html#Configuration_details)
+the [HDFS nameservice](https://hadoop.apache.org/docs/r3.3.4/hadoop-project-dist/hadoop-hdfs/HDFSHighAvailabilityWithQJM.html#Configuration_details)
 already configured in `hdfs-site.xml`). To mount an HDFS subdirectory to Alluxio instead
 of the whole HDFS namespace, change the under storage address to something like
 `hdfs://nameservice/alluxio/data`.
@@ -176,11 +176,11 @@ HDFS is consistent with Alluxio (e.g., a file created by user Foo in Alluxio is 
 HDFS also with owner as user Foo), the user to start Alluxio master and worker processes
 **is required** to be either:
 
-1. [HDFS super user](http://hadoop.apache.org/docs/r3.3.1/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#The_Super-User).
+1. [HDFS super user](http://hadoop.apache.org/docs/r3.3.4/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#The_Super-User).
 Namely, use the same user that starts HDFS namenode process to also start Alluxio master and
 worker processes.
 
-2. A member of [HDFS superuser group](http://hadoop.apache.org/docs/r3.3.1/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#Configuration_Parameters).
+2. A member of [HDFS superuser group](http://hadoop.apache.org/docs/r3.3.4/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#Configuration_Parameters).
 Edit HDFS configuration file `hdfs-site.xml` and check the value of configuration property
 `dfs.permissions.superusergroup`. If this property is set with a group (e.g., "hdfs"), add the
 user to start Alluxio process (e.g., "alluxio") to this group ("hdfs"); if this property is not
