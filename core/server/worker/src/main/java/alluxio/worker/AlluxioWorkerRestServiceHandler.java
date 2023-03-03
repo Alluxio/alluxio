@@ -16,7 +16,10 @@ import alluxio.Constants;
 import alluxio.ProjectConstants;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
+import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.RangeFileInStream;
+import alluxio.client.file.S3RangeSpec;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
@@ -27,9 +30,14 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.master.block.BlockId;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.s3.RateLimitInputStream;
+import alluxio.s3.S3Constants;
+import alluxio.s3.TaggingData;
+import alluxio.security.User;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
@@ -58,6 +66,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.RateLimiter;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -74,6 +83,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -82,6 +92,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.security.auth.Subject;
 import javax.servlet.ServletContext;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -128,6 +139,7 @@ public final class AlluxioWorkerRestServiceHandler {
   private final BlockStoreMeta mStoreMeta;
   private final DefaultBlockWorker mBlockWorker;
   private final FileSystem mFsClient;
+  private final RateLimiter mGlobalRateLimiter;
 
   /**
    * @param context context for the servlet
@@ -139,6 +151,8 @@ public final class AlluxioWorkerRestServiceHandler {
     mStoreMeta = mBlockWorker.getStoreMeta();
     mFsClient =
         (FileSystem) context.getAttribute(WorkerWebServer.ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY);
+    mGlobalRateLimiter = (RateLimiter) context.getAttribute(
+        WorkerWebServer.GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY);
   }
 
   /**
@@ -559,6 +573,77 @@ public final class AlluxioWorkerRestServiceHandler {
     }, Configuration.global());
   }
 
+  /**
+   * read file from worker.
+   * @param requestPath
+   * @param user
+   * @param range
+   * @return the response object
+   */
+  @GET
+  @Path("openfile")
+  @Produces({MediaType.APPLICATION_OCTET_STREAM,
+      MediaType.APPLICATION_XML, MediaType.WILDCARD})
+  public Response getFile(@QueryParam("path") String requestPath,
+                          @QueryParam("username") String user,
+                          @QueryParam("range") String range) {
+    return RestUtils.s3call(requestPath, () -> {
+      try {
+        FileSystem userFs = createFileSystemForUser(user, mFsClient);
+        URIStatus status = userFs.getStatus(new AlluxioURI(requestPath));
+        FileInStream is = userFs.openFile(status, OpenFilePOptions.getDefaultInstance());
+        S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
+        RangeFileInStream ris = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
+
+        InputStream inputStream;
+        long rate = (long) mFsClient.getConf()
+            .getInt(PropertyKey.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB) * Constants.MB;
+        RateLimiter currentRateLimiter = RestUtils.createRateLimiter(rate).orElse(null);
+        if (currentRateLimiter == null && mGlobalRateLimiter == null) {
+          inputStream = ris;
+        } else {
+          inputStream = new RateLimitInputStream(ris, mGlobalRateLimiter, currentRateLimiter);
+        }
+        Response.ResponseBuilder res = Response.ok(inputStream)
+            .lastModified(new Date(status.getLastModificationTimeMs()))
+            .header("Content-Length",
+                s3Range.getLength(status.getLength()));
+
+        // Check range
+        if (s3Range.isValid()) {
+          res.status(Response.Status.PARTIAL_CONTENT)
+              .header(S3Constants.S3_ACCEPT_RANGES_HEADER, S3Constants.S3_ACCEPT_RANGES_VALUE)
+              .header(S3Constants.S3_CONTENT_RANGE_HEADER,
+                  s3Range.getRealRange(status.getLength()));
+        }
+
+        // Check for the object's ETag
+        String entityTag = RestUtils.getEntityTag(status);
+        if (entityTag != null) {
+          res.header(S3Constants.S3_ETAG_HEADER, entityTag);
+        } else {
+          LOG.debug("Failed to find ETag for object: " + requestPath);
+        }
+
+        // Check if the object had a specified "Content-Type"
+        res.type(RestUtils.deserializeContentType(status.getXAttr()));
+
+        // Check if object had tags, if so we need to return the count
+        // in the header "x-amz-tagging-count"
+        TaggingData tagData = RestUtils.deserializeTags(status.getXAttr());
+        if (tagData != null) {
+          int taggingCount = tagData.getTagMap().size();
+          if (taggingCount > 0) {
+            res.header(S3Constants.S3_TAGGING_COUNT_HEADER, taggingCount);
+          }
+        }
+        return res.build();
+      } catch (Exception e) {
+        throw RestUtils.toObjectS3Exception(e, requestPath);
+      }
+    });
+  }
+
   private Capacity getCapacityInternal() {
     return new Capacity().setTotal(mStoreMeta.getCapacityBytes())
         .setUsed(mStoreMeta.getUsedBytes());
@@ -615,6 +700,23 @@ public final class AlluxioWorkerRestServiceHandler {
     SortedMap<String, List<String>> tierToDirPaths = new TreeMap<>(getTierAliasComparator());
     tierToDirPaths.putAll(mStoreMeta.getDirectoryPathsOnTiers());
     return tierToDirPaths;
+  }
+
+  /**
+   * @param user the {@link Subject} name of the filesystem user
+   * @param fs the source {@link FileSystem} to base off of
+   * @return A {@link FileSystem} with the subject set to the provided user
+   */
+  public static FileSystem createFileSystemForUser(
+      String user, FileSystem fs) {
+    if (user == null) {
+      // Used to return the top-level FileSystem view when not using Authentication
+      return fs;
+    }
+
+    final Subject subject = new Subject();
+    subject.getPrincipals().add(new User(user));
+    return FileSystem.Factory.get(subject, fs.getConf());
   }
 
   /**

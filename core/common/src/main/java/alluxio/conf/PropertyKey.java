@@ -5356,6 +5356,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(0)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_REDIRECT_IO_ENABLED =
+      booleanBuilder(Name.PROXY_S3_REDIRECT_IO_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable redirect request in s3 api.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // Locality related properties
@@ -8492,6 +8499,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.global.read.rate.limit.mb";
     public static final String PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB =
         "alluxio.proxy.s3.single.connection.read.rate.limit.mb";
+    public static final String PROXY_S3_REDIRECT_IO_ENABLED =
+        "alluxio.proxy.s3.redirect.io.enabled";
 
     //
     // Locality related properties

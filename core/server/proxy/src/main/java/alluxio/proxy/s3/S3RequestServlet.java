@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.s3.S3ErrorResponse;
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
 

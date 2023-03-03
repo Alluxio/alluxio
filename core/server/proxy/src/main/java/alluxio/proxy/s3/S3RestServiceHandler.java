@@ -13,9 +13,12 @@ package alluxio.proxy.s3;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.RestUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.RangeFileInStream;
+import alluxio.client.file.S3RangeSpec;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -37,6 +40,11 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.proto.journal.File;
+import alluxio.s3.RateLimitInputStream;
+import alluxio.s3.S3Constants;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3Exception;
+import alluxio.s3.TaggingData;
 import alluxio.util.CommonUtils;
 import alluxio.web.ProxyWebServer;
 
@@ -1126,7 +1134,7 @@ public final class S3RestServiceHandler {
           }
 
           // Check if the object had a specified "Content-Type"
-          res.type(S3RestUtils.deserializeContentType(status.getXAttr()));
+          res.type(RestUtils.deserializeContentType(status.getXAttr()));
           return res.build();
         } catch (FileDoesNotExistException e) {
           // must be null entity (content length 0) for S3A Filesystem
@@ -1274,7 +1282,7 @@ public final class S3RestServiceHandler {
           }
 
           // Check if the object had a specified "Content-Type"
-          res.type(S3RestUtils.deserializeContentType(status.getXAttr()));
+          res.type(RestUtils.deserializeContentType(status.getXAttr()));
 
           // Check if object had tags, if so we need to return the count
           // in the header "x-amz-tagging-count"

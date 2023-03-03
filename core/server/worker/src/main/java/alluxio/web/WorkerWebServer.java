@@ -12,6 +12,7 @@
 package alluxio.web;
 
 import alluxio.Constants;
+import alluxio.RestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -20,6 +21,7 @@ import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.RateLimiter;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ErrorPageErrorHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -45,8 +47,10 @@ public final class WorkerWebServer extends WebServer {
   public static final String ALLUXIO_WORKER_SERVLET_RESOURCE_KEY = "Alluxio Worker";
   public static final String ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY =
       "Alluxio Worker FileSystem Client";
+  public static final String GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY = "Global Rate Limiter";
 
   private final FileSystem mFileSystem;
+  private final RateLimiter mGlobalRateLimiter;
 
   /**
    * Creates a new instance of {@link WorkerWebServer}.
@@ -63,6 +67,9 @@ public final class WorkerWebServer extends WebServer {
     ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block")
         .register(JacksonProtobufObjectMapperProvider.class);
     mFileSystem = FileSystem.Factory.create();
+    long rate =
+        (long) Configuration.getInt(PropertyKey.PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB) * Constants.MB;
+    mGlobalRateLimiter = RestUtils.createRateLimiter(rate).orElse(null);
 
     // Override the init method to inject a reference to AlluxioWorker into the servlet context.
     // ServletContext may not be modified until after super.init() is called.
@@ -74,6 +81,10 @@ public final class WorkerWebServer extends WebServer {
         super.init();
         getServletContext().setAttribute(ALLUXIO_WORKER_SERVLET_RESOURCE_KEY, workerProcess);
         getServletContext().setAttribute(ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY, mFileSystem);
+        if (mGlobalRateLimiter != null) {
+          getServletContext().setAttribute(GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY,
+              mGlobalRateLimiter);
+        }
       }
     };
 

@@ -13,10 +13,13 @@ package alluxio.proxy.s3;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.RestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.RangeFileInStream;
+import alluxio.client.file.S3RangeSpec;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -36,8 +39,15 @@ import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
+import alluxio.s3.RateLimitInputStream;
+import alluxio.s3.S3Constants;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3Exception;
+import alluxio.s3.TaggingData;
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
+import alluxio.wire.BlockLocationInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -56,6 +66,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.DigestOutputStream;
@@ -307,6 +319,9 @@ public class S3ObjectTask extends S3BaseTask {
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, mHandler.getBucket(), mHandler.getObject())) {
           try {
+            if (Configuration.getBoolean(PropertyKey.PROXY_AUDIT_LOGGING_ENABLED)) {
+              return redirectGetRequest(userFs, objectPath, range);
+            }
             URIStatus status = userFs.getStatus(objectUri);
             FileInStream is = userFs.openFile(objectUri);
             S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
@@ -348,7 +363,7 @@ public class S3ObjectTask extends S3BaseTask {
             }
 
             // Check if the object had a specified "Content-Type"
-            res.type(S3RestUtils.deserializeContentType(status.getXAttr()));
+            res.type(RestUtils.deserializeContentType(status.getXAttr()));
 
             // Check if object had tags, if so we need to return the count
             // in the header "x-amz-tagging-count"
@@ -365,6 +380,30 @@ public class S3ObjectTask extends S3BaseTask {
           }
         }
       });
+    }
+
+    private Response redirectGetRequest(FileSystem userFs, String objectPath, String range)
+        throws IOException, AlluxioException, URISyntaxException {
+      AlluxioURI objectUri = new AlluxioURI(objectPath);
+      URIStatus status = userFs.getStatus(objectUri);
+      S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
+      final String user = mHandler.getUser();
+      long offset = s3Range.getOffset(status.getLength());
+      long blockSize = status.getBlockSizeBytes();
+
+      BlockLocationInfo locationInfo =
+          userFs.getBlockLocations(status).get(Math.toIntExact(offset / blockSize));
+      WorkerNetAddress workerNetAddress = locationInfo.getLocations().get(0);
+      StringBuilder queryParam = new StringBuilder();
+      queryParam.append("path=").append(objectPath);
+      queryParam.append("&username=").append(user);
+      queryParam.append("&range=").append(range);
+
+      final URI uri =
+          new URI("http", null, workerNetAddress.getHost(), 30000,
+              "/api/v1/worker/openfile", queryParam.toString(), null);
+      LOG.warn("redirect to the uri [{}]", uri);
+      return Response.temporaryRedirect(uri).type(MediaType.APPLICATION_OCTET_STREAM).build();
     }
   } // end of GetObjectTask
 
@@ -407,7 +446,7 @@ public class S3ObjectTask extends S3BaseTask {
             }
 
             // Check if the object had a specified "Content-Type"
-            res.type(S3RestUtils.deserializeContentType(status.getXAttr()));
+            res.type(RestUtils.deserializeContentType(status.getXAttr()));
             return res.build();
           } catch (FileDoesNotExistException e) {
             // must be null entity (content length 0) for S3A Filesystem

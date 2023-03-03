@@ -11,7 +11,7 @@
 
 package alluxio.proxy.s3.auth;
 
-import alluxio.proxy.s3.S3Exception;
+import alluxio.s3.S3Exception;
 
 /**
  * Default implementation of {@link Authenticator}. The method {@link #isAuthenticated}

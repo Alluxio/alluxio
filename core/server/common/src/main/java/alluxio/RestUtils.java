@@ -11,21 +11,35 @@
 
 package alluxio;
 
+import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.s3.S3Constants;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3ErrorResponse;
+import alluxio.s3.S3Exception;
+import alluxio.s3.TaggingData;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.util.concurrent.RateLimiter;
 import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
@@ -75,6 +89,81 @@ public final class RestUtils {
   public static <T> Response call(RestUtils.RestCallable<T> callable,
       AlluxioConfiguration alluxioConf) {
     return call(callable, alluxioConf, null);
+  }
+
+  /**
+   * Calls the given {@link RestUtils.RestCallable} and handles any exceptions thrown.
+   *
+   * @param <T> the return type of the callable
+   * @param resource the resource (bucket or object) to be operated on
+   * @param callable the callable to call
+   * @return the response object
+   */
+  public static <T> Response s3call(String resource, RestUtils.RestCallable<T> callable) {
+    try {
+      // TODO(cc): reconsider how to enable authentication
+      if (SecurityUtils.isSecurityEnabled(Configuration.global())
+          && AuthenticatedClientUser.get(Configuration.global()) == null) {
+        AuthenticatedClientUser.set(ServerUserState.global().getUser().getName());
+      }
+    } catch (IOException e) {
+      LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.toString());
+      return S3ErrorResponse.createErrorResponse(new S3Exception(
+          e, resource, S3ErrorCode.INTERNAL_ERROR), resource);
+    }
+
+    try {
+      T result = callable.call();
+      if (result == null) {
+        return Response.ok().build();
+      }
+      if (result instanceof Response) {
+        return (Response) result;
+      }
+      if (result instanceof Response.Status) {
+        switch ((Response.Status) result) {
+          case OK:
+            return Response.ok().build();
+          case ACCEPTED:
+            return Response.accepted().build();
+          case NO_CONTENT:
+            return Response.noContent().build();
+          default:
+            return S3ErrorResponse.createErrorResponse(new S3Exception(
+                "Response status is invalid", resource, S3ErrorCode.INTERNAL_ERROR), resource);
+        }
+      }
+      // Need to explicitly encode the string as XML because Jackson will not do it automatically.
+      XmlMapper mapper = new XmlMapper();
+      return Response.ok(mapper.writeValueAsString(result)).build();
+    } catch (Exception e) {
+      LOG.warn("Error invoking REST endpoint for {}:\n{}", resource, e.getMessage());
+      return S3ErrorResponse.createErrorResponse(e, resource);
+    }
+  }
+
+  /**
+   * Convert an exception to instance of {@link S3Exception}.
+   *
+   * @param exception Exception thrown when process s3 object rest request
+   * @param resource object complete path
+   * @return instance of {@link S3Exception}
+   */
+  public static S3Exception toObjectS3Exception(Exception exception, String resource) {
+    try {
+      throw exception;
+    } catch (S3Exception e) {
+      e.setResource(resource);
+      return e;
+    } catch (DirectoryNotEmptyException e) {
+      return new S3Exception(e, resource, S3ErrorCode.PRECONDITION_FAILED);
+    } catch (FileDoesNotExistException e) {
+      return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_KEY);
+    } catch (AccessControlException e) {
+      return new S3Exception(e, resource, S3ErrorCode.ACCESS_DENIED_ERROR);
+    } catch (Exception e) {
+      return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
+    }
   }
 
   /**
@@ -176,4 +265,68 @@ public final class RestUtils {
 
   private RestUtils() {
   } // prevent instantiation
+
+  /**
+   * This helper method is used to get the ETag xAttr on an object.
+   * @param status The {@link URIStatus} of the object
+   * @return the entityTag String, or null if it does not exist
+   */
+  public static String getEntityTag(URIStatus status) {
+    if (status.getXAttr() == null
+        || !status.getXAttr().containsKey(S3Constants.ETAG_XATTR_KEY)) {
+      return null;
+    }
+    return new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
+        S3Constants.XATTR_STR_CHARSET);
+  }
+
+  /**
+   * Given xAttr, parses and returns the Content-Type header metadata
+   * as its corresponding {@link MediaType}, or otherwise defaults
+   * to {@link MediaType#APPLICATION_OCTET_STREAM_TYPE}.
+   * @param xAttr the Inode's xAttrs
+   * @return the {@link MediaType} corresponding to the Content-Type header
+   */
+  public static MediaType deserializeContentType(Map<String, byte[]> xAttr) {
+    MediaType type = MediaType.APPLICATION_OCTET_STREAM_TYPE;
+    // Fetch the Content-Type from the Inode xAttr
+    if (xAttr == null) {
+      return type;
+    }
+    if (xAttr.containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
+      String contentType = new String(xAttr.get(
+          S3Constants.CONTENT_TYPE_XATTR_KEY), S3Constants.HEADER_CHARSET);
+      if (!contentType.isEmpty()) {
+        type = MediaType.valueOf(contentType);
+      }
+    }
+    return type;
+  }
+
+  /**
+   * Given xAttr, parses and deserializes the Tagging metadata
+   * into a {@link TaggingData} object. Returns null if no data exists.
+   * @param xAttr the Inode's xAttrs
+   * @return the deserialized {@link TaggingData} object
+   */
+  public static TaggingData deserializeTags(Map<String, byte[]> xAttr)
+      throws IOException {
+    // Fetch the S3 tags from the Inode xAttr
+    if (xAttr == null || !xAttr.containsKey(S3Constants.TAGGING_XATTR_KEY)) {
+      return null;
+    }
+    return TaggingData.deserialize(xAttr.get(S3Constants.TAGGING_XATTR_KEY));
+  }
+
+  /**
+   * Create a rate limiter for given rate.
+   * @param rate bytes per second
+   * @return empty if rate <= 0
+   */
+  public static Optional<RateLimiter> createRateLimiter(long rate) {
+    if (rate <= 0) {
+      return Optional.empty();
+    }
+    return Optional.of(RateLimiter.create(rate));
+  }
 }

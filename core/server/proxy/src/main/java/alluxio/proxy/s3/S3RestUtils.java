@@ -31,6 +31,11 @@ import alluxio.proto.journal.File;
 import alluxio.proxy.s3.auth.Authenticator;
 import alluxio.proxy.s3.auth.AwsAuthInfo;
 import alluxio.proxy.s3.signature.AwsSignatureProcessor;
+import alluxio.s3.S3Constants;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3ErrorResponse;
+import alluxio.s3.S3Exception;
+import alluxio.s3.TaggingData;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -64,7 +69,6 @@ import javax.annotation.Nullable;
 import javax.security.auth.Subject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
@@ -420,29 +424,6 @@ public final class S3RestUtils {
       result.put(key, queryParameters.getFirst(key));
     }
     return result;
-  }
-
-  /**
-   * Given xAttr, parses and returns the Content-Type header metadata
-   * as its corresponding {@link MediaType}, or otherwise defaults
-   * to {@link MediaType#APPLICATION_OCTET_STREAM_TYPE}.
-   * @param xAttr the Inode's xAttrs
-   * @return the {@link MediaType} corresponding to the Content-Type header
-   */
-  public static MediaType deserializeContentType(Map<String, byte[]> xAttr) {
-    MediaType type = MediaType.APPLICATION_OCTET_STREAM_TYPE;
-    // Fetch the Content-Type from the Inode xAttr
-    if (xAttr == null) {
-      return type;
-    }
-    if (xAttr.containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
-      String contentType = new String(xAttr.get(
-          S3Constants.CONTENT_TYPE_XATTR_KEY), S3Constants.HEADER_CHARSET);
-      if (!contentType.isEmpty()) {
-        type = MediaType.valueOf(contentType);
-      }
-    }
-    return type;
   }
 
   /**

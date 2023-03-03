@@ -9,9 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3;
-
-import alluxio.client.file.FileInStream;
+package alluxio.client.file;
 
 import java.io.IOException;
 import java.io.InputStream;
