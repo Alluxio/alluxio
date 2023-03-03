@@ -50,8 +50,8 @@ public class BlockSyncMasterGroup implements Closeable {
   private static BlockMasterClientFactory sBlockMasterClientFactory
       = new BlockMasterClientFactory();
 
-  private static final long WORKER_MASTER_CONNECT_RETRY_TIMEOUT = Math.min(
-      Configuration.getMs(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT), Integer.MAX_VALUE);
+  private static final long WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
+      Configuration.getMs(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT);
 
   /**
    * Creates a block sync master group.
@@ -121,7 +121,7 @@ public class BlockSyncMasterGroup implements Closeable {
     try {
       CommonUtils.waitFor(this + " to start",
           primaryMasterSync::isRegistered,
-          WaitForOptions.defaults().setTimeoutMs((int) WORKER_MASTER_CONNECT_RETRY_TIMEOUT));
+          WaitForOptions.defaults().setTimeoutMs(WORKER_MASTER_CONNECT_RETRY_TIMEOUT));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       LOG.warn("Exit the worker on interruption", e);
