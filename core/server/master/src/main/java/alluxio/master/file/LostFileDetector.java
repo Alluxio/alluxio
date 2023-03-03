@@ -92,14 +92,9 @@ final class LostFileDetector implements HeartbeatExecutor {
     if (toMarkFiles.size() > 0) {
       // Here the candidate block has been removed from the checklist
       // But the journal entries have not yet been flushed
-      // It is fine if these entries are not flushed, because if there is a new primary,
-      // the checklist will be re-generated when workers register
-      // The only exception scenario is when workers register to standby masters
-      // so there is not another register to the new primary and the checklist is not recreated
-      // We tolerate that scenario and expect when that worker registers again,
-      // the lost blocks will be identified
-      // Also, the impact is trivial because the issue is more about losing that file,
-      // than not marking the file as LOST
+      // If the journal entries are lost, we will never be able to mark them again,
+      // because the worker will never report those removedBlocks to the master again
+      // This is fine because the LOST status is purely for display now
       try (JournalContext journalContext = mFileSystemMaster.createJournalContext()) {
         // update the state on the 2nd pass
         for (long fileId : toMarkFiles) {
