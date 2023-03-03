@@ -4575,7 +4575,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         // the primary failed over, or journal is closed
         // In either case, it is fine to close JournalContext and throw away the journal entries
         // The next primary will process all TO_BE_PERSISTED files and create new persist jobs
-        LOG.warn("Journal is not running, cannot persist files");
+        LOG.error("Journal is not running, cannot persist files");
       }
     }
   }
