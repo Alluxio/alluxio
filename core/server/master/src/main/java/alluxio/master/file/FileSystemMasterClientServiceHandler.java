@@ -81,6 +81,8 @@ import alluxio.grpc.StopSyncPRequest;
 import alluxio.grpc.StopSyncPResponse;
 import alluxio.grpc.SubmitJobPRequest;
 import alluxio.grpc.SubmitJobPResponse;
+import alluxio.grpc.SyncMetadataPRequest;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UnmountPResponse;
 import alluxio.grpc.UpdateMountPRequest;
@@ -106,6 +108,7 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.file.contexts.SyncMetadataContext;
 import alluxio.master.job.JobFactoryProducer;
 import alluxio.master.scheduler.Scheduler;
 import alluxio.recorder.Recorder;
@@ -585,5 +588,17 @@ public final class FileSystemMasterClientServiceHandler
    */
   private AlluxioURI getAlluxioURI(String uriStr) {
     return new AlluxioURI(uriStr);
+  }
+
+  @Override
+  public void syncMetadata(
+      SyncMetadataPRequest request,
+      StreamObserver<SyncMetadataPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mFileSystemMaster.syncMetadata(
+          new AlluxioURI(request.getPath()),
+          SyncMetadataContext.create(request.getOptions().toBuilder()));
+      return SyncMetadataPResponse.newBuilder().build();
+    }, "syncMetadata", "request=%s", responseObserver, request);
   }
 }

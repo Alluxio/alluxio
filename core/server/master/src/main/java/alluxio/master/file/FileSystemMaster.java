@@ -42,6 +42,7 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.file.contexts.SyncMetadataContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
@@ -635,4 +636,11 @@ public interface FileSystemMaster extends Master {
    * @param path the path to invalidate
    */
   void needsSync(AlluxioURI path) throws InvalidPathException;
+
+  /**
+   * Syncs the metadata of a given path.
+   * @param path the path to sync
+   * @param context the method context
+   */
+  void syncMetadata(AlluxioURI path, SyncMetadataContext context);
 }

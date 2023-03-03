@@ -656,6 +656,28 @@ message GetJobProgressPResponse {
   optional JobProgressReportFormat format = 2;
 }
 
+message SyncMetadataPOptions {
+  optional bool isRecursive = 1;
+  // TODO: add the followings:
+  // the when to sync options (NEVER/ONCE/Time based/Invalidation based/ALWAYS)
+  // currently it is always ALWAYS
+  //
+  // Q: do we need to support loading metadata only for a direcotry inode itself?
+  // if yes descendant type (ONE/ALL/NONE) might be a better option
+}
+
+message SyncMetadataPRequest {
+  required string path = 1;
+  optional SyncMetadataPOptions options = 2;
+}
+
+message SyncMetadataPResponse {
+  optional bool success = 1;
+  // TODO: add the followings:
+  // # of files success
+  // continuation token?
+}
+
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
  */
@@ -810,6 +832,13 @@ service FileSystemMasterClientService {
   rpc StopJob(StopJobPRequest) returns (StopJobPResponse);
 
   rpc GetJobProgress(GetJobProgressPRequest) returns (GetJobProgressPResponse);
+
+  /**
+   * Load metadata into Alluxio.
+   */
+  // This endpoint should use job service instead of returning the
+  // result synchronously. A metadata sync job could take long to finish.
+  rpc SyncMetadata(SyncMetadataPRequest) returns (SyncMetadataPResponse);
 }
 
 message FileSystemHeartbeatPResponse {

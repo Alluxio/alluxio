@@ -91,6 +91,7 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.file.contexts.SyncMetadataContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.Inode;
@@ -111,6 +112,7 @@ import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.file.metasync.MetadataSyncer;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.FileSystemMergeJournalContext;
 import alluxio.master.journal.JournalContext;
@@ -446,6 +448,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
       ThreadFactoryUtils.build("alluxio-ufs-active-sync-%d", false));
   private HeartbeatThread mReplicationCheckHeartbeatThread;
+
+  private final MetadataSyncer mMetadataSyncer = new MetadataSyncer();
 
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
@@ -4128,6 +4132,11 @@ public class DefaultFileSystemMaster extends CoreMaster
         getSyncPathCache(), rpcContext, syncDescendantType, options, auditContext,
         auditContextSrcInodeFunc, false, false, false);
     return sync.sync();
+  }
+
+  @Override
+  public void syncMetadata(AlluxioURI path, SyncMetadataContext context) {
+    mMetadataSyncer.sync(path, context.getOptions().getIsRecursive());
   }
 
   @FunctionalInterface

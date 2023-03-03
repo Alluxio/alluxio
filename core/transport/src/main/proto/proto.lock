@@ -3939,6 +3939,41 @@
             ]
           },
           {
+            "name": "SyncMetadataPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "isRecursive",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "SyncMetadataPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "path",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "options",
+                "type": "SyncMetadataPOptions"
+              }
+            ]
+          },
+          {
+            "name": "SyncMetadataPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "success",
+                "type": "bool"
+              }
+            ]
+          },
+          {
             "name": "FileSystemHeartbeatPResponse",
             "fields": [
               {
@@ -4215,6 +4250,11 @@
                 "name": "StopJob",
                 "in_type": "StopJobPRequest",
                 "out_type": "StopJobPResponse"
+              },
+              {
+                "name": "SyncMetadata",
+                "in_type": "SyncMetadataPRequest",
+                "out_type": "SyncMetadataPResponse"
               },
               {
                 "name": "GetJobProgress",

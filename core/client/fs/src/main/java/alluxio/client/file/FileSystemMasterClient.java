@@ -34,6 +34,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.SyncMetadataPOptions;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -373,4 +374,13 @@ public interface FileSystemMasterClient extends Client {
    */
   String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose);
+
+  /**
+   * Syncs metadata for a given alluxio path.
+   *
+   * @param path the path to sync metadata on
+   * @param options options to associate with this operation
+   */
+  void syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+      throws AlluxioStatusException;
 }
