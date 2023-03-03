@@ -4607,7 +4607,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       List<Long> blockIds = new ArrayList<>();
       UfsManager.UfsClient ufsClient = null;
       // This journal flush is per job and cannot be batched easily,
-      // because easy execution is in a separate thread and this thread doesn't wait for those
+      // because each execution is in a separate thread and this thread doesn't wait for those
       // to complete
       try (JournalContext journalContext = createJournalContext();
           LockedInodePath inodePath = mInodeTree
