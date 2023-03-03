@@ -5325,17 +5325,22 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @return a context for executing an RPC
    */
   @VisibleForTesting
-  // TODO(jiacheng): where are we unknowningly creating RPC contexts?
   public RpcContext createRpcContext(OperationContext operationContext)
       throws UnavailableException {
     return new RpcContext(createBlockDeletionContext(), createJournalContext(),
         operationContext.withTracker(mStateLockCallTracker));
   }
 
+  /**
+   * @param operationContext the operation context
+   * @param journalContext context for journal
+   * @return a context for executing an RPC
+   */
   @VisibleForTesting
-  public RpcContext createRpcContext(OperationContext operationContext, JournalContext journalContext) {
+  public RpcContext createRpcContext(
+      OperationContext operationContext, JournalContext journalContext) {
     return new RpcContext(createBlockDeletionContext(), journalContext,
-            operationContext.withTracker(mStateLockCallTracker));
+        operationContext.withTracker(mStateLockCallTracker));
   }
 
   private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,

@@ -300,12 +300,24 @@ public interface FileSystemMaster extends Master {
    * @throws InvalidPathException if the path is invalid
    */
   default void delete(AlluxioURI path, DeleteContext context)
-          throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
-          InvalidPathException, AccessControlException {
+      throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
+      InvalidPathException, AccessControlException {
     delete(path, context, createJournalContext());
   }
 
-
+  /**
+   * Deletes a given path.
+   * <p>
+   * This operation requires user to have WRITE permission on the parent of the path.
+   *
+   * @param path the path to delete
+   * @param context method context
+   * @param journalContext context for journaling
+   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
+   */
   void delete(AlluxioURI path, DeleteContext context, JournalContext journalContext)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException;
@@ -403,6 +415,7 @@ public interface FileSystemMaster extends Master {
    *
    * @param path the path to free method
    * @param context context to free method
+   * @param journalContext context for journaling
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the given path is invalid

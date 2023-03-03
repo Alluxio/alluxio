@@ -13,11 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.exception.AccessControlException;
-import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
-import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
@@ -31,7 +27,6 @@ import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
-import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.journal.JournalContext;
@@ -41,7 +36,6 @@ import alluxio.proto.journal.File.UpdateInodeEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Set;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -109,10 +103,12 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                   // parent of file
                   if (inode.isDirectory()) {
                     mFileSystemMaster.free(path, FreeContext
-                        .mergeFrom(FreePOptions.newBuilder().setForced(true).setRecursive(true)), journalContext);
+                        .mergeFrom(FreePOptions.newBuilder().setForced(true).setRecursive(true)),
+                        journalContext);
                   } else {
                     mFileSystemMaster.free(path,
-                        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true)), journalContext);
+                        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true)),
+                        journalContext);
                   }
                   // Reset state
                   mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()
@@ -124,11 +120,12 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                   mTtlBuckets.remove(inode);
                   break;
                 case DELETE:
-                  // public delete method will lock the path, and check WRITE permission required at
-                  // parent of file
+                  // public delete method will lock the path, and check WRITE permission required
+                  // at parent of file
                   if (inode.isDirectory()) {
                     mFileSystemMaster.delete(path,
-                        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)), journalContext);
+                        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)),
+                        journalContext);
                     processedFiles += ((InodeDirectory) inode).getChildCount() + 1;
                   } else {
                     mFileSystemMaster.delete(path, DeleteContext.defaults(), journalContext);
