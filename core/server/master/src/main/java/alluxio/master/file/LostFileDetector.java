@@ -61,7 +61,7 @@ final class LostFileDetector implements HeartbeatExecutor {
   @Override
   public void heartbeat() throws InterruptedException {
     Iterator<Long> iter = mBlockMaster.getLostBlocksIterator();
-    Set<Long> markedFiles = new HashSet<>();
+    Set<Long> toMarkFiles = new HashSet<>();
     while (iter.hasNext()) {
       if (Thread.interrupted()) {
         throw new InterruptedException("LostFileDetector interrupted.");
@@ -69,19 +69,19 @@ final class LostFileDetector implements HeartbeatExecutor {
       long blockId = iter.next();
       long containerId = BlockId.getContainerId(blockId);
       long fileId = IdUtils.createFileId(containerId);
-      if (markedFiles.contains(fileId)) {
+      if (toMarkFiles.contains(fileId)) {
         iter.remove();
         continue;
       }
       try (
-              LockedInodePath inodePath =
-                      mInodeTree.lockFullInodePath(fileId, LockPattern.READ, NoopJournalContext.INSTANCE)
+          LockedInodePath inodePath =
+              mInodeTree.lockFullInodePath(fileId, LockPattern.READ, NoopJournalContext.INSTANCE)
       ) {
         Inode inode = inodePath.getInode();
         if (inode.getPersistenceState() != PersistenceState.PERSISTED) {
-          // Add to the to-mark set
-          markedFiles.add(fileId);
+          toMarkFiles.add(fileId);
         }
+        // The
         iter.remove();
       } catch (FileDoesNotExistException e) {
         LOG.debug("Exception trying to get inode from inode tree", e);
@@ -90,27 +90,36 @@ final class LostFileDetector implements HeartbeatExecutor {
       }
     }
 
-    if (markedFiles.size() > 0) {
+    if (toMarkFiles.size() > 0) {
+      // Here the candidate block has been removed from the checklist
+      // But the journal entries have not yet been flushed
+      // It is fine if these entries are not flushed, because if there is a new primary,
+      // the checklist will be re-generated when workers register
+      // The only exception scenario is when workers register to standby masters
+      // so there is not another register to the new primary and the checklist is not recreated
+      // We tolerate that scenario and expect when that worker registers again,
+      // the lost blocks will be identified
+      // Also, the impact is trivial because the issue is more about losing that file,
+      // than not marking the file as LOST
       try (JournalContext journalContext = mFileSystemMaster.createJournalContext()) {
-        for (long fileId : markedFiles) {
-          // update the state
+        // update the state on the 2nd pass
+        for (long fileId : toMarkFiles) {
           try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, LockPattern.WRITE_INODE, journalContext)) {
             Inode inode = inodePath.getInode();
             if (inode.getPersistenceState() != PersistenceState.PERSISTED) {
               mInodeTree.updateInode(journalContext,
-                      UpdateInodeEntry.newBuilder().setId(inode.getId())
-                              .setPersistenceState(PersistenceState.LOST.name()).build());
-              markedFiles.add(fileId);
+                  UpdateInodeEntry.newBuilder().setId(inode.getId())
+                      .setPersistenceState(PersistenceState.LOST.name()).build());
+              toMarkFiles.add(fileId);
             }
           } catch (FileDoesNotExistException e) {
             LOG.debug("Failed to mark file {} as lost. The inode does not exist anymore.",
-                    fileId, e);
+                fileId, e);
           }
         }
       } catch (UnavailableException e) {
-        LOG.warn("Failed to mark files LOST because the journal is not available. "
-                        + "{} files are affected: {}",
-                markedFiles.size(), markedFiles, e);
+        LOG.error("Failed to mark files LOST because the journal is not available. "
+            + "{} files are affected: {}", toMarkFiles.size(), toMarkFiles, e);
       }
     }
   }
