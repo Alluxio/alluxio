@@ -39,6 +39,7 @@ import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.TaskStatus;
+import alluxio.job.JobDescription;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.job.FileIterable;
 import alluxio.master.job.LoadJob;
@@ -191,7 +192,7 @@ public final class SchedulerTest {
         && journalEntry.getLoadJob().hasEndTime()));
     assertFalse(scheduler.stopJob(job.getDescription()));
     verify(journalContext, times(2)).append(any());
-    assertFalse(scheduler.stopJob("/does/not/exist"));
+    assertFalse(scheduler.stopJob(JobDescription.newBuilder().setPath("/does/not/exist").build()));
     verify(journalContext, times(2)).append(any());
     assertFalse(scheduler.submitJob(job));
     verify(journalContext, times(3)).append(any());
@@ -465,23 +466,59 @@ public final class SchedulerTest {
     assertEquals(5, scheduler
         .getJobs().size());
     scheduler
-        .getJobs().get("load:/load/1").setJobState(JobState.VERIFYING);
+        .getJobs()
+        .get(JobDescription
+            .newBuilder()
+            .setPath("/load/1")
+            .setType("load")
+            .build())
+        .setJobState(JobState.VERIFYING);
     scheduler
-        .getJobs().get("load:/load/2").setJobState(JobState.FAILED);
+        .getJobs()
+        .get(JobDescription
+            .newBuilder()
+            .setPath("/load/2")
+            .setType("load")
+            .build())
+        .setJobState(JobState.FAILED);
     scheduler
-        .getJobs().get("load:/load/3").setJobState(JobState.SUCCEEDED);
+        .getJobs()
+        .get(JobDescription
+            .newBuilder()
+            .setPath("/load/3")
+            .setType("load")
+            .build())
+        .setJobState(JobState.SUCCEEDED);
     scheduler
-        .getJobs().get("load:/load/4").setJobState(JobState.STOPPED);
+        .getJobs()
+        .get(JobDescription
+            .newBuilder()
+            .setPath("/load/4")
+            .setType("load")
+            .build())
+        .setJobState(JobState.STOPPED);
     scheduler.cleanupStaleJob();
     assertEquals(2, scheduler
         .getJobs().size());
     assertTrue(scheduler
-        .getJobs().containsKey("load:/load/0"));
+        .getJobs().containsKey(JobDescription
+            .newBuilder()
+            .setPath("/load/0")
+            .setType("load")
+            .build()));
     assertTrue(scheduler
-        .getJobs().containsKey("load:/load/1"));
+        .getJobs().containsKey(JobDescription
+            .newBuilder()
+            .setPath("/load/1")
+            .setType("load")
+            .build()));
     IntStream.range(2, 5).forEach(
         i -> assertFalse(scheduler
-            .getJobs().containsKey(String.format("load:/load/%d", i))));
+            .getJobs().containsKey(JobDescription
+            .newBuilder()
+            .setPath("/load/" + i)
+            .setType("load")
+            .build())));
     Configuration.modifiableGlobal().unset(PropertyKey.JOB_RETENTION_TIME);
   }
 }

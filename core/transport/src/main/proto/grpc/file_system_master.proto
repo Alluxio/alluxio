@@ -615,7 +615,7 @@ message LoadJobPOptions {
 }
 
 message StopJobPRequest {
-  required string jobDescription = 1;
+  required JobDescription jobDescription = 1;
 }
 
 message StopJobPResponse {
@@ -627,13 +627,18 @@ enum JobProgressReportFormat {
   JSON = 2;
 }
 
+message JobDescription{
+  required string type = 1;
+  optional string path = 2;
+}
+
 message JobProgressPOptions {
   optional JobProgressReportFormat format = 1;
   optional bool verbose = 2;
 }
 
 message GetJobProgressPRequest {
-  required string jobDescription = 1;
+  required JobDescription jobDescription = 1;
   optional JobProgressPOptions options = 2;
 }
 

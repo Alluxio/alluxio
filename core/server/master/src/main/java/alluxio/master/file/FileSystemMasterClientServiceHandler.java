@@ -106,6 +106,7 @@ import alluxio.master.job.JobFactoryProducer;
 import alluxio.master.scheduler.Scheduler;
 import alluxio.recorder.Recorder;
 import alluxio.scheduler.job.Job;
+import alluxio.job.JobDescription;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -526,7 +527,7 @@ public final class FileSystemMasterClientServiceHandler
   public void stopJob(StopJobPRequest request,
       StreamObserver<StopJobPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      boolean stopped = mScheduler.stopJob(request.getJobDescription());
+      boolean stopped = mScheduler.stopJob(JobDescription.from(request.getJobDescription()));
       return alluxio.grpc.StopJobPResponse.newBuilder()
           .setJobStopped(stopped)
           .build();
@@ -547,7 +548,7 @@ public final class FileSystemMasterClientServiceHandler
       }
       return GetJobProgressPResponse.newBuilder()
           .setProgressReport(mScheduler.getJobProgress(
-              request.getJobDescription(), format, verbose))
+              JobDescription.from(request.getJobDescription()), format, verbose))
           .build();
     }, "getJobProgress", "request=%s", responseObserver, request);
   }

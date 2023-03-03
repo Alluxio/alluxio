@@ -34,6 +34,7 @@ import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.scheduler.job.Job;
+import alluxio.job.JobDescription;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
 import alluxio.util.ThreadFactoryUtils;
@@ -71,7 +72,8 @@ public final class Scheduler implements Journaled {
   private static final int EXECUTOR_SHUTDOWN_MS = 10 * Constants.SECOND_MS;
   private final FileSystemMaster mFileSystemMaster;
   private final FileSystemContext mContext;
-  private final Map<String, Job<?>> mExistingJobs = new ConcurrentHashMap<>();
+  private final Map<JobDescription, Job<?>>
+      mExistingJobs = new ConcurrentHashMap<>();
   private final Map<Job<?>, Set<WorkerInfo>> mRunningTasks = new ConcurrentHashMap<>();
   // initial thread in start method since we would stop and start thread when gainPrimacy
   private ScheduledExecutorService mSchedulerExecutor;
@@ -163,7 +165,7 @@ public final class Scheduler implements Journaled {
    * @param jobDescription job identifier
    * @return true if the job is stopped, false if the job does not exist or has already finished
    */
-  public boolean stopJob(String jobDescription) {
+  public boolean stopJob(JobDescription jobDescription) {
     Job<?> existingJob = mExistingJobs.get(jobDescription);
     if (existingJob != null && existingJob.isRunning()) {
       existingJob.setJobState(JobState.STOPPED);
@@ -182,7 +184,7 @@ public final class Scheduler implements Journaled {
    * @return the progress report
    */
   public String getJobProgress(
-      String jobDescription,
+      JobDescription jobDescription,
       JobProgressReportFormat format,
       boolean verbose) {
     Job<?> job = mExistingJobs.get(jobDescription);
@@ -278,7 +280,7 @@ public final class Scheduler implements Journaled {
    * @return jobs
    */
   @VisibleForTesting
-  public Map<String, Job<?>> getJobs() {
+  public Map<JobDescription, Job<?>> getJobs() {
     return mExistingJobs;
   }
 

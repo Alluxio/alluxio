@@ -3829,7 +3829,7 @@
               {
                 "id": 1,
                 "name": "jobDescription",
-                "type": "string"
+                "type": "JobDescription"
               }
             ]
           },
@@ -3840,6 +3840,21 @@
                 "id": 1,
                 "name": "jobStopped",
                 "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "JobDescription",
+            "fields": [
+              {
+                "id": 1,
+                "name": "type",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "path",
+                "type": "string"
               }
             ]
           },
@@ -3864,7 +3879,7 @@
               {
                 "id": 1,
                 "name": "jobDescription",
-                "type": "string"
+                "type": "JobDescription"
               },
               {
                 "id": 2,

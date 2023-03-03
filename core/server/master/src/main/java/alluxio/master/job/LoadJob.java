@@ -31,6 +31,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal;
 import alluxio.scheduler.job.Job;
+import alluxio.job.JobDescription;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
 import alluxio.util.FormatUtils;
@@ -76,6 +77,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class LoadJob implements Job<LoadJob.LoadTask> {
   private static final Logger LOG = LoggerFactory.getLogger(LoadJob.class);
+  public static final String TYPE = "load";
   private static final double FAILURE_RATIO_THRESHOLD = 0.05;
   private static final int FAILURE_COUNT_THRESHOLD = 100;
   private static final int RETRY_BLOCK_CAPACITY = 1000;
@@ -177,8 +179,8 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
   }
 
   @Override
-  public String getDescription() {
-    return "load:" + mPath;
+  public JobDescription getDescription() {
+    return JobDescription.newBuilder().setPath(mPath).setType(TYPE).build();
   }
 
   /**
@@ -296,14 +298,6 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
    */
   public long getCurrentBlockCount() {
     return mCurrentBlockCount.get();
-  }
-
-  /**
-   * Get the total processed block count for this job.
-   * @return total block count
-   */
-  public long getTotalBlockCount() {
-    return mTotalBlockCount.get();
   }
 
   @Override

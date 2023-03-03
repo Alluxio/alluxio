@@ -33,6 +33,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UpdateUfsModePOptions;
+import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
@@ -244,12 +245,12 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public boolean stopJob(String jobDescription) {
+  public boolean stopJob(JobDescription jobDescription) {
     return false;
   }
 
   @Override
-  public String getJobProgress(String jobDescription,
+  public String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose) {
     return null;
   }

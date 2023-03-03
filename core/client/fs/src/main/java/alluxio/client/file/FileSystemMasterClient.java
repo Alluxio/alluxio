@@ -35,6 +35,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UpdateUfsModePOptions;
+import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.security.authorization.AclEntry;
@@ -360,7 +361,7 @@ public interface FileSystemMasterClient extends Client {
    * @param jobDescription job description be stopped
    * @return true if job is stopped, false if we cannot find job
    */
-  boolean stopJob(String jobDescription);
+  boolean stopJob(JobDescription jobDescription);
 
   /**
    * Get progress of a job.
@@ -370,6 +371,6 @@ public interface FileSystemMasterClient extends Client {
    * @param verbose whether to return verbose report
    * @return the load job progress
    */
-  String getJobProgress(String jobDescription,
+  String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose);
 }

@@ -50,6 +50,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -903,12 +904,12 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public boolean stopJob(String jobDescription) {
+    public boolean stopJob(JobDescription jobDescription) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public String getLoadProgress(String jobDescription,
+    public String getJobProgress(JobDescription jobDescription,
         JobProgressReportFormat format, boolean verbose) {
       throw new UnsupportedOperationException();
     }

@@ -50,6 +50,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
@@ -756,7 +757,7 @@ public interface FileSystem extends Closeable {
    * @param jobDescription the job description
    * @return true if job is stopped, false if we cannot find job
    */
-  boolean stopJob(String jobDescription);
+  boolean stopJob(JobDescription jobDescription);
 
   /**
    * Get progress of a job.
@@ -766,6 +767,6 @@ public interface FileSystem extends Closeable {
    * @param verbose whether to return verbose report
    * @return the load job progress
    */
-  String getLoadProgress(String jobDescription,
+  String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose);
 }

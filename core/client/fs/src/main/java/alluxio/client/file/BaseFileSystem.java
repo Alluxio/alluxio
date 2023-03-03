@@ -57,6 +57,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
@@ -532,7 +533,7 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public boolean stopJob(String jobDescription) {
+  public boolean stopJob(JobDescription jobDescription) {
     try (CloseableResource<FileSystemMasterClient> client =
             mFsContext.acquireMasterClientResource()) {
       return client.get().stopJob(jobDescription);
@@ -540,7 +541,7 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public String getLoadProgress(String jobDescription,
+  public String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose) {
     try (CloseableResource<FileSystemMasterClient> client =
             mFsContext.acquireMasterClientResource()) {

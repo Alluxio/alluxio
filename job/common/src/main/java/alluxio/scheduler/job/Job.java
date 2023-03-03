@@ -13,6 +13,7 @@ package alluxio.scheduler.job;
 
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.JobProgressReportFormat;
+import alluxio.job.JobDescription;
 import alluxio.proto.journal.Journal;
 import alluxio.wire.WorkerInfo;
 
@@ -32,7 +33,7 @@ public interface Job<T extends Task<?>> {
    * submitting a job when there is already a job with the same description, scheduler will update
    * the job instead of submitting a new job.
    */
-  String getDescription();
+  JobDescription getDescription();
 
   /**
    * @return job end time if finished, otherwise empty

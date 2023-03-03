@@ -38,6 +38,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.BlockLocationInfo;
@@ -250,14 +251,14 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public boolean stopJob(String jobDescription) {
+  public boolean stopJob(JobDescription jobDescription) {
     return mDelegatedFileSystem.stopJob(jobDescription);
   }
 
   @Override
-  public String getLoadProgress(String jobDescription,
+  public String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose) {
-    return mDelegatedFileSystem.getLoadProgress(jobDescription, format, verbose);
+    return mDelegatedFileSystem.getJobProgress(jobDescription, format, verbose);
   }
 
   @Override

@@ -75,6 +75,7 @@ import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
+import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.CountingRetry;
@@ -443,17 +444,21 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public boolean stopJob(String jobDescription) {
+  public boolean stopJob(JobDescription jobDescription) {
     connectWithRuntimeException();
     StopJobPResponse response = mClient.stopJob(StopJobPRequest
         .newBuilder()
-        .setJobDescription(jobDescription)
+        .setJobDescription(alluxio.grpc.JobDescription
+            .newBuilder()
+            .setType(jobDescription.getType())
+            .setPath(jobDescription.getPath())
+            .build())
         .build());
     return response.getJobStopped();
   }
 
   @Override
-  public String getJobProgress(String jobDescription,
+  public String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose) {
     JobProgressPOptions.Builder options = JobProgressPOptions.newBuilder()
             .setVerbose(verbose)
@@ -461,7 +466,11 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     connectWithRuntimeException();
     GetJobProgressPResponse response = mClient.getJobProgress(
         GetJobProgressPRequest.newBuilder()
-            .setJobDescription(jobDescription)
+            .setJobDescription(alluxio.grpc.JobDescription
+            .newBuilder()
+            .setType(jobDescription.getType())
+            .setPath(jobDescription.getPath())
+            .build())
             .setOptions(options.build())
             .build());
     return response.getProgressReport();

@@ -30,6 +30,7 @@ import alluxio.grpc.CacheRequest;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.LoadJobPOptions;
 import alluxio.grpc.OpenFilePOptions;
+import alluxio.job.JobDescription;
 import alluxio.job.LoadJobRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
@@ -59,7 +60,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class LoadCommand extends AbstractFileSystemCommand {
   private static final JobProgressReportFormat DEFAULT_FORMAT = JobProgressReportFormat.TEXT;
-  private static final String JOB_DESCRIPTION_FORMAT = "load:%s";
+  private static final String JOB_TYPE = "load";
   private static final Option LOCAL_OPTION =
       Option.builder()
           .longOpt("local")
@@ -257,7 +258,11 @@ public final class LoadCommand extends AbstractFileSystemCommand {
 
   private int stopLoad(AlluxioURI path) {
     try {
-      if (mFileSystem.stopJob(String.format(JOB_DESCRIPTION_FORMAT, path.getPath()))) {
+      if (mFileSystem.stopJob(JobDescription
+          .newBuilder()
+          .setPath(path.getPath())
+          .setType(JOB_TYPE)
+          .build())) {
         System.out.printf("Load '%s' is successfully stopped.%n", path);
       }
       else {
@@ -275,9 +280,11 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       boolean verbose) {
     try {
       System.out.println("Progress for loading path '" + path + "':");
-      System.out.println(
-          mFileSystem.getLoadProgress(String.format(JOB_DESCRIPTION_FORMAT, path.getPath()), format,
-              verbose));
+      System.out.println(mFileSystem.getJobProgress(JobDescription
+          .newBuilder()
+          .setPath(path.getPath())
+          .setType(JOB_TYPE)
+          .build(), format, verbose));
       return 0;
     } catch (StatusRuntimeException e) {
       if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {

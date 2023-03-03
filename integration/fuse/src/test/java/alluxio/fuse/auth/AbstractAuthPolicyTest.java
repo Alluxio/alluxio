@@ -44,6 +44,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.jnifuse.FuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;
+import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.BlockLocationInfo;
@@ -304,12 +305,12 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
-    public boolean stopJob(String jobDescription) {
+    public boolean stopJob(JobDescription jobDescription) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public String getLoadProgress(String jobDescription,
+    public String getJobProgress(JobDescription jobDescription,
         JobProgressReportFormat format, boolean verbose) {
       throw new UnsupportedOperationException();
     }
