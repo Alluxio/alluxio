@@ -3180,13 +3180,12 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void free(AlluxioURI path, FreeContext context)
+  public void free(AlluxioURI path, FreeContext context, JournalContext journalContext)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException, IOException {
     Metrics.FREE_FILE_OPS.inc();
     // No need to syncMetadata before free.
-    // TODO(jiacheng): no need to createRpcContext and only createJournalContext in freeInternal if needed
-    try (RpcContext rpcContext = createRpcContext(context);
+    try (RpcContext rpcContext = createRpcContext(context, journalContext);
          LockedInodePath inodePath =
              mInodeTree
                  .lockFullInodePath(path, LockPattern.WRITE_INODE, rpcContext.getJournalContext());
@@ -3198,7 +3197,6 @@ public class DefaultFileSystemMaster extends CoreMaster
         auditContext.setAllowed(false);
         throw e;
       }
-      // TODO(jiacheng): actually freeInternal only writes a journal entry if it's forced free on a pinned file
       freeInternal(rpcContext, inodePath, context);
       auditContext.setSucceeded(true);
     }

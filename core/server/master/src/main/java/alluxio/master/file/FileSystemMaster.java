@@ -389,7 +389,26 @@ public interface FileSystemMaster extends Master {
   // UnexpectedAlluxioException is thrown because we want to keep backwards compatibility with
   // clients of earlier versions prior to 1.5. If a new exception is added, it will be converted
   // into RuntimeException on the client.
-  void free(AlluxioURI path, FreeContext context)
+  default void free(AlluxioURI path, FreeContext context)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
+      UnexpectedAlluxioException, IOException {
+    free(path, context, createJournalContext());
+  }
+
+  /**
+   * Frees or evicts all of the blocks of the file from alluxio storage. If the given file is a
+   * directory, and the 'recursive' flag is enabled, all descendant files will also be freed.
+   * <p>
+   * This operation requires users to have READ permission on the path.
+   *
+   * @param path the path to free method
+   * @param context context to free method
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the given path is invalid
+   * @throws UnexpectedAlluxioException if the file or directory can not be freed
+   */
+  void free(AlluxioURI path, FreeContext context, JournalContext journalContext)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException, IOException;
 

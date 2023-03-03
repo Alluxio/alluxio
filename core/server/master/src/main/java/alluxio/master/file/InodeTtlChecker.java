@@ -27,9 +27,11 @@ import alluxio.master.ProtobufUtils;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.journal.JournalContext;
@@ -66,7 +68,9 @@ final class InodeTtlChecker implements HeartbeatExecutor {
   @Override
   public void heartbeat() throws InterruptedException {
     Set<TtlBucket> expiredBuckets = mTtlBuckets.getExpiredBuckets(System.currentTimeMillis());
-    int journalCounter = 0;
+    // It is hard to measure the exact journal entries on processing each inode
+    // So this counts the processed inodes instead of exact journal entries
+    int processedFiles = 0;
     boolean success = false;
     try (JournalContext journalContext = mFileSystemMaster.createJournalContext()) {
       for (TtlBucket bucket : expiredBuckets) {
@@ -75,10 +79,16 @@ final class InodeTtlChecker implements HeartbeatExecutor {
           if (Thread.interrupted()) {
             throw new InterruptedException("InodeTtlChecker interrupted.");
           }
+
+          if (processedFiles > 100) {
+            // Manually flush to avoid stacking up too many journal entries
+            journalContext.flush();
+            processedFiles = 100;
+          }
           AlluxioURI path = null;
           try (LockedInodePath inodePath =
-                   mInodeTree.lockFullInodePath(
-                       inode.getId(), LockPattern.READ, NoopJournalContext.INSTANCE)
+               mInodeTree.lockFullInodePath(
+                   inode.getId(), LockPattern.READ, NoopJournalContext.INSTANCE)
           ) {
             path = inodePath.getUri();
           } catch (FileDoesNotExistException e) {
@@ -98,20 +108,19 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                   // public free method will lock the path, and check WRITE permission required at
                   // parent of file
                   if (inode.isDirectory()) {
-                    // TODO(jiacheng): no need to pass journal context into this
                     mFileSystemMaster.free(path, FreeContext
-                            .mergeFrom(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
+                        .mergeFrom(FreePOptions.newBuilder().setForced(true).setRecursive(true)), journalContext);
                   } else {
                     mFileSystemMaster.free(path,
-                            FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true)));
+                        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true)), journalContext);
                   }
                   // Reset state
                   mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()
-                          .setId(inode.getId())
-                          .setTtl(Constants.NO_TTL)
-                          .setTtlAction(ProtobufUtils.toProtobuf(TtlAction.DELETE))
-                          .build());
-                  journalCounter += 1;
+                      .setId(inode.getId())
+                      .setTtl(Constants.NO_TTL)
+                      .setTtlAction(ProtobufUtils.toProtobuf(TtlAction.DELETE))
+                      .build());
+                  processedFiles += 1;
                   mTtlBuckets.remove(inode);
                   break;
                 case DELETE:
@@ -119,41 +128,33 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                   // parent of file
                   if (inode.isDirectory()) {
                     mFileSystemMaster.delete(path,
-                            DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)), journalContext);
+                        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)), journalContext);
+                    processedFiles += ((InodeDirectory) inode).getChildCount() + 1;
                   } else {
                     mFileSystemMaster.delete(path, DeleteContext.defaults(), journalContext);
+                    processedFiles += 1;
                   }
-                  // TODO(jiacheng): how to count the journal entries in the queue, so we can flush on time?
-                  // TODO(jiacheng): move the flushing logic into the journal context
                   break;
                 case DELETE_ALLUXIO: // Default: DELETE_ALLUXIO
                   // public delete method will lock the path, and check WRITE permission required at
                   // parent of file
                   if (inode.isDirectory()) {
                     mFileSystemMaster.delete(path,
-                            DeleteContext.mergeFrom(DeletePOptions.newBuilder()
-                                    .setRecursive(true).setAlluxioOnly(true)), journalContext);
+                        DeleteContext.mergeFrom(DeletePOptions.newBuilder()
+                            .setRecursive(true).setAlluxioOnly(true)), journalContext);
+                    processedFiles += ((InodeDirectory) inode).getChildCount() + 1;
                   } else {
                     mFileSystemMaster.delete(path,
-                            DeleteContext.mergeFrom(DeletePOptions.newBuilder()
-                                    .setAlluxioOnly(true)), journalContext);
+                        DeleteContext.mergeFrom(DeletePOptions.newBuilder()
+                            .setAlluxioOnly(true)), journalContext);
+                    processedFiles += 1;
                   }
                   break;
                 default:
                   LOG.error("Unknown ttl action {}", ttlAction);
               }
-            } catch (FileDoesNotExistException e) {
-              e.printStackTrace();
-            } catch (UnexpectedAlluxioException e) {
-              e.printStackTrace();
-            } catch (AccessControlException e) {
-              e.printStackTrace();
-            } catch (DirectoryNotEmptyException e) {
-              e.printStackTrace();
-            } catch (IOException e) {
-              e.printStackTrace();
-            } catch (InvalidPathException e) {
-              e.printStackTrace();
+            } catch (Exception e) {
+              LOG.error("Exception trying to clean up {} for ttl check", inode, e);
             }
           }
         }
