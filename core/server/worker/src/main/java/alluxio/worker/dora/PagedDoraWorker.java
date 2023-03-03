@@ -71,6 +71,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -185,7 +186,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             Configuration.getConfiguration(Scope.WORKER));
         LOG.info("Worker registered with worker ID: {}", mWorkerId.get());
         String dbDir = Configuration.getString(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR);
-        mMetaStore = new RocksDBDoraMetaStore(dbDir);
+        Duration duration =
+            Configuration.getDuration(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_TTL);
+        long ttl = duration.isZero() || duration.isNegative() ? -1 : duration.getSeconds();
+
+        mMetaStore = new RocksDBDoraMetaStore(dbDir, ttl);
         break;
       } catch (IOException ioe) {
         if (!retry.attempt()) {
