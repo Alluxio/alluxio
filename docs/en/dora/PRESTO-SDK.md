@@ -8,15 +8,15 @@ priority: 3
 * Table of Contents
   {:toc}
 
-Presto provide an SDK way to combined with Alluxio.
+Presto provides an SDK way to combined with Alluxio.
 With the SDK, hot data that need to be scanned frequently
 can be cached locally on Presto Workers that execute the TableScan operator.
 
 ## Prerequisites
 - Setup Java for Java 8 Update 161 or higher (8u161+), 64-bit.
 - [Deploy Presto](https://prestodb.io/docs/current/installation/deployment.html).
-- Alluxio has been set up and is running.
-- Make sure that the Alluxio client jar that provides the SDK is available. This Alluxio client jar file can be found at `/<PATH_TO_ALLUXIO>/client/alluxio-2.9.1-client.jar` in the tarball downloaded from Alluxio download page.
+- Alluxio has been set up and is running following [the deployment guide here](https://github.com/Alluxio/alluxio/blob/dora/docs/en/Deploy-Alluxio-Cluster.md).
+- Make sure that the Alluxio client jar that provides the SDK is available. This Alluxio client jar file can be found at `/<PATH_TO_ALLUXIO>/client/alluxio-${VERSION}-client.jar` in the tarball downloaded from Alluxio download page.
 - Make sure that Hive Metastore is running to serve metadata information of Hive tables. The default port of Hive Metastore is `9083`. Executing `lsof -i:9083` can check whether the Hive Metastore process exists or not.
 
 ## Basic Setup
