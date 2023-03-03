@@ -68,10 +68,10 @@ public class BlockLocationUtils {
    */
   public static BlockLocation getCached(BlockLocation blockLocation) {
     Preconditions.checkState(VALID_MEDIUM_TYPE_VALUES.contains(blockLocation.getTier()),
-        "TierAlias must be one of the following MEM, HDD and SSD but got %s",
+        "TierAlias must be one of {MEM, HDD and SSD} but got %s",
         blockLocation.getTier());
     Preconditions.checkState(VALID_MEDIUM_TYPE_VALUES.contains(blockLocation.getMediumType()),
-        "MediumType must be one of the following MEM, HDD and SSD but got %s",
+        "MediumType must be one of {MEM, HDD and SSD} but got %s",
         blockLocation.getMediumType());
     BLOCK_LOCATION_CACHE.add(blockLocation);
     return BLOCK_LOCATION_CACHE.getFirstByField(OBJECT_INDEX, blockLocation);
