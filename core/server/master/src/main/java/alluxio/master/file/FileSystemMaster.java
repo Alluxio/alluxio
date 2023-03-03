@@ -627,7 +627,7 @@ public interface FileSystemMaster extends Master {
   /**
    * @return the list of thread identifiers that are waiting and holding the state lock
    */
-  List<String> getStateLockSharedWaitersAndHolders();
+  Collection<String> getStateLockSharedWaitersAndHolders();
 
   /**
    * Mark a path as needed synchronization with the UFS, when this path or any

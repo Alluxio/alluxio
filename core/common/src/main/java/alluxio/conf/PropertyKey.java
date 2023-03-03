@@ -3310,6 +3310,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "if this property is true. This property is available since 1.7.1")
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_STATE_LOCK_ERROR_THRESHOLD =
+      intBuilder(Name.MASTER_STATE_LOCK_ERROR_THRESHOLD)
+          .setDefaultValue(20)
+          .setDescription("Used to trace and debug state lock issues. When a thread recursively "
+              + "acquires the state lock more than threshold, log an error for further debugging.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
       stringBuilder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS)
           .setDefaultValue(Constants.MEDIUM_MEM)
@@ -8101,6 +8109,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.skip.root.acl.check";
     public static final String MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
         "alluxio.master.startup.block.integrity.check.enabled";
+    public static final String MASTER_STATE_LOCK_ERROR_THRESHOLD =
+        "alluxio.master.state.lock.error.threshold";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
         "alluxio.master.tieredstore.global.level0.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =
