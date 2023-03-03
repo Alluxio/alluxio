@@ -45,6 +45,7 @@ import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.master.journal.JournalContext;
 import alluxio.metrics.TimeSeries;
 import alluxio.security.authorization.AclEntry;
 import alluxio.underfs.UfsMode;
@@ -298,7 +299,14 @@ public interface FileSystemMaster extends Master {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  void delete(AlluxioURI path, DeleteContext context)
+  default void delete(AlluxioURI path, DeleteContext context)
+          throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
+          InvalidPathException, AccessControlException {
+    delete(path, context, createJournalContext());
+  }
+
+
+  void delete(AlluxioURI path, DeleteContext context, JournalContext journalContext)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException;
 

@@ -2067,7 +2067,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void delete(AlluxioURI path, DeleteContext context)
+  public void delete(AlluxioURI path, DeleteContext context, JournalContext journalContext)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException {
     if (isOperationComplete(context)) {
@@ -2076,7 +2076,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       return;
     }
     Metrics.DELETE_PATHS_OPS.inc();
-    try (RpcContext rpcContext = createRpcContext(context);
+    try (RpcContext rpcContext = createRpcContext(context, journalContext);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("delete", path, null, null)) {
 
@@ -3185,6 +3185,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       UnexpectedAlluxioException, IOException {
     Metrics.FREE_FILE_OPS.inc();
     // No need to syncMetadata before free.
+    // TODO(jiacheng): no need to createRpcContext and only createJournalContext in freeInternal if needed
     try (RpcContext rpcContext = createRpcContext(context);
          LockedInodePath inodePath =
              mInodeTree
@@ -3197,6 +3198,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         auditContext.setAllowed(false);
         throw e;
       }
+      // TODO(jiacheng): actually freeInternal only writes a journal entry if it's forced free on a pinned file
       freeInternal(rpcContext, inodePath, context);
       auditContext.setSucceeded(true);
     }
@@ -5325,10 +5327,17 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @return a context for executing an RPC
    */
   @VisibleForTesting
+  // TODO(jiacheng): where are we unknowningly creating RPC contexts?
   public RpcContext createRpcContext(OperationContext operationContext)
       throws UnavailableException {
     return new RpcContext(createBlockDeletionContext(), createJournalContext(),
         operationContext.withTracker(mStateLockCallTracker));
+  }
+
+  @VisibleForTesting
+  public RpcContext createRpcContext(OperationContext operationContext, JournalContext journalContext) {
+    return new RpcContext(createBlockDeletionContext(), journalContext,
+            operationContext.withTracker(mStateLockCallTracker));
   }
 
   private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
