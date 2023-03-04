@@ -302,7 +302,9 @@ public interface FileSystemMaster extends Master {
   default void delete(AlluxioURI path, DeleteContext context)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException {
-    delete(path, context, createJournalContext());
+    try (JournalContext journalContext = createJournalContext()) {
+      delete(path, context, journalContext);
+    }
   }
 
   /**
@@ -404,7 +406,9 @@ public interface FileSystemMaster extends Master {
   default void free(AlluxioURI path, FreeContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException, IOException {
-    free(path, context, createJournalContext());
+    try (JournalContext journalContext = createJournalContext()) {
+      free(path, context, journalContext);
+    }
   }
 
   /**
