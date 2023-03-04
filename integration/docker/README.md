@@ -23,7 +23,7 @@ services along with Alluxio.
 
 To build the development image from the default remote url, run
 ```console
-$ docker build -t alluxio/alluxio-dev -f Dockerfile-dev .
+$ make alluxio
 ```
 
 To build with a local Alluxio tarball, specify the `ALLUXIO_TARBALL` build argument
@@ -47,9 +47,7 @@ with `--build-arg ALLUXIO_USERNAME=`, `--build-arg ALLUXIO_GROUP=`, etc. For exa
 if you want to use user `alluxio2` with uid `1001` and group `alluxio2` with gid `1001`, run the following command:
 
 ```console
-$ docker build -t alluxio/alluxio:customizedUser \
---build-arg ALLUXIO_USERNAME=alluxio2 --build-arg ALLUXIO_UID=1001 \
---build-arg ALLUXIO_GROUP=alluxio2 --build-arg ALLUXIO_GID=1001 .
+$ make customizedUser-arg
 ```
 
 To use a customized user/group in the development image,
@@ -64,7 +62,7 @@ FROM alluxio/alluxio:customizedUser
 and run
 
 ```console
-$ docker build -t alluxio/alluxio-dev:customizedUser -f Dockerfile-dev .
+$ make customizedUser
 ```
 
 ## Running docker image
@@ -90,8 +88,7 @@ There are a couple extra arguments required to run the docker image with FUSE su
 to launch a standalone Fuse container:
 
 ```console
-$ docker run -e ALLUXIO_MASTER_HOSTNAME=alluxio-master \
---cap-add SYS_ADMIN --device /dev/fuse alluxio/alluxio fuse --fuse-opts=allow_other
+$ make fuse
 ```
 
 Note: running FUSE in docker requires adding
