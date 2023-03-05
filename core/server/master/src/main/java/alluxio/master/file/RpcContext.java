@@ -39,12 +39,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class RpcContext implements Closeable, Supplier<JournalContext> {
   public static final RpcContext NOOP = new RpcContext(NoopBlockDeletionContext.INSTANCE,
-      NoopJournalContext.INSTANCE, new InternalOperationContext());
+      NoopJournalContext.INSTANCE, new InternalOperationContext(), true);
 
   @Nullable
   private final BlockDeletionContext mBlockDeletionContext;
   private final JournalContext mJournalContext;
   private final OperationContext mOperationContext;
+  private final boolean mFlushJournal;
 
   // Used during close to keep track of thrown exceptions.
   private Throwable mThrown = null;
@@ -59,9 +60,15 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
    */
   public RpcContext(BlockDeletionContext blockDeleter, JournalContext journalContext,
       OperationContext operationContext) {
+    this(blockDeleter, journalContext, operationContext, true);
+  }
+
+  public RpcContext(BlockDeletionContext blockDeleter, JournalContext journalContext,
+      OperationContext operationContext, boolean flushJournal) {
     mBlockDeletionContext = blockDeleter;
     mJournalContext = journalContext;
     mOperationContext = operationContext;
+    mFlushJournal = flushJournal;
   }
 
   /**
@@ -126,7 +133,10 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
     // JournalContext is closed before block deletion context so that file system master changes
     // are written before block master changes. If a failure occurs between deleting an inode and
     // remove its blocks, it's better to have an orphaned block than an inode with a missing block.
-    closeQuietly(mJournalContext);
+    if (mFlushJournal) {
+      // Close the journal context to reclaim resource and flush journal
+      closeQuietly(mJournalContext);
+    } // Otherwise rely on the caller to close and flush later
     closeQuietly(mBlockDeletionContext);
 
     if (mThrown != null) {

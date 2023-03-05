@@ -2076,7 +2076,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       return;
     }
     Metrics.DELETE_PATHS_OPS.inc();
-    try (RpcContext rpcContext = createRpcContext(context, journalContext);
+    try (RpcContext rpcContext = createRpcContextAsyncJournal(context, journalContext);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("delete", path, null, null)) {
 
@@ -3185,7 +3185,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       UnexpectedAlluxioException, IOException {
     Metrics.FREE_FILE_OPS.inc();
     // No need to syncMetadata before free.
-    try (RpcContext rpcContext = createRpcContext(context, journalContext);
+    try (RpcContext rpcContext = createRpcContextAsyncJournal(context, journalContext);
          LockedInodePath inodePath =
              mInodeTree
                  .lockFullInodePath(path, LockPattern.WRITE_INODE, rpcContext.getJournalContext());
@@ -5337,10 +5337,12 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @return a context for executing an RPC
    */
   @VisibleForTesting
-  public RpcContext createRpcContext(
+  public RpcContext createRpcContextAsyncJournal(
       OperationContext operationContext, JournalContext journalContext) {
+    // The journal context is managed externally
+    // So the RpcContext should not close it at the end of lifecycle
     return new RpcContext(createBlockDeletionContext(), journalContext,
-        operationContext.withTracker(mStateLockCallTracker));
+        operationContext.withTracker(mStateLockCallTracker), false);
   }
 
   private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
