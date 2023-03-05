@@ -63,6 +63,16 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
     this(blockDeleter, journalContext, operationContext, true);
   }
 
+  /**
+   * Creates an {@link RpcContext}. This class aggregates different contexts used over the course of
+   * an RPC, and makes sure they are closed in the right order when the RPC is finished.
+   *
+   * @param blockDeleter block deletion context
+   * @param journalContext journal context
+   * @param operationContext the operation context
+   * @param flushJournal if false, the life cycle of JournalContext is managed separately, journal
+   *                     entries will not be flushed when this RpcContext closes
+   */
   public RpcContext(BlockDeletionContext blockDeleter, JournalContext journalContext,
       OperationContext operationContext, boolean flushJournal) {
     mBlockDeletionContext = blockDeleter;
