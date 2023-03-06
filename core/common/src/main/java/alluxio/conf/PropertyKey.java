@@ -5210,8 +5210,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED =
       booleanBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("Whether or not to enable automatic cleanup of long-running "
+          .setDefaultValue(false)
+          .setDescription("Enable automatic cleanup of long-running "
               + "multipart uploads.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
@@ -5308,7 +5308,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey PROXY_S3_V2_VERSION_ENABLED =
           booleanBuilder(Name.PROXY_S3_V2_VERSION_ENABLED)
-                  .setDefaultValue(false)
+                  .setDefaultValue(true)
                   .setDescription("(Experimental) V2, an optimized version of "
                           + "Alluxio s3 proxy service.")
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
