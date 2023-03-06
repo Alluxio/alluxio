@@ -44,6 +44,7 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.job.FileIterable;
 import alluxio.master.job.LoadJob;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.scheduler.MasterWorkerProvider;
 import alluxio.master.scheduler.Scheduler;
 import alluxio.proto.journal.Job;
 import alluxio.resource.CloseableResource;
@@ -86,7 +87,9 @@ public final class SchedulerTest {
     FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     CloseableResource<BlockWorkerClient> blockWorkerClient = mock(CloseableResource.class);
-    Scheduler scheduler = new Scheduler(fileSystemMaster, fileSystemContext);
+    MasterWorkerProvider workerProvider =
+        new MasterWorkerProvider(fileSystemMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(fileSystemMaster, workerProvider);
     when(fileSystemMaster.getWorkerInfoList())
         .thenReturn(ImmutableList.of(
             new WorkerInfo().setId(1).setAddress(
@@ -126,7 +129,9 @@ public final class SchedulerTest {
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
-    Scheduler scheduler = new Scheduler(fileSystemMaster, fileSystemContext);
+    MasterWorkerProvider workerProvider =
+        new MasterWorkerProvider(fileSystemMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(fileSystemMaster, workerProvider);
     FileIterable files =
         new FileIterable(fileSystemMaster, validLoadPath, Optional.of("user"), false,
             LoadJob.QUALIFIED_FILE_FILTER);
@@ -168,7 +173,9 @@ public final class SchedulerTest {
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
-    Scheduler scheduler = new Scheduler(fileSystemMaster, fileSystemContext);
+    MasterWorkerProvider workerProvider =
+        new MasterWorkerProvider(fileSystemMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(fileSystemMaster, workerProvider);
     FileIterable files =
         new FileIterable(fileSystemMaster, validLoadPath, Optional.of("user"), false,
             LoadJob.QUALIFIED_FILE_FILTER);
@@ -206,7 +213,9 @@ public final class SchedulerTest {
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
-    Scheduler scheduler = new Scheduler(fileSystemMaster, fileSystemContext);
+    MasterWorkerProvider workerProvider =
+        new MasterWorkerProvider(fileSystemMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(fileSystemMaster, workerProvider);
     IntStream.range(0, 100).forEach(
         i -> {
           String path = String.format("/path/to/load/%d", i);
@@ -274,8 +283,9 @@ public final class SchedulerTest {
       LoadRequest request = invocation.getArgument(0);
       return buildResponseFuture(request, iteration);
     });
-
-    Scheduler scheduler = new Scheduler(fileSystemMaster, fileSystemContext);
+    MasterWorkerProvider workerProvider =
+        new MasterWorkerProvider(fileSystemMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(fileSystemMaster, workerProvider);
     String path = "test";
     FileIterable files = new FileIterable(fileSystemMaster, path, Optional.of("user"), false,
         LoadJob.QUALIFIED_FILE_FILTER);
@@ -377,7 +387,9 @@ public final class SchedulerTest {
     FileIterable files =
         new FileIterable(fileSystemMaster, "test", Optional.of("user"), false,
             LoadJob.QUALIFIED_FILE_FILTER);
-    Scheduler scheduler = new Scheduler(fileSystemMaster, fileSystemContext);
+    MasterWorkerProvider workerProvider =
+        new MasterWorkerProvider(fileSystemMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(fileSystemMaster, workerProvider);
     for (int i = 0; i < 100; i++) {
       LoadJob loadJob = new LoadJob("test" + i, "user", OptionalLong.of(1000), files);
       scheduler.submitJob(loadJob);
@@ -416,7 +428,9 @@ public final class SchedulerTest {
         // Retryable exception, second load job should succeed
         .thenThrow(new ResourceExhaustedRuntimeException("test", true))
         .thenReturn(fileInfos);
-    Scheduler scheduler = new Scheduler(fileSystemMaster, fileSystemContext);
+    MasterWorkerProvider workerProvider =
+        new MasterWorkerProvider(fileSystemMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(fileSystemMaster, workerProvider);
     scheduler.start();
     FileIterable files =
         new FileIterable(fileSystemMaster, "test", Optional.of("user"), false,
@@ -451,7 +465,9 @@ public final class SchedulerTest {
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
-    Scheduler scheduler = new Scheduler(fileSystemMaster, fileSystemContext);
+    MasterWorkerProvider workerProvider =
+        new MasterWorkerProvider(fileSystemMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(fileSystemMaster, workerProvider);
     scheduler.start();
     IntStream
         .range(0, 5)

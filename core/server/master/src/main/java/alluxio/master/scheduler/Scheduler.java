@@ -35,8 +35,10 @@ import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.scheduler.job.Job;
 import alluxio.job.JobDescription;
+import alluxio.scheduler.job.JobMetaStore;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
+import alluxio.scheduler.job.WorkerProvider;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.wire.WorkerInfo;
@@ -48,7 +50,6 @@ import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -71,32 +72,25 @@ public final class Scheduler implements Journaled {
       PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME);
   private static final int EXECUTOR_SHUTDOWN_MS = 10 * Constants.SECOND_MS;
   private final FileSystemMaster mFileSystemMaster;
-  private final FileSystemContext mContext;
   private final Map<JobDescription, Job<?>>
       mExistingJobs = new ConcurrentHashMap<>();
   private final Map<Job<?>, Set<WorkerInfo>> mRunningTasks = new ConcurrentHashMap<>();
+  private final JobMetaStore mJobMetaStore;
   // initial thread in start method since we would stop and start thread when gainPrimacy
   private ScheduledExecutorService mSchedulerExecutor;
   private volatile boolean mRunning = false;
   private Map<WorkerInfo, CloseableResource<BlockWorkerClient>> mActiveWorkers = ImmutableMap.of();
+  private final WorkerProvider mWorkerProvider;
 
   /**
    * Constructor.
+   *
    * @param fileSystemMaster fileSystemMaster
+   * @param workerProvider   workerProvider
    */
-  public Scheduler(FileSystemMaster fileSystemMaster) {
-    this(fileSystemMaster, FileSystemContext.create());
-  }
-
-  /**
-   * Constructor.
-   * @param fileSystemMaster fileSystemMaster
-   * @param context fileSystemContext
-   */
-  @VisibleForTesting
-  public Scheduler(FileSystemMaster fileSystemMaster, FileSystemContext context) {
+  public Scheduler(FileSystemMaster fileSystemMaster, WorkerProvider workerProvider) {
     mFileSystemMaster = fileSystemMaster;
-    mContext = context;
+    mWorkerProvider = workerProvider;
   }
 
   /**
@@ -228,8 +222,8 @@ public final class Scheduler implements Journaled {
     try {
       try {
         // TODO(jianjian): need api for healthy worker instead
-        workerInfos = ImmutableSet.copyOf(mFileSystemMaster.getWorkerInfoList());
-      } catch (UnavailableException e) {
+        workerInfos = ImmutableSet.copyOf(mWorkerProvider.getWorkerInfos());
+      } catch (AlluxioRuntimeException e) {
         LOG.warn("Failed to get worker info, using existing worker infos of {} workers",
             mActiveWorkers.size());
         return;
@@ -248,8 +242,8 @@ public final class Scheduler implements Journaled {
         else {
           try {
             updatedWorkers.put(workerInfo,
-                mContext.acquireBlockWorkerClient(workerInfo.getAddress()));
-          } catch (IOException e) {
+                mWorkerProvider.getWorkerClient(workerInfo.getAddress()));
+          } catch (AlluxioRuntimeException e) {
             // skip the worker if we cannot obtain a client
           }
         }

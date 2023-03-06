@@ -20,6 +20,7 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.Server;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.client.job.JobMasterClientPool;
 import alluxio.clock.SystemClock;
@@ -121,6 +122,7 @@ import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metrics.TimeSeriesStore;
+import alluxio.master.scheduler.MasterWorkerProvider;
 import alluxio.master.scheduler.Scheduler;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
@@ -511,7 +513,9 @@ public class DefaultFileSystemMaster extends CoreMaster
     mSyncPrefetchExecutor.allowCoreThreadTimeOut(true);
     mSyncMetadataExecutor.allowCoreThreadTimeOut(true);
     mActiveSyncMetadataExecutor.allowCoreThreadTimeOut(true);
-    mScheduler = new Scheduler(this);
+    FileSystemContext schedulerFsContext = FileSystemContext.create();
+    mScheduler =
+        new Scheduler(this, new MasterWorkerProvider(this, schedulerFsContext));
 
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
