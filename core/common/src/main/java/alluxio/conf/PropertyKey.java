@@ -9594,9 +9594,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public Class<? extends Enum> getEnumType()
   {
-    checkState(mType == PropertyType.ENUM && mEnumType.isPresent(),
-        "PropertyKey %s is not of enum type", mName);
-    return mEnumType.get();
+//    checkState(mType == PropertyType.ENUM && mEnumType.isPresent(),
+//        "PropertyKey %s is not of enum type", mName);
+    if (mType == PropertyType.ENUM && mEnumType.isPresent()) {
+      return mEnumType.get();
+    } else {
+      throw new IllegalStateException(String.format("PropertyKey %s is not of enum type", mName));
+    }
   }
 
   /**

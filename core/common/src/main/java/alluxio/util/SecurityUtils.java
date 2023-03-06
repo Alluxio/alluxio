@@ -40,6 +40,7 @@ public final class SecurityUtils {
    * @param conf Alluxio configuration
    * @return true if security is enabled, false otherwise
    */
+  // TODO(jiacheng): fix all appearances
   public static boolean isSecurityEnabled(AlluxioConfiguration conf) {
     return isAuthenticationEnabled(conf) && isAuthorizationEnabled(conf);
   }
