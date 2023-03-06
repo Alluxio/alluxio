@@ -115,6 +115,7 @@ message CreateDirectoryPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 5;
   map<string, bytes> xattr = 6;
   optional XAttrPropagationStrategy xattrPropStrat = 7 [default = NEW_PATHS];
+  optional bool checkS3BucketPath = 8;
 }
 message CreateDirectoryPRequest {
   /** the path of the directory */
@@ -139,6 +140,7 @@ message CreateFilePOptions {
   map<string, bytes> xattr = 11;
   optional XAttrPropagationStrategy xattrPropStrat = 12 [default = NEW_PATHS];
   optional bool overwrite = 13;
+  optional bool checkS3BucketPath = 14;
 }
 message CreateFilePRequest {
   /** the path of the file */
