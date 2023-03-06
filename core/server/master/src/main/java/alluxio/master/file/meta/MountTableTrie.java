@@ -78,35 +78,36 @@ public final class MountTableTrie {
   /**
    * Adds a new mountPoint to MountTableRoot
    * @param mountPoint the given mountPoint
-   * @param inodeViews the given inodeViews
+   * @param pathInodes the given inodeViews
    */
-  protected void addMountPoint(String mountPoint, List<InodeView> inodeViews) {
-    Preconditions.checkState(!inodeViews.isEmpty(), "Mount point %s contains no inodes", mountPoint);
-    TrieNode<InodeView> node = mMountTableRoot.insert(inodeViews);
+  protected void addMountPoint(String mountPoint, List<InodeView> pathInodes) {
+    Preconditions.checkState(!pathInodes.isEmpty(),
+        "Mount point %s does not map to an inode", mountPoint);
+    TrieNode<InodeView> node = mMountTableRoot.insert(pathInodes);
     mMountPointTrieTable.put(node, mountPoint);
   }
 
   /**
    * Remove a TrieNode from MountTableTrie based on the lockedInodePath.
-   * @param inodes the target list of inodes
+   * @param pathInodes the target list of inodes
    */
-  protected void removeMountPoint(List<InodeView> inodes) {
-    Preconditions.checkArgument(inodes != null && !inodes.isEmpty());
+  protected void removeMountPoint(List<InodeView> pathInodes) {
+    Preconditions.checkArgument(pathInodes != null && !pathInodes.isEmpty());
     Preconditions.checkNotNull(mMountTableRoot);
     TrieNode<InodeView> trieNode =
-        mMountTableRoot.remove(inodes);
+        mMountTableRoot.remove(pathInodes);
     mMountPointTrieTable.remove(trieNode);
   }
 
   /**
    * Get the mount point of the given inodes.
-   * @param inodeViewList the target inodes
+   * @param pathInodes the target inodes
    * @return the lowest mountPoint of the given path
    */
-  protected String getMountPoint(List<InodeView> inodeViewList) {
+  protected String getMountPoint(List<InodeView> pathInodes) {
     Preconditions.checkNotNull(mMountTableRoot);
 
-    TrieNode<InodeView> res = mMountTableRoot.lowestMatchedTrieNode(inodeViewList,
+    TrieNode<InodeView> res = mMountTableRoot.lowestMatchedTrieNode(pathInodes,
         true, false);
     return mMountPointTrieTable.get(res);
   }
@@ -124,15 +125,15 @@ public final class MountTableTrie {
 
   /**
    * Finds all the mount point among the children TrieNodes of the given inodes.
-   * @param inodeViewList the target inodes
+   * @param pathInodes the target inodes
    * @param containsSelf true if the results can contain the TrieNode of the given path
    * @return the qualified children mount points of the target path
    */
-  private List<String> findChildrenMountPoints(List<InodeView> inodeViewList,
+  private List<String> findChildrenMountPoints(List<InodeView> pathInodes,
       boolean containsSelf) {
     Preconditions.checkNotNull(mMountTableRoot);
 
-    TrieNode<InodeView> trieNode = mMountTableRoot.lowestMatchedTrieNode(inodeViewList,
+    TrieNode<InodeView> trieNode = mMountTableRoot.lowestMatchedTrieNode(pathInodes,
         false, true);
     if (trieNode == null) {
       return Collections.emptyList();
@@ -147,14 +148,14 @@ public final class MountTableTrie {
 
   /**
    * Checks if the given inodes contains children paths that are mountPoint.
-   * @param inodeViewList the target inodes
+   * @param pathInodes the target inodes
    * @param containsSelf true if the search targets will include the given path
    * @return true if the target inodes contains at least one mountPoint
    */
-  protected boolean hasChildrenContainsMountPoints(List<InodeView> inodeViewList,
-                                                boolean containsSelf) {
+  protected boolean hasChildrenContainsMountPoints(
+      List<InodeView> pathInodes, boolean containsSelf) {
     Preconditions.checkNotNull(mMountTableRoot);
-    TrieNode<InodeView> trieNode = mMountTableRoot.lowestMatchedTrieNode(inodeViewList,
+    TrieNode<InodeView> trieNode = mMountTableRoot.lowestMatchedTrieNode(pathInodes,
         false, true);
     if (trieNode == null) {
       return false;
