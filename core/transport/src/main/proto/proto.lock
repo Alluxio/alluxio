@@ -2821,6 +2821,11 @@
                 "id": 6,
                 "name": "prefix",
                 "type": "string"
+              },
+              {
+                "id": 7,
+                "name": "endAt",
+                "type": "string"
               }
             ]
           },

@@ -95,27 +95,8 @@ class ListStatusPartial {
       if (partialOptions.isPresent()) {
         // use the startAfter option, since this is the first listing
         if (!partialOptions.get().getStartAfter().isEmpty()) {
-          String startAfter = partialOptions.get().getStartAfter();
-          if (startAfter.startsWith(AlluxioURI.SEPARATOR)) {
-            // this path starts from the root, so we must remove the prefix
-            String startAfterCheck = startAfter.substring(0,
-                Math.min(path.getPath().length(), startAfter.length()));
-            if (!path.getPath().startsWith(startAfterCheck)) {
-              throw new InvalidPathException(
-                  ExceptionMessage.START_AFTER_DOES_NOT_MATCH_PATH
-                      .getMessage(startAfter, path.getPath()));
-            }
-            startAfter = startAfter.substring(
-                Math.min(startAfter.length(), path.getPath().length()));
-          }
-          startAfter = startAfter.startsWith(AlluxioURI.SEPARATOR) ? startAfter
-                : AlluxioURI.SEPARATOR + startAfter;
-          String[] startAfterComponents = PathUtils.getPathComponents(
-                startAfter);
-          ArrayList<String> startAfterList = new ArrayList<>(startAfterComponents.length - 1);
-          startAfterList.addAll(Arrays.asList(startAfterComponents)
-              .subList(1, startAfterComponents.length));
-          return startAfterList;
+          return getTrailingPathComponents(
+              path, partialOptions.get().getStartAfter(), "StartAfter");
         }
       }
       // otherwise, start from the beginning of the listing
@@ -129,6 +110,57 @@ class ListStatusPartial {
     ArrayList<String> partialPath = new ArrayList<>(pathNames.size() - rootPath.size());
     partialPath.addAll(pathNames.subList(rootPath.size(), pathNames.size()));
     return partialPath;
+  }
+
+  /**
+   * If this is a partial listing, this will compute the path components where to stop the listing.
+   *
+   * @param path the root listing path
+   * @param context the context of the operation
+   * @return the path components where the listing should stop at
+   */
+  static List<String> getPartialListingEndingPaths(
+      AlluxioURI path, ListStatusContext context)
+      throws InvalidPathException {
+    Optional<ListStatusPartialPOptions.Builder> partialOptions = context.getPartialOptions();
+    if (partialOptions.isPresent()) {
+      // use the startAfter option, since this is the first listing
+      if (!partialOptions.get().getEndAt().isEmpty()) {
+        if (partialOptions.get().getEndAt().equals(AlluxioURI.SEPARATOR)) {
+          return Collections.singletonList("");
+        }
+        return getTrailingPathComponents(
+            path, partialOptions.get().getEndAt(), "EndAt");
+      }
+    }
+    // otherwise, start from the beginning of the listing
+    return Collections.emptyList();
+  }
+
+  private static List<String> getTrailingPathComponents(
+      AlluxioURI rootPath, String pathStringToProcess, String pathType
+  )
+      throws InvalidPathException {
+    if (pathStringToProcess.startsWith(AlluxioURI.SEPARATOR)) {
+      // this path starts from the root, so we must remove the prefix
+      String startAfterCheck = pathStringToProcess.substring(0,
+          Math.min(rootPath.getPath().length(), pathStringToProcess.length()));
+      if (!rootPath.getPath().startsWith(startAfterCheck)) {
+        throw new InvalidPathException(
+            ExceptionMessage.PARTIAL_LISTING_PATH_DOES_NOT_MATCH_PATH
+                .getMessage(pathType, pathStringToProcess, rootPath.getPath()));
+      }
+      pathStringToProcess = pathStringToProcess.substring(
+          Math.min(pathStringToProcess.length(), rootPath.getPath().length()));
+    }
+    pathStringToProcess = pathStringToProcess.startsWith(AlluxioURI.SEPARATOR) ? pathStringToProcess
+        : AlluxioURI.SEPARATOR + pathStringToProcess;
+    String[] pathComponents = PathUtils.getPathComponents(
+        pathStringToProcess);
+    ArrayList<String> pathComponentList = new ArrayList<>(pathComponents.length - 1);
+    pathComponentList.addAll(Arrays.asList(pathComponents)
+        .subList(1, pathComponents.length));
+    return pathComponentList;
   }
 
   /**
