@@ -67,7 +67,7 @@ public class DoraCacheClient {
    * @param ufsOptions
    * @return the input stream
    */
-  public DoraCacheFileInStream getInStream(URIStatus status,
+  public MultiChunkFileInStream getInStream(URIStatus status,
                                            Protocol.OpenUfsBlockOptions ufsOptions) {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getPath());
     // Construct the partial read request
@@ -77,7 +77,7 @@ public class DoraCacheClient {
     } else {
       readerFactory = createGrpcDataReader(workerNetAddress, ufsOptions);
     }
-    return new DoraCacheFileInStream(readerFactory, status.getLength());
+    return new MultiChunkFileInStream(readerFactory, status.getLength());
   }
 
   private GrpcDataReader.Factory createGrpcDataReader(
