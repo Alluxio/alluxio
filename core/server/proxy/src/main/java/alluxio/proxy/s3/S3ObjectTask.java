@@ -319,7 +319,7 @@ public class S3ObjectTask extends S3BaseTask {
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, mHandler.getBucket(), mHandler.getObject())) {
           try {
-            if (Configuration.getBoolean(PropertyKey.PROXY_AUDIT_LOGGING_ENABLED)) {
+            if (Configuration.getBoolean(PropertyKey.PROXY_S3_REDIRECT_IO_ENABLED)) {
               return redirectGetRequest(userFs, objectPath, range);
             }
             URIStatus status = userFs.getStatus(objectUri);
