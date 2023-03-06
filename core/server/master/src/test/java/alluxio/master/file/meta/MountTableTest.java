@@ -60,7 +60,7 @@ public final class MountTableTest extends BaseInodeLockingTest {
         new MountInfo(new AlluxioURI(MountTable.ROOT), new AlluxioURI(ROOT_UFS),
             IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()),
         Clock.systemUTC());
-    mMountTable.buildMountTableTrie(mRootDir);
+    mMountTable.buildMountTableTrieFromRoot(mRootDir);
   }
 
   /**
@@ -152,13 +152,13 @@ public final class MountTableTest extends BaseInodeLockingTest {
     Assert.assertNull(mMountTable.reverseResolve(new AlluxioURI("/foobar")));
 
     // Test getMountPoint()
-    Assert.assertEquals("/mnt/foo", mMountTable.getMountPoint(path1));
-    Assert.assertEquals("/mnt/foo", mMountTable.getMountPoint(tmpInodePath2));
-    Assert.assertEquals("/mnt/bar", mMountTable.getMountPoint(path2));
-    Assert.assertEquals("/mnt/bar", mMountTable.getMountPoint(tmpInodePath4));
-    Assert.assertEquals("/mnt/bar", mMountTable.getMountPoint(tmpInodePath5));
-    Assert.assertEquals("/", mMountTable.getMountPoint(tmpInodePath8));
-    Assert.assertEquals("/", mMountTable.getMountPoint(tmpInodePath7));
+    Assert.assertEquals("/mnt/foo", mMountTable.resolveMountPointTrie(path1));
+    Assert.assertEquals("/mnt/foo", mMountTable.resolveMountPointTrie(tmpInodePath2));
+    Assert.assertEquals("/mnt/bar", mMountTable.resolveMountPointTrie(path2));
+    Assert.assertEquals("/mnt/bar", mMountTable.resolveMountPointTrie(tmpInodePath4));
+    Assert.assertEquals("/mnt/bar", mMountTable.resolveMountPointTrie(tmpInodePath5));
+    Assert.assertEquals("/", mMountTable.resolveMountPointTrie(tmpInodePath8));
+    Assert.assertEquals("/", mMountTable.resolveMountPointTrie(tmpInodePath7));
 
     // Test isMountPoint()
     Assert.assertTrue(mMountTable.isMountPoint(new AlluxioURI("/")));
@@ -236,13 +236,13 @@ public final class MountTableTest extends BaseInodeLockingTest {
     Assert.assertEquals(IdUtils.ROOT_MOUNT_ID, res7.getMountId());
 
     // Test getMountPoint()
-    Assert.assertEquals("/mnt/foo", mMountTable.getMountPoint(path1));
-    Assert.assertEquals("/mnt/foo", mMountTable.getMountPoint(tmpInodePath1));
-    Assert.assertEquals("/mnt/bar", mMountTable.getMountPoint(path2));
-    Assert.assertEquals("/mnt/bar", mMountTable.getMountPoint(tmpInodePath2));
-    Assert.assertEquals("/mnt/bar/baz", mMountTable.getMountPoint(tmpInodePath3));
-    Assert.assertEquals("/", mMountTable.getMountPoint(tmpInodePath6));
-    Assert.assertEquals("/", mMountTable.getMountPoint(tmpInodePath5));
+    Assert.assertEquals("/mnt/foo", mMountTable.resolveMountPointTrie(path1));
+    Assert.assertEquals("/mnt/foo", mMountTable.resolveMountPointTrie(tmpInodePath1));
+    Assert.assertEquals("/mnt/bar", mMountTable.resolveMountPointTrie(path2));
+    Assert.assertEquals("/mnt/bar", mMountTable.resolveMountPointTrie(tmpInodePath2));
+    Assert.assertEquals("/mnt/bar/baz", mMountTable.resolveMountPointTrie(tmpInodePath3));
+    Assert.assertEquals("/", mMountTable.resolveMountPointTrie(tmpInodePath6));
+    Assert.assertEquals("/", mMountTable.resolveMountPointTrie(tmpInodePath5));
 
     // Test isMountPoint()
     Assert.assertTrue(mMountTable.isMountPoint(new AlluxioURI("/")));
@@ -314,17 +314,17 @@ public final class MountTableTest extends BaseInodeLockingTest {
 
     // Test getMountPoint()
     Assert.assertEquals("/mnt/foo",
-        mMountTable.getMountPoint(path1));
+        mMountTable.resolveMountPointTrie(path1));
     Assert.assertEquals("/mnt/bar",
-        mMountTable.getMountPoint(path2));
+        mMountTable.resolveMountPointTrie(path2));
     Assert.assertEquals("/mnt/bar",
-        mMountTable.getMountPoint(tmpLockedPath1));
+        mMountTable.resolveMountPointTrie(tmpLockedPath1));
     Assert.assertEquals("/mnt/bar/baz",
-        mMountTable.getMountPoint(path3));
+        mMountTable.resolveMountPointTrie(path3));
     Assert.assertEquals("/",
-        mMountTable.getMountPoint(tmpLockedPath2));
+        mMountTable.resolveMountPointTrie(tmpLockedPath2));
     Assert.assertEquals("/",
-        mMountTable.getMountPoint(tmpLockedPath3));
+        mMountTable.resolveMountPointTrie(tmpLockedPath3));
 
     // Test isMountPoint()
     Assert.assertTrue(mMountTable.isMountPoint(new AlluxioURI("alluxio://localhost:1234/")));

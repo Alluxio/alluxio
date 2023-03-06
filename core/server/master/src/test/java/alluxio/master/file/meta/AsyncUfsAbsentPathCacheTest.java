@@ -82,7 +82,7 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
         Clock.systemUTC());
     mUfsAbsentPathCache = new AsyncUfsAbsentPathCache(mMountTable, THREADS,
         Clock.systemUTC());
-    mMountTable.buildMountTableTrie(mRootDir);
+    mMountTable.buildMountTableTrieFromRoot(mRootDir);
 
       mMountId = IdUtils.getRandomNonNegativeLong();
       mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),

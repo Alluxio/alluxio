@@ -57,7 +57,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
@@ -86,6 +85,7 @@ public final class MountTable implements DelegatingJournaled {
   private final UfsManager mUfsManager;
 
   /** Organizes all Alluxio mount points in a Trie structure. */
+  @GuardedBy("mReadLock,mWriteLock")
   private final MountTableTrie mMountTableTrie = new MountTableTrie();
 
   /**
@@ -114,10 +114,7 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * Mounts the given UFS path at the given Alluxio path. The Alluxio path should not be nested
-   * under an existing mount point. It will first check the state of MountTableTrie and the
-   * lockedPath, and call
-   * {@link MountTable#add(Supplier, LockedInodePath, AlluxioURI, long, MountPOptions)}.
+   * Mounts the given UFS path at the given Alluxio path.
    *
    * @param journalContext the journal context
    * @param alluxioInodePath an Alluxio Locked Path
@@ -327,9 +324,8 @@ public final class MountTable implements DelegatingJournaled {
    *
    * @param alluxioLockedInodePath an Alluxio LockedInodePath
    * @return mount point the given Alluxio path is nested under
-   * @throws InvalidPathException if an invalid path is encountered
    */
-  public String getMountPoint(LockedInodePath alluxioLockedInodePath) throws InvalidPathException {
+  public String resolveMountPointTrie(LockedInodePath alluxioLockedInodePath) {
     try (LockResource r = new LockResource(mReadLock)) {
       return mMountTableTrie
           .getMountPoint(alluxioLockedInodePath.getInodeViewList());
@@ -344,7 +340,8 @@ public final class MountTable implements DelegatingJournaled {
    * @return the mountpoint if given uri
    * @throws InvalidPathException
    */
-  public String getMountPoint(AlluxioURI uri) throws InvalidPathException {
+  // TODO(jiacheng): try to get rid of all usage of this
+  public String resolveMountPointString(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
     String lastMount = ROOT;
     try (LockResource r = new LockResource(mReadLock)) {
@@ -381,6 +378,7 @@ public final class MountTable implements DelegatingJournaled {
    * @param inodeTree the rootInode set in MountTableTrie
    */
   public void buildMountTableTrie(InodeTree inodeTree) throws Exception {
+    // inodeTree will be validated in recoverFromInodeTreeAndMountPoints()
     try (LockResource r = new LockResource(mWriteLock)) {
       mMountTableTrie.recoverFromInodeTreeAndMountPoints(inodeTree,
           mState.getMountTable().keySet());
@@ -393,8 +391,8 @@ public final class MountTable implements DelegatingJournaled {
    * context.
    * @param rootInode the rootInode set in MountTableTrie
    */
-  public void buildMountTableTrie(InodeView rootInode) {
-    Preconditions.checkNotNull(rootInode, "Root inode connot be null");
+  public void buildMountTableTrieFromRoot(InodeView rootInode) {
+    Preconditions.checkNotNull(rootInode, "Root inode cannot be null");
     try (LockResource r = new LockResource(mWriteLock)) {
       mMountTableTrie.setRootInode(rootInode);
     }
@@ -449,6 +447,7 @@ public final class MountTable implements DelegatingJournaled {
   private static AlluxioURI reverseResolve(AlluxioURI mountPoint,
       AlluxioURI ufsUriMountPoint, AlluxioURI ufsUri)
       throws InvalidPathException {
+    // TODO(jiacheng): can this be improved?
     String relativePath = PathUtils.subtractPaths(
         PathUtils.normalizePath(ufsUri.getPath(), AlluxioURI.SEPARATOR),
         PathUtils.normalizePath(ufsUriMountPoint.getPath(), AlluxioURI.SEPARATOR));
@@ -503,7 +502,7 @@ public final class MountTable implements DelegatingJournaled {
   /**
    * Resolves the given Alluxio path. If the given Alluxio path is nested under a mount point, the
    * resolution maps the Alluxio path to the corresponding UFS path.
-   * If the full path exists, the search will utilize the `MountTable` and therefore be fast.
+   * If the full path exists, the search will utilize the `MountTableTrie` and therefore be fast.
    * Otherwise, the search is based on the URI string and be slower.
    *
    * @param alluxioLockedInodePath an Alluxio LockedInodePath
@@ -530,7 +529,7 @@ public final class MountTable implements DelegatingJournaled {
     return resolve(uri, Collections.emptyList());
   }
 
-  private Resolution resolve(AlluxioURI uri, List<InodeView> inodeViewList)
+  public Resolution resolve(AlluxioURI uri, List<InodeView> inodeViewList)
       throws InvalidPathException {
     try (LockResource r = new LockResource(mReadLock)) {
       String path = uri.getPath();
@@ -541,7 +540,7 @@ public final class MountTable implements DelegatingJournaled {
       if (!inodeViewList.isEmpty()) {
         mountPoint = mMountTableTrie.getMountPoint(inodeViewList);
       } else {
-        mountPoint = getMountPoint(uri);
+        mountPoint = resolveMountPointString(uri);
       }
       if (mountPoint != null) {
         MountInfo info = mState.getMountTable().get(mountPoint);
@@ -579,7 +578,7 @@ public final class MountTable implements DelegatingJournaled {
       throws InvalidPathException, AccessControlException {
     try (LockResource r = new LockResource(mReadLock)) {
       // This will re-acquire the read lock, but that is allowed.
-      String mountPoint = getMountPoint(alluxioLockedInodePath);
+      String mountPoint = resolveMountPointTrie(alluxioLockedInodePath);
       MountInfo mountInfo = mState.getMountTable().get(mountPoint);
       if (mountInfo.getOptions().getReadOnly()) {
         throw new AccessControlException(ExceptionMessage.MOUNT_READONLY,
@@ -615,7 +614,7 @@ public final class MountTable implements DelegatingJournaled {
       LOG.debug("Resolving {}", path);
       PathUtils.validatePath(uri.getPath());
       // This will re-acquire the read lock, but that is allowed.
-      String mountPoint = getMountPoint(uri);
+      String mountPoint = resolveMountPointString(uri);
       if (mountPoint != null) {
         return mState.getMountTable().get(mountPoint);
       }
@@ -830,6 +829,7 @@ public final class MountTable implements DelegatingJournaled {
 
     @Override
     public CloseableIterator<JournalEntry> getJournalEntryIterator() {
+      // TODO(jiacheng): is this okay? need a defensive copy?
       try (LockResource r = new LockResource(mReadLock)) {
         return getJournalEntryIteratorInternal();
       }

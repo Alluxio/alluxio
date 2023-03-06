@@ -139,7 +139,7 @@ public class MountTableBench {
               IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()),
               Clock.systemUTC());
       // enable the MountTableTrie for microbenchmarking
-      mMountTable.buildMountTableTrie(mRootDir);
+      mMountTable.buildMountTableTrieFromRoot(mRootDir);
 
       // create /mnt/depth
       mDirDepth = createInodeDir(mDirMnt, "depth");
@@ -203,12 +203,12 @@ public class MountTableBench {
 
   @Benchmark @BenchmarkMode(Mode.Throughput)
   public void testWidthGetMountPoint(BenchState state) throws InvalidPathException {
-    state.mMountTable.getMountPoint(state.mWidthGetMountPointTarget);
+    state.mMountTable.resolveMountPointTrie(state.mWidthGetMountPointTarget);
   }
 
   @Benchmark @BenchmarkMode(Mode.Throughput)
   public void testDepthGetMountPoint(BenchState state) throws InvalidPathException {
-    state.mMountTable.getMountPoint(state.mDepthGetMountPointTarget);
+    state.mMountTable.resolveMountPointTrie(state.mDepthGetMountPointTarget);
   }
 
   @Benchmark @BenchmarkMode(Mode.Throughput)

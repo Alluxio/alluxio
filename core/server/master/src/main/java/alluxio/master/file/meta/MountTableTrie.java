@@ -38,6 +38,10 @@ public final class MountTableTrie {
    * Constructor of MountTableTrie.
    */
   public MountTableTrie() {
+    init();
+  }
+
+  private void init() {
     mMountTableRoot = new TrieNode<>();
     mMountPointTrieTable = new HashMap<>(10);
   }
@@ -67,8 +71,7 @@ public final class MountTableTrie {
     Preconditions.checkNotNull(inodeTree);
     Preconditions.checkNotNull(mountPoints);
     Preconditions.checkNotNull(inodeTree.getRoot());
-    mMountTableRoot = new TrieNode<>();
-    mMountPointTrieTable = new HashMap<>(10);
+    init();
     for (String mountPoint : mountPoints) {
       List<InodeView> inodeViews = inodeTree.getInodesByPath(mountPoint);
       addMountPoint(mountPoint, inodeViews);
@@ -77,14 +80,14 @@ public final class MountTableTrie {
 
   /**
    * Adds a new mountPoint to MountTableRoot
-   * @param mountPoint the given mountPoint
+   * @param mountPointPath the given mountPoint
    * @param pathInodes the given inodeViews
    */
-  protected void addMountPoint(String mountPoint, List<InodeView> pathInodes) {
+  protected void addMountPoint(String mountPointPath, List<InodeView> pathInodes) {
     Preconditions.checkState(!pathInodes.isEmpty(),
-        "Mount point %s does not map to an inode", mountPoint);
+        "Mount point %s does not map to an inode", mountPointPath);
     TrieNode<InodeView> node = mMountTableRoot.insert(pathInodes);
-    mMountPointTrieTable.put(node, mountPoint);
+    mMountPointTrieTable.put(node, mountPointPath);
   }
 
   /**

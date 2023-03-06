@@ -256,6 +256,7 @@ public class SimpleInodeLockList implements InodeLockList {
 
   @Override
   public List<Inode> getLockedInodes() {
+    // TODO(jiacheng): can i do with no copy?
     return new ArrayList<>(mInodes);
   }
 

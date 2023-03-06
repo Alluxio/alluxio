@@ -173,7 +173,8 @@ public class ActiveSyncManager implements Journaled {
     for (AlluxioURI syncedPath : mSyncPathList) {
       try {
         if (PathUtils.hasPrefix(path.getPath(), syncedPath.getPath())
-            && mMountTable.getMountPoint(path).equals(mMountTable.getMountPoint(syncedPath))) {
+            && mMountTable.resolveMountPointString(path)
+                .equals(mMountTable.resolveMountPointString(syncedPath))) {
           return true;
         }
       } catch (InvalidPathException e) {
@@ -452,7 +453,7 @@ public class ActiveSyncManager implements Journaled {
         while (mountId == -1) {
           try {
             syncPointPath = mEntry.getPath();
-            String mountPoint = mMountTable.getMountPoint(mEntry);
+            String mountPoint = mMountTable.resolveMountPointString(mEntry);
             MountInfo mountInfo = mMountTable.getMountTable().get(mountPoint);
             mountId = mountInfo.getMountId();
           } catch (InvalidPathException e) {

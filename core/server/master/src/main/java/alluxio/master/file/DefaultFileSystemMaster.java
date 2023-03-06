@@ -2823,8 +2823,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       throw new InvalidPathException(ExceptionMessage.RENAME_CANNOT_BE_TO_ROOT.getMessage());
     }
     // Renaming across mount points is not allowed.
-    String srcMount = mMountTable.getMountPoint(srcInodePath);
-    String dstMount = mMountTable.getMountPoint(dstInodePath);
+    String srcMount = mMountTable.resolveMountPointTrie(srcInodePath);
+    String dstMount = mMountTable.resolveMountPointTrie(dstInodePath);
     if ((srcMount == null && dstMount != null) || (srcMount != null && dstMount == null)
         || (srcMount != null && dstMount != null && !srcMount.equals(dstMount))) {
       throw new InvalidPathException(
