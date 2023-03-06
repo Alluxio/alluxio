@@ -38,3 +38,8 @@ bin/alluxio copyDir conf
 ```
 6. Restart alluxio master and workers
 7. Point your browser to `MASTER_IP:16686` for tracing and `MASTER_IP:9090` for metrics
+8. Stop alluxio master and workers
+```
+docker-compose -f docker-compose-master.yaml down
+docker-compose -f docker-compose-worker.yaml down
+```
