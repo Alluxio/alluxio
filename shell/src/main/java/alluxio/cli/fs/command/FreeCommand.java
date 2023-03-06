@@ -94,7 +94,7 @@ public final class FreeCommand extends AbstractFileSystemCommand {
           Throwables.propagateIfPossible(e);
           throw new RuntimeException(e);
         }
-      }, WaitForOptions.defaults().setTimeoutMs(10 * Math.toIntExact(interval))
+      }, WaitForOptions.defaults().setTimeoutMs(10L * Math.toIntExact(interval))
           .setInterval(interval));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
