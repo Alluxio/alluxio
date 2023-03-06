@@ -14,7 +14,7 @@
 ARG JAVA_VERSION=8
 
 # Setup CSI
-FROM golang:1.15.13-alpine AS csi-dev
+FROM golang:1.18-alpine3.17 AS csi-dev
 ENV GO111MODULE=on
 RUN mkdir -p /alluxio-csi
 COPY ./csi /alluxio-csi
