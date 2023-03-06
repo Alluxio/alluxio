@@ -17,6 +17,8 @@ import alluxio.StorageTierAssoc;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.grpc.ErrorType;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.FileTransferType;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -27,9 +29,12 @@ import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.DelegatingBlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
+import alluxio.worker.block.io.StoreBlockReader;
 
 import com.google.common.base.Preconditions;
+import io.grpc.Status;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -101,21 +106,38 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       openBlock(context, channel);
       BlockReader blockReader = context.getBlockReader();
       Preconditions.checkState(blockReader != null);
-      if (mTransferType == FileTransferType.TRANSFER
-          && (blockReader instanceof LocalFileBlockReader)) {
+      DataBuffer dataBuffer = null;
+      if (mTransferType == FileTransferType.TRANSFER) {
+        dataBuffer = createDataFileChannel(blockReader, offset, len);
+      }
+      if (dataBuffer != null) {
+        return dataBuffer;
+      }
+      // create a non-zero-copy DataBuffer
+      ByteBuf buf = channel.alloc().buffer(len, len);
+      try {
+        while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+        }
+        return new NettyDataBuffer(buf);
+      } catch (Throwable e) {
+        buf.release();
+        throw e;
+      }
+    }
+
+    private DataBuffer createDataFileChannel(BlockReader blockReader, long offset, long len) {
+      if (blockReader instanceof LocalFileBlockReader) {
         return new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
             offset, len);
-      } else {
-        ByteBuf buf = channel.alloc().buffer(len, len);
-        try {
-          while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
-          }
-          return new NettyDataBuffer(buf);
-        } catch (Throwable e) {
-          buf.release();
-          throw e;
+      }
+      if (blockReader instanceof DelegatingBlockReader) {
+        BlockReader delegatingBlockReader = ((DelegatingBlockReader) blockReader).getDelegate();
+        if (delegatingBlockReader instanceof StoreBlockReader) {
+          String path = ((StoreBlockReader) delegatingBlockReader).getFilePath();
+          return new DataFileChannel(new File(path), offset, len);
         }
       }
+      return null;
     }
 
     /**
