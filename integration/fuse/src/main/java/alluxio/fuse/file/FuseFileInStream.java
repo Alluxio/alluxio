@@ -24,16 +24,21 @@ import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseUtils;
+import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.lock.FuseReadWriteLockManager;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.resource.CloseableResource;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.locks.Lock;
 import javax.annotation.concurrent.ThreadSafe;
@@ -43,13 +48,14 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class FuseFileInStream implements FuseFileStream {
+  private static final Logger LOG = LoggerFactory.getLogger(FuseFileInStream.class);
   private final FileInStream mInStream;
   private final FileStatus mFileStatus;
   private final AlluxioURI mURI;
   private final CloseableResource<Lock> mLockResource;
-  private final PriorityBlockingQueue<ReadTask> mOrderedTaskProvider = new PriorityBlockingQueue<>();
+  private final ConcurrentSkipListSet<ReadTask> mOrderedTaskProvider = new ConcurrentSkipListSet<>();
   // From ReadTask.offset to ReadTask
-  private final ConcurrentHashMap<Long, ReadTask> mFinishedTasks = new ConcurrentHashMap<>();
+  // private final ConcurrentHashMap<Long, ReadTask> mFinishedTasks = new ConcurrentHashMap<>();
   private volatile boolean mClosed = false;
 
   /**
@@ -116,23 +122,11 @@ public class FuseFileInStream implements FuseFileStream {
     if (offset >= mFileStatus.getFileLength()) {
       return 0;
     }
-    mOrderedTaskProvider.put(new ReadTask(offset, size, buf));
-    while (true) {
-      if (mFinishedTasks.containsKey(offset)) {
-        ReadTask finished = mFinishedTasks.remove(offset);
-        if (finished.mException.isPresent()) {
-          throw finished.mException.get();
-        }
-        if (!finished.mBytesRead.isPresent()) {
-          throw new InternalRuntimeException
-              ("One of the result or exception should be set");
-        }
-        return finished.mBytesRead.get();
-      }
-      // TODO(lu) how to avoid other threads need to get syncrhonized lock to return
-      // consider wait and notify logics
-      readOldTasksSequentially(offset);
-    }
+    ReadTask myTask = new ReadTask(offset, size, buf);
+    mOrderedTaskProvider.add(myTask);
+    // TODO(lu) how to avoid other threads need to get syncrhonized lock to return
+    // consider wait and notify logics
+    return readOldTasksSequentially(myTask);
   }
 
   /**
@@ -141,14 +135,22 @@ public class FuseFileInStream implements FuseFileStream {
    * 
    * @param target the target offset to stop reading
    */
-  private void readOldTasksSequentially(long target) {
+  private int readOldTasksSequentially(ReadTask myTask) {
     synchronized (this) {
       if (mClosed) {
         throw new FailedPreconditionRuntimeException("Stream already closed");
       }
-      while (!mOrderedTaskProvider.isEmpty()
-          && mOrderedTaskProvider.peek().mOffset <= target) {
-        ReadTask task = mOrderedTaskProvider.poll();
+      while (true) {
+        if (myTask.mDone) {
+          if (myTask.mException != null) {
+            throw myTask.mException;
+          }
+          return myTask.mBytesRead;
+        }
+        ReadTask task = mOrderedTaskProvider.pollFirst();
+        if (task == null) {
+          throw AlluxioRuntimeException.from(new IllegalStateException("should not reach"));
+        }
         final int sz = (int) task.mSize;
         int totalRead = 0;
         int currentRead;
@@ -161,12 +163,13 @@ public class FuseFileInStream implements FuseFileStream {
             }
           } while (currentRead > 0 && totalRead < sz);
         } catch (Throwable t) {
-          task.mException = Optional.of(AlluxioRuntimeException.from(t));
-          mFinishedTasks.put(task.mOffset, task);
-          return;
+          LOG.info("failed to read old tasks", t);
+          task.mException = AlluxioRuntimeException.from(t);
+          task.mDone = true;
+          throw task.mException;
         }
-        task.mBytesRead = Optional.of(totalRead == 0 ? currentRead : totalRead);
-        mFinishedTasks.put(task.mOffset, task);
+        task.mBytesRead = totalRead == 0 ? currentRead : totalRead;
+        task.mDone = true;
       }
     }
   }
@@ -211,12 +214,14 @@ public class FuseFileInStream implements FuseFileStream {
     }
   }
   
-  class ReadTask implements Comparable<ReadTask> {
+  static class ReadTask implements Comparable<ReadTask> {
     final long mOffset;
     final long mSize;
     final ByteBuffer mBuffer;
-    Optional<AlluxioRuntimeException> mException = Optional.empty();
-    Optional<Integer> mBytesRead = Optional.empty();
+    AlluxioRuntimeException mException = null;
+    int mBytesRead = 0;
+    
+    boolean mDone = false;
     
     public ReadTask(long offset, long size, ByteBuffer buffer) {
       mOffset = offset;

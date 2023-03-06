@@ -82,6 +82,11 @@ public final class DataFileChannel implements DataBuffer {
   }
 
   @Override
+  public int position() {
+    throw new UnsupportedOperationException("DataFileChannel#readerIndex is not implemented.");
+  }
+
+  @Override
   public void release() {
     // Nothing we need to release explicitly, let GC take care of all objects.
   }

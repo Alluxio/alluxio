@@ -82,6 +82,12 @@ public final class ByteArrayDataBuffer implements DataBuffer {
   }
 
   @Override
+  public int position() {
+    throw new UnsupportedOperationException(
+        "ByteArrayDataBuffer#readerIndex() is not implemented.");
+  }
+
+  @Override
   public void release() {
     // Nothing we need to release explicitly, let GC take care of all objects.
   }

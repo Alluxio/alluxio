@@ -74,6 +74,11 @@ public class ReadableDataBuffer implements DataBuffer {
   }
 
   @Override
+  public int position() {
+    return mBuffer.arrayOffset();
+  }
+
+  @Override
   public void release() {
     mBuffer.close();
   }

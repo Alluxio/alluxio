@@ -164,7 +164,19 @@ public class DoraCacheFileInStream extends FileInStream {
         totalToSkip -= currentToSkip;
       }
       if (mDebug) {
-        LOG.info("Skip from {} to pos {}", mPos, pos);
+        LOG.info("Skip forward from {} to pos {}", mPos, pos);
+      }
+    } else if (mCurrentChunk != null && mCurrentChunk.position() + pos - mPos >= 0) {
+      try {
+        mCurrentChunk.skipBytes((int) (pos - mPos));
+      } catch (Throwable t) {
+        closeDataReader();
+        if (mDebug) {
+          LOG.info("Seek from {} to pos {}, failed skip backward", mPos, pos, t);
+        }
+      }
+      if (mDebug) {
+        LOG.info("Skip backward from {} to pos {}", mPos, pos);
       }
     } else {
       closeDataReader();

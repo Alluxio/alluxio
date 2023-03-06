@@ -74,6 +74,8 @@ public interface DataBuffer {
   
   void skipBytes(int length);
 
+  int position();
+
   /**
    * Releases the underlying buffer of this DataBuffer if no longer needed.
    */

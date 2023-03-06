@@ -76,7 +76,12 @@ public final class NettyDataBuffer implements DataBuffer {
 
   @Override
   public void skipBytes(int length) {
-    mNettyBuf.skipBytes(length);
+    mNettyBuf.readerIndex(mNettyBuf.readerIndex() + length);
+  }
+
+  @Override
+  public int position() {
+    return mNettyBuf.readerIndex();
   }
 
   /**
