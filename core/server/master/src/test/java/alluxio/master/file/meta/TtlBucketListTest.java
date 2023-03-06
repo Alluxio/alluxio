@@ -63,7 +63,7 @@ public final class TtlBucketListTest {
   private void assertExpired(List<TtlBucket> expiredBuckets, int bucketIndex,
       Inode... inodes) {
     TtlBucket bucket = expiredBuckets.get(bucketIndex);
-    Assert.assertEquals(inodes.length, bucket.getInodeIds().size());
+    Assert.assertEquals(inodes.length, bucket.size());
     List<Long> inodeIds = Lists.newArrayList(inodes).stream().map(Inode::getId)
         .collect(Collectors.toList());
     Assert.assertTrue(bucket.getInodeIds().containsAll(inodeIds));

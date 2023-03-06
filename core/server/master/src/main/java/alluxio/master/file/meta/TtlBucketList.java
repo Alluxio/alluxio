@@ -113,14 +113,23 @@ public final class TtlBucketList implements Checkpointed {
   }
 
   /**
+   * Insert inode to the ttlbucket with default number of retry attempts.
+   * @param inode
+   */
+  public void insert(Inode inode) {
+    insert(inode, TtlBucket.DEFAULT_RETRY_ATTEMPTS);
+  }
+
+  /**
    * Inserts an inode to the appropriate bucket where its ttl end time lies in the
    * bucket's interval, if no appropriate bucket exists, a new bucket will be created to contain
    * this inode, if ttl value is {@link Constants#NO_TTL}, the inode won't be inserted to any
    * buckets and nothing will happen.
    *
    * @param inode the inode to be inserted
+   * @param numOfRetry number of retries left to process this inode
    */
-  public void insert(Inode inode) {
+  public void insert(Inode inode, int numOfRetry) {
     if (inode.getTtl() == Constants.NO_TTL) {
       return;
     }
@@ -143,7 +152,7 @@ public final class TtlBucketList implements Checkpointed {
           continue;
         }
       }
-      bucket.addInode(inode);
+      bucket.addInode(inode, numOfRetry);
       /* if we added to the bucket but it got concurrently polled by InodeTtlChecker,
       we're not sure this newly-added inode will be processed by the checker,
       so we need to try insert again. Resolve for (c.f. ALLUXIO-2821) */

@@ -34,7 +34,8 @@ import alluxio.proto.journal.File.UpdateInodeEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -61,12 +62,18 @@ final class InodeTtlChecker implements HeartbeatExecutor {
   @Override
   public void heartbeat() throws InterruptedException {
     Set<TtlBucket> expiredBuckets = mTtlBuckets.pollExpiredBuckets(System.currentTimeMillis());
-    Set<Inode> failedInodes = new HashSet();
+    Map<Inode, Integer> failedInodesToRetryNum = new HashMap<>();
     for (TtlBucket bucket : expiredBuckets) {
-      for (long inodeId : bucket.getInodeIds()) {
+      for (Map.Entry<Long, Integer> inodeExpiryEntry : bucket.getInodeExpiries()) {
         // Throw if interrupted.
         if (Thread.interrupted()) {
           throw new InterruptedException("InodeTtlChecker interrupted.");
+        }
+        long inodeId = inodeExpiryEntry.getKey();
+        int leftRetries = inodeExpiryEntry.getValue();
+        // Exhausted retry attempt to expire this inode, bail.
+        if (leftRetries <= 0) {
+          continue;
         }
         AlluxioURI path = null;
         try (LockedInodePath inodePath =
@@ -139,18 +146,19 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 LOG.error("Unknown ttl action {}", ttlAction);
             }
           } catch (Exception e) {
-            LOG.error("Exception trying to clean up {} for ttl check", path, e);
-            if (inode != null) {
-              failedInodes.add(inode);
+            LOG.error("Exception trying to clean up {} for ttl check. Left retries:{}. {}",
+                path, leftRetries - 1, e);
+            if (inode != null && --leftRetries > 0) {
+              failedInodesToRetryNum.put(inode, leftRetries);
             }
           }
         }
       }
     }
     // Put back those failed-to-expire inodes for next round retry.
-    if (!failedInodes.isEmpty()) {
-      for (Inode inode : failedInodes) {
-        mTtlBuckets.insert(inode);
+    if (!failedInodesToRetryNum.isEmpty()) {
+      for (Map.Entry<Inode, Integer> failedInodeEntry : failedInodesToRetryNum.entrySet()) {
+        mTtlBuckets.insert(failedInodeEntry.getKey(), failedInodeEntry.getValue());
       }
     }
   }

@@ -11,13 +11,14 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 
 import com.google.common.base.Objects;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -34,16 +35,18 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    */
   private static long sTtlIntervalMs =
       Configuration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS);
+  public static final int DEFAULT_RETRY_ATTEMPTS = 5;
   /**
    * Each bucket has a time to live interval, this value is the start of the interval, interval
    * value is the same as the configuration of {@link PropertyKey#MASTER_TTL_CHECKER_INTERVAL_MS}.
    */
   private final long mTtlIntervalStartTimeMs;
   /**
-   * A collection of inodes whose ttl value is in the range of this bucket's interval. The mapping
-   * is from inode id to inode.
+   * A collection containing those inodes whose ttl value is
+   * in the range of this bucket's interval. The mapping
+   * is from inode id to the number of left retry to process.
    */
-  private final ConcurrentHashSet<Long> mInodeList;
+  private final ConcurrentHashMap<Long, Integer> mInodeToRetryMap;
 
   /**
    * Creates a new instance of {@link TtlBucket}.
@@ -52,7 +55,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    */
   public TtlBucket(long startTimeMs) {
     mTtlIntervalStartTimeMs = startTimeMs;
-    mInodeList = new ConcurrentHashSet<>();
+    mInodeToRetryMap = new ConcurrentHashMap<>();
   }
 
   /**
@@ -82,34 +85,54 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * changes made to the returned set will be shown in the internal set, and vice versa.
    */
   public Collection<Long> getInodeIds() {
-    return mInodeList;
+    return mInodeToRetryMap.keySet();
   }
 
   /**
-   * Adds a inode to the bucket.
+   * Get collection of inode to its left ttl process retry attempts.
+   * @return collection of inode to its left ttl process retry attempts
+   */
+  public Collection<Map.Entry<Long, Integer>> getInodeExpiries() {
+    return mInodeToRetryMap.entrySet();
+  }
+
+  /**
+   * Adds an inode with default num of retry attempt to expire.
+   * @param inode
+   */
+  public void addInode(Inode inode) {
+    addInode(inode, DEFAULT_RETRY_ATTEMPTS);
+  }
+
+  /**
+   * Adds an inode to the bucket with a specific left retry number.
    *
    * @param inode the inode to be added
-   * @return true if a new inode was added to the bucket
+   * @param numOfRetry  num of retry left when added to the ttlbucket
    */
-  public boolean addInode(Inode inode) {
-    return mInodeList.add(inode.getId());
+  public void addInode(Inode inode, int numOfRetry) {
+    mInodeToRetryMap.compute(inode.getId(), (k, v) -> {
+      if (v != null) {
+        return Math.min(v, numOfRetry);
+      }
+      return numOfRetry;
+    });
   }
 
   /**
    * Removes an inode from the bucket.
    *
    * @param inode the inode to be removed
-   * @return true if an inode was removed
    */
-  public boolean removeInode(InodeView inode) {
-    return mInodeList.remove(inode.getId());
+  public void removeInode(InodeView inode) {
+    mInodeToRetryMap.remove(inode.getId());
   }
 
   /**
    * @return the number of inodes in the bucket
    */
   public int size() {
-    return mInodeList.size();
+    return mInodeToRetryMap.size();
   }
 
   /**
