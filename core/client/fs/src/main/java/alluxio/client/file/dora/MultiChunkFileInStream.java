@@ -182,6 +182,9 @@ public class MultiChunkFileInStream extends FileInStream {
     } else if (pos < mChunkStart) {
       // we are out of the range of the chunks
       closeDataReader();
+      if (mDebug) {
+        LOG.info("Seek back from {} to pos {}, small than mChunkStart {}", mPos, pos, mChunkStart);
+      }
     } else if (pos < mChunkStart + mChunkSizes[0]) {
       // the seek is in the first chunk
       if (mChunk == mChunks[1]) {
@@ -223,6 +226,10 @@ public class MultiChunkFileInStream extends FileInStream {
       seek(pos);
       return;
     } else {
+      if (mDebug) {
+        LOG.info("Seek forward from {} to pos {}, bigger than mchunkStart {} + chunk0 {} + 2* chunk1 {} = {}", mPos, pos,
+            mChunkStart, mChunkSizes[0], mChunkSizes[1], mChunkStart + mChunkSizes[0] + mChunkSizes[1] + mChunkSizes[1]);
+      }
       // the seek is after the end of the chunks
       closeDataReader();
     }
