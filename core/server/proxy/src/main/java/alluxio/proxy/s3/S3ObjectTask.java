@@ -825,6 +825,7 @@ public class S3ObjectTask extends S3BaseTask {
                       .setOtherBits(Bits.NONE).build())
                   .setWriteType(S3RestUtils.getS3WriteType())
                   .setOverwrite(true)
+                  .setCheckS3BucketPath(true)
                   .build();
           return createObject(objectPath, userFs, filePOptions, auditContext);
         }

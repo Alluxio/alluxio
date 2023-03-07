@@ -144,7 +144,8 @@ public class S3BucketTask extends S3BaseTask {
                   // debatable (?) potentially breaks backcompat(?)
                   .filter(URIStatus::isFolder)
                   .collect(Collectors.toList());
-          buckets.forEach((uri) -> mHandler.BUCKET_PATH_CACHE.put(new AlluxioURI(uri.getPath()), true));
+          buckets.forEach(
+              (uri) -> mHandler.BUCKET_PATH_CACHE.put(new AlluxioURI(uri.getPath()), true));
           return new ListAllMyBucketsResult(buckets);
         }
       });
