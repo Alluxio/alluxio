@@ -22,14 +22,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
-
 /**
  * MountTableTrie encapsulates some basic operations of TrieNode.
  */
 public final class MountTableTrie {
   public static final String ROOT = "/";
   // The root of Trie of current MountTable
+  // TODO(jiacheng): change this to ONLY rely on id!
   private TrieNode<InodeView> mMountTableRoot;
   // Map from TrieNode to the alluxio path literal
   private Map<TrieNode<InodeView>, String> mMountPointTrieTable;

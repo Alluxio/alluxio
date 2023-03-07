@@ -35,8 +35,8 @@ public class TrieNodeTest extends BaseInodeLockingTest {
         false, true);
 
     Assert.assertEquals(Sets.newHashSet(2, 4, 6), node1.childrenKeys());
-    Assert.assertEquals(Sets.newHashSet(5, 9), node1.child(4).childrenKeys());
-    Assert.assertNull(root.child(10));
+    Assert.assertEquals(Sets.newHashSet(5, 9), node1.getChild(4).childrenKeys());
+    Assert.assertNull(root.getChild(10));
   }
 
   @Test
@@ -76,10 +76,10 @@ public class TrieNodeTest extends BaseInodeLockingTest {
     // remove a terminal path successfully
     Assert.assertNotNull(root.remove(Arrays.asList(1, 4, 9)));
     // node '4' has child after the remove, so it is still the child of node '1'
-    Assert.assertNotNull(node1.child(4));
+    Assert.assertNotNull(node1.getChild(4));
     Assert.assertNotNull(root.remove(Arrays.asList(1, 4, 5)));
     // node '4' has no child after the remove, so it will be removed by the above remove call
-    Assert.assertNull(node1.child(4));
+    Assert.assertNull(node1.getChild(4));
   }
 
   @Test

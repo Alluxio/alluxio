@@ -830,7 +830,6 @@ public final class MountTable implements DelegatingJournaled {
 
     @Override
     public CloseableIterator<JournalEntry> getJournalEntryIterator() {
-      // TODO(jiacheng): is this okay? need a defensive copy?
       try (LockResource r = new LockResource(mReadLock)) {
         return getJournalEntryIteratorInternal();
       }

@@ -63,9 +63,9 @@ public class TrieNode<T> {
     for (T node : nodes) {
       // check if inode is among current's children
       if (!current.mChildren.containsKey(node)) {
-        current.mChildren.put(node, new TrieNode<>());
+        current.addChild(node, new TrieNode<>());
       }
-      current = current.mChildren.get(node);
+      current = current.getChild(node);
     }
     current.mIsTerminal = true;
     return current;
@@ -99,7 +99,7 @@ public class TrieNode<T> {
         break;
       }
       // set current to the matched children TrieNode
-      current = current.mChildren.get(inode);
+      current = current.getChild(inode);
       // based on the condition of whether strict to terminal node and whether it requires
       // completeMatch, decide whether the current TrieNode is a valid matchedPoint.
       if (current.checkNodeTerminal(isLeafNodeOnly)
@@ -122,7 +122,6 @@ public class TrieNode<T> {
    * Removes child TrieNode according to the given key.
    * @param key the target TrieNode's key
    */
-  // TODO(jiacheng): why is this not called?
   public void removeChild(T key) {
     mChildren.remove(key);
   }
@@ -141,7 +140,7 @@ public class TrieNode<T> {
    * @param key the given key to get the corresponding child
    * @return the corresponding child TrieNode
    */
-  public TrieNode<T> child(T key) {
+  public TrieNode<T> getChild(T key) {
     return mChildren.get(key);
   }
 
@@ -225,8 +224,7 @@ public class TrieNode<T> {
       Pair<TrieNode<T>, T> parent = parents.pop();
       current = parent.getFirst();
       // remove current from parent's children map by current's value
-      // TODO(jiacheng): use removeChild
-      current.mChildren.remove(parent.getSecond());
+      current.removeChild(parent.getSecond());
     }
     return nodeToRemove;
   }
