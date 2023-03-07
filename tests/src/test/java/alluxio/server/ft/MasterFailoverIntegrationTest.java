@@ -13,13 +13,20 @@ package alluxio.server.ft;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
+import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
@@ -28,6 +35,7 @@ import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.io.Files;
 import org.junit.After;
@@ -40,6 +48,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
   private static final Logger LOG = LoggerFactory.getLogger(MasterFailoverIntegrationTest.class);
@@ -48,7 +59,12 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
   private static final long DELETE_DELAY = 5 * Constants.SECOND_MS;
 
   private MultiMasterLocalAlluxioCluster mMultiMasterLocalAlluxioCluster;
+
+  private LocalAlluxioJobCluster mLocalAlluxioJobCluster;
+
   private FileSystem mFileSystem;
+
+  private static final int CLUSTER_WAIT_TIMEOUT_MS = 120 * Constants.SECOND_MS;
 
   // An under file system which has slow directory deletion.
   private static final UnderFileSystem UFS =
@@ -92,6 +108,9 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
 
   @After
   public final void after() throws Exception {
+    if (mLocalAlluxioJobCluster != null) {
+      mLocalAlluxioJobCluster.stop();
+    }
     mMultiMasterLocalAlluxioCluster.stop();
   }
 
@@ -135,5 +154,64 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
         throw new RuntimeException(e);
       }
     }
+  }
+
+  @Test
+  public void failoverAsyncLoadInodeTest() throws Exception {
+    /* This test verifies that when a master fails over before those TO_BE_PERSISTED files
+     * could be submitted for persisting, the new master should asynchronously submit those
+     * files for persisting */
+    int numOfFiles = 10;
+    String filePrefix = "/file-";
+    List<String> fileNames = new ArrayList(numOfFiles);
+
+    for (int i = 0; i < numOfFiles; i++)
+    {
+      String fileName = filePrefix + Integer.toString(i + 1);
+      fileNames.add(fileName);
+      AlluxioURI fileToCreate = new AlluxioURI(fileName);
+      CreateFilePOptions createOption = CreateFilePOptions.newBuilder()
+              .setWriteType(WritePType.ASYNC_THROUGH)
+              .setPersistenceWaitTime(1)
+              .build();
+      FileOutStream fos = mFileSystem.createFile(fileToCreate, createOption);
+      fos.close();
+      assertTrue(mFileSystem.exists(fileToCreate));
+      URIStatus fileStat = mFileSystem.getStatus(fileToCreate);
+      assertFalse(fileStat.isPersisted());
+    }
+
+    mMultiMasterLocalAlluxioCluster.stopLeader();
+    mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
+    mLocalAlluxioJobCluster.start();
+    mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
+
+    mFileSystem = mMultiMasterLocalAlluxioCluster.getClient();
+    CommonUtils.waitFor("all files persisted", () -> allFilesPersisted(fileNames),
+            WaitForOptions.defaults().setTimeoutMs((int) TimeUnit.MINUTES.toMillis(5)));
+
+    for (String fileName : fileNames)
+    {
+      AlluxioURI fileCreated = new AlluxioURI(fileName);
+      URIStatus fileStat = mFileSystem.getStatus(fileCreated);
+      assertTrue(fileStat.isPersisted());
+    }
+  }
+
+  public boolean allFilesPersisted(List<String> files)
+  {
+    for (String file : files)
+    {
+      try {
+        AlluxioURI fileToCreate = new AlluxioURI(file);
+        URIStatus fileStat = mFileSystem.getStatus(fileToCreate);
+        if (!fileStat.isPersisted()) {
+          return false;
+        }
+      } catch (IOException | AlluxioException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return true;
   }
 }
