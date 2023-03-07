@@ -86,7 +86,6 @@ public enum ExceptionMessage {
   CANNOT_FREE_PINNED_FILE("Cannot free file {0} which is pinned. Please unpin it first or"
       + " set the \"forced\" flag of free operation to true"),
   INODE_DOES_NOT_EXIST("inodeId {0,number,#} does not exist"),
-  INODE_TYPE_UNEXPECTED("inode type {0} unexpected"),
   START_AFTER_DOES_NOT_MATCH_PATH(
       "The start after partial listing option {0} is not a prefix of the listing path {1}"),
   PREFIX_DOES_NOT_MATCH_PATH(
@@ -97,8 +96,6 @@ public enum ExceptionMessage {
   ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),
   JOURNAL_ENTRY_MISSING(
       "Journal entries are missing between sequence number {0} (inclusive) and {1} (exclusive)."),
-  MOUNT_TABLE_TRIE_NOT_ENABLED(
-      "MountTableTrie is not enabled but Trie methods are called."),
   // block master
   NO_WORKER_FOUND("No worker with workerId {0,number,#} is found"),
 

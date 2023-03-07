@@ -259,6 +259,7 @@ public final class MountTable implements DelegatingJournaled {
     try (LockResource r = new LockResource(mWriteLock)) {
       if (mState.getMountTable().containsKey(path)) {
         // check if the path contains another nested mount point
+        // TODO(jiacheng): fuck you why is this still using string?
         if (checkNestedMount) {
           for (String mountPath : mState.getMountTable().keySet()) {
             try {

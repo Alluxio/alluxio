@@ -3275,7 +3275,7 @@ public class DefaultFileSystemMaster extends CoreMaster
               .createMountSpecificConf(context.getOptions().getPropertiesMap()));
       prepareForMount(ufsPath, newMountId, context);
       // old ufsClient is removed as part of the mount table update process.
-      // here, inodePath is sure to be fullPathExists
+      // inodePath exists because we have performed the check above
       mMountTable.update(journalContext, inodePath, newMountId, context.getOptions().build());
     } catch (FileAlreadyExistsException | InvalidPathException | IOException e) {
       // revert everything

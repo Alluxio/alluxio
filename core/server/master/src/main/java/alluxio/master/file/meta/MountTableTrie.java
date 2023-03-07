@@ -91,7 +91,7 @@ public final class MountTableTrie {
   }
 
   /**
-   * Remove a TrieNode from MountTableTrie based on the lockedInodePath.
+   * Removes a TrieNode from MountTableTrie based on the lockedInodePath.
    * @param pathInodes the target list of inodes
    */
   protected void removeMountPoint(List<InodeView> pathInodes) {
@@ -103,7 +103,7 @@ public final class MountTableTrie {
   }
 
   /**
-   * Get the mount point of the given inodes.
+   * Gets the mount point of the given inodes.
    * @param pathInodes the target inodes
    * @return the lowest mountPoint of the given path
    */

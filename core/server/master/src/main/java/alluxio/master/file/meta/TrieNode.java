@@ -54,7 +54,7 @@ public class TrieNode<T> {
   protected boolean mIsTerminal = false;
 
   /**
-   * insert nodes by traversing the TrieNode tree from the root.
+   * Inserts nodes by traversing the TrieNode tree from the root.
    * @param nodes the nodes to be inserted
    * @return the last created TrieNode based on nodes
    */
@@ -72,7 +72,7 @@ public class TrieNode<T> {
   }
 
   /**
-   * find the lowest matched TrieNode of given inodes.
+   * Finds the lowest matched TrieNode of given inodes.
    *
    * @param inodes the target inodes
    * @param isLeafNodeOnly true if the matched inodes must also be terminal nodes
@@ -111,7 +111,7 @@ public class TrieNode<T> {
   }
 
   /**
-   * acquire the direct children's keys.
+   * Acquires the direct children's keys.
    * @return key set of the direct children of current TrieNode
    */
   public Collection<T> childrenKeys() {
@@ -119,15 +119,16 @@ public class TrieNode<T> {
   }
 
   /**
-   * remove child TrieNode according to the given key.
+   * Removes child TrieNode according to the given key.
    * @param key the target TrieNode's key
    */
+  // TODO(jiacheng): why is this not called?
   public void removeChild(T key) {
     mChildren.remove(key);
   }
 
   /**
-   * add child to the current TrieNode.
+   * Adds a child to the current TrieNode.
    * @param key the target key
    * @param value the target value(TrieNode)
    */
@@ -136,7 +137,7 @@ public class TrieNode<T> {
   }
 
   /**
-   * get the child TrieNode by given key.
+   * Gets the child TrieNode by given key.
    * @param key the given key to get the corresponding child
    * @return the corresponding child TrieNode
    */
@@ -145,7 +146,7 @@ public class TrieNode<T> {
   }
 
   /**
-   * acquire all descendant TrieNodes.
+   * Acquires all descendant TrieNodes.
    *
    * @param isNodeMustTerminal true if the descendant node must also be a terminal node
    * @param isContainSelf true if the results can contain itself
@@ -153,7 +154,7 @@ public class TrieNode<T> {
    * @return all the children TrieNodes
    */
   public List<TrieNode<T>> descendants(boolean isNodeMustTerminal, boolean isContainSelf,
-                                       boolean terminateAfterAdd) {
+      boolean terminateAfterAdd) {
     List<TrieNode<T>> childrenNodes = new ArrayList<>();
 
     // For now, we use BFS to acquire all nested TrieNodes underneath the current TrieNode.
@@ -224,6 +225,7 @@ public class TrieNode<T> {
       Pair<TrieNode<T>, T> parent = parents.pop();
       current = parent.getFirst();
       // remove current from parent's children map by current's value
+      // TODO(jiacheng): use removeChild
       current.mChildren.remove(parent.getSecond());
     }
     return nodeToRemove;
@@ -248,7 +250,7 @@ public class TrieNode<T> {
   }
 
   /**
-   * Return true if this node is valid.
+   * Returns true if this node is valid.
    * Here, `valid` is defined as either:
    * - this node is not required to be a terminal node
    * or:
