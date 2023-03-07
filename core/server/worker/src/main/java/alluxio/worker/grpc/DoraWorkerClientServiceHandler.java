@@ -89,7 +89,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   public void getStatus(GetStatusPRequest request,
       StreamObserver<GetStatusPResponse> responseObserver) {
     try {
-      alluxio.wire.FileInfo fileInfo = mWorker.getFileInfo(request.getPath());
+      alluxio.wire.FileInfo fileInfo = mWorker.getFileInfo(request.getPath(), request.getOptions());
       GetStatusPResponse response =
           GetStatusPResponse.newBuilder()
               .setFileInfo(GrpcUtils.toProto(fileInfo))

@@ -74,7 +74,10 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       return mDelegatedFileSystem.getStatus(ufsFullPath, options);
     }
     try {
-      return mDoraClient.getStatus(ufsFullPath.toString(), options);
+      GetStatusPOptions mergedOptions = FileSystemOptionsUtils.getStatusDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+
+      return mDoraClient.getStatus(ufsFullPath.toString(), mergedOptions);
     } catch (RuntimeException ex) {
       LOG.debug("Dora client get status error. Fall back to UFS.", ex);
       return mDelegatedFileSystem.getStatus(ufsFullPath, options);

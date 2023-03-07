@@ -29,6 +29,7 @@ import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.Scope;
@@ -50,7 +51,6 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -96,7 +96,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final AlluxioConfiguration mConf;
   private final BlockMasterClientPool mBlockMasterClientPool;
   private final String mRootUFS;
-  private final LoadingCache<String, UfsStatus> mUfsStatusCache;
+  private final LoadingCache<String, DoraMeta.FileStatus> mUfsStatusCache;
   private WorkerNetAddress mAddress;
 
   private RocksDBDoraMetaStore mMetaStore;
@@ -119,10 +119,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mUfsStatusCache = CacheBuilder.newBuilder()
         .maximumSize(Configuration.getInt(PropertyKey.DORA_UFS_FILE_STATUS_CACHE_SIZE))
         .expireAfterWrite(Configuration.getDuration(PropertyKey.DORA_UFS_FILE_STATUS_CACHE_TTL))
-        .build(new CacheLoader<String, UfsStatus>() {
+        .build(new CacheLoader<String, DoraMeta.FileStatus>() {
           @Override
-          public UfsStatus load(String path) throws IOException {
-            return ufs.getStatus(path);
+          public DoraMeta.FileStatus load(String path) throws IOException {
+            UfsStatus status = ufs.getStatus(path);
+            DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, path);
+            return fs;
           }
         });
     mPageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
@@ -225,25 +227,44 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public FileInfo getFileInfo(String fileId) throws IOException {
+  public FileInfo getFileInfo(String ufsFullPath, GetStatusPOptions options) throws IOException {
     alluxio.grpc.FileInfo fi;
-    String ufsFullPath = fileId; // File ID is full ufs path passed from client
-    String fn = new AlluxioURI(fileId).getName();
+    long syncIntervalMs = options.hasCommonOptions()
+        ? options.getCommonOptions().getSyncIntervalMs() :
+        -1;
 
-    UfsStatus status = mUfsStatusCache.getIfPresent(ufsFullPath);
+    DoraMeta.FileStatus status = mUfsStatusCache.getIfPresent(ufsFullPath);
+    if (syncIntervalMs >= 0) {
+      // do metadata sync as the user requires.
+      if (status != null) {
+        long tsMS = status.getTs();
+        if (tsMS + syncIntervalMs < System.currentTimeMillis()) {
+          // The metadata is expired according to user requirement.
+          mUfsStatusCache.invalidate(ufsFullPath);
+          status = null;
+        }
+      }
+    }
     if (status == null) {
       // The requested FileStatus is not present in memory cache.
       // Let's try to query local persistent DoraMetaStore.
       Optional<DoraMeta.FileStatus> fs = mMetaStore.getDoraMeta(ufsFullPath);
+      if (syncIntervalMs >= 0) {
+        // do metadata sync as the user requires.
+        if (fs.isPresent()) {
+          long tsMS = fs.get().getTs();
+          if (tsMS + syncIntervalMs < System.currentTimeMillis()) {
+            // The metadata is expired according to user requirement.
+            mMetaStore.removeDoraMeta(ufsFullPath);
+            fs = Optional.empty();
+          }
+        }
+      }
+
       if (fs.isPresent()) {
         // Found in persistent DoraMetaStore
         fi = fs.get().getFileInfo();
-        String contentHash = UnderFileSystemUtils.approximateContentHash(fi.getLength(),
-            fi.getLastModificationTimeMs());
-        UfsFileStatus ufs = new UfsFileStatus(fi.getPath(), contentHash, fi.getLength(),
-            fi.getLastModificationTimeMs(),
-            fi.getOwner(), fi.getGroup(), (short) fi.getMode(), fi.getBlockSizeBytes());
-        mUfsStatusCache.put(ufsFullPath, ufs);
+        mUfsStatusCache.put(ufsFullPath, fs.get());
       } else {
         // This will load UfsFileStatus from UFS and put it in memory cache
         try {
@@ -258,16 +279,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                 throwable);
           }
         }
-        fi = buildFileInfoFromUfsStatus(status, fn, fileId, ufsFullPath);
-
-        // Add this to persistent DoraMetaStore.
-        long currentTimeMillis = System.currentTimeMillis();
-        mMetaStore.putDoraMeta(ufsFullPath,
-            DoraMeta.FileStatus.newBuilder().setFileInfo(fi).setTs(currentTimeMillis).build());
+        mMetaStore.putDoraMeta(ufsFullPath, status);
+        fi = status.getFileInfo();
       }
     } else {
-      // Found in memory cache
-      fi = buildFileInfoFromUfsStatus(status, fn, fileId, ufsFullPath);
+      fi = status.getFileInfo();
     }
     // because cache manager uses hashed ufs path as file ID
     // TODO(bowen): we need a dedicated type for file IDs!
@@ -288,12 +304,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         .setInMemoryPercentage(cachedPercentage);
   }
 
-  private alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status,
-      String filename, String alluxioFilePath, String ufsFullPath) {
+  private DoraMeta.FileStatus buildFileStatusFromUfsStatus(UfsStatus status, String ufsFullPath) {
+    String filename = new AlluxioURI(ufsFullPath).getName();
+
     alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
         .setFileId(ufsFullPath.hashCode())
         .setName(filename)
-        .setPath(alluxioFilePath)
+        .setPath(ufsFullPath)
         .setUfsPath(ufsFullPath)
         .setMode(status.getMode())
         .setFolder(status.isDirectory())
@@ -306,7 +323,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       infoBuilder.setLength(fileStatus.getContentLength())
           .setBlockSizeBytes(fileStatus.getBlockSize());
     }
-    return infoBuilder.build();
+    alluxio.grpc.FileInfo fi = infoBuilder.build();
+
+    DoraMeta.FileStatus fs = DoraMeta.FileStatus.newBuilder()
+        .setFileInfo(fi)
+        .setTs(System.currentTimeMillis())
+        .build();
+    return fs;
   }
 
   @Override
