@@ -772,9 +772,11 @@ public final class MountTable implements DelegatingJournaled {
 
     @Override
     public CloseableIterator<JournalEntry> getJournalEntryIterator() {
-      try (LockResource r = new LockResource(mReadLock)) {
-        return getJournalEntryIteratorInternal();
-      }
+      // This is not locked because we can not lock when this iterator is used
+      // The correctness is guaranteed by the fact that when backup/checkpoint iterates
+      // journal entries, the state is locked on the master and MountTable is effectively
+      // exclusively locked
+      return getJournalEntryIteratorInternal();
     }
 
     private CloseableIterator<JournalEntry> getJournalEntryIteratorInternal() {
