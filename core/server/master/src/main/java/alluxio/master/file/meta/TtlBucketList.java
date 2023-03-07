@@ -206,8 +206,9 @@ public final class TtlBucketList implements Checkpointed {
   }
 
   /*
-  [Notice] This checkpointing will iterate through inodes with concurrent modification to those
-  TtlBuckets at the same time.
+  Checkpointing a snapshot of the current inodes in ttlbucketlist. It's ok we checkpointed
+  some inodes that have already been processed during the process as the expiry of inode
+  will be double-checked at time of processing in InodeTtlChecker.
    */
   @Override
   public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {

@@ -17,6 +17,7 @@ import alluxio.conf.PropertyKey;
 import com.google.common.base.Objects;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.concurrent.ThreadSafe;
@@ -81,11 +82,10 @@ public final class TtlBucket implements Comparable<TtlBucket> {
   }
 
   /**
-   * @return the set of all inodes ids in the bucket backed by the internal set,
-   * changes made to the returned set will be shown in the internal set, and vice versa.
+   * @return an unmodifiable view of all inodes ids in the bucket
    */
   public Collection<Long> getInodeIds() {
-    return mInodeToRetryMap.keySet();
+    return Collections.unmodifiableSet(mInodeToRetryMap.keySet());
   }
 
   /**
