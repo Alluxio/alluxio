@@ -472,8 +472,6 @@ public class S3ObjectTask extends S3BaseTask {
                   .setWriteType(S3RestUtils.getS3WriteType())
                   .putAllXattr(xattrMap)
                   .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-                  .setOverwrite(true)
-                  .setCheckS3BucketPath(true)
                   .build();
 
           try {
@@ -487,7 +485,9 @@ public class S3ObjectTask extends S3BaseTask {
               .setMode(PMode.newBuilder()
                   .setOwnerBits(Bits.ALL)
                   .setGroupBits(Bits.ALL)
-                  .setOtherBits(Bits.NONE).build());
+                  .setOtherBits(Bits.NONE).build())
+              .setOverwrite(true)
+              .setCheckS3BucketPath(true);
 
           // Handle metadata directive
           final String metadataDirective = mHandler.getHeader(
@@ -809,7 +809,6 @@ public class S3ObjectTask extends S3BaseTask {
                     .setOwnerBits(Bits.ALL)
                     .setGroupBits(Bits.ALL)
                     .setOtherBits(Bits.NONE).build())
-                .setCheckS3BucketPath(true)
                 .setOverwrite(true);
             String entityTag = copyObject(userFs, auditContext, objectPath,
                 copySource, copyFilePOptionsBuilder.build());
@@ -825,7 +824,6 @@ public class S3ObjectTask extends S3BaseTask {
                       .setOtherBits(Bits.NONE).build())
                   .setWriteType(S3RestUtils.getS3WriteType())
                   .setOverwrite(true)
-                  .setCheckS3BucketPath(true)
                   .build();
           return createObject(objectPath, userFs, filePOptions, auditContext);
         }
