@@ -15,7 +15,6 @@ import static java.lang.String.format;
 
 import alluxio.Constants;
 import alluxio.client.block.stream.BlockWorkerClient;
-import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
@@ -23,18 +22,10 @@ import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.JobProgressReportFormat;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.job.JobFactoryProducer;
-import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.Journaled;
-import alluxio.master.journal.checkpoint.CheckpointName;
-import alluxio.proto.journal.Journal;
-import alluxio.resource.CloseableIterator;
+import alluxio.job.JobDescription;
 import alluxio.resource.CloseableResource;
 import alluxio.scheduler.job.Job;
-import alluxio.job.JobDescription;
 import alluxio.scheduler.job.JobMetaStore;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
@@ -46,7 +37,6 @@ import alluxio.wire.WorkerInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,13 +55,13 @@ import javax.annotation.concurrent.ThreadSafe;
  * method is not thread-safe. But we should only have one thread call these two method.
  */
 @ThreadSafe
-public final class Scheduler implements Journaled {
+public final class Scheduler {
+
   private static final Logger LOG = LoggerFactory.getLogger(Scheduler.class);
   private static final int CAPACITY = 100;
   private static final long WORKER_UPDATE_INTERVAL = Configuration.getMs(
       PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME);
   private static final int EXECUTOR_SHUTDOWN_MS = 10 * Constants.SECOND_MS;
-  private final FileSystemMaster mFileSystemMaster;
   private final Map<JobDescription, Job<?>>
       mExistingJobs = new ConcurrentHashMap<>();
   private final Map<Job<?>, Set<WorkerInfo>> mRunningTasks = new ConcurrentHashMap<>();
@@ -85,12 +75,12 @@ public final class Scheduler implements Journaled {
   /**
    * Constructor.
    *
-   * @param fileSystemMaster fileSystemMaster
    * @param workerProvider   workerProvider
+   * @param jobMetaStore     jobMetaStore
    */
-  public Scheduler(FileSystemMaster fileSystemMaster, WorkerProvider workerProvider) {
-    mFileSystemMaster = fileSystemMaster;
+  public Scheduler(WorkerProvider workerProvider, JobMetaStore jobMetaStore) {
     mWorkerProvider = workerProvider;
+    mJobMetaStore = jobMetaStore;
   }
 
   /**
@@ -98,6 +88,7 @@ public final class Scheduler implements Journaled {
    */
   public void start() {
     if (!mRunning) {
+      retrieveJobs();
       mSchedulerExecutor = Executors.newSingleThreadScheduledExecutor(
           ThreadFactoryUtils.build("scheduler", false));
       mSchedulerExecutor.scheduleAtFixedRate(this::updateWorkers, 0, WORKER_UPDATE_INTERVAL,
@@ -105,6 +96,18 @@ public final class Scheduler implements Journaled {
       mSchedulerExecutor.scheduleWithFixedDelay(this::processJobs, 0, 100, TimeUnit.MILLISECONDS);
       mSchedulerExecutor.scheduleWithFixedDelay(this::cleanupStaleJob, 1, 1, TimeUnit.HOURS);
       mRunning = true;
+    }
+  }
+
+  private void retrieveJobs() {
+    for (Job<?> job : mJobMetaStore.getJobs()) {
+      mExistingJobs.put(job.getDescription(), job);
+      if (job.isDone()) {
+        mRunningTasks.remove(job);
+      }
+      else {
+        mRunningTasks.put(job, new HashSet<>());
+      }
     }
   }
 
@@ -136,7 +139,7 @@ public final class Scheduler implements Journaled {
       throw new ResourceExhaustedRuntimeException(
           "Too many jobs running, please submit later.", true);
     }
-    writeJournal(job);
+    mJobMetaStore.updateJob(job);
     mExistingJobs.put(job.getDescription(), job);
     mRunningTasks.put(job, new HashSet<>());
     LOG.debug(format("start job: %s", job));
@@ -145,7 +148,7 @@ public final class Scheduler implements Journaled {
 
   private void updateExistingJob(Job<?> newJob, Job<?> existingJob) {
     existingJob.updateJob(newJob);
-    writeJournal(existingJob);
+    mJobMetaStore.updateJob(existingJob);
     LOG.debug(format("updated existing job: %s from %s", existingJob, newJob));
     if (existingJob.getJobState() == JobState.STOPPED) {
       existingJob.setJobState(JobState.RUNNING);
@@ -163,7 +166,7 @@ public final class Scheduler implements Journaled {
     Job<?> existingJob = mExistingJobs.get(jobDescription);
     if (existingJob != null && existingJob.isRunning()) {
       existingJob.setJobState(JobState.STOPPED);
-      writeJournal(existingJob);
+      mJobMetaStore.updateJob(existingJob);
       // leftover tasks in mRunningTasks would be removed by scheduling thread.
       return true;
     }
@@ -221,7 +224,6 @@ public final class Scheduler implements Journaled {
     Set<WorkerInfo> workerInfos;
     try {
       try {
-        // TODO(jianjian): need api for healthy worker instead
         workerInfos = ImmutableSet.copyOf(mWorkerProvider.getWorkerInfos());
       } catch (AlluxioRuntimeException e) {
         LOG.warn("Failed to get worker info, using existing worker infos of {} workers",
@@ -289,7 +291,7 @@ public final class Scheduler implements Journaled {
     try {
       if (!job.isRunning()) {
         try {
-          writeJournal(job);
+          mJobMetaStore.updateJob(job);
         }
         catch (UnavailableRuntimeException e) {
           // This should not happen because the scheduler should not be started while master is
@@ -384,50 +386,5 @@ public final class Scheduler implements Journaled {
       }
     }, mSchedulerExecutor);
     return true;
-  }
-
-  private void writeJournal(Job<?> job) {
-    try (JournalContext context = mFileSystemMaster.createJournalContext()) {
-      context.append(job.toJournalEntry());
-    } catch (UnavailableException e) {
-      throw new UnavailableRuntimeException(
-          "There is an ongoing backup running, please submit later", e);
-    }
-  }
-
-  @Override
-  public CloseableIterator<Journal.JournalEntry> getJournalEntryIterator() {
-    return CloseableIterator.noopCloseable(
-        Iterators.transform(mExistingJobs
-            .values().iterator(), Job::toJournalEntry));
-  }
-
-  @Override
-  public boolean processJournalEntry(Journal.JournalEntry entry) {
-    if (!entry.hasLoadJob()) {
-      return false;
-    }
-    Job<?> job = JobFactoryProducer.create(entry, mFileSystemMaster).create();
-    mExistingJobs.put(job.getDescription(), job);
-    if (job.isDone()) {
-      mRunningTasks.remove(job);
-    }
-    else {
-      mRunningTasks.put(job, new HashSet<>());
-    }
-    return true;
-  }
-
-  @Override
-  public void resetState()
-  {
-    mExistingJobs.clear();
-    mRunningTasks.clear();
-  }
-
-  @Override
-  public CheckpointName getCheckpointName()
-  {
-    return CheckpointName.SCHEDULER;
   }
 }

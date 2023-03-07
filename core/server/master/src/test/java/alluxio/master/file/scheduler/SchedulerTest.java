@@ -44,7 +44,8 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.job.FileIterable;
 import alluxio.master.job.LoadJob;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.scheduler.MasterWorkerProvider;
+import alluxio.master.scheduler.DefaultWorkerProvider;
+import alluxio.master.scheduler.JournaledJobMetaStore;
 import alluxio.master.scheduler.Scheduler;
 import alluxio.proto.journal.Job;
 import alluxio.resource.CloseableResource;
@@ -84,13 +85,13 @@ public final class SchedulerTest {
 
   @Test
   public void testGetActiveWorkers() throws IOException {
-    FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
+    FileSystemMaster fsMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     CloseableResource<BlockWorkerClient> blockWorkerClient = mock(CloseableResource.class);
-    MasterWorkerProvider workerProvider =
-        new MasterWorkerProvider(fileSystemMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(fileSystemMaster, workerProvider);
-    when(fileSystemMaster.getWorkerInfoList())
+    DefaultWorkerProvider workerProvider =
+        new DefaultWorkerProvider(fsMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster));
+    when(fsMaster.getWorkerInfoList())
         .thenReturn(ImmutableList.of(
             new WorkerInfo().setId(1).setAddress(
                 new WorkerNetAddress().setHost("worker1").setRpcPort(1234)),
@@ -125,15 +126,15 @@ public final class SchedulerTest {
   @Test
   public void testSubmit() throws Exception {
     String validLoadPath = "/path/to/load";
-    FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
+    FileSystemMaster fsMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
-    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
-    MasterWorkerProvider workerProvider =
-        new MasterWorkerProvider(fileSystemMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(fileSystemMaster, workerProvider);
+    when(fsMaster.createJournalContext()).thenReturn(journalContext);
+    DefaultWorkerProvider workerProvider =
+        new DefaultWorkerProvider(fsMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster));
     FileIterable files =
-        new FileIterable(fileSystemMaster, validLoadPath, Optional.of("user"), false,
+        new FileIterable(fsMaster, validLoadPath, Optional.of("user"), false,
             LoadJob.QUALIFIED_FILE_FILTER);
     LoadJob loadJob =
         new LoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.empty(), false, true,
@@ -169,15 +170,15 @@ public final class SchedulerTest {
   @Test
   public void testStop() throws Exception {
     String validLoadPath = "/path/to/load";
-    FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
+    FileSystemMaster fsMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
-    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
-    MasterWorkerProvider workerProvider =
-        new MasterWorkerProvider(fileSystemMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(fileSystemMaster, workerProvider);
+    when(fsMaster.createJournalContext()).thenReturn(journalContext);
+    DefaultWorkerProvider workerProvider =
+        new DefaultWorkerProvider(fsMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster));
     FileIterable files =
-        new FileIterable(fileSystemMaster, validLoadPath, Optional.of("user"), false,
+        new FileIterable(fsMaster, validLoadPath, Optional.of("user"), false,
             LoadJob.QUALIFIED_FILE_FILTER);
     LoadJob job =
         new LoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.of(100), false, true,
@@ -209,24 +210,24 @@ public final class SchedulerTest {
 
   @Test
   public void testSubmitExceedsCapacity() throws Exception {
-    FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
+    FileSystemMaster fsMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
-    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
-    MasterWorkerProvider workerProvider =
-        new MasterWorkerProvider(fileSystemMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(fileSystemMaster, workerProvider);
+    when(fsMaster.createJournalContext()).thenReturn(journalContext);
+    DefaultWorkerProvider workerProvider =
+        new DefaultWorkerProvider(fsMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster));
     IntStream.range(0, 100).forEach(
         i -> {
           String path = String.format("/path/to/load/%d", i);
-          FileIterable files = new FileIterable(fileSystemMaster, path, Optional.of("user"), false,
+          FileIterable files = new FileIterable(fsMaster, path, Optional.of("user"), false,
               LoadJob.QUALIFIED_FILE_FILTER);
           assertTrue(scheduler.submitJob(
               new LoadJob(path, Optional.of("user"), "1", OptionalLong.empty(), false, true,
                   files)));
         });
     FileIterable files =
-        new FileIterable(fileSystemMaster, "/path/to/load/101", Optional.of("user"), false,
+        new FileIterable(fsMaster, "/path/to/load/101", Optional.of("user"), false,
             LoadJob.QUALIFIED_FILE_FILTER);
     assertThrows(ResourceExhaustedRuntimeException.class, () -> scheduler.submitJob(
         new LoadJob("/path/to/load/101", Optional.of("user"), "1", OptionalLong.empty(), false,
@@ -235,13 +236,13 @@ public final class SchedulerTest {
 
   @Test
   public void testScheduling() throws Exception {
-    FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
+    FileSystemMaster fsMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
-    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
+    when(fsMaster.createJournalContext()).thenReturn(journalContext);
     CloseableResource<BlockWorkerClient> blockWorkerClientResource = mock(CloseableResource.class);
     BlockWorkerClient blockWorkerClient = mock(BlockWorkerClient.class);
-    when(fileSystemMaster.getWorkerInfoList())
+    when(fsMaster.getWorkerInfoList())
         .thenReturn(ImmutableList.of(
             new WorkerInfo().setId(1).setAddress(
                 new WorkerNetAddress().setHost("worker1").setRpcPort(1234)),
@@ -272,7 +273,7 @@ public final class SchedulerTest {
             new WorkerInfo().setId(10).setAddress(
                 new WorkerNetAddress().setHost("worker10").setRpcPort(1234))));
     List<FileInfo> fileInfos = generateRandomFileInfo(100, 50, 64 * Constants.MB);
-    when(fileSystemMaster.listStatus(any(), any()))
+    when(fsMaster.listStatus(any(), any()))
         .thenReturn(fileInfos)
         .thenReturn(fileWithBlockLocations(fileInfos, 0.95))
         .thenReturn(fileWithBlockLocations(fileInfos, 1.1));
@@ -283,11 +284,11 @@ public final class SchedulerTest {
       LoadRequest request = invocation.getArgument(0);
       return buildResponseFuture(request, iteration);
     });
-    MasterWorkerProvider workerProvider =
-        new MasterWorkerProvider(fileSystemMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(fileSystemMaster, workerProvider);
+    DefaultWorkerProvider workerProvider =
+        new DefaultWorkerProvider(fsMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster));
     String path = "test";
-    FileIterable files = new FileIterable(fileSystemMaster, path, Optional.of("user"), false,
+    FileIterable files = new FileIterable(fsMaster, path, Optional.of("user"), false,
         LoadJob.QUALIFIED_FILE_FILTER);
     LoadJob loadJob = new LoadJob(path, Optional.of("user"), "1",
         OptionalLong.of(1000), false, true, files);
@@ -359,10 +360,10 @@ public final class SchedulerTest {
 
   @Test
   public void testSchedulingFullCapacity() throws Exception {
-    FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
+    FileSystemMaster fsMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
-    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
+    when(fsMaster.createJournalContext()).thenReturn(journalContext);
     CloseableResource<BlockWorkerClient> blockWorkerClientResource = mock(CloseableResource.class);
     BlockWorkerClient blockWorkerClient = mock(BlockWorkerClient.class);
     ImmutableList.Builder<WorkerInfo> workerInfos = ImmutableList.builder();
@@ -370,10 +371,10 @@ public final class SchedulerTest {
       workerInfos.add(new WorkerInfo().setId(i).setAddress(
           new WorkerNetAddress().setHost("worker" + i).setRpcPort(1234)));
     }
-    when(fileSystemMaster.getWorkerInfoList())
+    when(fsMaster.getWorkerInfoList())
         .thenReturn(workerInfos.build());
     List<FileInfo> fileInfos = generateRandomFileInfo(2000, 50, 64 * Constants.MB);
-    when(fileSystemMaster.listStatus(any(), any()))
+    when(fsMaster.listStatus(any(), any()))
         .thenReturn(fileInfos);
 
     when(fileSystemContext.acquireBlockWorkerClient(any())).thenReturn(blockWorkerClientResource);
@@ -385,11 +386,11 @@ public final class SchedulerTest {
       return responseFuture;
     });
     FileIterable files =
-        new FileIterable(fileSystemMaster, "test", Optional.of("user"), false,
+        new FileIterable(fsMaster, "test", Optional.of("user"), false,
             LoadJob.QUALIFIED_FILE_FILTER);
-    MasterWorkerProvider workerProvider =
-        new MasterWorkerProvider(fileSystemMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(fileSystemMaster, workerProvider);
+    DefaultWorkerProvider workerProvider =
+        new DefaultWorkerProvider(fsMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster));
     for (int i = 0; i < 100; i++) {
       LoadJob loadJob = new LoadJob("test" + i, "user", OptionalLong.of(1000), files);
       scheduler.submitJob(loadJob);
@@ -407,13 +408,13 @@ public final class SchedulerTest {
 
   @Test
   public void testSchedulingWithException() throws Exception {
-    FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
+    FileSystemMaster fsMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
-    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
+    when(fsMaster.createJournalContext()).thenReturn(journalContext);
     CloseableResource<BlockWorkerClient> blockWorkerClientResource = mock(CloseableResource.class);
     BlockWorkerClient blockWorkerClient = mock(BlockWorkerClient.class);
-    when(fileSystemMaster.getWorkerInfoList())
+    when(fsMaster.getWorkerInfoList())
         .thenReturn(ImmutableList.of(
             new WorkerInfo().setId(1).setAddress(
                 new WorkerNetAddress().setHost("worker1").setRpcPort(1234)),
@@ -422,18 +423,18 @@ public final class SchedulerTest {
     when(fileSystemContext.acquireBlockWorkerClient(any())).thenReturn(blockWorkerClientResource);
     when(blockWorkerClientResource.get()).thenReturn(blockWorkerClient);
     List<FileInfo> fileInfos = generateRandomFileInfo(100, 10, 64 * Constants.MB);
-    when(fileSystemMaster.listStatus(any(), any()))
+    when(fsMaster.listStatus(any(), any()))
         // Non-retryable exception, first load job should fail
         .thenThrow(AccessControlException.class)
         // Retryable exception, second load job should succeed
         .thenThrow(new ResourceExhaustedRuntimeException("test", true))
         .thenReturn(fileInfos);
-    MasterWorkerProvider workerProvider =
-        new MasterWorkerProvider(fileSystemMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(fileSystemMaster, workerProvider);
+    DefaultWorkerProvider workerProvider =
+        new DefaultWorkerProvider(fsMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster));
     scheduler.start();
     FileIterable files =
-        new FileIterable(fileSystemMaster, "test", Optional.of("user"), false,
+        new FileIterable(fsMaster, "test", Optional.of("user"), false,
             LoadJob.QUALIFIED_FILE_FILTER);
     LoadJob job = new LoadJob("test", "user", OptionalLong.of(1000), files);
     scheduler.submitJob(job);
@@ -461,19 +462,19 @@ public final class SchedulerTest {
   @Test
   public void testJobRetention() throws Exception {
     Configuration.modifiableGlobal().set(PropertyKey.JOB_RETENTION_TIME, "0ms", Source.RUNTIME);
-    FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
+    FileSystemMaster fsMaster = mock(FileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
-    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
-    MasterWorkerProvider workerProvider =
-        new MasterWorkerProvider(fileSystemMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(fileSystemMaster, workerProvider);
+    when(fsMaster.createJournalContext()).thenReturn(journalContext);
+    DefaultWorkerProvider workerProvider =
+        new DefaultWorkerProvider(fsMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster));
     scheduler.start();
     IntStream
         .range(0, 5)
         .forEach(i -> {
           String path = String.format("/load/%d", i);
-          FileIterable files = new FileIterable(fileSystemMaster, path, Optional.of("user"),
+          FileIterable files = new FileIterable(fsMaster, path, Optional.of("user"),
               false, LoadJob.QUALIFIED_FILE_FILTER);
           assertTrue(scheduler.submitJob(
               new LoadJob(path, Optional.of("user"), "1",

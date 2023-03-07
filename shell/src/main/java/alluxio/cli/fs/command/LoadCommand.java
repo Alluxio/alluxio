@@ -241,7 +241,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     try {
       Optional<String> jobId = mFileSystem.submitJob(job);
       if (jobId.isPresent()) {
-        System.out.printf("Load '%s' is successfully submitted. JobId: %s%n", path, jobId);
+        System.out.printf("Load '%s' is successfully submitted. JobId: %s%n", path, jobId.get());
       } else {
         System.out.printf("Load already running for path '%s', updated the job with "
                 + "new bandwidth: %s, verify: %s%n",

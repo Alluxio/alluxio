@@ -122,7 +122,8 @@ import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metrics.TimeSeriesStore;
-import alluxio.master.scheduler.MasterWorkerProvider;
+import alluxio.master.scheduler.DefaultWorkerProvider;
+import alluxio.master.scheduler.JournaledJobMetaStore;
 import alluxio.master.scheduler.Scheduler;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
@@ -514,8 +515,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     mSyncMetadataExecutor.allowCoreThreadTimeOut(true);
     mActiveSyncMetadataExecutor.allowCoreThreadTimeOut(true);
     FileSystemContext schedulerFsContext = FileSystemContext.create();
-    mScheduler =
-        new Scheduler(this, new MasterWorkerProvider(this, schedulerFsContext));
+    JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(this);
+    mScheduler = new Scheduler(new DefaultWorkerProvider(this, schedulerFsContext), jobMetaStore);
 
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
@@ -526,7 +527,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         add(mMountTable);
         add(mUfsManager);
         add(mSyncManager);
-        add(mScheduler);
+        add(jobMetaStore);
       }
     };
     mJournaledGroup = new JournaledGroup(journaledComponents, CheckpointName.FILE_SYSTEM_MASTER);
