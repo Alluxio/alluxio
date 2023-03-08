@@ -230,7 +230,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   public FileInfo getFileInfo(String ufsFullPath, GetStatusPOptions options) throws IOException {
     alluxio.grpc.FileInfo fi;
     long syncIntervalMs = options.hasCommonOptions()
-        ? options.getCommonOptions().getSyncIntervalMs() :
+        ? (options.getCommonOptions().hasSyncIntervalMs()
+          ? options.getCommonOptions().getSyncIntervalMs() : -1) :
         -1;
 
     DoraMeta.FileStatus status = mUfsStatusCache.getIfPresent(ufsFullPath);
