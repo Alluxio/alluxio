@@ -108,7 +108,7 @@ public class RegisterStreamTestUtils {
   public static List<RegisterWorkerPRequest> generateRegisterStreamForWorkerWithBlocks(
           long workerId, long blockSize, List<Long> blockList) {
     Map<BlockStoreLocation, List<Long>> blockMap = new HashMap<>();
-    BlockStoreLocation mem = new BlockStoreLocation("MEM", 0);
+    BlockStoreLocation mem = new BlockStoreLocation("MEM", 0, "MEM");
     blockMap.put(mem, blockList);
 
     // We just use the RegisterStreamer to generate the batch of requests
