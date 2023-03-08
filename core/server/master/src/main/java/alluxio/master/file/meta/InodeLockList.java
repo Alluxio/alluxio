@@ -14,6 +14,7 @@ package alluxio.master.file.meta;
 import alluxio.concurrent.LockMode;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -148,11 +149,10 @@ public interface InodeLockList extends AutoCloseable {
   List<Inode> getLockedInodes();
 
   /**
-   * TODO(jiacheng): need to copy?
    * @return a copy of all locked inodes
    */
   default List<InodeView> getLockedInodeViews() {
-    return new ArrayList<>(getLockedInodes());
+    return Collections.unmodifiableList(getLockedInodes());
   }
 
   /**

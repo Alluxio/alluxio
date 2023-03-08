@@ -458,6 +458,10 @@ public final class MountTableTest extends BaseInodeLockingTest {
     Assert.assertNull(mMountTable.getMountInfo(4L));
   }
 
+  // TODO(jiacheng): use a full RocksDB setup with no inode cache
+  //  create mount table and reload inodes and assert equality
+
+
   private LockedInodePath addMount(String alluxio, String ufs, long id) throws Exception {
     LockedInodePath inodePath = createLockedInodePath(alluxio);
     mMountTable.add(NoopJournalContext.INSTANCE, inodePath, new AlluxioURI(ufs), id,

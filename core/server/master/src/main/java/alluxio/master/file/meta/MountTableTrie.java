@@ -28,10 +28,13 @@ import java.util.Set;
 public final class MountTableTrie {
   public static final String ROOT = "/";
   // The root of Trie of current MountTable
-  // TODO(jiacheng): change this to ONLY rely on id!
-  private TrieNode<InodeView> mMountTableRoot;
+  // TODO(jiacheng): change this back to InodeView?
+  //  How is this used? Check on ID? Check on Name?
+  //  If that is the only use cases then the inode change will not possibly affect the correctness
+  //  Rename can change the path on an inode, so i must double check?
+  private MountTableTrieNode mMountTableRoot;
   // Map from TrieNode to the alluxio path literal
-  private Map<TrieNode<InodeView>, String> mMountPointTrieTable;
+  private Map<MountTableTrieNode, String> mMountPointTrieTable;
 
   /**
    * Constructor of MountTableTrie.
@@ -41,7 +44,7 @@ public final class MountTableTrie {
   }
 
   private void init() {
-    mMountTableRoot = new TrieNode<>();
+    mMountTableRoot = new MountTableTrieNode();
     mMountPointTrieTable = new HashMap<>(10);
   }
 
@@ -54,7 +57,7 @@ public final class MountTableTrie {
     Preconditions.checkNotNull(mMountPointTrieTable);
     Preconditions.checkArgument(mMountTableRoot.hasNoChildren());
 
-    TrieNode<InodeView> rootTrieInode =
+    MountTableTrieNode rootTrieInode =
         mMountTableRoot.insert(Collections.singletonList(rootInode));
     mMountPointTrieTable.put(rootTrieInode, ROOT);
   }
@@ -85,7 +88,7 @@ public final class MountTableTrie {
   protected void addMountPoint(String mountPointPath, List<InodeView> pathInodes) {
     Preconditions.checkState(!pathInodes.isEmpty(),
         "Mount point %s does not map to an inode", mountPointPath);
-    TrieNode<InodeView> node = mMountTableRoot.insert(pathInodes);
+    MountTableTrieNode node = mMountTableRoot.insert(pathInodes);
     mMountPointTrieTable.put(node, mountPointPath);
   }
 
@@ -96,7 +99,7 @@ public final class MountTableTrie {
   protected void removeMountPoint(List<InodeView> pathInodes) {
     Preconditions.checkArgument(pathInodes != null && !pathInodes.isEmpty());
     Preconditions.checkNotNull(mMountTableRoot);
-    TrieNode<InodeView> trieNode =
+    MountTableTrieNode trieNode =
         mMountTableRoot.remove(pathInodes);
     mMountPointTrieTable.remove(trieNode);
   }
@@ -109,7 +112,7 @@ public final class MountTableTrie {
   protected String getMountPoint(List<InodeView> pathInodes) {
     Preconditions.checkNotNull(mMountTableRoot);
 
-    TrieNode<InodeView> res = mMountTableRoot.lowestMatchedTrieNode(pathInodes,
+    MountTableTrieNode res = mMountTableRoot.lowestMatchedTrieNode(pathInodes,
         true, false);
     return mMountPointTrieTable.get(res);
   }
@@ -135,14 +138,14 @@ public final class MountTableTrie {
       boolean containsSelf) {
     Preconditions.checkNotNull(mMountTableRoot);
 
-    TrieNode<InodeView> trieNode = mMountTableRoot.lowestMatchedTrieNode(pathInodes,
+    MountTableTrieNode trieNode = mMountTableRoot.lowestMatchedTrieNode(pathInodes,
         false, true);
     if (trieNode == null) {
       return Collections.emptyList();
     }
     List<String> mountPoints = new ArrayList<>();
-    List<TrieNode<InodeView>> childrenTrieNodes = trieNode.descendants(true, containsSelf, true);
-    for (TrieNode<InodeView> node : childrenTrieNodes) {
+    List<MountTableTrieNode> childrenTrieNodes = trieNode.descendants(true, containsSelf, true);
+    for (MountTableTrieNode node : childrenTrieNodes) {
       mountPoints.add(mMountPointTrieTable.get(node));
     }
     return mountPoints;
@@ -157,7 +160,7 @@ public final class MountTableTrie {
   protected boolean hasChildrenContainsMountPoints(
       List<InodeView> pathInodes, boolean containsSelf) {
     Preconditions.checkNotNull(mMountTableRoot);
-    TrieNode<InodeView> trieNode = mMountTableRoot.lowestMatchedTrieNode(pathInodes,
+    MountTableTrieNode trieNode = mMountTableRoot.lowestMatchedTrieNode(pathInodes,
         false, true);
     if (trieNode == null) {
       return false;

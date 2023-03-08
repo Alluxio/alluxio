@@ -685,6 +685,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   }
 
   @Override
+  // TODO(jiacheng): this is inefficient
   public int hashCode() {
     return ((Long) mId).hashCode();
   }

@@ -20,18 +20,18 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
- * Tests {@link TrieNode}.
+ * Tests {@link MountTableTrieNode}.
  */
 public class TrieNodeTest extends BaseInodeLockingTest {
   @Test
   public void testInsert() {
-    TrieNode<Integer> root = new TrieNode<>();
+    MountTableTrieNode<Integer> root = new MountTableTrieNode<>();
     root.insert(Arrays.asList(1, 2, 3));
     root.insert(Arrays.asList(1, 4, 5));
     root.insert(Arrays.asList(1, 6));
     root.insert(Arrays.asList(1, 4, 9));
 
-    TrieNode<Integer> node1 = root.lowestMatchedTrieNode(Collections.singletonList(1),
+    MountTableTrieNode<Integer> node1 = root.lowestMatchedTrieNode(Collections.singletonList(1),
         false, true);
 
     Assert.assertEquals(Sets.newHashSet(2, 4, 6), node1.childrenKeys());
@@ -41,14 +41,14 @@ public class TrieNodeTest extends BaseInodeLockingTest {
 
   @Test
   public void testLowestMatchedTrieNode() {
-    TrieNode<Integer> root = new TrieNode<>();
+    MountTableTrieNode<Integer> root = new MountTableTrieNode<>();
 
     root.insert(Arrays.asList(1, 2, 3));
     root.insert(Arrays.asList(1, 4, 5));
     root.insert(Arrays.asList(1, 6));
     root.insert(Arrays.asList(1, 4, 9));
 
-    TrieNode<Integer> node1 = root.lowestMatchedTrieNode(Collections.singletonList(1),
+    MountTableTrieNode<Integer> node1 = root.lowestMatchedTrieNode(Collections.singletonList(1),
         false, false);
     Assert.assertEquals(Sets.newHashSet(2, 4, 6), node1.childrenKeys());
     Assert.assertEquals(node1, node1.lowestMatchedTrieNode(new ArrayList<>(), false, false));
@@ -60,14 +60,14 @@ public class TrieNodeTest extends BaseInodeLockingTest {
 
   @Test
   public void testRemove() {
-    TrieNode<Integer> root = new TrieNode<>();
+    MountTableTrieNode<Integer> root = new MountTableTrieNode<>();
 
     root.insert(Arrays.asList(1, 2, 3));
     root.insert(Arrays.asList(1, 4, 5));
     root.insert(Arrays.asList(1, 6));
     root.insert(Arrays.asList(1, 4, 9));
 
-    TrieNode<Integer> node1 = root.lowestMatchedTrieNode(Collections.singletonList(1), false,
+    MountTableTrieNode<Integer> node1 = root.lowestMatchedTrieNode(Collections.singletonList(1), false,
         true);
     // remove a path that is not existed will return null
     Assert.assertNull(root.remove(Arrays.asList(1, 7, 9)));
@@ -84,17 +84,17 @@ public class TrieNodeTest extends BaseInodeLockingTest {
 
   @Test
   public void testDescendents() {
-    TrieNode<Integer> root = new TrieNode<>();
+    MountTableTrieNode<Integer> root = new MountTableTrieNode<>();
 
     root.insert(Arrays.asList(1, 2, 3));
     root.insert(Arrays.asList(1, 4));
 
-    TrieNode<Integer> node1 = root.lowestMatchedTrieNode(Collections.singletonList(1), false, true);
-    TrieNode<Integer> node2 = node1.lowestMatchedTrieNode(Collections.singletonList(2), false,
+    MountTableTrieNode<Integer> node1 = root.lowestMatchedTrieNode(Collections.singletonList(1), false, true);
+    MountTableTrieNode<Integer> node2 = node1.lowestMatchedTrieNode(Collections.singletonList(2), false,
         true);
-    TrieNode<Integer> node3 = node2.lowestMatchedTrieNode(Collections.singletonList(3), false,
+    MountTableTrieNode<Integer> node3 = node2.lowestMatchedTrieNode(Collections.singletonList(3), false,
         true);
-    TrieNode<Integer> node4 = node1.lowestMatchedTrieNode(Collections.singletonList(4), false,
+    MountTableTrieNode<Integer> node4 = node1.lowestMatchedTrieNode(Collections.singletonList(4), false,
         true);
 
     Assert.assertEquals(Arrays.asList(node1, node2, node4, node3), root.descendants(false,
