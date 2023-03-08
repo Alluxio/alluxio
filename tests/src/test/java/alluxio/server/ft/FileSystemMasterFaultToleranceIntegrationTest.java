@@ -11,11 +11,13 @@
 
 package alluxio.server.ft;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
+import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileAlreadyCompletedException;
@@ -25,6 +27,7 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.master.file.FileSystemMaster;
@@ -35,19 +38,25 @@ import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.OperationId;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.io.FileWriter;
+import java.nio.charset.Charset;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -59,6 +68,9 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
   private static final String TEST_USER = "test";
 
   private MultiMasterLocalAlluxioCluster mMultiMasterLocalAlluxioCluster;
+
+  @Rule
+  public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Rule
   public TestName mTestName = new TestName();
@@ -84,7 +96,7 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
 
   @Before
   public final void before() throws Exception {
-    mMultiMasterLocalAlluxioCluster = new MultiMasterLocalAlluxioCluster(2, 0);
+    mMultiMasterLocalAlluxioCluster = new MultiMasterLocalAlluxioCluster(2, 1);
     mMultiMasterLocalAlluxioCluster.initConfiguration(
         IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
     Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "60sec");
@@ -103,6 +115,37 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
   public final void after() throws Exception {
     mMultiMasterLocalAlluxioCluster.stop();
     Configuration.reloadProperties();
+  }
+
+  @Test
+  public void syncMetadataFailOver() throws Exception {
+    String ufsPath = mFolder.newFolder().getAbsoluteFile().toString();
+    String ufsUri = "file://" + ufsPath;
+    MountPOptions options = MountPOptions.newBuilder().build();
+    FileSystem client = mMultiMasterLocalAlluxioCluster.getClient();
+    AlluxioURI mountPath = new AlluxioURI("/mnt1");
+    client.mount(mountPath, new AlluxioURI(ufsUri), options);
+
+    // create a file outside alluxio
+    String fileName = "someFile";
+    String contents = "contents";
+    try (FileWriter fw = new FileWriter(Paths.get(PathUtils.concatPath(
+        ufsPath, fileName)).toString())) {
+      fw.write(contents);
+    }
+    // sync it with metadata sync
+    assertEquals(contents, IOUtils.toString(client.openFile(
+        mountPath.join(fileName)), Charset.defaultCharset()));
+
+    // Promote standby to be a leader and reset test state.
+    mMultiMasterLocalAlluxioCluster.stopLeader();
+    mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
+    mMultiMasterLocalAlluxioCluster.waitForWorkersRegistered(CLUSTER_WAIT_TIMEOUT_MS);
+
+    // read the file again
+    client = mMultiMasterLocalAlluxioCluster.getClient();
+    assertEquals(contents, IOUtils.toString(client.openFile(
+        mountPath.join(fileName)), Charset.defaultCharset()));
   }
 
   @Test
