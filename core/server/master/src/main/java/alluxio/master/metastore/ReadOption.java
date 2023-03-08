@@ -21,6 +21,7 @@ public class ReadOption {
 
   private final boolean mSkipCache;
   private final String mStartFrom;
+  private final String mEndAt;
   private final String mPrefix;
 
   private ReadOption(boolean skipCache, String readFrom, String prefix) {
@@ -41,6 +42,7 @@ public class ReadOption {
    * if traversal should start from the beginning
    */
   public @Nullable String getStartFrom() { return mStartFrom; }
+  public @Nullable String getEndAt() { return mEndAt; }
 
   /**
    * @return prefix to filter children path names from
@@ -67,6 +69,7 @@ public class ReadOption {
   public static class Builder {
     private boolean mSkipCache = false;
     private String mReadFrom = null;
+    private String mStopAt = null;
     private String mPrefix = null;
 
     /**
@@ -105,6 +108,12 @@ public class ReadOption {
      */
     public ReadOption build() {
       return new ReadOption(mSkipCache, mReadFrom, mPrefix);
+    }
+
+    // inclusive
+    public Builder setStopAt(String stopAt) {
+      mStopAt = stopAt;
+      return this;
     }
   }
 }

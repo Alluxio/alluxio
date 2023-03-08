@@ -130,6 +130,9 @@ public interface ReadOnlyInodeStore extends Closeable {
       @Override
       public boolean hasNext() {
         advance();
+        if (mNext.getName().compareTo(option.getEndAt()) > 0) {
+          return false;
+        }
         return mNext != null;
       }
 
@@ -162,6 +165,23 @@ public interface ReadOnlyInodeStore extends Closeable {
    */
   default CloseableIterator<? extends Inode> getChildren(Long inodeId) {
     return getChildren(inodeId, ReadOption.defaults());
+  }
+
+  /**
+   * Returns an iterator over the children of the specified inode. Recursive listing is supported.
+   *
+   * The iterator is weakly consistent. It can operate in the presence of concurrent modification,
+   * but it is undefined whether concurrently removed inodes will be excluded or whether
+   * concurrently added inodes will be included.
+   *
+   * @param inodeId an inode id
+   * @param option the options
+   * @return an iterable over the children of the inode with the given id
+   */
+  default RecursiveInodeIterator getChildrenRecursively(
+      Long inodeId, ReadOption option, boolean recursive) {
+    return new RecursiveInodeIterator(
+        this, getChildren(inodeId, option), recursive);
   }
 
   /**
