@@ -11,6 +11,7 @@
 
 package alluxio.worker.dora;
 
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.FileInfo;
 import alluxio.worker.DataWorker;
@@ -27,9 +28,10 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * Gets the file information.
    *
    * @param fileId the file id
+   * @param options the options for the GetStatusPRequest
    * @return the file info
    */
-  FileInfo getFileInfo(String fileId) throws IOException;
+  FileInfo getFileInfo(String fileId, GetStatusPOptions options) throws IOException;
 
   /**
    * Creates the file reader to read from Alluxio dora.
