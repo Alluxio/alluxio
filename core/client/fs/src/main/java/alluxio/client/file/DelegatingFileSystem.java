@@ -264,4 +264,11 @@ public class DelegatingFileSystem implements FileSystem {
   public void close() throws IOException {
     mDelegatedFileSystem.close();
   }
+
+  /**
+   * @return The underlying file system
+   */
+  public FileSystem getUnderlyingFileSystem() {
+    return mDelegatedFileSystem;
+  }
 }
