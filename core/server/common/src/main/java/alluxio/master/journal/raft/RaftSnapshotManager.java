@@ -11,6 +11,7 @@
 
 package alluxio.master.journal.raft;
 
+import alluxio.AbstractClient;
 import alluxio.concurrent.jsr.CompletableFuture;
 import alluxio.conf.Configuration;
 import alluxio.grpc.DownloadFilePRequest;
@@ -47,15 +48,26 @@ import javax.annotation.Nullable;
 /**
  * Manages a snapshot download.
  */
-public class RaftSnapshotManager {
+public class RaftSnapshotManager implements AutoCloseable {
   private static final Logger LOG = LoggerFactory.getLogger(RaftSnapshotManager.class);
 
   private final StateMachineStorage mStorage;
+  private final Map<InetSocketAddress, RaftJournalServiceClient> mClients;
+
   @Nullable @GuardedBy("this")
   private CompletableFuture<Long> mDownloadFuture = null;
 
   RaftSnapshotManager(StateMachineStorage storage) {
     mStorage = storage;
+
+    InetSocketAddress localAddress = NetworkAddressUtils.getConnectAddress(
+        NetworkAddressUtils.ServiceType.MASTER_RPC, Configuration.global());
+    mClients = ConfigurationUtils.getMasterRpcAddresses(Configuration.global()).stream()
+        .filter(address -> !address.equals(localAddress))
+        .collect(Collectors.toMap(Function.identity(), address -> {
+          MasterSelectionPolicy policy = MasterSelectionPolicy.Factory.specifiedMaster(address);
+          return new RaftJournalServiceClient(policy);
+        }));
   }
 
   /**
@@ -91,14 +103,14 @@ public class RaftSnapshotManager {
     }
 
     List<Map.Entry<InetSocketAddress, SnapshotMetadata>> followerInfos =
-        masterRpcAddresses.parallelStream()
+        mClients.keySet().parallelStream()
         // filter ourselves out: we do not need to poll ourselves
         .filter(address -> !address.equals(localAddress))
         // map into a pair of (address, SnapshotMetadata) by requesting all followers in parallel
         .collect(Collectors.toMap(Function.identity(), address -> {
           LOG.debug("Requesting snapshot info from {}", address);
-          MasterSelectionPolicy policy = MasterSelectionPolicy.Factory.specifiedMaster(address);
-          try (RaftJournalServiceClient client = new RaftJournalServiceClient(policy)) {
+          try {
+            RaftJournalServiceClient client = mClients.get(address);
             client.connect();
             SnapshotMetadata metadata = client.requestLatestSnapshotInfo();
             LOG.debug("Received snapshot info from {} with status {}", address,
@@ -124,8 +136,8 @@ public class RaftSnapshotManager {
     for (Map.Entry<InetSocketAddress, SnapshotMetadata> info : followerInfos) {
       InetSocketAddress address = info.getKey();
       SnapshotMetadata snapshotMetadata = info.getValue();
-      MasterSelectionPolicy policy = MasterSelectionPolicy.Factory.specifiedMaster(address);
-      try (RaftJournalServiceClient client = new RaftJournalServiceClient(policy)) {
+      try {
+        RaftJournalServiceClient client = mClients.get(address);
         client.connect();
         List<FileMetadata> metadataList = snapshotMetadata.getFilesMetadataList();
         LOG.debug("Downloading {} snapshot files from {}", metadataList.size(), address);
@@ -139,9 +151,7 @@ public class RaftSnapshotManager {
         File finalSnapshotDestination = new File(mStorage.getSnapshotDir(),
             SimpleStateMachineStorage.getSnapshotFileName(snapshotMetadata.getSnapshotTerm(),
                 snapshotMetadata.getSnapshotIndex()));
-        synchronized (mStorage) {
-          FileUtils.moveDirectory(mStorage.getTmpDir(), finalSnapshotDestination);
-        }
+        FileUtils.moveDirectory(mStorage.getTmpDir(), finalSnapshotDestination);
         LOG.debug("Finished snapshot download {}", snapshotMetadata.getSnapshotIndex());
         return snapshotMetadata.getSnapshotIndex();
       } catch (Exception e) {
@@ -170,5 +180,10 @@ public class RaftSnapshotManager {
         out.write(data.next().getChunk().toByteArray());
       }
     }
+  }
+
+  @Override
+  public void close() {
+    mClients.values().forEach(AbstractClient::close);
   }
 }

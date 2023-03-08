@@ -352,6 +352,7 @@ public class JournalStateMachine extends BaseStateMachine {
     MetricsSystem.removeMetrics(MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName());
     MetricsSystem.removeMetrics(MetricKey.MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX.getName());
     MetricsSystem.removeMetrics(MetricKey.MASTER_JOURNAL_CHECKPOINT_WARN.getName());
+    mDownloadManager.close();
     synchronized (mSnapshotManager) {
       mSnapshotManager.notifyAll();
     }
