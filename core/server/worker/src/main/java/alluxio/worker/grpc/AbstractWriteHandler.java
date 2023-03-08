@@ -95,7 +95,8 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       AuthenticatedUserInfo userInfo) {
     mResponseObserver = responseObserver;
     mUserInfo = userInfo;
-    mSerializingExecutor = new SerializingExecutor(GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+    mSerializingExecutor = new SerializingExecutor(
+        GrpcExecutors.BLOCK_WRITER_SERIALIZED_RUNNER_EXECUTOR);
   }
 
   /**
@@ -173,7 +174,6 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       if (!tryAcquireSemaphore()) {
         return;
       }
-      releaseBuf = false;
       mSerializingExecutor.execute(() -> {
         try {
           writeData(buffer);
@@ -181,6 +181,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
           mSemaphore.release();
         }
       });
+      releaseBuf = false;
     } finally {
       if (releaseBuf) {
         buffer.release();
