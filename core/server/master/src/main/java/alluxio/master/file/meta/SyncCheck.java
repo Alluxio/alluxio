@@ -60,6 +60,7 @@ public class SyncCheck {
 
   @Override
   public String toString() {
+    // todo(jiacheng): where is this used?
     return String.format("{Should sync: %b, Last sync time: %d}", mShouldSync, mLastSyncTime);
   }
 

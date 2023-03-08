@@ -188,6 +188,7 @@ public final class RpcUtils {
       String description, String debugDesc, Logger logger, Object[] args) {
     logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
     if (!failureOk) {
+      // TODO(jiacheng): double check this
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       if (!logger.isDebugEnabled()) {
         logger.warn("Exit (Error): {}: {}, Error={}", methodName,

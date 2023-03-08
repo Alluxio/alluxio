@@ -326,6 +326,7 @@ public class SimpleInodeLockList implements InodeLockList {
         .map(Inode::getName)
         .collect(Collectors.joining("/"));
     StringBuilder sb = new StringBuilder("Path: " + path);
+    // TODO(jiacheng): use sb fully
     if (mLastEdge != null) {
       sb.append(String.format(", Last edge -> %s", mLastEdge));
     }

@@ -173,6 +173,7 @@ public class ActiveSyncManager implements Journaled {
     for (AlluxioURI syncedPath : mSyncPathList) {
       try {
         if (PathUtils.hasPrefix(path.getPath(), syncedPath.getPath())
+            // TODO(jiacheng): create a ticket to replace all string-based resolution to trie-based
             && mMountTable.resolveMountPointString(path)
                 .equals(mMountTable.resolveMountPointString(syncedPath))) {
           return true;

@@ -159,6 +159,7 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   }
 
   @Override
+  // todo(jiacheng): where is this called
   public String toString() {
     if (mSrcInode != null) {
       short mode = mSrcInode.getMode();

@@ -74,6 +74,7 @@ public abstract class AbstractJournalProgressLogger {
     long timeSinceLastMeasure = (now - mLastMeasuredTime);
     long commitIdxRead = currCommitIdx - mLastCommitIdx;
 
+    // TODO(jiacheng)
     double commitIdxRateMs = ((double) commitIdxRead) / timeSinceLastMeasure;
     StringJoiner logMsg = new StringJoiner("|");
     logMsg.add(getJournalName());
