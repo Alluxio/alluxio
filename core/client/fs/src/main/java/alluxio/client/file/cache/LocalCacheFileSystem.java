@@ -12,6 +12,7 @@
 package alluxio.client.file.cache;
 
 import alluxio.AlluxioURI;
+import alluxio.cache.CacheManager;
 import alluxio.client.file.DelegatingFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;

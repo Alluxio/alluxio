@@ -20,10 +20,10 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
-import alluxio.client.file.cache.CacheManagerOptions;
-import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.PageInfo;
-import alluxio.client.file.cache.store.PageStoreDir;
+import alluxio.cache.CacheManagerOptions;
+import alluxio.cache.PageId;
+import alluxio.cache.PageInfo;
+import alluxio.cache.store.PageStoreDir;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;

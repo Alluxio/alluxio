@@ -15,6 +15,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 
+import alluxio.cache.quota.CacheScope;
+
 import org.junit.Test;
 
 /**

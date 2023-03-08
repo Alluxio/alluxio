@@ -32,8 +32,8 @@ import alluxio.RuntimeConstants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
-import alluxio.client.file.cache.ShadowCacheType;
-import alluxio.client.file.cache.store.PageStoreType;
+import alluxio.cache.ShadowCacheType;
+import alluxio.cache.store.PageStoreType;
 import alluxio.exception.ExceptionMessage;
 import alluxio.executor.RpcExecutorType;
 import alluxio.executor.ThreadPoolExecutorQueueType;
@@ -4504,11 +4504,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_PAGE_STORE_EVICTOR_CLASS =
       classBuilder(Name.WORKER_PAGE_STORE_EVICTOR_CLASS)
-          .setDefaultValue("alluxio.client.file.cache.evictor.LRUCacheEvictor")
+          .setDefaultValue("alluxio.cache.evictor.LRUCacheEvictor")
           .setDescription("The strategy that worker uses to evict local cached pages when running "
               + "out of space. Currently valid options include "
-              + "`alluxio.client.file.cache.evictor.LRUCacheEvictor`,"
-              + "`alluxio.client.file.cache.evictor.LFUCacheEvictor`.")
+              + "`alluxio.cache.evictor.LRUCacheEvictor`,"
+              + "`alluxio.cache.evictor.LFUCacheEvictor`.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -5687,7 +5687,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_FILTER_CLASS =
       classBuilder(Name.USER_CLIENT_CACHE_FILTER_CLASS)
-          .setDefaultValue("alluxio.client.file.cache.filter.DefaultCacheFilter")
+          .setDefaultValue("alluxio.cache.filter.DefaultCacheFilter")
           .setDescription("The default cache filter caches everything")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -5701,11 +5701,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_EVICTOR_CLASS =
       classBuilder(Name.USER_CLIENT_CACHE_EVICTOR_CLASS)
-          .setDefaultValue("alluxio.client.file.cache.evictor.LRUCacheEvictor")
+          .setDefaultValue("alluxio.cache.evictor.LRUCacheEvictor")
           .setDescription("The strategy that client uses to evict local cached pages when running "
               + "out of space. Currently valid options include "
-              + "`alluxio.client.file.cache.evictor.LRUCacheEvictor`,"
-              + "`alluxio.client.file.cache.evictor.LFUCacheEvictor`.")
+              + "`alluxio.cache.evictor.LRUCacheEvictor`,"
+              + "`alluxio.cache.evictor.LFUCacheEvictor`.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();

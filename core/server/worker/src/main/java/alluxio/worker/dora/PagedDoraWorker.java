@@ -11,17 +11,17 @@
 
 package alluxio.worker.dora;
 
-import static alluxio.client.file.cache.CacheUsage.PartitionDescriptor.file;
+import static alluxio.cache.CacheUsage.PartitionDescriptor.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
-import alluxio.client.file.cache.CacheManager;
-import alluxio.client.file.cache.CacheManagerOptions;
-import alluxio.client.file.cache.CacheUsage;
-import alluxio.client.file.cache.PageMetaStore;
+import alluxio.cache.CacheManager;
+import alluxio.cache.CacheManagerOptions;
+import alluxio.cache.CacheUsage;
+import alluxio.cache.PageMetaStore;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;

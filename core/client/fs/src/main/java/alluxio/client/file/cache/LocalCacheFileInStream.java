@@ -15,12 +15,14 @@ import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
 import static alluxio.client.file.CacheContext.StatsUnit.NANO;
 
 import alluxio.AlluxioURI;
+import alluxio.cache.CacheManager;
+import alluxio.cache.PageId;
+import alluxio.cache.store.ByteArrayTargetBuffer;
+import alluxio.cache.store.ByteBufferTargetBuffer;
+import alluxio.cache.store.PageReadTargetBuffer;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
-import alluxio.client.file.cache.store.ByteBufferTargetBuffer;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;

@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThrows;
 
-import alluxio.client.file.cache.PageId;
+import alluxio.cache.PageId;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;

@@ -14,7 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
-import alluxio.client.file.cache.CacheManager;
+import alluxio.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;

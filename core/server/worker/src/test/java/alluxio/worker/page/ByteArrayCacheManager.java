@@ -12,10 +12,10 @@
 package alluxio.worker.page;
 
 import alluxio.client.file.CacheContext;
-import alluxio.client.file.cache.CacheManager;
-import alluxio.client.file.cache.CacheUsage;
-import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
+import alluxio.cache.CacheManager;
+import alluxio.cache.CacheUsage;
+import alluxio.cache.PageId;
+import alluxio.cache.store.PageReadTargetBuffer;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;

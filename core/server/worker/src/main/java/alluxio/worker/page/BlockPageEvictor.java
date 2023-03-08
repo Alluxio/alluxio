@@ -11,8 +11,8 @@
 
 package alluxio.worker.page;
 
-import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.evictor.CacheEvictor;
+import alluxio.cache.PageId;
+import alluxio.cache.evictor.CacheEvictor;
 
 import java.util.HashSet;
 import java.util.Set;

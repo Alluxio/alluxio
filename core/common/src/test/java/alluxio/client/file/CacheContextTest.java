@@ -15,8 +15,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import alluxio.client.hive.HiveCacheContext;
-import alluxio.client.quota.CacheQuota;
-import alluxio.client.quota.CacheScope;
+import alluxio.cache.quota.CacheQuota;
+import alluxio.cache.quota.CacheScope;
 
 import org.junit.Test;
 

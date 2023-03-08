@@ -12,9 +12,9 @@
 package alluxio.worker.dora;
 
 import alluxio.client.file.CacheContext;
-import alluxio.client.file.cache.CacheManager;
-import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
+import alluxio.cache.CacheManager;
+import alluxio.cache.PageId;
+import alluxio.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;

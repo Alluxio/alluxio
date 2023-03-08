@@ -14,10 +14,10 @@ package alluxio.worker.page;
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_MEDIUM;
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
-import alluxio.client.file.cache.CacheUsage;
-import alluxio.client.file.cache.PageInfo;
-import alluxio.client.file.cache.PageStore;
-import alluxio.client.file.cache.store.PageStoreDir;
+import alluxio.cache.CacheUsage;
+import alluxio.cache.PageInfo;
+import alluxio.cache.PageStore;
+import alluxio.cache.store.PageStoreDir;
 import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.base.Preconditions;
