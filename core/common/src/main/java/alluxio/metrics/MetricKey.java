@@ -2426,6 +2426,14 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
 
+  public static final MetricKey CLIENT_UFS_FALLBACK_COUNT =
+      new Builder("Client.UfsFallBackCount")
+          .setDescription("The number of fallbacks to UFS when failing to open file in Alluxio "
+              + "distributed cache.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+
   public static final MetricKey CLOSE_UFS_OUTSTREAM_LATENCY =
           new Builder("Client.CloseUFSOutStreamLatency")
                   .setDescription("Latency of close UFS outstream latency")
