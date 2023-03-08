@@ -135,7 +135,7 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile long mSnapshotLastIndex = -1;
   /** Used to control applying to masters. */
   private BufferedJournalApplier mJournalApplier;
-  private final StateMachineStorage mStorage;
+  private final SnapshotDirStateMachineStorage mStorage;
   private final RaftSnapshotManager mDownloadManager;
   private RaftGroupId mRaftGroupId;
   private RaftServer mServer;
@@ -145,10 +145,10 @@ public class JournalStateMachine extends BaseStateMachine {
    * @param journals      master journals; these journals are still owned by the caller, not by the
    *                      journal state machine
    * @param journalSystem the raft journal system
-   * @param storage the {@link StateMachineStorage} that this state machine will use
+   * @param storage the {@link SnapshotDirStateMachineStorage} that this state machine will use
    */
   public JournalStateMachine(Map<String, RaftJournal> journals, RaftJournalSystem journalSystem,
-                             StateMachineStorage storage) {
+                             SnapshotDirStateMachineStorage storage) {
     int maxConcurrencyPoolSize =
         Configuration.getInt(PropertyKey.MASTER_JOURNAL_LOG_CONCURRENCY_MAX);
     mJournalPool = new ForkJoinPool(maxConcurrencyPoolSize);
@@ -204,6 +204,7 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public void reinitialize() throws IOException {
     LOG.info("Reinitializing state machine.");
+    mStorage.loadLatestSnapshot();
     loadSnapshot(mStorage.getLatestSnapshot());
     unpause();
     synchronized (mSnapshotManager) {
@@ -265,7 +266,7 @@ public class JournalStateMachine extends BaseStateMachine {
   }
 
   @Override
-  public synchronized long takeSnapshot() {
+  public long takeSnapshot() {
     long index;
     StateLockManager stateLockManager = mStateLockManagerRef.get();
     if (!mIsLeader) {
@@ -290,6 +291,8 @@ public class JournalStateMachine extends BaseStateMachine {
     if (index != RaftLog.INVALID_LOG_INDEX) {
       mSnapshotLastIndex = index;
       mLastCheckPointTime = System.currentTimeMillis();
+      mStorage.loadLatestSnapshot();
+      mStorage.signalNewSnapshot();
     }
     return index;
   }
@@ -575,18 +578,16 @@ public class JournalStateMachine extends BaseStateMachine {
     }
     try (Timer.Context ctx = MetricsSystem.timer(
              MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER.getName()).time()) {
-      synchronized (mStorage) {
-        // The start time of the most recent snapshot
-        for (Journaled j : getStateMachines()) {
-          LOG.debug("taking {} checkpoint started", j.getCheckpointName());
-          j.writeToCheckpoint(snapshotDir);
-          LOG.debug("taking {} checkpoint finished", j.getCheckpointName());
-        }
-        long snapshotId = mNextSequenceNumberToRead - 1;
-        try (DataOutputStream idFile = new DataOutputStream(
-            Files.newOutputStream(new File(snapshotDir, "SNAPSHOT_ID").toPath()))) {
-          idFile.writeLong(snapshotId);
-        }
+      // The start time of the most recent snapshot
+      for (Journaled j : getStateMachines()) {
+        LOG.debug("taking {} checkpoint started", j.getCheckpointName());
+        j.writeToCheckpoint(snapshotDir);
+        LOG.debug("taking {} checkpoint finished", j.getCheckpointName());
+      }
+      long snapshotId = mNextSequenceNumberToRead - 1;
+      try (DataOutputStream idFile = new DataOutputStream(
+          Files.newOutputStream(new File(snapshotDir, "SNAPSHOT_ID").toPath()))) {
+        idFile.writeLong(snapshotId);
       }
       return last.getIndex();
     } catch (Exception e) {
@@ -613,16 +614,14 @@ public class JournalStateMachine extends BaseStateMachine {
     long snapshotId = 0L;
     try (Timer.Context ctx = MetricsSystem.timer(MetricKey
         .MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER.getName()).time()) {
-      synchronized (mStorage) {
-        try (DataInputStream is = new DataInputStream(Files.newInputStream(new File(snapshotDir,
-            "SNAPSHOT_ID").toPath()))) {
-          snapshotId = is.readLong();
-        }
-        for (Journaled j : getStateMachines()) {
-          LOG.debug("loading {} checkpoint started", j.getCheckpointName());
-          j.restoreFromCheckpoint(snapshotDir);
-          LOG.debug("loading {} checkpoint finished", j.getCheckpointName());
-        }
+      try (DataInputStream is = new DataInputStream(Files.newInputStream(new File(snapshotDir,
+          "SNAPSHOT_ID").toPath()))) {
+        snapshotId = is.readLong();
+      }
+      for (Journaled j : getStateMachines()) {
+        LOG.debug("loading {} checkpoint started", j.getCheckpointName());
+        j.restoreFromCheckpoint(snapshotDir);
+        LOG.debug("loading {} checkpoint finished", j.getCheckpointName());
       }
     } catch (Exception e) {
       JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to install snapshot: %s",

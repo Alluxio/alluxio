@@ -61,7 +61,7 @@ public class RaftSnapshotManager {
   /**
    * @return the log index of the last successful snapshot installation, or -1 if failure
    */
-  public synchronized long downloadSnapshotFromFollowers() {
+  public long downloadSnapshotFromFollowers() {
     if (mDownloadFuture == null) {
       mDownloadFuture = CompletableFuture.supplyAsync(this::core).exceptionally(err -> {
         LOG.debug("Failed to download snapshot", err);

@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 
 /**
  * Simple state machine storage that can handle directories.
@@ -43,6 +44,9 @@ public class SnapshotDirStateMachineStorage implements StateMachineStorage {
   private static final Logger LOG = LoggerFactory.getLogger(SnapshotDirStateMachineStorage.class);
 
   private RaftStorage mStorage;
+  @Nullable
+  private volatile SnapshotInfo mLatestSnapshotInfo = null;
+  private volatile boolean mNewSnapshotTaken = false;
 
   private Matcher match(Path path) {
     return SimpleStateMachineStorage.SNAPSHOT_REGEX.matcher(path.getFileName().toString());
@@ -53,8 +57,7 @@ public class SnapshotDirStateMachineStorage implements StateMachineStorage {
     mStorage = raftStorage;
   }
 
-  @Override
-  public synchronized SnapshotInfo getLatestSnapshot() {
+  private SnapshotInfo findLatestSnapshot() {
     try (Stream<Path> stream = Files.list(getSnapshotDir().toPath())) {
       Optional<Path> max = stream.filter(path -> match(path).matches())
           .max(Comparator.comparingLong(path -> {
@@ -77,12 +80,36 @@ public class SnapshotDirStateMachineStorage implements StateMachineStorage {
     return null;
   }
 
+  /**
+   * Loads the latest snapshot information into the StateMachineStorage.
+   */
+  public void loadLatestSnapshot() {
+    mLatestSnapshotInfo = findLatestSnapshot();
+  }
+
+  @Override @Nullable
+  public SnapshotInfo getLatestSnapshot() {
+    return mLatestSnapshotInfo;
+  }
+
   @Override
   public void format() throws IOException {}
 
+  /**
+   * Signal to the StateMachineStorage that a new snapshot was taken.
+   */
+  public void signalNewSnapshot() {
+    mNewSnapshotTaken = true;
+  }
+
   @Override
-  public synchronized void cleanupOldSnapshots(SnapshotRetentionPolicy retentionPolicy)
+  public void cleanupOldSnapshots(SnapshotRetentionPolicy retentionPolicy)
       throws IOException {
+    if (!mNewSnapshotTaken) {
+      LOG.debug("No new snapshot to delete old one");
+      return;
+    }
+    mNewSnapshotTaken = false;
     try (Stream<Path> stream = Files.list(getSnapshotDir().toPath())) {
       stream.filter(path -> match(path).matches())
           .sorted(Comparator.comparingLong(path -> {

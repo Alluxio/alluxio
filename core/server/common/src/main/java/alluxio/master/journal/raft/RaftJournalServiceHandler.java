@@ -71,27 +71,25 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
           Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
       return;
     }
-    synchronized (mStateMachineStorage) {
-      SnapshotInfo snapshot = mStateMachineStorage.getLatestSnapshot();
-      SnapshotMetadata.Builder metadata = SnapshotMetadata.newBuilder();
-      if (snapshot == null) {
-        LOG.debug("No snapshot to send");
-        metadata.setExists(false);
-      } else {
-        LOG.debug("Found snapshot {}", snapshot.getTermIndex());
-        List<FileMetadata> fileMetadata = snapshot.getFiles().stream()
-            .map(fileInfo -> FileMetadata.newBuilder()
-                .setRelativePath(fileInfo.getPath().toString())
-                .build())
-            .collect(Collectors.toList());
-        metadata.setExists(true)
-            .setSnapshotTerm(snapshot.getTerm())
-            .setSnapshotIndex(snapshot.getIndex())
-            .addAllFilesMetadata(fileMetadata);
-      }
-      responseObserver.onNext(metadata.build());
-      responseObserver.onCompleted();
+    SnapshotInfo snapshot = mStateMachineStorage.getLatestSnapshot();
+    SnapshotMetadata.Builder metadata = SnapshotMetadata.newBuilder();
+    if (snapshot == null) {
+      LOG.debug("No snapshot to send");
+      metadata.setExists(false);
+    } else {
+      LOG.debug("Found snapshot {}", snapshot.getTermIndex());
+      List<FileMetadata> fileMetadata = snapshot.getFiles().stream()
+          .map(fileInfo -> FileMetadata.newBuilder()
+              .setRelativePath(fileInfo.getPath().toString())
+              .build())
+          .collect(Collectors.toList());
+      metadata.setExists(true)
+          .setSnapshotTerm(snapshot.getTerm())
+          .setSnapshotIndex(snapshot.getIndex())
+          .addAllFilesMetadata(fileMetadata);
     }
+    responseObserver.onNext(metadata.build());
+    responseObserver.onCompleted();
   }
 
   @Override
@@ -106,29 +104,27 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
         (ServerCallStreamObserver<SnapshotData>) plainResponseObserver;
     responseObserver.setCompression("gzip");
 
-    synchronized (mStateMachineStorage) {
-      String snapshotFileName = SimpleStateMachineStorage
-          .getSnapshotFileName(request.getSnapshotTerm(), request.getSnapshotIndex());
-      File file1 = new File(snapshotFileName, request.getFileMetadata().getRelativePath());
-      File file = new File(mStateMachineStorage.getSnapshotDir(), file1.toString());
-      LOG.debug("Uploading file {}", file);
-      try (InputStream inputStream = Files.newInputStream(file.toPath())) {
-        byte[] buffer = new byte[mSnapshotReplicationChunkSize];
-        int bytesRead;
-        while ((bytesRead = inputStream.read(buffer)) != -1) {
-          responseObserver.onNext(SnapshotData.newBuilder()
-              .setSnapshotTerm(request.getSnapshotTerm())
-              .setSnapshotIndex(request.getSnapshotIndex())
-              .setChunk(ByteString.copyFrom(buffer, 0, bytesRead))
-              .build());
-        }
-        responseObserver.onCompleted();
-        LOG.debug("Successfully uploaded {}", file);
-      } catch (Exception e) {
-        LOG.debug("Failed to upload file {}", request.getFileMetadata().getRelativePath(), e);
-        responseObserver.onError(e);
-        responseObserver.onCompleted();
+    String snapshotFileName = SimpleStateMachineStorage
+        .getSnapshotFileName(request.getSnapshotTerm(), request.getSnapshotIndex());
+    File file1 = new File(snapshotFileName, request.getFileMetadata().getRelativePath());
+    File file = new File(mStateMachineStorage.getSnapshotDir(), file1.toString());
+    LOG.debug("Uploading file {}", file);
+    try (InputStream inputStream = Files.newInputStream(file.toPath())) {
+      byte[] buffer = new byte[mSnapshotReplicationChunkSize];
+      int bytesRead;
+      while ((bytesRead = inputStream.read(buffer)) != -1) {
+        responseObserver.onNext(SnapshotData.newBuilder()
+            .setSnapshotTerm(request.getSnapshotTerm())
+            .setSnapshotIndex(request.getSnapshotIndex())
+            .setChunk(ByteString.copyFrom(buffer, 0, bytesRead))
+            .build());
       }
+      responseObserver.onCompleted();
+      LOG.debug("Successfully uploaded {}", file);
+    } catch (Exception e) {
+      LOG.debug("Failed to upload file {}", request.getFileMetadata().getRelativePath(), e);
+      responseObserver.onError(e);
+      responseObserver.onCompleted();
     }
   }
 

@@ -74,7 +74,6 @@ import org.apache.ratis.retry.RetryPolicy;
 import org.apache.ratis.rpc.SupportedRpcType;
 import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.server.RaftServerConfigKeys;
-import org.apache.ratis.statemachine.StateMachineStorage;
 import org.apache.ratis.thirdparty.com.google.protobuf.UnsafeByteOperations;
 import org.apache.ratis.util.LifeCycle;
 import org.apache.ratis.util.NetUtils;
@@ -214,7 +213,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   /**
    * Serves as the storage object for the above state machine.
    */
-  private final StateMachineStorage mStateMachineStorage = new SnapshotDirStateMachineStorage();
+  private final SnapshotDirStateMachineStorage mStateMachineStorage =
+      new SnapshotDirStateMachineStorage();
   /**
    * Ratis server.
    */
