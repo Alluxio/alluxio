@@ -34,6 +34,7 @@ public final class MasterBenchParameters extends MasterBenchBaseParameters {
   public static final String CONF_OPTION_NAME = "--conf";
   public static final String SKIP_PREPARE_OPTION_NAME = "--skip-prepare";
 
+
   @Parameter(names = {OPERATION_OPTION_NAME},
       description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
           + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
@@ -76,6 +77,7 @@ public final class MasterBenchParameters extends MasterBenchBaseParameters {
           + "configuration values.")
 
   public Map<String, String> mConf = new HashMap<>();
+
 
   @Parameter(names = {SKIP_PREPARE_OPTION_NAME},
       description = "If true, skip the prepare.")
