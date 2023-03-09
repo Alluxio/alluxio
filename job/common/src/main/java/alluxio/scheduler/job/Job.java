@@ -72,6 +72,7 @@ public interface Job<T extends Task<?>> {
    * @param format progress report format
    * @param verbose whether to include detailed information
    * @return job progress report
+   * @throws IllegalArgumentException if the format is not supported
    */
   String getProgress(JobProgressReportFormat format, boolean verbose);
 
@@ -107,7 +108,8 @@ public interface Job<T extends Task<?>> {
 
   /**
    * @param worker blocker to worker
-   * @return the next task to run. If there is no task to run, return empty
+   * @return the next task to run. If there is no more task to run, return empty
+   * @throws AlluxioRuntimeException if any error occurs when getting next task
    */
   Optional<T> getNextTask(WorkerInfo worker);
 
@@ -125,7 +127,7 @@ public interface Job<T extends Task<?>> {
 
   /**
    * update job configs.
-   * @param job the job to update from
+   * @param job the job to update from. Must be the same job type
    */
   void updateJob(Job<?> job);
 }

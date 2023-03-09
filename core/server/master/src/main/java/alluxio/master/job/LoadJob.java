@@ -71,6 +71,7 @@ import java.util.function.Predicate;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
+ * Load job that loads a file or a directory into Alluxio.
  * This class should only be manipulated from the scheduler thread in Scheduler
  * thus the state changing functions are not thread safe.
  */

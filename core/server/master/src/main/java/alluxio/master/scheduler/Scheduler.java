@@ -51,8 +51,14 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The Scheduler which controls jobs. It's not thread-safe since start and stop
- * method is not thread-safe. But we should only have one thread call these two method.
+ * The Scheduler which controls jobs. It is responsible for managing active workers, updating jobs
+ *  and update job information to job meta store.
+ * The workflow is:
+ *  1. Submit a job to the scheduler.
+ *  2. The scheduler will pull the task from the job and assign the task to a worker.
+ *  3. The worker will execute the task and report the result to the job.
+ *  4. The job will update the progress. And schedule the next task if the job is not done.
+ *  5. One worker would have one task running for one job description at a time.
  */
 @ThreadSafe
 public final class Scheduler {
@@ -127,6 +133,10 @@ public final class Scheduler {
    * Submit a job.
    * @param job the job
    * @return true if the job is new, false if the job has already been submitted
+   * @throws ResourceExhaustedRuntimeException if the job cannot be submitted because the scheduler
+   *  is at capacity
+   * @throws UnavailableRuntimeException if the job cannot be submitted because the meta store is
+   * not ready
    */
   public boolean submitJob(Job<?> job) {
     Job<?> existingJob = mExistingJobs.get(job.getDescription());
@@ -179,6 +189,8 @@ public final class Scheduler {
    * @param format progress report format
    * @param verbose whether to include details on failed files and failures
    * @return the progress report
+   * @throws NotFoundRuntimeException if the job does not exist
+   * @throws AlluxioRuntimeException if any other Alluxio exception occurs
    */
   public String getJobProgress(
       JobDescription jobDescription,

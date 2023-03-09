@@ -11,6 +11,7 @@
 
 package alluxio.job;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 /**
@@ -55,6 +56,15 @@ public class JobDescription {
   @Override
   public int hashCode() {
     return Objects.hashCode(mType, mPath);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects
+        .toStringHelper(this)
+        .add("Path", mPath)
+        .add("Type", mType)
+        .toString();
   }
 
   /**

@@ -18,7 +18,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * A task that can be executed on a worker. Belongs to a {@link Job}.
  *
- * @param <V> the return type of the task
+ * @param <V> the response type of the task
  */
 public abstract class Task<V> {
 
@@ -37,8 +37,8 @@ public abstract class Task<V> {
   }
 
   /**
-   * execute the task and set the response future.
-   * @param client block worker client
+   * run the task and set the response future.
+   * @param client worker client
    */
   public void execute(BlockWorkerClient client) {
     mResponseFuture = run(client);

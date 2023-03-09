@@ -747,7 +747,7 @@ public interface FileSystem extends Closeable {
    * Submit a job to scheduler.
    *
    * @param jobRequest the job request
-   * @return job id if job is submitted, empty if a load of the same path already exists
+   * @return job id if job is submitted, empty if a job with description already exists
    */
   Optional<String> submitJob(JobRequest jobRequest);
 
@@ -765,7 +765,7 @@ public interface FileSystem extends Closeable {
    * @param jobDescription   the job description
    * @param format  progress report format
    * @param verbose whether to return verbose report
-   * @return the load job progress
+   * @return the job progress
    */
   String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose);

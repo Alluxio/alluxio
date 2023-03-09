@@ -14,7 +14,7 @@ package alluxio.scheduler.job;
 import alluxio.proto.journal.Job;
 
 /**
- * Load status.
+ * Job status.
  */
 public enum JobState
 {
@@ -25,9 +25,9 @@ public enum JobState
   FAILED;
 
   /**
-   * Convert LoadStatus to PJobStatus.
+   * Convert JobStatus to PJobStatus.
    *
-   * @param state load job state
+   * @param state job state
    * @return the corresponding PJobStatus
    */
   public static Job.PJobState toProto(JobState state)
@@ -48,10 +48,10 @@ public enum JobState
   }
 
   /**
-   * Convert PJobStatus to LoadStatus.
+   * Convert PJobStatus to JobStatus.
    *
    * @param jobStatus protobuf job status
-   * @return the corresponding LoadStatus
+   * @return the corresponding JobStatus
    */
   public static JobState fromProto(Job.PJobState jobStatus)
   {

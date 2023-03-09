@@ -20,7 +20,7 @@ import java.util.Optional;
 import java.util.OptionalLong;
 
 /**
- * Factory for creating {@link LoadJob}s.
+ * Factory for creating {@link LoadJob}s from journal entries.
  */
 public class JournalLoadJobFactory implements JobFactory {
 

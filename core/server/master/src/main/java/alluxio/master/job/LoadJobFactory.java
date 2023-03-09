@@ -24,7 +24,7 @@ import java.util.OptionalLong;
 import java.util.UUID;
 
 /**
- * Factory for creating {@link LoadJob}s.
+ * Factory for creating {@link LoadJob}s that get file infos from master.
  */
 public class LoadJobFactory implements JobFactory {
 

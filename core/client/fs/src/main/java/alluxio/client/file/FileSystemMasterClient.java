@@ -369,7 +369,7 @@ public interface FileSystemMasterClient extends Client {
    * @param jobDescription   job description to get progress
    * @param format  progress report format
    * @param verbose whether to return verbose report
-   * @return the load job progress
+   * @return the job progress
    */
   String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose);
