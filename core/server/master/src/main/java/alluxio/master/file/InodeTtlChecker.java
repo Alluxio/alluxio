@@ -84,7 +84,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
             TtlAction ttlAction = inode.getTtlAction();
             LOG.info("Path {} TTL has expired, performing action {}", path.getPath(), ttlAction);
             switch (ttlAction) {
-              case FREE:
+              case FREE: // Default: FREE
                 // public free method will lock the path, and check WRITE permission required at
                 // parent of file
                 if (inode.isDirectory()) {
@@ -114,7 +114,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                   mFileSystemMaster.delete(path, DeleteContext.defaults());
                 }
                 break;
-              case DELETE_ALLUXIO: // Default: DELETE_ALLUXIO
+              case DELETE_ALLUXIO:
                 // public delete method will lock the path, and check WRITE permission required at
                 // parent of file
                 if (inode.isDirectory()) {

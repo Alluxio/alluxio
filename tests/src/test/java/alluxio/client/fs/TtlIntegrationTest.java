@@ -91,8 +91,9 @@ public class TtlIntegrationTest extends BaseIntegrationTest {
       // Only the even-index files should expire.
       long ttl = i % 2 == 0 ? TTL_INTERVAL_MS / 2 : TTL_INTERVAL_MS * 1000;
       mOutStream = mFileSystem.createFile(files[i],
-          CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
-              .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)).build());
+              CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
+                      .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)
+                      .setTtlAction(TtlAction.DELETE_ALLUXIO)).build());
       mOutStream.write(mBuffer, 0, 10);
       mOutStream.close();
 
@@ -130,9 +131,9 @@ public class TtlIntegrationTest extends BaseIntegrationTest {
       // Only the even-index files should expire.
       long ttl = i % 2 == 0 ? TTL_INTERVAL_MS / 2 : TTL_INTERVAL_MS * 1000;
       mOutStream = mFileSystem.createFile(files[i],
-              CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
-                      .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)
-                              .setTtlAction(TtlAction.FREE)).build());
+          CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
+              .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl))
+                  .build());
       mOutStream.write(mBuffer, 0, 10);
       mOutStream.close();
 
