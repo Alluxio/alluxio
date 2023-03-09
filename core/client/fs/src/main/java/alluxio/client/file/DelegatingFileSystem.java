@@ -266,7 +266,7 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   /**
-   * @return The underlying file system
+   * @return the underlying fileSystem
    */
   public FileSystem getUnderlyingFileSystem() {
     return mDelegatedFileSystem;
