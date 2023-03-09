@@ -20,6 +20,8 @@ import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.ListStatusPRequest;
+import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
@@ -172,4 +174,11 @@ public interface BlockWorkerClient extends Closeable {
    * @return status
    */
   GetStatusPResponse getStatus(GetStatusPRequest request);
+
+  /**
+   * List status from Worker.
+   * @param request
+   * @return List of Status
+   */
+  java.util.Iterator<ListStatusPResponse> listStatus(ListStatusPRequest request);
 }

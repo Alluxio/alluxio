@@ -51,7 +51,10 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.ListOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
@@ -100,6 +103,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private WorkerNetAddress mAddress;
 
   private RocksDBDoraMetaStore mMetaStore;
+  private UnderFileSystem mUfs;
 
   /**
    * Constructor.
@@ -113,7 +117,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mRootUFS = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     mUfsManager = mResourceCloser.register(new DoraUfsManager());
     mUfsStreamCache = new UfsInputStreamCache();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(
+    mUfs = UnderFileSystem.Factory.create(
         mRootUFS,
         UnderFileSystemConfiguration.defaults(Configuration.global()));
     mUfsStatusCache = CacheBuilder.newBuilder()
@@ -122,7 +126,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         .build(new CacheLoader<String, DoraMeta.FileStatus>() {
           @Override
           public DoraMeta.FileStatus load(String path) throws IOException {
-            UfsStatus status = ufs.getStatus(path);
+            UfsStatus status = mUfs.getStatus(path);
             DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, path);
             return fs;
           }
@@ -227,6 +231,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
+  public UfsStatus[] listStatus(String path, ListOptions options) throws IOException {
+    return mUfs.listStatus(path, options);
+  }
+
+  @Override
   public FileInfo getFileInfo(String ufsFullPath, GetStatusPOptions options) throws IOException {
     alluxio.grpc.FileInfo fi;
     long syncIntervalMs = options.hasCommonOptions()
@@ -305,32 +314,47 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         .setInMemoryPercentage(cachedPercentage);
   }
 
-  private DoraMeta.FileStatus buildFileStatusFromUfsStatus(UfsStatus status, String ufsFullPath) {
-    String filename = new AlluxioURI(ufsFullPath).getName();
+  /**
+   * Build FileInfo from UfsStatus and UFS full Path.
+   * @param status
+   * @param ufsFullPath
+   * @return a FileInfo
+   */
+  public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath) {
+    String path = CommonUtils.stripPrefixIfPresent(status.getName(), mRootUFS.toString());
+    AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mRootUFS, path));
+    String filename = ufsUri.getName();
 
     alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
         .setFileId(ufsFullPath.hashCode())
         .setName(filename)
-        .setPath(ufsFullPath)
-        .setUfsPath(ufsFullPath)
+        .setPath(ufsUri.toString())
+        .setUfsPath(ufsUri.toString())
         .setMode(status.getMode())
         .setFolder(status.isDirectory())
-        .setLastModificationTimeMs(status.getLastModifiedTime())
         .setOwner(status.getOwner())
         .setGroup(status.getGroup())
         .setCompleted(true);
     if (status instanceof UfsFileStatus) {
       UfsFileStatus fileStatus = (UfsFileStatus) status;
       infoBuilder.setLength(fileStatus.getContentLength())
+          .setLastModificationTimeMs(status.getLastModifiedTime())
           .setBlockSizeBytes(fileStatus.getBlockSize());
     }
-    alluxio.grpc.FileInfo fi = infoBuilder.build();
+    return infoBuilder.build();
+  }
 
-    DoraMeta.FileStatus fs = DoraMeta.FileStatus.newBuilder()
-        .setFileInfo(fi)
+  /**
+   * Build FileStatus from UfsStatus and UFS full Path.
+   * @param status
+   * @param ufsFullPath
+   * @return
+   */
+  private  DoraMeta.FileStatus buildFileStatusFromUfsStatus(UfsStatus status, String ufsFullPath) {
+    return DoraMeta.FileStatus.newBuilder()
+        .setFileInfo(buildFileInfoFromUfsStatus(status, ufsFullPath))
         .setTs(System.currentTimeMillis())
         .build();
-    return fs;
   }
 
   @Override

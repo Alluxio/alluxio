@@ -6,7 +6,6 @@ option java_outer_classname = "HiveLayoutProto";
 
 package alluxio.grpc.table.layout;
 
-import "grpc/common.proto";
 import "grpc/table/table_master.proto";
 
 message StorageFormat {

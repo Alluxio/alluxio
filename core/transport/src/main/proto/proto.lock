@@ -1376,6 +1376,12 @@
                 "out_type": "grpc.file.GetStatusPResponse"
               },
               {
+                "name": "ListStatus",
+                "in_type": "grpc.file.ListStatusPRequest",
+                "out_type": "grpc.file.ListStatusPResponse",
+                "out_streamed": true
+              },
+              {
                 "name": "ReadBlock",
                 "in_type": "ReadRequest",
                 "out_type": "ReadResponse",
@@ -6891,9 +6897,6 @@
           }
         ],
         "imports": [
-          {
-            "path": "grpc/common.proto"
-          },
           {
             "path": "grpc/table/table_master.proto"
           }

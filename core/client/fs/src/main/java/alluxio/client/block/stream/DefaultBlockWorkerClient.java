@@ -31,6 +31,8 @@ import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcNetworkGroup;
 import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.ListStatusPRequest;
+import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
@@ -255,5 +257,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   public GetStatusPResponse getStatus(GetStatusPRequest request) {
     return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
         .getStatus(request);
+  }
+
+  @Override
+  public java.util.Iterator<ListStatusPResponse> listStatus(ListStatusPRequest request) {
+    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+        .listStatus(request);
   }
 }

@@ -13,6 +13,8 @@ package alluxio.worker.dora;
 
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.underfs.UfsStatus;
+import alluxio.underfs.options.ListOptions;
 import alluxio.wire.FileInfo;
 import alluxio.worker.DataWorker;
 import alluxio.worker.SessionCleanable;
@@ -32,6 +34,15 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @return the file info
    */
   FileInfo getFileInfo(String fileId, GetStatusPOptions options) throws IOException;
+
+  /**
+   * List status from Under File System.
+   * @param path
+   * @param options
+   * @return list of status
+   * @throws IOException
+   */
+  UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
 
   /**
    * Creates the file reader to read from Alluxio dora.
