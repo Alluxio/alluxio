@@ -88,7 +88,7 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
   }
 
   @Test
-  public void syncMetadataFailOver() throws Exception {
+  public void syncMetadataEJFailOver() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(
         PortCoordination.EMBEDDED_JOURNAL_FAILOVER_METADATA_SYNC)
         .setClusterName("EmbeddedJournalFaultTolerance_syncMetadataFailOver")
@@ -111,26 +111,32 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
     AlluxioURI mountPath = new AlluxioURI("/mnt1");
     client.mount(mountPath, new AlluxioURI(ufsUri), options);
 
-    // create a file outside alluxio
+    // create files outside alluxio
     String fileName = "someFile";
     String contents = "contents";
-    try (FileWriter fw = new FileWriter(Paths.get(
-        PathUtils.concatPath(ufsPath, fileName)).toString())) {
-      fw.write(contents);
+    for (int i = 0; i < 100; i++) {
+      try (FileWriter fw = new FileWriter(Paths.get(
+          PathUtils.concatPath(ufsPath, fileName + i)).toString())) {
+        fw.write(contents + i);
+      }
     }
-    // sync it with metadata sync
-    assertEquals(contents, IOUtils.toString(client.openFile(
-        mountPath.join(fileName)), Charset.defaultCharset()));
+    // sync then with metadata sync
+    for (int i = 0; i < 100; i++) {
+      assertEquals(contents + i, IOUtils.toString(client.openFile(
+          mountPath.join(fileName + i)), Charset.defaultCharset()));
+    }
 
     // restart the cluster
     mCluster.stopMasters();
     mCluster.startMasters();
     mCluster.waitForAllNodesRegistered(30_000);
 
-    // read the file again
+    // read the files again
     client = mCluster.getFileSystemClient();
-    assertEquals(contents, IOUtils.toString(client.openFile(
-        mountPath.join(fileName)), Charset.defaultCharset()));
+    for (int i = 0; i < 100; i++) {
+      assertEquals(contents + i, IOUtils.toString(client.openFile(
+          mountPath.join(fileName + i)), Charset.defaultCharset()));
+    }
   }
 
   @Test

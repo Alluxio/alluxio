@@ -118,7 +118,7 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
   }
 
   @Test
-  public void syncMetadataFailOver() throws Exception {
+  public void syncMetadataUFSFailOver() throws Exception {
     String ufsPath = mFolder.newFolder().getAbsoluteFile().toString();
     String ufsUri = "file://" + ufsPath;
     MountPOptions options = MountPOptions.newBuilder().build();
@@ -126,26 +126,32 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
     AlluxioURI mountPath = new AlluxioURI("/mnt1");
     client.mount(mountPath, new AlluxioURI(ufsUri), options);
 
-    // create a file outside alluxio
+    // create files outside alluxio
     String fileName = "someFile";
     String contents = "contents";
-    try (FileWriter fw = new FileWriter(Paths.get(PathUtils.concatPath(
-        ufsPath, fileName)).toString())) {
-      fw.write(contents);
+    for (int i = 0; i < 100; i++) {
+      try (FileWriter fw = new FileWriter(Paths.get(PathUtils.concatPath(
+          ufsPath, fileName + i)).toString())) {
+        fw.write(contents + i);
+      }
     }
-    // sync it with metadata sync
-    assertEquals(contents, IOUtils.toString(client.openFile(
-        mountPath.join(fileName)), Charset.defaultCharset()));
+    for (int i = 0; i < 100; i++) {
+      // sync it with metadata sync
+      assertEquals(contents + i, IOUtils.toString(client.openFile(
+          mountPath.join(fileName + i)), Charset.defaultCharset()));
+    }
 
     // Promote standby to be a leader and reset test state.
     mMultiMasterLocalAlluxioCluster.stopLeader();
     mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
     mMultiMasterLocalAlluxioCluster.waitForWorkersRegistered(CLUSTER_WAIT_TIMEOUT_MS);
 
-    // read the file again
+    // read the files again
     client = mMultiMasterLocalAlluxioCluster.getClient();
-    assertEquals(contents, IOUtils.toString(client.openFile(
-        mountPath.join(fileName)), Charset.defaultCharset()));
+    for (int i = 0; i < 100; i++) {
+      assertEquals(contents + i, IOUtils.toString(client.openFile(
+          mountPath.join(fileName + i)), Charset.defaultCharset()));
+    }
   }
 
   @Test
