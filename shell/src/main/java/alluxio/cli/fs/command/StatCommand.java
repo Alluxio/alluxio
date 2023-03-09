@@ -37,8 +37,9 @@ import java.util.regex.Pattern;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Displays the path's info. If path is a directory it displays the directory's info. If path is a
- * file, it displays the file's all blocks info.
+ * Displays the path's info.
+ * If path is a directory it displays the directory's info.
+ * If path is a file, it displays the file's all blocks info.
  */
 @ThreadSafe
 @PublicApi
