@@ -488,9 +488,6 @@ public abstract class StressMasterBenchBase
       case CREATE_TREE:
         String p = "";
         int redundent = (int) counter;
-        if (mTreeLevelQuant.length != 2) {
-          System.exit(1377);
-        }
         for (int i = 0; i < mParameters.mTreeWidth; i++) {
           mPathRecord[i] = redundent / mTreeLevelQuant[i];
           redundent = redundent % mTreeLevelQuant[i];
