@@ -218,9 +218,6 @@ public abstract class StressMasterBenchBase
     private final AtomicLong mTotalCounter;
     private final Path[] mBasePaths;
     private final Path[] mFixedBasePaths;
-
-
-
     /** The results. Access must be synchronized for thread safety. */
     private T mResult;
 
@@ -258,8 +255,10 @@ public abstract class StressMasterBenchBase
         if (operations[i] == Operation.CREATE_DIR) {
           mBasePaths[i] =
               new Path(PathUtils.concatPath(basePaths[i], mDirsDir, mBaseParameters.mId));
-        } else if (operations[i] == Operation.CREATE_TREE || operations[i] == Operation.LOAD_METADATA) {
-          mBasePaths[i] = new Path(PathUtils.concatPath(basePaths[i], extractHostName(mBaseParameters.mId)));
+        } else if (operations[i] == Operation.CREATE_TREE
+            || operations[i] == Operation.LOAD_METADATA) {
+          mBasePaths[i] = new Path(PathUtils.concatPath(basePaths[i],
+              extractHostName(mBaseParameters.mId)));
         } else {
           mBasePaths[i] =
               new Path(PathUtils.concatPath(basePaths[i], mFilesDir, mBaseParameters.mId));
@@ -488,7 +487,7 @@ public abstract class StressMasterBenchBase
         break;
       case CREATE_TREE:
         String p = "";
-        int redundent = (int)counter;
+        int redundent = (int) counter;
         if (mTreeLevelQuant.length != 2) {
           System.exit(1377);
         }
@@ -499,7 +498,8 @@ public abstract class StressMasterBenchBase
           p += mPathRecord[i];
         }
         for (int i = 0; i < mParameters.mTreeFiles; i++) {
-          fs.createFile(new AlluxioURI((basePath + p + "/" + redundent + "/" + i + ".txt")), CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
+          fs.createFile(new AlluxioURI((basePath + p + "/" + redundent + "/" + i + ".txt")),
+              CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
         }
         break;
       default:
@@ -509,11 +509,11 @@ public abstract class StressMasterBenchBase
 
   protected String extractHostName(String mId) {
     String hostName = "";
-    String[] splited_mid = mId.split("-");
-    hostName += splited_mid[0];
-    for (int i = 1; i < splited_mid.length-1; i++) {
+    String[] splitedMid = mId.split("-");
+    hostName += splitedMid[0];
+    for (int i = 1; i < splitedMid.length - 1; i++) {
       hostName += "-";
-      hostName += splited_mid[i];
+      hostName += splitedMid[i];
     }
     return hostName;
   }
