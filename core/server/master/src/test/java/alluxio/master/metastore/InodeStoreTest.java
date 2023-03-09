@@ -19,6 +19,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.Configuration;
@@ -52,6 +53,7 @@ import org.rocksdb.RocksDBException;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -304,6 +306,97 @@ public class InodeStoreTest {
     assertEquals(0,
         CloseableIterator.size(mStore.getChildren(mStore.get(middleDir - 1).get().asDirectory())));
   }
+
+  // TODO move this to a dedicated file
+  // TODO also test the resource close
+  @Test
+  public void recursiveListing() {
+    /*
+      /
+      /a
+      /a/b
+      /a/b/c
+      /a/b/c/f1
+      /a/b/c/f2
+      /a/c
+      /a/c/f1
+      /a/c/f2
+      /a/c/f3
+      /a/f1
+      /b
+      /c
+      /f1
+      /f2
+     */
+
+    MutableInode<?> a = inodeDir(1, 0, "a");
+    MutableInode<?> ab = inodeDir(2, 1, "b");
+    MutableInode<?> abc = inodeDir(3, 2, "c");
+    MutableInode<?> abcf1 = inodeFile(4, 3, "f1");
+    MutableInode<?> abcf2 = inodeFile(5, 3, "f2");
+    MutableInode<?> ac = inodeDir(6, 1, "c");
+    MutableInode<?> acf1 = inodeFile(7, 6, "f1");
+    MutableInode<?> acf2 = inodeFile(8, 6, "f2");
+    MutableInode<?> acf3 = inodeFile(9, 6, "f3");
+    MutableInode<?> af1 = inodeFile(10, 1, "f1");
+    MutableInode<?> b = inodeDir(11, 0, "b");
+    MutableInode<?> c = inodeDir(12, 0, "c");
+    MutableInode<?> f1 = inodeFile(13, 0, "f1");
+    MutableInode<?> f2 = inodeFile(14, 0, "f2");
+
+    writeInode(a);
+    writeInode(ab);
+    writeInode(abc);
+    writeInode(abcf1);
+    writeInode(abcf2);
+    writeInode(ac);
+    writeInode(acf1);
+    writeInode(acf2);
+    writeInode(acf3);
+    writeInode(af1);
+    writeInode(b);
+    writeInode(c);
+    writeInode(f1);
+    writeInode(f2);
+
+    writeEdge(mRoot, a);
+    writeEdge(a, ab);
+    writeEdge(ab, abc);
+    writeEdge(abc, abcf1);
+    writeEdge(abc, abcf2);
+    writeEdge(a, ac);
+    writeEdge(ac, acf1);
+    writeEdge(ac, acf2);
+    writeEdge(ac, acf3);
+    writeEdge(a, f1);
+    writeEdge(mRoot, b);
+    writeEdge(mRoot, c);
+    writeEdge(mRoot, f1);
+    writeEdge(mRoot, f2);
+
+    RecursiveInodeIterator iterator = mStore.getChildrenRecursively(0L, ReadOption.defaults(), true);
+    while(iterator.hasNext()) {
+      iterator.next();
+      String currentPath = String.join("/", iterator.getCurrentURI());
+      System.out.println(currentPath);
+      if (currentPath.equals("/a/b/c") || currentPath.equals("/a/c")) {
+        iterator.skipChildrenOfTheCurrent();
+      }
+    }
+
+    iterator.close();
+
+    System.out.println("------------------------------");
+
+    iterator = mStore.getChildrenRecursively(0L, ReadOption.defaults(), true);
+    while(iterator.hasNext()) {
+      iterator.next();
+      System.out.println(String.join("/", iterator.getCurrentURI()));
+    }
+
+    iterator.close();
+  }
+
 
   private void writeInode(MutableInode<?> inode) {
     try (LockResource lr = mLockManager.lockInode(inode, LockMode.WRITE, false)) {

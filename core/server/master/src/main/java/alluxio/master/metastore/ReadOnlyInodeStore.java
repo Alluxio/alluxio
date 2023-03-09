@@ -156,6 +156,11 @@ public interface ReadOnlyInodeStore extends Closeable {
     return CloseableIterator.create(iter, (any) -> it.close());
   }
 
+  default RecursiveInodeIterator getChildrenRecursively(
+      Long inodeId, ReadOption option, boolean recursive) {
+    return new RecursiveInodeIterator(this, inodeId, option, recursive);
+  }
+
   /**
    * @param inodeId an inode id
    * @return the result of {@link #getChildren(Long, ReadOption)} with default option

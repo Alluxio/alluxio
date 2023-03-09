@@ -461,8 +461,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setShouldPersistTime(options.getPersistenceWaitTime() == Constants.NO_AUTO_PERSIST
             ? Constants.NO_AUTO_PERSIST :
             System.currentTimeMillis() + options.getPersistenceWaitTime())
-        .setXAttr(context.getXAttr())
-        .setUfsFingerprint(context.getFingerprint());
+        .setXAttr(context.getXAttr());
     if (context.getFingerprint() != null) {
       inodeFile.setUfsFingerprint(context.getFingerprint());
     }
