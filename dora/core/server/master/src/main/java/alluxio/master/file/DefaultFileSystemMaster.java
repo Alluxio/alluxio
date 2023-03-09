@@ -1016,7 +1016,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
       List<FileBlockInfo> fileBlockInfos = new ArrayList<>(blockInfos.size());
       for (BlockInfo blockInfo : blockInfos) {
-        fileBlockInfos.add(generateFileBlockInfo(inodePath, blockInfo));
+        fileBlockInfos.add(generateFileBlockInfo(inodePath, blockInfo, excludeMountInfo));
       }
       fileInfo.setFileBlockInfos(fileBlockInfos);
     }
@@ -1036,7 +1036,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           fileInfo.getBlockIds(), fileInfo.getLength(), fileInfo.getBlockSizeBytes(), null);
       // Reset file-block-info list with the new list.
       try {
-        fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
+        fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath, excludeMountInfo));
       } catch (InvalidPathException e) {
         throw new FileDoesNotExistException(
             String.format("Hydration failed for file: %s", inodePath.getUri()), e);
@@ -2388,7 +2388,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         auditContext.setAllowed(false);
         throw e;
       }
-      List<FileBlockInfo> ret = getFileBlockInfoListInternal(inodePath);
+      List<FileBlockInfo> ret = getFileBlockInfoListInternal(inodePath, false);
       Metrics.FILE_BLOCK_INFOS_GOT.inc();
       auditContext.setSucceeded(true);
       return ret;
@@ -2397,16 +2397,18 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   /**
    * @param inodePath the {@link LockedInodePath} to get the info for
+   * @param excludeMountInfo exclude the mount info
    * @return a list of {@link FileBlockInfo} for all the blocks of the given inode
    */
-  private List<FileBlockInfo> getFileBlockInfoListInternal(LockedInodePath inodePath)
+  private List<FileBlockInfo> getFileBlockInfoListInternal(LockedInodePath inodePath,
+      boolean excludeMountInfo)
       throws InvalidPathException, FileDoesNotExistException, UnavailableException {
     InodeFile file = inodePath.getInodeFile();
     List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(file.getBlockIds());
 
     List<FileBlockInfo> ret = new ArrayList<>(blockInfoList.size());
     for (BlockInfo blockInfo : blockInfoList) {
-      ret.add(generateFileBlockInfo(inodePath, blockInfo));
+      ret.add(generateFileBlockInfo(inodePath, blockInfo, excludeMountInfo));
     }
     return ret;
   }
@@ -2417,9 +2419,11 @@ public class DefaultFileSystemMaster extends CoreMaster
    *
    * @param inodePath the file the block is a part of
    * @param blockInfo the {@link BlockInfo} to generate the {@link FileBlockInfo} from
+   * @param excludeMountInfo exclude the mount info
    * @return a new {@link FileBlockInfo} for the block
    */
-  private FileBlockInfo generateFileBlockInfo(LockedInodePath inodePath, BlockInfo blockInfo)
+  private FileBlockInfo generateFileBlockInfo(LockedInodePath inodePath, BlockInfo blockInfo,
+      boolean excludeMountInfo)
       throws FileDoesNotExistException {
     InodeFile file = inodePath.getInodeFile();
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
@@ -2430,7 +2434,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     long offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.getBlockId());
     fileBlockInfo.setOffset(offset);
 
-    if (fileBlockInfo.getBlockInfo().getLocations().isEmpty() && file.isPersisted()) {
+    if (!excludeMountInfo && fileBlockInfo.getBlockInfo().getLocations().isEmpty()
+        && file.isPersisted()) {
       // No alluxio locations, but there is a checkpoint in the under storage system. Add the
       // locations from the under storage system.
       long blockId = fileBlockInfo.getBlockInfo().getBlockId();
