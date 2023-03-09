@@ -115,8 +115,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
     try {
       ListOptions options = ListOptions.defaults().setRecursive(
           request.getOptions().hasRecursive() ? request.getOptions().getRecursive() : false);
-      UfsStatus[] statuses;
-      statuses = mWorker.listStatus(request.getPath(), options);
+      UfsStatus[] statuses = mWorker.listStatus(request.getPath(), options);
 
       ListStatusPResponse.Builder builder = ListStatusPResponse.newBuilder();
 

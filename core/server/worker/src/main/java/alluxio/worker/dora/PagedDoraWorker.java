@@ -103,7 +103,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private WorkerNetAddress mAddress;
 
   private RocksDBDoraMetaStore mMetaStore;
-  private UnderFileSystem mUfs;
+  private final UnderFileSystem mUfs;
 
   /**
    * Constructor.
