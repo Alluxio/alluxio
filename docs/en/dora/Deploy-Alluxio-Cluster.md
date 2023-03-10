@@ -77,6 +77,8 @@ The existing Alluxio helm chart works with Dora cluster except Alluxio Fuse. Not
 See [here](https://docs.alluxio.io/os/user/edge/en/kubernetes/Running-Alluxio-On-Kubernetes.html) 
 for details of how to deploy Alluxio with Helm Chart.
 
+The Helm Chart tailored for Dora and supports Alluxo Fuse is under development.
+
 ## Tuning
 
 ### Optional Dora Server-side Metadata Cache
@@ -96,4 +98,5 @@ resources on the worker side.
 1. Currently, only one UFS is supported by Dora. Nested mounts are not supported yet.
 2. Currently, the Alluxio Master node still needs to be up and running. It is used for Dora worker discovery,
    cluster configuration updates, as well as handling write IO operations.
-3. Currently, Alluxio Fuse is not supported with Dora on Kubernetes with the existing helm chart.
+3. Currently, Alluxio Fuse is not supported with Dora on Kubernetes with the existing helm chart. The helm chart
+   supporting Alluxio Fuse is under development.
