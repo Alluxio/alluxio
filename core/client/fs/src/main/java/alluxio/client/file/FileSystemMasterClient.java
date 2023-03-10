@@ -25,6 +25,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
@@ -34,6 +35,8 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UpdateUfsModePOptions;
+import alluxio.job.JobDescription;
+import alluxio.job.JobRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
@@ -41,6 +44,7 @@ import alluxio.wire.SyncPointInfo;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -344,30 +348,29 @@ public interface FileSystemMasterClient extends Client {
   void needsSync(AlluxioURI path) throws AlluxioStatusException;
 
   /**
-   * Submit a directory load job.
-   * @param path alluxio path to be loaded
-   * @param bandwidth bandwidth allocated to this load, unlimited if empty
-   * @param usePartialListing whether to use partial listing
-   * @param verify whether to verify after load finishes
-   * @return true if job is submitted, false if a load of the same path already exists
+   * Submit a job to scheduler.
+   *
+   * @param job the job request to submit
+   * @return jobId if job is submitted, empty if a job already exists
    */
-  boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
-      boolean usePartialListing, boolean verify);
+  Optional<String> submitJob(JobRequest job);
 
   /**
-   * Stop a directory load.
-   * @param path alluxio path to be stopped
-   * @return true if job is stopped, false if cannot find job
+   * Stop a job.
+   *
+   * @param jobDescription job description be stopped
+   * @return true if job is stopped, false if we cannot find job
    */
-  boolean stopLoad(AlluxioURI path);
+  boolean stopJob(JobDescription jobDescription);
 
   /**
-   * Get progress of a load job.
-   * @param path alluxio path to get progress
-   * @param format progress report format
+   * Get progress of a job.
+   *
+   * @param jobDescription   job description to get progress
+   * @param format  progress report format
    * @param verbose whether to return verbose report
-   * @return the load job progress
+   * @return the job progress
    */
-  String getLoadProgress(AlluxioURI path,
-      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose);
+  String getJobProgress(JobDescription jobDescription,
+      JobProgressReportFormat format, boolean verbose);
 }

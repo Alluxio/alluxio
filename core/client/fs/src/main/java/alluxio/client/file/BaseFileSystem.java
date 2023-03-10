@@ -45,6 +45,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.LoadMetadataPType;
@@ -56,6 +57,8 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.job.JobDescription;
+import alluxio.job.JobRequest;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AclEntry;
@@ -517,28 +520,35 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
-      boolean usePartialListing, boolean verify) {
+  public Optional<String> submitJob(JobRequest jobRequest) {
     try (CloseableResource<FileSystemMasterClient> client =
             mFsContext.acquireMasterClientResource()) {
-      return client.get().submitLoad(path, bandwidth, usePartialListing, verify);
+      return client.get().submitJob(jobRequest);
     }
   }
 
   @Override
-  public boolean stopLoad(AlluxioURI path) {
+  public boolean stopJob(JobDescription jobDescription) {
     try (CloseableResource<FileSystemMasterClient> client =
             mFsContext.acquireMasterClientResource()) {
-      return client.get().stopLoad(path);
+      return client.get().stopJob(jobDescription);
     }
   }
 
   @Override
+<<<<<<< HEAD
   public String getLoadProgress(AlluxioURI path,
       java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
+||||||| parent of 8edf508ebd... Refactor LoadManager to Scheduler
+  public String getLoadProgress(AlluxioURI path,
+      Optional<LoadProgressReportFormat> format, boolean verbose) {
+=======
+  public String getJobProgress(JobDescription jobDescription,
+      JobProgressReportFormat format, boolean verbose) {
+>>>>>>> 8edf508ebd... Refactor LoadManager to Scheduler
     try (CloseableResource<FileSystemMasterClient> client =
             mFsContext.acquireMasterClientResource()) {
-      return client.get().getLoadProgress(path, format, verbose);
+      return client.get().getJobProgress(jobDescription, format, verbose);
     }
   }
 

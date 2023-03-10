@@ -9,35 +9,38 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.loadmanager;
+package alluxio.master.job;
 
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
-import alluxio.AlluxioURI;
+import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AccessControlException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
-import alluxio.exception.runtime.NotFoundRuntimeException;
-import alluxio.exception.runtime.UnauthenticatedRuntimeException;
 import alluxio.grpc.Block;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.ListStatusPartialPOptions;
-import alluxio.grpc.LoadProgressReportFormat;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.contexts.ListStatusContext;
-import alluxio.proto.journal.Job;
+import alluxio.grpc.BlockStatus;
+import alluxio.grpc.JobProgressReportFormat;
+import alluxio.grpc.LoadRequest;
+import alluxio.grpc.LoadResponse;
+import alluxio.grpc.TaskStatus;
+import alluxio.grpc.UfsReadOptions;
+import alluxio.job.JobDescription;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal;
-import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.scheduler.job.Job;
+import alluxio.scheduler.job.JobState;
+import alluxio.scheduler.job.Task;
 import alluxio.util.FormatUtils;
 import alluxio.wire.BlockInfo;
-import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerInfo;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -48,11 +51,10 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.ListenableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -62,22 +64,29 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.UUID;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class should only be manipulated from the scheduler thread in LoadManager
+ * Load job that loads a file or a directory into Alluxio.
+ * This class should only be manipulated from the scheduler thread in Scheduler
  * thus the state changing functions are not thread safe.
  */
 @NotThreadSafe
-public class LoadJob {
+public class LoadJob implements Job<LoadJob.LoadTask> {
   private static final Logger LOG = LoggerFactory.getLogger(LoadJob.class);
+  public static final String TYPE = "load";
   private static final double FAILURE_RATIO_THRESHOLD = 0.05;
   private static final int FAILURE_COUNT_THRESHOLD = 100;
   private static final int RETRY_BLOCK_CAPACITY = 1000;
   private static final double RETRY_THRESHOLD = 0.8 * RETRY_BLOCK_CAPACITY;
   private static final int BATCH_SIZE = Configuration.getInt(PropertyKey.JOB_BATCH_SIZE);
+  public static final Predicate<FileInfo> QUALIFIED_FILE_FILTER =
+      (fileInfo) -> !fileInfo.isFolder() && fileInfo.isCompleted() && fileInfo.isPersisted()
+          && fileInfo.getInAlluxioPercentage() != 100;
   // Job configurations
   private final String mPath;
   private final Optional<String> mUser;
@@ -90,18 +99,17 @@ public class LoadJob {
   private final Map<String, String> mFailedFiles = new HashMap<>();
   private final long mStartTime;
   private final AtomicLong mProcessedFileCount = new AtomicLong();
-  private final AtomicLong mTotalFileCount = new AtomicLong();
   private final AtomicLong mLoadedByteCount = new AtomicLong();
-
   private final AtomicLong mTotalByteCount = new AtomicLong();
   private final AtomicLong mTotalBlockCount = new AtomicLong();
   private final AtomicLong mCurrentBlockCount = new AtomicLong();
   private final AtomicLong mTotalFailureCount = new AtomicLong();
   private final AtomicLong mCurrentFailureCount = new AtomicLong();
   private final String mJobId;
-  private LoadJobState mState;
+  private JobState mState;
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
-  private Optional<FileIterator> mFileIterator = Optional.empty();
+  private final Iterable<FileInfo> mFileIterable;
+  private Optional<Iterator<FileInfo>> mFileIterator = Optional.empty();
   private FileInfo mCurrentFile;
   private Iterator<Long> mBlockIterator = Collections.emptyIterator();
   private OptionalLong mEndTime = OptionalLong.empty();
@@ -111,10 +119,13 @@ public class LoadJob {
    * @param path file path
    * @param user user for authentication
    * @param bandwidth bandwidth
+   * @param fileIterator file iterator
    */
   @VisibleForTesting
-  public LoadJob(String path, String user, OptionalLong bandwidth) {
-    this(path, Optional.of(user), UUID.randomUUID().toString(), bandwidth, false, false);
+  public LoadJob(String path, String user, OptionalLong bandwidth,
+      FileIterable fileIterator) {
+    this(path, Optional.of(user), UUID.randomUUID().toString(), bandwidth, false, false,
+        fileIterator);
   }
 
   /**
@@ -126,23 +137,25 @@ public class LoadJob {
    * @param bandwidth           bandwidth
    * @param usePartialListing   whether to use partial listing
    * @param verificationEnabled whether to verify the job after loaded
+   * @param fileIterable        file iterable
    */
   public LoadJob(
       String path,
       Optional<String> user, String jobId, OptionalLong bandwidth,
       boolean usePartialListing,
-      boolean verificationEnabled) {
+      boolean verificationEnabled, FileIterable fileIterable) {
     mPath = requireNonNull(path, "path is null");
     mUser = requireNonNull(user, "user is null");
     mJobId = requireNonNull(jobId, "jobId is null");
     Preconditions.checkArgument(
         !bandwidth.isPresent() || bandwidth.getAsLong() > 0,
-        String.format("bandwidth should be greater than 0 if provided, get %s", bandwidth));
+        format("bandwidth should be greater than 0 if provided, get %s", bandwidth));
     mBandwidth = bandwidth;
     mUsePartialListing = usePartialListing;
     mVerificationEnabled = verificationEnabled;
     mStartTime = System.currentTimeMillis();
-    mState = LoadJobState.LOADING;
+    mState = JobState.RUNNING;
+    mFileIterable = fileIterable;
   }
 
   /**
@@ -161,10 +174,21 @@ public class LoadJob {
     return mUser;
   }
 
+  @Override
+  public String getJobId() {
+    return mJobId;
+  }
+
+  @Override
+  public JobDescription getDescription() {
+    return JobDescription.newBuilder().setPath(mPath).setType(TYPE).build();
+  }
+
   /**
    * Get end time.
    * @return end time
    */
+  @Override
   public OptionalLong getEndTime() {
     return mEndTime;
   }
@@ -202,6 +226,16 @@ public class LoadJob {
   }
 
   /**
+   * Is verification enabled.
+   *
+   * @return whether verification is enabled
+   */
+  @Override
+  public boolean needVerification() {
+    return mVerificationEnabled && mCurrentBlockCount.get() > 0;
+  }
+
+  /**
    * Enable verification.
    * @param enableVerification whether to enable verification
    */
@@ -213,7 +247,8 @@ public class LoadJob {
    * Get load status.
    * @return the load job's status
    */
-  public LoadJobState getJobState() {
+  @Override
+  public JobState getJobState() {
     return mState;
   }
 
@@ -221,55 +256,40 @@ public class LoadJob {
    * Set load state.
    * @param state new state
    */
-  public void setJobState(LoadJobState state) {
+  @Override
+  public void setJobState(JobState state) {
     LOG.debug("Change JobState to {} for job {}", state, this);
     mState = state;
     if (!isRunning()) {
       mEndTime = OptionalLong.of(System.currentTimeMillis());
     }
-  }
-
-  /**
-   * Get uniq tag.
-   * @return the tag
-   */
-  public String getJobId() {
-    return mJobId;
+    if (state == JobState.SUCCEEDED) {
+      JOB_LOAD_SUCCESS.inc();
+    }
   }
 
   /**
    * Set load state to FAILED with given reason.
    * @param reason failure exception
    */
+  @Override
   public void failJob(AlluxioRuntimeException reason) {
-    setJobState(LoadJobState.FAILED);
+    setJobState(JobState.FAILED);
     mFailedReason = Optional.of(reason);
-    LoadManager.JOB_LOAD_FAIL.inc();
-  }
-
-  /**
-   * Get batch size.
-   * @return batch size
-   */
-  public int getBatchSize() {
-    return BATCH_SIZE;
+    JOB_LOAD_FAIL.inc();
   }
 
   /**
    * Add bytes to total loaded bytes.
    * @param bytes bytes to be added to total
    */
+  @VisibleForTesting
   public void addLoadedBytes(long bytes) {
     mLoadedByteCount.addAndGet(bytes);
   }
 
-  /**
-   * Get load job progress.
-   * @param format report format
-   * @param verbose whether to include error details in the report
-   * @return the load progress report
-   */
-  public String getProgress(LoadProgressReportFormat format, boolean verbose) {
+  @Override
+  public String getProgress(JobProgressReportFormat format, boolean verbose) {
     return (new LoadProgressReport(this, verbose)).getReport(format);
   }
 
@@ -281,14 +301,6 @@ public class LoadJob {
     return mCurrentBlockCount.get();
   }
 
-  /**
-   * Get the total processed block count for this job.
-   * @return total block count
-   */
-  public long getTotalBlockCount() {
-    return mTotalBlockCount.get();
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -298,82 +310,84 @@ public class LoadJob {
       return false;
     }
     LoadJob that = (LoadJob) o;
-    return Objects.equal(mPath, that.mPath);
+    return Objects.equal(getDescription(), that.getDescription());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPath);
+    return Objects.hashCode(getDescription());
   }
 
-  /**
-   * Check whether the load job is healthy.
-   * @return true if the load job is healthy, false if not
-   */
+  @Override
   public boolean isHealthy() {
     long currentFailureCount = mCurrentFailureCount.get();
-    return mState != LoadJobState.FAILED
+    return mState != JobState.FAILED
         && currentFailureCount <= FAILURE_COUNT_THRESHOLD
         || (double) currentFailureCount / mCurrentBlockCount.get() <= FAILURE_RATIO_THRESHOLD;
   }
 
-  /**
-   * Check whether the load job is still running.
-   * @return true if the load job is running, false if not
-   */
+  @Override
   public boolean isRunning() {
-    return mState == LoadJobState.LOADING || mState == LoadJobState.VERIFYING;
+    return mState == JobState.RUNNING || mState == JobState.VERIFYING;
   }
 
-  /**
-   * Check whether the load job is finished.
-   * @return true if the load job is finished, false if not
-   */
+  @Override
   public boolean isDone() {
-    return mState == LoadJobState.SUCCEEDED || mState == LoadJobState.FAILED;
+    return mState == JobState.SUCCEEDED || mState == JobState.FAILED;
   }
 
-  /**
-   * Check whether the current loading pass is finished.
-   * @return true if the load job is finished, false if not
-   */
-  public boolean isCurrentLoadDone() {
-    return mFileIterator.isPresent() && !mFileIterator.get().hasNext() && !mBlockIterator.hasNext()
+  @Override
+  public boolean isCurrentPassDone() {
+    return  mFileIterator.isPresent() && !mFileIterator.get().hasNext() && !mBlockIterator.hasNext()
         && mRetryBlocks.isEmpty();
   }
 
-  /**
-   * Initiate a verification pass. This will re-list the directory and find
-   * any unloaded files / blocks and try to load them again.
-   */
+  @Override
   public void initiateVerification() {
-    Preconditions.checkState(isCurrentLoadDone(), "Previous pass is not finished");
+    Preconditions.checkState(isCurrentPassDone(), "Previous pass is not finished");
     mFileIterator = Optional.empty();
     mTotalBlockCount.addAndGet(mCurrentBlockCount.get());
     mTotalFailureCount.addAndGet(mCurrentFailureCount.get());
     mCurrentBlockCount.set(0);
     mCurrentFailureCount.set(0);
-    mState = LoadJobState.VERIFYING;
+    mState = JobState.VERIFYING;
+  }
+
+  /**
+   * get next load task.
+   *
+   * @param worker blocker to worker
+   * @return the next task to run. If there is no task to run, return empty
+   */
+  public Optional<LoadTask> getNextTask(WorkerInfo worker) {
+    List<Block> blocks = getNextBatchBlocks(BATCH_SIZE);
+    if (blocks.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(new LoadTask(blocks));
   }
 
   /**
    * Get next batch of blocks.
-   * @param fileSystemMaster file system master to fetch file infos
    * @param count number of blocks
    * @return list of blocks
    */
-  public List<Block> getNextBatch(FileSystemMaster fileSystemMaster, int count) {
+  @VisibleForTesting
+  public List<Block> getNextBatchBlocks(int count) {
     if (!mFileIterator.isPresent()) {
-      mFileIterator =
-          Optional.of(new FileIterator(fileSystemMaster, mPath, mUser, mUsePartialListing));
-      if (!mFileIterator.get().hasNext()) {
+      mFileIterator = Optional.of(mFileIterable.iterator());
+      if (!mFileIterator
+          .get()
+          .hasNext()) {
         return ImmutableList.of();
       }
       mCurrentFile = mFileIterator.get().next();
-      mProcessedFileCount.incrementAndGet();
+      if (!mFailedFiles.containsKey(mCurrentFile.getPath())) {
+        mProcessedFileCount.incrementAndGet();
+      }
+
       mBlockIterator = mCurrentFile.getBlockIds().listIterator();
     }
-
     ImmutableList.Builder<Block> batchBuilder = ImmutableList.builder();
     int i = 0;
     // retry failed blocks if there's too many failed blocks otherwise wait until no more new block
@@ -390,7 +404,9 @@ public class LoadJob {
           return batchBuilder.build();
         }
         mCurrentFile = mFileIterator.get().next();
-        mProcessedFileCount.incrementAndGet();
+        if (!mFailedFiles.containsKey(mCurrentFile.getPath())) {
+          mProcessedFileCount.incrementAndGet();
+        }
         mBlockIterator = mCurrentFile.getBlockIds().listIterator();
       }
       long blockId = mBlockIterator.next();
@@ -398,6 +414,8 @@ public class LoadJob {
       if (blockInfo.getLocations().isEmpty()) {
         batchBuilder.add(buildBlock(mCurrentFile, blockId));
         mCurrentBlockCount.incrementAndGet();
+        // would be inaccurate when we initial verification, and we retry un-retryable blocks
+        mTotalByteCount.addAndGet(blockInfo.getLength());
       }
     }
     return batchBuilder.build();
@@ -408,6 +426,7 @@ public class LoadJob {
    * @param block the block that failed to load thus needing retry
    * @return whether the block is successfully added
    */
+  @VisibleForTesting
   public boolean addBlockToRetry(Block block) {
     if (mRetryBlocks.size() >= RETRY_BLOCK_CAPACITY) {
       return false;
@@ -415,7 +434,7 @@ public class LoadJob {
     LOG.debug("Retry block {}", block);
     mRetryBlocks.add(block);
     mCurrentFailureCount.incrementAndGet();
-    LoadManager.JOB_LOAD_BLOCK_FAIL.inc();
+    JOB_LOAD_BLOCK_FAIL.inc();
     return true;
   }
 
@@ -426,14 +445,15 @@ public class LoadJob {
    * @param message failure message
    * @param code    status code for exception
    */
+  @VisibleForTesting
   public void addBlockFailure(Block block, String message, int code) {
     // When multiple blocks of the same file failed to load, from user's perspective,
     // it's not hugely important what are the reasons for each specific failure,
     // if they are different, so we will just keep the first one.
     mFailedFiles.put(block.getUfsPath(),
-        String.format("Status code: %s, message: %s", code, message));
+        format("Status code: %s, message: %s", code, message));
     mCurrentFailureCount.incrementAndGet();
-    LoadManager.JOB_LOAD_BLOCK_FAIL.inc();
+    JOB_LOAD_BLOCK_FAIL.inc();
   }
 
   private static Block buildBlock(FileInfo fileInfo, long blockId) {
@@ -472,14 +492,12 @@ public class LoadJob {
         .toString();
   }
 
-  /**
-   * @return journal entry of job
-   */
+  @Override
   public Journal.JournalEntry toJournalEntry() {
-    Job.LoadJobEntry.Builder jobEntry = Job.LoadJobEntry
+    alluxio.proto.journal.Job.LoadJobEntry.Builder jobEntry = alluxio.proto.journal.Job.LoadJobEntry
         .newBuilder()
         .setLoadPath(mPath)
-        .setState(LoadJobState.toProto(mState))
+        .setState(JobState.toProto(mState))
         .setPartialListing(mUsePartialListing)
         .setVerify(mVerificationEnabled)
         .setJobId(mJobId);
@@ -493,25 +511,6 @@ public class LoadJob {
   }
 
   /**
-   * Get journal entry of the job.
-   *
-   * @param loadJobEntry journal entry
-   * @return journal entry of the job
-   */
-  public static LoadJob fromJournalEntry(Job.LoadJobEntry loadJobEntry) {
-    LoadJob job = new LoadJob(loadJobEntry.getLoadPath(),
-        loadJobEntry.hasUser() ? Optional.of(loadJobEntry.getUser()) : Optional.empty(),
-        loadJobEntry.getJobId(),
-        loadJobEntry.hasBandwidth() ? OptionalLong.of(loadJobEntry.getBandwidth()) :
-            OptionalLong.empty(), loadJobEntry.getPartialListing(), loadJobEntry.getVerify());
-    job.setJobState(LoadJobState.fromProto(loadJobEntry.getState()));
-    if (loadJobEntry.hasEndTime()) {
-      job.setEndTime(loadJobEntry.getEndTime());
-    }
-    return job;
-  }
-
-  /**
    * Get duration in seconds.
    * @return job duration in seconds
    */
@@ -520,49 +519,78 @@ public class LoadJob {
     return (mEndTime.orElse(System.currentTimeMillis()) - mStartTime) / 1000;
   }
 
-  private class FileIterator implements Iterator<FileInfo> {
-    private final ListStatusPOptions.Builder mListOptions =
-        ListStatusPOptions.newBuilder().setRecursive(true);
-    private static final int PARTIAL_LISTING_BATCH_SIZE = 100;
-    private final FileSystemMaster mFileSystemMaster;
-    private final String mPath;
-    private final Optional<String> mUser;
-    private final boolean mUsePartialListing;
-    private String mStartAfter = "";
-    private List<FileInfo> mFiles;
-    private Iterator<FileInfo> mFileInfoIterator;
-
-    public FileIterator(FileSystemMaster fileSystemMaster, String path,
-        Optional<String> user, boolean usePartialListing) {
-      mFileSystemMaster = requireNonNull(fileSystemMaster, "fileSystemMaster is null");
-      mPath = requireNonNull(path, "path is null");
-      mUser = requireNonNull(user, "user is null");
-      mUsePartialListing = usePartialListing;
-      if (usePartialListing) {
-        partialListFileInfos();
-      } else {
-        listFileInfos(ListStatusContext.create(mListOptions));
+  @Override
+  public boolean processResponse(LoadTask loadTask) {
+    try {
+      long totalBytes = loadTask.getBlocks().stream()
+          .map(Block::getLength)
+          .reduce(Long::sum)
+          .orElse(0L);
+      LoadResponse response = loadTask.getResponseFuture().get();
+      if (response.getStatus() != TaskStatus.SUCCESS) {
+        LOG.debug(format("Get failure from worker: %s", response.getBlockStatusList()));
+        for (BlockStatus status : response.getBlockStatusList()) {
+          totalBytes -= status.getBlock().getLength();
+          if (!isHealthy() || !status.getRetryable() || !addBlockToRetry(
+              status.getBlock())) {
+            addBlockFailure(status.getBlock(), status.getMessage(), status.getCode());
+          }
+        }
       }
+      addLoadedBytes(totalBytes);
+      JOB_LOAD_BLOCK_COUNT.inc(
+          loadTask.getBlocks().size() - response.getBlockStatusCount());
+      JOB_LOAD_BLOCK_SIZE.inc(totalBytes);
+      JOB_LOAD_RATE.mark(totalBytes);
+      return response.getStatus() != TaskStatus.FAILURE;
+    }
+    catch (ExecutionException e) {
+      LOG.warn("exception when trying to get load response.", e.getCause());
+      for (Block block : loadTask.getBlocks()) {
+        if (isHealthy()) {
+          addBlockToRetry(block);
+        }
+        else {
+          AlluxioRuntimeException exception = AlluxioRuntimeException.from(e.getCause());
+          addBlockFailure(block, exception.getMessage(), exception.getStatus().getCode()
+                                                                       .value());
+        }
+      }
+      return false;
+    }
+    catch (CancellationException e) {
+      LOG.warn("Task get canceled and will retry.", e);
+      loadTask.getBlocks().forEach(this::addBlockToRetry);
+      return true;
+    }
+    catch (InterruptedException e) {
+      loadTask.getBlocks().forEach(this::addBlockToRetry);
+      Thread.currentThread().interrupt();
+      // We don't count InterruptedException as task failure
+      return true;
+    }
+  }
+
+  @Override
+  public void updateJob(Job<?> job) {
+    LoadJob targetJob = (LoadJob) job;
+    updateBandwidth(targetJob.getBandwidth());
+    setVerificationEnabled(targetJob.isVerificationEnabled());
+  }
+
+  /**
+   * Loads blocks in a UFS through an Alluxio worker.
+   */
+  public class LoadTask extends Task<LoadResponse> {
+
+    /**
+     * @return blocks to load
+     */
+    public List<Block> getBlocks() {
+      return mBlocks;
     }
 
-    @Override
-    public boolean hasNext()
-    {
-      if (mUsePartialListing && !mFileInfoIterator.hasNext()) {
-        partialListFileInfos();
-      }
-      return mFileInfoIterator.hasNext();
-    }
-
-    @Override
-    public FileInfo next()
-    {
-      if (mUsePartialListing && !mFileInfoIterator.hasNext()) {
-        partialListFileInfos();
-      }
-      return mFileInfoIterator.next();
-    }
-
+<<<<<<< HEAD:core/server/master/src/main/java/alluxio/master/file/loadmanager/LoadJob.java
     private void partialListFileInfos() {
       ListStatusContext context = ListStatusContext.create(ListStatusPartialPOptions.newBuilder()
           .setOptions(mListOptions)
@@ -572,46 +600,58 @@ public class LoadJob {
       if (mFiles.size() > 0) {
         mStartAfter = mFiles.get(mFiles.size() - 1).getPath();
       }
+||||||| parent of 8edf508ebd... Refactor LoadManager to Scheduler:core/server/master/src/main/java/alluxio/master/file/loadmanager/LoadJob.java
+    private void partialListFileInfos() {
+      if (!mStartAfter.isEmpty()) {
+        mListOptions.setDisableAreDescendantsLoadedCheck(true);
+      }
+      ListStatusContext context = ListStatusContext.create(ListStatusPartialPOptions.newBuilder()
+          .setOptions(mListOptions)
+          .setBatchSize(PARTIAL_LISTING_BATCH_SIZE)
+          .setStartAfter(mStartAfter));
+      listFileInfos(context);
+      if (mFiles.size() > 0) {
+        mStartAfter = mFiles.get(mFiles.size() - 1).getPath();
+      }
+=======
+    private final List<Block> mBlocks;
+
+    /**
+     * Creates a new instance of {@link LoadTask}.
+     *
+     * @param blocks blocks to load
+     */
+    public LoadTask(List<Block> blocks) {
+      mBlocks = blocks;
+>>>>>>> 8edf508ebd... Refactor LoadManager to Scheduler:core/server/master/src/main/java/alluxio/master/job/LoadJob.java
     }
 
-    private void listFileInfos(ListStatusContext context) {
-      try {
-        AuthenticatedClientUser.set(mUser.orElse(null));
-        mFiles = mFileSystemMaster.listStatus(new AlluxioURI(mPath), context).stream().filter(
-            fileInfo -> !fileInfo.isFolder() && fileInfo.isCompleted()
-                && fileInfo.getInAlluxioPercentage() != 100).collect(Collectors.toList());
-        mFileInfoIterator = mFiles.iterator();
-      } catch (FileDoesNotExistException | InvalidPathException e) {
-        throw new NotFoundRuntimeException(e);
-      } catch (AccessControlException e) {
-        throw new UnauthenticatedRuntimeException(e);
-      } catch (IOException e) {
-        throw AlluxioRuntimeException.from(e);
-      } finally {
-        AuthenticatedClientUser.remove();
+    @Override
+    public ListenableFuture<LoadResponse> run(BlockWorkerClient workerClient) {
+      LoadRequest.Builder request1 = LoadRequest
+          .newBuilder()
+          .addAllBlocks(mBlocks);
+      UfsReadOptions.Builder options = UfsReadOptions
+          .newBuilder()
+          .setTag(mJobId)
+          .setPositionShort(false);
+      if (mBandwidth.isPresent()) {
+        options.setBandwidth(mBandwidth.getAsLong());
       }
-      List<FileInfo> fileInfoStream = mFiles
-          .stream().filter(fileInfo -> !mFailedFiles.containsKey(fileInfo.getPath())).collect(
-              Collectors.toList());
-      mTotalFileCount.addAndGet(fileInfoStream.size());
-      mTotalByteCount.addAndGet(fileInfoStream.stream()
-          .map(FileInfo::getFileBlockInfos)
-          .flatMap(Collection::stream)
-          .map(FileBlockInfo::getBlockInfo)
-          .filter(blockInfo -> blockInfo.getLocations().isEmpty())
-          .map(BlockInfo::getLength)
-          .reduce(Long::sum)
-          .orElse(0L));
+      mUser.ifPresent(options::setUser);
+      LoadRequest request = request1
+          .setOptions(options.build())
+          .build();
+      return workerClient.load(request);
     }
   }
 
   private static class LoadProgressReport {
     private final boolean mVerbose;
-    private final LoadJobState mJobState;
+    private final JobState mJobState;
     private final Long mBandwidth;
     private final boolean mVerificationEnabled;
     private final long mProcessedFileCount;
-    private final Long mTotalFileCount;
     private final long mLoadedByteCount;
     private final Long mTotalByteCount;
     private final Long mThroughput;
@@ -628,12 +668,10 @@ public class LoadJob {
       mVerificationEnabled = job.mVerificationEnabled;
       mProcessedFileCount = job.mProcessedFileCount.get();
       mLoadedByteCount = job.mLoadedByteCount.get();
-      if (job.mFileIterator.isPresent() && !job.mFileIterator.get().mUsePartialListing) {
-        mTotalFileCount = job.mTotalFileCount.get();
+      if (!job.mUsePartialListing && job.mFileIterator.isPresent()) {
         mTotalByteCount = job.mTotalByteCount.get();
       }
       else {
-        mTotalFileCount = null;
         mTotalByteCount = null;
       }
       long duration = job.getDurationInSec();
@@ -661,7 +699,7 @@ public class LoadJob {
       }
     }
 
-    public String getReport(LoadProgressReportFormat format)
+    public String getReport(JobProgressReportFormat format)
     {
       switch (format) {
         case TEXT:
@@ -670,43 +708,41 @@ public class LoadJob {
           return getJsonReport();
         default:
           throw new InvalidArgumentRuntimeException(
-              String.format("Unknown load progress report format: %s", format));
+              format("Unknown load progress report format: %s", format));
       }
     }
 
     private String getTextReport() {
       StringBuilder progress = new StringBuilder();
       progress.append(
-          String.format("\tSettings:\tbandwidth: %s\tverify: %s%n",
+          format("\tSettings:\tbandwidth: %s\tverify: %s%n",
               mBandwidth == null ? "unlimited" : mBandwidth,
               mVerificationEnabled));
-      progress.append(String.format("\tJob State: %s%s%n", mJobState,
+      progress.append(format("\tJob State: %s%s%n", mJobState,
           mFailureReason == null
-              ? "" : String.format(
+              ? "" : format(
                   " (%s: %s)",
               mFailureReason.getClass().getName(),
               mFailureReason.getMessage())));
       if (mVerbose && mFailureReason != null) {
         for (StackTraceElement stack : mFailureReason.getStackTrace()) {
-          progress.append(String.format("\t\t%s%n", stack.toString()));
+          progress.append(format("\t\t%s%n", stack.toString()));
         }
       }
-      progress.append(String.format("\tFiles Processed: %d%s%n", mProcessedFileCount,
-          mTotalFileCount == null
-              ? "" : String.format(" out of %s", mTotalFileCount)));
-      progress.append(String.format("\tBytes Loaded: %s%s%n",
+      progress.append(format("\tFiles Processed: %d%n", mProcessedFileCount));
+      progress.append(format("\tBytes Loaded: %s%s%n",
           FormatUtils.getSizeFromBytes(mLoadedByteCount),
           mTotalByteCount == null
-              ? "" : String.format(" out of %s", FormatUtils.getSizeFromBytes(mTotalByteCount))));
+              ? "" : format(" out of %s", FormatUtils.getSizeFromBytes(mTotalByteCount))));
       if (mThroughput != null) {
-        progress.append(String.format("\tThroughput: %s/s%n",
+        progress.append(format("\tThroughput: %s/s%n",
             FormatUtils.getSizeFromBytes(mThroughput)));
       }
-      progress.append(String.format("\tBlock load failure rate: %.2f%%%n", mFailurePercentage));
-      progress.append(String.format("\tFiles Failed: %s%n", mFailedFileCount));
+      progress.append(format("\tBlock load failure rate: %.2f%%%n", mFailurePercentage));
+      progress.append(format("\tFiles Failed: %s%n", mFailedFileCount));
       if (mVerbose && mFailedFilesWithReasons != null) {
         mFailedFilesWithReasons.forEach((fileName, reason) ->
-            progress.append(String.format("\t\t%s: %s%n", fileName, reason)));
+            progress.append(format("\t\t%s: %s%n", fileName, reason)));
       }
       return progress.toString();
     }
@@ -722,4 +758,18 @@ public class LoadJob {
       }
     }
   }
+
+  // metrics
+  public static final Counter JOB_LOAD_SUCCESS =
+          MetricsSystem.counter(MetricKey.MASTER_JOB_LOAD_SUCCESS.getName());
+  public static final Counter JOB_LOAD_FAIL =
+          MetricsSystem.counter(MetricKey.MASTER_JOB_LOAD_FAIL.getName());
+  public static final Counter JOB_LOAD_BLOCK_COUNT =
+          MetricsSystem.counter(MetricKey.MASTER_JOB_LOAD_BLOCK_COUNT.getName());
+  public static final Counter JOB_LOAD_BLOCK_FAIL =
+          MetricsSystem.counter(MetricKey.MASTER_JOB_LOAD_BLOCK_FAIL.getName());
+  public static final Counter JOB_LOAD_BLOCK_SIZE =
+          MetricsSystem.counter(MetricKey.MASTER_JOB_LOAD_BLOCK_SIZE.getName());
+  public static final Meter JOB_LOAD_RATE =
+          MetricsSystem.meter(MetricKey.MASTER_JOB_LOAD_RATE.getName());
 }

@@ -31,6 +31,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
@@ -43,6 +44,8 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.jnifuse.FuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;
+import alluxio.job.JobDescription;
+import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
@@ -297,19 +300,26 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
-    public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
-        boolean usePartialListing, boolean verify) {
+    public Optional<String> submitJob(JobRequest jobRequest) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean stopLoad(AlluxioURI path) {
+    public boolean stopJob(JobDescription jobDescription) {
       throw new UnsupportedOperationException();
     }
 
     @Override
+<<<<<<< HEAD
     public String getLoadProgress(AlluxioURI path,
         Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
+||||||| parent of 8edf508ebd... Refactor LoadManager to Scheduler
+    public String getLoadProgress(AlluxioURI path,
+        Optional<LoadProgressReportFormat> format, boolean verbose) {
+=======
+    public String getJobProgress(JobDescription jobDescription,
+        JobProgressReportFormat format, boolean verbose) {
+>>>>>>> 8edf508ebd... Refactor LoadManager to Scheduler
       throw new UnsupportedOperationException();
     }
 
