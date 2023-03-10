@@ -188,7 +188,7 @@ public class ConcurrentFileSystemMasterSetTtlIntegrationTest extends BaseIntegra
     AlluxioURI fileUri1 = new AlluxioURI("/" + fileNamePrefix + "1");
     AlluxioURI fileUri2 = new AlluxioURI("/" + fileNamePrefix + "2");
     mFileSystem.createFile(fileUri1,
-            CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
     mFileSystem.createFile(fileUri2,
         CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
     // Set ttl on file1.
