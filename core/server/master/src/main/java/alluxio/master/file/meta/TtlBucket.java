@@ -108,7 +108,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * Adds an inode to the bucket with a specific left retry number.
    *
    * @param inode the inode to be added
-   * @param numOfRetry  num of retry left when added to the ttlbucket
+   * @param numOfRetry num of retries left when added to the ttlbucket
    */
   public void addInode(Inode inode, int numOfRetry) {
     mInodeToRetryMap.compute(inode.getId(), (k, v) -> {
