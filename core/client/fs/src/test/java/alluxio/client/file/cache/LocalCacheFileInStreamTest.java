@@ -39,9 +39,9 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
-import alluxio.grpc.LoadProgressReportFormat;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -50,6 +50,8 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.job.JobDescription;
+import alluxio.job.JobRequest;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.AclEntry;
@@ -897,19 +899,18 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
-        boolean usePartialListing, boolean verify) {
+    public Optional<String> submitJob(JobRequest jobRequest) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean stopLoad(AlluxioURI path) {
+    public boolean stopJob(JobDescription jobDescription) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public String getLoadProgress(AlluxioURI path,
-        Optional<LoadProgressReportFormat> format, boolean verbose) {
+    public String getJobProgress(JobDescription jobDescription,
+        JobProgressReportFormat format, boolean verbose) {
       throw new UnsupportedOperationException();
     }
 
