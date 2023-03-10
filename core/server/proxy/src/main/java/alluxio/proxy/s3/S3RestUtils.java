@@ -21,6 +21,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -39,6 +40,7 @@ import alluxio.util.SecurityUtils;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.Cache;
 import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.RateLimiter;
 import com.google.protobuf.ByteString;
@@ -59,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
@@ -246,6 +249,10 @@ public final class S3RestUtils {
     } catch (DirectoryNotEmptyException e) {
       return new S3Exception(e, resource, S3ErrorCode.PRECONDITION_FAILED);
     } catch (FileDoesNotExistException e) {
+      if (Pattern.matches(ExceptionMessage.BUCKET_DOES_NOT_EXIST.getMessage(".*"),
+          e.getMessage())) {
+        return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_BUCKET);
+      }
       return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_KEY);
     } catch (AccessControlException e) {
       return new S3Exception(e, resource, S3ErrorCode.ACCESS_DENIED_ERROR);
@@ -284,8 +291,8 @@ public final class S3RestUtils {
     try {
       URIStatus status = fs.getStatus(new AlluxioURI(bucketPath));
       if (!status.isFolder()) {
-        throw new InvalidPathException("Bucket " + bucketPath
-            + " is not a valid Alluxio directory.");
+        throw new FileDoesNotExistException(
+            ExceptionMessage.BUCKET_DOES_NOT_EXIST.getMessage(bucketPath));
       }
     } catch (Exception e) {
       if (auditContext != null) {
@@ -293,6 +300,26 @@ public final class S3RestUtils {
       }
       throw toBucketS3Exception(e, bucketPath);
     }
+  }
+
+  /**
+   * Check if a path in alluxio is a directory.
+   *
+   * @param fs instance of {@link FileSystem}
+   * @param bucketPath bucket complete path
+   * @param auditContext the audit context for exception
+   * @param bucketPathCache cache the bucket path for a certain time period
+   */
+  public static void checkPathIsAlluxioDirectory(FileSystem fs, String bucketPath,
+                                                 @Nullable S3AuditContext auditContext,
+                                                 Cache<AlluxioURI, Boolean> bucketPathCache)
+      throws S3Exception {
+    AlluxioURI uri = new AlluxioURI(bucketPath);
+    if (Boolean.TRUE.equals(bucketPathCache.getIfPresent(uri))) {
+      return;
+    }
+    checkPathIsAlluxioDirectory(fs, bucketPath, auditContext);
+    bucketPathCache.put(uri, true);
   }
 
   /**

@@ -11,14 +11,15 @@ git clone https://github.com/Alluxio/alluxio.git
 2. Copy to the Gopath
 
 ```
-mkdir -p /go/src/github.com/Alluxio/
-cp  -rf /tmp/alluxio/integration/kubernetes/operator/alluxio /go/src/github.com/Alluxio/
+cd alluxio
+mkdir -p $GOPATH/src/github.com/Alluxio/
+cp  -rf ./integration/kubernetes/operator/alluxio $GOPATH/src/github.com/Alluxio/
 ```
 
 3. Build the binary
 
 ```
-cd /go/src/github.com/Alluxio/
+cd $GOPATH/src/github.com/Alluxio/
 make
 ```
 
@@ -62,8 +63,8 @@ kubectl create ns alluxio-system
 3. Patch the MutatingWebhookConfiguration by set caBundle with correct value from Kubernetes cluster:
 
 ```
-cat /go/src/github.com/Alluxio/alluxio/deploy/webhook/manifests.yaml | \
-    /go/src/github.com/Alluxio/alluxio/cmd/webhook/webhook-patch-ca-bundle.sh > \
+cat $GOPATH/src/github.com/Alluxio/alluxio/deploy/webhook/manifests.yaml | \
+    $GOPATH/src/github.com/Alluxio/alluxio/cmd/webhook/webhook-patch-ca-bundle.sh > \
     /tmp/mutatingwebhook-ca-bundle.yaml
 ```
 
@@ -71,10 +72,10 @@ cat /go/src/github.com/Alluxio/alluxio/deploy/webhook/manifests.yaml | \
 
 ```
 #kubectl create ns alluxio-system
-kubectl create -f /go/src/github.com/Alluxio/alluxio/deploy/role-binding.yaml
-kubectl apply -f /go/src/github.com/Alluxio/alluxio/config/webhook/webhook.yaml
-kubectl apply -f /go/src/github.com/Alluxio/alluxio/config/webhook/service.yaml
-kubectl apply -f /go/src/github.com/Alluxio/alluxio/config/manager/manager.yaml
+kubectl create -f $GOPATH/src/github.com/Alluxio/alluxio/deploy/role-binding.yaml
+kubectl apply -f $GOPATH/src/github.com/Alluxio/alluxio/config/webhook/webhook.yaml
+kubectl apply -f $GOPATH/src/github.com/Alluxio/alluxio/config/webhook/service.yaml
+kubectl apply -f $GOPATH/src/github.com/Alluxio/alluxio/config/manager/manager.yaml
 kubectl apply -f /tmp/mutatingwebhook-ca-bundle.yaml
 kubectl get mutatingwebhookconfigurations
 ```

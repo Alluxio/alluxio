@@ -294,10 +294,9 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void listNonExistentBucket() throws Exception {
-    String bucketName = "bucket";
-    //empty parameters
-    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/"),
-        ListStatusPOptions.newBuilder().setRecursive(true).build());
+//    the bucket name should never be used in other unit tests
+//    to ensure the bucket path cache doesn't have this bucket name
+    String bucketName = "non_existent_bucket";
 
     // Verify 404 HTTP status & NoSuchBucket S3 error code
     HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
@@ -993,7 +992,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     FileUtils.deleteQuietly(
         new File(sResource.get().getAlluxioHome() + "/underFSStorage/" + fullObjectKey));
 
-    // Verify the object is exist in the alluxio.
+    // Verify the object is existent in the alluxio.
     List<FileInfo> fileInfos =
         mFileSystemMaster.listStatus(bucketURI, ListStatusContext.defaults());
     Assert.assertEquals(1, fileInfos.size());
@@ -1006,6 +1005,47 @@ public final class S3ClientRestApiTest extends RestApiTest {
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
     Assert.assertEquals("", response.getResource());
     Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_KEY, response.getCode());
+  }
+
+  @Test
+  public void putObjectToDeletedBucket() throws Exception {
+    String object = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    createBucketRestCall("bucket");
+    // delete the bucket in alluxio and UFS, but the bucket remains in BUCKET_PATH_CACHE
+    mFileSystem.delete(new AlluxioURI("/bucket"));
+    // put object to non-existent bucket
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
+        "bucket/object", NO_PARAMS, HttpMethod.PUT,
+        getDefaultOptionsWithAuth()
+            .setBody(object.getBytes())
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(object.getBytes())))
+        .execute();
+
+    Assert.assertEquals(404, connection.getResponseCode());
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
+  }
+
+  @Test
+  public void putDirectoryToDeletedBucket() throws Exception {
+    createBucketRestCall("bucket");
+    // delete the bucket in alluxio and UFS, but the bucket remains in BUCKET_PATH_CACHE
+    mFileSystem.delete(new AlluxioURI("/bucket"));
+    // put directory to non-existent bucket
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
+        "bucket/directory/", NO_PARAMS, HttpMethod.PUT,
+        getDefaultOptionsWithAuth()
+            .setBody(new byte[] {})
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(new byte[] {})))
+        .execute();
+
+    Assert.assertEquals(404, connection.getResponseCode());
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
   }
 
   @Test

@@ -192,6 +192,29 @@ public final class PathUtils {
   }
 
   /**
+   * Gets the first level directory of the path.
+   * For example,
+   *
+   * <pre>
+   * {@code
+   * getFirstLevelDirectory("/a/xx/").equals("/a");
+   * getFirstLevelDirectory("/a/").equals("/a");
+   * }
+   * </pre>
+   *
+   * @param path the path
+   * @return the first level directory of the path;
+   * @throws InvalidPathException if the path is the root or invalid
+   */
+  public static String getFirstLevelDirectory(String path) throws InvalidPathException {
+    String[] paths = getPathComponents(path);
+    if (paths.length < 2) {
+      throw new InvalidPathException(path + " has no first level directory");
+    }
+    return AlluxioURI.SEPARATOR + paths[1];
+  }
+
+  /**
    * Join two path elements for ufs, separated by {@link AlluxioURI#SEPARATOR}.
    *
    * For example,

@@ -10,7 +10,7 @@
 #
 
 # Build the manager binary
-FROM golang:1.14.2 as builder
+FROM golang:1.18-alpine:3.17 as builder
 
 WORKDIR /go/src/github.com/Alluxio/alluxio
 COPY . .
@@ -21,7 +21,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=off go build -gcflags="-N 
 
 RUN go get github.com/go-delve/delve/cmd/dlv
 
-FROM alpine:3.10
+FROM alpine:3.17
 RUN apk add --update curl tzdata iproute2 bash libc6-compat vim &&  \
  	rm -rf /var/cache/apk/* && \
  	cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \

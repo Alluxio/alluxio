@@ -2085,7 +2085,7 @@
             ]
           },
           {
-            "name": "LoadProgressReportFormat",
+            "name": "JobProgressReportFormat",
             "enum_fields": [
               {
                 "name": "TEXT",
@@ -2348,6 +2348,11 @@
                     "value": "NEW_PATHS"
                   }
                 ]
+              },
+              {
+                "id": 8,
+                "name": "checkS3BucketPath",
+                "type": "bool"
               }
             ],
             "maps": [
@@ -2453,6 +2458,11 @@
               {
                 "id": 13,
                 "name": "overwrite",
+                "type": "bool"
+              },
+              {
+                "id": 14,
+                "name": "checkS3BucketPath",
                 "type": "bool"
               }
             ],
@@ -3784,7 +3794,27 @@
             "name": "NeedsSyncResponse"
           },
           {
-            "name": "LoadPathPOptions",
+            "name": "SubmitJobPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "request_body",
+                "type": "bytes"
+              }
+            ]
+          },
+          {
+            "name": "SubmitJobPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "jobId",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "LoadJobPOptions",
             "fields": [
               {
                 "id": 1,
@@ -3804,57 +3834,47 @@
             ]
           },
           {
-            "name": "LoadPathPRequest",
+            "name": "StopJobPRequest",
             "fields": [
               {
                 "id": 1,
-                "name": "path",
+                "name": "jobDescription",
+                "type": "JobDescription"
+              }
+            ]
+          },
+          {
+            "name": "StopJobPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "jobStopped",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "JobDescription",
+            "fields": [
+              {
+                "id": 1,
+                "name": "type",
                 "type": "string"
               },
               {
                 "id": 2,
-                "name": "options",
-                "type": "LoadPathPOptions"
-              }
-            ]
-          },
-          {
-            "name": "LoadPathPResponse",
-            "fields": [
-              {
-                "id": 1,
-                "name": "newLoadSubmitted",
-                "type": "bool"
-              }
-            ]
-          },
-          {
-            "name": "StopLoadPathPRequest",
-            "fields": [
-              {
-                "id": 1,
                 "name": "path",
                 "type": "string"
               }
             ]
           },
           {
-            "name": "StopLoadPathPResponse",
-            "fields": [
-              {
-                "id": 1,
-                "name": "existingLoadStopped",
-                "type": "bool"
-              }
-            ]
-          },
-          {
-            "name": "LoadProgressPOptions",
+            "name": "JobProgressPOptions",
             "fields": [
               {
                 "id": 1,
                 "name": "format",
-                "type": "LoadProgressReportFormat"
+                "type": "JobProgressReportFormat"
               },
               {
                 "id": 2,
@@ -3864,22 +3884,22 @@
             ]
           },
           {
-            "name": "GetLoadProgressPRequest",
+            "name": "GetJobProgressPRequest",
             "fields": [
               {
                 "id": 1,
-                "name": "path",
-                "type": "string"
+                "name": "jobDescription",
+                "type": "JobDescription"
               },
               {
                 "id": 2,
                 "name": "options",
-                "type": "LoadProgressPOptions"
+                "type": "JobProgressPOptions"
               }
             ]
           },
           {
-            "name": "GetLoadProgressPResponse",
+            "name": "GetJobProgressPResponse",
             "fields": [
               {
                 "id": 1,
@@ -3889,7 +3909,7 @@
               {
                 "id": 2,
                 "name": "format",
-                "type": "LoadProgressReportFormat"
+                "type": "JobProgressReportFormat"
               }
             ]
           },
@@ -4162,19 +4182,19 @@
                 "out_type": "NeedsSyncResponse"
               },
               {
-                "name": "LoadPath",
-                "in_type": "LoadPathPRequest",
-                "out_type": "LoadPathPResponse"
+                "name": "submitJob",
+                "in_type": "SubmitJobPRequest",
+                "out_type": "SubmitJobPResponse"
               },
               {
-                "name": "StopLoadPath",
-                "in_type": "StopLoadPathPRequest",
-                "out_type": "StopLoadPathPResponse"
+                "name": "StopJob",
+                "in_type": "StopJobPRequest",
+                "out_type": "StopJobPResponse"
               },
               {
-                "name": "GetLoadProgress",
-                "in_type": "GetLoadProgressPRequest",
-                "out_type": "GetLoadProgressPResponse"
+                "name": "GetJobProgress",
+                "in_type": "GetJobProgressPRequest",
+                "out_type": "GetJobProgressPResponse"
               }
             ]
           },

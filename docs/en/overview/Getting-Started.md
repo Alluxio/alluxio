@@ -50,6 +50,19 @@ to as `${ALLUXIO_HOME}`.
 
 ## Configuring Alluxio
 
+In the `${ALLUXIO_HOME}/conf` directory, create the `conf/alluxio-env.sh` configuration
+file by copying the template file.
+
+```console
+$ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
+```
+
+In `conf/alluxio-env.sh`, adds configuration for `JAVA_HOME`. For example:
+
+```console
+$ echo "JAVA_HOME=/path/to/java/home" >> conf/alluxio-env.sh
+```
+
 In the `${ALLUXIO_HOME}/conf` directory, create the `conf/alluxio-site.properties` configuration
 file by copying the template file.
 

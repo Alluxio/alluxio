@@ -1149,6 +1149,24 @@ even if the data is already available on a remote worker.
 $ ./bin/alluxio fs load <path> --local
 ```
 
+### loadMetadata
+
+The `loadMetadata` command loads metadata about a path in the UFS to Alluxio.
+No data will be transferred.
+This command is a client-side optimization without storing all returned `ls` results, preventing OOM for massive amount of small files.
+This is useful when data has been added to the UFS outside of Alluxio and users are expected to reference the new data.
+This command is more efficient than using the `ls` command since it does not store any directory or file information to be returned.
+
+Options:
+* `-R` option recursively loads metadata in subdirectories
+* `-F` option updates the metadata of the existing file forcibly
+
+For example, `loadMetadata` can be used to load metadata for a path in the UFS.
+The -F option will force the loading of metadata even if there are existing metadata entries for the path.
+```console
+$ ./bin/alluxio fs loadMetadata -R -F <path>
+```
+
 ### location
 
 The `location` command returns the addresses of all the Alluxio workers which contain blocks

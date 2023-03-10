@@ -5210,8 +5210,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED =
       booleanBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("Whether or not to enable automatic cleanup of long-running "
+          .setDefaultValue(false)
+          .setDescription("Enable automatic cleanup of long-running "
               + "multipart uploads.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
@@ -5308,7 +5308,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey PROXY_S3_V2_VERSION_ENABLED =
           booleanBuilder(Name.PROXY_S3_V2_VERSION_ENABLED)
-                  .setDefaultValue(false)
+                  .setDefaultValue(true)
                   .setDescription("(Experimental) V2, an optimized version of "
                           + "Alluxio s3 proxy service.")
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -5359,6 +5359,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS =
+      durationBuilder(Name.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS)
+          .setAlias("alluxio.proxy.s3.bucketpathcache.timeout.ms")
+          .setDefaultValue("1min")
+          .setDescription("Expire bucket path statistics in cache for this time period. "
+              + "Set 0min to disable the cache.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.NONE)
+          .build();
   public static final PropertyKey PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB =
       intBuilder(Name.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -5374,6 +5383,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "Set value less than or equal to 0 to disable rate limits.")
           .setDefaultValue(0)
           .setScope(Scope.SERVER)
+
           .build();
 
   //
@@ -5762,9 +5772,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_CREATE_TTL_ACTION =
       enumBuilder(Name.USER_FILE_CREATE_TTL_ACTION, TtlAction.class)
-          .setDefaultValue(TtlAction.DELETE_ALLUXIO)
+          .setDefaultValue(TtlAction.FREE)
           .setDescription("When file's ttl is expired, the action performs on it. Options: "
-              + "DELETE_ALLUXIO(default), FREE or DELETE")
+              + "FREE(default), DELETE_ALLUXIO or DELETE")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_UFS_TIER_ENABLED =
@@ -8511,6 +8521,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_S3_V2_ASYNC_PROCESSING_ENABLED =
             "alluxio.proxy.s3.v2.async.processing.enabled";
     public static final String S3_UPLOADS_ID_XATTR_KEY = "s3_uploads_mulitpartupload_id";
+    public static final String PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS =
+        "alluxio.proxy.s3.bucketpathcache.timeout";
     public static final String PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB =
         "alluxio.proxy.s3.global.read.rate.limit.mb";
     public static final String PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB =
