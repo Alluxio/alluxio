@@ -14,7 +14,6 @@ package alluxio.master.job;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.Configuration;
@@ -75,6 +74,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -147,7 +147,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    */
   public JobMaster(MasterContext masterContext, FileSystem filesystem,
       FileSystemContext fsContext, UfsManager ufsManager) {
-    super(masterContext, new SystemClock(),
+    super(masterContext, Clock.systemUTC(),
         ExecutorServiceFactories.cachedThreadPool(Constants.JOB_MASTER_NAME));
     mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
     mCommandManager = new CommandManager();

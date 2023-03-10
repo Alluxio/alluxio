@@ -14,7 +14,6 @@ package alluxio.master.throttle;
 import alluxio.Constants;
 import alluxio.Server;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.clock.SystemClock;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcService;
@@ -38,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -72,7 +72,7 @@ public final class DefaultThrottleMaster extends AbstractMaster implements NoopJ
    * @param masterContext the context for Alluxio master
    */
   public DefaultThrottleMaster(MasterRegistry registry, MasterContext masterContext) {
-    super(masterContext, new SystemClock(), ExecutorServiceFactories
+    super(masterContext, Clock.systemUTC(), ExecutorServiceFactories
         .cachedThreadPool(Constants.THROTTLE_MASTER_NAME));
     registry.add(DefaultThrottleMaster.class, this);
   }

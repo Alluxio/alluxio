@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.clock.SystemClock;
 import alluxio.grpc.MetricType;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
@@ -26,6 +25,7 @@ import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.Clock;
 import java.util.List;
 
 public class MetricsStoreTest {
@@ -34,7 +34,7 @@ public class MetricsStoreTest {
   @Before
   public void before() {
     MetricsSystem.resetAllMetrics();
-    mMetricStore = new MetricsStore(new SystemClock());
+    mMetricStore = new MetricsStore(Clock.systemUTC());
     mMetricStore.initMetricKeys();
   }
 

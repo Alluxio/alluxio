@@ -14,7 +14,6 @@ package alluxio.master.table;
 import alluxio.Constants;
 import alluxio.Server;
 import alluxio.client.job.JobMasterClient;
-import alluxio.clock.SystemClock;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
@@ -44,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +70,7 @@ public class DefaultTableMaster extends AbstractMaster
    * @param jobMasterClient the job master client for transformation
    */
   public DefaultTableMaster(MasterContext context, JobMasterClient jobMasterClient) {
-    super(context, new SystemClock(),
+    super(context, Clock.systemUTC(),
         ExecutorServiceFactories.cachedThreadPool(Constants.TABLE_MASTER_NAME));
     mCatalog = new AlluxioCatalog();
     mTransformManager = new TransformManager(this::createJournalContext, mCatalog, jobMasterClient);
