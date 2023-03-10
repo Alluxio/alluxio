@@ -62,6 +62,21 @@ The cache store used by Dora cache nodes is currently hardcoded to be the paged 
 [documentation](https://github.com/Alluxio/alluxio/blob/dora/docs/en/core-services/Caching.md#experimental-paging-worker-storage)
 on how to configure the paged block store.
 
+## Dora on Kubernetes
+
+The existing Alluxio helm chart works with Dora cluster except Alluxio Fuse. Note that:
+1. Set your image to `alluxio/alluxio:2.9.1-gamma`.
+2. Property `alluxio.master.mount.table.root.ufs` is no longer required. It is replaced by `alluxio.dora.client.ufs.root`
+3. Make sure to include the required configurations specified in previous sections in your helm chart configuration file, including:
+    - `alluxio.dora.client.read.localtion.policy.enabled: "true"`
+    - `alluxio.user.short.circuit.enabled: "false"`
+    - `alluxio.master.worker.register.lease.enabled: "false"`
+    - `alluxio.dora.client.ufs.root: <under_fs_uri>`
+
+
+See [here](https://docs.alluxio.io/os/user/edge/en/kubernetes/Running-Alluxio-On-Kubernetes.html) 
+for details of how to deploy Alluxio with Helm Chart.
+
 ## Tuning
 
 ### Optional Dora Server-side Metadata Cache
@@ -81,3 +96,4 @@ resources on the worker side.
 1. Currently, only one UFS is supported by Dora. Nested mounts are not supported yet.
 2. Currently, the Alluxio Master node still needs to be up and running. It is used for Dora worker discovery,
    cluster configuration updates, as well as handling write IO operations.
+3. Currently, Alluxio Fuse is not supported with Dora on Kubernetes with the existing helm chart.
