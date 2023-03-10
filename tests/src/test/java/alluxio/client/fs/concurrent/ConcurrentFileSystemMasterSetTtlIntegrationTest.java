@@ -134,7 +134,6 @@ public class ConcurrentFileSystemMasterSetTtlIntegrationTest extends BaseIntegra
         errors.add(ex);
       }
     };
-
     for (int i = 0; i < numFiles; i++) {
       final int iteration = i;
       Thread t = new Thread(new Runnable() {
@@ -143,8 +142,6 @@ public class ConcurrentFileSystemMasterSetTtlIntegrationTest extends BaseIntegra
           try {
             AuthenticatedClientUser.set(TEST_USER);
             barrier.await();
-            HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
-
             mFileSystem.setAttribute(paths[iteration], SetAttributePOptions.newBuilder()
                 .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
                     .setTtl(ttls[iteration]).setTtlAction(TtlAction.DELETE))
@@ -254,12 +251,13 @@ public class ConcurrentFileSystemMasterSetTtlIntegrationTest extends BaseIntegra
     // Now file2 inode should either be in ttlbucket or it is cleaned up as part of
     // the ttlchecker processing
     List<URIStatus> fileStatus = mFileSystem.listStatus(new AlluxioURI("/"));
-    assert (!fileStatus.stream().anyMatch(status -> new AlluxioURI(status.getFileInfo().getPath())
-        .equals(fileUri1)));
+    Assert.assertTrue(String.format("file1:{} still exists and didn't get expired.", fileUri1.getPath()),
+        !fileStatus.stream().anyMatch(status -> new AlluxioURI(status.getFileInfo().getPath())
+            .equals(fileUri1)));
     if (fileStatus.stream().anyMatch(status -> new AlluxioURI(status.getFileInfo().getPath())
         .equals(fileUri2))) {
       // The inode is not being processed during concurrent insertion into ttlbucket
-      assert (fileStatus.get(0).getFileInfo().getTtl() == TTL_INTERVAL_MS);
+      Assert.assertTrue(fileStatus.get(0).getFileInfo().getTtl() == TTL_INTERVAL_MS);
       // Now run ttl checker again, it should be gone.
       HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
       Assert.assertEquals("There are remaining file existing with expired TTLs",
