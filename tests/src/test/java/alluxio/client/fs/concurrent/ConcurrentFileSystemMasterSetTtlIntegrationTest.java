@@ -251,9 +251,9 @@ public class ConcurrentFileSystemMasterSetTtlIntegrationTest extends BaseIntegra
     // Now file2 inode should either be in ttlbucket or it is cleaned up as part of
     // the ttlchecker processing
     List<URIStatus> fileStatus = mFileSystem.listStatus(new AlluxioURI("/"));
-    Assert.assertTrue(String.format("file1:{} still exists and didn't get expired.", fileUri1.getPath()),
-        !fileStatus.stream().anyMatch(status -> new AlluxioURI(status.getFileInfo().getPath())
-            .equals(fileUri1)));
+    Assert.assertTrue(String.format("file1:{} still exists and didn't get expired.",
+            fileUri1.getPath()), !fileStatus.stream().anyMatch(
+                status -> new AlluxioURI(status.getFileInfo().getPath()).equals(fileUri1)));
     if (fileStatus.stream().anyMatch(status -> new AlluxioURI(status.getFileInfo().getPath())
         .equals(fileUri2))) {
       // The inode is not being processed during concurrent insertion into ttlbucket
