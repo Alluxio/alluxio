@@ -55,6 +55,7 @@ public class SnapshotDirStateMachineStorage implements StateMachineStorage {
   @Override
   public void init(RaftStorage raftStorage) throws IOException {
     mStorage = raftStorage;
+    loadLatestSnapshot();
   }
 
   private SnapshotInfo findLatestSnapshot() {

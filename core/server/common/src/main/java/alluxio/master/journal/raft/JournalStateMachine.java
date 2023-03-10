@@ -291,8 +291,6 @@ public class JournalStateMachine extends BaseStateMachine {
     if (index != RaftLog.INVALID_LOG_INDEX) {
       mSnapshotLastIndex = index;
       mLastCheckPointTime = System.currentTimeMillis();
-      mStorage.loadLatestSnapshot();
-      mStorage.signalNewSnapshot();
     }
     return index;
   }

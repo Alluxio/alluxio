@@ -27,7 +27,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.ratis.server.protocol.TermIndex;
 import org.apache.ratis.server.raftlog.RaftLog;
 import org.apache.ratis.statemachine.SnapshotInfo;
-import org.apache.ratis.statemachine.StateMachineStorage;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,13 +50,13 @@ import javax.annotation.Nullable;
 public class RaftSnapshotManager implements AutoCloseable {
   private static final Logger LOG = LoggerFactory.getLogger(RaftSnapshotManager.class);
 
-  private final StateMachineStorage mStorage;
+  private final SnapshotDirStateMachineStorage mStorage;
   private final Map<InetSocketAddress, RaftJournalServiceClient> mClients;
 
   @Nullable @GuardedBy("this")
   private CompletableFuture<Long> mDownloadFuture = null;
 
-  RaftSnapshotManager(StateMachineStorage storage) {
+  RaftSnapshotManager(SnapshotDirStateMachineStorage storage) {
     mStorage = storage;
 
     InetSocketAddress localAddress = NetworkAddressUtils.getConnectAddress(
@@ -152,6 +151,8 @@ public class RaftSnapshotManager implements AutoCloseable {
             SimpleStateMachineStorage.getSnapshotFileName(snapshotMetadata.getSnapshotTerm(),
                 snapshotMetadata.getSnapshotIndex()));
         FileUtils.moveDirectory(mStorage.getTmpDir(), finalSnapshotDestination);
+        mStorage.loadLatestSnapshot();
+        mStorage.signalNewSnapshot();
         LOG.debug("Finished snapshot download {}", snapshotMetadata.getSnapshotIndex());
         return snapshotMetadata.getSnapshotIndex();
       } catch (Exception e) {

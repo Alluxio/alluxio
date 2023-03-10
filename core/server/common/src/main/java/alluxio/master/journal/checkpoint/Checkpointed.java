@@ -11,8 +11,10 @@
 
 package alluxio.master.journal.checkpoint;
 
+import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorInputStream;
+import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorOutputStream;
+
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -28,7 +30,8 @@ public interface Checkpointed {
 
   default void writeToCheckpoint(File directory) throws IOException, InterruptedException {
     File file = new File(directory, getCheckpointName().toString());
-    try (FileOutputStream outputStream = new FileOutputStream(file)) {
+    try (OutputStream outputStream =
+             new BlockLZ4CompressorOutputStream(Files.newOutputStream(file.toPath()))) {
       writeToCheckpoint(outputStream);
     }
   }
@@ -45,7 +48,8 @@ public interface Checkpointed {
 
   default void restoreFromCheckpoint(File directory) throws IOException {
     File file = new File(directory, getCheckpointName().toString());
-    try (CheckpointInputStream is = new CheckpointInputStream(Files.newInputStream(file.toPath()))) {
+    try (CheckpointInputStream is = new CheckpointInputStream(
+        new BlockLZ4CompressorInputStream(Files.newInputStream(file.toPath())))) {
       restoreFromCheckpoint(is);
     }
   }
