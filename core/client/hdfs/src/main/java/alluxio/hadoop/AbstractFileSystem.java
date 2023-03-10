@@ -89,15 +89,14 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   private Path mWorkingDir = new Path(AlluxioURI.SEPARATOR);
   private Statistics mStatistics = null;
   private String mAlluxioHeader = null;
-  private boolean mExcludeMountInfoOnListStatus;
-  private boolean mExcludeMountInfoOnGetStatus;
-
+  private boolean mExcludeMountInfo;
   /**
    * Constructs a new {@link AbstractFileSystem} instance with specified a {@link FileSystem}
    * handler for tests.
    *
    * @param fileSystem handler to file system
    */
+
   protected AbstractFileSystem(FileSystem fileSystem) {
     mFileSystem = fileSystem;
   }
@@ -362,7 +361,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     URIStatus fileStatus;
     try {
       GetStatusPOptions getStatusPOptions = GetStatusPOptions.getDefaultInstance().toBuilder()
-          .setExcludeMountInfo(mExcludeMountInfoOnGetStatus).build();
+          .setExcludeMountInfo(mExcludeMountInfo).build();
       fileStatus = mFileSystem.getStatus(uri, getStatusPOptions);
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(e.getMessage());
@@ -511,10 +510,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     // Creating a new instanced configuration from an AlluxioProperties object isn't expensive.
     mAlluxioConf = new InstancedConfiguration(alluxioProps);
     mAlluxioConf.validate();
-    mExcludeMountInfoOnListStatus = mAlluxioConf.getBoolean(
-        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS);
-    mExcludeMountInfoOnGetStatus = mAlluxioConf.getBoolean(
-        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_GET_STATUS);
+    mExcludeMountInfo = mAlluxioConf.getBoolean(
+        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO);
 
     if (mFileSystem != null) {
       return;
@@ -591,7 +588,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     List<URIStatus> statuses;
     try {
       ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
-          .setExcludeMountInfo(mExcludeMountInfoOnListStatus).build();
+          .setExcludeMountInfo(mExcludeMountInfo).build();
       statuses = mFileSystem.listStatus(uri, listStatusPOptions);
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(getAlluxioPath(path).toString());

@@ -413,7 +413,7 @@ public class AbstractFileSystemTest {
     alluxioHadoopFs.initialize(uri, getConf());
     ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
         .setExcludeMountInfo(alluxioHadoopFs.mAlluxioConf.getBoolean(
-            PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS)).build();
+            PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO)).build();
     when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
         listStatusPOptions))
         .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
@@ -452,7 +452,7 @@ public class AbstractFileSystemTest {
     URI uri = URI.create(Constants.HEADER + "host:1");
     Configuration configuration = getConf();
     configuration.setBoolean(
-        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS.getName(),
+        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO.getName(),
         true);
     alluxioHadoopFs.initialize(uri, configuration);
     ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
@@ -482,7 +482,7 @@ public class AbstractFileSystemTest {
       alluxioHadoopFs.initialize(uri, getConf());
       ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
           .setExcludeMountInfo(alluxioHadoopFs.mAlluxioConf.getBoolean(
-              PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS)).build();
+              PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO)).build();
       when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
           listStatusPOptions))
           .thenThrow(new FileNotFoundException("ALLUXIO-2036 not Found"));
@@ -521,7 +521,7 @@ public class AbstractFileSystemTest {
     alluxioHadoopFs.initialize(uri, configuration);
     GetStatusPOptions getStatusPOptions = GetStatusPOptions.getDefaultInstance().toBuilder()
         .setExcludeMountInfo(alluxioHadoopFs.mAlluxioConf.getBoolean(
-            PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_GET_STATUS)).build();
+            PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO)).build();
     when(alluxioFs.getStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
         getStatusPOptions))
         .thenReturn(new URIStatus(fileInfo));
@@ -547,7 +547,7 @@ public class AbstractFileSystemTest {
     URI uri = URI.create(Constants.HEADER + "host:1");
     Configuration configuration = getConf();
     configuration.setBoolean(
-        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_GET_STATUS.getName(),
+        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO.getName(),
         true);
     alluxioHadoopFs.initialize(uri, configuration);
     GetStatusPOptions getStatusPOptions = GetStatusPOptions.getDefaultInstance().toBuilder()
