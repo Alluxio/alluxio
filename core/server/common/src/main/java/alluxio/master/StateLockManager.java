@@ -28,15 +28,20 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -59,9 +64,10 @@ public class StateLockManager {
 
   /** The state-lock. */
   private ReentrantReadWriteLock mStateLock = new ReentrantReadWriteLock(true);
-
   /** The set of threads that are waiting for or holding the state-lock in shared mode. */
   private Set<Thread> mSharedWaitersAndHolders;
+  /** Stores the name of each thread whos taking locks. */
+  private Map<String, LongAdder> mSharedLockHolders = new ConcurrentHashMap<>();
   /** Scheduler that is used for interrupt-cycle. */
   private ScheduledExecutorService mScheduler;
 
@@ -77,6 +83,11 @@ public class StateLockManager {
   private ScheduledFuture<?> mInterrupterFuture;
   /** Whether interrupt-cycle is entered. */
   private AtomicBoolean mInterruptCycleTicking = new AtomicBoolean(false);
+  /**
+   * Logs when a thread acquires the shared state lock too many times,
+   * which indicates a deep recursion.
+   */
+  private int mLogThreshold = Configuration.getInt(PropertyKey.MASTER_STATE_LOCK_ERROR_THRESHOLD);
 
   /** This is the deadline for forcing the lock. */
   private long mForcedDurationMs;
@@ -143,7 +154,7 @@ public class StateLockManager {
       final int readLockCount = mStateLock.getReadLockCount();
       if (readLockCount > READ_LOCK_COUNT_HIGH) {
         SAMPLING_LOG.info("Read Lock Count Too High: {} {}", readLockCount,
-            mSharedWaitersAndHolders);
+            mSharedLockHolders);
       }
     }
 
@@ -158,12 +169,36 @@ public class StateLockManager {
     }
     // Register thread for interrupt cycle.
     mSharedWaitersAndHolders.add(Thread.currentThread());
-    // Grab the lock interruptibly.
-    mStateLock.readLock().lockInterruptibly();
+    String threadName = Thread.currentThread().getName();
+    mSharedLockHolders.computeIfAbsent(threadName, k -> new LongAdder()).increment();
+    if (mSharedLockHolders.get(threadName).longValue() > mLogThreshold) {
+      Exception e = new Exception("Thread recursion is deeper than " + mLogThreshold);
+      LOG.warn("Current thread is {}. All state lock holders are {}",
+          threadName, mSharedLockHolders, e);
+    }
+    try {
+      // Grab the lock interruptibly.
+      mStateLock.readLock().lockInterruptibly();
+    } catch (Error e) {
+      // An Error is thrown when the lock is acquired 65536 times, log the jstack before exiting
+      LOG.error("Logging all thread stacks before exiting", e);
+      ThreadUtils.logAllThreads();
+      throw e;
+    }
     // Return the resource.
     // Register an action to remove the thread from holders registry before releasing the lock.
     return new LockResource(mStateLock.readLock(), false, false, () -> {
-      mSharedWaitersAndHolders.remove(Thread.currentThread());
+      // This is invoked in the same thread at the end of try-with-resource
+      Thread removedFrom = Thread.currentThread();
+      mSharedLockHolders.computeIfPresent(removedFrom.getName(), (k, v) -> {
+        mSharedWaitersAndHolders.remove(Thread.currentThread());
+        if (v.longValue() <= 1L) {
+          return null;
+        } else {
+          v.decrement();
+          return v;
+        }
+      });
     });
   }
 
@@ -233,9 +268,8 @@ public class StateLockManager {
       activateInterruptCycle();
       // Force the lock.
       LOG.info("Thread-{} forcing the lock with {} waiters/holders: {}",
-          ThreadUtils.getCurrentThreadIdentifier(), mSharedWaitersAndHolders.size(),
-          mSharedWaitersAndHolders.stream().map((th) -> Long.toString(th.getId()))
-              .collect(Collectors.joining(",")));
+          ThreadUtils.getCurrentThreadIdentifier(), mSharedLockHolders.size(),
+          mSharedLockHolders);
       try {
         if (beforeAttempt != null) {
           beforeAttempt.run();
@@ -262,13 +296,8 @@ public class StateLockManager {
   /**
    * @return the list of thread identifiers that are waiting and holding on the shared lock
    */
-  public List<String> getSharedWaitersAndHolders() {
-    List<String> result = new ArrayList<>();
-
-    for (Thread waiterOrHolder : mSharedWaitersAndHolders) {
-      result.add(ThreadUtils.getThreadIdentifier(waiterOrHolder));
-    }
-    return result;
+  public Collection<String> getSharedWaitersAndHolders() {
+    return Collections.unmodifiableSet(mSharedLockHolders.keySet());
   }
 
   /**

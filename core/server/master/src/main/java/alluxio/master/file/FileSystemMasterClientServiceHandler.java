@@ -102,6 +102,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -456,9 +457,9 @@ public final class FileSystemMasterClientServiceHandler
 
   @Override
   public void getStateLockHolders(GetStateLockHoldersPRequest request,
-                                  StreamObserver<GetStateLockHoldersPResponse> responseObserver) {
+      StreamObserver<GetStateLockHoldersPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      final List<String> holders = mFileSystemMaster.getStateLockSharedWaitersAndHolders();
+      final Collection<String> holders = mFileSystemMaster.getStateLockSharedWaitersAndHolders();
       return GetStateLockHoldersPResponse.newBuilder().addAllThreads(holders).build();
     }, "getStateLockHolders", "request=%s", responseObserver, request);
   }
