@@ -93,7 +93,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * @return collection of inode to its left ttl process retry attempts
    */
   public Collection<Map.Entry<Long, Integer>> getInodeExpiries() {
-    return mInodeToRetryMap.entrySet();
+    return Collections.unmodifiableSet(mInodeToRetryMap.entrySet());
   }
 
   /**
