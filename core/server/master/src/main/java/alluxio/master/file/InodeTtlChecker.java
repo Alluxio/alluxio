@@ -30,6 +30,7 @@ import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.proto.journal.File.UpdateInodeEntry;
+import alluxio.util.ThreadUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,9 +147,11 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 LOG.error("Unknown ttl action {}", ttlAction);
             }
           } catch (Exception e) {
-            LOG.error("Exception trying to clean up {} for ttl check. Left retries:{}. {}",
-                path, leftRetries - 1, e);
-            if (inode != null && --leftRetries > 0) {
+            boolean retryExhausted = --leftRetries <= 0;
+            if (retryExhausted) {
+              LOG.error("Retry exhausted to clean up {} for ttl check. {}",
+                  path, ThreadUtils.formatStackTrace(e));
+            } else if (inode != null) {
               failedInodesToRetryNum.put(inode, leftRetries);
             }
           }
