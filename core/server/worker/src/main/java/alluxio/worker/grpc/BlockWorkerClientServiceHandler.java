@@ -11,6 +11,8 @@
 
 package alluxio.worker.grpc;
 
+import static java.util.Objects.requireNonNull;
+
 import alluxio.RpcUtils;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
@@ -83,13 +85,15 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   /**
    * Creates a new implementation of gRPC BlockWorker interface.
    *
-   * @param workerProcess the worker process
+   * @param blockWorker block worker
+   * @param ufsManager ufs manager
    * @param domainSocketEnabled is using domain sockets
    */
-  public BlockWorkerClientServiceHandler(WorkerProcess workerProcess,
+  public BlockWorkerClientServiceHandler(DefaultBlockWorker blockWorker,
+      UfsManager ufsManager,
       boolean domainSocketEnabled) {
-    mBlockWorker = (DefaultBlockWorker) workerProcess.getWorker(BlockWorker.class);
-    mUfsManager = workerProcess.getUfsManager();
+    mBlockWorker = requireNonNull(blockWorker);
+    mUfsManager = requireNonNull(ufsManager);
     mDomainSocketEnabled = domainSocketEnabled;
   }
 

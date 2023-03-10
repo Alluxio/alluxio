@@ -186,10 +186,16 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       mUnderFileSystemBlockStore =
           new UnderFileSystemBlockStore(
               ((MonoBlockStore) mBlockStore).getLocalBlockStore(),
-              new WorkerUfsManager());
+              new WorkerUfsManager(mFileSystemMasterClient));
     } else {
       mUnderFileSystemBlockStore =
-          new UnderFileSystemBlockStore(new TieredBlockStore(), new WorkerUfsManager());
+          new UnderFileSystemBlockStore(new TieredBlockStore(
+              BlockMetadataManager.createBlockMetadataManager(),
+              new BlockLockManager(),
+              new TieredBlockReaderFactory(),
+              new TieredBlockWriterFactory(),
+              new TieredTempBlockMetaFactory()),
+              new WorkerUfsManager(mFileSystemMasterClient));
     }
     Metrics.registerGauges(this);
   }

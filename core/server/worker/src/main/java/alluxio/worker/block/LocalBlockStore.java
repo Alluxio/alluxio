@@ -30,6 +30,12 @@ import java.util.Set;
  */
 public interface LocalBlockStore
     extends SessionCleanable, Closeable {
+
+  /**
+   * Initialize the local block store.
+   */
+  void initialize();
+
   /**
    * Pins the block indicating subsequent access.
    *
@@ -125,7 +131,7 @@ public interface LocalBlockStore
    * @param blockId the id of the temp block
    * @return a {@link BlockWriter} instance on this block
    */
-  BlockWriter createBlockWriter(long sessionId, long blockId);
+  BlockWriter createBlockWriter(long sessionId, long blockId) throws IOException;
 
   /**
    * Creates a reader of an existing block to read data from this block.

@@ -50,6 +50,8 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.grpc.GrpcExecutors;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,10 +108,11 @@ public class MonoBlockStore implements BlockStore {
    * @param ufsManager
    * @param workerId
    */
+  @Inject
   public MonoBlockStore(LocalBlockStore localBlockStore,
       BlockMasterClientPool blockMasterClientPool,
       UfsManager ufsManager,
-      AtomicReference<Long> workerId) {
+      @Named("workerId") AtomicReference<Long> workerId) {
     mLocalBlockStore = requireNonNull(localBlockStore);
     mBlockMasterClientPool = requireNonNull(blockMasterClientPool);
     mUnderFileSystemBlockStore =
@@ -117,6 +120,11 @@ public class MonoBlockStore implements BlockStore {
     mWorkerId = workerId;
     mMetaManager = localBlockStore.getMetadataManager();
     mLockManager = localBlockStore.getLockManager();
+  }
+
+  @Override
+  public void initialize() {
+    mLocalBlockStore.initialize();
   }
 
   @Override

@@ -11,6 +11,8 @@
 
 package alluxio.worker.grpc;
 
+import static java.util.Objects.requireNonNull;
+
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -21,10 +23,12 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
+import alluxio.worker.DataWorker;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.dora.DoraWorker;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.inject.Inject;
 import io.grpc.MethodDescriptor;
 import io.grpc.stub.CallStreamObserver;
 import io.grpc.stub.StreamObserver;
@@ -51,10 +55,11 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
 
   /**
    * Creates a new implementation of gRPC BlockWorker interface.
-   * @param workerProcess the worker process
+   * @param doraWorker the DoraWorker object
    */
-  public DoraWorkerClientServiceHandler(WorkerProcess workerProcess) {
-    mWorker = workerProcess.getWorker(DoraWorker.class);
+  @Inject
+  public DoraWorkerClientServiceHandler(DoraWorker doraWorker) {
+    mWorker = requireNonNull(doraWorker);
   }
 
   /**

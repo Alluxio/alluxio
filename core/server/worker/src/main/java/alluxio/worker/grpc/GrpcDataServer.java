@@ -89,10 +89,10 @@ public final class GrpcDataServer implements DataServer {
    *
    * @param hostName the server host name
    * @param bindAddress the server bind address
-   * @param workerProcess the Alluxio worker process
+   * @param blockWorkerService the instance of BlockWorkerGrpc.BlockWorkerImplBase
    */
   public GrpcDataServer(final String hostName, final SocketAddress bindAddress,
-      final WorkerProcess workerProcess) {
+      final BlockWorkerGrpc.BlockWorkerImplBase blockWorkerService) {
     mSocketAddress = bindAddress;
     try {
       // There is no way to query domain socket address afterwards.
@@ -100,18 +100,11 @@ public final class GrpcDataServer implements DataServer {
       if (bindAddress instanceof DomainSocketAddress) {
         mDomainSocketAddress = (DomainSocketAddress) bindAddress;
       }
-      BlockWorkerGrpc.BlockWorkerImplBase blockWorkerService;
       Map<MethodDescriptor, MethodDescriptor> overriddenMethods;
-      if (DORA_WORKER_ENABLED) {
-        blockWorkerService =
-            new DoraWorkerClientServiceHandler(
-                workerProcess);
+      if (blockWorkerService instanceof DoraWorkerClientServiceHandler) {
         overriddenMethods = ((DoraWorkerClientServiceHandler) blockWorkerService)
             .getOverriddenMethodDescriptors();
       } else {
-        blockWorkerService =
-            new BlockWorkerClientServiceHandler(
-                workerProcess, mDomainSocketAddress != null);
         overriddenMethods = ((BlockWorkerClientServiceHandler) blockWorkerService)
             .getOverriddenMethodDescriptors();
       }

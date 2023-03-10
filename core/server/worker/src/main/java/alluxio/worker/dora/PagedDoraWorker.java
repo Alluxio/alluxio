@@ -67,6 +67,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Closer;
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,6 +107,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @param workerId
    * @param conf
    */
+  @Inject
   public PagedDoraWorker(AtomicReference<Long> workerId, AlluxioConfiguration conf) {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
     mWorkerId = workerId;

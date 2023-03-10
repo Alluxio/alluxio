@@ -52,8 +52,10 @@ import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
+import javax.inject.Named;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
 import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,15 +134,21 @@ public class PagedBlockStore implements BlockStore {
    * @param pageMetaStore meta data store for pages and blocks
    * @param pageSize page size
    */
+  @Inject
   PagedBlockStore(CacheManager cacheManager, UfsManager ufsManager, BlockMasterClientPool pool,
-      AtomicReference<Long> workerId, PagedBlockMetaStore pageMetaStore,
-      long pageSize) {
+                  @Named("workerId") AtomicReference<Long> workerId,
+                  PagedBlockMetaStore pageMetaStore,
+                  @Named("pageSize") Long pageSize) {
     mCacheManager = cacheManager;
     mUfsManager = ufsManager;
     mBlockMasterClientPool = pool;
     mWorkerId = workerId;
     mPageMetaStore = pageMetaStore;
     mPageSize = pageSize;
+  }
+
+  @Override
+  public void initialize() {
   }
 
   @Override

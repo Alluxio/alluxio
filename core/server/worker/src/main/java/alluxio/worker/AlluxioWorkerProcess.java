@@ -11,6 +11,7 @@
 
 package alluxio.worker;
 
+import static java.util.Objects.requireNonNull;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
@@ -30,22 +31,31 @@ import alluxio.web.WebServer;
 import alluxio.web.WorkerWebServer;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.DefaultBlockWorker;
+import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.grpc.GrpcDataServer;
 import alluxio.worker.netty.NettyDataServer;
 
+import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
 import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.inject.Named;
 
 /**
  * This class encapsulates the different worker services that are configured to run.
@@ -56,39 +66,51 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   private final TieredIdentity mTieredIdentitiy;
 
-  /** Server for data requests and responses. */
+  /**
+   * Server for data requests and responses.
+   */
   private final DataServer mDataServer;
 
   private final DataServer mNettyDataServer;
 
-  /** If started (i.e. not null), this server is used to serve local data transfer. */
+  /**
+   * If started (i.e. not null), this server is used to serve local data transfer.
+   */
   private DataServer mDomainSocketDataServer;
 
-  /** The worker registry. */
+  /**
+   * The worker registry.
+   */
   private final WorkerRegistry mRegistry;
 
-  /** Worker Web UI server. */
+  /**
+   * Worker Web UI server.
+   */
   private final WebServer mWebServer;
 
-  /** Used for auto binding. **/
-  private ServerSocket mBindSocket;
-
-  /** The bind address for the rpc server. */
+  /**
+   * The bind address for the rpc server.
+   */
   private final InetSocketAddress mRpcBindAddress;
 
-  /** The bind address for the netty data server. */
-  private final InetSocketAddress mNettyDataServerAddress;
-
-  /** The connect address for the rpc server. */
+  /**
+   * The connect address for the rpc server.
+   */
   private final InetSocketAddress mRpcConnectAddress;
 
-  /** Worker start time in milliseconds. */
+  /**
+   * Worker start time in milliseconds.
+   */
   private final long mStartTimeMs;
 
-  /** The manager for all ufs. */
+  /**
+   * The manager for all ufs.
+   */
   private final UfsManager mUfsManager;
 
-  /** The jvm monitor.*/
+  /**
+   * The jvm monitor.
+   */
   private JvmPauseMonitor mJvmPauseMonitor;
 
   private boolean mNettyDataTransmissionEnable;
@@ -96,22 +118,27 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /**
    * Creates a new instance of {@link AlluxioWorkerProcess}.
    */
-  AlluxioWorkerProcess(TieredIdentity tieredIdentity) {
-    mTieredIdentitiy = tieredIdentity;
+  @Inject
+  AlluxioWorkerProcess(
+      TieredIdentity tieredIdentity,
+      WorkerRegistry workerRegistry,
+      UfsManager ufsManager,
+      WorkerFactory workerFactory,
+      @Named("GrpcBindAddress") InetSocketAddress gRpcBindAddress,
+      @Named("GrpcConnectAddress") InetSocketAddress gRpcConnectAddress,
+      DataServerFactory dataServerFactory,
+      @Nullable NettyDataServer nettyDataServer) {
     try {
+      mTieredIdentitiy = requireNonNull(tieredIdentity);
+      mUfsManager = requireNonNull(ufsManager);
+      mRegistry = requireNonNull(workerRegistry);
+      mRpcBindAddress = requireNonNull(gRpcBindAddress);
+      mRpcConnectAddress = requireNonNull(gRpcConnectAddress);
       mStartTimeMs = System.currentTimeMillis();
-      mUfsManager = new WorkerUfsManager();
-      mRegistry = new WorkerRegistry();
-      List<Callable<Void>> callables = new ArrayList<>();
-      for (final WorkerFactory factory : ServiceLoader.load(WorkerFactory.class,
-          WorkerFactory.class.getClassLoader())) {
-        callables.add(() -> {
-          if (factory.isEnabled()) {
-            factory.create(mRegistry, mUfsManager);
-          }
-          return null;
-        });
-      }
+      List<Callable<Void>> callables = ImmutableList.of(() -> {
+        mRegistry.add(DataWorker.class, workerFactory.create());
+        return null;
+      });
       CommonUtils.invokeAll(callables,
           Configuration.getMs(PropertyKey.WORKER_STARTUP_TIMEOUT));
 
@@ -121,54 +148,27 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
               Configuration.global()), this,
               mRegistry.get(DataWorker.class));
 
-      // Random port binding.
-      int bindPort;
-      InetSocketAddress configuredBindAddress =
-              NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC,
-                  Configuration.global());
-      if (configuredBindAddress.getPort() == 0) {
-        mBindSocket = new ServerSocket(0);
-        bindPort = mBindSocket.getLocalPort();
-      } else {
-        bindPort = configuredBindAddress.getPort();
-      }
-      mRpcBindAddress = new InetSocketAddress(configuredBindAddress.getHostName(), bindPort);
-      mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC,
-          Configuration.global());
-
-      if (mBindSocket != null) {
-        // Socket opened for auto bind.
-        // Close it.
-        mBindSocket.close();
-      }
       // Setup GRPC server
-      mDataServer = new GrpcDataServer(mRpcConnectAddress.getHostName(), mRpcBindAddress, this);
+      if (Configuration.global().getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED)) {
+        mDataServer = dataServerFactory.createRemoteDoraGrpcDataServer(mRegistry.get(DataWorker.class));
+      } else {
+        mDataServer = dataServerFactory.createRemoteGrpcDataServer(
+            mRegistry.get(BlockWorker.class));
+      }
 
       // Setup Netty Data Server
       mNettyDataTransmissionEnable =
           Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
       if (mNettyDataTransmissionEnable) {
-        mNettyDataServerAddress =
-            NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, Configuration.global());
-        mNettyDataServer = new NettyDataServer(mNettyDataServerAddress, this);
+        mNettyDataServer = nettyDataServer;
       } else {
-        mNettyDataServerAddress = null;
         mNettyDataServer = null;
       }
 
       // Setup domain socket data server
       if (isDomainSocketEnabled()) {
-        String domainSocketPath =
-            Configuration.getString(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
-        if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
-          domainSocketPath =
-              PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
-        }
-        LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
-        mDomainSocketDataServer = new GrpcDataServer(mRpcConnectAddress.getHostName(),
-            new DomainSocketAddress(domainSocketPath), this);
-        // Share domain socket so that clients can access it.
-        FileUtils.changeLocalFileToFullPermission(domainSocketPath);
+        mDomainSocketDataServer = dataServerFactory.createRemoteGrpcDataServer(
+            mRegistry.get(BlockWorker.class));
       }
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -260,14 +260,14 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
               Configuration.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS));
       mJvmPauseMonitor.start();
       MetricsSystem.registerGaugeIfAbsent(
-              MetricsSystem.getMetricName(MetricKey.TOTAL_EXTRA_TIME.getName()),
-              mJvmPauseMonitor::getTotalExtraTime);
+          MetricsSystem.getMetricName(MetricKey.TOTAL_EXTRA_TIME.getName()),
+          mJvmPauseMonitor::getTotalExtraTime);
       MetricsSystem.registerGaugeIfAbsent(
-              MetricsSystem.getMetricName(MetricKey.INFO_TIME_EXCEEDED.getName()),
-              mJvmPauseMonitor::getInfoTimeExceeded);
+          MetricsSystem.getMetricName(MetricKey.INFO_TIME_EXCEEDED.getName()),
+          mJvmPauseMonitor::getInfoTimeExceeded);
       MetricsSystem.registerGaugeIfAbsent(
-              MetricsSystem.getMetricName(MetricKey.WARN_TIME_EXCEEDED.getName()),
-              mJvmPauseMonitor::getWarnTimeExceeded);
+          MetricsSystem.getMetricName(MetricKey.WARN_TIME_EXCEEDED.getName()),
+          mJvmPauseMonitor::getWarnTimeExceeded);
     }
 
     // Start serving RPC, this will block

@@ -148,6 +148,7 @@
     <powermock.version>2.0.7</powermock.version>
     <prometheus.version>0.8.0</prometheus.version>
     <guava.version>31.0.1-jre</guava.version>
+    <guice.version>5.1.0</guice.version>
     <parquet.version>1.11.0</parquet.version>
     <protobuf.version>3.19.2</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -267,6 +268,11 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>${guava.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.inject</groupId>
+        <artifactId>guice</artifactId>
+        <version>${guice.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.protobuf</groupId>

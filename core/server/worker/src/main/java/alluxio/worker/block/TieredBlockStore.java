@@ -42,6 +42,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,32 +96,42 @@ public class TieredBlockStore implements LocalBlockStore {
       Configuration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
-  private final Allocator mAllocator;
+
+  private final BlockReaderFactory mBlockReaderFactory;
+
+  private final BlockWriterFactory mBlockWriterFactory;
+
+  private final TempBlockMetaFactory mTempBlockMetaFactory;
+
+  private Allocator mAllocator;
 
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new CopyOnWriteArrayList<>();
 
-  /** A set of pinned inodes fetched from the master. */
+  /**
+   * A set of pinned inodes fetched from the master.
+   */
   private final Set<Long> mPinnedInodes = new HashSet<>();
 
-  /** Lock to guard metadata operations. */
+  /**
+   * Lock to guard metadata operations.
+   */
   private final ReentrantReadWriteLock mMetadataLock = new ReentrantReadWriteLock();
 
-  /** ReadLock provided by {@link #mMetadataLock} to guard metadata read operations. */
+  /**
+   * ReadLock provided by {@link #mMetadataLock} to guard metadata read operations.
+   */
   private final Lock mMetadataReadLock = mMetadataLock.readLock();
 
-  /** WriteLock provided by {@link #mMetadataLock} to guard metadata write operations. */
+  /**
+   * WriteLock provided by {@link #mMetadataLock} to guard metadata write operations.
+   */
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
 
-  /** Management task coordinator. */
-  private final ManagementTaskCoordinator mTaskCoordinator;
-
   /**
-   * Creates a new instance of {@link TieredBlockStore}.
+   * Management task coordinator.
    */
-  public TieredBlockStore() {
-    this(BlockMetadataManager.createBlockMetadataManager(), new BlockLockManager());
-  }
+  private ManagementTaskCoordinator mTaskCoordinator;
 
   /**
    * Creates a new instance of {@link TieredBlockStore}.
@@ -128,12 +139,21 @@ public class TieredBlockStore implements LocalBlockStore {
    * @param metaManager the block metadata manager
    * @param lockManager the lock manager
    */
-  @VisibleForTesting
+  @Inject
   public TieredBlockStore(BlockMetadataManager metaManager,
-      BlockLockManager lockManager) {
+      BlockLockManager lockManager,
+      BlockReaderFactory blockReaderFactory,
+      BlockWriterFactory blockWriterFactory,
+      TempBlockMetaFactory tempBlockMetaFactory) {
     mMetaManager = metaManager;
     mLockManager = lockManager;
+    mBlockReaderFactory = blockReaderFactory;
+    mBlockWriterFactory = blockWriterFactory;
+    mTempBlockMetaFactory = tempBlockMetaFactory;
+  }
 
+  @Override
+  public void initialize() {
     BlockIterator blockIterator = mMetaManager.getBlockIterator();
     // Register listeners required by the block iterator.
     for (BlockStoreEventListener listener : blockIterator.getListeners()) {
@@ -165,13 +185,13 @@ public class TieredBlockStore implements LocalBlockStore {
   }
 
   @Override
-  public BlockWriter createBlockWriter(long sessionId, long blockId) {
+  public BlockWriter createBlockWriter(long sessionId, long blockId) throws IOException {
     LOG.debug("getBlockWriter: sessionId={}, blockId={}", sessionId, blockId);
     // NOTE: a temp block is supposed to only be visible by its own writer, unnecessary to acquire
     // block lock here since no sharing
     // TODO(bin): Handle the case where multiple writers compete for the same block.
     checkBlockDoesNotExist(blockId);
-    return new StoreBlockWriter(checkAndGetTempBlockMeta(sessionId, blockId));
+    return mBlockWriterFactory.createBlockWriter(checkAndGetTempBlockMeta(sessionId, blockId));
   }
 
   @Override
@@ -229,7 +249,8 @@ public class TieredBlockStore implements LocalBlockStore {
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate) {
     LOG.debug("commitBlock: sessionId={}, blockId={}, pinOnCreate={}",
         sessionId, blockId, pinOnCreate);
-    try (BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.WRITE)) {
+    try (
+        BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.WRITE)) {
       BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
@@ -299,7 +320,8 @@ public class TieredBlockStore implements LocalBlockStore {
     LOG.debug("moveBlock: sessionId={}, blockId={}, options={}", sessionId,
         blockId, moveOptions);
     BlockMeta meta = getVolatileBlockMeta(blockId).orElseThrow(
-        () -> new IllegalStateException(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(blockId)));
+        () -> new IllegalStateException(
+            ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(blockId)));
     if (meta.getBlockLocation().belongsTo(moveOptions.getLocation())) {
       return;
     }
@@ -346,7 +368,7 @@ public class TieredBlockStore implements LocalBlockStore {
     }
 
     try (BlockLock lock = optionalLock.get();
-        LockResource r = new LockResource(mMetadataWriteLock)) {
+         LockResource r = new LockResource(mMetadataWriteLock)) {
       if (mMetaManager.hasTempBlockMeta(blockId)) {
         throw new IllegalStateException(
             ExceptionMessage.REMOVE_UNCOMMITTED_BLOCK.getMessage(blockId));
@@ -389,7 +411,8 @@ public class TieredBlockStore implements LocalBlockStore {
     }
     for (TempBlockMeta tempBlockMeta : tempBlocksToRemove) {
       try {
-        LOG.warn("Clean up expired temporary block {} from session {}.", tempBlockMeta.getBlockId(),
+        LOG.warn("Clean up expired temporary block {} from session {}.",
+            tempBlockMeta.getBlockId(),
             sessionId);
         abortBlockInternal(sessionId, tempBlockMeta.getBlockId());
       } catch (Exception e) {
@@ -447,7 +470,7 @@ public class TieredBlockStore implements LocalBlockStore {
    * by {@link #mMetadataLock}.
    *
    * @param sessionId the id of session
-   * @param blockId the id of block
+   * @param blockId   the id of block
    */
   private TempBlockMeta checkAndGetTempBlockMeta(long sessionId, long blockId) {
     Optional<TempBlockMeta> tempBlockMeta;
@@ -469,14 +492,15 @@ public class TieredBlockStore implements LocalBlockStore {
 
   private void checkTempBlockDoesNotExist(long blockId) {
     checkState(!hasTempBlockMeta(blockId), MessageFormat
-        .format("Temp blockId {0,number,#} is not available, because it already exists", blockId));
+        .format("Temp blockId {0,number,#} is not available, because it already exists",
+            blockId));
   }
 
   /**
    * Aborts a temp block.
    *
    * @param sessionId the id of session
-   * @param blockId the id of block
+   * @param blockId   the id of block
    */
   private void abortBlockInternal(long sessionId, long blockId) {
     checkBlockDoesNotExist(blockId);
@@ -493,13 +517,13 @@ public class TieredBlockStore implements LocalBlockStore {
   /**
    * Commits a temp block.
    *
-   * @param sessionId the id of session
-   * @param blockId the id of block
+   * @param sessionId   the id of session
+   * @param blockId     the id of block
    * @param pinOnCreate is block pinned on create
    * @return destination location to move the block
    */
   private BlockStoreLocation commitBlockInternal(long sessionId, long blockId,
-      boolean pinOnCreate) {
+                                                 boolean pinOnCreate) {
     if (mMetaManager.hasBlockMeta(blockId)) {
       LOG.debug("Block {} has been in block store, this could be a retry due to master-side RPC "
           + "failure", blockId);
@@ -548,7 +572,7 @@ public class TieredBlockStore implements LocalBlockStore {
         }
         if (options.isEvictionAllowed()) {
           LOG.debug("Free space for block expansion: freeing {} bytes on {}. ",
-                  options.getSize(), options.getLocation());
+              options.getSize(), options.getLocation());
           freeSpace(sessionId, options.getSize(), options.getSize(), options.getLocation());
           // Block expansion are forcing the location. We do not want the review's opinion.
           dirView = mAllocator.allocateBlockWithView(options.getSize(),
@@ -577,7 +601,7 @@ public class TieredBlockStore implements LocalBlockStore {
           return dirView;
         }
         LOG.debug("Allocate to anyTier for {} bytes on {}", options.getSize(),
-                options.getLocation());
+            options.getLocation());
         dirView = mAllocator.allocateBlockWithView(options.getSize(),
             BlockStoreLocation.anyTier(), allocatorView, false);
         if (dirView != null) {
@@ -589,7 +613,7 @@ public class TieredBlockStore implements LocalBlockStore {
           // Free more than requested by configured free-ahead size.
           long toFreeBytes = options.getSize() + FREE_AHEAD_BYTETS;
           LOG.debug("Allocation on anyTier failed. Free space for {} bytes on anyTier",
-                  toFreeBytes);
+              toFreeBytes);
           freeSpace(sessionId, options.getSize(), toFreeBytes,
               BlockStoreLocation.anyTier());
           // Skip the review as we want the allocation to be in the place we just freed
@@ -615,13 +639,13 @@ public class TieredBlockStore implements LocalBlockStore {
    * any eviction.
    *
    * @param sessionId session id
-   * @param blockId block id
-   * @param newBlock true if this temp block is created for a new block
-   * @param options block allocation options
+   * @param blockId   block id
+   * @param newBlock  true if this temp block is created for a new block
+   * @param options   block allocation options
    * @return a temp block created if successful
    */
   private TempBlockMeta createBlockMetaInternal(long sessionId, long blockId, boolean newBlock,
-      AllocateOptions options) {
+                                                AllocateOptions options) {
     if (newBlock) {
       checkBlockDoesNotExist(blockId);
       checkTempBlockDoesNotExist(blockId);
@@ -634,7 +658,8 @@ public class TieredBlockStore implements LocalBlockStore {
 
       // TODO(carson): Add tempBlock to corresponding storageDir and remove the use of
       // StorageDirView.createTempBlockMeta.
-      TempBlockMeta tempBlock = dirView.createTempBlockMeta(sessionId, blockId, options.getSize());
+      TempBlockMeta tempBlock =
+          mTempBlockMetaFactory.createTempBlockMeta(sessionId, blockId, options.getSize(), dirView);
       // Add allocated temp block to metadata manager. This should never fail if allocator
       // correctly assigns a StorageDir.
       mMetaManager.addTempBlockMeta(tempBlock);
@@ -645,26 +670,26 @@ public class TieredBlockStore implements LocalBlockStore {
   /**
    * Free space is the entry for immediate block deletion in order to open up space for
    * new or ongoing blocks.
-   *
+   * <p>
    * - New blocks creations will not try to free space until all tiers are out of space.
    * - Ongoing blocks could end up freeing space oftenly, when the file's origin location is
    * low on space.
-   *
+   * <p>
    * This method is synchronized in order to prevent race in its only client, allocations.
    * If not synchronized, new allocations could steal space reserved by ongoing ones.
    * Removing synchronized requires implementing retries to this call along with an optimal
    * locking strategy for fairness.
-   *
+   * <p>
    * TODO(ggezer): Remove synchronized.
    *
-   * @param sessionId the session id
+   * @param sessionId          the session id
    * @param minContiguousBytes the minimum amount of contigious free space in bytes
-   * @param minAvailableBytes the minimum amount of free space in bytes
-   * @param location the location to free space
+   * @param minAvailableBytes  the minimum amount of free space in bytes
+   * @param location           the location to free space
    */
   @VisibleForTesting
   public synchronized void freeSpace(long sessionId, long minContiguousBytes,
-      long minAvailableBytes, BlockStoreLocation location) {
+                                     long minAvailableBytes, BlockStoreLocation location) {
     LOG.debug("freeSpace: sessionId={}, minContiguousBytes={}, minAvailableBytes={}, location={}",
         sessionId, minAvailableBytes, minAvailableBytes, location);
     // TODO(ggezer): Too much memory pressure when pinned-inodes list is large.
@@ -757,19 +782,20 @@ public class TieredBlockStore implements LocalBlockStore {
    * Moves a block to new location only if allocator finds available space in newLocation. This
    * method will not trigger any eviction. Returns {@link MoveBlockResult}.
    *
-   * @param sessionId session id
-   * @param blockId block id
+   * @param sessionId   session id
+   * @param blockId     block id
    * @param moveOptions the allocate options for the move
    * @return the resulting information about the move operation
    */
   private MoveBlockResult moveBlockInternal(long sessionId, long blockId,
-      AllocateOptions moveOptions) throws IOException {
-    try (BlockLock lock =  mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.WRITE)) {
+                                            AllocateOptions moveOptions) throws IOException {
+    try (
+        BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.WRITE)) {
       checkTempBlockDoesNotExist(blockId);
       BlockMeta srcBlockMeta;
       try (LockResource r = new LockResource(mMetadataReadLock)) {
         srcBlockMeta = mMetaManager.getBlockMeta(blockId).orElseThrow(() ->
-          new IllegalStateException(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(blockId)));
+            new IllegalStateException(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(blockId)));
       }
 
       BlockStoreLocation srcLocation = srcBlockMeta.getBlockLocation();
@@ -920,25 +946,33 @@ public class TieredBlockStore implements LocalBlockStore {
    * A wrapper on necessary info after a move block operation.
    */
   private static class MoveBlockResult {
-    /** Whether this move operation succeeds. */
+    /**
+     * Whether this move operation succeeds.
+     */
     private final boolean mSuccess;
-    /** Size of this block in bytes. */
+    /**
+     * Size of this block in bytes.
+     */
     private final long mBlockSize;
-    /** Source location of this block to move. */
+    /**
+     * Source location of this block to move.
+     */
     private final BlockStoreLocation mSrcLocation;
-    /** Destination location of this block to move. */
+    /**
+     * Destination location of this block to move.
+     */
     private final BlockStoreLocation mDstLocation;
 
     /**
      * Creates a new instance of {@link MoveBlockResult}.
      *
-     * @param success success indication
-     * @param blockSize block size
+     * @param success     success indication
+     * @param blockSize   block size
      * @param srcLocation source location
      * @param dstLocation destination location
      */
     MoveBlockResult(boolean success, long blockSize, BlockStoreLocation srcLocation,
-        BlockStoreLocation dstLocation) {
+                    BlockStoreLocation dstLocation) {
       mSuccess = success;
       mBlockSize = blockSize;
       mSrcLocation = srcLocation;

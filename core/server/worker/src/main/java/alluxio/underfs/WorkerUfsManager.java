@@ -22,6 +22,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,9 +41,9 @@ public final class WorkerUfsManager extends AbstractUfsManager {
   /**
    * Constructs an instance of {@link WorkerUfsManager}.
    */
-  public WorkerUfsManager() {
-    mMasterClient = mCloser.register(new FileSystemMasterClient(MasterClientContext
-        .newBuilder(ClientContext.create(Configuration.global())).build()));
+  @Inject
+  public WorkerUfsManager(FileSystemMasterClient masterClient) {
+    mMasterClient = mCloser.register(masterClient);
   }
 
   /**
