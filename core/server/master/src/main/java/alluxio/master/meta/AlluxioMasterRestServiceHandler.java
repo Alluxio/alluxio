@@ -696,9 +696,6 @@ public final class AlluxioMasterRestServiceHandler {
       }
       response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG)).setInvalidPathError("")
           .setViewingOffset(0).setCurrentPath("");
-      //response.setDownloadLogFile(1);
-      //response.setBaseUrl("./browseLogs");
-      //response.setShowPermissions(false);
 
       String logsPath = Configuration.getString(PropertyKey.LOGS_DIR);
       File logsDir = new File(logsPath);
@@ -743,7 +740,6 @@ public final class AlluxioMasterRestServiceHandler {
         }
       } else {
         // Request a specific log file.
-
         // Only allow filenames as the path, to avoid arbitrary local path lookups.
         requestFile = new File(requestFile).getName();
         response.setCurrentPath(requestFile);
