@@ -29,12 +29,15 @@ import alluxio.proxy.s3.S3RestUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.RateLimiter;
 import org.eclipse.jetty.server.HttpChannel;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.util.thread.ThreadPool;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
@@ -65,7 +68,6 @@ public final class ProxyWebServer extends WebServer {
   public static final String FILE_SYSTEM_SERVLET_RESOURCE_KEY = "File System";
   public static final String STREAM_CACHE_SERVLET_RESOURCE_KEY = "Stream Cache";
 
-  public static final String SERVER_CONFIGURATION_RESOURCE_KEY = "Server Configuration";
   public static final String ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY = "Alluxio Proxy Audit Log Writer";
   public static final String GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY = "Global Rate Limiter";
 
@@ -152,6 +154,11 @@ public final class ProxyWebServer extends WebServer {
       }
     };
 
+    ThreadPool threadPool = super.getServer().getThreadPool();
+    if (threadPool instanceof QueuedThreadPool) {
+      registerQueuedThreadPoolMetrics((QueuedThreadPool) threadPool);
+    }
+
     if (Configuration.getBoolean(PropertyKey.PROXY_S3_V2_VERSION_ENABLED)) {
       super.getServerConnector().addBean(new ProxyListener());
       ServletHolder s3ServletHolder = new ServletHolder("Alluxio Proxy V2 S3 Service",
@@ -166,9 +173,15 @@ public final class ProxyWebServer extends WebServer {
                   new StreamCache(Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
               getServletContext().setAttribute(ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY,
                   mAsyncAuditLogWriter);
-              getServletContext().setAttribute(PROXY_S3_V2_LIGHT_POOL, createLightThreadPool());
-              getServletContext().setAttribute(PROXY_S3_V2_HEAVY_POOL, createHeavyThreadPool());
+
+              ThreadPoolExecutor lightPool = createLightThreadPool();
+              ThreadPoolExecutor heavyPool = createHeavyThreadPool();
+
+              getServletContext().setAttribute(PROXY_S3_V2_LIGHT_POOL, lightPool);
+              getServletContext().setAttribute(PROXY_S3_V2_HEAVY_POOL, heavyPool);
               getServletContext().setAttribute(PROXY_S3_HANDLER_MAP, mS3HandlerMap);
+
+              registerThreadPoolMetrics(lightPool, heavyPool);
             }
           });
       mServletContextHandler
@@ -267,5 +280,65 @@ public final class ProxyWebServer extends WebServer {
     } else {
       LOG.info(accessLog);
     }
+  }
+
+  /**
+   * Registers thread pool metrics.
+   * @param queuedThreadPool the thread pool for server
+   */
+  public void registerQueuedThreadPoolMetrics(QueuedThreadPool queuedThreadPool) {
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricsSystem.getMetricName(MetricKey.PROXY_SERVER_WORK_THREAD_SIZE.getName()),
+              () -> queuedThreadPool.getBusyThreads(), 2, TimeUnit.SECONDS);
+
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricsSystem.getMetricName(MetricKey.PROXY_SERVER_TASK_QUEUE_SIZE.getName()),
+              () -> queuedThreadPool.getQueueSize(), 2, TimeUnit.SECONDS);
+  }
+
+  /**
+   * Registers thread pool metrics.
+   * @param lightPool the light thread pool
+   * @param heavyPool the heavy thread pool
+   */
+  public void registerThreadPoolMetrics(ThreadPoolExecutor lightPool,
+                                        ThreadPoolExecutor heavyPool) {
+    if (lightPool != null) {
+      MetricsSystem.registerCachedGaugeIfAbsent(
+          MetricsSystem.getMetricName(
+              MetricKey.PROXY_LIGHT_THREAD_POOL_COMPLETED_TASK_COUNT.getName()),
+              () -> lightPool.getCompletedTaskCount(), 2, TimeUnit.SECONDS);
+
+      MetricsSystem.registerCachedGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.PROXY_LIGHT_THREAD_POOL_ACTIVE_SIZE.getName()),
+              () -> lightPool.getActiveCount(), 2, TimeUnit.SECONDS);
+
+      MetricsSystem.registerCachedGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.PROXY_LIGHT_THREAD_POOL_QUEUE_SIZE.getName()),
+              () -> lightPool.getQueue().size(), 2, TimeUnit.SECONDS);
+    }
+
+    if (heavyPool != null) {
+      MetricsSystem.registerCachedGaugeIfAbsent(
+          MetricsSystem.getMetricName(
+              MetricKey.PROXY_HEAVY_THREAD_POOL_COMPLETED_TASK_COUNT.getName()),
+              () -> heavyPool.getCompletedTaskCount(), 2, TimeUnit.SECONDS);
+
+      MetricsSystem.registerCachedGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.PROXY_HEAVY_THREAD_POOL_ACTIVE_SIZE.getName()),
+              () -> heavyPool.getActiveCount(), 2, TimeUnit.SECONDS);
+
+      MetricsSystem.registerCachedGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.PROXY_HEAVY_THREAD_POOL_QUEUE_SIZE.getName()),
+              () -> heavyPool.getQueue().size(), 2, TimeUnit.SECONDS);
+    }
+  }
+
+  /**
+   * Class that contains metrics related to Proxy.
+   */
+  public static final class Metrics {
+    public static final Counter PROXY_REQUEST_ERRORS
+        = MetricsSystem.counter(MetricKey.PROXY_REQUEST_ERRORS.getName());
   }
 }

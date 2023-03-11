@@ -14,6 +14,7 @@ package alluxio.proxy.s3;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.web.ProxyWebServer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -38,6 +39,7 @@ public class S3ErrorResponse {
    * @return response Http {@link Response}
    */
   public static Response createErrorResponse(Throwable e, String resource) {
+    ProxyWebServer.Metrics.PROXY_REQUEST_ERRORS.inc();
     if (e instanceof AlluxioStatusException) {
       return createErrorResponse((AlluxioStatusException) e, resource);
     } else if (e instanceof AlluxioRuntimeException) {
