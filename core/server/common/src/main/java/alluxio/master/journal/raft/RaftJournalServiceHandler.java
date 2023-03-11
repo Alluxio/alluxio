@@ -24,6 +24,7 @@ import alluxio.grpc.UploadSnapshotPResponse;
 import alluxio.util.TarUtils;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.UnsafeByteOperations;
 import io.grpc.Context;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -98,38 +99,35 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
         .getSnapshotFileName(request.getSnapshotTerm(), request.getSnapshotIndex());
     Path snapshotPath = new File(mStateMachineStorage.getSnapshotDir(), snapshotDirName).toPath();
 
-    byte[] buffer = new byte[mSnapshotReplicationChunkSize];
     try (OutputStream snapshotOutStream = new OutputStream() {
-      private long mTotalBytesSent = 0L;
-      private int mBufferIndex = 0;
+      long mTotalBytesSent = 0L;
+      final byte[] mBuffer = new byte[mSnapshotReplicationChunkSize];
+      int mBufferPosition = 0;
 
       @Override
       public void write(int b) {
-        buffer[mBufferIndex] = (byte) b;
-        mBufferIndex++;
-        if (mBufferIndex == buffer.length) {
+        mBuffer[mBufferPosition++] = (byte) b;
+        if (mBufferPosition == mBuffer.length) {
           flushBuffer();
         }
       }
 
       @Override
       public void close() {
-        if (mBufferIndex > 0) {
+        if (mBufferPosition > 0) {
           flushBuffer();
         }
-        responseObserver.onCompleted();
         LOG.debug("Total bytes sent: {}", mTotalBytesSent);
         LOG.info("Uploaded snapshot {} to leader", index);
       }
 
       private void flushBuffer() {
-        ByteString bytes = ByteString.copyFrom(buffer, 0, mBufferIndex);
-        LOG.debug("Sending chunk of size {}: {}", mBufferIndex, bytes.toByteArray());
-        responseObserver.onNext(SnapshotData.newBuilder()
-            .setChunk(bytes)
-            .build());
-        mTotalBytesSent += mBufferIndex;
-        mBufferIndex = 0;
+        // avoids copy
+        ByteString bytes = UnsafeByteOperations.unsafeWrap(mBuffer, 0, mBufferPosition);
+        LOG.debug("Sending chunk of size {}: {}", mBufferPosition, bytes.toByteArray());
+        responseObserver.onNext(SnapshotData.newBuilder().setChunk(bytes).build());
+        mTotalBytesSent += mBufferPosition;
+        mBufferPosition = 0;
       }
     }) {
       LOG.debug("Begin snapshot upload of {}", index);
@@ -137,6 +135,7 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
     } catch (Exception e) {
       LOG.debug("Failed to upload snapshot {}", index);
       responseObserver.onError(e);
+    } finally {
       responseObserver.onCompleted();
     }
   }

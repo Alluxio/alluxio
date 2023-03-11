@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -141,21 +142,19 @@ public class RaftSnapshotManager implements AutoCloseable {
         Iterator<SnapshotData> it = client.requestLatestSnapshotData(snapshotMetadata);
         try (InputStream snapshotInStream = new InputStream() {
           long mTotalBytesRead = 0L;
-          byte[] mCurrentBuffer = null;
-          int mBufferPosition = 0;
+          ByteBuffer mCurrentBuffer = null; // using a read-only ByteBuffer avoids array copy
 
           @Override
           public int read() {
-            if (mCurrentBuffer == null || mBufferPosition == mCurrentBuffer.length) {
+            if (mCurrentBuffer == null || !mCurrentBuffer.hasRemaining()) {
               if (!it.hasNext()) {
                 return -1;
               }
-              mCurrentBuffer = it.next().getChunk().toByteArray();
-              LOG.debug("Received chunk of size {}: {}", mCurrentBuffer.length, mCurrentBuffer);
-              mTotalBytesRead += mCurrentBuffer.length;
-              mBufferPosition = 0;
+              mCurrentBuffer = it.next().getChunk().asReadOnlyByteBuffer();
+              LOG.debug("Received chunk of size {}: {}", mCurrentBuffer.capacity(), mCurrentBuffer);
+              mTotalBytesRead += mCurrentBuffer.capacity();
             }
-            return Byte.toUnsignedInt(mCurrentBuffer[mBufferPosition++]);
+            return Byte.toUnsignedInt(mCurrentBuffer.get());
           }
 
           @Override
