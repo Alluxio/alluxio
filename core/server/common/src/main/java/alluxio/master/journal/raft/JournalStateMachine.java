@@ -588,6 +588,7 @@ public class JournalStateMachine extends BaseStateMachine {
           Files.newOutputStream(new File(snapshotDir, "SNAPSHOT_ID").toPath()))) {
         idFile.writeLong(snapshotId);
       }
+      mStorage.loadLatestSnapshot();
       return last.getIndex();
     } catch (Exception e) {
       LOG.error("error taking snapshot", e);

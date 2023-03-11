@@ -14,12 +14,11 @@ package alluxio.master.journal.raft;
 import alluxio.AbstractClient;
 import alluxio.concurrent.jsr.CompletableFuture;
 import alluxio.conf.Configuration;
-import alluxio.grpc.DownloadFilePRequest;
-import alluxio.grpc.FileMetadata;
 import alluxio.grpc.SnapshotData;
 import alluxio.grpc.SnapshotMetadata;
 import alluxio.master.selectionpolicy.MasterSelectionPolicy;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.TarUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.amazonaws.annotation.GuardedBy;
@@ -32,10 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.nio.file.Files;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -121,8 +118,8 @@ public class RaftSnapshotManager implements AutoCloseable {
           }
         })).entrySet().stream()
         // filter out followers that do not have any snapshot or no updated snapshot
-        .filter(entry -> snapshotInfo == null || (entry.getValue().getExists()
-            && entry.getValue().getSnapshotIndex() > snapshotInfo.getIndex()))
+        .filter(entry -> entry.getValue().getExists() && (snapshotInfo == null
+            || entry.getValue().getSnapshotIndex() > snapshotInfo.getIndex()))
         // sort them by snapshotIndex, the - sign is to reverse the sorting order
         .sorted(Comparator.comparingLong(entry -> -entry.getValue().getSnapshotIndex()))
         .collect(Collectors.toList());
@@ -135,52 +132,55 @@ public class RaftSnapshotManager implements AutoCloseable {
     for (Map.Entry<InetSocketAddress, SnapshotMetadata> info : followerInfos) {
       InetSocketAddress address = info.getKey();
       SnapshotMetadata snapshotMetadata = info.getValue();
+      TermIndex termIndex = TermIndex.valueOf(snapshotMetadata.getSnapshotTerm(),
+          snapshotMetadata.getSnapshotIndex());
+      LOG.debug("Retrieving snapshot {} from {}", termIndex, address);
       try {
         RaftJournalServiceClient client = mClients.get(address);
         client.connect();
-        List<FileMetadata> metadataList = snapshotMetadata.getFilesMetadataList();
-        LOG.debug("Downloading {} snapshot files from {}", metadataList.size(), address);
-        for (int i = 0; i < metadataList.size(); i++) {
-          FileMetadata fileMetadata = metadataList.get(i);
-          LOG.debug("Downloading snapshot file {} of {}: {}", i + 1, metadataList.size(),
-              fileMetadata.getRelativePath());
-          downloadFile(snapshotMetadata, fileMetadata, client);
-          LOG.debug("Successfully downloaded snapshot file {}", fileMetadata.getRelativePath());
+        Iterator<SnapshotData> it = client.requestLatestSnapshotData(snapshotMetadata);
+        try (InputStream snapshotInStream = new InputStream() {
+          long mTotalBytesRead = 0L;
+          byte[] mCurrentBuffer = null;
+          int mBufferPosition = 0;
+
+          @Override
+          public int read() {
+            if (mCurrentBuffer == null || mBufferPosition == mCurrentBuffer.length) {
+              if (!it.hasNext()) {
+                return -1;
+              }
+              mCurrentBuffer = it.next().getChunk().toByteArray();
+              LOG.debug("Received chunk of size {}: {}", mCurrentBuffer.length, mCurrentBuffer);
+              mTotalBytesRead += mCurrentBuffer.length;
+              mBufferPosition = 0;
+            }
+            return Byte.toUnsignedInt(mCurrentBuffer[mBufferPosition++]);
+          }
+
+          @Override
+          public void close() {
+            LOG.debug("Total bytes read from {}: {}", address, mTotalBytesRead);
+          }
+        }) {
+          TarUtils.readTarGz(mStorage.getTmpDir().toPath(), snapshotInStream);
         }
+
         File finalSnapshotDestination = new File(mStorage.getSnapshotDir(),
             SimpleStateMachineStorage.getSnapshotFileName(snapshotMetadata.getSnapshotTerm(),
                 snapshotMetadata.getSnapshotIndex()));
         FileUtils.moveDirectory(mStorage.getTmpDir(), finalSnapshotDestination);
         mStorage.loadLatestSnapshot();
         mStorage.signalNewSnapshot();
-        LOG.debug("Finished snapshot download {}", snapshotMetadata.getSnapshotIndex());
+        LOG.debug("Retrieved snapshot {} from {}", termIndex, address);
         return snapshotMetadata.getSnapshotIndex();
       } catch (Exception e) {
-        LOG.debug("Failed to download snapshot from {}", info.getKey());
+        LOG.debug("Failed to download snapshot {} from {}", termIndex, info.getKey());
       } finally {
         FileUtils.deleteQuietly(mStorage.getTmpDir());
       }
     }
     return RaftLog.INVALID_LOG_INDEX;
-  }
-
-  private void downloadFile(SnapshotMetadata snapshotMetadata, FileMetadata fileMetadata,
-      RaftJournalServiceClient client) throws IOException {
-    File file = new File(mStorage.getTmpDir(), fileMetadata.getRelativePath());
-    file.getParentFile().mkdirs();
-    file.createNewFile();
-
-    DownloadFilePRequest request = DownloadFilePRequest.newBuilder()
-        .setSnapshotTerm(snapshotMetadata.getSnapshotTerm())
-        .setSnapshotIndex(snapshotMetadata.getSnapshotIndex())
-        .setFileMetadata(fileMetadata)
-        .build();
-    Iterator<SnapshotData> data = client.downloadSnapshotFile(request);
-    try (OutputStream out = Files.newOutputStream(file.toPath())) {
-      while (data.hasNext()) {
-        out.write(data.next().getChunk().toByteArray());
-      }
-    }
   }
 
   @Override

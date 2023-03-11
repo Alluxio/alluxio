@@ -16,7 +16,6 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.DownloadFilePRequest;
 import alluxio.grpc.DownloadSnapshotPRequest;
 import alluxio.grpc.DownloadSnapshotPResponse;
 import alluxio.grpc.LatestSnapshotInfoPRequest;
@@ -95,8 +94,8 @@ public class RaftJournalServiceClient extends AbstractMasterClient {
    * @param request the request detailing which file to download
    * @return an iterator containing the snapshot data
    */
-  public Iterator<SnapshotData> downloadSnapshotFile(DownloadFilePRequest request) {
-    return mBlockingClient.withCompression("gzip").downloadSnapshotFile(request);
+  public Iterator<SnapshotData> requestLatestSnapshotData(SnapshotMetadata request) {
+    return mBlockingClient.requestLatestSnapshotData(request);
   }
 
   /**

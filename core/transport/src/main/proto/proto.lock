@@ -6512,22 +6512,6 @@
                 "id": 3,
                 "name": "exists",
                 "type": "bool"
-              },
-              {
-                "id": 4,
-                "name": "filesMetadata",
-                "type": "FileMetadata",
-                "is_repeated": true
-              }
-            ]
-          },
-          {
-            "name": "FileMetadata",
-            "fields": [
-              {
-                "id": 1,
-                "name": "relativePath",
-                "type": "string"
               }
             ]
           },
@@ -6605,7 +6589,7 @@
             "name": "LatestSnapshotInfoPRequest"
           },
           {
-            "name": "DownloadFilePRequest",
+            "name": "RequestSnapshotPRequest",
             "fields": [
               {
                 "id": 1,
@@ -6616,11 +6600,6 @@
                 "id": 2,
                 "name": "snapshotIndex",
                 "type": "int64"
-              },
-              {
-                "id": 3,
-                "name": "fileMetadata",
-                "type": "FileMetadata"
               }
             ]
           }
@@ -6649,8 +6628,8 @@
                 "out_type": "SnapshotMetadata"
               },
               {
-                "name": "DownloadSnapshotFile",
-                "in_type": "DownloadFilePRequest",
+                "name": "RequestLatestSnapshotData",
+                "in_type": "SnapshotMetadata",
                 "out_type": "SnapshotData",
                 "out_streamed": true
               }

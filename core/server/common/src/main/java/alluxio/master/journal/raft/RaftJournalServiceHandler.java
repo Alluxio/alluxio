@@ -13,22 +13,21 @@ package alluxio.master.journal.raft;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.DownloadFilePRequest;
 import alluxio.grpc.DownloadSnapshotPRequest;
 import alluxio.grpc.DownloadSnapshotPResponse;
-import alluxio.grpc.FileMetadata;
 import alluxio.grpc.LatestSnapshotInfoPRequest;
 import alluxio.grpc.RaftJournalServiceGrpc;
 import alluxio.grpc.SnapshotData;
 import alluxio.grpc.SnapshotMetadata;
 import alluxio.grpc.UploadSnapshotPRequest;
 import alluxio.grpc.UploadSnapshotPResponse;
+import alluxio.util.TarUtils;
 
 import com.google.protobuf.ByteString;
 import io.grpc.Context;
 import io.grpc.Status;
-import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
+import org.apache.ratis.server.protocol.TermIndex;
 import org.apache.ratis.statemachine.SnapshotInfo;
 import org.apache.ratis.statemachine.StateMachineStorage;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
@@ -36,10 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.io.OutputStream;
+import java.nio.file.Path;
 
 /**
  * RPC handler for raft journal service.
@@ -49,6 +46,8 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
       LoggerFactory.getLogger(RaftJournalServiceHandler.class);
   private final int mSnapshotReplicationChunkSize = (int) Configuration.getBytes(
       PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE);
+  private final int mSnapshotCompressionLevel =
+      Configuration.getInt(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
   private final SnapshotReplicationManager mManager;
   private final StateMachineStorage mStateMachineStorage;
 
@@ -78,51 +77,65 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
       metadata.setExists(false);
     } else {
       LOG.debug("Found snapshot {}", snapshot.getTermIndex());
-      List<FileMetadata> fileMetadata = snapshot.getFiles().stream()
-          .map(fileInfo -> FileMetadata.newBuilder()
-              .setRelativePath(fileInfo.getPath().toString())
-              .build())
-          .collect(Collectors.toList());
       metadata.setExists(true)
           .setSnapshotTerm(snapshot.getTerm())
-          .setSnapshotIndex(snapshot.getIndex())
-          .addAllFilesMetadata(fileMetadata);
+          .setSnapshotIndex(snapshot.getIndex());
     }
     responseObserver.onNext(metadata.build());
     responseObserver.onCompleted();
   }
 
   @Override
-  public void downloadSnapshotFile(DownloadFilePRequest request,
-                                     StreamObserver<SnapshotData> plainResponseObserver) {
+  public void requestLatestSnapshotData(SnapshotMetadata request,
+                                     StreamObserver<SnapshotData> responseObserver) {
     if (Context.current().isCancelled()) {
-      plainResponseObserver.onError(
+      responseObserver.onError(
           Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
       return;
     }
-    ServerCallStreamObserver<SnapshotData> responseObserver =
-        (ServerCallStreamObserver<SnapshotData>) plainResponseObserver;
-    responseObserver.setCompression("gzip");
-
-    String snapshotFileName = SimpleStateMachineStorage
+    TermIndex index = TermIndex.valueOf(request.getSnapshotTerm(), request.getSnapshotIndex());
+    String snapshotDirName = SimpleStateMachineStorage
         .getSnapshotFileName(request.getSnapshotTerm(), request.getSnapshotIndex());
-    File file1 = new File(snapshotFileName, request.getFileMetadata().getRelativePath());
-    File file = new File(mStateMachineStorage.getSnapshotDir(), file1.toString());
-    LOG.debug("Uploading file {}", file);
-    try (InputStream inputStream = Files.newInputStream(file.toPath())) {
-      byte[] buffer = new byte[mSnapshotReplicationChunkSize];
-      int bytesRead;
-      while ((bytesRead = inputStream.read(buffer)) != -1) {
-        responseObserver.onNext(SnapshotData.newBuilder()
-            .setSnapshotTerm(request.getSnapshotTerm())
-            .setSnapshotIndex(request.getSnapshotIndex())
-            .setChunk(ByteString.copyFrom(buffer, 0, bytesRead))
-            .build());
+    Path snapshotPath = new File(mStateMachineStorage.getSnapshotDir(), snapshotDirName).toPath();
+
+    byte[] buffer = new byte[mSnapshotReplicationChunkSize];
+    try (OutputStream snapshotOutStream = new OutputStream() {
+      private long mTotalBytesSent = 0L;
+      private int mBufferIndex = 0;
+
+      @Override
+      public void write(int b) {
+        buffer[mBufferIndex] = (byte) b;
+        mBufferIndex++;
+        if (mBufferIndex == buffer.length) {
+          flushBuffer();
+        }
       }
-      responseObserver.onCompleted();
-      LOG.debug("Successfully uploaded {}", file);
+
+      @Override
+      public void close() {
+        if (mBufferIndex > 0) {
+          flushBuffer();
+        }
+        responseObserver.onCompleted();
+        LOG.debug("Total bytes sent: {}", mTotalBytesSent);
+        LOG.info("Uploaded snapshot {} to leader", index);
+      }
+
+      private void flushBuffer() {
+        ByteString bytes = ByteString.copyFrom(buffer, 0, mBufferIndex);
+        LOG.debug("Sending chunk of size {}: {}", mBufferIndex, bytes.toByteArray());
+        responseObserver.onNext(SnapshotData.newBuilder()
+            .setChunk(bytes)
+            .build());
+        mTotalBytesSent += mBufferIndex;
+        mBufferIndex = 0;
+      }
+    }) {
+      LOG.debug("Begin snapshot upload of {}", index);
+      TarUtils.writeTarGz(snapshotPath, snapshotOutStream, mSnapshotCompressionLevel);
     } catch (Exception e) {
-      LOG.debug("Failed to upload file {}", request.getFileMetadata().getRelativePath(), e);
+      LOG.debug("Failed to upload snapshot {}", index);
       responseObserver.onError(e);
       responseObserver.onCompleted();
     }

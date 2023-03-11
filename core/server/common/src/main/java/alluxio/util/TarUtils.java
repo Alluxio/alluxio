@@ -21,8 +21,9 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipParameters;
 import org.apache.commons.io.IOUtils;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -60,7 +61,7 @@ public final class TarUtils {
         TarArchiveEntry entry = new TarArchiveEntry(file, dirPath.relativize(subPath).toString());
         archiveStream.putArchiveEntry(entry);
         if (file.isFile()) {
-          try (InputStream fileIn = Files.newInputStream(subPath)) {
+          try (InputStream fileIn = new BufferedInputStream(Files.newInputStream(subPath))) {
             IOUtils.copy(fileIn, archiveStream);
           }
         }
@@ -87,7 +88,8 @@ public final class TarUtils {
         outputFile.mkdirs();
       } else {
         outputFile.getParentFile().mkdirs();
-        try (FileOutputStream fileOut = new FileOutputStream(outputFile)) {
+        try (OutputStream fileOut =
+                 new BufferedOutputStream(Files.newOutputStream(outputFile.toPath()))) {
           IOUtils.copy(archiveStream, fileOut);
         }
       }

@@ -38,11 +38,6 @@ message SnapshotMetadata {
   optional int64 snapshotTerm = 1;
   optional int64 snapshotIndex = 2;
   optional bool exists = 3;
-  repeated FileMetadata filesMetadata = 4;
-}
-
-message FileMetadata {
-  optional string relativePath = 1;
 }
 
 message SnapshotData {
@@ -71,10 +66,9 @@ message DownloadSnapshotPResponse {
 
 message LatestSnapshotInfoPRequest {}
 
-message DownloadFilePRequest {
+message RequestSnapshotPRequest {
   optional int64 snapshotTerm = 1;
   optional int64 snapshotIndex = 2;
-  optional FileMetadata fileMetadata = 3;
 }
 
 /**
@@ -100,5 +94,5 @@ service RaftJournalService {
   /**
    * Request to download the snapshot information from a particular machine.
    */
-  rpc DownloadSnapshotFile(DownloadFilePRequest) returns (stream SnapshotData) {}
+  rpc RequestLatestSnapshotData(SnapshotMetadata) returns (stream SnapshotData) {}
 }
