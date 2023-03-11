@@ -74,13 +74,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-<<<<<<< HEAD
-||||||| parent of 8edf508ebd... Refactor LoadManager to Scheduler
 import java.util.Optional;
-import java.util.OptionalLong;
-=======
-import java.util.Optional;
->>>>>>> 8edf508ebd... Refactor LoadManager to Scheduler
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
@@ -399,15 +393,7 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-<<<<<<< HEAD
-  public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
-      boolean usePartialListing, boolean verify) {
-||||||| parent of 8edf508ebd... Refactor LoadManager to Scheduler
-  public boolean submitLoad(AlluxioURI path, OptionalLong bandwidth,
-      boolean usePartialListing, boolean verify) {
-=======
   public Optional<String> submitJob(JobRequest jobRequest) {
->>>>>>> 8edf508ebd... Refactor LoadManager to Scheduler
     throw new UnsupportedOperationException();
   }
 
@@ -417,16 +403,8 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-<<<<<<< HEAD
-  public String getLoadProgress(AlluxioURI path,
-      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
-||||||| parent of 8edf508ebd... Refactor LoadManager to Scheduler
-  public String getLoadProgress(AlluxioURI path,
-      Optional<LoadProgressReportFormat> format, boolean verbose) {
-=======
   public String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose) {
->>>>>>> 8edf508ebd... Refactor LoadManager to Scheduler
     throw new UnsupportedOperationException();
   }
 

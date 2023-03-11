@@ -70,6 +70,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import javax.security.auth.Subject;
@@ -769,14 +770,6 @@ public interface FileSystem extends Closeable {
    * @param verbose whether to return verbose report
    * @return the job progress
    */
-<<<<<<< HEAD
-  String getLoadProgress(AlluxioURI path,
-      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose);
-||||||| parent of 8edf508ebd... Refactor LoadManager to Scheduler
-  String getLoadProgress(AlluxioURI path,
-      Optional<LoadProgressReportFormat> format, boolean verbose);
-=======
   String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose);
->>>>>>> 8edf508ebd... Refactor LoadManager to Scheduler
 }

@@ -408,16 +408,8 @@ public class DefaultFileSystemMaster extends CoreMaster
   private final AccessTimeUpdater mAccessTimeUpdater;
 
   /** Used to check pending/running backup from RPCs. */
-<<<<<<< HEAD
   private final CallTracker mStateLockCallTracker;
-  private final alluxio.master.file.loadmanager.LoadManager mLoadManager;
-||||||| parent of 8edf508ebd... Refactor LoadManager to Scheduler
-  protected final CallTracker mStateLockCallTracker;
-  private final alluxio.master.file.loadmanager.LoadManager mLoadManager;
-=======
-  protected final CallTracker mStateLockCallTracker;
   private final Scheduler mScheduler;
->>>>>>> 8edf508ebd... Refactor LoadManager to Scheduler
 
   final Clock mClock;
 
@@ -577,35 +569,13 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
-<<<<<<< HEAD
     services.put(ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE, new GrpcService(
-        ServerInterceptors.intercept(new FileSystemMasterClientServiceHandler(this, mLoadManager),
+        ServerInterceptors.intercept(new FileSystemMasterClientServiceHandler(this, mScheduler),
             new ClientIpAddressInjector())));
     services.put(ServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE,
         new GrpcService(new FileSystemMasterJobServiceHandler(this)));
     services.put(ServiceType.FILE_SYSTEM_MASTER_WORKER_SERVICE,
         new GrpcService(new FileSystemMasterWorkerServiceHandler(this)));
-||||||| parent of 8edf508ebd... Refactor LoadManager to Scheduler
-    services.put(ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE, new GrpcService(ServerInterceptors
-        .intercept(new FileSystemMasterClientServiceHandler(this, mLoadManager),
-            new ClientContextServerInjector())));
-    services.put(ServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE, new GrpcService(ServerInterceptors
-        .intercept(new FileSystemMasterJobServiceHandler(this),
-            new ClientContextServerInjector())));
-    services.put(ServiceType.FILE_SYSTEM_MASTER_WORKER_SERVICE, new GrpcService(ServerInterceptors
-        .intercept(new FileSystemMasterWorkerServiceHandler(this),
-            new ClientContextServerInjector())));
-=======
-    services.put(ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE, new GrpcService(ServerInterceptors
-        .intercept(new FileSystemMasterClientServiceHandler(this, mScheduler),
-            new ClientContextServerInjector())));
-    services.put(ServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE, new GrpcService(ServerInterceptors
-        .intercept(new FileSystemMasterJobServiceHandler(this),
-            new ClientContextServerInjector())));
-    services.put(ServiceType.FILE_SYSTEM_MASTER_WORKER_SERVICE, new GrpcService(ServerInterceptors
-        .intercept(new FileSystemMasterWorkerServiceHandler(this),
-            new ClientContextServerInjector())));
->>>>>>> 8edf508ebd... Refactor LoadManager to Scheduler
     return services;
   }
 
@@ -797,20 +767,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       mAsyncAuditLogWriter = null;
     }
     mSyncManager.stop();
-<<<<<<< HEAD
     mAccessTimeUpdater.stop();
-    mLoadManager.stop();
-||||||| parent of 8edf508ebd... Refactor LoadManager to Scheduler
-    if (mAccessTimeUpdater != null) {
-      mAccessTimeUpdater.stop();
-    }
-    mLoadManager.stop();
-=======
-    if (mAccessTimeUpdater != null) {
-      mAccessTimeUpdater.stop();
-    }
     mScheduler.stop();
->>>>>>> 8edf508ebd... Refactor LoadManager to Scheduler
     super.stop();
   }
 

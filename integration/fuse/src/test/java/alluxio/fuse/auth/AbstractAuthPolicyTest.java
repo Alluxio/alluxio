@@ -310,16 +310,8 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
-<<<<<<< HEAD
-    public String getLoadProgress(AlluxioURI path,
-        Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
-||||||| parent of 8edf508ebd... Refactor LoadManager to Scheduler
-    public String getLoadProgress(AlluxioURI path,
-        Optional<LoadProgressReportFormat> format, boolean verbose) {
-=======
     public String getJobProgress(JobDescription jobDescription,
         JobProgressReportFormat format, boolean verbose) {
->>>>>>> 8edf508ebd... Refactor LoadManager to Scheduler
       throw new UnsupportedOperationException();
     }
 

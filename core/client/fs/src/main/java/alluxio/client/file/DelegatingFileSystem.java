@@ -48,6 +48,7 @@ import alluxio.wire.SyncPointInfo;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -255,19 +256,9 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-<<<<<<< HEAD
-  public String getLoadProgress(AlluxioURI path,
-      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
-    return mDelegatedFileSystem.getLoadProgress(path, format, verbose);
-||||||| parent of 8edf508ebd... Refactor LoadManager to Scheduler
-  public String getLoadProgress(AlluxioURI path,
-      Optional<LoadProgressReportFormat> format, boolean verbose) {
-    return mDelegatedFileSystem.getLoadProgress(path, format, verbose);
-=======
   public String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose) {
     return mDelegatedFileSystem.getJobProgress(jobDescription, format, verbose);
->>>>>>> 8edf508ebd... Refactor LoadManager to Scheduler
   }
 
   @Override

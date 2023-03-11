@@ -83,6 +83,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -536,16 +537,8 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-<<<<<<< HEAD
-  public String getLoadProgress(AlluxioURI path,
-      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
-||||||| parent of 8edf508ebd... Refactor LoadManager to Scheduler
-  public String getLoadProgress(AlluxioURI path,
-      Optional<LoadProgressReportFormat> format, boolean verbose) {
-=======
   public String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose) {
->>>>>>> 8edf508ebd... Refactor LoadManager to Scheduler
     try (CloseableResource<FileSystemMasterClient> client =
             mFsContext.acquireMasterClientResource()) {
       return client.get().getJobProgress(jobDescription, format, verbose);

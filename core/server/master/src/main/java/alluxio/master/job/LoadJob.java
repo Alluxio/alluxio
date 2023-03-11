@@ -590,30 +590,6 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
       return mBlocks;
     }
 
-<<<<<<< HEAD:core/server/master/src/main/java/alluxio/master/file/loadmanager/LoadJob.java
-    private void partialListFileInfos() {
-      ListStatusContext context = ListStatusContext.create(ListStatusPartialPOptions.newBuilder()
-          .setOptions(mListOptions)
-          .setBatchSize(PARTIAL_LISTING_BATCH_SIZE)
-          .setStartAfter(mStartAfter));
-      listFileInfos(context);
-      if (mFiles.size() > 0) {
-        mStartAfter = mFiles.get(mFiles.size() - 1).getPath();
-      }
-||||||| parent of 8edf508ebd... Refactor LoadManager to Scheduler:core/server/master/src/main/java/alluxio/master/file/loadmanager/LoadJob.java
-    private void partialListFileInfos() {
-      if (!mStartAfter.isEmpty()) {
-        mListOptions.setDisableAreDescendantsLoadedCheck(true);
-      }
-      ListStatusContext context = ListStatusContext.create(ListStatusPartialPOptions.newBuilder()
-          .setOptions(mListOptions)
-          .setBatchSize(PARTIAL_LISTING_BATCH_SIZE)
-          .setStartAfter(mStartAfter));
-      listFileInfos(context);
-      if (mFiles.size() > 0) {
-        mStartAfter = mFiles.get(mFiles.size() - 1).getPath();
-      }
-=======
     private final List<Block> mBlocks;
 
     /**
@@ -623,7 +599,6 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
      */
     public LoadTask(List<Block> blocks) {
       mBlocks = blocks;
->>>>>>> 8edf508ebd... Refactor LoadManager to Scheduler:core/server/master/src/main/java/alluxio/master/job/LoadJob.java
     }
 
     @Override
