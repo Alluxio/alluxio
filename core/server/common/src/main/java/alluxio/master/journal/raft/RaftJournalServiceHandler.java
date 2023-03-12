@@ -21,8 +21,11 @@ import alluxio.grpc.SnapshotData;
 import alluxio.grpc.SnapshotMetadata;
 import alluxio.grpc.UploadSnapshotPRequest;
 import alluxio.grpc.UploadSnapshotPResponse;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.TarUtils;
 
+import com.codahale.metrics.Timer;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.UnsafeByteOperations;
 import io.grpc.Context;
@@ -51,6 +54,8 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
       Configuration.getInt(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
   private final SnapshotReplicationManager mManager;
   private final StateMachineStorage mStateMachineStorage;
+  private long mLastSnapshotUploadDuration = -1;
+  private long mLastSnapshotUploadSize = -1;
 
   /**
    * @param manager the snapshot replication manager
@@ -60,6 +65,13 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
                                    StateMachineStorage storage) {
     mManager = manager;
     mStateMachineStorage = storage;
+
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_UPLOAD_DURATION.getName(),
+        () -> mLastSnapshotUploadDuration);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_UPLOAD_SIZE.getName(),
+        () -> mLastSnapshotUploadSize);
   }
 
   @Override
@@ -94,6 +106,9 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
           Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
       return;
     }
+    Timer.Context time = MetricsSystem.timer(
+        MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_TIMER.getName()).time();
+
     TermIndex index = TermIndex.valueOf(request.getSnapshotTerm(), request.getSnapshotIndex());
     String snapshotDirName = SimpleStateMachineStorage
         .getSnapshotFileName(request.getSnapshotTerm(), request.getSnapshotIndex());
@@ -117,7 +132,12 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
         if (mBufferPosition > 0) {
           flushBuffer();
         }
+        mLastSnapshotUploadDuration = time.stop() / 1_000_000L; // to get a value in ms
         LOG.debug("Total bytes sent: {}", mTotalBytesSent);
+        MetricsSystem.histogram(
+                MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_HISTOGRAM.getName())
+            .update(mTotalBytesSent);
+        mLastSnapshotUploadSize = mTotalBytesSent;
         LOG.info("Uploaded snapshot {} to leader", index);
       }
 

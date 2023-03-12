@@ -1519,6 +1519,10 @@
                 "integer": 2
               },
               {
+                "name": "HISTOGRAM",
+                "integer": 5
+              },
+              {
                 "name": "TIMER",
                 "integer": 3
               },

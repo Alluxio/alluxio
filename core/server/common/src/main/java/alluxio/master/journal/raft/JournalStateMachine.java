@@ -287,7 +287,7 @@ public class JournalStateMachine extends BaseStateMachine {
         return RaftLog.INVALID_LOG_INDEX;
       }
     } else {
-      index = mDownloadManager.downloadSnapshotFromFollowers();
+      index = mDownloadManager.downloadSnapshotFromOtherMasters();
       if (index != RaftLog.INVALID_LOG_INDEX) {
         LOG.debug("Downloaded a snapshot up to index {}", index);
       }

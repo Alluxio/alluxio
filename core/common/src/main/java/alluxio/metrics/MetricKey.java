@@ -875,10 +875,56 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotDownloadGenerate")
           .setDescription("Describes the amount of time taken to download journal snapshots from "
-              + "other masters in the cluster. Only valid when using the embedded journal. Use "
-              + "this metric to determine if there are potential communication bottlenecks "
-              + "between Alluxio masters.")
+              + "other masters in the cluster. Only valid when using the embedded journal. Long "
+              + "running average.")
           .setMetricType(MetricType.TIMER)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DOWNLOAD_DURATION =
+      new Builder("Master.EmbeddedJournalLastSnapshotDownloadDuration")
+          .setDescription("Describes the amount of time taken to download journal snapshots from "
+              + "other masters in the cluster the previous time the download occurred. Only "
+              + "valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_HISTOGRAM =
+      new Builder("Master.EmbeddedJournalSnapshotDownloadHistogram")
+          .setDescription("Describes the size of the snapshot downloaded from another master in "
+              + "the cluster. Only valid when using the embedded journal. Long running average.")
+          .setMetricType(MetricType.HISTOGRAM)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DOWNLOAD_SIZE =
+      new Builder("Master.EmbeddedJournalLastSnapshotDownloadSize")
+          .setDescription("Describes the size of the snapshot downloaded from "
+              + "other masters in the cluster the previous time the download occurred. Only "
+              + "valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_HISTOGRAM =
+      new Builder("Master.EmbeddedJournalSnapshotUploadHistogram")
+          .setDescription("Describes the size of the snapshot uploaded to another master in "
+              + "the cluster. Only valid when using the embedded journal. Long running average.")
+          .setMetricType(MetricType.HISTOGRAM)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_UPLOAD_SIZE =
+      new Builder("Master.EmbeddedJournalLastSnapshotUploadSize")
+          .setDescription("Describes the size of the snapshot uploaded to "
+              + "other masters in the cluster the previous time the download occurred. Only "
+              + "valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_TIMER =
+      new Builder("Master.EmbeddedJournalSnapshotUploadTimer")
+          .setDescription("Describes the amount of time taken to upload journal snapshots to "
+              + "another master in the cluster. Only valid when using the embedded journal. long "
+              + "running average")
+          .setMetricType(MetricType.TIMER)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_UPLOAD_DURATION =
+      new Builder("Master.EmbeddedJournalLastSnapshotUploadDuration")
+          .setDescription("Describes the amount of time taken to upload journal snapshots to "
+              + "another master in the cluster the previous time the upload occurred. Only "
+              + "valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_INSTALL_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotInstallTimer")

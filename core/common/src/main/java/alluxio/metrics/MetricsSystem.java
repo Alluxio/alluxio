@@ -24,6 +24,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import com.codahale.metrics.CachedGauge;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
@@ -639,6 +640,16 @@ public final class MetricsSystem {
               Timer timer = new Timer(new UniformReservoir());
               return timer;
             });
+  }
+
+  /**
+   * Get or add a histogram with the given name.
+   *
+   * @param name the name of the metric
+   * @return a histogram object with the qualified metric name
+   */
+  public static Histogram histogram(String name) {
+    return METRIC_REGISTRY.histogram(getMetricName(name));
   }
 
   /**

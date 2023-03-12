@@ -17,11 +17,16 @@ import alluxio.conf.Configuration;
 import alluxio.grpc.SnapshotData;
 import alluxio.grpc.SnapshotMetadata;
 import alluxio.master.selectionpolicy.MasterSelectionPolicy;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.TarUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.amazonaws.annotation.GuardedBy;
+import com.codahale.metrics.Timer;
 import org.apache.commons.io.FileUtils;
 import org.apache.ratis.server.protocol.TermIndex;
 import org.apache.ratis.server.raftlog.RaftLog;
@@ -31,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -47,6 +53,8 @@ import javax.annotation.Nullable;
  */
 public class RaftSnapshotManager implements AutoCloseable {
   private static final Logger LOG = LoggerFactory.getLogger(RaftSnapshotManager.class);
+  private long mLastSnapshotDownloadDuration = -1;
+  private long mLastSnapshotDownloadSize = -1;
 
   private final SnapshotDirStateMachineStorage mStorage;
   private final Map<InetSocketAddress, RaftJournalServiceClient> mClients;
@@ -65,12 +73,19 @@ public class RaftSnapshotManager implements AutoCloseable {
           MasterSelectionPolicy policy = MasterSelectionPolicy.Factory.specifiedMaster(address);
           return new RaftJournalServiceClient(policy);
         }));
+
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DOWNLOAD_DURATION.getName(),
+        () -> mLastSnapshotDownloadDuration);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DOWNLOAD_SIZE.getName(),
+        () -> mLastSnapshotDownloadSize);
   }
 
   /**
    * @return the log index of the last successful snapshot installation, or -1 if failure
    */
-  public long downloadSnapshotFromFollowers() {
+  public long downloadSnapshotFromOtherMasters() {
     if (mDownloadFuture == null) {
       mDownloadFuture = CompletableFuture.supplyAsync(this::core).exceptionally(err -> {
         LOG.debug("Failed to download snapshot", err);
@@ -87,23 +102,47 @@ public class RaftSnapshotManager implements AutoCloseable {
   }
 
   private long core() {
-    List<InetSocketAddress> masterRpcAddresses =
-        ConfigurationUtils.getMasterRpcAddresses(Configuration.global());
-    InetSocketAddress localAddress = NetworkAddressUtils.getConnectAddress(
-        NetworkAddressUtils.ServiceType.MASTER_RPC, Configuration.global());
-    SnapshotInfo snapshotInfo = mStorage.getLatestSnapshot();
-    if (snapshotInfo == null) {
+    SnapshotInfo localSnapshotInfo = mStorage.getLatestSnapshot();
+    if (localSnapshotInfo == null) {
       LOG.debug("No local snapshot found");
     } else {
-      LOG.debug("Local snapshot is {}", TermIndex.valueOf(snapshotInfo.getTerm(),
-          snapshotInfo.getIndex()));
+      LOG.debug("Local snapshot is {}", TermIndex.valueOf(localSnapshotInfo.getTerm(),
+          localSnapshotInfo.getIndex()));
+    }
+    List<Map.Entry<InetSocketAddress, SnapshotMetadata>> followerInfos;
+    try {
+      followerInfos = CommonUtils.waitForResult("Snapshot info to be retrieved",
+          () -> retrieveFollowerInfos(localSnapshotInfo),
+          list -> list.size() > 0,
+          WaitForOptions.defaults().setInterval(10_000).setTimeoutMs(60_000));
+    } catch (Exception e) {
+      LOG.debug("Did not find any follower with an updated snapshot");
+      return RaftLog.INVALID_LOG_INDEX;
     }
 
-    List<Map.Entry<InetSocketAddress, SnapshotMetadata>> followerInfos =
-        mClients.keySet().parallelStream()
-        // filter ourselves out: we do not need to poll ourselves
-        .filter(address -> !address.equals(localAddress))
-        // map into a pair of (address, SnapshotMetadata) by requesting all followers in parallel
+    for (Map.Entry<InetSocketAddress, SnapshotMetadata> info : followerInfos) {
+      InetSocketAddress address = info.getKey();
+      SnapshotMetadata snapshotMetadata = info.getValue();
+      Timer.Context ctx = MetricsSystem
+          .timer(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER.getName()).time();
+      long index;
+      if ((index = downloadSnapshotFromAddress(snapshotMetadata, address))
+          != RaftLog.INVALID_LOG_INDEX) {
+        mLastSnapshotDownloadDuration = ctx.stop() / 1_000_000; // get time in ms
+        return index;
+      }
+    }
+    return RaftLog.INVALID_LOG_INDEX;
+  }
+
+  /**
+   * @param localSnapshotInfo contains information about the most up-to-date snapshot on this master
+   * @return a sorted list of pairs containing a follower's address and its most up-to-date snapshot
+   */
+  private List<Map.Entry<InetSocketAddress, SnapshotMetadata>> retrieveFollowerInfos(
+      SnapshotInfo localSnapshotInfo) {
+    return mClients.keySet().parallelStream()
+        // map to a pair of (address, SnapshotMetadata) by requesting all followers in parallel
         .collect(Collectors.toMap(Function.identity(), address -> {
           LOG.debug("Requesting snapshot info from {}", address);
           try {
@@ -119,67 +158,71 @@ public class RaftSnapshotManager implements AutoCloseable {
           }
         })).entrySet().stream()
         // filter out followers that do not have any snapshot or no updated snapshot
-        .filter(entry -> entry.getValue().getExists() && (snapshotInfo == null
-            || entry.getValue().getSnapshotIndex() > snapshotInfo.getIndex()))
+        .filter(entry -> entry.getValue().getExists() && (localSnapshotInfo == null
+            || entry.getValue().getSnapshotIndex() > localSnapshotInfo.getIndex()))
         // sort them by snapshotIndex, the - sign is to reverse the sorting order
         .sorted(Comparator.comparingLong(entry -> -entry.getValue().getSnapshotIndex()))
         .collect(Collectors.toList());
+  }
 
-    if (followerInfos.size() == 0) {
-      LOG.debug("Did not find any follower with an updated snapshot");
-      return RaftLog.INVALID_LOG_INDEX;
-    }
+  /**
+   * Retrieves snapshot from the specified address.
+   * @param snapshotMetadata helps identify which snapshot is desired
+   * @param address where to retrieve it from
+   * @return the index of the snapshot taken
+   */
+  private long downloadSnapshotFromAddress(SnapshotMetadata snapshotMetadata,
+                                          InetSocketAddress address) {
+    TermIndex termIndex = TermIndex.valueOf(snapshotMetadata.getSnapshotTerm(),
+        snapshotMetadata.getSnapshotIndex());
+    LOG.debug("Retrieving snapshot {} from {}", termIndex, address);
+    try {
+      RaftJournalServiceClient client = mClients.get(address);
+      client.connect();
+      Iterator<SnapshotData> it = client.requestLatestSnapshotData(snapshotMetadata);
+      try (InputStream snapshotInStream = new InputStream() {
+        long mTotalBytesRead = 0L;
+        ByteBuffer mCurrentBuffer = null; // using a read-only ByteBuffer avoids array copy
 
-    for (Map.Entry<InetSocketAddress, SnapshotMetadata> info : followerInfos) {
-      InetSocketAddress address = info.getKey();
-      SnapshotMetadata snapshotMetadata = info.getValue();
-      TermIndex termIndex = TermIndex.valueOf(snapshotMetadata.getSnapshotTerm(),
-          snapshotMetadata.getSnapshotIndex());
-      LOG.debug("Retrieving snapshot {} from {}", termIndex, address);
-      try {
-        RaftJournalServiceClient client = mClients.get(address);
-        client.connect();
-        Iterator<SnapshotData> it = client.requestLatestSnapshotData(snapshotMetadata);
-        try (InputStream snapshotInStream = new InputStream() {
-          long mTotalBytesRead = 0L;
-          ByteBuffer mCurrentBuffer = null; // using a read-only ByteBuffer avoids array copy
-
-          @Override
-          public int read() {
-            if (mCurrentBuffer == null || !mCurrentBuffer.hasRemaining()) {
-              if (!it.hasNext()) {
-                return -1;
-              }
-              mCurrentBuffer = it.next().getChunk().asReadOnlyByteBuffer();
-              LOG.debug("Received chunk of size {}: {}", mCurrentBuffer.capacity(), mCurrentBuffer);
-              mTotalBytesRead += mCurrentBuffer.capacity();
+        @Override
+        public int read() {
+          if (mCurrentBuffer == null || !mCurrentBuffer.hasRemaining()) {
+            if (!it.hasNext()) {
+              return -1;
             }
-            return Byte.toUnsignedInt(mCurrentBuffer.get());
+            mCurrentBuffer = it.next().getChunk().asReadOnlyByteBuffer();
+            LOG.debug("Received chunk of size {}: {}", mCurrentBuffer.capacity(), mCurrentBuffer);
+            mTotalBytesRead += mCurrentBuffer.capacity();
           }
-
-          @Override
-          public void close() {
-            LOG.debug("Total bytes read from {}: {}", address, mTotalBytesRead);
-          }
-        }) {
-          TarUtils.readTarGz(mStorage.getTmpDir().toPath(), snapshotInStream);
+          return Byte.toUnsignedInt(mCurrentBuffer.get());
         }
 
-        File finalSnapshotDestination = new File(mStorage.getSnapshotDir(),
-            SimpleStateMachineStorage.getSnapshotFileName(snapshotMetadata.getSnapshotTerm(),
-                snapshotMetadata.getSnapshotIndex()));
-        FileUtils.moveDirectory(mStorage.getTmpDir(), finalSnapshotDestination);
-        mStorage.loadLatestSnapshot();
-        mStorage.signalNewSnapshot();
-        LOG.debug("Retrieved snapshot {} from {}", termIndex, address);
-        return snapshotMetadata.getSnapshotIndex();
-      } catch (Exception e) {
-        LOG.debug("Failed to download snapshot {} from {}", termIndex, info.getKey());
-      } finally {
-        FileUtils.deleteQuietly(mStorage.getTmpDir());
+        @Override
+        public void close() {
+          LOG.debug("Total bytes read from {}: {}", address, mTotalBytesRead);
+          MetricsSystem.histogram(
+              MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_HISTOGRAM.getName())
+              .update(mTotalBytesRead);
+          mLastSnapshotDownloadSize = mTotalBytesRead;
+        }
+      }) {
+        TarUtils.readTarGz(mStorage.getTmpDir().toPath(), snapshotInStream);
       }
+
+      File finalSnapshotDestination = new File(mStorage.getSnapshotDir(),
+          SimpleStateMachineStorage.getSnapshotFileName(snapshotMetadata.getSnapshotTerm(),
+              snapshotMetadata.getSnapshotIndex()));
+      FileUtils.moveDirectory(mStorage.getTmpDir(), finalSnapshotDestination);
+      mStorage.loadLatestSnapshot();
+      mStorage.signalNewSnapshot();
+      LOG.debug("Retrieved snapshot {} from {}", termIndex, address);
+      return snapshotMetadata.getSnapshotIndex();
+    } catch (IOException e) {
+      LOG.debug("Failed to download snapshot {} from {}", termIndex, address);
+      return RaftLog.INVALID_LOG_INDEX;
+    } finally {
+      FileUtils.deleteQuietly(mStorage.getTmpDir());
     }
-    return RaftLog.INVALID_LOG_INDEX;
   }
 
   @Override
