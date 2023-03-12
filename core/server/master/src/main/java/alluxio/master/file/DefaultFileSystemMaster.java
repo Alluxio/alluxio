@@ -5365,6 +5365,10 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
+   * Creates an RpcContext where the journal is not flushed when the RPC is done.
+   * The caller must make sure the JournalContext is closed, because the RpcContext will not
+   * close it when the RPC is done.
+   *
    * @param operationContext the operation context
    * @param journalContext context for journal
    * @return a context for executing an RPC

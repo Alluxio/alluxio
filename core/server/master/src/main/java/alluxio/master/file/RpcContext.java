@@ -45,7 +45,6 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
   private final BlockDeletionContext mBlockDeletionContext;
   private final JournalContext mJournalContext;
   private final OperationContext mOperationContext;
-  // TODO(jiacheng): double check all usage
   private final boolean mIsJournalContextShared;
 
   // Used during close to keep track of thrown exceptions.
