@@ -13,7 +13,11 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
@@ -36,6 +40,7 @@ import alluxio.proto.journal.File.UpdateInodeEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Set;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -44,6 +49,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 final class InodeTtlChecker implements HeartbeatExecutor {
+  public static final int JOURNAL_FLUSH_BATCH_SIZE = 100;
   private static final Logger LOG = LoggerFactory.getLogger(InodeTtlChecker.class);
 
   private final FileSystemMaster mFileSystemMaster;
@@ -74,11 +80,12 @@ final class InodeTtlChecker implements HeartbeatExecutor {
             throw new InterruptedException("InodeTtlChecker interrupted.");
           }
 
-          if (processedFiles > 100) {
-            // Manually flush to avoid stacking up too many journal entries
+          // Manually flush to avoid stacking up too many journal entries
+          if (processedFiles > JOURNAL_FLUSH_BATCH_SIZE) {
             journalContext.flush();
-            processedFiles = 100;
+            processedFiles = 0;
           }
+
           AlluxioURI path = null;
           try (LockedInodePath inodePath =
                mInodeTree.lockFullInodePath(
@@ -94,76 +101,97 @@ final class InodeTtlChecker implements HeartbeatExecutor {
           }
 
           if (path != null) {
-            try {
-              TtlAction ttlAction = inode.getTtlAction();
-              LOG.info("Path {} TTL has expired, performing action {}", path.getPath(), ttlAction);
-              switch (ttlAction) {
-                case FREE:
-                  // public free method will lock the path, and check WRITE permission required at
-                  // parent of file
-                  if (inode.isDirectory()) {
-                    mFileSystemMaster.free(path, FreeContext
-                        .mergeFrom(FreePOptions.newBuilder().setForced(true).setRecursive(true)),
-                        journalContext);
-                  } else {
-                    mFileSystemMaster.free(path,
-                        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true)),
-                        journalContext);
-                  }
-                  // Reset state
-                  mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()
-                      .setId(inode.getId())
-                      .setTtl(Constants.NO_TTL)
-                      .setTtlAction(ProtobufUtils.toProtobuf(TtlAction.DELETE))
-                      .build());
-                  processedFiles += 1;
-                  mTtlBuckets.remove(inode);
-                  break;
-                case DELETE:
-                  // public delete method will lock the path, and check WRITE permission required
-                  // at parent of file
-                  if (inode.isDirectory()) {
-                    mFileSystemMaster.delete(path,
-                        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)),
-                        journalContext);
-                    processedFiles += ((InodeDirectory) inode).getChildCount() + 1;
-                  } else {
-                    mFileSystemMaster.delete(path, DeleteContext.defaults(), journalContext);
-                    processedFiles += 1;
-                  }
-                  break;
-                case DELETE_ALLUXIO: // Default: DELETE_ALLUXIO
-                  // public delete method will lock the path, and check WRITE permission required at
-                  // parent of file
-                  if (inode.isDirectory()) {
-                    mFileSystemMaster.delete(path,
-                        DeleteContext.mergeFrom(DeletePOptions.newBuilder()
-                            .setRecursive(true).setAlluxioOnly(true)), journalContext);
-                    processedFiles += ((InodeDirectory) inode).getChildCount() + 1;
-                  } else {
-                    mFileSystemMaster.delete(path,
-                        DeleteContext.mergeFrom(DeletePOptions.newBuilder()
-                            .setAlluxioOnly(true)), journalContext);
-                    processedFiles += 1;
-                  }
-                  break;
-                default:
-                  LOG.error("Unknown ttl action {}", ttlAction);
-              }
-            } catch (Exception e) {
-              LOG.error("Exception trying to clean up {} for ttl check", inode, e);
-            }
+            processedFiles += processPath(journalContext, inode, path);
           }
         }
       }
       success = true;
     } catch (UnavailableException e) {
+      // Journal is off due to failover or master shutdown
       LOG.warn("Journal is not available. Cannot perform TTL checks.");
     }
 
     if (success) {
       // By reaching here, the journal entries are flushed
       mTtlBuckets.removeBuckets(expiredBuckets);
+    }
+  }
+
+  /**
+   * Will acquire WRITE_INODE lock internally when performing the delete/free action.
+   */
+  private long processPath(JournalContext journalContext, Inode inode, AlluxioURI path) {
+    try {
+      TtlAction ttlAction = inode.getTtlAction();
+      LOG.info("Path {} TTL has expired, performing action {}", path.getPath(), ttlAction);
+      switch (ttlAction) {
+        case FREE: // Default: FREE
+          return handleFree(inode, path, journalContext);
+        case DELETE:
+          return handleDelete(inode, path, journalContext);
+        case DELETE_ALLUXIO:
+          return handleDeleteCache(inode, path, journalContext);
+        default:
+          LOG.error("Unknown ttl action {}", ttlAction);
+      }
+    } catch (Exception e) {
+      LOG.error("Exception trying to clean up {} for ttl check", inode, e);
+    }
+    return 0L;
+  }
+
+  private long handleFree(Inode inode, AlluxioURI path, JournalContext journalContext)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
+      UnexpectedAlluxioException, IOException {
+    long processedFiles;
+    if (inode.isDirectory()) {
+      mFileSystemMaster.free(path, FreeContext
+          .mergeFrom(FreePOptions.newBuilder().setForced(true).setRecursive(true)),
+              journalContext);
+      processedFiles = ((InodeDirectory) inode).getChildCount() + 1;
+    } else {
+      mFileSystemMaster.free(path,
+          FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true)),
+              journalContext);
+      processedFiles = 1;
+    }
+    // Reset state
+    mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()
+        .setId(inode.getId())
+        .setTtl(Constants.NO_TTL)
+        .setTtlAction(ProtobufUtils.toProtobuf(TtlAction.DELETE))
+        .build());
+    mTtlBuckets.remove(inode);
+    return processedFiles;
+  }
+
+  private long handleDelete(Inode inode, AlluxioURI path, JournalContext journalContext)
+      throws FileDoesNotExistException, AccessControlException, DirectoryNotEmptyException,
+      IOException, InvalidPathException {
+    if (inode.isDirectory()) {
+      mFileSystemMaster.delete(path,
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)),
+          journalContext);
+      return ((InodeDirectory) inode).getChildCount() + 1;
+    } else {
+      mFileSystemMaster.delete(path, DeleteContext.defaults(), journalContext);
+      return 1L;
+    }
+  }
+
+  private long handleDeleteCache(Inode inode, AlluxioURI path, JournalContext journalContext)
+      throws FileDoesNotExistException, AccessControlException, DirectoryNotEmptyException,
+      IOException, InvalidPathException  {
+    if (inode.isDirectory()) {
+      mFileSystemMaster.delete(path,
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder()
+              .setRecursive(true).setAlluxioOnly(true)), journalContext);
+      return ((InodeDirectory) inode).getChildCount() + 1;
+    } else {
+      mFileSystemMaster.delete(path,
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder()
+              .setAlluxioOnly(true)), journalContext);
+      return 1L;
     }
   }
 

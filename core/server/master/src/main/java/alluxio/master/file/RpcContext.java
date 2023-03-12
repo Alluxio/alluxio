@@ -45,7 +45,8 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
   private final BlockDeletionContext mBlockDeletionContext;
   private final JournalContext mJournalContext;
   private final OperationContext mOperationContext;
-  private final boolean mFlushJournal;
+  // TODO(jiacheng): double check all usage
+  private final boolean mIsJournalContextShared;
 
   // Used during close to keep track of thrown exceptions.
   private Throwable mThrown = null;
@@ -60,7 +61,7 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
    */
   public RpcContext(BlockDeletionContext blockDeleter, JournalContext journalContext,
       OperationContext operationContext) {
-    this(blockDeleter, journalContext, operationContext, true);
+    this(blockDeleter, journalContext, operationContext, false);
   }
 
   /**
@@ -70,15 +71,15 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
    * @param blockDeleter block deletion context
    * @param journalContext journal context
    * @param operationContext the operation context
-   * @param flushJournal if false, the life cycle of JournalContext is managed separately, journal
-   *                     entries will not be flushed when this RpcContext closes
+   * @param isJournalContextShared if true, JournalContext is created and managed by the caller,
+*                                  so this RpcContext does not close it
    */
   public RpcContext(BlockDeletionContext blockDeleter, JournalContext journalContext,
-      OperationContext operationContext, boolean flushJournal) {
+      OperationContext operationContext, boolean isJournalContextShared) {
     mBlockDeletionContext = blockDeleter;
     mJournalContext = journalContext;
     mOperationContext = operationContext;
-    mFlushJournal = flushJournal;
+    mIsJournalContextShared = isJournalContextShared;
   }
 
   /**
@@ -143,7 +144,7 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
     // JournalContext is closed before block deletion context so that file system master changes
     // are written before block master changes. If a failure occurs between deleting an inode and
     // remove its blocks, it's better to have an orphaned block than an inode with a missing block.
-    if (mFlushJournal) {
+    if (!mIsJournalContextShared) {
       // Close the journal context to reclaim resource and flush journal
       closeQuietly(mJournalContext);
     } // Otherwise rely on the caller to close and flush later

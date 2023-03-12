@@ -5375,7 +5375,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     // The journal context is managed externally
     // So the RpcContext should not close it at the end of lifecycle
     return new RpcContext(createBlockDeletionContext(), journalContext,
-        operationContext.withTracker(mStateLockCallTracker), false);
+        operationContext.withTracker(mStateLockCallTracker), true);
   }
 
   private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
