@@ -2074,7 +2074,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void delete(AlluxioURI path, DeleteContext context)
+  public void delete(AlluxioURI path, DeleteContext context, JournalContext journalContext)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException {
     if (isOperationComplete(context)) {
@@ -2083,7 +2083,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       return;
     }
     Metrics.DELETE_PATHS_OPS.inc();
-    try (RpcContext rpcContext = createRpcContext(context);
+    try (RpcContext rpcContext = createRpcContextAsyncJournal(context, journalContext);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("delete", path, null, null)) {
 
@@ -3192,12 +3192,12 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void free(AlluxioURI path, FreeContext context)
+  public void free(AlluxioURI path, FreeContext context, JournalContext journalContext)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException, IOException {
     Metrics.FREE_FILE_OPS.inc();
     // No need to syncMetadata before free.
-    try (RpcContext rpcContext = createRpcContext(context);
+    try (RpcContext rpcContext = createRpcContextAsyncJournal(context, journalContext);
          LockedInodePath inodePath =
              mInodeTree
                  .lockFullInodePath(path, LockPattern.WRITE_INODE, rpcContext.getJournalContext());
@@ -5362,6 +5362,24 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws UnavailableException {
     return new RpcContext(createBlockDeletionContext(), createJournalContext(),
         operationContext.withTracker(mStateLockCallTracker));
+  }
+
+  /**
+   * Creates an RpcContext where the journal is not flushed when the RPC is done.
+   * The caller must make sure the JournalContext is closed, because the RpcContext will not
+   * close it when the RPC is done.
+   *
+   * @param operationContext the operation context
+   * @param journalContext context for journal
+   * @return a context for executing an RPC
+   */
+  @VisibleForTesting
+  public RpcContext createRpcContextAsyncJournal(
+      OperationContext operationContext, JournalContext journalContext) {
+    // The journal context is managed externally
+    // So the RpcContext should not close it at the end of lifecycle
+    return new RpcContext(createBlockDeletionContext(), journalContext,
+        operationContext.withTracker(mStateLockCallTracker), true);
   }
 
   private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,

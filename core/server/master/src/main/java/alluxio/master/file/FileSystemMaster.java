@@ -45,6 +45,7 @@ import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.master.journal.JournalContext;
 import alluxio.metrics.TimeSeries;
 import alluxio.security.authorization.AclEntry;
 import alluxio.underfs.UfsMode;
@@ -298,7 +299,28 @@ public interface FileSystemMaster extends Master {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  void delete(AlluxioURI path, DeleteContext context)
+  default void delete(AlluxioURI path, DeleteContext context)
+      throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
+      InvalidPathException, AccessControlException {
+    try (JournalContext journalContext = createJournalContext()) {
+      delete(path, context, journalContext);
+    }
+  }
+
+  /**
+   * Deletes a given path.
+   * <p>
+   * This operation requires user to have WRITE permission on the parent of the path.
+   *
+   * @param path the path to delete
+   * @param context method context
+   * @param journalContext context for journaling
+   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
+   */
+  void delete(AlluxioURI path, DeleteContext context, JournalContext journalContext)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException;
 
@@ -381,7 +403,29 @@ public interface FileSystemMaster extends Master {
   // UnexpectedAlluxioException is thrown because we want to keep backwards compatibility with
   // clients of earlier versions prior to 1.5. If a new exception is added, it will be converted
   // into RuntimeException on the client.
-  void free(AlluxioURI path, FreeContext context)
+  default void free(AlluxioURI path, FreeContext context)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
+      UnexpectedAlluxioException, IOException {
+    try (JournalContext journalContext = createJournalContext()) {
+      free(path, context, journalContext);
+    }
+  }
+
+  /**
+   * Frees or evicts all of the blocks of the file from alluxio storage. If the given file is a
+   * directory, and the 'recursive' flag is enabled, all descendant files will also be freed.
+   * <p>
+   * This operation requires users to have READ permission on the path.
+   *
+   * @param path the path to free method
+   * @param context context to free method
+   * @param journalContext context for journaling
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the given path is invalid
+   * @throws UnexpectedAlluxioException if the file or directory can not be freed
+   */
+  void free(AlluxioURI path, FreeContext context, JournalContext journalContext)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException, IOException;
 
