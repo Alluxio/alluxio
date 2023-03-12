@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Convenience class which groups together multiple Journaled components as a single Journaled
@@ -72,10 +74,11 @@ public class JournaledGroup implements Journaled {
   }
 
   @Override
-  public void writeToCheckpoint(File directory) throws IOException, InterruptedException {
-    for (Journaled j : mJournaled) {
-      j.writeToCheckpoint(directory);
-    }
+  public CompletableFuture<Void> writeToCheckpoint(File directory,
+                                                   ExecutorService executorService) {
+    return CompletableFuture.allOf(mJournaled.stream()
+            .map(journaled -> journaled.writeToCheckpoint(directory, executorService))
+            .toArray(CompletableFuture[]::new));
   }
 
   @Override
@@ -84,10 +87,11 @@ public class JournaledGroup implements Journaled {
   }
 
   @Override
-  public void restoreFromCheckpoint(File directory) throws IOException {
-      for (Journaled j : mJournaled) {
-        j.restoreFromCheckpoint(directory);
-      }
+  public CompletableFuture<Void> restoreFromCheckpoint(File directory,
+                                                       ExecutorService executorService) {
+    return CompletableFuture.allOf(mJournaled.stream()
+            .map(journaled -> journaled.restoreFromCheckpoint(directory, executorService))
+            .toArray(CompletableFuture[]::new));
   }
 
   @Override

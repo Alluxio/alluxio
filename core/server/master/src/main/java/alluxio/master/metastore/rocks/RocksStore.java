@@ -194,12 +194,13 @@ public final class RocksStore implements Closeable {
     LOG.info("Opened rocks database under path {}", mDbPath);
   }
 
-  public synchronized void writeToCheckpoint(File directory) throws IOException {
-    try {
-      mCheckpoint.createCheckpoint(directory.getPath());
-    } catch (RocksDBException e) {
-      throw new IOException(e);
-    }
+  /**
+   * Writes a checkpoint under the specified directory.
+   * @param directory that the checkpoint will be written under
+   * @throws RocksDBException if it encounters and error when writing the checkpoint
+   */
+  public synchronized void writeToCheckpoint(File directory) throws RocksDBException {
+    mCheckpoint.createCheckpoint(directory.getPath());
   }
 
   /**
@@ -237,16 +238,22 @@ public final class RocksStore implements Closeable {
     FileUtils.deletePathRecursively(mDbCheckpointPath);
   }
 
-  public synchronized void restoreFromCheckpoint(File file) throws IOException {
+  /**
+   * Restores RocksDB state from a checkpoint at the provided location. Moves the directory to a
+   * permanent location, restores RocksDB state, and then immediately takes a new snapshot in the
+   * original location as replacement.
+   * @param directory where the checkpoint is located
+   * @throws RocksDBException if rocks encounters a problem
+   * @throws IOException if moving files around encounters a problem
+   */
+  public synchronized void restoreFromCheckpoint(File directory)
+      throws RocksDBException, IOException {
     stopDb();
     File dbPath = new File(mDbPath);
     org.apache.commons.io.FileUtils.deleteDirectory(dbPath);
-    org.apache.commons.io.FileUtils.copyDirectory(file, dbPath);
-    try {
-      createDb();
-    } catch (RocksDBException e) {
-      throw new IOException(e);
-    }
+    org.apache.commons.io.FileUtils.moveDirectory(directory, dbPath);
+    createDb();
+    writeToCheckpoint(directory);
   }
 
   /**

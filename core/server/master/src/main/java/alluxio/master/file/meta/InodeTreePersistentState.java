@@ -23,7 +23,6 @@ import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointName;
-import alluxio.master.journal.checkpoint.Checkpointed;
 import alluxio.master.metastore.InodeStore;
 import alluxio.proto.journal.File.AsyncPersistRequestEntry;
 import alluxio.proto.journal.File.CompleteFileEntry;
@@ -70,8 +69,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 /**
@@ -827,11 +829,12 @@ public class InodeTreePersistentState implements Journaled {
   }
 
   @Override
-  public void writeToCheckpoint(File directory) throws IOException, InterruptedException {
-    for (Checkpointed j : Arrays.asList(mInodeStore, mPinnedInodeFileIds,
-        mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter)) {
-      j.writeToCheckpoint(directory);
-    }
+  public CompletableFuture<Void> writeToCheckpoint(File directory,
+                                                   ExecutorService executorService) {
+    return CompletableFuture.allOf(Stream.of(mInodeStore, mPinnedInodeFileIds,
+        mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter)
+        .map(journaled -> journaled.writeToCheckpoint(directory, executorService))
+        .toArray(CompletableFuture[]::new));
   }
 
   @Override
@@ -843,11 +846,12 @@ public class InodeTreePersistentState implements Journaled {
   }
 
   @Override
-  public void restoreFromCheckpoint(File directory) throws IOException {
-    for (Checkpointed j : Arrays.asList(mInodeStore, mPinnedInodeFileIds,
-        mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter)) {
-      j.restoreFromCheckpoint(directory);
-    }
+  public CompletableFuture<Void> restoreFromCheckpoint(File directory,
+                                                       ExecutorService executorService) {
+    return CompletableFuture.allOf(Stream.of(mInodeStore, mPinnedInodeFileIds,
+        mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter)
+        .map(journaled -> journaled.restoreFromCheckpoint(directory, executorService))
+        .toArray(CompletableFuture[]::new));
   }
 
   @Override

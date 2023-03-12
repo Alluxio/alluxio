@@ -897,6 +897,12 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "snapshot file. Higher numbers may indicate a slow disk or CPU contention")
           .setMetricType(MetricType.TIMER)
           .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_REPLAY_DURATION =
+      new Builder("Master.EmbeddedJournalLastSnapshotReplayDuration")
+          .setDescription("Represents the time the last restore from checkpoint operation took in"
+              + " milliseconds.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX =
       new Builder("Master.EmbeddedJournalSnapshotLastIndex")
           .setDescription("Represents the latest journal index that was recorded by this master "

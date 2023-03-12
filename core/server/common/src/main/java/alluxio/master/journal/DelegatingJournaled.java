@@ -19,6 +19,8 @@ import alluxio.resource.CloseableIterator;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
 /**
@@ -47,8 +49,9 @@ public interface DelegatingJournaled extends Journaled {
   }
 
   @Override
-  default void writeToCheckpoint(File directory) throws IOException, InterruptedException {
-    getDelegate().writeToCheckpoint(directory);
+  default CompletableFuture<Void> writeToCheckpoint(File directory,
+                                                    ExecutorService executorService) {
+    return getDelegate().writeToCheckpoint(directory, executorService);
   }
 
   @Override
@@ -57,8 +60,9 @@ public interface DelegatingJournaled extends Journaled {
   }
 
   @Override
-  default void restoreFromCheckpoint(File directory) throws IOException {
-    getDelegate().restoreFromCheckpoint(directory);
+  default CompletableFuture<Void> restoreFromCheckpoint(File directory,
+                                                        ExecutorService executorService) {
+    return getDelegate().restoreFromCheckpoint(directory, executorService);
   }
 
   @Override

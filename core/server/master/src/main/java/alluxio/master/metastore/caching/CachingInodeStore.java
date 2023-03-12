@@ -19,6 +19,8 @@ import alluxio.concurrent.LockMode;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.grpc.ErrorType;
 import alluxio.master.file.meta.Edge;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
@@ -47,6 +49,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.Closer;
+import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,8 +67,10 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -267,12 +272,21 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   }
 
   @Override
-  public void writeToCheckpoint(File directory) throws IOException, InterruptedException {
-    LOG.info("Flushing inodes to backing store");
-    mInodeCache.flush();
-    mEdgeCache.flush();
-    LOG.info("Finished flushing inodes to backing store");
-    mBackingStore.writeToCheckpoint(directory);
+  public CompletableFuture<Void> writeToCheckpoint(File directory,
+                                                   ExecutorService executorService) {
+    return CompletableFuture.runAsync(() -> {
+      LOG.info("Flushing inodes to backing store");
+      try {
+        mInodeCache.flush();
+        mEdgeCache.flush();
+      } catch (InterruptedException e) {
+        throw new AlluxioRuntimeException(Status.INTERNAL,
+            String.format("Failed to restore snapshot %s", getCheckpointName()),
+            null, ErrorType.Internal, false);
+      }
+      LOG.info("Finished flushing inodes to backing store");
+      mBackingStore.writeToCheckpoint(directory, executorService).join();
+    }, executorService);
   }
 
   @Override
@@ -285,12 +299,15 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   }
 
   @Override
-  public void restoreFromCheckpoint(File file) throws IOException {
-    mInodeCache.clear();
-    mEdgeCache.clear();
-    mListingCache.clear();
-    mBackingStore.restoreFromCheckpoint(file);
-    mBackingStoreEmpty = false;
+  public CompletableFuture<Void> restoreFromCheckpoint(File directory,
+                                                       ExecutorService executorService) {
+    return CompletableFuture.runAsync(() -> {
+      mInodeCache.clear();
+      mEdgeCache.clear();
+      mListingCache.clear();
+      mBackingStore.restoreFromCheckpoint(directory, executorService).join();
+      mBackingStoreEmpty = false;
+    }, executorService);
   }
 
   @Override

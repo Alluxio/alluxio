@@ -16,6 +16,8 @@ import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.grpc.ErrorType;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
@@ -35,6 +37,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Longs;
+import io.grpc.Status;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
@@ -65,6 +68,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -139,7 +144,7 @@ public class RocksInodeStore implements InodeStore {
           .setCreateMissingColumnFamilies(true)
           .setCreateIfMissing(true)
           .setMaxOpenFiles(-1);
-      // This is a field instead of a constant because it depends on the call to RocksDB.loadLibrary().
+      // This is a field instead of a constant because it depends on RocksDB.loadLibrary().
       CompressionType compressionType =
           Configuration.getEnum(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE,
               CompressionType.class);
@@ -518,9 +523,20 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public void writeToCheckpoint(File directory) throws IOException, InterruptedException {
-    File subDir = new File(directory, getCheckpointName().toString());
-    mRocksStore.writeToCheckpoint(subDir);
+  public CompletableFuture<Void> writeToCheckpoint(File directory,
+                                                   ExecutorService executorService) {
+    return CompletableFuture.runAsync(() -> {
+      LOG.debug("taking {} snapshot started", getCheckpointName());
+      File subDir = new File(directory, getCheckpointName().toString());
+      try {
+        mRocksStore.writeToCheckpoint(subDir);
+      } catch (RocksDBException e) {
+        throw new AlluxioRuntimeException(Status.INTERNAL,
+            String.format("Failed to restore snapshot %s", getCheckpointName()),
+            null, ErrorType.Internal, false);
+      }
+      LOG.debug("taking {} snapshot finished", getCheckpointName());
+    }, executorService);
   }
 
   @Override
@@ -529,9 +545,20 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public void restoreFromCheckpoint(File directory) throws IOException {
-    File subDir = new File(directory, getCheckpointName().toString());
-    mRocksStore.restoreFromCheckpoint(subDir);
+  public CompletableFuture<Void> restoreFromCheckpoint(File directory,
+                                                       ExecutorService executorService) {
+    return CompletableFuture.runAsync(() -> {
+      LOG.debug("loading {} snapshot started", getCheckpointName());
+      File subDir = new File(directory, getCheckpointName().toString());
+      try {
+        mRocksStore.restoreFromCheckpoint(subDir);
+      } catch (Exception e) {
+        throw new AlluxioRuntimeException(Status.INTERNAL,
+            String.format("Failed to restore snapshot %s", getCheckpointName()),
+            null, ErrorType.Internal, false);
+      }
+      LOG.debug("loading {} snapshot finished", getCheckpointName());
+    }, executorService);
   }
 
   @Override
