@@ -127,6 +127,7 @@ public final class MountTable implements DelegatingJournaled {
   public void add(Supplier<JournalContext> journalContext, LockedInodePath alluxioInodePath, AlluxioURI ufsUri,
       long mountId, MountPOptions options) throws FileAlreadyExistsException, InvalidPathException,
       IOException {
+    // TODO(VODDLE): seems no checks for mountId here, maybe need one
     try (LockResource r = new LockResource(mWriteLock)) {
       // validate the Mount operation first, error will be thrown if the operation is invalid
       validateMountPoint(alluxioInodePath.getUri(), ufsUri, mountId, options);
