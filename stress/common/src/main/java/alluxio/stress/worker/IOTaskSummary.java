@@ -177,27 +177,28 @@ public class IOTaskSummary implements Summary {
       return result;
     }
 
-    double totalDuration = 0.0;
     long totalSize = 0L;
+    double sumSpeeds = 0L;
     double[] speeds = new double[points.size()];
     double maxSpeed = 0.0;
     double minSpeed = Double.MAX_VALUE;
     int i = 0;
     for (IOTaskResult.Point p : points) {
-      totalDuration += p.mDurationSeconds;
+      result.mTotalDurationSeconds = Math.max(p.mDurationSeconds, result.mTotalDurationSeconds);
       totalSize += p.mDataSizeBytes;
       double speed = p.mDataSizeBytes / (p.mDurationSeconds * 1024 * 1024); // convert B/s to MB/s
+      sumSpeeds += speed;
       maxSpeed = Math.max(maxSpeed, speed);
       minSpeed = Math.min(minSpeed, speed);
       speeds[i++] = speed;
     }
-    double avgSpeed = totalSize / (totalDuration * 1024 * 1024); // convert B/s to MB/s
+    // calculate the average speed
+    double avgSpeed = sumSpeeds / points.size();
     double var = 0;
     for (double s : speeds) {
       var += (s - avgSpeed) * (s - avgSpeed);
     }
 
-    result.mTotalDurationSeconds = totalDuration;
     result.mTotalSizeBytes = totalSize;
     result.mMaxSpeedMbps = maxSpeed;
     result.mMinSpeedMbps = Double.compare(minSpeed, Double.MAX_VALUE) == 0 ? 0.0 : minSpeed;
