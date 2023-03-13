@@ -23,17 +23,10 @@ import alluxio.util.TarUtils;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
-<<<<<<< HEAD
-||||||| parent of ae065e34b9 (Support multithread checkpointing with compression/decompression)
-import org.rocksdb.BlockBasedTableConfig;
-import org.rocksdb.BloomFilter;
-import org.rocksdb.Cache;
-=======
 import org.apache.commons.io.IOUtils;
 import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.BloomFilter;
 import org.rocksdb.Cache;
->>>>>>> ae065e34b9 (Support multithread checkpointing with compression/decompression)
 import org.rocksdb.Checkpoint;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
@@ -52,13 +45,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-<<<<<<< HEAD
-||||||| parent of ae065e34b9 (Support multithread checkpointing with compression/decompression)
-import java.util.Optional;
-=======
 import java.util.Optional;
 import java.util.UUID;
->>>>>>> ae065e34b9 (Support multithread checkpointing with compression/decompression)
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -94,21 +82,14 @@ public final class RocksStore implements Closeable {
    * @param columnFamilyDescriptors columns to create within the rocks database
    * @param columnHandles column handle references to populate
    */
-<<<<<<< HEAD
   public RocksStore(String name, String dbPath, String checkpointPath,
-||||||| parent of ae065e34b9 (Support multithread checkpointing with compression/decompression)
-  public RocksStore(String name, String dbPath, String checkpointPath,
-      DBOptions dbOpts,
-=======
-  public RocksStore(String name, String dbPath, String checkpointPath, DBOptions dbOpts,
->>>>>>> ae065e34b9 (Support multithread checkpointing with compression/decompression)
       Collection<ColumnFamilyDescriptor> columnFamilyDescriptors,
       List<AtomicReference<ColumnFamilyHandle>> columnHandles) {
     Preconditions.checkState(columnFamilyDescriptors.size() == columnHandles.size());
     mName = name;
     mDbPath = dbPath;
     mDbCheckpointPath = checkpointPath;
-    mParallelBackupPoolSize = Configuration.getInt(
+    mParallelBackupPoolSize = ServerConfiguration.getInt(
         PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS);
     mColumnFamilyDescriptors = columnFamilyDescriptors;
     mDbOpts = new DBOptions()
@@ -228,29 +209,23 @@ public final class RocksStore implements Closeable {
     } catch (RocksDBException e) {
       throw new IOException(e);
     }
-<<<<<<< HEAD
     LOG.info("Checkpoint complete, creating tarball");
-    TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out, mCompressLevel);
-||||||| parent of ae065e34b9 (Support multithread checkpointing with compression/decompression)
-    LOG.info("Checkpoint complete, creating tarball");
-    TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out);
-=======
+    TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), output, mCompressLevel);
 
-    if (Configuration.getBoolean(PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP)) {
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP)) {
       CheckpointOutputStream out = new CheckpointOutputStream(output,
           CheckpointType.ROCKS_PARALLEL);
       LOG.info("Checkpoint complete, compressing with {} threads", mParallelBackupPoolSize);
-      int compressLevel = Configuration.getInt(
+      int compressLevel = ServerConfiguration.getInt(
           PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL);
       ParallelZipUtils.compress(Paths.get(mDbCheckpointPath), out,
           mParallelBackupPoolSize, compressLevel);
     } else {
       CheckpointOutputStream out = new CheckpointOutputStream(output, CheckpointType.ROCKS_SINGLE);
       LOG.info("Checkpoint complete, compressing with one thread");
-      TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out);
+      TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), output, mCompressLevel);
     }
 
->>>>>>> ae065e34b9 (Support multithread checkpointing with compression/decompression)
     LOG.info("Completed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
     // Checkpoint is no longer needed, delete to save space.
     FileUtils.deletePathRecursively(mDbCheckpointPath);
@@ -271,7 +246,7 @@ public final class RocksStore implements Closeable {
     FileUtils.deletePathRecursively(mDbPath);
 
     if (input.getType() == CheckpointType.ROCKS_PARALLEL) {
-      List<String> tmpDirs = Configuration.getList(PropertyKey.TMP_DIRS);
+      List<String> tmpDirs = ServerConfiguration.getList(PropertyKey.TMP_DIRS);
       String tmpZipFilePath = new File(tmpDirs.get(0), "alluxioRockStore-" + UUID.randomUUID())
           .getPath();
 

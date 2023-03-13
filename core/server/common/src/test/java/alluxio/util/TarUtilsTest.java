@@ -11,23 +11,12 @@
 
 package alluxio.util;
 
-<<<<<<< HEAD
 import static org.mockito.ArgumentMatchers.any;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import alluxio.util.io.FileUtils;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.junit.Assert;
-||||||| parent of ae065e34b9 (Support multithread checkpointing with compression/decompression)
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-=======
->>>>>>> ae065e34b9 (Support multithread checkpointing with compression/decompression)
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -38,13 +27,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-<<<<<<< HEAD
-import java.io.IOException;
 import java.io.File;
-||||||| parent of ae065e34b9 (Support multithread checkpointing with compression/decompression)
-import java.io.IOException;
-=======
->>>>>>> ae065e34b9 (Support multithread checkpointing with compression/decompression)
 import java.nio.file.Files;
 import java.nio.file.Path;
 
