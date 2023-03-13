@@ -23,7 +23,6 @@ import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
-import alluxio.master.selectionpolicy.MasterSelectionPolicy;
 import alluxio.wire.BackupStatus;
 import alluxio.wire.ConfigCheckReport;
 
@@ -50,16 +49,7 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
    * @param conf master client configuration
    */
   public RetryHandlingMetaMasterClient(MasterClientContext conf) {
-    this(conf, MasterSelectionPolicy.Factory.primaryMaster());
-  }
-
-  /**
-   * Creates a new meta master client using a custom master selection policy.
-   * @param conf master client configuration
-   * @param policy the policy that determines which Alluxio master to target
-   */
-  public RetryHandlingMetaMasterClient(MasterClientContext conf, MasterSelectionPolicy policy) {
-    super(conf, policy);
+    super(conf);
   }
 
   @Override

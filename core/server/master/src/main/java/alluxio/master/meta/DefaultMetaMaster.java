@@ -278,19 +278,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public Map<ServiceType, GrpcService> getStandbyServices() {
-    // for manual snapshot taking on any master
-    Map<ServiceType, GrpcService> services = new HashMap<>();
-//    services.put(ServiceType.META_MASTER_CONFIG_SERVICE,
-//        new GrpcService(ServerInterceptors.intercept(
-//            new MetaMasterConfigurationServiceHandler(this),
-//            new ClientContextServerInjector())).disableAuthentication());
-//    services.put(ServiceType.META_MASTER_CLIENT_SERVICE,
-//        new GrpcService(ServerInterceptors.intercept(
-//            new MetaMasterClientServiceHandler(this),
-//            new ClientContextServerInjector())));
     // for snapshot propagation
-    services.putAll(mJournalSystem.getJournalServices());
-    return services;
+    return new HashMap<>(mJournalSystem.getJournalServices());
   }
 
   @Override
