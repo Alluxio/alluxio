@@ -65,7 +65,7 @@ on how to configure the paged block store.
 ## Dora on Kubernetes
 
 The existing Alluxio helm chart works with Dora cluster except Alluxio Fuse. Note that:
-1. Set your image to `alluxio/alluxio:2.9.1-gamma`.
+1. Set your image to `alluxio/alluxio:291-gamma`.
 2. Property `alluxio.master.mount.table.root.ufs` is no longer required. It is replaced by `alluxio.dora.client.ufs.root`
 3. Make sure to include the required configurations specified in previous sections in your helm chart configuration file, including:
     - `alluxio.dora.client.read.localtion.policy.enabled: "true"`
