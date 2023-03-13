@@ -20,6 +20,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Convenience methods for working with RocksDB.
@@ -101,28 +104,66 @@ public final class RocksUtils {
    */
   public static <T> CloseableIterator<T> createCloseableIterator(
       RocksIterator rocksIterator, RocksIteratorParser<T> parser) {
+    return createCloseableIterator(rocksIterator, parser, () -> true);
+  }
+
+  /**
+   * Used to wrap an {@link CloseableIterator} over {@link RocksIterator}.
+   * It seeks given iterator to first entry before returning the iterator.
+   *
+   * closeCheck is used to stop the iterator before closing the underlying RocksDB.
+   * See RocksBlockMetaStore#getCloseableIterator for an example.
+   *
+   * @param rocksIterator the rocks iterator
+   * @param parser parser to produce iterated values from rocks key-value
+   * @param <T> iterator value type
+   * @param closeCheck if true, turn off the iteration
+   * @return wrapped iterator
+   */
+  public static <T> CloseableIterator<T> createCloseableIterator(
+      RocksIterator rocksIterator, RocksIteratorParser<T> parser, Supplier<Boolean> closeCheck) {
     rocksIterator.seekToFirst();
     AtomicBoolean valid = new AtomicBoolean(true);
     Iterator<T> iter = new Iterator<T>() {
       @Override
       public boolean hasNext() {
-        return valid.get() && rocksIterator.isValid();
+        /*
+         * There can be a race condition where after passing the hasNext() check, the RocksDB
+         * is closed and next() causes segfault. Avoiding that requires the closeCheck to stop the
+         * iteration way before entering the critical section. That means we can use the
+         * closeCheck to stop iteration when the iterator is still valid, then safely close
+         * RocksDB and all relevant references without worrying about concurrent readers
+         * like this escaped iterator.
+         */
+        return (!closeCheck.get()) && valid.get() && rocksIterator.isValid();
       }
 
       @Override
       public T next() {
+        boolean succeeded = false;
         try {
-          return parser.next(rocksIterator);
+          T result = parser.next(rocksIterator);
+          succeeded = true;
+          return result;
         } catch (Exception exc) {
           LOG.warn("Iteration aborted because of error", exc);
-          rocksIterator.close();
-          valid.set(false);
           throw new RuntimeException(exc);
+        } catch (Throwable t) {
+          LOG.warn("Iteration aborted because of error", t);
+          throw t;
         } finally {
-          rocksIterator.next();
-          if (!rocksIterator.isValid()) {
-            rocksIterator.close();
+          if (rocksIterator.isValid()) {
+            /*
+             * There is also a race condition between isValid() and next(), where the RocksDB
+             * can be closed concurrently after the isValid() check. We rely on the closeCheck to
+             * call off iteration early so the race condition is avoided in a whole.
+             * See comments in hasNext().
+             */
+            rocksIterator.next();
+          }
+          if (!succeeded) {
             valid.set(false);
+            rocksIterator.close();
           }
         }
       }
