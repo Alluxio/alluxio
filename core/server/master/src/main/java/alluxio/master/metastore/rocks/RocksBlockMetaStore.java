@@ -275,6 +275,9 @@ public class RocksBlockMetaStore implements BlockMetaStore {
 
   @Override
   public Optional<BlockMeta> getBlock(long id) {
+    if (mClosed.get()) {
+      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
+    }
     byte[] meta;
     try {
       meta = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
@@ -293,6 +296,9 @@ public class RocksBlockMetaStore implements BlockMetaStore {
 
   @Override
   public void putBlock(long id, BlockMeta meta) {
+    if (mClosed.get()) {
+      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
+    }
     try {
       byte[] buf = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
       // Overwrites the key if it already exists.
@@ -308,6 +314,9 @@ public class RocksBlockMetaStore implements BlockMetaStore {
 
   @Override
   public void removeBlock(long id) {
+    if (mClosed.get()) {
+      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
+    }
     try {
       byte[] buf = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
       db().delete(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id));
@@ -353,6 +362,9 @@ public class RocksBlockMetaStore implements BlockMetaStore {
 
   @Override
   public List<BlockLocation> getLocations(long id) {
+    if (mClosed.get()) {
+      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
+    }
     // References to the RocksObject need to be held explicitly and kept from GC
     // In order to prevent segfaults in the native code execution
     // Ref: https://github.com/facebook/rocksdb/issues/9378
@@ -377,6 +389,9 @@ public class RocksBlockMetaStore implements BlockMetaStore {
 
   @Override
   public void addLocation(long id, BlockLocation location) {
+    if (mClosed.get()) {
+      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
+    }
     byte[] key = RocksUtils.toByteArray(id, location.getWorkerId());
     try {
       db().put(mBlockLocationsColumn.get(), mDisableWAL, key, location.toByteArray());
@@ -387,6 +402,9 @@ public class RocksBlockMetaStore implements BlockMetaStore {
 
   @Override
   public void removeLocation(long blockId, long workerId) {
+    if (mClosed.get()) {
+      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
+    }
     byte[] key = RocksUtils.toByteArray(blockId, workerId);
     try {
       db().delete(mBlockLocationsColumn.get(), mDisableWAL, key);
