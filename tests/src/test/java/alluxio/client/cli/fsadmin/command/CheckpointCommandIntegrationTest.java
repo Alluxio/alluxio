@@ -12,10 +12,16 @@
 package alluxio.client.cli.fsadmin.command;
 
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.master.MultiMasterEmbeddedJournalLocalAlluxioCluster;
+import alluxio.multi.process.PortCoordination;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.net.InetSocketAddress;
 
 /**
  * Tests for checkpoint command.
@@ -28,5 +34,29 @@ public final class CheckpointCommandIntegrationTest extends AbstractFsAdminShell
     Assert.assertThat(mOutput.toString(), CoreMatchers.containsString(String
         .format("Successfully took a checkpoint on master %s%n",
         sLocalAlluxioClusterResource.get().getHostname())));
+  }
+
+  @Test
+  public void targetedCheckpoint() throws Exception {
+    Configuration.set(PropertyKey.STANDBY_MASTER_GRPC_ENABLED, true);
+    MultiMasterEmbeddedJournalLocalAlluxioCluster cluster =
+        new MultiMasterEmbeddedJournalLocalAlluxioCluster(3, 1,
+            PortCoordination.CHECKPOINT_SHELL);
+    try {
+      cluster.initConfiguration("targetedCheckpoint");
+      cluster.start();
+      cluster.waitForPrimaryMasterServing(5_000);
+      for (InetSocketAddress address : cluster.getMasterAddresses()) {
+        String strAddr = String.format("%s:%d", address.getHostName(), address.getPort());
+        int ret = mFsAdminShell.run("journal", "checkpoint", "-address", strAddr);
+        Assert.assertEquals(0, ret);
+        Assert.assertTrue(mOutput.toString()
+            .contains(String.format("Successfully took a checkpoint on master %s%n", strAddr)));
+      }
+    } catch (Exception e) {
+      System.out.println(e);
+    } finally {
+      cluster.stop();
+    }
   }
 }

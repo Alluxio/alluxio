@@ -11,21 +11,31 @@
 
 package alluxio.cli.fsadmin.journal;
 
+import alluxio.ClientContext;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
+import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.master.MasterClientContext;
+import alluxio.master.selectionpolicy.MasterSelectionPolicy;
 import alluxio.util.CommonUtils;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 /**
  * Command for triggering a checkpoint in the primary master journal system.
  */
 public class CheckpointCommand extends AbstractFsAdminCommand {
+  public static final String ADDRESS_OPTION_NAME = "address";
 
   /**
    * @param context fsadmin command context
@@ -45,8 +55,21 @@ public class CheckpointCommand extends AbstractFsAdminCommand {
     Thread thread = CommonUtils.createProgressThread(System.out);
     thread.start();
     try {
-      String masterHostname = mMetaClient.checkpoint();
-      mPrintStream.printf("Successfully took a checkpoint on master %s%n", masterHostname);
+      if (cl.hasOption(ADDRESS_OPTION_NAME)) {
+        String strAddr = cl.getOptionValue(ADDRESS_OPTION_NAME);
+        InetSocketAddress address = NetworkAddressUtils.parseInetSocketAddress(strAddr);
+        MasterSelectionPolicy policy = MasterSelectionPolicy.Factory.specifiedMaster(address);
+        MasterClientContext context = MasterClientContext
+            .newBuilder(ClientContext.create(Configuration.global())).build();
+        try (MetaMasterClient client = new RetryHandlingMetaMasterClient(context, policy)) {
+          client.connect();
+          client.checkpoint();
+        }
+        mPrintStream.printf("Successfully took a checkpoint on master %s%n", strAddr);
+      } else {
+        String masterHostname = mMetaClient.checkpoint();
+        mPrintStream.printf("Successfully took a checkpoint on master %s%n", masterHostname);
+      }
     } finally {
       thread.interrupt();
     }
@@ -55,7 +78,7 @@ public class CheckpointCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getUsage() {
-    return "checkpoint";
+    return String.format("%s [-%s <HOSTNAME:PORT>]", getCommandName(), ADDRESS_OPTION_NAME);
   }
 
   @Override
@@ -63,11 +86,18 @@ public class CheckpointCommand extends AbstractFsAdminCommand {
     return "creates a checkpoint in the primary master journal system. This command "
         + "is mainly used for debugging and to avoid master journal logs "
         + "from growing unbounded. Checkpointing requires a pause in master metadata changes, "
-        + "so use this command sparingly to avoid interfering with other users of the system.";
+        + "so use this command sparingly to avoid interfering with other users of the system. "
+        + "The '-address' option can direct the snapshot taking to a specific master.";
   }
 
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsEquals(this, cl, 0);
+    CommandUtils.checkNumOfArgsNoMoreThan(this, cl, 1);
+  }
+
+  @Override
+  public Options getOptions() {
+    return new Options().addOption(ADDRESS_OPTION_NAME, true,
+        "Server address of the master taking the snapshot");
   }
 }

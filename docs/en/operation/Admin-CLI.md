@@ -97,8 +97,11 @@ This command is mainly used for debugging and to avoid master journal logs from 
 Checkpointing requires a pause in master metadata changes, so use this command sparingly to avoid 
 interfering with other users of the system.
 
+The `-address` option allows you to take a checkpoint on a specific master. When omitted, it targets the leading master.
+Make sure to have `alluxio.standby.master.grpc.enabled=true` in your configuration for this to work.
+
 ```shell
-$ ./bin/alluxio fsadmin journal checkpoint
+$ ./bin/alluxio fsadmin journal checkpoint [-address <HOSTNAME:PORT>]
 ```
 
 ### doctor

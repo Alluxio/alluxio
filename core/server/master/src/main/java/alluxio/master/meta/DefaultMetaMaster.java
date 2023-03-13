@@ -278,6 +278,17 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
+  public Map<ServiceType, GrpcService> getStandbyServices() {
+    // for manual snapshot taking on any master
+    Map<ServiceType, GrpcService> services = new HashMap<>();
+    services.put(ServiceType.META_MASTER_CLIENT_SERVICE,
+        new GrpcService(ServerInterceptors.intercept(
+            new MetaMasterClientServiceHandler(this),
+            new ClientContextServerInjector())));
+    return services;
+  }
+
+  @Override
   public String getName() {
     return Constants.META_MASTER_NAME;
   }
