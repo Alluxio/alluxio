@@ -471,14 +471,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public CloseableIterator<JournalEntry> getJournalEntryIterator() {
     CloseableIterator<Block> blockStoreIterator = mBlockMetaStore.getCloseableIterator();
-    // TODO(jiacheng): does shutdown kill a journal backup/checkpoint?
-    //  Killing backup/checkpoint in MetaMaster is concurrent to killing the BlockMaster so there
-    //  is a race condition between backup flushing vs RocksDB shutdown.
     Iterator<JournalEntry> journalIterator = new Iterator<JournalEntry>() {
       @Override
       public boolean hasNext() {
-        // When using RocksBlockMetaStore, the iterator makes sure hasNext() returns false
-        // before the RocksDB is closed
+        /*
+         * When using RocksBlockMetaStore, the iterator makes sure hasNext() returns false
+         * before the RocksDB is closed.
+         */
         return blockStoreIterator.hasNext();
       }
 

@@ -65,6 +65,7 @@ import java.util.Spliterators;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -402,10 +403,9 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
     if (seekTo != null && seekTo.length() > 0) {
       iter.seek(RocksUtils.toByteArray(inodeId, seekTo));
     }
-    RocksIter rocksIter = new RocksIter(iter, prefix);
+    RocksIter rocksIter = new RocksIter(iter, prefix, mClosed::get);
     Stream<Long> idStream = StreamSupport.stream(Spliterators
         .spliteratorUnknownSize(rocksIter, Spliterator.ORDERED), false);
-    // TODO(jiacheng): check mClosed
     return CloseableIterator.create(idStream.iterator(), (any) -> iter.close());
   }
 
@@ -426,14 +426,15 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
     return Optional.of(Longs.fromByteArray(id));
   }
 
-  // TODO(jiacheng): double check this
   static class RocksIter implements Iterator<Long> {
 
     final RocksIterator mIter;
     boolean mStopped = false;
     final byte[] mPrefix;
+    Supplier<Boolean> mCloseCheck;
 
-    RocksIter(RocksIterator rocksIterator, @Nullable String prefix) {
+    RocksIter(RocksIterator rocksIterator, @Nullable String prefix,
+          Supplier<Boolean> closeCheck) {
       mIter = rocksIterator;
       if (prefix != null && prefix.length() > 0) {
         mPrefix = prefix.getBytes();
@@ -441,6 +442,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
         mPrefix = null;
       }
       checkPrefix();
+      mCloseCheck = closeCheck;
     }
 
     private void checkPrefix() {
@@ -461,7 +463,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
     @Override
     public boolean hasNext() {
-      return mIter.isValid() && !mStopped;
+      return !mCloseCheck.get() && mIter.isValid() && !mStopped;
     }
 
     @Override
@@ -580,6 +582,9 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
     @Override
     public void writeInode(MutableInode<?> inode) {
+      if (mClosed.get()) {
+        throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
+      }
       try {
         mBatch.put(mInodesColumn.get(), Longs.toByteArray(inode.getId()),
             inode.toProto().toByteArray());
@@ -590,6 +595,9 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
     @Override
     public void removeInode(Long key) {
+      if (mClosed.get()) {
+        throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
+      }
       try {
         mBatch.delete(mInodesColumn.get(), Longs.toByteArray(key));
       } catch (RocksDBException e) {
@@ -599,6 +607,9 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
     @Override
     public void addChild(Long parentId, String childName, Long childId) {
+      if (mClosed.get()) {
+        throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
+      }
       try {
         mBatch.put(mEdgesColumn.get(), RocksUtils.toByteArray(parentId, childName),
             Longs.toByteArray(childId));
@@ -609,6 +620,9 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
     @Override
     public void removeChild(Long parentId, String childName) {
+      if (mClosed.get()) {
+        throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
+      }
       try {
         mBatch.delete(mEdgesColumn.get(), RocksUtils.toByteArray(parentId, childName));
       } catch (RocksDBException e) {
@@ -618,6 +632,9 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
     @Override
     public void commit() {
+      if (mClosed.get()) {
+        throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
+      }
       try {
         db().write(mDisableWAL, mBatch);
       } catch (RocksDBException e) {
