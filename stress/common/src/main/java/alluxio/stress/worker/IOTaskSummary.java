@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -178,7 +179,6 @@ public class IOTaskSummary implements Summary {
     }
 
     long totalSize = 0L;
-    double sumSpeeds = 0L;
     double[] speeds = new double[points.size()];
     double maxSpeed = 0.0;
     double minSpeed = Double.MAX_VALUE;
@@ -187,13 +187,12 @@ public class IOTaskSummary implements Summary {
       result.mTotalDurationSeconds = Math.max(p.mDurationSeconds, result.mTotalDurationSeconds);
       totalSize += p.mDataSizeBytes;
       double speed = p.mDataSizeBytes / (p.mDurationSeconds * 1024 * 1024); // convert B/s to MB/s
-      sumSpeeds += speed;
       maxSpeed = Math.max(maxSpeed, speed);
       minSpeed = Math.min(minSpeed, speed);
       speeds[i++] = speed;
     }
     // calculate the average speed
-    double avgSpeed = sumSpeeds / points.size();
+    double avgSpeed = Arrays.stream(speeds).sum() / points.size();
     double var = 0;
     for (double s : speeds) {
       var += (s - avgSpeed) * (s - avgSpeed);
