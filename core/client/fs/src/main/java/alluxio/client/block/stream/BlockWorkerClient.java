@@ -42,6 +42,7 @@ import io.grpc.stub.StreamObserver;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Iterator;
 
 /**
  * gRPC client for worker communication.
@@ -180,5 +181,5 @@ public interface BlockWorkerClient extends Closeable {
    * @param request
    * @return List of Status
    */
-  java.util.Iterator<ListStatusPResponse> listStatus(ListStatusPRequest request);
+  Iterator<ListStatusPResponse> listStatus(ListStatusPRequest request);
 }

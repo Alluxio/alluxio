@@ -60,6 +60,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
@@ -260,7 +261,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public java.util.Iterator<ListStatusPResponse> listStatus(ListStatusPRequest request) {
+  public Iterator<ListStatusPResponse> listStatus(ListStatusPRequest request) {
     return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
         .listStatus(request);
   }
