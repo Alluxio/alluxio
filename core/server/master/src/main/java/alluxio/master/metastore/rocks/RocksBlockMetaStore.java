@@ -82,6 +82,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   private final AtomicReference<ColumnFamilyHandle> mBlockMetaColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mBlockLocationsColumn = new AtomicReference<>();
   private final LongAdder mSize = new LongAdder();
+  // When this is true, stop serving all requests as the RocksDB is being closed
   private final AtomicBoolean mClosed = new AtomicBoolean(false);
 
   /**
@@ -328,6 +329,8 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   public void clear() {
     mSize.reset();
     mRocksStore.clear();
+    // Reset the DB state and prepare to serve again
+    mClosed.set(true);
   }
 
   @Override
