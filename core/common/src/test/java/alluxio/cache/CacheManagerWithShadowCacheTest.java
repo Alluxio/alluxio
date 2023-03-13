@@ -16,8 +16,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
-import alluxio.client.file.CacheContext;
 import alluxio.cache.store.PageReadTargetBuffer;
+import alluxio.client.file.CacheContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
