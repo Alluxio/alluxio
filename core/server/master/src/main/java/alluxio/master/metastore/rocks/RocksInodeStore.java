@@ -100,6 +100,7 @@ public class RocksInodeStore implements InodeStore {
 
   private final AtomicReference<ColumnFamilyHandle> mInodesColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mEdgesColumn = new AtomicReference<>();
+  // When this is true, stop serving all requests as the RocksDB is being closed
   private final AtomicBoolean mClosed = new AtomicBoolean(false);
 
   /**
@@ -324,6 +325,8 @@ public class RocksInodeStore implements InodeStore {
   @Override
   public void clear() {
     mRocksStore.clear();
+    // Reset the DB state and prepare to serve again
+    mClosed.set(true);
   }
 
   @Override
