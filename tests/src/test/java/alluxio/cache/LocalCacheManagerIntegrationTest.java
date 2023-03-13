@@ -9,18 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.fs;
+package alluxio.cache;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import alluxio.Constants;
-import alluxio.cache.CacheManager;
-import alluxio.cache.CacheManagerOptions;
-import alluxio.cache.LocalCacheManager;
-import alluxio.cache.PageId;
-import alluxio.cache.PageMetaStore;
 import alluxio.cache.store.PageStoreDir;
 import alluxio.cache.store.PageStoreType;
 import alluxio.conf.AlluxioProperties;

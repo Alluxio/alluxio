@@ -9,13 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.quota;
+package alluxio.cache.quota;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
-
-import alluxio.cache.quota.CacheScope;
 
 import org.junit.Test;
 
