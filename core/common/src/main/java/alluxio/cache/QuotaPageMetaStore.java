@@ -13,8 +13,8 @@ package alluxio.cache;
 
 import alluxio.cache.evictor.CacheEvictor;
 import alluxio.cache.evictor.CacheEvictorOptions;
-import alluxio.cache.store.PageStoreDir;
 import alluxio.cache.quota.CacheScope;
+import alluxio.cache.store.PageStoreDir;
 import alluxio.exception.PageNotFoundException;
 
 import java.util.List;

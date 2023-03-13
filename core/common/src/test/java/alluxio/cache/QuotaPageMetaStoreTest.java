@@ -18,9 +18,9 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.cache.evictor.CacheEvictorOptions;
 import alluxio.cache.evictor.FIFOCacheEvictor;
+import alluxio.cache.quota.CacheScope;
 import alluxio.cache.store.PageStoreDir;
 import alluxio.cache.store.PageStoreOptions;
-import alluxio.cache.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.metrics.MetricKey;

@@ -11,8 +11,8 @@
 
 package alluxio.cache;
 
-import alluxio.cache.store.PageStoreDir;
 import alluxio.cache.quota.CacheScope;
+import alluxio.cache.store.PageStoreDir;
 
 import com.google.common.base.MoreObjects;
 

@@ -11,8 +11,8 @@
 
 package alluxio.cache;
 
-import alluxio.cache.store.PageStoreDir;
 import alluxio.cache.quota.CacheScope;
+import alluxio.cache.store.PageStoreDir;
 import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;

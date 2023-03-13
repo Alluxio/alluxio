@@ -15,12 +15,12 @@ import static alluxio.cache.CacheManager.State.NOT_IN_USE;
 import static alluxio.cache.CacheManager.State.READ_ONLY;
 import static alluxio.cache.CacheManager.State.READ_WRITE;
 
-import alluxio.cache.store.ByteArrayTargetBuffer;
-import alluxio.cache.store.PageReadTargetBuffer;
-import alluxio.client.file.CacheContext;
-import alluxio.cache.store.PageStoreDir;
 import alluxio.cache.quota.CacheQuota;
 import alluxio.cache.quota.CacheScope;
+import alluxio.cache.store.ByteArrayTargetBuffer;
+import alluxio.cache.store.PageReadTargetBuffer;
+import alluxio.cache.store.PageStoreDir;
+import alluxio.client.file.CacheContext;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
 import alluxio.exception.PageNotFoundException;

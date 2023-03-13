@@ -11,8 +11,8 @@
 
 package alluxio.cache;
 
-import alluxio.cache.store.PageStoreOptions;
 import alluxio.cache.evictor.CacheEvictorOptions;
+import alluxio.cache.store.PageStoreOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 

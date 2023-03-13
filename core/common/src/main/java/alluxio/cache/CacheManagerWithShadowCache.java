@@ -13,9 +13,9 @@ package alluxio.cache;
 
 import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
 
+import alluxio.cache.quota.CacheScope;
 import alluxio.cache.store.PageReadTargetBuffer;
 import alluxio.client.file.CacheContext;
-import alluxio.cache.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
