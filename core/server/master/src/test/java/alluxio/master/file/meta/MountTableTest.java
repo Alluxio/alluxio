@@ -39,6 +39,8 @@ import org.junit.Test;
 import java.time.Clock;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Unit tests for {@link MountTable}.
@@ -457,6 +459,95 @@ public final class MountTableTest extends BaseInodeLockingTest {
     Assert.assertEquals(info2, mMountTable.getMountInfo(info2.getMountId()));
     Assert.assertNull(mMountTable.getMountInfo(4L));
   }
+
+  @Test
+  public void MultithreadAdd() throws Exception {
+    Assert.assertEquals(IdUtils.ROOT_MOUNT_ID,
+        mMountTable.getMountInfo(new AlluxioURI(MountTable.ROOT)).getMountId());
+    LockedInodePath path1 = addMount("/mnt/foo", "/foo", 2);
+
+    ExecutorService executorService = Executors.newFixedThreadPool(100);
+
+    int threadRange = 1000;
+    int threadCount = 100;
+    for (int i = 0; i < threadCount; i++) {
+      int rangeWithIn = i;
+      executorService.submit(new Runnable() {
+        @Override
+        public void run() {
+          int w = rangeWithIn * threadRange;
+          for (int j = 0; j < threadRange; j++) {
+            try {
+              addMount(String.format("/mnt/test%s", w + j), String.format("/test%s", w + j), w + j);
+            } catch (Exception e) {
+              throw new RuntimeException(e);
+            }
+          }
+        }
+      });
+    }
+    Assert.assertEquals(mMountTable.getMountTable().size(), threadRange * threadCount);
+  }
+
+  @Test
+  public void MultithreadDelete() throws Exception {
+    Assert.assertEquals(IdUtils.ROOT_MOUNT_ID,
+        mMountTable.getMountInfo(new AlluxioURI(MountTable.ROOT)).getMountId());
+
+    int threadRange = 1000;
+    int threadCount = 100;
+
+    ExecutorService executorService = Executors.newFixedThreadPool(100);
+    for (int i = 0; i < threadCount; i++) {
+      int rangeWithIn = i;
+      executorService.submit((new Runnable() {
+        @Override
+        public void run() {
+          int w = rangeWithIn * threadRange;
+          for (int j = 0; j < threadRange; j++) {
+            try {
+              addMount(String.format("/mnt/test%s", w + j), String.format("/test%s", w + j), w + j);
+            } catch (Exception e) {
+              throw new RuntimeException(e);
+            }
+          }
+        }
+      }));
+    }
+    Assert.assertEquals(mMountTable.getMountTable().size(), threadRange * threadCount);
+
+  }
+
+  @Test
+  public void MultithreadResolve() throws Exception {
+    Assert.assertEquals(IdUtils.ROOT_MOUNT_ID,
+        mMountTable.getMountInfo(new AlluxioURI(MountTable.ROOT)).getMountId());
+    ExecutorService executorService = Executors.newFixedThreadPool(100);
+    for (int i = 0; i < 100; i++) {
+      executorService.submit((new Runnable() {
+        @Override
+        public void run() {
+
+        }
+      }));
+    }
+  }
+
+  @Test
+  public void MultithreadGetMountTable() throws Exception {
+    Assert.assertEquals(IdUtils.ROOT_MOUNT_ID,
+        mMountTable.getMountInfo(new AlluxioURI(MountTable.ROOT)).getMountId());
+    ExecutorService executorService = Executors.newFixedThreadPool(100);
+    for (int i = 0; i < 100; i++) {
+      executorService.submit((new Runnable() {
+        @Override
+        public void run() {
+
+        }
+      }));
+    }
+  }
+
 
   // TODO(jiacheng): use a full RocksDB setup with no inode cache
   //  create mount table and reload inodes and assert equality
