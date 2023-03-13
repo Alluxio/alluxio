@@ -570,7 +570,6 @@ public class RocksInodeStore implements InodeStore {
     mRocksStore.restoreFromCheckpoint(input);
   }
 
-  // TODO(jiacheng): check mClosed?
   private class RocksWriteBatch implements WriteBatch {
     private final org.rocksdb.WriteBatch mBatch = new org.rocksdb.WriteBatch();
 
