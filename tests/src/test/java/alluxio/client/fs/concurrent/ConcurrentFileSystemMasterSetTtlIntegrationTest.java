@@ -177,9 +177,9 @@ public class ConcurrentFileSystemMasterSetTtlIntegrationTest extends BaseIntegra
 
   @Test
   public void testConcurrentInsertAndExpire() throws Exception {
-    /* (ALLUXIO-2821) When an inode is concurrently added to ttlbucket and inodettlchecker
-    has been processing this particular ttlbucket. The inode should not be left out forever
-    without being processed by inodettlchecker further. */
+    /* Test race condition when an inode is concurrently added to ttlbucket and
+    inodettlchecker has been processing this particular ttlbucket, the inode should
+    not be left out forever unprocessed in the future rounds. */
     // Create two files
     String fileNamePrefix = "file";
     AlluxioURI fileUri1 = new AlluxioURI("/" + fileNamePrefix + "1");

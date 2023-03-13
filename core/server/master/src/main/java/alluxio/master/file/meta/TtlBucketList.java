@@ -155,7 +155,7 @@ public final class TtlBucketList implements Checkpointed {
       bucket.addInode(inode, numOfRetry);
       /* if we added to the bucket but it got concurrently polled by InodeTtlChecker,
       we're not sure this newly-added inode will be processed by the checker,
-      so we need to try insert again. Resolve for (c.f. ALLUXIO-2821) */
+      so we need to try insert again. */
       if (mBucketList.contains(bucket)) {
         break;
       }
