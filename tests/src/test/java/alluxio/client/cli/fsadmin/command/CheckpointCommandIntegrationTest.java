@@ -53,8 +53,6 @@ public final class CheckpointCommandIntegrationTest extends AbstractFsAdminShell
         Assert.assertTrue(mOutput.toString()
             .contains(String.format("Successfully took a checkpoint on master %s%n", strAddr)));
       }
-    } catch (Exception e) {
-      System.out.println(e);
     } finally {
       cluster.stop();
     }

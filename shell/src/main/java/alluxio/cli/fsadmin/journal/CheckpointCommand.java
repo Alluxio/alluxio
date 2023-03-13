@@ -87,7 +87,7 @@ public class CheckpointCommand extends AbstractFsAdminCommand {
         + "is mainly used for debugging and to avoid master journal logs "
         + "from growing unbounded. Checkpointing requires a pause in master metadata changes, "
         + "so use this command sparingly to avoid interfering with other users of the system. "
-        + "The '-address' option can direct the snapshot taking to a specific master.";
+        + "The '-address' option can direct the checkpoint taking to a specific master.";
   }
 
   @Override
@@ -98,6 +98,6 @@ public class CheckpointCommand extends AbstractFsAdminCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(ADDRESS_OPTION_NAME, true,
-        "Server address of the master taking the snapshot");
+        "Server address of the master taking the checkpoint");
   }
 }
