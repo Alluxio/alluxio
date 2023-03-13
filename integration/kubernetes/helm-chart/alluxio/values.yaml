@@ -52,6 +52,7 @@ properties:
 #   - "-XX:+UnlockExperimentalVMOptions"
 #   - "-XX:+UseCGroupMemoryLimitForHeap"
 #   - "-XX:MaxRAMFraction=2"
+#   - "-XX:+UseContainerSupport"
 
 # Mount Persistent Volumes to all components
 # mounts:
@@ -110,6 +111,7 @@ master:
   # dnsPolicy: ClusterFirst
   # JVM options specific to the master container
   jvmOptions:
+    - "-XX:+UseContainerSupport"
   nodeSelector: {}
   # When using HA Alluxio masters, the expected startup time
   # can take over 2-3 minutes (depending on leader elections,
@@ -174,6 +176,7 @@ jobMaster:
     web: 20002
   # JVM options specific to the jobMaster container
   jvmOptions:
+    - "-XX:+UseContainerSupport"
   readinessProbe:
     initialDelaySeconds: 10
     periodSeconds: 10
@@ -291,6 +294,7 @@ worker:
   # dnsPolicy: ClusterFirst
   # JVM options specific to the worker container
   jvmOptions:
+    - "-XX:+UseContainerSupport"
   nodeSelector: {}
   readinessProbe:
     initialDelaySeconds: 10
@@ -340,6 +344,7 @@ jobWorker:
     web: 30003
   # JVM options specific to the jobWorker container
   jvmOptions:
+    - "-XX:+UseContainerSupport"
   readinessProbe:
     initialDelaySeconds: 10
     periodSeconds: 10
@@ -432,6 +437,7 @@ proxy:
   # dnsPolicy: ClusterFirst
   # JVM options specific to proxy containers
   jvmOptions:
+    - "-XX:+UseContainerSupport"
   nodeSelector: {}
   tolerations: []
   podAnnotations: {}
@@ -473,6 +479,7 @@ fuse:
   # These options are specific to the FUSE daemon
   jvmOptions:
     - "-XX:MaxDirectMemorySize=2g"
+    - "-XX:+UseContainerSupport"
   hostNetwork: true
   # hostPID requires escalated privileges
   hostPID: true
