@@ -409,6 +409,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     checkZkConfiguration();
     checkTieredLocality();
     checkTieredStorage();
+    checkUserSyncInterval();
   }
 
   @Override
@@ -517,6 +518,18 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     Preconditions.checkState(interval < timeout,
         "heartbeat interval (%s=%s) must be less than heartbeat timeout (%s=%s)", intervalKey,
         interval, timeoutKey, timeout);
+  }
+  
+   /**
+   * Checks the user sync interval
+   *
+   * @throws IllegalStateException if invalid value is set
+   */
+  private void checkUserSyncInterval() {
+    long interval = getMs(PropertyKey.USER_CONF_SYNC_INTERVAL);
+    Preconditions.checkArgument(interval > 0 ,
+        String.format("The alluxio.user.conf.sync.interval can't set to %s;"
+             + "it must be longer than 0", interval));
   }
 
   /**
