@@ -471,6 +471,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public CloseableIterator<JournalEntry> getJournalEntryIterator() {
     CloseableIterator<Block> blockStoreIterator = mBlockMetaStore.getCloseableIterator();
+    // TODO(jiacheng): This iter can be used when the master is shutting down
+    // TODO(jiacheng): does shutdown kill a journal backup/checkpoint?
     Iterator<JournalEntry> journalIterator = new Iterator<JournalEntry>() {
       @Override
       public boolean hasNext() {

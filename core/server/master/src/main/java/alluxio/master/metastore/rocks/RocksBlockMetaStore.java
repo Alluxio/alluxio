@@ -52,6 +52,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
@@ -80,6 +81,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   private final AtomicReference<ColumnFamilyHandle> mBlockMetaColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mBlockLocationsColumn = new AtomicReference<>();
   private final LongAdder mSize = new LongAdder();
+  private final AtomicBoolean mClosed = new AtomicBoolean(false);
 
   /**
    * Creates and initializes a rocks block store.
@@ -334,6 +336,8 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
 
   @Override
   public void close() {
+    mClosed.set(true);
+    LOG.info("RocksBlockStore is being closed");
     mSize.reset();
     LOG.info("Closing RocksBlockStore and recycling all RocksDB JNI objects");
     mRocksStore.close();
@@ -391,10 +395,16 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   }
 
   @Override
+  /**
+   * This iterator is used in:
+   * 1. {@link BlockIntegrityChecker} to iterate all existing blocks
+   * 2. Journal dumping like checkpoint/backup sequences
+   */
   public CloseableIterator<Block> getCloseableIterator() {
     RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
     return RocksUtils.createCloseableIterator(iterator,
-        (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())));
+        (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())),
+        () -> mClosed.get());
   }
 
   private RocksDB db() {

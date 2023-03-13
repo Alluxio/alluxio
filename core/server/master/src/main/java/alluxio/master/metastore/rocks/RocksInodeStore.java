@@ -62,6 +62,7 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -95,6 +96,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   private final AtomicReference<ColumnFamilyHandle> mInodesColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mEdgesColumn = new AtomicReference<>();
+  private final AtomicBoolean mClosed = new AtomicBoolean(false);
 
   /**
    * Creates and initializes a rocks block store.
@@ -494,13 +496,15 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   /**
    * The name is intentional, in order to distinguish from the {@code Iterable} interface.
+   * This method is only used for creating an escaping iterator used by external classes.
    *
    * @return an iterator over stored inodes
    */
   public CloseableIterator<InodeView> getCloseableIterator() {
     return RocksUtils.createCloseableIterator(
         db().newIterator(mInodesColumn.get(), mIteratorOption),
-        (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());
+        (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get(),
+        mClosed::get);
   }
 
   @Override
@@ -576,6 +580,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public void close() {
+    mClosed.set(true);
     LOG.info("Closing RocksInodeStore and recycling all RocksDB JNI objects");
     mRocksStore.close();
     mDisableWAL.close();
