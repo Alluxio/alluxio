@@ -89,8 +89,8 @@ public class SnapshotReplicationManagerTest {
   private Server mServer;
 
   private void before(int numFollowers) throws Exception {
-    Configuration.set(PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT, 550);
-    Configuration.set(PropertyKey.MASTER_JOURNAL_REQUEST_DATA_TIMEOUT, 550);
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT, 550);
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_REQUEST_DATA_TIMEOUT, 550);
     mLeader = Mockito.mock(RaftJournalSystem.class);
     Mockito.when(mLeader.isLeader()).thenReturn(true);
     Mockito.when(mLeader.getLocalPeerId()).thenReturn(RaftPeerId.getRaftPeerId("leader"));

@@ -459,19 +459,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   private RaftClient createClient() {
-<<<<<<< HEAD
-    long timeoutMs =
-        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT);
-||||||| parent of 94316d7ab9 (Fix snapshot from follower thread leak)
-    long timeoutMs =
-        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT);
-=======
-    return createClient(Configuration.getMs(
+    return createClient(ServerConfiguration.getMs(
         PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT));
   }
 
   private RaftClient createClient(long timeoutMs) {
->>>>>>> 94316d7ab9 (Fix snapshot from follower thread leak)
     long retryBaseMs =
         ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL);
     RaftProperties properties = new RaftProperties();
@@ -899,7 +891,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
       RaftPeerId server, Message message) {
-    return sendMessageAsync(server, message, Configuration.getMs(
+    return sendMessageAsync(server, message, ServerConfiguration.getMs(
         PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT));
   }
 

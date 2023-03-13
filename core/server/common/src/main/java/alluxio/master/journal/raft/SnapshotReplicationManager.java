@@ -14,14 +14,8 @@ package alluxio.master.journal.raft;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.collections.Pair;
-<<<<<<< HEAD
 import alluxio.conf.ServerConfiguration;
-||||||| parent of 94316d7ab9 (Fix snapshot from follower thread leak)
-import alluxio.conf.Configuration;
-=======
-import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
->>>>>>> 94316d7ab9 (Fix snapshot from follower thread leak)
 import alluxio.exception.status.AbortedException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
@@ -42,6 +36,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
 
@@ -134,9 +129,9 @@ public class SnapshotReplicationManager {
   private final ExecutorService mRequestDataExecutor = Executors.newSingleThreadExecutor();
 
   private static final long SNAPSHOT_INFO_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT);
+      ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT);
   private static final long SNAPSHOT_DATA_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.MASTER_JOURNAL_REQUEST_DATA_TIMEOUT);
+      ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_REQUEST_DATA_TIMEOUT);
 
   private enum DownloadState {
     /** No snapshot download is in progress. */
@@ -474,21 +469,12 @@ public class SnapshotReplicationManager {
       if (!tempFile.renameTo(snapshotFile)) {
         throw new IOException(String.format("Failed to rename %s to %s", tempFile, snapshotFile));
       }
-<<<<<<< HEAD
-      mStorage.loadLatestSnapshot();
-      LOG.info("Completed storing snapshot at {} to file {}", downloaded, snapshotFile);
-||||||| parent of 94316d7ab9 (Fix snapshot from follower thread leak)
-      mStorage.loadLatestSnapshot();
-      LOG.info("Completed storing snapshot at {} to file {} with size {}", downloaded,
-          snapshotFile, FormatUtils.getSizeFromBytes(snapshotFile.length()));
-=======
       synchronized (this) {
         mStorage.loadLatestSnapshot();
         notifyAll();
       }
       LOG.info("Completed storing snapshot at {} to file {} with size {}", downloaded,
           snapshotFile, FormatUtils.getSizeFromBytes(snapshotFile.length()));
->>>>>>> 94316d7ab9 (Fix snapshot from follower thread leak)
       return downloaded.getIndex();
     } catch (Exception e) {
       LOG.error("Failed to install snapshot", e);
@@ -582,37 +568,6 @@ public class SnapshotReplicationManager {
 
   private void requestData() {
     Preconditions.checkState(mDownloadState.get() == DownloadState.REQUEST_DATA);
-<<<<<<< HEAD
-    // request snapshots from the most recent to least recent
-    while (!mSnapshotCandidates.isEmpty()) {
-      Pair<SnapshotMetadata, RaftPeerId> candidate = mSnapshotCandidates.poll();
-      SnapshotMetadata metadata = candidate.getFirst();
-      RaftPeerId peerId = candidate.getSecond();
-      LOG.info("Request data from follower {} for snapshot (t: {}, i: {})",
-          peerId, metadata.getSnapshotTerm(), metadata.getSnapshotIndex());
-      try {
-        RaftClientReply reply = mJournalSystem.sendMessageAsync(peerId,
-                toMessage(JournalQueryRequest.newBuilder()
-                    .setSnapshotRequest(GetSnapshotRequest.getDefaultInstance()).build()))
-            .get();
-        if (reply.getException() != null) {
-          throw reply.getException();
-||||||| parent of 94316d7ab9 (Fix snapshot from follower thread leak)
-    // request snapshots from the most recent to the least recent
-    while (!mSnapshotCandidates.isEmpty()) {
-      Pair<SnapshotMetadata, RaftPeerId> candidate = mSnapshotCandidates.poll();
-      SnapshotMetadata metadata = candidate.getFirst();
-      RaftPeerId peerId = candidate.getSecond();
-      LOG.info("Request data from follower {} for snapshot (t: {}, i: {})",
-          peerId, metadata.getSnapshotTerm(), metadata.getSnapshotIndex());
-      try {
-        RaftClientReply reply = mJournalSystem.sendMessageAsync(peerId,
-                toMessage(JournalQueryRequest.newBuilder()
-                    .setSnapshotRequest(GetSnapshotRequest.getDefaultInstance()).build()))
-            .get();
-        if (reply.getException() != null) {
-          throw reply.getException();
-=======
     // request snapshots from the most recent to the least recent
     try {
       while (!mSnapshotCandidates.isEmpty() && mDownloadState.get() == DownloadState.REQUEST_DATA) {
@@ -643,7 +598,6 @@ public class SnapshotReplicationManager {
           return;
         } catch (Exception e) {
           LOG.warn("Failed to request snapshot data from {}: {}", peerId, e);
->>>>>>> 94316d7ab9 (Fix snapshot from follower thread leak)
         }
       }
     } finally {
