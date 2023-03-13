@@ -24,9 +24,6 @@ import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.IOUtils;
-import org.rocksdb.BlockBasedTableConfig;
-import org.rocksdb.BloomFilter;
-import org.rocksdb.Cache;
 import org.rocksdb.Checkpoint;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
@@ -45,7 +42,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.ThreadSafe;
