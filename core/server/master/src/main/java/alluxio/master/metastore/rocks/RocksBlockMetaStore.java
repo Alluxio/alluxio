@@ -22,6 +22,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.resource.CloseableIterator;
+import alluxio.util.SleepUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
@@ -338,6 +339,8 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   public void close() {
     mClosed.set(true);
     LOG.info("RocksBlockStore is being closed");
+    // Sleep to wait for all concurrent readers to either complete or abort
+    SleepUtils.sleepMs(Configuration.getMs(PropertyKey.ROCKS_GRACEFUL_SHUTDOWN_TIMEOUT));
     mSize.reset();
     LOG.info("Closing RocksBlockStore and recycling all RocksDB JNI objects");
     mRocksStore.close();
