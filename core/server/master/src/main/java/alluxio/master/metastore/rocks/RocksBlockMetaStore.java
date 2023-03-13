@@ -15,6 +15,7 @@ import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.BlockMetaStore;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -60,7 +61,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Block store backed by RocksDB.
  */
 @ThreadSafe
-public class RocksBlockMetaStore implements BlockMetaStore {
+public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   private static final Logger LOG = LoggerFactory.getLogger(RocksBlockMetaStore.class);
   private static final String BLOCKS_DB_NAME = "blocks";
   private static final String BLOCK_META_COLUMN = "block-meta";
@@ -398,5 +399,15 @@ public class RocksBlockMetaStore implements BlockMetaStore {
 
   private RocksDB db() {
     return mRocksStore.getDb();
+  }
+
+  @Override
+  public RocksStore getRocksStore() {
+    return mRocksStore;
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.BLOCK_MASTER;
   }
 }

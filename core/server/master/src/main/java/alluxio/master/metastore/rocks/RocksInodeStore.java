@@ -16,14 +16,11 @@ import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.grpc.ErrorType;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.MutableInode;
-import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOption;
@@ -37,7 +34,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Longs;
-import io.grpc.Status;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
@@ -55,9 +51,6 @@ import org.rocksdb.WriteOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -68,8 +61,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -82,7 +73,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * File store backed by RocksDB.
  */
 @ThreadSafe
-public class RocksInodeStore implements InodeStore {
+public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   private static final Logger LOG = LoggerFactory.getLogger(RocksInodeStore.class);
   private static final String INODES_DB_NAME = "inodes";
   private static final String INODES_COLUMN = "inodes";
@@ -523,47 +514,8 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public CompletableFuture<Void> writeToCheckpoint(File directory,
-                                                   ExecutorService executorService) {
-    return CompletableFuture.runAsync(() -> {
-      LOG.debug("taking {} snapshot started", getCheckpointName());
-      File subDir = new File(directory, getCheckpointName().toString());
-      try {
-        mRocksStore.writeToCheckpoint(subDir);
-      } catch (RocksDBException e) {
-        throw new AlluxioRuntimeException(Status.INTERNAL,
-            String.format("Failed to restore snapshot %s", getCheckpointName()),
-            null, ErrorType.Internal, false);
-      }
-      LOG.debug("taking {} snapshot finished", getCheckpointName());
-    }, executorService);
-  }
-
-  @Override
-  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
-    mRocksStore.writeToCheckpoint(output);
-  }
-
-  @Override
-  public CompletableFuture<Void> restoreFromCheckpoint(File directory,
-                                                       ExecutorService executorService) {
-    return CompletableFuture.runAsync(() -> {
-      LOG.debug("loading {} snapshot started", getCheckpointName());
-      File subDir = new File(directory, getCheckpointName().toString());
-      try {
-        mRocksStore.restoreFromCheckpoint(subDir);
-      } catch (Exception e) {
-        throw new AlluxioRuntimeException(Status.INTERNAL,
-            String.format("Failed to restore snapshot %s", getCheckpointName()),
-            null, ErrorType.Internal, false);
-      }
-      LOG.debug("loading {} snapshot finished", getCheckpointName());
-    }, executorService);
-  }
-
-  @Override
-  public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
-    mRocksStore.restoreFromCheckpoint(input);
+  public RocksStore getRocksStore() {
+    return mRocksStore;
   }
 
   private class RocksWriteBatch implements WriteBatch {

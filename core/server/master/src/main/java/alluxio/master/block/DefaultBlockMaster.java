@@ -48,6 +48,7 @@ import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.journal.checkpoint.Checkpointed;
 import alluxio.master.metastore.BlockMetaStore;
 import alluxio.master.metastore.BlockMetaStore.Block;
 import alluxio.master.metrics.MetricsMaster;
@@ -88,6 +89,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.time.Clock;
@@ -105,6 +107,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -389,7 +392,26 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public CheckpointName getCheckpointName() {
+    if (mBlockMetaStore instanceof Checkpointed) {
+      return ((Checkpointed) mBlockMetaStore).getCheckpointName();
+    }
     return CheckpointName.BLOCK_MASTER;
+  }
+
+  @Override
+  public CompletableFuture<Void> writeToCheckpoint(File directory, ExecutorService executorService) {
+    if (mBlockMetaStore instanceof Checkpointed) {
+      return ((Checkpointed) mBlockMetaStore).writeToCheckpoint(directory, executorService);
+    }
+    return super.writeToCheckpoint(directory, executorService);
+  }
+
+  @Override
+  public CompletableFuture<Void> restoreFromCheckpoint(File directory, ExecutorService executorService) {
+    if (mBlockMetaStore instanceof Checkpointed) {
+      return ((Checkpointed) mBlockMetaStore).restoreFromCheckpoint(directory, executorService);
+    }
+    return super.restoreFromCheckpoint(directory, executorService);
   }
 
   @Override
