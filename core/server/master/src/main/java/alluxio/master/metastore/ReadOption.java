@@ -17,16 +17,18 @@ import javax.annotation.Nullable;
  * Options for reading from the inode store.
  */
 public class ReadOption {
-  private static final ReadOption DEFAULT = new ReadOption(false, null, null);
+  private static final ReadOption DEFAULT = new ReadOption(false, null, null, null);
 
   private final boolean mSkipCache;
   private final String mStartFrom;
   private final String mPrefix;
+  private final String mEndAt;
 
-  private ReadOption(boolean skipCache, String readFrom, String prefix) {
+  private ReadOption(boolean skipCache, String readFrom, String prefix, String stopAt) {
     mSkipCache = skipCache;
     mStartFrom = readFrom;
     mPrefix = prefix;
+    mEndAt = stopAt;
   }
 
   /**
@@ -41,6 +43,7 @@ public class ReadOption {
    * if traversal should start from the beginning
    */
   public @Nullable String getStartFrom() { return mStartFrom; }
+  public @Nullable String getEndAt() { return mEndAt; }
 
   /**
    * @return prefix to filter children path names from
@@ -68,6 +71,7 @@ public class ReadOption {
     private boolean mSkipCache = false;
     private String mReadFrom = null;
     private String mPrefix = null;
+    private String mStopAt = null;
 
     /**
      * Sets whether to skip caching.
@@ -100,11 +104,17 @@ public class ReadOption {
       return this;
     }
 
+    // inclusive
+    public Builder setStopAt(String stopAt) {
+      mStopAt = stopAt;
+      return this;
+    }
+
     /**
      * @return the built option
      */
     public ReadOption build() {
-      return new ReadOption(mSkipCache, mReadFrom, mPrefix);
+      return new ReadOption(mSkipCache, mReadFrom, mPrefix, mStopAt);
     }
   }
 }

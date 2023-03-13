@@ -69,7 +69,7 @@ public interface UnderFileSystem extends Closeable {
     public UfsStatus[] getUfsStatuses() {
       return mUfsStatuses;
     }
-    public boolean mShouldFetchNext() {
+    public boolean shouldFetchNext() {
       return mShouldFetchNext;
     }
   }

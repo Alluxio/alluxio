@@ -803,7 +803,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       public PartialListingResult call() throws IOException {
         PartialListingResult result = mUnderFileSystem.listStatusPartial(path, options);
         return new PartialListingResult(
-            filterInvalidPaths(result.getUfsStatuses(), path), result.mShouldFetchNext());
+            filterInvalidPaths(result.getUfsStatuses(), path), result.shouldFetchNext());
       }
 
       @Override

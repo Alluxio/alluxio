@@ -155,7 +155,6 @@ import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.MasterUfsManager;
-import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsMode;
@@ -164,7 +163,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.ListPartialOptions;
 import alluxio.underfs.options.MkdirsOptions;
-import alluxio.underfs.s3a.S3AUnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
@@ -452,7 +450,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       ThreadFactoryUtils.build("alluxio-ufs-active-sync-%d", false));
   private HeartbeatThread mReplicationCheckHeartbeatThread;
 
-  private final MetadataSyncer mMetadataSyncer = new MetadataSyncer();
+  private final MetadataSyncer mMetadataSyncer;
 
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
@@ -526,6 +524,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     FileSystemContext schedulerFsContext = FileSystemContext.create();
     JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(this);
     mScheduler = new Scheduler(new DefaultWorkerProvider(this, schedulerFsContext), jobMetaStore);
+    mLoadManager = new alluxio.master.file.loadmanager.LoadManager(this);
+    mMetadataSyncer = new MetadataSyncer(this, mInodeStore, mMountTable, mInodeTree);
 
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
@@ -4141,6 +4141,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   public void syncMetadata(AlluxioURI path, SyncMetadataContext context)
       throws InvalidPathException, IOException {
     // The followings are test code to test UFS partial listing
+    /*
     MountTable.Resolution reso = mMountTable.resolve(new AlluxioURI("/"));
     UnderFileSystem ufs = reso.acquireUfsResource().get();
     ListPartialOptions options = ListPartialOptions.defaults();
@@ -4151,8 +4152,14 @@ public class DefaultFileSystemMaster extends CoreMaster
     for (UfsStatus s: status.getUfsStatuses()) {
       System.out.println(s);
     }
-    System.out.println(status.mShouldFetchNext());
-    mMetadataSyncer.sync(path, context.getOptions().getIsRecursive());
+    System.out.println(status.shouldFetchNext());
+
+     */
+    try {
+      mMetadataSyncer.sync(path, true);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @FunctionalInterface

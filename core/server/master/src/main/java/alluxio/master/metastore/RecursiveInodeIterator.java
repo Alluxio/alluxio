@@ -4,15 +4,19 @@ import alluxio.AlluxioURI;
 import alluxio.master.file.meta.Inode;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
+import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 import java.util.function.Function;
+import javax.annotation.Nullable;
 
 public class RecursiveInodeIterator extends CloseableResource<Iterator<? extends Inode>>
     implements Iterator<Inode> {
@@ -24,6 +28,7 @@ public class RecursiveInodeIterator extends CloseableResource<Iterator<? extends
   Inode mCurrent;
   boolean mHasNextCalled = false;
   List<String> mPathComponents = new ArrayList<>();
+  List<String> mStartAfterPathComponents;
 
   /**
    * Creates a {@link CloseableResource} wrapper around the given resource. This resource will
@@ -38,11 +43,27 @@ public class RecursiveInodeIterator extends CloseableResource<Iterator<? extends
       boolean recursive
   ) {
     super(null);
-    mIteratorStack.push(inodeStore.getChildren(inodeId, readOption));
+    String startFrom = readOption.getStartFrom();
+    if (startFrom == null) {
+      mStartAfterPathComponents = Collections.emptyList();
+    } else {
+      try {
+        mStartAfterPathComponents = Arrays.asList(readOption.getStartFrom().split("/")); //Arrays.asList(PathUtils.getPathComponents(readOption.getStartFrom()));
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+    ReadOption firstReadOption;
+    if (mStartAfterPathComponents.size() > 0 ) {
+      firstReadOption = ReadOption.newBuilder().setReadFrom(mStartAfterPathComponents.get(0)).build();
+    } else {
+      firstReadOption = ReadOption.defaults();
+    }
+    mIteratorStack.push(inodeStore.getChildren(inodeId, firstReadOption));
     mInodeStore = inodeStore;
     mRecursive = recursive;
     // Add root
-    mPathComponents.add("");
+//    mPathComponents.add("");
   }
 
   @Override
@@ -84,7 +105,10 @@ public class RecursiveInodeIterator extends CloseableResource<Iterator<? extends
         mIteratorStack.peek(), CloseableIterator::hasNext
     )) {
       mIteratorStack.pop().close();
-      mPathComponents.remove(mPathComponents.size() - 1);
+      // When the iteration finishes, the size of mPathComponents is 0
+      if (mPathComponents.size() > 0) {
+        mPathComponents.remove(mPathComponents.size() - 1);
+      }
     }
     mHasNextCalled = true;
     return !mIteratorStack.isEmpty();
@@ -94,14 +118,32 @@ public class RecursiveInodeIterator extends CloseableResource<Iterator<? extends
   public Inode next() {
     Inode result = tryOnIterator(mIteratorStack.peek(), CloseableIterator::next);
     if (mRecursive) {
+      ReadOption readOption = ReadOption.newBuilder()
+          .setReadFrom(populateReadAfter(result.getName())).build();
       CloseableIterator<? extends Inode> nextLevelIterator =
-          mInodeStore.getChildren(result.getId());
+          mInodeStore.getChildren(result.getId(), readOption);
       mIteratorStack.push(nextLevelIterator);
     }
     mCurrent = result;
     mPathComponents.add(mCurrent.getName());
     mHasNextCalled = false;
     return mCurrent;
+  }
+
+  // TODO add comments
+  private @Nullable String populateReadAfter(String currentInodeName) {
+    if (mPathComponents.size() + 1 >= mStartAfterPathComponents.size()) {
+      return null;
+    }
+    for (int i = 0; i < mPathComponents.size(); ++i) {
+      if (!mPathComponents.get(i).equals(mStartAfterPathComponents.get(i))) {
+        return null;
+      }
+    }
+    if (!currentInodeName.equals(mStartAfterPathComponents.get(mPathComponents.size()))) {
+      return null;
+    }
+    return mStartAfterPathComponents.get(mPathComponents.size() + 1);
   }
 
   private <T> T tryOnIterator(CloseableIterator<? extends Inode> iterator, Function<CloseableIterator<? extends Inode>, T> supplier) {

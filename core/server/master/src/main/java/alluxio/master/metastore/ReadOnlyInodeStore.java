@@ -130,7 +130,10 @@ public interface ReadOnlyInodeStore extends Closeable {
       @Override
       public boolean hasNext() {
         advance();
-        return mNext != null;
+        if (mNext == null) {
+          return false;
+        }
+        return option.getEndAt() == null || mNext.getName().compareTo(option.getEndAt()) <= 0;
       }
 
       @Override

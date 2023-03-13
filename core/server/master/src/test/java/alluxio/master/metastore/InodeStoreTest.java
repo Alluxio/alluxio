@@ -395,6 +395,17 @@ public class InodeStoreTest {
     }
 
     iterator.close();
+
+    System.out.println("------------------------------");
+
+    iterator = mStore.getChildrenRecursively(0L, ReadOption.newBuilder().setReadFrom("a/c/f2").build(), true);
+    while(iterator.hasNext()) {
+      iterator.next();
+      System.out.println(String.join("/", iterator.getCurrentURI()));
+    }
+
+    iterator.close();
+
   }
 
 

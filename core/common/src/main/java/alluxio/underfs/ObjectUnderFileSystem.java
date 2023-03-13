@@ -1116,8 +1116,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       commonPrefixes = chunk.getCommonPrefixes();
     }
     for (String commonPrefix : commonPrefixes) {
-      if (commonPrefix.startsWith(keyPrefix)
-          && (startAfter == null || commonPrefix.compareTo(startAfter) > 0)) {
+      if (commonPrefix.startsWith(keyPrefix)) {
+//      if (commonPrefix.startsWith(keyPrefix)
+//          && (startAfter == null || commonPrefix.compareTo(startAfter) > 0)) {
         // Remove parent portion of the key
         String child = getChildName(commonPrefix, keyPrefix);
         // Remove any portion after the last path delimiter
