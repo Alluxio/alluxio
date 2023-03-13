@@ -86,7 +86,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class JournalStateMachine extends BaseStateMachine {
   private static final Logger LOG = LoggerFactory.getLogger(JournalStateMachine.class);
-  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.SECOND_MS);
 
   private static final CompletableFuture<Message> EMPTY_FUTURE =
       CompletableFuture.completedFuture(Message.EMPTY);
@@ -187,6 +187,9 @@ public class JournalStateMachine extends BaseStateMachine {
       mRaftGroupId = groupId;
       mStorage.init(raftStorage);
       loadSnapshot(mStorage.getLatestSnapshot());
+      synchronized (mSnapshotManager) {
+        mSnapshotManager.notifyAll();
+      }
     });
   }
 
@@ -196,6 +199,9 @@ public class JournalStateMachine extends BaseStateMachine {
     mStorage.loadLatestSnapshot();
     loadSnapshot(mStorage.getLatestSnapshot());
     unpause();
+    synchronized (mSnapshotManager) {
+      mSnapshotManager.notifyAll();
+    }
   }
 
   private synchronized void loadSnapshot(SingleFileSnapshotInfo snapshot) throws IOException {
@@ -214,6 +220,9 @@ public class JournalStateMachine extends BaseStateMachine {
       setLastAppliedTermIndex(snapshot.getTermIndex());
       install(snapshotFile);
       mSnapshotLastIndex = getLatestSnapshot() != null ? getLatestSnapshot().getIndex() : -1;
+      synchronized (mSnapshotManager) {
+        mSnapshotManager.notifyAll();
+      }
     } catch (Exception e) {
       throw new IOException(String.format("Failed to load snapshot %s", snapshot), e);
     }
@@ -222,6 +231,7 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public long takeSnapshot() {
     if (mIsLeader) {
+      SAMPLING_LOG.info("Calling take snapshot on leader");
       try {
         Preconditions.checkState(mServer.getGroups().iterator().hasNext());
         RaftGroup group = mServer.getGroups().iterator().next();
@@ -292,6 +302,9 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public void close() {
     mClosed = true;
+    synchronized (mSnapshotManager) {
+      mSnapshotManager.notifyAll();
+    }
   }
 
   @Override
@@ -312,6 +325,9 @@ public class JournalStateMachine extends BaseStateMachine {
   public void notifyNotLeader(Collection<TransactionContext> pendingEntries) {
     mIsLeader = false;
     mJournalSystem.notifyLeadershipStateChanged(false);
+    synchronized (mSnapshotManager) {
+      mSnapshotManager.notifyAll();
+    }
   }
 
   @Override
@@ -347,6 +363,9 @@ public class JournalStateMachine extends BaseStateMachine {
                 snapshotIndex.getIndex(), latestJournalIndex));
       }
       mSnapshotLastIndex = snapshotIndex.getIndex();
+      synchronized (mSnapshotManager) {
+        mSnapshotManager.notifyAll();
+      }
       return snapshotIndex;
     });
   }
@@ -546,6 +565,9 @@ public class JournalStateMachine extends BaseStateMachine {
       return last.getIndex();
     } finally {
       mSnapshotting = false;
+      synchronized (mSnapshotManager) {
+        mSnapshotManager.notifyAll();
+      }
     }
   }
 
