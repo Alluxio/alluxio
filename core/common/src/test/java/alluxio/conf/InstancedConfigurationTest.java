@@ -565,6 +565,7 @@ public class InstancedConfigurationTest {
   public void shortMasterHeartBeatTimeout() {
     mConfiguration.set(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL, "5min");
     mConfiguration.set(PropertyKey.MASTER_HEARTBEAT_TIMEOUT, "4min");
+    mConfiguration.set(PropertyKey.USER_CONF_SYNC_INTERVAL, "0");
     mThrown.expect(IllegalStateException.class);
     mConfiguration.validate();
   }
