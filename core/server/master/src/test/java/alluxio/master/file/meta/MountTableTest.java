@@ -32,6 +32,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.util.IdUtils;
 
+import org.checkerframework.checker.units.qual.A;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +43,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Unit tests for {@link MountTable}.
@@ -490,7 +492,7 @@ public final class MountTableTest extends BaseInodeLockingTest {
     executorService.shutdown();
     executorService.awaitTermination(5, TimeUnit.MINUTES);
     for (Map.Entry<String, MountInfo> entry: mMountTable.getMountTable().entrySet()) {
-      System.out.println("key: " + entry.getKey() + "; value: " + entry.getValue().getMountId());
+      System.out.println("key: " + entry.getKey() + "; value: " + entry.getValue().getAlluxioUri() + "; key: " + entry.getValue().getMountId());
     }
     Assert.assertEquals(mMountTable.getMountTable().size(), threadRange * threadCount + 2);
   }
@@ -597,15 +599,37 @@ public final class MountTableTest extends BaseInodeLockingTest {
   public void MultithreadGetMountTable() throws Exception {
     Assert.assertEquals(IdUtils.ROOT_MOUNT_ID,
         mMountTable.getMountInfo(new AlluxioURI(MountTable.ROOT)).getMountId());
+    LockedInodePath path1 = addMount("/mnt/foo", "/foo", 2);
+
+    int threadRange = 10;
+    int threadCount = 10;
+    AtomicReference<AssertionError> err = new AtomicReference<>();
+
+    Map<String, MountInfo> mountTable = new HashMap<>(threadRange + threadCount);
     ExecutorService executorService = Executors.newFixedThreadPool(100);
-    for (int i = 0; i < 100; i++) {
-      executorService.submit((new Runnable() {
-        @Override
-        public void run() {
-          mMountTable.getMountTable();
+
+    for (int i = 0; i < threadCount; i++) {
+      int rangeWithIn = i;
+      executorService.submit(() -> {
+        int w = rangeWithIn * threadRange;
+        for (int j = 0; j < threadRange; j++) {
+          try {
+            addMount(String.format("/mnt/test%s", w + j), String.format("/test%s", w + j), w + j);
+            try {
+              Assert.assertEquals(mMountTable.getMountTable().get(String.format("/mnt/test%s", w + j)).getAlluxioUri(), new AlluxioURI(String.format("/mnt/test%s", w + j)));
+              Assert.assertEquals(mMountTable.getMountTable().get(String.format("/mnt/test%s", w + j)).getMountId(), w + j);
+            } catch (AssertionError e) {
+              err.set(e);
+            }
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
         }
-      }));
+      });
     }
+    executorService.shutdown();
+    executorService.awaitTermination(5, TimeUnit.MINUTES);
+    Assert.assertEquals(null, err.get());
   }
 
 
