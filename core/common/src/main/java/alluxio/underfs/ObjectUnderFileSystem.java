@@ -23,6 +23,7 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
+import alluxio.underfs.options.ListPartialOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
@@ -189,6 +190,15 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      */
     @Nullable
     ObjectListingChunk getNextChunk() throws IOException;
+
+    /**
+     * Gets if there is more chunks to fetch WITHOUT actually fetching the next chunk.
+     * Used in metadata sync partial listing.
+     * @return true if there is, no if there isn't, NULL if it cannot be told
+     */
+    default @Nullable Boolean hasNextChunk() {
+      return null;
+    }
   }
 
   /**
@@ -935,6 +945,46 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       throws IOException;
 
   /**
+   * Gets a (partial) object listing result for the given key.
+   *
+   * @param key pseudo-directory key excluding header and bucket
+   * @param options the list partial option
+   * @return chunked object listing, or null if key is not found
+   */
+  @Nullable
+  protected ObjectListingChunk getObjectListingChunk(String key, ListPartialOptions options)
+      throws IOException {
+    throw new IllegalArgumentException("not supported");
+  }
+
+  @Nullable
+  @Override
+  public PartialListingResult listStatusPartial(String path, ListPartialOptions options) throws IOException {
+    ObjectListingChunk chunk = getObjectListingChunk(path, options);
+    if (chunk == null) {
+      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
+      if (getObjectStatus(keyAsFolder) != null) {
+        // Path is an empty directory
+        return new PartialListingResult(new UfsStatus[0], false);
+      }
+      return null;
+    } else {
+      Map<String, UfsStatus> children = new HashMap<>();
+      String keyPrefix = PathUtils.normalizePath(stripPrefixIfPresent(path), PATH_SEPARATOR);
+      keyPrefix = keyPrefix.equals(PATH_SEPARATOR) ? "" : keyPrefix;
+      populateUfsStatus(keyPrefix, chunk, options.isRecursive(), options.mStartAfter, children);
+      UfsStatus[] ret = new UfsStatus[children.size()];
+      int pos = 0;
+      for (UfsStatus status : children.values()) {
+        ret[pos++] = status;
+      }
+      Arrays.sort(ret, Comparator.comparing(UfsStatus::getName));
+      final Boolean hasNextChunk = chunk.hasNextChunk();
+      return new PartialListingResult(ret, hasNextChunk == null || hasNextChunk);
+    }
+  }
+
+  /**
    * Gets a (partial) object listing for the given path.
    *
    * @param path of pseudo-directory
@@ -993,81 +1043,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     keyPrefix = keyPrefix.equals(PATH_SEPARATOR) ? "" : keyPrefix;
     Map<String, UfsStatus> children = new HashMap<>();
     while (chunk != null) {
-      // Directories in UFS can be possibly encoded in two different ways:
-      // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or
-      // (2) as "common prefixes" of other files objects for directories not created through
-      // Alluxio
-      //
-      // Case (1) (and file objects) is accounted for by iterating over chunk.getObjects() while
-      // case (2) is accounted for by iterating over chunk.getCommonPrefixes().
-      //
-      // An example, with prefix="ufs" and delimiter="/" and LISTING_LENGTH=5
-      // - objects.key = ufs/, child =
-      // - objects.key = ufs/dir1<FOLDER_SUFFIX>, child = dir1
-      // - objects.key = ufs/file, child = file
-      // - commonPrefix = ufs/dir1/, child = dir1
-      // - commonPrefix = ufs/dir2/, child = dir2
-
-      // Handle case (1)
-      for (ObjectStatus status : chunk.getObjectStatuses()) {
-        // Remove parent portion of the key
-        String child = getChildName(status.getName(), keyPrefix);
-        if (child.isEmpty() || child.equals(getFolderSuffix())) {
-          // Removes results equal to the path
-          continue;
-        }
-        ObjectPermissions permissions = getPermissions();
-        if (child.endsWith(getFolderSuffix())) {
-          // Child is a directory
-          child = CommonUtils.stripSuffixIfPresent(child, getFolderSuffix());
-          children.put(child, new UfsDirectoryStatus(child, permissions.getOwner(),
-              permissions.getGroup(), permissions.getMode()));
-        } else {
-          // Child is a file
-          children.put(child,
-              new UfsFileStatus(child, status.getContentHash(), status.getContentLength(),
-                  status.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-                  permissions.getMode(),
-                  mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT)));
-        }
-      }
-      // Handle case (2)
-      String[] commonPrefixes;
-      if (options.isRecursive()) {
-        // In case of a recursive listing infer pseudo-directories as the commonPrefixes returned
-        // from the object store is empty for an empty delimiter.
-        HashSet<String> prefixes = new HashSet<>();
-        for (ObjectStatus objectStatus : chunk.getObjectStatuses()) {
-          String objectName = objectStatus.getName();
-          while (objectName.startsWith(keyPrefix) && objectName.contains(PATH_SEPARATOR)) {
-            objectName = objectName.substring(0, objectName.lastIndexOf(PATH_SEPARATOR));
-            if (!objectName.isEmpty()) {
-              // include the separator with the prefix, to conform to what object stores return
-              // as common prefixes.
-              prefixes.add(PathUtils.normalizePath(objectName, PATH_SEPARATOR));
-            }
-          }
-        }
-        commonPrefixes = prefixes.toArray(new String[0]);
-      } else {
-        commonPrefixes = chunk.getCommonPrefixes();
-      }
-      for (String commonPrefix : commonPrefixes) {
-        if (commonPrefix.startsWith(keyPrefix)) {
-          // Remove parent portion of the key
-          String child = getChildName(commonPrefix, keyPrefix);
-          // Remove any portion after the last path delimiter
-          int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
-          child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-          if (!child.isEmpty() && !children.containsKey(child)) {
-            // If both a file and a directory existed with the same name, the path will be
-            // treated as a directory
-            ObjectPermissions permissions = getPermissions();
-            children.put(child, new UfsDirectoryStatus(child, permissions.getOwner(),
-                permissions.getGroup(), permissions.getMode()));
-          }
-        }
-      }
+      populateUfsStatus(keyPrefix, chunk, options.isRecursive(), null, children);
       chunk = chunk.getNextChunk();
     }
     UfsStatus[] ret = new UfsStatus[children.size()];
@@ -1078,12 +1054,92 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     return ret;
   }
 
+  private void populateUfsStatus(
+      String keyPrefix, ObjectListingChunk chunk, boolean isRecursive, @Nullable String startAfter, Map<String, UfsStatus> ufsStatusMap) throws IOException {
+    // Directories in UFS can be possibly encoded in two different ways:
+    // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or
+    // (2) as "common prefixes" of other files objects for directories not created through
+    // Alluxio
+    //
+    // Case (1) (and file objects) is accounted for by iterating over chunk.getObjects() while
+    // case (2) is accounted for by iterating over chunk.getCommonPrefixes().
+    //
+    // An example, with prefix="ufs" and delimiter="/" and LISTING_LENGTH=5
+    // - objects.key = ufs/, child =
+    // - objects.key = ufs/dir1<FOLDER_SUFFIX>, child = dir1
+    // - objects.key = ufs/file, child = file
+    // - commonPrefix = ufs/dir1/, child = dir1
+    // - commonPrefix = ufs/dir2/, child = dir2
+
+    // Handle case (1)
+    for (ObjectStatus status : chunk.getObjectStatuses()) {
+      // Remove parent portion of the key
+      String child = getChildName(status.getName(), keyPrefix);
+      if (child.isEmpty() || child.equals(getFolderSuffix())) {
+        // Removes results equal to the path
+        continue;
+      }
+      ObjectPermissions permissions = getPermissions();
+      if (child.endsWith(getFolderSuffix())) {
+        // Child is a directory
+        child = CommonUtils.stripSuffixIfPresent(child, getFolderSuffix());
+        ufsStatusMap.put(child, new UfsDirectoryStatus(child, permissions.getOwner(),
+            permissions.getGroup(), permissions.getMode()));
+      } else {
+        // Child is a file
+        ufsStatusMap.put(child,
+            new UfsFileStatus(child, status.getContentHash(), status.getContentLength(),
+                status.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
+                permissions.getMode(),
+                mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT)));
+      }
+    }
+    // Handle case (2)
+    String[] commonPrefixes;
+    if (isRecursive) {
+      // In case of a recursive listing infer pseudo-directories as the commonPrefixes returned
+      // from the object store is empty for an empty delimiter.
+      HashSet<String> prefixes = new HashSet<>();
+      for (ObjectStatus objectStatus : chunk.getObjectStatuses()) {
+        String objectName = objectStatus.getName();
+        while (objectName.startsWith(keyPrefix) && objectName.contains(PATH_SEPARATOR)) {
+          objectName = objectName.substring(0, objectName.lastIndexOf(PATH_SEPARATOR));
+          if (!objectName.isEmpty()) {
+            // include the separator with the prefix, to conform to what object stores return
+            // as common prefixes.
+            prefixes.add(PathUtils.normalizePath(objectName, PATH_SEPARATOR));
+          }
+        }
+      }
+      commonPrefixes = prefixes.toArray(new String[0]);
+    } else {
+      commonPrefixes = chunk.getCommonPrefixes();
+    }
+    for (String commonPrefix : commonPrefixes) {
+      if (commonPrefix.startsWith(keyPrefix)
+          && (startAfter == null || commonPrefix.compareTo(startAfter) > 0)) {
+        // Remove parent portion of the key
+        String child = getChildName(commonPrefix, keyPrefix);
+        // Remove any portion after the last path delimiter
+        int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
+        child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
+        if (!child.isEmpty() && !ufsStatusMap.containsKey(child)) {
+          // If both a file and a directory existed with the same name, the path will be
+          // treated as a directory
+          ObjectPermissions permissions = getPermissions();
+          ufsStatusMap.put(child, new UfsDirectoryStatus(child, permissions.getOwner(),
+              permissions.getGroup(), permissions.getMode()));
+        }
+      }
+    }
+  }
+
   /**
-   * Creates a directory flagged file with the key and folder suffix.
-   *
-   * @param key the key to create a folder
-   * @return true if the operation was successful, false otherwise
-   */
+     * Creates a directory flagged file with the key and folder suffix.
+     *
+     * @param key the key to create a folder
+     * @return true if the operation was successful, false otherwise
+     */
   protected boolean mkdirsInternal(String key) {
     return createEmptyObject(convertToFolderName(stripPrefixIfPresent(key)));
   }

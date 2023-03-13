@@ -29,6 +29,7 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
+import alluxio.underfs.options.ListPartialOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.SecurityUtils;
@@ -790,6 +791,29 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String toString() {
         return String.format("path=%s", path);
+      }
+    });
+  }
+
+  @Nullable
+  @Override
+  public PartialListingResult listStatusPartial(String path, ListPartialOptions options) throws IOException {
+    return call(new UfsCallable<PartialListingResult>() {
+      @Override
+      public PartialListingResult call() throws IOException {
+        PartialListingResult result = mUnderFileSystem.listStatusPartial(path, options);
+        return new PartialListingResult(
+            filterInvalidPaths(result.getUfsStatuses(), path), result.mShouldFetchNext());
+      }
+
+      @Override
+      public String methodName() {
+        return "ListStatusPartial";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s, options=%s", path, options);
       }
     });
   }

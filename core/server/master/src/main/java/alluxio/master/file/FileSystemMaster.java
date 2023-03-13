@@ -642,5 +642,6 @@ public interface FileSystemMaster extends Master {
    * @param path the path to sync
    * @param context the method context
    */
-  void syncMetadata(AlluxioURI path, SyncMetadataContext context);
+  void syncMetadata(AlluxioURI path, SyncMetadataContext context)
+      throws InvalidPathException, IOException;
 }

@@ -18,6 +18,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.ListPartialOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
@@ -457,7 +458,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Nullable
   protected ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
       throws IOException {
-    String delimiter = recursive ? "" : PATH_SEPARATOR;
+    return getObjectListingChunk(key, ListPartialOptions.defaults().setRecursive(recursive));
+  }
+
+  @Nullable
+  @Override
+  protected ObjectListingChunk getObjectListingChunk(String key, ListPartialOptions options)
+      throws IOException {
+    String delimiter = options.isRecursive() ? "" : PATH_SEPARATOR;
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
     // In case key is root (empty string) do not normalize prefix.
     key = key.equals(PATH_SEPARATOR) ? "" : key;
@@ -474,6 +482,12 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       ListObjectsV2Request request =
           new ListObjectsV2Request().withBucketName(mBucketName).withPrefix(key)
               .withDelimiter(delimiter).withMaxKeys(getListingChunkLength(mUfsConf));
+      if (options.mStartAfter != null) {
+        request.setStartAfter(options.mStartAfter);
+      }
+      if (options.mBatchSize > 0) {
+        request.setMaxKeys(options.mBatchSize);
+      }
       ListObjectsV2Result result = getObjectListingChunk(request);
       if (result != null) {
         return new S3AObjectListingChunk(request, result);
@@ -553,6 +567,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         }
       }
       return null;
+    }
+
+    @Override
+    public Boolean hasNextChunk() {
+      return mResult.isTruncated();
     }
   }
 

@@ -35,6 +35,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.SyncMetadataPOptions;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -219,6 +220,11 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   public String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose) {
     return null;
+  }
+
+  @Override
+  public void syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+      throws AlluxioStatusException {
   }
 
   @Override

@@ -41,6 +41,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.SyncMetadataPOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.jnifuse.FuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;
@@ -312,6 +313,12 @@ public abstract class AbstractAuthPolicyTest {
     @Override
     public String getJobProgress(JobDescription jobDescription,
         JobProgressReportFormat format, boolean verbose) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+        throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
 

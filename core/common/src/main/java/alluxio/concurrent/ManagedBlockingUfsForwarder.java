@@ -29,6 +29,7 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
+import alluxio.underfs.options.ListPartialOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 
@@ -395,6 +396,17 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
       @Override
       public UfsStatus[] execute() throws IOException {
         return mUfs.listStatus(path, options);
+      }
+    }.get();
+  }
+
+  @Nullable
+  @Override
+  public PartialListingResult listStatusPartial(String path, ListPartialOptions options) throws IOException {
+    return new ManagedBlockingUfsMethod<PartialListingResult>() {
+      @Override
+      public PartialListingResult execute() throws IOException {
+        return mUfs.listStatusPartial(path, options);
       }
     }.get();
   }

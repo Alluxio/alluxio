@@ -155,13 +155,16 @@ import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.MasterUfsManager;
+import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.ListPartialOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.s3a.S3AUnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
@@ -4135,7 +4138,20 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void syncMetadata(AlluxioURI path, SyncMetadataContext context) {
+  public void syncMetadata(AlluxioURI path, SyncMetadataContext context)
+      throws InvalidPathException, IOException {
+    // The followings are test code to test UFS partial listing
+    MountTable.Resolution reso = mMountTable.resolve(new AlluxioURI("/"));
+    UnderFileSystem ufs = reso.acquireUfsResource().get();
+    ListPartialOptions options = ListPartialOptions.defaults();
+    options.setRecursive(true);
+    options.mBatchSize = 10;
+    options.mStartAfter = "bar/baz/a";
+    UnderFileSystem.PartialListingResult status = ufs.listStatusPartial("/", options);
+    for (UfsStatus s: status.getUfsStatuses()) {
+      System.out.println(s);
+    }
+    System.out.println(status.mShouldFetchNext());
     mMetadataSyncer.sync(path, context.getOptions().getIsRecursive());
   }
 
