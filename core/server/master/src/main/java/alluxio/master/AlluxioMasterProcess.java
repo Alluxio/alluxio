@@ -14,6 +14,7 @@ package alluxio.master;
 import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.AlluxioURI;
+import alluxio.ProcessUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -302,6 +303,10 @@ public class AlluxioMasterProcess extends MasterProcess {
     // sockets in stopServing so that clients don't see NPEs.
     mJournalSystem.losePrimacy();
     stopMasterComponents();
+
+    // TODO(jiacheng): is this a good place to dump information?
+    ProcessUtils.dumpInformation();
+
     LOG.info("Primary stopped");
     startMasterComponents(false);
     LOG.info("Standby started");

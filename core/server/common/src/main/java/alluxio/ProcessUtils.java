@@ -14,6 +14,8 @@ package alluxio;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 
+import alluxio.metrics.MetricsSystem;
+import alluxio.util.ThreadUtils;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +38,9 @@ public final class ProcessUtils {
       LOG.info("Java version: {}", System.getProperty("java.version"));
       process.start();
       LOG.info("Stopping {}.", process);
+
+      dumpInformation();
+
       System.exit(0);
     } catch (Throwable t) {
       LOG.error("Uncaught exception while running {}, stopping it and exiting. "
@@ -48,6 +53,8 @@ public final class ProcessUtils {
             + "Exception \"{}\", Root Cause \"{}\"", process, t2, Throwables.getRootCause(t2),
             t2);
       }
+      dumpInformation();
+
       System.exit(-1);
     }
   }
@@ -80,6 +87,9 @@ public final class ProcessUtils {
       throw new RuntimeException(message);
     }
     logger.error(message);
+
+    dumpInformation();
+
     System.exit(-1);
   }
 
@@ -100,6 +110,20 @@ public final class ProcessUtils {
         LOG.error("Failed to stop process", t);
       }
     }, "alluxio-process-shutdown-hook"));
+  }
+
+  public static void dumpInformation() {
+    LOG.info("Logging all useful information before exiting");
+
+    // TODO(jiacheng): consider using a separate File to record all these
+
+    // Log all threads
+    ThreadUtils.logAllThreads();
+
+    // Metrics
+    LOG.info("{}", MetricsSystem.METRIC_REGISTRY);
+
+    LOG.info("Metrics and jstack are persisted.");
   }
 
   private ProcessUtils() {} // prevent instantiation
