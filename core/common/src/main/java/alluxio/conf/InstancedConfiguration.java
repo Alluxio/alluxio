@@ -391,6 +391,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     checkTieredStorage();
     checkMasterThrottleThresholds();
     checkCheckpointZipConfig();
+    checkMasterTTLInterval();
   }
 
   @Override
@@ -502,6 +503,16 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     // heartbeat interval is worker-side.
   }
 
+  /**
+   * Checks that master TTL checker interval
+   * @throws IllegalStateException if the TTL check interval <= 0
+   */
+  private void checkMasterTTLInterval() {
+    long interval = getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS);
+    checkState(interval > 0,
+        "Invalid value of alluxio.master.ttl.checker.interval %s, it must be lager than 0", interval);
+  }
+  
   /**
    * Checks that the interval is shorter than the timeout.
    *
