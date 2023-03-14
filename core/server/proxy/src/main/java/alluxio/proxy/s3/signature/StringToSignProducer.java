@@ -100,11 +100,10 @@ public final class StringToSignProducer {
       SignatureInfo signatureInfo,
       HttpServletRequest request
   ) throws Exception {
-    URI uri = new URI(request.getRequestURL().toString());
     return createSignatureBase(signatureInfo,
-        request.getScheme()
+        request.getScheme(),
         request.getMethod(),
-        request.getRequestURI()
+        request.getRequestURI(),
         getHeaders(request),
         getParameterMap(request));
   }
