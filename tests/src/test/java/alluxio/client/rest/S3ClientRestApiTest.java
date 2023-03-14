@@ -78,9 +78,11 @@ import java.io.File;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.HttpMethod;
@@ -1481,9 +1483,19 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void completeMultipartUpload() throws Exception {
-    // Two temporary parts in the multipart upload, each part contains a random string,
-    // after completion, the object should contain the combination of the two strings.
+  public void completeMultipartUploadTest() throws Exception {
+    int numOfTestIter = 3;
+    int maxParts = 50;
+    int minParts = 15;
+    Random random = new Random();
+    for (int i = 0; i < numOfTestIter; i++) {
+      completeMultipartUpload(random.nextInt(maxParts - minParts) + minParts);
+    }
+  }
+
+  public void completeMultipartUpload(int partsNum) throws Exception {
+    // Random number of parts in the multipart upload, each part contains a random string,
+    // after completion, the object should contain the combination of these parts' content.
 
     final String bucketName = "bucket";
     createBucketRestCall(bucketName);
@@ -1498,25 +1510,32 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final String uploadId = multipartUploadResult.getUploadId();
 
     // Upload parts.
-    String object1 = CommonUtils.randomAlphaNumString(DATA_SIZE);
-    String object2 = CommonUtils.randomAlphaNumString(DATA_SIZE);
-    createObject(objectKey, object1.getBytes(), uploadId, 1);
-    createObject(objectKey, object2.getBytes(), uploadId, 2);
-
+    String[] objects = new String[partsNum];
+    List<Integer> parts = new ArrayList<>();
+    for (int i = 0; i < partsNum; i++) {
+      parts.add(i + 1);
+    }
+    Collections.shuffle(parts);
+    for (int partNum : parts) {
+      int idx = partNum - 1;
+      objects[idx] = CommonUtils.randomAlphaNumString(DATA_SIZE);
+      createObject(objectKey, objects[idx].getBytes(), uploadId, partNum);
+    }
     // Verify that the two parts are uploaded to the temporary directory.
     AlluxioURI tmpDir = new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(
         AlluxioURI.SEPARATOR + bucketName, objectName, uploadId));
-    Assert.assertEquals(2, mFileSystem.listStatus(tmpDir).size());
+    Assert.assertEquals(partsNum, mFileSystem.listStatus(tmpDir).size());
 
     // Complete the multipart upload.
     List<CompleteMultipartUploadRequest.Part> partList = new ArrayList<>();
-    partList.add(new CompleteMultipartUploadRequest.Part("", 1));
-    partList.add(new CompleteMultipartUploadRequest.Part("", 2));
+    for (int i = 1; i <= partsNum; i++) {
+      partList.add(new CompleteMultipartUploadRequest.Part("", i));
+    }
     result = completeMultipartUploadRestCall(objectKey, uploadId,
         new CompleteMultipartUploadRequest(partList));
 
     // Verify that the response is expected.
-    String expectedCombinedObject = object1 + object2;
+    String expectedCombinedObject = String.join("", objects);
     MessageDigest md5 = MessageDigest.getInstance("MD5");
     byte[] digest = md5.digest(expectedCombinedObject.getBytes());
     String etag = Hex.encodeHexString(digest);
