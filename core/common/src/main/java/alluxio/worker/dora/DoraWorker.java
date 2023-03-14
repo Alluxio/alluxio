@@ -21,6 +21,7 @@ import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 
 import java.io.IOException;
+import javax.annotation.Nullable;
 
 /**
  * A block worker in the Alluxio system.
@@ -47,6 +48,7 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    *         {@code null} if this abstract pathname does not denote a directory.
    * @throws IOException
    */
+  @Nullable
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
 
   /**
