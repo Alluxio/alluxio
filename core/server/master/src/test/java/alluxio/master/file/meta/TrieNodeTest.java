@@ -11,6 +11,8 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.proto.meta.InodeMeta;
+
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Test;
@@ -18,6 +20,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Tests {@link MountTableTrieNode}.
@@ -25,76 +28,76 @@ import java.util.Collections;
 public class TrieNodeTest extends BaseInodeLockingTest {
   @Test
   public void testInsert() {
-    MountTableTrieNode<Integer> root = new MountTableTrieNode<>();
-    root.insert(Arrays.asList(1, 2, 3));
-    root.insert(Arrays.asList(1, 4, 5));
-    root.insert(Arrays.asList(1, 6));
-    root.insert(Arrays.asList(1, 4, 9));
+    MountTableTrieNode root = new MountTableTrieNode();
+    root.insert(Arrays.asList(createDir(1L), createDir(2L), createDir(3L)));
+    root.insert(Arrays.asList(createDir(1L), createDir(4L), createDir(5L)));
+    root.insert(Arrays.asList(createDir(1L), createDir(6L)));
+    root.insert(Arrays.asList(createDir(1L), createDir(4L), createDir(9L)));
 
-    MountTableTrieNode<Integer> node1 = root.lowestMatchedTrieNode(Collections.singletonList(1),
+    MountTableTrieNode node1 = root.lowestMatchedTrieNode(Collections.singletonList(createDir(1L)),
         false, true);
 
-    Assert.assertEquals(Sets.newHashSet(2, 4, 6), node1.childrenKeys());
-    Assert.assertEquals(Sets.newHashSet(5, 9), node1.getChild(4).childrenKeys());
-    Assert.assertNull(root.getChild(10));
+    Assert.assertEquals(Sets.newHashSet(createDir(2L), createDir(4L), createDir(6L)), node1.childrenKeys());
+    Assert.assertEquals(Sets.newHashSet(createDir(5L), createDir(9L)), node1.getChild(createDir(4L)).childrenKeys());
+    Assert.assertNull(root.getChild(createDir(10L)));
   }
 
   @Test
   public void testLowestMatchedTrieNode() {
-    MountTableTrieNode<Integer> root = new MountTableTrieNode<>();
+    MountTableTrieNode root = new MountTableTrieNode();
 
-    root.insert(Arrays.asList(1, 2, 3));
-    root.insert(Arrays.asList(1, 4, 5));
-    root.insert(Arrays.asList(1, 6));
-    root.insert(Arrays.asList(1, 4, 9));
+    root.insert(Arrays.asList(createDir(1L), createDir(2L), createDir(3L)));
+    root.insert(Arrays.asList(createDir(1L), createDir(4L), createDir(5L)));
+    root.insert(Arrays.asList(createDir(1L), createDir(6L)));
+    root.insert(Arrays.asList(createDir(1L), createDir(4L), createDir(9L)));
 
-    MountTableTrieNode<Integer> node1 = root.lowestMatchedTrieNode(Collections.singletonList(1),
+    MountTableTrieNode node1 = root.lowestMatchedTrieNode(Collections.singletonList(createDir(1L)),
         false, false);
-    Assert.assertEquals(Sets.newHashSet(2, 4, 6), node1.childrenKeys());
+    Assert.assertEquals(Sets.newHashSet(createDir(2L), createDir(4L), createDir(6L)), node1.childrenKeys());
     Assert.assertEquals(node1, node1.lowestMatchedTrieNode(new ArrayList<>(), false, false));
     Assert.assertNull(node1.lowestMatchedTrieNode(new ArrayList<>(), true, false));
-    Assert.assertNull(node1.lowestMatchedTrieNode(Arrays.asList(3, 5), true, true));
-    Assert.assertNull(node1.lowestMatchedTrieNode(Arrays.asList(3, 5), true, false));
-    Assert.assertNotNull(node1.lowestMatchedTrieNode(Arrays.asList(3, 5), false, false));
+    Assert.assertNull(node1.lowestMatchedTrieNode(Arrays.asList(createDir(3L), createDir(5L)), true, true));
+    Assert.assertNull(node1.lowestMatchedTrieNode(Arrays.asList(createDir(3L), createDir(5L)), true, false));
+    Assert.assertNotNull(node1.lowestMatchedTrieNode(Arrays.asList(createDir(3L), createDir(5L)), false, false));
   }
 
   @Test
   public void testRemove() {
-    MountTableTrieNode<Integer> root = new MountTableTrieNode<>();
+    MountTableTrieNode root = new MountTableTrieNode();
 
-    root.insert(Arrays.asList(1, 2, 3));
-    root.insert(Arrays.asList(1, 4, 5));
-    root.insert(Arrays.asList(1, 6));
-    root.insert(Arrays.asList(1, 4, 9));
+    root.insert(Arrays.asList(createDir(1L), createDir(2L), createDir(3L)));
+    root.insert(Arrays.asList(createDir(1L), createDir(4L), createDir(5L)));
+    root.insert(Arrays.asList(createDir(1L), createDir(6L)));
+    root.insert(Arrays.asList(createDir(1L), createDir(4L), createDir(9L)));
 
-    MountTableTrieNode<Integer> node1 = root.lowestMatchedTrieNode(Collections.singletonList(1), false,
+    MountTableTrieNode node1 = root.lowestMatchedTrieNode(Collections.singletonList(createDir(1L)), false,
         true);
     // remove a path that is not existed will return null
-    Assert.assertNull(root.remove(Arrays.asList(1, 7, 9)));
+    Assert.assertNull(root.remove(Arrays.asList(createDir(1L), createDir(7L), createDir(9L))));
     // remove a non-terminal path will return null
-    Assert.assertNull(root.remove(Arrays.asList(1, 4)));
+    Assert.assertNull(root.remove(Arrays.asList(createDir(1L), createDir(4L))));
     // remove a terminal path successfully
-    Assert.assertNotNull(root.remove(Arrays.asList(1, 4, 9)));
+    Assert.assertNotNull(root.remove(Arrays.asList(createDir(1L), createDir(4L), createDir(9L))));
     // node '4' has child after the remove, so it is still the child of node '1'
-    Assert.assertNotNull(node1.getChild(4));
-    Assert.assertNotNull(root.remove(Arrays.asList(1, 4, 5)));
+    Assert.assertNotNull(node1.getChild(createDir(4L)));
+    Assert.assertNotNull(root.remove(Arrays.asList(createDir(1L), createDir(4L), createDir(5L))));
     // node '4' has no child after the remove, so it will be removed by the above remove call
-    Assert.assertNull(node1.getChild(4));
+    Assert.assertNull(node1.getChild(createDir(4L)));
   }
 
   @Test
   public void testDescendents() {
-    MountTableTrieNode<Integer> root = new MountTableTrieNode<>();
+    MountTableTrieNode root = new MountTableTrieNode();
 
-    root.insert(Arrays.asList(1, 2, 3));
-    root.insert(Arrays.asList(1, 4));
+    root.insert(Arrays.asList(createDir(1L), createDir(2L), createDir(3L)));
+    root.insert(Arrays.asList(createDir(1L), createDir(4L)));
 
-    MountTableTrieNode<Integer> node1 = root.lowestMatchedTrieNode(Collections.singletonList(1), false, true);
-    MountTableTrieNode<Integer> node2 = node1.lowestMatchedTrieNode(Collections.singletonList(2), false,
+    MountTableTrieNode node1 = root.lowestMatchedTrieNode(Collections.singletonList(createDir(1L)), false, true);
+    MountTableTrieNode node2 = node1.lowestMatchedTrieNode(Collections.singletonList(createDir(2L)), false,
         true);
-    MountTableTrieNode<Integer> node3 = node2.lowestMatchedTrieNode(Collections.singletonList(3), false,
+    MountTableTrieNode node3 = node2.lowestMatchedTrieNode(Collections.singletonList(createDir(3L)), false,
         true);
-    MountTableTrieNode<Integer> node4 = node1.lowestMatchedTrieNode(Collections.singletonList(4), false,
+    MountTableTrieNode node4 = node1.lowestMatchedTrieNode(Collections.singletonList(createDir(4L)), false,
         true);
 
     Assert.assertEquals(Arrays.asList(node1, node2, node4, node3), root.descendants(false,
@@ -105,4 +108,14 @@ public class TrieNodeTest extends BaseInodeLockingTest {
     Assert.assertTrue(node2.hasNestedTerminalTrieNodes(false));
     Assert.assertFalse(node3.hasNestedTerminalTrieNodes(false));
   }
+  private MutableInodeDirectory createDir(long fileId) {
+    InodeMeta.InodeOrBuilder builder = InodeMeta.Inode.newBuilder()
+        .setId(fileId)
+        .setPersistenceState(PersistenceState.PERSISTED.toString())
+        .setIsDirectory(true)
+        .setDefaultAcl(
+            alluxio.proto.shared.Acl.AccessControlList.newBuilder().setIsDefault(true).build());
+    return MutableInodeDirectory.fromProto(builder);
+  }
 }
+
