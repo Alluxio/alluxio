@@ -616,6 +616,13 @@ message LoadJobPOptions {
   optional bool partialListing = 3;
 }
 
+message CopyJobPOptions {
+  optional int64 bandwidth = 1;
+  optional bool verify = 2;
+  optional bool partialListing = 3;
+  optional bool overwrite = 4;
+}
+
 message StopJobPRequest {
   required JobDescription jobDescription = 1;
 }
