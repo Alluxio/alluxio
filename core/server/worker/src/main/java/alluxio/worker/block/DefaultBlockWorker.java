@@ -573,7 +573,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         mBlockStore.removeInaccessibleStorage();
       } catch (Exception e) {
         LOG.warn("Failed to check storage: {}", e.toString());
-        LOG.debug("Exception: ", e);
+        LOG.error("Exception: ", e);
       }
     }
 

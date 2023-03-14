@@ -135,7 +135,7 @@ public final class PlanCoordinator {
           definition.selectExecutors(mPlanInfo.getJobConfig(), workersInfoListCopy, context);
     } catch (Exception e) {
       LOG.warn("Failed to select executor. {})", e.toString());
-      LOG.info("Exception: ", e);
+      LOG.error("Exception: ", e);
       setJobAsFailed(ErrorUtils.getErrorType(e), e.getMessage());
       return;
     }

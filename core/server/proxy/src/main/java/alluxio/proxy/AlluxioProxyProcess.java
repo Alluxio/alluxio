@@ -115,7 +115,7 @@ public final class AlluxioProxyProcess implements ProxyProcess {
           LOG.debug(IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8));
           return false;
         } catch (IOException e) {
-          LOG.debug("Exception: ", e);
+          LOG.error("Exception: ", e);
           return false;
         }
       }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));

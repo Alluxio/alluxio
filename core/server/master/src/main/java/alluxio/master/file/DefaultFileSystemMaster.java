@@ -4603,10 +4603,10 @@ public class DefaultFileSystemMaster extends CoreMaster
           } catch (FileDoesNotExistException | InvalidPathException e) {
             LOG.warn("The file {} (id={}) to be persisted was not found : {}", uri, fileId,
                 e.toString());
-            LOG.debug("Exception: ", e);
+            LOG.error("Exception: ", e);
           } catch (ResourceExhaustedException e) {
             LOG.warn("The job service is busy, will retry later: {}", e.toString());
-            LOG.debug("Exception: ", e);
+            LOG.error("Exception: ", e);
             mQuietPeriodSeconds = (mQuietPeriodSeconds == 0) ? 1 :
                 Math.min(MAX_QUIET_PERIOD_SECONDS, mQuietPeriodSeconds * 2);
             remove = false;
@@ -4616,7 +4616,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           } catch (Exception e) {
             LOG.warn("Unexpected exception encountered when scheduling the persist job for file {} "
                 + "(id={}) : {}", uri, fileId, e.toString());
-            LOG.debug("Exception: ", e);
+            LOG.error("Exception: ", e);
           } finally {
             if (remove) {
               mPersistRequests.remove(fileId);
@@ -4747,7 +4747,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       } catch (FileDoesNotExistException | InvalidPathException e) {
         LOG.warn("The file {} (id={}) to be persisted was not found: {}", job.getUri(), fileId,
             e.toString());
-        LOG.debug("Exception: ", e);
+        LOG.error("Exception: ", e);
         // Cleanup the temporary file.
         if (ufsClient != null) {
           try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
@@ -4759,7 +4759,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             "Unexpected exception encountered when trying to complete persistence of a file {} "
                 + "(id={}) : {}",
             job.getUri(), fileId, e.toString());
-        LOG.debug("Exception: ", e);
+        LOG.error("Exception: ", e);
         if (ufsClient != null) {
           try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
             cleanup(ufsResource.get(), tempUfsPath);
@@ -4873,13 +4873,13 @@ public class DefaultFileSystemMaster extends CoreMaster
             } catch (alluxio.exception.status.NotFoundException e) {
               LOG.warn("Persist job (id={}) for file {} (id={}) to cancel was not found: {}",
                   job.getId(), job.getUri(), fileId, e.toString());
-              LOG.debug("Exception: ", e);
+              LOG.error("Exception: ", e);
               mPersistJobs.remove(fileId);
               continue;
             } catch (Exception e) {
               LOG.warn("Unexpected exception encountered when cancelling a persist job (id={}) for "
                   + "file {} (id={}) : {}", job.getId(), job.getUri(), fileId, e.toString());
-              LOG.debug("Exception: ", e);
+              LOG.error("Exception: ", e);
             } finally {
               mJobMasterClientPool.release(client);
             }
@@ -4922,7 +4922,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           LOG.warn("Exception encountered when trying to retrieve the status of a "
                   + " persist job (id={}) for file {} (id={}): {}.", jobId, job.getUri(), fileId,
               e.toString());
-          LOG.debug("Exception: ", e);
+          LOG.error("Exception: ", e);
           mPersistJobs.remove(fileId);
           mPersistRequests.put(fileId, job.getTimer());
         } finally {

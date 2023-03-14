@@ -155,7 +155,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       // ignore
       LOG.warn("Cannot create SupportedHdfsAclProvider. HDFS ACLs is not supported, "
           + "Please upgrade to an HDFS version > 2.4 to enable support for ACL");
-      LOG.debug("Exception:", e);
+      LOG.error("Exception:", e);
     }
     mHdfsAclProvider = hdfsAclProvider;
 

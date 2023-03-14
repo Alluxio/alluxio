@@ -288,7 +288,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
                   "Unexpected exception encountered when starting a migration job (uri={},"
                       + " block ID={}, workerHost= {}) : {}",
                   inodePath.getUri(), blockId, entry.getKey(), e.toString());
-              LOG.debug("Exception: ", e);
+              LOG.error("Exception: ", e);
             }
           }
         }
@@ -394,7 +394,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
               "Unexpected exception encountered when starting a {} job (uri={},"
                   + " block ID={}, num replicas={}) : {}",
               mode, uri, blockId, numReplicas, e.toString());
-          LOG.debug("Job service unexpected exception: ", e);
+          LOG.error("Job service unexpected exception: ", e);
         }
       }
     }
