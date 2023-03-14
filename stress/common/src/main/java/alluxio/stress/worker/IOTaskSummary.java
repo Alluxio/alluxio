@@ -153,6 +153,8 @@ public class IOTaskSummary implements Summary {
     public double mMaxSpeedMbps;
     public double mMinSpeedMbps;
     public double mAvgSpeedMbps;
+
+    public double mClusterAvgSpeedMbps;
     public double mStdDev;
 
     /**
@@ -163,9 +165,10 @@ public class IOTaskSummary implements Summary {
     @Override
     public String toString() {
       return String.format("{totalDuration=%ss, totalSize=%s, maxSpeed=%sMB/s, "
-                      + "minSpeed=%sMB/s, " + "avgSpeed=%sMB/s, stdDev=%s}",
+                      + "minSpeed=%sMB/s, " + "avgSpeed=%sMB/s, clusterAvgSpeed=%sMB/s, "
+                      + "stdDev=%s}",
               mTotalDurationSeconds, FormatUtils.getSizeFromBytes(mTotalSizeBytes),
-              mMaxSpeedMbps, mMinSpeedMbps, mAvgSpeedMbps, mStdDev);
+              mMaxSpeedMbps, mMinSpeedMbps, mAvgSpeedMbps, mClusterAvgSpeedMbps, mStdDev);
     }
   }
 
@@ -202,6 +205,7 @@ public class IOTaskSummary implements Summary {
     result.mMaxSpeedMbps = maxSpeed;
     result.mMinSpeedMbps = Double.compare(minSpeed, Double.MAX_VALUE) == 0 ? 0.0 : minSpeed;
     result.mAvgSpeedMbps = avgSpeed;
+    result.mClusterAvgSpeedMbps = avgSpeed * points.size();
     result.mStdDev = Math.sqrt(var);
 
     return result;
