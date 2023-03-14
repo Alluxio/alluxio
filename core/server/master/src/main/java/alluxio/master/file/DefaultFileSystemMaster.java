@@ -116,6 +116,7 @@ import alluxio.master.journal.FileSystemMergeJournalContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.JournaledGroup;
+import alluxio.master.journal.MetadataSyncMergeJournalContext;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
@@ -1080,6 +1081,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     Metrics.GET_FILE_INFO_OPS.inc();
     LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, false);
     boolean ufsAccessed = false;
+    // List status might journal inode access time update journals.
+    // We want these journals to be added to the async writer immediately instead of being merged.
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("listStatus", path, null, null)) {
@@ -1190,7 +1193,22 @@ public class DefaultFileSystemMaster extends CoreMaster
               context.setTotalListings(1);
             }
             // perform the listing
-            listStatusInternal(context, rpcContext, inodePath, auditContext,
+            // Do not use merge journal context for list status internal method.
+            // Most of the journals are update inode access time journals and there is
+            // nothing we can merge and hence we don't want these logs kept in the journal context,
+            // and we want them to be added into the journal writer ASAP.
+            JournalContext journalContext = rpcContext.getJournalContext();
+            RpcContext nonJournalMergingRpcContext = rpcContext;
+            if (mMergeInodeJournals && journalContext instanceof FileSystemMergeJournalContext) {
+              nonJournalMergingRpcContext = new RpcContext(
+                  rpcContext.getBlockDeletionContext(),
+                  new MetadataSyncMergeJournalContext(
+                      ((FileSystemMergeJournalContext) journalContext)
+                          .getUnderlyingJournalContext(),
+                      new FileSystemJournalEntryMerger()),
+                  rpcContext.getOperationContext());
+            }
+            listStatusInternal(context, nonJournalMergingRpcContext, inodePath, auditContext,
                 descendantTypeForListStatus, resultStream, 0, resolution == null ? null :
                     Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
                         Metrics.UFSOps.GET_FILE_INFO),

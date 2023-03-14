@@ -1386,16 +1386,16 @@ public class InodeSyncStream {
 
   protected RpcContext getMetadataSyncRpcContext() {
     JournalContext journalContext = mRpcContext.getJournalContext();
-    if (!mUseFileSystemMergeJournalContext
-        || !(journalContext instanceof FileSystemMergeJournalContext)) {
-      return mRpcContext;
+    if (mUseFileSystemMergeJournalContext
+        && journalContext instanceof FileSystemMergeJournalContext) {
+      return new RpcContext(
+          mRpcContext.getBlockDeletionContext(),
+          new MetadataSyncMergeJournalContext(
+              ((FileSystemMergeJournalContext) journalContext).getUnderlyingJournalContext(),
+              new FileSystemJournalEntryMerger()),
+          mRpcContext.getOperationContext());
     }
-    return new RpcContext(
-        mRpcContext.getBlockDeletionContext(),
-        new MetadataSyncMergeJournalContext(
-            ((FileSystemMergeJournalContext) journalContext).getUnderlyingJournalContext(),
-            new FileSystemJournalEntryMerger()),
-        mRpcContext.getOperationContext());
+    return mRpcContext;
   }
 
   @Override
