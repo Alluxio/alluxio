@@ -11,7 +11,7 @@
 
 package alluxio.master.journal.checkpoint;
 
-import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorInputStream;
+import net.jpountz.lz4.LZ4FrameInputStream;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -28,7 +28,7 @@ public class OptimizedCheckpointInputStream extends CheckpointInputStream {
    * @throws IOException propagates wrapped input stream exceptions
    */
   public OptimizedCheckpointInputStream(File file) throws IOException {
-    super(new BlockLZ4CompressorInputStream(
+    super(new LZ4FrameInputStream(
         new BufferedInputStream(Files.newInputStream(file.toPath()),
             OptimizedCheckpointOutputStream.BUFFER_SIZE)));
   }

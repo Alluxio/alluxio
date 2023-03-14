@@ -13,8 +13,7 @@ package alluxio.master.journal.checkpoint;
 
 import alluxio.util.FormatUtils;
 
-import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorOutputStream;
-import org.apache.commons.compress.compressors.lz77support.Parameters;
+import net.jpountz.lz4.LZ4FrameOutputStream;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -35,13 +34,8 @@ public class OptimizedCheckpointOutputStream extends OutputStream {
    * @throws IOException propagates wrapped output stream exceptions
    */
   public OptimizedCheckpointOutputStream(File file) throws IOException {
-    Parameters options = BlockLZ4CompressorOutputStream.createParameterBuilder()
-        .tunedForSpeed()
-        .build();
-
-    mOutputStream = new BlockLZ4CompressorOutputStream(
-        new BufferedOutputStream(Files.newOutputStream(file.toPath()), BUFFER_SIZE),
-        options);
+    mOutputStream = new LZ4FrameOutputStream(
+        new BufferedOutputStream(Files.newOutputStream(file.toPath()), BUFFER_SIZE));
   }
 
   @Override
