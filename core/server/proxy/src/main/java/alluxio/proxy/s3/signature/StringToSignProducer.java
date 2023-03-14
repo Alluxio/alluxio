@@ -102,7 +102,7 @@ public final class StringToSignProducer {
   ) throws Exception {
     URI uri = new URI(request.getRequestURL().toString());
     return createSignatureBase(signatureInfo,
-        uri.getScheme(),
+        request.getScheme()
         request.getMethod(),
         uri.getPath(),
         getHeaders(request),
