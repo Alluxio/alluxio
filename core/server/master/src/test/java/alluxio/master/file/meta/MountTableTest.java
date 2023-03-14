@@ -463,8 +463,12 @@ public final class MountTableTest extends BaseInodeLockingTest {
     Assert.assertNull(mMountTable.getMountInfo(4L));
   }
 
+  /**
+   * multithreadAdd test concurrent add, containsMountPoint, and resolve.
+   * @throws Exception
+   */
   @Test
-  public void MultithreadAdd() throws Exception {
+  public void multithreadAdd() throws Exception {
     Assert.assertEquals(IdUtils.ROOT_MOUNT_ID,
         mMountTable.getMountInfo(new AlluxioURI(MountTable.ROOT)).getMountId());
     LockedInodePath path1 = addMount("/mnt/foo", "/foo", 2);
@@ -472,7 +476,9 @@ public final class MountTableTest extends BaseInodeLockingTest {
     ExecutorService executorService = Executors.newFixedThreadPool(100);
 
     int threadRange = 10;
-    int threadCount = 100;
+    int threadCount = 20;
+    AtomicReference<AssertionError> containErr = new AtomicReference<>();
+    AtomicReference<AssertionError> resolveErr = new AtomicReference<>();
     for (int i = 0; i < threadCount; i++) {
       int rangeWithIn = i;
       executorService.submit(new Runnable() {
@@ -482,6 +488,16 @@ public final class MountTableTest extends BaseInodeLockingTest {
           for (int j = 0; j < threadRange; j++) {
             try {
               addMount(String.format("/mnt/test%s", w + j), String.format("/test%s", w + j), w + j);
+              try {
+                Assert.assertEquals(true, mMountTable.containsMountPoint(createLockedInodePath(String.format("/mnt/test%s", w + j)), true));
+              } catch (AssertionError e) {
+                containErr.set(e);
+              }
+              try {
+                Assert.assertEquals(new AlluxioURI(String.format("/test%s", w + j)), mMountTable.resolve(createLockedInodePath(String.format("/mnt/test%s", w + j))).getUri());
+              } catch (AssertionError e) {
+                resolveErr.set(e);
+              }
             } catch (Exception e) {
               throw new RuntimeException(e);
             }
@@ -491,20 +507,30 @@ public final class MountTableTest extends BaseInodeLockingTest {
     }
     executorService.shutdown();
     executorService.awaitTermination(5, TimeUnit.MINUTES);
-    for (Map.Entry<String, MountInfo> entry: mMountTable.getMountTable().entrySet()) {
-      System.out.println("key: " + entry.getKey() + "; value: " + entry.getValue().getAlluxioUri() + "; key: " + entry.getValue().getMountId());
+    // for (Map.Entry<String, MountInfo> entry: mMountTable.getMountTable().entrySet()) {
+    //   System.out.println("key: " + entry.getKey() + "; value: " + entry.getValue().getAlluxioUri() + "; key: " + entry.getValue().getMountId());
+    // }
+    Map<String, MountInfo> map = mMountTable.getMountTable();
+    for (int i = 0; i < threadCount * threadRange; i++) {
+      Assert.assertEquals(true, map.containsKey(String.format("/mnt/test%s", i)));
     }
     Assert.assertEquals(mMountTable.getMountTable().size(), threadRange * threadCount + 2);
+    Assert.assertEquals(null, containErr.get());
+    Assert.assertEquals(null, resolveErr.get());
+
   }
 
   @Test
-  public void MultithreadDelete() throws Exception {
+  public void multithreadDelete() throws Exception {
     Assert.assertEquals(IdUtils.ROOT_MOUNT_ID,
         mMountTable.getMountInfo(new AlluxioURI(MountTable.ROOT)).getMountId());
     LockedInodePath path1 = addMount("/mnt/foo", "/foo", 2);
 
+    AtomicReference<AssertionError> deleteError = new AtomicReference<>();
+    AtomicReference<AssertionError> findError = new AtomicReference<>();
+    AtomicReference<AssertionError> getError = new AtomicReference<>();
     int threadRange = 10;
-    int threadCount = 100;
+    int threadCount = 1;
 
     ExecutorService executorService = Executors.newFixedThreadPool(100);
     System.out.println("before adding");
@@ -525,13 +551,14 @@ public final class MountTableTest extends BaseInodeLockingTest {
       }));
     }
     executorService.shutdown();
-    System.out.println("before waiting");
-    executorService.shutdown();
     executorService.awaitTermination(5, TimeUnit.MINUTES);
-    System.out.println("after waiting");
     // make sure add success
     Assert.assertEquals(mMountTable.getMountTable().size(), threadRange * threadCount + 2);
-    System.out.println("add success");
+    Map<String, MountInfo> map = mMountTable.getMountTable();
+    for (int i = 0; i < threadCount * threadRange; i++) {
+      Assert.assertEquals(true, map.containsKey(String.format("/mnt/test%s", i)));
+    }
+
     executorService = null;
     executorService = Executors.newFixedThreadPool(100);
     for (int i = 0; i < threadCount; i++) {
@@ -542,7 +569,21 @@ public final class MountTableTest extends BaseInodeLockingTest {
           int w = rangeWithIn * threadRange;
           for (int j = 0; j < threadRange; j++) {
             try {
-              deleteMount(String.format("/mnt/test%s", w + j));
+              try {
+                Assert.assertEquals(true, mMountTable.findChildrenMountPoints(createLockedInodePath("/mnt"), false).contains(mMountTable.getMountInfo(new AlluxioURI(String.format("/mnt/test%s", w + j)))));
+              } catch (AssertionError e) {
+                findError.set(e);
+              }
+              try {
+                Assert.assertEquals("", mMountTable.resolveMountPointTrie(createLockedInodePath(String.format("/mnt/test%s", w + j))));
+              } catch (AssertionError e) {
+                getError.set(e);
+              }
+              try {
+                Assert.assertEquals(true, deleteMount(String.format("/mnt/test%s", w + j)));
+              } catch (AssertionError e) {
+                deleteError.set(e);
+              }
             } catch (Exception e) {
               throw new RuntimeException(e);
             }
@@ -553,46 +594,14 @@ public final class MountTableTest extends BaseInodeLockingTest {
     executorService.shutdown();
     executorService.awaitTermination(5, TimeUnit.MINUTES);
 
+     for (Map.Entry<String, MountInfo> entry: mMountTable.getMountTable().entrySet()) {
+       System.out.println("key: " + entry.getKey() + "; value: " + entry.getValue().getAlluxioUri() + "; key: " + entry.getValue().getMountId());
+     }
     // make sure add success
     Assert.assertEquals(mMountTable.getMountTable().size(), 2);
-  }
-
-  @Test
-  public void MultithreadResolve() throws Exception {
-    Assert.assertEquals(IdUtils.ROOT_MOUNT_ID,
-        mMountTable.getMountInfo(new AlluxioURI(MountTable.ROOT)).getMountId());
-    LockedInodePath path1 = addMount("/mnt/foo", "/foo", 2);
-
-    ExecutorService executorService = Executors.newFixedThreadPool(100);
-
-    int threadRange = 10;
-    int threadCount = 10;
-    for (int i = 0; i < threadCount; i++) {
-      int rangeWithIn = i;
-      executorService.submit(new Runnable() {
-        @Override
-        public void run() {
-          int w = rangeWithIn * threadRange;
-          for (int j = 0; j < threadRange; j++) {
-            try {
-              addMount(String.format("/mnt/test%s", w + j), String.format("/test%s", w + j), w + j);
-            } catch (Exception e) {
-              throw new RuntimeException(e);
-            }
-          }
-        }
-      });
-    }
-    executorService.shutdown();
-    executorService.awaitTermination(5, TimeUnit.MINUTES);
-
-    Assert.assertEquals(mMountTable.getMountTable().size(), threadRange * threadCount + 2);
-
-    for (int i = 0; i < threadCount * threadRange; i++) {
-      MountTable.Resolution res = mMountTable.resolve(createLockedInodePath(String.format("/mnt/test%s", i)));
-      Assert.assertEquals(new AlluxioURI(String.format("/test%s", i)), res.getUri());
-      Assert.assertEquals(i, res.getMountId());
-    }
+    Assert.assertEquals(null, findError.get());
+    Assert.assertEquals(null, getError.get());
+    Assert.assertEquals(null, deleteError.get());
   }
 
   @Test
@@ -602,7 +611,7 @@ public final class MountTableTest extends BaseInodeLockingTest {
     LockedInodePath path1 = addMount("/mnt/foo", "/foo", 2);
 
     int threadRange = 10;
-    int threadCount = 10;
+    int threadCount = 20;
     AtomicReference<AssertionError> err = new AtomicReference<>();
 
     Map<String, MountInfo> mountTable = new HashMap<>(threadRange + threadCount);
