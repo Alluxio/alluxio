@@ -15,15 +15,12 @@ import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
-import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorInputStream;
-import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
@@ -49,8 +46,7 @@ public interface Checkpointed {
     return CompletableFuture.runAsync(() -> {
       LOG.debug("taking {} snapshot started", getCheckpointName());
       File file = new File(directory, getCheckpointName().toString());
-      try (OutputStream outputStream =
-               new BlockLZ4CompressorOutputStream(Files.newOutputStream(file.toPath()))) {
+      try (OutputStream outputStream = new OptimizedCheckpointOutputStream(file)) {
         writeToCheckpoint(outputStream);
       } catch (Exception e) {
         throw new AlluxioRuntimeException(Status.INTERNAL,
@@ -82,8 +78,7 @@ public interface Checkpointed {
     return CompletableFuture.runAsync(() -> {
       LOG.debug("loading {} snapshot started", getCheckpointName());
       File file = new File(directory, getCheckpointName().toString());
-      try (CheckpointInputStream is = new CheckpointInputStream(
-          new BlockLZ4CompressorInputStream(Files.newInputStream(file.toPath())))) {
+      try (CheckpointInputStream is = new OptimizedCheckpointInputStream(file)) {
         restoreFromCheckpoint(is);
       } catch (IOException e) {
         throw new AlluxioRuntimeException(Status.INTERNAL,

@@ -296,6 +296,7 @@ public class JournalStateMachine extends BaseStateMachine {
     if (index != RaftLog.INVALID_LOG_INDEX) {
       mSnapshotLastIndex = index;
       mLastSnapshotTime = System.currentTimeMillis();
+      LOG.debug("Took snapshot up to index {} at time {}", mSnapshotLastIndex, mLastSnapshotTime);
     }
     return index;
   }
@@ -586,12 +587,13 @@ public class JournalStateMachine extends BaseStateMachine {
           .map(journaled -> journaled.writeToCheckpoint(snapshotDir, mJournalPool))
           .toArray(CompletableFuture[]::new))
           .join();
-
+      LOG.debug("Finished writing all state machine, now writing SNAPSHOT_ID");
       long snapshotId = mNextSequenceNumberToRead - 1;
       try (DataOutputStream idFile = new DataOutputStream(
           Files.newOutputStream(new File(snapshotDir, "SNAPSHOT_ID").toPath()))) {
         idFile.writeLong(snapshotId);
       }
+      LOG.debug("Wrote SNAPSHOT_ID {}", snapshotId);
       mStorage.loadLatestSnapshot();
       mStorage.signalNewSnapshot();
       return last.getIndex();
