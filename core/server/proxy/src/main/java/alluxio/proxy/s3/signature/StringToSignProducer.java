@@ -175,7 +175,6 @@ public final class StringToSignProducer {
     String canonicalUri = getCanonicalUri("/", uri);
 
     String canonicalQueryStr = getQueryParamString(queryParams);
-    System.out.println(canonicalQueryStr);
 
     StringBuilder canonicalHeaders = new StringBuilder();
 
