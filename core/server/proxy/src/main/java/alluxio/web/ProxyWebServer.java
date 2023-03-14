@@ -166,10 +166,8 @@ public final class ProxyWebServer extends WebServer {
                   new StreamCache(Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
               getServletContext().setAttribute(ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY,
                   mAsyncAuditLogWriter);
-              if (Configuration.getBoolean(PropertyKey.PROXY_S3_V2_ASYNC_PROCESSING_ENABLED)) {
-                getServletContext().setAttribute(PROXY_S3_V2_LIGHT_POOL, createLightThreadPool());
-                getServletContext().setAttribute(PROXY_S3_V2_HEAVY_POOL, createHeavyThreadPool());
-              }
+              getServletContext().setAttribute(PROXY_S3_V2_LIGHT_POOL, createLightThreadPool());
+              getServletContext().setAttribute(PROXY_S3_V2_HEAVY_POOL, createHeavyThreadPool());
               getServletContext().setAttribute(PROXY_S3_HANDLER_MAP, mS3HandlerMap);
             }
           });
