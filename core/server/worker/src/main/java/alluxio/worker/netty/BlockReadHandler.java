@@ -17,8 +17,6 @@ import alluxio.StorageTierAssoc;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.grpc.ErrorType;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.FileTransferType;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -34,7 +32,6 @@ import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.block.io.StoreBlockReader;
 
 import com.google.common.base.Preconditions;
-import io.grpc.Status;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
