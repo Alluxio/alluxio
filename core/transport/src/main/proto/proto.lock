@@ -8367,6 +8367,11 @@
                 "id": 6,
                 "name": "open_ufs_block_options",
                 "type": "OpenUfsBlockOptions"
+              },
+              {
+                "id": 8,
+                "name": "request_id",
+                "type": "int64"
               }
             ]
           },
@@ -8565,6 +8570,11 @@
                 "id": 2,
                 "name": "message",
                 "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "request_id",
+                "type": "int64"
               }
             ]
           },

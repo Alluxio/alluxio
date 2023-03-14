@@ -28,6 +28,8 @@ message ReadRequest {
 
   // This is only set for UFS block read.
   optional OpenUfsBlockOptions open_ufs_block_options = 6;
+
+  optional int64 request_id = 8;
 }
 
 // Options for caching a block asynchronously
@@ -122,6 +124,7 @@ message Heartbeat {
 message Response {
   optional status.PStatus status = 1;
   optional string message = 2;
+  optional int64 request_id = 3;
 }
 
 // Netty RPCs. Every RPC needs to define a request type and optionally a response type (default to Response).
