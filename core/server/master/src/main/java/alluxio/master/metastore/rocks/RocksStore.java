@@ -65,6 +65,8 @@ public final class RocksStore implements Closeable {
 
   private final int mCompressLevel = ServerConfiguration.getInt(
       PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
+  private final boolean mParallelBackup = ServerConfiguration.getBoolean(
+          PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP);
 
   private RocksDB mDb;
   private Checkpoint mCheckpoint;
@@ -205,17 +207,13 @@ public final class RocksStore implements Closeable {
     } catch (RocksDBException e) {
       throw new IOException(e);
     }
-    LOG.info("Checkpoint complete, creating tarball");
-    TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), output, mCompressLevel);
 
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP)) {
+    if (mParallelBackup) {
       CheckpointOutputStream out = new CheckpointOutputStream(output,
           CheckpointType.ROCKS_PARALLEL);
       LOG.info("Checkpoint complete, compressing with {} threads", mParallelBackupPoolSize);
-      int compressLevel = ServerConfiguration.getInt(
-          PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL);
       ParallelZipUtils.compress(Paths.get(mDbCheckpointPath), out,
-          mParallelBackupPoolSize, compressLevel);
+          mParallelBackupPoolSize, mCompressLevel);
     } else {
       CheckpointOutputStream out = new CheckpointOutputStream(output, CheckpointType.ROCKS_SINGLE);
       LOG.info("Checkpoint complete, compressing with one thread");
