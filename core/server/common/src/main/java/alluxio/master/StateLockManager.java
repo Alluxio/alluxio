@@ -180,6 +180,7 @@ public class StateLockManager {
       // Grab the lock interruptibly.
       mStateLock.readLock().lockInterruptibly();
     } catch (Error e) {
+      // TODO(jiacheng): this can be removed as ProcessUtils is dumping
       // An Error is thrown when the lock is acquired 65536 times, log the jstack before exiting
       LOG.error("Logging all thread stacks before exiting", e);
       ThreadUtils.logAllThreads();

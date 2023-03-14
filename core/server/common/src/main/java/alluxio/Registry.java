@@ -187,6 +187,7 @@ public class Registry<T extends Server<U>, U> {
         result.add(dep);
       }
     }
+    System.out.println("Dependency chain is: " + result);
     return result;
   }
 

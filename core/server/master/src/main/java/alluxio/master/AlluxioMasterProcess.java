@@ -304,8 +304,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     mJournalSystem.losePrimacy();
     stopMasterComponents();
 
-    // TODO(jiacheng): is this a good place to dump information?
-    ProcessUtils.dumpInformation();
+    ProcessUtils.dumpInformationOnFailover();
 
     LOG.info("Primary stopped");
     startMasterComponents(false);
