@@ -78,6 +78,7 @@ import java.io.File;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1510,9 +1511,15 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     // Upload parts.
     String[] objects = new String[partsNum];
+    List<Integer> parts = new ArrayList<>();
     for (int i = 0; i < partsNum; i++) {
-      objects[i] = CommonUtils.randomAlphaNumString(DATA_SIZE);
-      createObject(objectKey, objects[i].getBytes(), uploadId, i + 1);
+      parts.add(i + 1);
+    }
+    Collections.shuffle(parts);
+    for (int partNum : parts) {
+      int idx = partNum - 1;
+      objects[idx] = CommonUtils.randomAlphaNumString(DATA_SIZE);
+      createObject(objectKey, objects[idx].getBytes(), uploadId, partNum);
     }
     // Verify that the two parts are uploaded to the temporary directory.
     AlluxioURI tmpDir = new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(
