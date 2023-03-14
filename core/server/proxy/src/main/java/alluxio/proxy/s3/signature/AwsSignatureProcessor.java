@@ -114,8 +114,13 @@ public class AwsSignatureProcessor {
       SignatureInfo signatureInfo = parseSignature();
       String stringToSign = "";
       if (signatureInfo.getVersion() == SignatureInfo.Version.V4) {
-        stringToSign =
-                StringToSignProducer.createSignatureBase(signatureInfo, mContext);
+        if (mContext != null) {
+          stringToSign =
+              StringToSignProducer.createSignatureBase(signatureInfo, mContext);
+        } else {
+          stringToSign =
+              StringToSignProducer.createSignatureBase(signatureInfo, mServletRequest);
+        }
       }
       String awsAccessId = signatureInfo.getAwsAccessId();
       // ONLY validate aws access id when needed.

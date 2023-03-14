@@ -36,11 +36,15 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 
 /**
@@ -81,6 +85,27 @@ public final class StringToSignProducer {
         S3RestUtils.fromMultiValueToSingleValueMap(context.getHeaders(), true),
         S3RestUtils.fromMultiValueToSingleValueMap(
             context.getUriInfo().getQueryParameters(), false));
+  }
+
+  /**
+   * Convert signature info to strToSign.
+   *
+   * @param signatureInfo
+   * @param request
+   * @return signature string
+   * @throws Exception
+   */
+  public static String createSignatureBase(
+      SignatureInfo signatureInfo,
+      HttpServletRequest request
+  ) throws Exception {
+    URI uri = new URI(request.getRequestURL().toString());
+    return createSignatureBase(signatureInfo,
+        uri.getScheme(),
+        request.getMethod(),
+        uri.getPath(),
+        getHeaders(request),
+        getParameterMap(request));
   }
 
   /**
@@ -137,6 +162,28 @@ public final class StringToSignProducer {
     }
 
     return strToSign.toString();
+  }
+
+  private static Map<String, String> getHeaders(HttpServletRequest request) {
+    Map<String, String> result = new TreeMap<>(String::compareToIgnoreCase);
+    Enumeration<String> headerNames = request.getHeaderNames();
+    if (headerNames != null) {
+      while (headerNames.hasMoreElements()) {
+        String name = headerNames.nextElement();
+        String value = request.getHeader(name);
+        result.put(name, value);
+      }
+    }
+    return result;
+  }
+
+  private static Map<String, String> getParameterMap(HttpServletRequest request) {
+    Map<String, String[]> parameterMap = request.getParameterMap();
+    Map<String, String> result = new HashMap<>();
+    for (String key : parameterMap.keySet()) {
+      result.put(key, parameterMap.get(key)[0]);
+    }
+    return result;
   }
 
   /**
