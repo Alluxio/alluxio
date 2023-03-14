@@ -37,13 +37,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 
@@ -178,12 +179,9 @@ public final class StringToSignProducer {
   }
 
   private static Map<String, String> getParameterMap(HttpServletRequest request) {
-    Map<String, String[]> parameterMap = request.getParameterMap();
-    Map<String, String> result = new HashMap<>();
-    for (String key : parameterMap.keySet()) {
-      result.put(key, parameterMap.get(key)[0]);
-    }
-    return result;
+    return request.getParameterMap().entrySet()
+        .stream()
+        .collect(Collectors.toMap(Entry::getKey, e -> e.getValue()[0]));
   }
 
   /**
