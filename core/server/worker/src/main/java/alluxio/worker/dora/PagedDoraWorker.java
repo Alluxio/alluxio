@@ -244,8 +244,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       // Not found in cache. Query the Under File System.
       statuses = mUfs.listStatus(path, options);
       // Add this into cache. Return value might be null if not found.
-      if (statuses != null)
+      if (statuses != null) {
         mListStatusCache.put(path, statuses);
+      }
     }
     return statuses;
   }
