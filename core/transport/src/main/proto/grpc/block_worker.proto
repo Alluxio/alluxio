@@ -16,6 +16,13 @@ service BlockWorker {
    * Returns the status of the file or directory.
    */
   rpc GetStatus (grpc.file.GetStatusPRequest) returns (grpc.file.GetStatusPResponse);
+  /**
+   * If the path points to a file, the method returns a singleton with its file information.
+   * If the path points to a directory, the method returns a list with file information for the
+   * directory contents.
+   */
+  rpc ListStatus(grpc.file.ListStatusPRequest) returns (stream grpc.file.ListStatusPResponse);
+
 
   rpc ReadBlock (stream ReadRequest) returns (stream ReadResponse);
   rpc WriteBlock (stream WriteRequest) returns (stream WriteResponse);

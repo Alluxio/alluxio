@@ -18,11 +18,16 @@ import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.ListStatusPRequest;
+import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
+import alluxio.underfs.UfsStatus;
+import alluxio.underfs.options.ListOptions;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.dora.DoraWorker;
+import alluxio.worker.dora.PagedDoraWorker;
 
 import com.google.common.collect.ImmutableMap;
 import io.grpc.MethodDescriptor;
@@ -98,6 +103,36 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       responseObserver.onCompleted();
     } catch (IOException e) {
       LOG.error(String.format("Failed to get status of %s: ", request.getPath()), e);
+      responseObserver.onError(e);
+    }
+  }
+
+  @Override
+  public void listStatus(ListStatusPRequest request,
+                         StreamObserver<ListStatusPResponse> responseObserver) {
+    LOG.debug("listStatus is called for {}", request.getPath());
+
+    try {
+      ListOptions options = ListOptions.defaults().setRecursive(
+          request.getOptions().hasRecursive() ? request.getOptions().getRecursive() : false);
+      UfsStatus[] statuses = mWorker.listStatus(request.getPath(), options);
+
+      ListStatusPResponse.Builder builder = ListStatusPResponse.newBuilder();
+
+      for (int i = 0; i < statuses.length; i++) {
+        UfsStatus status = statuses[i];
+        String ufsFullPath = status.getName();
+        alluxio.grpc.FileInfo fi =
+            ((PagedDoraWorker) mWorker).buildFileInfoFromUfsStatus(status, ufsFullPath);
+
+        builder.addFileInfos(fi);
+      }
+      ListStatusPResponse response = builder.build();
+
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    } catch (Exception e) {
+      LOG.error(String.format("Failed to list status of %s: ", request.getPath()), e);
       responseObserver.onError(e);
     }
   }
