@@ -7426,6 +7426,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
+  public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_TTL =
+      durationBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_TTL)
+          .setDefaultValue("2min")
+          .setDescription("The TTL of the cache of UFS list status results")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
+
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -8954,6 +8962,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String DORA_WORKER_METASTORE_ROCKSDB_TTL =
         "alluxio.dora.worker.metastore.rocksdb.ttl";
+
+    public static final String DORA_UFS_LIST_STATUS_CACHE_TTL =
+        "alluxio.dora.ufs.list.status.cache.ttl";
 
     private Name() {} // prevent instantiation
   }
