@@ -104,7 +104,7 @@ public final class StringToSignProducer {
     return createSignatureBase(signatureInfo,
         request.getScheme()
         request.getMethod(),
-        uri.getPath(),
+        request.getRequestURI()
         getHeaders(request),
         getParameterMap(request));
   }
