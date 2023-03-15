@@ -121,6 +121,7 @@ public final class ThreadUtils {
    * @param title  a string title for the stack trace
    */
   public static synchronized void printThreadInfo(PrintStream stream, String title) {
+    stream.println("Process Thread Dump: " + title);
     for (ThreadInfo ti: THREAD_BEAN.dumpAllThreads(true, true)) {
       stream.print(ti.toString());
     }
