@@ -63,7 +63,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
-import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -76,8 +75,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * thus the state changing functions are not thread safe.
  */
 @NotThreadSafe
-public class LoadJob implements Job<LoadJob.LoadTask> {
-  private static final Logger LOG = LoggerFactory.getLogger(LoadJob.class);
+public class CopyJob implements Job<CopyJob.CopyTask> {
+  private static final Logger LOG = LoggerFactory.getLogger(CopyJob.class);
   public static final String TYPE = "load";
   private static final double FAILURE_RATIO_THRESHOLD = 0.05;
   private static final int FAILURE_COUNT_THRESHOLD = 100;
@@ -88,8 +87,10 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
       (fileInfo) -> !fileInfo.isFolder() && fileInfo.isCompleted() && fileInfo.isPersisted()
           && fileInfo.getInAlluxioPercentage() != 100;
   // Job configurations
-  private final String mPath;
+  private final String mSrc;
+  private final String mDst;
   private final Optional<String> mUser;
+
   private OptionalLong mBandwidth;
   private boolean mUsePartialListing;
   private boolean mVerificationEnabled;
@@ -116,22 +117,9 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
 
   /**
    * Constructor.
-   * @param path file path
-   * @param user user for authentication
-   * @param bandwidth bandwidth
-   * @param fileIterator file iterator
-   */
-  @VisibleForTesting
-  public LoadJob(String path, String user, OptionalLong bandwidth,
-      FileIterable fileIterator) {
-    this(path, Optional.of(user), UUID.randomUUID().toString(), bandwidth, false, false,
-        fileIterator);
-  }
-
-  /**
-   * Constructor.
    *
-   * @param path                file path
+   * @param src                file source
+   * @param dst                file destination
    * @param user                user for authentication
    * @param jobId               job identifier
    * @param bandwidth           bandwidth
@@ -139,12 +127,14 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
    * @param verificationEnabled whether to verify the job after loaded
    * @param fileIterable        file iterable
    */
-  public LoadJob(
-      String path,
+  public CopyJob(
+      String src,
+      String dst,
       Optional<String> user, String jobId, OptionalLong bandwidth,
       boolean usePartialListing,
       boolean verificationEnabled, FileIterable fileIterable) {
-    mPath = requireNonNull(path, "path is null");
+    mSrc = requireNonNull(src, "src is null");
+    mDst = requireNonNull(dst, "dst is null");
     mUser = requireNonNull(user, "user is null");
     mJobId = requireNonNull(jobId, "jobId is null");
     Preconditions.checkArgument(
@@ -163,7 +153,7 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
    * @return file path
    */
   public String getPath() {
-    return mPath;
+    return mSrc;
   }
 
   /**
@@ -181,7 +171,7 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
 
   @Override
   public JobDescription getDescription() {
-    return JobDescription.newBuilder().setPath(mPath).setType(TYPE).build();
+    return JobDescription.newBuilder().setPath(mSrc).setType(TYPE).build();
   }
 
   /**
@@ -309,7 +299,7 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    LoadJob that = (LoadJob) o;
+    CopyJob that = (CopyJob) o;
     return Objects.equal(getDescription(), that.getDescription());
   }
 
@@ -359,12 +349,12 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
    * @param worker blocker to worker
    * @return the next task to run. If there is no task to run, return empty
    */
-  public Optional<LoadTask> getNextTask(WorkerInfo worker) {
+  public Optional<CopyTask> getNextTask(WorkerInfo worker) {
     List<Block> blocks = getNextBatchBlocks(BATCH_SIZE);
     if (blocks.isEmpty()) {
       return Optional.empty();
     }
-    return Optional.of(new LoadTask(blocks));
+    return Optional.of(new CopyTask(blocks));
   }
 
   /**
@@ -468,7 +458,8 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("Path", mPath)
+        .add("Src", mSrc)
+        .add("Dst", mDst)
         .add("User", mUser)
         .add("Bandwidth", mBandwidth)
         .add("UsePartialListing", mUsePartialListing)
@@ -494,9 +485,10 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
 
   @Override
   public Journal.JournalEntry toJournalEntry() {
-    alluxio.proto.journal.Job.LoadJobEntry.Builder jobEntry = alluxio.proto.journal.Job.LoadJobEntry
+    alluxio.proto.journal.Job.CopyJobEntry.Builder jobEntry = alluxio.proto.journal.Job.CopyJobEntry
         .newBuilder()
-        .setLoadPath(mPath)
+        .setSrc(mSrc)
+        .setDst(mDst)
         .setState(JobState.toProto(mState))
         .setPartialListing(mUsePartialListing)
         .setVerify(mVerificationEnabled)
@@ -506,7 +498,7 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
     mEndTime.ifPresent(jobEntry::setEndTime);
     return Journal.JournalEntry
         .newBuilder()
-        .setLoadJob(jobEntry.build())
+        .setCopyJob(jobEntry.build())
         .build();
   }
 
@@ -520,7 +512,7 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
   }
 
   @Override
-  public boolean processResponse(LoadTask loadTask) {
+  public boolean processResponse(CopyTask loadTask) {
     try {
       long totalBytes = loadTask.getBlocks().stream()
           .map(Block::getLength)
@@ -573,10 +565,10 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
 
   @Override
   public void updateJob(Job<?> job) {
-    if (!(job instanceof LoadJob)) {
+    if (!(job instanceof CopyJob)) {
       throw new IllegalArgumentException("Job is not a LoadJob: " + job);
     }
-    LoadJob targetJob = (LoadJob) job;
+    CopyJob targetJob = (CopyJob) job;
     updateBandwidth(targetJob.getBandwidth());
     setVerificationEnabled(targetJob.isVerificationEnabled());
   }
@@ -584,7 +576,7 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
   /**
    * Loads blocks in a UFS through an Alluxio worker.
    */
-  public class LoadTask extends Task<LoadResponse> {
+  public class CopyTask extends Task<LoadResponse> {
 
     /**
      * @return blocks to load
@@ -596,11 +588,11 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
     private final List<Block> mBlocks;
 
     /**
-     * Creates a new instance of {@link LoadTask}.
+     * Creates a new instance of {@link CopyTask}.
      *
      * @param blocks blocks to load
      */
-    public LoadTask(List<Block> blocks) {
+    public CopyTask(List<Block> blocks) {
       mBlocks = blocks;
     }
 
@@ -638,7 +630,7 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
     private final long mFailedFileCount;
     private final Map<String, String> mFailedFilesWithReasons;
 
-    public LoadProgressReport(LoadJob job, boolean verbose)
+    public LoadProgressReport(CopyJob job, boolean verbose)
     {
       mVerbose = verbose;
       mJobState = job.mState;
