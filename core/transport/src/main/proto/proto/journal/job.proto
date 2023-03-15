@@ -10,7 +10,7 @@ enum PJobState {
     FAILED = 4;
 }
 
-// next available id: 8
+// next available id: 9
 message LoadJobEntry {
   required string load_path = 1;
   required PJobState state = 2;
@@ -20,4 +20,18 @@ message LoadJobEntry {
   required bool partialListing = 6;
   required string job_id = 7;
   optional int64 end_time = 8;
+}
+
+// next available id: 11
+message CopyJobEntry {
+  required string src = 1;
+  required string dst = 2;
+  required PJobState state = 3;
+  optional int64 bandwidth = 4;
+  required bool verify = 5;
+  optional string user = 6;
+  required bool partialListing = 7;
+  required string job_id = 8;
+  optional int64 end_time = 9;
+  optional int64 overwrite = 10;
 }
