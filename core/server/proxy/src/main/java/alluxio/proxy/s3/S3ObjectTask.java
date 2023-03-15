@@ -37,6 +37,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
 import alluxio.util.ThreadUtils;
+import alluxio.web.ProxyWebServer;
 
 import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -44,6 +45,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
 import com.google.common.primitives.Longs;
+import com.google.common.util.concurrent.RateLimiter;
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
@@ -311,7 +313,20 @@ public class S3ObjectTask extends S3BaseTask {
             RangeFileInStream ris = RangeFileInStream.Factory.create(
                 is, status.getLength(), s3Range);
 
-            Response.ResponseBuilder res = Response.ok(ris, MediaType.APPLICATION_OCTET_STREAM_TYPE)
+            InputStream inputStream;
+            RateLimiter globalRateLimiter = (RateLimiter) mHandler.getServletContext()
+                .getAttribute(ProxyWebServer.GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY);
+            long rate = (long) mHandler.getMetaFS().getConf()
+                .getInt(PropertyKey.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB) * Constants.MB;
+            RateLimiter currentRateLimiter = S3RestUtils.createRateLimiter(rate).orElse(null);
+            if (currentRateLimiter == null && globalRateLimiter == null) {
+              inputStream = ris;
+            } else {
+              inputStream = new RateLimitInputStream(ris, globalRateLimiter, currentRateLimiter);
+            }
+
+            Response.ResponseBuilder res = Response.ok(inputStream,
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE)
                 .lastModified(new Date(status.getLastModificationTimeMs()))
                 .header(S3Constants.S3_CONTENT_LENGTH_HEADER,
                     s3Range.getLength(status.getLength()));
@@ -454,6 +469,7 @@ public class S3ObjectTask extends S3BaseTask {
                   .setWriteType(S3RestUtils.getS3WriteType())
                   .putAllXattr(xattrMap)
                   .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                  .setOverwrite(true)
                   .build();
 
           try {
@@ -560,11 +576,6 @@ public class S3ObjectTask extends S3BaseTask {
         } else {
           toRead = Long.parseLong(contentLength);
         }
-        try {
-          S3RestUtils.deleteExistObject(userFs, objectUri);
-        } catch (IOException | AlluxioException e) {
-          throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath(), auditContext);
-        }
         FileOutStream os = userFs.createFile(objectUri, createFilePOptions);
         try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
           long read = ByteStreams.copy(ByteStreams.limit(readStream, toRead),
@@ -657,11 +668,6 @@ public class S3ObjectTask extends S3BaseTask {
         throw new S3Exception("Copying an object to itself invalid.",
             targetPath, S3ErrorCode.INVALID_REQUEST);
       }
-      try {
-        S3RestUtils.deleteExistObject(userFs, objectUri);
-      } catch (IOException | AlluxioException e) {
-        throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath(), auditContext);
-      }
       try (FileInStream in = userFs.openFile(new AlluxioURI(sourcePath));
            FileOutStream out = userFs.createFile(objectUri, copyFilePOption)) {
         MessageDigest md5 = MessageDigest.getInstance("MD5");
@@ -726,6 +732,7 @@ public class S3ObjectTask extends S3BaseTask {
                       .setOtherBits(Bits.NONE).build())
                   .setWriteType(S3RestUtils.getS3WriteType())
                   .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                  .setOverwrite(true)
                   .build();
           return createObject(objectPath, userFs, filePOptions, auditContext);
         }
@@ -794,7 +801,8 @@ public class S3ObjectTask extends S3BaseTask {
                 .setMode(PMode.newBuilder()
                     .setOwnerBits(Bits.ALL)
                     .setGroupBits(Bits.ALL)
-                    .setOtherBits(Bits.NONE).build());
+                    .setOtherBits(Bits.NONE).build())
+                .setOverwrite(true);
             String entityTag = copyObject(userFs, auditContext, objectPath,
                 copySource, copyFilePOptionsBuilder.build());
             return new CopyPartResult(entityTag);
@@ -808,6 +816,7 @@ public class S3ObjectTask extends S3BaseTask {
                       .setGroupBits(Bits.ALL)
                       .setOtherBits(Bits.NONE).build())
                   .setWriteType(S3RestUtils.getS3WriteType())
+                  .setOverwrite(true)
                   .build();
           return createObject(objectPath, userFs, filePOptions, auditContext);
         }

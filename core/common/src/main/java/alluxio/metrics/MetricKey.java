@@ -909,6 +909,21 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Display master role id")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_START_TIME =
+      new Builder("Master.StartTime")
+          .setDescription("The start time of the master process")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_LAST_GAIN_PRIMACY_TIME =
+      new Builder("Master.LastGainPrimacyTime")
+          .setDescription("Last time the master gains primacy")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_LAST_LOSE_PRIMACY_TIME =
+      new Builder("Master.LastLosePrimacyTime")
+          .setDescription("Last time the master loses primacy")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
       new Builder("Master.JournalFlushFailure")
           .setDescription("Total number of failed journal flush")
@@ -2061,6 +2076,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Current count of threads in the worker RPC executor thread pool. "
               + "Use this metric to monitor the RPC pressure on worker.")
           .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey WORKER_MASTER_REGISTRATION_SUCCESS_COUNT =
+      new Builder("Worker.MasterRegistrationSuccessCount")
+          .setDescription("Total number of the succeed master registration.")
+          .setMetricType(MetricType.COUNTER)
           .build();
 
   // Client metrics

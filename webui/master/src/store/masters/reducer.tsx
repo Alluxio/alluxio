@@ -16,15 +16,22 @@ import { IMastersState, MastersActionTypes } from './types';
 export const initialMastersState: IMastersState = {
   data: {
     debug: false,
-    failedMasterInfos: [],
-    normalMasterInfos: [],
-    leaderMasterInfo: {
+    lostMasterInfos: [],
+    standbyMasterInfos: [],
+    primaryMasterInfo: {
       address: {
         rpcPort: 0,
         host: '',
       },
       id: '',
-      lastUpdatedTimeMs: 0,
+      lastUpdatedTime: '',
+      startTime: '',
+      gainPrimacyTime: '',
+      losePrimacyTime: '',
+      lastCheckpointTime: '',
+      journalEntriesSinceCheckpoint: 0,
+      version: '',
+      revision: '',
     },
   },
   errors: undefined,

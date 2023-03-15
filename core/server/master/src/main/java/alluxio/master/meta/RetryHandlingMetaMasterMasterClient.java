@@ -13,8 +13,10 @@ package alluxio.master.meta;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetMasterIdPRequest;
+import alluxio.grpc.MasterHeartbeatPOptions;
 import alluxio.grpc.MasterHeartbeatPRequest;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.MetaMasterMasterServiceGrpc;
@@ -22,13 +24,17 @@ import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.RegisterMasterPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.wire.Address;
 
+import com.codahale.metrics.Gauge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -90,8 +96,22 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    * @return whether this master should re-register
    */
   public MetaCommand heartbeat(final long masterId) throws IOException {
+    final Map<String, Gauge> gauges = MetricsSystem.METRIC_REGISTRY.getGauges();
+    Gauge lastCheckpointGauge = gauges
+        .get(MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName());
+    Gauge journalEntriesGauge = gauges
+        .get(MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName());
+    MasterHeartbeatPOptions.Builder optionsBuilder = MasterHeartbeatPOptions.newBuilder();
+    if (lastCheckpointGauge != null) {
+      optionsBuilder.setLastCheckpointTime((long) lastCheckpointGauge.getValue());
+    }
+    if (journalEntriesGauge != null) {
+      optionsBuilder.setJournalEntriesSinceCheckpoint((long) journalEntriesGauge.getValue());
+    }
+
     return retryRPC(() -> mClient
-        .masterHeartbeat(MasterHeartbeatPRequest.newBuilder().setMasterId(masterId).build())
+        .masterHeartbeat(MasterHeartbeatPRequest.newBuilder().setMasterId(masterId)
+            .setOptions(optionsBuilder).build())
         .getCommand(), LOG, "Heartbeat", "masterId=%d", masterId);
   }
 
@@ -103,10 +123,22 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    */
   public void register(final long masterId, final List<ConfigProperty> configList)
       throws IOException {
+    final Map<String, Gauge> gauges = MetricsSystem.METRIC_REGISTRY.getGauges();
+    RegisterMasterPOptions.Builder optionsBuilder = RegisterMasterPOptions.newBuilder()
+        .addAllConfigs(configList)
+        .setVersion(ProjectConstants.VERSION)
+        .setRevision(ProjectConstants.REVISION);
+    Gauge startTimeGauge = gauges.get(MetricKey.MASTER_START_TIME.getName());
+    if (startTimeGauge != null) {
+      optionsBuilder.setStartTimeMs((long) startTimeGauge.getValue());
+    }
+    Gauge lastLosePrimacyGuage = gauges.get(MetricKey.MASTER_LAST_LOSE_PRIMACY_TIME.getName());
+    if (lastLosePrimacyGuage != null) {
+      optionsBuilder.setLosePrimacyTimeMs((long) lastLosePrimacyGuage.getValue());
+    }
     retryRPC(() -> {
       mClient.registerMaster(RegisterMasterPRequest.newBuilder().setMasterId(masterId)
-          .setOptions(RegisterMasterPOptions.newBuilder().addAllConfigs(configList).build())
-          .build());
+          .setOptions(optionsBuilder).build());
       return null;
     }, LOG, "Register", "masterId=%d,configList=%s", masterId, configList);
   }

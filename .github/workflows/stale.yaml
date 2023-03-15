@@ -12,7 +12,7 @@ jobs:
     permissions:
       issues: write # for writing stale message
       pull-requests: write # for writing stale message
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: github.repository == 'alluxio/alluxio'
     steps:
       - uses: actions/stale@v6

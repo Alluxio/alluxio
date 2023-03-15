@@ -138,7 +138,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
       AtomicReference<Long> workerId) {
-    super(ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5));
+    super(
+        Configuration.getBoolean(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS)
+            ? ExecutorServiceFactories.cachedThreadPool("block-worker-executor")
+            : ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5)
+    );
     mBlockMasterClientPool = mResourceCloser.register(blockMasterClientPool);
     mFileSystemMasterClient = mResourceCloser.register(fileSystemMasterClient);
     mHeartbeatReporter = new BlockHeartbeatReporter();
@@ -167,6 +171,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   @Override
   public BlockStore getBlockStore() {
     return mBlockStore;
+  }
+
+  @Override
+  public WorkerNetAddress getWorkerAddress() {
+    return mAddress;
   }
 
   @Override
@@ -330,7 +339,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public BlockHeartbeatReport getReport() {
-    return mHeartbeatReporter.generateReport();
+    return mHeartbeatReporter.generateReportAndClear();
   }
 
   @Override

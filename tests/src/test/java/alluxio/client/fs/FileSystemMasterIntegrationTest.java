@@ -187,7 +187,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     assertFalse(fileInfo.isPersisted());
     assertFalse(fileInfo.isPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
-    Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
+    Assert.assertEquals(TtlAction.FREE, fileInfo.getTtlAction());
     Assert.assertEquals(TEST_USER, fileInfo.getOwner());
     Assert.assertEquals(0644, (short) fileInfo.getMode());
   }
@@ -658,7 +658,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
     long ttl = 1;
     CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
-        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)));
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)))
+        .setWriteType(WriteType.CACHE_THROUGH);
     long fileId =
         mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), context).getFileId();
     FileInfo folderInfo =
@@ -668,8 +669,12 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     // Sleep for the ttl expiration.
     CommonUtils.sleepMs(2 * TTL_CHECKER_INTERVAL_MS);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
-    mThrown.expect(FileDoesNotExistException.class);
-    mFsMaster.getFileInfo(fileId);
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
+    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_TTL_CHECK);
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
+    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
+    Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
+    Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
   }
 
   @Test

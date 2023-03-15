@@ -21,6 +21,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.MountPOptions;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.raft.RaftJournalUtils;
@@ -28,17 +29,23 @@ import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.io.PathUtils;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.server.storage.RaftStorage;
 import org.apache.ratis.server.storage.StorageImplUtils;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -55,6 +62,9 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
   private static final int RESTART_TIMEOUT_MS = 6 * Constants.MINUTE_MS;
   private static final int NUM_MASTERS = 3;
   private static final int NUM_WORKERS = 0;
+
+  @Rule
+  public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Test
   public void failover() throws Exception {
@@ -75,6 +85,58 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
     mCluster.waitForAndKillPrimaryMaster(MASTER_INDEX_WAIT_TIME);
     assertTrue(fs.exists(testDir));
     mCluster.notifySuccess();
+  }
+
+  @Test
+  public void syncMetadataEJFailOver() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(
+        PortCoordination.EMBEDDED_JOURNAL_FAILOVER_METADATA_SYNC)
+        .setClusterName("EmbeddedJournalFaultTolerance_syncMetadataFailOver")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(1)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 1000)
+        .addProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "50KB")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "3s")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "6s")
+        .addProperty(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL, "5s")
+        .build();
+    mCluster.start();
+    mCluster.waitForAllNodesRegistered(30_000);
+    String ufsPath = mFolder.newFolder().getAbsoluteFile().toString();
+    String ufsUri = "file://" + ufsPath;
+    MountPOptions options = MountPOptions.newBuilder().build();
+    FileSystem client = mCluster.getFileSystemClient();
+    AlluxioURI mountPath = new AlluxioURI("/mnt1");
+    client.mount(mountPath, new AlluxioURI(ufsUri), options);
+
+    // create files outside alluxio
+    String fileName = "someFile";
+    String contents = "contents";
+    for (int i = 0; i < 100; i++) {
+      try (FileWriter fw = new FileWriter(Paths.get(
+          PathUtils.concatPath(ufsPath, fileName + i)).toString())) {
+        fw.write(contents + i);
+      }
+    }
+    // sync then with metadata sync
+    for (int i = 0; i < 100; i++) {
+      assertEquals(contents + i, IOUtils.toString(client.openFile(
+          mountPath.join(fileName + i)), Charset.defaultCharset()));
+    }
+
+    // restart the cluster
+    mCluster.stopMasters();
+    mCluster.startMasters();
+    mCluster.waitForAllNodesRegistered(30_000);
+
+    // read the files again
+    client = mCluster.getFileSystemClient();
+    for (int i = 0; i < 100; i++) {
+      assertEquals(contents + i, IOUtils.toString(client.openFile(
+          mountPath.join(fileName + i)), Charset.defaultCharset()));
+    }
   }
 
   @Test

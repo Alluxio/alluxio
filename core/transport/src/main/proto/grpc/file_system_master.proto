@@ -82,6 +82,7 @@ message CompleteFilePOptions {
   optional int64 ufsLength = 1;
   optional ScheduleAsyncPersistencePOptions asyncPersistOptions = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
+  optional string contentHash = 4;
 }
 message CompleteFilePRequest {
   /** the path of the file */
@@ -114,6 +115,7 @@ message CreateDirectoryPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 5;
   map<string, bytes> xattr = 6;
   optional XAttrPropagationStrategy xattrPropStrat = 7 [default = NEW_PATHS];
+  optional bool checkS3BucketPath = 8;
 }
 message CreateDirectoryPRequest {
   /** the path of the directory */
@@ -137,6 +139,8 @@ message CreateFilePOptions {
   optional int64 persistenceWaitTime = 10;
   map<string, bytes> xattr = 11;
   optional XAttrPropagationStrategy xattrPropStrat = 12 [default = NEW_PATHS];
+  optional bool overwrite = 13;
+  optional bool checkS3BucketPath = 14;
 }
 message CreateFilePRequest {
   /** the path of the file */
@@ -236,6 +240,11 @@ message ListStatusPOptions {
   // being loaded. It is recommended to set this to true after the first call of a
   // recursive partial listing.
   optional bool disableAreDescendantsLoadedCheck = 6;
+  // Mount info will be excluded from the list status response if this field is set to true.
+  // Resolving a path and obtain the mount info is an expensive operation.
+  // For clients that do not need this information such as hadoop-compatible clients,
+  // excluding mount info improves the endpoint performance.
+  optional bool excludeMountInfo = 7;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */
@@ -593,47 +602,51 @@ message NeedsSyncRequest {
 
 message NeedsSyncResponse {}
 
-message LoadPathPOptions {
+message SubmitJobPRequest{
+  optional bytes request_body = 1;
+}
+
+message SubmitJobPResponse {
+  optional string jobId = 1;
+}
+
+message LoadJobPOptions {
   optional int64 bandwidth = 1;
   optional bool verify = 2;
   optional bool partialListing = 3;
 }
 
-message LoadPathPRequest {
-  required string path = 1;
-  optional LoadPathPOptions options = 2;
+message StopJobPRequest {
+  required JobDescription jobDescription = 1;
 }
 
-message LoadPathPResponse {
-  optional bool newLoadSubmitted = 1;
+message StopJobPResponse {
+  optional bool jobStopped = 1;
 }
 
-message StopLoadPathPRequest {
-  required string path = 1;
-}
-
-message StopLoadPathPResponse {
-  optional bool existingLoadStopped = 1;
-}
-
-enum LoadProgressReportFormat {
+enum JobProgressReportFormat {
   TEXT = 1;
   JSON = 2;
 }
 
-message LoadProgressPOptions {
-  optional LoadProgressReportFormat format = 1;
+message JobDescription{
+  required string type = 1;
+  optional string path = 2;
+}
+
+message JobProgressPOptions {
+  optional JobProgressReportFormat format = 1;
   optional bool verbose = 2;
 }
 
-message GetLoadProgressPRequest {
-  required string path = 1;
-  optional LoadProgressPOptions options = 2;
+message GetJobProgressPRequest {
+  required JobDescription jobDescription = 1;
+  optional JobProgressPOptions options = 2;
 }
 
-message GetLoadProgressPResponse {
+message GetJobProgressPResponse {
   optional string progressReport = 1;
-  optional LoadProgressReportFormat format = 2;
+  optional JobProgressReportFormat format = 2;
 }
 
 /**
@@ -785,11 +798,11 @@ service FileSystemMasterClientService {
   /**
    * Load a directory into Alluxio.
    */
-  rpc LoadPath(LoadPathPRequest) returns (LoadPathPResponse);
+  rpc submitJob(SubmitJobPRequest) returns (SubmitJobPResponse);
 
-  rpc StopLoadPath(StopLoadPathPRequest) returns (StopLoadPathPResponse);
+  rpc StopJob(StopJobPRequest) returns (StopJobPResponse);
 
-  rpc GetLoadProgress(GetLoadProgressPRequest) returns (GetLoadProgressPResponse);
+  rpc GetJobProgress(GetJobProgressPRequest) returns (GetJobProgressPResponse);
 }
 
 message FileSystemHeartbeatPResponse {

@@ -80,4 +80,6 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
         + "\nToo many arguments passed in.\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
+
+  // TODO(elega) Add unit tests for the case where worker all master registration is enabled
 }

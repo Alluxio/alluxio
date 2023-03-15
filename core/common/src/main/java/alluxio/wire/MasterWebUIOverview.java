@@ -56,6 +56,7 @@ public final class MasterWebUIOverview implements Serializable {
   private String mRevision;
   private String mMasterRole;
   private String mLeaderId;
+  private String mSystemStatus;
 
   /**
    * Creates a new instance of {@link MasterWebUIOverview}.
@@ -300,6 +301,15 @@ public final class MasterWebUIOverview implements Serializable {
    */
   public String getLeaderId() {
     return mLeaderId;
+  }
+
+  /**
+   * Gets system status.
+   *
+   * @return the system status
+   */
+  public String getSystemStatus() {
+    return mSystemStatus;
   }
 
   /**
@@ -598,6 +608,17 @@ public final class MasterWebUIOverview implements Serializable {
     return this;
   }
 
+  /**
+   * Sets the system status.
+   *
+   * @param systemStatus the system status
+   * @return the master status system
+   */
+  public MasterWebUIOverview setSystemStatus(String systemStatus) {
+    mSystemStatus = systemStatus;
+    return this;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("capacity", mCapacity)
@@ -616,6 +637,7 @@ public final class MasterWebUIOverview implements Serializable {
         .add("uptime", mUptime).add("usedCapacity", mUsedCapacity)
         .add("version", mVersion).add("revision", mRevision)
         .add("leaderId", mLeaderId)
+        .add("systemStatus", mSystemStatus)
         .add("masterRole", mMasterRole)
         .toString();
   }

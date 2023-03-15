@@ -13,12 +13,16 @@ package alluxio.cli.fsadmin.report;
 
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.cli.fsadmin.command.ReportCommand;
+import alluxio.client.block.AllMastersWorkerInfo;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
+import alluxio.client.block.util.WorkerInfoUtil;
+import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.Scope;
 import alluxio.util.FormatUtils;
@@ -29,7 +33,9 @@ import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.InetSocketAddress;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -56,6 +62,9 @@ public class CapacityCommand {
   private Map<String, Long> mSumUsedBytesOnTierMap;
   private TreeMap<String, Map<String, String>> mCapacityTierInfoMap;
   private Map<String, Map<String, String>> mUsedTierInfoMap;
+
+  private static final String LIVE_WORKER_STATE = "In Service";
+  private static final String LOST_WORKER_STATE = "Out of Service";
 
   /**
    * Creates a new instance of {@link CapacityCommand}.
@@ -94,7 +103,20 @@ public class CapacityCommand {
    */
   public void generateCapacityReport(GetWorkerReportOptions options, AlluxioConfiguration conf)
       throws IOException {
-    List<WorkerInfo> workerInfoList = mBlockMasterClient.getWorkerReport(options);
+    boolean workerRegisterToAllMasters =
+        conf.getBoolean(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS);
+
+    final List<WorkerInfo> workerInfoList;
+    final AllMastersWorkerInfo allMastersWorkerInfo;
+    if (workerRegisterToAllMasters) {
+      allMastersWorkerInfo =
+          WorkerInfoUtil.getWorkerReportsFromAllMasters(
+          conf, mBlockMasterClient, options);
+      workerInfoList = allMastersWorkerInfo.getPrimaryMasterWorkerInfo();
+    } else {
+      allMastersWorkerInfo = null;
+      workerInfoList = mBlockMasterClient.getWorkerReport(options);
+    }
     if (workerInfoList.size() == 0) {
       print("No workers found.");
       return;
@@ -104,6 +126,9 @@ public class CapacityCommand {
     collectWorkerInfo(workerInfoList);
     printAggregatedInfo(options);
     printWorkerInfo(workerInfoList);
+    if (workerRegisterToAllMasters) {
+      printWorkerAllMasterConnectionInfo(allMastersWorkerInfo);
+    }
   }
 
   /**
@@ -181,6 +206,88 @@ public class CapacityCommand {
       int usedPercentage = (int) (100L * mSumUsedBytes / mSumCapacityBytes);
       print(String.format("Used Percentage: " + "%s%%", usedPercentage));
       print(String.format("Free Percentage: " + "%s%%", 100 - usedPercentage));
+    }
+  }
+
+  private String getMasterAddressesString(Set<java.net.InetSocketAddress> addresses) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("[");
+    List<String> addressStrings =
+        addresses.stream().map(it -> masterAddressToString(it, addresses)).sorted().collect(
+            Collectors.toList());
+    for (int i = 0; i < addressStrings.size(); ++i) {
+      sb.append(addressStrings.get(i));
+      if (i != addressStrings.size() - 1) {
+        sb.append(",");
+      }
+    }
+    sb.append("]");
+    return sb.toString();
+  }
+
+  private String masterAddressToString(
+      InetSocketAddress inetSocketAddress,
+      Collection<InetSocketAddress> masterAddresses) {
+    // If multiple masters share the same host name, we will display the host name + port
+    // otherwise just the host name.
+    if (inetSocketAddress.getHostName().equals("localhost") || masterAddresses.stream()
+        .filter(it -> it.getHostName().equals(inetSocketAddress.getHostName())).count() > 1) {
+      return inetSocketAddress.toString();
+    }
+    return inetSocketAddress.getHostName();
+  }
+
+  private void printWorkerAllMasterConnectionInfo(
+      AllMastersWorkerInfo allMastersWorkerInfo) {
+    List<InetSocketAddress> masterAddresses = allMastersWorkerInfo.getMasterAddresses();
+    int maxWorkerNameLength =
+        allMastersWorkerInfo.getWorkerIdAddressMap().values().stream()
+            .map(w -> w.getHostName().length())
+            .max(Comparator.comparing(Integer::intValue)).orElse(0);
+
+    int workerNameIndent = 16;
+    if (workerNameIndent <= maxWorkerNameLength) {
+      // extend first indent according to the longest worker name by default 5
+      workerNameIndent = maxWorkerNameLength + 5;
+    }
+
+    // Create indentation to tolerate 2 unregistered masters
+    int maxMasterNameLength =
+        allMastersWorkerInfo.getWorkerIdAddressMap().values().stream()
+            .map(w -> masterAddressToString(w, masterAddresses).length())
+            .max(Comparator.comparing(Integer::intValue)).orElse(0);
+    int unregisteredMasterNameIndent = Math.max(24, maxMasterNameLength * 2 + 10);
+    String format = "%-" + workerNameIndent
+        + "s %-" + unregisteredMasterNameIndent + "s %-" + unregisteredMasterNameIndent + "s %s";
+    print("");
+    print(String.format(format, "Worker Name", "Not Registered With", "Lost", "In Service"));
+    for (Map.Entry<Long, List<Pair<InetSocketAddress, WorkerInfo>>> workerInfoEntry :
+        allMastersWorkerInfo.getWorkerIdInfoMap().entrySet()) {
+      if (workerInfoEntry.getValue().stream()
+          .noneMatch(it -> it.getSecond().getState().equals("In Service"))) {
+        // Don't display the worker if it has been removed from all masters.
+        continue;
+      }
+      long workerId = workerInfoEntry.getKey();
+      InetSocketAddress workerAddress = allMastersWorkerInfo.getWorkerIdAddressMap()
+          .get(workerId);
+      String workerName = workerAddress != null ? workerAddress.getHostName()
+          : "(UNKNOWN, id = " + workerId + ")";
+      Set<InetSocketAddress> inServiceMasters =
+          workerInfoEntry.getValue().stream()
+              .filter(it -> it.getSecond().getState().equals(LIVE_WORKER_STATE))
+              .map(alluxio.collections.Pair::getFirst).collect(Collectors.toSet());
+      Set<InetSocketAddress> lostMasters =
+          workerInfoEntry.getValue().stream()
+              .filter(it -> it.getSecond().getState().equals(LOST_WORKER_STATE))
+              .map(alluxio.collections.Pair::getFirst).collect(Collectors.toSet());
+      Set<InetSocketAddress> allMasterAddresses =
+          new HashSet<>(allMastersWorkerInfo.getMasterAddresses());
+      Set<InetSocketAddress> notRegisteredMaster =
+          com.google.common.collect.Sets.difference(allMasterAddresses,
+              com.google.common.collect.Sets.union(inServiceMasters, lostMasters));
+      print(String.format(format, workerName, getMasterAddressesString(notRegisteredMaster),
+          getMasterAddressesString(lostMasters), getMasterAddressesString(inServiceMasters)));
     }
   }
 

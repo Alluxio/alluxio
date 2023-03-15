@@ -11,16 +11,21 @@
 
 package alluxio.worker.block;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -29,7 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * through {@link alluxio.worker.block.BlockWorker#commitBlock(long, long, boolean)}.
  */
 @ThreadSafe
-public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListener {
+public class BlockHeartbeatReporter extends AbstractBlockStoreEventListener {
   private static final Logger LOG = LoggerFactory.getLogger(BlockHeartbeatReporter.class);
 
   /** Lock for operations on the removed and added block collections. */
@@ -50,6 +55,9 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
    */
   private final Map<String, List<String>> mLostStorage;
 
+  private final boolean mWorkerRegisterToAllMasters =
+      Configuration.getBoolean(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS);
+
   /**
    * Creates a new instance of {@link BlockHeartbeatReporter}.
    */
@@ -62,12 +70,11 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   }
 
   /**
-   * Generates the report of the block store delta in the last heartbeat period. Calling this method
-   * marks the end of a period and the start of a new heartbeat period.
+   * Generates the report of the report and clear the states.
    *
    * @return the block store delta report for the last heartbeat period
    */
-  public BlockHeartbeatReport generateReport() {
+  public BlockHeartbeatReport generateReportAndClear() {
     synchronized (mLock) {
       BlockHeartbeatReport report
           = new BlockHeartbeatReport(mAddedBlocks, mRemovedBlocks, mLostStorage);
@@ -76,6 +83,73 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
       mRemovedBlocks.clear();
       mLostStorage.clear();
       return report;
+    }
+  }
+
+  /**
+   * Clears the internal states of the reporter.
+   */
+  public void clear() {
+    synchronized (mLock) {
+      mAddedBlocks.clear();
+      mRemovedBlocks.clear();
+      mLostStorage.clear();
+    }
+  }
+
+  /**
+   * Merges back the cleared block lists/maps given a generated report.
+   * used when the worker heartbeat rpc fails.
+   *
+   * @param previousReport the previous generated report
+   */
+  public void mergeBack(BlockHeartbeatReport previousReport) {
+    synchronized (mLock) {
+      Set<Long> removedBlocksSet = new HashSet<>(mRemovedBlocks);
+      for (Entry<BlockStoreLocation, List<Long>> addedBlockEntry:
+          previousReport.getAddedBlocks().entrySet()) {
+        List<Long> blockIds = addedBlockEntry.getValue();
+        // Two pass scans to avoid creating too many ephemeral objects
+        // given that adding a block then removing it is unlikely.
+        boolean needToRemoveBlock = false;
+        for (long blockId: blockIds) {
+          if (removedBlocksSet.contains(blockId)) {
+            needToRemoveBlock = true;
+            break;
+          }
+        }
+        final List<Long> blockIdsToAdd;
+        if (!needToRemoveBlock) {
+          blockIdsToAdd = blockIds;
+        } else {
+          blockIdsToAdd = new ArrayList<>();
+          for (long blockId: blockIds) {
+            if (!removedBlocksSet.contains(blockId)) {
+              blockIdsToAdd.add(blockId);
+            }
+          }
+        }
+        if (blockIdsToAdd.size() == 0) {
+          continue;
+        }
+        if (mAddedBlocks.containsKey(addedBlockEntry.getKey())) {
+          mAddedBlocks.get(addedBlockEntry.getKey()).addAll(blockIdsToAdd);
+        } else {
+          mAddedBlocks.put(addedBlockEntry.getKey(), blockIdsToAdd);
+        }
+      }
+      for (Map.Entry<String, List<String>> lostStorageEntry:
+          previousReport.getLostStorage().entrySet()) {
+        if (lostStorageEntry.getValue().size() == 0) {
+          continue;
+        }
+        if (mLostStorage.containsKey(lostStorageEntry.getKey())) {
+          mLostStorage.get(lostStorageEntry.getKey()).addAll(lostStorageEntry.getValue());
+        } else {
+          mLostStorage.put(lostStorageEntry.getKey(), lostStorageEntry.getValue());
+        }
+      }
+      mRemovedBlocks.addAll(previousReport.getRemovedBlocks());
     }
   }
 

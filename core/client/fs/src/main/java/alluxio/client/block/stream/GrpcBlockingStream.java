@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -243,14 +244,20 @@ public class GrpcBlockingStream<ReqT, ResT> {
    * Wait for server to complete the inbound stream.
    *
    * @param timeoutMs maximum time to wait for server response
+   * @return the last response of the stream
    */
-  public void waitForComplete(long timeoutMs) throws IOException {
+  public Optional<ResT> waitForComplete(long timeoutMs) throws IOException {
     if (mCompleted || mCanceled) {
-      return;
+      return Optional.empty();
     }
-    while (receive(timeoutMs) != null) {
+    ResT prevResponse;
+    ResT response = null;
+    do {
       // wait until inbound stream is closed from server.
-    }
+      prevResponse = response;
+      response = receive(timeoutMs);
+    } while (response != null);
+    return Optional.ofNullable(prevResponse);
   }
 
   /**

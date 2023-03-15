@@ -43,18 +43,30 @@ export class MastersPresenter extends React.Component<AllProps> {
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
-              <h5>Leader Master</h5>
+              <h5>Primary Master</h5>
               <Table hover={true}>
                 <thead>
                   <tr>
-                    <th>Master Host</th>
-                    <th>Master Port</th>
+                    <th>Host</th>
+                    <th>Port</th>
+                    <th>Elected</th>
+                    <th>Started</th>
+                    <th>Last Checkpoint</th>
+                    <th>Journal Entries</th>
+                    <th>Version</th>
+                    <th>Revision</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>{mastersData.leaderMasterInfo.address.host}</td>
-                    <td>{mastersData.leaderMasterInfo.address.rpcPort}</td>
+                    <td>{mastersData.primaryMasterInfo.address.host}</td>
+                    <td>{mastersData.primaryMasterInfo.address.rpcPort}</td>
+                    <td>{mastersData.primaryMasterInfo.gainPrimacyTime}</td>
+                    <td>{mastersData.primaryMasterInfo.startTime}</td>
+                    <td>{mastersData.primaryMasterInfo.lastCheckpointTime}</td>
+                    <td>{mastersData.primaryMasterInfo.journalEntriesSinceCheckpoint}</td>
+                    <td>{mastersData.primaryMasterInfo.version}</td>
+                    <td>{mastersData.primaryMasterInfo.revision}</td>
                   </tr>
                 </tbody>
               </Table>
@@ -67,18 +79,30 @@ export class MastersPresenter extends React.Component<AllProps> {
                 <thead>
                   <tr>
                     {initData.debug ? <th>[D]Master Id</th> : null}
-                    <th>Master Host</th>
-                    <th>Master Port</th>
+                    <th>Host</th>
+                    <th>Port</th>
                     <th>Last Heartbeat</th>
+                    <th>Started</th>
+                    <th>Step-down Time</th>
+                    <th>Last Checkpoint</th>
+                    <th>Journal Entries</th>
+                    <th>Version</th>
+                    <th>Revision</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {mastersData.normalMasterInfos.map((masterInfo: IMasterInfo) => (
+                  {mastersData.standbyMasterInfos.map((masterInfo: IMasterInfo) => (
                     <tr key={masterInfo.id}>
                       {initData.debug ? <td>{masterInfo.id}</td> : null}
                       <td>{masterInfo.address.host}</td>
                       <td>{masterInfo.address.rpcPort}</td>
-                      <td>{new Date(masterInfo.lastUpdatedTimeMs).toTimeString()}</td>
+                      <td>{masterInfo.lastUpdatedTime}</td>
+                      <td>{masterInfo.startTime}</td>
+                      <td>{masterInfo.losePrimacyTime}</td>
+                      <td>{masterInfo.lastCheckpointTime}</td>
+                      <td>{masterInfo.journalEntriesSinceCheckpoint}</td>
+                      <td>{masterInfo.version}</td>
+                      <td>{masterInfo.revision}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -92,18 +116,30 @@ export class MastersPresenter extends React.Component<AllProps> {
                 <thead>
                   <tr>
                     {initData.debug ? <th>[D]Master Id</th> : null}
-                    <th>Master Host</th>
-                    <th>Master Port</th>
+                    <th>Host</th>
+                    <th>Port</th>
                     <th>Last Heartbeat</th>
+                    <th>Started</th>
+                    <th>Step-down Time</th>
+                    <th>Last Checkpoint</th>
+                    <th>Journal Entries</th>
+                    <th>Version</th>
+                    <th>Revision</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {mastersData.failedMasterInfos.map((masterInfo: IMasterInfo) => (
+                  {mastersData.lostMasterInfos.map((masterInfo: IMasterInfo) => (
                     <tr key={masterInfo.id}>
                       {initData.debug ? <td>{masterInfo.id}</td> : null}
                       <td>{masterInfo.address.host}</td>
                       <td>{masterInfo.address.rpcPort}</td>
-                      <td>{new Date(masterInfo.lastUpdatedTimeMs).toTimeString()}</td>
+                      <td>{masterInfo.lastUpdatedTime}</td>
+                      <td>{masterInfo.startTime}</td>
+                      <td>{masterInfo.losePrimacyTime}</td>
+                      <td>{masterInfo.lastCheckpointTime}</td>
+                      <td>{masterInfo.journalEntriesSinceCheckpoint}</td>
+                      <td>{masterInfo.version}</td>
+                      <td>{masterInfo.revision}</td>
                     </tr>
                   ))}
                 </tbody>
