@@ -125,6 +125,7 @@ public final class ThreadUtils {
     for (ThreadInfo ti: THREAD_BEAN.dumpAllThreads(true, true)) {
       stream.print(ti.toString());
     }
+    stream.flush();
   }
 
   /**
