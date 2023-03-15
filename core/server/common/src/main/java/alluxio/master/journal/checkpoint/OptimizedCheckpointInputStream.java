@@ -31,8 +31,8 @@ public class OptimizedCheckpointInputStream extends CheckpointInputStream {
    * @throws IOException propagates wrapped input stream exceptions
    */
   public OptimizedCheckpointInputStream(File file, MessageDigest digest) throws IOException {
-    super(new LZ4FrameInputStream(new DigestInputStream(
+    super(new DigestInputStream(new LZ4FrameInputStream(
         new BufferedInputStream(Files.newInputStream(file.toPath()),
-            OptimizedCheckpointOutputStream.BUFFER_SIZE), digest)));
+            OptimizedCheckpointOutputStream.BUFFER_SIZE)), digest));
   }
 }

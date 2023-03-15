@@ -16,10 +16,8 @@ import alluxio.ProcessUtils;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AddQuorumServerRequest;
-import alluxio.grpc.ErrorType;
 import alluxio.grpc.JournalQueryRequest;
 import alluxio.master.StateLockManager;
 import alluxio.master.StateLockOptions;
@@ -36,7 +34,6 @@ import alluxio.util.logging.SamplingLogger;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
-import io.grpc.Status;
 import org.apache.ratis.proto.RaftProtos;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftGroupId;
@@ -55,16 +52,8 @@ import org.apache.ratis.util.LifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.DigestInputStream;
-import java.security.DigestOutputStream;
-import java.security.MessageDigest;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +65,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Stream;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -580,22 +570,12 @@ public class JournalStateMachine extends BaseStateMachine {
     }
     try (Timer.Context ctx = MetricsSystem.timer(
              MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER.getName()).time()) {
-      CompletableFuture.allOf(getStateMachines().stream()
+      long snapshotId = mNextSequenceNumberToRead - 1;
+      SnapshotIdCheckpointed idWriter = SnapshotIdCheckpointed.forWriting(snapshotId);
+      CompletableFuture.allOf(Stream.concat(Stream.of(idWriter), getStateMachines().stream())
           .map(journaled -> journaled.writeToCheckpoint(snapshotDir, mJournalPool))
           .toArray(CompletableFuture[]::new))
           .join();
-      LOG.debug("Finished writing all state machine, now writing {}", SNAPSHOT_ID);
-      // writing snapshot ID
-      long snapshotId = mNextSequenceNumberToRead - 1;
-      MessageDigest md5 = MessageDigest.getInstance("MD5");
-      File snapshotIdFile = new File(snapshotDir, SNAPSHOT_ID);
-      try (DataOutputStream idFile = new DataOutputStream(new DigestOutputStream(
-          Files.newOutputStream(snapshotIdFile.toPath()), md5))) {
-        idFile.writeLong(snapshotId);
-      }
-      String digestFile = String.format("%s.md5", snapshotIdFile.getAbsolutePath());
-      Files.write(Paths.get(digestFile), md5.digest());
-      LOG.debug("Wrote SNAPSHOT_ID {}", snapshotId);
       mStorage.loadLatestSnapshot();
       mStorage.signalNewSnapshot();
       return last.getIndex();
@@ -623,23 +603,13 @@ public class JournalStateMachine extends BaseStateMachine {
     long snapshotId = 0L;
     try (Timer.Context ctx = MetricsSystem.timer(MetricKey
         .MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER.getName()).time()) {
-      LOG.debug("Recovering {}", SNAPSHOT_ID);
-      MessageDigest md5 = MessageDigest.getInstance("MD5");
-      File snapshotIdFile = new File(snapshotDir, SNAPSHOT_ID);
-      try (DataInputStream is = new DataInputStream(new DigestInputStream(
-          Files.newInputStream(snapshotIdFile.toPath()), md5))) {
-        snapshotId = is.readLong();
-      }
-      String digestFile = String.format("%s.md5", snapshotIdFile.getAbsolutePath());
-      if (!Arrays.equals(md5.digest(), Files.readAllBytes(Paths.get(digestFile)))) {
-        throw new AlluxioRuntimeException(Status.INTERNAL,
-            String.format("%s is corrupted", SNAPSHOT_ID), null, ErrorType.Internal, false);
-      }
+      SnapshotIdCheckpointed idReader = SnapshotIdCheckpointed.forReading();
       LOG.debug("Recovered {}", SNAPSHOT_ID);
-      CompletableFuture.allOf(getStateMachines().stream()
+      CompletableFuture.allOf(Stream.concat(Stream.of(idReader), getStateMachines().stream())
           .map(journaled -> journaled.restoreFromCheckpoint(snapshotDir, mJournalPool))
           .toArray(CompletableFuture[]::new))
           .join();
+      snapshotId = idReader.getId();
       mLastSnapshotReplayDurationMs = ctx.stop() / 1_000_000L;
     } catch (Exception e) {
       JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to install snapshot: %s",

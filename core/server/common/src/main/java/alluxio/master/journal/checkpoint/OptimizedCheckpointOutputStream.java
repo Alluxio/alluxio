@@ -37,9 +37,9 @@ public class OptimizedCheckpointOutputStream extends OutputStream {
    * @throws IOException propagates wrapped output stream exceptions
    */
   public OptimizedCheckpointOutputStream(File file, MessageDigest digest) throws IOException {
-    mOutputStream = new LZ4FrameOutputStream(new DigestOutputStream(
-        new BufferedOutputStream(Files.newOutputStream(file.toPath()), BUFFER_SIZE),
-        digest));
+    mOutputStream = new DigestOutputStream(new LZ4FrameOutputStream(
+        new BufferedOutputStream(Files.newOutputStream(file.toPath()), BUFFER_SIZE)),
+        digest);
   }
 
   @Override
