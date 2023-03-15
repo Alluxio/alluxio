@@ -118,6 +118,7 @@ import alluxio.master.journal.Journaled;
 import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
@@ -1834,7 +1835,10 @@ public class DefaultFileSystemMaster extends CoreMaster
     long currLength = fileLength;
     for (long blockId : blockIds) {
       long currentBlockSize = Math.min(currLength, blockSize);
-      if (context != null) {
+      // if we are not using the UFS journal system, we can use the same journal context
+      // for the block info so that we do not have to create a new journal
+      // context and flush again
+      if (context != null && !(mJournalSystem instanceof UfsJournalSystem)) {
         mBlockMaster.commitBlockInUFS(blockId, currentBlockSize, context);
       } else {
         mBlockMaster.commitBlockInUFS(blockId, currentBlockSize);
