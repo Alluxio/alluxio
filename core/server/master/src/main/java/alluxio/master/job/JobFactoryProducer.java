@@ -11,6 +11,7 @@
 
 package alluxio.master.job;
 
+import alluxio.job.CopyJobRequest;
 import alluxio.job.JobRequest;
 import alluxio.job.LoadJobRequest;
 import alluxio.master.file.FileSystemMaster;
@@ -29,12 +30,13 @@ public class JobFactoryProducer {
    * @return the job factory
    */
   public static JobFactory create(JobRequest request, FileSystemMaster fsMaster) {
-    switch (request.getType()) {
-      case "load":
-        return new LoadJobFactory((LoadJobRequest) request, fsMaster);
-      default:
-        throw new IllegalArgumentException("Unknown job type: " + request.getType());
+    if (request instanceof LoadJobRequest) {
+      return new LoadJobFactory((LoadJobRequest) request, fsMaster);
     }
+    if (request instanceof CopyJobRequest) {
+      return new CopyJobFactory((CopyJobRequest) request, fsMaster);
+    }
+    throw new IllegalArgumentException("Unknown job type: " + request.getType());
   }
 
   /**
@@ -45,6 +47,9 @@ public class JobFactoryProducer {
   public static JobFactory create(Journal.JournalEntry entry, FileSystemMaster fsMaster) {
     if (entry.hasLoadJob()) {
       return new JournalLoadJobFactory(entry.getLoadJob(), fsMaster);
+    }
+    if (entry.hasCopyJob()) {
+      return new JournalCopyJobFactory(entry.getCopyJob(), fsMaster);
     }
     else {
       throw new IllegalArgumentException("Unknown job type: " + entry);
