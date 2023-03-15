@@ -17,6 +17,8 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
 
 /**
  * InputStream to read checkpoint files efficiently.
@@ -25,11 +27,12 @@ public class OptimizedCheckpointInputStream extends CheckpointInputStream {
 
   /**
    * @param file where the checkpoint will be read from
+   * @param digest that verifies the file has not been corrupted
    * @throws IOException propagates wrapped input stream exceptions
    */
-  public OptimizedCheckpointInputStream(File file) throws IOException {
-    super(new LZ4FrameInputStream(
+  public OptimizedCheckpointInputStream(File file, MessageDigest digest) throws IOException {
+    super(new LZ4FrameInputStream(new DigestInputStream(
         new BufferedInputStream(Files.newInputStream(file.toPath()),
-            OptimizedCheckpointOutputStream.BUFFER_SIZE)));
+            OptimizedCheckpointOutputStream.BUFFER_SIZE), digest)));
   }
 }

@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
 
 /**
  * OutputStream to write checkpoint files efficiently.
@@ -31,11 +33,13 @@ public class OptimizedCheckpointOutputStream extends OutputStream {
 
   /**
    * @param file where the checkpoint will be written
+   * @param digest to ensure uncorrupted data
    * @throws IOException propagates wrapped output stream exceptions
    */
-  public OptimizedCheckpointOutputStream(File file) throws IOException {
-    mOutputStream = new LZ4FrameOutputStream(
-        new BufferedOutputStream(Files.newOutputStream(file.toPath()), BUFFER_SIZE));
+  public OptimizedCheckpointOutputStream(File file, MessageDigest digest) throws IOException {
+    mOutputStream = new LZ4FrameOutputStream(new DigestOutputStream(
+        new BufferedOutputStream(Files.newOutputStream(file.toPath()), BUFFER_SIZE),
+        digest));
   }
 
   @Override

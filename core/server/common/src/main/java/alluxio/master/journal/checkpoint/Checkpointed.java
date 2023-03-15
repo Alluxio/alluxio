@@ -21,6 +21,10 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
@@ -46,8 +50,13 @@ public interface Checkpointed {
     return CompletableFuture.runAsync(() -> {
       LOG.debug("taking {} snapshot started", getCheckpointName());
       File file = new File(directory, getCheckpointName().toString());
-      try (OutputStream outputStream = new OptimizedCheckpointOutputStream(file)) {
-        writeToCheckpoint(outputStream);
+      try {
+        MessageDigest md5 = MessageDigest.getInstance("MD5");
+        try (OutputStream outputStream = new OptimizedCheckpointOutputStream(file, md5)) {
+          writeToCheckpoint(outputStream);
+        }
+        String digestFile = String.format("%s.md5", file.getAbsolutePath());
+        Files.write(Paths.get(digestFile), md5.digest());
       } catch (Exception e) {
         throw new AlluxioRuntimeException(Status.INTERNAL,
             String.format("Failed to take snapshot %s", getCheckpointName()),
@@ -78,9 +87,19 @@ public interface Checkpointed {
     return CompletableFuture.runAsync(() -> {
       LOG.debug("loading {} snapshot started", getCheckpointName());
       File file = new File(directory, getCheckpointName().toString());
-      try (CheckpointInputStream is = new OptimizedCheckpointInputStream(file)) {
-        restoreFromCheckpoint(is);
-      } catch (IOException e) {
+      try {
+        MessageDigest md5 = MessageDigest.getInstance("MD5");
+        try (CheckpointInputStream is = new OptimizedCheckpointInputStream(file, md5)) {
+          restoreFromCheckpoint(is);
+        }
+        String digestFile = String.format("%s.md5", file.getAbsolutePath());
+        byte[] digestBytes = Files.readAllBytes(Paths.get(digestFile));
+        if (!Arrays.equals(digestBytes, md5.digest())) {
+          throw new AlluxioRuntimeException(Status.INTERNAL,
+              String.format("Snapshot file %s corrupted", getCheckpointName()),
+              null, ErrorType.Internal, false);
+        }
+      } catch (Exception e) {
         throw new AlluxioRuntimeException(Status.INTERNAL,
             String.format("Failed to restore snapshot %s", getCheckpointName()),
             null, ErrorType.Internal, false);
