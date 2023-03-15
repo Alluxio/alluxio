@@ -396,8 +396,8 @@ public class JournalStateMachine extends BaseStateMachine {
   }
 
   @Override
-  public void notifyTermIndexUpdated(long term, long index) {
-    super.notifyTermIndexUpdated(term, index);
+  public void notifyConfigurationChanged(long term, long index,
+      RaftProtos.RaftConfigurationProto newRaftConfiguration) {
     CompletableFuture.runAsync(mJournalSystem::updateGroup, mJournalPool);
   }
 
