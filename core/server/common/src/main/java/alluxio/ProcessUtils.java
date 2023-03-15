@@ -14,6 +14,7 @@ package alluxio;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 
+import alluxio.exception.status.DeadlineExceededException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadUtils;
@@ -31,10 +32,12 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static alluxio.metrics.sink.MetricsServlet.OBJECT_MAPPER;
@@ -49,6 +52,8 @@ public final class ProcessUtils {
       ImmutableSet.of(CommonUtils.ProcessType.MASTER, CommonUtils.ProcessType.WORKER);
   public static final AtomicBoolean METRIC_DUMP_CHECK = new AtomicBoolean(false);
   public static final AtomicBoolean STACK_DUMP_CHECK = new AtomicBoolean(false);
+  public static final DateTimeFormatter DATETIME_FORMAT =
+      DateTimeFormatter.ofPattern("yyyyMMdd-hhmmss");
 
   /**
    * Runs the given {@link Process}. This method should only be called from {@code main()} methods.
@@ -145,7 +150,6 @@ public final class ProcessUtils {
     dumpInformation(true);
   }
 
-  // TODO(jiacheng): consider using a separate File to record all these
   private static void dumpInformation(boolean isFailover) {
     if (!COLLECT_ON_EXIT.contains(CommonUtils.PROCESS_TYPE.get())) {
       LOG.info("Process type is {}, skip dumping metrics and thread stacks", CommonUtils.PROCESS_TYPE.get());
@@ -181,7 +185,7 @@ public final class ProcessUtils {
 
     if (!METRIC_DUMP_CHECK.get()) {
       synchronized (ProcessUtils.class) {
-        // Only attempt to dump metrics once because it produces a lot of logs
+        // Only attempt to dump threads once because it produces a lot of logs
         if (METRIC_DUMP_CHECK.compareAndSet(false, true)) {
           if (isFailover) {
             if (Configuration.getBoolean(PropertyKey.MASTER_FAILOVER_COLLECT_STACKS)) {
@@ -207,12 +211,9 @@ public final class ProcessUtils {
 
   private static void dumpMetrics() {
     String logsPath = Configuration.getString(PropertyKey.LOGS_DIR);
-    LocalDateTime now = LocalDateTime.now();
-    Instant ts = Instant.now();
-    DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyyMMdd-hhmmss");
-
+    Instant start = Instant.now();
     String childFilePath = String.format("alluxio-%s-metrics-%s.json",
-        CommonUtils.PROCESS_TYPE.get().toString().toLowerCase(), format.format(now));
+        CommonUtils.PROCESS_TYPE.get().toString().toLowerCase(), DATETIME_FORMAT.format(start));
     File metricDumpFile = new File(logsPath, childFilePath);
     try (FileOutputStream fos = new FileOutputStream(metricDumpFile, false)) {
       // The metrics json string is ~100KB in size
@@ -222,22 +223,26 @@ public final class ProcessUtils {
     } catch (IOException e) {
       LOG.error("Failed to persist metrics to {}", metricDumpFile.getAbsolutePath(), e);
     }
+    Instant end = Instant.now();
+    LOG.info("Dumped metrics of current process in {}ms to {}",
+        Duration.between(start, end).toMillis(), childFilePath);
   }
 
   private static void dumpStacks() {
     String logsPath = Configuration.getString(PropertyKey.LOGS_DIR);
-    LocalDateTime now = LocalDateTime.now();
-    Instant ts = Instant.now();
-    DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyyMMdd-hhmmss");
-
+    Instant start = Instant.now();
     String childFilePath = String.format("alluxio-%s-stacks-%s.txt",
-        CommonUtils.PROCESS_TYPE.get().toString().toLowerCase(), format.format(now));
+        CommonUtils.PROCESS_TYPE.get().toString().toLowerCase(), DATETIME_FORMAT.format(start));
     File stacksDumpFile = new File(logsPath, childFilePath);
     try (PrintStream stream = new PrintStream(stacksDumpFile)) {
+      // Dumping one thread produces <1KB
       ThreadUtils.printThreadInfo(stream, "Dumping all threads in process");
     } catch (IOException e) {
       LOG.error("Failed to persist thread stacks to {}", stacksDumpFile.getAbsolutePath(), e);
     }
+    Instant end = Instant.now();
+    LOG.info("Dumped jstack of current process in {}ms to {}",
+        Duration.between(start, end).toMillis(), childFilePath);
   }
 
   private ProcessUtils() {} // prevent instantiation
