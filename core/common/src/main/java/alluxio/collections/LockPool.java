@@ -20,7 +20,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.MapMaker;
 
-import java.io.Closeable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -32,7 +31,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * A Lock Pool backed by a {@link MapMaker} with values (the locks) stored as weak references.
  * @param <K> key type
  */
-public class LockPool<K> implements Closeable {
+public class LockPool<K> {
 
   public final ConcurrentMap<K, ReentrantReadWriteLock> mCache;
 
@@ -141,10 +140,5 @@ public class LockPool<K> implements Closeable {
   @VisibleForTesting
   public Map<K, ReentrantReadWriteLock> getEntryMap() {
     return new HashMap<>(mCache);
-  }
-
-  @Override
-  public void close() {
-    mCache.clear();
   }
 }

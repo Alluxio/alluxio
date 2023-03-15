@@ -234,7 +234,5 @@ public class InodeLockManager implements Closeable {
 
   @Override
   public void close() throws IOException {
-    mInodeLocks.close();
-    mEdgeLocks.close();
   }
 }

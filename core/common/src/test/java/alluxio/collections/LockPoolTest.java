@@ -20,7 +20,6 @@ import static org.junit.Assert.assertTrue;
 import alluxio.concurrent.LockMode;
 import alluxio.resource.LockResource;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,6 +27,15 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * See the notes for {@link LockPoolTest#clearValues()} and
+ * {@link LockPoolTest#gcWithoutReferenceTest()}
+ * as they may fail if GC is not triggered during System.gc().
+ * The other tests should pass regardless of if there is a GC triggered.
+ * For a test that puts more load on the system, see the
+ * microbench/src/main/java/alluxio/lockpool/LockPoolBench.java benchmark
+ * using the mValidation property.
+ */
 public class LockPoolTest {
   private LockPool<Integer> mCache;
 
@@ -138,6 +146,12 @@ public class LockPoolTest {
     assertTrue(resource.hasSameLock(mCache.get(2, LockMode.WRITE)));
   }
 
+  /**
+   * This test shows that unreferenced items may be GCed.
+   * Note that there is a possibility of this failing as the call
+   * to System.gc() does not actually guarantee that a GC has happened.
+   * As this test is more for
+   */
   @Test
   public void clearValues() {
     final int addCount = 1000000;
@@ -152,16 +166,17 @@ public class LockPoolTest {
     assertTrue(mCache.size() < addCount);
   }
 
+  /**
+   * This test shows that unreferenced items may be GCed.
+   * Note that there is a possibility of this failing as the call
+   * to System.gc() does not actually guarantee that a GC has happened.
+   * As this test is more for
+   */
   @Test
   public void gcWithoutReferenceTest() {
     String firstId = getResourceId(1);
     System.gc();
     String secondId = getResourceId(1);
     assertNotEquals(firstId, secondId);
-  }
-
-  @After
-  public void after() throws Exception {
-    mCache.close();
   }
 }

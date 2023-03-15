@@ -53,6 +53,12 @@ public class MetadataSyncLockManagerTest {
     return true;
   }
 
+  /**
+   * This test shows that unreferenced items may be GCed.
+   * Note that there is a possibility of this failing as the call
+   * to System.gc() does not actually guarantee that a GC has happened.
+   * As this test is more for
+   */
   @Test
   public void lockPoolGC()
       throws IOException, InvalidPathException {

@@ -36,6 +36,14 @@ import site.ycsb.generator.NumberGenerator;
 import site.ycsb.generator.UniformLongGenerator;
 import site.ycsb.generator.ZipfianGenerator;
 
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * This class benchmarks the lock pool. If {@link LockPoolState#mValidationRange} is a positive
+ * value. Then that number of locks will be held throughout the bench, and it will check that the
+ * locks are the same when the bench has ended.
+ */
 public class LockPoolBench {
 
   @State(Scope.Benchmark)
@@ -48,7 +56,12 @@ public class LockPoolBench {
     @Param({"UNIFORM"})
     public Distribution mDistribution;
 
+    @Param({"0"})
+    public int mValidationRange;
+
     public NumberGenerator mLockIdGenerator;
+
+    List<LockResource> mValidationResources;
 
     public enum Distribution { UNIFORM, ZIPF }
 
@@ -56,10 +69,15 @@ public class LockPoolBench {
     public void setupTrial() {
       mLockPool = new LockPool<>(Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
           Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_CONCURRENCY_LEVEL));
+      mValidationResources = new ArrayList<>(mValidationRange);
       if (mDistribution == Distribution.ZIPF) {
         mLockIdGenerator = new ZipfianGenerator(0, mLockRange);
       } else {
         mLockIdGenerator = new UniformLongGenerator(0, mLockRange);
+      }
+      for (int i = 0; i < mValidationRange; i++) {
+        mValidationResources.add(mLockPool.get(i,
+            LockMode.READ));
       }
     }
 
@@ -69,8 +87,17 @@ public class LockPoolBench {
     }
 
     @TearDown(Level.Trial)
-    public void tearDownTrial() throws Exception {
-      mLockPool.close();
+    public void tearDownTrial() {
+      for (int i = 0; i < mValidationRange; i++) {
+        LockResource lock = mValidationResources.get(i);
+        try (LockResource newLock = mLockPool.get(i, LockMode.READ)) {
+          if (!newLock.hasSameLock(lock)) {
+            throw new RuntimeException("Lock resource changed while holding the lock");
+          } else {
+            System.out.println("same lock");
+          }
+        }
+      }
     }
 
     @Benchmark
