@@ -15,16 +15,15 @@ import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
+import org.apache.ratis.io.MD5Hash;
+import org.apache.ratis.util.MD5FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
-import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
@@ -51,12 +50,11 @@ public interface Checkpointed {
       LOG.debug("taking {} snapshot started", getCheckpointName());
       File file = new File(directory, getCheckpointName().toString());
       try {
-        MessageDigest md5 = MessageDigest.getInstance("MD5");
+        MessageDigest md5 = MD5Hash.getDigester();
         try (OutputStream outputStream = new OptimizedCheckpointOutputStream(file, md5)) {
           writeToCheckpoint(outputStream);
         }
-        String digestFile = String.format("%s.md5", file.getAbsolutePath());
-        Files.write(Paths.get(digestFile), md5.digest());
+        MD5FileUtil.saveMD5File(file, new MD5Hash(md5.digest()));
       } catch (Exception e) {
         throw new AlluxioRuntimeException(Status.INTERNAL,
             String.format("Failed to take snapshot %s", getCheckpointName()),
@@ -88,17 +86,11 @@ public interface Checkpointed {
       LOG.debug("loading {} snapshot started", getCheckpointName());
       File file = new File(directory, getCheckpointName().toString());
       try {
-        MessageDigest md5 = MessageDigest.getInstance("MD5");
+        MessageDigest md5 = MD5Hash.getDigester();
         try (CheckpointInputStream is = new OptimizedCheckpointInputStream(file, md5)) {
           restoreFromCheckpoint(is);
         }
-        String digestFile = String.format("%s.md5", file.getAbsolutePath());
-        byte[] digestBytes = Files.readAllBytes(Paths.get(digestFile));
-        if (!Arrays.equals(digestBytes, md5.digest())) {
-          throw new AlluxioRuntimeException(Status.INTERNAL,
-              String.format("Snapshot file %s corrupted", getCheckpointName()),
-              null, ErrorType.Internal, false);
-        }
+        MD5FileUtil.verifySavedMD5(file, new MD5Hash(md5.digest()));
       } catch (Exception e) {
         throw new AlluxioRuntimeException(Status.INTERNAL,
             String.format("Failed to restore snapshot %s", getCheckpointName()),

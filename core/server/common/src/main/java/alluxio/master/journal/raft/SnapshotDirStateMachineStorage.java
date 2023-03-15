@@ -12,6 +12,9 @@
 package alluxio.master.journal.raft;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.NotFileFilter;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.ratis.io.MD5Hash;
 import org.apache.ratis.server.protocol.TermIndex;
 import org.apache.ratis.server.storage.FileInfo;
@@ -30,6 +33,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +53,9 @@ public class SnapshotDirStateMachineStorage implements StateMachineStorage {
   private volatile SnapshotInfo mLatestSnapshotInfo = null;
   private volatile boolean mNewSnapshotTaken = false;
 
+  private final Comparator<Path> mSnapshotPathComparator = Comparator.comparing(
+      path -> SimpleStateMachineStorage.getTermIndexFromSnapshotFile(path.toFile()));
+
   private Matcher match(Path path) {
     return SimpleStateMachineStorage.SNAPSHOT_REGEX.matcher(path.getFileName().toString());
   }
@@ -60,22 +68,24 @@ public class SnapshotDirStateMachineStorage implements StateMachineStorage {
 
   private SnapshotInfo findLatestSnapshot() {
     try (Stream<Path> stream = Files.list(getSnapshotDir().toPath())) {
-      Optional<Path> max = stream.filter(path -> match(path).matches())
-          .max(Comparator.comparingLong(path -> {
-            TermIndex ti = SimpleStateMachineStorage.getTermIndexFromSnapshotFile(path.toFile());
-            return ti.getIndex();
-          }));
+      Optional<Path> max = stream
+          .filter(path -> match(path).matches())
+          .max(mSnapshotPathComparator);
       if (max.isPresent()) {
         TermIndex ti = SimpleStateMachineStorage.getTermIndexFromSnapshotFile(max.get().toFile());
         List<FileInfo> fileInfos = new ArrayList<>();
-        for (File file : FileUtils.listFiles(max.get().toFile(), null, true)) {
-          MD5Hash md5Hash = MD5FileUtil.computeMd5ForFile(file);
+        Collection<File> nonMd5Files = FileUtils.listFiles(max.get().toFile(),
+            new NotFileFilter(new SuffixFileFilter(MD5FileUtil.MD5_SUFFIX)),
+            TrueFileFilter.INSTANCE);
+        for (File file : nonMd5Files) {
+          MD5Hash md5Hash = MD5FileUtil.readStoredMd5ForFile(file); // null if no md5 file
           Path relativePath = max.get().relativize(file.toPath());
           fileInfos.add(new FileInfo(relativePath, md5Hash));
         }
         return new FileListSnapshotInfo(fileInfos, ti.getTerm(), ti.getIndex());
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
+      // Files.list may throw an unchecked exception
       // do nothing and return null
     }
     return null;
@@ -104,8 +114,7 @@ public class SnapshotDirStateMachineStorage implements StateMachineStorage {
   }
 
   @Override
-  public void cleanupOldSnapshots(SnapshotRetentionPolicy retentionPolicy)
-      throws IOException {
+  public void cleanupOldSnapshots(SnapshotRetentionPolicy retentionPolicy) throws IOException {
     if (!mNewSnapshotTaken) {
       LOG.trace("No new snapshot to delete old one");
       return;
@@ -113,11 +122,7 @@ public class SnapshotDirStateMachineStorage implements StateMachineStorage {
     mNewSnapshotTaken = false;
     try (Stream<Path> stream = Files.list(getSnapshotDir().toPath())) {
       stream.filter(path -> match(path).matches())
-          .sorted(Comparator.comparingLong(path -> {
-            TermIndex ti = SimpleStateMachineStorage.getTermIndexFromSnapshotFile(path.toFile());
-            // - to reverse the order
-            return -ti.getIndex();
-          }))
+          .sorted(Collections.reverseOrder(mSnapshotPathComparator))
           .skip(retentionPolicy.getNumSnapshotsRetained())
           .forEach(path -> {
             LOG.debug("removing dir {}", path.getFileName());

@@ -46,7 +46,7 @@ public class SnapshotIdCheckpointed implements Checkpointed {
 
   @Override
   public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
-    DataOutputStream dataStream = new CheckpointOutputStream(output, CheckpointType.LONGS);
+    DataOutputStream dataStream = new CheckpointOutputStream(output, CheckpointType.LONG);
     dataStream.writeLong(mId);
   }
 
