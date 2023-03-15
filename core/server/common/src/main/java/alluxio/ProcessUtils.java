@@ -32,7 +32,10 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -45,7 +48,8 @@ public final class ProcessUtils {
       ImmutableSet.of(CommonUtils.ProcessType.MASTER, CommonUtils.ProcessType.WORKER);
   public static volatile boolean sInfoDumpOnExitCheck = false;
   public static final DateTimeFormatter DATETIME_FORMAT =
-      DateTimeFormatter.ofPattern("yyyyMMdd-hhmmss");
+      DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).ofPattern("yyyyMMdd-HHmmss")
+          .withLocale(Locale.getDefault()).withZone(ZoneId.systemDefault());
 
   /**
    * Runs the given {@link Process}. This method should only be called from {@code main()} methods.
