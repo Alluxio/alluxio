@@ -153,11 +153,15 @@ public final class ProcessUtils {
         if (!sInfoDumpOnExitCheck) {
           sInfoDumpOnExitCheck = true;
           LOG.info("Logging metrics and jstack on {} exit...", CommonUtils.PROCESS_TYPE.get());
-          String logsDir = Configuration.getString(PropertyKey.LOGS_DIR);
-          String outputFilePrefix = "alluxio-"
-              + CommonUtils.PROCESS_TYPE.get().toString().toLowerCase() + "-exit";
-          dumpMetrics(logsDir, outputFilePrefix);
-          dumpStacks(logsDir, outputFilePrefix);
+          try {
+            String logsDir = Configuration.getString(PropertyKey.LOGS_DIR);
+            String outputFilePrefix = "alluxio-"
+                    + CommonUtils.PROCESS_TYPE.get().toString().toLowerCase() + "-exit";
+            dumpMetrics(logsDir, outputFilePrefix);
+            dumpStacks(logsDir, outputFilePrefix);
+          } catch (Throwable t) {
+            LOG.error("Failed to dump metrics and jstacks", t);
+          }
         }
       }
     } else {
