@@ -103,7 +103,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       responseObserver.onNext(response);
       responseObserver.onCompleted();
     } catch (IOException e) {
-      LOG.error(String.format("Failed to get status of %s: ", request.getPath()), e);
+      LOG.debug(String.format("Failed to get status of %s: ", request.getPath()), e);
       responseObserver.onError(e);
     }
   }

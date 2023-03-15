@@ -134,7 +134,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
           }
         });
     mListStatusCache = CacheBuilder.newBuilder()
-        .maximumSize(1) // Cache only ONE ListStatus result and expires after the following time
+        .maximumSize(Configuration.getInt(PropertyKey.DORA_UFS_LIST_STATUS_CACHE_NR_DIRS))
         .expireAfterWrite(Configuration.getDuration(PropertyKey.DORA_UFS_LIST_STATUS_CACHE_TTL))
         .build();
 
