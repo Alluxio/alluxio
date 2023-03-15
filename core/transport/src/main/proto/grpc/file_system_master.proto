@@ -271,7 +271,7 @@ message ListStatusPartialPOptions {
     // the ListStatusPartialPRequest is a prefix of startAfter (e.g. if listing "/dir",
     // then startAfter could be "/dir/next"). Otherwise if start after does not start with "/",
     // then startAfter is appended to the path given in the ListStatusPartialPRequest
-    // (e.g. if the listing path is "/dir" and startAfter is "/after" then files that
+    // (e.g. if the listing path is "/dir" and startAfter is "after" then files that
     // start after "/dir/after" in lexicographic order will be listed).
     // The full path itself does not need to exist.
     // This offset type is recommended to use if POSIX compatible listings are needed.

@@ -112,6 +112,7 @@ import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.file.metasync.MetadataSyncContext;
 import alluxio.master.file.metasync.MetadataSyncer;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.FileSystemMergeJournalContext;
@@ -161,6 +162,7 @@ import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.ListPartialOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
@@ -1707,9 +1709,9 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param ufsLength the file length from UFS
    * @param ufsStatus the ufs status, used to generate fingerprint
    */
-  void createCompleteFileInternalForMetadataSync(
+  public void createCompleteFileInternalForMetadataSync(
       RpcContext rpcContext, LockedInodePath inodePath, CreateFileContext createFileContext,
-      long ufsLength, UfsStatus ufsStatus
+      UfsFileStatus ufsStatus
   )
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
       BlockInfoException, IOException {
@@ -1717,6 +1719,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     List<Long> blockIds = new ArrayList<>();
 
     int sequenceNumber = 0;
+    long ufsLength = ufsStatus.getContentLength();
     long remainingBytes = ufsLength;
     long blockSize = createFileContext.getOptions().getBlockSizeBytes();
     while (remainingBytes > 0) {
@@ -2803,7 +2806,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param context method context
    * @return a list of created inodes
    */
-  List<Inode> createDirectoryInternal(RpcContext rpcContext, LockedInodePath inodePath,
+  public List<Inode> createDirectoryInternal(RpcContext rpcContext, LockedInodePath inodePath,
       UfsManager.UfsClient ufsClient, AlluxioURI ufsUri, CreateDirectoryContext context) throws
       InvalidPathException, FileAlreadyExistsException, IOException, FileDoesNotExistException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
@@ -4140,23 +4143,29 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public void syncMetadata(AlluxioURI path, SyncMetadataContext context)
       throws InvalidPathException, IOException {
-    // The followings are test code to test UFS partial listing
     /*
-    MountTable.Resolution reso = mMountTable.resolve(new AlluxioURI("/"));
+    // The followings are test code to test UFS partial listing
+    MountTable.Resolution reso = mMountTable.resolve(path);
     UnderFileSystem ufs = reso.acquireUfsResource().get();
-    ListPartialOptions options = ListPartialOptions.defaults();
+    ListOptions options = ListOptions.defaults();
     options.setRecursive(true);
-    options.mBatchSize = 10;
-    options.mStartAfter = "bar/baz/a";
-    UnderFileSystem.PartialListingResult status = ufs.listStatusPartial("/", options);
-    for (UfsStatus s: status.getUfsStatuses()) {
-      System.out.println(s);
+
+//    options.mStartAfter = "bar/baz/a";
+        System.out.println(reso.getUri());
+//    System.out.println(ufs.getStatus(reso.getUri().toString()).toString());
+//    System.out.println(ufs.listStatus(reso.getUri().toString()).length);
+    Iterator<UfsStatus> status = ufs.listStatusIterable(
+        reso.getUri().toString(), options, "foo/bas", 2
+    );
+    while (status.hasNext()) {
+      System.out.println(status.next());
     }
-    System.out.println(status.shouldFetchNext());
 
      */
-    try {
-      mMetadataSyncer.sync(path, true);
+
+    try (RpcContext rpcContext = createRpcContext()) {
+      mMetadataSyncer.sync(path, new MetadataSyncContext(
+          false, rpcContext, MetadataSyncer.NO_TTL_OPTION, null));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -4230,7 +4239,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param opTimeMs the operation time (in milliseconds)
    * @param context the method context
    */
-  protected void setAttributeSingleFile(RpcContext rpcContext, LockedInodePath inodePath,
+  public void setAttributeSingleFile(RpcContext rpcContext, LockedInodePath inodePath,
       boolean updateUfs, long opTimeMs, SetAttributeContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     Inode inode = inodePath.getInode();

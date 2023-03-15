@@ -14,12 +14,14 @@ package alluxio.master.metastore;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
+import alluxio.master.file.meta.InodeIterationResult;
 import alluxio.master.file.meta.MutableInode;
 import alluxio.resource.CloseableIterator;
 
 import com.google.common.annotations.VisibleForTesting;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -159,9 +161,34 @@ public interface ReadOnlyInodeStore extends Closeable {
     return CloseableIterator.create(iter, (any) -> it.close());
   }
 
-  default RecursiveInodeIterator getChildrenRecursively(
+  default SkippableInodeIterator getSkippableChildrenIterator(
       Long inodeId, ReadOption option, boolean recursive) {
-    return new RecursiveInodeIterator(this, inodeId, option, recursive);
+    if (recursive) {
+      return new RecursiveInodeIterator(this, inodeId, option);
+    }
+    final CloseableIterator<? extends Inode> iterator = getChildren(inodeId, option);
+    return new SkippableInodeIterator() {
+      @Override
+      public void skipChildrenOfTheCurrent() {
+        // No-op
+      }
+
+      @Override
+      public boolean hasNext() {
+        return iterator.hasNext();
+      }
+
+      @Override
+      public InodeIterationResult next() {
+        Inode inode = iterator.next();
+        return new InodeIterationResult(inode, inode.getName());
+      }
+
+      @Override
+      public void close() throws IOException {
+        iterator.close();
+      }
+    };
   }
 
   /**

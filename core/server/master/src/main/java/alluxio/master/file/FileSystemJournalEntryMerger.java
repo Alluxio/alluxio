@@ -15,6 +15,7 @@ import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.journal.JournalEntryMerger;
 import alluxio.proto.journal.Journal;
+import alluxio.underfs.Fingerprint;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,6 +71,11 @@ public class FileSystemJournalEntryMerger implements JournalEntryMerger {
             MutableInodeDirectory.fromJournalEntry(existingEntry.getInodeDirectory());
         if (entry.hasUpdateInode()) {
           inodeDirectory.updateFromEntry(entry.getUpdateInode());
+          // Update Inode directory does not contain directory fingerprint
+          if (entry.getUpdateInode().hasUfsFingerprint()
+              && !entry.getUpdateInode().getUfsFingerprint().equals("")) {
+            mJournalEntries.add(entry);
+          }
         } else if (entry.hasUpdateInodeDirectory()) {
           inodeDirectory.updateFromEntry(entry.getUpdateInodeDirectory());
         }

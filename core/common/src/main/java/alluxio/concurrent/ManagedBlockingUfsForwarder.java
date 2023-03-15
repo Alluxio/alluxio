@@ -36,6 +36,7 @@ import alluxio.underfs.options.OpenOptions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -587,6 +588,21 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   @Override
   public void close() throws IOException {
     mUfs.close();
+  }
+
+  public UnderFileSystem getUfs() {
+    return mUfs;
+  }
+
+  @Override
+  public Iterator<UfsStatus> listStatusIterable(
+      String path, ListOptions options, String startAfter, int batchSize) throws IOException {
+    return new ManagedBlockingUfsMethod<Iterator<UfsStatus>>() {
+      @Override
+      public Iterator<UfsStatus> execute() throws IOException {
+        return mUfs.listStatusIterable(path, options, startAfter, batchSize);
+      }
+    }.get();
   }
 
   /**

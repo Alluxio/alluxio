@@ -36,12 +36,14 @@ import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -791,6 +793,31 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String toString() {
         return String.format("path=%s", path);
+      }
+    });
+  }
+
+
+  @Override
+  public Iterator<UfsStatus> listStatusIterable(
+      String path, ListOptions options, String startAfter,
+      int batchSize) throws IOException {
+    return call(new UfsCallable<Iterator<UfsStatus>>() {
+      @Override
+      public Iterator<UfsStatus> call() throws IOException {
+        Iterator<UfsStatus> result = mUnderFileSystem.listStatusIterable(path, options, startAfter, batchSize);
+        // TODO filter invalid path
+        return result;
+      }
+
+      @Override
+      public String methodName() {
+        return "ListStatusPartial";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s, options=%s", path, options);
       }
     });
   }

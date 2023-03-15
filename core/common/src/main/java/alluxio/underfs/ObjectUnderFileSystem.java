@@ -31,6 +31,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterators;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,8 +50,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -601,6 +605,22 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     return listInternal(path, options);
   }
 
+  @Nullable
+  @Override
+  public Iterator<UfsStatus> listStatusIterable(String path, ListOptions options, String startAfter, int batchSize)
+      throws IOException {
+    final ObjectListingChunk chunk = getObjectListingChunkForPath(path, options.isRecursive(), startAfter, batchSize);
+    if (chunk == null) {
+      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
+      if (getObjectStatus(keyAsFolder) != null) {
+        // Path is an empty directory
+        return Collections.emptyIterator();
+      }
+      return null;
+    }
+    return new UfsStatusIterator(path, options.isRecursive(), chunk);
+  }
+
   @Override
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     if (path == null) {
@@ -952,7 +972,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @return chunked object listing, or null if key is not found
    */
   @Nullable
-  protected ObjectListingChunk getObjectListingChunk(String key, ListPartialOptions options)
+  protected ObjectListingChunk getObjectListingChunk(String key, boolean recursive, String startAfter, int batchSize)
       throws IOException {
     throw new IllegalArgumentException("not supported");
   }
@@ -960,9 +980,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Nullable
   @Override
   public PartialListingResult listStatusPartial(String path, ListPartialOptions options) throws IOException {
-    ObjectListingChunk chunk = getObjectListingChunk(path, options);
+    String dir = stripPrefixIfPresent(path);
+    ObjectListingChunk chunk = getObjectListingChunk(dir, options.isRecursive(), options.mStartAfter, options.mBatchSize);
     if (chunk == null) {
-      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
+      String keyAsFolder = convertToFolderName(dir);
       if (getObjectStatus(keyAsFolder) != null) {
         // Path is an empty directory
         return new PartialListingResult(new UfsStatus[0], false);
@@ -970,9 +991,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return null;
     } else {
       Map<String, UfsStatus> children = new HashMap<>();
-      String keyPrefix = PathUtils.normalizePath(stripPrefixIfPresent(path), PATH_SEPARATOR);
+      String keyPrefix = PathUtils.normalizePath(dir, PATH_SEPARATOR);
       keyPrefix = keyPrefix.equals(PATH_SEPARATOR) ? "" : keyPrefix;
-      populateUfsStatus(keyPrefix, chunk, options.isRecursive(), options.mStartAfter, children);
+      populateUfsStatus(keyPrefix, chunk, options.isRecursive(), children);
       UfsStatus[] ret = new UfsStatus[children.size()];
       int pos = 0;
       for (UfsStatus status : children.values()) {
@@ -984,19 +1005,25 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
   }
 
-  /**
-   * Gets a (partial) object listing for the given path.
-   *
-   * @param path of pseudo-directory
-   * @param recursive whether to request immediate children only, or all descendants
-   * @return chunked object listing, or null if the path does not exist as a pseudo-directory
-   */
-  @Nullable
+
   protected ObjectListingChunk getObjectListingChunkForPath(String path, boolean recursive)
+      throws IOException {
+    return getObjectListingChunk(path, recursive, null, 0);
+  }
+
+  /**
+     * Gets a (partial) object listing for the given path.
+     *
+     * @param path of pseudo-directory
+     * @param recursive whether to request immediate children only, or all descendants
+     * @return chunked object listing, or null if the path does not exist as a pseudo-directory
+     */
+  @Nullable
+  protected ObjectListingChunk getObjectListingChunkForPath(String path, boolean recursive, String startAfter, int batchSize)
       throws IOException {
     // Check if anything begins with <folder_path>/
     String dir = stripPrefixIfPresent(path);
-    ObjectListingChunk objs = getObjectListingChunk(dir, recursive);
+    ObjectListingChunk objs = getObjectListingChunk(dir, recursive, startAfter, batchSize);
     // If there are, this is a folder and we can create the necessary metadata
     if (objs != null
         && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
@@ -1043,7 +1070,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     keyPrefix = keyPrefix.equals(PATH_SEPARATOR) ? "" : keyPrefix;
     Map<String, UfsStatus> children = new HashMap<>();
     while (chunk != null) {
-      populateUfsStatus(keyPrefix, chunk, options.isRecursive(), null, children);
+      populateUfsStatus(keyPrefix, chunk, options.isRecursive(), children);
       chunk = chunk.getNextChunk();
     }
     UfsStatus[] ret = new UfsStatus[children.size()];
@@ -1054,8 +1081,64 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     return ret;
   }
 
+  /**
+   * foobar.
+   */
+  public class UfsStatusIterator implements Iterator<UfsStatus> {
+    private ObjectListingChunk mChunk;
+    private final String mKeyPrefix;
+    private final boolean mIsRecursive;
+    private Iterator<UfsStatus> mIterator = null;
+    private String mLastKey = null;
+
+    public UfsStatusIterator(String path, boolean isRecursive, ObjectListingChunk firstChunk)
+        throws IOException {
+      String keyPrefix = PathUtils.normalizePath(stripPrefixIfPresent(path), PATH_SEPARATOR);
+      keyPrefix = keyPrefix.equals(PATH_SEPARATOR) ? "" : keyPrefix;
+      mKeyPrefix = keyPrefix;
+      mIsRecursive = isRecursive;
+      mChunk = firstChunk;
+      updateIterator();
+    }
+
+    private void updateIterator() throws IOException {
+      NavigableMap<String, UfsStatus> ufsStatusMap = new TreeMap<>();
+      populateUfsStatus(mKeyPrefix, mChunk, mIsRecursive, ufsStatusMap);
+      if (mLastKey != null) {
+        ufsStatusMap = ufsStatusMap.tailMap(mLastKey, false);
+      }
+      mIterator = Iterators.transform(ufsStatusMap.entrySet().iterator(), Map.Entry::getValue);
+      mLastKey = ufsStatusMap.isEmpty() ? null : ufsStatusMap.lastKey();
+    }
+
+    @Override
+    public boolean hasNext() {
+      if (mChunk == null) {
+        return false;
+      }
+      if (mIterator.hasNext()) {
+        return true;
+      }
+      if (Boolean.FALSE.equals(mChunk.hasNextChunk())) {
+        return false;
+      }
+      try {
+        mChunk = mChunk.getNextChunk();
+        updateIterator();
+        return hasNext();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    public UfsStatus next() {
+      return mIterator.next();
+    }
+  }
+
   private void populateUfsStatus(
-      String keyPrefix, ObjectListingChunk chunk, boolean isRecursive, @Nullable String startAfter, Map<String, UfsStatus> ufsStatusMap) throws IOException {
+      String keyPrefix, ObjectListingChunk chunk, boolean isRecursive, Map<String, UfsStatus> ufsStatusMap) throws IOException {
     // Directories in UFS can be possibly encoded in two different ways:
     // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or
     // (2) as "common prefixes" of other files objects for directories not created through

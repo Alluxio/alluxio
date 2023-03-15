@@ -29,6 +29,7 @@ import alluxio.underfs.options.ListPartialOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 
+import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +39,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -640,6 +643,12 @@ public interface UnderFileSystem extends Closeable {
    */
   @Nullable
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
+
+  default Iterator<UfsStatus> listStatusIterable(
+      String path, ListOptions options, String startAfter, int batchSize)
+      throws IOException {
+    throw new RuntimeException("operation not supported");
+  }
 
   default PartialListingResult listStatusPartial(String path, ListPartialOptions options)
       throws IOException {

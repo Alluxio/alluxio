@@ -27,6 +27,19 @@ public final class ListOptions {
   // Whether to list a directory and all its sub-directories
   private boolean mRecursive;
 
+  /*
+  public String getStartAfter() {
+    return mStartAfter;
+  }
+
+  public void setStartAfter(String startAfter) {
+    mStartAfter = startAfter;
+  }
+
+  private String mStartAfter;
+
+   */
+
   /**
    * @return the default {@link ListOptions}
    */

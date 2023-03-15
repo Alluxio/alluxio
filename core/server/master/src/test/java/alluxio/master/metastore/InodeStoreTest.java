@@ -19,7 +19,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.Configuration;
@@ -28,6 +27,7 @@ import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.meta.Edge;
 import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeIterationResult;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.MutableInode;
@@ -52,8 +52,8 @@ import org.junit.runners.Parameterized.Parameters;
 import org.rocksdb.RocksDBException;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -310,7 +310,7 @@ public class InodeStoreTest {
   // TODO move this to a dedicated file
   // TODO also test the resource close
   @Test
-  public void recursiveListing() {
+  public void recursiveListing() throws IOException {
     /*
       /
       /a
@@ -374,10 +374,10 @@ public class InodeStoreTest {
     writeEdge(mRoot, f1);
     writeEdge(mRoot, f2);
 
-    RecursiveInodeIterator iterator = mStore.getChildrenRecursively(0L, ReadOption.defaults(), true);
+    RecursiveInodeIterator iterator = (RecursiveInodeIterator)mStore.getSkippableChildrenIterator(0L, ReadOption.defaults(), true);
     while(iterator.hasNext()) {
-      iterator.next();
-      String currentPath = String.join("/", iterator.getCurrentURI());
+      InodeIterationResult result = iterator.next();
+      String currentPath = String.join("/", result.getName());
       System.out.println(currentPath);
       if (currentPath.equals("/a/b/c") || currentPath.equals("/a/c")) {
         iterator.skipChildrenOfTheCurrent();
@@ -388,20 +388,20 @@ public class InodeStoreTest {
 
     System.out.println("------------------------------");
 
-    iterator = mStore.getChildrenRecursively(0L, ReadOption.defaults(), true);
+    iterator = (RecursiveInodeIterator)mStore.getSkippableChildrenIterator(0L, ReadOption.defaults(), true);
     while(iterator.hasNext()) {
       iterator.next();
-      System.out.println(String.join("/", iterator.getCurrentURI()));
+//      System.out.println(String.join("/", iterator.getCurrentURI()));
     }
 
     iterator.close();
 
     System.out.println("------------------------------");
 
-    iterator = mStore.getChildrenRecursively(0L, ReadOption.newBuilder().setReadFrom("a/c/f2").build(), true);
+    iterator = (RecursiveInodeIterator)mStore.getSkippableChildrenIterator(0L, ReadOption.newBuilder().setReadFrom("a/c/f2").build(), true);
     while(iterator.hasNext()) {
       iterator.next();
-      System.out.println(String.join("/", iterator.getCurrentURI()));
+//      System.out.println(String.join("/", iterator.getCurrentURI()));
     }
 
     iterator.close();
