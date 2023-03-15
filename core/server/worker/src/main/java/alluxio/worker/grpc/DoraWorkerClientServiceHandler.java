@@ -51,6 +51,8 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
 
   private static final boolean ZERO_COPY_ENABLED =
       Configuration.getBoolean(PropertyKey.WORKER_NETWORK_ZEROCOPY_ENABLED);
+  private static final int LIST_STATUS_BATCH_SIZE =
+      Configuration.getInt(PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE);
 
   private final ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
   private final DoraWorker mWorker;
@@ -122,7 +124,6 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
         return;
       }
 
-      // Adding batching support here with ListStatusResultStream.
       ListStatusPResponse.Builder builder = ListStatusPResponse.newBuilder();
 
       for (int i = 0; i < statuses.length; i++) {
@@ -132,10 +133,17 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
             ((PagedDoraWorker) mWorker).buildFileInfoFromUfsStatus(status, ufsFullPath);
 
         builder.addFileInfos(fi);
+        if (builder.getFileInfosCount() == LIST_STATUS_BATCH_SIZE) {
+          // Reached the batch size of the reply message. Send it out and create a new one.
+          responseObserver.onNext(builder.build());
+          builder = ListStatusPResponse.newBuilder();
+        }
       }
-      ListStatusPResponse response = builder.build();
+      if (builder.getFileInfosCount() != 0) {
+        // Send out the remaining items if there is any.
+        responseObserver.onNext(builder.build());
+      }
 
-      responseObserver.onNext(response);
       responseObserver.onCompleted();
     } catch (Exception e) {
       LOG.error(String.format("Failed to list status of %s: ", request.getPath()), e);
