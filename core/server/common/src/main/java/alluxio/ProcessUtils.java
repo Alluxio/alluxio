@@ -18,13 +18,26 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadUtils;
 import com.codahale.metrics.MetricRegistry;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static alluxio.metrics.sink.MetricsServlet.OBJECT_MAPPER;
 
 /**
  * Utility methods for Alluxio {@link Process}es.
@@ -33,7 +46,7 @@ public final class ProcessUtils {
   private static final Logger LOG = LoggerFactory.getLogger(ProcessUtils.class);
 
   public static final Set<CommonUtils.ProcessType> COLLECT_ON_EXIT =
-      ImmutableSet.of(CommonUtils.ProcessType.MASTER, CommonUtils.ProcessType.WORKER, CommonUtils.ProcessType.CLIENT);
+      ImmutableSet.of(CommonUtils.ProcessType.MASTER, CommonUtils.ProcessType.WORKER);
   public static final AtomicBoolean METRIC_DUMP_CHECK = new AtomicBoolean(false);
   public static final AtomicBoolean STACK_DUMP_CHECK = new AtomicBoolean(false);
 
@@ -148,7 +161,7 @@ public final class ProcessUtils {
           if (isFailover) {
             if (Configuration.getBoolean(PropertyKey.MASTER_FAILOVER_COLLECT_STACKS)) {
               LOG.info("Logging all thread stacks when primary master switches to standby...");
-              ThreadUtils.logAllThreads();
+              dumpStacks();
             } else {
               LOG.info("Not logging thread stacks on failover, set {}=true if that is necessary",
                   PropertyKey.MASTER_FAILOVER_COLLECT_STACKS.getName());
@@ -156,7 +169,7 @@ public final class ProcessUtils {
           } else {
             if (Configuration.getBoolean(PropertyKey.EXIT_COLLECT_STACKS)) {
               LOG.info("Logging all thread stacks on exit...");
-              ThreadUtils.logAllThreads();
+              dumpStacks();
             } else {
               LOG.info("Not logging thread stacks on exit, set {}=true if that is necessary",
                   PropertyKey.EXIT_COLLECT_STACKS.getName());
@@ -173,9 +186,7 @@ public final class ProcessUtils {
           if (isFailover) {
             if (Configuration.getBoolean(PropertyKey.MASTER_FAILOVER_COLLECT_STACKS)) {
               LOG.info("Logging all metrics when primary master switches to standby...");
-              // TODO(jiacheng): only log necessary metrics?
-              // TODO(jiacheng): this is only logging the obj hash
-              LOG.info("{}", MetricsSystem.METRIC_REGISTRY);
+              dumpMetrics();
             } else {
               LOG.info("Not logging primary master metrics on failover, set {}=true if that is necessary",
                   PropertyKey.MASTER_FAILOVER_COLLECT_METRICS.getName());
@@ -183,7 +194,7 @@ public final class ProcessUtils {
           } else {
             if (Configuration.getBoolean(PropertyKey.EXIT_COLLECT_METRICS)) {
               LOG.info("Logging all component metrics...");
-              LOG.info("{}", MetricsSystem.METRIC_REGISTRY);
+              dumpMetrics();
             } else {
               LOG.info("Not logging component metrics on exit, set {}=true if that is necessary",
                   PropertyKey.EXIT_COLLECT_METRICS.getName());
@@ -191,6 +202,41 @@ public final class ProcessUtils {
           }
         }
       }
+    }
+  }
+
+  private static void dumpMetrics() {
+    String logsPath = Configuration.getString(PropertyKey.LOGS_DIR);
+    LocalDateTime now = LocalDateTime.now();
+    Instant ts = Instant.now();
+    DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyyMMdd-hhmmss");
+
+    String childFilePath = String.format("alluxio-%s-metrics-%s.json",
+        CommonUtils.PROCESS_TYPE.get().toString().toLowerCase(), format.format(now));
+    File metricDumpFile = new File(logsPath, childFilePath);
+    try (FileOutputStream fos = new FileOutputStream(metricDumpFile, false)) {
+      // The metrics json string is ~100KB in size
+      String outputContents = OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+          .writeValueAsString(MetricsSystem.METRIC_REGISTRY);
+      fos.getChannel().write(ByteBuffer.wrap(outputContents.getBytes(StandardCharsets.UTF_8)));
+    } catch (IOException e) {
+      LOG.error("Failed to persist metrics to {}", metricDumpFile.getAbsolutePath(), e);
+    }
+  }
+
+  private static void dumpStacks() {
+    String logsPath = Configuration.getString(PropertyKey.LOGS_DIR);
+    LocalDateTime now = LocalDateTime.now();
+    Instant ts = Instant.now();
+    DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyyMMdd-hhmmss");
+
+    String childFilePath = String.format("alluxio-%s-stacks-%s.txt",
+        CommonUtils.PROCESS_TYPE.get().toString().toLowerCase(), format.format(now));
+    File stacksDumpFile = new File(logsPath, childFilePath);
+    try (PrintStream stream = new PrintStream(stacksDumpFile)) {
+      ThreadUtils.printThreadInfo(stream, "Dumping all threads in process");
+    } catch (IOException e) {
+      LOG.error("Failed to persist thread stacks to {}", stacksDumpFile.getAbsolutePath(), e);
     }
   }
 
