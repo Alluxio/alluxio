@@ -19,15 +19,15 @@ import alluxio.grpc.SnapshotMetadata;
 import alluxio.master.selectionpolicy.MasterSelectionPolicy;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.CommonUtils;
+import alluxio.retry.TimeoutRetry;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.TarUtils;
-import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.amazonaws.annotation.GuardedBy;
 import com.codahale.metrics.Timer;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.ratis.server.protocol.TermIndex;
 import org.apache.ratis.server.raftlog.RaftLog;
 import org.apache.ratis.statemachine.SnapshotInfo;
@@ -44,6 +44,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -109,20 +110,19 @@ public class RaftSnapshotManager implements AutoCloseable {
       LOG.debug("Local snapshot is {}", TermIndex.valueOf(localSnapshotInfo.getTerm(),
           localSnapshotInfo.getIndex()));
     }
-    List<Map.Entry<InetSocketAddress, SnapshotMetadata>> followerInfos;
-    try {
-      followerInfos = CommonUtils.waitForResult("Snapshot info to be retrieved",
-          () -> retrieveFollowerInfos(localSnapshotInfo),
-          list -> list.size() > 0,
-          WaitForOptions.defaults().setInterval(10_000).setTimeoutMs(60_000));
-    } catch (Exception e) {
-      LOG.debug("Did not find any follower with an updated snapshot");
-      return RaftLog.INVALID_LOG_INDEX;
+    PriorityQueue<ImmutablePair<SnapshotMetadata, InetSocketAddress>> otherInfos =
+        new PriorityQueue<>(Comparator.comparing(pair -> -pair.getLeft().getSnapshotIndex()));
+    TimeoutRetry retryPolicy = new TimeoutRetry(120_000, 10_000);
+    while (otherInfos.isEmpty() && retryPolicy.attempt()) {
+      LOG.debug("Attempt to retrieve info");
+      otherInfos.addAll(retrieveFollowerInfos(localSnapshotInfo));
+      LOG.debug("Attempt to retrieve info over");
     }
 
-    for (Map.Entry<InetSocketAddress, SnapshotMetadata> info : followerInfos) {
-      InetSocketAddress address = info.getKey();
-      SnapshotMetadata snapshotMetadata = info.getValue();
+    while (!otherInfos.isEmpty()) {
+      ImmutablePair<SnapshotMetadata, InetSocketAddress> info = otherInfos.poll();
+      InetSocketAddress address = info.getRight();
+      SnapshotMetadata snapshotMetadata = info.getLeft();
       Timer.Context ctx = MetricsSystem
           .timer(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER.getName()).time();
       long index;
@@ -139,29 +139,28 @@ public class RaftSnapshotManager implements AutoCloseable {
    * @param localSnapshotInfo contains information about the most up-to-date snapshot on this master
    * @return a sorted list of pairs containing a follower's address and its most up-to-date snapshot
    */
-  private List<Map.Entry<InetSocketAddress, SnapshotMetadata>> retrieveFollowerInfos(
+  private List<ImmutablePair<SnapshotMetadata, InetSocketAddress>> retrieveFollowerInfos(
       SnapshotInfo localSnapshotInfo) {
     return mClients.keySet().parallelStream()
         // map to a pair of (address, SnapshotMetadata) by requesting all followers in parallel
-        .collect(Collectors.toMap(Function.identity(), address -> {
-          LOG.debug("Requesting snapshot info from {}", address);
+        .map(address -> {
           try {
             RaftJournalServiceClient client = mClients.get(address);
             client.connect();
+            LOG.debug("Receiving snapshot info from {}", address);
             SnapshotMetadata metadata = client.requestLatestSnapshotInfo();
             LOG.debug("Received snapshot info from {} with status {}", address,
                 TermIndex.valueOf(metadata.getSnapshotTerm(), metadata.getSnapshotIndex()));
-            return metadata;
+            return ImmutablePair.of(metadata, address);
           } catch (Exception e) {
             LOG.debug("Failed to retrieve snapshot info from {}", address, e);
-            return SnapshotMetadata.newBuilder().setExists(false).build();
+            return ImmutablePair.of(SnapshotMetadata.newBuilder().setExists(false).build(),
+                address);
           }
-        })).entrySet().stream()
+        })
         // filter out followers that do not have any snapshot or no updated snapshot
-        .filter(entry -> entry.getValue().getExists() && (localSnapshotInfo == null
-            || entry.getValue().getSnapshotIndex() > localSnapshotInfo.getIndex()))
-        // sort them by snapshotIndex, the - sign is to reverse the sorting order
-        .sorted(Comparator.comparingLong(entry -> -entry.getValue().getSnapshotIndex()))
+        .filter(pair -> pair.getLeft().getExists() && (localSnapshotInfo == null
+            || pair.getLeft().getSnapshotIndex() > localSnapshotInfo.getIndex()))
         .collect(Collectors.toList());
   }
 

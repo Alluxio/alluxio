@@ -107,7 +107,7 @@ public class SnapshotDirStateMachineStorage implements StateMachineStorage {
   public void cleanupOldSnapshots(SnapshotRetentionPolicy retentionPolicy)
       throws IOException {
     if (!mNewSnapshotTaken) {
-      LOG.debug("No new snapshot to delete old one");
+      LOG.trace("No new snapshot to delete old one");
       return;
     }
     mNewSnapshotTaken = false;

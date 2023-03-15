@@ -30,6 +30,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.LockResource;
+import alluxio.retry.TimeoutRetry;
 import alluxio.util.StreamUtils;
 import alluxio.util.logging.SamplingLogger;
 
@@ -411,27 +412,14 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public CompletableFuture<TermIndex> notifyInstallSnapshotFromLeader(
       RaftProtos.RoleInfoProto roleInfoProto, TermIndex firstTermIndexInLog) {
-    if (roleInfoProto.getRole() != RaftProtos.RaftPeerRole.FOLLOWER) {
-      return RaftJournalUtils.completeExceptionally(
-          new IllegalStateException(String.format(
-              "Server should be a follower when installing a snapshot from leader. Actual: %s",
-              roleInfoProto.getRole())));
-    }
-    return mSnapshotManager.installSnapshotFromLeader().thenApply(snapshotIndex -> {
-      long latestJournalIndex = getNextIndex() - 1;
-      if (latestJournalIndex >= snapshotIndex.getIndex()) {
-        // do not reload the state machine if the downloaded snapshot is older than the latest entry
-        // fail the request after installation so the leader will stop sending the same request
-        throw new IllegalArgumentException(
-            String.format("Downloaded snapshot index %d is older than the latest entry index %d",
-                snapshotIndex.getIndex(), latestJournalIndex));
+    return CompletableFuture.supplyAsync(() -> {
+      TimeoutRetry retryPolicy = new TimeoutRetry(Integer.MAX_VALUE, 10_000);
+      long index = RaftLog.INVALID_LOG_INDEX;
+      while (index == RaftLog.INVALID_LOG_INDEX && retryPolicy.attempt()) {
+        index = mDownloadManager.downloadSnapshotFromOtherMasters();
       }
-      mSnapshotLastIndex = snapshotIndex.getIndex();
-      synchronized (mSnapshotManager) {
-        mSnapshotManager.notifyAll();
-      }
-      return snapshotIndex;
-    });
+      return getLatestSnapshot().getTermIndex();
+    }, mJournalPool);
   }
 
   @Override
