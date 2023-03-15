@@ -164,6 +164,11 @@ public final class StringToSignProducer {
     return strToSign.toString();
   }
 
+  /**
+   * Get all headers by given http request, and the result map will ignore case.
+   * @param request
+   * @return
+   */
   private static Map<String, String> getHeaders(HttpServletRequest request) {
     Map<String, String> result = new TreeMap<>(String::compareToIgnoreCase);
     Enumeration<String> headerNames = request.getHeaderNames();
@@ -177,6 +182,12 @@ public final class StringToSignProducer {
     return result;
   }
 
+  /**
+   * Get all parameters by given http request,
+   * if there are multiple values for the same key, the first one will be taken.
+   * @param request
+   * @return
+   */
   private static Map<String, String> getParameterMap(HttpServletRequest request) {
     return request.getParameterMap().entrySet()
         .stream()
