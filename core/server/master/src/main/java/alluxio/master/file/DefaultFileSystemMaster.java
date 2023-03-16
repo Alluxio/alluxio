@@ -19,7 +19,6 @@ import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
-import alluxio.ProcessUtils;
 import alluxio.Server;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
@@ -1248,10 +1247,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     Inode inode = currInodePath.getInode();
     if (context.donePartialListing()) {
       return;
-    }
-
-    if (context.getOptions().getRecursive()) {
-      ProcessUtils.fatalError(LOG, "I die here");
     }
 
     // The item should be listed if:

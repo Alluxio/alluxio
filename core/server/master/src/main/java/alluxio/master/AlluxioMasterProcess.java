@@ -62,6 +62,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -253,11 +254,11 @@ public class AlluxioMasterProcess extends MasterProcess {
         }
         // Dump important information asynchronously
         ExecutorService es = null;
-        List<Future<Void>> dumpFutures = null;
+        List<Future<Void>> dumpFutures = new ArrayList<>();
         try {
           es = Executors.newFixedThreadPool(
               2, ThreadFactoryUtils.build("info-dumper-%d", true));
-          dumpFutures = ProcessUtils.dumpInformationOnFailover(es);
+          dumpFutures.addAll(ProcessUtils.dumpInformationOnFailover(es));
         } catch (Throwable t) {
           LOG.warn("Failed to dump metrics and jstacks before demotion", t);
         }
@@ -265,15 +266,13 @@ public class AlluxioMasterProcess extends MasterProcess {
         LOG.info("Losing the leadership.");
         mServices.forEach(SimpleService::demote);
         demote();
-        // Collect information dump futures and close resources
-        if (dumpFutures != null) {
-          dumpFutures.forEach((f) -> {
-            try {
-              f.get();
-            } catch (InterruptedException | ExecutionException e) {
-              LOG.warn("Failed to dump metrics and jstacks before demotion", e);
-            }
-          });
+        // Block until information dump is done and close resources
+        for (Future<Void> f : dumpFutures) {
+          try {
+            f.get();
+          } catch (InterruptedException | ExecutionException e) {
+            LOG.warn("Failed to dump metrics and jstacks before demotion", e);
+          }
         }
         if (es != null) {
           es.shutdownNow();

@@ -180,6 +180,9 @@ public final class ProcessUtils {
    * Outputs process critical information like metrics and jstack before the primary master
    * fails over to standby. This is asynchronous in order not to block the failover.
    * The information will be output to separate files in the log directory.
+   *
+   * @param es the thread pool to submit tasks to
+   * @return a list of futures for async info dumping jobs
    */
   public static List<Future<Void>> dumpInformationOnFailover(ExecutorService es) {
     if (Configuration.getBoolean(PropertyKey.MASTER_FAILOVER_COLLECT_INFO)) {

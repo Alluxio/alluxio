@@ -128,7 +128,11 @@ public final class ThreadUtils {
     stream.println(THREAD_BEAN.getThreadCount() + " active threads");
     long[] threadIds = THREAD_BEAN.getAllThreadIds();
     for (long id : threadIds) {
-      ThreadInfo info = THREAD_BEAN.getThreadInfo(id);
+      ThreadInfo info = THREAD_BEAN.getThreadInfo(id, Integer.MAX_VALUE);
+      if (info == null) {
+        // The thread is no longer active, ignore
+        continue;
+      }
       stream.print(info.toString());
     }
     stream.flush();
