@@ -111,7 +111,7 @@ public final class S3RestServiceHandler {
   /* Object is after bucket in the URL path */
   public static final String OBJECT_PARAM = "{bucket}/{object:.+}";
   public static final int BUCKET_PATH_CACHE_SIZE = 65536;
-  private static final Cache<AlluxioURI, Boolean> BUCKET_PATH_CACHE = CacheBuilder.newBuilder()
+  private static final Cache<String, Boolean> BUCKET_PATH_CACHE = CacheBuilder.newBuilder()
       .maximumSize(BUCKET_PATH_CACHE_SIZE)
       .expireAfterWrite(
           Configuration.global().getMs(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS),
@@ -225,7 +225,7 @@ public final class S3RestServiceHandler {
             // debatable (?) potentially breaks backcompat(?)
             .filter(URIStatus::isFolder)
             .collect(Collectors.toList());
-        buckets.forEach((uri) -> BUCKET_PATH_CACHE.put(new AlluxioURI(uri.getPath()), true));
+        buckets.forEach((uri) -> BUCKET_PATH_CACHE.put(uri.getPath(), true));
         return new ListAllMyBucketsResult(buckets);
       }
     });
@@ -588,7 +588,7 @@ public final class S3RestServiceHandler {
         } catch (Exception e) {
           throw S3RestUtils.toBucketS3Exception(e, bucketPath, auditContext);
         }
-        BUCKET_PATH_CACHE.put(new AlluxioURI(bucketPath), true);
+        BUCKET_PATH_CACHE.put(bucketPath, true);
         return Response.Status.OK;
       }
     });
@@ -649,7 +649,7 @@ public final class S3RestServiceHandler {
         } catch (Exception e) {
           throw S3RestUtils.toBucketS3Exception(e, bucketPath, auditContext);
         }
-        BUCKET_PATH_CACHE.put(new AlluxioURI(bucketPath), false);
+        BUCKET_PATH_CACHE.put(bucketPath, false);
         return Response.Status.NO_CONTENT;
       }
     });
