@@ -35,8 +35,13 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 /**
  * Utility methods for Alluxio {@link Process}es.
@@ -140,6 +145,7 @@ public final class ProcessUtils {
 
   /**
    * Outputs process critical information like metrics and jstack before it exits.
+   * This is synchronous in order to capture as much information at the scene as possible.
    * The information will be output to separate files in the log directory.
    */
   public static void dumpInformationOnExit() {
@@ -156,7 +162,7 @@ public final class ProcessUtils {
           try {
             String logsDir = Configuration.getString(PropertyKey.LOGS_DIR);
             String outputFilePrefix = "alluxio-"
-                    + CommonUtils.PROCESS_TYPE.get().toString().toLowerCase() + "-exit";
+                + CommonUtils.PROCESS_TYPE.get().toString().toLowerCase() + "-exit";
             dumpMetrics(logsDir, outputFilePrefix);
             dumpStacks(logsDir, outputFilePrefix);
           } catch (Throwable t) {
@@ -165,27 +171,41 @@ public final class ProcessUtils {
         }
       }
     } else {
-      LOG.info("Not logging metrics and jstack on exit, set {}=true if that is necessary",
+      LOG.info("Not logging metrics and jstack on exit, set {}=true to enable this feature",
           PropertyKey.EXIT_COLLECT_INFO.getName());
     }
   }
 
   /**
    * Outputs process critical information like metrics and jstack before the primary master
-   * fails over to standby. The information will be output to separate files in the log directory.
+   * fails over to standby. This is asynchronous in order not to block the failover.
+   * The information will be output to separate files in the log directory.
    */
-  public static void dumpInformationOnFailover() {
+  public static List<Future<Void>> dumpInformationOnFailover(ExecutorService es) {
     if (Configuration.getBoolean(PropertyKey.MASTER_FAILOVER_COLLECT_INFO)) {
       LOG.info("Logging metrics and jstack when primary master switches to standby...");
       String logsDir = Configuration.getString(PropertyKey.LOGS_DIR);
       String outputFilePrefix = "alluxio-"
           + CommonUtils.PROCESS_TYPE.get().toString().toLowerCase() + "-failover";
-      dumpMetrics(logsDir, outputFilePrefix);
-      dumpStacks(logsDir, outputFilePrefix);
+      List<Future<Void>> futures = new ArrayList<>();
+      // Attempt to dump metrics first before MetricsMaster clears all metrics
+      // The failover procedure will shutdown RPC -> Journal -> Master components
+      // So we rely on the first two steps take longer than this thread
+      futures.add(es.submit(() -> {
+        ProcessUtils.dumpMetrics(logsDir, outputFilePrefix);
+        return null;
+      }));
+      futures.add(es.submit(() -> {
+        ProcessUtils.dumpStacks(logsDir, outputFilePrefix);
+        return null;
+      }));
+      LOG.info("Started dumping metrics and jstacks into {}", logsDir);
+      return futures;
     } else {
       LOG.info("Not logging information like metrics and jstack on failover, "
-          + "set {}=true if that is necessary",
+          + "set {}=true to enable this feature",
           PropertyKey.MASTER_FAILOVER_COLLECT_INFO.getName());
+      return Collections.emptyList();
     }
   }
 
