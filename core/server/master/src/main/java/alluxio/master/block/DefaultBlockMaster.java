@@ -47,6 +47,7 @@ import alluxio.master.CoreMasterContext;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.SingleEntryJournaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.checkpoint.Checkpointed;
 import alluxio.master.metastore.BlockMetaStore;
@@ -399,17 +400,27 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public CompletableFuture<Void> writeToCheckpoint(File directory, ExecutorService executorService) {
+  public CompletableFuture<Void> writeToCheckpoint(File directory,
+                                                   ExecutorService executorService) {
     if (mBlockMetaStore instanceof Checkpointed) {
-      return ((Checkpointed) mBlockMetaStore).writeToCheckpoint(directory, executorService);
+      SingleEntryJournaled containerIdJournal = new SingleEntryJournaled();
+      containerIdJournal.processJournalEntry(getContainerIdJournalEntry());
+      return CompletableFuture.allOf((
+          (Checkpointed) mBlockMetaStore).writeToCheckpoint(directory, executorService),
+          containerIdJournal.writeToCheckpoint(directory, executorService));
     }
     return super.writeToCheckpoint(directory, executorService);
   }
 
   @Override
-  public CompletableFuture<Void> restoreFromCheckpoint(File directory, ExecutorService executorService) {
+  public CompletableFuture<Void> restoreFromCheckpoint(File directory,
+                                                       ExecutorService executorService) {
     if (mBlockMetaStore instanceof Checkpointed) {
-      return ((Checkpointed) mBlockMetaStore).restoreFromCheckpoint(directory, executorService);
+      SingleEntryJournaled containerIdJournal = new SingleEntryJournaled();
+      return CompletableFuture.allOf((
+          (Checkpointed) mBlockMetaStore).restoreFromCheckpoint(directory, executorService),
+          containerIdJournal.restoreFromCheckpoint(directory, executorService)
+              .thenRun(() -> processJournalEntry(containerIdJournal.getEntry())));
     }
     return super.restoreFromCheckpoint(directory, executorService);
   }
