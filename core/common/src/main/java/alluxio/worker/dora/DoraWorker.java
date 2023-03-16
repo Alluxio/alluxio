@@ -21,6 +21,7 @@ import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 
 import java.io.IOException;
+import javax.annotation.Nullable;
 
 /**
  * A block worker in the Alluxio system.
@@ -37,11 +38,17 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
 
   /**
    * List status from Under File System.
-   * @param path
-   * @param options
-   * @return list of status
+   *
+   * Please refer to UnderFileSystem.listStatus().
+   *
+   * @param path the path of a dir or file
+   * @param options the option for listStatus()
+   * @return An array with the statuses of the files and directories in the directory denoted by
+   *         this abstract pathname. The array will be empty if the directory is empty. Returns
+   *         {@code null} if this abstract pathname does not denote a directory.
    * @throws IOException
    */
+  @Nullable
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
 
   /**

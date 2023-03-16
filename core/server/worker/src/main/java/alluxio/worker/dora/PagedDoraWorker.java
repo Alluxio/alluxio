@@ -64,6 +64,7 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.page.UfsBlockReadOptions;
 
 import com.google.common.base.Preconditions;
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -100,6 +101,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final BlockMasterClientPool mBlockMasterClientPool;
   private final String mRootUFS;
   private final LoadingCache<String, DoraMeta.FileStatus> mUfsStatusCache;
+  private final Cache<String, UfsStatus[]> mListStatusCache;
   private WorkerNetAddress mAddress;
 
   private RocksDBDoraMetaStore mMetaStore;
@@ -131,6 +133,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             return fs;
           }
         });
+    mListStatusCache = CacheBuilder.newBuilder()
+        .maximumSize(Configuration.getInt(PropertyKey.DORA_UFS_LIST_STATUS_CACHE_NR_DIRS))
+        .expireAfterWrite(Configuration.getDuration(PropertyKey.DORA_UFS_LIST_STATUS_CACHE_TTL))
+        .build();
+
     mPageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
     mBlockMasterClientPool = new BlockMasterClientPool();
     try {
@@ -232,7 +239,16 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public UfsStatus[] listStatus(String path, ListOptions options) throws IOException {
-    return mUfs.listStatus(path, options);
+    UfsStatus[] statuses = mListStatusCache.getIfPresent(path);
+    if (statuses == null) {
+      // Not found in cache. Query the Under File System.
+      statuses = mUfs.listStatus(path, options);
+      // Add this into cache. Return value might be null if not found.
+      if (statuses != null) {
+        mListStatusCache.put(path, statuses);
+      }
+    }
+    return statuses;
   }
 
   @Override

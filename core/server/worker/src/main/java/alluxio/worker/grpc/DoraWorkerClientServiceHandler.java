@@ -36,6 +36,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
@@ -102,7 +103,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       responseObserver.onNext(response);
       responseObserver.onCompleted();
     } catch (IOException e) {
-      LOG.error(String.format("Failed to get status of %s: ", request.getPath()), e);
+      LOG.debug(String.format("Failed to get status of %s: ", request.getPath()), e);
       responseObserver.onError(e);
     }
   }
@@ -116,7 +117,12 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       ListOptions options = ListOptions.defaults().setRecursive(
           request.getOptions().hasRecursive() ? request.getOptions().getRecursive() : false);
       UfsStatus[] statuses = mWorker.listStatus(request.getPath(), options);
+      if (statuses == null) {
+        responseObserver.onError(new FileNotFoundException("File or Directory Not Found"));
+        return;
+      }
 
+      // Adding batching support here with ListStatusResultStream.
       ListStatusPResponse.Builder builder = ListStatusPResponse.newBuilder();
 
       for (int i = 0; i < statuses.length; i++) {
