@@ -314,12 +314,11 @@ public final class S3RestUtils {
                                                  @Nullable S3AuditContext auditContext,
                                                  Cache<AlluxioURI, Boolean> bucketPathCache)
       throws S3Exception {
-    AlluxioURI uri = new AlluxioURI(bucketPath);
     if (Boolean.TRUE.equals(bucketPathCache.getIfPresent(uri))) {
       return;
     }
     checkPathIsAlluxioDirectory(fs, bucketPath, auditContext);
-    bucketPathCache.put(uri, true);
+    bucketPathCache.put(bucketPath, true);
   }
 
   /**
