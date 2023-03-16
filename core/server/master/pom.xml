@@ -117,6 +117,11 @@
       <artifactId>guava-testlib</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.findify</groupId>
+      <artifactId>s3mock_2.13</artifactId>
+      <scope>test</scope>
+    </dependency>
 
     <!-- Internal test dependencies -->
     <dependency>
@@ -136,6 +141,12 @@
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
     </dependency>
+      <dependency>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-underfs-s3a</artifactId>
+          <version>2.10.0-SNAPSHOT</version>
+          <scope>compile</scope>
+      </dependency>
   </dependencies>
 
   <build>
