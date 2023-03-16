@@ -12,7 +12,9 @@
 package alluxio.cli;
 
 import alluxio.cli.docgen.ConfigurationDocGenerator;
+import alluxio.cli.docgen.ConfigurationDocValidator;
 import alluxio.cli.docgen.MetricsDocGenerator;
+import alluxio.cli.docgen.MetricsDocValidator;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -29,12 +31,14 @@ import java.io.IOException;
  */
 public class DocGenerator {
   private static final String USAGE =
-      "USAGE: DocGenerator [--metric] [--conf]\n\n"
+      "USAGE: DocGenerator [--validate] | [--metric] [--conf]\n\n"
           + "DocGenerator generates the docs for metric keys and/or property keys. "
-          + "It will generate all the docs by default unless --metric or --conf is given.";
+          + "It will generate all the docs by default unless --metric or --conf is given."
+          + "Use --validate option to validate only without generating and overwriting files.";
 
   private static final String METRIC_OPTION_NAME = "metric";
   private static final String CONF_OPTION_NAME = "conf";
+  private static final String VALIDATE_OPTION_NAME = "validate";
 
   private static final Option METRIC_OPTION =
       Option.builder().required(false).longOpt(METRIC_OPTION_NAME).hasArg(false)
@@ -43,8 +47,12 @@ public class DocGenerator {
       Option.builder().required(false).longOpt(CONF_OPTION_NAME).hasArg(false)
           .desc("the configuration properties used by the master.").build();
 
+  private static final Option VALIDATE_OPTION =
+          Option.builder().required(false).longOpt(VALIDATE_OPTION_NAME).hasArg(false)
+                  .desc("validation-only mode without generating any changes.").build();
+
   private static final Options OPTIONS =
-      new Options().addOption(METRIC_OPTION).addOption(CONF_OPTION);
+      new Options().addOption(METRIC_OPTION).addOption(CONF_OPTION).addOption(VALIDATE_OPTION);
 
   /**
    * Main entry for this util class.
@@ -61,16 +69,24 @@ public class DocGenerator {
         printHelp("Unable to parse input args: " + e.getMessage());
         return;
       }
-      if (cmd.hasOption(METRIC_OPTION_NAME)) {
-        MetricsDocGenerator.generate();
-      }
-      if (cmd.hasOption(CONF_OPTION_NAME)) {
-        ConfigurationDocGenerator.generate();
+      if (cmd.hasOption(VALIDATE_OPTION_NAME)) {
+        Integer numDeltas = 0;
+        numDeltas += MetricsDocValidator.validate();
+        numDeltas += ConfigurationDocValidator.validate();
+        System.exit(numDeltas);
+      } else {
+        if (cmd.hasOption(METRIC_OPTION_NAME)) {
+          MetricsDocGenerator.generate();
+        }
+        if (cmd.hasOption(CONF_OPTION_NAME)) {
+          ConfigurationDocGenerator.generate();
+        }
       }
     } else {
       MetricsDocGenerator.generate();
       ConfigurationDocGenerator.generate();
     }
+    System.exit(0);
   }
 
   /**

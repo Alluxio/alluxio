@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -42,6 +43,16 @@ public final class ConfigurationDocGenerator {
   private static final String CSV_FILE_DIR = "docs/_data/table/";
   private static final String YML_FILE_DIR = "docs/_data/table/en/";
   public static final String CSV_FILE_HEADER = "propertyName,defaultValue";
+  public static final List<String> CSV_FILE_NAMES = Collections.unmodifiableList(Arrays.asList(
+        "user-configuration.csv", "master-configuration.csv", "worker-configuration.csv",
+        "security-configuration.csv", "common-configuration.csv",
+        "cluster-management-configuration.csv"
+  ));
+  public static final List<String> YML_FILE_NAMES = Collections.unmodifiableList(Arrays.asList(
+      "user-configuration.yml", "master-configuration.yml", "worker-configuration.yml",
+      "security-configuration.yml", "common-configuration.yml",
+      "cluster-management-configuration.yml"
+  ));
 
   private ConfigurationDocGenerator() {} // prevent instantiation
 
@@ -53,21 +64,18 @@ public final class ConfigurationDocGenerator {
    */
   @VisibleForTesting
   public static void writeCSVFile(Collection<? extends PropertyKey> defaultKeys, String filePath)
-      throws IOException {
+          throws IOException {
     if (defaultKeys.size() == 0) {
       return;
     }
 
     FileWriter fileWriter;
     Closer closer = Closer.create();
-    String[] fileNames = {"user-configuration.csv", "master-configuration.csv",
-        "worker-configuration.csv", "security-configuration.csv",
-        "common-configuration.csv", "cluster-management-configuration.csv"};
 
     try {
       // HashMap for FileWriter per each category
       Map<String, FileWriter> fileWriterMap = new HashMap<>();
-      for (String fileName : fileNames) {
+      for (String fileName : CSV_FILE_NAMES) {
         fileWriter = new FileWriter(PathUtils.concatPath(filePath, fileName));
         // Write the CSV file header and line separator after the header
         fileWriter.append(CSV_FILE_HEADER + "\n");
@@ -105,8 +113,12 @@ public final class ConfigurationDocGenerator {
           fileWriter = fileWriterMap.get("security");
         } else if (pKey.startsWith("alluxio.integration")) {
           fileWriter = fileWriterMap.get("cluster-management");
-        } else {
+        } else if (pKey.startsWith("alluxio.") || pKey.startsWith("fs.")
+            || pKey.startsWith("s3a.")) {
           fileWriter = fileWriterMap.get("common");
+        } else {
+          // if no matches then likely to be system config which need to be skipped
+          continue;
         }
         fileWriter.append(keyValueStr);
       }
@@ -127,26 +139,22 @@ public final class ConfigurationDocGenerator {
    * Writes description of property key to yml files.
    *
    * @param defaultKeys Collection which is from PropertyKey DEFAULT_KEYS_MAP.values()
-   * @param filePath path for csv files
+   * @param filePath    path for csv files
    */
   @VisibleForTesting
   public static void writeYMLFile(Collection<? extends PropertyKey> defaultKeys, String filePath)
-      throws IOException {
+          throws IOException {
     if (defaultKeys.size() == 0) {
       return;
     }
 
     FileWriter fileWriter;
     Closer closer = Closer.create();
-    String[] fileNames = {"user-configuration.yml", "master-configuration.yml",
-        "worker-configuration.yml", "security-configuration.yml",
-        "common-configuration.yml", "cluster-management-configuration.yml"
-    };
 
     try {
       // HashMap for FileWriter per each category
       Map<String, FileWriter> fileWriterMap = new HashMap<>();
-      for (String fileName : fileNames) {
+      for (String fileName : YML_FILE_NAMES) {
         fileWriter = new FileWriter(PathUtils.concatPath(filePath, fileName));
         //put fileWriter
         String key = fileName.substring(0, fileName.indexOf("configuration") - 1);
@@ -169,10 +177,13 @@ public final class ConfigurationDocGenerator {
         // Write property key and default value to yml files
         if (iteratorPK.isIgnoredSiteProperty()) {
           description += " Note: overwriting this property will only work when it is passed as a "
-              + "JVM system property (e.g., appending \"-D" + iteratorPK + "\"=<NEW_VALUE>\" to "
-              + "$ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.";
+                  + "JVM system property (e.g., appending \"-D"
+                  + iteratorPK
+                  + "\"=<NEW_VALUE>\" to "
+                  + "$ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.";
         }
         String keyValueStr = pKey + ":\n  '" + description + "'\n";
+
         if (pKey.startsWith("alluxio.user.")) {
           fileWriter = fileWriterMap.get("user");
         } else if (pKey.startsWith("alluxio.master.")) {
@@ -183,8 +194,12 @@ public final class ConfigurationDocGenerator {
           fileWriter = fileWriterMap.get("security");
         } else if (pKey.startsWith("alluxio.integration.")) {
           fileWriter = fileWriterMap.get("cluster-management");
-        } else {
+        } else if (pKey.startsWith("alluxio.") || pKey.startsWith("fs.")
+                || pKey.startsWith("s3a.")) {
           fileWriter = fileWriterMap.get("common");
+        } else {
+          // if no matches then likely to be system config which need to be skipped
+          continue;
         }
         fileWriter.append(StringEscapeUtils.escapeHtml4(keyValueStr));
       }
@@ -197,7 +212,7 @@ public final class ConfigurationDocGenerator {
         closer.close();
       } catch (IOException e) {
         LOG.error("Error while flushing/closing YML files for description of Property Keys "
-            + "FileWriter", e);
+                + "FileWriter", e);
       }
     }
   }
