@@ -116,7 +116,6 @@ import alluxio.master.journal.FileSystemMergeJournalContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.JournaledGroup;
-import alluxio.master.journal.MetadataSyncMergeJournalContext;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
@@ -601,8 +600,13 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public JournalContext createJournalContext() throws UnavailableException {
+    return createJournalContext(true);
+  }
+
+  private JournalContext createJournalContext(boolean useMergeJournalContext)
+      throws UnavailableException {
     JournalContext context = super.createJournalContext();
-    if (!mMergeInodeJournals) {
+    if (!(mMergeInodeJournals && useMergeJournalContext)) {
       return context;
     }
     return new FileSystemMergeJournalContext(
@@ -1083,7 +1087,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     boolean ufsAccessed = false;
     // List status might journal inode access time update journals.
     // We want these journals to be added to the async writer immediately instead of being merged.
-    try (RpcContext rpcContext = createRpcContext(context);
+    try (RpcContext rpcContext = createNonMergingJournalRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("listStatus", path, null, null)) {
 
@@ -1193,22 +1197,7 @@ public class DefaultFileSystemMaster extends CoreMaster
               context.setTotalListings(1);
             }
             // perform the listing
-            // Do not use merge journal context for list status internal method.
-            // Most of the journals are update inode access time journals and there is
-            // nothing we can merge and hence we don't want these logs kept in the journal context,
-            // and we want them to be added into the journal writer ASAP.
-            JournalContext journalContext = rpcContext.getJournalContext();
-            RpcContext nonJournalMergingRpcContext = rpcContext;
-            if (mMergeInodeJournals && journalContext instanceof FileSystemMergeJournalContext) {
-              nonJournalMergingRpcContext = new RpcContext(
-                  rpcContext.getBlockDeletionContext(),
-                  new MetadataSyncMergeJournalContext(
-                      ((FileSystemMergeJournalContext) journalContext)
-                          .getUnderlyingJournalContext(),
-                      new FileSystemJournalEntryMerger()),
-                  rpcContext.getOperationContext());
-            }
-            listStatusInternal(context, nonJournalMergingRpcContext, inodePath, auditContext,
+            listStatusInternal(context, rpcContext, inodePath, auditContext,
                 descendantTypeForListStatus, resultStream, 0, resolution == null ? null :
                     Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
                         Metrics.UFSOps.GET_FILE_INFO),
@@ -5379,6 +5368,12 @@ public class DefaultFileSystemMaster extends CoreMaster
   public RpcContext createRpcContext(OperationContext operationContext)
       throws UnavailableException {
     return new RpcContext(createBlockDeletionContext(), createJournalContext(),
+        operationContext.withTracker(mStateLockCallTracker));
+  }
+
+  private RpcContext createNonMergingJournalRpcContext(OperationContext operationContext)
+      throws UnavailableException {
+    return new RpcContext(createBlockDeletionContext(), createJournalContext(false),
         operationContext.withTracker(mStateLockCallTracker));
   }
 
