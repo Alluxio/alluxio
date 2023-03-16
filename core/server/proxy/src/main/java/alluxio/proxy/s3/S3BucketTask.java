@@ -145,7 +145,7 @@ public class S3BucketTask extends S3BaseTask {
                   .filter(URIStatus::isFolder)
                   .collect(Collectors.toList());
           buckets.forEach(
-              (uri) -> mHandler.BUCKET_PATH_CACHE.put(new AlluxioURI(uri.getPath()), true));
+              (uri) -> mHandler.BUCKET_PATH_CACHE.put(uri.getPath(), true));
           return new ListAllMyBucketsResult(buckets);
         }
       });
@@ -435,7 +435,7 @@ public class S3BucketTask extends S3BaseTask {
           } catch (Exception e) {
             throw S3RestUtils.toBucketS3Exception(e, bucketPath, auditContext);
           }
-          mHandler.BUCKET_PATH_CACHE.put(new AlluxioURI(bucketPath), true);
+          mHandler.BUCKET_PATH_CACHE.put(bucketPath, true);
           return Response.Status.OK;
         }
       });
@@ -584,7 +584,7 @@ public class S3BucketTask extends S3BaseTask {
                   .build();
           try {
             userFs.delete(new AlluxioURI(bucketPath), options);
-            mHandler.BUCKET_PATH_CACHE.put(new AlluxioURI(bucketPath), false);
+            mHandler.BUCKET_PATH_CACHE.put(bucketPath, false);
           } catch (Exception e) {
             throw S3RestUtils.toBucketS3Exception(e, bucketPath, auditContext);
           }
