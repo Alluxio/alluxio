@@ -3096,7 +3096,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_REQUEST_INFO_TIMEOUT =
       durationBuilder(Name.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT)
-          .setDefaultValue(20000)
+          .setDefaultValue(10_000)
           .setDescription("Time to wait for follower to respond to request to get information"
               + " about its latest snapshot")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)

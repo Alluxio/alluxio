@@ -27,11 +27,14 @@ import alluxio.grpc.UploadSnapshotPRequest;
 import alluxio.grpc.UploadSnapshotPResponse;
 import alluxio.master.MasterClientContext;
 import alluxio.master.selectionpolicy.MasterSelectionPolicy;
+import alluxio.retry.RetryPolicy;
+import alluxio.retry.RetryUtils;
 
 import io.grpc.stub.StreamObserver;
 
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * A client for raft journal service.
@@ -47,16 +50,18 @@ public class RaftJournalServiceClient extends AbstractMasterClient {
    * Create a client that talks to the leading master.
    */
   public RaftJournalServiceClient() {
-    this(MasterSelectionPolicy.Factory.primaryMaster());
+    this(MasterSelectionPolicy.Factory.primaryMaster(), RetryUtils::defaultClientRetry);
   }
 
   /**
    * Create a client that talks to a specific master.
    * @param selectionPolicy specifies which master is targeted
+   * @param retryPolicySupplier the retry policy to use when connecting to another master
    */
-  public RaftJournalServiceClient(MasterSelectionPolicy selectionPolicy) {
+  public RaftJournalServiceClient(MasterSelectionPolicy selectionPolicy,
+                                  Supplier<RetryPolicy> retryPolicySupplier) {
     super(MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build(),
-        selectionPolicy);
+        selectionPolicy, retryPolicySupplier);
   }
 
   @Override

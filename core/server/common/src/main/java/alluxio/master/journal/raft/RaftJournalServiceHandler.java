@@ -138,13 +138,13 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
                 MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_HISTOGRAM.getName())
             .update(mTotalBytesSent);
         mLastSnapshotUploadSize = mTotalBytesSent;
-        LOG.info("Uploaded snapshot {} to leader", index);
+        LOG.info("Uploaded snapshot {}", index);
       }
 
       private void flushBuffer() {
         // avoids copy
         ByteString bytes = UnsafeByteOperations.unsafeWrap(mBuffer, 0, mBufferPosition);
-        LOG.debug("Sending chunk of size {}: {}", mBufferPosition, bytes.toByteArray());
+        LOG.trace("Sending chunk of size {}: {}", mBufferPosition, bytes.toByteArray());
         responseObserver.onNext(SnapshotData.newBuilder().setChunk(bytes).build());
         mTotalBytesSent += mBufferPosition;
         mBufferPosition = 0;

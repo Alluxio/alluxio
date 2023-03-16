@@ -14,17 +14,18 @@ package alluxio.master.journal.raft;
 import alluxio.AbstractClient;
 import alluxio.concurrent.jsr.CompletableFuture;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.SnapshotData;
 import alluxio.grpc.SnapshotMetadata;
 import alluxio.master.selectionpolicy.MasterSelectionPolicy;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.retry.TimeoutRetry;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.TarUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
-import com.amazonaws.annotation.GuardedBy;
 import com.codahale.metrics.Timer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -40,12 +41,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -54,13 +57,16 @@ import javax.annotation.Nullable;
  */
 public class RaftSnapshotManager implements AutoCloseable {
   private static final Logger LOG = LoggerFactory.getLogger(RaftSnapshotManager.class);
-  private long mLastSnapshotDownloadDuration = -1;
-  private long mLastSnapshotDownloadSize = -1;
+  private final int mRequestInfoTimeout = (int)
+      Configuration.getMs(PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT);
 
   private final SnapshotDirStateMachineStorage mStorage;
   private final Map<InetSocketAddress, RaftJournalServiceClient> mClients;
 
-  @Nullable @GuardedBy("this")
+  private long mLastSnapshotDownloadDuration = -1;
+  private long mLastSnapshotDownloadSize = -1;
+
+  @Nullable
   private CompletableFuture<Long> mDownloadFuture = null;
 
   RaftSnapshotManager(SnapshotDirStateMachineStorage storage) {
@@ -71,8 +77,12 @@ public class RaftSnapshotManager implements AutoCloseable {
     mClients = ConfigurationUtils.getMasterRpcAddresses(Configuration.global()).stream()
         .filter(address -> !address.equals(localAddress))
         .collect(Collectors.toMap(Function.identity(), address -> {
-          MasterSelectionPolicy policy = MasterSelectionPolicy.Factory.specifiedMaster(address);
-          return new RaftJournalServiceClient(policy);
+          MasterSelectionPolicy selection = MasterSelectionPolicy.Factory.specifiedMaster(address);
+          int sleep = 1_000;
+          int numTries = mRequestInfoTimeout / sleep;
+          // try to connect to other master once per second for until request info timeout
+          Supplier<RetryPolicy> retry = () -> new ExponentialBackoffRetry(sleep, sleep, numTries);
+          return new RaftJournalServiceClient(selection, retry);
         }));
 
     MetricsSystem.registerGaugeIfAbsent(
@@ -110,9 +120,13 @@ public class RaftSnapshotManager implements AutoCloseable {
       LOG.debug("Local snapshot is {}", TermIndex.valueOf(localSnapshotInfo.getTerm(),
           localSnapshotInfo.getIndex()));
     }
+    // max heap based on TermIndex extracted from the SnapshotMetadata of each pair
     PriorityQueue<ImmutablePair<SnapshotMetadata, InetSocketAddress>> otherInfos =
-        new PriorityQueue<>(Comparator.comparing(pair -> -pair.getLeft().getSnapshotIndex()));
-    TimeoutRetry retryPolicy = new TimeoutRetry(120_000, 10_000);
+        new PriorityQueue<>(Collections.reverseOrder(
+            Comparator.comparing(pair -> toTermIndex(pair.getLeft()))));
+    // wait mRequestInfoTimeout between each attempt to contact the masters
+    RetryPolicy retryPolicy =
+        new ExponentialBackoffRetry(mRequestInfoTimeout, mRequestInfoTimeout, 10);
     while (otherInfos.isEmpty() && retryPolicy.attempt()) {
       LOG.debug("Attempt to retrieve info");
       otherInfos.addAll(retrieveFollowerInfos(localSnapshotInfo));
@@ -149,8 +163,11 @@ public class RaftSnapshotManager implements AutoCloseable {
             client.connect();
             LOG.debug("Receiving snapshot info from {}", address);
             SnapshotMetadata metadata = client.requestLatestSnapshotInfo();
-            LOG.debug("Received snapshot info from {} with status {}", address,
-                TermIndex.valueOf(metadata.getSnapshotTerm(), metadata.getSnapshotIndex()));
+            if (!metadata.getExists()) {
+              LOG.debug("No snapshot is present on {}", address);
+            } else {
+              LOG.debug("Received snapshot info {} from {}", toTermIndex(metadata), address);
+            }
             return ImmutablePair.of(metadata, address);
           } catch (Exception e) {
             LOG.debug("Failed to retrieve snapshot info from {}", address, e);
@@ -160,7 +177,7 @@ public class RaftSnapshotManager implements AutoCloseable {
         })
         // filter out followers that do not have any snapshot or no updated snapshot
         .filter(pair -> pair.getLeft().getExists() && (localSnapshotInfo == null
-            || pair.getLeft().getSnapshotIndex() > localSnapshotInfo.getIndex()))
+            || localSnapshotInfo.getTermIndex().compareTo(toTermIndex(pair.getLeft())) < 0))
         .collect(Collectors.toList());
   }
 
@@ -171,9 +188,8 @@ public class RaftSnapshotManager implements AutoCloseable {
    * @return the index of the snapshot taken
    */
   private long downloadSnapshotFromAddress(SnapshotMetadata snapshotMetadata,
-                                          InetSocketAddress address) {
-    TermIndex termIndex = TermIndex.valueOf(snapshotMetadata.getSnapshotTerm(),
-        snapshotMetadata.getSnapshotIndex());
+                                           InetSocketAddress address) {
+    TermIndex termIndex = toTermIndex(snapshotMetadata);
     LOG.debug("Retrieving snapshot {} from {}", termIndex, address);
     try {
       RaftJournalServiceClient client = mClients.get(address);
@@ -190,7 +206,7 @@ public class RaftSnapshotManager implements AutoCloseable {
               return -1;
             }
             mCurrentBuffer = it.next().getChunk().asReadOnlyByteBuffer();
-            LOG.debug("Received chunk of size {}: {}", mCurrentBuffer.capacity(), mCurrentBuffer);
+            LOG.trace("Received chunk of size {}: {}", mCurrentBuffer.capacity(), mCurrentBuffer);
             mTotalBytesRead += mCurrentBuffer.capacity();
           }
           return Byte.toUnsignedInt(mCurrentBuffer.get());
@@ -227,5 +243,9 @@ public class RaftSnapshotManager implements AutoCloseable {
   @Override
   public void close() {
     mClients.values().forEach(AbstractClient::close);
+  }
+
+  private TermIndex toTermIndex(SnapshotMetadata metadata) {
+    return TermIndex.valueOf(metadata.getSnapshotTerm(), metadata.getSnapshotIndex());
   }
 }
