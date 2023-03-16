@@ -46,7 +46,7 @@ public final class RetryUtils {
         return;
       } catch (IOException ioe) {
         e = ioe;
-        LOG.warn("Failed to {} (attempt {}): {}", action, policy.getAttemptCount(), e.toString());
+        LOG.debug("Failed to {} (attempt {}): {}", action, policy.getAttemptCount(), e.toString());
       }
     }
     if (e != null) {
