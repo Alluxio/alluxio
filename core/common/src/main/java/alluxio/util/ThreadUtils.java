@@ -122,7 +122,7 @@ public final class ThreadUtils {
    */
   public static synchronized void printThreadInfo(PrintStream stream, String title) {
     stream.println("Process Thread Dump: " + title);
-    stream.println(THREAD_BEAN.getThreadCount() + " active theads");
+    stream.println(THREAD_BEAN.getThreadCount() + " active threads");
     for (ThreadInfo ti: THREAD_BEAN.dumpAllThreads(true, true)) {
       stream.print(ti.toString());
     }
