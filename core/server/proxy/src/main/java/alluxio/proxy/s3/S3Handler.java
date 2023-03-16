@@ -76,7 +76,7 @@ public class S3Handler {
   public static final Pattern OBJECT_PATH_PATTERN =
           Pattern.compile("^" + S3RequestServlet.S3_V2_SERVICE_PATH_PREFIX + "/[^/]*/.*$");
   public static final int BUCKET_PATH_CACHE_SIZE = 65536;
-  public static final Cache<AlluxioURI, Boolean> BUCKET_PATH_CACHE = CacheBuilder.newBuilder()
+  public static final Cache<String, Boolean> BUCKET_PATH_CACHE = CacheBuilder.newBuilder()
       .maximumSize(BUCKET_PATH_CACHE_SIZE)
       .expireAfterWrite(
           Configuration.global().getMs(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS),
