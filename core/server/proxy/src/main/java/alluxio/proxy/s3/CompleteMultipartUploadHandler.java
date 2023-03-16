@@ -22,13 +22,9 @@ import alluxio.exception.AlluxioException;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
-<<<<<<< HEAD
 import alluxio.grpc.PMode;
-||||||| parent of df82a6b8c8 (Add encoding-type support for S3 ListObjects and more logging)
-=======
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
->>>>>>> df82a6b8c8 (Add encoding-type support for S3 ListObjects and more logging)
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Stopwatch;
@@ -77,21 +73,11 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
    */
   public CompleteMultipartUploadHandler(final FileSystem fs, final String baseUri) {
     mMetaFs = fs;
-<<<<<<< HEAD
-    mExecutor = Executors.newFixedThreadPool(Configuration.getInt(
-        PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE));
-    mKeepAliveEnabled = Configuration.getBoolean(
-||||||| parent of df82a6b8c8 (Add encoding-type support for S3 ListObjects and more logging)
-    mExecutor = Executors.newFixedThreadPool(ServerConfiguration.getInt(
-        PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE));
-    mKeepAliveEnabled = ServerConfiguration.getBoolean(
-=======
     ThreadFactory namedThreadFactory = new ThreadFactoryBuilder()
             .setNameFormat("MULTIPART-UPLOAD-%d").build();
-    mExecutor = Executors.newFixedThreadPool(ServerConfiguration.getInt(
+    mExecutor = Executors.newFixedThreadPool(Configuration.getInt(
         PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE), namedThreadFactory);
-    mKeepAliveEnabled = ServerConfiguration.getBoolean(
->>>>>>> df82a6b8c8 (Add encoding-type support for S3 ListObjects and more logging)
+    mKeepAliveEnabled = Configuration.getBoolean(
         PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_ENABLED);
     mKeepAliveTime = Configuration.getMs(
         PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL);
@@ -109,32 +95,10 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
       if (!s.startsWith(mS3Prefix)) {
         return;
       }
-<<<<<<< HEAD
       if (!request.getMethod().equals("POST") || request.getParameter("uploadId") == null) {
         return;
       } // Otherwise, handle CompleteMultipartUpload
-||||||| parent of df82a6b8c8 (Add encoding-type support for S3 ListObjects and more logging)
-      // Build log message capturing the request details
-      // TODO(czhu): Move this to a separate logging handler
-      StringBuilder sb = new StringBuilder();
-      sb.append("Alluxio S3 API received ");
-      sb.append(request.getMethod());
-      sb.append(" request: URI=");
-      sb.append(s);
-      if (request.getQueryString() != null) { sb.append("?").append(request.getQueryString()); }
-      sb.append(" User=");
-=======
       stopwatch = Stopwatch.createStarted();
-      // Build log message capturing the request details
-      // TODO(czhu): Move this to a separate logging handler
-      StringBuilder sb = new StringBuilder();
-      sb.append("Alluxio S3 API received ");
-      sb.append(request.getMethod());
-      sb.append(" request: URI=");
-      sb.append(s);
-      if (request.getQueryString() != null) { sb.append("?").append(request.getQueryString()); }
-      sb.append(" User=");
->>>>>>> df82a6b8c8 (Add encoding-type support for S3 ListObjects and more logging)
       final String user;
       try {
         // TODO(czhu): support S3RestServiceHandler.getUserFromSignature()

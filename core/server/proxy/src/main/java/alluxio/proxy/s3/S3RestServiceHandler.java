@@ -318,9 +318,15 @@ public final class S3RestServiceHandler {
             throw S3RestUtils.toBucketS3Exception(e, bucket, auditContext);
           }
         }
-<<<<<<< HEAD
         // Otherwise, this is ListObjects(v2)
         int maxKeys = maxKeysParam == null ? ListBucketOptions.DEFAULT_MAX_KEYS : maxKeysParam;
+        if (encodingTypeParam != null
+            && !StringUtils.equals(encodingTypeParam, ListBucketOptions.DEFAULT_ENCODING_TYPE)) {
+          throw new S3Exception(bucket, new S3ErrorCode(
+                  S3ErrorCode.INVALID_ARGUMENT.getCode(),
+                  "Invalid Encoding Method specified in Request.",
+                  S3ErrorCode.INVALID_ARGUMENT.getStatus()));
+        }
         ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
             .setMarker(markerParam)
             .setPrefix(prefixParam)
@@ -330,40 +336,6 @@ public final class S3RestServiceHandler {
             .setListType(listTypeParam)
             .setContinuationToken(continuationTokenParam)
             .setStartAfter(startAfterParam);
-||||||| parent of df82a6b8c8 (Add encoding-type support for S3 ListObjects and more logging)
-      }
-      // Otherwise, this is ListObjects(v2)
-      int maxKeys = maxKeysParam == null ? ListBucketOptions.DEFAULT_MAX_KEYS : maxKeysParam;
-      ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
-          .setMarker(markerParam)
-          .setPrefix(prefixParam)
-          .setMaxKeys(maxKeys)
-          .setDelimiter(delimiterParam)
-          .setEncodingType(encodingTypeParam)
-          .setListType(listTypeParam)
-          .setContinuationToken(continuationTokenParam)
-          .setStartAfter(startAfterParam);
-=======
-      }
-      // Otherwise, this is ListObjects(v2)
-      int maxKeys = maxKeysParam == null ? ListBucketOptions.DEFAULT_MAX_KEYS : maxKeysParam;
-      if (encodingTypeParam != null
-              && !StringUtils.equals(encodingTypeParam, ListBucketOptions.DEFAULT_ENCODING_TYPE)) {
-        throw new S3Exception(bucket, new S3ErrorCode(
-                S3ErrorCode.INVALID_ARGUMENT.getCode(),
-                "Invalid Encoding Method specified in Request.",
-                S3ErrorCode.INVALID_ARGUMENT.getStatus()));
-      }
-      ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
-          .setMarker(markerParam)
-          .setPrefix(prefixParam)
-          .setMaxKeys(maxKeys)
-          .setDelimiter(delimiterParam)
-          .setEncodingType(encodingTypeParam)
-          .setListType(listTypeParam)
-          .setContinuationToken(continuationTokenParam)
-          .setStartAfter(startAfterParam);
->>>>>>> df82a6b8c8 (Add encoding-type support for S3 ListObjects and more logging)
 
         List<URIStatus> children;
         try {
