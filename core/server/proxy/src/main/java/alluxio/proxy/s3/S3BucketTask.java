@@ -401,7 +401,7 @@ public class S3BucketTask extends S3BaseTask {
                 // Silently swallow CreateBucket calls on existing buckets for this user
                 // - S3 clients may prepend PutObject requests with CreateBucket calls instead of
                 //   calling HeadBucket to ensure that the bucket exists
-                mHandler.BUCKET_PATH_CACHE.put(new AlluxioURI(bucketPath), true);
+                mHandler.BUCKET_PATH_CACHE.put(bucketPath, true);
                 return Response.Status.OK;
               }
               // Otherwise, this bucket is owned by a different user
