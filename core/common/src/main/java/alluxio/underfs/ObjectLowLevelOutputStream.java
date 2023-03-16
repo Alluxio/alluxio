@@ -45,6 +45,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -94,7 +95,7 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream
   protected final String mKey;
 
   /** The retry policy of this multipart upload. */
-  protected final RetryPolicy mRetryPolicy = new CountingRetry(5);
+  protected final Supplier<RetryPolicy> mRetryPolicy = () -> new CountingRetry(5);
 
   /** Pre-allocated byte buffer for writing single characters. */
   protected final byte[] mSingleCharWrite = new byte[1];
@@ -237,13 +238,13 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream
       if (mFile == null) {
         LOG.debug("Streaming upload output stream closed without uploading any data.");
         RetryUtils.retry("put empty object for key" + mKey, () -> createEmptyObject(mKey),
-            mRetryPolicy);
+            mRetryPolicy.get());
       } else {
         try {
           mLocalOutputStream.close();
           final String md5 = mHash != null ? Base64.encodeBase64String(mHash.digest()) : null;
           RetryUtils.retry("put object for key" + mKey, () -> putObject(mKey, mFile, md5),
-              mRetryPolicy);
+              mRetryPolicy.get());
         } finally {
           if (!mFile.delete()) {
             LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
@@ -262,7 +263,7 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream
 
       waitForAllPartsUpload();
       RetryUtils.retry("complete multipart upload",
-          this::completeMultiPartUploadInternal, mRetryPolicy);
+          this::completeMultiPartUploadInternal, mRetryPolicy.get());
     } catch (Exception e) {
       LOG.error("Failed to upload {}", mKey, e);
       throw new IOException(e);
@@ -302,7 +303,8 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream
       return;
     }
     if (!mMultiPartUploadInitialized) {
-      RetryUtils.retry("init multipart upload", this::initMultiPartUploadInternal, mRetryPolicy);
+      RetryUtils.retry("init multipart upload", this::initMultiPartUploadInternal,
+          mRetryPolicy.get());
       mMultiPartUploadInitialized = true;
     }
     mLocalOutputStream.close();
@@ -317,7 +319,7 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream
     Callable<?> callable = () -> {
       try {
         RetryUtils.retry("upload part for key " + mKey + " and part number " + partNumber,
-            () -> uploadPartInternal(file, partNumber, lastPart, md5), mRetryPolicy);
+            () -> uploadPartInternal(file, partNumber, lastPart, md5), mRetryPolicy.get());
         return null;
       } finally {
         // Delete the uploaded or failed to upload file
@@ -333,9 +335,16 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream
         mKey, partNumber, file.getPath(), file.length(), lastPart);
   }
 
-  protected void abortMultiPartUpload() throws IOException {
-    RetryUtils.retry("abort multipart upload for key " + mKey, this::abortMultiPartUploadInternal,
-        mRetryPolicy);
+  protected void abortMultiPartUpload() {
+    try {
+      RetryUtils.retry("abort multipart upload for key " + mKey, this::abortMultiPartUploadInternal,
+          mRetryPolicy.get());
+    } catch (IOException e) {
+      LOG.warn("Unable to abort multipart upload for key '{}' and id '{}' to bucket {}. "
+              + "You may need to enable the periodical cleanup by setting property {}"
+              + "to be true.", mKey, mBucketName,
+          PropertyKey.UNDERFS_CLEANUP_ENABLED.getName(), e);
+    }
   }
 
   protected void waitForAllPartsUpload() throws IOException {
