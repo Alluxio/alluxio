@@ -312,7 +312,7 @@ public final class S3RestUtils {
    */
   public static void checkPathIsAlluxioDirectory(FileSystem fs, String bucketPath,
                                                  @Nullable S3AuditContext auditContext,
-                                                 Cache<AlluxioURI, Boolean> bucketPathCache)
+                                                 Cache<String, Boolean> bucketPathCache)
       throws S3Exception {
     if (Boolean.TRUE.equals(bucketPathCache.getIfPresent(uri))) {
       return;
