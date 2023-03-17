@@ -97,9 +97,7 @@ public final class RocksUtils {
   /**
    * Used to wrap an {@link CloseableIterator} over {@link RocksIterator}.
    * It seeks given iterator to first entry before returning the iterator.
-   *
-   * closeCheck is used to stop the iterator before closing the underlying RocksDB.
-   * See RocksBlockMetaStore#getCloseableIterator for an example.
+   * // TODO(jiacheng): comment on the usage
    *
    * @param rocksIterator the rocks iterator
    * @param parser parser to produce iterated values from rocks key-value

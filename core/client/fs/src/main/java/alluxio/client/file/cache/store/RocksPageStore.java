@@ -274,7 +274,7 @@ public class RocksPageStore implements PageStore {
   /**
    * @return a new iterator for the rocksdb
    */
-  public RocksIterator createNewInterator() {
+  protected RocksIterator createNewInterator() {
     try (LockResource lock = checkAndAcquireReadLock()) {
       return mDb.newIterator(mPageColumnHandle);
     }
