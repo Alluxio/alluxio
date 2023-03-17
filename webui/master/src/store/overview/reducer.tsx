@@ -28,6 +28,7 @@ export const initialOverviewState: IOverviewState = {
     journalCheckpointTimeWarning: '',
     journalDiskWarnings: [],
     leaderId: '',
+    systemStatus: '',
     liveWorkerNodes: 0,
     masterNodeAddress: '',
     replicaBlockCount: '',

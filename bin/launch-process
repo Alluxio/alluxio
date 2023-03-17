@@ -49,8 +49,9 @@ USAGE+="
 contains() {
   if [[ "$1" = *"$2"* ]]; then
     printf "1"
+  else
+    printf "0"
   fi
-  printf "0"
 }
 
 # Sets environment variables by sourcing ${ALLUXIO_HOME}/libexec/alluxio-config.sh
@@ -124,8 +125,9 @@ launch_master() {
   fi
 
   # use a default Xmx value for the master
-  local res="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}" "Xmx")"
-  if [[ "${res}" -eq "0" ]]; then
+  local contain_xmx="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}")"
+  local contain_max_percentage="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}" "MaxRAMPercentage")"
+  if [[ "${contain_xmx}" -eq "0" ]] && [[ "${contain_max_percentage}" -eq "0" ]]; then
     ALLUXIO_MASTER_JAVA_OPTS+=" -Xmx8g "
   fi
   # use a default MetaspaceSize value for the master
@@ -142,8 +144,9 @@ launch_master() {
 # Launch a secondary master process
 launch_secondary_master() {
   # use a default Xmx value for the master
-  local res="$(contains "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" "Xmx")"
-  if [[ "${res}" -eq "0" ]]; then
+  local contain_xmx="$(contains "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}")"
+  local contain_max_percentage="$(contains "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" "MaxRAMPercentage")"
+  if [[ "${contain_xmx}" -eq "0" ]] && [[ "${contain_max_percentage}" -eq "0" ]]; then
     ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xmx8g "
   fi
   launch_process "${ALLUXIO_SECONDARY_MASTER_ATTACH_OPTS}" \
@@ -161,8 +164,9 @@ launch_job_master() {
 # Launch a worker process
 launch_worker() {
   # use a default Xmx value for the worker
-  local res="$(contains "${ALLUXIO_WORKER_JAVA_OPTS}" "Xmx")"
-  if [[ "${res}" -eq "0" ]]; then
+  local contain_xmx="$(contains "${ALLUXIO_WORKER_JAVA_OPTS}")"
+  local contain_max_percentage="$(contains "${ALLUXIO_WORKER_JAVA_OPTS}" "MaxRAMPercentage")"
+  if [[ "${contain_xmx}" -eq "0" ]] && [[ "${contain_max_percentage}" -eq "0" ]]; then
     ALLUXIO_WORKER_JAVA_OPTS+=" -Xmx4g "
   fi
 

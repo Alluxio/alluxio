@@ -21,6 +21,7 @@ import alluxio.grpc.UfsReadOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
@@ -237,4 +238,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the block store
    */
   BlockStore getBlockStore();
+
+  /**
+   * @return the worker address
+   */
+  WorkerNetAddress getWorkerAddress();
 }

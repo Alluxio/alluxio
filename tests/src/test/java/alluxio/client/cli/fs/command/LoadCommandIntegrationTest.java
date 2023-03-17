@@ -67,7 +67,7 @@ public class LoadCommandIntegrationTest extends AbstractFileSystemShellTest {
       assertEquals(0, sFsShell.run("load", "/testRoot", "--progress"));
       Thread.sleep(1000);
     }
-    assertTrue(mOutput.toString().contains("Files Processed: 3 out of 3"));
+    assertTrue(mOutput.toString().contains("Files Processed: 3"));
     assertTrue(mOutput.toString().contains("Bytes Loaded: 3072.00KB out of 3072.00KB"));
     assertTrue(mOutput.toString().contains("Files Failed: 0"));
     assertEquals(0, sFsShell.run("load", "/testRoot", "--stop"));
@@ -163,7 +163,7 @@ public class LoadCommandIntegrationTest extends AbstractFileSystemShellTest {
       assertEquals(0, sFsShell.run("load", "/testRootLoaded", "--progress"));
       Thread.sleep(1000);
     }
-    assertTrue(mOutput.toString().contains("Files Processed: 0 out of 0"));
+    assertTrue(mOutput.toString().contains("Files Processed: 0"));
     assertTrue(mOutput.toString().contains("Bytes Loaded: 0B out of 0B"));
   }
 }

@@ -104,4 +104,9 @@ public class AlluxioHdfsInputStream extends FileInStream {
       throws IOException {
     return mInput.read(position, buffer, offset, length);
   }
+
+  @Override
+  public void unbuffer() {
+    mInput.unbuffer();
+  }
 }

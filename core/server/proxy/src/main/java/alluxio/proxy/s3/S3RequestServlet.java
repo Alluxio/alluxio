@@ -42,7 +42,7 @@ public class S3RequestServlet extends HttpServlet {
   public static final String S3_V2_SERVICE_PATH_PREFIX = Constants.REST_API_PREFIX
       + AlluxioURI.SEPARATOR + SERVICE_PREFIX;
   private static final Logger LOG = LoggerFactory.getLogger(S3RequestServlet.class);
-  /* (Experimental for new architecture enabled by PROXY_S3_OPTIMIZED_VERSION_ENABLED)
+  /* (Experimental for new architecture enabled by PROXY_S3_V2_VERSION_ENABLED)
    * Processing threadpools for group of requests (for now, distinguish between
    * light-weighted metadata-centric requests and heavy io requests */
   public static final String PROXY_S3_V2_LIGHT_POOL = "Proxy S3 V2 Light Pool";

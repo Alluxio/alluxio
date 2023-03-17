@@ -78,9 +78,11 @@ import java.io.File;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.HttpMethod;
@@ -294,10 +296,9 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void listNonExistentBucket() throws Exception {
-    String bucketName = "bucket";
-    //empty parameters
-    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/"),
-        ListStatusPOptions.newBuilder().setRecursive(true).build());
+//    the bucket name should never be used in other unit tests
+//    to ensure the bucket path cache doesn't have this bucket name
+    String bucketName = "non_existent_bucket";
 
     // Verify 404 HTTP status & NoSuchBucket S3 error code
     HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
@@ -993,7 +994,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     FileUtils.deleteQuietly(
         new File(sResource.get().getAlluxioHome() + "/underFSStorage/" + fullObjectKey));
 
-    // Verify the object is exist in the alluxio.
+    // Verify the object is existent in the alluxio.
     List<FileInfo> fileInfos =
         mFileSystemMaster.listStatus(bucketURI, ListStatusContext.defaults());
     Assert.assertEquals(1, fileInfos.size());
@@ -1006,6 +1007,47 @@ public final class S3ClientRestApiTest extends RestApiTest {
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
     Assert.assertEquals("", response.getResource());
     Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_KEY, response.getCode());
+  }
+
+  @Test
+  public void putObjectToDeletedBucket() throws Exception {
+    String object = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    createBucketRestCall("bucket");
+    // delete the bucket in alluxio and UFS, but the bucket remains in BUCKET_PATH_CACHE
+    mFileSystem.delete(new AlluxioURI("/bucket"));
+    // put object to non-existent bucket
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
+        "bucket/object", NO_PARAMS, HttpMethod.PUT,
+        getDefaultOptionsWithAuth()
+            .setBody(object.getBytes())
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(object.getBytes())))
+        .execute();
+
+    Assert.assertEquals(404, connection.getResponseCode());
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
+  }
+
+  @Test
+  public void putDirectoryToDeletedBucket() throws Exception {
+    createBucketRestCall("bucket");
+    // delete the bucket in alluxio and UFS, but the bucket remains in BUCKET_PATH_CACHE
+    mFileSystem.delete(new AlluxioURI("/bucket"));
+    // put directory to non-existent bucket
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
+        "bucket/directory/", NO_PARAMS, HttpMethod.PUT,
+        getDefaultOptionsWithAuth()
+            .setBody(new byte[] {})
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(new byte[] {})))
+        .execute();
+
+    Assert.assertEquals(404, connection.getResponseCode());
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
   }
 
   @Test
@@ -1441,9 +1483,19 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void completeMultipartUpload() throws Exception {
-    // Two temporary parts in the multipart upload, each part contains a random string,
-    // after completion, the object should contain the combination of the two strings.
+  public void completeMultipartUploadTest() throws Exception {
+    int numOfTestIter = 3;
+    int maxParts = 50;
+    int minParts = 15;
+    Random random = new Random();
+    for (int i = 0; i < numOfTestIter; i++) {
+      completeMultipartUpload(random.nextInt(maxParts - minParts) + minParts);
+    }
+  }
+
+  public void completeMultipartUpload(int partsNum) throws Exception {
+    // Random number of parts in the multipart upload, each part contains a random string,
+    // after completion, the object should contain the combination of these parts' content.
 
     final String bucketName = "bucket";
     createBucketRestCall(bucketName);
@@ -1458,25 +1510,32 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final String uploadId = multipartUploadResult.getUploadId();
 
     // Upload parts.
-    String object1 = CommonUtils.randomAlphaNumString(DATA_SIZE);
-    String object2 = CommonUtils.randomAlphaNumString(DATA_SIZE);
-    createObject(objectKey, object1.getBytes(), uploadId, 1);
-    createObject(objectKey, object2.getBytes(), uploadId, 2);
-
+    String[] objects = new String[partsNum];
+    List<Integer> parts = new ArrayList<>();
+    for (int i = 0; i < partsNum; i++) {
+      parts.add(i + 1);
+    }
+    Collections.shuffle(parts);
+    for (int partNum : parts) {
+      int idx = partNum - 1;
+      objects[idx] = CommonUtils.randomAlphaNumString(DATA_SIZE);
+      createObject(objectKey, objects[idx].getBytes(), uploadId, partNum);
+    }
     // Verify that the two parts are uploaded to the temporary directory.
     AlluxioURI tmpDir = new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(
         AlluxioURI.SEPARATOR + bucketName, objectName, uploadId));
-    Assert.assertEquals(2, mFileSystem.listStatus(tmpDir).size());
+    Assert.assertEquals(partsNum, mFileSystem.listStatus(tmpDir).size());
 
     // Complete the multipart upload.
     List<CompleteMultipartUploadRequest.Part> partList = new ArrayList<>();
-    partList.add(new CompleteMultipartUploadRequest.Part("", 1));
-    partList.add(new CompleteMultipartUploadRequest.Part("", 2));
+    for (int i = 1; i <= partsNum; i++) {
+      partList.add(new CompleteMultipartUploadRequest.Part("", i));
+    }
     result = completeMultipartUploadRestCall(objectKey, uploadId,
         new CompleteMultipartUploadRequest(partList));
 
     // Verify that the response is expected.
-    String expectedCombinedObject = object1 + object2;
+    String expectedCombinedObject = String.join("", objects);
     MessageDigest md5 = MessageDigest.getInstance("MD5");
     byte[] digest = md5.digest(expectedCombinedObject.getBytes());
     String etag = Hex.encodeHexString(digest);

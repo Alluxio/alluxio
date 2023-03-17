@@ -61,6 +61,7 @@ Worker.CacheUfsBlocks,COUNTER
 Worker.CapacityFree,GAUGE
 Worker.CapacityTotal,GAUGE
 Worker.CapacityUsed,GAUGE
+Worker.MasterRegistrationSuccessCount,COUNTER
 Worker.RpcQueueLength,GAUGE
 Worker.RpcThreadActiveCount,GAUGE
 Worker.RpcThreadCurrentCount,GAUGE

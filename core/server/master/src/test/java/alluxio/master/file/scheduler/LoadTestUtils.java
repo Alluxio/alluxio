@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.loadmanager;
+package alluxio.master.file.scheduler;
 
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
@@ -102,7 +102,8 @@ public final class LoadTestUtils {
             .stream()
             .map(id -> LoadTestUtils.createFileBlockInfo(id, blockSizeLimit))
             .collect(ImmutableList.toImmutableList()))
-        .setCompleted(true);
+        .setCompleted(true)
+        .setPersisted(true);
     return info;
   }
 

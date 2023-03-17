@@ -38,6 +38,7 @@ import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
+import alluxio.master.AlwaysPrimaryPrimarySelector;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
@@ -48,6 +49,7 @@ import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.block.RegisterStreamObserver;
 import alluxio.master.block.WorkerRegisterContext;
 import alluxio.master.block.meta.MasterWorkerInfo;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.stress.cli.RpcBenchPreparationUtils;
@@ -118,7 +120,9 @@ public class BlockMasterRegisterStreamIntegrationTest {
     Configuration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
 
     mRegistry = new MasterRegistry();
-    mMasterContext = MasterTestUtils.testMasterContext();
+    mMasterContext = MasterTestUtils.testMasterContext(
+        new NoopJournalSystem(), null, new AlwaysPrimaryPrimarySelector()
+    );
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, mMasterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mClock = new ManualClock();

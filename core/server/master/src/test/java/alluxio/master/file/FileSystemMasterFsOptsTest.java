@@ -14,6 +14,7 @@ package alluxio.master.file;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -103,6 +104,34 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     FileInfo info = mFileSystemMaster.getFileInfo(path, GetStatusContext.defaults());
     assertEquals(100, info.getLastModificationTimeMs());
     assertEquals(100, info.getLastAccessTimeMs());
+  }
+
+  @Test
+  public void createFileWithOverwrite() throws Exception {
+    AlluxioURI path = new AlluxioURI("/test");
+    mFileSystemMaster.createFile(path, CreateFileContext.defaults());
+    // create without overwrite
+    Exception e = assertThrows(FileAlreadyExistsException.class, () -> {
+      mFileSystemMaster.createFile(path, CreateFileContext.defaults());
+    });
+    assertTrue(e.getMessage()
+        .contains(ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage(path)));
+
+    // create with overwrite
+    CreateFileContext createFileContextWithOverwrite = CreateFileContext.defaults();
+    createFileContextWithOverwrite.getOptions().setOverwrite(true);
+    mFileSystemMaster.createFile(path, createFileContextWithOverwrite);
+    FileInfo info = mFileSystemMaster.getFileInfo(path, GetStatusContext.defaults());
+
+    // overwrite an existed directory
+    AlluxioURI testpath = new AlluxioURI("/test2");
+    mFileSystemMaster.createDirectory(testpath, CreateDirectoryContext.defaults());
+
+    e = assertThrows(FileAlreadyExistsException.class, () -> {
+      mFileSystemMaster.createFile(testpath, createFileContextWithOverwrite);
+    });
+    assertTrue(e.getMessage()
+          .contains(ExceptionMessage.CANNOT_OVERWRITE_DIRECTORY.getMessage(testpath)));
   }
 
   /**

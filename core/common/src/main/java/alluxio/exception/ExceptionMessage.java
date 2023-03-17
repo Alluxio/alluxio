@@ -27,6 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public enum ExceptionMessage {
   // general
   PATH_DOES_NOT_EXIST("Path \"{0}\" does not exist."),
+  BUCKET_DOES_NOT_EXIST("Bucket \"{0}\" does not exist."),
   PATH_DOES_NOT_EXIST_PARTIAL_LISTING("Path \"{0}\" was removed during listing."),
   INODE_NOT_FOUND_PARTIAL_LISTING("\"{0}\" Inode was not found during partial listing. It was "
       + "likely removed across listing calls."),
@@ -95,6 +96,9 @@ public enum ExceptionMessage {
   ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),
   JOURNAL_ENTRY_MISSING(
       "Journal entries are missing between sequence number {0} (inclusive) and {1} (exclusive)."),
+  CANNOT_OVERWRITE_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
+  CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE("{0} already exists. If you want to overwrite the file,"
+      + " you need to specify the overwrite option."),
 
   // block master
   NO_WORKER_FOUND("No worker with workerId {0,number,#} is found"),
