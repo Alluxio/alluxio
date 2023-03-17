@@ -16,6 +16,7 @@ import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
@@ -281,9 +282,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   private long getProperty(String rocksPropertyName) {
-    if (mClosed.get()) {
-      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-    }
+    checkDbStatus();
     try {
       return db().getAggregatedLongProperty(rocksPropertyName);
     } catch (RocksDBException e) {
@@ -294,9 +293,7 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public void remove(Long inodeId) {
-    if (mClosed.get()) {
-      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-    }
+    checkDbStatus();
     try {
       byte[] id = Longs.toByteArray(inodeId);
       db().delete(mInodesColumn.get(), mDisableWAL, id);
@@ -307,9 +304,7 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public void writeInode(MutableInode<?> inode) {
-    if (mClosed.get()) {
-      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-    }
+    checkDbStatus();
     try {
       db().put(mInodesColumn.get(), mDisableWAL, Longs.toByteArray(inode.getId()),
           inode.toProto().toByteArray());
@@ -327,14 +322,12 @@ public class RocksInodeStore implements InodeStore {
   public void clear() {
     mRocksStore.clear();
     // Reset the DB state and prepare to serve again
-    mClosed.set(true);
+    mClosed.set(false);
   }
 
   @Override
   public void addChild(long parentId, String childName, Long childId) {
-    if (mClosed.get()) {
-      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-    }
+    checkDbStatus();
     try {
       db().put(mEdgesColumn.get(), mDisableWAL, RocksUtils.toByteArray(parentId, childName),
           Longs.toByteArray(childId));
@@ -345,9 +338,7 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public void removeChild(long parentId, String name) {
-    if (mClosed.get()) {
-      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-    }
+    checkDbStatus();
     try {
       db().delete(mEdgesColumn.get(), mDisableWAL, RocksUtils.toByteArray(parentId, name));
     } catch (RocksDBException e) {
@@ -357,9 +348,7 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public Optional<MutableInode<?>> getMutable(long id, ReadOption option) {
-    if (mClosed.get()) {
-      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-    }
+    checkDbStatus();
     byte[] inode;
     try {
       inode = db().get(mInodesColumn.get(), Longs.toByteArray(id));
@@ -378,9 +367,7 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public CloseableIterator<Long> getChildIds(Long inodeId, ReadOption option) {
-    if (mClosed.get()) {
-      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-    }
+    checkDbStatus();
     RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart);
     // first seek to the correct bucket
     iter.seek(Longs.toByteArray(inodeId));
@@ -410,9 +397,7 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public Optional<Long> getChildId(Long inodeId, String name, ReadOption option) {
-    if (mClosed.get()) {
-      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-    }
+    checkDbStatus();
     byte[] id;
     try {
       id = db().get(mEdgesColumn.get(), RocksUtils.toByteArray(inodeId, name));
@@ -467,6 +452,10 @@ public class RocksInodeStore implements InodeStore {
 
     @Override
     public Long next() {
+      if (mCloseCheck.get()) {
+        throw new UnavailableRuntimeException(
+            "RocksDB is closed. Master is failing over or shutting down.");
+      }
       Long l = Longs.fromByteArray(mIter.value());
       mIter.next();
       checkPrefix();
@@ -476,9 +465,7 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public Optional<Inode> getChild(Long inodeId, String name, ReadOption option) {
-    if (mClosed.get()) {
-      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-    }
+    checkDbStatus();
     return getChildId(inodeId, name).flatMap(id -> {
       Optional<Inode> child = get(id);
       if (!child.isPresent()) {
@@ -491,9 +478,7 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public boolean hasChildren(InodeDirectoryView inode, ReadOption option) {
-    if (mClosed.get()) {
-      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-    }
+    checkDbStatus();
     try (RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart)) {
       iter.seek(Longs.toByteArray(inode.getId()));
       return iter.isValid();
@@ -502,6 +487,7 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public Set<EdgeEntry> allEdges() {
+    checkDbStatus();
     Set<EdgeEntry> edges = new HashSet<>();
     try (RocksIterator iter = db().newIterator(mEdgesColumn.get(),
         mIteratorOption)) {
@@ -519,9 +505,11 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public Set<MutableInode<?>> allInodes() {
+    checkDbStatus();
     Set<MutableInode<?>> inodes = new HashSet<>();
     try (RocksIterator iter = db().newIterator(mInodesColumn.get(),
         mIteratorOption)) {
+      // TODO(jiacheng): guard the iter
       iter.seekToFirst();
       while (!mClosed.get() && iter.isValid()) {
         inodes.add(getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());
@@ -538,6 +526,7 @@ public class RocksInodeStore implements InodeStore {
    * @return an iterator over stored inodes
    */
   public CloseableIterator<InodeView> getCloseableIterator() {
+    checkDbStatus();
     return RocksUtils.createCloseableIterator(
         db().newIterator(mInodesColumn.get(), mIteratorOption),
         (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get(),
@@ -556,17 +545,13 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
-    if (mClosed.get()) {
-      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-    }
+    checkDbStatus();
     mRocksStore.writeToCheckpoint(output);
   }
 
   @Override
   public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
-    if (mClosed.get()) {
-      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-    }
+    checkDbStatus();
     mRocksStore.restoreFromCheckpoint(input);
   }
 
@@ -575,9 +560,7 @@ public class RocksInodeStore implements InodeStore {
 
     @Override
     public void writeInode(MutableInode<?> inode) {
-      if (mClosed.get()) {
-        throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-      }
+      checkDbStatus();
       try {
         mBatch.put(mInodesColumn.get(), Longs.toByteArray(inode.getId()),
             inode.toProto().toByteArray());
@@ -588,9 +571,7 @@ public class RocksInodeStore implements InodeStore {
 
     @Override
     public void removeInode(Long key) {
-      if (mClosed.get()) {
-        throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-      }
+      checkDbStatus();
       try {
         mBatch.delete(mInodesColumn.get(), Longs.toByteArray(key));
       } catch (RocksDBException e) {
@@ -600,9 +581,7 @@ public class RocksInodeStore implements InodeStore {
 
     @Override
     public void addChild(Long parentId, String childName, Long childId) {
-      if (mClosed.get()) {
-        throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-      }
+      checkDbStatus();
       try {
         mBatch.put(mEdgesColumn.get(), RocksUtils.toByteArray(parentId, childName),
             Longs.toByteArray(childId));
@@ -613,9 +592,7 @@ public class RocksInodeStore implements InodeStore {
 
     @Override
     public void removeChild(Long parentId, String childName) {
-      if (mClosed.get()) {
-        throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-      }
+      checkDbStatus();
       try {
         mBatch.delete(mEdgesColumn.get(), RocksUtils.toByteArray(parentId, childName));
       } catch (RocksDBException e) {
@@ -625,9 +602,7 @@ public class RocksInodeStore implements InodeStore {
 
     @Override
     public void commit() {
-      if (mClosed.get()) {
-        throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-      }
+      checkDbStatus();
       try {
         db().write(mDisableWAL, mBatch);
       } catch (RocksDBException e) {
@@ -665,9 +640,7 @@ public class RocksInodeStore implements InodeStore {
    *         for debugging purposes
    */
   public String toStringEntries() {
-    if (mClosed.get()) {
-      throw new RuntimeException("RocksDB is closed. Master is failing over or shutting down.");
-    }
+    checkDbStatus();
     StringBuilder sb = new StringBuilder();
     try (ReadOptions readOptions = new ReadOptions().setTotalOrderSeek(true);
         RocksIterator inodeIter = db().newIterator(mInodesColumn.get(), readOptions)) {
@@ -706,6 +679,14 @@ public class RocksInodeStore implements InodeStore {
    */
   @VisibleForTesting
   public Pair<RocksDB, AtomicReference<ColumnFamilyHandle>> getDBInodeColumn() {
+    checkDbStatus();
     return new Pair<>(db(), mInodesColumn);
+  }
+
+  private void checkDbStatus() {
+    if (mClosed.get()) {
+      throw new UnavailableRuntimeException(
+          "RocksDB is closed. Master is failing over or shutting down.");
+    }
   }
 }
