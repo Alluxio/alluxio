@@ -111,6 +111,10 @@ public final class S3RestServiceHandler {
   /* Object is after bucket in the URL path */
   public static final String OBJECT_PARAM = "{bucket}/{object:.+}";
   public static final int BUCKET_PATH_CACHE_SIZE = 65536;
+  /* BUCKET_PATH_CACHE caches bucket path during specific period.
+     BUCKET_PATH_CACHE.put(bucketPath,true) means bucket path exists.
+     BUCKET_PATH_CACHE.put(bucketPath,false) plays the same effect
+     as BUCKET_PATH_CACHE.remove(bucketPath). */
   private static final Cache<String, Boolean> BUCKET_PATH_CACHE = CacheBuilder.newBuilder()
       .maximumSize(BUCKET_PATH_CACHE_SIZE)
       .expireAfterWrite(

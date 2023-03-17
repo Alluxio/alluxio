@@ -76,6 +76,10 @@ public class S3Handler {
   public static final Pattern OBJECT_PATH_PATTERN =
           Pattern.compile("^" + S3RequestServlet.S3_V2_SERVICE_PATH_PREFIX + "/[^/]*/.*$");
   public static final int BUCKET_PATH_CACHE_SIZE = 65536;
+  /* BUCKET_PATH_CACHE caches bucket path during specific period.
+   BUCKET_PATH_CACHE.put(bucketPath,true) means bucket path exists.
+   BUCKET_PATH_CACHE.put(bucketPath,false) plays the same effect
+   as BUCKET_PATH_CACHE.remove(bucketPath). */
   public static final Cache<String, Boolean> BUCKET_PATH_CACHE = CacheBuilder.newBuilder()
       .maximumSize(BUCKET_PATH_CACHE_SIZE)
       .expireAfterWrite(
