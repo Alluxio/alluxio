@@ -374,12 +374,13 @@ public class RocksBlockMetaStore implements BlockMetaStore {
     // When there are multiple resources declared in the try-with-resource block
     // They are closed in the opposite order of declaration
     // Ref: https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html
+    // We assume this operation is short (one block cannot have too many locations)
+    // and lock the full iteration
     try (LockResource lock = checkAndAcquireReadLock();
         final RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(),
             mReadPrefixSameAsStart)) {
       iter.seek(Longs.toByteArray(id));
       List<BlockLocation> locations = new ArrayList<>();
-      // TODO(jiacheng): throw during iteration?
       for (; iter.isValid(); iter.next()) {
         try {
           locations.add(BlockLocation.parseFrom(iter.value()));
@@ -418,12 +419,12 @@ public class RocksBlockMetaStore implements BlockMetaStore {
    * 2. Journal dumping like checkpoint/backup sequences
    */
   public CloseableIterator<Block> getCloseableIterator() {
-    // TODO(jiacheng): handle iter carefully
-    checkDbStatus();
-    RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
-    return RocksUtils.createCloseableIterator(iterator,
-        (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())),
-            mClosed::get);
+    try (LockResource lock = checkAndAcquireReadLock()) {
+      RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
+      return RocksUtils.createCloseableIterator(iterator,
+          (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())),
+          mClosed::get, this::checkAndAcquireReadLock);
+    }
   }
 
   private RocksDB db() {
@@ -437,11 +438,16 @@ public class RocksBlockMetaStore implements BlockMetaStore {
     }
   }
 
+  // TODO(jiacheng): double check what happens if max lock count error here
   public LockResource checkAndAcquireReadLock() {
+    LockResource lock = new LockResource(mStateLock.readLock());
+    // Counter-intuitively, the check should happen after getting the lock because
+    // we may get the read lock after the writer, meaning the RocksDB may have been closed
     if (mClosed.get()) {
+      lock.close();
       throw new UnavailableRuntimeException(
-              "RocksDB is closed. Master is failing over or shutting down.");
+          "RocksDB is closed. Master is failing over or shutting down.");
     }
-    return new LockResource(mStateLock.readLock());
+    return lock;
   }
 }

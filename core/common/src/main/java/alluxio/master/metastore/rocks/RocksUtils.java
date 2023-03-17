@@ -13,6 +13,7 @@ package alluxio.master.metastore.rocks;
 
 import alluxio.resource.CloseableIterator;
 
+import alluxio.resource.LockResource;
 import com.google.common.primitives.Longs;
 import org.rocksdb.RocksIterator;
 import org.slf4j.Logger;
@@ -102,9 +103,10 @@ public final class RocksUtils {
    * @param <T> iterator value type
    * @return wrapped iterator
    */
+  // TODO(jiacheng): check all places this is used
   public static <T> CloseableIterator<T> createCloseableIterator(
       RocksIterator rocksIterator, RocksIteratorParser<T> parser) {
-    return createCloseableIterator(rocksIterator, parser, () -> true);
+    return createCloseableIterator(rocksIterator, parser, () -> false, () -> null);
   }
 
   /**
@@ -121,7 +123,8 @@ public final class RocksUtils {
    * @return wrapped iterator
    */
   public static <T> CloseableIterator<T> createCloseableIterator(
-      RocksIterator rocksIterator, RocksIteratorParser<T> parser, Supplier<Boolean> closeCheck) {
+      RocksIterator rocksIterator, RocksIteratorParser<T> parser,
+      Supplier<Boolean> closeCheck, Supplier<LockResource> locker) {
     rocksIterator.seekToFirst();
     AtomicBoolean valid = new AtomicBoolean(true);
     Iterator<T> iter = new Iterator<T>() {
@@ -141,8 +144,10 @@ public final class RocksUtils {
       @Override
       public T next() {
         boolean succeeded = false;
-        try {
+        // This lock will assure the RocksDB is not closed while this is reading
+        try (LockResource lock = locker.get()){
           T result = parser.next(rocksIterator);
+          rocksIterator.next();
           succeeded = true;
           return result;
         } catch (Exception exc) {
@@ -152,15 +157,6 @@ public final class RocksUtils {
           LOG.warn("Iteration aborted because of error", t);
           throw t;
         } finally {
-          if (rocksIterator.isValid()) {
-            /*
-             * There is also a race condition between isValid() and next(), where the RocksDB
-             * can be closed concurrently after the isValid() check. We rely on the closeCheck to
-             * call off iteration early so the race condition is avoided in a whole.
-             * See comments in hasNext().
-             */
-            rocksIterator.next();
-          }
           if (!succeeded) {
             valid.set(false);
             rocksIterator.close();
