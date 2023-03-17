@@ -603,6 +603,13 @@ public class DefaultFileSystemMaster extends CoreMaster
     return createJournalContext(true);
   }
 
+  /**
+   * Creates a journal context.
+   * @param useMergeJournalContext if set to true, if possible, a journal context that merges
+   *  journal entries and holds them until the context is closed. If set to false,
+   *  a normal journal context will be returned.
+   * @return the journal context
+   */
   private JournalContext createJournalContext(boolean useMergeJournalContext)
       throws UnavailableException {
     JournalContext context = super.createJournalContext();
