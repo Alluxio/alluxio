@@ -90,10 +90,20 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   private final AtomicReference<ColumnFamilyHandle> mBlockMetaColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mBlockLocationsColumn = new AtomicReference<>();
   private final LongAdder mSize = new LongAdder();
-  // When this is true, stop serving all requests as the RocksDB is being closed
+  /**
+   * When this is true, stop serving all requests as the RocksDB is being closed.
+   * This flag serves two purposes:
+   * 1. Before an r/w operation, if this is observed then bail the operation early.
+   * 2. During an r/w operation like iteration, if this is observed then abort the iteration.
+   */
   private final AtomicBoolean mClosed = new AtomicBoolean(false);
-  // A lock to prevent concurrent r/w when the RocksDB is closing/restarting
-  private final ReadWriteLock mStateLock = new ReentrantReadWriteLock();
+  /**
+   * The RWLock is used to guarantee thread safety between r/w and RocksDB closing/restarting.
+   * When the RocksDB is closing/restarting, no concurrent r/w should be present.
+   * Therefore, we acquire the write lock on closing/restarting, and acquire a read lock for
+   * reading/writing the RocksDB.
+   */
+  private final ReadWriteLock mDbStateLock = new ReentrantReadWriteLock();
 
   /**
    * Creates and initializes a rocks block store.
@@ -340,7 +350,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
     // Block all new readers and make concurrent readers bail asap
     LOG.info("Marking RocksDB closed so all concurrent read/write should stop");
     mClosed.set(true);
-    try (LockResource lock = new LockResource(mStateLock.writeLock())) {
+    try (LockResource lock = new LockResource(mDbStateLock.writeLock())) {
       LOG.info("Clearing RocksDB");
       mSize.reset();
       mRocksStore.clear();
@@ -356,10 +366,19 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   }
 
   @Override
+  /**
+   * There may be concurrent readers and writers so we have to guarantee thread safety when
+   * closing the RocksDB and all RocksObject instances. The sequence for closing is:
+   * 1. Mark flag mClosed = true without locking.
+   *    All new readers/writers should see the flag and not start the operation.
+   * 2. Acquire the WriteLock before shutting down, so it waits for all concurrent r/w to
+   *    bail or finish.
+   *
+   */
   public void close() {
     mClosed.set(true);
     LOG.info("RocksBlockStore is being closed");
-    try (LockResource lock = new LockResource(mStateLock.writeLock())) {
+    try (LockResource lock = new LockResource(mDbStateLock.writeLock())) {
       // TODO(jiacheng): keep grace period?
       // Sleep to wait for all concurrent readers to either complete or abort
       SleepUtils.sleepMs(Configuration.getMs(PropertyKey.ROCKS_GRACEFUL_SHUTDOWN_TIMEOUT));
@@ -461,8 +480,13 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
 
   // TODO(jiacheng): double check what happens if max lock count error here
   private LockResource checkAndAcquireReadLock() {
-    LockResource lock = new LockResource(mStateLock.readLock());
-    // Counter-intuitively, the check should happen after getting the lock because
+    // Check before locking so if the RocksDB will be closed, abort early
+    if (mClosed.get()) {
+      throw new UnavailableRuntimeException(
+          "RocksDB is closed. Master is failing over or shutting down.");
+    }
+    LockResource lock = new LockResource(mDbStateLock.readLock());
+    // Counter-intuitively, check again after getting the lock because
     // we may get the read lock after the writer, meaning the RocksDB may have been closed
     if (mClosed.get()) {
       lock.close();

@@ -97,17 +97,26 @@ public final class RocksUtils {
   /**
    * Used to wrap an {@link CloseableIterator} over {@link RocksIterator}.
    * It seeks given iterator to first entry before returning the iterator.
-   * // TODO(jiacheng): comment on the usage
+   *
+   * The abort check is checked in hasNext(), where we check whether the RocksDB is closed and
+   * iteration should end. However, hasNext() and next() is a check-then-act race condition,
+   * where RocksDB may be closed immediately after hasNext() and before next(). We avoid that by
+   * acquiring a lock in next() access. The lock should guarantee safety during the data access.
+   *
+   * With the thread safety baked into hasNext() and next(), users of this Iterator do not need
+   * to worry about safety and can use this Iterator normally.
+   * See examples in how this iterator is used in RocksBlockMetaStore and RocksInodeStore.
    *
    * @param rocksIterator the rocks iterator
    * @param parser parser to produce iterated values from rocks key-value
    * @param <T> iterator value type
-   * @param closeCheck if true, turn off the iteration
+   * @param abortCheck if true, abort the iteration
+   * @param locker acquire a lock in next() to ensure thread safety, if any
    * @return wrapped iterator
    */
   public static <T> CloseableIterator<T> createCloseableIterator(
       RocksIterator rocksIterator, RocksIteratorParser<T> parser,
-      Supplier<Boolean> closeCheck, Supplier<LockResource> locker) {
+      Supplier<Boolean> abortCheck, Supplier<LockResource> locker) {
     rocksIterator.seekToFirst();
     AtomicBoolean valid = new AtomicBoolean(true);
     Iterator<T> iter = new Iterator<T>() {
@@ -121,7 +130,7 @@ public final class RocksUtils {
          * RocksDB and all relevant references without worrying about concurrent readers
          * like this escaped iterator.
          */
-        return (!closeCheck.get()) && valid.get() && rocksIterator.isValid();
+        return (!abortCheck.get()) && valid.get() && rocksIterator.isValid();
       }
 
       @Override
