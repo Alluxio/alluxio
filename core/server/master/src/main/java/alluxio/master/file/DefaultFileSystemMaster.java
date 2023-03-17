@@ -610,7 +610,8 @@ public class DefaultFileSystemMaster extends CoreMaster
    *  a normal journal context will be returned.
    * @return the journal context
    */
-  private JournalContext createJournalContext(boolean useMergeJournalContext)
+  @VisibleForTesting
+  JournalContext createJournalContext(boolean useMergeJournalContext)
       throws UnavailableException {
     JournalContext context = super.createJournalContext();
     if (!(mMergeInodeJournals && useMergeJournalContext)) {
