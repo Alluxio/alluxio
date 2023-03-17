@@ -85,6 +85,7 @@ public class IOTaskSummaryTest {
     double totalDuration = Arrays.stream(durations).max().orElse(0L);
     long totalSize = Arrays.stream(sizes).sum();
     double avgSpeed = Arrays.stream(speeds).sum() / speeds.length;
+    double clusterAvgSpeed = totalSize / (2.0 * 1024 * 1024);
     double maxSpeed = 800_000_000 / (1.11 * 1024 * 1024);
     double minSpeed = 200_000_000 / (1.0 * 1024 * 1024);
     assertEquals(totalDuration, readStat.mTotalDurationSeconds, 1e-5);
@@ -92,6 +93,7 @@ public class IOTaskSummaryTest {
     assertEquals(avgSpeed, readStat.mAvgSpeedMbps, 1e-5);
     assertEquals(maxSpeed, readStat.mMaxSpeedMbps, 1e-5);
     assertEquals(minSpeed, readStat.mMinSpeedMbps, 1e-5);
+    assertEquals(clusterAvgSpeed, readStat.mClusterAvgSpeedMbps, 1e-5);
 
     IOTaskSummary.SpeedStat writeStat = summary.getWriteSpeedStat();
     assertEquals(totalDuration, writeStat.mTotalDurationSeconds, 1e-5);
@@ -99,6 +101,7 @@ public class IOTaskSummaryTest {
     assertEquals(avgSpeed, writeStat.mAvgSpeedMbps, 1e-5);
     assertEquals(maxSpeed, writeStat.mMaxSpeedMbps, 1e-5);
     assertEquals(minSpeed, writeStat.mMinSpeedMbps, 1e-5);
+    assertEquals(clusterAvgSpeed, writeStat.mClusterAvgSpeedMbps, 1e-5);
   }
 
   private void checkEquality(IOTaskSummary.SpeedStat a, IOTaskSummary.SpeedStat b) {

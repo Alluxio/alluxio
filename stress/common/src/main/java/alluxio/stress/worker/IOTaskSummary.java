@@ -152,8 +152,9 @@ public class IOTaskSummary implements Summary {
     public long mTotalSizeBytes;
     public double mMaxSpeedMbps;
     public double mMinSpeedMbps;
+    // Average speed of all points
     public double mAvgSpeedMbps;
-
+    // The average speed to write/read UFS on the cluster view
     public double mClusterAvgSpeedMbps;
     public double mStdDev;
 
@@ -194,18 +195,19 @@ public class IOTaskSummary implements Summary {
       minSpeed = Math.min(minSpeed, speed);
       speeds[i++] = speed;
     }
-    // calculate the average speed
-    double avgSpeed = Arrays.stream(speeds).sum() / points.size();
+    // calculate the average speed for each point
+    double avgPointSpeed = Arrays.stream(speeds).sum() / points.size();
+    double avgClusterSpeed = totalSize / (result.mTotalDurationSeconds * 1024 * 1024); // convert B/s to MB/s
     double var = 0;
     for (double s : speeds) {
-      var += (s - avgSpeed) * (s - avgSpeed);
+      var += (s - avgPointSpeed) * (s - avgPointSpeed);
     }
 
     result.mTotalSizeBytes = totalSize;
     result.mMaxSpeedMbps = maxSpeed;
     result.mMinSpeedMbps = Double.compare(minSpeed, Double.MAX_VALUE) == 0 ? 0.0 : minSpeed;
-    result.mAvgSpeedMbps = avgSpeed;
-    result.mClusterAvgSpeedMbps = avgSpeed * points.size();
+    result.mAvgSpeedMbps = avgPointSpeed;
+    result.mClusterAvgSpeedMbps = avgClusterSpeed;
     result.mStdDev = Math.sqrt(var);
 
     return result;
