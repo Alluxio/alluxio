@@ -282,7 +282,13 @@ public class RocksPageStore implements PageStore {
           "RocksDB is closed. Master is failing over or shutting down.");
     }
     LockResource lock = new LockResource(mStateLock.readLock());
-    // No need to check mClosed again because closing goes one-way
+    // Counter-intuitively, check again after getting the lock because
+    // we may get the read lock after the writer, meaning the RocksDB may have been closed
+    if (mClosed.get()) {
+      lock.close();
+      throw new UnavailableRuntimeException(
+          "RocksDB is closed. Master is failing over or shutting down.");
+    }
     return lock;
   }
 }
