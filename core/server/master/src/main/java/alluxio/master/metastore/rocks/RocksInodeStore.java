@@ -87,8 +87,6 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   private static final String EDGES_COLUMN = "edges";
   private static final String ROCKS_STORE_NAME = "InodeStore";
 
-  private final ReadWriteLock mStateLock = new ReentrantReadWriteLock();
-
   // These are fields instead of constants because they depend on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
   private final ReadOptions mReadPrefixSameAsStart;
@@ -106,6 +104,8 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   private final AtomicReference<ColumnFamilyHandle> mEdgesColumn = new AtomicReference<>();
   // When this is true, stop serving all requests as the RocksDB is being closed
   private final AtomicBoolean mClosed = new AtomicBoolean(false);
+  // A lock to prevent concurrent r/w when the RocksDB is closing/restarting
+  private final ReadWriteLock mStateLock = new ReentrantReadWriteLock();
 
   /**
    * Creates and initializes a rocks block store.
