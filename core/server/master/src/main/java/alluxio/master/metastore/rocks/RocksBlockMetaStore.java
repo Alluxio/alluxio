@@ -27,6 +27,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.resource.CloseableIterator;
+import alluxio.resource.LockResource;
 import alluxio.util.SleepUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -61,6 +62,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -89,7 +92,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   private final LongAdder mSize = new LongAdder();
   // When this is true, stop serving all requests as the RocksDB is being closed
   private final AtomicBoolean mClosed = new AtomicBoolean(false);
-
+  private final ReadWriteLock mStateLock = new ReentrantReadWriteLock();
   /**
    * Creates and initializes a rocks block store.
    *
@@ -275,8 +278,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   }
 
   private long getProperty(String rocksPropertyName) {
-    checkDbStatus();
-    try {
+    try (LockResource lock = checkAndAcquireReadLock()) {
       return db().getAggregatedLongProperty(rocksPropertyName);
     } catch (RocksDBException e) {
       LOG.warn(String.format("error collecting %s", rocksPropertyName), e);
@@ -286,9 +288,8 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
 
   @Override
   public Optional<BlockMeta> getBlock(long id) {
-    checkDbStatus();
     byte[] meta;
-    try {
+    try (LockResource lock = checkAndAcquireReadLock()) {
       meta = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -305,8 +306,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
 
   @Override
   public void putBlock(long id, BlockMeta meta) {
-    checkDbStatus();
-    try {
+    try (LockResource lock = checkAndAcquireReadLock()) {
       byte[] buf = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
       // Overwrites the key if it already exists.
       db().put(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id), meta.toByteArray());
@@ -321,8 +321,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
 
   @Override
   public void removeBlock(long id) {
-    checkDbStatus();
-    try {
+    try (LockResource lock = checkAndAcquireReadLock()) {
       byte[] buf = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
       db().delete(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id));
       if (buf != null) {
@@ -336,10 +335,17 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
 
   @Override
   public void clear() {
-    mSize.reset();
-    mRocksStore.clear();
-    // Reset the DB state and prepare to serve again
+    // Block all new readers and make concurrent readers bail asap
+    LOG.info("Marking RocksDB closed so all concurrent read/write should stop");
     mClosed.set(true);
+    try (LockResource lock = new LockResource(mStateLock.writeLock())) {
+      LOG.info("Clearing RocksDB");
+      mSize.reset();
+      mRocksStore.clear();
+    }
+    // Reset the DB state and prepare to serve again
+    LOG.info("RocksDB ready to serve again");
+    mClosed.set(false);
   }
 
   @Override
@@ -351,24 +357,25 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   public void close() {
     mClosed.set(true);
     LOG.info("RocksBlockStore is being closed");
-    // TODO(jiacheng): keep grace period?
-    // Sleep to wait for all concurrent readers to either complete or abort
-    SleepUtils.sleepMs(Configuration.getMs(PropertyKey.ROCKS_GRACEFUL_SHUTDOWN_TIMEOUT));
-    mSize.reset();
-    LOG.info("Closing RocksBlockStore and recycling all RocksDB JNI objects");
-    mRocksStore.close();
-    mIteratorOption.close();
-    mDisableWAL.close();
-    mReadPrefixSameAsStart.close();
-    // Close the elements in the reverse order they were added
-    Collections.reverse(mToClose);
-    mToClose.forEach(RocksObject::close);
+    try (LockResource lock = new LockResource(mStateLock.writeLock())) {
+      // TODO(jiacheng): keep grace period?
+      // Sleep to wait for all concurrent readers to either complete or abort
+      SleepUtils.sleepMs(Configuration.getMs(PropertyKey.ROCKS_GRACEFUL_SHUTDOWN_TIMEOUT));
+      mSize.reset();
+      LOG.info("Closing RocksBlockStore and recycling all RocksDB JNI objects");
+      mRocksStore.close();
+      mIteratorOption.close();
+      mDisableWAL.close();
+      mReadPrefixSameAsStart.close();
+      // Close the elements in the reverse order they were added
+      Collections.reverse(mToClose);
+      mToClose.forEach(RocksObject::close);
+    }
     LOG.info("RocksBlockStore closed");
   }
 
   @Override
   public List<BlockLocation> getLocations(long id) {
-    checkDbStatus();
     // References to the RocksObject need to be held explicitly and kept from GC
     // In order to prevent segfaults in the native code execution
     // Ref: https://github.com/facebook/rocksdb/issues/9378
@@ -376,8 +383,9 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
     // When there are multiple resources declared in the try-with-resource block
     // They are closed in the opposite order of declaration
     // Ref: https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html
-    try (final RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(),
-        mReadPrefixSameAsStart)) {
+    try (LockResource lock = checkAndAcquireReadLock();
+        final RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(),
+            mReadPrefixSameAsStart)) {
       iter.seek(Longs.toByteArray(id));
       List<BlockLocation> locations = new ArrayList<>();
       // TODO(jiacheng): throw during iteration?
@@ -394,9 +402,8 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
 
   @Override
   public void addLocation(long id, BlockLocation location) {
-    checkDbStatus();
     byte[] key = RocksUtils.toByteArray(id, location.getWorkerId());
-    try {
+    try (LockResource lock = checkAndAcquireReadLock()) {
       db().put(mBlockLocationsColumn.get(), mDisableWAL, key, location.toByteArray());
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -405,9 +412,8 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
 
   @Override
   public void removeLocation(long blockId, long workerId) {
-    checkDbStatus();
     byte[] key = RocksUtils.toByteArray(blockId, workerId);
-    try {
+    try (LockResource lock = checkAndAcquireReadLock()) {
       db().delete(mBlockLocationsColumn.get(), mDisableWAL, key);
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -421,6 +427,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
    * 2. Journal dumping like checkpoint/backup sequences
    */
   public CloseableIterator<Block> getCloseableIterator() {
+    // TODO(jiacheng): handle iter carefully
     checkDbStatus();
     RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
     return RocksUtils.createCloseableIterator(iterator,
@@ -447,5 +454,13 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
       throw new UnavailableRuntimeException(
           "RocksDB is closed. Master is failing over or shutting down.");
     }
+  }
+
+  public LockResource checkAndAcquireReadLock() {
+    if (mClosed.get()) {
+      throw new UnavailableRuntimeException(
+              "RocksDB is closed. Master is failing over or shutting down.");
+    }
+    return new LockResource(mStateLock.readLock());
   }
 }
