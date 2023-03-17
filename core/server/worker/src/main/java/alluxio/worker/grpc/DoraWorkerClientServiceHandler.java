@@ -31,6 +31,7 @@ import alluxio.worker.dora.PagedDoraWorker;
 
 import com.google.common.collect.ImmutableMap;
 import io.grpc.MethodDescriptor;
+import io.grpc.Status;
 import io.grpc.stub.CallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -104,7 +105,12 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       responseObserver.onCompleted();
     } catch (IOException e) {
       LOG.debug(String.format("Failed to get status of %s: ", request.getPath()), e);
-      responseObserver.onError(e);
+      // Worker should try return specific exceptions if it knows what exception it is.
+      if (e instanceof FileNotFoundException) {
+        responseObserver.onError(new io.grpc.StatusException(Status.NOT_FOUND));
+      } else {
+        responseObserver.onError(new io.grpc.StatusException(Status.UNKNOWN));
+      }
     }
   }
 
@@ -118,7 +124,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
           request.getOptions().hasRecursive() ? request.getOptions().getRecursive() : false);
       UfsStatus[] statuses = mWorker.listStatus(request.getPath(), options);
       if (statuses == null) {
-        responseObserver.onError(new FileNotFoundException("File or Directory Not Found"));
+        responseObserver.onError(new io.grpc.StatusException(Status.NOT_FOUND));
         return;
       }
 
@@ -139,7 +145,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       responseObserver.onCompleted();
     } catch (Exception e) {
       LOG.error(String.format("Failed to list status of %s: ", request.getPath()), e);
-      responseObserver.onError(e);
+      responseObserver.onError(new io.grpc.StatusException(Status.UNKNOWN));
     }
   }
 }
