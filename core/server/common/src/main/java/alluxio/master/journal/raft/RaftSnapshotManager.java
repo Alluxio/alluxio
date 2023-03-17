@@ -78,8 +78,8 @@ public class RaftSnapshotManager implements AutoCloseable {
         .filter(address -> !address.equals(localAddress))
         .collect(Collectors.toMap(Function.identity(), address -> {
           MasterSelectionPolicy selection = MasterSelectionPolicy.Factory.specifiedMaster(address);
-          int sleep = 1_000;
-          int numTries = mRequestInfoTimeout / sleep;
+          int numTries = 10;
+          int sleep = Math.max(1, mRequestInfoTimeout / numTries);
           // try to connect to other master once per second for until request info timeout
           Supplier<RetryPolicy> retry = () -> new ExponentialBackoffRetry(sleep, sleep, numTries);
           return new RaftJournalServiceClient(selection, retry);
@@ -91,6 +91,18 @@ public class RaftSnapshotManager implements AutoCloseable {
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DOWNLOAD_SIZE.getName(),
         () -> mLastSnapshotDownloadSize);
+  }
+
+  /**
+   * Waits synchronously for the download attempt to be complete.
+   * @return the result of the download attempt, or {@link RaftLog#INVALID_LOG_INDEX} if no
+   * attempt is underway
+   */
+  public long waitForAttemptToComplete() {
+    if (mDownloadFuture == null) {
+      return RaftLog.INVALID_LOG_INDEX;
+    }
+    return mDownloadFuture.join();
   }
 
   /**

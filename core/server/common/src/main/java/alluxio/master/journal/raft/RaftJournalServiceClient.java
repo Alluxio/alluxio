@@ -80,6 +80,13 @@ public class RaftJournalServiceClient extends AbstractMasterClient {
   }
 
   @Override
+  protected void beforeConnect() {
+    // the default behavior of this method is to search for the primary master
+    // in our case we do no care which one is the primary master as our selection policy is
+    // directed at a specific master
+  }
+
+  @Override
   protected void afterConnect() {
     mAsyncClient = RaftJournalServiceGrpc.newStub(mChannel);
     mBlockingClient = RaftJournalServiceGrpc.newBlockingStub(mChannel);
