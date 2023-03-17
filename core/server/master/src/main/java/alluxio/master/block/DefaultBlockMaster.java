@@ -436,10 +436,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     Iterator<JournalEntry> journalIterator = new Iterator<JournalEntry>() {
       @Override
       public boolean hasNext() {
-        /*
-         * When using RocksBlockMetaStore, the iterator makes sure hasNext() returns false
-         * before the RocksDB is closed.
-         */
         return blockStoreIterator.hasNext();
       }
 
@@ -448,6 +444,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         if (!hasNext()) {
           throw new NoSuchElementException();
         }
+        /*
+         * When the BlockStore is RocksBlockMetaStore, the iterator takes care of thread safety
+         * in hasNext() and next() calls.
+         */
         Block block = blockStoreIterator.next();
         BlockInfoEntry blockInfoEntry =
             BlockInfoEntry.newBuilder().setBlockId(block.getId())

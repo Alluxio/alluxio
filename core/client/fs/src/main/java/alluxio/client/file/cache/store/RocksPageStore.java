@@ -14,14 +14,11 @@ package alluxio.client.file.cache.store;
 import alluxio.Constants;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.proto.client.Cache;
 
 import alluxio.resource.LockResource;
-import alluxio.util.SleepUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -33,7 +30,6 @@ import org.rocksdb.DBOptions;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.RocksIterator;
-import org.rocksdb.RocksObject;
 import org.rocksdb.WriteOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +38,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -274,21 +269,20 @@ public class RocksPageStore implements PageStore {
   /**
    * @return a new iterator for the rocksdb
    */
-  protected RocksIterator createNewInterator() {
+  protected RocksIterator createNewIterator() {
     try (LockResource lock = checkAndAcquireReadLock()) {
       return mDb.newIterator(mPageColumnHandle);
     }
   }
 
   protected LockResource checkAndAcquireReadLock() {
-    LockResource lock = new LockResource(mStateLock.readLock());
-    // Counter-intuitively, the check should happen after getting the lock because
-    // we may get the read lock after the writer, meaning the RocksDB may have been closed
+    // Check before locking so if the RocksDB will be closed, abort early
     if (mClosed.get()) {
-      lock.close();
       throw new UnavailableRuntimeException(
           "RocksDB is closed. Master is failing over or shutting down.");
     }
+    LockResource lock = new LockResource(mStateLock.readLock());
+    // No need to check mClosed again because closing goes one-way
     return lock;
   }
 }
