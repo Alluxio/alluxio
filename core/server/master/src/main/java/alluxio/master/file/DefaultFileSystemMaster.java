@@ -600,7 +600,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public JournalContext createJournalContext() throws UnavailableException {
-    return createJournalContext(true);
+    return createJournalContext(false);
   }
 
   /**
@@ -5374,7 +5374,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   @VisibleForTesting
   public RpcContext createRpcContext(OperationContext operationContext)
       throws UnavailableException {
-    return new RpcContext(createBlockDeletionContext(), createJournalContext(),
+    return new RpcContext(createBlockDeletionContext(), createJournalContext(true),
         operationContext.withTracker(mStateLockCallTracker));
   }
 

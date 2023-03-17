@@ -1229,16 +1229,21 @@ public class InodeSyncStream {
     if (ufsLastModified != null) {
       createFileContext.setOperationTimeMs(ufsLastModified);
     }
-
+    // If the journal context is a MetadataSyncMergeJournalContext, then the
+    // journals will be taken care and merged by that context already and hence
+    // there's no need to create a new MergeJournalContext.
+    boolean shouldUseMetadataSyncMergeJournalContext =
+        mUseFileSystemMergeJournalContext
+            && rpcContext.getJournalContext() instanceof MetadataSyncMergeJournalContext;
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite();
-         JournalContext merger = mUseFileSystemMergeJournalContext
+         JournalContext merger = shouldUseMetadataSyncMergeJournalContext
              ? NoopJournalContext.INSTANCE
              : new MergeJournalContext(rpcContext.getJournalContext(),
              writeLockedPath.getUri(),
              InodeSyncStream::mergeCreateComplete)
     ) {
       // We do not want to close this wrapRpcContext because it uses elements from another context
-      RpcContext wrapRpcContext = mUseFileSystemMergeJournalContext
+      RpcContext wrapRpcContext = shouldUseMetadataSyncMergeJournalContext
           ? rpcContext
           : new RpcContext(
               rpcContext.getBlockDeletionContext(), merger, rpcContext.getOperationContext());
