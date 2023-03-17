@@ -285,8 +285,7 @@ public class ListBucketResult {
     on these fields for now:
     Prefix, Key, and StartAfter
      */
-    if (getEncodingType() != null
-            && getEncodingType().equals(ListBucketOptions.DEFAULT_ENCODING_TYPE)) {
+    if (StringUtils.equals(getEncodingType(), ListBucketOptions.DEFAULT_ENCODING_TYPE)) {
       mContents.stream().forEach(content -> {
         try {
           content.mKey = URLEncoder.encode(content.mKey, "UTF-8");
