@@ -49,6 +49,12 @@ public class FileSystemS3UfsIntegrationTest extends BaseIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
+          .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001")
+          .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2")
+          .setProperty(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true)
+          .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, "s3://" + TEST_BUCKET)
+          .setProperty(PropertyKey.S3A_ACCESS_KEY, "_")
+          .setProperty(PropertyKey.S3A_SECRET_KEY, "_")
           .setStartCluster(false)
           .build();
   private FileSystem mFileSystem = null;
@@ -73,11 +79,6 @@ public class FileSystemS3UfsIntegrationTest extends BaseIntegrationTest {
         .build();
     mS3Client.createBucket(TEST_BUCKET);
 
-    mLocalAlluxioClusterResource.setProperty(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001");
-    mLocalAlluxioClusterResource.setProperty(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2");
-    mLocalAlluxioClusterResource.setProperty(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true);
-    mLocalAlluxioClusterResource.setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
-        "s3://" + TEST_BUCKET);
     mLocalAlluxioClusterResource.start();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
