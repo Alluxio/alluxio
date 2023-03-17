@@ -66,6 +66,7 @@ public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
 
   @Override
   public void scanPages(Consumer<Optional<PageInfo>> pageInfoConsumer) {
+    // TODO(jiacheng): this use is probably wrong
     try (CloseableIterator<Optional<PageInfo>> pageIterator =
         RocksUtils.createCloseableIterator(mPageStore.createNewInterator(), this::parsePageInfo)) {
       Streams.stream(pageIterator).forEach(pageInfoConsumer);

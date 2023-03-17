@@ -374,33 +374,34 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public CloseableIterator<Long> getChildIds(Long inodeId, ReadOption option) {
-    // TODO(jiacheng): write this part carefully
-    checkDbStatus();
-    RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart);
-    // first seek to the correct bucket
-    iter.seek(Longs.toByteArray(inodeId));
-    // now seek to a specific file if needed
-    String prefix = option.getPrefix();
-    String fromName = option.getStartFrom();
-    String seekTo;
-    if (fromName != null && prefix != null) {
-      if (fromName.compareTo(prefix) > 0) {
+    try (LockResource lock = checkAndAcquireReadLock()) {
+      RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart);
+      // first seek to the correct bucket
+      iter.seek(Longs.toByteArray(inodeId));
+      // now seek to a specific file if needed
+      String prefix = option.getPrefix();
+      String fromName = option.getStartFrom();
+      String seekTo;
+      if (fromName != null && prefix != null) {
+        if (fromName.compareTo(prefix) > 0) {
+          seekTo = fromName;
+        } else {
+          seekTo = prefix;
+        }
+      } else if (fromName != null) {
         seekTo = fromName;
       } else {
         seekTo = prefix;
       }
-    } else if (fromName != null) {
-      seekTo = fromName;
-    } else {
-      seekTo = prefix;
+      if (seekTo != null && seekTo.length() > 0) {
+        iter.seek(RocksUtils.toByteArray(inodeId, seekTo));
+      }
+      // TODO(jiacheng): document on the RocksIter
+      RocksIter rocksIter = new RocksIter(iter, prefix, mClosed::get);
+      Stream<Long> idStream = StreamSupport.stream(Spliterators
+          .spliteratorUnknownSize(rocksIter, Spliterator.ORDERED), false);
+      return CloseableIterator.create(idStream.iterator(), (any) -> iter.close());
     }
-    if (seekTo != null && seekTo.length() > 0) {
-      iter.seek(RocksUtils.toByteArray(inodeId, seekTo));
-    }
-    RocksIter rocksIter = new RocksIter(iter, prefix, mClosed::get);
-    Stream<Long> idStream = StreamSupport.stream(Spliterators
-        .spliteratorUnknownSize(rocksIter, Spliterator.ORDERED), false);
-    return CloseableIterator.create(idStream.iterator(), (any) -> iter.close());
   }
 
   @Override
@@ -472,8 +473,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public Optional<Inode> getChild(Long inodeId, String name, ReadOption option) {
-    // TODO(jiacheng): write this part carefully
-    checkDbStatus();
+    // The underlying calls should each handle locking internally
     return getChildId(inodeId, name).flatMap(id -> {
       Optional<Inode> child = get(id);
       if (!child.isPresent()) {
@@ -495,13 +495,13 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public Set<EdgeEntry> allEdges() {
-    // TODO(jiacheng): write this part carefully
-    checkDbStatus();
     Set<EdgeEntry> edges = new HashSet<>();
-    try (RocksIterator iter = db().newIterator(mEdgesColumn.get(),
+    try (LockResource lock = checkAndAcquireReadLock();
+        RocksIterator iter = db().newIterator(mEdgesColumn.get(),
         mIteratorOption)) {
       iter.seekToFirst();
-      while (!mClosed.get() && iter.isValid()) {
+      while (iter.isValid()) {
+        abortIfClosing();
         long parentId = RocksUtils.readLong(iter.key(), 0);
         String childName = new String(iter.key(), Longs.BYTES, iter.key().length - Longs.BYTES);
         long childId = Longs.fromByteArray(iter.value());
@@ -514,14 +514,13 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public Set<MutableInode<?>> allInodes() {
-    // TODO(jiacheng):
-    checkDbStatus();
     Set<MutableInode<?>> inodes = new HashSet<>();
-    try (RocksIterator iter = db().newIterator(mInodesColumn.get(),
+    try (LockResource lock = checkAndAcquireReadLock();
+        RocksIterator iter = db().newIterator(mInodesColumn.get(),
         mIteratorOption)) {
-      // TODO(jiacheng): guard the iter
       iter.seekToFirst();
-      while (!mClosed.get() && iter.isValid()) {
+      while (iter.isValid()) {
+        abortIfClosing();
         inodes.add(getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());
         iter.next();
       }
@@ -536,12 +535,12 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
    * @return an iterator over stored inodes
    */
   public CloseableIterator<InodeView> getCloseableIterator() {
-    // TODO(jiacheng): write this part carefully
-    checkDbStatus();
-    return RocksUtils.createCloseableIterator(
-        db().newIterator(mInodesColumn.get(), mIteratorOption),
-        (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get(),
-        mClosed::get);
+    try (LockResource lock = checkAndAcquireReadLock()) {
+      return RocksUtils.createCloseableIterator(
+          db().newIterator(mInodesColumn.get(), mIteratorOption),
+          (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get(),
+          mClosed::get, this::checkAndAcquireReadLock);
+    }
   }
 
   @Override
@@ -662,9 +661,9 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
     try (LockResource lock = checkAndAcquireReadLock();
          ReadOptions readOptions = new ReadOptions().setTotalOrderSeek(true);
          RocksIterator inodeIter = db().newIterator(mInodesColumn.get(), readOptions)) {
-      // TODO(jiacheng): check iter
       inodeIter.seekToFirst();
       while (inodeIter.isValid()) {
+        abortIfClosing();
         MutableInode<?> inode;
         try {
           inode = MutableInode.fromProto(InodeMeta.Inode.parseFrom(inodeIter.value()));
@@ -678,9 +677,9 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
     }
     try (LockResource lock = checkAndAcquireReadLock();
          RocksIterator edgeIter = db().newIterator(mEdgesColumn.get())) {
-      // TODO(jiacheng): check iter
       edgeIter.seekToFirst();
       while (edgeIter.isValid()) {
+        abortIfClosing();
         byte[] key = edgeIter.key();
         byte[] id = new byte[Longs.BYTES];
         byte[] name = new byte[key.length - Longs.BYTES];
@@ -700,19 +699,24 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
    */
   @VisibleForTesting
   public Pair<RocksDB, AtomicReference<ColumnFamilyHandle>> getDBInodeColumn() {
-    checkDbStatus();
+    abortIfClosing();
     return new Pair<>(db(), mInodesColumn);
   }
 
+  // TODO(jiacheng): double check what happens if max lock count error here
   public LockResource checkAndAcquireReadLock() {
+    LockResource lock = new LockResource(mStateLock.readLock());
+    // Counter-intuitively, the check should happen after getting the lock because
+    // we may get the read lock after the writer, meaning the RocksDB may have been closed
     if (mClosed.get()) {
+      lock.close();
       throw new UnavailableRuntimeException(
           "RocksDB is closed. Master is failing over or shutting down.");
     }
-    return new LockResource(mStateLock.readLock());
+    return lock;
   }
 
-  private void checkDbStatus() {
+  private void abortIfClosing() {
     if (mClosed.get()) {
       throw new UnavailableRuntimeException(
           "RocksDB is closed. Master is failing over or shutting down.");
