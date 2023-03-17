@@ -87,7 +87,9 @@ public class RocksBlockMetaStore implements BlockMetaStore {
   private final LongAdder mSize = new LongAdder();
   // When this is true, stop serving all requests as the RocksDB is being closed
   private final AtomicBoolean mClosed = new AtomicBoolean(false);
+  // A lock to prevent concurrent r/w when the RocksDB is closing/restarting
   private final ReadWriteLock mStateLock = new ReentrantReadWriteLock();
+
   /**
    * Creates and initializes a rocks block store.
    *

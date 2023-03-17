@@ -98,21 +98,6 @@ public final class RocksUtils {
    * Used to wrap an {@link CloseableIterator} over {@link RocksIterator}.
    * It seeks given iterator to first entry before returning the iterator.
    *
-   * @param rocksIterator the rocks iterator
-   * @param parser parser to produce iterated values from rocks key-value
-   * @param <T> iterator value type
-   * @return wrapped iterator
-   */
-  // TODO(jiacheng): check all places this is used
-  public static <T> CloseableIterator<T> createCloseableIterator(
-      RocksIterator rocksIterator, RocksIteratorParser<T> parser) {
-    return createCloseableIterator(rocksIterator, parser, () -> false, () -> null);
-  }
-
-  /**
-   * Used to wrap an {@link CloseableIterator} over {@link RocksIterator}.
-   * It seeks given iterator to first entry before returning the iterator.
-   *
    * closeCheck is used to stop the iterator before closing the underlying RocksDB.
    * See RocksBlockMetaStore#getCloseableIterator for an example.
    *
