@@ -1873,7 +1873,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_LOST_WORKERS.getName(),
               master::getLostWorkerCount);
 
-      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_CACHED_BLOCK_LOCATIONS,
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_CACHED_BLOCK_LOCATIONS.getName(),
           BlockLocationUtils::getCachedBlockLocationSize);
     }
 
