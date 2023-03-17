@@ -197,7 +197,8 @@ public class IOTaskSummary implements Summary {
     }
     // calculate the average speed for each point
     double avgPointSpeed = Arrays.stream(speeds).sum() / points.size();
-    double avgClusterSpeed = totalSize / (result.mTotalDurationSeconds * 1024 * 1024); // convert B/s to MB/s
+    double avgClusterSpeed = totalSize
+        / (result.mTotalDurationSeconds * 1024 * 1024); // convert B/s to MB/s
     double var = 0;
     for (double s : speeds) {
       var += (s - avgPointSpeed) * (s - avgPointSpeed);
