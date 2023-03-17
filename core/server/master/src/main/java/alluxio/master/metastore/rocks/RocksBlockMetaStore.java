@@ -460,7 +460,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   }
 
   // TODO(jiacheng): double check what happens if max lock count error here
-  public LockResource checkAndAcquireReadLock() {
+  private LockResource checkAndAcquireReadLock() {
     LockResource lock = new LockResource(mStateLock.readLock());
     // Counter-intuitively, the check should happen after getting the lock because
     // we may get the read lock after the writer, meaning the RocksDB may have been closed
