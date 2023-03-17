@@ -244,7 +244,7 @@ public class S3Handler {
             .setRecursive(true)
             .setMode(PMode.newBuilder()
               .setOwnerBits(Bits.ALL).setGroupBits(Bits.ALL)
-              .setOtherBits(Bits.NONE)
+              .setOtherBits(Bits.ALL)
               .build())
             .setWriteType(S3RestUtils.getS3WriteType())
             .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
