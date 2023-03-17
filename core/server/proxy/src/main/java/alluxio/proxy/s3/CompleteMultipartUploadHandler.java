@@ -259,50 +259,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         CompleteMultipartUploadRequest request = parseCompleteMultipartUploadRequest(objectPath);
 
         // Check if the requested parts are available
-<<<<<<< HEAD
-        List<URIStatus> uploadedParts = mUserFs.listStatus(multipartTemporaryDir);
-        if (uploadedParts.size() < request.getParts().size()) {
-          throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
-        }
-        Map<Integer, URIStatus> uploadedPartsMap = uploadedParts.stream().collect(Collectors.toMap(
-            status -> Integer.parseInt(status.getName()),
-            status -> status
-        ));
-        int lastPartNum = request.getParts().get(request.getParts().size() - 1).getPartNumber();
-        for (CompleteMultipartUploadRequest.Part part : request.getParts()) {
-          if (!uploadedPartsMap.containsKey(part.getPartNumber())) {
-            throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
-          }
-          if (part.getPartNumber() != lastPartNum // size requirement not applicable to last part
-              && uploadedPartsMap.get(part.getPartNumber()).getLength() < Configuration.getBytes(
-                  PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
-            throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
-          }
-        }
-||||||| parent of e041e804b8 (Eliminate race condition in completempupload and support overwrite)
-        List<URIStatus> uploadedParts = mUserFs.listStatus(multipartTemporaryDir);
-        uploadedParts.sort(new S3RestUtils.URIStatusNameComparator());
-        if (uploadedParts.size() < request.getParts().size()) {
-          throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
-        }
-        Map<Integer, URIStatus> uploadedPartsMap = uploadedParts.stream().collect(Collectors.toMap(
-            status -> Integer.parseInt(status.getName()),
-            status -> status
-        ));
-        int lastPartNum = request.getParts().get(request.getParts().size() - 1).getPartNumber();
-        for (CompleteMultipartUploadRequest.Part part : request.getParts()) {
-          if (!uploadedPartsMap.containsKey(part.getPartNumber())) {
-            throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
-          }
-          if (part.getPartNumber() != lastPartNum // size requirement not applicable to last part
-              && uploadedPartsMap.get(part.getPartNumber()).getLength() < Configuration.getBytes(
-                  PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
-            throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
-          }
-        }
-=======
         List<URIStatus> uploadedParts = validateParts(request, objectPath, multipartTemporaryDir);
->>>>>>> e041e804b8 (Eliminate race condition in completempupload and support overwrite)
 
         // (re)create the merged object to a temporary object path
         LOG.debug("CompleteMultipartUploadTask (bucket: {}, object: {}, uploadId: {}) "
