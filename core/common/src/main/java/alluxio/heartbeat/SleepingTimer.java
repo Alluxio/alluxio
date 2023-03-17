@@ -14,19 +14,19 @@ package alluxio.heartbeat;
 import alluxio.time.Sleeper;
 import alluxio.time.ThreadSleeper;
 
-import com.google.common.base.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.util.function.Supplier;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class can be used for executing heartbeats periodically.
  */
 @NotThreadSafe
-public class SleepingTimer implements HeartbeatTimer {
+public class SleepingTimer implements HeartbeatTimer{
   private long mIntervalMs;
   protected long mPreviousTickMs = -1;
   private final String mThreadName;

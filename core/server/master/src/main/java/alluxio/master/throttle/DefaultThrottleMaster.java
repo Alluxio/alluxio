@@ -141,7 +141,7 @@ public final class DefaultThrottleMaster extends AbstractMaster implements NoopJ
     }
 
     @Override
-    public void heartbeat() throws InterruptedException {
+    public void heartbeat(long timeLimitMs) throws InterruptedException {
       mSystemMonitor.run();
     }
 

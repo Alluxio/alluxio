@@ -12,7 +12,6 @@
 package alluxio.heartbeat;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Reconfigurable;
 import alluxio.conf.ReconfigurableRegistry;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.UserState;
@@ -21,12 +20,12 @@ import alluxio.util.SecurityUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Clock;
+import java.util.function.Supplier;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -34,13 +33,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  * the JVM from exiting.
  */
 @NotThreadSafe
-public final class HeartbeatThread implements Runnable, Reconfigurable {
+public final class HeartbeatThread implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(HeartbeatThread.class);
 
   private final String mThreadName;
   private final HeartbeatExecutor mExecutor;
   private final UserState mUserState;
-  private final Supplier<Long> mIntervalSupplier;
   private HeartbeatTimer mTimer;
   private AlluxioConfiguration mConfiguration;
   private Status mStatus;
@@ -88,9 +86,8 @@ public final class HeartbeatThread implements Runnable, Reconfigurable {
         new Object[] {mThreadName, clock, intervalSupplier, periodCronExpressionSupplier});
     mConfiguration = conf;
     mUserState = userState;
-    mIntervalSupplier = intervalSupplier;
     mStatus = Status.INIT;
-    ReconfigurableRegistry.register(this);
+    ReconfigurableRegistry.register(mTimer);
   }
 
   /**
@@ -181,6 +178,7 @@ public final class HeartbeatThread implements Runnable, Reconfigurable {
       LOG.error("Uncaught exception in heartbeat executor, Heartbeat Thread shutting down", e);
     } finally {
       mStatus = Status.STOPPED;
+      ReconfigurableRegistry.unregister(mTimer);
       mExecutor.close();
     }
   }
@@ -190,15 +188,6 @@ public final class HeartbeatThread implements Runnable, Reconfigurable {
    */
   public Status getStatus() {
     return mStatus;
-  }
-
-  @Override
-  public void update() {
-    if (mStatus == Status.STOPPED) {
-      ReconfigurableRegistry.unregister(this);
-      return;
-    }
-    mTimer.update();
   }
 
   /**

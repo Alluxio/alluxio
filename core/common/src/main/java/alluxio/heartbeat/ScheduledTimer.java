@@ -14,12 +14,12 @@ package alluxio.heartbeat;
 import alluxio.resource.LockResource;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
 
 import java.time.Clock;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

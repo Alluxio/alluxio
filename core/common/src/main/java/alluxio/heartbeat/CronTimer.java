@@ -15,7 +15,6 @@ import alluxio.time.Sleeper;
 import alluxio.time.ThreadSleeper;
 
 import com.google.common.base.Strings;
-import com.google.common.base.Supplier;
 import org.apache.logging.log4j.core.util.CronExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +23,7 @@ import java.text.ParseException;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Date;
+import java.util.function.Supplier;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

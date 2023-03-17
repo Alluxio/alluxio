@@ -300,7 +300,7 @@ public class TransformManager implements DelegatingJournaled {
     }
 
     @Override
-    public void heartbeat() throws InterruptedException {
+    public void heartbeat(long timeLimitMs) throws InterruptedException {
       for (TransformJobInfo job : mState.getRunningJobs()) {
         if (Thread.currentThread().isInterrupted()) {
           throw new InterruptedException("TransformManager's heartbeat was interrupted");

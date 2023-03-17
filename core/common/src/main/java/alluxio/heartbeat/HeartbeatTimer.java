@@ -11,10 +11,12 @@
 
 package alluxio.heartbeat;
 
+import alluxio.conf.Reconfigurable;
+
 /**
  * An interface for heartbeat timers. The {@link HeartbeatThread} calls the {@link #tick()} method.
  */
-public interface HeartbeatTimer {
+public interface HeartbeatTimer extends Reconfigurable {
 
   /**
    * When the property changed, this function will be invoked.
@@ -25,7 +27,8 @@ public interface HeartbeatTimer {
   /**
    * Waits until next heartbeat should be executed.
    *
-   * @return the limit mills for next run
+   * @return time limit in milliseconds for this heartbeat action to run for before
+   * the next heartbeat is due.
    * @throws InterruptedException if the thread is interrupted while waiting
    */
   long tick() throws InterruptedException;

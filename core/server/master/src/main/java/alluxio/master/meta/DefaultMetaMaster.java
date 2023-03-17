@@ -681,7 +681,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     }
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       long masterTimeoutMs = Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT);
       for (MasterInfo master : mMasters) {
         synchronized (master) {
@@ -710,7 +710,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     private volatile boolean mFirst = true;
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       // Skip the first heartbeat since it happens before servers have time to register their
       // configurations.
       if (mFirst) {

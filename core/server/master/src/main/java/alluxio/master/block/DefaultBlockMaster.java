@@ -438,7 +438,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         .getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       AtomicInteger removedSessions = new AtomicInteger(0);
       mActiveRegisterContexts.entrySet().removeIf((entry) -> {
         WorkerRegisterContext context = entry.getValue();
@@ -1551,7 +1551,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     public LostWorkerDetectionHeartbeatExecutor() {}
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       long masterWorkerTimeoutMs = Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
       long masterWorkerDeleteTimeoutMs =
           Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS);

@@ -690,7 +690,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     public LostWorkerDetectionHeartbeatExecutor() {}
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       int masterWorkerTimeoutMs = (int) Configuration
           .getMs(PropertyKey.JOB_MASTER_WORKER_TIMEOUT);
       List<MasterWorkerInfo> lostWorkers = new ArrayList<>();

@@ -139,7 +139,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
 
       ExecutorService service = Executors.newSingleThreadExecutor();
       Future future = service.submit(() -> {
-        mExecutor.heartbeat();
+        mExecutor.heartbeat(Long.MAX_VALUE);
       });
       TimeUnit.SECONDS.sleep(1);
       // Stream is open, so reinitialization should block until the stream is closed.
@@ -159,7 +159,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
    * Triggers ConfigHashSync heartbeat and waits for it to finish.
    */
   private void triggerAndWaitSync() throws Exception {
-    mExecutor.heartbeat();
+    mExecutor.heartbeat(Long.MAX_VALUE);
   }
 
   private void restartMasters() throws Exception {

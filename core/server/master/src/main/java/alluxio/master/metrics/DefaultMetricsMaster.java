@@ -215,7 +215,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
    */
   private class ClusterMetricsUpdater implements HeartbeatExecutor {
     @Override
-    public void heartbeat() throws InterruptedException {
+    public void heartbeat(long timeLimitMs) throws InterruptedException {
       updateMultiValueMasterMetrics();
     }
 

@@ -166,7 +166,7 @@ public final class HeartbeatThreadTest {
     private int mCounter = 0;
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       mCounter++;
     }
 

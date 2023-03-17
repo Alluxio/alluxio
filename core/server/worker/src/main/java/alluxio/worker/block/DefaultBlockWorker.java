@@ -559,7 +559,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public final class StorageChecker implements HeartbeatExecutor {
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       try {
         mBlockStore.removeInaccessibleStorage();
       } catch (Exception e) {

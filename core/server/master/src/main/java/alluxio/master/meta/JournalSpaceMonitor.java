@@ -169,7 +169,7 @@ public class JournalSpaceMonitor implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() throws InterruptedException {
+  public void heartbeat(long timeLimitMs) throws InterruptedException {
     getJournalDiskWarnings().forEach(LOG::warn);
   }
 

@@ -15,25 +15,17 @@ import java.io.Closeable;
 
 /**
  * An interface for a heartbeat execution. The {@link HeartbeatThread} calls the
- * {@link #heartbeat()} method.
+ * {@link #heartbeat(long)} method.
  */
 public interface HeartbeatExecutor extends Closeable {
-  /**
-   * Implements the heartbeat logic.
-   *
-   * @throws InterruptedException if the thread is interrupted
-   */
-  default void heartbeat() throws InterruptedException {}
 
   /**
    * Implements the heartbeat logic.
    *
-   * @param limitTime the heartbeat limit time
+   * @param timeLimitMs time limit in milliseconds this heartbeat should not exceed when running
    * @throws InterruptedException if the thread is interrupted
    */
-  default void heartbeat(long limitTime) throws InterruptedException {
-    heartbeat();
-  }
+  void heartbeat(long timeLimitMs) throws InterruptedException;
 
   /**
    * Cleans up any resources used by the heartbeat executor.
