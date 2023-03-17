@@ -9335,9 +9335,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         PropertyType.STRING),
     UNDERFS_ABFS_ACCOUNT_KEY(
         "fs.azure.account.key.%s.dfs.core.windows.net",
-        "fs\\.azure\\.account\\.key\\.(\\w+)\\.dfs\\.core\\.window\\.net",
-        PropertyKey.PropertyCreators.fromBuilder(
-            stringBuilder("fs.azure.account.key.%s.dfs.core.windows.net")
+        "fs\\.azure\\.account\\.key\\.(\\w+)\\.dfs\\.core\\.windows\\.net",
+        PropertyCreators.fromBuilder(stringBuilder("fs.azure.account.key.%s.dfs.core.windows.net")
             .setDisplayType(DisplayType.CREDENTIALS))),
     UNDERFS_AZURE_ACCOUNT_KEY(
         "fs.azure.account.key.%s.blob.core.windows.net",
