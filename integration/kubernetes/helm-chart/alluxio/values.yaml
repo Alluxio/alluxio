@@ -40,22 +40,20 @@ serviceAccount:
 #   - dev
 imagePullSecrets:
 
-# Common JVM Options
-commonJvmOptions: &commonJvmOptions "-XX:+UseContainerSupport"
-
 # Site properties for all the components
 properties:
   # alluxio.user.metrics.collection.enabled: 'true'
   alluxio.security.stale.channel.purge.interval: 365d
 
-# Recommended JVM Heap options for running in Docker
-# Ref: https://developers.redhat.com/blog/2017/03/14/java-inside-docker/
 # These JVM options are common to all Alluxio services
-# jvmOptions:
-#   - "-XX:+UnlockExperimentalVMOptions"
-#   - "-XX:+UseCGroupMemoryLimitForHeap"
-#   - "-XX:MaxRAMFraction=2"
-#   - "-XX:+UseContainerSupport"
+jvmOptions:
+  # https://github.com/Alluxio/alluxio/issues/17021
+  - "-XX:+UseContainerSupport"
+  # Recommended JVM Heap options for running in Docker
+  # Ref: https://developers.redhat.com/blog/2017/03/14/java-inside-docker/
+  # - "-XX:+UnlockExperimentalVMOptions"
+  # - "-XX:+UseCGroupMemoryLimitForHeap"
+  # - "-XX:MaxRAMFraction=2"
 
 # Mount Persistent Volumes to all components
 # mounts:
@@ -114,7 +112,6 @@ master:
   # dnsPolicy: ClusterFirst
   # JVM options specific to the master container
   jvmOptions:
-    - *commonJvmOptions
   nodeSelector: {}
   # When using HA Alluxio masters, the expected startup time
   # can take over 2-3 minutes (depending on leader elections,
@@ -179,7 +176,6 @@ jobMaster:
     web: 20002
   # JVM options specific to the jobMaster container
   jvmOptions:
-    - *commonJvmOptions
   readinessProbe:
     initialDelaySeconds: 10
     periodSeconds: 10
@@ -297,7 +293,6 @@ worker:
   # dnsPolicy: ClusterFirst
   # JVM options specific to the worker container
   jvmOptions:
-    - *commonJvmOptions
   nodeSelector: {}
   readinessProbe:
     initialDelaySeconds: 10
@@ -347,7 +342,6 @@ jobWorker:
     web: 30003
   # JVM options specific to the jobWorker container
   jvmOptions:
-    - *commonJvmOptions
   readinessProbe:
     initialDelaySeconds: 10
     periodSeconds: 10
@@ -440,7 +434,6 @@ proxy:
   # dnsPolicy: ClusterFirst
   # JVM options specific to proxy containers
   jvmOptions:
-    - *commonJvmOptions
   nodeSelector: {}
   tolerations: []
   podAnnotations: {}
@@ -482,7 +475,6 @@ fuse:
   # These options are specific to the FUSE daemon
   jvmOptions:
     - "-XX:MaxDirectMemorySize=2g"
-    - *commonJvmOptions
   hostNetwork: true
   # hostPID requires escalated privileges
   hostPID: true
