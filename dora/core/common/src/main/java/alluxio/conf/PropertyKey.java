@@ -596,6 +596,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .setIsHidden(true)
           .build();
+  public static final PropertyKey EXIT_COLLECT_INFO =
+      booleanBuilder(Name.EXIT_COLLECT_INFO)
+          .setDefaultValue(true)
+          .setDescription("If true, the process will dump metrics and jstack into the log folder. "
+              + "This only applies to Alluxio master and worker processes.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey GRPC_REFLECTION_ENABLED =
       booleanBuilder(Name.GRPC_REFLECTION_ENABLED)
           .setDefaultValue(false)
@@ -2494,6 +2502,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "property is not used when Zookeeper is enabled, since Zookeeper already stores "
               + "the master addresses.")
           .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey MASTER_FAILOVER_COLLECT_INFO =
+      booleanBuilder(Name.MASTER_FAILOVER_COLLECT_INFO)
+          .setDefaultValue(true)
+          .setDescription("If true, the primary master will persist metrics and jstack into "
+              + "the log folder when it transitions to standby. ")
+          .setScope(Scope.MASTER)
           .build();
 
   public static final PropertyKey MASTER_FILE_ACCESS_TIME_UPDATER_ENABLED =
@@ -7715,6 +7730,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String CONF_VALIDATION_ENABLED = "alluxio.conf.validation.enabled";
     public static final String DEBUG = "alluxio.debug";
     public static final String EXTENSIONS_DIR = "alluxio.extensions.dir";
+    public static final String EXIT_COLLECT_INFO = "alluxio.exit.collect.info";
     public static final String GRPC_REFLECTION_ENABLED =
         "alluxio.grpc.reflection.enabled";
     public static final String HOME = "alluxio.home";
@@ -8053,6 +8069,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.cluster.metrics.update.interval";
     public static final String MASTER_CONTAINER_ID_RESERVATION_SIZE =
         "alluxio.master.container.id.reservation.size";
+    public static final String MASTER_FAILOVER_COLLECT_INFO =
+        "alluxio.master.failover.collect.info";
     public static final String MASTER_FILE_ACCESS_TIME_UPDATER_ENABLED =
         "alluxio.master.file.access.time.updater.enabled";
     public static final String MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =

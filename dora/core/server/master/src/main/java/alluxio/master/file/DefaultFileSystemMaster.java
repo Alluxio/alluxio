@@ -1250,6 +1250,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     if (context.donePartialListing()) {
       return;
     }
+
     // The item should be listed if:
     // 1. We are not doing a partial listing, or have reached the start of the partial listing
     //    (partialPath is empty)
