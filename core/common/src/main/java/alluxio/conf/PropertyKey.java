@@ -2259,20 +2259,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "the master addresses.")
           .setScope(Scope.ALL)
           .build();
-<<<<<<< HEAD
-||||||| parent of 7f335463bb (Dump metrics + stacks on failover/crash)
-
-  public static final PropertyKey MASTER_FILE_ACCESS_TIME_UPDATER_ENABLED =
-      booleanBuilder(Name.MASTER_FILE_ACCESS_TIME_UPDATER_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("If enabled, file access time updater will update the file last "
-              + "access time when an inode is accessed. This property can be turned off to improve "
-              + "performance and reduce the number of journal entries if your application does "
-              + "not rely on the file access time metadata.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-=======
   public static final PropertyKey MASTER_FAILOVER_COLLECT_INFO =
       booleanBuilder(Name.MASTER_FAILOVER_COLLECT_INFO)
           .setDefaultValue(true)
@@ -2280,18 +2266,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "the log folder when it transitions to standby. ")
           .setScope(Scope.MASTER)
           .build();
-
-  public static final PropertyKey MASTER_FILE_ACCESS_TIME_UPDATER_ENABLED =
-      booleanBuilder(Name.MASTER_FILE_ACCESS_TIME_UPDATER_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("If enabled, file access time updater will update the file last "
-              + "access time when an inode is accessed. This property can be turned off to improve "
-              + "performance and reduce the number of journal entries if your application does "
-              + "not rely on the file access time metadata.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
->>>>>>> 7f335463bb (Dump metrics + stacks on failover/crash)
   public static final PropertyKey MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
       durationBuilder(Name.MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL)
           .setDefaultValue("1h")
