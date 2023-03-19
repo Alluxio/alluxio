@@ -116,15 +116,24 @@ public final class ThreadUtils {
 
   /**
    * Prints the information and stack traces of all threads.
+   * In order not to pause the JVM when there are tons of threads, thread stacks are printed
+   * one by one. So the thread stacks are not guaranteed to be based on one consistent
+   * snapshot.
    *
    * @param stream the stream to
    * @param title  a string title for the stack trace
    */
   public static synchronized void printThreadInfo(PrintStream stream, String title) {
     stream.println("Process Thread Dump: " + title);
-    stream.println(THREAD_BEAN.getThreadCount() + " active theads");
-    for (ThreadInfo ti: THREAD_BEAN.dumpAllThreads(true, true)) {
-      stream.print(ti.toString());
+    stream.println(THREAD_BEAN.getThreadCount() + " active threads");
+    long[] threadIds = THREAD_BEAN.getAllThreadIds();
+    for (long id : threadIds) {
+      ThreadInfo info = THREAD_BEAN.getThreadInfo(id, Integer.MAX_VALUE);
+      if (info == null) {
+        // The thread is no longer active, ignore
+        continue;
+      }
+      stream.print(info.toString());
     }
     stream.flush();
   }
