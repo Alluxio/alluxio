@@ -48,6 +48,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.JvmPauseMonitor;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
@@ -66,6 +67,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -220,7 +227,30 @@ public class AlluxioMasterProcess extends MasterProcess {
         if (!mRunning) {
           break;
         }
+        // Dump important information asynchronously
+        ExecutorService es = null;
+        List<Future<Void>> dumpFutures = new ArrayList<>();
+        try {
+          es = Executors.newFixedThreadPool(
+              2, ThreadFactoryUtils.build("info-dumper-%d", true));
+          dumpFutures.addAll(ProcessUtils.dumpInformationOnFailover(es));
+        } catch (Throwable t) {
+          LOG.warn("Failed to dump metrics and jstacks before demotion", t);
+        }
+        // Shut down services like RPC, WebServer, Journal and all master components
+        LOG.info("Losing the leadership.");
         losePrimacy();
+        // Block until information dump is done and close resources
+        for (Future<Void> f : dumpFutures) {
+          try {
+            f.get();
+          } catch (InterruptedException | ExecutionException e) {
+            LOG.warn("Failed to dump metrics and jstacks before demotion", e);
+          }
+        }
+        if (es != null) {
+          es.shutdownNow();
+        }
       }
     }
   }
@@ -252,6 +282,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       if (unstable.get()) {
         LOG.info("Terminating an unstable attempt to become a leader.");
         if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+          ProcessUtils.dumpInformationOnExit();
           stop();
         } else {
           losePrimacy();
