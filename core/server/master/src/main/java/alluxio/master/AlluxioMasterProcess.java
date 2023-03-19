@@ -14,6 +14,7 @@ package alluxio.master;
 import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.AlluxioURI;
+import alluxio.ProcessUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -44,6 +45,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.CommonUtils.ProcessType;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.interfaces.Scoped;
@@ -60,7 +62,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -244,9 +252,31 @@ public class AlluxioMasterProcess extends MasterProcess {
         if (!mRunning) {
           break;
         }
+        // Dump important information asynchronously
+        ExecutorService es = null;
+        List<Future<Void>> dumpFutures = new ArrayList<>();
+        try {
+          es = Executors.newFixedThreadPool(
+              2, ThreadFactoryUtils.build("info-dumper-%d", true));
+          dumpFutures.addAll(ProcessUtils.dumpInformationOnFailover(es));
+        } catch (Throwable t) {
+          LOG.warn("Failed to dump metrics and jstacks before demotion", t);
+        }
+        // Shut down services like RPC, WebServer, Journal and all master components
         LOG.info("Losing the leadership.");
         mServices.forEach(SimpleService::demote);
         demote();
+        // Block until information dump is done and close resources
+        for (Future<Void> f : dumpFutures) {
+          try {
+            f.get();
+          } catch (InterruptedException | ExecutionException e) {
+            LOG.warn("Failed to dump metrics and jstacks before demotion", e);
+          }
+        }
+        if (es != null) {
+          es.shutdownNow();
+        }
       }
     }
   }
@@ -277,6 +307,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       if (unstable.get()) {
         LOG.info("Terminating an unstable attempt to become a leader.");
         if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+          ProcessUtils.dumpInformationOnExit();
           stop();
         } else {
           demote();
@@ -302,7 +333,6 @@ public class AlluxioMasterProcess extends MasterProcess {
     // sockets in stopServing so that clients don't see NPEs.
     mJournalSystem.losePrimacy();
     stopMasterComponents();
-    LOG.info("Primary stopped");
     startMasterComponents(false);
     LOG.info("Standby started");
   }
