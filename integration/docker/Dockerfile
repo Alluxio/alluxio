@@ -9,6 +9,34 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+<<<<<<< HEAD
+||||||| parent of 1ad1cc97b5 (Bump CSI package version to fix security alert)
+# ARG defined before the first FROM can be used in FROM lines
+# Only 8 and 11 are supported.
+ARG JAVA_VERSION=8
+
+# Setup CSI
+FROM golang:1.15.13-alpine AS csi-dev
+ENV GO111MODULE=on
+RUN mkdir -p /alluxio-csi
+COPY ./csi /alluxio-csi
+RUN cd /alluxio-csi && \
+    CGO_ENABLED=0 go build -o /usr/local/bin/alluxio-csi
+
+=======
+# ARG defined before the first FROM can be used in FROM lines
+# Only 8 and 11 are supported.
+ARG JAVA_VERSION=8
+
+# Setup CSI
+FROM golang:1.18-alpine3.17 AS csi-dev
+ENV GO111MODULE=on
+RUN mkdir -p /alluxio-csi
+COPY ./csi /alluxio-csi
+RUN cd /alluxio-csi && \
+    CGO_ENABLED=0 go build -o /usr/local/bin/alluxio-csi
+
+>>>>>>> 1ad1cc97b5 (Bump CSI package version to fix security alert)
 # We have to do an ADD to put the tarball into extractor, then do a COPY with chown into final
 # ADD then chown in two steps will double the image size
 #   See - https://stackoverflow.com/questions/30085621/why-does-chown-increase-size-of-docker-image
