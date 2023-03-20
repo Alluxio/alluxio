@@ -14,6 +14,7 @@ package alluxio.worker.grpc;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
@@ -37,7 +38,6 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
@@ -105,12 +105,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       responseObserver.onCompleted();
     } catch (IOException e) {
       LOG.debug(String.format("Failed to get status of %s: ", request.getPath()), e);
-      // Worker should try return specific exceptions if it knows what exception it is.
-      if (e instanceof FileNotFoundException) {
-        responseObserver.onError(new io.grpc.StatusException(Status.NOT_FOUND));
-      } else {
-        responseObserver.onError(new io.grpc.StatusException(Status.UNKNOWN));
-      }
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusException());
     }
   }
 
@@ -145,7 +140,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       responseObserver.onCompleted();
     } catch (Exception e) {
       LOG.error(String.format("Failed to list status of %s: ", request.getPath()), e);
-      responseObserver.onError(new io.grpc.StatusException(Status.UNKNOWN));
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusException());
     }
   }
 }
