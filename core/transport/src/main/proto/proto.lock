@@ -1589,6 +1589,10 @@
               {
                 "name": "Persist",
                 "integer": 5
+              },
+              {
+                "name": "Decommission",
+                "integer": 6
               }
             ]
           },
@@ -2580,6 +2584,46 @@
                 "id": 2,
                 "name": "options",
                 "type": "FreePOptions"
+              }
+            ]
+          },
+          {
+            "name": "DecommissionWorkerPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "decommissionSuccessful",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "DecommissionWorkerPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "timeOut",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "forced",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "DecommissionWorkerPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "options",
+                "type": "DecommissionWorkerPOptions"
               }
             ]
           },
@@ -4099,6 +4143,11 @@
                 "name": "Free",
                 "in_type": "FreePRequest",
                 "out_type": "FreePResponse"
+              },
+              {
+                "name": "DecommissionWorker",
+                "in_type": "DecommissionWorkerPRequest",
+                "out_type": "DecommissionWorkerPResponse"
               },
               {
                 "name": "GetFilePath",

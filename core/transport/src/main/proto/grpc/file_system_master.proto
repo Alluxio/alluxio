@@ -175,6 +175,20 @@ message FreePRequest {
   optional FreePOptions options = 2;
 }
 
+message DecommissionWorkerPResponse {
+  required bool decommissionSuccessful = 1;
+}
+
+message DecommissionWorkerPOptions {
+  optional int64 timeOut = 1;
+  optional bool forced = 2;
+}
+
+message DecommissionWorkerPRequest{
+  required string workerName = 1;
+  optional DecommissionWorkerPOptions options = 2;
+}
+
 message GetNewBlockIdForFilePResponse {
   optional int64 id = 1;
 }
@@ -695,6 +709,11 @@ service FileSystemMasterClientService {
    * Frees the given file or directory from Alluxio.
    */
   rpc Free(FreePRequest) returns (FreePResponse);
+
+  /**
+ *  Decommission the specific worker from Alluxio.
+ */
+  rpc DecommissionWorker(DecommissionWorkerPRequest) returns (DecommissionWorkerPResponse);
 
   /**
   * Returns the file path of a file id

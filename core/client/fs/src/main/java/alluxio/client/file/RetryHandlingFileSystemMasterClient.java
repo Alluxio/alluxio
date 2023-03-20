@@ -25,6 +25,9 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateDirectoryPRequest;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.CreateFilePRequest;
+import alluxio.grpc.DecommissionWorkerPOptions;
+import alluxio.grpc.DecommissionWorkerPRequest;
+import alluxio.grpc.DecommissionWorkerPResponse;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.ExistsPOptions;
@@ -82,6 +85,7 @@ import alluxio.retry.CountingRetry;
 import alluxio.security.authorization.AclEntry;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.SyncPointInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.protobuf.ByteString;
 import org.apache.commons.lang3.SerializationUtils;
@@ -474,6 +478,15 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
             .setOptions(options.build())
             .build());
     return response.getProgressReport();
+  }
+
+  @Override
+  public DecommissionWorkerPResponse decommissionWorker(WorkerNetAddress workerNetAddress,
+       DecommissionWorkerPOptions options) throws AlluxioStatusException {
+    return retryRPC(() -> mClient.decommissionWorker(DecommissionWorkerPRequest.newBuilder()
+            .setWorkerName(workerNetAddress.getHost()).build()),
+        RPC_LOG, "DecommissionWorker", "workerName=%s,options=%s",
+        workerNetAddress.getHost(), options);
   }
 
   /**
