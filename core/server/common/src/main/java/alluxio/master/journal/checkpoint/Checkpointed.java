@@ -97,7 +97,7 @@ public interface Checkpointed {
             null, ErrorType.Internal, false);
       }
       LOG.debug("loading {} snapshot finished", getCheckpointName());
-    });
+    }, executorService);
   }
 
   /**

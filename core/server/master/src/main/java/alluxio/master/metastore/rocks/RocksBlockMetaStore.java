@@ -120,7 +120,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
           .setCreateMissingColumnFamilies(true)
           .setCreateIfMissing(true)
           .setMaxOpenFiles(-1);
-      // This is a field instead of a constant because it depends on the call to RocksDB.loadLibrary().
+      // This is a field instead of a constant as it depends on the call to RocksDB.loadLibrary().
       CompressionType compressionType =
           Configuration.getEnum(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE,
               CompressionType.class);
