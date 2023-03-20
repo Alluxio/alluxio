@@ -20,7 +20,7 @@ or [download the precompiled binaries directly]({{ '/en/deploy/Running-Alluxio-L
 In preparation for using Azure Data Lake storage with Alluxio, [create a new Data Lake storage in your Azure
 account](https://docs.microsoft.com/en-in/azure/storage/blobs/create-data-lake-storage-account) or use an existing Data Lake storage. 
 You should also note the directory you want to use, either by creating a new directory, or using an existing one. You also need a 
-[SharedKey](https://docs.microsoft.com/en-us/rest/api/storageservices/authorize-with-shared-key(.
+[SharedKey](https://docs.microsoft.com/en-us/rest/api/storageservices/authorize-with-shared-key).
 For the purposes of this guide, the Azure storage account name is called `<AZURE_ACCOUNT>`,
 the directory in that storage account is called `<AZURE_DIRECTORY>`, and the name of the container is called `<AZURE_CONTAINER>`.
 
