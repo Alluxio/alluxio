@@ -123,7 +123,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
         responseObserver.onError(
             new AlluxioRuntimeException(Status.NOT_FOUND,
                 String.format("%s Not Found", request.getPath()),
-                null, ErrorType.Internal, false).toGrpcStatusRuntimeException());
+                null, ErrorType.User, false).toGrpcStatusRuntimeException());
         return;
       }
 
