@@ -370,6 +370,11 @@ public class BackupWorkerRole extends AbstractBackupRole {
                 .build().getMasterInquireClient();
 
         leaderAddress = inquireClient.getPrimaryRpcAddress();
+        InetSocketAddress localAddress = NetworkAddressUtils.getConnectAddress(
+            NetworkAddressUtils.ServiceType.MASTER_RPC, Configuration.global());
+        if (leaderAddress.equals(localAddress)) {
+          continue;
+        }
       } catch (Throwable t) {
         LOG.warn("Failed to get backup-leader address. Error:{}. Attempt:{}", t,
             infiniteRetryPolicy.getAttemptCount());

@@ -11,6 +11,8 @@
 
 package alluxio.master.journal.raft;
 
+import alluxio.annotation.SuppressFBWarnings;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.NotFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
@@ -56,7 +58,14 @@ public class SnapshotDirStateMachineStorage implements StateMachineStorage {
   private final Comparator<Path> mSnapshotPathComparator = Comparator.comparing(
       path -> SimpleStateMachineStorage.getTermIndexFromSnapshotFile(path.toFile()));
 
-  private Matcher match(Path path) {
+  /**
+   * @param path to evaluate
+   * @return a matcher to evaluate if the leaf of the provided path has a name that matches the
+   * pattern of snapshot directories
+   */
+  @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE",
+      justification = "argument 'path' is never null, and method 'matcher' returns NotNull")
+  public static Matcher matchSnapshotPath(Path path) {
     return SimpleStateMachineStorage.SNAPSHOT_REGEX.matcher(path.getFileName().toString());
   }
 
@@ -69,7 +78,7 @@ public class SnapshotDirStateMachineStorage implements StateMachineStorage {
   private SnapshotInfo findLatestSnapshot() {
     try (Stream<Path> stream = Files.list(getSnapshotDir().toPath())) {
       Optional<Path> max = stream
-          .filter(path -> match(path).matches())
+          .filter(path -> matchSnapshotPath(path).matches())
           .max(mSnapshotPathComparator);
       if (max.isPresent()) {
         TermIndex ti = SimpleStateMachineStorage.getTermIndexFromSnapshotFile(max.get().toFile());
@@ -121,7 +130,7 @@ public class SnapshotDirStateMachineStorage implements StateMachineStorage {
     }
     mNewSnapshotTaken = false;
     try (Stream<Path> stream = Files.list(getSnapshotDir().toPath())) {
-      stream.filter(path -> match(path).matches())
+      stream.filter(path -> matchSnapshotPath(path).matches())
           .sorted(Collections.reverseOrder(mSnapshotPathComparator))
           .skip(retentionPolicy.getNumSnapshotsRetained())
           .forEach(path -> {
