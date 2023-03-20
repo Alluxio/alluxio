@@ -26,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class can be used for executing heartbeats periodically.
  */
 @NotThreadSafe
-public class SleepingTimer implements HeartbeatTimer{
+public class SleepingTimer implements HeartbeatTimer {
   private long mIntervalMs;
   protected long mPreviousTickMs = -1;
   private final String mThreadName;
