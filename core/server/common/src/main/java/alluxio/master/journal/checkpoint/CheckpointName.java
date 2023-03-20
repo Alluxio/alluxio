@@ -42,4 +42,5 @@ public enum CheckpointName {
   TTL_BUCKET_LIST,
   SNAPSHOT_ID,
   LOAD_MANAGER,
+  SCHEDULER,
 }

@@ -91,7 +91,7 @@ public class FileSystemMasterBase {
     mFsMaster = new DefaultFileSystemMaster(blockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(service), Clock.systemUTC());
     mFsMasterServer =
-        new FileSystemMasterClientServiceHandler(mFsMaster, mFsMaster.getLoadManager());
+        new FileSystemMasterClientServiceHandler(mFsMaster, mFsMaster.getScheduler());
     mGetStatusObserver = createStreamObserver();
 
     mRegistry.add(FileSystemMaster.class, mFsMaster);

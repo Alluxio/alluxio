@@ -13,6 +13,7 @@ package alluxio.client.block.stream;
 
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
+import alluxio.client.CanUnbuffer;
 import alluxio.client.PositionedReadable;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
@@ -25,6 +26,7 @@ import alluxio.exception.status.OutOfRangeException;
 import alluxio.grpc.ReadRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.LogUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -48,7 +50,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class BlockInStream extends InputStream implements BoundedStream, Seekable,
-    PositionedReadable {
+    PositionedReadable, CanUnbuffer {
   private static final Logger LOG = LoggerFactory.getLogger(BlockInStream.class);
 
   /** the source tracking where the block is from. */
@@ -70,9 +72,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   /** Current position of the stream, relative to the start of the block. */
   private long mPos = 0;
   /** The current data chunk. */
-  private DataBuffer mCurrentChunk;
+  protected DataBuffer mCurrentChunk;
 
-  private DataReader mDataReader;
+  protected DataReader mDataReader;
   private final DataReader.Factory mDataReaderFactory;
 
   private boolean mClosed = false;
@@ -508,6 +510,15 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       mDataReader.close();
     }
     mDataReader = null;
+  }
+
+  @Override
+  public void unbuffer() {
+    try {
+      closeDataReader();
+    } catch (IOException e) {
+      LogUtils.warnWithException(LOG, "failed to unbuffer the block stream", e);
+    }
   }
 
   /**

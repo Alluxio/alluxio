@@ -15,5 +15,12 @@ export interface IMasterInfo {
     host: string;
   };
   id: string;
-  lastUpdatedTimeMs: number;
+  lastUpdatedTime: string;
+  startTime: string;
+  gainPrimacyTime: string;
+  losePrimacyTime: string;
+  lastCheckpointTime: string;
+  journalEntriesSinceCheckpoint: number;
+  version: string;
+  revision: string;
 }

@@ -296,6 +296,10 @@ public class InodeSyncStream {
   private final int mConcurrencyLevel =
       Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL);
 
+  private final boolean mGetDirectoryStatusSkipLoadingChildren =
+      Configuration.getBoolean(
+          PropertyKey.MASTER_METADATA_SYNC_GET_DIRECTORY_STATUS_SKIP_LOADING_CHILDREN);
+
   private final FileSystemMasterAuditContext mAuditContext;
   private final Function<LockedInodePath, Inode> mAuditContextSrcInodeFunc;
 
@@ -479,6 +483,10 @@ public class InodeSyncStream {
         // If descendantType is ONE, then we shouldn't process any more paths except for those
         // currently in the queue
         stopNum = mPendingPaths.size();
+      } else if (mGetDirectoryStatusSkipLoadingChildren && mDescendantType == DescendantType.NONE) {
+        // If descendantType is NONE, do not process any path in the queue after
+        // the inode itself is loaded.
+        stopNum = 0;
       }
 
       // process the sync result for the original path
@@ -832,7 +840,7 @@ public class InodeSyncStream {
                 || !aclPair.getFirst().hasExtended()) {
               ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus);
             } else {
-              ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus,
+              ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus, null,
                   aclPair.getFirst());
             }
           }
@@ -899,6 +907,8 @@ public class InodeSyncStream {
     if (mDescendantType == DescendantType.ONE) {
       syncChildren =
           syncChildren && mRootScheme.getPath().equals(inodePath.getUri());
+    } else if (mDescendantType == DescendantType.NONE && mGetDirectoryStatusSkipLoadingChildren) {
+      syncChildren = false;
     }
 
     int childCount = inode.isDirectory() ? (int) inode.asDirectory().getChildCount() : 0;
@@ -1219,16 +1229,21 @@ public class InodeSyncStream {
     if (ufsLastModified != null) {
       createFileContext.setOperationTimeMs(ufsLastModified);
     }
-
+    // If the journal context is a MetadataSyncMergeJournalContext, then the
+    // journals will be taken care and merged by that context already and hence
+    // there's no need to create a new MergeJournalContext.
+    boolean shouldUseMetadataSyncMergeJournalContext =
+        mUseFileSystemMergeJournalContext
+            && rpcContext.getJournalContext() instanceof MetadataSyncMergeJournalContext;
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite();
-         JournalContext merger = mUseFileSystemMergeJournalContext
+         JournalContext merger = shouldUseMetadataSyncMergeJournalContext
              ? NoopJournalContext.INSTANCE
              : new MergeJournalContext(rpcContext.getJournalContext(),
              writeLockedPath.getUri(),
              InodeSyncStream::mergeCreateComplete)
     ) {
       // We do not want to close this wrapRpcContext because it uses elements from another context
-      RpcContext wrapRpcContext = mUseFileSystemMergeJournalContext
+      RpcContext wrapRpcContext = shouldUseMetadataSyncMergeJournalContext
           ? rpcContext
           : new RpcContext(
               rpcContext.getBlockDeletionContext(), merger, rpcContext.getOperationContext());
@@ -1376,16 +1391,16 @@ public class InodeSyncStream {
 
   protected RpcContext getMetadataSyncRpcContext() {
     JournalContext journalContext = mRpcContext.getJournalContext();
-    if (!mUseFileSystemMergeJournalContext
-        || !(journalContext instanceof FileSystemMergeJournalContext)) {
-      return mRpcContext;
+    if (mUseFileSystemMergeJournalContext
+        && journalContext instanceof FileSystemMergeJournalContext) {
+      return new RpcContext(
+          mRpcContext.getBlockDeletionContext(),
+          new MetadataSyncMergeJournalContext(
+              ((FileSystemMergeJournalContext) journalContext).getUnderlyingJournalContext(),
+              new FileSystemJournalEntryMerger()),
+          mRpcContext.getOperationContext());
     }
-    return new RpcContext(
-        mRpcContext.getBlockDeletionContext(),
-        new MetadataSyncMergeJournalContext(
-            ((FileSystemMergeJournalContext) journalContext).getUnderlyingJournalContext(),
-            new FileSystemJournalEntryMerger()),
-        mRpcContext.getOperationContext());
+    return mRpcContext;
   }
 
   @Override

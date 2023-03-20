@@ -39,6 +39,7 @@ public class PortCoordination {
   ));
   // for EmbeddedJournalIntegrationTestFaultTolerance
   public static final List<ReservedPort> EMBEDDED_JOURNAL_FAILOVER = allocate(3, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_FAILOVER_METADATA_SYNC = allocate(3, 1);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_MASTER = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_FOLLOWER = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_TRANSFER_LOAD = allocate(3, 0);
@@ -105,6 +106,8 @@ public class PortCoordination {
   public static final List<ReservedPort> QUORUM_SHELL = allocate(3, 0);
   public static final List<ReservedPort> QUORUM_SHELL_INFO = allocate(3, 0);
   public static final List<ReservedPort> QUORUM_SHELL_REMOVE = allocate(5, 0);
+
+  public static final List<ReservedPort> WORKER_ALL_MASTER_REGISTRATION = allocate(3, 1);
 
   private static synchronized List<ReservedPort> allocate(int numMasters, int numWorkers) {
     int needed = numMasters * MultiProcessCluster.PORTS_PER_MASTER

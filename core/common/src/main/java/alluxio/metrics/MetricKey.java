@@ -410,6 +410,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of unique blocks in Alluxio")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_CACHED_BLOCK_LOCATIONS =
+      new Builder("Master.CachedBlockLocations")
+          .setDescription("Total number of cached block locations")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_TOTAL_RPCS =
       new Builder("Master.TotalRpcs")
           .setDescription("Throughput of master RPC calls. This metrics indicates how busy the"
@@ -959,6 +964,21 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_ROLE_ID =
       new Builder("Master.RoleId")
           .setDescription("Display master role id")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_START_TIME =
+      new Builder("Master.StartTime")
+          .setDescription("The start time of the master process")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_LAST_GAIN_PRIMACY_TIME =
+      new Builder("Master.LastGainPrimacyTime")
+          .setDescription("Last time the master gains primacy")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_LAST_LOSE_PRIMACY_TIME =
+      new Builder("Master.LastLosePrimacyTime")
+          .setDescription("Last time the master loses primacy")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
@@ -2113,6 +2133,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Current count of threads in the worker RPC executor thread pool. "
               + "Use this metric to monitor the RPC pressure on worker.")
           .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey WORKER_MASTER_REGISTRATION_SUCCESS_COUNT =
+      new Builder("Worker.MasterRegistrationSuccessCount")
+          .setDescription("Total number of the succeed master registration.")
+          .setMetricType(MetricType.COUNTER)
           .build();
 
   // Client metrics

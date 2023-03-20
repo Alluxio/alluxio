@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /**
@@ -52,6 +53,8 @@ public class OSSLowLevelOutputStream extends ObjectLowLevelOutputStream {
 
   /** The upload id of this multipart upload. */
   protected volatile String mUploadId;
+
+  private String mContentHash;
 
   /**
    * Constructs a new stream for writing a file.
@@ -132,7 +135,7 @@ public class OSSLowLevelOutputStream extends ObjectLowLevelOutputStream {
       LOG.debug("complete multi part {}", mUploadId);
       CompleteMultipartUploadRequest completeRequest = new CompleteMultipartUploadRequest(
           mBucketName, mKey, mUploadId, mTags);
-      getClient().completeMultipartUpload(completeRequest);
+      mContentHash = getClient().completeMultipartUpload(completeRequest).getETag();
     } catch (OSSException | ClientException e) {
       LOG.debug("failed to complete multi part upload", e);
       throw new IOException(
@@ -146,7 +149,8 @@ public class OSSLowLevelOutputStream extends ObjectLowLevelOutputStream {
     try {
       ObjectMetadata objMeta = new ObjectMetadata();
       objMeta.setContentLength(0);
-      getClient().putObject(mBucketName, key, new ByteArrayInputStream(new byte[0]), objMeta);
+      mContentHash = getClient().putObject(mBucketName, key,
+          new ByteArrayInputStream(new byte[0]), objMeta).getETag();
     } catch (OSSException | ClientException e) {
       throw new IOException(e);
     }
@@ -160,10 +164,15 @@ public class OSSLowLevelOutputStream extends ObjectLowLevelOutputStream {
         objMeta.setContentMD5(md5);
       }
       PutObjectRequest request = new PutObjectRequest(mBucketName, key, file, objMeta);
-      getClient().putObject(request);
+      mContentHash = getClient().putObject(request).getETag();
     } catch (OSSException | ClientException e) {
       throw new IOException(e);
     }
+  }
+
+  @Override
+  public Optional<String> getContentHash() {
+    return Optional.ofNullable(mContentHash);
   }
 
   protected OSS getClient() {

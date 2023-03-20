@@ -184,6 +184,10 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   @Override
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
+
+    // Start serving metrics system, this will not block
+    MetricsSystem.startSinks(Configuration.getString(PropertyKey.METRICS_CONF_FILE));
+
     // Fail any jobs that were still running when the last job master stopped.
     for (PlanCoordinator planCoordinator : mPlanTracker.coordinators()) {
       if (!planCoordinator.isJobFinished()) {

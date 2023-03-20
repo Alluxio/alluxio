@@ -69,14 +69,15 @@ public abstract class AbstractMasterClient extends AbstractClient {
   }
 
   /**
-   * Creates a new master client with a specific address and a specific retry policy.
+   * Creates a new master client without a specific address.
    * @param clientConf master client configuration
-   * @param selectionPolicy which master the client should connect to
+   * @param selectionPolicy master selection policy: which master the client should connect to
    * @param retryPolicySupplier retry policy to use
    */
-  public AbstractMasterClient(MasterClientContext clientConf,
-                              MasterSelectionPolicy selectionPolicy,
-                              Supplier<RetryPolicy> retryPolicySupplier) {
+  public AbstractMasterClient(
+      MasterClientContext clientConf,
+      MasterSelectionPolicy selectionPolicy,
+      Supplier<RetryPolicy> retryPolicySupplier) {
     super(clientConf, retryPolicySupplier);
     mMasterInquireClient = clientConf.getMasterInquireClient();
     mMasterSelectionPolicy = selectionPolicy;

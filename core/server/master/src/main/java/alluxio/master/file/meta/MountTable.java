@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -38,6 +39,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
@@ -95,11 +97,11 @@ public final class MountTable implements DelegatingJournaled {
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
     mUfsManager = ufsManager;
-    mState = new State(rootMountInfo, clock);
+    mState = new State(rootMountInfo, clock, mUfsManager);
   }
 
   /**
-   * Returns the underlying writelock of the MountTable. This method will be called when
+   * Returns the underlying write lock of the MountTable. This method will be called when
    * fileSystemMaster is adding a new MountPoint.
    *
    * @return the write lock of the mountTable
@@ -160,7 +162,7 @@ public final class MountTable implements DelegatingJournaled {
    * Verify if the given (alluxioPath, ufsPath) can be inserted into MountTable. This method is
    * NOT ThreadSafe. This method will not acquire any locks, so the caller MUST apply the lock
    * first before calling this method.
-   * @param alluxioUri the alluxio path that is about to be the mountpoint
+   * @param alluxioUri the alluxio path that is about to be the mount point
    * @param ufsUri the UFS path that is about to mount
    * @param mountId the mount id
    * @param options the mount options
@@ -257,7 +259,7 @@ public final class MountTable implements DelegatingJournaled {
           for (String mountPath : mState.getMountTable().keySet()) {
             try {
               if (PathUtils.hasPrefix(mountPath, path) && (!path.equals(mountPath))) {
-                LOG.warn("The path to unmount {} contains another nested mountpoint {}",
+                LOG.warn("The path to unmount {} contains another nested mount point {}",
                     path, mountPath);
                 return false;
               }
@@ -324,7 +326,7 @@ public final class MountTable implements DelegatingJournaled {
     try (LockResource r = new LockResource(mReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
         String mount = entry.getKey();
-        // we choose a new candidate path if the previous candidatepath is a prefix
+        // we choose a new candidate path if the previous candidate path is a prefix
         // of the current alluxioPath and the alluxioPath is a prefix of the path
         if (!mount.equals(ROOT) && PathUtils.hasPrefix(path, mount)
             && lastMount.length() < mount.length()) {
@@ -690,15 +692,17 @@ public final class MountTable implements DelegatingJournaled {
     private final Map<String, MountInfo> mMountTable;
     /** Map from mount id to cache of paths which have been synced with UFS. */
     private final UfsSyncPathCache mUfsSyncPathCache;
+    private final UfsManager mUfsManager;
 
     /**
      * @param mountInfo root mount info
      * @param clock the clock used for computing sync times
      */
-    State(MountInfo mountInfo, Clock clock) {
+    State(MountInfo mountInfo, Clock clock, UfsManager ufsManager) {
       mMountTable = new HashMap<>(10);
       mMountTable.put(MountTable.ROOT, mountInfo);
       mUfsSyncPathCache = new UfsSyncPathCache(clock);
+      mUfsManager = ufsManager;
     }
 
     /**
@@ -727,13 +731,19 @@ public final class MountTable implements DelegatingJournaled {
     private void applyAddMountPoint(AddMountPointEntry entry) {
       try (LockResource r = new LockResource(mWriteLock)) {
         MountInfo mountInfo = fromAddMountPointEntry(entry);
+        UnderFileSystemConfiguration ufsConf = new UnderFileSystemConfiguration(
+            Configuration.global(), mountInfo.getOptions().getReadOnly())
+            .createMountSpecificConf(mountInfo.getOptions().getPropertiesMap());
         mMountTable.put(entry.getAlluxioPath(), mountInfo);
+        mUfsManager.addMount(mountInfo.getMountId(), mountInfo.getUfsUri(), ufsConf);
       }
     }
 
     private void applyDeleteMountPoint(DeleteMountPointEntry entry) {
       try (LockResource r = new LockResource(mWriteLock)) {
+        long mountId = mMountTable.get(entry.getAlluxioPath()).getMountId();
         mMountTable.remove(entry.getAlluxioPath());
+        mUfsManager.removeMount(mountId);
       }
     }
 

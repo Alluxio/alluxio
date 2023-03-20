@@ -164,7 +164,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * so we allow a snapshot to be taken once a day at a user-configured time. To support this,
  * all state changes must first acquire a read lock, and snapshotting requires the
  * corresponding write lock. Once we have the write lock for all state machines, we enable
- * snapshots in Copycat through our AtomicBoolean, then wait for any snapshot to complete.
+ * snapshots in Ratis through our AtomicBoolean, then wait for any snapshot to complete.
  */
 @ThreadSafe
 public class RaftJournalSystem extends AbstractJournalSystem {

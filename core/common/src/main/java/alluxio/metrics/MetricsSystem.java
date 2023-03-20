@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.management.BufferPoolMXBean;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -164,7 +165,7 @@ public final class MetricsSystem {
 
   private static BufferPoolMXBean getDirectBufferPool() {
     for (BufferPoolMXBean bufferPoolMXBean
-        : sun.management.ManagementFactoryHelper.getBufferPoolMXBeans()) {
+        :  ManagementFactory.getPlatformMXBeans(BufferPoolMXBean.class)) {
       if (bufferPoolMXBean.getName().equals("direct")) {
         return bufferPoolMXBean;
       }

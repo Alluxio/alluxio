@@ -15,7 +15,6 @@ import static com.google.common.hash.Hashing.md5;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.cache.CacheManager;
@@ -39,10 +38,8 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * An Alluxio client compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
@@ -51,12 +48,6 @@ import java.util.Set;
  */
 public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheFileSystem.class);
-  private static final Set<String> SUPPORTED_FS = new HashSet<String>() {
-    {
-      add(Constants.SCHEME);
-      add("ws");
-    }
-  };
 
   /** The external Hadoop filesystem to query on cache miss. */
   private final org.apache.hadoop.fs.FileSystem mExternalFileSystem;
@@ -88,10 +79,6 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public synchronized void initialize(URI uri, org.apache.hadoop.conf.Configuration conf)
       throws IOException {
-    if (!SUPPORTED_FS.contains(uri.getScheme())) {
-      throw new UnsupportedOperationException(
-          uri.getScheme() + " is not supported as the external filesystem.");
-    }
     super.initialize(uri, conf);
     mHadoopConf = conf;
     // Set statistics
