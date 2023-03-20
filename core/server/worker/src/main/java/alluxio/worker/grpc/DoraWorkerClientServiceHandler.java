@@ -106,7 +106,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       responseObserver.onCompleted();
     } catch (IOException e) {
       LOG.debug(String.format("Failed to get status of %s: ", request.getPath()), e);
-      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusException());
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }
 
@@ -123,7 +123,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
         responseObserver.onError(
             new AlluxioRuntimeException(Status.NOT_FOUND,
                 String.format("%s Not Found", request.getPath()),
-                null, ErrorType.Internal, false).toGrpcStatusException());
+                null, ErrorType.Internal, false).toGrpcStatusRuntimeException());
         return;
       }
 
@@ -144,7 +144,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       responseObserver.onCompleted();
     } catch (Exception e) {
       LOG.error(String.format("Failed to list status of %s: ", request.getPath()), e);
-      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusException());
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }
 }
