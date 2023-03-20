@@ -11,34 +11,43 @@
 
 package alluxio.master.file.metasync;
 
+import java.util.Map;
+
 /**
  * Metadata sync results.
  */
 public class SyncResult {
-  /**
-   * Constructs a sync result object.
-   * @param success if the sync succeeded
-   * @param numSyncedFiles the number of files synced
-   */
-  public SyncResult(boolean success, long numSyncedFiles) {
+  public SyncResult(boolean success, long syncDuration,
+                    Map<SyncOperation, Long> successOperationCount,
+                    Map<SyncOperation, Long> failedOperationCount) {
     mSuccess = success;
-    mNumSyncedFiles = numSyncedFiles;
+    mSyncDuration = syncDuration;
+    mSuccessOperationCount = successOperationCount;
+    mFailedOperationCount = failedOperationCount;
   }
 
   private final boolean mSuccess;
-  private final long mNumSyncedFiles;
+  private final long mSyncDuration;
+
+  private final Map<SyncOperation, Long> mSuccessOperationCount;
+  private final Map<SyncOperation, Long> mFailedOperationCount;
+
+  public long getSyncDuration() {
+    return mSyncDuration;
+  }
+
+  public Map<SyncOperation, Long> getSuccessOperationCount() {
+    return mSuccessOperationCount;
+  }
+
+  public Map<SyncOperation, Long> getFailedOperationCount() {
+    return mFailedOperationCount;
+  }
 
   /**
    * @return if the metadata sync succeeded
    */
   public boolean getSuccess() {
     return mSuccess;
-  }
-
-  /**
-   * @return the number of synced files
-   */
-  public long getNumSyncedFiles() {
-    return mNumSyncedFiles;
   }
 }
