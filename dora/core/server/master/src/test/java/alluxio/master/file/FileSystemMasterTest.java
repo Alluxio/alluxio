@@ -1779,10 +1779,10 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
 
   @Test
   public void RecursiveDeleteForceFlushJournals() throws Exception {
-    FileSystemMaster fileSystemMasterWithSpy = spy(mFileSystemMaster);
+    DefaultFileSystemMaster fileSystemMasterWithSpy = spy(mFileSystemMaster);
     AtomicInteger flushCount = new AtomicInteger();
     AtomicInteger closeCount = new AtomicInteger();
-    when(fileSystemMasterWithSpy.createJournalContext()).thenReturn(
+    when(fileSystemMasterWithSpy.createJournalContext(true)).thenReturn(
         new JournalContext() {
           private int mNumLogs = 0;
 
