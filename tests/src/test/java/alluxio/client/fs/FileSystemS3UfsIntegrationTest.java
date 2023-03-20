@@ -83,7 +83,6 @@ public class FileSystemS3UfsIntegrationTest extends BaseIntegrationTest {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
 
-
   @After
   public void after() {
     mS3Client = null;
