@@ -15,7 +15,6 @@ import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.master.metastore.BlockMetaStore;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -23,6 +22,7 @@ import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
+import alluxio.rocks.RocksProtocol;
 import alluxio.util.SleepUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -54,11 +54,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -66,7 +63,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Block store backed by RocksDB.
  */
 @ThreadSafe
-public class RocksBlockMetaStore implements BlockMetaStore {
+public class RocksBlockMetaStore extends RocksProtocol implements BlockMetaStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksBlockMetaStore.class);
   private static final String BLOCKS_DB_NAME = "blocks";
   private static final String BLOCK_META_COLUMN = "block-meta";
@@ -85,20 +82,6 @@ public class RocksBlockMetaStore implements BlockMetaStore {
   private final AtomicReference<ColumnFamilyHandle> mBlockMetaColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mBlockLocationsColumn = new AtomicReference<>();
   private final LongAdder mSize = new LongAdder();
-  /**
-   * When this is true, stop serving all requests as the RocksDB is being closed.
-   * This flag serves two purposes:
-   * 1. Before an r/w operation, if this is observed then bail the operation early.
-   * 2. During an r/w operation like iteration, if this is observed then abort the iteration.
-   */
-  private final AtomicBoolean mClosed = new AtomicBoolean(false);
-  /**
-   * The RWLock is used to guarantee thread safety between r/w and RocksDB closing/restarting.
-   * When the RocksDB is closing/restarting, no concurrent r/w should be present.
-   * Therefore, we acquire the write lock on closing/restarting, and acquire a read lock for
-   * reading/writing the RocksDB.
-   */
-  private final ReadWriteLock mDbStateLock = new ReentrantReadWriteLock();
 
   /**
    * Creates and initializes a rocks block store.
@@ -106,6 +89,9 @@ public class RocksBlockMetaStore implements BlockMetaStore {
    * @param baseDir the base directory in which to store block store metadata
    */
   public RocksBlockMetaStore(String baseDir) {
+    // Init RocksDB thread safety protocol
+    super();
+
     RocksDB.loadLibrary();
     // the rocksDB objects must be initialized after RocksDB.loadLibrary() is called
     mDisableWAL = new WriteOptions().setDisableWAL(true);
@@ -278,6 +264,8 @@ public class RocksBlockMetaStore implements BlockMetaStore {
     MetricsSystem.registerAggregatedCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_BLOCK_ESTIMATED_MEM_USAGE.getName(),
         s, CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+
+//    mStatus = new AtomicReference<>(new VersionedRocksStoreStatus(false, 0));
   }
 
   private long getProperty(String rocksPropertyName) {
@@ -340,15 +328,14 @@ public class RocksBlockMetaStore implements BlockMetaStore {
   public void clear() {
     // Block all new readers and make concurrent readers bail asap
     LOG.info("Marking RocksDB closed so all concurrent read/write should stop");
-    mClosed.set(true);
-    try (LockResource lock = new LockResource(mDbStateLock.writeLock())) {
+    try (LockResource lock = lockForClosing()) {
       LOG.info("Clearing RocksDB");
       mSize.reset();
       mRocksStore.clear();
     }
     // Reset the DB state and prepare to serve again
     LOG.info("RocksDB ready to serve again");
-    mClosed.set(false);
+    updateVersionAndReopen();
   }
 
   @Override
@@ -367,9 +354,8 @@ public class RocksBlockMetaStore implements BlockMetaStore {
    *
    */
   public void close() {
-    mClosed.set(true);
     LOG.info("RocksBlockStore is being closed");
-    try (LockResource lock = new LockResource(mDbStateLock.writeLock())) {
+    try (LockResource lock = lockForClosing()) {
       // TODO(jiacheng): keep grace period?
       // Sleep to wait for all concurrent readers to either complete or abort
       SleepUtils.sleepMs(Configuration.getMs(PropertyKey.ROCKS_GRACEFUL_SHUTDOWN_TIMEOUT));
@@ -444,29 +430,11 @@ public class RocksBlockMetaStore implements BlockMetaStore {
       RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
       return RocksUtils.createCloseableIterator(iterator,
           (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())),
-          mClosed::get, this::checkAndAcquireReadLock);
+              () -> mStatus.get().mClosing, this::checkAndAcquireReadLock);
     }
   }
 
   private RocksDB db() {
     return mRocksStore.getDb();
-  }
-
-  // TODO(jiacheng): double check what happens if max lock count error here
-  private LockResource checkAndAcquireReadLock() {
-    // Check before locking so if the RocksDB will be closed, abort early
-    if (mClosed.get()) {
-      throw new UnavailableRuntimeException(
-          "RocksDB is closed. Master is failing over or shutting down.");
-    }
-    LockResource lock = new LockResource(mDbStateLock.readLock());
-    // Counter-intuitively, check again after getting the lock because
-    // we may get the read lock after the writer, meaning the RocksDB may have been closed
-    if (mClosed.get()) {
-      lock.close();
-      throw new UnavailableRuntimeException(
-          "RocksDB is closed. Master is failing over or shutting down.");
-    }
-    return lock;
   }
 }

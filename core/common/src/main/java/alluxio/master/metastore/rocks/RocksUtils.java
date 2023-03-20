@@ -25,6 +25,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+// TODO(jiacheng): move to alluxio.rocks
 /**
  * Convenience methods for working with RocksDB.
  */

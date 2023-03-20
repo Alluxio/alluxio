@@ -19,6 +19,7 @@ import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.proto.client.Cache;
 
 import alluxio.resource.LockResource;
+import alluxio.rocks.RocksProtocol;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -50,7 +51,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * will not be included to client jar by default to reduce client jar size.
  */
 @NotThreadSafe
-public class RocksPageStore implements PageStore {
+public class RocksPageStore extends RocksProtocol implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
   private static final String PAGE_COLUMN = "PAGE";
   private static final byte[] CONF_KEY = "CONF".getBytes();
@@ -163,6 +164,9 @@ public class RocksPageStore implements PageStore {
       RocksDB rocksDB,
       ColumnFamilyHandle defaultColumnHandle,
       ColumnFamilyHandle pageColumnHandle) {
+    // Init RocksDB thread safety protocol
+    super();
+
     mCapacity =
         (long) (pageStoreOptions.getCacheSize() / (1 + pageStoreOptions.getOverheadRatio()));
     mRocksOptions = rocksOptions;
@@ -219,9 +223,8 @@ public class RocksPageStore implements PageStore {
 
   @Override
   public void close() {
-    mClosed.set(true);
     LOG.info("RocksPageStore is being closed");
-    try (LockResource lock = new LockResource(mStateLock.writeLock())) {
+    try (LockResource lock = lockForClosing()) {
       LOG.info("Closing RocksPageStore and recycling all RocksDB JNI objects");
       if (mDb != null) {
         try {
@@ -273,22 +276,5 @@ public class RocksPageStore implements PageStore {
     try (LockResource lock = checkAndAcquireReadLock()) {
       return mDb.newIterator(mPageColumnHandle);
     }
-  }
-
-  protected LockResource checkAndAcquireReadLock() {
-    // Check before locking so if the RocksDB will be closed, abort early
-    if (mClosed.get()) {
-      throw new UnavailableRuntimeException(
-          "RocksDB is closed. Master is failing over or shutting down.");
-    }
-    LockResource lock = new LockResource(mStateLock.readLock());
-    // Counter-intuitively, check again after getting the lock because
-    // we may get the read lock after the writer, meaning the RocksDB may have been closed
-    if (mClosed.get()) {
-      lock.close();
-      throw new UnavailableRuntimeException(
-          "RocksDB is closed. Master is failing over or shutting down.");
-    }
-    return lock;
   }
 }

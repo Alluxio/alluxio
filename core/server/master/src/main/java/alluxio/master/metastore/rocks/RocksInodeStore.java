@@ -31,6 +31,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
+import alluxio.rocks.RocksProtocol;
 import alluxio.util.SleepUtils;
 import alluxio.util.io.PathUtils;
 
@@ -83,7 +84,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * File store backed by RocksDB.
  */
 @ThreadSafe
-public class RocksInodeStore implements InodeStore {
+public class RocksInodeStore extends RocksProtocol implements InodeStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksInodeStore.class);
   private static final String INODES_DB_NAME = "inodes";
   private static final String INODES_COLUMN = "inodes";
@@ -105,10 +106,6 @@ public class RocksInodeStore implements InodeStore {
 
   private final AtomicReference<ColumnFamilyHandle> mInodesColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mEdgesColumn = new AtomicReference<>();
-  // When this is true, stop serving all requests as the RocksDB is being closed
-  private final AtomicBoolean mClosed = new AtomicBoolean(false);
-  // A lock to prevent concurrent r/w when the RocksDB is closing/restarting
-  private final ReadWriteLock mStateLock = new ReentrantReadWriteLock();
 
   /**
    * Creates and initializes a rocks block store.
@@ -116,6 +113,9 @@ public class RocksInodeStore implements InodeStore {
    * @param baseDir the base directory in which to store inode metadata
    */
   public RocksInodeStore(String baseDir) {
+    // Init RocksDB thread safety protocol
+    super();
+
     RocksDB.loadLibrary();
     // the rocksDB objects must be initialized after RocksDB.loadLibrary() is called
     mDisableWAL = new WriteOptions().setDisableWAL(true);
@@ -324,14 +324,13 @@ public class RocksInodeStore implements InodeStore {
   public void clear() {
     // Block all new readers and make concurrent readers bail asap
     LOG.info("Marking RocksDB closed so all concurrent read/write should stop");
-    mClosed.set(true);
-    try (LockResource lock = new LockResource(mStateLock.writeLock())) {
+    try (LockResource lock = lockForClosing()) {
       LOG.info("Clearing RocksDB");
       mRocksStore.clear();
     }
     // Reset the DB state and prepare to serve again
     LOG.info("RocksDB ready to serve again");
-    mClosed.set(false);
+    updateVersionAndReopen();
   }
 
   @Override
@@ -396,7 +395,7 @@ public class RocksInodeStore implements InodeStore {
         iter.seek(RocksUtils.toByteArray(inodeId, seekTo));
       }
       // TODO(jiacheng): document on the RocksIter
-      RocksIter rocksIter = new RocksIter(iter, prefix, mClosed::get);
+      RocksIter rocksIter = new RocksIter(iter, prefix, () -> mStatus.get().mClosing);
       Stream<Long> idStream = StreamSupport.stream(Spliterators
           .spliteratorUnknownSize(rocksIter, Spliterator.ORDERED), false);
       return CloseableIterator.create(idStream.iterator(), (any) -> iter.close());
@@ -538,7 +537,7 @@ public class RocksInodeStore implements InodeStore {
       return RocksUtils.createCloseableIterator(
           db().newIterator(mInodesColumn.get(), mIteratorOption),
           (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get(),
-          mClosed::get, this::checkAndAcquireReadLock);
+          () -> mStatus.get().mClosing, this::checkAndAcquireReadLock);
     }
   }
 
@@ -624,10 +623,8 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public void close() {
-    mClosed.set(true);
     LOG.info("RocksBlockStore is being closed");
-
-    try (LockResource r = new LockResource(mStateLock.writeLock())) {
+    try (LockResource lock = lockForClosing()) {
       // TODO(jiacheng): still need the grace period?
       // Sleep to wait for all concurrent readers to either complete or abort
       SleepUtils.sleepMs(Configuration.getMs(PropertyKey.ROCKS_GRACEFUL_SHUTDOWN_TIMEOUT));
@@ -695,27 +692,5 @@ public class RocksInodeStore implements InodeStore {
   public Pair<RocksDB, AtomicReference<ColumnFamilyHandle>> getDBInodeColumn() {
     abortIfClosing();
     return new Pair<>(db(), mInodesColumn);
-  }
-
-  // TODO(jiacheng): double check what happens if max lock count error here
-  private LockResource checkAndAcquireReadLock() {
-    // Check before locking so if the RocksDB will be closed, abort early
-    abortIfClosing();
-    LockResource lock = new LockResource(mStateLock.readLock());
-    // Counter-intuitively, check again after getting the lock because
-    // we may get the read lock after the writer, meaning the RocksDB may have been closed
-    if (mClosed.get()) {
-      lock.close();
-      throw new UnavailableRuntimeException(
-          "RocksDB is closed. Master is failing over or shutting down.");
-    }
-    return lock;
-  }
-
-  private void abortIfClosing() {
-    if (mClosed.get()) {
-      throw new UnavailableRuntimeException(
-          "RocksDB is closed. Master is failing over or shutting down.");
-    }
   }
 }
