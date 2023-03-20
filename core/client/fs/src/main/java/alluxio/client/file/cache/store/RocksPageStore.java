@@ -15,11 +15,10 @@ import alluxio.Constants;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
-import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.proto.client.Cache;
 
 import alluxio.resource.LockResource;
-import alluxio.rocks.RocksProtocol;
+import alluxio.rocks.RocksLocker;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -51,7 +50,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * will not be included to client jar by default to reduce client jar size.
  */
 @NotThreadSafe
-public class RocksPageStore extends RocksProtocol implements PageStore {
+public class RocksPageStore extends RocksLocker implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
   private static final String PAGE_COLUMN = "PAGE";
   private static final byte[] CONF_KEY = "CONF".getBytes();

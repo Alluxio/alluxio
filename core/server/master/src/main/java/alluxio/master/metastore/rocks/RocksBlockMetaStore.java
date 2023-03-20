@@ -24,7 +24,7 @@ import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
-import alluxio.rocks.RocksProtocol;
+import alluxio.rocks.RocksLocker;
 import alluxio.util.SleepUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -334,14 +334,13 @@ public class RocksBlockMetaStore extends RocksProtocol implements BlockMetaStore
   public void clear() {
     // Block all new readers and make concurrent readers bail asap
     LOG.info("Marking RocksDB closed so all concurrent read/write should stop");
-    try (LockResource lock = lockForClosing()) {
+    try (LockResource lock = lockForClearing()) {
       LOG.info("Clearing RocksDB");
       mSize.reset();
       mRocksStore.clear();
     }
     // Reset the DB state and prepare to serve again
     LOG.info("RocksDB ready to serve again");
-    updateVersionAndReopen();
   }
 
   @Override
