@@ -11,7 +11,6 @@
 
 package alluxio.master.journal;
 
-import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
 import alluxio.util.CommonUtils;
@@ -19,7 +18,7 @@ import alluxio.util.CommonUtils;
 /**
  * Journaled component responsible for journaling a single journal entry.
  */
-public class SingleEntryJournaled implements Journaled {
+public abstract class SingleEntryJournaled implements Journaled {
 
   private Journal.JournalEntry mEntry = Journal.JournalEntry.getDefaultInstance();
 
@@ -40,11 +39,6 @@ public class SingleEntryJournaled implements Journaled {
   @Override
   public void resetState() {
     mEntry = Journal.JournalEntry.getDefaultInstance();
-  }
-
-  @Override
-  public CheckpointName getCheckpointName() {
-    return CheckpointName.BLOCK_MASTER_CONTAINER_ID;
   }
 
   /**

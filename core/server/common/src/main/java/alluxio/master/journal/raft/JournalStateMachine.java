@@ -28,7 +28,6 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.LockResource;
-import alluxio.retry.TimeoutRetry;
 import alluxio.util.StreamUtils;
 import alluxio.util.logging.SamplingLogger;
 
@@ -253,7 +252,7 @@ public class JournalStateMachine extends BaseStateMachine {
     if (index != RaftLog.INVALID_LOG_INDEX) {
       mSnapshotLastIndex = index;
       mLastSnapshotTime = System.currentTimeMillis();
-      LOG.debug("Took snapshot up to index {} at time {}", mSnapshotLastIndex, mLastSnapshotTime);
+      LOG.info("Took snapshot up to index {} at time {}", mSnapshotLastIndex, mLastSnapshotTime);
     }
     return index;
   }
@@ -346,11 +345,13 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public CompletableFuture<TermIndex> notifyInstallSnapshotFromLeader(
       RaftProtos.RoleInfoProto roleInfoProto, TermIndex firstTermIndexInLog) {
+    LOG.info("Received instruction to install snapshot from other master asynchronously");
     return CompletableFuture.supplyAsync(() -> {
-      TimeoutRetry retryPolicy = new TimeoutRetry(Integer.MAX_VALUE, 10_000);
-      long index = RaftLog.INVALID_LOG_INDEX;
-      while (index == RaftLog.INVALID_LOG_INDEX && retryPolicy.attempt()) {
-        index = mSnapshotManager.downloadSnapshotFromOtherMasters();
+      mSnapshotManager.downloadSnapshotFromOtherMasters();
+      long index = mSnapshotManager.waitForAttemptToComplete();
+      if (index == RaftLog.INVALID_LOG_INDEX) {
+        LOG.info("Failed to install snapshot from other master asynchronously");
+        return null;
       }
       return getLatestSnapshot().getTermIndex();
     }, mJournalPool);

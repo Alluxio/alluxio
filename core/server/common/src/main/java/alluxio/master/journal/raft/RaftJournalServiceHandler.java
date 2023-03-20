@@ -70,7 +70,7 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
   @Override
   public void requestLatestSnapshotInfo(LatestSnapshotInfoPRequest request,
                                         StreamObserver<SnapshotMetadata> responseObserver) {
-    LOG.debug("Received request for latest snapshot info");
+    LOG.info("Received request for latest snapshot info");
     if (Context.current().isCancelled()) {
       responseObserver.onError(
           Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
@@ -79,10 +79,10 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
     SnapshotInfo snapshot = mStateMachineStorage.getLatestSnapshot();
     SnapshotMetadata.Builder metadata = SnapshotMetadata.newBuilder();
     if (snapshot == null) {
-      LOG.debug("No snapshot to send");
+      LOG.info("No snapshot to send");
       metadata.setExists(false);
     } else {
-      LOG.debug("Found snapshot {}", snapshot.getTermIndex());
+      LOG.info("Found snapshot {}", snapshot.getTermIndex());
       metadata.setExists(true)
           .setSnapshotTerm(snapshot.getTerm())
           .setSnapshotIndex(snapshot.getIndex());
@@ -94,6 +94,8 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
   @Override
   public void requestLatestSnapshotData(SnapshotMetadata request,
                                      StreamObserver<SnapshotData> responseObserver) {
+    TermIndex index = TermIndex.valueOf(request.getSnapshotTerm(), request.getSnapshotIndex());
+    LOG.info("Received request for snapshot data {}", index);
     if (Context.current().isCancelled()) {
       responseObserver.onError(
           Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
@@ -102,14 +104,13 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
     Timer.Context time = MetricsSystem.timer(
         MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_TIMER.getName()).time();
 
-    TermIndex index = TermIndex.valueOf(request.getSnapshotTerm(), request.getSnapshotIndex());
     String snapshotDirName = SimpleStateMachineStorage
         .getSnapshotFileName(request.getSnapshotTerm(), request.getSnapshotIndex());
     Path snapshotPath = new File(mStateMachineStorage.getSnapshotDir(), snapshotDirName).toPath();
 
     try (OutputStream snapshotOutStream = new OutputStream() {
       long mTotalBytesSent = 0L;
-      final byte[] mBuffer = new byte[mSnapshotReplicationChunkSize];
+      byte[] mBuffer = new byte[mSnapshotReplicationChunkSize];
       int mBufferPosition = 0;
 
       @Override
@@ -137,6 +138,7 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
       private void flushBuffer() {
         // avoids copy
         ByteString bytes = UnsafeByteOperations.unsafeWrap(mBuffer, 0, mBufferPosition);
+        mBuffer = new byte[mSnapshotReplicationChunkSize];
         LOG.trace("Sending chunk of size {}: {}", mBufferPosition, bytes.toByteArray());
         responseObserver.onNext(SnapshotData.newBuilder().setChunk(bytes).build());
         mTotalBytesSent += mBufferPosition;
@@ -146,7 +148,7 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
       LOG.debug("Begin snapshot upload of {}", index);
       TarUtils.writeTarGz(snapshotPath, snapshotOutStream, mSnapshotCompressionLevel);
     } catch (Exception e) {
-      LOG.debug("Failed to upload snapshot {}", index);
+      LOG.info("Failed to upload snapshot {}", index);
       responseObserver.onError(e);
     } finally {
       responseObserver.onCompleted();

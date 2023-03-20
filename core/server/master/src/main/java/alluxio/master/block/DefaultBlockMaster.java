@@ -403,7 +403,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public CompletableFuture<Void> writeToCheckpoint(File directory,
                                                    ExecutorService executorService) {
     if (mBlockMetaStore instanceof Checkpointed) {
-      SingleEntryJournaled containerIdJournal = new SingleEntryJournaled();
+      SingleEntryJournaled containerIdJournal = new DefaultBlockMasterContainerIdJournaled();
       containerIdJournal.processJournalEntry(getContainerIdJournalEntry());
       return CompletableFuture.allOf((
           (Checkpointed) mBlockMetaStore).writeToCheckpoint(directory, executorService),
@@ -416,7 +416,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public CompletableFuture<Void> restoreFromCheckpoint(File directory,
                                                        ExecutorService executorService) {
     if (mBlockMetaStore instanceof Checkpointed) {
-      SingleEntryJournaled containerIdJournal = new SingleEntryJournaled();
+      SingleEntryJournaled containerIdJournal = new DefaultBlockMasterContainerIdJournaled();
       return CompletableFuture.allOf((
           (Checkpointed) mBlockMetaStore).restoreFromCheckpoint(directory, executorService),
           containerIdJournal.restoreFromCheckpoint(directory, executorService)

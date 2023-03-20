@@ -102,11 +102,16 @@ public class RaftSnapshotManager implements AutoCloseable {
     if (mDownloadFuture == null) {
       return RaftLog.INVALID_LOG_INDEX;
     }
-    return mDownloadFuture.join();
+    mDownloadFuture.join();
+    // this is to make sure that mDownloadFuture gets reset to null
+    return downloadSnapshotFromOtherMasters();
   }
 
   /**
-   * @return the log index of the last successful snapshot installation, or -1 if failure
+   * Launches an asynchronous download of the most updated snapshot found on other masters in the
+   * cluster. If the asynchronous download is already in flight, it polls for the results.
+   * @return the log index of the last successful snapshot installation, or -1 if the download is in
+   * flight or has failed.
    */
   public long downloadSnapshotFromOtherMasters() {
     if (mDownloadFuture == null) {
@@ -134,8 +139,8 @@ public class RaftSnapshotManager implements AutoCloseable {
     }
     // max heap based on TermIndex extracted from the SnapshotMetadata of each pair
     PriorityQueue<ImmutablePair<SnapshotMetadata, InetSocketAddress>> otherInfos =
-        new PriorityQueue<>(Collections.reverseOrder(
-            Comparator.comparing(pair -> toTermIndex(pair.getLeft()))));
+        new PriorityQueue<>(mClients.size(),
+            Collections.reverseOrder(Comparator.comparing(pair -> toTermIndex(pair.getLeft()))));
     // wait mRequestInfoTimeout between each attempt to contact the masters
     RetryPolicy retryPolicy =
         new ExponentialBackoffRetry(mRequestInfoTimeout, mRequestInfoTimeout, 10);
@@ -173,12 +178,12 @@ public class RaftSnapshotManager implements AutoCloseable {
           try {
             RaftJournalServiceClient client = mClients.get(address);
             client.connect();
-            LOG.debug("Receiving snapshot info from {}", address);
+            LOG.info("Receiving snapshot info from {}", address);
             SnapshotMetadata metadata = client.requestLatestSnapshotInfo();
             if (!metadata.getExists()) {
-              LOG.debug("No snapshot is present on {}", address);
+              LOG.info("No snapshot is present on {}", address);
             } else {
-              LOG.debug("Received snapshot info {} from {}", toTermIndex(metadata), address);
+              LOG.info("Received snapshot info {} from {}", toTermIndex(metadata), address);
             }
             return ImmutablePair.of(metadata, address);
           } catch (Exception e) {
@@ -202,7 +207,7 @@ public class RaftSnapshotManager implements AutoCloseable {
   private long downloadSnapshotFromAddress(SnapshotMetadata snapshotMetadata,
                                            InetSocketAddress address) {
     TermIndex termIndex = toTermIndex(snapshotMetadata);
-    LOG.debug("Retrieving snapshot {} from {}", termIndex, address);
+    LOG.info("Retrieving snapshot {} from {}", termIndex, address);
     try {
       RaftJournalServiceClient client = mClients.get(address);
       client.connect();
@@ -242,10 +247,10 @@ public class RaftSnapshotManager implements AutoCloseable {
       FileUtils.moveDirectory(mStorage.getTmpDir(), finalSnapshotDestination);
       mStorage.loadLatestSnapshot();
       mStorage.signalNewSnapshot();
-      LOG.debug("Retrieved snapshot {} from {}", termIndex, address);
+      LOG.info("Retrieved snapshot {} from {}", termIndex, address);
       return snapshotMetadata.getSnapshotIndex();
     } catch (IOException e) {
-      LOG.debug("Failed to download snapshot {} from {}", termIndex, address);
+      LOG.info("Failed to download snapshot {} from {}", termIndex, address);
       return RaftLog.INVALID_LOG_INDEX;
     } finally {
       FileUtils.deleteQuietly(mStorage.getTmpDir());
