@@ -16,6 +16,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.ErrorType;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcUtils;
@@ -119,7 +120,10 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
           request.getOptions().hasRecursive() ? request.getOptions().getRecursive() : false);
       UfsStatus[] statuses = mWorker.listStatus(request.getPath(), options);
       if (statuses == null) {
-        responseObserver.onError(new io.grpc.StatusException(Status.NOT_FOUND));
+        responseObserver.onError(
+            new AlluxioRuntimeException(Status.NOT_FOUND,
+                String.format("%s Not Found", request.getPath()),
+                null, ErrorType.Internal, false).toGrpcStatusException());
         return;
       }
 
