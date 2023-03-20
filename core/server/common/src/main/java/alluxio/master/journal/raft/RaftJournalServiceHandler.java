@@ -13,14 +13,10 @@ package alluxio.master.journal.raft;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.DownloadSnapshotPRequest;
-import alluxio.grpc.DownloadSnapshotPResponse;
 import alluxio.grpc.LatestSnapshotInfoPRequest;
 import alluxio.grpc.RaftJournalServiceGrpc;
 import alluxio.grpc.SnapshotData;
 import alluxio.grpc.SnapshotMetadata;
-import alluxio.grpc.UploadSnapshotPRequest;
-import alluxio.grpc.UploadSnapshotPResponse;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.TarUtils;
@@ -52,18 +48,15 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
       PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE);
   private final int mSnapshotCompressionLevel =
       Configuration.getInt(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
-  private final SnapshotReplicationManager mManager;
+
   private final StateMachineStorage mStateMachineStorage;
   private long mLastSnapshotUploadDuration = -1;
   private long mLastSnapshotUploadSize = -1;
 
   /**
-   * @param manager the snapshot replication manager
    * @param storage the storage that the state machine uses for its snapshots
    */
-  public RaftJournalServiceHandler(SnapshotReplicationManager manager,
-                                   StateMachineStorage storage) {
-    mManager = manager;
+  public RaftJournalServiceHandler(StateMachineStorage storage) {
     mStateMachineStorage = storage;
 
     MetricsSystem.registerGaugeIfAbsent(
@@ -158,17 +151,5 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
     } finally {
       responseObserver.onCompleted();
     }
-  }
-
-  @Override
-  public StreamObserver<UploadSnapshotPRequest> uploadSnapshot(
-      StreamObserver<UploadSnapshotPResponse> responseObserver) {
-    return mManager.receiveSnapshotFromFollower(responseObserver);
-  }
-
-  @Override
-  public StreamObserver<DownloadSnapshotPRequest> downloadSnapshot(
-      StreamObserver<DownloadSnapshotPResponse> responseObserver) {
-    return mManager.sendSnapshotToFollower(responseObserver);
   }
 }

@@ -66,7 +66,7 @@ public class RaftSnapshotManagerTest {
             GrpcServerAddress.create(address.getHostName(), address),
                 Configuration.global())
             .addService(ServiceType.RAFT_JOURNAL_SERVICE,
-                new GrpcService(new RaftJournalServiceHandler(null, smStorage)))
+                new GrpcService(new RaftJournalServiceHandler(smStorage)))
             .build();
       }
       server.start();

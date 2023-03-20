@@ -16,21 +16,14 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.DownloadSnapshotPRequest;
-import alluxio.grpc.DownloadSnapshotPResponse;
 import alluxio.grpc.LatestSnapshotInfoPRequest;
 import alluxio.grpc.RaftJournalServiceGrpc;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SnapshotData;
 import alluxio.grpc.SnapshotMetadata;
-import alluxio.grpc.UploadSnapshotPRequest;
-import alluxio.grpc.UploadSnapshotPResponse;
 import alluxio.master.MasterClientContext;
 import alluxio.master.selectionpolicy.MasterSelectionPolicy;
 import alluxio.retry.RetryPolicy;
-import alluxio.retry.RetryUtils;
-
-import io.grpc.stub.StreamObserver;
 
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
@@ -40,18 +33,10 @@ import java.util.function.Supplier;
  * A client for raft journal service.
  */
 public class RaftJournalServiceClient extends AbstractMasterClient {
-  private RaftJournalServiceGrpc.RaftJournalServiceStub mAsyncClient = null;
-  private RaftJournalServiceGrpc.RaftJournalServiceBlockingStub mBlockingClient = null;
-
   private final long mRequestInfoTimeoutMs =
       Configuration.getMs(PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT);
 
-  /**
-   * Create a client that talks to the leading master.
-   */
-  public RaftJournalServiceClient() {
-    this(MasterSelectionPolicy.Factory.primaryMaster(), RetryUtils::defaultClientRetry);
-  }
+  private RaftJournalServiceGrpc.RaftJournalServiceBlockingStub mBlockingClient = null;
 
   /**
    * Create a client that talks to a specific master.
@@ -82,13 +67,12 @@ public class RaftJournalServiceClient extends AbstractMasterClient {
   @Override
   protected void beforeConnect() {
     // the default behavior of this method is to search for the primary master
-    // in our case we do no care which one is the primary master as our selection policy is
-    // directed at a specific master
+    // in our case we do no care which one is the primary master as MasterSelectionPolicy is
+    // explicitly specified
   }
 
   @Override
   protected void afterConnect() {
-    mAsyncClient = RaftJournalServiceGrpc.newStub(mChannel);
     mBlockingClient = RaftJournalServiceGrpc.newBlockingStub(mChannel);
   }
 
@@ -108,25 +92,5 @@ public class RaftJournalServiceClient extends AbstractMasterClient {
    */
   public Iterator<SnapshotData> requestLatestSnapshotData(SnapshotMetadata request) {
     return mBlockingClient.requestLatestSnapshotData(request);
-  }
-
-  /**
-   * Uploads a snapshot.
-   * @param responseObserver the response stream observer
-   * @return the request stream observer
-   */
-  public StreamObserver<UploadSnapshotPRequest> uploadSnapshot(
-      StreamObserver<UploadSnapshotPResponse> responseObserver) {
-    return mAsyncClient.uploadSnapshot(responseObserver);
-  }
-
-  /**
-   * Downloads a snapshot.
-   * @param responseObserver the response stream observer
-   * @return the request stream observer
-   */
-  public StreamObserver<DownloadSnapshotPRequest> downloadSnapshot(
-      StreamObserver<DownloadSnapshotPResponse> responseObserver) {
-    return mAsyncClient.downloadSnapshot(responseObserver);
   }
 }

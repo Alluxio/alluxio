@@ -68,8 +68,7 @@ public final class RocksStore implements Closeable {
   private final String mName;
   private final String mDbPath;
   private final String mDbCheckpointPath;
-  private final Integer mParallelBackupPoolSize = Configuration.getInt(
-      PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS);
+  private final Integer mParallelBackupPoolSize;
   private final Collection<ColumnFamilyDescriptor> mColumnFamilyDescriptors;
   private final DBOptions mDbOpts;
 
@@ -98,6 +97,8 @@ public final class RocksStore implements Closeable {
     mName = name;
     mDbPath = dbPath;
     mDbCheckpointPath = checkpointPath;
+    mParallelBackupPoolSize = Configuration.getInt(
+        PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS);
     mColumnFamilyDescriptors = columnFamilyDescriptors;
     mDbOpts = dbOpts;
     mColumnHandles = columnHandles;

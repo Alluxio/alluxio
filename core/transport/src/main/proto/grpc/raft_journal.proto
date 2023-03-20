@@ -7,7 +7,6 @@ option java_outer_classname = "RaftJournalProto";
 package alluxio.grpc.meta;
 
 import "grpc/common.proto";
-import "google/protobuf/empty.proto";
 
 message JournalQueryRequest {
   optional GetSnapshotInfoRequest snapshotInfoRequest = 1;
@@ -66,22 +65,19 @@ message DownloadSnapshotPResponse {
 
 message LatestSnapshotInfoPRequest {}
 
-message RequestSnapshotPRequest {
-  optional int64 snapshotTerm = 1;
-  optional int64 snapshotIndex = 2;
-}
-
 /**
   * This interface contains raft service endpoints for Alluxio masters.
   */
 service RaftJournalService {
 
   /**
+   * Deprecated.
    * Uploads a snapshot to primary master.
    */
   rpc UploadSnapshot (stream UploadSnapshotPRequest) returns (stream UploadSnapshotPResponse);
 
   /**
+   * Deprecated.
    * Downloads a snapshot from primary master.
    */
   rpc DownloadSnapshot (stream DownloadSnapshotPRequest) returns (stream DownloadSnapshotPResponse);

@@ -6591,21 +6591,6 @@
           },
           {
             "name": "LatestSnapshotInfoPRequest"
-          },
-          {
-            "name": "RequestSnapshotPRequest",
-            "fields": [
-              {
-                "id": 1,
-                "name": "snapshotTerm",
-                "type": "int64"
-              },
-              {
-                "id": 2,
-                "name": "snapshotIndex",
-                "type": "int64"
-              }
-            ]
           }
         ],
         "services": [
@@ -6643,9 +6628,6 @@
         "imports": [
           {
             "path": "grpc/common.proto"
-          },
-          {
-            "path": "google/protobuf/empty.proto"
           }
         ],
         "package": {

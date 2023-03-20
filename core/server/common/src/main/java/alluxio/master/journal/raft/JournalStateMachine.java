@@ -63,8 +63,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -87,22 +85,18 @@ public class JournalStateMachine extends BaseStateMachine {
 
   private static final CompletableFuture<Message> EMPTY_FUTURE =
       CompletableFuture.completedFuture(Message.EMPTY);
-  private static final String SNAPSHOT_ID = "SNAPSHOT_ID";
 
   /** Journals managed by this applier. */
   private final Map<String, RaftJournal> mJournals;
   private final RaftJournalSystem mJournalSystem;
-  private final SnapshotReplicationManager mSnapshotManager;
+  private final RaftSnapshotManager mSnapshotManager;
+  private final SnapshotDirStateMachineStorage mStorage;
   private final AtomicReference<StateLockManager> mStateLockManagerRef
       = new AtomicReference<>(null);
   @GuardedBy("this")
   private boolean mIgnoreApplys = false;
   @GuardedBy("this")
   private boolean mClosed = false;
-
-  private final Lock mGroupLock = new ReentrantLock();
-  @GuardedBy("mGroupLock")
-  private boolean mServerClosing = false;
 
   private volatile long mLastAppliedCommitIndex = -1;
   // The last special "primary start" sequence number applied to this state machine. These special
@@ -137,8 +131,6 @@ public class JournalStateMachine extends BaseStateMachine {
   private long mLastSnapshotReplayDurationMs = -1;
   /** Used to control applying to masters. */
   private BufferedJournalApplier mJournalApplier;
-  private final SnapshotDirStateMachineStorage mStorage;
-  private final RaftSnapshotManager mDownloadManager;
   private RaftGroupId mRaftGroupId;
   private RaftServer mServer;
 
@@ -161,10 +153,8 @@ public class JournalStateMachine extends BaseStateMachine {
     resetState();
     LOG.info("Initialized new journal state machine");
     mJournalSystem = journalSystem;
-    mSnapshotManager = new SnapshotReplicationManager(journalSystem,
-        new SimpleStateMachineStorage());
     mStorage = storage;
-    mDownloadManager = new RaftSnapshotManager(mStorage);
+    mSnapshotManager = new RaftSnapshotManager(mStorage);
 
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX.getName(),
@@ -199,9 +189,6 @@ public class JournalStateMachine extends BaseStateMachine {
       mRaftGroupId = groupId;
       mStorage.init(raftStorage);
       loadSnapshot(getLatestSnapshot());
-      synchronized (mSnapshotManager) {
-        mSnapshotManager.notifyAll();
-      }
     });
   }
 
@@ -211,9 +198,6 @@ public class JournalStateMachine extends BaseStateMachine {
     mStorage.loadLatestSnapshot();
     loadSnapshot(getLatestSnapshot());
     unpause();
-    synchronized (mSnapshotManager) {
-      mSnapshotManager.notifyAll();
-    }
   }
 
   private synchronized void loadSnapshot(SnapshotInfo snapshot) throws IOException {
@@ -228,32 +212,8 @@ public class JournalStateMachine extends BaseStateMachine {
       install(snapshot);
       LOG.debug("Finished loading snapshot {}", snapshot);
       mSnapshotLastIndex = getLatestSnapshot() != null ? getLatestSnapshot().getIndex() : -1;
-      synchronized (mSnapshotManager) {
-        mSnapshotManager.notifyAll();
-      }
     } catch (Exception e) {
       throw new IOException(String.format("Failed to load snapshot %s", snapshot), e);
-    }
-  }
-
-  /**
-   * Called by {@link RaftJournalSystem} stop internal method before
-   * shutting down the raft server to prevent a deadlock on
-   * the lock in RaftServerProxy.
-   */
-  protected void setServerClosing() {
-    try (LockResource ignored = new LockResource(mGroupLock)) {
-      mServerClosing = true;
-    }
-  }
-
-  /**
-   * Called by {@link RaftJournalSystem} stop internal method after
-   * shutting down the raft server.
-   */
-  protected void afterServerClosing() {
-    try (LockResource ignored = new LockResource(mGroupLock)) {
-      mServerClosing = false;
     }
   }
 
@@ -287,10 +247,7 @@ public class JournalStateMachine extends BaseStateMachine {
         return RaftLog.INVALID_LOG_INDEX;
       }
     } else {
-      index = mDownloadManager.downloadSnapshotFromOtherMasters();
-      if (index != RaftLog.INVALID_LOG_INDEX) {
-        LOG.debug("Downloaded a snapshot up to index {}", index);
-      }
+      index = mSnapshotManager.downloadSnapshotFromOtherMasters();
     }
     // update metrics if took a snapshot
     if (index != RaftLog.INVALID_LOG_INDEX) {
@@ -321,14 +278,6 @@ public class JournalStateMachine extends BaseStateMachine {
       JournalQueryRequest queryRequest = JournalQueryRequest.parseFrom(
           request.getContent().asReadOnlyByteBuffer());
       LOG.debug("Received query request: {}", queryRequest);
-      // give snapshot manager a chance to handle snapshot related requests
-      Message reply = mSnapshotManager.handleRequest(queryRequest);
-      if (reply != null) {
-        future.complete(reply);
-        return future;
-      }
-      // Snapshot manager returned null indicating the request is not handled. Check and handle
-      // other type of requests.
       if (queryRequest.hasAddQuorumServerRequest()) {
         AddQuorumServerRequest addRequest = queryRequest.getAddQuorumServerRequest();
         return CompletableFuture.supplyAsync(() -> {
@@ -339,13 +288,14 @@ public class JournalStateMachine extends BaseStateMachine {
           }
           return Message.EMPTY;
         });
+      } else {
+        return super.query(request);
       }
     } catch (Exception e) {
       LOG.error("failed processing request {}", request, e);
       future.completeExceptionally(e);
       return future;
     }
-    return super.query(request);
   }
 
   @Override
@@ -356,10 +306,7 @@ public class JournalStateMachine extends BaseStateMachine {
     MetricsSystem.removeMetrics(MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName());
     MetricsSystem.removeMetrics(MetricKey.MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX.getName());
     MetricsSystem.removeMetrics(MetricKey.MASTER_JOURNAL_CHECKPOINT_WARN.getName());
-    mDownloadManager.close();
-    synchronized (mSnapshotManager) {
-      mSnapshotManager.notifyAll();
-    }
+    mSnapshotManager.close();
   }
 
   @Override
@@ -380,9 +327,6 @@ public class JournalStateMachine extends BaseStateMachine {
   public void notifyNotLeader(Collection<TransactionContext> pendingEntries) {
     mIsLeader = false;
     mJournalSystem.notifyLeadershipStateChanged(false);
-    synchronized (mSnapshotManager) {
-      mSnapshotManager.notifyAll();
-    }
   }
 
   @Override
@@ -406,7 +350,7 @@ public class JournalStateMachine extends BaseStateMachine {
       TimeoutRetry retryPolicy = new TimeoutRetry(Integer.MAX_VALUE, 10_000);
       long index = RaftLog.INVALID_LOG_INDEX;
       while (index == RaftLog.INVALID_LOG_INDEX && retryPolicy.attempt()) {
-        index = mDownloadManager.downloadSnapshotFromOtherMasters();
+        index = mSnapshotManager.downloadSnapshotFromOtherMasters();
       }
       return getLatestSnapshot().getTermIndex();
     }, mJournalPool);
@@ -584,9 +528,6 @@ public class JournalStateMachine extends BaseStateMachine {
       return RaftLog.INVALID_LOG_INDEX;
     } finally {
       mSnapshotting = false;
-      synchronized (mSnapshotManager) {
-        mSnapshotManager.notifyAll();
-      }
     }
   }
 
@@ -604,7 +545,6 @@ public class JournalStateMachine extends BaseStateMachine {
     try (Timer.Context ctx = MetricsSystem.timer(MetricKey
         .MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER.getName()).time()) {
       SnapshotIdCheckpointed idReader = SnapshotIdCheckpointed.forReading();
-      LOG.debug("Recovered {}", SNAPSHOT_ID);
       CompletableFuture.allOf(Stream.concat(Stream.of(idReader), getStateMachines().stream())
           .map(journaled -> journaled.restoreFromCheckpoint(snapshotDir, mJournalPool))
           .toArray(CompletableFuture[]::new))
@@ -755,13 +695,6 @@ public class JournalStateMachine extends BaseStateMachine {
       LOG.warn("Received notification for unrecognized group {}, current group is {}",
           groupMemberId.getGroupId(), mRaftGroupId);
     }
-  }
-
-  /**
-   * @return the snapshot replication manager
-   */
-  public SnapshotReplicationManager getSnapshotReplicationManager() {
-    return mSnapshotManager;
   }
 
   /**

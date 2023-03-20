@@ -662,8 +662,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized Map<alluxio.grpc.ServiceType, GrpcService> getJournalServices() {
     Map<alluxio.grpc.ServiceType, GrpcService> services = new HashMap<>();
     services.put(alluxio.grpc.ServiceType.RAFT_JOURNAL_SERVICE, new GrpcService(
-        new RaftJournalServiceHandler(mStateMachine.getSnapshotReplicationManager(),
-            mStateMachineStorage)));
+        new RaftJournalServiceHandler(mStateMachineStorage)));
     return services;
   }
 
@@ -841,13 +840,10 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     if (mRaftJournalWriter != null) {
       mRaftJournalWriter.close();
     }
-    mStateMachine.setServerClosing();
     try {
       mServer.close();
     } catch (IOException e) {
       throw new RuntimeException("Failed to shut down Raft server", e);
-    } finally {
-      mStateMachine.afterServerClosing();
     }
     LOG.info("Journal shutdown complete");
   }
@@ -1176,10 +1172,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .add("Cluster", mClusterAddresses)
         .add("RaftGroup", mRaftGroup)
         .toString();
-  }
-
-  Optional<JournalStateMachine> getStateMachine() {
-    return Optional.of(mStateMachine);
   }
 
   /**
