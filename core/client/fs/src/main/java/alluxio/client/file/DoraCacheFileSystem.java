@@ -37,10 +37,14 @@ import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.io.PathUtils;
 
 import com.codahale.metrics.Counter;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -84,6 +88,11 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
       return mDoraClient.getStatus(ufsFullPath.toString(), mergedOptions);
     } catch (RuntimeException ex) {
+      if (ex instanceof StatusRuntimeException) {
+        if (((StatusRuntimeException) ex).getStatus().equals(Status.NOT_FOUND)) {
+          throw new FileNotFoundException();
+        }
+      }
       UFS_FALLBACK_COUNTER.inc();
       LOG.debug("Dora client get status error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
@@ -136,6 +145,12 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     try {
       return mDoraClient.listStatus(ufsFullPath.toString(), options);
     } catch (RuntimeException ex) {
+      if (ex instanceof StatusRuntimeException) {
+        if (((StatusRuntimeException) ex).getStatus().equals(Status.NOT_FOUND)) {
+          return Collections.emptyList();
+        }
+      }
+
       UFS_FALLBACK_COUNTER.inc();
       LOG.debug("Dora client list status error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
