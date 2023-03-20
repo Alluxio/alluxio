@@ -31,7 +31,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
-import alluxio.rocks.RocksProtocol;
+import alluxio.rocks.RocksLocker;
 import alluxio.util.SleepUtils;
 import alluxio.util.io.PathUtils;
 
@@ -69,10 +69,7 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -84,7 +81,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * File store backed by RocksDB.
  */
 @ThreadSafe
-public class RocksInodeStore extends RocksProtocol implements InodeStore {
+public class RocksInodeStore extends RocksLocker implements InodeStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksInodeStore.class);
   private static final String INODES_DB_NAME = "inodes";
   private static final String INODES_COLUMN = "inodes";
@@ -324,13 +321,12 @@ public class RocksInodeStore extends RocksProtocol implements InodeStore {
   public void clear() {
     // Block all new readers and make concurrent readers bail asap
     LOG.info("Marking RocksDB closed so all concurrent read/write should stop");
-    try (LockResource lock = lockForClosing()) {
+    try (LockResource lock = lockForClearing()) {
       LOG.info("Clearing RocksDB");
       mRocksStore.clear();
     }
     // Reset the DB state and prepare to serve again
     LOG.info("RocksDB ready to serve again");
-    updateVersionAndReopen();
   }
 
   @Override
