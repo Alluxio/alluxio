@@ -5453,6 +5453,48 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
                   .setScope(Scope.SERVER)
                   .build();
+  public static final PropertyKey PROXY_S3_V2_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER =
+      intBuilder(Name.PROXY_S3_V2_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER)
+          .setDefaultValue(8)
+          .setDescription("Core thread number for async light thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_V2_ASYNC_LIGHT_POOL_MAXIMUM_THREAD_NUMBER =
+      intBuilder(Name.PROXY_S3_V2_ASYNC_LIGHT_POOL_MAXIMUM_THREAD_NUMBER)
+          .setDefaultValue(64)
+          .setDescription("Maximum thread number for async light thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_V2_ASYNC_LIGHT_POOL_QUEUE_SIZE =
+      intBuilder(Name.PROXY_S3_V2_ASYNC_LIGHT_POOL_QUEUE_SIZE)
+          .setDefaultValue(64 * 1024)
+          .setDescription("Queue size for async light thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_V2_ASYNC_HEAVY_POOL_CORE_THREAD_NUMBER =
+      intBuilder(Name.PROXY_S3_V2_ASYNC_HEAVY_POOL_CORE_THREAD_NUMBER)
+          .setDefaultValue(8)
+          .setDescription("Core thread number for async heavy thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_V2_ASYNC_HEAVY_POOL_MAXIMUM_THREAD_NUMBER =
+      intBuilder(Name.PROXY_S3_V2_ASYNC_HEAVY_POOL_MAXIMUM_THREAD_NUMBER)
+          .setDefaultValue(64)
+          .setDescription("Maximum thread number for async heavy thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_V2_ASYNC_HEAVY_POOL_QUEUE_SIZE =
+      intBuilder(Name.PROXY_S3_V2_ASYNC_HEAVY_POOL_QUEUE_SIZE)
+          .setDefaultValue(64 * 1024)
+          .setDescription("Queue size for async heavy thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       durationBuilder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
           .setAlias("alluxio.proxy.stream.cache.timeout.ms")
@@ -8765,6 +8807,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             "alluxio.proxy.s3.v2.version.enabled";
     public static final String PROXY_S3_V2_ASYNC_PROCESSING_ENABLED =
             "alluxio.proxy.s3.v2.async.processing.enabled";
+    public static final String PROXY_S3_V2_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER =
+        "alluxio.proxy.s3.v2.async.light.pool.core.thread.number";
+    public static final String PROXY_S3_V2_ASYNC_LIGHT_POOL_MAXIMUM_THREAD_NUMBER =
+        "alluxio.proxy.s3.v2.async.light.pool.maximum.thread.number";
+    public static final String PROXY_S3_V2_ASYNC_LIGHT_POOL_QUEUE_SIZE =
+        "alluxio.proxy.s3.v2.async.light.pool.queue.size";
+    public static final String PROXY_S3_V2_ASYNC_HEAVY_POOL_CORE_THREAD_NUMBER =
+        "alluxio.proxy.s3.v2.async.heavy.pool.core.thread.number";
+    public static final String PROXY_S3_V2_ASYNC_HEAVY_POOL_MAXIMUM_THREAD_NUMBER =
+        "alluxio.proxy.s3.v2.async.heavy.pool.maximum.thread.number";
+    public static final String PROXY_S3_V2_ASYNC_HEAVY_POOL_QUEUE_SIZE =
+        "alluxio.proxy.s3.v2.async.heavy.pool.queue.size";
     public static final String S3_UPLOADS_ID_XATTR_KEY = "s3_uploads_mulitpartupload_id";
     public static final String PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS =
         "alluxio.proxy.s3.bucketpathcache.timeout";
