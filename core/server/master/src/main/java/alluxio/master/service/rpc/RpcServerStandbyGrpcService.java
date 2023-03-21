@@ -75,9 +75,4 @@ public class RpcServerStandbyGrpcService extends RpcServerService {
     startGrpcServer(Master::getStandbyServices);
     mIsPromoted = false;
   }
-
-  @Override
-  public synchronized boolean isServing() {
-    return mIsPromoted;
-  }
 }

@@ -1,6 +1,18 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.snapshot;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.concurrent.jsr.CompletableFuture;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -38,6 +50,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 
+@SuppressFBWarnings("UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR")
 public class SnapshotBench {
   @State(Scope.Benchmark)
   public static class Snapshot {
@@ -76,7 +89,7 @@ public class SnapshotBench {
       FileSystemMaster master = mMasterProcess.getMaster(FileSystemMaster.class);
       for (int i = 0; i < 1_000_000; i++) {
         if (i % 100_000 == 0) {
-          System.out.printf("Creating file%d\n", i);
+          System.out.printf("Creating file%d%n", i);
         }
         AlluxioURI alluxioURI = new AlluxioURI("/file" + i);
         master.createFile(alluxioURI, CreateFileContext.defaults());

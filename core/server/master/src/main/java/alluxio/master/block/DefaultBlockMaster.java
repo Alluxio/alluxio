@@ -367,7 +367,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public Map<ServiceType, GrpcService> getStandbyServices() {
-    return getServices();
+    if (Configuration.getBoolean(PropertyKey.STANDBY_MASTER_GRPC_WORKER_REGISTRATION)) {
+      return getServices();
+    }
+    return Collections.emptyMap();
   }
 
   @Override

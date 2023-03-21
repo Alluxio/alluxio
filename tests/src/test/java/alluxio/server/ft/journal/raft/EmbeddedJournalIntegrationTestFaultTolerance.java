@@ -260,7 +260,7 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
 
     // this operation creates more that numFiles log entries
     for (int i = 0; i < numFile; i++) {
-      mCluster.getFileSystemClient().createFile(new AlluxioURI(String.format("/%d", i)));
+      mCluster.getFileSystemClient().createFile(new AlluxioURI(String.format("/%d", i))).close();
     }
 
     Map<String, MetricValue> metrics = mCluster.getMetricsMasterClient().getMetrics();
