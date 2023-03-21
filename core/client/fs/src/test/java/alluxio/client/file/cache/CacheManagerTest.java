@@ -64,10 +64,10 @@ public class CacheManagerTest {
     CacheManagerOptions cacheManagerOptions = CacheManagerOptions.create(mConf);
     CacheManager manager =
         CacheManager.Factory.create(mConf, cacheManagerOptions,
-            PageMetaStore.create(cacheManagerOptions));
+            PageMetaStore.create(cacheManagerOptions), () -> { });
     assertNotEquals(manager,
         CacheManager.Factory.create(mConf, cacheManagerOptions,
-            PageMetaStore.create(cacheManagerOptions)));
+            PageMetaStore.create(cacheManagerOptions), () -> { }));
   }
 
   @Test

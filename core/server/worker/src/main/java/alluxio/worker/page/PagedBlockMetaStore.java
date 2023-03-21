@@ -404,16 +404,18 @@ public class PagedBlockMetaStore implements PageMetaStore {
         usedBytesOnDirs.build(), blockOnDirs.build());
   }
 
-  @Override
   @GuardedBy("getLock().readLock()")
-  public void reportBlocks(PageStoreDir pageStoreDir) {
-    final PagedBlockStoreDir pagedBlockStoreDir = downcast(pageStoreDir);
-    Set<PagedBlockMeta> blockMetas = mBlocks.getByField(INDEX_STORE_DIR, pagedBlockStoreDir);
-    for (PagedBlockMeta blockMeta : blockMetas) {
-      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-        synchronized (listener) {
-          listener.onMoveBlockByWorker(blockMeta.getBlockId(),
-              blockMeta.getBlockLocation(), blockMeta.getBlockLocation());
+  public void reportBlocks() {
+    final List<PageStoreDir> pageStoreDirs = getStoreDirs();
+    for (PageStoreDir pageStoreDir : pageStoreDirs) {
+      final PagedBlockStoreDir pagedBlockStoreDir = downcast(pageStoreDir);
+      Set<PagedBlockMeta> blockMetas = mBlocks.getByField(INDEX_STORE_DIR, pagedBlockStoreDir);
+      for (PagedBlockMeta blockMeta : blockMetas) {
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          synchronized (listener) {
+            listener.onMoveBlockByWorker(blockMeta.getBlockId(),
+                blockMeta.getBlockLocation(), blockMeta.getBlockLocation());
+          }
         }
       }
     }

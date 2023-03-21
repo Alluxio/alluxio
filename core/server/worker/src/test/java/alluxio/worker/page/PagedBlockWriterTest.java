@@ -101,7 +101,7 @@ public class PagedBlockWriterTest {
     mPageStoreDir.reset();
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));
     mCacheManager =
-        LocalCacheManager.create(mCachemanagerOptions, mPageMetaStore);
+        LocalCacheManager.create(mCachemanagerOptions, mPageMetaStore, () -> { });
     CommonUtils.waitFor("restore completed",
         () -> mCacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(10000));

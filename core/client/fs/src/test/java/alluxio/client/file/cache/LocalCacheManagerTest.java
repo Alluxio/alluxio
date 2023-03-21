@@ -146,7 +146,7 @@ public final class LocalCacheManagerTest {
       PageMetaStore pageMetaStore) throws Exception {
     mCacheManagerOptions = CacheManagerOptions.create(conf);
     LocalCacheManager cacheManager =
-        LocalCacheManager.create(mCacheManagerOptions, pageMetaStore);
+        LocalCacheManager.create(mCacheManagerOptions, pageMetaStore, () -> { });
     CommonUtils.waitFor("restore completed",
         () -> cacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(10000));
@@ -160,7 +160,7 @@ public final class LocalCacheManagerTest {
         PathUtils.concatPath(mTemp.getRoot().getAbsolutePath(), UUID.randomUUID().toString()));
     mPageMetaStore =
         new DefaultPageMetaStore(PageStoreDir.createPageStoreDirs(mCacheManagerOptions));
-    assertNotNull(LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore));
+    assertNotNull(LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore, () -> { }));
   }
 
   @Test
@@ -170,7 +170,7 @@ public final class LocalCacheManagerTest {
         PathUtils.concatPath(mTemp.getRoot().getAbsolutePath(), UUID.randomUUID().toString()));
     mPageMetaStore =
         new DefaultPageMetaStore(PageStoreDir.createPageStoreDirs(mCacheManagerOptions));
-    assertNotNull(LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore));
+    assertNotNull(LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore, () -> { }));
   }
 
   @Test
@@ -183,7 +183,7 @@ public final class LocalCacheManagerTest {
     try {
       mPageMetaStore =
           new DefaultPageMetaStore(PageStoreDir.createPageStoreDirs(mCacheManagerOptions));
-      LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
+      LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore, () -> { });
       fail();
     } catch (Exception e) {
       // expected
@@ -203,7 +203,7 @@ public final class LocalCacheManagerTest {
       mPageMetaStore =
           new DefaultPageMetaStore(PageStoreDir.createPageStoreDirs(mCacheManagerOptions));
       mCacheManager =
-          LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
+          LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore, () -> { });
       CommonUtils.waitFor("async restore completed",
           () -> mCacheManager.state() == CacheManager.State.NOT_IN_USE,
           WaitForOptions.defaults().setTimeoutMs(10000));
@@ -644,7 +644,7 @@ public final class LocalCacheManagerTest {
     slowGetPageStoreDir.getPageStore().put(PAGE_ID1, PAGE1);
     slowGetPageStoreDir.getPageStore().put(pageUuid, PAGE2);
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(slowGetPageStoreDir));
-    mCacheManager = LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
+    mCacheManager = LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore, () -> { });
 
     assertEquals(CacheManager.State.READ_ONLY, mCacheManager.state());
     Thread.sleep(1000); // some buffer to restore page1
@@ -683,7 +683,7 @@ public final class LocalCacheManagerTest {
     String rootDir = mPageStoreOptions.getRootDir().toString();
     FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
-    mCacheManager = LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
+    mCacheManager = LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore, () -> { });
     assertEquals(CacheManager.State.READ_WRITE, mCacheManager.state());
     assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
@@ -723,7 +723,7 @@ public final class LocalCacheManagerTest {
     Assume.assumeTrue(rootParent.setWritable(false));
     try {
       mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
-      LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
+      LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore, () -> { });
     } catch (Exception e) {
       // expected case
     } finally {
@@ -746,7 +746,7 @@ public final class LocalCacheManagerTest {
     Assume.assumeTrue(rootParent.setWritable(false));
     try {
       mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
-      mCacheManager = LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
+      mCacheManager = LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore, () -> { });
       CommonUtils.waitFor("async restore completed",
           () -> mCacheManager.state() == CacheManager.State.NOT_IN_USE,
           WaitForOptions.defaults().setTimeoutMs(10000));
@@ -774,7 +774,7 @@ public final class LocalCacheManagerTest {
         PAGE1.length + PAGE2.length + 1));
     dir = PageStoreDir.createPageStoreDirs(mCacheManagerOptions).get(0);
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
-    mCacheManager = LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
+    mCacheManager = LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore, () -> { });
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
     assertEquals(PAGE2.length, mCacheManager.get(PAGE_ID2, PAGE2.length, mBuf, 0));
