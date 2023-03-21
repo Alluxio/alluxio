@@ -182,7 +182,9 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
       return metricsResponses;
     }
     for (BlockWorkerInfo worker : workers) {
-      String url = String.format("http://%s:%s%s", worker.getNetAddress().getHost(),
+      String workerAddress = worker.getNetAddress().getContainerHost().equals("")
+          ? worker.getNetAddress().getHost() : worker.getNetAddress().getContainerHost();
+      String url = String.format("http://%s:%s%s", workerAddress,
           fsContext.getClusterConf().get(PropertyKey.WORKER_WEB_PORT),
           METRICS_SERVLET_PATH);
       LOG.info(String.format("Metric address URL: %s", url));
