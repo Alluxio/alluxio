@@ -904,6 +904,20 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "valid when using the embedded journal.")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_DISK_HISTOGRAM =
+      new Builder("Master.EmbeddedJournalSnapshotDownloadDiskHistogram")
+          .setDescription("Describes the size on disk of the snapshot downloaded from another "
+              + "master in the cluster. Only valid when using the embedded journal. "
+              + "Long running average.")
+          .setMetricType(MetricType.HISTOGRAM)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DOWNLOAD_DISK_SIZE =
+      new Builder("Master.EmbeddedJournalLastSnapshotDownloadDiskSize")
+          .setDescription("Describes the size on disk of the snapshot downloaded from "
+              + "other masters in the cluster the previous time the download occurred. Only "
+              + "valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_HISTOGRAM =
       new Builder("Master.EmbeddedJournalSnapshotUploadHistogram")
           .setDescription("Describes the size of the snapshot uploaded to another master in "
@@ -913,6 +927,19 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_UPLOAD_SIZE =
       new Builder("Master.EmbeddedJournalLastSnapshotUploadSize")
           .setDescription("Describes the size of the snapshot uploaded to "
+              + "other masters in the cluster the previous time the download occurred. Only "
+              + "valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_DISK_HISTOGRAM =
+      new Builder("Master.EmbeddedJournalSnapshotUploadDiskHistogram")
+          .setDescription("Describes the size on disk of the snapshot uploaded to another master "
+              + "in the cluster. Only valid when using the embedded journal. Long running average.")
+          .setMetricType(MetricType.HISTOGRAM)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_UPLOAD_DISK_SIZE =
+      new Builder("Master.EmbeddedJournalLastSnapshotUploadDiskSize")
+          .setDescription("Describes the size on disk of the snapshot uploaded to "
               + "other masters in the cluster the previous time the download occurred. Only "
               + "valid when using the embedded journal.")
           .setMetricType(MetricType.GAUGE)

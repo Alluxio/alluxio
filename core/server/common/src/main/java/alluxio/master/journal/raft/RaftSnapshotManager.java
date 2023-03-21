@@ -65,6 +65,7 @@ public class RaftSnapshotManager implements AutoCloseable {
 
   private long mLastSnapshotDownloadDuration = -1;
   private long mLastSnapshotDownloadSize = -1;
+  private long mLastSnapshotDownloadDiskSize = -1;
 
   @Nullable
   private CompletableFuture<Long> mDownloadFuture = null;
@@ -91,6 +92,9 @@ public class RaftSnapshotManager implements AutoCloseable {
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DOWNLOAD_SIZE.getName(),
         () -> mLastSnapshotDownloadSize);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DOWNLOAD_DISK_SIZE.getName(),
+        () -> mLastSnapshotDownloadDiskSize);
   }
 
   /**
@@ -238,7 +242,12 @@ public class RaftSnapshotManager implements AutoCloseable {
           mLastSnapshotDownloadSize = mTotalBytesRead;
         }
       }) {
-        TarUtils.readTarGz(mStorage.getTmpDir().toPath(), snapshotInStream);
+        mLastSnapshotDownloadDiskSize = TarUtils.readTarGz(mStorage.getTmpDir().toPath(),
+            snapshotInStream);
+        MetricsSystem.histogram(
+                MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_DISK_HISTOGRAM.getName())
+            .update(mLastSnapshotDownloadDiskSize);
+        LOG.debug("Total extracted bytes of snapshot: {}", mLastSnapshotDownloadDiskSize);
       }
 
       File finalSnapshotDestination = new File(mStorage.getSnapshotDir(),

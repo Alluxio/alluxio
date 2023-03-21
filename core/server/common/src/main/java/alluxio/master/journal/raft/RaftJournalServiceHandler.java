@@ -52,6 +52,7 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
   private final StateMachineStorage mStateMachineStorage;
   private long mLastSnapshotUploadDuration = -1;
   private long mLastSnapshotUploadSize = -1;
+  private long mLastSnapshotUploadDiskSize = -1;
 
   /**
    * @param storage the storage that the state machine uses for its snapshots
@@ -65,6 +66,9 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_UPLOAD_SIZE.getName(),
         () -> mLastSnapshotUploadSize);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_UPLOAD_DISK_SIZE.getName(),
+        () -> mLastSnapshotUploadDiskSize);
   }
 
   @Override
@@ -146,7 +150,12 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
       }
     }) {
       LOG.debug("Begin snapshot upload of {}", index);
-      TarUtils.writeTarGz(snapshotPath, snapshotOutStream, mSnapshotCompressionLevel);
+      mLastSnapshotUploadDiskSize = TarUtils.writeTarGz(snapshotPath, snapshotOutStream,
+          mSnapshotCompressionLevel);
+      MetricsSystem.histogram(
+          MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_DISK_HISTOGRAM.getName())
+          .update(mLastSnapshotUploadDiskSize);
+      LOG.debug("Total snapshot uncompressed bytes: {}", mLastSnapshotUploadDiskSize);
     } catch (Exception e) {
       LOG.info("Failed to upload snapshot {}", index);
       responseObserver.onError(e);
