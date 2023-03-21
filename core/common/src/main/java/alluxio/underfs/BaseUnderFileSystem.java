@@ -27,6 +27,7 @@ import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,7 @@ import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -161,6 +163,19 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   @Override
   public boolean isSeekable() {
     return false;
+  }
+
+  @Nullable
+  @Override
+  public Iterator<UfsStatus> listStatusIterable(
+      String path, ListOptions options, String startAfter, int batchSize) throws IOException {
+  // TODO just calling listStatus might result in OOM
+  // implements a better iterator that fetches objects on demand
+    UfsStatus[] result = listStatus(path, options);
+    if (result == null) {
+      return null;
+    }
+    return Iterators.forArray(result);
   }
 
   @Override

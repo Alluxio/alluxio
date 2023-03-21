@@ -368,7 +368,7 @@
         <exclusions>
           <exclusion>
             <groupId>io.netty</groupId>
-            <artifactId>*</artifactId>
+            <artifactId>logback-classic</artifactId>
           </exclusion>
         </exclusions>
       </dependency>

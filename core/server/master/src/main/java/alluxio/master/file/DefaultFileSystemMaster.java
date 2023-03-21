@@ -528,7 +528,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     FileSystemContext schedulerFsContext = FileSystemContext.create();
     JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(this);
     mScheduler = new Scheduler(new DefaultWorkerProvider(this, schedulerFsContext), jobMetaStore);
-    mLoadManager = new alluxio.master.file.loadmanager.LoadManager(this);
     mMetadataSyncer = new MetadataSyncer(
         this, mInodeStore, mMountTable, mInodeTree, getSyncPathCache());
 
@@ -4165,10 +4164,11 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
      */
-
+    boolean isRecursive = context.getOptions().getIsRecursive();
+    DescendantType descendantType = isRecursive ? DescendantType.ALL : DescendantType.ONE;
     try (RpcContext rpcContext = createRpcContext()) {
-      SyncResult result = mMetadataSyncer.sync(path, new MetadataSyncContext(
-          path, DescendantType.ALL, rpcContext, MetadataSyncer.NO_TTL_OPTION, null));
+      SyncResult result = syncMetadataInternal(path, descendantType, 1000);
+      /*
       System.out.println("Sync duration: " + result.getSyncDuration() + " ms");
       System.out.println("# of Inodes created: " + result.getSuccessOperationCount()
           .getOrDefault(SyncOperation.CREATE, 0L));
@@ -4180,8 +4180,36 @@ public class DefaultFileSystemMaster extends CoreMaster
           .getOrDefault(SyncOperation.DELETE, 0L));
       System.out.println("# of Inodes were not changed: " + result.getSuccessOperationCount()
           .getOrDefault(SyncOperation.NOOP, 0L));
+       */
     } catch (Exception e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  @VisibleForTesting
+  SyncResult syncMetadataInternal(AlluxioURI path, DescendantType descendantType)
+      throws UnavailableException, AccessControlException, InvalidPathException {
+    return syncMetadataInternal(path, descendantType, 1000);
+  }
+
+  @VisibleForTesting
+  SyncResult syncMetadataInternal(AlluxioURI path, DescendantType descendantType, int batchSize)
+      throws UnavailableException, AccessControlException, InvalidPathException {
+    try (RpcContext rpcContext = createRpcContext()) {
+      SyncResult result = mMetadataSyncer.sync(path, new MetadataSyncContext(
+          path, descendantType, rpcContext, MetadataSyncer.NO_TTL_OPTION, null, batchSize));
+      System.out.println("Sync duration: " + result.getSyncDuration() + " ms");
+      System.out.println("# of Inodes created: " + result.getSuccessOperationCount()
+          .getOrDefault(SyncOperation.CREATE, 0L));
+      System.out.println("# of Inodes recreated: " + result.getSuccessOperationCount()
+          .getOrDefault(SyncOperation.RECREATE, 0L));
+      System.out.println("# of Inodes updated: " + result.getSuccessOperationCount()
+          .getOrDefault(SyncOperation.UPDATE, 0L));
+      System.out.println("# of Inodes deleted: " + result.getSuccessOperationCount()
+          .getOrDefault(SyncOperation.DELETE, 0L));
+      System.out.println("# of Inodes were not changed: " + result.getSuccessOperationCount()
+          .getOrDefault(SyncOperation.NOOP, 0L));
+      return result;
     }
   }
 

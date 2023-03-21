@@ -55,6 +55,12 @@ public class MetadataSyncContext {
   private Long mSyncStartTime = null;
   private Long mSyncFinishTime = null;
 
+  public int getBatchSize() {
+    return mBatchSize;
+  }
+
+  private int mBatchSize = 1000;
+
   @Nullable
   private SyncFailReason mFailReason = null;
 
@@ -63,7 +69,7 @@ public class MetadataSyncContext {
   public MetadataSyncContext(
       AlluxioURI syncRootPath,
       DescendantType descendantType, RpcContext rpcContext, FileSystemMasterCommonPOptions commonOptions,
-      @Nullable String startAfter) {
+      @Nullable String startAfter, int batchSize) {
     mSyncRootPath = syncRootPath;
     mDescendantType = descendantType;
     mRpcContext = rpcContext;
@@ -75,6 +81,7 @@ public class MetadataSyncContext {
         throw new RuntimeException("relative path is expected");
       }
       mStartAfter = startAfter;
+      mBatchSize = batchSize;
       // TODO do something like this
       /*
       if (startAfter.startsWith(AlluxioURI.SEPARATOR)) {
@@ -154,16 +161,16 @@ public class MetadataSyncContext {
   public SyncResult success() {
     Preconditions.checkNotNull(mSyncStartTime);
     mSyncFinishTime = CommonUtils.getCurrentMs();
-    return new SyncResult(true, mSyncFinishTime - mSyncStartTime, mSuccessMap, mFailedMap);
+    return new SyncResult(true, mSyncFinishTime - mSyncStartTime, mSuccessMap, mFailedMap, null);
   }
 
   public SyncResult fail() {
     Preconditions.checkNotNull(mSyncStartTime);
     mSyncFinishTime = CommonUtils.getCurrentMs();
-    return new SyncResult(false, mSyncFinishTime - mSyncStartTime, mSuccessMap, mFailedMap);
+    return new SyncResult(false, mSyncFinishTime - mSyncStartTime, mSuccessMap, mFailedMap, mFailReason);
   }
 
-  public AlluxioURI getSyncRootPath() {
-    return mSyncRootPath;
-  }
+//  public AlluxioURI getSyncRootPath() {
+//    return mSyncRootPath;
+//  }
 }

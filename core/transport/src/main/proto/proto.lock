@@ -4252,14 +4252,14 @@
                 "out_type": "StopJobPResponse"
               },
               {
-                "name": "SyncMetadata",
-                "in_type": "SyncMetadataPRequest",
-                "out_type": "SyncMetadataPResponse"
-              },
-              {
                 "name": "GetJobProgress",
                 "in_type": "GetJobProgressPRequest",
                 "out_type": "GetJobProgressPResponse"
+              },
+              {
+                "name": "SyncMetadata",
+                "in_type": "SyncMetadataPRequest",
+                "out_type": "SyncMetadataPResponse"
               }
             ]
           },

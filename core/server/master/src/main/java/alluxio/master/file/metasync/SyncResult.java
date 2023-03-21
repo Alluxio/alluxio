@@ -12,6 +12,7 @@
 package alluxio.master.file.metasync;
 
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * Metadata sync results.
@@ -19,11 +20,13 @@ import java.util.Map;
 public class SyncResult {
   public SyncResult(boolean success, long syncDuration,
                     Map<SyncOperation, Long> successOperationCount,
-                    Map<SyncOperation, Long> failedOperationCount) {
+                    Map<SyncOperation, Long> failedOperationCount,
+                    @Nullable SyncFailReason failReason) {
     mSuccess = success;
     mSyncDuration = syncDuration;
     mSuccessOperationCount = successOperationCount;
     mFailedOperationCount = failedOperationCount;
+    mSyncFailReason = failReason;
   }
 
   private final boolean mSuccess;
@@ -31,6 +34,8 @@ public class SyncResult {
 
   private final Map<SyncOperation, Long> mSuccessOperationCount;
   private final Map<SyncOperation, Long> mFailedOperationCount;
+
+  private @Nullable final SyncFailReason mSyncFailReason;
 
   public long getSyncDuration() {
     return mSyncDuration;
@@ -42,6 +47,10 @@ public class SyncResult {
 
   public Map<SyncOperation, Long> getFailedOperationCount() {
     return mFailedOperationCount;
+  }
+
+  public @Nullable SyncFailReason getFailReason() {
+    return mSyncFailReason;
   }
 
   /**

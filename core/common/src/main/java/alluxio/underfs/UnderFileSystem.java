@@ -644,11 +644,10 @@ public interface UnderFileSystem extends Closeable {
   @Nullable
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
 
-  default Iterator<UfsStatus> listStatusIterable(
-      String path, ListOptions options, String startAfter, int batchSize)
-      throws IOException {
-    throw new RuntimeException("operation not supported");
-  }
+
+  @Nullable
+  Iterator<UfsStatus> listStatusIterable(
+      String path, ListOptions options, String startAfter, int batchSize) throws IOException;
 
   default PartialListingResult listStatusPartial(String path, ListPartialOptions options)
       throws IOException {

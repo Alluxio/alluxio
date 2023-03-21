@@ -41,6 +41,7 @@ import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metastore.ReadOption;
@@ -54,6 +55,7 @@ import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.ListOptions;
+import alluxio.underfs.s3a.AlluxioS3Exception;
 import alluxio.util.CommonUtils;
 import alluxio.util.IteratorUtils;
 
@@ -64,6 +66,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
@@ -127,7 +130,8 @@ public class MetadataSyncer {
    * @param context the metadata sync context
    * @return the metadata sync result
    */
-  public SyncResult sync(AlluxioURI path, MetadataSyncContext context) throws Exception {
+  public SyncResult sync(AlluxioURI path, MetadataSyncContext context)
+      throws AccessControlException, InvalidPathException, UnavailableException {
     if (!mDedupConcurrentSync) {
       return syncInternal(path, context);
     }
@@ -149,79 +153,103 @@ public class MetadataSyncer {
     context.startSync();
     long startTime = CommonUtils.getCurrentMs();
     // TODO what if this path doesn't map to a ufs path
-    UnderFileSystem ufs = mMountTable.resolve(path).acquireUfsResource().get();
+    try (CloseableResource<UnderFileSystem> ufs = mMountTable.resolve(path).acquireUfsResource()) {
+      /*
+      if (context.getDescendantType() == DescendantType.ALL) {
+        if (!ufs.get().getUnderFSType().equals("s3")) {
+          LOG.error(
+              "If descendant type is ALL, the directory and its children mount points must use s3 ufs");
+          context.setFailReason(SyncFailReason.UNSUPPORTED);
+          return context.fail();
+        }
+        List<MountInfo> childrenMountPoints = mMountTable.findChildrenMountPoints(path, false);
+        for (MountInfo mountInfo : childrenMountPoints) {
+          try (CloseableResource<UnderFileSystem> childUfs = mMountTable.resolve(
+              mountInfo.getAlluxioUri()).acquireUfsResource()) {
+            if (!childUfs.get().getUnderFSType().equals("s3")) {
+              LOG.error(
+                  "If descendant type is ALL, the directory and its children mount points must use s3 ufs");
+              context.setFailReason(SyncFailReason.UNSUPPORTED);
+              return context.fail();
+            }
+          }
+        }
+      }
+       */
 
-    MountTable.Resolution resolution = mMountTable.resolve(path);
+      MountTable.Resolution resolution = mMountTable.resolve(path);
 
-    UfsStatus ufsSyncPathRoot = null;
-    Inode inodeSyncRoot = null;
-    try {
-      ufsSyncPathRoot = ufs.getStatus(resolution.getUri().getPath());
-      ufsSyncPathRoot.setName("");
-    } catch (FileNotFoundException ignored) {
-      // No-op
-    } catch (IOException e) {
-      handleUfsIOException(context, path, e);
-      return context.fail();
-    }
-    // TODO how to handle race condition here
-    try (LockedInodePath lockedInodePath = mInodeTree.lockInodePath(
-        path, InodeTree.LockPattern.READ, context.getRpcContext().getJournalContext())) {
-      inodeSyncRoot = lockedInodePath.getInodeOrNull();
-    }
-    InodeIterationResult inodeWithName = null;
-    if (inodeSyncRoot != null) {
-      inodeWithName = new InodeIterationResult(inodeSyncRoot, "");
-    }
-    System.out.println("-------Syncing root-------------");
-    try {
-      syncOne(context, path, ufsSyncPathRoot, inodeWithName);
-    } catch (AlluxioException | IOException e) {
-      return context.fail();
-    }
-    if (context.getDescendantType() == DescendantType.NONE
-        || ufsSyncPathRoot != null && ufsSyncPathRoot.isFile()) {
+      UfsStatus ufsSyncPathRoot = null;
+      Inode inodeSyncRoot = null;
+      try {
+        ufsSyncPathRoot = ufs.get().getStatus(resolution.getUri().getPath());
+        ufsSyncPathRoot.setName("");
+      } catch (FileNotFoundException ignored) {
+        // No-op
+      } catch (IOException | AlluxioS3Exception e) {
+        handleUfsIOException(context, path, e);
+        return context.fail();
+      }
+      // TODO how to handle race condition here
+      try (LockedInodePath lockedInodePath = mInodeTree.lockInodePath(
+          path, InodeTree.LockPattern.READ, context.getRpcContext().getJournalContext())) {
+        inodeSyncRoot = lockedInodePath.getInodeOrNull();
+      }
+      InodeIterationResult inodeWithName = null;
+      if (inodeSyncRoot != null) {
+        inodeWithName = new InodeIterationResult(inodeSyncRoot, "");
+      }
+      System.out.println("-------Syncing root-------------");
+      try {
+        syncOne(context, path, ufsSyncPathRoot, inodeWithName);
+      } catch (AlluxioException | IOException e) {
+        return context.fail();
+      }
+      if (context.getDescendantType() == DescendantType.NONE
+          || ufsSyncPathRoot != null && ufsSyncPathRoot.isFile()) {
+        return context.success();
+      }
+
+      System.out.println("-------Syncing children-------------");
+      final Iterator<UfsStatus> ufsStatusIterator;
+      try {
+        ufsStatusIterator = ufs.get().listStatusIterable(
+            resolution.getUri().toString(),
+            ListOptions.defaults().setRecursive(context.isRecursive()),
+            context.getStartAfter(),
+            // TODO batch size check
+            context.getBatchSize()
+        );
+      } catch (IOException | AlluxioS3Exception e) {
+        handleUfsIOException(context, path, e);
+        return context.fail();
+      }
+      // Directory does not exist
+      if (ufsStatusIterator == null) {
+        return context.success();
+      }
+
+      long syncRootInodeId = mFsMaster.getFileId(path);
+      ReadOption.Builder readOptionBuilder = ReadOption.newBuilder();
+      readOptionBuilder.setReadFrom(context.getStartAfter());
+      try (SkippableInodeIterator inodeIterator = mInodeStore.getSkippableChildrenIterator(
+          syncRootInodeId, readOptionBuilder.build(), context.isRecursive())) {
+        updateMetadata(path, context, inodeIterator, ufsStatusIterator, context.getStartAfter());
+      } catch (IOException | AlluxioS3Exception e) {
+        handleUfsIOException(context, path, e);
+        return context.fail();
+      } catch (AlluxioException e) {
+        return context.fail();
+      }
+      if (inodeSyncRoot.isDirectory()) {
+        mInodeTree.setDirectChildrenLoaded(() -> context.getRpcContext().getJournalContext(),
+            inodeSyncRoot.asDirectory());
+      }
+      mUfsSyncPathCache.notifySyncedPath(
+          path, context.getDescendantType(), startTime, null, inodeSyncRoot.isFile());
+      context.updateDirectChildrenLoaded(mInodeTree);
       return context.success();
     }
-
-    System.out.println("-------Syncing children-------------");
-    final Iterator<UfsStatus> ufsStatusIterator;
-    try {
-      ufsStatusIterator = ufs.listStatusIterable(
-          path.getPath(),
-          ListOptions.defaults().setRecursive(context.isRecursive()),
-          context.getStartAfter(),
-          2
-      );
-    } catch (IOException e) {
-      handleUfsIOException(context, path, e);
-      return context.fail();
-    }
-    // Directory does not exist
-    if (ufsStatusIterator == null) {
-      return context.success();
-    }
-
-    long syncRootInodeId = mFsMaster.getFileId(path);
-    ReadOption.Builder readOptionBuilder = ReadOption.newBuilder();
-    readOptionBuilder.setReadFrom(context.getStartAfter());
-    try (SkippableInodeIterator inodeIterator = mInodeStore.getSkippableChildrenIterator(
-        syncRootInodeId, readOptionBuilder.build(), context.isRecursive())) {
-      updateMetadata(path, context, inodeIterator, ufsStatusIterator, context.getStartAfter());
-    } catch (IOException e) {
-      handleUfsIOException(context, path, e);
-      return context.fail();
-    } catch (AlluxioException e) {
-      return context.fail();
-    }
-    if (inodeSyncRoot.isDirectory()) {
-      mInodeTree.setDirectChildrenLoaded(() -> context.getRpcContext().getJournalContext(),
-          inodeSyncRoot.asDirectory());
-    }
-    mUfsSyncPathCache.notifySyncedPath(
-        path, context.getDescendantType(), startTime, null, inodeSyncRoot.isFile());
-    context.updateDirectChildrenLoaded(mInodeTree);
-    return context.success();
   }
 
   /**
@@ -243,11 +271,13 @@ public class MetadataSyncer {
     boolean mMoveUfs;
     boolean mMoveInode;
     boolean mSkipChildren;
+    boolean mLoadChildrenMountpoint;
 
-    public SingleInodeSyncResult(boolean mMoveUfs, boolean mMoveInode, boolean mSkipChildren) {
+    public SingleInodeSyncResult(boolean mMoveUfs, boolean mMoveInode, boolean mSkipChildren, boolean mLoadChildrenMountpoint) {
       this.mMoveUfs = mMoveUfs;
       this.mMoveInode = mMoveInode;
       this.mSkipChildren = mSkipChildren;
+      this.mLoadChildrenMountpoint = mLoadChildrenMountpoint;
     }
   }
 
@@ -314,6 +344,10 @@ public class MetadataSyncer {
 
       SingleInodeSyncResult result = syncOne(
           context, syncRootPath, currentUfsStatus, currentInode);
+      if (result.mLoadChildrenMountpoint) {
+        // TODO this should be submitted as a job
+        this.sync(syncRootPath.join(currentInode.getName()), context);
+      }
       if (result.mSkipChildren) {
         alluxioInodeIterator.skipChildrenOfTheCurrent();
       }
@@ -337,6 +371,23 @@ public class MetadataSyncer {
       @Nullable InodeIterationResult currentInode)
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
       IOException, BlockInfoException, DirectoryNotEmptyException, AccessControlException {
+    // Check if the inode is the mount point, if yes, just skip this one
+    if (currentInode != null) {
+      // TODO this can be optimized. We don't need to check isMountPoint on every inode.
+      boolean isMountPoint = mMountTable.isMountPoint(syncRootPath.join(currentInode.getName()));
+      if (isMountPoint) {
+        // TODO this code is incorrect
+        boolean skipUfs =  currentUfsStatus != null
+            && !currentInode.getName().equals("")
+            && currentUfsStatus.getName().equals(currentInode.getName());
+        if (skipUfs) {
+          context.reportSyncOperationSuccess(SyncOperation.SKIPPED_ON_MOUNT_POINT);
+        }
+        return new SingleInodeSyncResult(
+            skipUfs, true, true, context.getDescendantType() == DescendantType.ALL);
+      }
+    }
+
     Optional<Integer> comparisonResult = currentInode != null && currentUfsStatus != null
         ? Optional.of(currentInode.getName().compareTo(currentUfsStatus.getName())) :
         Optional.empty();
@@ -356,7 +407,7 @@ public class MetadataSyncer {
         handleConcurrentModification(
             context, syncRootPath.join(currentUfsStatus.getName()).getPath(), e);
       }
-      return new SingleInodeSyncResult(true, false, false);
+      return new SingleInodeSyncResult(true, false, false, false);
     } else if (currentUfsStatus == null || comparisonResult.get() < 0) {
       try (LockedInodePath lockedInodePath = mInodeTree.lockInodePath(
           syncRootPath.join(currentInode.getName()), InodeTree.LockPattern.WRITE_EDGE,
@@ -367,7 +418,7 @@ public class MetadataSyncer {
         handleConcurrentModification(
             context, syncRootPath.join(currentInode.getName()).getPath(), e);
       }
-      return new SingleInodeSyncResult(false, true, true);
+      return new SingleInodeSyncResult(false, true, true, false);
     }
     // HDFS also fetches ACL list, which is ignored for now
     MountTable.Resolution resolution = mMountTable.resolve(syncRootPath.join(currentInode.getName()));
@@ -389,7 +440,12 @@ public class MetadataSyncer {
           context.reportSyncOperationSuccess(SyncOperation.UPDATE);
         } else if (syncPlan.toDelete() && syncPlan.toLoadMetadata()) {
           deleteFile(context, lockedInodePath);
-          createInodeFileMetadata(context, lockedInodePath, currentUfsStatus, resolution);
+          lockedInodePath.removeLastInode();
+          if (currentUfsStatus.isDirectory()) {
+            createInodeDirectoryMetadata(context, lockedInodePath, currentUfsStatus);
+          } else {
+            createInodeFileMetadata(context, lockedInodePath, currentUfsStatus, resolution);
+          }
           context.reportSyncOperationSuccess(SyncOperation.RECREATE);
         } else {
           throw new IllegalStateException("We should never reach here.");
@@ -401,10 +457,10 @@ public class MetadataSyncer {
     } else {
       context.reportSyncOperationSuccess(SyncOperation.NOOP);
     }
-    return new SingleInodeSyncResult(true, true, false);
+    return new SingleInodeSyncResult(true, true, false, false);
   }
 
-  private void handleUfsIOException(MetadataSyncContext context, AlluxioURI path, IOException e) {
+  private void handleUfsIOException(MetadataSyncContext context, AlluxioURI path, Exception e) {
     LOG.error("Sync on {} failed due to UFS IO Exception", path.toString(), e);
     context.setFailReason(SyncFailReason.UFS_IO_FAILURE);
   }

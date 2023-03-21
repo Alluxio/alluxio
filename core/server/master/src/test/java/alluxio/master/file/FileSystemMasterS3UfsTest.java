@@ -62,7 +62,7 @@ public final class FileSystemMasterS3UfsTest extends FileSystemMasterTestBase {
     Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2");
     Configuration.set(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true);
     Configuration.set(PropertyKey.S3A_ACCESS_KEY, "_");
-    Configuration.set(PropertyKey.S3A_SECRET_KEY, "_");
+    Configuration.set(PropertyKey.S3A_SECRET_KEY, "_'");
 
     AwsClientBuilder.EndpointConfiguration
         endpoint = new AwsClientBuilder.EndpointConfiguration(
