@@ -25,13 +25,17 @@ import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ReadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Dora cache client.
@@ -98,6 +102,30 @@ public class DoraCacheClient {
         .setOpenUfsBlockOptions(ufsOptions)
         .setChunkSize(mChunkSize);
     return new NettyDataReader.Factory(mContext, workerNetAddress, builder);
+  }
+
+  /**
+   * List Status from Worker.
+   * @param path
+   * @param options
+   * @return list of URIStatus
+   * @throws RuntimeException
+   */
+  public List<URIStatus> listStatus(String path, ListStatusPOptions options)
+      throws RuntimeException {
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+      List<URIStatus> result = new ArrayList<>();
+      client.get().listStatus(ListStatusPRequest.newBuilder().setPath(path)
+              .setOptions(options).build())
+          .forEachRemaining(
+              (pListStatusResponse) -> result.addAll(pListStatusResponse.getFileInfosList().stream()
+                  .map((pFileInfo) -> new URIStatus(GrpcUtils.fromProto(pFileInfo)))
+                  .collect(Collectors.toList())));
+      return result;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**

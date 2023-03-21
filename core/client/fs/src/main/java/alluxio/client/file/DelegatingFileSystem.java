@@ -27,6 +27,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
@@ -37,6 +38,8 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.job.JobDescription;
+import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
@@ -45,6 +48,7 @@ import alluxio.wire.SyncPointInfo;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -242,20 +246,19 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
-      boolean usePartialListing, boolean verify) {
-    return mDelegatedFileSystem.submitLoad(path, bandwidth, usePartialListing, verify);
+  public Optional<String> submitJob(JobRequest jobRequest) {
+    return mDelegatedFileSystem.submitJob(jobRequest);
   }
 
   @Override
-  public boolean stopLoad(AlluxioURI path) {
-    return mDelegatedFileSystem.stopLoad(path);
+  public boolean stopJob(JobDescription jobDescription) {
+    return mDelegatedFileSystem.stopJob(jobDescription);
   }
 
   @Override
-  public String getLoadProgress(AlluxioURI path,
-      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
-    return mDelegatedFileSystem.getLoadProgress(path, format, verbose);
+  public String getJobProgress(JobDescription jobDescription,
+      JobProgressReportFormat format, boolean verbose) {
+    return mDelegatedFileSystem.getJobProgress(jobDescription, format, verbose);
   }
 
   @Override

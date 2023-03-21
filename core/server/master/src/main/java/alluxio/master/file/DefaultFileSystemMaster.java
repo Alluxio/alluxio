@@ -20,6 +20,7 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.Server;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.client.job.JobMasterClientPool;
 import alluxio.clock.SystemClock;
@@ -123,6 +124,9 @@ import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metrics.TimeSeriesStore;
+import alluxio.master.scheduler.DefaultWorkerProvider;
+import alluxio.master.scheduler.JournaledJobMetaStore;
+import alluxio.master.scheduler.Scheduler;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
@@ -405,7 +409,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   /** Used to check pending/running backup from RPCs. */
   private final CallTracker mStateLockCallTracker;
-  private final alluxio.master.file.loadmanager.LoadManager mLoadManager;
+  private final Scheduler mScheduler;
 
   final Clock mClock;
 
@@ -509,7 +513,9 @@ public class DefaultFileSystemMaster extends CoreMaster
     mSyncPrefetchExecutor.allowCoreThreadTimeOut(true);
     mSyncMetadataExecutor.allowCoreThreadTimeOut(true);
     mActiveSyncMetadataExecutor.allowCoreThreadTimeOut(true);
-    mLoadManager = new alluxio.master.file.loadmanager.LoadManager(this);
+    FileSystemContext schedulerFsContext = FileSystemContext.create();
+    JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(this);
+    mScheduler = new Scheduler(new DefaultWorkerProvider(this, schedulerFsContext), jobMetaStore);
 
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
@@ -520,7 +526,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         add(mMountTable);
         add(mUfsManager);
         add(mSyncManager);
-        add(mLoadManager);
+        add(jobMetaStore);
       }
     };
     mJournaledGroup = new JournaledGroup(journaledComponents, CheckpointName.FILE_SYSTEM_MASTER);
@@ -564,7 +570,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE, new GrpcService(
-        ServerInterceptors.intercept(new FileSystemMasterClientServiceHandler(this, mLoadManager),
+        ServerInterceptors.intercept(new FileSystemMasterClientServiceHandler(this, mScheduler),
             new ClientIpAddressInjector())));
     services.put(ServiceType.FILE_SYSTEM_MASTER_JOB_SERVICE,
         new GrpcService(new FileSystemMasterJobServiceHandler(this)));
@@ -750,7 +756,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
       mAccessTimeUpdater.start();
       mSyncManager.start();
-      mLoadManager.start();
+      mScheduler.start();
     }
   }
 
@@ -762,7 +768,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
     mSyncManager.stop();
     mAccessTimeUpdater.stop();
-    mLoadManager.stop();
+    mScheduler.stop();
     super.stop();
   }
 
@@ -1122,7 +1128,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             boolean isLoaded = true;
             if (inodePath.fullPathExists()) {
               inode = inodePath.getInode();
-              if (inode.isDirectory()
+              if (inode.isDirectory() && !context.getOptions().getDisableAreDescendantsLoadedCheck()
                   && context.getOptions().getLoadMetadataType() != LoadMetadataPType.ALWAYS) {
                 InodeDirectory inodeDirectory = inode.asDirectory();
                 isLoaded = inodeDirectory.isDirectChildrenLoaded();
@@ -5335,10 +5341,10 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
-   * Get load manager.
-   * @return load manager
+   * Get scheduler.
+   * @return scheduler
    */
-  public alluxio.master.file.loadmanager.LoadManager getLoadManager() {
-    return mLoadManager;
+  public Scheduler getScheduler() {
+    return mScheduler;
   }
 }

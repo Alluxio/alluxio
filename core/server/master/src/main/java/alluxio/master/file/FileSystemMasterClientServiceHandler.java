@@ -37,6 +37,8 @@ import alluxio.grpc.FreePRequest;
 import alluxio.grpc.FreePResponse;
 import alluxio.grpc.GetFilePathPRequest;
 import alluxio.grpc.GetFilePathPResponse;
+import alluxio.grpc.GetJobProgressPRequest;
+import alluxio.grpc.GetJobProgressPResponse;
 import alluxio.grpc.GetMountTablePRequest;
 import alluxio.grpc.GetMountTablePResponse;
 import alluxio.grpc.GetNewBlockIdForFilePRequest;
@@ -49,6 +51,7 @@ import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.ListStatusPartialPRequest;
@@ -69,14 +72,21 @@ import alluxio.grpc.SetAttributePRequest;
 import alluxio.grpc.SetAttributePResponse;
 import alluxio.grpc.StartSyncPRequest;
 import alluxio.grpc.StartSyncPResponse;
+import alluxio.grpc.StopJobPRequest;
+import alluxio.grpc.StopJobPResponse;
 import alluxio.grpc.StopSyncPRequest;
 import alluxio.grpc.StopSyncPResponse;
+import alluxio.grpc.SubmitJobPRequest;
+import alluxio.grpc.SubmitJobPResponse;
 import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UnmountPResponse;
 import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateMountPResponse;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
+import alluxio.job.JobDescription;
+import alluxio.job.JobRequest;
+import alluxio.job.util.SerializationUtils;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
@@ -93,7 +103,10 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.job.JobFactoryProducer;
+import alluxio.master.scheduler.Scheduler;
 import alluxio.recorder.Recorder;
+import alluxio.scheduler.job.Job;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -117,19 +130,19 @@ public final class FileSystemMasterClientServiceHandler
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMasterClientServiceHandler.class);
   private final FileSystemMaster mFileSystemMaster;
-  private final alluxio.master.file.loadmanager.LoadManager mLoadManager;
+  private final Scheduler mScheduler;
 
   /**
    * Creates a new instance of {@link FileSystemMasterClientServiceHandler}.
    *
    * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
-   * @param loadManager the {@link alluxio.master.file.loadmanager.LoadManager}
+   * @param scheduler the {@link Scheduler}
    */
   public FileSystemMasterClientServiceHandler(FileSystemMaster fileSystemMaster,
-      alluxio.master.file.loadmanager.LoadManager loadManager) {
+      Scheduler scheduler) {
     Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
     mFileSystemMaster = fileSystemMaster;
-    mLoadManager = Preconditions.checkNotNull(loadManager, "loadManager");
+    mScheduler = Preconditions.checkNotNull(scheduler, "scheduler");
   }
 
   @Override
@@ -488,38 +501,44 @@ public final class FileSystemMasterClientServiceHandler
   }
 
   @Override
-  public void loadPath(alluxio.grpc.LoadPathPRequest request,
-      StreamObserver<alluxio.grpc.LoadPathPResponse> responseObserver) {
+  public void submitJob(SubmitJobPRequest request,
+      StreamObserver<SubmitJobPResponse> responseObserver) {
+
     RpcUtils.call(LOG, () -> {
-      boolean submitted = mLoadManager.submitLoad(
-          request.getPath(),
-          request.getOptions().hasBandwidth()
-              ? java.util.OptionalLong.of(request.getOptions().getBandwidth())
-              : java.util.OptionalLong.empty(),
-          request.getOptions().hasPartialListing() && request.getOptions().getPartialListing(),
-          request.getOptions().hasVerify() && request.getOptions().getVerify());
-      return alluxio.grpc.LoadPathPResponse.newBuilder()
-          .setNewLoadSubmitted(submitted)
-          .build();
-    }, "LoadPath", "request=%s", responseObserver, request);
+      JobRequest jobRequest;
+      try {
+        jobRequest = (JobRequest) SerializationUtils.deserialize(request
+            .getRequestBody()
+            .toByteArray());
+      } catch (Exception e) {
+        throw new IllegalArgumentException("fail to parse job request", e);
+      }
+      Job<?> job = JobFactoryProducer.create(jobRequest, mFileSystemMaster).create();
+      boolean submitted = mScheduler.submitJob(job);
+      SubmitJobPResponse.Builder builder = SubmitJobPResponse.newBuilder();
+      if (submitted) {
+        builder.setJobId(job.getJobId());
+      }
+      return builder.build();
+    }, "submitJob", "request=%s", responseObserver, request);
   }
 
   @Override
-  public void stopLoadPath(alluxio.grpc.StopLoadPathPRequest request,
-      StreamObserver<alluxio.grpc.StopLoadPathPResponse> responseObserver) {
+  public void stopJob(StopJobPRequest request,
+      StreamObserver<StopJobPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      boolean stopped = mLoadManager.stopLoad(request.getPath());
-      return alluxio.grpc.StopLoadPathPResponse.newBuilder()
-          .setExistingLoadStopped(stopped)
+      boolean stopped = mScheduler.stopJob(JobDescription.from(request.getJobDescription()));
+      return alluxio.grpc.StopJobPResponse.newBuilder()
+          .setJobStopped(stopped)
           .build();
-    }, "stopLoadPath", "request=%s", responseObserver, request);
+    }, "stopJob", "request=%s", responseObserver, request);
   }
 
   @Override
-  public void getLoadProgress(alluxio.grpc.GetLoadProgressPRequest request,
-      StreamObserver<alluxio.grpc.GetLoadProgressPResponse> responseObserver) {
+  public void getJobProgress(GetJobProgressPRequest request,
+      StreamObserver<GetJobProgressPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      alluxio.grpc.LoadProgressReportFormat format = alluxio.grpc.LoadProgressReportFormat.TEXT;
+      JobProgressReportFormat format = JobProgressReportFormat.TEXT;
       if (request.hasOptions() && request.getOptions().hasFormat()) {
         format = request.getOptions().getFormat();
       }
@@ -527,11 +546,11 @@ public final class FileSystemMasterClientServiceHandler
       if (request.hasOptions() && request.getOptions().hasVerbose()) {
         verbose = request.getOptions().getVerbose();
       }
-      return alluxio.grpc.GetLoadProgressPResponse.newBuilder()
-          .setProgressReport(mLoadManager.getLoadProgress(
-              request.getPath(), format, verbose))
+      return GetJobProgressPResponse.newBuilder()
+          .setProgressReport(mScheduler.getJobProgress(
+              JobDescription.from(request.getJobDescription()), format, verbose))
           .build();
-    }, "getLoadProgress", "request=%s", responseObserver, request);
+    }, "getJobProgress", "request=%s", responseObserver, request);
   }
 
   /**
