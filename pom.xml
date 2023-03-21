@@ -171,6 +171,7 @@
     <jnr-fuse.version>0.5.5</jnr-fuse.version>
     <kerby.version>1.0.1</kerby.version>
     <fastutil.version>8.5.9</fastutil.version>
+    <s3mock.version>0.2.6</s3mock.version>
   </properties>
 
   <modules>
@@ -715,6 +716,12 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava-testlib</artifactId>
         <version>${guava.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.findify</groupId>
+        <artifactId>s3mock_2.13</artifactId>
+        <version>${s3mock.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
