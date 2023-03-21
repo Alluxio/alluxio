@@ -15,8 +15,8 @@ import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.BlockWorkerGrpc;
-import alluxio.grpc.ErrorType;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcUtils;
@@ -33,7 +33,6 @@ import alluxio.worker.dora.PagedDoraWorker;
 
 import com.google.common.collect.ImmutableMap;
 import io.grpc.MethodDescriptor;
-import io.grpc.Status;
 import io.grpc.stub.CallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -121,9 +120,8 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       UfsStatus[] statuses = mWorker.listStatus(request.getPath(), options);
       if (statuses == null) {
         responseObserver.onError(
-            new AlluxioRuntimeException(Status.NOT_FOUND,
-                String.format("%s Not Found", request.getPath()),
-                null, ErrorType.User, false).toGrpcStatusRuntimeException());
+            new NotFoundRuntimeException(String.format("%s Not Found", request.getPath()))
+                .toGrpcStatusRuntimeException());
         return;
       }
 
