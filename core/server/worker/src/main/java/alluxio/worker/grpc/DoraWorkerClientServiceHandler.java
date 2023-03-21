@@ -14,6 +14,8 @@ package alluxio.worker.grpc;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
@@ -36,7 +38,6 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
@@ -106,7 +107,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       responseObserver.onCompleted();
     } catch (IOException e) {
       LOG.debug(String.format("Failed to get status of %s: ", request.getPath()), e);
-      responseObserver.onError(e);
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }
 
@@ -120,7 +121,9 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
           request.getOptions().hasRecursive() ? request.getOptions().getRecursive() : false);
       UfsStatus[] statuses = mWorker.listStatus(request.getPath(), options);
       if (statuses == null) {
-        responseObserver.onError(new FileNotFoundException("File or Directory Not Found"));
+        responseObserver.onError(
+            new NotFoundRuntimeException(String.format("%s Not Found", request.getPath()))
+                .toGrpcStatusRuntimeException());
         return;
       }
 
@@ -147,7 +150,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       responseObserver.onCompleted();
     } catch (Exception e) {
       LOG.error(String.format("Failed to list status of %s: ", request.getPath()), e);
-      responseObserver.onError(e);
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }
 }
