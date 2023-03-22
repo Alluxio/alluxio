@@ -15,6 +15,7 @@ import static org.junit.Assert.assertArrayEquals;
 
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 
+import alluxio.resource.LockResource;
 import com.google.common.primitives.Longs;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,6 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+// TODO(jiacheng): add locks in this test
 public class RocksStoreTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -73,8 +75,10 @@ public class RocksStoreTest {
     store =
         new RocksStore("test-new", newBbDir, backupsDir, dbOpts, columnDescriptors,
             Arrays.asList(testColumn));
-    store.restoreFromCheckpoint(
-        new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
+    try (LockResource lock = store.lockForRestoring()) {
+      store.restoreFromCheckpoint(
+          new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
+    }
     db = store.getDb();
     for (int i = 0; i < count; i++) {
       assertArrayEquals("b".getBytes(), db.get(testColumn.get(), ("a" + i).getBytes()));

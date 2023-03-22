@@ -17,8 +17,6 @@ import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
 import alluxio.proto.client.Cache;
 
-import alluxio.resource.LockResource;
-import alluxio.rocks.RocksLocker;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -39,9 +37,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -50,7 +45,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * will not be included to client jar by default to reduce client jar size.
  */
 @NotThreadSafe
-public class RocksPageStore extends RocksLocker implements PageStore {
+public class RocksPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
   private static final String PAGE_COLUMN = "PAGE";
   private static final byte[] CONF_KEY = "CONF".getBytes();
@@ -65,11 +60,6 @@ public class RocksPageStore extends RocksLocker implements PageStore {
   private final DBOptions mRocksOptions;
 
   private final WriteOptions mWriteOptions = new WriteOptions();
-
-  // When this is true, stop serving all requests as the RocksDB is being closed
-  protected final AtomicBoolean mClosed = new AtomicBoolean(false);
-  // A lock to prevent concurrent r/w when the RocksDB is closing/restarting
-  private final ReadWriteLock mStateLock = new ReentrantReadWriteLock();
 
   /**
    * @param pageStoreOptions options for the rocks page store
@@ -163,9 +153,6 @@ public class RocksPageStore extends RocksLocker implements PageStore {
       RocksDB rocksDB,
       ColumnFamilyHandle defaultColumnHandle,
       ColumnFamilyHandle pageColumnHandle) {
-    // Init RocksDB thread safety protocol
-    super();
-
     mCapacity =
         (long) (pageStoreOptions.getCacheSize() / (1 + pageStoreOptions.getOverheadRatio()));
     mRocksOptions = rocksOptions;
@@ -176,7 +163,7 @@ public class RocksPageStore extends RocksLocker implements PageStore {
 
   @Override
   public void put(PageId pageId, ByteBuffer page, boolean isTemporary) throws IOException {
-    try (LockResource lock = checkAndAcquireReadLock()) {
+    try {
       //TODO(beinan): support temp page for rocksdb page store
       ByteBuffer key = getKeyFromPageId(pageId, page.isDirect());
       if (page.isDirect()) {
@@ -193,7 +180,7 @@ public class RocksPageStore extends RocksLocker implements PageStore {
   public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
       boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
-    try (LockResource lock = checkAndAcquireReadLock()) {
+    try {
       byte[] key = getKeyFromPageId(pageId, false).array();
       byte[] page = mDb.get(mPageColumnHandle, key);
       if (page == null) {
@@ -212,7 +199,7 @@ public class RocksPageStore extends RocksLocker implements PageStore {
 
   @Override
   public void delete(PageId pageId) throws PageNotFoundException {
-    try (LockResource lock = checkAndAcquireReadLock()) {
+    try {
       byte[] key = getKeyFromPageId(pageId, false).array();
       mDb.delete(mPageColumnHandle, key);
     } catch (RocksDBException e) {
@@ -222,21 +209,11 @@ public class RocksPageStore extends RocksLocker implements PageStore {
 
   @Override
   public void close() {
-    LOG.info("RocksPageStore is being closed");
-    try (LockResource lock = lockForClosing()) {
-      LOG.info("Closing RocksPageStore and recycling all RocksDB JNI objects");
-      if (mDb != null) {
-        try {
-          // Column handles must be closed before closing the db, or an exception gets thrown.
-          mDefaultColumnHandle.close();
-          mPageColumnHandle.close();
-          mDb.close();
-          mRocksOptions.close();
-        } catch (Throwable t) {
-          LOG.error("Failed to close rocks database", t);
-        }
-      }
-    }
+    LOG.info("Closing RocksPageStore and recycling all RocksDB JNI objects");
+    mDb.close();
+    mRocksOptions.close();
+    mDefaultColumnHandle.close();
+    mPageColumnHandle.close();
     LOG.info("RocksPageStore closed");
   }
 
@@ -271,9 +248,7 @@ public class RocksPageStore extends RocksLocker implements PageStore {
   /**
    * @return a new iterator for the rocksdb
    */
-  protected RocksIterator createNewIterator() {
-    try (LockResource lock = checkAndAcquireReadLock()) {
-      return mDb.newIterator(mPageColumnHandle);
-    }
+  public RocksIterator createNewInterator() {
+    return mDb.newIterator(mPageColumnHandle);
   }
 }

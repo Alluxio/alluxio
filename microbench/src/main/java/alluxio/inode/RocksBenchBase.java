@@ -43,6 +43,7 @@ public class RocksBenchBase {
   static final String SER_NO_ALLOC_READ = "serNoAllocRead";
   static final String NO_SER_NO_ALLOC_READ = "noSerNoAllocRead";
 
+  // TODO(jiacheng): close these objects properly
   private final RocksInodeStore mRocksInodeStore;
   private final RocksDB mDB;
   private final AtomicReference<ColumnFamilyHandle> mInodesColumn;
