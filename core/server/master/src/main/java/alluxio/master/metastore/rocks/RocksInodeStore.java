@@ -680,12 +680,12 @@ public class RocksInodeStore implements InodeStore {
 
   /**
    * A testing only method to access the internal objects.
+   * For simplicity, no thread safety is provided on the escaping objects.
+   *
    * @return the RocksDB objects references the InodesColumn
    */
   @VisibleForTesting
   public Pair<RocksDB, AtomicReference<ColumnFamilyHandle>> getDBInodeColumn() {
-    mRocksStore.abortIfClosing();
-    // TODO(jiacheng): this is not safe, rectify RocksBench
     return new Pair<>(db(), mInodesColumn);
   }
 }
