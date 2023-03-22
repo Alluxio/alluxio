@@ -360,9 +360,6 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   public void close() {
     LOG.info("RocksBlockStore is being closed");
     try (LockResource lock = mRocksStore.lockForClosing()) {
-      // TODO(jiacheng): keep grace period?
-      // Sleep to wait for all concurrent readers to either complete or abort
-      SleepUtils.sleepMs(Configuration.getMs(PropertyKey.ROCKS_GRACEFUL_SHUTDOWN_TIMEOUT));
       mSize.reset();
       LOG.info("Closing RocksBlockStore and recycling all RocksDB JNI objects");
       mRocksStore.close();

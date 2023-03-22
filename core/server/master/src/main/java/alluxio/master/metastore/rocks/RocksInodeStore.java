@@ -16,7 +16,6 @@ import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
@@ -629,9 +628,6 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   public void close() {
     LOG.info("RocksBlockStore is being closed");
     try (LockResource lock = mRocksStore.lockForClosing()) {
-      // TODO(jiacheng): still need the grace period?
-      // Sleep to wait for all concurrent readers to either complete or abort
-      SleepUtils.sleepMs(Configuration.getMs(PropertyKey.ROCKS_GRACEFUL_SHUTDOWN_TIMEOUT));
       LOG.info("Closing RocksInodeStore and recycling all RocksDB JNI objects");
       mRocksStore.close();
       mDisableWAL.close();
