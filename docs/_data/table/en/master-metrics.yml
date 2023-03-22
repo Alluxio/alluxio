@@ -22,6 +22,8 @@ Master.BlockHeapSize:
   'An estimate of the blocks heap size'
 Master.BlockReplicaCount:
   'Total number of block replicas in Alluxio'
+Master.CachedBlockLocations:
+  'Total number of cached block locations'
 Master.CompleteFileOps:
   'Total number of the CompleteFile operations'
 Master.CompletedOperationRetryCount:
