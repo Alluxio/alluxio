@@ -14,11 +14,10 @@ package alluxio.worker.dora;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.underfs.UfsManager;
-import alluxio.worker.DataWorker;
 import alluxio.worker.Worker;
 import alluxio.worker.WorkerFactory;
-import alluxio.worker.WorkerRegistry;
+
+import com.google.inject.Inject;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -41,6 +40,7 @@ public class DoraWorkerFactory implements WorkerFactory {
    *
    * @param conf configuration
    */
+  @Inject
   public DoraWorkerFactory(AlluxioConfiguration conf) {
     mConf = conf;
     mEnabled = mConf.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
@@ -52,10 +52,7 @@ public class DoraWorkerFactory implements WorkerFactory {
   }
 
   @Override
-  public Worker create(WorkerRegistry registry, UfsManager ufsManager) {
-    final PagedDoraWorker doraWorker = new PagedDoraWorker(new AtomicReference<>(-1L), mConf);
-    registry.add(DoraWorker.class, doraWorker);
-    registry.addAlias(DataWorker.class, doraWorker);
-    return doraWorker;
+  public Worker create() {
+    return new PagedDoraWorker(new AtomicReference<>(-1L), mConf);
   }
 }

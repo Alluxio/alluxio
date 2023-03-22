@@ -25,6 +25,7 @@ import alluxio.resource.ResourcePool;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,6 +122,7 @@ public final class BlockLockManager {
   /**
    * Constructs a new {@link BlockLockManager}.
    */
+  @Inject
   public BlockLockManager() {
   }
 

@@ -28,13 +28,18 @@ import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.underfs.UfsManager;
 import alluxio.util.io.PathUtils;
+import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
+import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreType;
 import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.MonoBlockStore;
+import alluxio.worker.block.TieredBlockReaderFactory;
 import alluxio.worker.block.TieredBlockStore;
+import alluxio.worker.block.TieredBlockWriterFactory;
+import alluxio.worker.block.TieredTempBlockMetaFactory;
 import alluxio.worker.block.io.BlockWriter;
 
 import com.google.common.collect.ImmutableList;
@@ -143,7 +148,12 @@ public class ShortCircuitBlockReadHandlerTest {
     when(pool.acquire()).thenReturn(cli);
 
     setStaticInternalState(TieredBlockStore.class, "REMOVE_BLOCK_TIMEOUT_MS", 1000L);
-    TieredBlockStore tieredBlockStore = new TieredBlockStore();
+    TieredBlockStore tieredBlockStore = new TieredBlockStore(
+        BlockMetadataManager.createBlockMetadataManager(),
+        new BlockLockManager(),
+        new TieredBlockReaderFactory(),
+        new TieredBlockWriterFactory(),
+        new TieredTempBlockMetaFactory());
 
     mBlockStore = new MonoBlockStore(tieredBlockStore, pool,
         mock(UfsManager.class), new AtomicReference<>(1L));

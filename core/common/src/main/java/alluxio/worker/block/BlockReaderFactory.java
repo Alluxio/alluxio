@@ -9,24 +9,23 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker;
+package alluxio.worker.block;
 
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.meta.BlockMeta;
+
+import java.io.IOException;
 
 /**
- * Interface for factory of {@link Worker}.
+ * Factory for block reader.
  */
-@ThreadSafe
-public interface WorkerFactory {
+public interface BlockReaderFactory {
   /**
-   * @return whether the worker is enabled
+   * @param sessionId
+   * @param blockMeta
+   * @param offset
+   * @return block reader
    */
-  boolean isEnabled();
-
-  /**
-   * Factory method to create a new worker instance.
-   *
-   * @return a new {@link Worker} instance
-   */
-  Worker create();
+  BlockReader createBlockReader(long sessionId, BlockMeta blockMeta, long offset)
+      throws IOException;
 }

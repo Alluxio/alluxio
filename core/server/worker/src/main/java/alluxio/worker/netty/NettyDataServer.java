@@ -14,11 +14,13 @@ package alluxio.worker.netty;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.network.ChannelType;
+import alluxio.underfs.UfsManager;
 import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
-import alluxio.worker.WorkerProcess;
+import alluxio.worker.dora.DoraWorker;
 
 import com.google.common.base.Throwables;
+import com.google.inject.Inject;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
@@ -32,9 +34,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.inject.Named;
 
 /**
  * Runs a netty data server that responds to block requests.
@@ -43,8 +47,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class NettyDataServer implements DataServer {
   private static final Logger LOG = LoggerFactory.getLogger(NettyDataServer.class);
 
-  private final ServerBootstrap mBootstrap;
-  private final ChannelFuture mChannelFuture;
+  private ServerBootstrap mBootstrap;
+  private ChannelFuture mChannelFuture;
+  private final UfsManager mUfsManager;
+  private final DoraWorker mDoraWorker;
   private final SocketAddress mSocketAddress;
   private final long mQuietPeriodMs =
       Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
@@ -54,14 +60,22 @@ public final class NettyDataServer implements DataServer {
   /**
    * Creates a new instance of {@link NettyDataServer}.
    *
-   * @param address the server address
-   * @param workerProcess the Alluxio worker process
+   * @param nettyBindAddress the server address
+   * @param ufsManager the UfsManager object
+   * @param doraWorker the DoraWorker object
    */
-  public NettyDataServer(final SocketAddress address, final WorkerProcess workerProcess) {
-    mSocketAddress = address;
-    mBootstrap = createBootstrap().childHandler(new PipelineHandler(workerProcess));
+  @Inject
+  public NettyDataServer(
+      @Named("NettyBindAddress") InetSocketAddress nettyBindAddress,
+      UfsManager ufsManager,
+      DoraWorker doraWorker) {
+    mSocketAddress = nettyBindAddress;
+    mUfsManager = ufsManager;
+    mDoraWorker = doraWorker;
+    mBootstrap = createBootstrap().childHandler(
+        new PipelineHandler(mUfsManager, mDoraWorker));
     try {
-      mChannelFuture = mBootstrap.bind(address).sync();
+      mChannelFuture = mBootstrap.bind(nettyBindAddress).sync();
     } catch (InterruptedException e) {
       throw Throwables.propagate(e);
     }
