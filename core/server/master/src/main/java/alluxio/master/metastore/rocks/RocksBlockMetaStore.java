@@ -427,13 +427,15 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
    * 2. Journal dumping like checkpoint/backup sequences
    */
   public CloseableIterator<Block> getCloseableIterator() {
-    // TODO(jiacheng): hold the lock until the end
-    try (LockResource lock = mRocksStore.checkAndAcquireReadLock()) {
-      RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
-      return RocksUtils.createCloseableIterator(iterator,
-          (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())),
-              mRocksStore::isServiceStopping, mRocksStore::checkAndAcquireReadLock);
-    }
+    LockResource lock = mRocksStore.checkAndAcquireReadLock();
+
+    RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
+    return RocksUtils.createCloseableIterator(iterator,
+        (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())),
+        () -> {
+          mRocksStore.abortIfClosing();
+          return null;
+        }, lock);
   }
 
   private RocksDB db() {
