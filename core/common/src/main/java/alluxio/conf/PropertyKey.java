@@ -782,13 +782,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + " be used.", Name.CONF_DIR))
           .setScope(Scope.ALL)
           .build();
-  public static final PropertyKey ROCKS_GRACEFUL_SHUTDOWN_TIMEOUT =
-      durationBuilder(Name.ROCKS_GRACEFUL_SHUTDOWN_TIMEOUT)
-          .setDefaultValue("1s")
-          .setDescription("Wait for a graceful timeout period for all readers to either complete or abort, "
-              + "so that when all RocksDB resources are closed, there are not concurrent readers.")
-          .setScope(Scope.ALL)
-          .build();
   public static final PropertyKey NETWORK_IP_ADDRESS_USED =
       booleanBuilder(Name.NETWORK_IP_ADDRESS_USED)
           .setDefaultValue(false)
@@ -7567,7 +7560,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String ROCKS_INODE_CONF_FILE = "alluxio.site.conf.rocks.inode.file";
     public static final String ROCKS_BLOCK_CONF_FILE = "alluxio.site.conf.rocks.block.file";
-    public static final String ROCKS_GRACEFUL_SHUTDOWN_TIMEOUT = "alluxio.rocks.graceful.shutdown.timeout";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String TMP_DIRS = "alluxio.tmp.dirs";
     public static final String USER_LOGS_DIR = "alluxio.user.logs.dir";
