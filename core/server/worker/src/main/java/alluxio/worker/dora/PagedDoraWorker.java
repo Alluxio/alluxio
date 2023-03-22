@@ -140,6 +140,17 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
     mPageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
     mBlockMasterClientPool = new BlockMasterClientPool();
+
+    String dbDir = Configuration.getString(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR);
+    Duration duration = Configuration.getDuration(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_TTL);
+    long ttl = duration.isZero() || duration.isNegative() ? -1 : duration.getSeconds();
+    try {
+      mMetaStore = new RocksDBDoraMetaStore(dbDir, ttl);
+    } catch (RuntimeException e) {
+      LOG.error("Cannot init RocksDBDoraMetaStore. Continue without MetaStore", e);
+      mMetaStore = null;
+    }
+
     try {
       CacheManagerOptions options = CacheManagerOptions.createForWorker(Configuration.global());
       PageMetaStore metaStore = PageMetaStore.create(options);
@@ -198,12 +209,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             ImmutableMap.of(),
             Configuration.getConfiguration(Scope.WORKER));
         LOG.info("Worker registered with worker ID: {}", mWorkerId.get());
-        String dbDir = Configuration.getString(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR);
-        Duration duration =
-            Configuration.getDuration(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_TTL);
-        long ttl = duration.isZero() || duration.isNegative() ? -1 : duration.getSeconds();
 
-        mMetaStore = new RocksDBDoraMetaStore(dbDir, ttl);
         break;
       } catch (IOException ioe) {
         if (!retry.attempt()) {
@@ -220,7 +226,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public void close() throws IOException {
-    mMetaStore.close();
+    if (mMetaStore != null) {
+      mMetaStore.close();
+    }
     try (AutoCloseable ignoredCloser = mResourceCloser;
          AutoCloseable ignoredCacheManager = mCacheManager
     ) {
@@ -260,30 +268,32 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         -1;
 
     DoraMeta.FileStatus status = mUfsStatusCache.getIfPresent(ufsFullPath);
-    if (syncIntervalMs >= 0) {
-      // do metadata sync as the user requires.
-      if (status != null) {
-        long tsMS = status.getTs();
-        if (tsMS + syncIntervalMs < System.currentTimeMillis()) {
-          // The metadata is expired according to user requirement.
-          mUfsStatusCache.invalidate(ufsFullPath);
-          status = null;
-        }
+    if (syncIntervalMs >= 0 && status != null) {
+      // Check if the metadata is still valid.
+      if (System.currentTimeMillis() - status.getTs() > syncIntervalMs) {
+        // The metadata is expired. Remove it from in-memory cache.
+        mUfsStatusCache.invalidate(ufsFullPath);
+        status = null;
       }
     }
     if (status == null) {
       // The requested FileStatus is not present in memory cache.
       // Let's try to query local persistent DoraMetaStore.
-      Optional<DoraMeta.FileStatus> fs = mMetaStore.getDoraMeta(ufsFullPath);
-      if (syncIntervalMs >= 0) {
-        // do metadata sync as the user requires.
-        if (fs.isPresent()) {
-          long tsMS = fs.get().getTs();
-          if (tsMS + syncIntervalMs < System.currentTimeMillis()) {
-            // The metadata is expired according to user requirement.
+      Optional<DoraMeta.FileStatus> fs;
+      if (mMetaStore != null) {
+        fs = mMetaStore.getDoraMeta(ufsFullPath);
+      } else {
+        // The MetaStore is not ready. Treat this as not found.
+        fs = Optional.empty();
+      }
+      if (syncIntervalMs >= 0 && fs.isPresent()) {
+        // Check if the metadata is still valid.
+        if (System.currentTimeMillis() - fs.get().getTs() > syncIntervalMs) {
+          // The metadata is expired. Remove it from RocksDB.
+          if (mMetaStore != null) {
             mMetaStore.removeDoraMeta(ufsFullPath);
-            fs = Optional.empty();
           }
+          fs = Optional.empty();
         }
       }
 
@@ -305,7 +315,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                 throwable);
           }
         }
-        mMetaStore.putDoraMeta(ufsFullPath, status);
+        if (mMetaStore != null) {
+          mMetaStore.putDoraMeta(ufsFullPath, status);
+        }
         fi = status.getFileInfo();
       }
     } else {
