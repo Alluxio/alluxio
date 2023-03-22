@@ -106,6 +106,8 @@ public class AlluxioMasterProcess extends MasterProcess {
   /** last time this process lose primacy in ms. */
   private volatile long mLastLosePrimacyTime = 0;
 
+  private Thread mRunningThread;
+
   /**
    * Creates a new {@link AlluxioMasterProcess}.
    */
@@ -200,84 +202,98 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void start() throws Exception {
-    LOG.info("Process starting.");
-    mRunning = true;
-    mServices.forEach(SimpleService::start);
-    mJournalSystem.start();
-    startMasterComponents(false);
+    try {
+      LOG.info("Process starting.");
+      mRunningThread = Thread.currentThread();
+      mRunning = true;
+      mServices.forEach(SimpleService::start);
+      mJournalSystem.start();
+      startMasterComponents(false);
 
-    // Perform the initial catchup before joining leader election,
-    // to avoid potential delay if this master is selected as leader
-    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
-      LOG.info("Waiting for journals to catch up.");
-      mJournalSystem.waitForCatchup();
-    }
-
-    LOG.info("Starting leader selector.");
-    mLeaderSelector.start(getRpcAddress());
-
-    while (!Thread.interrupted()) {
-      if (!mRunning) {
-        LOG.info("master process is not running. Breaking out");
-        break;
-      }
+      // Perform the initial catchup before joining leader election,
+      // to avoid potential delay if this master is selected as leader
       if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
         LOG.info("Waiting for journals to catch up.");
         mJournalSystem.waitForCatchup();
       }
 
-      LOG.info("Started in stand-by mode.");
-      mLeaderSelector.waitForState(NodeState.PRIMARY);
-      mLastGainPrimacyTime = CommonUtils.getCurrentMs();
-      if (!mRunning) {
-        break;
-      }
-      try {
-        if (!promote()) {
-          continue;
+      LOG.info("Starting leader selector.");
+      mLeaderSelector.start(getRpcAddress());
+
+      while (!Thread.interrupted()) {
+        if (!mRunning) {
+          LOG.info("master process is not running. Breaking out");
+          break;
         }
-        mServices.forEach(SimpleService::promote);
-        LOG.info("Primary started");
-      } catch (Throwable t) {
-        if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED)) {
-          takeEmergencyBackup();
+        if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+          LOG.info("Waiting for journals to catch up.");
+          mJournalSystem.waitForCatchup();
         }
-        throw t;
-      }
-      mLeaderSelector.waitForState(NodeState.STANDBY);
-      mLastLosePrimacyTime = CommonUtils.getCurrentMs();
-      if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
-        stop();
-      } else {
+
+        LOG.info("Started in stand-by mode.");
+        mLeaderSelector.waitForState(NodeState.PRIMARY);
+        mLastGainPrimacyTime = CommonUtils.getCurrentMs();
         if (!mRunning) {
           break;
         }
-        // Dump important information asynchronously
-        ExecutorService es = null;
-        List<Future<Void>> dumpFutures = new ArrayList<>();
         try {
-          es = Executors.newFixedThreadPool(
-              2, ThreadFactoryUtils.build("info-dumper-%d", true));
-          dumpFutures.addAll(ProcessUtils.dumpInformationOnFailover(es));
+          if (!promote()) {
+            continue;
+          }
+          mServices.forEach(SimpleService::promote);
+          LOG.info("Primary started");
         } catch (Throwable t) {
-          LOG.warn("Failed to dump metrics and jstacks before demotion", t);
+          if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED)) {
+            takeEmergencyBackup();
+          }
+          throw t;
         }
-        // Shut down services like RPC, WebServer, Journal and all master components
-        LOG.info("Losing the leadership.");
-        mServices.forEach(SimpleService::demote);
-        demote();
-        // Block until information dump is done and close resources
-        for (Future<Void> f : dumpFutures) {
+        mLeaderSelector.waitForState(NodeState.STANDBY);
+        mLastLosePrimacyTime = CommonUtils.getCurrentMs();
+        if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+          stop();
+        } else {
+          if (!mRunning) {
+            break;
+          }
+          // Dump important information asynchronously
+          ExecutorService es = null;
+          List<Future<Void>> dumpFutures = new ArrayList<>();
           try {
-            f.get();
-          } catch (InterruptedException | ExecutionException e) {
-            LOG.warn("Failed to dump metrics and jstacks before demotion", e);
+            es = Executors.newFixedThreadPool(
+                2, ThreadFactoryUtils.build("info-dumper-%d", true));
+            dumpFutures.addAll(ProcessUtils.dumpInformationOnFailover(es));
+          } catch (Throwable t) {
+            LOG.warn("Failed to dump metrics and jstacks before demotion", t);
+          }
+          // Shut down services like RPC, WebServer, Journal and all master components
+          LOG.info("Losing the leadership.");
+          mServices.forEach(SimpleService::demote);
+          demote();
+          // Block until information dump is done and close resources
+          for (Future<Void> f : dumpFutures) {
+            try {
+              f.get();
+            } catch (InterruptedException | ExecutionException e) {
+              LOG.warn("Failed to dump metrics and jstacks before demotion", e);
+            }
+          }
+          if (es != null) {
+            es.shutdownNow();
           }
         }
-        if (es != null) {
-          es.shutdownNow();
-        }
       }
+    } catch (InterruptedException e) {
+      LOG.info("Master process running thread interrupted", e);
+    } finally {
+      mServices.forEach(SimpleService::stop);
+      mJournalSystem.stop();
+      LOG.info("Closing all master components.");
+      mRegistry.close();
+      LOG.info("Closed all master components.");
+      mLeaderSelector.stop();
+      mIsStopped.set(true);
+      LOG.info("Stopped.");
     }
   }
 
@@ -434,14 +450,10 @@ public class AlluxioMasterProcess extends MasterProcess {
       }
       LOG.info("Stopping...");
       mRunning = false;
-      mServices.forEach(SimpleService::stop);
-      mJournalSystem.stop();
-      LOG.info("Closing all master components.");
-      mRegistry.close();
-      LOG.info("Closed all master components.");
-      mLeaderSelector.stop();
-      mIsStopped.set(true);
-      LOG.info("Stopped.");
+      mRunningThread.interrupt();
+    }
+    if (Thread.currentThread() != mRunningThread) {
+      mRunningThread.join();
     }
   }
 
