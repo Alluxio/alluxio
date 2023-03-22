@@ -262,6 +262,10 @@
                   <shadedPattern>${shading.prefix}.javassist</shadedPattern>
                 </relocation>
                 <relocation>
+                  <pattern>software/amazon/ion/</pattern>
+                  <shadedPattern>${shading.prefix}.software.amazon.ion</shadedPattern>
+                </relocation>
+                <relocation>
                   <pattern>javax/annotation/</pattern>
                   <shadedPattern>${shading.prefix}.javax.annotation.</shadedPattern>
                   <excludes>
