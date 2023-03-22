@@ -24,7 +24,6 @@ import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
-import alluxio.rocks.RocksLocker;
 import alluxio.util.SleepUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -65,7 +64,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Block store backed by RocksDB.
  */
 @ThreadSafe
-public class RocksBlockMetaStore extends RocksProtocol implements BlockMetaStore, RocksCheckpointed {
+public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   private static final Logger LOG = LoggerFactory.getLogger(RocksBlockMetaStore.class);
   private static final String BLOCKS_DB_NAME = "blocks";
   private static final String BLOCK_META_COLUMN = "block-meta";
@@ -275,7 +274,7 @@ public class RocksBlockMetaStore extends RocksProtocol implements BlockMetaStore
   }
 
   private long getProperty(String rocksPropertyName) {
-    try (LockResource lock = checkAndAcquireReadLock()) {
+    try (LockResource lock = mRocksStore.checkAndAcquireReadLock()) {
       return db().getAggregatedLongProperty(rocksPropertyName);
     } catch (RocksDBException e) {
       LOG.warn(String.format("error collecting %s", rocksPropertyName), e);
@@ -286,7 +285,7 @@ public class RocksBlockMetaStore extends RocksProtocol implements BlockMetaStore
   @Override
   public Optional<BlockMeta> getBlock(long id) {
     byte[] meta;
-    try (LockResource lock = checkAndAcquireReadLock()) {
+    try (LockResource lock = mRocksStore.checkAndAcquireReadLock()) {
       meta = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -303,7 +302,7 @@ public class RocksBlockMetaStore extends RocksProtocol implements BlockMetaStore
 
   @Override
   public void putBlock(long id, BlockMeta meta) {
-    try (LockResource lock = checkAndAcquireReadLock()) {
+    try (LockResource lock = mRocksStore.checkAndAcquireReadLock()) {
       byte[] buf = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
       // Overwrites the key if it already exists.
       db().put(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id), meta.toByteArray());
@@ -318,7 +317,7 @@ public class RocksBlockMetaStore extends RocksProtocol implements BlockMetaStore
 
   @Override
   public void removeBlock(long id) {
-    try (LockResource lock = checkAndAcquireReadLock()) {
+    try (LockResource lock = mRocksStore.checkAndAcquireReadLock()) {
       byte[] buf = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
       db().delete(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id));
       if (buf != null) {
@@ -334,7 +333,7 @@ public class RocksBlockMetaStore extends RocksProtocol implements BlockMetaStore
   public void clear() {
     // Block all new readers and make concurrent readers bail asap
     LOG.info("Marking RocksDB closed so all concurrent read/write should stop");
-    try (LockResource lock = lockForClearing()) {
+    try (LockResource lock = mRocksStore.lockForClearing()) {
       LOG.info("Clearing RocksDB");
       mSize.reset();
       mRocksStore.clear();
@@ -360,7 +359,7 @@ public class RocksBlockMetaStore extends RocksProtocol implements BlockMetaStore
    */
   public void close() {
     LOG.info("RocksBlockStore is being closed");
-    try (LockResource lock = lockForClosing()) {
+    try (LockResource lock = mRocksStore.lockForClosing()) {
       // TODO(jiacheng): keep grace period?
       // Sleep to wait for all concurrent readers to either complete or abort
       SleepUtils.sleepMs(Configuration.getMs(PropertyKey.ROCKS_GRACEFUL_SHUTDOWN_TIMEOUT));
@@ -388,7 +387,7 @@ public class RocksBlockMetaStore extends RocksProtocol implements BlockMetaStore
     // Ref: https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html
     // We assume this operation is short (one block cannot have too many locations)
     // and lock the full iteration
-    try (LockResource lock = checkAndAcquireReadLock();
+    try (LockResource lock = mRocksStore.checkAndAcquireReadLock();
         final RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(),
             mReadPrefixSameAsStart)) {
       iter.seek(Longs.toByteArray(id));
@@ -407,7 +406,7 @@ public class RocksBlockMetaStore extends RocksProtocol implements BlockMetaStore
   @Override
   public void addLocation(long id, BlockLocation location) {
     byte[] key = RocksUtils.toByteArray(id, location.getWorkerId());
-    try (LockResource lock = checkAndAcquireReadLock()) {
+    try (LockResource lock = mRocksStore.checkAndAcquireReadLock()) {
       db().put(mBlockLocationsColumn.get(), mDisableWAL, key, location.toByteArray());
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -417,7 +416,7 @@ public class RocksBlockMetaStore extends RocksProtocol implements BlockMetaStore
   @Override
   public void removeLocation(long blockId, long workerId) {
     byte[] key = RocksUtils.toByteArray(blockId, workerId);
-    try (LockResource lock = checkAndAcquireReadLock()) {
+    try (LockResource lock = mRocksStore.checkAndAcquireReadLock()) {
       db().delete(mBlockLocationsColumn.get(), mDisableWAL, key);
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -431,11 +430,12 @@ public class RocksBlockMetaStore extends RocksProtocol implements BlockMetaStore
    * 2. Journal dumping like checkpoint/backup sequences
    */
   public CloseableIterator<Block> getCloseableIterator() {
-    try (LockResource lock = checkAndAcquireReadLock()) {
+    // TODO(jiacheng): hold the lock until the end
+    try (LockResource lock = mRocksStore.checkAndAcquireReadLock()) {
       RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
       return RocksUtils.createCloseableIterator(iterator,
           (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())),
-              () -> mStatus.get().mClosing, this::checkAndAcquireReadLock);
+              mRocksStore::isServiceStopping, mRocksStore::checkAndAcquireReadLock);
     }
   }
 

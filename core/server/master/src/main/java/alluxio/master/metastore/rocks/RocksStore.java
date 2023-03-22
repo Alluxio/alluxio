@@ -14,9 +14,11 @@ package alluxio.master.metastore.rocks;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
+import alluxio.resource.LockResource;
 import alluxio.retry.TimeoutRetry;
 import alluxio.util.compression.ParallelZipUtils;
 import alluxio.util.compression.TarUtils;
@@ -53,15 +55,38 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.annotation.concurrent.ThreadSafe;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Class for managing a rocksdb database. This class handles common functionality such as
  * initializing the database and performing database backup/restore.
  *
- * Thread safety is achieved by synchronizing all public methods.
+ * This class provides locking methods for the callers. And the thread safety of RocksDB
+ * relies on the caller to use the corresponding lock methods.
+ * The reasons why this class only provides thread safety utilities to the callers
+ * (instead of wrapping it under each call) are:
+ * 1. Callers like RocksInodeStore and RocksBlockMetaStore have specific read/write logic
+ *    like iteration, which cannot be abstracted and locked internally in this class.
+ * 2. With locking methods provided by this class, callers like RocksInodeStore
+ *    can actually reuse the locks to perform concurrency control on their own logic.
+ *
+ * For reading/writing on the RocksDB, use the shared lock
+ * <blockquote><pre>
+ *   try (LockResource r = mRocksStore.checkAndAcquireReadLock() {
+ *     // perform your read/write operation
+ *   }
+ * </pre></blockquote>
+ *
+ * For operations like closing/restart/restoring on the RocksDB, an exclusive lock should
+ * be acquired by calling one of:
+ * 1. {@link #lockForClosing()}
+ * 2. {@link #lockForClearing()}
+ * 3. {@link #lockForRestoring()}
+ * 4. {@link #lockForCheckpointing()}
  */
-@ThreadSafe
+@NotThreadSafe
 public final class RocksStore implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(RocksStore.class);
   public static final int ROCKS_OPEN_RETRY_TIMEOUT = 20 * Constants.SECOND_MS;
@@ -77,10 +102,13 @@ public final class RocksStore implements Closeable {
   private final boolean mParallelBackup = Configuration.getBoolean(
       PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP);
 
-  private RocksDB mDb;
-  private Checkpoint mCheckpoint;
+  private volatile RocksDB mDb;
+  private volatile Checkpoint mCheckpoint;
   // When we create the database, we must set these handles.
   private final List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
+
+  protected final AtomicReference<VersionedRocksStoreStatus> mStatus;
+  protected final ReadWriteLock mDbStateLock = new ReentrantReadWriteLock();
 
   /**
    * @param name a name to distinguish what store this is
@@ -94,6 +122,7 @@ public final class RocksStore implements Closeable {
       Collection<ColumnFamilyDescriptor> columnFamilyDescriptors,
       List<AtomicReference<ColumnFamilyHandle>> columnHandles) {
     Preconditions.checkState(columnFamilyDescriptors.size() == columnHandles.size());
+    mStatus = new AtomicReference<>(new VersionedRocksStoreStatus(false, 0));
     mName = name;
     mDbPath = dbPath;
     mDbCheckpointPath = checkpointPath;
@@ -110,17 +139,20 @@ public final class RocksStore implements Closeable {
   }
 
   /**
+   * Requires the caller to acquire a shared lock by calling {@link #checkAndAcquireReadLock()}.
+   *
    * @return the underlying rocksdb instance. The instance changes when clear() is called, so if the
    *         caller caches the returned db, they must reset it after calling clear()
    */
-  public synchronized RocksDB getDb() {
+  public RocksDB getDb() {
     return mDb;
   }
 
   /**
    * Clears and re-initializes the database.
+   * Requires the caller to acquire exclusive lock by calling {@link #lockForClearing()}.
    */
-  public synchronized void clear() {
+  public void clear() {
     try {
       resetDb();
     } catch (RocksDBException e) {
@@ -206,10 +238,11 @@ public final class RocksStore implements Closeable {
 
   /**
    * Writes a checkpoint of the database's content to the given output stream.
+   * Requires the caller to acquire an exclusive lock by calling {@link #lockForCheckpointing()}.
    *
    * @param output the stream to write to
    */
-  public synchronized void writeToCheckpoint(OutputStream output)
+  public void writeToCheckpoint(OutputStream output)
       throws IOException, InterruptedException {
     LOG.info("Creating rocksdb checkpoint at {}", mDbCheckpointPath);
     long startNano = System.nanoTime();
@@ -259,10 +292,11 @@ public final class RocksStore implements Closeable {
 
   /**
    * Restores the database from a checkpoint.
+   * Requires the caller to acqurie an exclusive lock by calling {@link #lockForRestoring()}.
    *
    * @param input the checkpoint stream to restore from
    */
-  public synchronized void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
+  public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
     LOG.info("Restoring rocksdb from checkpoint");
     long startNano = System.nanoTime();
     Preconditions.checkState(input.getType() == CheckpointType.ROCKS_SINGLE
@@ -303,7 +337,10 @@ public final class RocksStore implements Closeable {
   }
 
   @Override
-  public synchronized void close() {
+  /**
+   * Requires the caller to acquire exclusive lock by calling {@link #lockForClosing()}.
+   */
+  public void close() {
     stopDb();
     LOG.info("Closed store at {}", mDbPath);
   }
@@ -372,6 +409,125 @@ public final class RocksStore implements Closeable {
         return IndexType.kTwoLevelIndexSearch;
       default:
         throw new IllegalArgumentException(String.format("Unknown IndexType %s", index));
+    }
+  }
+
+  /**
+   * Before any r/w operation on the RocksDB, acquire a shared lock with this method.
+   * The shared lock guarantees the RocksDB will not be restarted/cleared during the
+   * r/w access.
+   */
+  public LockResource checkAndAcquireReadLock() {
+    /*
+     * Checking before locking to bail early, this is for speed rather than correctness.
+     */
+    VersionedRocksStoreStatus status = mStatus.get();
+    if (status.mStopServing) {
+      throw new UnavailableRuntimeException(
+              "RocksDB is closed. Master is failing over or shutting down.");
+    }
+    LockResource lock = new LockResource(mDbStateLock.readLock());
+    /*
+     * Counter-intuitively, check again after getting the lock because
+     * we may get the read lock after the writer.
+     * The ref is different if the RocksDB is closed or restarted.
+     * If the RocksDB is restarted(cleared), we should abort even if it is serving.
+     */
+    if (mStatus.get() != status) {
+      lock.close();
+      throw new UnavailableRuntimeException(
+              "RocksDB is closed. Master is failing over or shutting down.");
+    }
+    return lock;
+  }
+
+  /**
+   * Before the process shuts down, acquire an exclusive lock on the RocksDB before closing.
+   * Note this lock only exists on the Alluxio side. A CLOSING flag will be set so all
+   * existing readers/writers will abort asap.
+   * The exclusive lock ensures there are no existing concurrent r/w operations, so it is safe to
+   * close the RocksDB and recycle all relevant resources.
+   *
+   * The CLOSING status will NOT be reset, because the process will shut down soon.
+   */
+  public LockResource lockForClosing() {
+    mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(true, current.mVersion));
+    return new LockResource(mDbStateLock.writeLock());
+  }
+
+  /**
+   * Before the process shuts down, acquire an exclusive lock on the RocksDB before closing.
+   * Note this lock only exists on the Alluxio side. A CLOSING flag will be set so all
+   * existing readers/writers will abort asap.
+   * The exclusive lock ensures there are no existing concurrent r/w operations, so it is safe to
+   * close the RocksDB and recycle all relevant resources.
+   *
+   * The CLOSING status will be reset and the version will be updated, so if a later r/w operation
+   * gets the shared lock, it is able to tell the RocksDB has been cleared.
+   * See {@link #checkAndAcquireReadLock} for how this affects the shared lock logic.
+   */
+  public LockResource lockForClearing() {
+    mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(true, current.mVersion));
+    return new LockResource(mDbStateLock.writeLock(), true, false, () -> {
+      mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(false, current.mVersion + 1));
+    });
+  }
+
+  /**
+   *
+   *
+   */
+  public LockResource lockForCheckpointing() {
+    mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(true, current.mVersion));
+    return new LockResource(mDbStateLock.writeLock());
+  }
+
+  /**
+   *
+   *
+   */
+  public LockResource lockForRestoring() {
+    mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(true, current.mVersion));
+    return new LockResource(mDbStateLock.writeLock(), true, false, () -> {
+      mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(false, current.mVersion + 1));
+    });
+  }
+
+  /**
+   * Used by ongoing r/w operations to check if the operation needs to abort and yield
+   * to the RocksDB shutdown.
+   */
+  public void abortIfClosing() {
+    if (mStatus.get().mStopServing) {
+      throw new UnavailableRuntimeException(
+              "RocksDB is closed. Master is failing over or shutting down.");
+    }
+  }
+
+  public boolean isServiceStopping() {
+    return mStatus.get().mStopServing;
+  }
+
+  /**
+   * An object wrapper for RocksDB status. Two states are included.
+   * The StopServing flag is an indicator that RocksDB will stop serving shortly.
+   * This can be because the RocksDB will be closed, rewritten or wiped out.
+   * This StopServing flag is used in:
+   * 1. The shared lock will check this flag and give up the access early
+   * 2. An ongoing r/w (e.g. an iterator) will check this flag during iteration
+   *    and abort the iteration. So it will not block the RocksDB from shutting down.
+   *
+   * The version is needed because RocksBlockMetaStore and RocksInodeStore may clear and restart
+   * the RocksDB. If the r/w enters after the restart, it should also abort because the RocksDB
+   * may not have the data to operate on.
+   */
+  public static class VersionedRocksStoreStatus {
+    public final boolean mStopServing;
+    public final int mVersion;
+
+    public VersionedRocksStoreStatus(boolean closed, int version) {
+      mStopServing = closed;
+      mVersion = version;
     }
   }
 }
