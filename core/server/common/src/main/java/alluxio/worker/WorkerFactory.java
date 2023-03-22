@@ -11,8 +11,6 @@
 
 package alluxio.worker;
 
-import alluxio.underfs.UfsManager;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
