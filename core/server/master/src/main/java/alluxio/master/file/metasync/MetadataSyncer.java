@@ -199,7 +199,13 @@ public class MetadataSyncer {
       if (inodeSyncRoot != null) {
         inodeWithName = new InodeIterationResult(inodeSyncRoot, "");
       }
+      if (inodeSyncRoot == null && ufsSyncPathRoot == null) {
+        // TODO or should we throw an exception?
+        context.setFailReason(SyncFailReason.FILE_DOES_NOT_EXIST);
+        return context.fail();
+      }
       System.out.println("-------Syncing root-------------");
+      System.out.println("Sync root path: " + path);
       try {
         syncOne(context, path, ufsSyncPathRoot, inodeWithName);
       } catch (AlluxioException | IOException e) {
@@ -241,12 +247,20 @@ public class MetadataSyncer {
       } catch (AlluxioException e) {
         return context.fail();
       }
-      if (inodeSyncRoot.isDirectory()) {
-        mInodeTree.setDirectChildrenLoaded(() -> context.getRpcContext().getJournalContext(),
-            inodeSyncRoot.asDirectory());
+      try (LockedInodePath lockedInodePath = mInodeTree.lockFullInodePath(
+          path, InodeTree.LockPattern.WRITE_INODE, context.getRpcContext().getJournalContext())) {
+        if (lockedInodePath.getInode().isDirectory()) {
+          mInodeTree.setDirectChildrenLoaded(() -> context.getRpcContext().getJournalContext(),
+              lockedInodePath.getInode().asDirectory());
+        }
+        mUfsSyncPathCache.notifySyncedPath(
+            path, context.getDescendantType(), startTime, null, lockedInodePath.getInode().isFile()
+        );
+      } catch (FileDoesNotExistException e) {
+        LOG.error("Sync root {} is modified during the metadata sync.", path, e);
+        context.setFailReason(SyncFailReason.CONCURRENT_UPDATE_DURING_SYNC);
+        context.fail();
       }
-      mUfsSyncPathCache.notifySyncedPath(
-          path, context.getDescendantType(), startTime, null, inodeSyncRoot.isFile());
       context.updateDirectChildrenLoaded(mInodeTree);
       return context.success();
     }
@@ -267,7 +281,7 @@ public class MetadataSyncer {
   }
 
 
-  private static class SingleInodeSyncResult {
+  protected static class SingleInodeSyncResult {
     boolean mMoveUfs;
     boolean mMoveInode;
     boolean mSkipChildren;
@@ -364,7 +378,7 @@ public class MetadataSyncer {
     }
   }
 
-  private SingleInodeSyncResult syncOne(
+  protected SingleInodeSyncResult syncOne(
       MetadataSyncContext context,
       AlluxioURI syncRootPath,
       @Nullable UfsStatus currentUfsStatus,
@@ -372,13 +386,12 @@ public class MetadataSyncer {
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
       IOException, BlockInfoException, DirectoryNotEmptyException, AccessControlException {
     // Check if the inode is the mount point, if yes, just skip this one
-    if (currentInode != null) {
-      // TODO this can be optimized. We don't need to check isMountPoint on every inode.
+    // Skip this check for the sync root where the name of the current inode is ""
+    if (currentInode != null && !currentInode.getName().equals("")) {
       boolean isMountPoint = mMountTable.isMountPoint(syncRootPath.join(currentInode.getName()));
       if (isMountPoint) {
-        // TODO this code is incorrect
+        // Skip the ufs if it is shadowed by the mount point
         boolean skipUfs =  currentUfsStatus != null
-            && !currentInode.getName().equals("")
             && currentUfsStatus.getName().equals(currentInode.getName());
         if (skipUfs) {
           context.reportSyncOperationSuccess(SyncOperation.SKIPPED_ON_MOUNT_POINT);
@@ -409,7 +422,7 @@ public class MetadataSyncer {
       }
       return new SingleInodeSyncResult(true, false, false, false);
     } else if (currentUfsStatus == null || comparisonResult.get() < 0) {
-      try (LockedInodePath lockedInodePath = mInodeTree.lockInodePath(
+      try (LockedInodePath lockedInodePath = mInodeTree.lockFullInodePath(
           syncRootPath.join(currentInode.getName()), InodeTree.LockPattern.WRITE_EDGE,
           NoopJournalContext.INSTANCE)) {
         deleteFile(context, lockedInodePath);

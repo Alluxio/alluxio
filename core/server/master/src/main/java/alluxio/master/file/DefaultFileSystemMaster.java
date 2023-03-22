@@ -116,6 +116,7 @@ import alluxio.master.file.metasync.MetadataSyncContext;
 import alluxio.master.file.metasync.MetadataSyncer;
 import alluxio.master.file.metasync.SyncOperation;
 import alluxio.master.file.metasync.SyncResult;
+import alluxio.master.file.metasync.TestMetadataSyncer;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.FileSystemMergeJournalContext;
 import alluxio.master.journal.JournalContext;
@@ -528,7 +529,9 @@ public class DefaultFileSystemMaster extends CoreMaster
     FileSystemContext schedulerFsContext = FileSystemContext.create();
     JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(this);
     mScheduler = new Scheduler(new DefaultWorkerProvider(this, schedulerFsContext), jobMetaStore);
-    mMetadataSyncer = new MetadataSyncer(
+    // This is a test metadata sync that supports some delay & error injection
+    // TODO (move this to the test package)
+    mMetadataSyncer = new TestMetadataSyncer(
         this, mInodeStore, mMountTable, mInodeTree, getSyncPathCache());
 
     // The mount table should come after the inode tree because restoring the mount table requires
@@ -4190,6 +4193,11 @@ public class DefaultFileSystemMaster extends CoreMaster
   SyncResult syncMetadataInternal(AlluxioURI path, DescendantType descendantType)
       throws UnavailableException, AccessControlException, InvalidPathException {
     return syncMetadataInternal(path, descendantType, 1000);
+  }
+
+  @VisibleForTesting
+  MetadataSyncer getMetadataSyncer() {
+    return mMetadataSyncer;
   }
 
   @VisibleForTesting
