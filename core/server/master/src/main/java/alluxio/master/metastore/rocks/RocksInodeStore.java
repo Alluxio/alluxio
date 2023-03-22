@@ -388,7 +388,6 @@ public class RocksInodeStore implements InodeStore {
       if (seekTo != null && seekTo.length() > 0) {
         iter.seek(RocksUtils.toByteArray(inodeId, seekTo));
       }
-      // TODO(jiacheng): change the lambda type
       RocksIter rocksIter = new RocksIter(iter, prefix, () -> {
         mRocksStore.abortIfClosing();
         return null;
@@ -413,7 +412,6 @@ public class RocksInodeStore implements InodeStore {
     return Optional.of(Longs.fromByteArray(id));
   }
 
-  // TODO(jiacheng): this devil is really annoying
   static class RocksIter implements Iterator<Long> {
 
     final RocksIterator mIter;
@@ -529,13 +527,15 @@ public class RocksInodeStore implements InodeStore {
    * @return an iterator over stored inodes
    */
   public CloseableIterator<InodeView> getCloseableIterator() {
-    // TODO(jiacheng): grab the lock and close when this iterator is closed
-    try (LockResource lock = mRocksStore.checkAndAcquireReadLock()) {
-      return RocksUtils.createCloseableIterator(
-          db().newIterator(mInodesColumn.get(), mIteratorOption),
-          (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get(),
-          mRocksStore::isServiceStopping, mRocksStore::checkAndAcquireReadLock);
-    }
+    LockResource lock = mRocksStore.checkAndAcquireReadLock();
+    return RocksUtils.createCloseableIterator(
+        db().newIterator(mInodesColumn.get(), mIteratorOption),
+        (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get(),
+        // TODO(jiacheng): validate an ex is thrown in UT
+        () -> {
+          mRocksStore.abortIfClosing();
+          return null;
+        }, lock);
   }
 
   @Override
@@ -685,7 +685,7 @@ public class RocksInodeStore implements InodeStore {
   @VisibleForTesting
   public Pair<RocksDB, AtomicReference<ColumnFamilyHandle>> getDBInodeColumn() {
     mRocksStore.abortIfClosing();
-    // TODO(jiacheng):
+    // TODO(jiacheng): this is not safe, rectify RocksBench
     return new Pair<>(db(), mInodesColumn);
   }
 }

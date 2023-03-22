@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -111,33 +112,27 @@ public final class RocksUtils {
    * @param parser parser to produce iterated values from rocks key-value
    * @param <T> iterator value type
    * @param abortCheck if true, abort the iteration
-   * @param locker acquire a lock in next() to ensure thread safety, if any
    * @return wrapped iterator
    */
   public static <T> CloseableIterator<T> createCloseableIterator(
-      RocksIterator rocksIterator, RocksIteratorParser<T> parser,
-      Supplier<Boolean> abortCheck, Supplier<LockResource> locker) {
+        RocksIterator rocksIterator, RocksIteratorParser<T> parser,
+        Supplier<Void> abortCheck, LockResource rocksDbSharedLock) {
     rocksIterator.seekToFirst();
     AtomicBoolean valid = new AtomicBoolean(true);
     Iterator<T> iter = new Iterator<T>() {
       @Override
       public boolean hasNext() {
-        /*
-         * There can be a race condition where after passing the hasNext() check, the RocksDB
-         * is closed and next() causes segfault. Avoiding that requires the closeCheck to stop the
-         * iteration way before entering the critical section. That means we can use the
-         * closeCheck to stop iteration when the iterator is still valid, then safely close
-         * RocksDB and all relevant references without worrying about concurrent readers
-         * like this escaped iterator.
-         */
-        return (!abortCheck.get()) && valid.get() && rocksIterator.isValid();
+        return valid.get() && rocksIterator.isValid();
       }
 
       @Override
       public T next() {
         boolean succeeded = false;
-        // This lock will assure the RocksDB is not closed while this is reading
-        try (LockResource lock = locker.get()){
+
+        // If the RocksDB wants to stop, abort the loop instead of finishing it
+        abortCheck.get();
+
+        try {
           T result = parser.next(rocksIterator);
           rocksIterator.next();
           succeeded = true;
@@ -154,6 +149,12 @@ public final class RocksUtils {
       }
     };
 
-    return CloseableIterator.create(iter, (whatever) -> rocksIterator.close());
+    return CloseableIterator.create(iter, (whatever) -> {
+      rocksIterator.close();
+      if (rocksDbSharedLock != null) {
+        // Release the lock after recycling the iterator safely
+        rocksDbSharedLock.close();
+      }
+    });
   }
 }
