@@ -28,11 +28,13 @@ import alluxio.multi.process.PortCoordination;
 import alluxio.util.URIUtils;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URI;
 import java.util.Collections;
 
+@Ignore("In Dora, Client does not use Master/Journal services.")
 public class TriggeredCheckpointTest {
   @Test
   public void ufsJournal() throws Exception {

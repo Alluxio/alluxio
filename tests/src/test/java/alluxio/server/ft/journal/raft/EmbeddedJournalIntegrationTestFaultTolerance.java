@@ -36,6 +36,7 @@ import org.apache.ratis.server.storage.StorageImplUtils;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -49,6 +50,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+@Ignore("In Dora, Client does not use Master/Journal services.")
 public class EmbeddedJournalIntegrationTestFaultTolerance
     extends EmbeddedJournalIntegrationTestBase {
 
