@@ -37,18 +37,30 @@ public class SyncResult {
 
   private @Nullable final SyncFailReason mSyncFailReason;
 
+  /**
+   * @return the sync duration in ms
+   */
   public long getSyncDuration() {
     return mSyncDuration;
   }
 
+  /**
+   * @return the success operation count map
+   */
   public Map<SyncOperation, Long> getSuccessOperationCount() {
     return mSuccessOperationCount;
   }
 
+  /**
+   * @return the failed operation count map
+   */
   public Map<SyncOperation, Long> getFailedOperationCount() {
     return mFailedOperationCount;
   }
 
+  /**
+   * @return the fail reason if the sync failed
+   */
   public @Nullable SyncFailReason getFailReason() {
     return mSyncFailReason;
   }

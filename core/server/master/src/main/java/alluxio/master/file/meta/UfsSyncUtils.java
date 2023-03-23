@@ -37,7 +37,6 @@ public final class UfsSyncUtils {
     // issues#15211: If Inodes store a Fingerprint proto instead of Strings,
     // we would save many String parsings here.
     Fingerprint inodeFingerprint =  Fingerprint.parse(inode.getUfsFingerprint());
-    System.out.println(inodeFingerprint.serialize());
     boolean isContentSynced = inodeUfsIsContentSynced(inode, inodeFingerprint, ufsFingerprint);
     boolean isMetadataSynced = inodeUfsIsMetadataSynced(inode, inodeFingerprint, ufsFingerprint);
     boolean ufsExists = ufsFingerprint.isValid();

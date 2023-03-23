@@ -17,7 +17,7 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 
 /**
- * A recursive inode iterator.
+ * A recursive inode iterator that supports to skip children inodes during iteration.
  */
 public class RecursiveInodeIterator implements SkippableInodeIterator {
   private static final Logger LOG = LoggerFactory.getLogger(RecursiveInodeIterator.class);
@@ -29,11 +29,11 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
   List<String> mStartAfterPathComponents;
 
   /**
-   * .
+   * Constructs an instance.
    *
-   * @param inodeStore
-   * @param inodeId
-   * @param readOption
+   * @param inodeStore the inode store
+   * @param inodeId    the root inode id
+   * @param readOption the read option
    */
   public RecursiveInodeIterator(
       ReadOnlyInodeStore inodeStore,
@@ -46,7 +46,7 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
     } else {
       try {
         mStartAfterPathComponents = Arrays.asList(readOption.getStartFrom()
-            .split("/")); //Arrays.asList(PathUtils.getPathComponents(readOption.getStartFrom()));
+            .split("/"));
       } catch (Exception e) {
         throw new RuntimeException(e);
       }

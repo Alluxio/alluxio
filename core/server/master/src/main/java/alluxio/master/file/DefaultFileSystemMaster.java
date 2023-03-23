@@ -165,8 +165,6 @@ import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.options.ListOptions;
-import alluxio.underfs.options.ListPartialOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
@@ -4171,19 +4169,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     DescendantType descendantType = isRecursive ? DescendantType.ALL : DescendantType.ONE;
     try (RpcContext rpcContext = createRpcContext()) {
       SyncResult result = syncMetadataInternal(path, descendantType, 1000);
-      /*
-      System.out.println("Sync duration: " + result.getSyncDuration() + " ms");
-      System.out.println("# of Inodes created: " + result.getSuccessOperationCount()
-          .getOrDefault(SyncOperation.CREATE, 0L));
-      System.out.println("# of Inodes recreated: " + result.getSuccessOperationCount()
-          .getOrDefault(SyncOperation.RECREATE, 0L));
-      System.out.println("# of Inodes updated: " + result.getSuccessOperationCount()
-          .getOrDefault(SyncOperation.UPDATE, 0L));
-      System.out.println("# of Inodes deleted: " + result.getSuccessOperationCount()
-          .getOrDefault(SyncOperation.DELETE, 0L));
-      System.out.println("# of Inodes were not changed: " + result.getSuccessOperationCount()
-          .getOrDefault(SyncOperation.NOOP, 0L));
-       */
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -4205,7 +4190,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws UnavailableException, AccessControlException, InvalidPathException {
     try (RpcContext rpcContext = createRpcContext()) {
       SyncResult result = mMetadataSyncer.sync(path, new MetadataSyncContext(
-          path, descendantType, rpcContext, MetadataSyncer.NO_TTL_OPTION, null, batchSize));
+          descendantType, rpcContext, MetadataSyncer.NO_TTL_OPTION, null, batchSize));
       System.out.println("Sync duration: " + result.getSyncDuration() + " ms");
       System.out.println("# of Inodes created: " + result.getSuccessOperationCount()
           .getOrDefault(SyncOperation.CREATE, 0L));

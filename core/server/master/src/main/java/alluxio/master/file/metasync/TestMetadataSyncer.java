@@ -88,7 +88,9 @@ public class TestMetadataSyncer extends MetadataSyncer {
       MetadataSyncContext context,
       AlluxioURI syncRootPath,
       @Nullable UfsStatus currentUfsStatus,
-      @Nullable InodeIterationResult currentInode)
+      @Nullable InodeIterationResult currentInode,
+      boolean isSyncRoot
+  )
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
       IOException, BlockInfoException, DirectoryNotEmptyException, AccessControlException {
     try {
@@ -96,6 +98,6 @@ public class TestMetadataSyncer extends MetadataSyncer {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    return super.syncOne(context, syncRootPath, currentUfsStatus, currentInode);
+    return super.syncOne(context, syncRootPath, currentUfsStatus, currentInode, isSyncRoot);
   }
 }

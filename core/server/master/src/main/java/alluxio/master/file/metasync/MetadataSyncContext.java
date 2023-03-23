@@ -12,65 +12,44 @@ import alluxio.master.file.meta.LockedInodePath;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
-import javassist.runtime.Desc;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 
+/**
+ * The context for the metadata sync.
+ */
 public class MetadataSyncContext {
-  /*
-  public enum DescendantType {
-    ALL,
-    ONE,
-    NONE,
-  }
-
-   */
-
-  public DescendantType getDescendantType() {
-    return mDescendantType;
-  }
-
-  public boolean isConcurrentModificationAllowed() {
-    return mAllowConcurrentModification;
-  }
-
-  private boolean mAllowConcurrentModification;
-
   private final DescendantType mDescendantType;
-
   private final RpcContext mRpcContext;
-
+  private boolean mAllowConcurrentModification = true;
   private FileSystemMasterCommonPOptions mCommonOptions;
-
-  // TODO: need to format the startAfter like what we did for partial listing
   @Nullable
-  private String mStartAfter;
-
-  private Map<SyncOperation, Long> mFailedMap = new HashMap<>();
-  private Map<SyncOperation, Long> mSuccessMap = new HashMap<>();
-  private Set<AlluxioURI> mDirectoriesToUpdateIsLoaded = new ConcurrentHashSet<>();
+  private final String mStartAfter;
+  private final Map<SyncOperation, Long> mFailedMap = new HashMap<>();
+  private final Map<SyncOperation, Long> mSuccessMap = new HashMap<>();
+  /** temporary one. */
+  private final Set<AlluxioURI> mDirectoriesToUpdateIsLoaded = new ConcurrentHashSet<>();
   private Long mSyncStartTime = null;
   private Long mSyncFinishTime = null;
-
-  public int getBatchSize() {
-    return mBatchSize;
-  }
-
   private int mBatchSize = 1000;
-
   @Nullable
   private SyncFailReason mFailReason = null;
 
-  private AlluxioURI mSyncRootPath;
-
+  /**
+   * Creates a metadata sync context.
+   * @param descendantType the sync descendant type (ALL/ONE/NONE)
+   * @param rpcContext the rpc context
+   * @param commonOptions the common options for TTL configurations
+   * @param startAfter indicates where the sync starts, used on retries
+   * @param batchSize the batch size to fetch the files from UFS
+   */
   public MetadataSyncContext(
-      AlluxioURI syncRootPath,
-      DescendantType descendantType, RpcContext rpcContext, FileSystemMasterCommonPOptions commonOptions,
+      DescendantType descendantType, RpcContext rpcContext,
+      FileSystemMasterCommonPOptions commonOptions,
       @Nullable String startAfter, int batchSize) {
-    mSyncRootPath = syncRootPath;
     mDescendantType = descendantType;
     mRpcContext = rpcContext;
     mCommonOptions = commonOptions;
@@ -82,7 +61,8 @@ public class MetadataSyncContext {
       }
       mStartAfter = startAfter;
       mBatchSize = batchSize;
-      // TODO do something like this
+      // TODO: need to format the startAfter like what we did for partial listing
+      // Example:
       /*
       if (startAfter.startsWith(AlluxioURI.SEPARATOR)) {
         // this path starts from the root, so we must remove the prefix
@@ -100,14 +80,50 @@ public class MetadataSyncContext {
     }
   }
 
+  /**
+   * @return the descendant type of the sync
+   * NONE -> only syncs the inode itself
+   * ONE -> syncs the inode and its direct children
+   * ALL -> recursively syncs a directory
+   */
+  public DescendantType getDescendantType() {
+    return mDescendantType;
+  }
+
+  /**
+   * During the sync, the inodes might be updated by other requests concurrently, that makes
+   * the sync operation stale. If the concurrent modification is allowed, these inodes will be
+   * skipped, otherwise the sync will fail.
+   * @return true, if the concurrent modification is allowed. Otherwise, false
+   */
+  public boolean isConcurrentModificationAllowed() {
+    return mAllowConcurrentModification;
+  }
+
+  /**
+   * @return the batch size to fetch the data from UFS
+   */
+  public int getBatchSize() {
+    return mBatchSize;
+  }
+
+  /**
+   * @return if the sync is a recursive sync
+   */
   public boolean isRecursive() {
     return mDescendantType == DescendantType.ALL;
   }
 
+  /**
+   * @return the rpc context
+   */
   public RpcContext getRpcContext() {
     return mRpcContext;
   }
 
+  /**
+   * @return the common options
+   */
   public FileSystemMasterCommonPOptions getCommonOptions() {
     return mCommonOptions;
   }
@@ -120,12 +136,18 @@ public class MetadataSyncContext {
     return mStartAfter;
   }
 
-
-  // TODO do not update for now
+  /**
+   * adds directories which are supposed to update is children loaded flag when the sync is done.
+   * @param path the path
+   */
   public void addDirectoriesToUpdateIsChildrenLoaded(AlluxioURI path) {
     mDirectoriesToUpdateIsLoaded.add(path);
   }
 
+  /**
+   * updates the direct children loaded flag for directories in a recursive sync.
+   * @param inodeTree the inode tree
+   */
   public void updateDirectChildrenLoaded(InodeTree inodeTree) throws InvalidPathException {
     for (AlluxioURI uri : mDirectoriesToUpdateIsLoaded) {
       try (LockedInodePath lockedInodePath =
@@ -141,36 +163,46 @@ public class MetadataSyncContext {
     }
   }
 
+  /**
+   * reports the completion of a successful sync operation
+   * @param operation the operation
+   */
   public void reportSyncOperationSuccess(SyncOperation operation) {
-    reportSyncOperationResult(operation, true);
+    mSuccessMap.put(operation, mSuccessMap.getOrDefault(operation, 0L) + 1);
   }
 
+  /**
+   * @param failReason the fail reason
+   */
   public void setFailReason(SyncFailReason failReason) {
     mFailReason = failReason;
   }
 
-  public void reportSyncOperationResult(SyncOperation operation, boolean success) {
-    Map<SyncOperation, Long> map = success ? mSuccessMap : mFailedMap;
-    map.put(operation, map.getOrDefault(operation, 0L) + 1);
-  }
-
+  /**
+   * Starts the metadata sync.
+   */
   public void startSync() {
     mSyncStartTime = CommonUtils.getCurrentMs();
   }
 
+  /**
+   * Concludes the sync with a success.
+   * @return the sync result
+   */
   public SyncResult success() {
     Preconditions.checkNotNull(mSyncStartTime);
     mSyncFinishTime = CommonUtils.getCurrentMs();
     return new SyncResult(true, mSyncFinishTime - mSyncStartTime, mSuccessMap, mFailedMap, null);
   }
 
+  /**
+   * Concludes the sync with a fail.
+   * @return the sync result
+   */
   public SyncResult fail() {
     Preconditions.checkNotNull(mSyncStartTime);
     mSyncFinishTime = CommonUtils.getCurrentMs();
-    return new SyncResult(false, mSyncFinishTime - mSyncStartTime, mSuccessMap, mFailedMap, mFailReason);
+    return new SyncResult(false, mSyncFinishTime - mSyncStartTime, mSuccessMap, mFailedMap,
+        mFailReason);
   }
-
-//  public AlluxioURI getSyncRootPath() {
-//    return mSyncRootPath;
-//  }
 }

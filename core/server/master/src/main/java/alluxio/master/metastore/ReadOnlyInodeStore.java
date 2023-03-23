@@ -132,10 +132,7 @@ public interface ReadOnlyInodeStore extends Closeable {
       @Override
       public boolean hasNext() {
         advance();
-        if (mNext == null) {
-          return false;
-        }
-        return option.getEndAt() == null || mNext.getName().compareTo(option.getEndAt()) <= 0;
+        return mNext != null;
       }
 
       @Override
@@ -161,6 +158,38 @@ public interface ReadOnlyInodeStore extends Closeable {
     return CloseableIterator.create(iter, (any) -> it.close());
   }
 
+  /**
+   * @param inodeId an inode id
+   * @return the result of {@link #getChildren(Long, ReadOption)} with default option
+   */
+  default CloseableIterator<? extends Inode> getChildren(Long inodeId) {
+    return getChildren(inodeId, ReadOption.defaults());
+  }
+
+  /**
+   * @param inode an inode directory
+   * @param option the options
+   * @return an iterable over the children of the inode with the given id
+   */
+  default CloseableIterator<? extends Inode> getChildren(
+      InodeDirectoryView inode, ReadOption option) {
+    return getChildren(inode.getId(), option);
+  }
+
+  /**
+   * @param inode an inode directory
+   * @return the result of {@link #getChildren(InodeDirectoryView, ReadOption)} with default option
+   */
+  default CloseableIterator<? extends Inode> getChildren(InodeDirectoryView inode) {
+    return getChildren(inode.getId(), ReadOption.defaults());
+  }
+
+  /**
+   * @param inodeId the root inode id
+   * @param option the read option
+   * @param recursive if the list is recursive
+   * @return a skippable iterator that supports to skip children during the iteration
+   */
   default SkippableInodeIterator getSkippableChildrenIterator(
       Long inodeId, ReadOption option, boolean recursive) {
     if (recursive) {
@@ -189,32 +218,6 @@ public interface ReadOnlyInodeStore extends Closeable {
         iterator.close();
       }
     };
-  }
-
-  /**
-   * @param inodeId an inode id
-   * @return the result of {@link #getChildren(Long, ReadOption)} with default option
-   */
-  default CloseableIterator<? extends Inode> getChildren(Long inodeId) {
-    return getChildren(inodeId, ReadOption.defaults());
-  }
-
-  /**
-   * @param inode an inode directory
-   * @param option the options
-   * @return an iterable over the children of the inode with the given id
-   */
-  default CloseableIterator<? extends Inode> getChildren(
-      InodeDirectoryView inode, ReadOption option) {
-    return getChildren(inode.getId(), option);
-  }
-
-  /**
-   * @param inode an inode directory
-   * @return the result of {@link #getChildren(InodeDirectoryView, ReadOption)} with default option
-   */
-  default CloseableIterator<? extends Inode> getChildren(InodeDirectoryView inode) {
-    return getChildren(inode.getId(), ReadOption.defaults());
   }
 
   /**

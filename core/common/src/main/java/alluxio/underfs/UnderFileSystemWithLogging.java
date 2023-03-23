@@ -29,14 +29,12 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
-import alluxio.underfs.options.ListPartialOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -797,54 +795,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     });
   }
 
-
-  @Override
-  public Iterator<UfsStatus> listStatusIterable(
-      String path, ListOptions options, String startAfter,
-      int batchSize) throws IOException {
-    return call(new UfsCallable<Iterator<UfsStatus>>() {
-      @Override
-      public Iterator<UfsStatus> call() throws IOException {
-        Iterator<UfsStatus> result = mUnderFileSystem.listStatusIterable(path, options, startAfter, batchSize);
-        // TODO filter invalid path
-        return result;
-      }
-
-      @Override
-      public String methodName() {
-        return "ListStatusPartial";
-      }
-
-      @Override
-      public String toString() {
-        return String.format("path=%s, options=%s", path, options);
-      }
-    });
-  }
-
-  @Nullable
-  @Override
-  public PartialListingResult listStatusPartial(String path, ListPartialOptions options) throws IOException {
-    return call(new UfsCallable<PartialListingResult>() {
-      @Override
-      public PartialListingResult call() throws IOException {
-        PartialListingResult result = mUnderFileSystem.listStatusPartial(path, options);
-        return new PartialListingResult(
-            filterInvalidPaths(result.getUfsStatuses(), path), result.shouldFetchNext());
-      }
-
-      @Override
-      public String methodName() {
-        return "ListStatusPartial";
-      }
-
-      @Override
-      public String toString() {
-        return String.format("path=%s, options=%s", path, options);
-      }
-    });
-  }
-
   @Override
   public UfsStatus[] listStatus(final String path, final ListOptions options)
       throws IOException {
@@ -857,6 +807,31 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String methodName() {
         return "ListStatus";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s, options=%s", path, options);
+      }
+    });
+  }
+
+  @Override
+  public Iterator<UfsStatus> listStatusIterable(
+      String path, ListOptions options, String startAfter,
+      int batchSize) throws IOException {
+    return call(new UfsCallable<Iterator<UfsStatus>>() {
+      @Override
+      public Iterator<UfsStatus> call() throws IOException {
+        Iterator<UfsStatus> result =
+            mUnderFileSystem.listStatusIterable(path, options, startAfter, batchSize);
+        // TODO filter invalid path
+        return result;
+      }
+
+      @Override
+      public String methodName() {
+        return "ListStatusPartial";
       }
 
       @Override

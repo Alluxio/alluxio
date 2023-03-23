@@ -23,7 +23,6 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
-import alluxio.underfs.options.ListPartialOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
@@ -968,43 +967,16 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Gets a (partial) object listing result for the given key.
    *
    * @param key pseudo-directory key excluding header and bucket
-   * @param options the list partial option
+   * @param recursive whether to request immediate children only, or all descendants
+   * @param startAfter indicates where the listing starts
+   * @param batchSize the batch size of each chunk
    * @return chunked object listing, or null if key is not found
    */
   @Nullable
   protected ObjectListingChunk getObjectListingChunk(String key, boolean recursive, String startAfter, int batchSize)
       throws IOException {
-    throw new IllegalArgumentException("not supported");
+    throw new UnsupportedOperationException("Operation not supported");
   }
-
-  @Nullable
-  @Override
-  public PartialListingResult listStatusPartial(String path, ListPartialOptions options) throws IOException {
-    String dir = stripPrefixIfPresent(path);
-    ObjectListingChunk chunk = getObjectListingChunk(dir, options.isRecursive(), options.mStartAfter, options.mBatchSize);
-    if (chunk == null) {
-      String keyAsFolder = convertToFolderName(dir);
-      if (getObjectStatus(keyAsFolder) != null) {
-        // Path is an empty directory
-        return new PartialListingResult(new UfsStatus[0], false);
-      }
-      return null;
-    } else {
-      Map<String, UfsStatus> children = new HashMap<>();
-      String keyPrefix = PathUtils.normalizePath(dir, PATH_SEPARATOR);
-      keyPrefix = keyPrefix.equals(PATH_SEPARATOR) ? "" : keyPrefix;
-      populateUfsStatus(keyPrefix, chunk, options.isRecursive(), children);
-      UfsStatus[] ret = new UfsStatus[children.size()];
-      int pos = 0;
-      for (UfsStatus status : children.values()) {
-        ret[pos++] = status;
-      }
-      Arrays.sort(ret, Comparator.comparing(UfsStatus::getName));
-      final Boolean hasNextChunk = chunk.hasNextChunk();
-      return new PartialListingResult(ret, hasNextChunk == null || hasNextChunk);
-    }
-  }
-
 
   protected ObjectListingChunk getObjectListingChunkForPath(String path, boolean recursive)
       throws IOException {
@@ -1038,103 +1010,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return objs;
     }
     return null;
-  }
-
-  /**
-   * Get full path of root in object store.
-   *
-   * @return full path including scheme and bucket
-   */
-  protected abstract String getRootKey();
-
-  /**
-   * Lists the files in the given path, the paths will be their logical names and not contain the
-   * folder suffix. Note that, the list results are unsorted.
-   *
-   * @param path the key to list
-   * @param options for listing
-   * @return an array of the file and folder names in this directory
-   */
-  @Nullable
-  protected UfsStatus[] listInternal(String path, ListOptions options) throws IOException {
-    ObjectListingChunk chunk = getObjectListingChunkForPath(path, options.isRecursive());
-    if (chunk == null) {
-      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
-      if (getObjectStatus(keyAsFolder) != null) {
-        // Path is an empty directory
-        return new UfsStatus[0];
-      }
-      return null;
-    }
-    String keyPrefix = PathUtils.normalizePath(stripPrefixIfPresent(path), PATH_SEPARATOR);
-    keyPrefix = keyPrefix.equals(PATH_SEPARATOR) ? "" : keyPrefix;
-    Map<String, UfsStatus> children = new HashMap<>();
-    while (chunk != null) {
-      populateUfsStatus(keyPrefix, chunk, options.isRecursive(), children);
-      chunk = chunk.getNextChunk();
-    }
-    UfsStatus[] ret = new UfsStatus[children.size()];
-    int pos = 0;
-    for (UfsStatus status : children.values()) {
-      ret[pos++] = status;
-    }
-    return ret;
-  }
-
-  /**
-   * foobar.
-   */
-  public class UfsStatusIterator implements Iterator<UfsStatus> {
-    private ObjectListingChunk mChunk;
-    private final String mKeyPrefix;
-    private final boolean mIsRecursive;
-    private Iterator<UfsStatus> mIterator = null;
-    private String mLastKey = null;
-
-    public UfsStatusIterator(String path, boolean isRecursive, ObjectListingChunk firstChunk)
-        throws IOException {
-      String keyPrefix = PathUtils.normalizePath(stripPrefixIfPresent(path), PATH_SEPARATOR);
-      keyPrefix = keyPrefix.equals(PATH_SEPARATOR) ? "" : keyPrefix;
-      mKeyPrefix = keyPrefix;
-      mIsRecursive = isRecursive;
-      mChunk = firstChunk;
-      updateIterator();
-    }
-
-    private void updateIterator() throws IOException {
-      NavigableMap<String, UfsStatus> ufsStatusMap = new TreeMap<>();
-      populateUfsStatus(mKeyPrefix, mChunk, mIsRecursive, ufsStatusMap);
-      if (mLastKey != null) {
-        ufsStatusMap = ufsStatusMap.tailMap(mLastKey, false);
-      }
-      mIterator = Iterators.transform(ufsStatusMap.entrySet().iterator(), Map.Entry::getValue);
-      mLastKey = ufsStatusMap.isEmpty() ? null : ufsStatusMap.lastKey();
-    }
-
-    @Override
-    public boolean hasNext() {
-      if (mChunk == null) {
-        return false;
-      }
-      if (mIterator.hasNext()) {
-        return true;
-      }
-      if (Boolean.FALSE.equals(mChunk.hasNextChunk())) {
-        return false;
-      }
-      try {
-        mChunk = mChunk.getNextChunk();
-        updateIterator();
-        return hasNext();
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    @Override
-    public UfsStatus next() {
-      return mIterator.next();
-    }
   }
 
   private void populateUfsStatus(
@@ -1200,8 +1075,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
     for (String commonPrefix : commonPrefixes) {
       if (commonPrefix.startsWith(keyPrefix)) {
-//      if (commonPrefix.startsWith(keyPrefix)
-//          && (startAfter == null || commonPrefix.compareTo(startAfter) > 0)) {
         // Remove parent portion of the key
         String child = getChildName(commonPrefix, keyPrefix);
         // Remove any portion after the last path delimiter
@@ -1215,6 +1088,109 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
               permissions.getGroup(), permissions.getMode()));
         }
       }
+    }
+  }
+
+  /**
+   * Get full path of root in object store.
+   *
+   * @return full path including scheme and bucket
+   */
+  protected abstract String getRootKey();
+
+  /**
+   * Lists the files in the given path, the paths will be their logical names and not contain the
+   * folder suffix. Note that, the list results are unsorted.
+   *
+   * @param path the key to list
+   * @param options for listing
+   * @return an array of the file and folder names in this directory
+   */
+  @Nullable
+  protected UfsStatus[] listInternal(String path, ListOptions options) throws IOException {
+    ObjectListingChunk chunk = getObjectListingChunkForPath(path, options.isRecursive());
+    if (chunk == null) {
+      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
+      if (getObjectStatus(keyAsFolder) != null) {
+        // Path is an empty directory
+        return new UfsStatus[0];
+      }
+      return null;
+    }
+    String keyPrefix = PathUtils.normalizePath(stripPrefixIfPresent(path), PATH_SEPARATOR);
+    keyPrefix = keyPrefix.equals(PATH_SEPARATOR) ? "" : keyPrefix;
+    Map<String, UfsStatus> children = new HashMap<>();
+    while (chunk != null) {
+      populateUfsStatus(keyPrefix, chunk, options.isRecursive(), children);
+      chunk = chunk.getNextChunk();
+    }
+    UfsStatus[] ret = new UfsStatus[children.size()];
+    int pos = 0;
+    for (UfsStatus status : children.values()) {
+      ret[pos++] = status;
+    }
+    return ret;
+  }
+
+  /**
+   * The UFS status iterator that iterates the ufs statuses and fetches the chunk by lazy.
+   */
+  public class UfsStatusIterator implements Iterator<UfsStatus> {
+    private ObjectListingChunk mChunk;
+    private final String mKeyPrefix;
+    private final boolean mIsRecursive;
+    private Iterator<UfsStatus> mIterator = null;
+    private String mLastKey = null;
+
+    /**
+     * Creates the iterator.
+     * @param path the path
+     * @param isRecursive if the listing is recursive
+     * @param firstChunk the first object listing chunk
+     */
+    public UfsStatusIterator(String path, boolean isRecursive, ObjectListingChunk firstChunk)
+        throws IOException {
+      String keyPrefix = PathUtils.normalizePath(stripPrefixIfPresent(path), PATH_SEPARATOR);
+      keyPrefix = keyPrefix.equals(PATH_SEPARATOR) ? "" : keyPrefix;
+      mKeyPrefix = keyPrefix;
+      mIsRecursive = isRecursive;
+      mChunk = firstChunk;
+      updateIterator();
+    }
+
+    private void updateIterator() throws IOException {
+      NavigableMap<String, UfsStatus> ufsStatusMap = new TreeMap<>();
+      populateUfsStatus(mKeyPrefix, mChunk, mIsRecursive, ufsStatusMap);
+      if (mLastKey != null) {
+        ufsStatusMap = ufsStatusMap.tailMap(mLastKey, false);
+      }
+      mIterator = Iterators.transform(ufsStatusMap.entrySet().iterator(), Map.Entry::getValue);
+      mLastKey = ufsStatusMap.isEmpty() ? null : ufsStatusMap.lastKey();
+    }
+
+    @Override
+    public boolean hasNext() {
+      if (mChunk == null) {
+        return false;
+      }
+      if (mIterator.hasNext()) {
+        return true;
+      }
+      if (Boolean.FALSE.equals(mChunk.hasNextChunk())) {
+        return false;
+      }
+      try {
+        mChunk = mChunk.getNextChunk();
+        updateIterator();
+        return hasNext();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    public UfsStatus next() {
+      return mIterator.next();
     }
   }
 

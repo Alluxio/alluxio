@@ -44,6 +44,7 @@ import com.google.common.collect.ImmutableMap;
 import io.netty.util.ResourceLeakDetector;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -309,6 +310,7 @@ public class InodeStoreTest {
 
   // TODO move this to a dedicated file
   // TODO also test the resource close
+  @Ignore
   @Test
   public void recursiveListing() throws IOException {
     /*

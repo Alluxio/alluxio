@@ -13,31 +13,25 @@ package alluxio.master.file;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.concurrent.jsr.CompletableFuture;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
-import alluxio.exception.BlockInfoException;
-import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
-import alluxio.grpc.PMode;
-import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
@@ -46,7 +40,6 @@ import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
-import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.metasync.SyncFailReason;
 import alluxio.master.file.metasync.SyncOperation;
 import alluxio.master.file.metasync.SyncResult;
@@ -56,7 +49,6 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 
 import com.adobe.testing.s3mock.junit4.S3MockRule;
-//import com.adobe.testing.s3mock.testcontainers.S3MockContainer;
 import com.adobe.testing.s3mock.testsupport.common.S3MockStarter;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.AnonymousAWSCredentials;
@@ -91,23 +83,18 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
   private static final AlluxioURI MOUNT_POINT = new AlluxioURI("/s3_mount");
   private static final AlluxioURI MOUNT_POINT2 = new AlluxioURI("/s3_mount2");
   private static final AlluxioURI NESTED_MOUNT_POINT = new AlluxioURI("/mnt/nested_s3_mount");
-  private static final AlluxioURI NESTED_S3_MOUNT_POINT = new AlluxioURI("/s3_mount/nested_s3_mount");
-  private AmazonS3 mS3Client;
-  // disable S3 mock server and use adobe s3mock for now
-  // private S3Mock mS3MockServer;
-
+  private static final AlluxioURI NESTED_S3_MOUNT_POINT =
+      new AlluxioURI("/s3_mount/nested_s3_mount");
+  /**
+   * If you see invalid keystore format error when the mock server starts,
+   * please install the latest jdk 8.
+   */
   @Rule
   public final S3MockRule s3MockRule = S3MockRule.builder().silent().withHttpPort(8001).build();
+  private AmazonS3 mS3Client;
 
-  // Invalid keystore format
-  // install the latest jdk 8
   @Override
   public void before() throws Exception {
-    /*
-    mS3MockServer = new S3Mock.Builder().withPort(8002).withInMemoryBackend().build();
-    mS3MockServer.start();
-     */
-
     Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001");
     Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2");
     Configuration.set(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true);
@@ -174,9 +161,6 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
       IllegalAccessException {
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
-    Method m = S3MockStarter.class.getDeclaredMethod("stop");
-    m.setAccessible(true);
-    m.invoke(s3MockRule);
 
     stopS3Server();
     SyncResult result =
@@ -198,7 +182,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     mFileSystemMaster.completeFile(MOUNT_POINT.join("file1"), CompleteFileContext.defaults());
 
     // To delete -> doesn't exist in UFS
-    mFileSystemMaster.createDirectory(MOUNT_POINT.join("directory1"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(MOUNT_POINT.join("directory1"),
+        CreateDirectoryContext.defaults());
 
     SyncResult result =
         mFileSystemMaster.syncMetadataInternal(MOUNT_POINT, DescendantType.ONE);
@@ -270,7 +255,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
       IOException, InvalidPathException {
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     // Create a directory not on local ufs
-    mFileSystemMaster.createDirectory(new AlluxioURI("/test_directory"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/test_directory"),
+        CreateDirectoryContext.defaults());
     SyncResult result =
         mFileSystemMaster.syncMetadataInternal(new AlluxioURI("/"), DescendantType.ONE);
     assertTrue(result.getSuccess());
@@ -362,7 +348,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     ));
 
     assertEquals(4, (long) result.getSuccessOperationCount().getOrDefault(SyncOperation.NOOP, 0L));
-    assertEquals(6, (long) result.getSuccessOperationCount().getOrDefault(SyncOperation.CREATE, 0L));
+    assertEquals(6,
+        (long) result.getSuccessOperationCount().getOrDefault(SyncOperation.CREATE, 0L));
   }
 
   @Test
@@ -403,7 +390,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     mFileSystemMaster.delete(new AlluxioURI("/d"),
         DeleteContext.mergeFrom(DeletePOptions.newBuilder().setAlluxioOnly(true)));
     mFileSystemMaster.createDirectory(new AlluxioURI("/d"),
-        CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setMode(new Mode((short) 0777).toProto()))
+        CreateDirectoryContext.mergeFrom(
+                CreateDirectoryPOptions.newBuilder().setMode(new Mode((short) 0777).toProto()))
             .setWriteType(WriteType.MUST_CACHE));
 
     SyncResult result =
@@ -421,7 +409,7 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
   public void syncUfsNotFound() throws Exception {
     // Q: how to design the interface for file not found
     SyncResult result = mFileSystemMaster.syncMetadataInternal(
-            new AlluxioURI("/non_existing_path"), DescendantType.ALL);
+        new AlluxioURI("/non_existing_path"), DescendantType.ALL);
     assertFalse(result.getSuccess());
     assertEquals(SyncFailReason.FILE_DOES_NOT_EXIST, result.getFailReason());
   }
@@ -473,6 +461,7 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
         throw new RuntimeException(e);
       }
     });
+    // Wait for the root sync done & delete the inode before it gets synced
     CommonUtils.sleepMs(5000);
     mFileSystemMaster.delete(MOUNT_POINT.join("/d"), DeleteContext.defaults());
     syncer.setDelay(0);
@@ -490,12 +479,58 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
 
   @Test
   public void concurrentCreate() throws Exception {
-    // TODO
+    TestMetadataSyncer syncer = (TestMetadataSyncer) mFileSystemMaster.getMetadataSyncer();
+    syncer.setDelay(3000);
+
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
+
+    CompletableFuture<SyncResult> syncFuture = CompletableFuture.supplyAsync(() -> {
+      try {
+        return mFileSystemMaster.syncMetadataInternal(MOUNT_POINT, DescendantType.ALL);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+    // Wait for the root sync done & create the inode before it gets synced
+    CommonUtils.sleepMs(5000);
+    mFileSystemMaster.createFile(MOUNT_POINT.join(TEST_FILE),
+        CreateFileContext.defaults().setWriteType(WriteType.MUST_CACHE));
+    syncer.setDelay(0);
+    SyncResult result = syncFuture.get();
+    assertTrue(result.getSuccess());
+    assertSyncOperations(result, ImmutableMap.of(
+        // root
+        SyncOperation.NOOP, 1L,
+        // test-file
+        SyncOperation.SKIPPED_DUE_TO_CONCURRENT_MODIFICATION, 1L
+    ));
   }
 
   @Test
   public void concurrentUpdateRoot() throws Exception {
-    // TODO
+    TestMetadataSyncer syncer = (TestMetadataSyncer) mFileSystemMaster.getMetadataSyncer();
+    syncer.setDelay(3000);
+
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
+    mFileSystemMaster.createFile(MOUNT_POINT.join(TEST_FILE),
+        CreateFileContext.defaults().setWriteType(WriteType.MUST_CACHE));
+
+    CompletableFuture<SyncResult> syncFuture = CompletableFuture.supplyAsync(() -> {
+      try {
+        return mFileSystemMaster.syncMetadataInternal(MOUNT_POINT.join(TEST_FILE),
+            DescendantType.NONE);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+    CommonUtils.sleepMs(2000);
+    mFileSystemMaster.delete(MOUNT_POINT.join(TEST_FILE), DeleteContext.defaults());
+    syncer.setDelay(0);
+    SyncResult result = syncFuture.get();
+    assertFalse(result.getSuccess());
+    assertEquals(SyncFailReason.CONCURRENT_UPDATE_DURING_SYNC, result.getFailReason());
   }
 
   private ListStatusContext listSync(boolean isRecursive) {
@@ -510,7 +545,7 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
 
   private ListStatusContext listNoSync(boolean isRecursive) {
     return ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder()
-            .setRecursive(isRecursive)
+        .setRecursive(isRecursive)
         .setLoadMetadataType(LoadMetadataPType.NEVER)
         .setCommonOptions(
             FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build()
@@ -557,20 +592,11 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
   @Override
   public void after() throws Exception {
     mS3Client = null;
-    /*
-    try {
-      if (mS3MockServer != null) {
-        mS3MockServer.shutdown();
-      }
-    } finally {
-      mS3MockServer = null;
-    }
-     */
     super.after();
   }
 
   private void assertSyncOperations(SyncResult result, Map<SyncOperation, Long> operations) {
-    for (SyncOperation operation: SyncOperation.values()) {
+    for (SyncOperation operation : SyncOperation.values()) {
       assertEquals(
           "Operation " + operation.toString() + " count not equal",
           result.getSuccessOperationCount().getOrDefault(operation, 0L),

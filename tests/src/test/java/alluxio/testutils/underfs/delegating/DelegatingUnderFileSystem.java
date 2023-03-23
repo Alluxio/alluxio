@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -252,6 +253,13 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   @Override
   public UfsStatus[] listStatus(String path, ListOptions options) throws IOException {
     return mUfs.listStatus(path, options);
+  }
+
+  @javax.annotation.Nullable
+  @Override
+  public Iterator<UfsStatus> listStatusIterable(String path, ListOptions options, String startAfter,
+                                                int batchSize) throws IOException {
+    return mUfs.listStatusIterable(path, options, startAfter, batchSize);
   }
 
   @Override
