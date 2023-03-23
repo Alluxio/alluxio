@@ -19,14 +19,26 @@ import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 
+import net.bytebuddy.utility.RandomString;
 import org.apache.commons.io.FileUtils;
+import org.apache.ratis.io.MD5Hash;
+import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.server.raftlog.RaftLog;
+import org.apache.ratis.server.storage.RaftStorage;
+import org.apache.ratis.server.storage.RaftStorageImpl;
+import org.apache.ratis.server.storage.StorageImplUtils;
+import org.apache.ratis.statemachine.StateMachineStorage;
+import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
+import org.apache.ratis.util.MD5FileUtil;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -38,8 +50,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class RaftSnapshotManagerTest {
+  @Rule
+  public TemporaryFolder mFolder = new TemporaryFolder();
+
   private final List<GrpcServer> mGrpcServers = new ArrayList<>();
-  private final List<TestRaftStorage> mStorages = new ArrayList<>();
   private final List<SnapshotDirStateMachineStorage> mSmStorages = new ArrayList<>();
   private final List<RaftSnapshotManager> mManagers = new ArrayList<>();
 
@@ -49,26 +63,12 @@ public class RaftSnapshotManagerTest {
     // create Raft Storages and grpc servers for all masters
     // no need to create full master processes
     for (int i = 0; i < 3; i++) {
-      // create the test storage
-      TestRaftStorage raftStorage = new TestRaftStorage();
-      mStorages.add(raftStorage);
-      raftStorage.create();
-      raftStorage.initialize();
       // create the state machine storage and initalize it using the raft storage
-      SnapshotDirStateMachineStorage smStorage = new SnapshotDirStateMachineStorage();
+      SnapshotDirStateMachineStorage smStorage = createStateMachineStorage(mFolder);
       mSmStorages.add(smStorage);
-      smStorage.init(raftStorage);
+      RaftJournalServiceHandler handler = new RaftJournalServiceHandler(smStorage);
       // create and start a grpc server for each on a random available port
-      GrpcServer server;
-      try (ServerSocket socket = new ServerSocket(0)) {
-        InetSocketAddress address = new InetSocketAddress(socket.getLocalPort());
-        server = GrpcServerBuilder.forAddress(
-            GrpcServerAddress.create(address.getHostName(), address),
-                Configuration.global())
-            .addService(ServiceType.RAFT_JOURNAL_SERVICE,
-                new GrpcService(new RaftJournalServiceHandler(smStorage)))
-            .build();
-      }
+      GrpcServer server = createGrpcServer(handler);
       server.start();
       mGrpcServers.add(server);
     }
@@ -90,9 +90,7 @@ public class RaftSnapshotManagerTest {
   @After
   public void after() throws IOException {
     mGrpcServers.forEach(GrpcServer::shutdown);
-    for (TestRaftStorage storage : mStorages) {
-      storage.close();
-    }
+    mGrpcServers.forEach(GrpcServer::awaitTermination);
   }
 
   @Test
@@ -104,7 +102,7 @@ public class RaftSnapshotManagerTest {
 
   @Test
   public void simple() throws IOException {
-    mStorages.get(1).createSnapshotFolder(1, 10);
+    createSampleSnapshot(mSmStorages.get(1), 1, 10);
     mSmStorages.get(1).loadLatestSnapshot();
 
     mManagers.get(0).downloadSnapshotFromOtherMasters();
@@ -120,7 +118,7 @@ public class RaftSnapshotManagerTest {
     mGrpcServers.get(2).shutdown();
     mGrpcServers.get(2).awaitTermination();
 
-    mStorages.get(1).createSnapshotFolder(1, 10);
+    createSampleSnapshot(mSmStorages.get(1), 1, 10);
     mSmStorages.get(1).loadLatestSnapshot();
 
     mManagers.get(0).downloadSnapshotFromOtherMasters();
@@ -133,9 +131,9 @@ public class RaftSnapshotManagerTest {
 
   @Test
   public void downloadHigherOne() throws IOException {
-    mStorages.get(1).createSnapshotFolder(1, 10);
+    createSampleSnapshot(mSmStorages.get(1), 1, 10);
     mSmStorages.get(1).loadLatestSnapshot();
-    mStorages.get(2).createSnapshotFolder(1, 100);
+    createSampleSnapshot(mSmStorages.get(2), 1, 100);
     mSmStorages.get(2).loadLatestSnapshot();
 
     mManagers.get(0).downloadSnapshotFromOtherMasters();
@@ -151,9 +149,9 @@ public class RaftSnapshotManagerTest {
 
   @Test
   public void higherOneUnavailable() throws IOException {
-    mStorages.get(1).createSnapshotFolder(1, 10);
+    createSampleSnapshot(mSmStorages.get(1), 1, 10);
+    createSampleSnapshot(mSmStorages.get(2), 1, 100);
     mSmStorages.get(1).loadLatestSnapshot();
-    mStorages.get(2).createSnapshotFolder(1, 100);
     mSmStorages.get(2).loadLatestSnapshot();
     mGrpcServers.get(2).shutdown();
     mGrpcServers.get(2).awaitTermination();
@@ -169,7 +167,47 @@ public class RaftSnapshotManagerTest {
     Assert.assertFalse(directoriesEqual(snapshotDir2, snapshotDir1));
   }
 
-  private boolean directoriesEqual(File dir1, File dir2) throws IOException {
+  public static SnapshotDirStateMachineStorage createStateMachineStorage(TemporaryFolder folder)
+      throws IOException {
+    RaftStorageImpl raftStorage = StorageImplUtils.newRaftStorage(folder.newFolder(),
+        RaftServerConfigKeys.Log.CorruptionPolicy.EXCEPTION, RaftStorage.StartupOption.RECOVER,
+        RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize());
+    raftStorage.initialize();
+    SnapshotDirStateMachineStorage smStorage = new SnapshotDirStateMachineStorage();
+    smStorage.init(raftStorage);
+    return smStorage;
+  }
+
+  public static GrpcServer createGrpcServer(RaftJournalServiceHandler handler) throws IOException {
+    try (ServerSocket socket = new ServerSocket(0)) {
+      InetSocketAddress address = new InetSocketAddress(socket.getLocalPort());
+      return GrpcServerBuilder.forAddress(
+              GrpcServerAddress.create(address.getHostName(), address),
+              Configuration.global())
+          .addService(ServiceType.RAFT_JOURNAL_SERVICE, new GrpcService(handler))
+          .build();
+    }
+  }
+
+  public static void createSampleSnapshot(StateMachineStorage smStorage, long term, long index)
+      throws IOException {
+    String snapshotDirName = SimpleStateMachineStorage.getSnapshotFileName(term, index);
+    File dir = new File(smStorage.getSnapshotDir(), snapshotDirName);
+    if (!dir.exists() && !dir.mkdirs()) {
+      throw new IOException(String.format("Unable to create directory %s", dir));
+    }
+    for (int i = 0; i < 10; i++) {
+      String s = "dummy-file-" + i;
+      File file = new File(dir, s);
+      try (FileOutputStream outputStream = new FileOutputStream(file)) {
+        outputStream.write(RandomString.make().getBytes());
+      }
+      MD5Hash md5Hash = MD5FileUtil.computeMd5ForFile(file);
+      MD5FileUtil.saveMD5File(file, md5Hash);
+    }
+  }
+
+  public static boolean directoriesEqual(File dir1, File dir2) throws IOException {
     if (!dir1.getName().equals(dir2.getName())) {
       return false;
     }

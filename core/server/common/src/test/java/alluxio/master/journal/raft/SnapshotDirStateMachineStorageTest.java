@@ -11,12 +11,16 @@
 
 package alluxio.master.journal.raft;
 
+import static alluxio.master.journal.raft.RaftSnapshotManagerTest.createSampleSnapshot;
+import static alluxio.master.journal.raft.RaftSnapshotManagerTest.createStateMachineStorage;
+
 import org.apache.ratis.server.protocol.TermIndex;
 import org.apache.ratis.statemachine.SnapshotRetentionPolicy;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,19 +29,19 @@ import java.util.stream.Stream;
 
 public class SnapshotDirStateMachineStorageTest {
   @Rule
-  public TestRaftStorage mRaftStorage = new TestRaftStorage();
-  SnapshotDirStateMachineStorage mStateMachineStorage;
-  SnapshotRetentionPolicy mRetentionPolicy = new SnapshotRetentionPolicy() {
+  public TemporaryFolder mFolder = new TemporaryFolder();
+
+  final SnapshotRetentionPolicy mRetentionPolicy = new SnapshotRetentionPolicy() {
     @Override
     public int getNumSnapshotsRetained() {
       return 1; // keep only 1 snapshot
     }
   };
+  SnapshotDirStateMachineStorage mStateMachineStorage;
 
   @Before
   public void before() throws IOException {
-    mStateMachineStorage = new SnapshotDirStateMachineStorage();
-    mStateMachineStorage.init(mRaftStorage);
+    mStateMachineStorage = createStateMachineStorage(mFolder);
   }
 
   @Test
@@ -48,14 +52,14 @@ public class SnapshotDirStateMachineStorageTest {
   @Test
   public void onlyUpdateOnLoad() throws IOException {
     Assert.assertNull(mStateMachineStorage.getLatestSnapshot());
-    mRaftStorage.createSnapshotFolder(1, 10);
+    createSampleSnapshot(mStateMachineStorage, 1, 10);
     // still null until new information is loaded
     Assert.assertNull(mStateMachineStorage.getLatestSnapshot());
   }
 
   @Test
   public void singleSnapshot() throws IOException {
-    mRaftStorage.createSnapshotFolder(1, 10);
+    createSampleSnapshot(mStateMachineStorage, 1, 10);
     mStateMachineStorage.loadLatestSnapshot();
     Assert.assertEquals(TermIndex.valueOf(1, 10),
         mStateMachineStorage.getLatestSnapshot().getTermIndex());
@@ -63,11 +67,11 @@ public class SnapshotDirStateMachineStorageTest {
 
   @Test
   public void newerIndex() throws IOException {
-    mRaftStorage.createSnapshotFolder(1, 10);
+    createSampleSnapshot(mStateMachineStorage, 1, 10);
     mStateMachineStorage.loadLatestSnapshot();
     Assert.assertEquals(TermIndex.valueOf(1, 10),
         mStateMachineStorage.getLatestSnapshot().getTermIndex());
-    mRaftStorage.createSnapshotFolder(1, 15);
+    createSampleSnapshot(mStateMachineStorage, 1, 15);
     mStateMachineStorage.loadLatestSnapshot();
     Assert.assertEquals(TermIndex.valueOf(1, 15),
         mStateMachineStorage.getLatestSnapshot().getTermIndex());
@@ -75,11 +79,11 @@ public class SnapshotDirStateMachineStorageTest {
 
   @Test
   public void newerTerm() throws IOException {
-    mRaftStorage.createSnapshotFolder(1, 10);
+    createSampleSnapshot(mStateMachineStorage, 1, 10);
     mStateMachineStorage.loadLatestSnapshot();
     Assert.assertEquals(TermIndex.valueOf(1, 10),
         mStateMachineStorage.getLatestSnapshot().getTermIndex());
-    mRaftStorage.createSnapshotFolder(2, 5);
+    createSampleSnapshot(mStateMachineStorage, 2, 5);
     mStateMachineStorage.loadLatestSnapshot();
     Assert.assertEquals(TermIndex.valueOf(2, 5),
         mStateMachineStorage.getLatestSnapshot().getTermIndex());
@@ -87,9 +91,9 @@ public class SnapshotDirStateMachineStorageTest {
 
   @Test
   public void noDeletionUnlessSignaled() throws IOException {
-    mRaftStorage.createSnapshotFolder(1, 1);
-    mRaftStorage.createSnapshotFolder(2, 10);
-    mRaftStorage.createSnapshotFolder(3, 100);
+    createSampleSnapshot(mStateMachineStorage, 1, 1);
+    createSampleSnapshot(mStateMachineStorage, 2, 10);
+    createSampleSnapshot(mStateMachineStorage, 3, 100);
 
     mStateMachineStorage.loadLatestSnapshot();
     mStateMachineStorage.cleanupOldSnapshots(mRetentionPolicy);
@@ -111,7 +115,7 @@ public class SnapshotDirStateMachineStorageTest {
 
   @Test
   public void noopDeleteIfOneOnly() throws IOException {
-    mRaftStorage.createSnapshotFolder(1, 10);
+    createSampleSnapshot(mStateMachineStorage, 1, 10);
 
     mStateMachineStorage.loadLatestSnapshot();
     mStateMachineStorage.signalNewSnapshot();
@@ -124,9 +128,9 @@ public class SnapshotDirStateMachineStorageTest {
 
   @Test
   public void deleteMultiple() throws IOException {
-    mRaftStorage.createSnapshotFolder(1, 1);
-    mRaftStorage.createSnapshotFolder(2, 10);
-    mRaftStorage.createSnapshotFolder(3, 100);
+    createSampleSnapshot(mStateMachineStorage, 1, 1);
+    createSampleSnapshot(mStateMachineStorage, 2, 10);
+    createSampleSnapshot(mStateMachineStorage, 3, 100);
 
     mStateMachineStorage.signalNewSnapshot();
     mStateMachineStorage.cleanupOldSnapshots(mRetentionPolicy);
@@ -134,11 +138,8 @@ public class SnapshotDirStateMachineStorageTest {
     try (Stream<Path> s = Files.list(mStateMachineStorage.getSnapshotDir().toPath())) {
       Assert.assertEquals(1, s.count());
     }
-    try (Stream<Path> s = Files.list(mStateMachineStorage.getSnapshotDir().toPath())) {
-      Path p = s.findFirst().get();
-      mStateMachineStorage.loadLatestSnapshot();
-      Assert.assertEquals(TermIndex.valueOf(3, 100),
-          mStateMachineStorage.getLatestSnapshot().getTermIndex());
-    }
+    mStateMachineStorage.loadLatestSnapshot();
+    Assert.assertEquals(TermIndex.valueOf(3, 100),
+        mStateMachineStorage.getLatestSnapshot().getTermIndex());
   }
 }

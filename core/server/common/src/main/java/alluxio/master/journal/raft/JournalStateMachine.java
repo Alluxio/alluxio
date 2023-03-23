@@ -334,14 +334,6 @@ public class JournalStateMachine extends BaseStateMachine {
     CompletableFuture.runAsync(mJournalSystem::updateGroup, mJournalPool);
   }
 
-  private long getNextIndex() {
-    try {
-      return mServer.getDivision(mRaftGroupId).getRaftLog().getNextIndex();
-    } catch (IOException e) {
-      throw new IllegalStateException("Cannot obtain raft log index", e);
-    }
-  }
-
   @Override
   public CompletableFuture<TermIndex> notifyInstallSnapshotFromLeader(
       RaftProtos.RoleInfoProto roleInfoProto, TermIndex firstTermIndexInLog) {
@@ -545,13 +537,14 @@ public class JournalStateMachine extends BaseStateMachine {
     long snapshotId = 0L;
     try (Timer.Context ctx = MetricsSystem.timer(MetricKey
         .MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER.getName()).time()) {
+      long startTimeMs = System.currentTimeMillis();
       SnapshotIdCheckpointed idReader = SnapshotIdCheckpointed.forReading();
       CompletableFuture.allOf(Stream.concat(Stream.of(idReader), getStateMachines().stream())
           .map(journaled -> journaled.restoreFromCheckpoint(snapshotDir, mJournalPool))
           .toArray(CompletableFuture[]::new))
           .join();
       snapshotId = idReader.getId();
-      mLastSnapshotReplayDurationMs = ctx.stop() / 1_000_000L;
+      mLastSnapshotReplayDurationMs = System.currentTimeMillis() - startTimeMs;
     } catch (Exception e) {
       JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to install snapshot: %s",
           snapshot.getTermIndex());

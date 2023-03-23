@@ -26,7 +26,6 @@ import alluxio.util.ConfigurationUtils;
 import alluxio.util.TarUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
-import com.codahale.metrics.Timer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.ratis.server.protocol.TermIndex;
@@ -37,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -47,6 +45,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -158,12 +157,9 @@ public class RaftSnapshotManager implements AutoCloseable {
       ImmutablePair<SnapshotMetadata, InetSocketAddress> info = otherInfos.poll();
       InetSocketAddress address = info.getRight();
       SnapshotMetadata snapshotMetadata = info.getLeft();
-      Timer.Context ctx = MetricsSystem
-          .timer(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER.getName()).time();
       long index;
       if ((index = downloadSnapshotFromAddress(snapshotMetadata, address))
           != RaftLog.INVALID_LOG_INDEX) {
-        mLastSnapshotDownloadDuration = ctx.stop() / 1_000_000; // get time in ms
         return index;
       }
     }
@@ -210,14 +206,16 @@ public class RaftSnapshotManager implements AutoCloseable {
    */
   private long downloadSnapshotFromAddress(SnapshotMetadata snapshotMetadata,
                                            InetSocketAddress address) {
-    TermIndex termIndex = toTermIndex(snapshotMetadata);
-    LOG.info("Retrieving snapshot {} from {}", termIndex, address);
+    TermIndex index = toTermIndex(snapshotMetadata);
+    LOG.info("Retrieving snapshot {} from {}", index, address);
+    long startTimeMs = System.currentTimeMillis();
     try {
       RaftJournalServiceClient client = mClients.get(address);
       client.connect();
       Iterator<SnapshotData> it = client.requestLatestSnapshotData(snapshotMetadata);
+      final long[] totalBytesRead = {0L};
+      long snapshotDiskSize;
       try (InputStream snapshotInStream = new InputStream() {
-        long mTotalBytesRead = 0L;
         ByteBuffer mCurrentBuffer = null; // using a read-only ByteBuffer avoids array copy
 
         @Override
@@ -228,38 +226,43 @@ public class RaftSnapshotManager implements AutoCloseable {
             }
             mCurrentBuffer = it.next().getChunk().asReadOnlyByteBuffer();
             LOG.trace("Received chunk of size {}: {}", mCurrentBuffer.capacity(), mCurrentBuffer);
-            mTotalBytesRead += mCurrentBuffer.capacity();
+            totalBytesRead[0] += mCurrentBuffer.capacity();
           }
           return Byte.toUnsignedInt(mCurrentBuffer.get());
         }
-
-        @Override
-        public void close() {
-          LOG.debug("Total bytes read from {}: {}", address, mTotalBytesRead);
-          MetricsSystem.histogram(
-              MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_HISTOGRAM.getName())
-              .update(mTotalBytesRead);
-          mLastSnapshotDownloadSize = mTotalBytesRead;
-        }
       }) {
-        mLastSnapshotDownloadDiskSize = TarUtils.readTarGz(mStorage.getTmpDir().toPath(),
-            snapshotInStream);
-        MetricsSystem.histogram(
-                MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_DISK_HISTOGRAM.getName())
-            .update(mLastSnapshotDownloadDiskSize);
-        LOG.debug("Total extracted bytes of snapshot: {}", mLastSnapshotDownloadDiskSize);
+        snapshotDiskSize = TarUtils.readTarGz(mStorage.getTmpDir().toPath(), snapshotInStream);
       }
 
       File finalSnapshotDestination = new File(mStorage.getSnapshotDir(),
           SimpleStateMachineStorage.getSnapshotFileName(snapshotMetadata.getSnapshotTerm(),
               snapshotMetadata.getSnapshotIndex()));
       FileUtils.moveDirectory(mStorage.getTmpDir(), finalSnapshotDestination);
+      // update last duration and duration timer metrics
+      mLastSnapshotDownloadDuration = System.currentTimeMillis() - startTimeMs;
+      MetricsSystem.timer(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER.getName())
+              .update(mLastSnapshotDownloadDuration, TimeUnit.MILLISECONDS);
+      LOG.debug("Total milliseconds to download {}: {}", index, mLastSnapshotDownloadDuration);
+      // update uncompressed snapshot size metric
+      mLastSnapshotDownloadDiskSize = snapshotDiskSize;
+      MetricsSystem.histogram(
+              MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_DISK_HISTOGRAM.getName())
+          .update(mLastSnapshotDownloadDiskSize);
+      LOG.debug("Total extracted bytes of snapshot {}: {}", index, mLastSnapshotDownloadDiskSize);
+      // update compressed snapshot size (aka size sent over the network)
+      mLastSnapshotDownloadSize = totalBytesRead[0];
+      MetricsSystem.histogram(
+              MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_HISTOGRAM.getName())
+          .update(mLastSnapshotDownloadSize);
+      LOG.debug("Total bytes read from {} for {}: {}", address, index, mLastSnapshotDownloadSize);
+
       mStorage.loadLatestSnapshot();
       mStorage.signalNewSnapshot();
-      LOG.info("Retrieved snapshot {} from {}", termIndex, address);
+      LOG.info("Retrieved snapshot {} from {}", index, address);
       return snapshotMetadata.getSnapshotIndex();
-    } catch (IOException e) {
-      LOG.info("Failed to download snapshot {} from {}", termIndex, address);
+    } catch (Exception e) {
+      LOG.warn("Failed to download snapshot {} from {}", index, address);
+      LOG.debug("Download failure error", e);
       return RaftLog.INVALID_LOG_INDEX;
     } finally {
       FileUtils.deleteQuietly(mStorage.getTmpDir());

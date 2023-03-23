@@ -21,7 +21,6 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.TarUtils;
 
-import com.codahale.metrics.Timer;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.UnsafeByteOperations;
 import io.grpc.Context;
@@ -37,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 
 /**
  * RPC handler for raft journal service.
@@ -105,15 +105,15 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
           Status.CANCELLED.withDescription("Cancelled by client").asRuntimeException());
       return;
     }
-    Timer.Context time = MetricsSystem.timer(
-        MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_TIMER.getName()).time();
 
     String snapshotDirName = SimpleStateMachineStorage
         .getSnapshotFileName(request.getSnapshotTerm(), request.getSnapshotIndex());
     Path snapshotPath = new File(mStateMachineStorage.getSnapshotDir(), snapshotDirName).toPath();
-
+    final long[] totalBytesSent = {0L}; // needs to be effectively final
+    long diskSize;
+    LOG.debug("Begin snapshot upload of {}", index);
+    long startTimeMs = System.currentTimeMillis();
     try (OutputStream snapshotOutStream = new OutputStream() {
-      long mTotalBytesSent = 0L;
       byte[] mBuffer = new byte[mSnapshotReplicationChunkSize];
       int mBufferPosition = 0;
 
@@ -130,13 +130,6 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
         if (mBufferPosition > 0) {
           flushBuffer();
         }
-        mLastSnapshotUploadDuration = time.stop() / 1_000_000L; // to get a value in ms
-        LOG.debug("Total bytes sent: {}", mTotalBytesSent);
-        MetricsSystem.histogram(
-                MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_HISTOGRAM.getName())
-            .update(mTotalBytesSent);
-        mLastSnapshotUploadSize = mTotalBytesSent;
-        LOG.info("Uploaded snapshot {}", index);
       }
 
       private void flushBuffer() {
@@ -145,22 +138,33 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
         mBuffer = new byte[mSnapshotReplicationChunkSize];
         LOG.trace("Sending chunk of size {}: {}", mBufferPosition, bytes.toByteArray());
         responseObserver.onNext(SnapshotData.newBuilder().setChunk(bytes).build());
-        mTotalBytesSent += mBufferPosition;
+        totalBytesSent[0] += mBufferPosition;
         mBufferPosition = 0;
       }
     }) {
-      LOG.debug("Begin snapshot upload of {}", index);
-      mLastSnapshotUploadDiskSize = TarUtils.writeTarGz(snapshotPath, snapshotOutStream,
-          mSnapshotCompressionLevel);
-      MetricsSystem.histogram(
-          MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_DISK_HISTOGRAM.getName())
-          .update(mLastSnapshotUploadDiskSize);
-      LOG.debug("Total snapshot uncompressed bytes: {}", mLastSnapshotUploadDiskSize);
+      diskSize = TarUtils.writeTarGz(snapshotPath, snapshotOutStream, mSnapshotCompressionLevel);
     } catch (Exception e) {
       LOG.info("Failed to upload snapshot {}", index);
-      responseObserver.onError(e);
-    } finally {
-      responseObserver.onCompleted();
+      responseObserver.onError(Status.INTERNAL.withCause(e).asRuntimeException());
+      return;
     }
+    responseObserver.onCompleted();
+    // update last duration and duration timer metrics
+    mLastSnapshotUploadDuration = System.currentTimeMillis() - startTimeMs;
+    MetricsSystem.timer(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_TIMER.getName())
+        .update(mLastSnapshotUploadDuration, TimeUnit.MILLISECONDS);
+    LOG.debug("Total milliseconds to upload {}: {}", index, mLastSnapshotUploadDuration);
+    // update uncompressed snapshot size metric
+    mLastSnapshotUploadDiskSize = diskSize;
+    MetricsSystem.histogram(
+            MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_DISK_HISTOGRAM.getName())
+        .update(mLastSnapshotUploadDiskSize);
+    LOG.debug("Total snapshot uncompressed bytes for {}: {}", index, mLastSnapshotUploadDiskSize);
+    // update compressed snapshot size (aka size sent over the network)
+    mLastSnapshotUploadSize = totalBytesSent[0];
+    MetricsSystem.histogram(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_HISTOGRAM.getName())
+        .update(mLastSnapshotUploadSize);
+    LOG.debug("Total bytes sent for {}: {}", index, mLastSnapshotUploadSize);
+    LOG.info("Uploaded snapshot {}", index);
   }
 }
