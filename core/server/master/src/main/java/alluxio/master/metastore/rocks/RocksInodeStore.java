@@ -83,6 +83,10 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   private static final String EDGES_COLUMN = "edges";
   private static final String ROCKS_STORE_NAME = "InodeStore";
 
+  /*
+   * Below 3 fields are created and managed by the external user class,
+   * no need to close in this class.
+   */
   // These are fields instead of constants because they depend on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
   private final ReadOptions mReadPrefixSameAsStart;
@@ -96,6 +100,9 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   private final RocksStore mRocksStore;
   private final List<RocksObject> mToClose = new ArrayList<>();
 
+  /*
+   * The ColumnFamilyHandle instances are created and closed in RocksStore
+   */
   private final AtomicReference<ColumnFamilyHandle> mInodesColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mEdgesColumn = new AtomicReference<>();
 
@@ -108,10 +115,13 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
     RocksDB.loadLibrary();
     // the rocksDB objects must be initialized after RocksDB.loadLibrary() is called
     mDisableWAL = new WriteOptions().setDisableWAL(true);
+    mToClose.add(mDisableWAL);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
+    mToClose.add(mReadPrefixSameAsStart);
     mIteratorOption = new ReadOptions().setReadaheadSize(
         Configuration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE))
         .setTotalOrderSeek(true);
+    mToClose.add(mIteratorOption);
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
 
@@ -627,8 +637,6 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
     try (LockResource lock = mRocksStore.lockForClosing()) {
       LOG.info("Closing RocksInodeStore and recycling all RocksDB JNI objects");
       mRocksStore.close();
-      mDisableWAL.close();
-      mReadPrefixSameAsStart.close();
       // Close the elements in the reverse order they were added
       Collections.reverse(mToClose);
       mToClose.forEach(RocksObject::close);

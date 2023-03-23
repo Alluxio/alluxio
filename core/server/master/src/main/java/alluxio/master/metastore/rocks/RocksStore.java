@@ -95,17 +95,24 @@ public final class RocksStore implements Closeable {
   private final String mDbPath;
   private final String mDbCheckpointPath;
   private final Integer mParallelBackupPoolSize;
-  private final Collection<ColumnFamilyDescriptor> mColumnFamilyDescriptors;
-  private final DBOptions mDbOpts;
 
   private final int mCompressLevel = Configuration.getInt(
       PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL);
   private final boolean mParallelBackup = Configuration.getBoolean(
       PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP);
 
+  /*
+   * Below 2 fields are created and managed by the external user class,
+   * no need to close in this class.
+   */
+  private final Collection<ColumnFamilyDescriptor> mColumnFamilyDescriptors;
+  private final DBOptions mDbOpts;
+  /*
+   * Below 3 fields are created and managed internally to this class,
+   * must be closed in this class.
+   */
   private volatile RocksDB mDb;
   private volatile Checkpoint mCheckpoint;
-  // When we create the database, we must set these handles.
   private final List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
 
   protected final AtomicReference<VersionedRocksStoreStatus> mStatus;
