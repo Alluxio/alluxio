@@ -80,10 +80,14 @@ alluxio.master.embedded.journal.unsafe.flush.enabled:
   'If true, embedded journal entries will be committed without waiting for the entry to be flushed to disk. This may improve performance of write operations on the Alluxio master if the journal is written to a slow or contested disk. WARNING: enabling this property may result in metadata loss if half or more of the master nodes fail. See Ratis property raft.server.log.unsafe-flush.enabled at https://github.com/apache/ratis/blob/master/ratis-docs/src/site/markdown/configuraions.md.'
 alluxio.master.embedded.journal.write.timeout:
   'Maximum time to wait for a write/flush on embedded journal.'
+alluxio.master.failover.collect.info:
+  'If true, the primary master will persist metrics and jstack into the log folder when it transitions to standby. '
 alluxio.master.file.access.time.journal.flush.interval:
   'The minimum interval between files access time update journal entries get flushed asynchronously. Setting it to a non-positive value will make the the journal update synchronous. Asynchronous update reduces the performance impact of tracking access time but can lose some access time update when master stops unexpectedly.'
 alluxio.master.file.access.time.update.precision:
   'The file last access time is precise up to this value. Setting it toa non-positive value will update last access time on every file access operation.Longer precision will help reduce the performance impact of tracking access time by reduce the amount of metadata writes occur while reading the same group of files repetitively.'
+alluxio.master.file.access.time.updater.enabled:
+  'If enabled, file access time updater will update the file last access time when an inode is accessed. This property can be turned off to improve performance and reduce the number of journal entries if your application does not rely on the file access time metadata.'
 alluxio.master.file.access.time.updater.shutdown.timeout:
   'Maximum time to wait for access updater to stop on shutdown.'
 alluxio.master.filesystem.liststatus.result.message.length:
@@ -346,6 +350,8 @@ alluxio.master.standby.heartbeat.interval:
   'The heartbeat interval between Alluxio primary master and standby masters.'
 alluxio.master.startup.block.integrity.check.enabled:
   'Whether the system should be checked on startup for orphaned blocks (blocks having no corresponding files but still taking system resource due to various system failures). Orphaned blocks will be deleted during master startup if this property is true. This property is available since 1.7.1'
+alluxio.master.state.lock.error.threshold:
+  'Used to trace and debug state lock issues. When a thread recursively acquires the state lock more than threshold, log an error for further debugging.'
 alluxio.master.throttle.active.cpu.load.ratio:
   'N/A'
 alluxio.master.throttle.active.heap.gc.time:
