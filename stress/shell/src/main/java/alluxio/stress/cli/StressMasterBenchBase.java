@@ -16,6 +16,7 @@ import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -488,15 +489,20 @@ public abstract class StressMasterBenchBase
       case CREATE_TREE:
         String p = "";
         int redundent = (int) counter;
-        for (int i = 0; i < mParameters.mTreeWidth; i++) {
+        for (int i = 0; i < mParameters.mTreeDepth; i++) {
           mPathRecord[i] = redundent / mTreeLevelQuant[i];
           redundent = redundent % mTreeLevelQuant[i];
           p += "/";
           p += mPathRecord[i];
         }
         for (int i = 0; i < mParameters.mTreeFiles; i++) {
-          fs.createFile(new AlluxioURI((basePath + p + "/" + redundent + "/" + i + ".txt")),
-              CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
+          try {
+            fs.createFile(new AlluxioURI((basePath + p + "/" + redundent + "/" + i + ".txt")),
+                CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
+          } catch (FileAlreadyExistsException e) {
+            System.out.println("conflict happened: " + e);
+            break;
+          }
         }
         break;
       default:
