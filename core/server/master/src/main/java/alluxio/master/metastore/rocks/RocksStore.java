@@ -12,6 +12,7 @@
 package alluxio.master.metastore.rocks;
 
 import alluxio.Constants;
+import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.UnavailableRuntimeException;
@@ -131,7 +132,8 @@ public final class RocksStore implements Closeable {
     mColumnFamilyDescriptors = columnFamilyDescriptors;
     mDbOpts = dbOpts;
     mColumnHandles = columnHandles;
-    try {
+    LOG.info("Resetting RocksDB for {} on init", name);
+    try (LockResource lock = lockForClearing()) {
       resetDb();
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -292,7 +294,7 @@ public final class RocksStore implements Closeable {
 
   /**
    * Restores the database from a checkpoint.
-   * Requires the caller to acqurie an exclusive lock by calling {@link #lockForRestoring()}.
+   * Requires the caller to acquire an exclusive lock by calling {@link #lockForRestoring()}.
    *
    * @param input the checkpoint stream to restore from
    */
@@ -424,7 +426,7 @@ public final class RocksStore implements Closeable {
     VersionedRocksStoreStatus status = mStatus.get();
     if (status.mStopServing) {
       throw new UnavailableRuntimeException(
-              "RocksDB is closed. Master is failing over or shutting down.");
+          "RocksDB is closed. Master is failing over or shutting down.");
     }
     LockResource lock = new LockResource(mDbStateLock.readLock());
     /*
@@ -433,10 +435,13 @@ public final class RocksStore implements Closeable {
      * The ref is different if the RocksDB is closed or restarted.
      * If the RocksDB is restarted(cleared), we should abort even if it is serving.
      */
-    if (mStatus.get() != status) {
+    VersionedRocksStoreStatus newStatus = mStatus.get();
+    // If RocksDB just writes a checkpoint, the version will not change and the req can be served
+    if (newStatus.mStopServing || newStatus.mVersion > status.mVersion) {
       lock.close();
       throw new UnavailableRuntimeException(
-              "RocksDB is closed. Master is failing over or shutting down.");
+          "RocksDB is closed because the master is shutting down. Or the RocksDB is rewritten "
+              + "because the master is failing over.");
     }
     return lock;
   }
@@ -479,7 +484,9 @@ public final class RocksStore implements Closeable {
    */
   public LockResource lockForCheckpointing() {
     mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(true, current.mVersion));
-    return new LockResource(mDbStateLock.writeLock());
+    return new LockResource(mDbStateLock.writeLock(), true, false, () -> {
+      mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(false, current.mVersion));
+    });
   }
 
   /**
@@ -500,7 +507,7 @@ public final class RocksStore implements Closeable {
   public void abortIfClosing() {
     if (mStatus.get().mStopServing) {
       throw new UnavailableRuntimeException(
-              "RocksDB is closed. Master is failing over or shutting down.");
+          "RocksDB is closed. Master is failing over or shutting down.");
     }
   }
 
