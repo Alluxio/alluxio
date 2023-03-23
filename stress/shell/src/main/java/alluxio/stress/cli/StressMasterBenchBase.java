@@ -500,7 +500,6 @@ public abstract class StressMasterBenchBase
             fs.createFile(new AlluxioURI((basePath + p + "/" + redundent + "/" + i + ".txt")),
                 CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
           } catch (FileAlreadyExistsException e) {
-            System.out.println("conflict happened: " + e);
             break;
           }
         }
