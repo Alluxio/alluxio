@@ -105,9 +105,6 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
    * @param baseDir the base directory in which to store inode metadata
    */
   public RocksInodeStore(String baseDir) {
-    // Init RocksDB thread safety protocol
-    super();
-
     RocksDB.loadLibrary();
     // the rocksDB objects must be initialized after RocksDB.loadLibrary() is called
     mDisableWAL = new WriteOptions().setDisableWAL(true);
