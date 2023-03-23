@@ -69,6 +69,10 @@ public class RocksBlockMetaStore implements BlockMetaStore {
   private static final String BLOCK_LOCATIONS_COLUMN = "block-locations";
   private static final String ROCKS_STORE_NAME = "BlockStore";
 
+  /*
+   * Below 3 fields are created and managed by the external user class,
+   * no need to close in this class
+   */
   // This is a field instead of a constant because it depends on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
   private final ReadOptions mIteratorOption;
@@ -77,7 +81,9 @@ public class RocksBlockMetaStore implements BlockMetaStore {
   private final List<RocksObject> mToClose = new ArrayList<>();
 
   private final RocksStore mRocksStore;
-  // The handles are closed in RocksStore
+  /*
+   * The ColumnFamilyHandle instances are created and closed in RocksStore
+   */
   private final AtomicReference<ColumnFamilyHandle> mBlockMetaColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mBlockLocationsColumn = new AtomicReference<>();
   private final LongAdder mSize = new LongAdder();
@@ -91,11 +97,14 @@ public class RocksBlockMetaStore implements BlockMetaStore {
     RocksDB.loadLibrary();
     // the rocksDB objects must be initialized after RocksDB.loadLibrary() is called
     mDisableWAL = new WriteOptions().setDisableWAL(true);
+    mToClose.add(mDisableWAL);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
+    mToClose.add(mReadPrefixSameAsStart);
     mIteratorOption = new ReadOptions()
         .setReadaheadSize(Configuration.getBytes(
             PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE))
         .setTotalOrderSeek(true);
+    mToClose.add(mIteratorOption);
 
     List<ColumnFamilyDescriptor> columns = new ArrayList<>();
     DBOptions opts = new DBOptions();
@@ -352,9 +361,6 @@ public class RocksBlockMetaStore implements BlockMetaStore {
       mSize.reset();
       LOG.info("Closing RocksBlockStore and recycling all RocksDB JNI objects");
       mRocksStore.close();
-      mIteratorOption.close();
-      mDisableWAL.close();
-      mReadPrefixSameAsStart.close();
       // Close the elements in the reverse order they were added
       Collections.reverse(mToClose);
       mToClose.forEach(RocksObject::close);
