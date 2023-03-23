@@ -2,6 +2,8 @@ alluxio.conf.dynamic.update.enabled:
   'Whether to support dynamic update property.'
 alluxio.debug:
   'Set to true to enable debug mode which has additional logging and info in the Web UI.'
+alluxio.exit.collect.info:
+  'If true, the process will dump metrics and jstack into the log folder. This only applies to Alluxio master and worker processes.'
 alluxio.fuse.auth.policy.class:
   'The fuse auth policy class.  Valid options include: `alluxio.fuse.auth.LaunchUserGroupAuthPolicy` using the user launching the AlluxioFuse application to do authentication, `alluxio.fuse.auth.SystemUserGroupAuthPolicy` using the end-user running the fuse command to do authentication which matches POSIX standard but sacrifices performance, `alluxio.fuse.auth.CustomAuthPolicy` using the custom user group to do authentication.'
 alluxio.fuse.auth.policy.custom.group:
@@ -164,6 +166,8 @@ alluxio.proxy.audit.logging.enabled:
   'Set to true to enable proxy audit.'
 alluxio.proxy.s3.bucket.naming.restrictions.enabled:
   'Toggles whether or not the Alluxio S3 API will enforce AWS S3 bucket naming restrictions. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html.'
+alluxio.proxy.s3.bucketpathcache.timeout:
+  'Expire bucket path statistics in cache for this time period. Set 0min to disable the cache.'
 alluxio.proxy.s3.complete.multipart.upload.keepalive.enabled:
   'Whether or not to enabled sending whitespace characters as a keepalive message during CompleteMultipartUpload. Enabling this will cause any errors to be silently ignored. However, the errors will appear in the Proxy logs.'
 alluxio.proxy.s3.complete.multipart.upload.keepalive.time.interval:
@@ -179,7 +183,7 @@ alluxio.proxy.s3.global.read.rate.limit.mb:
 alluxio.proxy.s3.header.metadata.max.size:
   'The maximum size to allow for user-defined metadata in S3 PUTrequest headers. Set to 0 to disable size limits.'
 alluxio.proxy.s3.multipart.upload.cleaner.enabled:
-  'Whether or not to enable automatic cleanup of long-running multipart uploads.'
+  'Enable automatic cleanup of long-running multipart uploads.'
 alluxio.proxy.s3.multipart.upload.cleaner.pool.size:
   'The abort multipart upload cleaner pool size.'
 alluxio.proxy.s3.multipart.upload.cleaner.retry.count:
@@ -192,6 +196,18 @@ alluxio.proxy.s3.single.connection.read.rate.limit.mb:
   'Limit the maximum read speed for each connection. Set value less than or equal to 0 to disable rate limits.'
 alluxio.proxy.s3.tagging.restrictions.enabled:
   'Toggles whether or not the Alluxio S3 API will enforce AWS S3 tagging restrictions (10 tags, 128 character keys, 256 character values) See https://docs.aws.amazon.com/AmazonS3/latest/userguide/tagging-managing.html.'
+alluxio.proxy.s3.v2.async.heavy.pool.core.thread.number:
+  'Core thread number for async heavy thread pool.'
+alluxio.proxy.s3.v2.async.heavy.pool.maximum.thread.number:
+  'Maximum thread number for async heavy thread pool.'
+alluxio.proxy.s3.v2.async.heavy.pool.queue.size:
+  'Queue size for async heavy thread pool.'
+alluxio.proxy.s3.v2.async.light.pool.core.thread.number:
+  'Core thread number for async light thread pool.'
+alluxio.proxy.s3.v2.async.light.pool.maximum.thread.number:
+  'Maximum thread number for async light thread pool.'
+alluxio.proxy.s3.v2.async.light.pool.queue.size:
+  'Queue size for async light thread pool.'
 alluxio.proxy.s3.v2.async.processing.enabled:
   '(Experimental) If enabled, handle S3 request in async mode when v2 version of Alluxio s3 proxy service is enabled.'
 alluxio.proxy.s3.v2.version.enabled:

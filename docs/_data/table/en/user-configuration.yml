@@ -109,7 +109,7 @@ alluxio.user.file.copyfromlocal.block.location.policy.class:
 alluxio.user.file.create.ttl:
   'Time to live for files created by a user, no ttl by default.'
 alluxio.user.file.create.ttl.action:
-  'When file''s ttl is expired, the action performs on it. Options: DELETE_ALLUXIO(default), FREE or DELETE'
+  'When file''s ttl is expired, the action performs on it. Options: FREE(default), DELETE_ALLUXIO or DELETE'
 alluxio.user.file.delete.unchecked:
   'Whether to check if the UFS contents are in sync with Alluxio before attempting to delete persisted directories recursively.'
 alluxio.user.file.include.operation.id:

@@ -11,6 +11,7 @@ Master.AsyncPersistSuccess,COUNTER
 Master.AuditLogEntriesSize,GAUGE
 Master.BlockHeapSize,GAUGE
 Master.BlockReplicaCount,GAUGE
+Master.CachedBlockLocations,GAUGE
 Master.CompleteFileOps,COUNTER
 Master.CompletedOperationRetryCount,COUNTER
 Master.CreateDirectoryOps,COUNTER
