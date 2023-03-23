@@ -27,25 +27,29 @@ import org.rocksdb.CompressionType;
 import org.rocksdb.DBOptions;
 import org.rocksdb.HashLinkedListMemTableConfig;
 import org.rocksdb.RocksDB;
+import org.rocksdb.RocksObject;
 import org.rocksdb.WriteOptions;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-// TODO(jiacheng): add locks in this test
 public class RocksStoreTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Test
   public void backupRestore() throws Exception {
+    List<RocksObject> toClose = new ArrayList<>();
     ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
         .setMemTableConfig(new HashLinkedListMemTableConfig())
         .setCompressionType(CompressionType.NO_COMPRESSION)
         .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
+    toClose.add(cfOpts);
 
     List<ColumnFamilyDescriptor> columnDescriptors =
         Arrays.asList(new ColumnFamilyDescriptor("test".getBytes(), cfOpts));
@@ -55,23 +59,33 @@ public class RocksStoreTest {
     DBOptions dbOpts = new DBOptions().setCreateIfMissing(true)
         .setCreateMissingColumnFamilies(true)
         .setAllowConcurrentMemtableWrite(false);
+    toClose.add(dbOpts);
+
     RocksStore store =
         new RocksStore("test", dbDir, backupsDir, dbOpts, columnDescriptors,
             Arrays.asList(testColumn));
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    RocksDB db = store.getDb();
+    RocksDB db;
     int count = 10;
-    for (int i = 0; i < count; i++) {
-      db.put(testColumn.get(), new WriteOptions().setDisableWAL(true), ("a" + i).getBytes(),
-          "b".getBytes());
+    try (LockResource lock = store.checkAndAcquireReadLock()) {
+      db = store.getDb();
+      for (int i = 0; i < count; i++) {
+        db.put(testColumn.get(), new WriteOptions().setDisableWAL(true), ("a" + i).getBytes(),
+                "b".getBytes());
+      }
     }
-    store.writeToCheckpoint(baos);
-    store.close();
+    try (LockResource lock = store.lockForCheckpointing()) {
+      store.writeToCheckpoint(baos);
+    }
+    try (LockResource lock = store.lockForClosing()) {
+      store.close();
+    }
 
     String newBbDir = mFolder.newFolder("rocks-new").getAbsolutePath();
     dbOpts = new DBOptions().setCreateIfMissing(true)
         .setCreateMissingColumnFamilies(true)
         .setAllowConcurrentMemtableWrite(false);
+    toClose.add(dbOpts);
     store =
         new RocksStore("test-new", newBbDir, backupsDir, dbOpts, columnDescriptors,
             Arrays.asList(testColumn));
@@ -79,11 +93,17 @@ public class RocksStoreTest {
       store.restoreFromCheckpoint(
           new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
     }
-    db = store.getDb();
-    for (int i = 0; i < count; i++) {
-      assertArrayEquals("b".getBytes(), db.get(testColumn.get(), ("a" + i).getBytes()));
+    try (LockResource lock = store.checkAndAcquireReadLock()) {
+      db = store.getDb();
+      for (int i = 0; i < count; i++) {
+        assertArrayEquals("b".getBytes(), db.get(testColumn.get(), ("a" + i).getBytes()));
+      }
     }
-    store.close();
-    cfOpts.close();
+    try (LockResource lock = store.lockForClosing()) {
+      store.close();
+    }
+
+    Collections.reverse(toClose);
+    toClose.forEach(RocksObject::close);
   }
 }
