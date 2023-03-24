@@ -479,22 +479,22 @@ public final class MountTableTest extends BaseInodeLockingTest {
     int threadCount = 20;
     AtomicReference<AssertionError> containErr = new AtomicReference<>();
     AtomicReference<AssertionError> resolveErr = new AtomicReference<>();
-    for (int i = 0; i < threadCount; i++) {
-      int rangeWithIn = i;
+    for (int threadId = 0; threadId < threadCount; threadId++) {
+      int threadIdForPass = threadId;
       executorService.submit(new Runnable() {
         @Override
         public void run() {
-          int w = rangeWithIn * threadRange;
-          for (int j = 0; j < threadRange; j++) {
+          int fileIdBase = threadIdForPass * threadRange;
+          for (int fileId = 0; fileId < threadRange; fileId++) {
             try {
-              addMount(String.format("/mnt/test%s", w + j), String.format("/test%s", w + j), w + j);
+              addMount(String.format("/mnt/test%s", fileIdBase + fileId), String.format("/test%s", fileIdBase + fileId), fileIdBase + fileId);
               try {
-                Assert.assertEquals(true, mMountTable.containsMountPoint(createLockedInodePath(String.format("/mnt/test%s", w + j)), true));
+                Assert.assertEquals(true, mMountTable.containsMountPoint(createLockedInodePath(String.format("/mnt/test%s", fileIdBase + fileId)), true));
               } catch (AssertionError e) {
                 containErr.set(e);
               }
               try {
-                Assert.assertEquals(new AlluxioURI(String.format("/test%s", w + j)), mMountTable.resolve(createLockedInodePath(String.format("/mnt/test%s", w + j))).getUri());
+                Assert.assertEquals(new AlluxioURI(String.format("/test%s", fileIdBase + fileId)), mMountTable.resolve(createLockedInodePath(String.format("/mnt/test%s", fileIdBase + fileId))).getUri());
               } catch (AssertionError e) {
                 resolveErr.set(e);
               }
@@ -534,15 +534,15 @@ public final class MountTableTest extends BaseInodeLockingTest {
 
     ExecutorService executorService = Executors.newFixedThreadPool(100);
     System.out.println("before adding");
-    for (int i = 0; i < threadCount; i++) {
-      int rangeWithIn = i;
+    for (int threadId = 0; threadId < threadCount; threadId++) {
+      int threadIdForPass = threadId;
       executorService.submit((new Runnable() {
         @Override
         public void run() {
-          int w = rangeWithIn * threadRange;
-          for (int j = 0; j < threadRange; j++) {
+          int fileIdBase = threadIdForPass * threadRange;
+          for (int fileId = 0; fileId < threadRange; fileId++) {
             try {
-              addMount(String.format("/mnt/test%s", w + j), String.format("/test%s", w + j), w + j);
+              addMount(String.format("/mnt/test%s", fileIdBase + fileId), String.format("/test%s", fileIdBase + fileId), fileIdBase + fileId);
             } catch (Exception e) {
               throw new RuntimeException(e);
             }
@@ -561,26 +561,26 @@ public final class MountTableTest extends BaseInodeLockingTest {
 
     executorService = null;
     executorService = Executors.newFixedThreadPool(100);
-    for (int i = 0; i < threadCount; i++) {
-      int rangeWithIn = i;
+    for (int threadId = 0; threadId < threadCount; threadId++) {
+      int threadIdForPass = threadId;
       executorService.submit((new Runnable() {
         @Override
         public void run() {
-          int w = rangeWithIn * threadRange;
-          for (int j = 0; j < threadRange; j++) {
+          int fileIdBase = threadIdForPass * threadRange;
+          for (int fileId = 0; fileId < threadRange; fileId++) {
             try {
               try {
-                Assert.assertEquals(true, mMountTable.findChildrenMountPoints(createLockedInodePath("/mnt"), false).contains(mMountTable.getMountInfo(new AlluxioURI(String.format("/mnt/test%s", w + j)))));
+                Assert.assertEquals(true, mMountTable.findChildrenMountPoints(createLockedInodePath("/mnt"), false).contains(mMountTable.getMountInfo(new AlluxioURI(String.format("/mnt/test%s", fileIdBase + fileId)))));
               } catch (AssertionError e) {
                 findError.set(e);
               }
               try {
-                Assert.assertEquals("", mMountTable.resolveMountPointTrie(createLockedInodePath(String.format("/mnt/test%s", w + j))));
+                Assert.assertEquals("", mMountTable.resolveMountPointTrie(createLockedInodePath(String.format("/mnt/test%s", fileIdBase + fileId))));
               } catch (AssertionError e) {
                 getError.set(e);
               }
               try {
-                Assert.assertEquals(true, deleteMount(String.format("/mnt/test%s", w + j)));
+                Assert.assertEquals(true, deleteMount(String.format("/mnt/test%s", fileIdBase + fileId)));
               } catch (AssertionError e) {
                 deleteError.set(e);
               }
@@ -617,16 +617,16 @@ public final class MountTableTest extends BaseInodeLockingTest {
     Map<String, MountInfo> mountTable = new HashMap<>(threadRange + threadCount);
     ExecutorService executorService = Executors.newFixedThreadPool(100);
 
-    for (int i = 0; i < threadCount; i++) {
-      int rangeWithIn = i;
+    for (int threadId = 0; threadId < threadCount; threadId++) {
+      int threadIdForPass = threadId;
       executorService.submit(() -> {
-        int w = rangeWithIn * threadRange;
-        for (int j = 0; j < threadRange; j++) {
+        int fileIdBase = threadIdForPass * threadRange;
+        for (int fileId = 0; fileId < threadRange; fileId++) {
           try {
-            addMount(String.format("/mnt/test%s", w + j), String.format("/test%s", w + j), w + j);
+            addMount(String.format("/mnt/test%s", fileIdBase + fileId), String.format("/test%s", fileIdBase + fileId), fileIdBase + fileId);
             try {
-              Assert.assertEquals(mMountTable.getMountTable().get(String.format("/mnt/test%s", w + j)).getAlluxioUri(), new AlluxioURI(String.format("/mnt/test%s", w + j)));
-              Assert.assertEquals(mMountTable.getMountTable().get(String.format("/mnt/test%s", w + j)).getMountId(), w + j);
+              Assert.assertEquals(mMountTable.getMountTable().get(String.format("/mnt/test%s", fileIdBase + fileId)).getAlluxioUri(), new AlluxioURI(String.format("/mnt/test%s", fileIdBase + fileId)));
+              Assert.assertEquals(mMountTable.getMountTable().get(String.format("/mnt/test%s", fileIdBase + fileId)).getMountId(), fileIdBase + fileId);
             } catch (AssertionError e) {
               err.set(e);
             }
