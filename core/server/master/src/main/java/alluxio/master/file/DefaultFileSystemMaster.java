@@ -116,7 +116,6 @@ import alluxio.master.file.metasync.MetadataSyncContext;
 import alluxio.master.file.metasync.MetadataSyncer;
 import alluxio.master.file.metasync.SyncOperation;
 import alluxio.master.file.metasync.SyncResult;
-import alluxio.master.file.metasync.TestMetadataSyncer;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.FileSystemMergeJournalContext;
 import alluxio.master.journal.JournalContext;
@@ -528,9 +527,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(this);
     mScheduler = new Scheduler(new DefaultWorkerProvider(this, schedulerFsContext), jobMetaStore);
     // This is a test metadata sync that supports some delay & error injection
-    // TODO (move this to the test package)
-    mMetadataSyncer = new TestMetadataSyncer(
-        this, mInodeStore, mMountTable, mInodeTree, getSyncPathCache());
+    mMetadataSyncer =  createMetadataSyncer(
+        mInodeStore, mMountTable, mInodeTree, getSyncPathCache());
 
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
@@ -4146,24 +4144,18 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public void syncMetadata(AlluxioURI path, SyncMetadataContext context)
       throws InvalidPathException, IOException {
-    /*
     // The followings are test code to test UFS partial listing
+    /*
     MountTable.Resolution reso = mMountTable.resolve(path);
     UnderFileSystem ufs = reso.acquireUfsResource().get();
     ListOptions options = ListOptions.defaults();
     options.setRecursive(true);
-
-//    options.mStartAfter = "bar/baz/a";
-        System.out.println(reso.getUri());
-//    System.out.println(ufs.getStatus(reso.getUri().toString()).toString());
-//    System.out.println(ufs.listStatus(reso.getUri().toString()).length);
     Iterator<UfsStatus> status = ufs.listStatusIterable(
-        reso.getUri().toString(), options, "foo/bas", 2
+        reso.getUri().toString(), options, null, 2
     );
     while (status.hasNext()) {
       System.out.println(status.next());
     }
-
      */
     boolean isRecursive = context.getOptions().getIsRecursive();
     DescendantType descendantType = isRecursive ? DescendantType.ALL : DescendantType.ONE;
@@ -4178,11 +4170,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   SyncResult syncMetadataInternal(AlluxioURI path, DescendantType descendantType)
       throws UnavailableException, AccessControlException, InvalidPathException {
     return syncMetadataInternal(path, descendantType, 1000);
-  }
-
-  @VisibleForTesting
-  MetadataSyncer getMetadataSyncer() {
-    return mMetadataSyncer;
   }
 
   @VisibleForTesting
@@ -5578,6 +5565,19 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public void needsSync(AlluxioURI path) throws InvalidPathException {
     getSyncPathCache().notifyInvalidation(path);
+  }
+
+  @VisibleForTesting
+  protected MetadataSyncer createMetadataSyncer(
+      ReadOnlyInodeStore inodeStore, MountTable mountTable,
+      InodeTree inodeTree, UfsSyncPathCache syncPathCache) {
+    return new MetadataSyncer(
+        this, inodeStore, mountTable, inodeTree, syncPathCache);
+  }
+
+  @VisibleForTesting
+  MetadataSyncer getMetadataSyncer() {
+    return mMetadataSyncer;
   }
 
   /**

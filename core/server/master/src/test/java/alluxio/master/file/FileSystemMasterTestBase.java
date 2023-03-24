@@ -44,7 +44,11 @@ import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.TtlIntervalRule;
+import alluxio.master.file.meta.UfsSyncPathCache;
+import alluxio.master.file.metasync.MetadataSyncer;
+import alluxio.master.file.metasync.TestMetadataSyncer;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.JournalType;
@@ -363,7 +367,14 @@ public class FileSystemMasterTestBase {
     mExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
-        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), mClock);
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), mClock) {
+      @Override
+      protected MetadataSyncer createMetadataSyncer(
+          ReadOnlyInodeStore inodeStore, MountTable mountTable, InodeTree inodeTree,
+          UfsSyncPathCache syncPathCache) {
+        return new TestMetadataSyncer(this, inodeStore, mountTable, inodeTree, syncPathCache);
+      }
+    };
     mInodeStore = mFileSystemMaster.getInodeStore();
     mInodeTree = mFileSystemMaster.getInodeTree();
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);

@@ -45,7 +45,6 @@ import alluxio.master.file.metasync.SyncOperation;
 import alluxio.master.file.metasync.SyncResult;
 import alluxio.master.file.metasync.TestMetadataSyncer;
 import alluxio.security.authorization.Mode;
-import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 
 import com.adobe.testing.s3mock.junit4.S3MockRule;
@@ -421,7 +420,6 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
   @Test
   public void unmountDuringSync() throws Exception {
     TestMetadataSyncer syncer = (TestMetadataSyncer) mFileSystemMaster.getMetadataSyncer();
-    syncer.setDelay(100);
 
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     for (int i = 0; i < 100; ++i) {
@@ -435,8 +433,7 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
         throw new RuntimeException(e);
       }
     });
-    CommonUtils.sleepMs(5000);
-    mFileSystemMaster.unmount(MOUNT_POINT);
+    syncer.blockUntilNthSyncThenDo(50, () -> mFileSystemMaster.unmount(MOUNT_POINT));
     SyncResult result = syncFuture.get();
     // This is not expected
     assertTrue(mFileSystemMaster.listStatus(MOUNT_POINT, listNoSync(true)).size() < 100);
@@ -445,7 +442,6 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
   @Test
   public void concurrentDelete() throws Exception {
     TestMetadataSyncer syncer = (TestMetadataSyncer) mFileSystemMaster.getMetadataSyncer();
-    syncer.setDelay(3000);
 
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     // Create a directory not on s3 ufs
@@ -461,10 +457,9 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
         throw new RuntimeException(e);
       }
     });
-    // Wait for the root sync done & delete the inode before it gets synced
-    CommonUtils.sleepMs(5000);
-    mFileSystemMaster.delete(MOUNT_POINT.join("/d"), DeleteContext.defaults());
-    syncer.setDelay(0);
+    // blocks on the sync of "/d" (the 2nd sync target)
+    syncer.blockUntilNthSyncThenDo(2,
+        ()-> mFileSystemMaster.delete(MOUNT_POINT.join("/d"), DeleteContext.defaults()));
     SyncResult result = syncFuture.get();
     assertTrue(result.getSuccess());
     assertSyncOperations(result, ImmutableMap.of(
@@ -480,7 +475,6 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
   @Test
   public void concurrentCreate() throws Exception {
     TestMetadataSyncer syncer = (TestMetadataSyncer) mFileSystemMaster.getMetadataSyncer();
-    syncer.setDelay(3000);
 
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
@@ -492,11 +486,10 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
         throw new RuntimeException(e);
       }
     });
-    // Wait for the root sync done & create the inode before it gets synced
-    CommonUtils.sleepMs(5000);
-    mFileSystemMaster.createFile(MOUNT_POINT.join(TEST_FILE),
-        CreateFileContext.defaults().setWriteType(WriteType.MUST_CACHE));
-    syncer.setDelay(0);
+    // blocks on the sync of "/test_file" (the 2nd sync target)
+    syncer.blockUntilNthSyncThenDo(2,
+        ()-> mFileSystemMaster.createFile(MOUNT_POINT.join(TEST_FILE),
+            CreateFileContext.defaults().setWriteType(WriteType.MUST_CACHE)));
     SyncResult result = syncFuture.get();
     assertTrue(result.getSuccess());
     assertSyncOperations(result, ImmutableMap.of(
@@ -510,7 +503,6 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
   @Test
   public void concurrentUpdateRoot() throws Exception {
     TestMetadataSyncer syncer = (TestMetadataSyncer) mFileSystemMaster.getMetadataSyncer();
-    syncer.setDelay(3000);
 
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
@@ -525,9 +517,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
         throw new RuntimeException(e);
       }
     });
-    CommonUtils.sleepMs(2000);
-    mFileSystemMaster.delete(MOUNT_POINT.join(TEST_FILE), DeleteContext.defaults());
-    syncer.setDelay(0);
+    syncer.blockUntilNthSyncThenDo(1,
+        ()-> mFileSystemMaster.delete(MOUNT_POINT.join(TEST_FILE), DeleteContext.defaults()));
     SyncResult result = syncFuture.get();
     assertFalse(result.getSuccess());
     assertEquals(SyncFailReason.CONCURRENT_UPDATE_DURING_SYNC, result.getFailReason());
