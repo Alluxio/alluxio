@@ -605,7 +605,7 @@ public final class MountTableTest extends BaseInodeLockingTest {
   }
 
   @Test
-  public void MultithreadGetMountTable() throws Exception {
+  public void multithreadGetMountTable() throws Exception {
     Assert.assertEquals(IdUtils.ROOT_MOUNT_ID,
         mMountTable.getMountInfo(new AlluxioURI(MountTable.ROOT)).getMountId());
     LockedInodePath path1 = addMount("/mnt/foo", "/foo", 2);
