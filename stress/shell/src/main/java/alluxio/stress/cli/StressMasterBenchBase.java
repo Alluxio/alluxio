@@ -80,9 +80,9 @@ public abstract class StressMasterBenchBase
   protected final String mFixedDir = "fixed";
 
   // vars for createTestTree
-  protected int[] mPathRecord;
-  protected int[] mTreeLevelQuant;
-  protected int mTreeTotalCount;
+  protected int[] mPathNodeIds;
+  protected int[] mTreeLevelNodeCount;
+  protected int mTreeTotalNodeCount;
 
   /**
    * Creates instance.
@@ -243,13 +243,13 @@ public abstract class StressMasterBenchBase
       mBasePaths = new Path[operations.length];
       mFixedBasePaths = new Path[operations.length];
 
-      mPathRecord = new int[mParameters.mTreeDepth];
-      mTreeLevelQuant = new int[mParameters.mTreeDepth];
-      mTreeLevelQuant[mParameters.mTreeDepth - 1] = mParameters.mTreeWidth;
-      for (int i = mTreeLevelQuant.length - 2; i >= 0; i--) {
-        mTreeLevelQuant[i] = mTreeLevelQuant[i + 1] * mParameters.mTreeWidth;
+      mPathNodeIds = new int[mParameters.mTreeDepth];
+      mTreeLevelNodeCount = new int[mParameters.mTreeDepth];
+      mTreeLevelNodeCount[mParameters.mTreeDepth - 1] = mParameters.mTreeWidth;
+      for (int levelCount = mTreeLevelNodeCount.length - 2; levelCount >= 0; levelCount--) {
+        mTreeLevelNodeCount[levelCount] = mTreeLevelNodeCount[levelCount + 1] * mParameters.mTreeWidth;
       }
-      mTreeTotalCount = mTreeLevelQuant[0] * mParameters.mTreeThreads;
+      mTreeTotalNodeCount = mTreeLevelNodeCount[0] * mParameters.mTreeThreads;
 
       for (int i = 0; i < operations.length; i++) {
         mOperationCounters[i] = new AtomicLong();
@@ -487,17 +487,17 @@ public abstract class StressMasterBenchBase
             .setLoadMetadataOnly(true).build());
         break;
       case CREATE_TREE:
-        String p = "";
-        int redundent = (int) counter;
-        for (int i = 0; i < mParameters.mTreeDepth; i++) {
-          mPathRecord[i] = redundent / mTreeLevelQuant[i];
-          redundent = redundent % mTreeLevelQuant[i];
-          p += "/";
-          p += mPathRecord[i];
+        String nodePath = "";
+        int nodeNumber = (int) counter;
+        for (int levelCount = 0; levelCount < mParameters.mTreeDepth; levelCount++) {
+          mPathNodeIds[levelCount] = nodeNumber / mTreeLevelNodeCount[levelCount];
+          nodeNumber = nodeNumber % mTreeLevelNodeCount[levelCount];
+          nodePath += "/";
+          nodePath += mPathNodeIds[levelCount];
         }
-        for (int i = 0; i < mParameters.mTreeFiles; i++) {
+        for (int fileNumber = 0; fileNumber < mParameters.mTreeFiles; fileNumber++) {
           try {
-            fs.createFile(new AlluxioURI((basePath + p + "/" + redundent + "/" + i + ".txt")),
+            fs.createFile(new AlluxioURI((basePath + nodePath + "/" + nodeNumber + "/" + fileNumber + ".txt")),
                 CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
           } catch (FileAlreadyExistsException e) {
             break;
