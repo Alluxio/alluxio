@@ -129,7 +129,7 @@ public final class S3RestUtils {
       XmlMapper mapper = new XmlMapper();
       return Response.ok(mapper.writeValueAsString(result)).build();
     } catch (Exception e) {
-      LOG.warn("Error invoking REST endpoint for {}:\n{}", resource, e.getMessage());
+      LOG.warn("Error invoking REST endpoint for {}:\n{}", resource, e.getMessage(), e);
       return S3ErrorResponse.createErrorResponse(e, resource);
     }
   }
