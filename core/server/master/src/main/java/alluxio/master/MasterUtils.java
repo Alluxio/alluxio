@@ -17,6 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.metastore.BlockMetaStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.MetastoreType;
+import alluxio.master.metastore.caching.CachingBlockMetaStore;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
@@ -69,7 +70,12 @@ public final class MasterUtils {
       case HEAP:
         return HeapBlockMetaStore::new;
       case ROCKS:
-        return () -> new RocksBlockMetaStore(baseDir);
+        if (Configuration.getInt(
+            PropertyKey.MASTER_METASTORE_BLOCK_CACHE_MAX_SIZE) == 0) {
+          return () -> new RocksBlockMetaStore(baseDir);
+        } else {
+          return () -> new CachingBlockMetaStore(new RocksBlockMetaStore(baseDir));
+        }
       default:
         throw new IllegalStateException("Unknown metastore type: " + type);
     }
