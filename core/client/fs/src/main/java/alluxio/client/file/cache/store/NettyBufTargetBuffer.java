@@ -9,9 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.page;
-
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
+package alluxio.client.file.cache.store;
 
 import io.netty.buffer.ByteBuf;
 
@@ -79,6 +77,11 @@ public class NettyBufTargetBuffer implements PageReadTargetBuffer {
   @Override
   public void writeBytes(byte[] srcArray, int srcOffset, int length) {
     mTarget.writeBytes(srcArray, srcOffset, length);
+  }
+
+  @Override
+  public void writeBytes(ByteBuf buf) {
+    mTarget.writeBytes(buf);
   }
 
   @Override

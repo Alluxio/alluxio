@@ -14,6 +14,7 @@ package alluxio.worker.page;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
+import alluxio.client.file.cache.store.NettyBufTargetBuffer;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;

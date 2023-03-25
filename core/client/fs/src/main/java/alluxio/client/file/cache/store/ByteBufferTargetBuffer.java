@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache.store;
 
+import io.netty.buffer.ByteBuf;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -58,6 +60,11 @@ public class ByteBufferTargetBuffer implements PageReadTargetBuffer {
   @Override
   public void writeBytes(byte[] srcArray, int srcOffset, int length) {
     mTarget.put(srcArray, srcOffset, length);
+  }
+
+  @Override
+  public void writeBytes(ByteBuf buf) {
+    buf.readBytes(mTarget);
   }
 
   @Override

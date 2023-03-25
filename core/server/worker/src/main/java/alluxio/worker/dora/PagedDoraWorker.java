@@ -18,6 +18,7 @@ import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
+import alluxio.client.PathIdentifier;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.CacheUsage;
@@ -325,7 +326,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
     // because cache manager uses hashed ufs path as file ID
     // TODO(bowen): we need a dedicated type for file IDs!
-    String cacheManagerFileId = new AlluxioURI(ufsFullPath).hash();
+    String cacheManagerFileId = PathIdentifier.hash(ufsFullPath);
 
     final long bytesInCache = mCacheManager.getUsage()
         .flatMap(usage -> usage.partitionedBy(file(cacheManagerFileId)))

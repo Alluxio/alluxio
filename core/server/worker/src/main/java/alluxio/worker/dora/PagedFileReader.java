@@ -14,6 +14,7 @@ package alluxio.worker.dora;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
+import alluxio.client.file.cache.store.NettyBufTargetBuffer;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.metrics.MetricKey;
@@ -23,7 +24,6 @@ import alluxio.underfs.FileId;
 import alluxio.underfs.PagedUfsReader;
 import alluxio.worker.block.io.BlockReadableChannel;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.page.NettyBufTargetBuffer;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;

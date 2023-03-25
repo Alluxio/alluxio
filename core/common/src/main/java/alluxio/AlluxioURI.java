@@ -19,12 +19,9 @@ import alluxio.uri.URI;
 import alluxio.util.URIUtils;
 import alluxio.util.io.PathUtils;
 
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
@@ -501,31 +498,5 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     }
     mUriString = sb.toString();
     return mUriString;
-  }
-
-  /**
-   * Computes the hash of this URI, with SHA-256, or MD5, or simple hashCode().
-   *
-   * @return HEX encoded hash string
-   */
-  public String hash() {
-    try {
-      MessageDigest md = MessageDigest.getInstance("SHA-256");
-      md.update(toString().getBytes());
-      return Hex.encodeHexString(md.digest()).toLowerCase();
-    } catch (NoSuchAlgorithmException e) {
-      /* No actions. Continue with other hash method. */
-    }
-
-    try {
-      MessageDigest md = MessageDigest.getInstance("MD5");
-      md.update(toString().getBytes());
-      return Hex.encodeHexString(md.digest()).toLowerCase();
-    } catch (NoSuchAlgorithmException e) {
-      /* No actions. Continue with other hash method. */
-    }
-
-    // Cannot find SHA-256 or MD5. Fall back to use simple hashCode, which is probable to conflict.
-    return Hex.encodeHexString(String.valueOf(hashCode()).getBytes()).toLowerCase();
   }
 }

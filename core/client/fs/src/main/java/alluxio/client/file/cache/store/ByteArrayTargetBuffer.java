@@ -13,6 +13,8 @@ package alluxio.client.file.cache.store;
 
 import alluxio.annotation.SuppressFBWarnings;
 
+import io.netty.buffer.ByteBuf;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -62,6 +64,11 @@ public class ByteArrayTargetBuffer implements PageReadTargetBuffer {
   public void writeBytes(byte[] srcArray, int srcOffset, int length) {
     System.arraycopy(srcArray, srcOffset, mTarget, mOffset, length);
     mOffset += length;
+  }
+
+  @Override
+  public void writeBytes(ByteBuf buf) {
+    buf.readBytes(mTarget, mOffset, Math.min(buf.readableBytes(), mTarget.length - mOffset));
   }
 
   @Override
