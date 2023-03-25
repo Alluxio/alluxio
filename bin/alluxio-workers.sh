@@ -10,6 +10,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+. $(dirname "$0")/alluxio-common.sh
+
 set -o pipefail
 
 LAUNCHER=
@@ -39,7 +41,7 @@ echo "Executing the following command on all worker nodes and logging to ${ALLUX
 
 for worker in ${HOSTLIST[@]}; do
   echo "[${worker}] Connecting as ${USER}..." >> ${ALLUXIO_TASK_LOG}
-  nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${worker} ${LAUNCHER} \
+  nohup ssh -p ${PORT} -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${worker} ${LAUNCHER} \
     $"${@// /\\ }" 2>&1 | while read line; do echo "[$(date '+%F %T')][${worker}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
   pids[${#pids[@]}]=$!
 done

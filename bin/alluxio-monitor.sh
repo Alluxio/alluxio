@@ -10,6 +10,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+. $(dirname "$0")/alluxio-common.sh
+
 LAUNCHER=
 # If debugging is enabled propagate that through to sub-shells
 if [[ "$-" == *x* ]]; then
@@ -144,7 +146,7 @@ run_on_node() {
   local node=$1
   # Appends every argument after $1 to the launcher terminal
 
-  ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} ${LAUNCHER} ${@:2} \
+  ssh -p ${PORT} -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} ${LAUNCHER} ${@:2} \
     2> >(while read line; do echo "[$(date '+%F %T')][${node}] ${line}" >> ${ALLUXIO_TASK_LOG}; done)
 }
 
