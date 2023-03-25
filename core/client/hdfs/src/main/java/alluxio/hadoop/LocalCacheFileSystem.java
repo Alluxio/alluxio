@@ -15,11 +15,11 @@ import static com.google.common.hash.Hashing.md5;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.AlluxioURI;
+import alluxio.cache.CacheManager;
+import alluxio.cache.filter.CacheFilter;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileInStream;
-import alluxio.client.file.cache.filter.CacheFilter;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.metrics.MetricsConfig;
 import alluxio.metrics.MetricsSystem;

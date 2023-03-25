@@ -11,7 +11,7 @@
 
 package alluxio.worker.page;
 
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
+import alluxio.cache.store.PageReadTargetBuffer;
 
 import io.netty.buffer.ByteBuf;
 

@@ -13,6 +13,10 @@ package alluxio.client.file.cache;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.cache.CacheManager;
+import alluxio.cache.CacheUsage;
+import alluxio.cache.PageId;
+import alluxio.cache.store.PageReadTargetBuffer;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -20,7 +24,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;

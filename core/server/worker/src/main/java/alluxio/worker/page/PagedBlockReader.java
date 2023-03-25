@@ -12,9 +12,9 @@
 package alluxio.worker.page;
 
 import alluxio.client.file.CacheContext;
-import alluxio.client.file.cache.CacheManager;
-import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
+import alluxio.cache.CacheManager;
+import alluxio.cache.PageId;
+import alluxio.cache.store.PageReadTargetBuffer;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 import alluxio.metrics.MetricKey;

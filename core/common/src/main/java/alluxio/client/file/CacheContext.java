@@ -11,9 +11,9 @@
 
 package alluxio.client.file;
 
+import alluxio.cache.quota.CacheQuota;
+import alluxio.cache.quota.CacheScope;
 import alluxio.client.hive.HiveCacheContext;
-import alluxio.client.quota.CacheQuota;
-import alluxio.client.quota.CacheScope;
 
 import com.google.common.base.MoreObjects;
 

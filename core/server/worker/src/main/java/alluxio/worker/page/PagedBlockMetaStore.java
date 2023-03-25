@@ -11,15 +11,15 @@
 
 package alluxio.worker.page;
 
-import alluxio.client.file.cache.CacheUsage;
-import alluxio.client.file.cache.DefaultPageMetaStore;
-import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.PageInfo;
-import alluxio.client.file.cache.PageMetaStore;
-import alluxio.client.file.cache.allocator.Allocator;
-import alluxio.client.file.cache.allocator.HashAllocator;
-import alluxio.client.file.cache.store.PageStoreDir;
-import alluxio.client.quota.CacheScope;
+import alluxio.cache.CacheUsage;
+import alluxio.cache.DefaultPageMetaStore;
+import alluxio.cache.PageId;
+import alluxio.cache.PageInfo;
+import alluxio.cache.PageMetaStore;
+import alluxio.cache.allocator.Allocator;
+import alluxio.cache.allocator.HashAllocator;
+import alluxio.cache.store.PageStoreDir;
+import alluxio.cache.quota.CacheScope;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.PageNotFoundException;

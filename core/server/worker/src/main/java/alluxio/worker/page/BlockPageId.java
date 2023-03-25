@@ -11,7 +11,7 @@
 
 package alluxio.worker.page;
 
-import alluxio.client.file.cache.PageId;
+import alluxio.cache.PageId;
 
 import com.google.common.base.Preconditions;
 

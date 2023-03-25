@@ -14,9 +14,9 @@ package alluxio.worker.page;
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_MEDIUM;
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
-import alluxio.client.file.cache.CacheManager;
-import alluxio.client.file.cache.CacheManagerOptions;
-import alluxio.client.file.cache.store.PageStoreDir;
+import alluxio.cache.CacheManager;
+import alluxio.cache.CacheManagerOptions;
+import alluxio.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.exception.BlockAlreadyExistsException;
