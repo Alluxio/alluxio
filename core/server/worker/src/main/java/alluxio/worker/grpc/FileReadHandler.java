@@ -13,9 +13,9 @@ package alluxio.worker.grpc;
 
 import static alluxio.util.CommonUtils.isFatalError;
 
+import alluxio.AlluxioURI;
 import alluxio.ProcessUtils;
 import alluxio.RpcSensitiveConfigMask;
-import alluxio.client.PathIdentifier;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
@@ -417,7 +417,7 @@ public class FileReadHandler implements StreamObserver<ReadRequest> {
       }
       BlockReadRequest request = context.getRequest();
       BlockReader reader = mWorker.createFileReader(
-          PathIdentifier.hash(request.getOpenUfsBlockOptions().getUfsPath()),
+          new AlluxioURI(request.getOpenUfsBlockOptions().getUfsPath()).hash(),
           request.getStart(), request.isPositionShort(), request.getOpenUfsBlockOptions());
       context.setBlockReader(reader);
     }

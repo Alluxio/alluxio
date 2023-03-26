@@ -24,46 +24,43 @@ import java.nio.ByteBuffer;
  * Position read interface. All implementer should be thread-safe.
  */
 public interface PositionRead {
+
   /**
-   * @param fileId the file identifier
    * @param position position of the file to start reading data
    * @param buffer target byte array
    * @param offset the offset of the buffer
    * @param size bytes to read
    * @return bytes read, or -1 if end of file
    */
-  default  int read(PathIdentifier fileId, long position, byte[] buffer, int offset, int size) {
-    return read(fileId, position, new ByteArrayTargetBuffer(buffer, offset), size);
+  default int positionRead(long position, byte[] buffer, int offset, int size) {
+    return positionRead(position, new ByteArrayTargetBuffer(buffer, offset), size);
   }
 
   /**
-   * @param fileId the file identifier
    * @param position position of the file to start reading data
    * @param buffer target byte buffer
    * @param size bytes to read
    * @return bytes read, or -1 if end of file
    */
-  default  int read(PathIdentifier fileId, long position, ByteBuffer buffer, int size) {
-    return read(fileId, position, new ByteBufferTargetBuffer(buffer), size);
+  default int positionRead(long position, ByteBuffer buffer, int size) {
+    return positionRead(position, new ByteBufferTargetBuffer(buffer), size);
   }
 
   /**
-   * @param fileId the file identifier
    * @param position position of the file to start reading data
    * @param buffer target byte buf
    * @param size bytes to read
    * @return bytes read, or -1 if end of file
    */
-  default  int read(PathIdentifier fileId, long position, ByteBuf buffer, int size) {
-    return read(fileId, position, new NettyBufTargetBuffer(buffer), size);
+  default int positionRead(long position, ByteBuf buffer, int size) {
+    return positionRead(position, new NettyBufTargetBuffer(buffer), size);
   }
 
   /**
-   * @param fileId the file identifier
    * @param position position of the file to start reading data
    * @param buffer target byte buffer
    * @param size bytes to read
    * @return bytes read, or -1 if end of file
    */
-  int read(PathIdentifier fileId, long position, PageReadTargetBuffer buffer, int size);
+  int positionRead(long position, PageReadTargetBuffer buffer, int size);
 }
