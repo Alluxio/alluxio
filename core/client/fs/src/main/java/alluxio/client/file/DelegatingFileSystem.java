@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.PositionReader;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -191,6 +192,16 @@ public class DelegatingFileSystem implements FileSystem {
       throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
       IOException, AlluxioException {
     return mDelegatedFileSystem.openFile(status, options);
+  }
+
+  @Override
+  public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options) {
+    return mDelegatedFileSystem.openPositionRead(path, options);
+  }
+
+  @Override
+  public PositionReader openPositionRead(URIStatus status, OpenFilePOptions options) {
+    return mDelegatedFileSystem.openPositionRead(status, options);
   }
 
   @Override

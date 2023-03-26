@@ -15,7 +15,7 @@ import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
 import static alluxio.client.file.CacheContext.StatsUnit.NANO;
 
 import alluxio.AlluxioURI;
-import alluxio.client.PositionRead;
+import alluxio.PositionReader;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
@@ -27,6 +27,7 @@ import alluxio.metrics.MetricsSystem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Supplier;
 import com.google.common.base.Ticker;
 
 import java.io.IOException;
@@ -34,10 +35,10 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Implementation of {@link PositionRead} that reads from a local cache if possible.
+ * Implementation of {@link PositionReader} that reads from a local cache if possible.
  */
 @ThreadSafe
-public class LocalCachePositionRead implements PositionRead {
+public class LocalCachePositionReader implements PositionReader {
   /** Page size in bytes. */
   protected final long mPageSize;
 
@@ -50,20 +51,20 @@ public class LocalCachePositionRead implements PositionRead {
   private final URIStatus mStatus;
 
   /** External position reader to read data from source and cache. */
-  private final PositionRead mExternalPositionReader;
+  private final Supplier<PositionReader>  mExternalReader;
 
   /**
    * Constructor when the {@link URIStatus} is already available.
    *
    * @param status file status
-   * @param externalPositionReader the external position reader
+   * @param externalReader the external position reader supplier
    * @param cacheManager local cache manager
    * @param conf configuration
    */
-  public LocalCachePositionRead(URIStatus status, PositionRead externalPositionReader,
+  public LocalCachePositionReader(URIStatus status, Supplier<PositionReader> externalReader,
       CacheManager cacheManager, AlluxioConfiguration conf) {
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
-    mExternalPositionReader = externalPositionReader;
+    mExternalReader = externalReader;
     mCacheManager = cacheManager;
     mStatus = status;
     mIsDora = conf.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
@@ -188,7 +189,7 @@ public class LocalCachePositionRead implements PositionRead {
       // TODO(lu) consider how to position read from source and write to local cache with zero copy
       // read from input stream and write to local file
       // read from Netty ByteBuf and write to local file
-      int bytesRead = mExternalPositionReader
+      int bytesRead = mExternalReader.get()
           .positionRead(position, page, totalBytesRead, pageSize);
       if (bytesRead <= 0) {
         break;

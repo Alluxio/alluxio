@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.PositionReader;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
@@ -600,6 +601,35 @@ public interface FileSystem extends Closeable {
   FileInStream openFile(URIStatus status, OpenFilePOptions options)
       throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
       IOException, AlluxioException;
+
+  /**
+   * Convenience method for {@link #openPositionRead(AlluxioURI, OpenFilePOptions)}
+   * with default options.
+   *
+   * @param path the file to read from
+   * @return a {@link PositionReader} for the given path
+   */
+  default PositionReader openPositionRead(AlluxioURI path) {
+    return openPositionRead(path, OpenFilePOptions.getDefaultInstance());
+  }
+
+  /**
+   * Opens a file for position reading.
+   *
+   * @param path the file to read from
+   * @param options options to associate with this operation
+   * @return a {@link PositionReader} for the given path
+   */
+  PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options);
+
+  /**
+   * Opens a file for reading.
+   *
+   * @param status status of the file to read from
+   * @param options options to associate with this operation
+   * @return a {@link PositionReader} for the given path
+   */
+  PositionReader openPositionRead(URIStatus status, OpenFilePOptions options);
 
   /**
    * Convenience method for {@link #persist(AlluxioURI, ScheduleAsyncPersistencePOptions)} which

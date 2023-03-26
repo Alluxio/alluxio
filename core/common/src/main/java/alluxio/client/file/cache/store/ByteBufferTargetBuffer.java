@@ -11,8 +11,6 @@
 
 package alluxio.client.file.cache.store;
 
-import alluxio.annotation.SuppressFBWarnings;
-
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
@@ -21,67 +19,66 @@ import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
 /**
- * Target buffer backed by bytes array for zero-copy read from page store.
+ * Target buffer backed by nio ByteBuffer for zero-copy read from page store.
  */
-@SuppressFBWarnings(
-    value = "EI_EXPOSE_REP2",
-    justification = "The target byte array is exposed as we expect.")
-public class ByteArrayTargetBuffer implements PageReadTargetBuffer {
-  private final byte[] mTarget;
-  private int mOffset;
+public class ByteBufferTargetBuffer implements PageReadTargetBuffer {
+  private final ByteBuffer mTarget;
 
   /**
    * Constructor.
    * @param target
-   * @param offset
    */
-  public ByteArrayTargetBuffer(byte[] target, int offset) {
+  public ByteBufferTargetBuffer(ByteBuffer target) {
     mTarget = target;
-    mOffset = offset;
   }
 
   @Override
   public byte[] byteArray() {
-    return mTarget;
-  }
-
-  @Override
-  public ByteBuffer byteBuffer() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public long offset() {
-    return mOffset;
+  public ByteBuffer byteBuffer() {
+    return mTarget;
   }
 
   @Override
-  public long remaining() {
-    return mTarget.length - mOffset;
+  public int offset() {
+    return mTarget.position();
   }
 
   @Override
-  public void writeBytes(byte[] srcArray, int srcOffset, int length) {
-    System.arraycopy(srcArray, srcOffset, mTarget, mOffset, length);
-    mOffset += length;
-  }
-
-  @Override
-  public void writeBytes(ByteBuf buf) {
-    buf.readBytes(mTarget, mOffset, Math.min(buf.readableBytes(), mTarget.length - mOffset));
-  }
-
-  @Override
-  public int readFromFile(RandomAccessFile file, int length) throws IOException {
-    int bytesRead = file.read(mTarget, mOffset, length);
-    if (bytesRead != -1) {
-      mOffset += bytesRead;
-    }
-    return bytesRead;
+  public void offset(int newOffset) {
+    mTarget.position(newOffset);
   }
 
   @Override
   public WritableByteChannel byteChannel() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public long remaining() {
+    return mTarget.remaining();
+  }
+
+  @Override
+  public void writeBytes(byte[] srcArray, int srcOffset, int length) {
+    mTarget.put(srcArray, srcOffset, length);
+  }
+
+  @Override
+  public void writeBytes(ByteBuf buf) {
+    buf.readBytes(mTarget);
+  }
+
+  @Override
+  public int readFromFile(RandomAccessFile file, int length) throws IOException {
+    int bytesToRead = Math.min(length, mTarget.remaining());
+    ByteBuffer slice = mTarget.slice();
+    slice.limit(bytesToRead);
+    int bytesRead = file.getChannel().read(slice);
+    mTarget.position(mTarget.position() + bytesRead);
+    return bytesRead;
   }
 }

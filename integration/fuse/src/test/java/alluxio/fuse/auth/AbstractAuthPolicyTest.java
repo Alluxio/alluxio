@@ -14,6 +14,7 @@ package alluxio.fuse.auth;
 import static org.mockito.ArgumentMatchers.eq;
 
 import alluxio.AlluxioURI;
+import alluxio.PositionReader;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -239,6 +240,16 @@ public abstract class AbstractAuthPolicyTest {
     @Override
     public FileInStream openFile(URIStatus status, OpenFilePOptions options)
         throws IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PositionReader openPositionRead(URIStatus status, OpenFilePOptions options) {
       throw new UnsupportedOperationException();
     }
 

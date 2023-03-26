@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client;
+package alluxio;
 
 import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
 import alluxio.client.file.cache.store.ByteBufferTargetBuffer;
@@ -24,8 +24,7 @@ import java.nio.ByteBuffer;
 /**
  * Position read interface. All implementer should be thread-safe.
  */
-public interface PositionRead {
-
+public interface PositionReader {
   /**
    * @param position position of the file to start reading data
    * @param buffer target byte array
@@ -61,8 +60,8 @@ public interface PositionRead {
   /**
    * @param position position of the file to start reading data
    * @param buffer target byte buffer
-   * @param size bytes to read
+   * @param length bytes to read
    * @return bytes read, or -1 if end of file
    */
-  int positionRead(long position, PageReadTargetBuffer buffer, int size) throws IOException;
+  int positionRead(long position, PageReadTargetBuffer buffer, int length) throws IOException;
 }

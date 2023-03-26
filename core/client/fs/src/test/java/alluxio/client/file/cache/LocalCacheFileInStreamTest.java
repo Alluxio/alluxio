@@ -13,6 +13,7 @@ package alluxio.client.file.cache;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.PositionReader;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -838,6 +839,16 @@ public class LocalCacheFileInStreamTest {
       } else {
         throw new FileDoesNotExistException(path);
       }
+    }
+
+    @Override
+    public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PositionReader openPositionRead(URIStatus status, OpenFilePOptions options) {
+      throw new UnsupportedOperationException();
     }
 
     @Override

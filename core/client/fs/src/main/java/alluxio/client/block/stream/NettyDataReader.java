@@ -12,8 +12,10 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
@@ -118,7 +120,7 @@ public final class NettyDataReader implements DataReader {
    * @param readRequest the read request
    */
   private NettyDataReader(FileSystemContext context, WorkerNetAddress address,
-                            Protocol.ReadRequest readRequest) throws IOException {
+      Protocol.ReadRequest readRequest) throws IOException {
     mContext = context;
     mAddress = address;
     mPosToRead = readRequest.getOffset();
@@ -166,6 +168,11 @@ public final class NettyDataReader implements DataReader {
     mPosToRead += buf.readableBytes();
     Preconditions.checkState(mPosToRead - mReadRequest.getOffset() <= mReadRequest.getLength());
     return new NettyDataBuffer(buf);
+  }
+
+  @Override
+  public int read(PageReadTargetBuffer buffer) {
+    throw new UnimplementedRuntimeException("to be implemented");
   }
 
   @Override
@@ -334,14 +341,14 @@ public final class NettyDataReader implements DataReader {
      * @param readRequestBuilder the read request builder
      */
     public Factory(FileSystemContext context, WorkerNetAddress address,
-                   Protocol.ReadRequest.Builder readRequestBuilder) {
+        Protocol.ReadRequest.Builder readRequestBuilder) {
       mContext = context;
       mAddress = address;
       mReadRequestBuilder = readRequestBuilder;
     }
 
     @Override
-    public DataReader create(long offset, long len) throws IOException {
+    public NettyDataReader create(long offset, long len) throws IOException {
       return new NettyDataReader(mContext, mAddress,
           mReadRequestBuilder.setOffset(offset).setLength(len).build());
     }

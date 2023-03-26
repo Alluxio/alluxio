@@ -16,6 +16,7 @@ import static java.util.stream.Collectors.toMap;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.PositionReader;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
@@ -30,6 +31,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.FailedPreconditionException;
@@ -413,6 +415,16 @@ public class BaseFileSystem implements FileSystem {
         .toBuilder().mergeFrom(options).build();
     InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions, conf, mFsContext);
     return new AlluxioFileInStream(status, inStreamOptions, mFsContext);
+  }
+
+  @Override
+  public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options) {
+    throw new UnimplementedRuntimeException("position read not implemented");
+  }
+
+  @Override
+  public PositionReader openPositionRead(URIStatus status, OpenFilePOptions options) {
+    throw new UnimplementedRuntimeException("position read not implemented");
   }
 
   @Override

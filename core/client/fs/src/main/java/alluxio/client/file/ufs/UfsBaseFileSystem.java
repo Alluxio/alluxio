@@ -12,6 +12,7 @@
 package alluxio.client.file.ufs;
 
 import alluxio.AlluxioURI;
+import alluxio.PositionReader;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -303,6 +304,17 @@ public class UfsBaseFileSystem implements FileSystem {
         }
       }, status.getLength());
     });
+  }
+
+  @Override
+  public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options) {
+    return openPositionRead(getStatus(path), options);
+  }
+
+  @Override
+  public PositionReader openPositionRead(URIStatus status, OpenFilePOptions options) {
+    return callWithReturn(() -> mUfs.get()
+        .openPositionRead(status.getUfsPath(), status.getLength()));
   }
 
   @Override

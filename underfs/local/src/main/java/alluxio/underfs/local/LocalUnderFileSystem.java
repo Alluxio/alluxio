@@ -377,6 +377,12 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
+  public LocalPositionReader openPositionRead(String path, long fileLength) {
+    path = stripPath(path);
+    return new LocalPositionReader(path, fileLength);
+  }
+
+  @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
     if (!isDirectory(src)) {
       LOG.warn("Unable to rename {} to {} because source does not exist or is a file.", src, dst);

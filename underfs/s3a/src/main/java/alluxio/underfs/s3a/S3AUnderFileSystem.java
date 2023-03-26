@@ -339,6 +339,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
+  public S3APositionReader openPositionRead(String path, long fileLength) {
+    return new S3APositionReader(mClient, mBucketName, stripPrefixIfPresent(path), fileLength);
+  }
+
+  @Override
   public String getUnderFSType() {
     return "s3";
   }

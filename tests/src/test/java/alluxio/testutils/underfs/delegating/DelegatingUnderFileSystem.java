@@ -12,6 +12,7 @@
 package alluxio.testutils.underfs.delegating;
 
 import alluxio.AlluxioURI;
+import alluxio.PositionReader;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
@@ -275,6 +276,11 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   @Override
   public InputStream openExistingFile(String path) throws IOException {
     return mUfs.openExistingFile(path);
+  }
+
+  @Override
+  public PositionReader openPositionRead(String path, long fileLength) {
+    return mUfs.openPositionRead(path, fileLength);
   }
 
   @Override

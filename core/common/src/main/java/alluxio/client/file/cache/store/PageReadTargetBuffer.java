@@ -37,7 +37,14 @@ public interface PageReadTargetBuffer {
   /**
    * @return offset in the buffer
    */
-  long offset();
+  int offset();
+
+  /**
+   * Sets the new offset in the buffer.
+   *
+   * @param newOffset the new offset
+   */
+  void offset(int newOffset);
 
   /**
    * @return the writable channel
