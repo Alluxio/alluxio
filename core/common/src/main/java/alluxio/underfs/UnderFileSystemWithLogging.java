@@ -949,12 +949,12 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
         public PositionReader call() {
           return mUnderFileSystem.openPositionRead(path, fileLength);
         }
-  
+
         @Override
         public String methodName() {
           return "OpenPositionRead";
         }
-  
+
         @Override
         public String toString() {
           return String.format("path=%s, fileLength=%s", path, fileLength);

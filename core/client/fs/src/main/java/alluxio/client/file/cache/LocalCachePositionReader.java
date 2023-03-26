@@ -15,6 +15,7 @@ import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
 import static alluxio.client.file.CacheContext.StatsUnit.NANO;
 
 import alluxio.AlluxioURI;
+import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.URIStatus;
@@ -27,7 +28,6 @@ import alluxio.metrics.MetricsSystem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
-import com.google.common.base.Supplier;
 import com.google.common.base.Ticker;
 
 import java.io.IOException;
@@ -51,7 +51,8 @@ public class LocalCachePositionReader implements PositionReader {
   private final URIStatus mStatus;
 
   /** External position reader to read data from source and cache. */
-  private final Supplier<PositionReader>  mExternalReader;
+  private final CloseableSupplier<PositionReader>  mExternalReader;
+  private volatile boolean mClosed;
 
   /**
    * Constructor when the {@link URIStatus} is already available.
@@ -61,7 +62,8 @@ public class LocalCachePositionReader implements PositionReader {
    * @param cacheManager local cache manager
    * @param conf configuration
    */
-  public LocalCachePositionReader(URIStatus status, Supplier<PositionReader> externalReader,
+  public LocalCachePositionReader(URIStatus status,
+      CloseableSupplier<PositionReader> externalReader,
       CacheManager cacheManager, AlluxioConfiguration conf) {
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     mExternalReader = externalReader;
@@ -82,6 +84,7 @@ public class LocalCachePositionReader implements PositionReader {
       throws IOException {
     Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(position >= 0, "position should be non-negative");
+    Preconditions.checkArgument(!mClosed, "position reader is closed");
     if (length == 0) {
       return 0;
     }
@@ -106,6 +109,15 @@ public class LocalCachePositionReader implements PositionReader {
           length, totalBytesRead, mStatus.getLength() - position));
     }
     return totalBytesRead;
+  }
+
+  @Override
+  public synchronized void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
+    mClosed = true;
+    mExternalReader.close();
   }
 
   private int localCachedRead(PageReadTargetBuffer bytesBuffer, int length,

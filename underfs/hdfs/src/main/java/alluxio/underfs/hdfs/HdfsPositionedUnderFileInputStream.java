@@ -11,6 +11,9 @@
 
 package alluxio.underfs.hdfs;
 
+import alluxio.PositionReader;
+import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
+import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.util.io.BufferUtils;
 
@@ -28,7 +31,8 @@ import java.io.IOException;
  * buffering. Under random read mode, it uses the positionedRead {@link FSDataInputStream} API.
  * This stream can be cached for reuse.
  */
-public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputStream {
+public class HdfsPositionedUnderFileInputStream
+    extends SeekableUnderFileInputStream implements PositionReader {
   // TODO(david): make these parameters configurations and add diagnostic metrics.
   // After this many number of sequential reads (reads without large skips), it
   // will switch to sequential read mode.
@@ -137,5 +141,34 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
   @Override
   public boolean markSupported() {
     return false;
+  }
+
+  @Override
+  public int positionRead(long position, PageReadTargetBuffer buffer, int length)
+      throws IOException {
+    Preconditions.checkArgument(length >= 0, "length should be non-negative");
+    Preconditions.checkArgument(position >= 0, "position should be non-negative");
+    Preconditions.checkArgument(in instanceof PositionedReadable);
+    if (length == 0) {
+      return 0;
+    }
+    int currentRead = 0;
+    int totalRead = 0;
+    boolean targetIsByteArray = buffer instanceof ByteArrayTargetBuffer;
+    byte[] byteArray = targetIsByteArray ? buffer.byteArray() : new byte[length];
+    int arrayPosition = targetIsByteArray ? buffer.offset() : 0;
+    while (totalRead < length) {
+      currentRead = ((PositionedReadable) in)
+          .read(position, byteArray, arrayPosition, length - totalRead);
+      if (currentRead <= 0) {
+        break;
+      }
+      totalRead += currentRead;
+      arrayPosition += currentRead;
+    }
+    if (targetIsByteArray) {
+      buffer.offset(arrayPosition);
+    }
+    return totalRead == 0 ? currentRead : totalRead;
   }
 }

@@ -12,6 +12,7 @@
 package alluxio.client.file.cache;
 
 import alluxio.AlluxioURI;
+import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
 import alluxio.client.file.DelegatingFileSystem;
 import alluxio.client.file.FileInStream;
@@ -89,6 +90,7 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
       return mDelegatedFileSystem.openPositionRead(status, options);
     }
     return new LocalCachePositionReader(status,
-        () -> mDelegatedFileSystem.openPositionRead(status, options), mCacheManager, mConf);
+        new CloseableSupplier<>(() -> mDelegatedFileSystem.openPositionRead(status, options)),
+        mCacheManager, mConf);
   }
 }

@@ -18,13 +18,14 @@ import alluxio.client.file.cache.store.PageReadTargetBuffer;
 
 import io.netty.buffer.ByteBuf;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
  * Position read interface. All implementer should be thread-safe.
  */
-public interface PositionReader {
+public interface PositionReader extends Closeable {
   /**
    * @param position position of the file to start reading data
    * @param buffer target byte array
@@ -64,4 +65,9 @@ public interface PositionReader {
    * @return bytes read, or -1 if end of file
    */
   int positionRead(long position, PageReadTargetBuffer buffer, int length) throws IOException;
+
+  /**
+   * Closes the positon reader and do cleanup job if any.
+   */
+  default void close() throws IOException {}
 }

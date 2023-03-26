@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
 import alluxio.client.ReadType;
 import alluxio.client.file.dora.DoraCacheClient;
@@ -167,7 +168,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
             .setMountId(DUMMY_MOUNT_ID)
             .build();
     return mDoraClient.getNettyPositionReader(status, openUfsBlockOptions,
-        () -> mDelegatedFileSystem.openPositionRead(status, mergedOptions));
+        new CloseableSupplier<>(() ->
+            mDelegatedFileSystem.openPositionRead(status, mergedOptions)));
   }
 
   @Override

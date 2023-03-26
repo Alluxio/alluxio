@@ -13,6 +13,7 @@ package alluxio.client.file.dora;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
@@ -32,8 +33,6 @@ import alluxio.grpc.ReadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerNetAddress;
-
-import com.google.common.base.Supplier;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -94,7 +93,8 @@ public class DoraCacheClient {
    * @return a netty position reader
    */
   public DoraCachePositionReader getNettyPositionReader(URIStatus status,
-      Protocol.OpenUfsBlockOptions ufsOptions, Supplier<PositionReader> externalPositionReader) {
+      Protocol.OpenUfsBlockOptions ufsOptions,
+      CloseableSupplier<PositionReader> externalPositionReader) {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getPath());
     // Construct the partial read request
     NettyDataReader.Factory readerFactory = createNettyDataReader(workerNetAddress, ufsOptions);

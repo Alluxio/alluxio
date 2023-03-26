@@ -11,6 +11,7 @@
 
 package alluxio.client.file.dora;
 
+import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
 import alluxio.client.block.stream.NettyDataReader;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
@@ -19,7 +20,6 @@ import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,19 +37,20 @@ public class DoraCachePositionReader implements PositionReader {
 
   private final NettyDataReader.Factory mReaderFactory;
   private final long mFileLength;
-  private final Supplier<PositionReader>  mExternalReader;
+  private final CloseableSupplier<PositionReader> mFallbackReader;
+  private volatile boolean mClosed;
 
   /**
    * @param readerFactory reader to read data through network
    * @param length file length
-   * @param externalReader the external reader
+   * @param fallbackReader the position reader to fallback to when errors happen
    */
   // TODO(lu) structure for fallback position read
   public DoraCachePositionReader(NettyDataReader.Factory readerFactory,
-      long length, Supplier<PositionReader> externalReader) {
+      long length, CloseableSupplier<PositionReader> fallbackReader) {
     mReaderFactory = readerFactory;
     mFileLength = length;
-    mExternalReader = externalReader;
+    mFallbackReader = fallbackReader;
   }
 
   @Override
@@ -57,6 +58,7 @@ public class DoraCachePositionReader implements PositionReader {
       throws IOException {
     Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(position >= 0, "position should be non-negative");
+    Preconditions.checkArgument(!mClosed, "position reader is closed");
     if (length == 0) {
       return 0;
     }
@@ -70,7 +72,16 @@ public class DoraCachePositionReader implements PositionReader {
       LOG.debug("Dora client read file error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), e);
       // TODO(lu) what if read partial failed, cleanup the buffer?
-      return mExternalReader.get().positionRead(position, buffer, length);
+      return mFallbackReader.get().positionRead(position, buffer, length);
     }
+  }
+
+  @Override
+  public synchronized void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
+    mClosed = true;
+    mFallbackReader.close();
   }
 }
