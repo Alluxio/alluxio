@@ -169,6 +169,8 @@ public final class ProxyWebServer extends WebServer {
               getServletContext().setAttribute(PROXY_S3_V2_LIGHT_POOL, createLightThreadPool());
               getServletContext().setAttribute(PROXY_S3_V2_HEAVY_POOL, createHeavyThreadPool());
               getServletContext().setAttribute(PROXY_S3_HANDLER_MAP, mS3HandlerMap);
+              getServletContext().setAttribute(GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY,
+                  mGlobalRateLimiter);
             }
           });
       mServletContextHandler
