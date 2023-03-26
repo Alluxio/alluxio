@@ -18,6 +18,7 @@ import alluxio.client.file.cache.store.PageReadTargetBuffer;
 
 import io.netty.buffer.ByteBuf;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -29,31 +30,32 @@ public interface PositionRead {
    * @param position position of the file to start reading data
    * @param buffer target byte array
    * @param offset the offset of the buffer
-   * @param size bytes to read
+   * @param length bytes to read
    * @return bytes read, or -1 if end of file
    */
-  default int positionRead(long position, byte[] buffer, int offset, int size) {
-    return positionRead(position, new ByteArrayTargetBuffer(buffer, offset), size);
+  default int positionRead(long position, byte[] buffer, int offset, int length)
+      throws IOException {
+    return positionRead(position, new ByteArrayTargetBuffer(buffer, offset), length);
   }
 
   /**
    * @param position position of the file to start reading data
    * @param buffer target byte buffer
-   * @param size bytes to read
+   * @param length bytes to read
    * @return bytes read, or -1 if end of file
    */
-  default int positionRead(long position, ByteBuffer buffer, int size) {
-    return positionRead(position, new ByteBufferTargetBuffer(buffer), size);
+  default int positionRead(long position, ByteBuffer buffer, int length) throws IOException {
+    return positionRead(position, new ByteBufferTargetBuffer(buffer), length);
   }
 
   /**
    * @param position position of the file to start reading data
    * @param buffer target byte buf
-   * @param size bytes to read
+   * @param length bytes to read
    * @return bytes read, or -1 if end of file
    */
-  default int positionRead(long position, ByteBuf buffer, int size) {
-    return positionRead(position, new NettyBufTargetBuffer(buffer), size);
+  default int positionRead(long position, ByteBuf buffer, int length) throws IOException {
+    return positionRead(position, new NettyBufTargetBuffer(buffer), length);
   }
 
   /**
@@ -62,5 +64,5 @@ public interface PositionRead {
    * @param size bytes to read
    * @return bytes read, or -1 if end of file
    */
-  int positionRead(long position, PageReadTargetBuffer buffer, int size);
+  int positionRead(long position, PageReadTargetBuffer buffer, int size) throws IOException;
 }
