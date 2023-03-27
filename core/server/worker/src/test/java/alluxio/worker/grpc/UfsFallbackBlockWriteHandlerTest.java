@@ -98,6 +98,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
             new TieredTempBlockMetaFactory()),
             Mockito.mock(BlockMasterClientPool.class),
             ufsManager, workerId);
+    mBlockStore.initialize();
     DefaultBlockWorker blockWorker = Mockito.mock(DefaultBlockWorker.class);
     Mockito.when(blockWorker.getWorkerId()).thenReturn(new AtomicReference<>(TEST_WORKER_ID));
     Mockito.when(blockWorker.getBlockStore()).thenReturn(mBlockStore);

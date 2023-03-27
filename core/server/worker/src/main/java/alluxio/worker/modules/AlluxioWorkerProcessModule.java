@@ -12,9 +12,7 @@
 package alluxio.worker.modules;
 
 import alluxio.worker.AlluxioWorkerProcess;
-import alluxio.worker.WorkerFactory;
 import alluxio.worker.WorkerProcess;
-import alluxio.worker.dora.DoraWorkerFactory;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;

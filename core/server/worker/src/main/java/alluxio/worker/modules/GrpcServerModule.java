@@ -13,12 +13,9 @@ package alluxio.worker.modules;
 
 import alluxio.conf.Configuration;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.dora.DoraWorker;
-import alluxio.worker.dora.PagedDoraWorker;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import com.google.inject.Scopes;
 import com.google.inject.name.Names;
 
 import java.io.IOException;

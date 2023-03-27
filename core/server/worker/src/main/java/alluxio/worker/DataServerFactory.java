@@ -80,10 +80,20 @@ public class DataServerFactory {
     return domainSocketDataServer;
   }
 
+  /**
+   * Get gRPC bind address.
+   *
+   * @return the InetSocketAddress object with gRPC bind address
+   */
   public InetSocketAddress getGRpcBindAddress() {
     return mGRpcBindAddress;
   }
 
+  /**
+   * Get gRPC connect address.
+   *
+   * @return the InetSocketAddress object with gRPC connect address
+   */
   public InetSocketAddress getConnectAddress() {
     return mConnectAddress;
   }
