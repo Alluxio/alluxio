@@ -152,7 +152,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       } else {
         mNettyDataServer = null;
       }
-
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
