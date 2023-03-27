@@ -25,6 +25,10 @@ public class BaseTaskResult {
     mT = t;
   }
 
+  boolean succeeded() {
+    return mT == null;
+  }
+
   Optional<Throwable> getResult() {
     return Optional.ofNullable(mT);
   }

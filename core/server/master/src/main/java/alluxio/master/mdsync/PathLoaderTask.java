@@ -11,19 +11,17 @@
 
 package alluxio.master.mdsync;
 
+import alluxio.AlluxioURI;
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.file.options.DescendantType;
-import alluxio.retry.CountingRetry;
-import alluxio.retry.RetryPolicy;
-import alluxio.underfs.UfsStatus;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayDeque;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import javax.annotation.Nullable;
 
 /**
@@ -34,22 +32,25 @@ public class PathLoaderTask {
   private static final Logger LOG = LoggerFactory.getLogger(PathLoaderTask.class);
 
   private final TaskInfo mTaskInfo;
-  private final RetryPolicy mRetryPolicy = new CountingRetry(2);
-  private final ArrayDeque<LoadRequest> mNextLoad;
-  private final Consumer<Throwable> mOnFailed;
+  /**
+   * All load requests that are ready, but have not yet started executing.
+   */
+  private final ConcurrentLinkedDeque<LoadRequest> mNextLoad;
+  /**
+   * These are all running (or ready to be run) load requests.
+   */
   private final ConcurrentHashMap<Long, LoadRequest> mRunningLoads = new ConcurrentHashMap<>();
+  /**
+   * The load id that starts each load (where a load is a set of multiple load batches until
+   * a batch is not truncated) is stored here until the request that truncates this load
+   * is completed.
+   */
+  private final ConcurrentHashSet<Long> mTruncatedLoads = new ConcurrentHashSet<>();
   private long mNxtLoadId = 0;
   private boolean mCompleted = false;
-  private final Consumer<SyncProcessResult> mOnEachResult;
-  private final Consumer<Boolean> mOnComplete;
   private Runnable mRunOnPendingLoad;
 
   private final UfsClient mClient;
-
-  private boolean hasDirLoadTasks() {
-    return mTaskInfo.getDescendantType() == DescendantType.ALL
-        && mTaskInfo.getLoadByDirectory() != DirectoryLoadType.NONE;
-  }
 
   private DescendantType computeDescendantType() {
     if (mTaskInfo.getDescendantType() == DescendantType.ALL
@@ -63,29 +64,20 @@ public class PathLoaderTask {
    * Create a new PathLoaderTask.
    * @param taskInfo
    * @param continuationToken
-   * @param onEachResult
-   * @param onComplete
-   * @param onFailed
    */
   public PathLoaderTask(
-      TaskInfo taskInfo, @Nullable String continuationToken,
-      Consumer<SyncProcessResult> onEachResult, Consumer<Boolean> onComplete,
-      Consumer<Throwable> onFailed) {
+      TaskInfo taskInfo, @Nullable String continuationToken) {
     mTaskInfo = taskInfo;
     final long loadId = mNxtLoadId++;
-    LoadRequest firstRequest = new LoadRequest(loadId, mTaskInfo, mTaskInfo.getBasePath(),
-        continuationToken, computeDescendantType(),
-        result -> createLoadResult(loadId, result), t -> onLoadError(loadId, t));
+    LoadRequest firstRequest = new LoadRequest(loadId, loadId, mTaskInfo, mTaskInfo.getBasePath(),
+        continuationToken, computeDescendantType());
     if (mTaskInfo.getDescendantType() == DescendantType.NONE) {
-      mNextLoad = new ArrayDeque<>(1);
+      mNextLoad = new ConcurrentLinkedDeque<>();
     } else {
-      mNextLoad = new ArrayDeque<>();
+      mNextLoad = new ConcurrentLinkedDeque<>();
     }
-    addLoadRequest(firstRequest);
-    mClient = UfsClient.getClientByPath(taskInfo.getBasePath());
-    mOnEachResult = onEachResult;
-    mOnComplete = onComplete;
-    mOnFailed = onFailed;
+    addLoadRequest(firstRequest, true);
+    mClient = mTaskInfo.getMdSync().getClient(taskInfo.getBasePath());
   }
 
   boolean isComplete() {
@@ -104,8 +96,9 @@ public class PathLoaderTask {
     mRunOnPendingLoad = toRun;
   }
 
-  private synchronized Optional<LoadResult> createLoadResult(
+  synchronized Optional<LoadResult> createLoadResult(
       long requestId, UfsLoadResult ufsLoadResult) {
+    mTaskInfo.getStats().gotBatch(ufsLoadResult.getItemsCount());
     if (mCompleted) {
       return Optional.empty();
     }
@@ -116,39 +109,36 @@ public class PathLoaderTask {
           mTaskInfo, requestId);
       return Optional.empty();
     }
-    if (hasDirLoadTasks()) {
-      // loading of children directories will take place as different tasks
-      Stream<UfsStatus> items = ufsLoadResult.getItems().peek(nxt -> {
-        if (nxt.isDirectory()) {
-          synchronized (this) {
-            final long loadId = mNxtLoadId++;
-            addLoadRequest(new LoadRequest(loadId, mTaskInfo,
-                originalRequest.getLoadPath().join(nxt.getName()),
-                 null, computeDescendantType(),
-                result -> createLoadResult(loadId, result), t -> onLoadError(loadId, t)));
-          }
-        }
-      });
-      ufsLoadResult = new UfsLoadResult(items, ufsLoadResult.getContinuationToken(),
-          ufsLoadResult.isTruncated());
-    }
     if (ufsLoadResult.isTruncated()) {
       // If truncated, need to submit a new task for the next set of items
       final long loadId = mNxtLoadId++;
-      addLoadRequest(new LoadRequest(loadId, mTaskInfo, originalRequest.getLoadPath(),
-          ufsLoadResult.getContinuationToken(), computeDescendantType(),
-          result -> createLoadResult(loadId, result), t -> onLoadError(loadId, t)));
+      addLoadRequest(new LoadRequest(loadId, originalRequest.getBatchSetId(), mTaskInfo,
+          originalRequest.getLoadPath(), ufsLoadResult.getContinuationToken(),
+          computeDescendantType()), false);
     }
-    return Optional.of(new LoadResult(originalRequest.getLoadPath(), mTaskInfo, ufsLoadResult,
-        syncProcessResult -> onProcessComplete(requestId, syncProcessResult),
-        this::onProcessError));
+    return Optional.of(new LoadResult(requestId, originalRequest.getLoadPath(),
+        mTaskInfo, ufsLoadResult));
   }
 
-  private void addLoadRequest(LoadRequest loadRequest) {
+  void loadNestedDirectory(AlluxioURI path) {
+    // If we are loading by directory, then we must create a new load task on each
+    // directory traversed
+    synchronized (this) {
+      final long loadId = mNxtLoadId++;
+      addLoadRequest(new LoadRequest(loadId, loadId, mTaskInfo, path,
+          null, computeDescendantType()), true);
+    }
+  }
+
+  private void addLoadRequest(LoadRequest loadRequest, boolean isFirstForPath) {
+    mRunningLoads.put(loadRequest.getLoadRequestId(), loadRequest);
     if (mTaskInfo.getLoadByDirectory() == DirectoryLoadType.BFS) {
       mNextLoad.addLast(loadRequest);
     } else {
       mNextLoad.addFirst(loadRequest);
+    }
+    if (isFirstForPath) {
+      mTruncatedLoads.add(loadRequest.getLoadRequestId());
     }
     if (mRunOnPendingLoad != null) {
       mRunOnPendingLoad.run();
@@ -160,24 +150,32 @@ public class PathLoaderTask {
    * processing by the metadata sync.
    * @param loadRequestId the id of the finished task
    */
-  synchronized void onProcessComplete(long loadRequestId, SyncProcessResult result) {
-    mOnEachResult.accept(result);
-    if (!result.isTruncated()) {
-      mRunningLoads.remove(loadRequestId);
-      if (mRunningLoads.size() == 0) {
+  void onProcessComplete(long loadRequestId, SyncProcessResult result) {
+    mTaskInfo.getMdSync().onEachResult(mTaskInfo.getId(), result);
+    synchronized (this) {
+      LoadRequest request = mRunningLoads.remove(loadRequestId);
+      if (request != null && !result.isTruncated()) {
+        Preconditions.checkState(mTruncatedLoads.remove(request.getBatchSetId()),
+            "load request %s finished, without finding the load %s that started the batch loading",
+            loadRequestId, request.getBatchSetId());
+      }
+      if (mTruncatedLoads.size() == 0 && mRunningLoads.size() == 0) {
+        // all sets of loads have finished
         mCompleted = true;
-        mOnComplete.accept(result.rootPathIsFile());
+        mTaskInfo.getMdSync().onPathLoadComplete(mTaskInfo.getId(), result.rootPathIsFile());
       }
     }
   }
 
-  private synchronized void onProcessError(Throwable t) {
+  synchronized void onProcessError(Throwable t) {
     // If there is a processing error then we fail the entire task
+    mTaskInfo.getStats().setProcessFailed();
     mCompleted = true;
-    mOnFailed.accept(t);
+    mTaskInfo.getMdSync().onFailed(mTaskInfo.getId(), t);
   }
 
-  void onLoadError(long id, Throwable t) {
+  void onLoadRequestError(long id, Throwable t) {
+    mTaskInfo.getStats().gotLoadError();
     synchronized (this) {
       if (mCompleted) {
         LOG.debug("Received a load error for task {} wit id {} after the task was completed",
@@ -191,20 +189,21 @@ public class PathLoaderTask {
             mTaskInfo, id);
         return;
       }
-      if (mRetryPolicy.attempt()) {
+      if (load.attempt()) {
         LOG.debug("Rescheduling retry of load on path {}, with id {}, with continuation token {}"
                 + "after error {}",
-            mTaskInfo, load.getId(), load.getContinuationToken(), t);
-        mNextLoad.addFirst(load);
+            mTaskInfo, load.getLoadRequestId(), load.getContinuationToken(), t);
+        addLoadRequest(load, false);
         return;
       } else {
         LOG.warn("Path loader task failed of load on path {},"
                 + "with id {} with continuation token {} after error {}",
-            mTaskInfo, load.getId(), load.getContinuationToken(), t);
+            mTaskInfo, load.getLoadRequestId(), load.getContinuationToken(), t);
         mCompleted = true;
       }
     }
-    mOnFailed.accept(t);
+    mTaskInfo.getStats().setLoadFailed();
+    mTaskInfo.getMdSync().onFailed(mTaskInfo.getId(), t);
   }
 
   synchronized void cancel() {
@@ -212,7 +211,7 @@ public class PathLoaderTask {
     mCompleted = true;
   }
 
-  synchronized Optional<LoadRequest> getNext() {
+  Optional<LoadRequest> getNext() {
     return Optional.ofNullable(mNextLoad.poll());
   }
 }

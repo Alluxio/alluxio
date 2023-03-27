@@ -12,20 +12,24 @@
 package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
 import alluxio.conf.path.TrieNode;
 import alluxio.file.options.DescendantType;
 import alluxio.master.file.meta.UfsSyncPathCache;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Clock;
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.Optional;
 
 /**
  * Tracks metadata sync tasks. The tasks will be submitted by UFS URL by user RPC threads.
  */
-public class TaskTracker {
+public class TaskTracker implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(TaskTracker.class);
 
   private final TrieNode<BaseTask> mActiveRecursiveListTasks;
@@ -47,14 +51,15 @@ public class TaskTracker {
    * @param allowConcurrentGetStatus if true, getStatus tasks will run concurrently
    *                                 with recursive list tasks
    * @param syncPathCache the sync path cache
+   * @param syncProcess the sync process
    */
   public TaskTracker(
       int executorThreads, int maxUfsRequests,
       boolean allowConcurrentGetStatus, boolean allowConcurrentNonRecursiveList,
-      UfsSyncPathCache syncPathCache) {
+      UfsSyncPathCache syncPathCache, SyncProcess syncProcess) {
     mSyncPathCache = syncPathCache;
     mLoadRequestExecutor = new LoadRequestExecutor(maxUfsRequests,
-        new LoadResultExecutor(executorThreads));
+        new LoadResultExecutor(syncProcess, executorThreads, syncPathCache));
     mActiveRecursiveListTasks = new TrieNode<>();
     if (allowConcurrentNonRecursiveList) {
       mActiveListTasks = new TrieNode<>();
@@ -68,22 +73,42 @@ public class TaskTracker {
     }
   }
 
-  private synchronized void taskComplete(long taskId, boolean isFile) {
+  synchronized Optional<BaseTask> getTask(long taskId) {
+    return Optional.ofNullable(mTaskMap.get(taskId));
+  }
+
+  synchronized boolean hasRunningTasks() {
+    return mActiveListTasks.getCommonRoots().hasNext()
+        || mActiveStatusTasks.getCommonRoots().hasNext()
+        || mActiveRecursiveListTasks.getCommonRoots().hasNext();
+  }
+
+  synchronized void taskComplete(long taskId, boolean isFile) {
     BaseTask baseTask = mTaskMap.remove(taskId);
     if (baseTask != null) {
       LOG.debug("Task {} completed", baseTask);
       mSyncPathCache.notifySyncedPath(baseTask.getTaskInfo().getBasePath(),
           baseTask.getTaskInfo().getDescendantType(), baseTask.getStartTime(),
           null, isFile);
+      TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(
+          baseTask.getTaskInfo().getDescendantType());
+      Preconditions.checkNotNull(activeTasks.deleteIf(
+              baseTask.getTaskInfo().getBasePath().getPath(), a -> true),
+          "task missing");
     } else {
       LOG.debug("Task with id {} completed, but was already removed", taskId);
     }
   }
 
-  private synchronized void taskError(long taskId, Throwable t) {
+  synchronized void taskError(long taskId, Throwable t) {
     BaseTask baseTask = mTaskMap.remove(taskId);
     if (baseTask != null) {
       LOG.debug("Task {} failed with error {}", baseTask, t);
+      TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(
+          baseTask.getTaskInfo().getDescendantType());
+      Preconditions.checkNotNull(activeTasks.deleteIf(
+              baseTask.getTaskInfo().getBasePath().getPath(), a -> true),
+          "task missing");
     } else {
       LOG.debug("Task with id {} failed with error, but was already removed", taskId, t);
     }
@@ -98,35 +123,43 @@ public class TaskTracker {
         mTaskMap.remove(nxt.getValue().cancel()));
   }
 
-  void checkTask(
-      AlluxioURI path, DescendantType depth,
+  private TrieNode<BaseTask> getActiveTasksForDescendantType(DescendantType depth) {
+    switch (depth) {
+      case NONE:
+        return mActiveStatusTasks;
+      case ONE:
+        return mActiveListTasks;
+      default:
+        return mActiveRecursiveListTasks;
+    }
+  }
+
+  Pair<Boolean, BaseTask> checkTask(
+      MdSync mdSync,
+      AlluxioURI path, DescendantType depth, long syncInterval,
       DirectoryLoadType loadByDirectory) {
     BaseTask task;
     synchronized (this) {
-      TrieNode<BaseTask> activeTasks;
-      switch (depth) {
-        case NONE:
-          activeTasks = mActiveStatusTasks;
-          break;
-        case ONE:
-          activeTasks = mActiveListTasks;
-          break;
-        default:
-          activeTasks = mActiveRecursiveListTasks;
-      }
+      TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(depth);
       task = activeTasks.getLeafChildren(path.getPath())
           .map(TrieNode::getValue).filter(nxt -> nxt.pathIsCovered(path, depth)).findFirst()
           .orElseGet(() -> {
             TrieNode<BaseTask> newNode = activeTasks.insert(path.getPath());
             final long id = mNxtId++;
-            BaseTask newTask = BaseTask.create(new TaskInfo(path, depth, loadByDirectory, id),
-                mSyncPathCache.recordStartSync(), isFile -> taskComplete(id, isFile), t -> taskError(id, t));
+            BaseTask newTask = BaseTask.create(
+                new TaskInfo(mdSync, path, depth, syncInterval, loadByDirectory, id),
+                mSyncPathCache.recordStartSync());
             mTaskMap.put(id, newTask);
             newNode.setValue(newTask);
             mLoadRequestExecutor.addPathLoaderTask(newTask.getLoadTask());
             return newTask;
           });
     }
-    task.waitForSync(path);
+    return new Pair<>(task.waitForSync(path), task);
+  }
+
+  @Override
+  public void close() throws IOException {
+    mLoadRequestExecutor.close();
   }
 }

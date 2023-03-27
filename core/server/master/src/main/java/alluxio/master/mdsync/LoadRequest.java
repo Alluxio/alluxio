@@ -13,10 +13,9 @@ package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
 import alluxio.file.options.DescendantType;
+import alluxio.retry.CountingRetry;
+import alluxio.retry.RetryPolicy;
 
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import javax.annotation.Nullable;
 
 /**
@@ -26,22 +25,37 @@ class LoadRequest {
   private final TaskInfo mTaskInfo;
   private final AlluxioURI mPath;
   private final String mContinuationToken;
-  private final Consumer<Throwable> mOnError;
-  private final Function<UfsLoadResult, Optional<LoadResult>> mOnComplete;
   private final DescendantType mDescendantType;
   private final long mId;
+  /**
+   * This is the id of the load request that started a set of batches of load requests, i.e.
+   * the batches of loads until one is not truncated.
+   */
+  private final long mBatchSetId;
+  private final RetryPolicy mRetryPolicy = new CountingRetry(2);
 
   LoadRequest(
-      long id, TaskInfo taskInfo, AlluxioURI path, @Nullable String continuationToken,
-      DescendantType descendantType, Function<UfsLoadResult, Optional<LoadResult>> onComplete,
-      Consumer<Throwable> onError) {
+      long id, long batchSetId, TaskInfo taskInfo, AlluxioURI path,
+      @Nullable String continuationToken, DescendantType descendantType) {
+    taskInfo.getStats().gotLoadRequest();
     mTaskInfo = taskInfo;
     mPath = path;
     mId = id;
+    mBatchSetId = batchSetId;
     mContinuationToken = continuationToken;
-    mOnComplete = onComplete;
-    mOnError = onError;
     mDescendantType = descendantType;
+  }
+
+  long getBatchSetId() {
+    return mBatchSetId;
+  }
+
+  boolean attempt() {
+    return mRetryPolicy.attempt();
+  }
+
+  public TaskInfo getTaskInfo() {
+    return mTaskInfo;
   }
 
   AlluxioURI getLoadPath() {
@@ -52,11 +66,11 @@ class LoadRequest {
     return mDescendantType;
   }
 
-  long getLoadTaskId() {
+  long getBaseTaskId() {
     return mTaskInfo.getId();
   }
 
-  long getId() {
+  long getLoadRequestId() {
     return mId;
   }
 
@@ -65,11 +79,7 @@ class LoadRequest {
     return mContinuationToken;
   }
 
-  Optional<LoadResult> onComplete(UfsLoadResult result) {
-    return mOnComplete.apply(result);
-  }
-
   void onError(Throwable t) {
-    mOnError.accept(t);
+    mTaskInfo.getMdSync().onLoadRequestError(mTaskInfo.getId(), mId, t);
   }
 }

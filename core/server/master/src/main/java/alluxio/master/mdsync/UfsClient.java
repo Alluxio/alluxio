@@ -11,20 +11,14 @@
 
 package alluxio.master.mdsync;
 
-import alluxio.AlluxioURI;
 import alluxio.file.options.DescendantType;
 
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
 interface UfsClient {
+
   void performQueryAsync(
       String path, @Nullable String continuationToken, DescendantType descendantType,
       Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError);
-
-  static UfsClient getClientByPath(AlluxioURI path) {
-    return (requestPath, continuationToken, descendantType, onComplete, onError) -> {
-      // TODO
-    };
-  }
 }

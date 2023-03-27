@@ -18,12 +18,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.util.ArrayDeque;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
@@ -38,7 +39,7 @@ class LoadRequestExecutor implements Closeable {
   // Loader tasks with pending loads
   private final Set<Long> mPathLoaderTasksWithPendingLoads = new ConcurrentHashSet<>();
   // Same as above, except ordered by priority
-  private final ArrayDeque<Long> mPathLoaderTaskQueue = new ArrayDeque<>();
+  private final ConcurrentLinkedDeque<Long> mPathLoaderTaskQueue = new ConcurrentLinkedDeque<>();
   // Load requests in order of to be processed
   private final BlockingQueue<LoadRequest> mLoadRequests = new LinkedBlockingQueue<>();
 
@@ -55,7 +56,7 @@ class LoadRequestExecutor implements Closeable {
         try {
           runNextLoadTask();
         } catch (InterruptedException e) {
-          break;
+          return;
         }
       }
       LOG.info("Load request runner thread exiting");
@@ -69,6 +70,7 @@ class LoadRequestExecutor implements Closeable {
     mPathLoaderTasks.put(id, task);
     mPathLoaderTaskQueue.add(id);
     mPathLoaderTasksWithPendingLoads.add(id);
+    notify();
   }
 
   synchronized void hasNewLoadTask(long taskId) {
@@ -78,30 +80,31 @@ class LoadRequestExecutor implements Closeable {
     }
   }
 
-  @Override
-  public synchronized void close() {
-    mExecutor.interrupt();
-    try {
-      mExecutor.join(5_000);
-    } catch (InterruptedException e) {
-      LOG.debug("Interrupted while waiting for load request runner to terminate");
-    }
-  }
-
-  private synchronized void onLoadError(LoadRequest request, Throwable t) {
+  private void onLoadError(LoadRequest request, Throwable t) {
+    mRunning.release();
     request.onError(t);
   }
 
-  private synchronized void processLoadResult(LoadRequest request, UfsLoadResult ufsLoadResult) {
-    Optional<LoadResult> loadResult = request.onComplete(ufsLoadResult);
-    PathLoaderTask task = mPathLoaderTasks.get(request.getLoadTaskId());
-    if (task != null) {
-      loadResult.ifPresent(result ->
-          mResultExecutor.processLoadResult(result, mRunning::release,
-              result::onComplete, result::onProcessError));
-    } else {
-      LOG.debug("Got a load result for id {} with no corresponding"
-          + "path loader task", request.getLoadTaskId());
+  private void processLoadResult(LoadRequest request, UfsLoadResult ufsLoadResult) {
+    Optional<LoadResult> loadResult = request.getTaskInfo().getMdSync()
+        .onReceiveLoadRequestOutput(request.getBaseTaskId(),
+            request.getLoadRequestId(), ufsLoadResult);
+    synchronized (this) {
+      PathLoaderTask task = mPathLoaderTasks.get(request.getBaseTaskId());
+      if (task != null && loadResult.isPresent()) {
+        LoadResult result = loadResult.get();
+        mResultExecutor.processLoadResult(result, () -> {
+          mRunning.release();
+          result.getTaskInfo().getStats().mProcessStarted.incrementAndGet();
+        }, v -> {
+          result.getTaskInfo().getStats().mProcessCompleted.incrementAndGet();
+          result.onProcessComplete(v);
+        }, result::onProcessError);
+      } else {
+        mRunning.release();
+        LOG.debug("Got a load result for id {} with no corresponding"
+            + "path loader task", request.getBaseTaskId());
+      }
     }
   }
 
@@ -119,12 +122,16 @@ class LoadRequestExecutor implements Closeable {
     }
 
     LoadRequest nxtRequest = mLoadRequests.take();
-    PathLoaderTask task = mPathLoaderTasks.get(nxtRequest.getLoadTaskId());
+    PathLoaderTask task = mPathLoaderTasks.get(nxtRequest.getBaseTaskId());
     if (task != null) {
       task.getClient().performQueryAsync(nxtRequest.getLoadPath().getPath(),
           nxtRequest.getContinuationToken(), nxtRequest.getDescendantType(),
           ufsLoadResult -> processLoadResult(nxtRequest, ufsLoadResult),
           t -> onLoadError(nxtRequest, t));
+    } else {
+      LOG.debug("Got load request {} with task id {} with no corresponding task",
+          nxtRequest.getLoadRequestId(), nxtRequest.getLoadRequestId());
+      mRunning.release();
     }
   }
 
@@ -146,5 +153,16 @@ class LoadRequestExecutor implements Closeable {
     } else {
       mPathLoaderTasksWithPendingLoads.remove(id);
     }
+  }
+
+  @Override
+  public void close() throws IOException {
+    mExecutor.interrupt();
+    try {
+      mExecutor.join(5_000);
+    } catch (InterruptedException e) {
+      LOG.debug("Interrupted while waiting for load request runner to terminate");
+    }
+    mResultExecutor.close();
   }
 }

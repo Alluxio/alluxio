@@ -21,11 +21,19 @@ class UfsLoadResult {
   private final Stream<UfsStatus> mItems;
   private final String mContinuationToken;
   private final boolean mIsTruncated;
+  private final int mItemsCount;
 
-  UfsLoadResult(Stream<UfsStatus> items, @Nullable String continuationToken, boolean isTruncated) {
+  UfsLoadResult(
+      Stream<UfsStatus> items, int itemsCount, @Nullable String continuationToken,
+      boolean isTruncated) {
     mItems = items;
     mContinuationToken = continuationToken;
     mIsTruncated = isTruncated;
+    mItemsCount = itemsCount;
+  }
+
+  int getItemsCount() {
+    return mItemsCount;
   }
 
   boolean isTruncated() {

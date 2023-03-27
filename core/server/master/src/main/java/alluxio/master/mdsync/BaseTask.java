@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
  * This is the overall task for a sync operation.
@@ -35,12 +34,14 @@ abstract class BaseTask implements PathWaiter {
   BaseTaskResult mIsCompleted = null;
   private final TaskInfo mTaskInfo;
   private final PathLoaderTask mPathLoadTask;
-  private final Consumer<Boolean> mOnComplete;
-  private final Consumer<Throwable> mOnError;
 
   @VisibleForTesting
   Optional<BaseTaskResult> isCompleted() {
     return Optional.ofNullable(mIsCompleted);
+  }
+
+  boolean succeeded() {
+    return mIsCompleted != null && mIsCompleted.succeeded();
   }
 
   @VisibleForTesting
@@ -49,25 +50,20 @@ abstract class BaseTask implements PathWaiter {
   }
 
   static BaseTask create(
-      TaskInfo info, long startTime, Consumer<Boolean> onComplete,
-      Consumer<Throwable> onError) {
+      TaskInfo info, long startTime) {
     if (info.getLoadByDirectory() != DirectoryLoadType.NONE
         && info.getDescendantType() == DescendantType.ALL) {
-      return new DirectoryPathWaiter(info, startTime, onComplete, onError);
+      return new DirectoryPathWaiter(info, startTime);
     } else {
-      return new BatchPathWaiter(info, startTime, onComplete, onError);
+      return new BatchPathWaiter(info, startTime);
     }
   }
 
   BaseTask(
-      TaskInfo info, long startTime, Consumer<Boolean> onComplete,
-      Consumer<Throwable> onError) {
+      TaskInfo info, long startTime) {
     mTaskInfo = info;
     mStartTime = startTime;
-    mPathLoadTask = new PathLoaderTask(mTaskInfo, null,
-        this::nextCompleted, this::onComplete, this::onLoadError);
-    mOnComplete = onComplete;
-    mOnError = onError;
+    mPathLoadTask = new PathLoaderTask(mTaskInfo, null);
   }
 
   public TaskInfo getTaskInfo() {
@@ -84,16 +80,29 @@ abstract class BaseTask implements PathWaiter {
     return mPathLoadTask;
   }
 
-  private synchronized void onComplete(boolean isFile) {
+  synchronized void onComplete(boolean isFile) {
+    if (mIsCompleted != null) {
+      return;
+    }
     mIsCompleted = new BaseTaskResult(null);
-    mOnComplete.accept(isFile);
+    mTaskInfo.getMdSync().onTaskComplete(mTaskInfo.getId(), isFile);
     notifyAll();
   }
 
-  private synchronized void onLoadError(Throwable t) {
-    LOG.warn("Task {} failed with load error", mTaskInfo, t);
-    mOnError.accept(t);
+  synchronized void waitComplete(long timeoutMs) throws InterruptedException {
+    while (mIsCompleted == null) {
+      wait(timeoutMs);
+    }
+  }
+
+  synchronized void onFailed(Throwable t) {
+    if (mIsCompleted != null) {
+      return;
+    }
+    mIsCompleted = new BaseTaskResult(t);
+    LOG.warn("Task {} failed with error", mTaskInfo, t);
     cancel();
+    mTaskInfo.getMdSync().onTaskError(mTaskInfo.getId(), t);
   }
 
   synchronized long cancel() {

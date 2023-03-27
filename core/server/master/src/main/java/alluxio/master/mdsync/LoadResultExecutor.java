@@ -11,8 +11,11 @@
 
 package alluxio.master.mdsync;
 
+import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.util.ThreadFactoryUtils;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -20,13 +23,19 @@ import java.util.function.Consumer;
 /**
  * Takes {@link LoadResult} objects and processes them in an executor service.
  */
-class LoadResultExecutor {
+class LoadResultExecutor implements Closeable {
 
   private final ExecutorService mExecutor;
+  UfsSyncPathCache mSyncPathCache;
+  SyncProcess mSyncProcess;
 
-  LoadResultExecutor(int executorThreads) {
+  LoadResultExecutor(
+      SyncProcess syncProcess,
+      int executorThreads, UfsSyncPathCache syncPathCache) {
     mExecutor = Executors.newFixedThreadPool(executorThreads,
         ThreadFactoryUtils.build("mdsync-perform-sync", true));
+    mSyncPathCache = syncPathCache;
+    mSyncProcess = syncProcess;
   }
 
   void processLoadResult(
@@ -35,10 +44,15 @@ class LoadResultExecutor {
     mExecutor.submit(() -> {
       beforeProcessing.run();
       try {
-        onComplete.accept(SyncProcess.performSync(result));
+        onComplete.accept(mSyncProcess.performSync(result, mSyncPathCache));
       } catch (Throwable t) {
         onError.accept(t);
       }
     });
+  }
+
+  @Override
+  public void close() throws IOException {
+    mExecutor.shutdown();
   }
 }

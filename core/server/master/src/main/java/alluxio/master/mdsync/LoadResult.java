@@ -13,8 +13,6 @@ package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
 
-import java.util.function.Consumer;
-
 /**
  * This is the result of a single batch load from the UFS.
  */
@@ -22,18 +20,14 @@ class LoadResult {
   private final TaskInfo mTaskInfo;
   private final AlluxioURI mBaseLoadPath;
   private final UfsLoadResult mUfsLoadResult;
-  private final Consumer<Throwable> mOnError;
-  private final Consumer<SyncProcessResult> mOnComplete;
+  private final long mLoadRequestId;
 
   LoadResult(
-      AlluxioURI baseLoadPath, TaskInfo taskInfo, UfsLoadResult ufsLoadResult,
-      Consumer<SyncProcessResult> onComplete,
-      Consumer<Throwable> onError) {
+      long loadRequestId, AlluxioURI baseLoadPath, TaskInfo taskInfo, UfsLoadResult ufsLoadResult) {
+    mLoadRequestId = loadRequestId;
     mBaseLoadPath = baseLoadPath;
     mTaskInfo = taskInfo;
     mUfsLoadResult = ufsLoadResult;
-    mOnError = onError;
-    mOnComplete = onComplete;
   }
 
   AlluxioURI getBaseLoadPath() {
@@ -48,13 +42,11 @@ class LoadResult {
     return mTaskInfo;
   }
 
-  void onComplete(SyncProcessResult result) {
-    if (mOnComplete != null) {
-      mOnComplete.accept(result);
-    }
+  void onProcessComplete(SyncProcessResult result) {
+    mTaskInfo.getMdSync().onProcessComplete(mTaskInfo.getId(), mLoadRequestId, result);
   }
 
   void onProcessError(Throwable t) {
-    mOnError.accept(t);
+    mTaskInfo.getMdSync().onProcessError(mTaskInfo.getId(), t);
   }
 }

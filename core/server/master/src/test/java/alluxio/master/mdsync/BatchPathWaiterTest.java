@@ -16,9 +16,10 @@ import static alluxio.file.options.DescendantType.NONE;
 import static alluxio.file.options.DescendantType.ONE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyLong;
 
 import alluxio.AlluxioURI;
 
@@ -26,6 +27,7 @@ import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.time.Clock;
 import java.util.List;
@@ -40,10 +42,12 @@ public class BatchPathWaiterTest {
   ExecutorService mThreadPool;
 
   private final Clock mClock = Clock.systemUTC();
+  private MdSync mMdSync;
 
   @Before
   public void before() {
     mThreadPool = Executors.newCachedThreadPool();
+    mMdSync = Mockito.spy(new MdSync(Mockito.mock(TaskTracker.class), a -> a, a -> null));
   }
 
   @After
@@ -51,17 +55,16 @@ public class BatchPathWaiterTest {
     mThreadPool.shutdown();
   }
 
-  private void onComplete(boolean isFile) {}
-
-  private void onError(Throwable t) {
-    assertNull(t);
-  }
-
   @Test
   public void TestWaiter() throws Exception {
-    TaskInfo ti = new TaskInfo(new AlluxioURI("/path"),
-        NONE, DirectoryLoadType.NONE, 0);
-    BaseTask path = BaseTask.create(ti, mClock.millis(), this::onComplete, this::onError);
+    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
+        NONE, 0, DirectoryLoadType.NONE, 0);
+    BaseTask path = BaseTask.create(ti, mClock.millis());
+    Mockito.doAnswer(ans -> {
+      path.onComplete(ans.getArgument(1));
+      return null;
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
+
     Future<Boolean> waiter = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path")));
     assertThrows(TimeoutException.class, () -> waiter.get(1, TimeUnit.SECONDS));
     // Complete the sync
@@ -80,9 +83,14 @@ public class BatchPathWaiterTest {
 
   @Test
   public void TestMultiWaiter() throws Exception {
-    TaskInfo ti = new TaskInfo(new AlluxioURI("/path"),
-        ONE, DirectoryLoadType.NONE, 0);
-    BaseTask path = BaseTask.create(ti, mClock.millis(), this::onComplete, this::onError);
+    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
+        ONE, 0, DirectoryLoadType.NONE, 0);
+    BaseTask path = BaseTask.create(ti, mClock.millis());
+    Mockito.doAnswer(ans -> {
+      path.onComplete(ans.getArgument(1));
+      return null;
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
+
     Future<Boolean> waiter1 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/1")));
     Future<Boolean> waiter2 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/2")));
     // after completing /path/1 no waiters will be released
@@ -106,9 +114,14 @@ public class BatchPathWaiterTest {
 
   @Test
   public void TestWaiterOutOfOrder() throws Exception {
-    TaskInfo ti = new TaskInfo(new AlluxioURI("/path"),
-        ONE, DirectoryLoadType.NONE, 0);
-    BaseTask path = BaseTask.create(ti, mClock.millis(), this::onComplete, this::onError);
+    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
+        ONE, 0, DirectoryLoadType.NONE, 0);
+    BaseTask path = BaseTask.create(ti, mClock.millis());
+    Mockito.doAnswer(ans -> {
+      path.onComplete(ans.getArgument(1));
+      return null;
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
+
     Future<Boolean> waiter1 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/1")));
     Future<Boolean> waiter2 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/2")));
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
@@ -138,9 +151,14 @@ public class BatchPathWaiterTest {
 
   @Test
   public void TestBaseTackSinglePath() {
-    TaskInfo ti = new TaskInfo(new AlluxioURI("/path"),
-        NONE, DirectoryLoadType.NONE, 0);
-    BaseTask path = BaseTask.create(ti, mClock.millis(), this::onComplete, this::onError);
+    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
+        NONE, 0, DirectoryLoadType.NONE, 0);
+    BaseTask path = BaseTask.create(ti, mClock.millis());
+    Mockito.doAnswer(ans -> {
+      path.onComplete(ans.getArgument(1));
+      return null;
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
+
     assertFalse(path.isCompleted().isPresent());
     SyncProcessResult result = new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path"),
@@ -152,10 +170,14 @@ public class BatchPathWaiterTest {
 
   @Test
   public void TestBaseTaskInOrder() {
-    TaskInfo ti = new TaskInfo(new AlluxioURI("/"),
-        ALL, DirectoryLoadType.NONE, 0);
+    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/"),
+        ALL, 0, DirectoryLoadType.NONE, 0);
     BatchPathWaiter root = (BatchPathWaiter) BaseTask.create(
-        ti, mClock.millis(), this::onComplete, this::onError);
+        ti, mClock.millis());
+    Mockito.doAnswer(ans -> {
+      root.onComplete(ans.getArgument(1));
+      return null;
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     assertFalse(root.isCompleted().isPresent());
 
     // complete </, /ad>, should have |<,/ad>|
@@ -196,10 +218,13 @@ public class BatchPathWaiterTest {
 
   @Test
   public void TestBaseTaskOutOfOrder() {
-    TaskInfo ti = new TaskInfo(new AlluxioURI("/"),
-        ONE, DirectoryLoadType.NONE, 0);
-    BatchPathWaiter root = (BatchPathWaiter) BaseTask.create(ti, mClock.millis(),
-        this::onComplete, this::onError);
+    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/"),
+        ONE, 0, DirectoryLoadType.NONE, 0);
+    BatchPathWaiter root = (BatchPathWaiter) BaseTask.create(ti, mClock.millis());
+    Mockito.doAnswer(ans -> {
+      root.onComplete(ans.getArgument(1));
+      return null;
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     assertFalse(root.isCompleted().isPresent());
 
     // complete </, /a>, should have |<,a>|

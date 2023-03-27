@@ -22,14 +22,39 @@ class TaskInfo {
   private final DescendantType mDescendantType;
   private final long mId;
   private final DirectoryLoadType mLoadByDirectory;
+  private final long mSyncInterval;
+  private final MdSync mMdSync;
+  private final TaskStats mStats;
 
   TaskInfo(
+      MdSync mdSync,
       AlluxioURI basePath, DescendantType descendantType,
+      long syncInterval,
       DirectoryLoadType loadByDirectory, long id) {
     mBasePath = basePath;
+    mSyncInterval = syncInterval;
     mDescendantType = descendantType;
     mLoadByDirectory = loadByDirectory;
     mId = id;
+    mMdSync = mdSync;
+    mStats = new TaskStats();
+  }
+
+  TaskStats getStats() {
+    return mStats;
+  }
+
+  public long getSyncInterval() {
+    return mSyncInterval;
+  }
+
+  boolean hasDirLoadTasks() {
+    return mDescendantType == DescendantType.ALL
+        && mLoadByDirectory != DirectoryLoadType.NONE;
+  }
+
+  public MdSync getMdSync() {
+    return mMdSync;
   }
 
   AlluxioURI getBasePath() {

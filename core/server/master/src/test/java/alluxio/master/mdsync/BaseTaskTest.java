@@ -15,29 +15,31 @@ import static alluxio.file.options.DescendantType.ALL;
 import static alluxio.file.options.DescendantType.NONE;
 import static alluxio.file.options.DescendantType.ONE;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.time.Clock;
 
 public class BaseTaskTest {
 
+  private MdSync mMdSync;
+
   private final Clock mClock = Clock.systemUTC();
 
-  private void onComplete(boolean isFile) {}
-
-  private void onError(Throwable t) {
-    assertNull(t);
+  @Before
+  public void before() {
+    mMdSync = new MdSync(Mockito.mock(TaskTracker.class), a -> a, a -> null);
   }
 
   @Test
   public void PathIsCoveredNone() {
-    BaseTask path = BaseTask.create(new TaskInfo(new AlluxioURI("/path"),
-        NONE, DirectoryLoadType.NONE, 0), mClock.millis(), this::onComplete, this::onError);
+    BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"),
+        NONE, 0, DirectoryLoadType.NONE, 0), mClock.millis());
     assertTrue(path.pathIsCovered(new AlluxioURI("/path"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/p"), NONE));
@@ -59,8 +61,8 @@ public class BaseTaskTest {
 
   @Test
   public void PathIsCoveredOne() {
-    BaseTask path = BaseTask.create(new TaskInfo(new AlluxioURI("/path"),
-        ONE, DirectoryLoadType.NONE, 0), mClock.millis(), this::onComplete, this::onError);
+    BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"),
+        ONE, 0, DirectoryLoadType.NONE, 0), mClock.millis());
     assertTrue(path.pathIsCovered(new AlluxioURI("/path"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/p"), NONE));
@@ -85,8 +87,8 @@ public class BaseTaskTest {
 
   @Test
   public void PathIsCoveredAll() {
-    BaseTask path = BaseTask.create(new TaskInfo(new AlluxioURI("/path"),
-        ALL, DirectoryLoadType.NONE, 0), mClock.millis(), this::onComplete, this::onError);
+    BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"),
+        ALL, 0, DirectoryLoadType.NONE, 0), mClock.millis());
     assertTrue(path.pathIsCovered(new AlluxioURI("/path"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/p"), NONE));

@@ -12,9 +12,10 @@
 package alluxio.master.mdsync;
 
 import static alluxio.file.options.DescendantType.ALL;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyLong;
 
 import alluxio.AlluxioURI;
 
@@ -23,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.mockito.Mockito;
 
 import java.time.Clock;
 import java.util.Arrays;
@@ -48,10 +50,12 @@ public class DirectoryPathWaiterTest {
   DirectoryLoadType mDirLoadType;
   ExecutorService mThreadPool;
   Clock mClock = Clock.systemUTC();
+  MdSync mMdSync;
 
   @Before
   public void before() {
     mThreadPool = Executors.newCachedThreadPool();
+    mMdSync = Mockito.spy(new MdSync(Mockito.mock(TaskTracker.class), a -> a, a -> null));
   }
 
   @After
@@ -59,17 +63,16 @@ public class DirectoryPathWaiterTest {
     mThreadPool.shutdown();
   }
 
-  private void onComplete(boolean isFile) {}
-
-  private void onError(Throwable t) {
-    assertNull(t);
-  }
-
   @Test
   public void TestWaiter() throws Exception {
-    TaskInfo ti = new TaskInfo(new AlluxioURI("/path"),
-        ALL, mDirLoadType, 0);
-    BaseTask path = BaseTask.create(ti, mClock.millis(), this::onComplete, this::onError);
+    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
+        ALL, 0, mDirLoadType, 0);
+    BaseTask path = BaseTask.create(ti, mClock.millis());
+    Mockito.doAnswer(ans -> {
+      path.onComplete(ans.getArgument(1));
+      return null;
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
+
     Future<Boolean> waiter = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path")));
     assertThrows(TimeoutException.class, () -> waiter.get(1, TimeUnit.SECONDS));
     path.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(),
@@ -80,9 +83,14 @@ public class DirectoryPathWaiterTest {
 
   @Test
   public void TestMultiWaiter() throws Exception {
-    TaskInfo ti = new TaskInfo(new AlluxioURI("/path"),
-        ALL, mDirLoadType, 0);
-    BaseTask path = BaseTask.create(ti, mClock.millis(), this::onComplete, this::onError);
+    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
+        ALL, 0, mDirLoadType, 0);
+    BaseTask path = BaseTask.create(ti, mClock.millis());
+    Mockito.doAnswer(ans -> {
+      path.onComplete(ans.getArgument(1));
+      return null;
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
+
     Future<Boolean> waiter1 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/1")));
     Future<Boolean> waiter2 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/2")));
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
@@ -103,9 +111,14 @@ public class DirectoryPathWaiterTest {
 
   @Test
   public void TestNestedWaiter() throws Exception {
-    TaskInfo ti = new TaskInfo(new AlluxioURI("/path"),
-        ALL, mDirLoadType, 0);
-    BaseTask path = BaseTask.create(ti, mClock.millis(), this::onComplete, this::onError);
+    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
+        ALL, 0, mDirLoadType, 0);
+    BaseTask path = BaseTask.create(ti, mClock.millis());
+    Mockito.doAnswer(ans -> {
+      path.onComplete(ans.getArgument(1));
+      return null;
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
+
     Future<Boolean> waiter1 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/1")));
     Future<Boolean> waiter2 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/2")));
     // a different nested path should not release the waiters
@@ -124,9 +137,14 @@ public class DirectoryPathWaiterTest {
 
   @Test
   public void TestParentWaiter() throws Exception {
-    TaskInfo ti = new TaskInfo(new AlluxioURI("/"),
-        ALL, mDirLoadType, 0);
-    BaseTask path = BaseTask.create(ti, mClock.millis(), this::onComplete, this::onError);
+    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/"),
+        ALL, 0, mDirLoadType, 0);
+    BaseTask path = BaseTask.create(ti, mClock.millis());
+    Mockito.doAnswer(ans -> {
+      path.onComplete(ans.getArgument(1));
+      return null;
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
+
     Future<Boolean> waiter1 = mThreadPool.submit(() ->
         path.waitForSync(new AlluxioURI("/path/nested/1")));
     Future<Boolean> waiter2 = mThreadPool.submit(() ->
