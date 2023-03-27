@@ -11,9 +11,13 @@
 
 package alluxio.client.file.cache;
 
-public interface PagedBlockReport {
+public interface CacheRestorationCallback {
   /**
-   * Report all block locations in a pageStoreDirs to master using BlockHeartbeat.
+   * The callback that will be invoked when the page store finishes restoring pages after start up.
    */
-  void reportBlocks();
+  void onCacheRestorationSuccess();
+
+  static void NO_OP() {
+    //NOOP
+  }
 }

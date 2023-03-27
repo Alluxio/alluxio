@@ -404,6 +404,9 @@ public class PagedBlockMetaStore implements PageMetaStore {
         usedBytesOnDirs.build(), blockOnDirs.build());
   }
 
+  /**
+   * Report all block locations in a pageStoreDirs to master using BlockHeartbeat.
+   */
   @GuardedBy("getLock().readLock()")
   public void reportBlocks() {
     final List<PageStoreDir> pageStoreDirs = getStoreDirs();

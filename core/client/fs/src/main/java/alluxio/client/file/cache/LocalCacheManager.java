@@ -102,11 +102,22 @@ public class LocalCacheManager implements CacheManager {
   /**
    * @param options the options of local cache manager
    * @param pageMetaStore the metadata store for local cache
-   * @param report the callback to report blocks for async pagedBlock restore
    * @return an instance of {@link LocalCacheManager}
    */
   public static LocalCacheManager create(CacheManagerOptions options,
-      PageMetaStore pageMetaStore, PagedBlockReport report)
+      PageMetaStore pageMetaStore) throws IOException {
+    return create(options, pageMetaStore, () -> CacheRestorationCallback.NO_OP());
+  }
+
+  /**
+   * @param options the options of local cache manager
+   * @param pageMetaStore the metadata store for local cache
+   * @param callback the callback that will be invoked when the page store
+   *        finishes restoring pages after start up.
+   * @return an instance of {@link LocalCacheManager}
+   */
+  public static LocalCacheManager create(CacheManagerOptions options,
+      PageMetaStore pageMetaStore, CacheRestorationCallback callback)
       throws IOException {
     LocalCacheManager manager = new LocalCacheManager(options, pageMetaStore);
     List<PageStoreDir> pageStoreDirs = pageMetaStore.getStoreDirs();
@@ -114,11 +125,11 @@ public class LocalCacheManager implements CacheManager {
       manager.mInitService.get().submit(() -> {
         try {
           manager.restoreOrInit(pageStoreDirs);
-          try (LockResource r = new LockResource(pageMetaStore.getLock().readLock())) {
-            report.reportBlocks();
-          }
         } catch (IOException e) {
           LOG.error("Failed to restore LocalCacheManager", e);
+        }
+        try (LockResource r = new LockResource(pageMetaStore.getLock().readLock())) {
+          callback.onCacheRestorationSuccess();
         }
       });
     } else {

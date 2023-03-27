@@ -112,8 +112,7 @@ public final class LocalCacheManagerWithMemPageStoreTest {
   private LocalCacheManager createLocalCacheManager(AlluxioConfiguration conf,
       PageMetaStore pageMetaStore) throws Exception {
     mCacheManagerOptions = CacheManagerOptions.create(conf);
-    LocalCacheManager cacheManager = LocalCacheManager.create(mCacheManagerOptions, pageMetaStore,
-        () -> { });
+    LocalCacheManager cacheManager = LocalCacheManager.create(mCacheManagerOptions, pageMetaStore);
     CommonUtils.waitFor("restore completed",
         () -> cacheManager.state() == CacheManager.State.READ_WRITE,
         WaitForOptions.defaults().setTimeoutMs(10000));
