@@ -25,7 +25,6 @@ import com.google.inject.Scopes;
 public class AlluxioWorkerProcessModule extends AbstractModule {
   @Override
   protected void configure() {
-    bind(WorkerFactory.class).to(DoraWorkerFactory.class).in(Scopes.SINGLETON);
     bind(WorkerProcess.class).to(AlluxioWorkerProcess.class).in(Scopes.SINGLETON);
   }
 }

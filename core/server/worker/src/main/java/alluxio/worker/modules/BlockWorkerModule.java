@@ -22,11 +22,15 @@ import alluxio.network.TieredIdentityFactory;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
 import alluxio.wire.TieredIdentity;
+import alluxio.worker.WorkerFactory;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockReaderFactory;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreType;
+import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.BlockWorkerFactory;
 import alluxio.worker.block.BlockWriterFactory;
+import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.MonoBlockStore;
 import alluxio.worker.block.TempBlockMetaFactory;
@@ -51,9 +55,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Guice module for block worker.
  *
- * @deprecated block store will not be supported soon
  */
-@Deprecated
 public class BlockWorkerModule extends AbstractModule {
   @Override
   protected void configure() {
@@ -98,5 +100,7 @@ public class BlockWorkerModule extends AbstractModule {
       default:
         throw new UnsupportedOperationException("Unsupported block store type.");
     }
+
+    bind(WorkerFactory.class).to(BlockWorkerFactory.class).in(Scopes.SINGLETON);
   }
 }

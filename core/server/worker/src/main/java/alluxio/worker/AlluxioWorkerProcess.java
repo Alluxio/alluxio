@@ -29,7 +29,6 @@ import alluxio.web.WebServer;
 import alluxio.web.WorkerWebServer;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.BlockWorker;
 import alluxio.worker.netty.NettyDataServer;
 
 import com.google.common.collect.ImmutableList;
@@ -44,7 +43,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.inject.Named;
 
 /**
  * This class encapsulates the different worker services that are configured to run.
@@ -113,16 +111,14 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       WorkerRegistry workerRegistry,
       UfsManager ufsManager,
       WorkerFactory workerFactory,
-      @Named("GrpcBindAddress") InetSocketAddress gRpcBindAddress,
-      @Named("GrpcConnectAddress") InetSocketAddress gRpcConnectAddress,
       DataServerFactory dataServerFactory,
       @Nullable NettyDataServer nettyDataServer) {
     try {
       mTieredIdentitiy = requireNonNull(tieredIdentity);
       mUfsManager = requireNonNull(ufsManager);
       mRegistry = requireNonNull(workerRegistry);
-      mRpcBindAddress = requireNonNull(gRpcBindAddress);
-      mRpcConnectAddress = requireNonNull(gRpcConnectAddress);
+      mRpcBindAddress = requireNonNull(dataServerFactory.getGRpcBindAddress());
+      mRpcConnectAddress = requireNonNull(dataServerFactory.getConnectAddress());
       mStartTimeMs = System.currentTimeMillis();
       List<Callable<Void>> callables = ImmutableList.of(() -> {
         mRegistry.add(DataWorker.class, workerFactory.create());
@@ -143,7 +139,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
             mRegistry.get(DataWorker.class));
       } else {
         mDataServer = dataServerFactory.createRemoteGrpcDataServer(
-            mRegistry.get(BlockWorker.class));
+            mRegistry.get(DataWorker.class));
       }
 
       // Setup Netty Data Server
@@ -157,8 +153,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
       // Setup domain socket data server
       if (isDomainSocketEnabled()) {
-        mDomainSocketDataServer = dataServerFactory.createRemoteGrpcDataServer(
-            mRegistry.get(BlockWorker.class));
+        mDomainSocketDataServer = dataServerFactory.createDomainSocketDataServer(
+            mRegistry.get(DataWorker.class));
       }
     } catch (Exception e) {
       throw new RuntimeException(e);

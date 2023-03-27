@@ -36,9 +36,6 @@ public class GrpcServerModule extends AbstractModule {
         .toInstance(NetworkAddressUtils.getConnectAddress(
             NetworkAddressUtils.ServiceType.WORKER_RPC,
             Configuration.global()));
-
-    // the following objects are required when using dora
-    bind(DoraWorker.class).to(PagedDoraWorker.class).in(Scopes.SINGLETON);
   }
 
   /**
