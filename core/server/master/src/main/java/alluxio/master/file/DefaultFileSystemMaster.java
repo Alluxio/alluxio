@@ -201,6 +201,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
+import io.grpc.Metadata;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -4160,37 +4161,31 @@ public class DefaultFileSystemMaster extends CoreMaster
     boolean isRecursive = context.getOptions().getIsRecursive();
     DescendantType descendantType = isRecursive ? DescendantType.ALL : DescendantType.ONE;
     try (RpcContext rpcContext = createRpcContext()) {
-      SyncResult result = syncMetadataInternal(path, descendantType, 1000);
+      MetadataSyncContext metadataSyncContext =
+          MetadataSyncContext.Builder.builder(rpcContext, descendantType)
+              .setBatchSize(1000).build();
+      SyncResult result = syncMetadataInternal(path, metadataSyncContext);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
   @VisibleForTesting
-  SyncResult syncMetadataInternal(AlluxioURI path, DescendantType descendantType)
+  SyncResult syncMetadataInternal(AlluxioURI path, MetadataSyncContext context)
       throws UnavailableException, AccessControlException, InvalidPathException {
-    return syncMetadataInternal(path, descendantType, 1000);
-  }
-
-  @VisibleForTesting
-  SyncResult syncMetadataInternal(AlluxioURI path, DescendantType descendantType, int batchSize)
-      throws UnavailableException, AccessControlException, InvalidPathException {
-    try (RpcContext rpcContext = createRpcContext()) {
-      SyncResult result = mMetadataSyncer.sync(path, new MetadataSyncContext(
-          descendantType, rpcContext, MetadataSyncer.NO_TTL_OPTION, null, batchSize));
-      System.out.println("Sync duration: " + result.getSyncDuration() + " ms");
-      System.out.println("# of Inodes created: " + result.getSuccessOperationCount()
-          .getOrDefault(SyncOperation.CREATE, 0L));
-      System.out.println("# of Inodes recreated: " + result.getSuccessOperationCount()
-          .getOrDefault(SyncOperation.RECREATE, 0L));
-      System.out.println("# of Inodes updated: " + result.getSuccessOperationCount()
-          .getOrDefault(SyncOperation.UPDATE, 0L));
-      System.out.println("# of Inodes deleted: " + result.getSuccessOperationCount()
-          .getOrDefault(SyncOperation.DELETE, 0L));
-      System.out.println("# of Inodes were not changed: " + result.getSuccessOperationCount()
-          .getOrDefault(SyncOperation.NOOP, 0L));
-      return result;
-    }
+    SyncResult result = mMetadataSyncer.sync(path, context);
+    System.out.println("Sync duration: " + result.getSyncDuration() + " ms");
+    System.out.println("# of Inodes created: " + result.getSuccessOperationCount()
+        .getOrDefault(SyncOperation.CREATE, 0L));
+    System.out.println("# of Inodes recreated: " + result.getSuccessOperationCount()
+        .getOrDefault(SyncOperation.RECREATE, 0L));
+    System.out.println("# of Inodes updated: " + result.getSuccessOperationCount()
+        .getOrDefault(SyncOperation.UPDATE, 0L));
+    System.out.println("# of Inodes deleted: " + result.getSuccessOperationCount()
+        .getOrDefault(SyncOperation.DELETE, 0L));
+    System.out.println("# of Inodes were not changed: " + result.getSuccessOperationCount()
+        .getOrDefault(SyncOperation.NOOP, 0L));
+    return result;
   }
 
   @FunctionalInterface

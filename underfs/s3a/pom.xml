@@ -68,6 +68,10 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
+      <dependency>
+          <groupId>org.gaul</groupId>
+          <artifactId>s3proxy</artifactId>
+      </dependency>
   </dependencies>
 
   <build>

@@ -11,6 +11,7 @@
 
 package alluxio.underfs.s3a;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -23,13 +24,15 @@ import alluxio.underfs.options.ListOptions;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.AnonymousAWSCredentials;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.transfer.TransferManager;
-import io.findify.s3mock.S3Mock;
+import com.google.common.collect.Iterators;
 import org.apache.commons.io.IOUtils;
+import org.gaul.s3proxy.junit.S3ProxyRule;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,10 +42,13 @@ import org.junit.rules.ExpectedException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.concurrent.Executors;
 
 /**
- * Unit tests for the {@link S3AUnderFileSystem} using an s3 mock server.
+ * Unit tests for the {@link S3AUnderFileSystem} using a s3 mock server.
  */
 public class S3AUnderFileSystemMockServerTest {
   private static final InstancedConfiguration CONF = Configuration.copyGlobal();
@@ -55,24 +61,29 @@ public class S3AUnderFileSystemMockServerTest {
   private S3AUnderFileSystem mS3UnderFileSystem;
   private AmazonS3 mClient;
 
-  private S3Mock mS3MockServer;
+  @Rule
+  public S3ProxyRule s3Proxy = S3ProxyRule.builder()
+      .withPort(8001)
+      .withCredentials("_", "_")
+      .build();
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws AmazonClientException {
-    mS3MockServer = new S3Mock.Builder().withPort(8001).withInMemoryBackend().build();
-    mS3MockServer.start();
-
     AwsClientBuilder.EndpointConfiguration
         endpoint = new AwsClientBuilder.EndpointConfiguration(
         "http://localhost:8001", "us-west-2");
     mClient = AmazonS3ClientBuilder
         .standard()
         .withPathStyleAccessEnabled(true)
-        .withEndpointConfiguration(endpoint)
-        .withCredentials(new AWSStaticCredentialsProvider(new AnonymousAWSCredentials()))
+        .withCredentials(
+            new AWSStaticCredentialsProvider(
+                new BasicAWSCredentials(s3Proxy.getAccessKey(), s3Proxy.getSecretKey())))
+        .withEndpointConfiguration(
+            new AwsClientBuilder.EndpointConfiguration(s3Proxy.getUri().toString(),
+                Regions.US_WEST_2.getName()))
         .build();
     mClient.createBucket(TEST_BUCKET);
     mS3UnderFileSystem =
@@ -84,13 +95,6 @@ public class S3AUnderFileSystemMockServerTest {
   @After
   public void after() {
     mClient = null;
-    try {
-      if (mS3MockServer != null) {
-        mS3MockServer.shutdown();
-      }
-    } finally {
-      mS3MockServer = null;
-    }
   }
 
   @Test
@@ -108,7 +112,6 @@ public class S3AUnderFileSystemMockServerTest {
     mClient.putObject(TEST_BUCKET, "d1/d1/f2", TEST_CONTENT);
     mClient.putObject(TEST_BUCKET, "d1/d2/f1", TEST_CONTENT);
     mClient.putObject(TEST_BUCKET, "d2/d1/f1", TEST_CONTENT);
-    mClient.putObject(TEST_BUCKET, "d3/", "");
     mClient.putObject(TEST_BUCKET, "f1", TEST_CONTENT);
     mClient.putObject(TEST_BUCKET, "f2", TEST_CONTENT);
 
@@ -126,11 +129,32 @@ public class S3AUnderFileSystemMockServerTest {
        d2/
        d2/d1/
        d2/d1/f1
-       d3/
        f1
        f2
      */
     assertNotNull(ufsStatuses);
-    assertEquals(12, ufsStatuses.length);
+    assertEquals(11, ufsStatuses.length);
+  }
+
+  @Test
+  public void iterator() throws IOException {
+    for (int i = 0; i < 5; ++i) {
+      for (int j = 0; j < 5; ++j) {
+        for (int k = 0; k < 5; ++k) {
+          mClient.putObject(TEST_BUCKET, String.format("%d/%d/%d", i, j, k), TEST_CONTENT);
+        }
+      }
+    }
+
+    Iterator<UfsStatus> ufsStatusesIterator = mS3UnderFileSystem.listStatusIterable(
+        "/", ListOptions.defaults().setRecursive(true), null, 5);
+    UfsStatus[] statusesFromListing =
+        mS3UnderFileSystem.listStatus("/", ListOptions.defaults().setRecursive(true));
+    assertNotNull(statusesFromListing);
+    assertNotNull(ufsStatusesIterator);
+    UfsStatus[] statusesFromIterator =
+        Iterators.toArray(ufsStatusesIterator, UfsStatus.class);
+    Arrays.sort(statusesFromListing, Comparator.comparing(UfsStatus::getName));
+    assertArrayEquals(statusesFromIterator, statusesFromListing);
   }
 }

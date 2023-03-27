@@ -171,7 +171,7 @@
     <jnr-fuse.version>0.5.5</jnr-fuse.version>
     <kerby.version>1.0.1</kerby.version>
     <fastutil.version>8.5.9</fastutil.version>
-    <s3mock.version>0.2.6</s3mock.version>
+    <s3proxy.version>2.0.0</s3proxy.version>
   </properties>
 
   <modules>
@@ -719,9 +719,9 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>io.findify</groupId>
-        <artifactId>s3mock_2.13</artifactId>
-        <version>${s3mock.version}</version>
+        <groupId>org.gaul</groupId>
+        <artifactId>s3proxy</artifactId>
+        <version>${s3proxy.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -751,6 +751,12 @@
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-test</artifactId>
         <version>${hadoop.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.gaul</groupId>
+        <artifactId>s3proxy</artifactId>
+        <version>2.0.0</version>
         <scope>test</scope>
       </dependency>
       <dependency>

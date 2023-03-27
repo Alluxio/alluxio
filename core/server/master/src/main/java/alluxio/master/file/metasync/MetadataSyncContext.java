@@ -2,6 +2,7 @@ package alluxio.master.file.metasync;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
@@ -25,9 +26,9 @@ public class MetadataSyncContext {
   private final DescendantType mDescendantType;
   private final RpcContext mRpcContext;
   private boolean mAllowConcurrentModification = true;
-  private FileSystemMasterCommonPOptions mCommonOptions;
+  private final FileSystemMasterCommonPOptions mCommonOptions;
   @Nullable
-  private final String mStartAfter;
+  private String mStartAfter;
   private final Map<SyncOperation, Long> mFailedMap = new HashMap<>();
   private final Map<SyncOperation, Long> mSuccessMap = new HashMap<>();
   /** temporary one. */
@@ -43,40 +44,46 @@ public class MetadataSyncContext {
    * @param descendantType the sync descendant type (ALL/ONE/NONE)
    * @param rpcContext the rpc context
    * @param commonOptions the common options for TTL configurations
-   * @param startAfter indicates where the sync starts, used on retries
+   * @param startAfter indicates where the sync starts (exclusive), used on retries
    * @param batchSize the batch size to fetch the files from UFS
    */
-  public MetadataSyncContext(
+  private MetadataSyncContext(
       DescendantType descendantType, RpcContext rpcContext,
       FileSystemMasterCommonPOptions commonOptions,
-      @Nullable String startAfter, int batchSize) {
+      @Nullable String startAfter, int batchSize,
+      boolean allowConcurrentModification
+  ) {
     mDescendantType = descendantType;
     mRpcContext = rpcContext;
     mCommonOptions = commonOptions;
+    mAllowConcurrentModification = allowConcurrentModification;
     if (startAfter == null) {
       mStartAfter = null;
     } else {
-      if (startAfter.startsWith(AlluxioURI.SEPARATOR)) {
-        throw new RuntimeException("relative path is expected");
-      }
       mStartAfter = startAfter;
       mBatchSize = batchSize;
-      // TODO: need to format the startAfter like what we did for partial listing
-      // Example:
-      /*
-      if (startAfter.startsWith(AlluxioURI.SEPARATOR)) {
-        // this path starts from the root, so we must remove the prefix
-        String startAfterCheck = startAfter.substring(0,
-            Math.min(path.getPath().length(), startAfter.length()));
-        if (!path.getPath().startsWith(startAfterCheck)) {
-          throw new InvalidPathException(
-              ExceptionMessage.START_AFTER_DOES_NOT_MATCH_PATH
-                  .getMessage(startAfter, path.getPath()));
-        }
-        startAfter = startAfter.substring(
-            Math.min(startAfter.length(), path.getPath().length()));
-      }
-       */
+    }
+  }
+
+  public void validateStartAfter(AlluxioURI syncRoot) throws InvalidPathException {
+    if (mStartAfter == null || !mStartAfter.startsWith(AlluxioURI.SEPARATOR)) {
+      return;
+    }
+    // this path starts from the root, so we must remove the prefix
+    String startAfterCheck = mStartAfter.substring(0,
+        Math.min(syncRoot.getPath().length(), mStartAfter.length()));
+    if (!syncRoot.getPath().startsWith(startAfterCheck)) {
+      throw new InvalidPathException(
+          ExceptionMessage.START_AFTER_DOES_NOT_MATCH_PATH
+              .getMessage(mStartAfter, syncRoot.getPath()));
+    }
+    mStartAfter = mStartAfter.substring(
+        Math.min(mStartAfter.length(), syncRoot.getPath().length()));
+    if (mStartAfter.startsWith("/")) {
+      mStartAfter = mStartAfter.substring(1);
+    }
+    if (mStartAfter.equals("")) {
+      mStartAfter = null;
     }
   }
 
@@ -164,7 +171,7 @@ public class MetadataSyncContext {
   }
 
   /**
-   * reports the completion of a successful sync operation
+   * reports the completion of a successful sync operation.
    * @param operation the operation
    */
   public void reportSyncOperationSuccess(SyncOperation operation) {
@@ -204,5 +211,93 @@ public class MetadataSyncContext {
     mSyncFinishTime = CommonUtils.getCurrentMs();
     return new SyncResult(false, mSyncFinishTime - mSyncStartTime, mSuccessMap, mFailedMap,
         mFailReason);
+  }
+
+  /**
+   * Creates a builder.
+   */
+  public static class Builder {
+    private DescendantType mDescendantType;
+    private RpcContext mRpcContext;
+    private FileSystemMasterCommonPOptions mCommonOptions = MetadataSyncer.NO_TTL_OPTION;
+    private String mStartAfter = null;
+    private int mBatchSize = 1000;
+    private boolean mAllowConcurrentModification = true;
+
+    /**
+     * Creates a builder.
+     * @param rpcContext the rpc context
+     * @param descendantType the descendant type
+     * @return a new builder
+     */
+    public static Builder builder(RpcContext rpcContext, DescendantType descendantType) {
+      Builder builder = new Builder();
+      builder.mDescendantType = descendantType;
+      builder.mRpcContext = rpcContext;
+      return builder;
+    }
+
+    /**
+     * @param descendantType the descendant type
+     * @return the builder
+     */
+    public Builder setDescendantType(DescendantType descendantType) {
+      mDescendantType = descendantType;
+      return this;
+    }
+
+    /**
+     * @param rpcContext the rpc context
+     * @return builder
+     */
+    public Builder setRpcContext(RpcContext rpcContext) {
+      mRpcContext = rpcContext;
+      return this;
+    }
+
+    /**
+     * @param commonOptions the common option
+     * @return builder
+     */
+    public Builder setCommonOptions(FileSystemMasterCommonPOptions commonOptions) {
+      mCommonOptions = commonOptions;
+      return this;
+    }
+
+    /**
+     * @param startAfter the start after
+     * @return the builder
+     */
+    public Builder setStartAfter(String startAfter) {
+      mStartAfter = startAfter;
+      return this;
+    }
+
+    /**
+     * @param batchSize the batch size
+     * @return the builder
+     */
+    public Builder setBatchSize(int batchSize) {
+      mBatchSize = batchSize;
+      return this;
+    }
+
+    /**
+     * @param allowModification the current modification is allowed
+     * @return the builder
+     */
+    public Builder setAllowModification(boolean allowModification) {
+      mAllowConcurrentModification = allowModification;
+      return this;
+    }
+
+    /**
+     * @return the built metadata sync context
+     */
+    public MetadataSyncContext build() {
+      return new MetadataSyncContext(
+          mDescendantType, mRpcContext, mCommonOptions,
+          mStartAfter, mBatchSize, mAllowConcurrentModification);
+    }
   }
 }

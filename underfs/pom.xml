@@ -79,8 +79,8 @@
 
     <!-- External test dependencies -->
     <dependency>
-      <groupId>io.findify</groupId>
-      <artifactId>s3mock_2.13</artifactId>
+      <groupId>org.gaul</groupId>
+      <artifactId>s3proxy</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

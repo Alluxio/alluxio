@@ -152,9 +152,11 @@ public class MetadataSyncer {
   private SyncResult syncInternal(AlluxioURI path, MetadataSyncContext context)
       throws AccessControlException, InvalidPathException, UnavailableException {
     System.out.println("Syncing...");
+    context.validateStartAfter(path);
     context.startSync();
     long startTime = CommonUtils.getCurrentMs();
     // TODO what if this path doesn't map to a ufs path
+    // TODO when start after is set, check if the sync root does not contain any nested mount points
     try (CloseableResource<UnderFileSystem> ufs = mMountTable.resolve(path).acquireUfsResource()) {
       MountTable.Resolution resolution = mMountTable.resolve(path);
 
