@@ -136,7 +136,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       CommonUtils.invokeAll(callables,
           Configuration.getMs(PropertyKey.WORKER_STARTUP_TIMEOUT));
 
-      if (Configuration.global().getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED)) {
+      mDoraEnable = Configuration.global()
+          .getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
+      if (mDoraEnable) {
         setUpServersWithDoraWorker(dataServerFactory);
       } else {
         setUpServersWithBlockWorker(dataServerFactory);
@@ -183,11 +185,11 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
             Configuration.global()), this,
             mRegistry.get(DoraWorker.class));
     // Setup GRPC server
-    mDataServer = dataServerFactory.createRemoteGrpcDataServer(
+    mDataServer = dataServerFactory.createRemoteDoraGrpcDataServer(
         mRegistry.get(DoraWorker.class));
     // Setup domain socket data server
     if (isDomainSocketEnabled()) {
-      mDomainSocketDataServer = dataServerFactory.createDomainSocketDataServer(
+      mDomainSocketDataServer = dataServerFactory.createDomainSocketDoraDataServer(
           mRegistry.get(DoraWorker.class));
     }
   }

@@ -91,6 +91,23 @@ public class DataServerFactory {
     return domainSocketDataServer;
   }
 
+  DataServer createDomainSocketDoraDataServer(DataWorker worker) {
+    String domainSocketPath =
+        Configuration.getString(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+    if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
+      domainSocketPath =
+          PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
+    }
+    LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
+    DoraWorkerClientServiceHandler doraWorkerClientServiceHandler =
+        new DoraWorkerClientServiceHandler((DoraWorker) worker);
+    GrpcDataServer domainSocketDataServer = new GrpcDataServer(mConnectAddress.getHostName(),
+        new DomainSocketAddress(domainSocketPath), doraWorkerClientServiceHandler);
+    // Share domain socket so that clients can access it.
+    FileUtils.changeLocalFileToFullPermission(domainSocketPath);
+    return domainSocketDataServer;
+  }
+
   /**
    * Get gRPC bind address.
    *
