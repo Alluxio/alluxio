@@ -247,7 +247,8 @@ public abstract class StressMasterBenchBase
       mTreeLevelNodeCount = new int[mParameters.mTreeDepth];
       mTreeLevelNodeCount[mParameters.mTreeDepth - 1] = mParameters.mTreeWidth;
       for (int levelCount = mTreeLevelNodeCount.length - 2; levelCount >= 0; levelCount--) {
-        mTreeLevelNodeCount[levelCount] = mTreeLevelNodeCount[levelCount + 1] * mParameters.mTreeWidth;
+        mTreeLevelNodeCount[levelCount] =
+            mTreeLevelNodeCount[levelCount + 1] * mParameters.mTreeWidth;
       }
       mTreeTotalNodeCount = mTreeLevelNodeCount[0] * mParameters.mTreeThreads;
 
@@ -497,7 +498,8 @@ public abstract class StressMasterBenchBase
         }
         for (int fileNumber = 0; fileNumber < mParameters.mTreeFiles; fileNumber++) {
           try {
-            fs.createFile(new AlluxioURI((basePath + nodePath + "/" + nodeNumber + "/" + fileNumber + ".txt")),
+            fs.createFile(new AlluxioURI((basePath + nodePath + "/"
+                    + nodeNumber + "/" + fileNumber + ".txt")),
                 CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
           } catch (FileAlreadyExistsException e) {
             break;
