@@ -735,6 +735,39 @@ public final class S3RestUtils {
     return Optional.of(RateLimiter.create(rate));
   }
 
+  /**
+   * @return s3 WritePType for UploadPart
+   */
+  public static WritePType getWriteTypeForUploadPart() {
+    if (isUploadPartOnlyCacheEnabled()) {
+      return WritePType.MUST_CACHE;
+    }
+    return getS3WriteType();
+  }
+
+  /**
+   * @return ture if UploadPart only cache is enabled
+   */
+  public static boolean isUploadPartOnlyCacheEnabled() {
+    return Configuration.getBoolean(PropertyKey.PROXY_S3_UPLOAD_PART_ONLY_CACHE_ENABLED);
+  }
+
+  /**
+   * Sets pinned to true for the input path.
+   *
+   * @param fs The {@link FileSystem} client
+   * @param path The {@link AlluxioURI} path as the input of the command
+   */
+  public static void pinnedUploadPart(FileSystem fs, AlluxioURI path)
+      throws AlluxioException, IOException {
+    List<String> availableMediumList = Configuration.getList(
+        PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE);
+    SetAttributePOptions options = SetAttributePOptions.newBuilder().setPinned(true)
+        .addAllPinnedMedia(availableMediumList)
+        .build();
+    fs.setAttribute(path, options);
+  }
+
     /**
      * Comparator based on uri name， treat uri name as a Long number.
      */

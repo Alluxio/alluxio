@@ -542,11 +542,13 @@ public class S3ObjectTask extends S3BaseTask {
      * @param userFs
      * @param createFilePOptions
      * @param auditContext
+     * @param isUploadPart
      * @return Response
      * @throws S3Exception
      */
     public Response createObject(String objectPath, FileSystem userFs,
-                                 CreateFilePOptions createFilePOptions, S3AuditContext auditContext)
+                                 CreateFilePOptions createFilePOptions,
+                                 boolean isUploadPart, S3AuditContext auditContext)
         throws S3Exception {
       AlluxioURI objectUri = new AlluxioURI(objectPath);
       final String decodedLengthHeader = mHandler.getHeader("x-amz-decoded-content-length");
@@ -595,6 +597,9 @@ public class S3ObjectTask extends S3BaseTask {
         // TODO(czhu): try to compute the ETag prior to creating the file
         //  to reduce total RPC RTT
         S3RestUtils.setEntityTag(userFs, objectUri, entityTag);
+        if (isUploadPart && S3RestUtils.isUploadPartOnlyCacheEnabled()) {
+          S3RestUtils.pinnedUploadPart(userFs, objectUri);
+        }
         return Response.ok().header(S3Constants.S3_ETAG_HEADER, entityTag).build();
       } catch (Exception e) {
         throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
@@ -723,7 +728,7 @@ public class S3ObjectTask extends S3BaseTask {
                   .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
                   .setOverwrite(true)
                   .build();
-          return createObject(objectPath, userFs, filePOptions, auditContext);
+          return createObject(objectPath, userFs, filePOptions, false, auditContext);
         }
       });
     }
@@ -805,10 +810,10 @@ public class S3ObjectTask extends S3BaseTask {
                       .setOwnerBits(Bits.ALL)
                       .setGroupBits(Bits.ALL)
                       .setOtherBits(Bits.NONE).build())
-                  .setWriteType(S3RestUtils.getS3WriteType())
+                  .setWriteType(S3RestUtils.getWriteTypeForUploadPart())
                   .setOverwrite(true)
                   .build();
-          return createObject(objectPath, userFs, filePOptions, auditContext);
+          return createObject(objectPath, userFs, filePOptions, true, auditContext);
         }
       });
     }

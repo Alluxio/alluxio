@@ -5460,7 +5460,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "Set value less than or equal to 0 to disable rate limits.")
           .setDefaultValue(0)
           .setScope(Scope.SERVER)
-
+          .build();
+  public static final PropertyKey PROXY_S3_UPLOAD_PART_ONLY_CACHE_ENABLED =
+      booleanBuilder(Name.PROXY_S3_UPLOAD_PART_ONLY_CACHE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("When this property is true, set the write type to MUST_CACHE "
+              + "for UploadPart.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
           .build();
 
   //
@@ -8625,6 +8632,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.global.read.rate.limit.mb";
     public static final String PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB =
         "alluxio.proxy.s3.single.connection.read.rate.limit.mb";
+    public static final String PROXY_S3_UPLOAD_PART_ONLY_CACHE_ENABLED =
+        "alluxio.proxy.s3.upload.part.only.cache.enabled";
 
     //
     // Locality related properties

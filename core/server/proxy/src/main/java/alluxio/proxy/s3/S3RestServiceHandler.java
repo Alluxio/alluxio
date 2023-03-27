@@ -34,6 +34,7 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.proto.journal.File;
@@ -760,7 +761,9 @@ public final class S3RestServiceHandler {
           return Response.ok().build();
         }
 
+        WritePType writeType = S3RestUtils.getS3WriteType();
         if (partNumber != null) {
+          writeType = S3RestUtils.getWriteTypeForUploadPart();
           // This object is part of a multipart upload, should be uploaded into the temporary
           // directory first.
           auditContext.setCommand("UploadPartObject");
@@ -840,7 +843,7 @@ public final class S3RestServiceHandler {
                     .setOwnerBits(Bits.ALL)
                     .setGroupBits(Bits.ALL)
                     .setOtherBits(Bits.NONE).build())
-                .setWriteType(S3RestUtils.getS3WriteType())
+                .setWriteType(writeType)
                 .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
                 .setCheckS3BucketPath(true)
                 .setOverwrite(true)
@@ -892,6 +895,9 @@ public final class S3RestServiceHandler {
             //  to reduce total RPC RTT
             S3RestUtils.setEntityTag(userFs, objectUri, entityTag);
             if (partNumber != null) { // UploadPart
+              if (S3RestUtils.isUploadPartOnlyCacheEnabled()) {
+                S3RestUtils.pinnedUploadPart(userFs, objectUri);
+              }
               return Response.ok().header(S3Constants.S3_ETAG_HEADER, entityTag).build();
             }
             // PutObject
@@ -916,6 +922,7 @@ public final class S3RestServiceHandler {
                   .setOtherBits(Bits.NONE).build())
               .setWriteType(S3RestUtils.getS3WriteType())
               .setCheckS3BucketPath(true)
+              .setWriteType(writeType)
               .setOverwrite(true);
           // Handle metadata directive
           if (metadataDirective == S3Constants.Directive.REPLACE
@@ -974,6 +981,9 @@ public final class S3RestServiceHandler {
               // TODO(czhu): compute the ETag prior to creating the file to reduce total RPC RTT
               S3RestUtils.setEntityTag(userFs, objectUri, entityTag);
               if (partNumber != null) { // UploadPartCopy
+                if (S3RestUtils.isUploadPartOnlyCacheEnabled()) {
+                  S3RestUtils.pinnedUploadPart(userFs, objectUri);
+                }
                 return new CopyPartResult(entityTag);
               }
               // CopyObject
