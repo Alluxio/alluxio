@@ -601,8 +601,21 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public JournalContext createJournalContext() throws UnavailableException {
+    return createJournalContext(false);
+  }
+
+  /**
+   * Creates a journal context.
+   * @param useMergeJournalContext if set to true, if possible, a journal context that merges
+   *  journal entries and holds them until the context is closed. If set to false,
+   *  a normal journal context will be returned.
+   * @return the journal context
+   */
+  @VisibleForTesting
+  JournalContext createJournalContext(boolean useMergeJournalContext)
+      throws UnavailableException {
     JournalContext context = super.createJournalContext();
-    if (!mMergeInodeJournals) {
+    if (!(mMergeInodeJournals && useMergeJournalContext)) {
       return context;
     }
     return new FileSystemMergeJournalContext(
@@ -1081,7 +1094,9 @@ public class DefaultFileSystemMaster extends CoreMaster
     Metrics.GET_FILE_INFO_OPS.inc();
     LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, false);
     boolean ufsAccessed = false;
-    try (RpcContext rpcContext = createRpcContext(context);
+    // List status might journal inode access time update journals.
+    // We want these journals to be added to the async writer immediately instead of being merged.
+    try (RpcContext rpcContext = createNonMergingJournalRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("listStatus", path, null, null)) {
 
@@ -1248,6 +1263,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     if (context.donePartialListing()) {
       return;
     }
+
     // The item should be listed if:
     // 1. We are not doing a partial listing, or have reached the start of the partial listing
     //    (partialPath is empty)
@@ -5364,7 +5380,13 @@ public class DefaultFileSystemMaster extends CoreMaster
   @VisibleForTesting
   public RpcContext createRpcContext(OperationContext operationContext)
       throws UnavailableException {
-    return new RpcContext(createBlockDeletionContext(), createJournalContext(),
+    return new RpcContext(createBlockDeletionContext(), createJournalContext(true),
+        operationContext.withTracker(mStateLockCallTracker));
+  }
+
+  private RpcContext createNonMergingJournalRpcContext(OperationContext operationContext)
+      throws UnavailableException {
+    return new RpcContext(createBlockDeletionContext(), createJournalContext(false),
         operationContext.withTracker(mStateLockCallTracker));
   }
 

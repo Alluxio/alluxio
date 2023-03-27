@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -79,12 +80,12 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
       String masterMsg = String.format("Collecting master metrics at %s ", dtf.format(now));
       LOG.info(masterMsg);
       outputBuffer.write(masterMsg);
-      masterMetrics(outputBuffer, i);
+      writeMasterMetrics(outputBuffer, i);
       if (!cl.hasOption(EXCLUDE_OPTION_NAME)) {
         String workerMsg = String.format("Collecting worker metrics at %s ", dtf.format(now));
         LOG.info(workerMsg);
         outputBuffer.write(workerMsg);
-        workerMetrics(outputBuffer, i);
+        writeWorkerMetrics(outputBuffer, i);
       }
       // Wait for an interval
       SleepUtils.sleepMs(LOG, COLLECT_METRICS_INTERVAL);
@@ -98,76 +99,25 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
     return 0;
   }
 
-  private void masterMetrics(StringWriter outputBuffer, int i) throws IOException {
-    // Generate URL from config properties
-    String masterAddr;
-    try {
-      masterAddr = mFsContext.getMasterAddress().getHostName();
-    } catch (UnavailableException e) {
-      String noMasterMsg = "No Alluxio master available. Skip metrics collection.";
-      LOG.warn(noMasterMsg);
-      outputBuffer.write(noMasterMsg);
-      return;
-    }
-    String url = String.format("http://%s:%s%s", masterAddr,
-            mFsContext.getClusterConf().get(PropertyKey.MASTER_WEB_PORT),
-            METRICS_SERVLET_PATH);
-    LOG.info(String.format("Metric address URL: %s", url));
-
-    // Get metrics
-    String metricsResponse;
-    try {
-      metricsResponse = getMetricsJson(url);
-    } catch (Exception e) {
-      // Do not break the loop since the HTTP failure can be due to many reasons
-      // Return the error message instead
-      LOG.error("Failed to get Alluxio master metrics from URL {}. Exception: ", url, e);
-      metricsResponse =  String.format("Url: %s%nError: %s", url, e.getMessage());
-    }
-    outputBuffer.write(metricsResponse);
+  private void writeMasterMetrics(StringWriter outputBuffer, int i) throws IOException {
+    outputBuffer.write(masterMetrics(mFsContext));
     outputBuffer.write("\n");
 
     // Write to file
     File outputFile = generateOutputFile(mWorkingDirPath,
             String.format("%s-master-%s", getCommandName(), i));
-    FileUtils.writeStringToFile(outputFile, metricsResponse);
+    FileUtils.writeStringToFile(outputFile, outputBuffer.toString());
   }
 
-  private void workerMetrics(StringWriter outputBuffer, int i) throws IOException {
-    // Generate URL from config properties
-    List<BlockWorkerInfo> workers;
-    try {
-      workers = mFsContext.getCachedWorkers();
-    } catch (UnavailableException e) {
-      String noWorkerMsg = "No Alluxio workers available. Skip metrics collection.";
-      LOG.warn(noWorkerMsg);
-      outputBuffer.write(noWorkerMsg);
-      return;
-    }
-    for (BlockWorkerInfo worker : workers) {
-      String url = String.format("http://%s:%s%s", worker.getNetAddress().getHost(),
-              mFsContext.getClusterConf().get(PropertyKey.WORKER_WEB_PORT),
-              METRICS_SERVLET_PATH);
-      LOG.info(String.format("Metric address URL: %s", url));
-
-      // Get metrics
-      String metricsResponse;
-      try {
-        metricsResponse = getMetricsJson(url);
-      } catch (Exception e) {
-        // Do not break the loop since the HTTP failure can be due to many reasons
-        // Return the error message instead
-        LOG.error("Failed to get Alluxio worker metrics from URL {}. Exception: ", url, e);
-        metricsResponse =  String.format("Url: %s%nError: %s", url, e.getMessage());
-      }
+  private void writeWorkerMetrics(StringWriter outputBuffer, int i) throws IOException {
+    for (String metricsResponse: workerMetrics(mFsContext)) {
       outputBuffer.write(metricsResponse);
       outputBuffer.write("\n");
-
-      // Write to file
-      File outputFile = generateOutputFile(mWorkingDirPath,
-              String.format("%s-worker-%s", getCommandName(), i));
-      FileUtils.writeStringToFile(outputFile, metricsResponse);
     }
+    // Write to file
+    File outputFile = generateOutputFile(mWorkingDirPath,
+            String.format("%s-worker-%s", getCommandName(), i));
+    FileUtils.writeStringToFile(outputFile, outputBuffer.toString());
   }
 
   @Override
@@ -181,6 +131,78 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
   }
 
   /**
+   * Get master metrics.
+   * @param fsContext for connecting to master
+   * @return the string of master metrics in JSON format
+   */
+  public static String masterMetrics(FileSystemContext fsContext) {
+    // Generate URL from config properties
+    String masterAddr;
+    try {
+      masterAddr = fsContext.getMasterAddress().getHostName();
+    } catch (UnavailableException e) {
+      String noMasterMsg = "No Alluxio master available. Skip metrics collection.";
+      LOG.warn(noMasterMsg);
+      return noMasterMsg;
+    }
+    String url = String.format("http://%s:%s%s", masterAddr,
+            fsContext.getClusterConf().get(PropertyKey.MASTER_WEB_PORT),
+            METRICS_SERVLET_PATH);
+    LOG.info(String.format("Metric address URL: %s", url));
+
+    // Get metrics
+    String metricsResponse;
+    try {
+      metricsResponse = getMetricsJson(url);
+    } catch (Exception e) {
+      // Do not break the loop since the HTTP failure can be due to many reasons
+      // Return the error message instead
+      LOG.error("Failed to get Alluxio master metrics from URL {}. Exception: ", url, e);
+      metricsResponse =  String.format("{Url: \"%s\",%n\"Error\": %s}", url, e.getMessage());
+    }
+    return metricsResponse;
+  }
+
+  /**
+   * Get metrics from each worker.
+   * @param fsContext for connecting to master
+   * @return a list of worker metrics in JSON format
+   * @throws IOException
+   */
+  public static List<String> workerMetrics(FileSystemContext fsContext) throws IOException {
+    List<String> metricsResponses = new ArrayList<>();
+    // Generate URL from config properties
+    List<BlockWorkerInfo> workers;
+    try {
+      workers = fsContext.getCachedWorkers();
+    } catch (UnavailableException e) {
+      String noWorkerMsg = "No Alluxio workers available. Skip metrics collection.";
+      LOG.warn(noWorkerMsg);
+      metricsResponses.add(noWorkerMsg);
+      return metricsResponses;
+    }
+    for (BlockWorkerInfo worker : workers) {
+      String workerAddress = worker.getNetAddress().getContainerHost().equals("")
+          ? worker.getNetAddress().getHost() : worker.getNetAddress().getContainerHost();
+      String url = String.format("http://%s:%s%s", workerAddress,
+          fsContext.getClusterConf().get(PropertyKey.WORKER_WEB_PORT),
+          METRICS_SERVLET_PATH);
+      LOG.info(String.format("Metric address URL: %s", url));
+
+      // Get metrics
+      try {
+        metricsResponses.add(getMetricsJson(url));
+      } catch (Exception e) {
+        // Do not break the loop since the HTTP failure can be due to many reasons
+        // Return the error message instead
+        LOG.error("Failed to get Alluxio worker metrics from URL {}. Exception: ", url, e);
+        metricsResponses.add(String.format("{Url: \"%s\",%n\"Error\": %s}", url, e.getMessage()));
+      }
+    }
+    return metricsResponses;
+  }
+
+  /**
    * Probes Alluxio metrics json sink.
    * If the HTTP request fails, return the error content
    * instead of throwing an exception.
@@ -188,8 +210,8 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
    * @param url URL that serves Alluxio metrics
    * @return HTTP response in JSON string
    */
-  public String getMetricsJson(String url) throws IOException {
+  public static String getMetricsJson(String url) throws IOException {
     String responseJson = HttpUtils.get(url, COLLECT_METRICS_TIMEOUT);
-    return String.format("Url: %s%nResponse: %s", url, responseJson);
+    return String.format("{Url: \"%s\",%n\"Response\": %s}", url, responseJson);
   }
 }

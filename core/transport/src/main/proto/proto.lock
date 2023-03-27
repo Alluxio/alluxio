@@ -3834,6 +3834,31 @@
             ]
           },
           {
+            "name": "CopyJobPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "bandwidth",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "verify",
+                "type": "bool"
+              },
+              {
+                "id": 3,
+                "name": "partialListing",
+                "type": "bool"
+              },
+              {
+                "id": 4,
+                "name": "overwrite",
+                "type": "bool"
+              }
+            ]
+          },
+          {
             "name": "StopJobPRequest",
             "fields": [
               {
@@ -9754,6 +9779,61 @@
                 "type": "int64"
               }
             ]
+          },
+          {
+            "name": "CopyJobEntry",
+            "fields": [
+              {
+                "id": 1,
+                "name": "src",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "dst",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "state",
+                "type": "PJobState"
+              },
+              {
+                "id": 4,
+                "name": "bandwidth",
+                "type": "int64"
+              },
+              {
+                "id": 5,
+                "name": "verify",
+                "type": "bool"
+              },
+              {
+                "id": 6,
+                "name": "user",
+                "type": "string"
+              },
+              {
+                "id": 7,
+                "name": "partialListing",
+                "type": "bool"
+              },
+              {
+                "id": 8,
+                "name": "job_id",
+                "type": "string"
+              },
+              {
+                "id": 9,
+                "name": "end_time",
+                "type": "int64"
+              },
+              {
+                "id": 10,
+                "name": "overwrite",
+                "type": "int64"
+              }
+            ]
           }
         ],
         "package": {
@@ -9977,6 +10057,11 @@
                 "id": 53,
                 "name": "load_job",
                 "type": "LoadJobEntry"
+              },
+              {
+                "id": 54,
+                "name": "copy_job",
+                "type": "CopyJobEntry"
               },
               {
                 "id": 39,

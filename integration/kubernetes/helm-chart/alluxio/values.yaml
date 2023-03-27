@@ -45,13 +45,15 @@ properties:
   # alluxio.user.metrics.collection.enabled: 'true'
   alluxio.security.stale.channel.purge.interval: 365d
 
-# Recommended JVM Heap options for running in Docker
-# Ref: https://developers.redhat.com/blog/2017/03/14/java-inside-docker/
 # These JVM options are common to all Alluxio services
-# jvmOptions:
-#   - "-XX:+UnlockExperimentalVMOptions"
-#   - "-XX:+UseCGroupMemoryLimitForHeap"
-#   - "-XX:MaxRAMFraction=2"
+jvmOptions:
+  # https://github.com/Alluxio/alluxio/issues/17021
+  - "-XX:+UseContainerSupport"
+  # Recommended JVM Heap options for running in Docker
+  # Ref: https://developers.redhat.com/blog/2017/03/14/java-inside-docker/
+  # - "-XX:+UnlockExperimentalVMOptions"
+  # - "-XX:+UseCGroupMemoryLimitForHeap"
+  # - "-XX:MaxRAMFraction=2"
 
 # Mount Persistent Volumes to all components
 # mounts:

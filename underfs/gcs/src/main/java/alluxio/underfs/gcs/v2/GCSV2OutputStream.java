@@ -29,7 +29,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -66,6 +65,8 @@ public final class GCSV2OutputStream extends OutputStream implements ContentHash
 
   /** Flag to indicate this stream has been closed, to ensure close is only done once. */
   private AtomicBoolean mClosed = new AtomicBoolean(false);
+
+  private String mContentHash;
 
   /**
    * Constructs a new stream for writing a file.
@@ -150,6 +151,7 @@ public final class GCSV2OutputStream extends OutputStream implements ContentHash
           throw new IOException(String
               .format("Failed to create empty object %s in %s", mKey, mBucketName));
         }
+        mContentHash = blob.getMd5();
       }
     } catch (ClosedChannelException e) {
       LOG.error("Channel already closed, possible duplicate close call.", e);
@@ -170,8 +172,8 @@ public final class GCSV2OutputStream extends OutputStream implements ContentHash
 
   @Override
   public Optional<String> getContentHash() {
-    if (mHash != null) {
-      return Optional.of(Base64.getEncoder().encodeToString(mHash.digest()));
+    if (mContentHash != null) {
+      return Optional.of(mContentHash);
     }
     return Optional.empty();
   }

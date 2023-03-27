@@ -30,7 +30,6 @@ public class BlockLocationUtils {
   private static final IndexDefinition<BlockLocation, Long> WORKER_ID_INDEX =
       IndexDefinition.ofNonUnique(BlockLocation::getWorkerId);
 
-  // TODO(maobaolong): Add a metric to monitor the size of mLocationCacheMap
   private static final IndexedSet<BlockLocation> BLOCK_LOCATION_CACHE =
       new IndexedSet<>(OBJECT_INDEX, WORKER_ID_INDEX);
 
@@ -83,5 +82,13 @@ public class BlockLocationUtils {
    */
   public static void evictByWorkerId(long workerId) {
     BLOCK_LOCATION_CACHE.removeByField(WORKER_ID_INDEX, workerId);
+  }
+
+  /**
+   * Gets the cached block location size.
+   * @return the cached block location size
+   */
+  public static int getCachedBlockLocationSize() {
+    return BLOCK_LOCATION_CACHE.size();
   }
 }
