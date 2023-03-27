@@ -30,6 +30,7 @@ import alluxio.web.WorkerWebServer;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.netty.NettyDataServer;
 
 import com.google.common.collect.ImmutableList;
@@ -42,9 +43,9 @@ import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.inject.Named;
 
 /**
  * This class encapsulates the different worker services that are configured to run.
@@ -58,7 +59,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /**
    * Server for data requests and responses.
    */
-  private final DataServer mDataServer;
+  private DataServer mDataServer;
 
   private final DataServer mNettyDataServer;
 
@@ -75,7 +76,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /**
    * Worker Web UI server.
    */
-  private final WebServer mWebServer;
+  private WebServer mWebServer;
 
   /**
    * The bind address for the rpc server.
@@ -102,6 +103,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
    */
   private JvmPauseMonitor mJvmPauseMonitor;
 
+  private boolean mDoraEnable;
   private boolean mNettyDataTransmissionEnable;
 
   /**
@@ -113,37 +115,31 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       WorkerRegistry workerRegistry,
       UfsManager ufsManager,
       WorkerFactory workerFactory,
-      @Named("GrpcBindAddress") InetSocketAddress gRpcBindAddress,
-      @Named("GrpcConnectAddress") InetSocketAddress gRpcConnectAddress,
       DataServerFactory dataServerFactory,
       @Nullable NettyDataServer nettyDataServer) {
     try {
       mTieredIdentitiy = requireNonNull(tieredIdentity);
       mUfsManager = requireNonNull(ufsManager);
       mRegistry = requireNonNull(workerRegistry);
-      mRpcBindAddress = requireNonNull(gRpcBindAddress);
-      mRpcConnectAddress = requireNonNull(gRpcConnectAddress);
+      mRpcBindAddress = requireNonNull(dataServerFactory.getGRpcBindAddress());
+      mRpcConnectAddress = requireNonNull(dataServerFactory.getConnectAddress());
       mStartTimeMs = System.currentTimeMillis();
       List<Callable<Void>> callables = ImmutableList.of(() -> {
-        mRegistry.add(DataWorker.class, workerFactory.create());
+        Worker worker = workerFactory.create();
+        if (worker instanceof BlockWorker) {
+          mRegistry.add(BlockWorker.class, worker);
+        } else if (worker instanceof DoraWorker) {
+          mRegistry.add(DoraWorker.class, worker);
+        }
         return null;
       });
       CommonUtils.invokeAll(callables,
           Configuration.getMs(PropertyKey.WORKER_STARTUP_TIMEOUT));
 
-      // Setup web server
-      mWebServer =
-          new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
-              Configuration.global()), this,
-              mRegistry.get(DataWorker.class));
-
-      // Setup GRPC server
       if (Configuration.global().getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED)) {
-        mDataServer = dataServerFactory.createRemoteDoraGrpcDataServer(
-            mRegistry.get(DataWorker.class));
+        setUpServersWithDoraWorker(dataServerFactory);
       } else {
-        mDataServer = dataServerFactory.createRemoteGrpcDataServer(
-            mRegistry.get(BlockWorker.class));
+        setUpServersWithBlockWorker(dataServerFactory);
       }
 
       // Setup Netty Data Server
@@ -155,13 +151,44 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         mNettyDataServer = null;
       }
 
-      // Setup domain socket data server
-      if (isDomainSocketEnabled()) {
-        mDomainSocketDataServer = dataServerFactory.createRemoteGrpcDataServer(
-            mRegistry.get(BlockWorker.class));
-      }
     } catch (Exception e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Set up servers with block worker.
+   * @param dataServerFactory
+   */
+  private void setUpServersWithBlockWorker(DataServerFactory dataServerFactory) {
+    // Setup web server
+    mWebServer =
+        new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
+            Configuration.global()), this,
+            mRegistry.get(BlockWorker.class));
+    // Setup GRPC server
+    mDataServer = dataServerFactory.createRemoteGrpcDataServer(
+          mRegistry.get(BlockWorker.class));
+    // Setup domain socket data server
+    if (isDomainSocketEnabled()) {
+      mDomainSocketDataServer = dataServerFactory.createDomainSocketDataServer(
+          mRegistry.get(BlockWorker.class));
+    }
+  }
+
+  private void setUpServersWithDoraWorker(DataServerFactory dataServerFactory) {
+    // Setup web server
+    mWebServer =
+        new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
+            Configuration.global()), this,
+            mRegistry.get(DoraWorker.class));
+    // Setup GRPC server
+    mDataServer = dataServerFactory.createRemoteGrpcDataServer(
+        mRegistry.get(DoraWorker.class));
+    // Setup domain socket data server
+    if (isDomainSocketEnabled()) {
+      mDomainSocketDataServer = dataServerFactory.createDomainSocketDataServer(
+          mRegistry.get(DoraWorker.class));
     }
   }
 
@@ -261,8 +288,14 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     }
 
     // Start serving RPC, this will block
+    AtomicReference<Long> workerId;
+    if (mDoraEnable) {
+      workerId = mRegistry.get(DoraWorker.class).getWorkerId();
+    } else {
+      workerId = mRegistry.get(BlockWorker.class).getWorkerId();
+    }
     LOG.info("Alluxio worker started. id={}, bindHost={}, connectHost={}, rpcPort={}, webPort={}",
-        mRegistry.get(DataWorker.class).getWorkerId(),
+        workerId,
         NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, Configuration.global()),
         NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, Configuration.global()),
         NetworkAddressUtils.getPort(ServiceType.WORKER_RPC, Configuration.global()),
@@ -330,10 +363,18 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   @Override
   public boolean waitForReady(int timeoutMs) {
     try {
-      CommonUtils.waitFor(this + " to start",
-          () -> isServing() && mRegistry.get(DataWorker.class).getWorkerId() != null
-              && mWebServer != null && mWebServer.getServer().isRunning(),
-          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      if (mDoraEnable) {
+        CommonUtils.waitFor(this + " to start",
+            () -> isServing() && mRegistry.get(DoraWorker.class).getWorkerId() != null
+                && mWebServer != null && mWebServer.getServer().isRunning(),
+            WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      } else {
+        CommonUtils.waitFor(this + " to start",
+            () -> isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
+                && mWebServer != null && mWebServer.getServer().isRunning(),
+            WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      }
+
       return true;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();

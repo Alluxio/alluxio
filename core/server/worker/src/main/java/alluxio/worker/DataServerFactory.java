@@ -59,7 +59,7 @@ public class DataServerFactory {
         mConnectAddress.getHostName(), mGRpcBindAddress, doraWorkerClientServiceHandler);
   }
 
-  DataServer createDomainSocketDataServer(DefaultBlockWorker worker) {
+  DataServer createDomainSocketDataServer(DataWorker worker) {
     String domainSocketPath =
         Configuration.getString(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
     if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
@@ -70,7 +70,7 @@ public class DataServerFactory {
     BlockWorkerClientServiceHandler blockWorkerClientServiceHandler =
         new BlockWorkerClientServiceHandler(
             //TODO(beinan):inject BlockWorker abstraction
-            worker,
+            (DefaultBlockWorker) worker,
             mUfsManager,
             true);
     GrpcDataServer domainSocketDataServer = new GrpcDataServer(mConnectAddress.getHostName(),
@@ -78,5 +78,23 @@ public class DataServerFactory {
     // Share domain socket so that clients can access it.
     FileUtils.changeLocalFileToFullPermission(domainSocketPath);
     return domainSocketDataServer;
+  }
+
+  /**
+   * Get gRPC bind address.
+   *
+   * @return the InetSocketAddress object with gRPC bind address
+   */
+  public InetSocketAddress getGRpcBindAddress() {
+    return mGRpcBindAddress;
+  }
+
+  /**
+   * Get gRPC connect address.
+   *
+   * @return the InetSocketAddress object with gRPC connect address
+   */
+  public InetSocketAddress getConnectAddress() {
+    return mConnectAddress;
   }
 }

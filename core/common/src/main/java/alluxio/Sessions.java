@@ -13,6 +13,7 @@ package alluxio;
 
 import alluxio.util.IdUtils;
 
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +47,7 @@ public class Sessions {
   /**
    * Creates a new instance of {@link Sessions}.
    */
+  @Inject
   public Sessions() {
     mSessions = new HashMap<>();
   }

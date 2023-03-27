@@ -51,7 +51,7 @@ public class NettyServerModule extends AbstractModule {
    */
   @Provides
   @Named("NettyBindAddress")
-  public InetSocketAddress provideGrpcBindAddress() {
+  public InetSocketAddress provideNettyBindAddress() {
     // Random port binding.
     int bindPort;
     InetSocketAddress configuredBindAddress =

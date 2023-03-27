@@ -23,8 +23,10 @@ import alluxio.network.TieredIdentityFactory;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
 import alluxio.wire.TieredIdentity;
+import alluxio.worker.WorkerFactory;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.dora.DoraWorker;
+import alluxio.worker.dora.DoraWorkerFactory;
 import alluxio.worker.dora.PagedDoraWorker;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.page.PagedBlockMetaStore;
@@ -77,5 +79,6 @@ public class DoraWorkerModule extends AbstractModule {
 
     // the following objects are required when using dora
     bind(DoraWorker.class).to(PagedDoraWorker.class).in(Scopes.SINGLETON);
+    bind(WorkerFactory.class).to(DoraWorkerFactory.class).in(Scopes.SINGLETON);
   }
 }

@@ -17,6 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.modules.AlluxioWorkerProcessModule;
+import alluxio.worker.modules.BlockWorkerModule;
 import alluxio.worker.modules.DoraWorkerModule;
 import alluxio.worker.modules.GrpcServerModule;
 import alluxio.worker.modules.NettyServerModule;
@@ -45,17 +46,15 @@ public interface WorkerProcess extends Process {
       // read configurations
       boolean isDoraEnable = Configuration.global()
           .getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
-      if (!isDoraEnable) {
-        throw new UnsupportedOperationException("Block Store is deprecated. Please enable Dora.");
-      }
       boolean isNettyDataTransmissionEnable =
           Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
       // add modules that need to be injected
       ImmutableList.Builder<Module> modules = ImmutableList.builder();
-      modules.add(new DoraWorkerModule());
+      modules.add(isDoraEnable ? new DoraWorkerModule() : new BlockWorkerModule());
       modules.add(new GrpcServerModule());
       modules.add(new NettyServerModule(isNettyDataTransmissionEnable));
       modules.add(new AlluxioWorkerProcessModule());
+
       // inject the modules
       Injector injector = Guice.createInjector(modules.build());
       return injector.getInstance(WorkerProcess.class);

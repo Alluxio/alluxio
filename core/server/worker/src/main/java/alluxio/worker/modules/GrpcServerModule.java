@@ -13,12 +13,9 @@ package alluxio.worker.modules;
 
 import alluxio.conf.Configuration;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.dora.DoraWorker;
-import alluxio.worker.dora.PagedDoraWorker;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import com.google.inject.Scopes;
 import com.google.inject.name.Names;
 
 import java.io.IOException;
@@ -36,9 +33,6 @@ public class GrpcServerModule extends AbstractModule {
         .toInstance(NetworkAddressUtils.getConnectAddress(
             NetworkAddressUtils.ServiceType.WORKER_RPC,
             Configuration.global()));
-
-    // the following objects are required when using dora
-    bind(DoraWorker.class).to(PagedDoraWorker.class).in(Scopes.SINGLETON);
   }
 
   /**
