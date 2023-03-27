@@ -168,7 +168,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
             mRegistry.get(BlockWorker.class));
     // Setup GRPC server
     mDataServer = dataServerFactory.createRemoteGrpcDataServer(
-          mRegistry.get(BlockWorker.class));
+        mRegistry.get(BlockWorker.class));
     // Setup domain socket data server
     if (isDomainSocketEnabled()) {
       mDomainSocketDataServer = dataServerFactory.createDomainSocketDataServer(
