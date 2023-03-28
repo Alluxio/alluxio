@@ -42,7 +42,6 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.JvmPauseMonitor;
-import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
