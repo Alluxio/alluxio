@@ -351,7 +351,7 @@ public abstract class StressMasterBenchBase
       for (Map.Entry<String, MethodStatistics> entry : nameStatistics.entrySet()) {
         final MasterBenchTaskResultStatistics stats = new MasterBenchTaskResultStatistics();
         stats.encodeResponseTimeNsRaw(entry.getValue().getTimeNs());
-        stats.mNumSuccess = entry.getValue().getNumSuccess();
+        stats.mNumSuccesses = entry.getValue().getNumSuccess();
         stats.mMaxResponseTimeNs = entry.getValue().getMaxTimeNs();
         mResult.putStatisticsForMethod(entry.getKey(), stats);
       }
