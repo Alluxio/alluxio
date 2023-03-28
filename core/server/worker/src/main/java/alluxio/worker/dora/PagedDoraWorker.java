@@ -14,6 +14,7 @@ package alluxio.worker.dora;
 import static alluxio.client.file.cache.CacheUsage.PartitionDescriptor.file;
 
 import alluxio.AlluxioURI;
+import alluxio.CloseableSupplier;
 import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
@@ -27,6 +28,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.file.FileId;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.GetStatusPOptions;
@@ -39,12 +41,11 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.meta.DoraMeta;
+import alluxio.resource.CloseableResource;
 import alluxio.resource.PooledResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
-import alluxio.underfs.FileId;
-import alluxio.underfs.PagedUfsReader;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
@@ -61,7 +62,6 @@ import alluxio.worker.AbstractWorker;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.page.UfsBlockReadOptions;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
@@ -401,16 +401,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             String.format("Failed to get mount point for %s", options.getUfsPath()), e2);
       }
     }
-
-    FileId id = FileId.of(fileId);
+    CloseableResource<UnderFileSystem> ufs = ufsClient.acquireUfsResource();
+    mResourceCloser.register(ufs);
     final long fileSize = options.getBlockSize();
     return new PagedFileReader(mConf, mCacheManager,
-        new PagedUfsReader(mConf, ufsClient, mUfsStreamCache, id,
-            fileSize, offset, UfsBlockReadOptions.fromProto(options), mPageSize),
-        id,
-        fileSize,
-        offset,
-        mPageSize);
+        new CloseableSupplier<>(() -> ufs.get().openPositionRead(options.getUfsPath(), fileSize)),
+        FileId.of(fileId), options.getBlockSize(), offset);
   }
 
   @Override

@@ -23,6 +23,7 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.file.FileId;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.underfs.UfsManager.UfsClient;
 import alluxio.util.io.BufferUtils;

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs;
+package alluxio.file;
 
 import java.util.Objects;
 
@@ -44,9 +44,15 @@ public abstract class FileId {
     return new StringId(fileId);
   }
 
-  static final class StringId extends FileId {
+  /**
+   * String file ID.
+   */
+  public static final class StringId extends FileId {
     private final String mFileId;
 
+    /**
+     * @param fileId
+     */
     public StringId(String fileId) {
       mFileId = Objects.requireNonNull(fileId, "fileId");
     }

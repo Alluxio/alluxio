@@ -11,6 +11,8 @@
 
 package alluxio.underfs;
 
+import alluxio.file.FileId;
+
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;

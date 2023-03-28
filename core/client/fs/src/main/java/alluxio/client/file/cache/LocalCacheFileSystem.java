@@ -89,8 +89,8 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
     if (mCacheManager == null || mCacheManager.state() == CacheManager.State.NOT_IN_USE) {
       return mDelegatedFileSystem.openPositionRead(status, options);
     }
-    return new LocalCachePositionReader(status,
+    return LocalCachePositionReader.create(mConf, mCacheManager,
         new CloseableSupplier<>(() -> mDelegatedFileSystem.openPositionRead(status, options)),
-        mCacheManager, mConf);
+        status);
   }
 }

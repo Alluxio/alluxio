@@ -12,7 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
+import alluxio.file.FileId;
 import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.options.OpenOptions;
@@ -102,51 +102,6 @@ public class PagedUfsReader extends BlockReader {
     }
     buffer.flip();
     return buffer;
-  }
-
-  /**
-   * Reads a page from the UFS block at index {@code pageIndex}. This method will try to read as
-   * many bytes as the page size designated by {@link PropertyKey#USER_CLIENT_CACHE_PAGE_SIZE},
-   * and append to {@code buffer}. If {@code pageIndex} points to the last page of the block,
-   * the size of the data read can be smaller than the page size.
-   *
-   * @param buffer writable output buffer, must have enough remaining space for a page
-   * @param pageIndex the index of the page within the block
-   * @return number of bytes read, or -1 if end of block is reached
-   */
-  public int readPageAtIndex(ByteBuffer buffer, long pageIndex) throws IOException {
-    Preconditions.checkState(!mClosed);
-    Preconditions.checkArgument(!buffer.isReadOnly(), "read-only buffer");
-    Preconditions.checkArgument(buffer.remaining() >= mPageSize,
-        "%s bytes available in buffer, not enough for a page of size %s",
-        buffer.remaining(), mPageSize);
-    Preconditions.checkArgument(pageIndex >= 0 && pageIndex * mPageSize < mFileSize,
-        "page index (%s) is out of bound", pageIndex);
-
-    if (pageIndex == mLastPageIndex) {
-      return fillWithCachedPage(buffer, pageIndex * mPageSize, mLastPage.remaining());
-    }
-    int totalBytesRead = 0;
-    mLastPage.clear();
-    mLastPageIndex = -1;
-    try (ReadableByteChannel channel = getChannel(pageIndex * mPageSize)) {
-      while (totalBytesRead < mPageSize) {
-        int bytesRead = channel.read(mLastPage);
-        if (bytesRead < 0) {
-          // reached eof
-          if (totalBytesRead == 0) {
-            // not a single byte has been read; report this to caller
-            return bytesRead;
-          }
-          break;
-        }
-        totalBytesRead += bytesRead;
-      }
-    }
-    mLastPage.flip();
-    mLastPageIndex = pageIndex;
-    fillWithCachedPage(buffer, pageIndex * mPageSize, totalBytesRead);
-    return totalBytesRead;
   }
 
   /**
