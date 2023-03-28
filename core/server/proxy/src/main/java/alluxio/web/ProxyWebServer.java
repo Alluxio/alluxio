@@ -108,6 +108,9 @@ public final class ProxyWebServer extends WebServer {
         .register(S3RestExceptionMapper.class);
 
     mFileSystem = FileSystem.Factory.create(Configuration.global());
+    // Initiate the S3 API metadata directories
+    S3RestUtils.initMultipartUploadsMetadataDir(mFileSystem);
+
     long rate =
         (long) Configuration.getInt(PropertyKey.PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB) * Constants.MB;
     mGlobalRateLimiter = S3RestUtils.createRateLimiter(rate).orElse(null);

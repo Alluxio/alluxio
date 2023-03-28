@@ -15,10 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.Bits;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.PMode;
-import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadUtils;
@@ -237,19 +233,6 @@ public class S3Handler {
     mMetaFS = (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mAsyncAuditLogWriter = (AsyncUserAccessAuditLogWriter) context.getAttribute(
         ProxyWebServer.ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY);
-    // Initiate the S3 API metadata directories
-    if (!mMetaFS.exists(new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR))) {
-      mMetaFS.createDirectory(new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR),
-          CreateDirectoryPOptions.newBuilder()
-            .setRecursive(true)
-            .setMode(PMode.newBuilder()
-              .setOwnerBits(Bits.ALL).setGroupBits(Bits.ALL)
-              .setOtherBits(Bits.NONE)
-              .build())
-            .setWriteType(S3RestUtils.getS3WriteType())
-            .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-            .build());
-    }
   }
 
   /**

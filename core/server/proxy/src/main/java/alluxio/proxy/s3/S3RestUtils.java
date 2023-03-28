@@ -25,9 +25,13 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.Bits;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
+import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.proto.journal.File;
 import alluxio.proxy.s3.auth.Authenticator;
 import alluxio.proxy.s3.auth.AwsAuthInfo;
@@ -728,6 +732,33 @@ public final class S3RestUtils {
       return Optional.empty();
     }
     return Optional.of(RateLimiter.create(rate));
+  }
+
+  /**
+   * Initiate the S3 API metadata directories.
+   * @param fileSystem
+   */
+  public static void initMultipartUploadsMetadataDir(FileSystem fileSystem) {
+    try {
+      if (!fileSystem.exists(new AlluxioURI(MULTIPART_UPLOADS_METADATA_DIR))) {
+        LOG.info("Create multipart uploads metadata dir: {}", MULTIPART_UPLOADS_METADATA_DIR);
+        fileSystem.createDirectory(
+            new AlluxioURI(MULTIPART_UPLOADS_METADATA_DIR),
+            CreateDirectoryPOptions.newBuilder()
+                .setRecursive(true)
+                .setMode(PMode.newBuilder()
+                    .setOwnerBits(Bits.ALL)
+                    .setGroupBits(Bits.ALL)
+                    .setOtherBits(Bits.NONE).build())
+                .setWriteType(getS3WriteType())
+                .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                .build()
+        );
+      }
+    } catch (Exception e) {
+      LOG.error("Can not init multipart uploads metadata dir: {}", MULTIPART_UPLOADS_METADATA_DIR,
+          e);
+    }
   }
 
     /**

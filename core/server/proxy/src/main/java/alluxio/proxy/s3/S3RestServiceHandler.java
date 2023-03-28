@@ -164,23 +164,6 @@ public final class S3RestServiceHandler {
     mBucketInvalidPrefixPattern = Pattern.compile("^xn--.*");
     mBucketInvalidSuffixPattern = Pattern.compile(".*-s3alias$");
     mBucketValidNamePattern = Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
-
-    // Initiate the S3 API metadata directories
-    if (!mMetaFS.exists(new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR))) {
-      mMetaFS.createDirectory(
-          new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR),
-          CreateDirectoryPOptions.newBuilder()
-              .setRecursive(true)
-              .setMode(PMode.newBuilder()
-                  .setOwnerBits(Bits.ALL)
-                  .setGroupBits(Bits.ALL)
-                  .setOtherBits(Bits.NONE).build())
-              .setWriteType(S3RestUtils.getS3WriteType())
-              .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-              .build()
-      );
-    }
-
     mGlobalRateLimiter = (RateLimiter) context.getAttribute(
         ProxyWebServer.GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY);
   }
