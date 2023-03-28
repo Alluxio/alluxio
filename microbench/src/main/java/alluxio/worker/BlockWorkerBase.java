@@ -77,6 +77,7 @@ class BlockWorkerBase {
             UnderFileSystemConfiguration.defaults(Configuration.global())), new AlluxioURI(mUfs));
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mBlockStore = new MonoBlockStore(tieredBlockStore, blockMasterClientPool, ufsManager, workerId);
+    mBlockStore.initialize();
     FileSystemMasterClient fileSystemMasterClient = mock(FileSystemMasterClient.class);
     Sessions sessions = mock(Sessions.class);
     mBlockWorker =

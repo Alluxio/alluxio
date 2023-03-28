@@ -127,6 +127,7 @@ public class BlockWorkerDataReaderTest {
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
     MonoBlockStore blockStore =
         new MonoBlockStore(tieredBlockStore, blockMasterClientPool, ufsManager, workerId);
+    blockStore.initialize();
     mBlockWorker = new DefaultBlockWorker(blockMasterClientPool, fileSystemMasterClient,
         sessions, blockStore, workerId);
 

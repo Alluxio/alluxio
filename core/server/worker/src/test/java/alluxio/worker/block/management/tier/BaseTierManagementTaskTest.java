@@ -78,6 +78,7 @@ public abstract class BaseTierManagementTaskTest {
         new TieredBlockReaderFactory(),
         new TieredBlockWriterFactory(),
         new TieredTempBlockMetaFactory());
+    mBlockStore.initialize();
     Field field = mBlockStore.getClass().getDeclaredField("mMetaManager");
     field.setAccessible(true);
     mMetaManager = (BlockMetadataManager) field.get(mBlockStore);
