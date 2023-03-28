@@ -199,13 +199,12 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   }
 
   private void losePrimacy() throws Exception {
-    // TODO(jiacheng): better organize
     // Dump important information asynchronously
     ExecutorService es = null;
     List<Future<Void>> dumpFutures = new ArrayList<>();
     try {
       es = Executors.newFixedThreadPool(
-              2, ThreadFactoryUtils.build("info-dumper-%d", true));
+          2, ThreadFactoryUtils.build("info-dumper-%d", true));
       dumpFutures.addAll(ProcessUtils.dumpInformationOnFailover(es));
     } catch (Throwable t) {
       LOG.warn("Failed to dump metrics and jstacks before demotion", t);
