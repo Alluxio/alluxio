@@ -15,6 +15,8 @@ import static jnr.constants.platform.OpenFlags.O_ACCMODE;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.lock.FuseReadWriteLockManager;
 
@@ -77,6 +79,9 @@ public interface FuseFileStream extends AutoCloseable {
     private final FuseReadWriteLockManager mLockManager = new FuseReadWriteLockManager();
     private final FileSystem mFileSystem;
     private final AuthPolicy mAuthPolicy;
+    // TODO(lu) allow different threads reading from same file to share the same position reader
+    private final boolean mPositionReadEnabled
+        = Configuration.getBoolean(PropertyKey.FUSE_POSITION_READ_ENABLED);
 
     /**
      * Creates an instance of {@link FuseFileStream.Factory} for
@@ -103,10 +108,17 @@ public interface FuseFileStream extends AutoCloseable {
         AlluxioURI uri, int flags, long mode) {
       switch (OpenFlags.valueOf(flags & O_ACCMODE.intValue())) {
         case O_RDONLY:
+          if (mPositionReadEnabled) {
+            return FusePositionReader.create(mFileSystem, mLockManager, uri);
+          }
           return FuseFileInStream.create(mFileSystem, mLockManager, uri);
         case O_WRONLY:
           return FuseFileOutStream.create(mFileSystem, mAuthPolicy, mLockManager, uri, flags, mode);
         default:
+          if (mPositionReadEnabled) {
+            return FusePositionReadOrOutStream.create(mFileSystem, mAuthPolicy, mLockManager,
+                uri, flags, mode);
+          }
           return FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy, mLockManager,
               uri, flags, mode);
       }
