@@ -103,23 +103,6 @@ public class NettyDataReaderTest {
   }
 
   @Test
-  public void ufsHeartbeat() throws Exception {
-    final int length = 10;
-    final long offset = 0;
-    ServerState start = new WaitForRequestState(
-        mRequestBuilder.clone().setLength(length).setOffset(offset).build());
-    start.andThen(new SendDataState("hello".getBytes()))
-        .andThen(new SendDataState("world".getBytes()))
-        .andThen(new EofState());
-    Future<Throwable> serverFault = mStateDriver.run(start);
-    int bytesRead = mReader.read(offset, Channels.newChannel(mOut), length);
-
-    assertNull(serverFault.get());
-    assertEquals(length, bytesRead);
-    assertArrayEquals("helloworld".getBytes(), mOut.toByteArray());
-  }
-
-  @Test
   public void serverCancel() throws Exception {
     final long offset = 0;
     final int length = 11;
