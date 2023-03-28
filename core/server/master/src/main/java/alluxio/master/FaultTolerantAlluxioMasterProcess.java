@@ -21,6 +21,7 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.interfaces.Scoped;
@@ -32,6 +33,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -192,6 +199,19 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   }
 
   private void losePrimacy() throws Exception {
+    // TODO(jiacheng): better organize
+    // Dump important information asynchronously
+    ExecutorService es = null;
+    List<Future<Void>> dumpFutures = new ArrayList<>();
+    try {
+      es = Executors.newFixedThreadPool(
+              2, ThreadFactoryUtils.build("info-dumper-%d", true));
+      dumpFutures.addAll(ProcessUtils.dumpInformationOnFailover(es));
+    } catch (Throwable t) {
+      LOG.warn("Failed to dump metrics and jstacks before demotion", t);
+    }
+
+    // Shut down services like RPC, WebServer, Journal and all master components
     LOG.info("Losing the leadership.");
     if (mServingThread != null) {
       stopLeaderServing();
@@ -213,6 +233,19 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       stopMasters();
       LOG.info("Primary stopped");
     }
+
+    // Block until information dump is done and close resources
+    for (Future<Void> f : dumpFutures) {
+      try {
+        f.get();
+      } catch (InterruptedException | ExecutionException e) {
+        LOG.warn("Failed to dump metrics and jstacks before demotion", e);
+      }
+    }
+    if (es != null) {
+      es.shutdownNow();
+    }
+
     startMasters(false);
     LOG.info("Standby started");
   }
