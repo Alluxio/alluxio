@@ -89,6 +89,7 @@ public class DefaultBlockWorkerExceptionTest {
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
     BlockStore blockstore =
         new MonoBlockStore(tieredBlockStore, blockMasterClientPool, ufsManager, workerId);
+    blockstore.initialize();
     FileSystemMasterClient client = mock(FileSystemMasterClient.class);
     Sessions sessions = mock(Sessions.class);
     mUfs = mock(UnderFileSystem.class);
