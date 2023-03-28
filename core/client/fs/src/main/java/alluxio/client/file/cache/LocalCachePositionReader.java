@@ -22,6 +22,8 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -121,7 +123,7 @@ public class LocalCachePositionReader implements PositionReader {
   }
 
   private int localCachedRead(PageReadTargetBuffer bytesBuffer, int length,
-      long position, Stopwatch stopwatch) throws IOException {
+      long position, Stopwatch stopwatch) {
     long currentPage = position / mPageSize;
     PageId pageId;
     CacheContext cacheContext = mStatus.getCacheContext();
@@ -139,7 +141,8 @@ public class LocalCachePositionReader implements PositionReader {
     int bytesToReadInPage = Math.min(bytesLeftInPage, length);
     stopwatch.reset().start();
     int bytesRead =
-        mCacheManager.get(pageId, currentPageOffset, bytesToReadInPage, bytesBuffer, mCacheContext);
+        mCacheManager.getAndLoad(pageId, currentPageOffset, bytesToReadInPage,
+            bytesBuffer, mCacheContext, stopwatch, () -> readExternalPage(position));
     stopwatch.stop();
     if (bytesRead > 0) {
       MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
@@ -150,59 +153,23 @@ public class LocalCachePositionReader implements PositionReader {
             MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
             stopwatch.elapsed(TimeUnit.NANOSECONDS));
       }
-      return bytesRead;
     }
-    // on local cache miss, read a complete page from external storage. This will always make
-    // progress or throw an exception
-    stopwatch.reset().start();
-    byte[] page = readExternalPage(position);
-    stopwatch.stop();
-    if (page.length > 0) {
-      bytesBuffer.writeBytes(page, currentPageOffset, bytesToReadInPage);
-      // cache misses
-      MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
-          .mark(bytesToReadInPage);
-      if (cacheContext != null) {
-        cacheContext.incrementCounter(
-            MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
-            bytesToReadInPage);
-        cacheContext.incrementCounter(
-            MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
-            stopwatch.elapsed(TimeUnit.NANOSECONDS)
-        );
-      }
-      mCacheManager.put(pageId, page, mCacheContext);
-    }
-    return bytesToReadInPage;
+    return bytesRead;
   }
 
-  /**
-   * Reads a page from external storage which contains the position specified. Note that this makes
-   * a copy of the page.
-   * <p>
-   * This method is synchronized to ensure thread safety for positioned reads. Only a single thread
-   * should call this method at a time because the underlying state (mExternalFileInStream) is
-   * shared. Another way would be to use positioned reads instead of seek and read, but that assumes
-   * the underlying FileInStream implements thread safe positioned reads which are not much more
-   * expensive than seek and read.
-   * <p>
-   * TODO(calvin): Consider a more efficient API which does not require a data copy.
-   *
-   * @param position the position which the page will contain
-   * @return a byte array of the page data
-   */
-  private synchronized byte[] readExternalPage(long position)
-      throws IOException {
+  private byte[] readExternalPage(long position) {
     long pageStart = position - (position % mPageSize);
     int pageSize = (int) Math.min(mPageSize, mStatus.getLength() - pageStart);
     byte[] page = new byte[pageSize];
     int totalBytesRead = 0;
+    int bytesRead;
     while (totalBytesRead < pageSize) {
-      // TODO(lu) consider how to position read from source and write to local cache with zero copy
-      // read from input stream and write to local file
-      // read from Netty ByteBuf and write to local file
-      int bytesRead = mExternalReader.get()
-          .positionRead(position, page, totalBytesRead, pageSize);
+      try {
+        bytesRead = mExternalReader.get()
+            .positionRead(position, page, totalBytesRead, pageSize);
+      } catch (IOException e) {
+        throw AlluxioRuntimeException.from(e);
+      }
       if (bytesRead <= 0) {
         break;
       }
@@ -211,7 +178,8 @@ public class LocalCachePositionReader implements PositionReader {
     // Bytes read from external, may be larger than requests due to reading complete pages
     MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).mark(totalBytesRead);
     if (totalBytesRead != pageSize) {
-      throw new IOException("Failed to read complete page from external storage. Bytes read: "
+      throw new FailedPreconditionRuntimeException(
+          "Failed to read complete page from external storage. Bytes read: "
           + totalBytesRead + " Page size: " + pageSize);
     }
     return page;
