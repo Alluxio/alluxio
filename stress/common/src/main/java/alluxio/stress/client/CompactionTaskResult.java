@@ -114,7 +114,7 @@ public class CompactionTaskResult implements TaskResult {
    * Increase number of successes by 1.
    */
   public void incrementNumSuccess() {
-    mStatistics.mNumSuccess += 1;
+    mStatistics.mNumSuccesses += 1;
   }
 
   /**
@@ -174,7 +174,7 @@ public class CompactionTaskResult implements TaskResult {
     public CompactionSummary(CompactionTaskResult mergedResult) throws DataFormatException {
       mBaseParameters = mergedResult.getBaseParameters();
       mParameters = mergedResult.getParameters();
-      mNumSuccess = mergedResult.getStatistics().mNumSuccess;
+      mNumSuccess = mergedResult.getStatistics().mNumSuccesses;
       mErrors = mergedResult.getErrors();
       mSummaryStatistics = mergedResult.getStatistics().toBenchSummaryStatistics();
     }

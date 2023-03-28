@@ -82,7 +82,7 @@ public final class MultiOperationMasterBenchTaskResult
    * @param numSuccess the amount to increment by
    */
   public void incrementNumSuccess(int operationIndex, long numSuccess) {
-    mStatistics.get(operationIndex).mNumSuccess += numSuccess;
+    mStatistics.get(operationIndex).mNumSuccesses += numSuccess;
   }
 
   /**
@@ -125,7 +125,7 @@ public final class MultiOperationMasterBenchTaskResult
   public long getNumSuccessOperations() {
     long throughput = 0;
     for (MasterBenchTaskResultStatistics statistic: mStatistics) {
-      throughput += statistic.mNumSuccess;
+      throughput += statistic.mNumSuccesses;
     }
     return throughput;
   }
