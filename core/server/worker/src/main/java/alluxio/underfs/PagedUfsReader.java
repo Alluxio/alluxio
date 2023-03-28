@@ -12,7 +12,8 @@
 package alluxio.underfs;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.options.OpenOptions;
@@ -41,8 +42,6 @@ public class PagedUfsReader extends BlockReader {
   private final long mFileSize;
   private final UfsBlockReadOptions mUfsBlockOptions;
   private final long mInitialOffset;
-  private final ByteBuffer mLastPage;
-  private long mLastPageIndex = -1;
   private boolean mClosed = false;
   private long mPosition;
 
@@ -69,7 +68,6 @@ public class PagedUfsReader extends BlockReader {
     mUfsBlockOptions = ufsBlockReadOptions;
     mPageSize = pageSize;
     mInitialOffset = offset;
-    mLastPage = ByteBuffer.allocateDirect((int) mPageSize);
     mPosition = offset;
   }
 
@@ -87,8 +85,7 @@ public class PagedUfsReader extends BlockReader {
     // todo(bowen): this pooled buffer will likely not get released, so will still be GCed instead
     //  of reused.
     ByteBuffer buffer = NioDirectBufferPool.acquire((int) length);
-    int totalBytesRead = fillWithCachedPage(buffer, offset, length);
-    offset += totalBytesRead;
+    int totalBytesRead = 0;
     try (ReadableByteChannel channel = getChannel(offset)) {
       while (totalBytesRead < length) {
         int bytesRead = channel.read(buffer);
@@ -105,70 +102,36 @@ public class PagedUfsReader extends BlockReader {
   }
 
   /**
-   * Reads a page from the UFS block at index {@code pageIndex}. This method will try to read as
-   * many bytes as the page size designated by {@link PropertyKey#USER_CLIENT_CACHE_PAGE_SIZE},
-   * and append to {@code buffer}. If {@code pageIndex} points to the last page of the block,
-   * the size of the data read can be smaller than the page size.
+   * Reads a page from the UFS block at index {@code pageIndex}.
    *
-   * @param buffer writable output buffer, must have enough remaining space for a page
+   * @param pageSize the target page size
    * @param pageIndex the index of the page within the block
-   * @return number of bytes read, or -1 if end of block is reached
+   * @return the page read
    */
-  public int readPageAtIndex(ByteBuffer buffer, long pageIndex) throws IOException {
+  public byte[] readPageAtIndex(int pageSize, long pageIndex) throws IOException {
     Preconditions.checkState(!mClosed);
-    Preconditions.checkArgument(!buffer.isReadOnly(), "read-only buffer");
-    Preconditions.checkArgument(buffer.remaining() >= mPageSize,
-        "%s bytes available in buffer, not enough for a page of size %s",
-        buffer.remaining(), mPageSize);
     Preconditions.checkArgument(pageIndex >= 0 && pageIndex * mPageSize < mFileSize,
         "page index (%s) is out of bound", pageIndex);
-
-    if (pageIndex == mLastPageIndex) {
-      return fillWithCachedPage(buffer, pageIndex * mPageSize, mLastPage.remaining());
-    }
     int totalBytesRead = 0;
-    mLastPage.clear();
-    mLastPageIndex = -1;
+    byte[] page = new byte[pageSize];
+    ByteBuffer pageBuffer = ByteBuffer.wrap(page);
     try (ReadableByteChannel channel = getChannel(pageIndex * mPageSize)) {
-      while (totalBytesRead < mPageSize) {
-        int bytesRead = channel.read(mLastPage);
-        if (bytesRead < 0) {
-          // reached eof
-          if (totalBytesRead == 0) {
-            // not a single byte has been read; report this to caller
-            return bytesRead;
-          }
+      while (totalBytesRead < pageSize) {
+        int bytesRead = channel.read(pageBuffer);
+        if (bytesRead <= 0) {
           break;
         }
         totalBytesRead += bytesRead;
       }
     }
-    mLastPage.flip();
-    mLastPageIndex = pageIndex;
-    fillWithCachedPage(buffer, pageIndex * mPageSize, totalBytesRead);
-    return totalBytesRead;
-  }
-
-  /**
-   * Fills the output buffer with the content from the cached paged.
-   * @param outBuffer output buffer
-   * @param offset offset with the block
-   * @param length how many bytes to read
-   * @return how many bytes was filled in the output buffer, 0 when the cached page does not
-   *         content of the requested range
-   */
-  private int fillWithCachedPage(ByteBuffer outBuffer, long offset, long length) {
-    long pageIndex = offset / mPageSize;
-    if (pageIndex != mLastPageIndex) {
-      return 0;
+    // Bytes read from external, may be larger than requests due to reading complete pages
+    MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName())
+        .mark(totalBytesRead);
+    if (totalBytesRead != pageSize) {
+      throw new IOException("Failed to read complete page from external storage. Bytes read: "
+          + totalBytesRead + " Page size: " + pageSize);
     }
-    int pageSize = Math.min(mLastPage.remaining(), (int) length);
-    ByteBuffer slice = outBuffer.slice();
-    slice.limit(pageSize);
-    slice.put(mLastPage);
-    mLastPage.rewind();
-    outBuffer.position(outBuffer.position() + pageSize);
-    return pageSize;
+    return page;
   }
 
   @Override
@@ -211,8 +174,7 @@ public class PagedUfsReader extends BlockReader {
 
   int transferTo(ByteBuffer byteBuffer) throws IOException {
     Preconditions.checkState(!mClosed);
-    int bytesRead = fillWithCachedPage(byteBuffer, mPosition, byteBuffer.remaining());
-    mPosition += bytesRead;
+    int bytesRead;
     try (ReadableByteChannel channel = getChannel(mPosition)) {
       bytesRead = channel.read(byteBuffer);
       if (bytesRead < 0) { // eof

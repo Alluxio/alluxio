@@ -11,6 +11,9 @@
 
 package alluxio.client.file.cache;
 
+import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
+import static alluxio.client.file.CacheContext.StatsUnit.NANO;
+
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
@@ -21,6 +24,9 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
+import com.google.common.base.Ticker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +34,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -38,6 +45,7 @@ import javax.annotation.concurrent.GuardedBy;
  * Interface for managing cached pages.
  */
 public interface CacheManager extends AutoCloseable, CacheStatus {
+  Logger LOG = LoggerFactory.getLogger(CacheManager.class);
 
   /**
    * State of a cache.
@@ -274,6 +282,84 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
       CacheContext cacheContext);
 
   /**
+   * Reads a part of a page with metrics recording.
+   *
+   * @param pageId page identifier
+   * @param pageOffset offset into the page
+   * @param bytesToRead number of bytes to read in this page
+   * @param buffer destination buffer to write
+   * @param cacheContext cache related context
+   * @param stopwatch stop watch to record metrics
+   * @return number of bytes read, 0 if page is not found, -1 on errors
+   */
+  default int getWithMetrics(PageId pageId, int pageOffset, int bytesToRead,
+      PageReadTargetBuffer buffer, CacheContext cacheContext, Stopwatch stopwatch) {
+    stopwatch.reset().start();
+    int bytesRead =
+        get(pageId, pageOffset, bytesToRead, buffer, cacheContext);
+    stopwatch.stop();
+    if (bytesRead > 0) {
+      MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
+      if (cacheContext != null) {
+        cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
+            bytesRead);
+        cacheContext.incrementCounter(
+            MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
+            stopwatch.elapsed(TimeUnit.NANOSECONDS));
+      }
+    }
+    return bytesRead;
+  }
+
+  /**
+   * Reads a part of a page if the queried page is found in the cache, stores the result in buffer.
+   * Loads the page otherwise.
+   *
+   * @param pageId page identifier
+   * @param pageOffset offset into the page
+   * @param bytesToRead number of bytes to read in this page
+   * @param buffer destination buffer to write
+   * @param cacheContext cache related context
+   * @param reader the external page reader to get page
+   * @return number of bytes read, 0 if page is not found, -1 on errors
+   */
+  default int getAndLoad(PageId pageId, int pageOffset, int bytesToRead,
+      PageReadTargetBuffer buffer, CacheContext cacheContext, ExternalPageReader reader) {
+    Stopwatch stopwatch = createUnstartedStopwatch();
+    int bytesRead = getWithMetrics(pageId, pageOffset,
+        bytesToRead, buffer, cacheContext, stopwatch);
+    if (bytesRead > 0) {
+      return bytesRead;
+    }
+    byte[] page;
+    try {
+      stopwatch.reset().start();
+      page = reader.read();
+      stopwatch.stop();
+    } catch (IOException e) {
+      LOG.error("Failed to load external page", e);
+      throw new RuntimeException(e);
+    }
+    if (page.length == 0) {
+      return 0;
+    }
+    buffer.writeBytes(page, pageOffset, bytesToRead);
+    MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
+        .mark(bytesToRead);
+    if (cacheContext != null) {
+      cacheContext.incrementCounter(
+          MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
+          bytesToRead);
+      cacheContext.incrementCounter(
+          MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
+          stopwatch.elapsed(TimeUnit.NANOSECONDS)
+      );
+      put(pageId, page, cacheContext);
+    }
+    return bytesToRead;
+  }
+
+  /**
    * Get page ids by the given file id.
    * @param fileId file identifier
    * @param fileLength file length (this will not be needed after we have per-file metadata)
@@ -316,4 +402,24 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
 
   @Override
   Optional<CacheUsage> getUsage();
+
+  /**
+   * @return the stop watch
+   */
+  @VisibleForTesting
+  default Stopwatch createUnstartedStopwatch() {
+    return Stopwatch.createUnstarted(Ticker.systemTicker());
+  }
+
+  /**
+   * Interface to wrap external page reader which should be thread-safe.
+   */
+  interface ExternalPageReader {
+    /**
+     * Reads a page from external data reader.
+     *
+     * @return the bytes read
+     */
+    byte[] read() throws IOException;
+  }
 }

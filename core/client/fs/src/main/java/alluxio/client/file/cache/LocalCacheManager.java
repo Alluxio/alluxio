@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache;
 
+import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
+import static alluxio.client.file.CacheContext.StatsUnit.NANO;
 import static alluxio.client.file.cache.CacheManager.State.NOT_IN_USE;
 import static alluxio.client.file.cache.CacheManager.State.READ_ONLY;
 import static alluxio.client.file.cache.CacheManager.State.READ_WRITE;
@@ -32,6 +34,7 @@ import alluxio.resource.LockResource;
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Stopwatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -470,6 +473,7 @@ public class LocalCacheManager implements CacheManager {
       Metrics.GET_ERRORS.inc();
       return -1;
     }
+    // Only one thread load the page and write to page store
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.readLock())) {
       PageInfo pageInfo;
@@ -495,6 +499,51 @@ public class LocalCacheManager implements CacheManager {
       }
       LOG.debug("get({},pageOffset={}) exits", pageId, pageOffset);
       return bytesRead;
+    }
+  }
+
+  @Override
+  public int getAndLoad(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
+      CacheContext cacheContext, ExternalPageReader reader) {
+    Stopwatch stopwatch = createUnstartedStopwatch();
+    int bytesRead = getWithMetrics(pageId, pageOffset,
+        bytesToRead, buffer, cacheContext, stopwatch);
+    if (bytesRead > 0) {
+      return bytesRead;
+    }
+    ReadWriteLock pageLock = getPageLock(pageId);
+    try (LockResource r = new LockResource(pageLock.writeLock())) {
+      bytesRead = getWithMetrics(pageId, pageOffset, bytesToRead,
+          buffer, cacheContext, stopwatch);
+      if (bytesRead > 0) {
+        return bytesRead;
+      }
+      // on local cache miss, read a complete page from external storage. This will always make
+      // progress or throw an exception
+      byte[] page;
+      try {
+        stopwatch.reset().start();
+        page = reader.read();
+        stopwatch.stop();
+      } catch (IOException e) {
+        LOG.error("Failed to load external page", e);
+        throw new RuntimeException(e);
+      }
+      // cache misses
+      buffer.writeBytes(page, pageOffset, bytesToRead);
+      MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
+          .mark(bytesToRead);
+      if (cacheContext != null) {
+        cacheContext.incrementCounter(
+            MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
+            bytesToRead);
+        cacheContext.incrementCounter(
+            MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
+            stopwatch.elapsed(TimeUnit.NANOSECONDS)
+        );
+        put(pageId, page, cacheContext);
+      }
+      return bytesToRead;
     }
   }
 

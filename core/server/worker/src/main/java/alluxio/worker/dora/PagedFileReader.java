@@ -16,9 +16,6 @@ import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
-import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.underfs.FileId;
 import alluxio.underfs.PagedUfsReader;
 import alluxio.worker.block.io.BlockReadableChannel;
@@ -107,39 +104,32 @@ public class PagedFileReader extends BlockReader {
         length, byteBuf.writableBytes());
     PageReadTargetBuffer target = new NettyBufTargetBuffer(byteBuf);
     int bytesRead = 0;
+    long pos;
     while (bytesRead < length) {
-      long pos = offset + bytesRead;
+      pos = offset + bytesRead;
       long pageIndex = pos / mPageSize;
       PageId pageId = new PageId(mFileId.toString(), pageIndex);
       int currentPageOffset = (int) (pos % mPageSize);
       int bytesLeftInPage =
           (int) Math.min(mPageSize - currentPageOffset, length - bytesRead);
-      int bytesReadFromCache = mCacheManager.get(
-          pageId, currentPageOffset, bytesLeftInPage, target, CacheContext.defaults());
-      if (bytesReadFromCache > 0) {
-        bytesRead += bytesReadFromCache;
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
-      } else {
-        // get the page at pageIndex as a whole from UFS
-        ByteBuffer ufsBuf = NioDirectBufferPool.acquire((int) mPageSize);
-        try {
-          int pageBytesRead = mUfsReader.readPageAtIndex(ufsBuf, pageIndex);
-          if (pageBytesRead > 0) {
-            ufsBuf.position(currentPageOffset);
-            ufsBuf.limit(currentPageOffset + bytesLeftInPage);
-            byteBuf.writeBytes(ufsBuf);
-            bytesRead += bytesLeftInPage;
-            MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
-                .mark(bytesLeftInPage);
-            ufsBuf.rewind();
-            ufsBuf.limit(pageBytesRead);
-            if (mUfsReader.getUfsReadOptions().isCacheIntoAlluxio()) {
-              mCacheManager.put(pageId, ufsBuf);
-            }
-          }
-        } finally {
-          NioDirectBufferPool.release(ufsBuf);
+      if (mUfsReader.getUfsReadOptions().isCacheIntoAlluxio()) {
+        long pageStart = pos - (pos % mPageSize);
+        int pageSize = (int) Math.min(mPageSize, mFileSize - pageStart);
+        int bytesReadFromCache = mCacheManager.getAndLoad(
+            pageId, currentPageOffset, bytesLeftInPage, target, CacheContext.defaults(),
+            () -> mUfsReader.readPageAtIndex(pageSize, pageIndex));
+        if (bytesReadFromCache <= 0) {
+          break;
         }
+        bytesRead += bytesReadFromCache;
+      } else {
+        ByteBuffer buffer = mUfsReader.read(offset, length);
+        int ufsRead = buffer.remaining();
+        if (ufsRead == 0) {
+          break;
+        }
+        byteBuf.writeBytes(buffer);
+        bytesRead += ufsRead;
       }
     }
     return bytesRead;

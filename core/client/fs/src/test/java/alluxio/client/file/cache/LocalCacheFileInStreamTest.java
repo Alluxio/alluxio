@@ -496,11 +496,17 @@ public class LocalCacheFileInStreamTest {
 
   @Test
   public void cacheMetricCacheHitReadTime() throws Exception {
+    sConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, true);
     byte[] testData = BufferUtils.getIncreasingByteArray(mPageSize);
     AlluxioURI testFileName = new AlluxioURI("/test");
     Map<AlluxioURI, byte[]> files = ImmutableMap.of(testFileName, testData);
     StepTicker timeSource = new StepTicker();
-    TimedMockByteArrayCacheManager manager = new TimedMockByteArrayCacheManager(timeSource);
+    TimedMockByteArrayCacheManager manager = new TimedMockByteArrayCacheManager(timeSource) {
+      @Override
+      public Stopwatch createUnstartedStopwatch() {
+        return Stopwatch.createUnstarted(timeSource);
+      }
+    };
     Map<String, Long> recordedMetrics = new HashMap<>();
     TimedByteArrayFileSystem fs = new TimedByteArrayFileSystem(
         files,
@@ -510,12 +516,7 @@ public class LocalCacheFileInStreamTest {
     LocalCacheFileInStream stream =
         new LocalCacheFileInStream(fs.getStatus(testFileName),
             (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager,
-            sConf) {
-          @Override
-          protected Stopwatch createUnstartedStopwatch() {
-            return Stopwatch.createUnstarted(timeSource);
-          }
-        };
+            sConf);
 
     Assert.assertArrayEquals(testData, ByteStreams.toByteArray(stream));
     long timeReadCache = recordedMetrics.get(
@@ -993,7 +994,7 @@ public class LocalCacheFileInStreamTest {
     }
   }
 
-  private class TimedMockByteArrayCacheManager extends ByteArrayCacheManager {
+  private abstract class TimedMockByteArrayCacheManager extends ByteArrayCacheManager {
     private final StepTicker mTicker;
 
     public TimedMockByteArrayCacheManager(StepTicker ticker) {
@@ -1002,7 +1003,7 @@ public class LocalCacheFileInStreamTest {
 
     @Override
     public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
-        CacheContext cacheContext) {
+                   CacheContext cacheContext) {
       int read = super.get(pageId, pageOffset, bytesToRead, target, cacheContext);
       if (read > 0) {
         mTicker.advance(StepTicker.Type.CACHE_HIT);

@@ -21,7 +21,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -151,7 +150,7 @@ public final class LocalCacheFileInStreamIntegrationTest extends BaseIntegration
     }
     // reading first half from local cache would fail
     try (InputStream stream = mFileSystem.openFile(path)) {
-      mThrown.expect(UnavailableException.class);
+      mThrown.expect(RuntimeException.class);
       ByteStreams.toByteArray(stream);
     }
   }
