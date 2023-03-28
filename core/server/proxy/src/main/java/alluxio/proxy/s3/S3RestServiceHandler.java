@@ -166,6 +166,7 @@ public final class S3RestServiceHandler {
     mBucketValidNamePattern = Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
     mGlobalRateLimiter = (RateLimiter) context.getAttribute(
         ProxyWebServer.GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY);
+    ((Runnable) context.getAttribute(ProxyWebServer.MULTIPART_UPLOADS_METADATA_DIR_CREATOR)).run();
   }
 
   /**

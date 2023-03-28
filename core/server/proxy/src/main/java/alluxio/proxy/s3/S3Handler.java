@@ -233,6 +233,7 @@ public class S3Handler {
     mMetaFS = (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mAsyncAuditLogWriter = (AsyncUserAccessAuditLogWriter) context.getAttribute(
         ProxyWebServer.ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY);
+    ((Runnable) context.getAttribute(ProxyWebServer.MULTIPART_UPLOADS_METADATA_DIR_CREATOR)).run();
   }
 
   /**
