@@ -20,32 +20,33 @@ import java.io.IOException;
  * {@link Exception#getCause()}.
  */
 public class PartialReadException extends IOException {
-  private static final String MESSAGE = "Incomplete read due to exception";
   private final int mBytesRead;
   private final int mBytesWanted;
 
   /**
    * Constructor.
    *
-   * @param bytesWanted
-   * @param bytesRead
-   * @param cause
+   * @param bytesWanted number of bytes requested by the caller
+   * @param bytesRead number of bytes actually read so far when the exception occurs
+   * @param cause the cause
    */
   public PartialReadException(int bytesWanted, int bytesRead, Throwable cause) {
-    super(MESSAGE, cause);
+    super(String.format("Incomplete read due to exception, %d requested, %d actually read",
+        bytesWanted, bytesRead),
+        cause);
     mBytesRead = bytesRead;
     mBytesWanted = bytesWanted;
   }
 
   /**
-   * @return
+   * @return number of bytes read
    */
   public int getBytesRead() {
     return mBytesRead;
   }
 
   /**
-   * @return
+   * @return number of bytes requested by the caller
    */
   public int getBytesWanted() {
     return mBytesWanted;
