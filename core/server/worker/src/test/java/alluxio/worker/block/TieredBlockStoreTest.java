@@ -105,6 +105,7 @@ public final class TieredBlockStoreTest {
         new TieredBlockReaderFactory(),
         new TieredBlockWriterFactory(),
         new TieredTempBlockMetaFactory());
+    mBlockStore.initialize();
     mBlockIterator = mMetaManager.getBlockIterator();
 
     mTestDir1 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(0);
