@@ -60,17 +60,15 @@ public class NettyDataReaderTest {
   private final EmbeddedChannel mChannel = new EmbeddedChannel();
   private final ServerStateDriver mStateDriver = new ServerStateDriver(mExecutor, mChannel);
   private final ByteArrayOutputStream mOut = new ByteArrayOutputStream();
+  private final WorkerNetAddress mWorkerAddress = new WorkerNetAddress();
+  private final Protocol.ReadRequest.Builder mRequestBuilder = Protocol.ReadRequest.newBuilder();
   private FileSystemContext mFsContext;
-  private WorkerNetAddress mWorkerAddress;
 
   private NettyDataReader mReader;
-  private Protocol.ReadRequest.Builder mRequestBuilder;
 
   @Before
   public void setup() throws Exception {
     mFsContext = mock(FileSystemContext.class);
-    mWorkerAddress = new WorkerNetAddress();
-    mRequestBuilder = Protocol.ReadRequest.newBuilder();
     when(mFsContext.acquireNettyChannel(any(WorkerNetAddress.class)))
         .thenReturn(mChannel);
     when(mFsContext.getClusterConf())
