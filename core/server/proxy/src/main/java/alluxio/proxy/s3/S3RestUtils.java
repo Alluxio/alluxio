@@ -756,6 +756,8 @@ public final class S3RestUtils {
         );
       }
     } catch (Exception e) {
+      // If we only use read API, this directory is not necessary,
+      // so here we just print the error log instead of throwing exception.
       LOG.error("Can not init multipart uploads metadata dir: {}", MULTIPART_UPLOADS_METADATA_DIR,
           e);
     }
