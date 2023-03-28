@@ -96,6 +96,7 @@ public final class UnderFileSystemBlockReaderTest {
         new TieredBlockReaderFactory(),
         new TieredBlockWriterFactory(),
         new TieredTempBlockMetaFactory());
+    mAlluxioBlockStore.initialize();
     mUfsInstreamCache = new UfsInputStreamCache();
     mUfsClient = new UfsClient(
         () -> UnderFileSystem.Factory.create(testFilePath,

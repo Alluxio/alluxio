@@ -169,6 +169,7 @@ public class DefaultBlockWorkerTest {
     AtomicReference<Long> workerId = new AtomicReference<>(INVALID_WORKER_ID);
     mBlockStore =
         spy(new MonoBlockStore(mTieredBlockStore, blockMasterClientPool, ufsManager, workerId));
+    mBlockStore.initialize();
 
     mFileSystemMasterClient = createMockFileSystemMasterClient();
 
