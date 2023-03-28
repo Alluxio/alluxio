@@ -28,20 +28,20 @@ import javax.inject.Named;
  */
 public class NettyServerModule extends AbstractModule {
 
-  private final boolean mIsNettyDataTransmissionEnable;
+  private final boolean mNettyDataTransmissionEnable;
 
   /**
    * The constructor of NettyServerModule.
    *
-   * @param isNettyDataTransmissionEnable whether the netty data transmission enable or not
+   * @param isNettyDataTransmissionEnable whether the netty data transmission is enabled or not
    */
   public NettyServerModule(boolean isNettyDataTransmissionEnable) {
-    mIsNettyDataTransmissionEnable = isNettyDataTransmissionEnable;
+    mNettyDataTransmissionEnable = isNettyDataTransmissionEnable;
   }
 
   @Override
   protected void configure() {
-    if (!mIsNettyDataTransmissionEnable) {
+    if (!mNettyDataTransmissionEnable) {
       bind(NettyDataServer.class).toProvider(() -> null);
     }
   }

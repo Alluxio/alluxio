@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Named;
 
@@ -50,7 +51,6 @@ public final class NettyDataServer implements DataServer {
   private ServerBootstrap mBootstrap;
   private ChannelFuture mChannelFuture;
   private final UfsManager mUfsManager;
-  private final DoraWorker mDoraWorker;
   private final SocketAddress mSocketAddress;
   private final long mQuietPeriodMs =
       Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
@@ -61,19 +61,18 @@ public final class NettyDataServer implements DataServer {
    * Creates a new instance of {@link NettyDataServer}.
    *
    * @param nettyBindAddress the server address
-   * @param ufsManager the UfsManager object
-   * @param doraWorker the DoraWorker object
+   * @param ufsManager       the UfsManager object
+   * @param doraWorker       the DoraWorker object
    */
   @Inject
   public NettyDataServer(
       @Named("NettyBindAddress") InetSocketAddress nettyBindAddress,
       UfsManager ufsManager,
-      DoraWorker doraWorker) {
+      @Nullable DoraWorker doraWorker) {
     mSocketAddress = nettyBindAddress;
     mUfsManager = ufsManager;
-    mDoraWorker = doraWorker;
     mBootstrap = createBootstrap().childHandler(
-        new PipelineHandler(mUfsManager, mDoraWorker));
+        new PipelineHandler(mUfsManager, doraWorker));
     try {
       mChannelFuture = mBootstrap.bind(nettyBindAddress).sync();
     } catch (InterruptedException e) {
@@ -187,7 +186,7 @@ public final class NettyDataServer implements DataServer {
             true);
 
     final Class<? extends ServerChannel> socketChannelClass = NettyUtils.getServerChannelClass(type,
-         mSocketAddress instanceof DomainSocketAddress);
+        mSocketAddress instanceof DomainSocketAddress);
     boot.group(bossGroup, workerGroup).channel(socketChannelClass);
     if (type == ChannelType.EPOLL) {
       boot.childOption(EpollChannelOption.EPOLL_MODE, EpollMode.LEVEL_TRIGGERED);
