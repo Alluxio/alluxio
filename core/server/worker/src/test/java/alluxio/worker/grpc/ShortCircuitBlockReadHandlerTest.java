@@ -157,6 +157,7 @@ public class ShortCircuitBlockReadHandlerTest {
 
     mBlockStore = new MonoBlockStore(tieredBlockStore, pool,
         mock(UfsManager.class), new AtomicReference<>(1L));
+    mBlockStore.initialize();
 
     mTestHandler = new ShortCircuitBlockReadHandler(mBlockStore, mResponseObserver);
   }
