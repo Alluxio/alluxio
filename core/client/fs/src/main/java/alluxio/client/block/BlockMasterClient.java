@@ -112,6 +112,5 @@ public interface BlockMasterClient extends Client {
    * @param options method options
    * @throws AlluxioStatusException if something goes wrong
    */
-  default void decommissionWorker(DecommissionWorkerPOptions options) throws IOException {
-  }
+  void decommissionWorker(DecommissionWorkerPOptions options) throws IOException;
 }

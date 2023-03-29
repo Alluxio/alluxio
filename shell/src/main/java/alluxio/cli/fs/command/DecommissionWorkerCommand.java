@@ -38,7 +38,7 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
   private static final Option TIMEOUT_OPTION =
       Option.builder("t")
           .longOpt("timeout")
-          .argName("timeout in milliseconds")
+          .argName("timeout in seconds")
           .numberOfArgs(1)
           .desc("Timeout in milliseconds for decommissioning a"
               + "single worker, default: " + DEFAULT_TIMEOUT)
@@ -53,13 +53,6 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
           .numberOfArgs(1)
           .argName("host")
           .desc("A worker host name, which is mandatory.")
-          .build();
-
-  private static final Option FORCE_OPTION =
-      Option.builder("f")
-          .required(false)
-          .hasArg(false)
-          .desc("Force to decommission a worker.")
           .build();
 
   /**
@@ -78,8 +71,7 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
     DecommissionWorkerPOptions options =
             DecommissionWorkerPOptions.newBuilder()
                 .setWorkerName(workerHost)
-                .setTimeout(timeoutMS)
-                .setForced(cl.hasOption("f")).build();
+                .setTimeout(timeoutMS).build();
 
     List<BlockWorkerInfo> cachedWorkers = mFsContext.getCachedWorkers();
 
@@ -110,13 +102,12 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(TIMEOUT_OPTION)
-        .addOption(HOST_OPTION).addOption(FORCE_OPTION);
+    return new Options().addOption(TIMEOUT_OPTION).addOption(HOST_OPTION);
   }
 
   @Override
   public String getUsage() {
-    return "decommissionWorker [-t <max_wait_time>] [-f] --host <worker host>";
+    return "decommissionWorker [-t <max_wait_time>] --host <worker host>";
   }
 
   @Override
