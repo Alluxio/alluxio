@@ -192,11 +192,11 @@ public abstract class AbstractUfsManager implements UfsManager {
    * To check whether the filesystem is available by calling exists.
    *
    * @param fs the filesystem
-   * @param uriPath the UFS path
+   * @param ufsPath the UFS path
    * @throws Exception
    */
-  private void tryUseFileSystem(UnderFileSystem fs, String uriPath) throws Exception {
-    fs.exists(uriPath);
+  private void tryUseFileSystem(UnderFileSystem fs, String ufsPath) throws Exception {
+    fs.exists(ufsPath);
   }
 
   @Override
