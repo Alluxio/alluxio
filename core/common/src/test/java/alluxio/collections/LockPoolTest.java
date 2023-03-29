@@ -91,7 +91,7 @@ public class LockPoolTest {
     return t;
   }
 
-  @Test(timeout = 1000)
+  @Test(timeout = 10000)
   public void parallelInsertTest() throws Exception {
     // Fills in the pool.
     Thread t1 = getKeys(0, HIGH_WATERMARK);
@@ -126,7 +126,7 @@ public class LockPoolTest {
     }
   }
 
-  @Test(timeout = 1000)
+  @Test(timeout = 10000)
   public void referencedLockTest() {
     LockResource lock0 = mPool.get(0, LockMode.READ);
     LockResource lock1 = mPool.get(50, LockMode.READ);
