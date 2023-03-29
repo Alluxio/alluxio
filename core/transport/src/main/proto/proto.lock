@@ -401,16 +401,6 @@
                 "id": 1,
                 "name": "workerName",
                 "type": "string"
-              },
-              {
-                "id": 2,
-                "name": "timeout",
-                "type": "int64"
-              },
-              {
-                "id": 3,
-                "name": "forced",
-                "type": "bool"
               }
             ]
           },

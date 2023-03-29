@@ -12,7 +12,6 @@
 package alluxio.cli.fs.command;
 
 import alluxio.Constants;
-import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
@@ -35,18 +34,9 @@ import java.util.Objects;
 public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
 
   private static final int DEFAULT_TIMEOUT = 10 * Constants.MINUTE_MS;
-  private static final Option TIMEOUT_OPTION =
-      Option.builder("t")
-          .longOpt("timeout")
-          .argName("timeout in seconds")
-          .numberOfArgs(1)
-          .desc("Timeout in milliseconds for decommissioning a"
-              + "single worker, default: " + DEFAULT_TIMEOUT)
-          .required(false)
-          .build();
 
   private static final Option HOST_OPTION =
-      Option.builder("host")
+      Option.builder("h")
           .longOpt("host")
           .required(true)  // Host option is mandatory.
           .hasArg(true)
@@ -65,13 +55,11 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    int timeoutMS = FileSystemShellUtils.getIntArg(cl, TIMEOUT_OPTION, DEFAULT_TIMEOUT);
     String workerHost = cl.getOptionValue(HOST_OPTION.getLongOpt());
 
     DecommissionWorkerPOptions options =
             DecommissionWorkerPOptions.newBuilder()
-                .setWorkerName(workerHost)
-                .setTimeout(timeoutMS).build();
+                .setWorkerName(workerHost).build();
 
     List<BlockWorkerInfo> cachedWorkers = mFsContext.getCachedWorkers();
 
@@ -91,7 +79,12 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
       }
     }
 
-    System.out.println("Target worker is not found in Alluxio, please input another name.");
+    System.out.println("Target worker is not found in Alluxio, please input another hostname.\n"
+        + "Available workers:");
+    for (BlockWorkerInfo blockWorkerInfo : cachedWorkers) {
+      System.out.println("\t" + blockWorkerInfo.getNetAddress().getHost()
+          + ":" + blockWorkerInfo.getNetAddress().getRpcPort());
+    }
     return 0;
   }
 
@@ -102,18 +95,18 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(TIMEOUT_OPTION).addOption(HOST_OPTION);
+    return new Options().addOption(HOST_OPTION);
   }
 
   @Override
   public String getUsage() {
-    return "decommissionWorker [-t <max_wait_time>] --host <worker host>";
+    return "decommissionWorker --h <worker host>";
   }
 
   @Override
   public String getDescription() {
-    return "Decommission a specific worker synchronously, the decommissioned worker are not "
-        + "automatically shutdown and are not chosen for writing new replicas. The decommission "
-        + "worker command will return within a certain timeout no matter the process is complete.";
+    return "Decommission a specific worker in the Alluxio cluster. The decommissioned"
+        + "worker is not shut down but will not accept new read/write operations. The ongoing "
+        + "operations will proceed until completion.";
   }
 }

@@ -122,8 +122,6 @@ message GetWorkerLostStoragePResponse {
 message DecommissionWorkerPResponse {}
 message DecommissionWorkerPOptions {
   required string workerName = 1;
-  optional int64 timeout = 2;
-  optional bool forced = 3;
 }
 
 /**
