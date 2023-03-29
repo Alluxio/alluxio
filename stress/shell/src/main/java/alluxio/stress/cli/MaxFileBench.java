@@ -192,7 +192,7 @@ public class MaxFileBench extends StressMasterBench {
       mResult.setParameters(mParameters);
       mResult.setBaseParameters(mBaseParameters);
 
-      LOG.info("[{}] numSuccesses = {}", mId, mResult.getStatistics().mNumSuccess);
+      LOG.info("[{}] numSuccesses = {}", mId, mResult.getStatistics().mNumSuccesses);
 
       // merging total results
       synchronized (mTotalResults) {

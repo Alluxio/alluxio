@@ -26,7 +26,7 @@ import java.util.zip.DataFormatException;
  * abstract class that calculate statistics for{@link TaskResult}.
  */
 public class TaskResultStatistics {
-  public long mNumSuccess;
+  public long mNumSuccesses;
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
   public byte[] mResponseTimeNsRaw;
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
@@ -42,7 +42,7 @@ public class TaskResultStatistics {
    * @param statistics the task result statistics to merge
    */
   public void merge(TaskResultStatistics statistics) throws Exception {
-    mNumSuccess += statistics.mNumSuccess;
+    mNumSuccesses += statistics.mNumSuccesses;
 
     Histogram responseTime =
         new Histogram(StressConstants.TIME_HISTOGRAM_MAX, StressConstants.TIME_HISTOGRAM_PRECISION);
@@ -107,7 +107,7 @@ public class TaskResultStatistics {
       maxResponseTimesMs[i] = (float) mMaxResponseTimeNs[i] / Constants.MS_NANO;
     }
 
-    return new SummaryStatistics(mNumSuccess, responseTimePercentile, responseTime99Percentile,
+    return new SummaryStatistics(mNumSuccesses, responseTimePercentile, responseTime99Percentile,
         maxResponseTimesMs);
   }
 }
