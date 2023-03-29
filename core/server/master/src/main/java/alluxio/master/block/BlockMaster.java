@@ -133,7 +133,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    *
    * @param workerName the worker hostname of worker to be decommissioned
    */
-  void decommissionWorker(String workerName) throws Exception;
+  void decommissionWorker(String workerName) throws NotFoundException;
 
   /**
    * Removes blocks from workers.

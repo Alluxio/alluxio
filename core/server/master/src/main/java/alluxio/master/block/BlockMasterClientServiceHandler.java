@@ -17,6 +17,8 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.BlockMasterClientServiceGrpc;
 import alluxio.grpc.BlockMasterInfo;
 import alluxio.grpc.BlockMasterInfoField;
+import alluxio.grpc.DecommissionWorkerPOptions;
+import alluxio.grpc.DecommissionWorkerPResponse;
 import alluxio.grpc.GetBlockInfoPOptions;
 import alluxio.grpc.GetBlockInfoPRequest;
 import alluxio.grpc.GetBlockInfoPResponse;
@@ -183,5 +185,14 @@ public final class BlockMasterClientServiceHandler
         () -> GetWorkerLostStoragePResponse.newBuilder()
             .addAllWorkerLostStorageInfo(mBlockMaster.getWorkerLostStorage()).build(),
         "GetWorkerLostStorage", "options=%s", responseObserver, options);
+  }
+
+  @Override
+  public void decommissionWorker(DecommissionWorkerPOptions request,
+      StreamObserver<DecommissionWorkerPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mBlockMaster.decommissionWorker(request.getWorkerName());
+      return DecommissionWorkerPResponse.getDefaultInstance();
+    }, "DecommissionWorker", "request=%s", responseObserver, request);
   }
 }

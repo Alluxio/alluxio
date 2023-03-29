@@ -13,10 +13,12 @@ package alluxio.cli.fs.command;
 
 import alluxio.Constants;
 import alluxio.cli.fs.FileSystemShellUtils;
+import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.DecommissionWorkerPOptions;
+import alluxio.resource.CloseableResource;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -75,19 +77,22 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
 
     DecommissionWorkerPOptions options =
             DecommissionWorkerPOptions.newBuilder()
-                .setTimeOut(timeoutMS).setForced(cl.hasOption("f")).build();
+                .setWorkerName(workerHost)
+                .setTimeout(timeoutMS)
+                .setForced(cl.hasOption("f")).build();
 
     List<BlockWorkerInfo> cachedWorkers = mFsContext.getCachedWorkers();
 
-    for (BlockWorkerInfo blockWorkerInfo :cachedWorkers)  {
+    for (BlockWorkerInfo blockWorkerInfo : cachedWorkers)  {
       if (Objects.equals(blockWorkerInfo.getNetAddress().getHost(), workerHost))  {
-        try {
+        try (CloseableResource<BlockMasterClient> blockMasterClient =
+                 mFsContext.acquireBlockMasterClientResource()) {
           long start = System.currentTimeMillis();
-          mFileSystem.decommissionWorker(blockWorkerInfo.getNetAddress(), options);
+          blockMasterClient.get().decommissionWorker(options);
           long duration = System.currentTimeMillis() - start;
           System.out.printf("Decommission worker %s success, spend: %dms%n",
               workerHost, duration);
-        } catch (InterruptedException ie) {
+        } catch (IOException ie) {
           throw new AlluxioException(ie.getMessage());
         }
         return 0;

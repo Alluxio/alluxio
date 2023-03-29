@@ -33,7 +33,6 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
@@ -770,15 +769,4 @@ public interface FileSystem extends Closeable {
    */
   String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose);
-
-  /**
-   * Decommission a worker.
-   * @param workerNetAddress the address of target worker
-   * @param options command options
-   */
-  default void decommissionWorker(WorkerNetAddress workerNetAddress,
-      DecommissionWorkerPOptions options)
-      throws IOException, AlluxioException, InterruptedException {
-    throw new UnsupportedOperationException();
-  }
 }

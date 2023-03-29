@@ -821,16 +821,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void decommissionWorker(String workerName)
-      throws Exception {
+  public void decommissionWorker(String workerHostName)
+      throws NotFoundException {
     for (MasterWorkerInfo workerInfo : mWorkers) {
-      if (workerName.equals(workerInfo.getWorkerAddress().getHost())) {
+      if (workerHostName.equals(workerInfo.getWorkerAddress().getHost())) {
         try (LockResource r = workerInfo.lockWorkerMeta(
             EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
           processDecommissionedWorker(workerInfo);
         }
         LOG.info("{} has been added to the decommissionedWorkers set.",
-            workerName);
+            workerHostName);
         return;
       }
     }
@@ -959,9 +959,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       throws NotFoundException, UnavailableException {
     LOG.debug("Commit block from workerId: {}, usedBytesOnTier: {}, blockId: {}, length: {}",
         workerId, usedBytesOnTier, blockId, length);
-    if (isExcludedWorker(workerId)) {
-      return;
-    }
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     // TODO(peis): Check lost workers as well.
     if (worker == null) {

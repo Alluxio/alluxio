@@ -41,8 +41,6 @@ import alluxio.grpc.Bits;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.DecommissionWorkerPOptions;
-import alluxio.grpc.DecommissionWorkerPResponse;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
@@ -549,14 +547,6 @@ public class BaseFileSystem implements FileSystem {
             mFsContext.acquireMasterClientResource()) {
       return client.get().getJobProgress(jobDescription, format, verbose);
     }
-  }
-
-  @Override
-  public void decommissionWorker(WorkerNetAddress workerNetAddress,
-      DecommissionWorkerPOptions options) throws IOException,
-      AlluxioException, InterruptedException {
-    DecommissionWorkerPResponse response = rpc(client -> client
-        .decommissionWorker(workerNetAddress, options));
   }
 
   /**

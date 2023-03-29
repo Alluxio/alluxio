@@ -32,7 +32,6 @@ import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
-import alluxio.master.file.contexts.DecommissionWorkerContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.FreeContext;
@@ -636,12 +635,4 @@ public interface FileSystemMaster extends Master {
    * @param path the path to invalidate
    */
   void needsSync(AlluxioURI path) throws InvalidPathException;
-
-  /**
-   * Decommission the target worker.
-   * @param workerName the target worker hostname
-   * @param decommissionWorkerContext the context of decommissionWorker Command
-   */
-  void decommissionWorker(String workerName,
-      DecommissionWorkerContext decommissionWorkerContext) throws UnavailableException;
 }

@@ -11,7 +11,6 @@
 
 package alluxio.util;
 
-import alluxio.Constants;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.conf.AlluxioConfiguration;
@@ -20,7 +19,6 @@ import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -134,17 +132,6 @@ public class FileSystemOptionsUtils {
         .setWriteTier(conf.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT))
         .setWriteType(conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
             .toProto())
-        .build();
-  }
-
-  /**
-   * @param conf Alluxio configuration
-   * @return options based on the configuration
-   */
-  public static DecommissionWorkerPOptions decommissionWorkerDefaults(AlluxioConfiguration conf) {
-    return DecommissionWorkerPOptions.newBuilder()
-        .setForced(false)
-        .setTimeOut(10 * Constants.MINUTE_MS)
         .build();
   }
 

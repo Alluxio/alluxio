@@ -78,7 +78,6 @@ import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
-import alluxio.master.file.contexts.DecommissionWorkerContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.FreeContext;
@@ -5466,16 +5465,5 @@ public class DefaultFileSystemMaster extends CoreMaster
    */
   public Scheduler getScheduler() {
     return mScheduler;
-  }
-
-  @Override
-  public void decommissionWorker(String workerName,
-      DecommissionWorkerContext decommissionWorkerContext)
-      throws UnavailableException {
-    try {
-      mBlockMaster.decommissionWorker(workerName);
-    } catch (Exception e) {
-      throw new UnavailableException(e);
-    }
   }
 }

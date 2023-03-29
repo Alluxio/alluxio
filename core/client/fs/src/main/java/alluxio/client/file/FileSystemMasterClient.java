@@ -21,8 +21,6 @@ import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.DecommissionWorkerPOptions;
-import alluxio.grpc.DecommissionWorkerPResponse;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
@@ -43,7 +41,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
-import alluxio.wire.WorkerNetAddress;
 
 import java.util.List;
 import java.util.Map;
@@ -376,16 +373,4 @@ public interface FileSystemMasterClient extends Client {
    */
   String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose);
-
-  /**
-   * Decommission a worker.
-   * @param workerNetAddress the address of target worker
-   * @param options method options
-   * @return response of decommissionWorker command
-   * @throws AlluxioStatusException if something goes wrong
-   */
-  default DecommissionWorkerPResponse decommissionWorker(WorkerNetAddress workerNetAddress,
-      DecommissionWorkerPOptions options) throws AlluxioStatusException {
-    return null;
-  }
 }

@@ -13,6 +13,8 @@ package alluxio.client.block;
 
 import alluxio.Client;
 import alluxio.client.block.options.GetWorkerReportOptions;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockInfo;
@@ -104,4 +106,12 @@ public interface BlockMasterClient extends Client {
    * @return amount of used space in bytes
    */
   long getUsedBytes() throws IOException;
+
+  /**
+   * Decommission a worker.
+   * @param options method options
+   * @throws AlluxioStatusException if something goes wrong
+   */
+  default void decommissionWorker(DecommissionWorkerPOptions options) throws IOException {
+  }
 }

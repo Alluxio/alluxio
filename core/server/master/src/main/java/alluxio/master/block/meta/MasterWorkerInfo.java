@@ -116,10 +116,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(MasterWorkerInfo.class);
-  private static final String LIVE_WORKER_STATE = "In Service";
-  private static final String LOST_WORKER_STATE = "Out of Service";
-  private static final String DECOMMISSION_WORKER_STATE = "In Progress";
-  private static final String DECOMMISSIONED_WORKER_STATE = "Decommissioned";
 
   private static final EnumSet<WorkerInfoField> USAGE_INFO_FIELDS =
       EnumSet.of(WorkerInfoField.WORKER_CAPACITY_BYTES,
@@ -333,23 +329,7 @@ public final class MasterWorkerInfo {
           info.setStartTimeMs(mMeta.mStartTimeMs);
           break;
         case STATE:
-          switch (workerState) {
-            case LIVE:
-              info.setState(LIVE_WORKER_STATE);
-              break;
-            case LOST:
-              info.setState(LOST_WORKER_STATE);
-              break;
-            case DECOMMISSIONING:
-              info.setState(DECOMMISSION_WORKER_STATE);
-              break;
-            case DECOMMISSIONED:
-              info.setState(DECOMMISSIONED_WORKER_STATE);
-              break;
-            default:
-              LOG.warn("Unrecognized worker state: " + workerState);
-              info.setState(LOST_WORKER_STATE);
-          }
+          info.setState(workerState.toString());
           break;
         case WORKER_USED_BYTES:
           info.setUsedBytes(mUsage.mUsedBytes);
