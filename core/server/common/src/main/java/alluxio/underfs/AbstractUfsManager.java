@@ -168,7 +168,7 @@ public abstract class AbstractUfsManager implements UfsManager {
       mCloser.register(fs);
       try {
         connectUfs(fs);
-        ufsUriExists(fs, ufsUri.getPath());
+        tryUseFileSystem(fs, ufsUri.getPath());
       } catch (Exception e) {
         mUnderFileSystemMap.remove(key);
         String message = String.format(
@@ -189,15 +189,14 @@ public abstract class AbstractUfsManager implements UfsManager {
   protected abstract void connectUfs(UnderFileSystem fs) throws IOException;
 
   /**
-   * Used to check whether the filesystem is available.
+   * To check whether the filesystem is available by calling exists.
    *
    * @param fs the filesystem
    * @param uriPath the UFS path
-   * @return true if the file exits
    * @throws Exception
    */
-  private boolean ufsUriExists(UnderFileSystem fs, String uriPath) throws Exception {
-    return fs.exists(uriPath);
+  private void tryUseFileSystem(UnderFileSystem fs, String uriPath) throws Exception {
+    fs.exists(uriPath);
   }
 
   @Override
