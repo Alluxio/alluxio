@@ -126,7 +126,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param workerId the worker id
    * @return true if the worker is excluded, otherwise false
    */
-  boolean isExcludedWorker(long workerId);
+  boolean isServing(long workerId);
 
   /**
    * Decommission a worker.

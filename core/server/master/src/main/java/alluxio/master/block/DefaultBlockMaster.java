@@ -816,7 +816,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public boolean isExcludedWorker(long workerId) {
+  public boolean isServing(long workerId) {
     return mDecommissionedWorkers.getFirstByField(ID_INDEX, workerId) != null;
   }
 
@@ -1217,7 +1217,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
       throws NotFoundException {
 
-    if (isExcludedWorker(workerId)) {
+    if (isServing(workerId)) {
       return;
     }
 
@@ -1309,7 +1309,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void workerRegisterStream(WorkerRegisterContext context,
                                   RegisterWorkerPRequest chunk, boolean isFirstMsg) {
-    if (isExcludedWorker(context.getWorkerId())) {
+    if (isServing(context.getWorkerId())) {
       // Stop register the excluded worker
       return;
     }
@@ -1421,7 +1421,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       Map<BlockLocation, List<Long>> addedBlocks,
       Map<String, StorageList> lostStorage,
       List<Metric> metrics) {
-    if (isExcludedWorker(workerId)) {
+    if (isServing(workerId)) {
       return Command.newBuilder().setCommandType(CommandType.Nothing).build();
     }
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
