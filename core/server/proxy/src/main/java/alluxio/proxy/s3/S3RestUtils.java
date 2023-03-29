@@ -797,9 +797,7 @@ public final class S3RestUtils {
       if (flag.compareAndSet(false, true)) {
         // If the initialization of the directory fails,
         // we need to let other requests try to initialize it again.
-        if (!S3RestUtils.initMultipartUploadsMetadataDir(fileSystem)) {
-          flag.set(false);
-        }
+        flag.set(S3RestUtils.initMultipartUploadsMetadataDir(fileSystem));
       }
     }
   }
