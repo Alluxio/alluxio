@@ -116,7 +116,7 @@ public final class RocksUtils {
    */
   public static <T> CloseableIterator<T> createCloseableIterator(
         RocksIterator rocksIterator, RocksIteratorParser<T> parser,
-        Supplier<Void> abortCheck, LockResource rocksDbSharedLock) {
+        Supplier<Void> abortCheck, RocksReadLock rocksDbSharedLock) {
     rocksIterator.seekToFirst();
     AtomicBoolean valid = new AtomicBoolean(true);
     Iterator<T> iter = new Iterator<T>() {

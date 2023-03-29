@@ -15,7 +15,6 @@ import static org.junit.Assert.assertArrayEquals;
 
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 
-import alluxio.resource.LockResource;
 import com.google.common.primitives.Longs;
 import org.junit.Rule;
 import org.junit.Test;
@@ -67,17 +66,17 @@ public class RocksStoreTest {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RocksDB db;
     int count = 10;
-    try (LockResource lock = store.checkAndAcquireReadLock()) {
+    try (RocksReadLock lock = store.checkAndAcquireReadLock()) {
       db = store.getDb();
       for (int i = 0; i < count; i++) {
         db.put(testColumn.get(), new WriteOptions().setDisableWAL(true), ("a" + i).getBytes(),
                 "b".getBytes());
       }
     }
-    try (LockResource lock = store.lockForCheckpointing()) {
+    try (RocksWriteLock lock = store.lockForCheckpointing()) {
       store.writeToCheckpoint(baos);
     }
-    try (LockResource lock = store.lockForClosing()) {
+    try (RocksWriteLock lock = store.lockForClosing()) {
       store.close();
     }
 
@@ -89,17 +88,17 @@ public class RocksStoreTest {
     store =
         new RocksStore("test-new", newBbDir, backupsDir, dbOpts, columnDescriptors,
             Arrays.asList(testColumn));
-    try (LockResource lock = store.lockForRestoring()) {
+    try (RocksWriteLock lock = store.lockForRestoring()) {
       store.restoreFromCheckpoint(
           new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
     }
-    try (LockResource lock = store.checkAndAcquireReadLock()) {
+    try (RocksReadLock lock = store.checkAndAcquireReadLock()) {
       db = store.getDb();
       for (int i = 0; i < count; i++) {
         assertArrayEquals("b".getBytes(), db.get(testColumn.get(), ("a" + i).getBytes()));
       }
     }
-    try (LockResource lock = store.lockForClosing()) {
+    try (RocksWriteLock lock = store.lockForClosing()) {
       store.close();
     }
 

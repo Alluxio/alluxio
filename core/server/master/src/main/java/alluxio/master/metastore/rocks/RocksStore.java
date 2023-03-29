@@ -13,6 +13,7 @@ package alluxio.master.metastore.rocks;
 
 import alluxio.Constants;
 import alluxio.collections.Pair;
+import alluxio.concurrent.CountingLatch;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.UnavailableRuntimeException;
@@ -55,9 +56,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -118,6 +121,9 @@ public final class RocksStore implements Closeable {
   protected final AtomicReference<VersionedRocksStoreStatus> mStatus;
   protected final ReadWriteLock mDbStateLock = new ReentrantReadWriteLock();
 
+  protected final AtomicLong mRefCount = new AtomicLong(0);
+  protected final CountingLatch mLatch = new CountingLatch();
+
   /**
    * @param name a name to distinguish what store this is
    * @param dbPath a path for the rocks database
@@ -140,7 +146,7 @@ public final class RocksStore implements Closeable {
     mDbOpts = dbOpts;
     mColumnHandles = columnHandles;
     LOG.info("Resetting RocksDB for {} on init", name);
-    try (LockResource lock = lockForClearing()) {
+    try (RocksWriteLock lock = lockForClearing()) {
       resetDb();
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -399,7 +405,7 @@ public final class RocksStore implements Closeable {
    * The shared lock guarantees the RocksDB will not be restarted/cleared during the
    * r/w access.
    */
-  public LockResource checkAndAcquireReadLock() {
+  public RocksReadLock checkAndAcquireReadLock() {
     /*
      * Checking before locking to bail early, this is for speed rather than correctness.
      */
@@ -408,7 +414,12 @@ public final class RocksStore implements Closeable {
       throw new UnavailableRuntimeException(
           "RocksDB is closed. Master is failing over or shutting down.");
     }
-    LockResource lock = new LockResource(mDbStateLock.readLock());
+    try {
+      mLatch.inc();
+    } catch (InterruptedException e) {
+      throw new RuntimeException("Thread is interrupted, abort action", e);
+    }
+
     /*
      * Counter-intuitively, check again after getting the lock because
      * we may get the read lock after the writer.
@@ -418,12 +429,13 @@ public final class RocksStore implements Closeable {
     VersionedRocksStoreStatus newStatus = mStatus.get();
     // If RocksDB just writes a checkpoint, the version will not change and the req can be served
     if (newStatus.mStopServing || newStatus.mVersion > status.mVersion) {
-      lock.close();
       throw new UnavailableRuntimeException(
           "RocksDB is closed because the master is shutting down. Or the RocksDB is rewritten "
               + "because the master is failing over.");
     }
-    return lock;
+
+    // When the AutoCloseable is closed, ref count will be decremented
+    return new RocksReadLock(mLatch);
   }
 
   /**
@@ -435,9 +447,10 @@ public final class RocksStore implements Closeable {
    *
    * The CLOSING status will NOT be reset, because the process will shut down soon.
    */
-  public LockResource lockForClosing() {
+  public RocksWriteLock lockForClosing() {
     mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(true, current.mVersion));
-    return new LockResource(mDbStateLock.writeLock());
+    mLatch.await();
+    return new RocksWriteLock(mLatch);
   }
 
   /**
@@ -451,9 +464,9 @@ public final class RocksStore implements Closeable {
    * gets the shared lock, it is able to tell the RocksDB has been cleared.
    * See {@link #checkAndAcquireReadLock} for how this affects the shared lock logic.
    */
-  public LockResource lockForClearing() {
+  public RocksWriteLock lockForClearing() {
     mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(true, current.mVersion));
-    return new LockResource(mDbStateLock.writeLock(), true, false, () -> {
+    return new RocksWriteLock(mLatch, () -> {
       mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(false, current.mVersion + 1));
     });
   }
@@ -462,9 +475,9 @@ public final class RocksStore implements Closeable {
    *
    *
    */
-  public LockResource lockForCheckpointing() {
+  public RocksWriteLock lockForCheckpointing() {
     mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(true, current.mVersion));
-    return new LockResource(mDbStateLock.writeLock(), true, false, () -> {
+    return new RocksWriteLock(mLatch, () -> {
       mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(false, current.mVersion));
     });
   }
@@ -473,9 +486,9 @@ public final class RocksStore implements Closeable {
    *
    *
    */
-  public LockResource lockForRestoring() {
+  public RocksWriteLock lockForRestoring() {
     mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(true, current.mVersion));
-    return new LockResource(mDbStateLock.writeLock(), true, false, () -> {
+    return new RocksWriteLock(mLatch, () -> {
       mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(false, current.mVersion + 1));
     });
   }

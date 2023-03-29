@@ -1,6 +1,8 @@
-package S;
+package alluxio.rocks;
 
+import alluxio.concurrent.CountingLatch;
 import alluxio.exception.runtime.UnavailableRuntimeException;
+import alluxio.master.metastore.rocks.RocksReadLock;
 import alluxio.resource.LockResource;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -44,6 +46,30 @@ public class RocksStoreBench {
     }
   }
 
+  @State(Scope.Benchmark)
+  public static class RefCountObject {
+    int mValue = ThreadLocalRandom.current().nextInt();
+    final CountingLatch mLock = new CountingLatch();
+    final AtomicBoolean mFlag = new AtomicBoolean(true);
+
+    public int getObjectField() {
+      if (!mFlag.get()) {
+        throw new UnavailableRuntimeException("failure");
+      }
+      try {
+        mLock.inc();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      try (RocksReadLock lock = new RocksReadLock(mLock)) {
+        if (!mFlag.get()) {
+          throw new UnavailableRuntimeException("failure");
+        }
+        return mValue;
+      }
+    }
+  }
+
 
   @BenchmarkMode(Mode.AverageTime)
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
@@ -62,6 +88,18 @@ public class RocksStoreBench {
   @Threads(40)
   @Benchmark
   public int getReadLock(LockedObject lo) {
+    int counter = 0;
+    for (int i = 0; i < 10_000; i++) {
+      counter += lo.getObjectField();
+    }
+    return counter;
+  }
+
+  @BenchmarkMode(Mode.AverageTime)
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  @Threads(40)
+  @Benchmark
+  public int getRefCountLock(RefCountObject lo) {
     int counter = 0;
     for (int i = 0; i < 10_000; i++) {
       counter += lo.getObjectField();
