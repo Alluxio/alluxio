@@ -31,13 +31,28 @@ FROM centos:7 as final
 RUN \
     yum update -y && yum upgrade -y && \
     yum install -y java-11-openjdk-devel java-11-openjdk && \
-    yum install -y ca-certificates pkgconfig udev bind-utils && \
-    yum install -y fuse3 fuse3-devel fuse3-lib && \
     yum clean all;
 
 ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk
 # Disable JVM DNS cache in java11 (https://github.com/Alluxio/alluxio/pull/9452)
 RUN echo "networkaddress.cache.ttl=0" >> /usr/lib/jvm/java-11-openjdk/conf/security/java.security
+
+# Install libfuse2 and libfuse3. Libfuse2 setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on centOS
+RUN \
+    yum install -y ca-certificates pkgconfig wget udev git bind-utils && \
+    yum install -y gcc gcc-c++ make cmake gettext-devel libtool autoconf && \
+    git clone https://github.com/Alluxio/libfuse.git && \
+    cd libfuse && \
+    git checkout fuse_2_9_5_customize_multi_threads && \
+    bash makeconf.sh && \
+    ./configure && \
+    make -j8 && \
+    make install && \
+    cd .. && \
+    rm -rf libfuse && \
+    yum remove -y gcc gcc-c++ make cmake gettext-devel libtool autoconf wget git && \
+    yum install -y fuse3 fuse3-devel fuse3-lib && \
+    yum clean all
 
 WORKDIR /
 
