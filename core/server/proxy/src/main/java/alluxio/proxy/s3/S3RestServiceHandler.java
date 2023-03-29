@@ -50,6 +50,7 @@ import com.google.common.net.InetAddresses;
 import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.RateLimiter;
 import com.google.protobuf.ByteString;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -166,7 +167,10 @@ public final class S3RestServiceHandler {
     mBucketValidNamePattern = Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
     mGlobalRateLimiter = (RateLimiter) context.getAttribute(
         ProxyWebServer.GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY);
-    ((Runnable) context.getAttribute(ProxyWebServer.MULTIPART_UPLOADS_METADATA_DIR_CREATOR)).run();
+    if (((AtomicBoolean) context.getAttribute(
+        ProxyWebServer.MULTIPART_UPLOADS_METADATA_DIR_CREATE_FLAG)).compareAndSet(false, true)) {
+      S3RestUtils.initMultipartUploadsMetadataDir(mMetaFS);
+    }
   }
 
   /**
