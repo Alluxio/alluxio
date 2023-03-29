@@ -12,7 +12,6 @@
 package alluxio.client.file.dora;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 
 /**
@@ -26,9 +25,21 @@ public interface DoraDataReader extends Closeable {
    * @param outChannel the output channel
    * @param length number of bytes to read
    * @return actual number of bytes read, -1 when at the end of the source
-   * @throws PartialReadException when read was not complete
-   * @throws IOException
+   * @throws PartialReadException when read was not complete due to an underlying exception
    */
   int read(long offset, WritableByteChannel outChannel, int length)
+      throws PartialReadException;
+
+  /**
+   * Reads the specified number of bytes into the output channel. This method will
+   * try to read as many bytes as requested, possibly by retrying the underlying IO operations if
+   * they are retryable.
+   *
+   * @param offset the offset within the source
+   * @param outChannel the output channel
+   * @param length number of bytes to read
+   * @throws PartialReadException when unretryable IO exceptions occurred
+   */
+  void readFully(long offset, WritableByteChannel outChannel, int length)
       throws PartialReadException;
 }
