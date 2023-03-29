@@ -41,6 +41,7 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
+import alluxio.wire.MountPointInfo;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -737,13 +738,20 @@ public final class S3RestUtils {
   /**
    * Initiate the S3 API metadata directories.
    * @param fileSystem
+   * @return true if directory is created or already exists or root mount table is read-only
    */
-  public static void initMultipartUploadsMetadataDir(FileSystem fileSystem) {
+  public static boolean initMultipartUploadsMetadataDir(FileSystem fileSystem) {
     try {
-      if (!fileSystem.exists(new AlluxioURI(MULTIPART_UPLOADS_METADATA_DIR))) {
+      AlluxioURI path = new AlluxioURI(MULTIPART_UPLOADS_METADATA_DIR);
+      MountPointInfo rootMount = fileSystem.getMountTable().get(path.getRootPath());
+      if (rootMount != null && rootMount.getReadOnly()) {
+        LOG.info("Root path is read-only, skip creating multipart uploads metadata dir");
+        return true;
+      }
+      if (!fileSystem.exists(path)) {
         LOG.info("Create multipart uploads metadata dir: {}", MULTIPART_UPLOADS_METADATA_DIR);
         fileSystem.createDirectory(
-            new AlluxioURI(MULTIPART_UPLOADS_METADATA_DIR),
+            path,
             CreateDirectoryPOptions.newBuilder()
                 .setRecursive(true)
                 .setMode(PMode.newBuilder()
@@ -755,11 +763,13 @@ public final class S3RestUtils {
                 .build()
         );
       }
+      return true;
     } catch (Exception e) {
       // If we only use read API or mount root as read-only, this directory is not necessary,
       // so we just print the error log instead of throwing exception here.
       LOG.error("Can not init multipart uploads metadata dir: {}", MULTIPART_UPLOADS_METADATA_DIR,
           e);
+      return false;
     }
   }
 
