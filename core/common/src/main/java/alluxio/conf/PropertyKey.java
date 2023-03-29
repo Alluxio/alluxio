@@ -7397,7 +7397,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.DORA_UFS_FILE_STATUS_CACHE_SIZE)
           .setDefaultValue(100000)
           .setDescription("The max size of the cache of UFS file status")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
 
@@ -7405,7 +7405,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       durationBuilder(Name.DORA_UFS_FILE_STATUS_CACHE_TTL)
           .setDefaultValue("10min")
           .setDescription("The TTL of the cache of UFS file status")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
 
@@ -7413,7 +7413,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       stringBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_DIR)
           .setDefaultValue(format("${%s}/metastore", Name.WORK_DIR))
           .setDescription("The base dir of RocksDB to store Dora metadata")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
 
@@ -7422,7 +7422,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("-1s") // -1s means no expiry
           .setDescription("The TTL (Time To Live) in duration of RocksDB of Dora metadata. "
               + "0s or negative value means no expiry")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
 

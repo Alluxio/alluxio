@@ -710,8 +710,11 @@ public final class MultiProcessCluster {
     File confDir = new File(mWorkDir, "conf-worker" + i);
     File logsDir = new File(mWorkDir, "logs-worker" + i);
     File ramdisk = new File(mWorkDir, "ramdisk" + i);
+    File workerMetaStoreDir = new File(mWorkDir, "metastore-worker-" + i);
+
     logsDir.mkdirs();
     ramdisk.mkdirs();
+    workerMetaStoreDir.mkdirs();
     int rpcPort = getNewPort();
     int dataPort = getNewPort();
     int webPort = getNewPort();
@@ -724,6 +727,12 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.LOGS_DIR, logsDir.getAbsolutePath());
     conf.put(PropertyKey.WORKER_RPC_PORT, rpcPort);
     conf.put(PropertyKey.WORKER_WEB_PORT, webPort);
+    conf.put(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, workerMetaStoreDir.getAbsolutePath());
+
+//    // Enable dora by adding the following config keys.
+//    conf.put(PropertyKey.DORA_CLIENT_UFS_ROOT, PathUtils.concatPath(mWorkDir, "underFSStorage"));
+//    conf.put(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, true);
+//    conf.put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
 
     Worker worker = mCloser.register(new Worker(logsDir, conf));
     mWorkers.add(worker);
