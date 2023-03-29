@@ -448,7 +448,6 @@ public class S3ObjectTask extends S3BaseTask {
           if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
             createDirectory(objectPath, userFs, auditContext);
           }
-          AlluxioURI objectUri = new AlluxioURI(objectPath);
 
           // Populate the xattr Map with the metadata tags if provided
           Map<String, ByteString> xattrMap = new HashMap<>();
@@ -458,19 +457,6 @@ public class S3ObjectTask extends S3BaseTask {
           // populate the xAttr map with the "Content-Type" header
           final String contentTypeHeader = mHandler.getHeader(S3Constants.S3_CONTENT_TYPE_HEADER);
           S3RestUtils.populateContentTypeInXAttr(xattrMap, contentTypeHeader);
-
-          CreateFilePOptions filePOptions =
-              CreateFilePOptions.newBuilder()
-                  .setRecursive(true)
-                  .setMode(PMode.newBuilder()
-                      .setOwnerBits(Bits.ALL)
-                      .setGroupBits(Bits.ALL)
-                      .setOtherBits(Bits.NONE).build())
-                  .setWriteType(S3RestUtils.getS3WriteType())
-                  .putAllXattr(xattrMap)
-                  .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-                  .setOverwrite(true)
-                  .build();
 
           try {
             copySource = URLDecoder.decode(copySource, "UTF-8");
@@ -483,15 +469,19 @@ public class S3ObjectTask extends S3BaseTask {
               .setMode(PMode.newBuilder()
                   .setOwnerBits(Bits.ALL)
                   .setGroupBits(Bits.ALL)
-                  .setOtherBits(Bits.NONE).build());
+                  .setOtherBits(Bits.NONE)
+                  .build())
+              .setWriteType(S3RestUtils.getS3WriteType())
+              .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+              .setOverwrite(true);
 
           // Handle metadata directive
           final String metadataDirective = mHandler.getHeader(
               S3Constants.S3_METADATA_DIRECTIVE_HEADER);
           if (StringUtils.equals(metadataDirective, S3Constants.Directive.REPLACE.name())
-              && filePOptions.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
+              && xattrMap.containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
             copyFilePOptionsBuilder.putXattr(S3Constants.CONTENT_TYPE_XATTR_KEY,
-                filePOptions.getXattrMap().get(S3Constants.CONTENT_TYPE_XATTR_KEY));
+                xattrMap.get(S3Constants.CONTENT_TYPE_XATTR_KEY));
           } else { // defaults to COPY
             try {
               status = userFs.getStatus(new AlluxioURI(copySource));
@@ -510,9 +500,9 @@ public class S3ObjectTask extends S3BaseTask {
           final String taggingDirective = mHandler.getHeader(
               S3Constants.S3_TAGGING_DIRECTIVE_HEADER);
           if (StringUtils.equals(taggingDirective, S3Constants.Directive.REPLACE.name())
-              && filePOptions.getXattrMap().containsKey(S3Constants.TAGGING_XATTR_KEY)) {
+              && xattrMap.containsKey(S3Constants.TAGGING_XATTR_KEY)) {
             copyFilePOptionsBuilder.putXattr(S3Constants.TAGGING_XATTR_KEY,
-                filePOptions.getXattrMap().get(S3Constants.TAGGING_XATTR_KEY));
+                xattrMap.get(S3Constants.TAGGING_XATTR_KEY));
           } else { // defaults to COPY
             try {
               if (status == null) {
@@ -712,7 +702,6 @@ public class S3ObjectTask extends S3BaseTask {
           if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
             return createDirectory(objectPath, userFs, auditContext);
           }
-          AlluxioURI objectUri = new AlluxioURI(objectPath);
 
           // Populate the xattr Map with the metadata tags if provided
           Map<String, ByteString> xattrMap = new HashMap<>();
@@ -802,6 +791,7 @@ public class S3ObjectTask extends S3BaseTask {
                     .setOwnerBits(Bits.ALL)
                     .setGroupBits(Bits.ALL)
                     .setOtherBits(Bits.NONE).build())
+                .setWriteType(S3RestUtils.getS3WriteType())
                 .setOverwrite(true);
             String entityTag = copyObject(userFs, auditContext, objectPath,
                 copySource, copyFilePOptionsBuilder.build());
@@ -912,7 +902,7 @@ public class S3ObjectTask extends S3BaseTask {
                     .putAllXattr(xattrMap)
                     .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
                     .build()
-            );
+            ).close();
             SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
                 .setOwner(user)
                 .build();
