@@ -41,6 +41,7 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
+import alluxio.web.ProxyWebServer;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -65,10 +66,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.MediaType;
@@ -739,7 +742,7 @@ public final class S3RestUtils {
    * @param fileSystem
    * @return true if directory is created or already exists
    */
-  public static boolean initMultipartUploadsMetadataDir(FileSystem fileSystem) {
+  private static boolean initMultipartUploadsMetadataDir(FileSystem fileSystem) {
     try {
       AlluxioURI path = new AlluxioURI(MULTIPART_UPLOADS_METADATA_DIR);
       if (!fileSystem.exists(path)) {
@@ -764,6 +767,40 @@ public final class S3RestUtils {
       LOG.error("Can not init multipart uploads metadata dir: {}", MULTIPART_UPLOADS_METADATA_DIR,
           e);
       return false;
+    }
+  }
+
+  /**
+   * Try to create S3 API metadata directories.
+   * @param context
+   * @param fileSystem
+   */
+  @SuppressWarnings("unchecked")
+  public static void tryInitMultipartUploadsMetadataDir(ServletContext context,
+      FileSystem fileSystem) {
+    AtomicReference<Boolean> flag = (AtomicReference<Boolean>) context.getAttribute(
+        ProxyWebServer.MULTIPART_UPLOADS_METADATA_DIR_CREATE_FLAG);
+    if (flag.get() == null) {
+      // If flag is null, it means the directory has never been created.
+      // For the first time, we should lock all requests to ensure that the directory is created.
+      synchronized (S3RestUtils.class) {
+        // Double check lock.
+        if (flag.get() == null) {
+          flag.set(S3RestUtils.initMultipartUploadsMetadataDir(fileSystem));
+        }
+      }
+    } else {
+      // If flag is ture, it means that the directory has been created, we should do nothing.
+      // If flag is false, it means that the directory creation failed and need to retry.
+      // Make sure that only one request attempts to create the directory at the same moment,
+      // and other requests quickly pass through.
+      if (flag.compareAndSet(false, true)) {
+        // If the initialization of the directory fails,
+        // we need to let other requests try to initialize it again.
+        if (!S3RestUtils.initMultipartUploadsMetadataDir(fileSystem)) {
+          flag.set(false);
+        }
+      }
     }
   }
 

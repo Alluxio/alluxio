@@ -47,7 +47,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
@@ -74,7 +74,7 @@ public final class ProxyWebServer extends WebServer {
 
   private final RateLimiter mGlobalRateLimiter;
   private final FileSystem mFileSystem;
-  private final AtomicBoolean mIsMultipartUploadsMetadataDirCreated;
+  private final AtomicReference<Boolean> mIsMultipartUploadsMetadataDirCreated;
   private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
   public static final String PROXY_S3_HANDLER_MAP = "Proxy S3 Handler Map";
   public ConcurrentHashMap<Request, S3Handler> mS3HandlerMap = new ConcurrentHashMap<>();
@@ -114,7 +114,7 @@ public final class ProxyWebServer extends WebServer {
     mFileSystem = FileSystem.Factory.create(Configuration.global());
     // Use this flag to delay creating metadata directory. Do not create directory directly,
     // this will change the behavior of constructor and cause some tests to fail.
-    mIsMultipartUploadsMetadataDirCreated = new AtomicBoolean(false);
+    mIsMultipartUploadsMetadataDirCreated = new AtomicReference<>(null);
 
     long rate =
         (long) Configuration.getInt(PropertyKey.PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB) * Constants.MB;

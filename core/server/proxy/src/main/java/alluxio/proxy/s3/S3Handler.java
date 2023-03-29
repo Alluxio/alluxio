@@ -36,7 +36,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
@@ -234,17 +233,7 @@ public class S3Handler {
     mMetaFS = (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mAsyncAuditLogWriter = (AsyncUserAccessAuditLogWriter) context.getAttribute(
         ProxyWebServer.ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY);
-    AtomicBoolean isMultipartUploadsMetadataDirCreated = (AtomicBoolean) context.getAttribute(
-        ProxyWebServer.MULTIPART_UPLOADS_METADATA_DIR_CREATE_FLAG);
-    // Make sure that only one request attempts to initialize the directory at the same moment,
-    // and other requests quickly pass through
-    if (isMultipartUploadsMetadataDirCreated.compareAndSet(false, true)) {
-      // If the initialization of the directory fails,
-      // we need to let other requests try to initialize it again
-      if (!S3RestUtils.initMultipartUploadsMetadataDir(mMetaFS)) {
-        isMultipartUploadsMetadataDirCreated.set(false);
-      }
-    }
+    S3RestUtils.tryInitMultipartUploadsMetadataDir(context, mMetaFS);
   }
 
   /**
