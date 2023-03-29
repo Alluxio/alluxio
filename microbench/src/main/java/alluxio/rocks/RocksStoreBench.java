@@ -3,6 +3,7 @@ package alluxio.rocks;
 import alluxio.concurrent.CountingLatch;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.master.metastore.rocks.RocksReadLock;
+import alluxio.master.metastore.rocks.RocksRefCountReadLock;
 import alluxio.resource.LockResource;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -15,6 +16,7 @@ import org.openjdk.jmh.annotations.Threads;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class RocksStoreBench {
@@ -47,7 +49,7 @@ public class RocksStoreBench {
   }
 
   @State(Scope.Benchmark)
-  public static class RefCountObject {
+  public static class CountingLatchObject {
     int mValue = ThreadLocalRandom.current().nextInt();
     final CountingLatch mLock = new CountingLatch();
     final AtomicBoolean mFlag = new AtomicBoolean(true);
@@ -65,6 +67,20 @@ public class RocksStoreBench {
         if (!mFlag.get()) {
           throw new UnavailableRuntimeException("failure");
         }
+        return mValue;
+      }
+    }
+  }
+
+  @State(Scope.Benchmark)
+  public static class RefCountObject {
+    int mValue = ThreadLocalRandom.current().nextInt();
+    final AtomicInteger mRefCount = new AtomicInteger(0);
+    final AtomicBoolean mFlag = new AtomicBoolean(false);
+    final RocksRefCountReadLock mLock = new RocksRefCountReadLock(mFlag, mRefCount);
+
+    public int getObjectField() {
+      try (RocksRefCountReadLock.RocksRefCountReadLockHandle lock = mLock.lock()) {
         return mValue;
       }
     }
@@ -88,6 +104,18 @@ public class RocksStoreBench {
   @Threads(40)
   @Benchmark
   public int getReadLock(LockedObject lo) {
+    int counter = 0;
+    for (int i = 0; i < 10_000; i++) {
+      counter += lo.getObjectField();
+    }
+    return counter;
+  }
+
+  @BenchmarkMode(Mode.AverageTime)
+  @OutputTimeUnit(TimeUnit.MICROSECONDS)
+  @Threads(40)
+  @Benchmark
+  public int getLatchLock(CountingLatchObject lo) {
     int counter = 0;
     for (int i = 0; i < 10_000; i++) {
       counter += lo.getObjectField();
