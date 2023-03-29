@@ -168,11 +168,14 @@ public abstract class AbstractUfsManager implements UfsManager {
       mCloser.register(fs);
       try {
         connectUfs(fs);
-      } catch (IOException e) {
+        ufsUriExists(fs, ufsUri.getPath());
+      } catch (Exception e) {
+        mUnderFileSystemMap.remove(key);
         String message = String.format(
             "Failed to perform initial connect to UFS %s: %s", ufsUri, e);
         recorder.record(message);
         LOG.warn(message);
+        throw new RuntimeException(e);
       }
       return fs;
     }
@@ -184,6 +187,18 @@ public abstract class AbstractUfsManager implements UfsManager {
    *  {@link UnderFileSystem#connectFromWorker(String)} depending on the running process.
    */
   protected abstract void connectUfs(UnderFileSystem fs) throws IOException;
+
+  /**
+   * Used to check whether the filesystem is available.
+   *
+   * @param fs the filesystem
+   * @param uriPath the UFS path
+   * @return true if the file exits
+   * @throws Exception
+   */
+  private boolean ufsUriExists(UnderFileSystem fs, String uriPath) throws Exception {
+    return fs.exists(uriPath);
+  }
 
   @Override
   public void addMount(long mountId, final AlluxioURI ufsUri,
