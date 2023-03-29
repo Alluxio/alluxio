@@ -19,6 +19,7 @@ import static alluxio.client.file.dora.NettyDataReader.Payload.Type.SERVER_ERROR
 import static alluxio.client.file.dora.NettyDataReader.Payload.Type.TRANSPORT_ERROR;
 
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.dora.PartialReadException.CauseType;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
@@ -43,6 +44,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
@@ -50,6 +52,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 /**
  * Positioned Netty data reader.
@@ -60,7 +63,7 @@ public class NettyDataReader implements DoraDataReader {
   private final long mReadTimeoutMs;
   private final FileSystemContext mContext;
   private final WorkerNetAddress mAddress;
-  private final Protocol.ReadRequest.Builder mRequestBuilder;
+  private final Supplier<Protocol.ReadRequest.Builder> mRequestBuilder;
   private boolean mClosed = false;
 
   NettyDataReader(FileSystemContext context, WorkerNetAddress address,
@@ -70,7 +73,8 @@ public class NettyDataReader implements DoraDataReader {
     mReadTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
     mMaxPacketsInFlight = conf.getInt(PropertyKey.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
     mAddress = address;
-    mRequestBuilder = requestBuilder;
+    // clone the builder so that the initial values does not get overridden
+    mRequestBuilder = requestBuilder::clone;
   }
 
   @Override
@@ -81,7 +85,7 @@ public class NettyDataReader implements DoraDataReader {
     try {
       channel = mContext.acquireNettyChannel(mAddress);
     } catch (IOException ioe) {
-      throw new PartialReadException(length, 0, ioe);
+      throw new PartialReadException(length, 0, CauseType.TRANSPORT_ERROR, ioe);
     }
     BlockingQueue<Payload<?>> queue = new LinkedBlockingQueue<>();
     channel.pipeline().addLast(new PacketReadHandler(queue, mMaxPacketsInFlight));
@@ -89,20 +93,31 @@ public class NettyDataReader implements DoraDataReader {
     boolean needsCleanup = false;
     try {
       Protocol.ReadRequest readRequest = mRequestBuilder
-          .clone()
+          .get()
           .setOffset(offset)
           .setLength(length)
           .clearCancel()
           .build();
       channel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(readRequest)))
           .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-      return readInternal(length, channel, queue, outChannel);
+      int bytesRead = readInternal(length, channel, queue, outChannel);
+      // if we reach here, the read was successful, so no clean up is needed
+      needsCleanup = false;
+      return bytesRead;
     } catch (PartialReadException e) {
-      if (!(e.getCause() instanceof AlluxioStatusException)) {
-        // send a cancel if the error originates from client side
-        // if the error comes from the server side, we assume
-        // the server should take care of itself and cancel its processing of the ongoing request
-        needsCleanup = true;
+      LOG.debug("Read was incomplete: {} bytes requested, {} bytes actually read",
+          length, e.getBytesRead(), e);
+      switch (e.getCauseType()) {
+        // need to send a cancel if the error originates from client side
+        case INTERRUPT:
+        case TIMEOUT:
+        case OUTPUT:
+        case TRANSPORT_ERROR:
+          needsCleanup = true;
+          break;
+        default:
+        // otherwise, the error comes from the server side, we assume
+        // the server has taken care of itself and cancelled its processing of the ongoing request
       }
       throw e;
     } catch (RuntimeException e) {
@@ -111,7 +126,7 @@ public class NettyDataReader implements DoraDataReader {
       throw e;
     } finally {
       if (needsCleanup && channel.isOpen()) {
-        Protocol.ReadRequest cancelRequest = mRequestBuilder.clone().setCancel(true).build();
+        Protocol.ReadRequest cancelRequest = mRequestBuilder.get().setCancel(true).build();
         channel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(cancelRequest)))
             .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
         try {
@@ -132,6 +147,54 @@ public class NettyDataReader implements DoraDataReader {
     }
   }
 
+  @Override
+  public void readFully(long offset, WritableByteChannel outChannel, int length)
+      throws PartialReadException {
+    int totalBytesRead = 0;
+    while (totalBytesRead < length) {
+      int bytesToRead = length - totalBytesRead;
+      try {
+        // todo(bowen): adjust timeout on each retry to account for the total expected timeout
+        int bytesRead = read(offset + totalBytesRead, outChannel, bytesToRead);
+        if (bytesRead < 0) { // eof
+          break;
+        }
+        offset += bytesRead;
+        totalBytesRead += bytesRead;
+      } catch (PartialReadException e) {
+        int bytesRead = e.getBytesRead();
+        offset += bytesRead;
+        totalBytesRead += bytesRead;
+        if (bytesRead == 0) {
+          // the last attempt did not make any progress, giving up
+          LOG.warn("Giving up read due to no progress can be made: {} ({}), "
+                  + "{} bytes requested, {} bytes read so far",
+              e.getCauseType(), e.getCause().getMessage(), length, totalBytesRead);
+          throw new PartialReadException(length, totalBytesRead, e.getCauseType(), e.getCause());
+        }
+        // decide if the error is retryable
+        switch (e.getCauseType()) {
+          // error cases that cannot be retried
+          case SERVER_ERROR:
+          case OUTPUT:
+          case CANCELLED:
+            LOG.warn("Giving up read due to unretryable error: {} ({}), "
+                    + "{} bytes requested, {} bytes read so far",
+                e.getCauseType(), e.getCause().getMessage(), length, totalBytesRead);
+            throw new PartialReadException(length, totalBytesRead, e.getCauseType(), e.getCause());
+          default:
+            LOG.debug("Retrying read on exception {}, current progress: {} read / {} requested",
+                e.getCauseType(), totalBytesRead, length, e.getCause());
+        }
+      }
+    }
+    if (totalBytesRead < length) {
+      throw new PartialReadException(length, totalBytesRead, CauseType.EARLY_EOF,
+          new EOFException(String.format("Unexpected EOF: %d bytes wanted, "
+              + "%d bytes available", length, totalBytesRead)));
+    }
+  }
+
   private int readInternal(int length, Channel channel,
       BlockingQueue<Payload<?>> queue, WritableByteChannel outChannel) throws PartialReadException {
     int bytesRead = 0;
@@ -145,10 +208,10 @@ public class NettyDataReader implements DoraDataReader {
         payload = queue.poll(mReadTimeoutMs, TimeUnit.MILLISECONDS);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
-        throw new PartialReadException(length, bytesRead, e);
+        throw new PartialReadException(length, bytesRead, CauseType.INTERRUPT, e);
       }
       if (payload == null) {
-        throw new PartialReadException(length, bytesRead,
+        throw new PartialReadException(length, bytesRead, CauseType.TIMEOUT,
             new TimeoutException(String.format("Timeout to read from %s.", channel)));
       }
       final Payload.Type<?> type = payload.type();
@@ -156,16 +219,15 @@ public class NettyDataReader implements DoraDataReader {
         continue;
       } else if (type == CANCEL) {
         CancelledException exception = payload.payload(CANCEL);
-        throw new PartialReadException(length, bytesRead, exception);
+        throw new PartialReadException(length, bytesRead, CauseType.CANCELLED, exception);
       } else if (type == EOF) {
-        return bytesRead;
+        break;
       } else if (type == SERVER_ERROR) {
         AlluxioStatusException exception = payload.payload(SERVER_ERROR);
-        throw new PartialReadException(length, bytesRead, exception);
+        throw new PartialReadException(length, bytesRead, CauseType.SERVER_ERROR, exception);
       } else if (type == TRANSPORT_ERROR) {
         Throwable exception = payload.payload(TRANSPORT_ERROR);
-        throw new PartialReadException(length, bytesRead,
-            AlluxioStatusException.fromThrowable(exception));
+        throw new PartialReadException(length, bytesRead, CauseType.TRANSPORT_ERROR, exception);
       } else if (type == DATA) {
         ByteBuf byteBuf = payload.payload(DATA).slice();
         int readableBytes = byteBuf.readableBytes();
@@ -175,13 +237,17 @@ public class NettyDataReader implements DoraDataReader {
         try {
           bytesRead += outChannel.write(toWrite);
         } catch (IOException ioe) {
-          throw new PartialReadException(length, bytesRead, ioe);
+          throw new PartialReadException(length, bytesRead, CauseType.OUTPUT, ioe);
         } finally {
+          // previously retained in packet read handler
           byteBuf.release();
         }
       } else {
         throw new IllegalStateException("Invalid packet type received: " + type);
       }
+    }
+    if (bytesRead == 0) {
+      return -1;
     }
     return bytesRead;
   }
@@ -247,6 +313,7 @@ public class NettyDataReader implements DoraDataReader {
               ByteBuf data = (ByteBuf) dataBuffer.getNettyOutput();
               // need to retain this buffer so that it won't get recycled before we are able to
               // process it
+              // will be released in reader
               payload = Payload.data(data.retain());
             } else {
               // an empty response indicates the worker has done sending data

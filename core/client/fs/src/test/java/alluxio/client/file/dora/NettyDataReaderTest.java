@@ -214,16 +214,18 @@ public class NettyDataReaderTest {
     final int length = 11;
 
     InstancedConfiguration conf = Configuration.copyGlobal();
-    conf.set(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS, 60);
+    conf.set(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS, 1000);
     when(mFsContext.getClusterConf())
         .thenReturn(conf);
     mReader = new NettyDataReader(mFsContext, mWorkerAddress, mRequestBuilder);
     ServerState start = new WaitForRequestState(
         mRequestBuilder.clone().setLength(length).setOffset(offset).build());
-    start.andThen(new DelayState(50))
+    // this sequence takes 1200 ms in total to complete, longer than client timeout
+    // but heartbeat will reset the client timeout clock, so that read will succeed
+    start.andThen(new DelayState(600))
         .andThen(new SendUfsHeartBeatState())
         .andThen(new SendDataState("hello".getBytes()))
-        .andThen(new DelayState(50))
+        .andThen(new DelayState(600))
         .andThen(new SendUfsHeartBeatState())
         .andThen(new SendDataState("world".getBytes()))
         .andThen(new EofState());
