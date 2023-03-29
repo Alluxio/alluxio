@@ -41,7 +41,6 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
-import alluxio.wire.MountPointInfo;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -738,16 +737,11 @@ public final class S3RestUtils {
   /**
    * Initiate the S3 API metadata directories.
    * @param fileSystem
-   * @return true if directory is created or already exists or root mount table is read-only
+   * @return true if directory is created or already exists
    */
   public static boolean initMultipartUploadsMetadataDir(FileSystem fileSystem) {
     try {
       AlluxioURI path = new AlluxioURI(MULTIPART_UPLOADS_METADATA_DIR);
-      MountPointInfo rootMount = fileSystem.getMountTable().get(path.getRootPath());
-      if (rootMount != null && rootMount.getReadOnly()) {
-        LOG.info("Root path is read-only, skip creating multipart uploads metadata dir");
-        return true;
-      }
       if (!fileSystem.exists(path)) {
         LOG.info("Create multipart uploads metadata dir: {}", MULTIPART_UPLOADS_METADATA_DIR);
         fileSystem.createDirectory(
