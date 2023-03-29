@@ -121,6 +121,7 @@ public class CacheRequestManagerTest {
     mBlockWorker = spy(new DefaultBlockWorker(blockMasterClientPool, fileSystemMasterClient,
         sessions, blockStore, workerId));
     mBlockStore = mBlockWorker.getBlockStore();
+    mBlockStore.initialize();
     FileSystemContext context = mock(FileSystemContext.class);
     mCacheRequestManager =
         spy(new CacheRequestManager(GrpcExecutors.CACHE_MANAGER_EXECUTOR, mBlockWorker, context));
