@@ -268,6 +268,12 @@ public final class MultiProcessCluster {
           PathUtils.concatPath(mWorkDir, "underFSStorage"));
       new File((String) mProperties.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).mkdirs();
     }
+
+    mProperties.put(PropertyKey.DORA_CLIENT_UFS_ROOT,
+        PathUtils.concatPath(mWorkDir, "underFSStorage"));
+    mProperties.put(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, true);
+    mProperties.put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
+
     if (format) {
       formatJournal();
     }
@@ -729,10 +735,9 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.WORKER_WEB_PORT, webPort);
     conf.put(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, workerMetaStoreDir.getAbsolutePath());
 
-//    // Enable dora by adding the following config keys.
-//    conf.put(PropertyKey.DORA_CLIENT_UFS_ROOT, PathUtils.concatPath(mWorkDir, "underFSStorage"));
-//    conf.put(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, true);
-//    conf.put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
+    conf.put(PropertyKey.DORA_CLIENT_UFS_ROOT, PathUtils.concatPath(mWorkDir, "underFSStorage"));
+    conf.put(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, true);
+    conf.put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
 
     Worker worker = mCloser.register(new Worker(logsDir, conf));
     mWorkers.add(worker);
