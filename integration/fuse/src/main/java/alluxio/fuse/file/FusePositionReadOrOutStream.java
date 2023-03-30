@@ -95,24 +95,20 @@ public class FusePositionReadOrOutStream implements FuseFileStream {
       throw new UnimplementedRuntimeException(
           "Alluxio does not support reading while writing/truncating");
     }
-    return getPositionReader().read(buf, size, offset);
+    return getOrInitPrositionReader().read(buf, size, offset);
   }
 
   @Override
-  public synchronized void write(ByteBuffer buf, long size, long offset) {
+  public void write(ByteBuffer buf, long size, long offset) {
     if (mPositionReader.isPresent()) {
       throw new UnimplementedRuntimeException(
           "Alluxio does not support reading while writing/truncating");
     }
-    if (!mOutStream.isPresent()) {
-      mOutStream = Optional.of(FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-          mLockManager, mUri, OpenFlags.O_WRONLY.intValue(), mMode));
-    }
-    mOutStream.get().write(buf, size, offset);
+    getOrInitOutStream().write(buf, size, offset);
   }
 
   @Override
-  public synchronized FileStatus getFileStatus() {
+  public FileStatus getFileStatus() {
     if (mOutStream.isPresent()) {
       return mOutStream.get().getFileStatus();
     }
@@ -124,7 +120,7 @@ public class FusePositionReadOrOutStream implements FuseFileStream {
   }
 
   @Override
-  public synchronized void flush() {
+  public void flush() {
     if (mPositionReader.isPresent()) {
       mPositionReader.get().flush();
       return;
@@ -133,20 +129,16 @@ public class FusePositionReadOrOutStream implements FuseFileStream {
   }
 
   @Override
-  public synchronized void truncate(long size) {
+  public void truncate(long size) {
     if (mPositionReader.isPresent()) {
       throw new UnimplementedRuntimeException(
           "Alluxio does not support reading while writing/truncating");
     }
-    if (!mOutStream.isPresent()) {
-      mOutStream = Optional.of(FuseFileOutStream.create(mFileSystem, mAuthPolicy,
-          mLockManager, mUri, OpenFlags.O_WRONLY.intValue(), mMode));
-    }
-    mOutStream.get().truncate(size);
+    getOrInitOutStream().truncate(size);
   }
 
   @Override
-  public synchronized void close() {
+  public void close() {
     if (mPositionReader.isPresent()) {
       mPositionReader.get().close();
       return;
@@ -154,11 +146,20 @@ public class FusePositionReadOrOutStream implements FuseFileStream {
     mOutStream.ifPresent(FuseFileOutStream::close);
   }
 
-  private synchronized FusePositionReader getPositionReader() {
+  private synchronized FusePositionReader getOrInitPrositionReader() {
     if (mPositionReader.isPresent()) {
       return mPositionReader.get();
     }
     mPositionReader = Optional.of(FusePositionReader.create(mFileSystem, mLockManager, mUri));
     return mPositionReader.get();
+  }
+
+  private synchronized FuseFileOutStream getOrInitOutStream() {
+    if (mOutStream.isPresent()) {
+      return mOutStream.get();
+    }
+    mOutStream = Optional.of(FuseFileOutStream.create(mFileSystem, mAuthPolicy,
+        mLockManager, mUri, OpenFlags.O_WRONLY.intValue(), mMode));
+    return mOutStream.get();
   }
 }
