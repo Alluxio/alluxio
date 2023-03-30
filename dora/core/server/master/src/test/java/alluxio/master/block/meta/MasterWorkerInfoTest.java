@@ -139,7 +139,7 @@ public final class MasterWorkerInfoTest {
   @Test
   public void workerInfoGeneration() {
     WorkerInfo workerInfo = mInfo.generateWorkerInfo(GetWorkerReportOptions.WorkerInfoField.ALL,
-        true);
+        WorkerState.LIVE);
     assertEquals(mInfo.getId(), workerInfo.getId());
     assertEquals(mInfo.getWorkerAddress(), workerInfo.getAddress());
     assertEquals("In Service", workerInfo.getState());

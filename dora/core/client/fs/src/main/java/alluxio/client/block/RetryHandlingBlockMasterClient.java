@@ -15,6 +15,7 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.grpc.BlockMasterClientServiceGrpc;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.GetBlockInfoPRequest;
 import alluxio.grpc.GetBlockMasterInfoPOptions;
 import alluxio.grpc.GetCapacityBytesPOptions;
@@ -149,5 +150,12 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     return retryRPC(
         () -> mClient.getUsedBytes(GetUsedBytesPOptions.getDefaultInstance()).getBytes(),
         RPC_LOG, "GetUsedBytes", "");
+  }
+
+  @Override
+  public void decommissionWorker(DecommissionWorkerPOptions options) throws IOException {
+    retryRPC(() -> mClient.decommissionWorker(options),
+        RPC_LOG, "DecommissionWorker", "workerName=%s,options=%s",
+        options.getWorkerName(), options);
   }
 }
