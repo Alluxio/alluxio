@@ -26,6 +26,7 @@ import org.apache.ratis.statemachine.SnapshotRetentionPolicy;
 import org.apache.ratis.statemachine.StateMachineStorage;
 import org.apache.ratis.statemachine.impl.FileListSnapshotInfo;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
+import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.apache.ratis.util.MD5FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,6 +83,13 @@ public class SnapshotDirStateMachineStorage implements StateMachineStorage {
           .max(mSnapshotPathComparator);
       if (max.isPresent()) {
         TermIndex ti = SimpleStateMachineStorage.getTermIndexFromSnapshotFile(max.get().toFile());
+        // for backwards compatibility with previous versions of snapshots
+        if (max.get().toFile().isFile()) {
+          MD5Hash md5Hash = MD5FileUtil.readStoredMd5ForFile(max.get().toFile());
+          FileInfo fileInfo = new FileInfo(max.get(), md5Hash);
+          return new SingleFileSnapshotInfo(fileInfo, ti.getTerm(), ti.getIndex());
+        }
+        // new snapshot format
         List<FileInfo> fileInfos = new ArrayList<>();
         Collection<File> nonMd5Files = FileUtils.listFiles(max.get().toFile(),
             new NotFileFilter(new SuffixFileFilter(MD5FileUtil.MD5_SUFFIX)),

@@ -14,14 +14,21 @@ package alluxio.master.journal.raft;
 import static alluxio.master.journal.raft.RaftSnapshotManagerTest.createSampleSnapshot;
 import static alluxio.master.journal.raft.RaftSnapshotManagerTest.createStateMachineStorage;
 
+import net.bytebuddy.utility.RandomString;
 import org.apache.ratis.server.protocol.TermIndex;
+import org.apache.ratis.statemachine.SnapshotInfo;
 import org.apache.ratis.statemachine.SnapshotRetentionPolicy;
+import org.apache.ratis.statemachine.impl.FileListSnapshotInfo;
+import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
+import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -61,8 +68,9 @@ public class SnapshotDirStateMachineStorageTest {
   public void singleSnapshot() throws IOException {
     createSampleSnapshot(mStateMachineStorage, 1, 10);
     mStateMachineStorage.loadLatestSnapshot();
-    Assert.assertEquals(TermIndex.valueOf(1, 10),
-        mStateMachineStorage.getLatestSnapshot().getTermIndex());
+    SnapshotInfo latestSnapshot = mStateMachineStorage.getLatestSnapshot();
+    Assert.assertTrue(latestSnapshot instanceof FileListSnapshotInfo);
+    Assert.assertEquals(TermIndex.valueOf(1, 10), latestSnapshot.getTermIndex());
   }
 
   @Test
@@ -141,5 +149,19 @@ public class SnapshotDirStateMachineStorageTest {
     mStateMachineStorage.loadLatestSnapshot();
     Assert.assertEquals(TermIndex.valueOf(3, 100),
         mStateMachineStorage.getLatestSnapshot().getTermIndex());
+  }
+
+  @Test
+  public void backwardsCompatible() throws IOException {
+    createSampleSnapshot(mStateMachineStorage, 1, 1);
+    String snapshotFile = SimpleStateMachineStorage.getSnapshotFileName(2, 10);
+    try (FileOutputStream outputStream =
+             new FileOutputStream(new File(mStateMachineStorage.getSnapshotDir(), snapshotFile))) {
+      outputStream.write(RandomString.make().getBytes());
+    }
+    mStateMachineStorage.loadLatestSnapshot();
+    SnapshotInfo latestSnapshot = mStateMachineStorage.getLatestSnapshot();
+    Assert.assertTrue(latestSnapshot instanceof SingleFileSnapshotInfo);
+    Assert.assertEquals(TermIndex.valueOf(2, 10), latestSnapshot.getTermIndex());
   }
 }

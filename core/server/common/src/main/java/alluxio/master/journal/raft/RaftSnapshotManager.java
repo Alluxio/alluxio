@@ -12,7 +12,7 @@
 package alluxio.master.journal.raft;
 
 import alluxio.AbstractClient;
-import alluxio.concurrent.jsr.CompletableFuture;
+import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.SnapshotData;
@@ -24,6 +24,7 @@ import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.TarUtils;
+import alluxio.util.logging.SamplingLogger;
 import alluxio.util.network.NetworkAddressUtils;
 
 import org.apache.commons.io.FileUtils;
@@ -39,12 +40,15 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -56,15 +60,17 @@ import javax.annotation.Nullable;
  */
 public class RaftSnapshotManager implements AutoCloseable {
   private static final Logger LOG = LoggerFactory.getLogger(RaftSnapshotManager.class);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.SECOND_MS);
+
   private final int mRequestInfoTimeout = (int)
       Configuration.getMs(PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT);
 
   private final SnapshotDirStateMachineStorage mStorage;
   private final Map<InetSocketAddress, RaftJournalServiceClient> mClients;
 
-  private long mLastSnapshotDownloadDuration = -1;
-  private long mLastSnapshotDownloadSize = -1;
-  private long mLastSnapshotDownloadDiskSize = -1;
+  private volatile long mLastSnapshotDownloadDuration = -1;
+  private volatile long mLastSnapshotDownloadSize = -1;
+  private volatile long mLastSnapshotDownloadDiskSize = -1;
 
   @Nullable
   private CompletableFuture<Long> mDownloadFuture = null;
@@ -117,6 +123,10 @@ public class RaftSnapshotManager implements AutoCloseable {
    * flight or has failed.
    */
   public long downloadSnapshotFromOtherMasters() {
+    if (mClients.isEmpty()) {
+      SAMPLING_LOG.warn("No followers are present to download a snapshot from");
+      return RaftLog.INVALID_LOG_INDEX;
+    }
     if (mDownloadFuture == null) {
       mDownloadFuture = CompletableFuture.supplyAsync(this::core).exceptionally(err -> {
         LOG.debug("Failed to download snapshot", err);
@@ -142,7 +152,7 @@ public class RaftSnapshotManager implements AutoCloseable {
     }
     // max heap based on TermIndex extracted from the SnapshotMetadata of each pair
     PriorityQueue<ImmutablePair<SnapshotMetadata, InetSocketAddress>> otherInfos =
-        new PriorityQueue<>(mClients.size(),
+        new PriorityQueue<>(Math.max(1, mClients.size()),
             Collections.reverseOrder(Comparator.comparing(pair -> toTermIndex(pair.getLeft()))));
     // wait mRequestInfoTimeout between each attempt to contact the masters
     RetryPolicy retryPolicy =
@@ -208,7 +218,7 @@ public class RaftSnapshotManager implements AutoCloseable {
                                            InetSocketAddress address) {
     TermIndex index = toTermIndex(snapshotMetadata);
     LOG.info("Retrieving snapshot {} from {}", index, address);
-    long startTimeMs = System.currentTimeMillis();
+    Instant start = Instant.now();
     try {
       RaftJournalServiceClient client = mClients.get(address);
       client.connect();
@@ -239,7 +249,7 @@ public class RaftSnapshotManager implements AutoCloseable {
               snapshotMetadata.getSnapshotIndex()));
       FileUtils.moveDirectory(mStorage.getTmpDir(), finalSnapshotDestination);
       // update last duration and duration timer metrics
-      mLastSnapshotDownloadDuration = System.currentTimeMillis() - startTimeMs;
+      mLastSnapshotDownloadDuration = Duration.between(start, Instant.now()).toMillis();
       MetricsSystem.timer(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER.getName())
               .update(mLastSnapshotDownloadDuration, TimeUnit.MILLISECONDS);
       LOG.debug("Total milliseconds to download {}: {}", index, mLastSnapshotDownloadDuration);

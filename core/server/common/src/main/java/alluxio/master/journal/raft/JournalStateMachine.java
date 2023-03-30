@@ -24,6 +24,8 @@ import alluxio.master.StateLockOptions;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
+import alluxio.master.journal.SingleEntryJournaled;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -48,11 +50,16 @@ import org.apache.ratis.statemachine.TransactionContext;
 import org.apache.ratis.statemachine.impl.BaseStateMachine;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.util.LifeCycle;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -130,8 +137,6 @@ public class JournalStateMachine extends BaseStateMachine {
   private long mLastSnapshotReplayDurationMs = -1;
   /** Used to control applying to masters. */
   private BufferedJournalApplier mJournalApplier;
-  private RaftGroupId mRaftGroupId;
-  private RaftServer mServer;
 
   /**
    * @param journals      master journals; these journals are still owned by the caller, not by the
@@ -184,8 +189,6 @@ public class JournalStateMachine extends BaseStateMachine {
       RaftStorage raftStorage) throws IOException {
     getLifeCycle().startAndTransition(() -> {
       super.initialize(server, groupId, raftStorage);
-      mServer = server;
-      mRaftGroupId = groupId;
       mStorage.init(raftStorage);
       loadSnapshot(getLatestSnapshot());
     });
@@ -201,7 +204,7 @@ public class JournalStateMachine extends BaseStateMachine {
 
   private synchronized void loadSnapshot(SnapshotInfo snapshot) throws IOException {
     if (snapshot == null) {
-      LOG.debug("No snapshot to load");
+      LOG.info("No snapshot to load");
       return;
     }
     try {
@@ -252,7 +255,7 @@ public class JournalStateMachine extends BaseStateMachine {
     if (index != RaftLog.INVALID_LOG_INDEX) {
       mSnapshotLastIndex = index;
       mLastSnapshotTime = System.currentTimeMillis();
-      LOG.info("Took snapshot up to index {} at time {}", mSnapshotLastIndex, mLastSnapshotTime);
+      LOG.info("Took snapshot up to index {} at time {}", mSnapshotLastIndex, DateTime.now());
     }
     return index;
   }
@@ -480,9 +483,10 @@ public class JournalStateMachine extends BaseStateMachine {
       SAMPLING_LOG.info("Skip taking snapshot because state machine is closed.");
       return RaftLog.INVALID_LOG_INDEX;
     }
-    if (mServer.getLifeCycleState() != LifeCycle.State.RUNNING) {
+    RaftServer server = getServer().join(); // gets completed during initialization
+    if (server.getLifeCycleState() != LifeCycle.State.RUNNING) {
       SAMPLING_LOG.info("Skip taking snapshot because raft server is not in running state: "
-          + "current state is {}.", mServer.getLifeCycleState());
+          + "current state is {}.", server.getLifeCycleState());
       return RaftLog.INVALID_LOG_INDEX;
     }
     if (mJournalApplier.isSuspended()) {
@@ -508,7 +512,9 @@ public class JournalStateMachine extends BaseStateMachine {
     try (Timer.Context ctx = MetricsSystem.timer(
              MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER.getName()).time()) {
       long snapshotId = mNextSequenceNumberToRead - 1;
-      SnapshotIdCheckpointed idWriter = SnapshotIdCheckpointed.forWriting(snapshotId);
+      SingleEntryJournaled idWriter = new SnapshotIdJournaled();
+      idWriter.processJournalEntry(JournalEntry.newBuilder().setSequenceNumber(snapshotId).build());
+
       CompletableFuture.allOf(Stream.concat(Stream.of(idWriter), getStateMachines().stream())
           .map(journaled -> journaled.writeToCheckpoint(snapshotDir, mJournalPool))
           .toArray(CompletableFuture[]::new))
@@ -537,14 +543,22 @@ public class JournalStateMachine extends BaseStateMachine {
     long snapshotId = 0L;
     try (Timer.Context ctx = MetricsSystem.timer(MetricKey
         .MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER.getName()).time()) {
-      long startTimeMs = System.currentTimeMillis();
-      SnapshotIdCheckpointed idReader = SnapshotIdCheckpointed.forReading();
-      CompletableFuture.allOf(Stream.concat(Stream.of(idReader), getStateMachines().stream())
-          .map(journaled -> journaled.restoreFromCheckpoint(snapshotDir, mJournalPool))
-          .toArray(CompletableFuture[]::new))
-          .join();
-      snapshotId = idReader.getId();
-      mLastSnapshotReplayDurationMs = System.currentTimeMillis() - startTimeMs;
+      Instant start = Instant.now();
+      if (snapshotDir.isFile()) {
+        LOG.info("Restoring from snapshot {} in old format", snapshot.getTermIndex());
+        try (DataInputStream stream =  new DataInputStream(new FileInputStream(snapshotDir))) {
+          snapshotId = stream.readLong();
+          JournalUtils.restoreFromCheckpoint(new CheckpointInputStream(stream), getStateMachines());
+        }
+      } else {
+        SingleEntryJournaled idReader = new SnapshotIdJournaled();
+        CompletableFuture.allOf(Stream.concat(Stream.of(idReader), getStateMachines().stream())
+                .map(journaled -> journaled.restoreFromCheckpoint(snapshotDir, mJournalPool))
+                .toArray(CompletableFuture[]::new))
+            .join();
+        snapshotId = idReader.getEntry().getSequenceNumber();
+      }
+      mLastSnapshotReplayDurationMs = Duration.between(start, Instant.now()).toMillis();
     } catch (Exception e) {
       JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to install snapshot: %s",
           snapshot.getTermIndex());
@@ -682,12 +696,12 @@ public class JournalStateMachine extends BaseStateMachine {
 
   @Override
   public void notifyLeaderChanged(RaftGroupMemberId groupMemberId, RaftPeerId raftPeerId) {
-    if (mRaftGroupId == groupMemberId.getGroupId()) {
+    if (getGroupId() == groupMemberId.getGroupId()) {
       mIsLeader = groupMemberId.getPeerId() == raftPeerId;
       mJournalSystem.notifyLeadershipStateChanged(mIsLeader);
     } else {
       LOG.warn("Received notification for unrecognized group {}, current group is {}",
-          groupMemberId.getGroupId(), mRaftGroupId);
+          groupMemberId.getGroupId(), getGroupId());
     }
   }
 
