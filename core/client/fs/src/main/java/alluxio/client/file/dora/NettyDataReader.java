@@ -32,7 +32,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import io.grpc.Status;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -63,7 +62,7 @@ public class NettyDataReader implements DoraDataReader {
   private boolean mClosed = false;
 
   NettyDataReader(FileSystemContext context, WorkerNetAddress address,
-      Protocol.ReadRequest.Builder requestBuilder) {
+                  Protocol.ReadRequest.Builder requestBuilder) {
     mContext = context;
     AlluxioConfiguration conf = context.getClusterConf();
     mReadTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
@@ -112,8 +111,8 @@ public class NettyDataReader implements DoraDataReader {
           needsCleanup = true;
           break;
         default:
-        // otherwise, the error comes from the server side, we assume
-        // the server has taken care of itself and cancelled its processing of the ongoing request
+          // otherwise, the error comes from the server side, we assume
+          // the server has taken care of itself and cancelled its processing of the ongoing request
       }
       throw e;
     } catch (RuntimeException e) {
@@ -192,7 +191,8 @@ public class NettyDataReader implements DoraDataReader {
   }
 
   private int readInternal(int length, Channel channel,
-      BlockingQueue<ResponseEvent> responseEventQueue, WritableByteChannel outChannel)
+                           BlockingQueue<ResponseEvent> responseEventQueue,
+                           WritableByteChannel outChannel)
       throws PartialReadException {
     ResponseEventContext responseEventContext =
         new ResponseEventContext(length, 0, outChannel);
@@ -269,8 +269,8 @@ public class NettyDataReader implements DoraDataReader {
       ProtoMessage message = rpcProtoMessage.getMessage();
       if (message.isReadResponse()) {
         Preconditions.checkState(
-            message.asReadResponse().getType() ==
-                Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT);
+            message.asReadResponse().getType()
+                == Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT);
         responseEvent = mResponseEventFactory.createUfsReadHeartBeatResponseEvent();
       } else if (message.isResponse()) {
         Protocol.Response response = message.asResponse();
@@ -279,8 +279,8 @@ public class NettyDataReader implements DoraDataReader {
         switch (response.getStatus()) {
           case CANCELLED:
             responseEvent =
-                mResponseEventFactory.createCancelResponseEvent(
-                new CancelledException("Server canceled: " + response.getMessage()));
+                mResponseEventFactory.createCancelledResponseEvent(
+                    new CancelledException("Server canceled: " + response.getMessage()));
             break;
           case OK:
             DataBuffer dataBuffer = rpcProtoMessage.getPayloadDataBuffer();
@@ -346,5 +346,4 @@ public class NettyDataReader implements DoraDataReader {
       mClosed = true;
     }
   }
-
 }
