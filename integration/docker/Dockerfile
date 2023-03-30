@@ -31,7 +31,7 @@ FROM centos:7 as final
 RUN \
     yum update -y && yum upgrade -y && \
     yum install -y java-11-openjdk-devel java-11-openjdk && \
-    yum clean all;
+    yum clean all
 
 ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk
 # Disable JVM DNS cache in java11 (https://github.com/Alluxio/alluxio/pull/9452)
