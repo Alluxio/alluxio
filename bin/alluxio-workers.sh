@@ -12,12 +12,7 @@
 
 set -o pipefail
 
-LAUNCHER=
-# If debugging is enabled propagate that through to sub-shells
-if [[ "$-" == *x* ]]; then
-  LAUNCHER="bash -x"
-fi
-BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+. $(dirname "$0")/alluxio-common.sh
 
 USAGE="Usage: alluxio-workers.sh command..."
 
@@ -39,12 +34,7 @@ echo "Executing the following command on all worker nodes and logging to ${ALLUX
 
 for worker in ${HOSTLIST[@]}; do
   echo "[${worker}] Connecting as ${USER}..." >> ${ALLUXIO_TASK_LOG}
-  if [[ $worker = "localhost" || $worker = "127.0.0.1" ]]; then
-    ssh_command=""
-  else
-    ssh_command="ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${worker}"
-  fi
-  nohup ${ssh_command} ${LAUNCHER} \
+  nohup $(ssh_command ${worker}) ${LAUNCHER} \
     $"${@// /\\ }" 2>&1 | while read line; do echo "[$(date '+%F %T')][${worker}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
   pids[${#pids[@]}]=$!
 done
