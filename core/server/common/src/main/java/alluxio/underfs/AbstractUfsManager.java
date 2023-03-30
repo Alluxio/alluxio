@@ -160,6 +160,7 @@ public abstract class AbstractUfsManager implements UfsManager {
       if (useManagedBlocking) {
         fs = new ManagedBlockingUfsForwarder(fs);
       }
+      mCloser.register(fs);
       try {
         connectUfs(fs);
         tryUseFileSystem(fs, ufsUri.getPath());
@@ -174,7 +175,6 @@ public abstract class AbstractUfsManager implements UfsManager {
         // This shouldn't occur unless our synchronization is incorrect
         LOG.warn("UFS already existed in UFS manager");
       }
-      mCloser.register(fs);
       return fs;
     }
   }
