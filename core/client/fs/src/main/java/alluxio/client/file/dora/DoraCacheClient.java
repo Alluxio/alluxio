@@ -95,8 +95,8 @@ public class DoraCacheClient {
       CloseableSupplier<PositionReader> externalPositionReader) {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getPath());
     // Construct the partial read request
-    NettyDataReader.Factory readerFactory = createNettyDataReader(workerNetAddress, ufsOptions);
-    return new DoraCachePositionReader(readerFactory, status.getLength(), externalPositionReader);
+    NettyDataReader reader = createNettyDataReader(workerNetAddress, ufsOptions);
+    return new DoraCachePositionReader(reader, status.getLength(), externalPositionReader);
   }
 
   private GrpcDataReader.Factory createGrpcDataReader(

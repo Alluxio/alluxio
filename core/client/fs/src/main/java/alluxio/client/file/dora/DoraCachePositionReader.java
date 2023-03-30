@@ -13,13 +13,13 @@ package alluxio.client.file.dora;
 
 import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
-import alluxio.client.block.stream.NettyDataReader;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,20 +35,20 @@ public class DoraCachePositionReader implements PositionReader {
   private static final Counter UFS_FALLBACK_COUNTER = MetricsSystem.counter(
       MetricKey.CLIENT_UFS_FALLBACK_COUNT.getName());
 
-  private final NettyDataReader.Factory mReaderFactory;
+  private final NettyDataReader mReader;
   private final long mFileLength;
   private final CloseableSupplier<PositionReader> mFallbackReader;
   private volatile boolean mClosed;
 
   /**
-   * @param readerFactory reader to read data through network
+   * @param dataReader reader to read data through network
    * @param length file length
    * @param fallbackReader the position reader to fallback to when errors happen
    */
   // TODO(lu) structure for fallback position read
-  public DoraCachePositionReader(NettyDataReader.Factory readerFactory,
+  public DoraCachePositionReader(NettyDataReader dataReader,
       long length, CloseableSupplier<PositionReader> fallbackReader) {
-    mReaderFactory = readerFactory;
+    mReader = dataReader;
     mFileLength = length;
     mFallbackReader = fallbackReader;
   }
@@ -65,8 +65,18 @@ public class DoraCachePositionReader implements PositionReader {
     if (position >= mFileLength) { // at end of file
       return -1;
     }
-    try (NettyDataReader reader = mReaderFactory.create(position, length)) {
-      return reader.read(buffer);
+    try {
+      mReader.readFully(position, buffer.byteChannel(), length);
+    } catch (PartialReadException e) {
+      if (e.getCauseType() == PartialReadException.CauseType.EARLY_EOF) {
+        if (e.getBytesRead() > 0) {
+          return e.getBytesRead();
+        } else {
+          return -1;
+        }
+      }
+      Throwables.propagateIfPossible(e.getCause(), IOException.class);
+      throw new IOException(e.getCause());
     } catch (RuntimeException e) {
       UFS_FALLBACK_COUNTER.inc();
       LOG.debug("Dora client read file error ({} times). Fall back to UFS.",
@@ -74,6 +84,7 @@ public class DoraCachePositionReader implements PositionReader {
       // TODO(lu) what if read partial failed, cleanup the buffer?
       return mFallbackReader.get().positionRead(position, buffer, length);
     }
+    return length;
   }
 
   @Override
@@ -82,6 +93,7 @@ public class DoraCachePositionReader implements PositionReader {
       return;
     }
     mClosed = true;
+    mReader.close();
     mFallbackReader.close();
   }
 }
