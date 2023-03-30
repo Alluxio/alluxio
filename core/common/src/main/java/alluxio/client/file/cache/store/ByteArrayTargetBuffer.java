@@ -12,6 +12,7 @@
 package alluxio.client.file.cache.store;
 
 import alluxio.annotation.SuppressFBWarnings;
+import alluxio.util.io.ChannelAdapters;
 
 import io.netty.buffer.ByteBuf;
 
@@ -47,7 +48,7 @@ public class ByteArrayTargetBuffer implements PageReadTargetBuffer {
 
   @Override
   public ByteBuffer byteBuffer() {
-    throw new UnsupportedOperationException();
+    return ByteBuffer.wrap(mTarget);
   }
 
   @Override
@@ -87,6 +88,6 @@ public class ByteArrayTargetBuffer implements PageReadTargetBuffer {
 
   @Override
   public WritableByteChannel byteChannel() {
-    throw new UnsupportedOperationException();
+    return ChannelAdapters.intoByteArray(mTarget, mOffset, mTarget.length - mOffset);
   }
 }

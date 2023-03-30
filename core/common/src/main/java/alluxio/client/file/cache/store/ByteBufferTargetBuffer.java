@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache.store;
 
+import alluxio.util.io.ChannelAdapters;
+
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
@@ -34,7 +36,10 @@ public class ByteBufferTargetBuffer implements PageReadTargetBuffer {
 
   @Override
   public byte[] byteArray() {
-    throw new UnsupportedOperationException();
+    if (mTarget.hasArray()) {
+      return mTarget.array();
+    }
+    throw new UnsupportedOperationException("ByteBuffer is not backed by an array");
   }
 
   @Override
@@ -54,7 +59,7 @@ public class ByteBufferTargetBuffer implements PageReadTargetBuffer {
 
   @Override
   public WritableByteChannel byteChannel() {
-    throw new UnsupportedOperationException();
+    return ChannelAdapters.intoByteBuffer(mTarget);
   }
 
   @Override
