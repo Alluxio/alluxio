@@ -69,6 +69,7 @@ function get_ramdisk_array() {
   IFS=$oldifs
 }
 
+# Compose the ssh command according to the hostname
 function ssh_command() {
   local host=$1
   local command=""
