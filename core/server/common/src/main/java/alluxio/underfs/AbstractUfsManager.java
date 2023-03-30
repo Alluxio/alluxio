@@ -160,23 +160,21 @@ public abstract class AbstractUfsManager implements UfsManager {
       if (useManagedBlocking) {
         fs = new ManagedBlockingUfsForwarder(fs);
       }
-
-      if (mUnderFileSystemMap.putIfAbsent(key, fs) != null) {
-        // This shouldn't occur unless our synchronization is incorrect
-        LOG.warn("UFS already existed in UFS manager");
-      }
-      mCloser.register(fs);
       try {
         connectUfs(fs);
         tryUseFileSystem(fs, ufsUri.getPath());
       } catch (Exception e) {
-        mUnderFileSystemMap.remove(key);
         String message = String.format(
             "Failed to perform initial connect to UFS %s: %s", ufsUri, e);
         recorder.record(message);
         LOG.warn(message);
         throw new RuntimeException(e);
       }
+      if (mUnderFileSystemMap.putIfAbsent(key, fs) != null) {
+        // This shouldn't occur unless our synchronization is incorrect
+        LOG.warn("UFS already existed in UFS manager");
+      }
+      mCloser.register(fs);
       return fs;
     }
   }
