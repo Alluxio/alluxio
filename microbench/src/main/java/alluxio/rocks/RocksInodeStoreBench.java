@@ -33,6 +33,7 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.infra.Blackhole;
 
 import java.util.concurrent.TimeUnit;
 
@@ -137,11 +138,10 @@ public class RocksInodeStoreBench {
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Threads(10)
   @Benchmark
-  public long RockGetMutableBench(RockState rs) {
+  public long RockGetMutableBench(RockState rs, Blackhole bh) {
     long counter = 0;
-    MutableInode file = null;
     for (long i = rs.mInodeCount; i > 0; i--) {
-      rs.mRock.getMutable(i);
+      bh.consume(rs.mRock.getMutable(i));
       counter += 1;
     }
     return counter;
@@ -151,13 +151,13 @@ public class RocksInodeStoreBench {
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Threads(10)
   @Benchmark
-  public long RockGetChildIdBench(RockState rs) {
+  public long RockGetChildIdBench(RockState rs, Blackhole bh) {
     long counter = 0;
     Long tmp = Long.valueOf(0);
     Long p = Long.valueOf(0);
     for (long i = rs.mInodeCount; i > 0; i--) {
       // tmp = rs.mRock.getChildId(p, "test" + i, ReadOption.defaults()).get();
-      rs.mRock.getChildId(p, "test" + i, ReadOption.defaults());
+      bh.consume(rs.mRock.getChildId(p, "test" + i, ReadOption.defaults()));
       counter += 1;
     }
     return counter;
@@ -168,12 +168,12 @@ public class RocksInodeStoreBench {
   @Measurement(iterations = 3)
   @Threads(10)
   @Benchmark
-  public long RockGetChildIdsBench(RockGetChildIdsState rs) {
+  public long RockGetChildIdsBench(RockGetChildIdsState rs, Blackhole bh) {
     long counter = 0;
     for (long i = rs.mTreeNumber; i > 0; i--) {
       try (CloseableIterator<Long> iter = rs.mRock.getChildIds(i, ReadOption.defaults())) {
         while (iter.hasNext()) {
-          iter.next();
+          bh.consume(iter.next());
         }
         counter += 1;
       } catch (Exception e) {
@@ -200,13 +200,11 @@ public class RocksInodeStoreBench {
   @BenchmarkMode(Mode.AverageTime)
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   @Benchmark
-  public long RockGetIteratorBench(RockState rs) {
+  public long RockGetIteratorBench(RockState rs, Blackhole bh) {
     long counter = 0;
-    long limit = rs.mInodeCount;
     CloseableIterator<InodeView> it = rs.mRock.getCloseableIterator();
-    InodeView inode = null;
     while (it.hasNext()) {
-      inode = it.next();
+      bh.consume(it.next());
     }
     counter += 1;
     return counter;
