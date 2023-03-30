@@ -221,6 +221,28 @@ public class BlockMasterTest {
   }
 
   @Test
+  public void decommissionWorker() throws Exception {
+    // Register a worker.
+    long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
+    mBlockMaster.workerRegister(worker1,
+        ImmutableList.of(Constants.MEDIUM_MEM),
+        ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
+        ImmutableMap.of(Constants.MEDIUM_MEM, 10L),
+        NO_BLOCKS_ON_LOCATION,
+        NO_LOST_STORAGE,
+        RegisterWorkerPOptions.getDefaultInstance());
+
+    // Decommission worker
+    mBlockMaster.decommissionWorker(NET_ADDRESS_1.getHost());
+
+    // Make sure the worker is decommissioned.
+    int decommissionedCount = mBlockMaster.getDecommissionedWorkerCount();
+    int liveCount  = mBlockMaster.getWorkerCount();
+    assertEquals(1, decommissionedCount);
+    assertEquals(0, liveCount);
+  }
+
+  @Test
   public void autoDeleteTimeoutWorker() throws Exception {
 
     // In default configuration the lost worker will never be deleted. So set a short timeout
