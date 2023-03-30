@@ -11,9 +11,6 @@
 
 package alluxio.client.file.cache;
 
-import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
-import static alluxio.client.file.CacheContext.StatsUnit.NANO;
-
 import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
@@ -34,7 +31,6 @@ import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -176,20 +172,8 @@ public class LocalCachePositionReader implements PositionReader {
     int currentPageOffset = (int) (position % mPageSize);
     int bytesLeftInPage = (int) (mPageSize - currentPageOffset);
     int bytesToReadInPage = Math.min(bytesLeftInPage, length);
-    stopwatch.reset().start();
-    int bytesRead =
-        mCacheManager.getAndLoad(pageId, currentPageOffset, bytesToReadInPage,
+    return mCacheManager.getAndLoad(pageId, currentPageOffset, bytesToReadInPage,
             bytesBuffer, mCacheContext, stopwatch, () -> readExternalPage(position));
-    stopwatch.stop();
-    if (bytesRead > 0) {
-      MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
-      mCacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
-          bytesRead);
-      mCacheContext.incrementCounter(
-          MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
-          stopwatch.elapsed(TimeUnit.NANOSECONDS));
-    }
-    return bytesRead;
   }
 
   private byte[] readExternalPage(long position) {
