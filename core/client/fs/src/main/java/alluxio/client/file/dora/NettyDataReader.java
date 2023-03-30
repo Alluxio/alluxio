@@ -11,15 +11,11 @@
 
 package alluxio.client.file.dora;
 
-import static alluxio.client.file.dora.NettyDataReader.Payload.Type.CANCEL;
-import static alluxio.client.file.dora.NettyDataReader.Payload.Type.DATA;
-import static alluxio.client.file.dora.NettyDataReader.Payload.Type.EOF;
-import static alluxio.client.file.dora.NettyDataReader.Payload.Type.HEART_BEAT;
-import static alluxio.client.file.dora.NettyDataReader.Payload.Type.SERVER_ERROR;
-import static alluxio.client.file.dora.NettyDataReader.Payload.Type.TRANSPORT_ERROR;
-
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.dora.PartialReadException.CauseType;
+import alluxio.client.file.dora.event.ResponseEvent;
+import alluxio.client.file.dora.event.ResponseEventContext;
+import alluxio.client.file.dora.event.ResponseEventFactory;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
@@ -87,7 +83,7 @@ public class NettyDataReader implements DoraDataReader {
     } catch (IOException ioe) {
       throw new PartialReadException(length, 0, CauseType.TRANSPORT_ERROR, ioe);
     }
-    BlockingQueue<Payload<?>> queue = new LinkedBlockingQueue<>();
+    BlockingQueue<ResponseEvent> queue = new LinkedBlockingQueue<>();
     channel.pipeline().addLast(new PacketReadHandler(queue, mMaxPacketsInFlight));
 
     boolean needsCleanup = false;
@@ -196,60 +192,34 @@ public class NettyDataReader implements DoraDataReader {
   }
 
   private int readInternal(int length, Channel channel,
-      BlockingQueue<Payload<?>> queue, WritableByteChannel outChannel) throws PartialReadException {
-    int bytesRead = 0;
+      BlockingQueue<ResponseEvent> responseEventQueue, WritableByteChannel outChannel)
+      throws PartialReadException {
+    ResponseEventContext responseEventContext =
+        new ResponseEventContext(length, 0, outChannel);
 
-    Payload<?> payload;
-    while (bytesRead < length) {
-      if (!tooManyPacketsPending(queue, mMaxPacketsInFlight)) {
+    ResponseEvent responseEvent;
+    while (responseEventContext.getBytesRead() < responseEventContext.getLengthToRead()) {
+      if (!tooManyPacketsPending(responseEventQueue, mMaxPacketsInFlight)) {
         NettyUtils.enableAutoRead(channel);
       }
       try {
-        payload = queue.poll(mReadTimeoutMs, TimeUnit.MILLISECONDS);
+        responseEvent = responseEventQueue.poll(mReadTimeoutMs, TimeUnit.MILLISECONDS);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
-        throw new PartialReadException(length, bytesRead, CauseType.INTERRUPT, e);
+        throw new PartialReadException(
+            length, responseEventContext.getBytesRead(), CauseType.INTERRUPT, e);
       }
-      if (payload == null) {
-        throw new PartialReadException(length, bytesRead, CauseType.TIMEOUT,
+      if (responseEvent == null) {
+        throw new PartialReadException(
+            length, responseEventContext.getBytesRead(), CauseType.TIMEOUT,
             new TimeoutException(String.format("Timeout to read from %s.", channel)));
       }
-      final Payload.Type<?> type = payload.type();
-      if (type == HEART_BEAT) {
-        continue;
-      } else if (type == CANCEL) {
-        CancelledException exception = payload.payload(CANCEL);
-        throw new PartialReadException(length, bytesRead, CauseType.CANCELLED, exception);
-      } else if (type == EOF) {
-        break;
-      } else if (type == SERVER_ERROR) {
-        AlluxioStatusException exception = payload.payload(SERVER_ERROR);
-        throw new PartialReadException(length, bytesRead, CauseType.SERVER_ERROR, exception);
-      } else if (type == TRANSPORT_ERROR) {
-        Throwable exception = payload.payload(TRANSPORT_ERROR);
-        throw new PartialReadException(length, bytesRead, CauseType.TRANSPORT_ERROR, exception);
-      } else if (type == DATA) {
-        ByteBuf byteBuf = payload.payload(DATA).slice();
-        int readableBytes = byteBuf.readableBytes();
-        int sliceEnd = Math.min(readableBytes, length - bytesRead);
-        // todo(bowen): handle case where ByteBuf does not support getting a bytebuffer
-        ByteBuffer toWrite = byteBuf.nioBuffer(0, sliceEnd);
-        try {
-          bytesRead += outChannel.write(toWrite);
-        } catch (IOException ioe) {
-          throw new PartialReadException(length, bytesRead, CauseType.OUTPUT, ioe);
-        } finally {
-          // previously retained in packet read handler
-          byteBuf.release();
-        }
-      } else {
-        throw new IllegalStateException("Invalid packet type received: " + type);
-      }
+      responseEvent.postProcess(responseEventContext);
     }
-    if (bytesRead == 0) {
+    if (responseEventContext.getBytesRead() == 0) {
       return -1;
     }
-    return bytesRead;
+    return responseEventContext.getBytesRead();
   }
 
   @Override
@@ -264,7 +234,7 @@ public class NettyDataReader implements DoraDataReader {
    * @return true if there are too many packets pending
    */
   private static boolean tooManyPacketsPending(
-      BlockingQueue<Payload<?>> queue, int maxPacketsInFlight) {
+      BlockingQueue<ResponseEvent> queue, int maxPacketsInFlight) {
     return queue.size() >= maxPacketsInFlight;
   }
 
@@ -272,11 +242,16 @@ public class NettyDataReader implements DoraDataReader {
    * The netty handler that reads packets from the channel.
    */
   private static class PacketReadHandler extends ChannelInboundHandlerAdapter {
-    private final BlockingQueue<Payload<?>> mPackets;
+
+    private final ResponseEventFactory mResponseEventFactory =
+        ResponseEventFactory.getResponseEventFactory();
+
+    private final BlockingQueue<ResponseEvent> mResponseEventQueue;
+
     private final int mMaxPacketsInFlight;
 
-    PacketReadHandler(BlockingQueue<Payload<?>> queue, int maxPacketsInFlight) {
-      mPackets = queue;
+    PacketReadHandler(BlockingQueue<ResponseEvent> queue, int maxPacketsInFlight) {
+      mResponseEventQueue = queue;
       mMaxPacketsInFlight = maxPacketsInFlight;
     }
 
@@ -289,35 +264,31 @@ public class NettyDataReader implements DoraDataReader {
             .format("Incorrect response type %s, %s.", msg.getClass().getCanonicalName(), msg));
       }
 
-      Payload<?> payload;
+      ResponseEvent responseEvent;
       RPCProtoMessage rpcProtoMessage = (RPCProtoMessage) msg;
       ProtoMessage message = rpcProtoMessage.getMessage();
       if (message.isReadResponse()) {
         Preconditions.checkState(
-            message.asReadResponse().getType() == Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT);
-        payload = Payload.ufsReadHeartBeat();
+            message.asReadResponse().getType() ==
+                Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT);
+        responseEvent = mResponseEventFactory.createUfsReadHeartBeatResponseEvent();
       } else if (message.isResponse()) {
         Protocol.Response response = message.asResponse();
         // Canceled is considered a valid status and handled in the reader. We avoid creating a
         // CanceledException as an optimization.
         switch (response.getStatus()) {
           case CANCELLED:
-            payload = Payload.cancel(
+            responseEvent =
+                mResponseEventFactory.createCancelResponseEvent(
                 new CancelledException("Server canceled: " + response.getMessage()));
             break;
           case OK:
             DataBuffer dataBuffer = rpcProtoMessage.getPayloadDataBuffer();
             if (dataBuffer != null) {
-              Preconditions.checkState(dataBuffer.getNettyOutput() instanceof ByteBuf,
-                  "dataBuffer.getNettyOutput is not of type ByteBuf");
-              ByteBuf data = (ByteBuf) dataBuffer.getNettyOutput();
-              // need to retain this buffer so that it won't get recycled before we are able to
-              // process it
-              // will be released in reader
-              payload = Payload.data(data.retain());
+              responseEvent = mResponseEventFactory.createDataResponseEvent(dataBuffer);
             } else {
               // an empty response indicates the worker has done sending data
-              payload = Payload.eof();
+              responseEvent = mResponseEventFactory.createEofResponseEvent();
             }
             break;
           default:
@@ -325,34 +296,34 @@ public class NettyDataReader implements DoraDataReader {
             AlluxioStatusException error = AlluxioStatusException.from(
                 status.withDescription(String.format("Error from server %s: %s",
                     ctx.channel().remoteAddress(), response.getMessage())));
-            payload = Payload.serverError(error);
+            responseEvent = mResponseEventFactory.createServerErrorResponseEvent(error);
         }
       } else {
         throw new IllegalStateException(
             String.format("Incorrect response type %s.", message));
       }
 
-      if (tooManyPacketsPending(mPackets, mMaxPacketsInFlight)) {
+      if (tooManyPacketsPending(mResponseEventQueue, mMaxPacketsInFlight)) {
         NettyUtils.disableAutoRead(ctx.channel());
       }
-      mPackets.offer(payload);
+      mResponseEventQueue.offer(responseEvent);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
       LOG.error("Exception is caught while reading data from channel {}:",
           ctx.channel(), cause);
-      Payload<?> payload = Payload.transportError(cause);
-      mPackets.offer(payload);
+      ResponseEvent responseEvent = mResponseEventFactory.createTransportResponseEvent(cause);
+      mResponseEventQueue.offer(responseEvent);
       ctx.close();
     }
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
       LOG.warn("Channel is closed while reading data from channel {}.", ctx.channel());
-      Payload<?> payload = Payload.transportError(
+      ResponseEvent responseEvent = mResponseEventFactory.createTransportResponseEvent(
           new UnavailableException(String.format("Channel %s is closed.", ctx.channel())));
-      mPackets.offer(payload);
+      mResponseEventQueue.offer(responseEvent);
       ctx.fireChannelUnregistered();
     }
   }
@@ -376,102 +347,4 @@ public class NettyDataReader implements DoraDataReader {
     }
   }
 
-  static class Payload<T extends Payload.Type<?>> {
-    interface Type<P> {
-      Class<P> payloadType();
-
-      Data DATA = new Data();
-      UfsReadHeartBeat HEART_BEAT = new UfsReadHeartBeat();
-      Eof EOF = new Eof();
-      Cancel CANCEL = new Cancel();
-      ServerError SERVER_ERROR = new ServerError();
-      TransportError TRANSPORT_ERROR = new TransportError();
-    }
-
-    static class Data implements Type<ByteBuf> {
-      @Override
-      public Class<ByteBuf> payloadType() {
-        return ByteBuf.class;
-      }
-    }
-
-    static class UfsReadHeartBeat implements Type<Void> {
-      @Override
-      public Class<Void> payloadType() {
-        return Void.TYPE;
-      }
-    }
-
-    static class Eof implements Type<Void> {
-      @Override
-      public Class<Void> payloadType() {
-        return Void.TYPE;
-      }
-    }
-
-    static class Cancel implements Type<CancelledException> {
-      @Override
-      public Class<CancelledException> payloadType() {
-        return CancelledException.class;
-      }
-    }
-
-    static class ServerError implements Type<AlluxioStatusException> {
-      @Override
-      public Class<AlluxioStatusException> payloadType() {
-        return AlluxioStatusException.class;
-      }
-    }
-
-    static class TransportError implements Type<Throwable> {
-      @Override
-      public Class<Throwable> payloadType() {
-        return Throwable.class;
-      }
-    }
-
-    private final T mType;
-    private final Object mPayload;
-
-    private Payload(T type, Object payload) {
-      Preconditions.checkArgument((type.payloadType() == Void.TYPE && payload == null)
-          || type.payloadType().isInstance(payload));
-      mType = type;
-      mPayload = payload;
-    }
-
-    static Payload<Data> data(ByteBuf buf) {
-      return new Payload<>(Type.DATA, buf);
-    }
-
-    static Payload<UfsReadHeartBeat> ufsReadHeartBeat() {
-      return new Payload<>(HEART_BEAT, null);
-    }
-
-    static Payload<Eof> eof() {
-      return new Payload<>(EOF, null);
-    }
-
-    static Payload<Cancel> cancel(CancelledException exception) {
-      return new Payload<>(CANCEL, exception);
-    }
-
-    static Payload<ServerError> serverError(AlluxioStatusException error) {
-      return new Payload<>(SERVER_ERROR, error);
-    }
-
-    static Payload<TransportError> transportError(Throwable error) {
-      return new Payload<>(TRANSPORT_ERROR, error);
-    }
-
-    public T type() {
-      return mType;
-    }
-
-    public <P> P payload(Type<P> type) {
-      Preconditions.checkArgument(type == mType, "payload type mismatch");
-      Class<P> clazz = type.payloadType();
-      return clazz.cast(mPayload);
-    }
-  }
 }
