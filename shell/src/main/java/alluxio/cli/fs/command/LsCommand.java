@@ -332,7 +332,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "ls [-d|-f|-p|-R/--recursive|-h|--sort=option|--timestamp=option|-r|-m] <path> ...";
+    return "ls [-d|-f|-p|-R/--recursive|-h|--sort=option|--timestamp=option|-r|-m/--omit-mount-info] <path> ...";
   }
 
   @Override
