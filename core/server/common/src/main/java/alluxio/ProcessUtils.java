@@ -160,7 +160,7 @@ public final class ProcessUtils {
           sInfoDumpOnExitCheck = true;
           LOG.info("Logging metrics and jstack on {} exit...", CommonUtils.PROCESS_TYPE.get());
           try {
-            String logsDir = ServerConfiguration.getString(PropertyKey.LOGS_DIR);
+            String logsDir = ServerConfiguration.get(PropertyKey.LOGS_DIR);
             String outputFilePrefix = "alluxio-"
                 + CommonUtils.PROCESS_TYPE.get().toString().toLowerCase() + "-exit";
             dumpMetrics(logsDir, outputFilePrefix);
@@ -187,7 +187,7 @@ public final class ProcessUtils {
   public static List<Future<Void>> dumpInformationOnFailover(ExecutorService es) {
     if (ServerConfiguration.getBoolean(PropertyKey.MASTER_FAILOVER_COLLECT_INFO)) {
       LOG.info("Logging metrics and jstack when primary master switches to standby...");
-      String logsDir = ServerConfiguration.getString(PropertyKey.LOGS_DIR);
+      String logsDir = ServerConfiguration.get(PropertyKey.LOGS_DIR);
       String outputFilePrefix = "alluxio-"
           + CommonUtils.PROCESS_TYPE.get().toString().toLowerCase() + "-failover";
       List<Future<Void>> futures = new ArrayList<>();

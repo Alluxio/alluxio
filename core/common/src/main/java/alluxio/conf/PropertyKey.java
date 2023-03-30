@@ -342,23 +342,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .build();
   public static final PropertyKey EXIT_COLLECT_INFO =
-      booleanBuilder(Name.EXIT_COLLECT_INFO)
+      new Builder(Name.EXIT_COLLECT_INFO)
           .setDefaultValue(true)
           .setDescription("If true, the process will dump metrics and jstack into the log folder. "
               + "This only applies to Alluxio master and worker processes.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey GRPC_REFLECTION_ENABLED =
-      booleanBuilder(Name.GRPC_REFLECTION_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("If true, grpc reflection will be enabled on alluxio grpc servers, "
-              + "including masters, workers, job masters and job workers. "
-              + " This makes grpc tools such as grpcurl or grpcui can send grpc requests to "
-              + "the master server easier without knowing the protobufs. "
-              + "This is a debug option.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey HOME =
       new Builder(Name.HOME)
@@ -1926,7 +1915,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey MASTER_FAILOVER_COLLECT_INFO =
-      booleanBuilder(Name.MASTER_FAILOVER_COLLECT_INFO)
+      new Builder(Name.MASTER_FAILOVER_COLLECT_INFO)
           .setDefaultValue(true)
           .setDescription("If true, the primary master will persist metrics and jstack into "
               + "the log folder when it transitions to standby. ")
@@ -6067,8 +6056,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String DEBUG = "alluxio.debug";
     public static final String EXTENSIONS_DIR = "alluxio.extensions.dir";
     public static final String EXIT_COLLECT_INFO = "alluxio.exit.collect.info";
-    public static final String GRPC_REFLECTION_ENABLED =
-        "alluxio.grpc.reflection.enabled";
     public static final String HOME = "alluxio.home";
     public static final String INTEGRATION_MASTER_RESOURCE_CPU =
         "alluxio.integration.master.resource.cpu";
