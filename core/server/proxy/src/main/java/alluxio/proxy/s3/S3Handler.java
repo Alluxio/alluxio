@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
@@ -90,6 +91,7 @@ public class S3Handler {
   private String mUser;
   private S3BaseTask mS3Task;
   private FileSystem mMetaFS;
+  private AtomicBoolean mMultipartUploadsMetadataDirCreateFlag;
 
   /**
    * S3Handler Constructor.
@@ -233,7 +235,8 @@ public class S3Handler {
     mMetaFS = (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mAsyncAuditLogWriter = (AsyncUserAccessAuditLogWriter) context.getAttribute(
         ProxyWebServer.ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY);
-    S3RestUtils.tryInitMultipartUploadsMetadataDir(context, mMetaFS);
+    mMultipartUploadsMetadataDirCreateFlag = (AtomicBoolean) context.getAttribute(
+        ProxyWebServer.MULTIPART_UPLOADS_METADATA_DIR_CREATE_FLAG);
   }
 
   /**
@@ -496,5 +499,13 @@ public class S3Handler {
    */
   public void setStopwatch(Stopwatch stopwatch) {
     mStopwatch = stopwatch;
+  }
+
+  /**
+   * Get multipart uploads metadata dir create flag.
+   * @return multipart uploads metadata dir create flag
+   */
+  public AtomicBoolean getMultipartUploadsMetadataDirCreateFlag() {
+    return mMultipartUploadsMetadataDirCreateFlag;
   }
 }

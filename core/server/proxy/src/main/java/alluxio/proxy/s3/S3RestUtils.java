@@ -41,7 +41,6 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
-import alluxio.web.ProxyWebServer;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -66,12 +65,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.MediaType;
@@ -738,68 +736,36 @@ public final class S3RestUtils {
   }
 
   /**
-   * Initiate the S3 API metadata directories.
+   * Initiate the S3 API metadata directories,
+   * this method should be called before ListMultipartUploadsTask and CreateMultipartUploadTask.
    * @param fileSystem
-   * @return true if directory is created or already exists
+   * @param flag
+   * @throws IOException
+   * @throws AlluxioException
    */
-  private static boolean initMultipartUploadsMetadataDir(FileSystem fileSystem) {
-    try {
-      AlluxioURI path = new AlluxioURI(MULTIPART_UPLOADS_METADATA_DIR);
-      if (!fileSystem.exists(path)) {
-        LOG.info("Create multipart uploads metadata dir: {}", MULTIPART_UPLOADS_METADATA_DIR);
-        fileSystem.createDirectory(
-            path,
-            CreateDirectoryPOptions.newBuilder()
-                .setRecursive(true)
-                .setMode(PMode.newBuilder()
-                    .setOwnerBits(Bits.ALL)
-                    .setGroupBits(Bits.ALL)
-                    .setOtherBits(Bits.NONE).build())
-                .setWriteType(getS3WriteType())
-                .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-                .build()
-        );
-      }
-      return true;
-    } catch (Exception e) {
-      // If we only use read API or mount root as read-only, this directory is not necessary,
-      // so we just print the error log instead of throwing exception here.
-      LOG.error("Can not init multipart uploads metadata dir: {}", MULTIPART_UPLOADS_METADATA_DIR,
-          e);
-      return false;
+  public static void initMultipartUploadsMetadataDir(FileSystem fileSystem, AtomicBoolean flag)
+      throws IOException, AlluxioException {
+    // There is no need to add locks here, allowing multiple creation.
+    if (flag.get()) {
+      return;
     }
-  }
-
-  /**
-   * Try to create S3 API metadata directories.
-   * @param context
-   * @param fileSystem
-   */
-  @SuppressWarnings("unchecked")
-  public static void tryInitMultipartUploadsMetadataDir(ServletContext context,
-      FileSystem fileSystem) {
-    AtomicReference<Boolean> flag = (AtomicReference<Boolean>) context.getAttribute(
-        ProxyWebServer.MULTIPART_UPLOADS_METADATA_DIR_CREATE_FLAG);
-    if (flag.get() == null) {
-      // If flag is null, it means the directory has never been created.
-      // For the first time, we should lock all requests to ensure that the directory is created.
-      synchronized (S3RestUtils.class) {
-        // Double check lock.
-        if (flag.get() == null) {
-          flag.set(S3RestUtils.initMultipartUploadsMetadataDir(fileSystem));
-        }
-      }
-    } else {
-      // If flag is ture, it means that the directory has been created, we should do nothing.
-      // If flag is false, it means that the directory creation failed and need to retry.
-      // Make sure that only one request attempts to create the directory at the same moment,
-      // and other requests quickly pass through.
-      if (flag.compareAndSet(false, true)) {
-        // If the initialization of the directory fails,
-        // we need to let other requests try to initialize it again.
-        flag.set(S3RestUtils.initMultipartUploadsMetadataDir(fileSystem));
-      }
+    AlluxioURI path = new AlluxioURI(MULTIPART_UPLOADS_METADATA_DIR);
+    if (!fileSystem.exists(path)) {
+      LOG.info("Create multipart uploads metadata dir: {}", MULTIPART_UPLOADS_METADATA_DIR);
+      fileSystem.createDirectory(
+          path,
+          CreateDirectoryPOptions.newBuilder()
+              .setRecursive(true)
+              .setMode(PMode.newBuilder()
+                  .setOwnerBits(Bits.ALL)
+                  .setGroupBits(Bits.ALL)
+                  .setOtherBits(Bits.NONE).build())
+              .setWriteType(getS3WriteType())
+              .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+              .build()
+      );
     }
+    flag.set(true);
   }
 
     /**

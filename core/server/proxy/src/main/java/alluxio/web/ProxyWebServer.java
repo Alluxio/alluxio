@@ -47,7 +47,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
@@ -74,7 +74,7 @@ public final class ProxyWebServer extends WebServer {
 
   private final RateLimiter mGlobalRateLimiter;
   private final FileSystem mFileSystem;
-  private final AtomicReference<Boolean> mIsMultipartUploadsMetadataDirCreated;
+  private final AtomicBoolean mMultipartUploadsMetadataDirCreateFlag;
   private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
   public static final String PROXY_S3_HANDLER_MAP = "Proxy S3 Handler Map";
   public ConcurrentHashMap<Request, S3Handler> mS3HandlerMap = new ConcurrentHashMap<>();
@@ -114,7 +114,7 @@ public final class ProxyWebServer extends WebServer {
     mFileSystem = FileSystem.Factory.create(Configuration.global());
     // Use this flag to delay creating metadata directory. Do not create directory directly,
     // this will change the behavior of constructor and cause some tests to fail.
-    mIsMultipartUploadsMetadataDirCreated = new AtomicReference<>(null);
+    mMultipartUploadsMetadataDirCreateFlag = new AtomicBoolean(false);
 
     long rate =
         (long) Configuration.getInt(PropertyKey.PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB) * Constants.MB;
@@ -146,7 +146,7 @@ public final class ProxyWebServer extends WebServer {
               mGlobalRateLimiter);
         }
         getServletContext().setAttribute(MULTIPART_UPLOADS_METADATA_DIR_CREATE_FLAG,
-            mIsMultipartUploadsMetadataDirCreated);
+            mMultipartUploadsMetadataDirCreateFlag);
       }
 
       @Override
@@ -180,7 +180,7 @@ public final class ProxyWebServer extends WebServer {
               getServletContext().setAttribute(PROXY_S3_V2_HEAVY_POOL, createHeavyThreadPool());
               getServletContext().setAttribute(PROXY_S3_HANDLER_MAP, mS3HandlerMap);
               getServletContext().setAttribute(MULTIPART_UPLOADS_METADATA_DIR_CREATE_FLAG,
-                  mIsMultipartUploadsMetadataDirCreated);
+                  mMultipartUploadsMetadataDirCreateFlag);
             }
           });
       mServletContextHandler

@@ -70,6 +70,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -137,6 +138,7 @@ public final class S3RestServiceHandler {
   private final Pattern mBucketValidNamePattern;
 
   private final RateLimiter mGlobalRateLimiter;
+  private final AtomicBoolean mMultipartUploadsMetadataDirCreateFlag;
 
   /**
    * Constructs a new {@link S3RestServiceHandler}.
@@ -166,7 +168,8 @@ public final class S3RestServiceHandler {
     mBucketValidNamePattern = Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
     mGlobalRateLimiter = (RateLimiter) context.getAttribute(
         ProxyWebServer.GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY);
-    S3RestUtils.tryInitMultipartUploadsMetadataDir(context, mMetaFS);
+    mMultipartUploadsMetadataDirCreateFlag = (AtomicBoolean) context.getAttribute(
+        ProxyWebServer.MULTIPART_UPLOADS_METADATA_DIR_CREATE_FLAG);
   }
 
   /**
@@ -310,6 +313,8 @@ public final class S3RestServiceHandler {
         }
         if (uploads != null) { // ListMultipartUploads
           try {
+            S3RestUtils.initMultipartUploadsMetadataDir(mMetaFS,
+                mMultipartUploadsMetadataDirCreateFlag);
             List<URIStatus> children = mMetaFS.listStatus(new AlluxioURI(
                 S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR));
             final List<URIStatus> uploadIds = children.stream()
@@ -1031,6 +1036,8 @@ public final class S3RestServiceHandler {
         }
 
         try {
+          S3RestUtils.initMultipartUploadsMetadataDir(mMetaFS,
+              mMultipartUploadsMetadataDirCreateFlag);
           // Find an unused UUID
           String uploadId;
           do {
