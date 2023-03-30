@@ -128,8 +128,10 @@ public class LocalCacheManager implements CacheManager {
         } catch (IOException e) {
           LOG.error("Failed to restore LocalCacheManager", e);
         }
-        try (LockResource r = new LockResource(pageMetaStore.getLock().readLock())) {
-          callback.onCacheRestorationSuccess();
+        if (manager.mState.get() == READ_WRITE) {
+          try (LockResource r = new LockResource(pageMetaStore.getLock().readLock())) {
+            callback.onCacheRestorationSuccess();
+          }
         }
       });
     } else {
