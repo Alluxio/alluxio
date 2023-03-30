@@ -33,9 +33,10 @@ import javax.servlet.http.HttpServletResponse;
 @NotThreadSafe
 public class MetricsServlet implements Sink {
   private static final String SERVLET_PATH = "/metrics/json";
+  public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+      .registerModule(new MetricsModule(TimeUnit.SECONDS, TimeUnit.MILLISECONDS, false));
 
   private MetricRegistry mMetricsRegistry;
-  private ObjectMapper mObjectMapper;
 
   /**
    * Creates a new {@link MetricsServlet} with a {@link Properties} and {@link MetricRegistry}.
@@ -44,9 +45,6 @@ public class MetricsServlet implements Sink {
    */
   public MetricsServlet(MetricRegistry registry) {
     mMetricsRegistry = registry;
-    mObjectMapper =
-        new ObjectMapper().registerModule(new MetricsModule(TimeUnit.SECONDS,
-            TimeUnit.MILLISECONDS, false));
   }
 
   private HttpServlet createServlet() {
@@ -59,7 +57,7 @@ public class MetricsServlet implements Sink {
         response.setContentType("application/json");
         response.setStatus(HttpServletResponse.SC_OK);
         response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        String result = mObjectMapper.writerWithDefaultPrettyPrinter()
+        String result = OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
             .writeValueAsString(mMetricsRegistry);
         response.getWriter().println(result);
       }
