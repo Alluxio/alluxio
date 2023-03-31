@@ -41,6 +41,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
@@ -54,6 +55,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -407,15 +409,9 @@ public class AbstractFileSystemTest {
     Path path = new Path("/dir");
     alluxio.client.file.FileSystem alluxioFs =
         mock(alluxio.client.file.FileSystem.class);
-    FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
-    URI uri = URI.create(Constants.HEADER + "host:1");
-    alluxioHadoopFs.initialize(uri, getConf());
-    ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
-        .setExcludeMountInfo(alluxioHadoopFs.mAlluxioConf.getBoolean(
-            PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS)).build();
-    when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
-        listStatusPOptions))
+    when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
         .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
+    FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
 
     FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
     assertFileInfoEqualsFileStatus(fileInfo1, fileStatuses[0]);
@@ -429,40 +425,23 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void listStatusWithoutMountInfo() throws Exception {
-    FileInfo fileInfo1 = new FileInfo()
-        .setLastModificationTimeMs(111L)
-        .setLastAccessTimeMs(123L)
-        .setFolder(false)
-        .setOwner("user1")
-        .setGroup("group1")
-        .setMode(00755);
-    FileInfo fileInfo2 = new FileInfo()
-        .setLastModificationTimeMs(222L)
-        .setLastAccessTimeMs(234L)
-        .setFolder(true)
-        .setOwner("user2")
-        .setGroup("group2")
-        .setMode(00644);
-
     Path path = new Path("/dir");
-    alluxio.client.file.FileSystem alluxioFs =
-        mock(alluxio.client.file.FileSystem.class);
-    FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
-    URI uri = URI.create(Constants.HEADER + "host:1");
+    FileSystem alluxioHadoopFs = new FileSystem();
+    URI uri = URI.create(Constants.HEADER + "localhost:1");
     Configuration configuration = getConf();
     configuration.setBoolean(
         PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS.getName(),
         true);
     alluxioHadoopFs.initialize(uri, configuration);
-    ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
-        .setExcludeMountInfo(true).build();
-    when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
-        listStatusPOptions))
-        .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
 
-    FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
-    assertFileInfoEqualsFileStatus(fileInfo1, fileStatuses[0]);
-    assertFileInfoEqualsFileStatus(fileInfo2, fileStatuses[1]);
+    FileSystemContext fsContext = PowerMockito.mock(FileSystemContext.class);
+    when(fsContext.getPathConf(any())).thenReturn(alluxioHadoopFs.mFileSystem.getConf());
+
+    ListStatusPOptions mergedOptions = FileSystemOptionsUtils.listStatusDefaults(
+        fsContext.getPathConf(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)))).toBuilder()
+            .mergeFrom(ListStatusPOptions.getDefaultInstance()).build();
+
+    Assert.assertTrue(mergedOptions.getExcludeMountInfo());
     alluxioHadoopFs.close();
   }
 
