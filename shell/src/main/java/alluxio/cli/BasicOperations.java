@@ -22,6 +22,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
+import alluxio.grpc.WorkerNetAddress;
 import alluxio.grpc.WritePType;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -33,6 +34,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.concurrent.Callable;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -54,13 +56,25 @@ public class BasicOperations implements Callable<Boolean> {
    * @param readType the {@link ReadPType}
    * @param writeType the {@link WritePType}
    * @param fsContext the {@link FileSystemContext } to use for client operations
+   * @param workerNetAddress if not null, the worker address the file data will be written into
    */
-  public BasicOperations(AlluxioURI filePath, ReadType readType, WriteType writeType,
-      FileSystemContext fsContext) {
+  public BasicOperations(
+      AlluxioURI filePath, ReadType readType, WriteType writeType,
+      FileSystemContext fsContext, @Nullable WorkerNetAddress workerNetAddress) {
     mFilePath = filePath;
-    mReadOptions = OpenFilePOptions.newBuilder().setReadType(readType.toProto()).build();
-    mWriteOptions = CreateFilePOptions.newBuilder().setWriteType(writeType.toProto())
-        .setRecursive(true).build();
+    OpenFilePOptions.Builder readOptionsBuilder =
+        OpenFilePOptions.newBuilder().setReadType(readType.toProto());
+    CreateFilePOptions.Builder writeOptionsBuilder =
+        CreateFilePOptions.newBuilder().setWriteType(writeType.toProto())
+        .setRecursive(true);
+    if (workerNetAddress != null) {
+      writeOptionsBuilder.setWorkerLocation(workerNetAddress);
+      writeOptionsBuilder.setReplicationMax(1);
+      writeOptionsBuilder.setReplicationMin(1);
+      readOptionsBuilder.setUfsReadWorkerLocation(workerNetAddress);
+    }
+    mReadOptions = readOptionsBuilder.build();
+    mWriteOptions = writeOptionsBuilder.build();
     mFsContext = fsContext;
   }
 
