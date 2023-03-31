@@ -405,6 +405,8 @@ public class InodeSyncStream {
    * @return SyncStatus object
    */
   public SyncStatus sync() throws AccessControlException, InvalidPathException {
+    LOG.debug("Running InodeSyncStream on path {}, with status {}, and force sync {}",
+        mRootScheme.getPath(), mRootScheme.shouldSync(), mForceSync);
     if (!mRootScheme.shouldSync().isShouldSync() && !mForceSync) {
       DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
       return SyncStatus.NOT_NEEDED;
@@ -434,8 +436,6 @@ public class InodeSyncStream {
     int failedSyncPathCount = 0;
     int skippedSyncPathCount = 0;
     int stopNum = -1; // stop syncing when we've processed this many paths. -1 for infinite
-    LOG.debug("Running InodeSyncStream on path {}, with status {}, and force sync {}",
-        mRootScheme.getPath(), mRootScheme.shouldSync(), mForceSync);
     if (mDedupConcurrentSync && mRootScheme.shouldSync() != SyncCheck.SHOULD_SYNC) {
       /*
        * If a concurrent sync on the same path is successful after this sync had already
