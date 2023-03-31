@@ -20,7 +20,6 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
@@ -52,13 +51,8 @@ public class S3APositionReader implements PositionReader {
   }
 
   @Override
-  public int positionRead(long position, PageReadTargetBuffer buffer, int length)
+  public int positionReadInternal(long position, PageReadTargetBuffer buffer, int length)
       throws IOException {
-    Preconditions.checkArgument(length >= 0, "length should be non-negative");
-    Preconditions.checkArgument(position >= 0, "position should be non-negative");
-    if (length == 0) {
-      return 0;
-    }
     if (position >= mFileLength) { // at end of file
       return -1;
     }

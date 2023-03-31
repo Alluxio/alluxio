@@ -127,7 +127,7 @@ public class PagedFileReader extends BlockReader implements PositionReader {
   }
 
   @Override
-  public int positionRead(long position, PageReadTargetBuffer buffer, int length)
+  public int positionReadInternal(long position, PageReadTargetBuffer buffer, int length)
       throws IOException {
     return mPositionReader.positionRead(position, buffer, length);
   }
