@@ -227,6 +227,8 @@ public class FileSystemOptionsUtils {
         .setCommonOptions(commonDefaults(conf))
         .setLoadMetadataType(conf.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
             LoadMetadataPType.class))
+        .setExcludeMountInfo(conf.getBoolean(
+            PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS))
         .setLoadMetadataOnly(false)
         .build();
   }
