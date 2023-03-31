@@ -14,6 +14,7 @@ package alluxio.master.metastore.rocks;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
@@ -26,6 +27,7 @@ import alluxio.util.SleepUtils;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
+import jdk.nashorn.internal.runtime.regexp.joni.Config;
 import org.apache.commons.io.IOUtils;
 import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.BloomFilter;
@@ -57,6 +59,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -86,14 +90,16 @@ import javax.annotation.concurrent.NotThreadSafe;
  * For operations like closing/restart/restoring on the RocksDB, an exclusive lock should
  * be acquired by calling one of:
  * 1. {@link #lockForClosing()}
- * 2. {@link #lockForClearing()}
- * 3. {@link #lockForRestoring()}
- * 4. {@link #lockForCheckpointing()}
+ * 2. {@link #lockForRestart()}
+ * TODO(jiacheng): move the locking doc into RocksReadLock and RocksWriteLock
  */
 @NotThreadSafe
 public final class RocksStore implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(RocksStore.class);
   public static final int ROCKS_OPEN_RETRY_TIMEOUT = 20 * Constants.SECOND_MS;
+  public static final Duration ROCKS_CLOSE_WAIT_TIMEOUT =
+      Configuration.getDuration(PropertyKey.MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT);
+
   private final String mName;
   private final String mDbPath;
   private final String mDbCheckpointPath;
@@ -120,7 +126,7 @@ public final class RocksStore implements Closeable {
   private volatile Checkpoint mCheckpoint;
   private final List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
 
-  protected final AtomicReference<VersionedRocksStoreStatus> mStatus;
+  protected final AtomicBoolean mStopServing = new AtomicBoolean(false);
   protected final ReadWriteLock mDbStateLock = new ReentrantReadWriteLock();
 
   /**
@@ -135,7 +141,6 @@ public final class RocksStore implements Closeable {
       Collection<ColumnFamilyDescriptor> columnFamilyDescriptors,
       List<AtomicReference<ColumnFamilyHandle>> columnHandles) {
     Preconditions.checkState(columnFamilyDescriptors.size() == columnHandles.size());
-    mStatus = new AtomicReference<>(new VersionedRocksStoreStatus(false, 0));
     mName = name;
     mDbPath = dbPath;
     mDbCheckpointPath = checkpointPath;
@@ -145,7 +150,7 @@ public final class RocksStore implements Closeable {
     mDbOpts = dbOpts;
     mColumnHandles = columnHandles;
     LOG.info("Resetting RocksDB for {} on init", name);
-    try (RocksWriteLock lock = lockForClearing()) {
+    try (RocksWriteLock lock = lockForRestart()) {
       resetDb();
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -164,7 +169,7 @@ public final class RocksStore implements Closeable {
 
   /**
    * Clears and re-initializes the database.
-   * Requires the caller to acquire exclusive lock by calling {@link #lockForClearing()}.
+   * Requires the caller to acquire exclusive lock by calling {@link #lockForRestart()}.
    */
   public void clear() {
     try {
@@ -252,7 +257,7 @@ public final class RocksStore implements Closeable {
 
   /**
    * Writes a checkpoint of the database's content to the given output stream.
-   * Requires the caller to acquire an exclusive lock by calling {@link #lockForCheckpointing()}.
+   * Requires the caller to acquire an exclusive lock by calling {@link #lockForRestart()}.
    *
    * @param output the stream to write to
    */
@@ -306,7 +311,7 @@ public final class RocksStore implements Closeable {
 
   /**
    * Restores the database from a checkpoint.
-   * Requires the caller to acquire an exclusive lock by calling {@link #lockForRestoring()}.
+   * Requires the caller to acquire an exclusive lock by calling {@link #lockForRestart()}.
    *
    * @param input the checkpoint stream to restore from
    */
@@ -432,48 +437,49 @@ public final class RocksStore implements Closeable {
    * r/w access.
    */
   public RocksReadLock checkAndAcquireSharedLock() {
-    /*
-     *
-     */
-    // TODO(jiacheng): no longer need a version here?
-    VersionedRocksStoreStatus status = mStatus.get();
-    if (status.mStopServing) {
-      throw new UnavailableRuntimeException(
-          "RocksDB is closed. Master is failing over or shutting down.");
+    if (mStopServing.get()) {
+      throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.toString());
     }
-
+    /*
+     * The lock action is merely incrementing the lock so it is very fast
+     * The closer will respect the ref count and only close when the ref count is zero
+     */
     mRefCount.increment();
 
     /*
-     * Counter-intuitively, check again after getting the lock because
-     * we may get the read lock after the writer.
-     * The ref is different if the RocksDB is closed or restarted.
-     * If the RocksDB is restarted(cleared), we should abort even if it is serving.
+     * Need to check the flag again to prevent the sequence of events below:
+     * 1. Reader checks flag
+     * 2. Closer sets flag
+     * 3. Closer sees refCount=0
+     * 4. Reader increments refCount
+     *
+     * With the 2nd check, we make sure the ref count will be respected by the closer and
+     * the closer will therefore wait for this reader to complete/abort.
      */
-    VersionedRocksStoreStatus newStatus = mStatus.get();
-    // If RocksDB just writes a checkpoint, the version will not change and the req can be served
-    if (newStatus.mStopServing || newStatus.mVersion > status.mVersion) {
+    if (mStopServing.get()) {
       mRefCount.decrement();
-      throw new UnavailableRuntimeException(
-          "RocksDB is closed because the master is shutting down. Or the RocksDB is rewritten "
-              + "because the master is failing over.");
+      throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.toString());
     }
     return new RocksReadLock(mRefCount);
   }
 
   private void blockingWait() {
-    // TODO(jiacheng): consider if the version is necessary
-    mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(true, current.mVersion));
+    mStopServing.set(true);
 
-    // TODO(jiacheng): grace period
-
-
-    // TODO(jiacheng): configurable
+    /*
+    * Wait until:
+    * 1. Ref count is zero, meaning all concurrent r/w have completed or aborted
+    * 2. Timeout is reached, meaning we force close/restart without waiting
+    *
+    * According to Java doc
+    * https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/atomic/LongAdder.html
+    * In absence of concurrent updates, sum() returns an accurate result.
+    * But sum() does not see concurrent updates and therefore can miss an update.
+    * The correctness then relies on the 2nd check in checkAndAcquireSharedLock()
+    * because the reader will see the flag and just abort voluntarily.
+    */
     Instant waitStart = Instant.now();
-    // Wait until:
-    // 1. Ref count is zero, meaning all concurrent r/w have completed or aborted
-    // 2. Timeout is reached, meaning we force close/restart without waiting
-    CountingSleepRetry retry = new CountingSleepRetry(5, 1000);
+    CountingSleepRetry retry = new CountingSleepRetry(ROCKS_CLOSE_WAIT_TIMEOUT.getSeconds(), 1000);
     while (mRefCount.sum() != 0 && retry.attempt()) {
       SleepUtils.sleepMs(1000);
     }
@@ -481,7 +487,7 @@ public final class RocksStore implements Closeable {
     LOG.info("Waited {}ms for ongoing read/write to complete/abort", elapsed.toMillis());
     long unclosedOperations = mRefCount.sum();
     if (unclosedOperations != 0) {
-      LOG.warn("{} readers/writers fail to complete/abort before we restart the RocksDB",
+      LOG.warn("{} readers/writers fail to complete/abort before we stop/restart the RocksDB",
           unclosedOperations);
     }
   }
@@ -511,32 +517,10 @@ public final class RocksStore implements Closeable {
    * gets the shared lock, it is able to tell the RocksDB has been cleared.
    * See {@link #checkAndAcquireSharedLock} for how this affects the shared lock logic.
    */
-  public RocksWriteLock lockForClearing() {
+  public RocksWriteLock lockForRestart() {
     blockingWait();
     return new RocksWriteLock(() -> {
-      mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(false, current.mVersion + 1));
-    });
-  }
-
-  /**
-   *
-   *
-   */
-  public RocksWriteLock lockForCheckpointing() {
-    blockingWait();
-    return new RocksWriteLock(() -> {
-      mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(false, current.mVersion));
-    });
-  }
-
-  /**
-   *
-   *
-   */
-  public RocksWriteLock lockForRestoring() {
-    blockingWait();
-    return new RocksWriteLock(() -> {
-      mStatus.getAndUpdate((current) -> new VersionedRocksStoreStatus(false, current.mVersion + 1));
+      mStopServing.set(false);
     });
   }
 
@@ -545,36 +529,13 @@ public final class RocksStore implements Closeable {
    * to the RocksDB shutdown.
    */
   public void abortIfClosing() {
-    if (mStatus.get().mStopServing) {
+    if (mStopServing.get()) {
       throw new UnavailableRuntimeException(
           "RocksDB is closed. Master is failing over or shutting down.");
     }
   }
 
   public boolean isServiceStopping() {
-    return mStatus.get().mStopServing;
-  }
-
-  /**
-   * An object wrapper for RocksDB status. Two states are included.
-   * The StopServing flag is an indicator that RocksDB will stop serving shortly.
-   * This can be because the RocksDB will be closed, rewritten or wiped out.
-   * This StopServing flag is used in:
-   * 1. The shared lock will check this flag and give up the access early
-   * 2. An ongoing r/w (e.g. an iterator) will check this flag during iteration
-   *    and abort the iteration. So it will not block the RocksDB from shutting down.
-   *
-   * The version is needed because RocksBlockMetaStore and RocksInodeStore may clear and restart
-   * the RocksDB. If the r/w enters after the restart, it should also abort because the RocksDB
-   * may not have the data to operate on.
-   */
-  public static class VersionedRocksStoreStatus {
-    public final boolean mStopServing;
-    public final int mVersion;
-
-    public VersionedRocksStoreStatus(boolean closed, int version) {
-      mStopServing = closed;
-      mVersion = version;
-    }
+    return mStopServing.get();
   }
 }

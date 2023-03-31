@@ -28,8 +28,6 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.resource.CloseableIterator;
-import alluxio.resource.LockResource;
-import alluxio.util.SleepUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -568,7 +566,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
-    try (RocksWriteLock lock = mRocksStore.lockForCheckpointing()) {
+    try (RocksWriteLock lock = mRocksStore.lockForRestart()) {
       mRocksStore.writeToCheckpoint(output);
     }
   }

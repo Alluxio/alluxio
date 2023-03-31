@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class CountingSleepRetry implements RetryPolicy {
 
-  private final int mMaxRetries;
+  private final long mMaxRetries;
   private final int mSleepMs;
   private int mAttemptCount = 0;
 
@@ -36,7 +36,7 @@ public class CountingSleepRetry implements RetryPolicy {
    *
    * @param maxRetries max number of retries
    */
-  public CountingSleepRetry(int maxRetries, int sleepMs) {
+  public CountingSleepRetry(long maxRetries, int sleepMs) {
     Preconditions.checkArgument(maxRetries >= 0, "Max retries must be a non-negative number");
     Preconditions.checkArgument(sleepMs > 0, "sleepMs should be greater than zero");
     mMaxRetries = maxRetries;

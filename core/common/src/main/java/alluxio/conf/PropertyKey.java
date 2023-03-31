@@ -2617,6 +2617,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT =
+      durationBuilder(Name.MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT)
+          .setDefaultValue("10s")
+          .setIsHidden(true)
+          .setDescription("Before RocksDB is shut down/restarted/restored, Master will wait for "
+              + "ongoing operations to complete/abort. This timeout specifies how long to wait "
+              + "before forcing the action. Then the leftover operations will fail. Normally the "
+              + "wait will be short, because when master fails over/shuts down/replays journal, "
+              + "all other concurrent operations should have been stopped. This is just one extra "
+              + "safety guard. Therefore we do not recommend setting this manually.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
       booleanBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP)
         .setDefaultValue(false)
@@ -8084,10 +8097,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.rocks.checkpoint.compression.level";
     public static final String MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE =
         "alluxio.master.metastore.rocks.checkpoint.compression.type";
+    public static final String MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT =
+        "alluxio.master.metastore.rocks.exclusive.lock.timeout";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
         "alluxio.master.metastore.rocks.parallel.backup";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =
-        "alluxio.master.metastore.rocks.parallel.backup.threads";
+        "alluxio.master.metastore.rocks.parallel.backup.threads";;
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
         "alluxio.master.metastore.inode.cache.evict.batch.size";
     public static final String MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO =

@@ -15,7 +15,6 @@ import static org.junit.Assert.assertArrayEquals;
 
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 
-import alluxio.resource.LockResource;
 import com.google.common.primitives.Longs;
 import org.junit.Rule;
 import org.junit.Test;
@@ -74,7 +73,7 @@ public class RocksStoreTest {
                 "b".getBytes());
       }
     }
-    try (RocksWriteLock lock = store.lockForCheckpointing()) {
+    try (RocksWriteLock lock = store.lockForRestart()) {
       store.writeToCheckpoint(baos);
     }
     try (RocksWriteLock lock = store.lockForClosing()) {

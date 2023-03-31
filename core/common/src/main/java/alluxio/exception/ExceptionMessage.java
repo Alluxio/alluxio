@@ -192,6 +192,10 @@ public enum ExceptionMessage {
   // ufs maintenance
   UFS_OP_NOT_ALLOWED("Operation {0} not allowed on ufs path {1} under maintenance mode {2}"),
 
+  // RocksDB
+  ROCKS_DB_CLOSING("RocksDB is being closed because the master is under one of the following "
+      + "events: primary failover/shut down/checkpoint/journal replay"),
+
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 
