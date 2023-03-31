@@ -17,6 +17,13 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
+<<<<<<< HEAD
+||||||| parent of aee3c5cb96 (Support executing runTests on specific workers)
+import alluxio.client.file.FileSystemContext;
+=======
+import alluxio.client.block.policy.SpecificHostPolicy;
+import alluxio.client.file.FileSystemContext;
+>>>>>>> aee3c5cb96 (Support executing runTests on specific workers)
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
@@ -112,12 +119,21 @@ public final class OutStreamOptions {
     if (options.hasWriteType()) {
       mWriteType = WriteType.fromProto(options.getWriteType());
     }
+<<<<<<< HEAD
     try {
       mLocationPolicy = BlockLocationPolicy.Factory.create(
           alluxioConf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY), alluxioConf);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+||||||| parent of aee3c5cb96 (Support executing runTests on specific workers)
+=======
+    if (options.hasWorkerLocation()) {
+      int port = options.getWorkerLocation().getRpcPort();
+      mLocationPolicy = new SpecificHostPolicy(
+          options.getWorkerLocation().getHost(), port == 0 ? null : port);
+    }
+>>>>>>> aee3c5cb96 (Support executing runTests on specific workers)
   }
 
   private OutStreamOptions(ClientContext context, AlluxioConfiguration alluxioConf) {
