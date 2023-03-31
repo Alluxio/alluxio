@@ -13,6 +13,7 @@ package alluxio.cli;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
@@ -73,6 +74,8 @@ public final class TestRunner {
       description = "Alluxio worker addresses to run tests on. "
           + "If not specified, random ones will be used.",
       converter = WorkerAddressConverter.class)
+  @Nullable
+  @SuppressFBWarnings(value = "UWF_NULL_FIELD", justification = "Injected field")
   private List<WorkerNetAddress> mWorkerAddresses = null;
 
   /**
@@ -156,6 +159,17 @@ public final class TestRunner {
         System.out.println("Number of failed tests: " + failed);
       }
     } else {
+      // If workers are specified, the test will iterate through all workers and
+      // for each worker:
+      // 1. Create a file
+      // 2. Write the blocks of test files into a specific worker using SpecificHostPolicy
+      // 3. Open the file to read
+      // 4. If blocks are cached on the worker (MUST_CACHE/CACHE_THROUGH/ASYNC_THROUGH),
+      //    then data will be read from that specific worker as there is only one copy of data.
+      //    If blocks are not cached on the worker (THROUGH),
+      //    then data will be loaded from UFS into that specific worker, by setting the
+      //    ufsReadWorkerLocation field InStreamOptions.
+      // In this way, we made sure that a worker works normally on both reads and writes.
       HashMap<WorkerNetAddress, Integer> failedTestWorkers = new HashMap<>();
       boolean hasFailedWorkers = false;
       for (WorkerNetAddress workerNetAddress : mWorkerAddresses) {
@@ -251,6 +265,6 @@ public final class TestRunner {
 
   private String getWorkerAddressString(WorkerNetAddress workerAddress) {
     return workerAddress.getRpcPort() == 0 ? workerAddress.getHost() :
-        workerAddress.getHost() + ":" + workerAddress.getRpcPort();
+        workerAddress.getHost() + "_" + workerAddress.getRpcPort();
   }
 }

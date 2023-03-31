@@ -97,6 +97,8 @@ message OpenFilePOptions {
   optional bool updateLastAccessTime = 4 [default = true];
   // If specified and the blocks are not cached in any worker,
   // the data will be read and cached to the certain worker.
+  // If the blocks have been cached in some alluxio workers,
+  // this field will be ignored.
   optional grpc.WorkerNetAddress ufsReadWorkerLocation = 15;
 }
 
