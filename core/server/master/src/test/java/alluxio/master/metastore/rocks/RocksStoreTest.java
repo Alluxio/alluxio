@@ -67,7 +67,7 @@ public class RocksStoreTest {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RocksDB db;
     int count = 10;
-    try (RocksReadLock lock = store.checkAndAcquireReadLock()) {
+    try (RocksReadLock lock = store.checkAndAcquireSharedLock()) {
       db = store.getDb();
       for (int i = 0; i < count; i++) {
         db.put(testColumn.get(), new WriteOptions().setDisableWAL(true), ("a" + i).getBytes(),
@@ -93,7 +93,7 @@ public class RocksStoreTest {
       store.restoreFromCheckpoint(
           new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
     }
-    try (RocksReadLock lock = store.checkAndAcquireReadLock()) {
+    try (RocksReadLock lock = store.checkAndAcquireSharedLock()) {
       db = store.getDb();
       for (int i = 0; i < count; i++) {
         assertArrayEquals("b".getBytes(), db.get(testColumn.get(), ("a" + i).getBytes()));

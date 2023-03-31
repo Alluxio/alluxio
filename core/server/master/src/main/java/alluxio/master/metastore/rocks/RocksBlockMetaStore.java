@@ -278,7 +278,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   }
 
   private long getProperty(String rocksPropertyName) {
-    try (RocksReadLock lock = mRocksStore.checkAndAcquireReadLock()) {
+    try (RocksReadLock lock = mRocksStore.checkAndAcquireSharedLock()) {
       return db().getAggregatedLongProperty(rocksPropertyName);
     } catch (RocksDBException e) {
       LOG.warn(String.format("error collecting %s", rocksPropertyName), e);
@@ -289,7 +289,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   @Override
   public Optional<BlockMeta> getBlock(long id) {
     byte[] meta;
-    try (RocksReadLock lock = mRocksStore.checkAndAcquireReadLock()) {
+    try (RocksReadLock lock = mRocksStore.checkAndAcquireSharedLock()) {
       meta = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -306,7 +306,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
 
   @Override
   public void putBlock(long id, BlockMeta meta) {
-    try (RocksReadLock lock = mRocksStore.checkAndAcquireReadLock()) {
+    try (RocksReadLock lock = mRocksStore.checkAndAcquireSharedLock()) {
       byte[] buf = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
       // Overwrites the key if it already exists.
       db().put(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id), meta.toByteArray());
@@ -321,7 +321,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
 
   @Override
   public void removeBlock(long id) {
-    try (RocksReadLock lock = mRocksStore.checkAndAcquireReadLock()) {
+    try (RocksReadLock lock = mRocksStore.checkAndAcquireSharedLock()) {
       byte[] buf = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
       db().delete(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id));
       if (buf != null) {
@@ -385,7 +385,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
     // Ref: https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html
     // We assume this operation is short (one block cannot have too many locations)
     // and lock the full iteration
-    try (RocksReadLock lock = mRocksStore.checkAndAcquireReadLock();
+    try (RocksReadLock lock = mRocksStore.checkAndAcquireSharedLock();
         final RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(),
             mReadPrefixSameAsStart)) {
       iter.seek(Longs.toByteArray(id));
@@ -404,7 +404,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   @Override
   public void addLocation(long id, BlockLocation location) {
     byte[] key = RocksUtils.toByteArray(id, location.getWorkerId());
-    try (RocksReadLock lock = mRocksStore.checkAndAcquireReadLock()) {
+    try (RocksReadLock lock = mRocksStore.checkAndAcquireSharedLock()) {
       db().put(mBlockLocationsColumn.get(), mDisableWAL, key, location.toByteArray());
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -414,7 +414,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   @Override
   public void removeLocation(long blockId, long workerId) {
     byte[] key = RocksUtils.toByteArray(blockId, workerId);
-    try (RocksReadLock lock = mRocksStore.checkAndAcquireReadLock()) {
+    try (RocksReadLock lock = mRocksStore.checkAndAcquireSharedLock()) {
       db().delete(mBlockLocationsColumn.get(), mDisableWAL, key);
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -428,7 +428,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
    * 2. Journal dumping like checkpoint/backup sequences
    */
   public CloseableIterator<Block> getCloseableIterator() {
-    RocksReadLock lock = mRocksStore.checkAndAcquireReadLock();
+    RocksReadLock lock = mRocksStore.checkAndAcquireSharedLock();
 
     RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
     return RocksUtils.createCloseableIterator(iterator,

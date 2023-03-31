@@ -37,6 +37,11 @@ import org.openjdk.jmh.infra.Blackhole;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Unfortunately this microbench was not showing much meaningful output.
+ * The result was probably too much impacted by the variance in RocksDB access speed.
+ * So the difference in lock contention was not obvious at all.
+ */
 @Fork(value = 3)
 @Warmup(iterations = 2)
 public class RocksInodeStoreBench {
@@ -136,15 +141,12 @@ public class RocksInodeStoreBench {
 
   @BenchmarkMode(Mode.AverageTime)
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
-  @Threads(10)
+  @Threads(40)
   @Benchmark
-  public long RockGetMutableBench(RockState rs, Blackhole bh) {
-    long counter = 0;
+  public void RockGetMutableBench(RockState rs, Blackhole bh) {
     for (long i = rs.mInodeCount; i > 0; i--) {
       bh.consume(rs.mRock.getMutable(i));
-      counter += 1;
     }
-    return counter;
   }
 
   @BenchmarkMode(Mode.AverageTime)
