@@ -427,21 +427,34 @@ public class AbstractFileSystemTest {
   public void listStatusWithoutMountInfo() throws Exception {
     Path path = new Path("/dir");
     FileSystem alluxioHadoopFs = new FileSystem();
+    FileSystemContext fsContext = PowerMockito.mock(FileSystemContext.class);
     URI uri = URI.create(Constants.HEADER + "localhost:1");
     Configuration configuration = getConf();
+
+    // exclude mount info
     configuration.setBoolean(
         PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS.getName(),
         true);
     alluxioHadoopFs.initialize(uri, configuration);
-
-    FileSystemContext fsContext = PowerMockito.mock(FileSystemContext.class);
     when(fsContext.getPathConf(any())).thenReturn(alluxioHadoopFs.mFileSystem.getConf());
-
     ListStatusPOptions mergedOptions = FileSystemOptionsUtils.listStatusDefaults(
         fsContext.getPathConf(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)))).toBuilder()
             .mergeFrom(ListStatusPOptions.getDefaultInstance()).build();
-
     Assert.assertTrue(mergedOptions.getExcludeMountInfo());
+    alluxioHadoopFs.close();
+
+    alluxioHadoopFs = new FileSystem();
+    // include mount info
+    configuration.setBoolean(
+        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS.getName(),
+            false);
+    alluxioHadoopFs.initialize(uri, configuration);
+    when(fsContext.getPathConf(any())).thenReturn(alluxioHadoopFs.mFileSystem.getConf());
+    mergedOptions = FileSystemOptionsUtils.listStatusDefaults(
+        fsContext.getPathConf(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)))).toBuilder()
+            .mergeFrom(ListStatusPOptions.getDefaultInstance()).build();
+
+    Assert.assertFalse(mergedOptions.getExcludeMountInfo());
     alluxioHadoopFs.close();
   }
 
