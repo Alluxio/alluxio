@@ -134,7 +134,14 @@ public class JournalStateMachine extends BaseStateMachine {
   // created by this master or downloaded from other masters
   private volatile long mSnapshotLastIndex = -1;
   private long mLastSnapshotTime = -1;
+  @SuppressFBWarnings(value = "IS2_INCONSISTENT_SYNC",
+      justification = "Written in synchronized block, read by metrics")
+  private long mLastSnapshotDurationMs = -1;
+  @SuppressFBWarnings(value = "IS2_INCONSISTENT_SYNC",
+      justification = "Written in synchronized block, read by metrics")
+  private long mLastSnapshotEntriesCount = -1;
   private long mLastSnapshotReplayDurationMs = -1;
+  private long mLastSnapshotReplayEntriesCount = -1;
   /** Used to control applying to masters. */
   private BufferedJournalApplier mJournalApplier;
 
@@ -180,8 +187,17 @@ public class JournalStateMachine extends BaseStateMachine {
                 PropertyKey.MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME)
     );
     MetricsSystem.registerGaugeIfAbsent(
-        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_REPLAY_DURATION.getName(),
+        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DURATION_MS.getName(),
+        () -> mLastSnapshotDurationMs);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_ENTRIES_COUNT.getName(),
+        () -> mLastSnapshotEntriesCount);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_REPLAY_DURATION_MS.getName(),
         () -> mLastSnapshotReplayDurationMs);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_REPLAY_ENTRIES_COUNT.getName(),
+        () -> mLastSnapshotReplayEntriesCount);
   }
 
   @Override
@@ -511,16 +527,19 @@ public class JournalStateMachine extends BaseStateMachine {
     }
     try (Timer.Context ctx = MetricsSystem.timer(
              MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER.getName()).time()) {
+      Instant start = Instant.now();
       long snapshotId = mNextSequenceNumberToRead - 1;
       SingleEntryJournaled idWriter = new SnapshotIdJournaled();
       idWriter.processJournalEntry(JournalEntry.newBuilder().setSequenceNumber(snapshotId).build());
-
       CompletableFuture.allOf(Stream.concat(Stream.of(idWriter), getStateMachines().stream())
           .map(journaled -> journaled.writeToCheckpoint(snapshotDir, mJournalPool))
           .toArray(CompletableFuture[]::new))
           .join();
       mStorage.loadLatestSnapshot();
       mStorage.signalNewSnapshot();
+
+      mLastSnapshotDurationMs = Duration.between(start, Instant.now()).toMillis();
+      mLastSnapshotEntriesCount = mNextSequenceNumberToRead;
       return last.getIndex();
     } catch (Exception e) {
       LOG.error("error taking snapshot", e);
@@ -572,6 +591,7 @@ public class JournalStateMachine extends BaseStateMachine {
           mNextSequenceNumberToRead);
     }
     mNextSequenceNumberToRead = snapshotId + 1;
+    mLastSnapshotReplayEntriesCount = mNextSequenceNumberToRead;
     LOG.info("Successfully installed snapshot up to SN {}", snapshotId);
   }
 

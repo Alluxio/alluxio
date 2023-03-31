@@ -870,6 +870,18 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Journal metrics
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DURATION_MS =
+      new Builder("Master.EmbeddedJournalLastSnapshotDurationMs")
+          .setDescription("Describes the amount of time taken to generate the last local journal "
+              + "snapshots on this master. Only valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_ENTRIES_COUNT =
+      new Builder("Master.EmbeddedJournalLastSnapshotEntriesCount")
+          .setDescription("Describes the number of entries in the last local journal "
+              + "snapshots on this master. Only valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotGenerateTimer")
           .setDescription("Describes the amount of time taken to generate local journal snapshots"
@@ -884,8 +896,8 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "running average.")
           .setMetricType(MetricType.TIMER)
           .build();
-  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DOWNLOAD_DURATION =
-      new Builder("Master.EmbeddedJournalLastSnapshotDownloadDuration")
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DOWNLOAD_DURATION_MS =
+      new Builder("Master.EmbeddedJournalLastSnapshotDownloadDurationMs")
           .setDescription("Describes the amount of time taken to download journal snapshots from "
               + "other masters in the cluster the previous time the download occurred. Only "
               + "valid when using the embedded journal.")
@@ -951,8 +963,8 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "running average")
           .setMetricType(MetricType.TIMER)
           .build();
-  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_UPLOAD_DURATION =
-      new Builder("Master.EmbeddedJournalLastSnapshotUploadDuration")
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_UPLOAD_DURATION_MS =
+      new Builder("Master.EmbeddedJournalLastSnapshotUploadDurationMs")
           .setDescription("Describes the amount of time taken to upload journal snapshots to "
               + "another master in the cluster the previous time the upload occurred. Only "
               + "valid when using the embedded journal.")
@@ -975,8 +987,14 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "snapshot file. Higher numbers may indicate a slow disk or CPU contention")
           .setMetricType(MetricType.TIMER)
           .build();
-  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_REPLAY_DURATION =
-      new Builder("Master.EmbeddedJournalLastSnapshotReplayDuration")
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_REPLAY_DURATION_MS =
+      new Builder("Master.EmbeddedJournalLastSnapshotReplayDurationMs")
+          .setDescription("Represents the time the last restore from checkpoint operation took in"
+              + " milliseconds.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_REPLAY_ENTRIES_COUNT =
+      new Builder("Master.EmbeddedJournalLastSnapshotReplayEntriesCount")
           .setDescription("Represents the time the last restore from checkpoint operation took in"
               + " milliseconds.")
           .setMetricType(MetricType.GAUGE)

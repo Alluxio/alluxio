@@ -52,7 +52,7 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
       Configuration.getInt(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
 
   private final StateMachineStorage mStateMachineStorage;
-  private volatile long mLastSnapshotUploadDuration = -1;
+  private volatile long mLastSnapshotUploadDurationMs = -1;
   private volatile long mLastSnapshotUploadSize = -1;
   private volatile long mLastSnapshotUploadDiskSize = -1;
 
@@ -63,8 +63,8 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
     mStateMachineStorage = storage;
 
     MetricsSystem.registerGaugeIfAbsent(
-        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_UPLOAD_DURATION.getName(),
-        () -> mLastSnapshotUploadDuration);
+        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_UPLOAD_DURATION_MS.getName(),
+        () -> mLastSnapshotUploadDurationMs);
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_UPLOAD_SIZE.getName(),
         () -> mLastSnapshotUploadSize);
@@ -152,10 +152,10 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
     }
     responseObserver.onCompleted();
     // update last duration and duration timer metrics
-    mLastSnapshotUploadDuration = Duration.between(start, Instant.now()).toMillis();
+    mLastSnapshotUploadDurationMs = Duration.between(start, Instant.now()).toMillis();
     MetricsSystem.timer(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_TIMER.getName())
-        .update(mLastSnapshotUploadDuration, TimeUnit.MILLISECONDS);
-    LOG.info("Total milliseconds to upload {}: {}", index, mLastSnapshotUploadDuration);
+        .update(mLastSnapshotUploadDurationMs, TimeUnit.MILLISECONDS);
+    LOG.info("Total milliseconds to upload {}: {}", index, mLastSnapshotUploadDurationMs);
     // update uncompressed snapshot size metric
     mLastSnapshotUploadDiskSize = diskSize;
     MetricsSystem.histogram(

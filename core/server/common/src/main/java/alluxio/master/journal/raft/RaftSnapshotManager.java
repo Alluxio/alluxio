@@ -27,6 +27,7 @@ import alluxio.util.TarUtils;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.util.network.NetworkAddressUtils;
 
+import com.codahale.metrics.Timer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.ratis.server.protocol.TermIndex;
@@ -68,7 +69,7 @@ public class RaftSnapshotManager implements AutoCloseable {
   private final SnapshotDirStateMachineStorage mStorage;
   private final Map<InetSocketAddress, RaftJournalServiceClient> mClients;
 
-  private volatile long mLastSnapshotDownloadDuration = -1;
+  private volatile long mLastSnapshotDownloadDurationMs = -1;
   private volatile long mLastSnapshotDownloadSize = -1;
   private volatile long mLastSnapshotDownloadDiskSize = -1;
 
@@ -92,8 +93,8 @@ public class RaftSnapshotManager implements AutoCloseable {
         }));
 
     MetricsSystem.registerGaugeIfAbsent(
-        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DOWNLOAD_DURATION.getName(),
-        () -> mLastSnapshotDownloadDuration);
+        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DOWNLOAD_DURATION_MS.getName(),
+        () -> mLastSnapshotDownloadDurationMs);
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DOWNLOAD_SIZE.getName(),
         () -> mLastSnapshotDownloadSize);
@@ -185,8 +186,8 @@ public class RaftSnapshotManager implements AutoCloseable {
     return mClients.keySet().parallelStream()
         // map to a pair of (address, SnapshotMetadata) by requesting all followers in parallel
         .map(address -> {
+          RaftJournalServiceClient client = mClients.get(address);
           try {
-            RaftJournalServiceClient client = mClients.get(address);
             client.connect();
             LOG.info("Receiving snapshot info from {}", address);
             SnapshotMetadata metadata = client.requestLatestSnapshotInfo();
@@ -197,6 +198,7 @@ public class RaftSnapshotManager implements AutoCloseable {
             }
             return ImmutablePair.of(metadata, address);
           } catch (Exception e) {
+            client.disconnect();
             LOG.debug("Failed to retrieve snapshot info from {}", address, e);
             return ImmutablePair.of(SnapshotMetadata.newBuilder().setExists(false).build(),
                 address);
@@ -219,8 +221,8 @@ public class RaftSnapshotManager implements AutoCloseable {
     TermIndex index = toTermIndex(snapshotMetadata);
     LOG.info("Retrieving snapshot {} from {}", index, address);
     Instant start = Instant.now();
+    RaftJournalServiceClient client = mClients.get(address);
     try {
-      RaftJournalServiceClient client = mClients.get(address);
       client.connect();
       Iterator<SnapshotData> it = client.requestLatestSnapshotData(snapshotMetadata);
       final long[] totalBytesRead = {0L};
@@ -249,10 +251,10 @@ public class RaftSnapshotManager implements AutoCloseable {
               snapshotMetadata.getSnapshotIndex()));
       FileUtils.moveDirectory(mStorage.getTmpDir(), finalSnapshotDestination);
       // update last duration and duration timer metrics
-      mLastSnapshotDownloadDuration = Duration.between(start, Instant.now()).toMillis();
+      mLastSnapshotDownloadDurationMs = Duration.between(start, Instant.now()).toMillis();
       MetricsSystem.timer(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER.getName())
-              .update(mLastSnapshotDownloadDuration, TimeUnit.MILLISECONDS);
-      LOG.debug("Total milliseconds to download {}: {}", index, mLastSnapshotDownloadDuration);
+              .update(mLastSnapshotDownloadDurationMs, TimeUnit.MILLISECONDS);
+      LOG.debug("Total milliseconds to download {}: {}", index, mLastSnapshotDownloadDurationMs);
       // update uncompressed snapshot size metric
       mLastSnapshotDownloadDiskSize = snapshotDiskSize;
       MetricsSystem.histogram(
@@ -265,12 +267,15 @@ public class RaftSnapshotManager implements AutoCloseable {
               MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_HISTOGRAM.getName())
           .update(mLastSnapshotDownloadSize);
       LOG.debug("Total bytes read from {} for {}: {}", address, index, mLastSnapshotDownloadSize);
-
-      mStorage.loadLatestSnapshot();
-      mStorage.signalNewSnapshot();
+      try (Timer.Context ctx = MetricsSystem.timer(
+          MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_INSTALL_TIMER.getName()).time()) {
+        mStorage.loadLatestSnapshot();
+        mStorage.signalNewSnapshot();
+      }
       LOG.info("Retrieved snapshot {} from {}", index, address);
       return snapshotMetadata.getSnapshotIndex();
     } catch (Exception e) {
+      client.disconnect();
       LOG.warn("Failed to download snapshot {} from {}", index, address);
       LOG.debug("Download failure error", e);
       return RaftLog.INVALID_LOG_INDEX;

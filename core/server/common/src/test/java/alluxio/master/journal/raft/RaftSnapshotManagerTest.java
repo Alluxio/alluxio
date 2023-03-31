@@ -167,6 +167,43 @@ public class RaftSnapshotManagerTest {
     Assert.assertFalse(directoriesEqual(snapshotDir2, snapshotDir1));
   }
 
+  @Test
+  public void successThenFailureThenSuccess() throws IOException {
+    // eliminate one of the two servers
+    mGrpcServers.get(2).shutdown();
+    mGrpcServers.get(2).awaitTermination();
+
+    createSampleSnapshot(mSmStorages.get(1), 1, 10);
+    mSmStorages.get(1).loadLatestSnapshot();
+    mManagers.get(0).downloadSnapshotFromOtherMasters();
+    long l = mManagers.get(0).waitForAttemptToComplete();
+    Assert.assertEquals(10, l);
+    File snapshotDir1 = mSmStorages.get(1).getSnapshotDir();
+    File snapshotDir0 = mSmStorages.get(0).getSnapshotDir();
+    Assert.assertTrue(directoriesEqual(snapshotDir0, snapshotDir1));
+
+    createSampleSnapshot(mSmStorages.get(1), 2, 100);
+    mSmStorages.get(1).loadLatestSnapshot();
+    int bindPort = mGrpcServers.get(1).getBindPort();
+    mGrpcServers.get(1).shutdown();
+    mGrpcServers.get(1).awaitTermination();
+    mManagers.get(0).downloadSnapshotFromOtherMasters();
+    l = mManagers.get(0).waitForAttemptToComplete();
+    Assert.assertEquals(-1, l); // failure expected
+
+    // recreate grpc server on the same port
+    mGrpcServers.add(1,
+        createGrpcServer(new RaftJournalServiceHandler(mSmStorages.get(1)), bindPort));
+    mGrpcServers.get(1).start();
+    createSampleSnapshot(mSmStorages.get(1), 3, 1_000);
+    mSmStorages.get(1).loadLatestSnapshot();
+    mManagers.get(0).downloadSnapshotFromOtherMasters();
+    l = mManagers.get(0).waitForAttemptToComplete();
+    Assert.assertEquals(1_000, l);
+    // server 1 has more snapshots than server 0
+    Assert.assertFalse(directoriesEqual(snapshotDir0, snapshotDir1));
+  }
+
   public static SnapshotDirStateMachineStorage createStateMachineStorage(TemporaryFolder folder)
       throws IOException {
     RaftStorageImpl raftStorage = StorageImplUtils.newRaftStorage(folder.newFolder(),
@@ -179,7 +216,12 @@ public class RaftSnapshotManagerTest {
   }
 
   public static GrpcServer createGrpcServer(RaftJournalServiceHandler handler) throws IOException {
-    try (ServerSocket socket = new ServerSocket(0)) {
+    return createGrpcServer(handler, 0);
+  }
+
+  public static GrpcServer createGrpcServer(RaftJournalServiceHandler handler, int port)
+      throws IOException {
+    try (ServerSocket socket = new ServerSocket(port)) {
       InetSocketAddress address = new InetSocketAddress(socket.getLocalPort());
       return GrpcServerBuilder.forAddress(
               GrpcServerAddress.create(address.getHostName(), address),
@@ -213,6 +255,9 @@ public class RaftSnapshotManagerTest {
     }
     List<File> files1 = new ArrayList<>(FileUtils.listFiles(dir1, null, true));
     List<File> files2 = new ArrayList<>(FileUtils.listFiles(dir2, null, true));
+    if (files1.size() != files2.size()) {
+      return false;
+    }
     for (File file1 : files1) {
       Path relativize1 = dir1.toPath().relativize(file1.toPath());
       Optional<File> optionalFile = files2.stream()
