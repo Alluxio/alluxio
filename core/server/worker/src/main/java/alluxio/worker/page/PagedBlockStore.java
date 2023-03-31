@@ -54,6 +54,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
 import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +69,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import javax.inject.Named;
 
 /**
  * A paged implementation of LocalBlockStore interface.
@@ -132,9 +134,11 @@ public class PagedBlockStore implements BlockStore {
    * @param pageMetaStore meta data store for pages and blocks
    * @param pageSize page size
    */
+  @Inject
   PagedBlockStore(CacheManager cacheManager, UfsManager ufsManager, BlockMasterClientPool pool,
-      AtomicReference<Long> workerId, PagedBlockMetaStore pageMetaStore,
-      long pageSize) {
+                  @Named("workerId") AtomicReference<Long> workerId,
+                  PagedBlockMetaStore pageMetaStore,
+                  @Named("pageSize") Long pageSize) {
     mCacheManager = cacheManager;
     mUfsManager = ufsManager;
     mBlockMasterClientPool = pool;

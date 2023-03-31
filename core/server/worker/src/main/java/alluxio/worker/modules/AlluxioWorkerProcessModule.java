@@ -9,24 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker;
+package alluxio.worker.modules;
 
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.worker.AlluxioWorkerProcess;
+import alluxio.worker.WorkerProcess;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Scopes;
 
 /**
- * Interface for factory of {@link Worker}.
+ * Grpc worker module.
  */
-@ThreadSafe
-public interface WorkerFactory {
-  /**
-   * @return whether the worker is enabled
-   */
-  boolean isEnabled();
-
-  /**
-   * Factory method to create a new worker instance.
-   *
-   * @return a new {@link Worker} instance
-   */
-  Worker create();
+public class AlluxioWorkerProcessModule extends AbstractModule {
+  @Override
+  protected void configure() {
+    bind(WorkerProcess.class).to(AlluxioWorkerProcess.class).in(Scopes.SINGLETON);
+  }
 }

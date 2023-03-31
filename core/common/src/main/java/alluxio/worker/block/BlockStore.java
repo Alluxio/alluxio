@@ -37,6 +37,12 @@ import java.util.concurrent.CompletableFuture;
 public interface BlockStore extends Closeable, SessionCleanable {
 
   /**
+   * Initialize the block store.
+   */
+  default void initialize() {
+  }
+
+  /**
    * Aborts a temporary block. The metadata of this block will not be added, its data will be
    * deleted and the space will be reclaimed. Since a temp block is "private" to the writer, this
    * requires no previously acquired lock.

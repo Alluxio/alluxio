@@ -9,24 +9,21 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker;
+package alluxio.worker.block;
 
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.io.StoreBlockWriter;
+import alluxio.worker.block.meta.TempBlockMeta;
+
+import java.io.IOException;
 
 /**
- * Interface for factory of {@link Worker}.
+ * Factory for tiered block writer.
  */
-@ThreadSafe
-public interface WorkerFactory {
-  /**
-   * @return whether the worker is enabled
-   */
-  boolean isEnabled();
+public class TieredBlockWriterFactory implements BlockWriterFactory {
 
-  /**
-   * Factory method to create a new worker instance.
-   *
-   * @return a new {@link Worker} instance
-   */
-  Worker create();
+  @Override
+  public BlockWriter createBlockWriter(TempBlockMeta tempBlockMeta) throws IOException {
+    return new StoreBlockWriter(tempBlockMeta);
+  }
 }

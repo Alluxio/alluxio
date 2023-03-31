@@ -9,24 +9,23 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker;
+package alluxio.worker.block;
 
-import javax.annotation.concurrent.ThreadSafe;
+import alluxio.worker.block.meta.DirView;
+import alluxio.worker.block.meta.TempBlockMeta;
 
 /**
- * Interface for factory of {@link Worker}.
+ * Factory for TempBlockMeta.
  */
-@ThreadSafe
-public interface WorkerFactory {
-  /**
-   * @return whether the worker is enabled
-   */
-  boolean isEnabled();
+public interface TempBlockMetaFactory {
 
   /**
-   * Factory method to create a new worker instance.
-   *
-   * @return a new {@link Worker} instance
+   * @param sessionId
+   * @param blockId
+   * @param initialBlockSize
+   * @param dirView
+   * @return TempBlockMeta
    */
-  Worker create();
+  TempBlockMeta createTempBlockMeta(long sessionId, long blockId, long initialBlockSize,
+      DirView dirView);
 }

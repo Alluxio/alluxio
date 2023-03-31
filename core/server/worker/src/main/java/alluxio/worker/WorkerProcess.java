@@ -13,10 +13,19 @@ package alluxio.worker;
 
 import alluxio.Process;
 import alluxio.conf.Configuration;
-import alluxio.network.TieredIdentityFactory;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsManager;
-import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.modules.AlluxioWorkerProcessModule;
+import alluxio.worker.modules.BlockWorkerModule;
+import alluxio.worker.modules.DoraWorkerModule;
+import alluxio.worker.modules.GrpcServerModule;
+import alluxio.worker.modules.NettyServerModule;
+
+import com.google.common.collect.ImmutableList;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
 
 import java.net.InetSocketAddress;
 import javax.annotation.concurrent.ThreadSafe;
@@ -34,18 +43,25 @@ public interface WorkerProcess extends Process {
      * @return a new instance of {@link WorkerProcess}
      */
     public static WorkerProcess create() {
-      return create(TieredIdentityFactory.localIdentity(Configuration.global()));
+      // read configurations
+      boolean isDoraEnable = Configuration.global()
+          .getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
+      boolean isNettyDataTransmissionEnable =
+          Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
+      // add modules that need to be injected
+      ImmutableList.Builder<Module> modules = ImmutableList.builder();
+      modules.add(isDoraEnable ? new DoraWorkerModule() : new BlockWorkerModule());
+      modules.add(new GrpcServerModule());
+      modules.add(new NettyServerModule(isNettyDataTransmissionEnable));
+      modules.add(new AlluxioWorkerProcessModule());
+
+      // inject the modules
+      Injector injector = Guice.createInjector(modules.build());
+      return injector.getInstance(WorkerProcess.class);
     }
 
-    /**
-     * @param tieredIdentity tiered identity for the worker process
-     * @return a new instance of {@link WorkerProcess}
-     */
-    public static WorkerProcess create(TieredIdentity tieredIdentity) {
-      return new AlluxioWorkerProcess(tieredIdentity);
-    }
-
-    private Factory() {} // prevent instantiation
+    private Factory() {
+    } // prevent instantiation
   }
 
   /**
@@ -105,8 +121,7 @@ public interface WorkerProcess extends Process {
 
   /**
    * @param clazz the class of the worker to get
-   * @param <T> the type of the worker to get
-
+   * @param <T>   the type of the worker to get
    * @return the given worker
    */
   <T extends Worker> T getWorker(Class<T> clazz);
