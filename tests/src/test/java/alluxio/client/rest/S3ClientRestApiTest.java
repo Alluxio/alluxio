@@ -1315,6 +1315,17 @@ public final class S3ClientRestApiTest extends RestApiTest {
     String expectedResult = XML_MAPPER.writeValueAsString(expected);
 
     Assert.assertEquals(expectedResult, result);
+
+    URIStatus mpMetaFileStatus = mFileSystem.getStatus(
+        new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)));
+    Assert.assertTrue(mpMetaFileStatus.isCompleted());
+
+    AlluxioURI mpTempDirURI = new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(
+        S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucketName),
+        objectName, uploadId));
+    Assert.assertTrue(mFileSystem.exists(mpTempDirURI));
+    URIStatus mpTempDirStatus = mFileSystem.getStatus(mpTempDirURI);
+    Assert.assertTrue(mpTempDirStatus.getFileInfo().isFolder());
   }
 
   @Test
