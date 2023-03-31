@@ -471,11 +471,7 @@ public class AbstractFileSystemTest {
       alluxioHadoopFs = new FileSystem(alluxioFs);
       URI uri = URI.create(Constants.HEADER + "host:1");
       alluxioHadoopFs.initialize(uri, getConf());
-      ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
-          .setExcludeMountInfo(alluxioHadoopFs.mAlluxioConf.getBoolean(
-              PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS)).build();
-      when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
-          listStatusPOptions))
+      when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
           .thenThrow(new FileNotFoundException("ALLUXIO-2036 not Found"));
       FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
       // if we reach here, FileNotFoundException is not thrown hence Fail the test case
