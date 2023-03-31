@@ -325,7 +325,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   public void clear() {
     // Block all new readers and make concurrent readers bail asap
     LOG.info("Marking RocksDB closed so all concurrent read/write should stop");
-    try (RocksWriteLock lock = mRocksStore.lockForClearing()) {
+    try (RocksWriteLock lock = mRocksStore.lockForRestart()) {
       LOG.info("Clearing RocksDB");
       mRocksStore.clear();
     }
@@ -573,7 +573,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
-    try (RocksWriteLock lock = mRocksStore.lockForRestoring()) {
+    try (RocksWriteLock lock = mRocksStore.lockForRestart()) {
       mRocksStore.restoreFromCheckpoint(input);
     }
   }

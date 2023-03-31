@@ -88,7 +88,7 @@ public class RocksStoreTest {
     store =
         new RocksStore("test-new", newBbDir, backupsDir, dbOpts, columnDescriptors,
             Arrays.asList(testColumn));
-    try (RocksWriteLock lock = store.lockForRestoring()) {
+    try (RocksWriteLock lock = store.lockForRestart()) {
       store.restoreFromCheckpoint(
           new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
     }
