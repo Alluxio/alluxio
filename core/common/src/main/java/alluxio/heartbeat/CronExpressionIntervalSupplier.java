@@ -26,11 +26,13 @@ public class CronExpressionIntervalSupplier extends FixedIntervalSupplier {
 
     @Override
     public long getNextInterval(long mPreviousTickedMs, long nowTimeStampMillis) {
-      Date now = Date.from(Instant.ofEpochMilli(nowTimeStampMillis));
+      long nextInterval = super.getNextInterval(mPreviousTickedMs, nowTimeStampMillis);
+      Date now = Date.from(Instant.ofEpochMilli(nowTimeStampMillis + nextInterval));
       if (mCron.isSatisfiedBy(now)) {
-        return 0;
+        return nextInterval;
       }
-      return Duration.between(now.toInstant(), mCron.getNextValidTimeAfter(now).toInstant()).toMillis();
+      return nextInterval + Duration.between(
+          now.toInstant(), mCron.getNextValidTimeAfter(now).toInstant()).toMillis();
     }
 
     @Override

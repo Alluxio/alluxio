@@ -19,6 +19,7 @@ import alluxio.Constants;
 import alluxio.clock.ManualClock;
 import alluxio.time.Sleeper;
 
+import org.apache.logging.log4j.core.util.CronExpression;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,14 +61,13 @@ public final class CronTimerTest {
    */
   @Test
   public void maintainInterval() throws Exception {
-    CronTimer timer =
-        new CronTimer(THREAD_NAME, mMockLogger, mFakeClock, mMockSleeper, () -> INTERVAL_MS,
-            () -> "* 30-59 0-1,4-9,13-23 * * ? *");
+    CronExpressionIntervalSupplier timer =
+        new CronExpressionIntervalSupplier(new CronExpression("* 30-59 0-1,4-9,13-23 * * ? *"), INTERVAL_MS);
     DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     Date startDate = formatter.parse("2022-01-01 00:00:00");
     Assert.assertEquals(-1, timer.mPreviousTickedMs);
     mFakeClock.setTimeMs(startDate.getTime());
-    long limitMs = timer.tick();
+    long limitMs = timer.getNextInterval(-1, startDate.getTime());
     long lastAllSleepTimeMs = mAllSleepTimeMs;
     Assert.assertEquals(30 * Constants.MINUTE_MS, mAllSleepTimeMs);
     Assert.assertEquals(30 * Constants.MINUTE_MS, limitMs);

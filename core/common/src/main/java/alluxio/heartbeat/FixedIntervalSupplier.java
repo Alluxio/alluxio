@@ -24,7 +24,7 @@ public class FixedIntervalSupplier implements SleepIntervalSupplier {
     if (executionTimeMs > mInterval) {
       return 0;
     }
-    return mInterval;
+    return mInterval - executionTimeMs;
   }
 
   @Override
