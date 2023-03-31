@@ -83,11 +83,12 @@ public final class TestRunner {
   /**
    * Console program that validates the configuration.
    *
-   * @param args there are no arguments needed
+   * @param args array of arguments given by the user's input from the terminal
    */
   public static void main(String[] args) throws Exception {
     TestRunner runner = new TestRunner();
     JCommander jCommander = new JCommander(runner);
+    jCommander.parse(args);
     jCommander.setProgramName("TestRunner");
     if (runner.mHelp) {
       jCommander.usage();
