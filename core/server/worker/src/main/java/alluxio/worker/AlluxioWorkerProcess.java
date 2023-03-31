@@ -131,17 +131,26 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         } else if (worker instanceof DoraWorker) {
           mRegistry.add(DoraWorker.class, worker);
         }
+        mRegistry.addAlias(DataWorker.class, worker);
         return null;
       });
       CommonUtils.invokeAll(callables,
           Configuration.getMs(PropertyKey.WORKER_STARTUP_TIMEOUT));
 
-      mDoraEnable = Configuration.global()
-          .getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
-      if (mDoraEnable) {
-        setUpServersWithDoraWorker(dataServerFactory);
-      } else {
-        setUpServersWithBlockWorker(dataServerFactory);
+      // Setup web server
+      mWebServer =
+          new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
+              Configuration.global()), this,
+              mRegistry.get(DataWorker.class));
+
+      // Setup GRPC server
+      mDataServer = dataServerFactory.createRemoteGrpcDataServer(
+          mRegistry.get(DataWorker.class));
+
+      // Setup domain socket data server
+      if (isDomainSocketEnabled()) {
+        mDomainSocketDataServer = dataServerFactory.createDomainSocketDataServer(
+            mRegistry.get(DataWorker.class));
       }
 
       // Setup Netty Data Server
@@ -154,42 +163,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       }
     } catch (Exception e) {
       throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * Set up servers with block worker.
-   * @param dataServerFactory
-   */
-  private void setUpServersWithBlockWorker(DataServerFactory dataServerFactory) {
-    // Setup web server
-    mWebServer =
-        new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
-            Configuration.global()), this,
-            mRegistry.get(BlockWorker.class));
-    // Setup GRPC server
-    mDataServer = dataServerFactory.createRemoteGrpcDataServer(
-        mRegistry.get(BlockWorker.class));
-    // Setup domain socket data server
-    if (isDomainSocketEnabled()) {
-      mDomainSocketDataServer = dataServerFactory.createDomainSocketDataServer(
-          mRegistry.get(BlockWorker.class));
-    }
-  }
-
-  private void setUpServersWithDoraWorker(DataServerFactory dataServerFactory) {
-    // Setup web server
-    mWebServer =
-        new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
-            Configuration.global()), this,
-            mRegistry.get(DoraWorker.class));
-    // Setup GRPC server
-    mDataServer = dataServerFactory.createRemoteDoraGrpcDataServer(
-        mRegistry.get(DoraWorker.class));
-    // Setup domain socket data server
-    if (isDomainSocketEnabled()) {
-      mDomainSocketDataServer = dataServerFactory.createDomainSocketDoraDataServer(
-          mRegistry.get(DoraWorker.class));
     }
   }
 
@@ -289,12 +262,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     }
 
     // Start serving RPC, this will block
-    AtomicReference<Long> workerId;
-    if (mDoraEnable) {
-      workerId = mRegistry.get(DoraWorker.class).getWorkerId();
-    } else {
-      workerId = mRegistry.get(BlockWorker.class).getWorkerId();
-    }
+    AtomicReference<Long> workerId = mRegistry.get(DataWorker.class).getWorkerId();
     LOG.info("Alluxio worker started. id={}, bindHost={}, connectHost={}, rpcPort={}, webPort={}",
         workerId,
         NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, Configuration.global()),
@@ -364,18 +332,10 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   @Override
   public boolean waitForReady(int timeoutMs) {
     try {
-      if (mDoraEnable) {
-        CommonUtils.waitFor(this + " to start",
-            () -> isServing() && mRegistry.get(DoraWorker.class).getWorkerId() != null
-                && mWebServer != null && mWebServer.getServer().isRunning(),
-            WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-      } else {
-        CommonUtils.waitFor(this + " to start",
-            () -> isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
-                && mWebServer != null && mWebServer.getServer().isRunning(),
-            WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-      }
-
+      CommonUtils.waitFor(this + " to start",
+          () -> isServing() && mRegistry.get(DataWorker.class).getWorkerId() != null
+              && mWebServer != null && mWebServer.getServer().isRunning(),
+          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();

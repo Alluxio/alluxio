@@ -39,7 +39,8 @@ public interface BlockStore extends Closeable, SessionCleanable {
   /**
    * Initialize the block store.
    */
-  void initialize();
+  default void initialize() {
+  }
 
   /**
    * Aborts a temporary block. The metadata of this block will not be added, its data will be

@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Named;
 
@@ -68,7 +67,7 @@ public final class NettyDataServer implements DataServer {
   public NettyDataServer(
       @Named("NettyBindAddress") InetSocketAddress nettyBindAddress,
       UfsManager ufsManager,
-      @Nullable DoraWorker doraWorker) {
+      DoraWorker doraWorker) {
     mSocketAddress = nettyBindAddress;
     mUfsManager = ufsManager;
     mBootstrap = createBootstrap().childHandler(

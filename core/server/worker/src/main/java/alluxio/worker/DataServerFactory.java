@@ -15,6 +15,7 @@ import static java.util.Objects.requireNonNull;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.underfs.UfsManager;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -53,21 +54,20 @@ public class DataServerFactory {
   }
 
   DataServer createRemoteGrpcDataServer(DataWorker dataWorker) {
-    BlockWorkerClientServiceHandler blockWorkerClientServiceHandler =
-        new BlockWorkerClientServiceHandler(
-            //TODO(beinan): inject BlockWorker abstraction
-            (DefaultBlockWorker) dataWorker,
-            mUfsManager,
-            false);
+    BlockWorkerGrpc.BlockWorkerImplBase blockWorkerService;
+    if (dataWorker instanceof DoraWorker) {
+      blockWorkerService =
+          new DoraWorkerClientServiceHandler((DoraWorker) dataWorker);
+    } else {
+      blockWorkerService =
+          new BlockWorkerClientServiceHandler(
+              //TODO(beinan): inject BlockWorker abstraction
+              (DefaultBlockWorker) dataWorker,
+              mUfsManager,
+              false);
+    }
     return new GrpcDataServer(
-        mConnectAddress.getHostName(), mGRpcBindAddress, blockWorkerClientServiceHandler);
-  }
-
-  DataServer createRemoteDoraGrpcDataServer(DataWorker dataWorker) {
-    DoraWorkerClientServiceHandler doraWorkerClientServiceHandler =
-        new DoraWorkerClientServiceHandler((DoraWorker) dataWorker);
-    return new GrpcDataServer(
-        mConnectAddress.getHostName(), mGRpcBindAddress, doraWorkerClientServiceHandler);
+        mConnectAddress.getHostName(), mGRpcBindAddress, blockWorkerService);
   }
 
   DataServer createDomainSocketDataServer(DataWorker worker) {
@@ -78,31 +78,20 @@ public class DataServerFactory {
           PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
     }
     LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
-    BlockWorkerClientServiceHandler blockWorkerClientServiceHandler =
-        new BlockWorkerClientServiceHandler(
+    BlockWorkerGrpc.BlockWorkerImplBase blockWorkerService;
+    if (worker instanceof DoraWorker) {
+      blockWorkerService =
+          new DoraWorkerClientServiceHandler((DoraWorker) worker);
+    } else {
+      blockWorkerService =
+          new BlockWorkerClientServiceHandler(
             //TODO(beinan):inject BlockWorker abstraction
             (DefaultBlockWorker) worker,
             mUfsManager,
             true);
-    GrpcDataServer domainSocketDataServer = new GrpcDataServer(mConnectAddress.getHostName(),
-        new DomainSocketAddress(domainSocketPath), blockWorkerClientServiceHandler);
-    // Share domain socket so that clients can access it.
-    FileUtils.changeLocalFileToFullPermission(domainSocketPath);
-    return domainSocketDataServer;
-  }
-
-  DataServer createDomainSocketDoraDataServer(DataWorker worker) {
-    String domainSocketPath =
-        Configuration.getString(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
-    if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
-      domainSocketPath =
-          PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
     }
-    LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
-    DoraWorkerClientServiceHandler doraWorkerClientServiceHandler =
-        new DoraWorkerClientServiceHandler((DoraWorker) worker);
     GrpcDataServer domainSocketDataServer = new GrpcDataServer(mConnectAddress.getHostName(),
-        new DomainSocketAddress(domainSocketPath), doraWorkerClientServiceHandler);
+        new DomainSocketAddress(domainSocketPath), blockWorkerService);
     // Share domain socket so that clients can access it.
     FileUtils.changeLocalFileToFullPermission(domainSocketPath);
     return domainSocketDataServer;

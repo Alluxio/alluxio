@@ -148,10 +148,6 @@ public class PagedBlockStore implements BlockStore {
   }
 
   @Override
-  public void initialize() {
-  }
-
-  @Override
   public Optional<BlockLock> pinBlock(long sessionId, long blockId) {
     LOG.debug("pinBlock: sessionId={}, blockId={}", sessionId, blockId);
     BlockLock lock = mLockManager.acquireBlockLock(sessionId, blockId, BlockLockType.READ);
