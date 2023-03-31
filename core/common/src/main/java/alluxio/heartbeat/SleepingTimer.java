@@ -27,26 +27,25 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class SleepingTimer implements HeartbeatTimer {
-  private long mIntervalMs;
-  protected long mPreviousTickMs = -1;
+  protected long mPreviousTickedMs = -1;
   private final String mThreadName;
   protected final Logger mLogger;
   protected final Clock mClock;
   protected final Sleeper mSleeper;
-  protected final Supplier<Long> mIntervalSupplier;
+  protected final Supplier<SleepIntervalSupplier> mIntervalSupplierSupplier;
+  protected SleepIntervalSupplier mIntervalSupplier;
 
   /**
    * Creates a new instance of {@link SleepingTimer}.
    *
    * @param threadName the thread name
    * @param clock for telling the current time
-   * @param intervalSupplier Sleep time between different heartbeat supplier
-   * @param periodCronExpressionSupplier the period cron expression
+   * @param intervalSupplierSupplier Sleep time between different heartbeat supplier
    */
-  public SleepingTimer(String threadName, Clock clock, Supplier<Long> intervalSupplier,
-      Supplier<String> periodCronExpressionSupplier) {
+  public SleepingTimer(String threadName, Clock clock,
+      Supplier<SleepIntervalSupplier> intervalSupplierSupplier) {
     this(threadName, LoggerFactory.getLogger(SleepingTimer.class),
-        clock, ThreadSleeper.INSTANCE, intervalSupplier, periodCronExpressionSupplier);
+        clock, ThreadSleeper.INSTANCE, intervalSupplierSupplier);
   }
 
   /**
@@ -56,18 +55,16 @@ public class SleepingTimer implements HeartbeatTimer {
    * @param logger the logger to log to
    * @param clock for telling the current time
    * @param sleeper the utility to use for sleeping
-   * @param intervalSupplier Sleep time between different heartbeat supplier
-   * @param periodCronExpressionSupplier the period cron expression (unused)
+   * @param intervalSupplierSupplier Sleep time between different heartbeat supplier
    */
   public SleepingTimer(String threadName, Logger logger, Clock clock, Sleeper sleeper,
-      Supplier<Long> intervalSupplier,
-      Supplier<String> periodCronExpressionSupplier) {
+      Supplier<SleepIntervalSupplier> intervalSupplierSupplier) {
     mThreadName = threadName;
     mLogger = logger;
     mClock = clock;
     mSleeper = sleeper;
-    mIntervalSupplier = intervalSupplier;
-    mIntervalMs = mIntervalSupplier.get();
+    mIntervalSupplierSupplier = intervalSupplierSupplier;
+    mIntervalSupplier = intervalSupplierSupplier.get();
   }
 
   /**
@@ -77,25 +74,19 @@ public class SleepingTimer implements HeartbeatTimer {
    */
   @Override
   public long tick() throws InterruptedException {
-    if (mPreviousTickMs != -1) {
-      long executionTimeMs = mClock.millis() - mPreviousTickMs;
-      if (executionTimeMs > mIntervalMs) {
-        mLogger.warn("{} last execution took {} ms. Longer than the interval {}", mThreadName,
-            executionTimeMs, mIntervalMs);
-      } else {
-        mSleeper.sleep(Duration.ofMillis(mIntervalMs - executionTimeMs));
+    if (mPreviousTickedMs != -1) {
+      long nextInterval = mIntervalSupplier.getNextInterval(mPreviousTickedMs, mClock.millis());
+      if (nextInterval > 0) {
+        mSleeper.sleep(Duration.ofMillis(nextInterval));
       }
     }
-    mPreviousTickMs = mClock.millis();
-    return Long.MAX_VALUE;
+    mPreviousTickedMs = mClock.millis();
+    return mIntervalSupplier.getRunLimit(mPreviousTickedMs);
   }
 
   @Override
   public void update() {
-    long interval = mIntervalSupplier.get();
-    if (interval != mIntervalMs) {
-      mLogger.info("update {} interval from {} to {}", mThreadName, mIntervalMs, interval);
-      mIntervalMs = interval;
-    }
+    mIntervalSupplier = mIntervalSupplierSupplier.get();
+    mLogger.info("update {} interval supplier.", mThreadName);
   }
 }

@@ -139,7 +139,8 @@ public final class HeartbeatThreadTest {
       try (ManuallyScheduleHeartbeat.Resource r =
           new ManuallyScheduleHeartbeat.Resource(Arrays.asList(mThreadName))) {
         DummyHeartbeatExecutor executor = new DummyHeartbeatExecutor();
-        HeartbeatThread ht = new HeartbeatThread(mThreadName, executor, () -> 1L,
+        HeartbeatThread ht = new HeartbeatThread(mThreadName, executor,
+            () -> new FixedIntervalSupplier(1L),
             Configuration.global(), UserState.Factory.create(Configuration.global()));
 
         // Run the HeartbeatThread.

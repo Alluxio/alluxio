@@ -27,6 +27,7 @@ import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.fuse.meta.UpdateChecker;
 import alluxio.fuse.options.FuseOptions;
+import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.jnifuse.LibFuse;
@@ -178,7 +179,7 @@ public final class AlluxioFuse {
     if (fuseOptions.updateCheckEnabled()) {
       executor = Executors.newSingleThreadExecutor();
       executor.submit(new HeartbeatThread(HeartbeatContext.FUSE_UPDATE_CHECK,
-          UpdateChecker.create(fuseOptions), () -> Long.valueOf(Constants.DAY_MS),
+          UpdateChecker.create(fuseOptions), () -> new FixedIntervalSupplier(Constants.DAY_MS),
           Configuration.global(), UserState.Factory.create(conf)));
     }
     try (FileSystem fs = FileSystem.Factory.create(fsContext, fuseOptions.getFileSystemOptions())) {

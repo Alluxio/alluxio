@@ -70,20 +70,19 @@ public final class HeartbeatThread implements Runnable {
    * @param executor identifies the heartbeat thread executor; an instance of a class that
    *        implements the HeartbeatExecutor interface
    * @param intervalSupplier Sleep time between different heartbeat supplier
-   * @param periodCronExpressionSupplier the period cron expression
    * @param conf Alluxio configuration
    * @param userState the user state for this heartbeat thread
    * @param clock the clock used to compute the current time
    */
   public HeartbeatThread(String executorName, String threadId, HeartbeatExecutor executor,
-      Supplier<Long> intervalSupplier, Supplier<String> periodCronExpressionSupplier,
+      Supplier<SleepIntervalSupplier> intervalSupplier,
       AlluxioConfiguration conf, UserState userState, Clock clock) {
     mThreadName = generateThreadName(executorName, threadId);
     mExecutor = Preconditions.checkNotNull(executor, "executor");
     Class<? extends HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(executorName);
     mTimer = CommonUtils.createNewClassInstance(timerClass,
-        new Class[] {String.class, Clock.class, Supplier.class, Supplier.class},
-        new Object[] {mThreadName, clock, intervalSupplier, periodCronExpressionSupplier});
+        new Class[] {String.class, Clock.class, Supplier.class},
+        new Object[] {mThreadName, clock, intervalSupplier});
     mConfiguration = conf;
     mUserState = userState;
     mStatus = Status.INIT;
@@ -93,7 +92,7 @@ public final class HeartbeatThread implements Runnable {
   /**
    * Convenience method for
    * {@link
-   * #HeartbeatThread(String, String, HeartbeatExecutor, Supplier, Supplier, AlluxioConfiguration,
+   * #HeartbeatThread(String, String, HeartbeatExecutor, Supplier, AlluxioConfiguration,
    * UserState, Clock)} where threadId is null.
    *
    * @param executorName the executor name that is one of those defined in {@link HeartbeatContext}
@@ -103,48 +102,27 @@ public final class HeartbeatThread implements Runnable {
    * @param userState the user state for this heartbeat thread
    */
   public HeartbeatThread(String executorName, HeartbeatExecutor executor,
-      Supplier<Long> intervalSupplier, AlluxioConfiguration conf, UserState userState) {
-    this(executorName, null, executor, intervalSupplier, null, conf, userState, Clock.systemUTC());
+      Supplier<SleepIntervalSupplier> intervalSupplier, AlluxioConfiguration conf, UserState userState) {
+    this(executorName, null, executor, intervalSupplier, conf, userState, Clock.systemUTC());
   }
 
   /**
    * Convenience method for
    * {@link
-   * #HeartbeatThread(String, String, HeartbeatExecutor, Supplier, Supplier, AlluxioConfiguration,
+   * #HeartbeatThread(String, String, HeartbeatExecutor, Supplier, AlluxioConfiguration,
    * UserState, Clock)} where threadId is null.
    *
    * @param executorName the executor name that is one of those defined in {@link HeartbeatContext}
    * @param executor the heartbeat executor
    * @param intervalSupplier the interval between heartbeats supplier
-   * @param periodCronExpressionSupplier the period cron expression
-   * @param conf the Alluxio configuration
-   * @param userState the user state for this heartbeat thread
-   */
-  public HeartbeatThread(String executorName, HeartbeatExecutor executor,
-      Supplier<Long> intervalSupplier, Supplier<String> periodCronExpressionSupplier,
-      AlluxioConfiguration conf, UserState userState) {
-    this(executorName, null, executor, intervalSupplier, periodCronExpressionSupplier,
-        conf, userState, Clock.systemUTC());
-  }
-
-  /**
-   * Convenience method for
-   * {@link
-   * #HeartbeatThread(String, String, HeartbeatExecutor, Supplier, Supplier, AlluxioConfiguration,
-   * UserState, Clock)} where threadId is null.
-   *
-   * @param executorName the executor name that is one of those defined in {@link HeartbeatContext}
-   * @param executor the heartbeat executor
-   * @param intervalSupplier the interval between heartbeats supplier
-   * @param periodCronExpressionSupplier the period cron expression
    * @param conf the Alluxio configuration
    * @param userState the user state for this heartbeat thread
    * @param clock the clock used to compute the current time
    */
   public HeartbeatThread(String executorName, HeartbeatExecutor executor,
-      Supplier<Long> intervalSupplier, Supplier<String> periodCronExpressionSupplier,
+      Supplier<SleepIntervalSupplier> intervalSupplier,
       AlluxioConfiguration conf, UserState userState, Clock clock) {
-    this(executorName, null, executor, intervalSupplier, periodCronExpressionSupplier,
+    this(executorName, null, executor, intervalSupplier,
         conf, userState, clock);
   }
 

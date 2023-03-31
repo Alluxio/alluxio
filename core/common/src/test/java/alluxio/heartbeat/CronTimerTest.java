@@ -65,13 +65,13 @@ public final class CronTimerTest {
             () -> "* 30-59 0-1,4-9,13-23 * * ? *");
     DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     Date startDate = formatter.parse("2022-01-01 00:00:00");
-    Assert.assertEquals(-1, timer.mPreviousTickMs);
+    Assert.assertEquals(-1, timer.mPreviousTickedMs);
     mFakeClock.setTimeMs(startDate.getTime());
     long limitMs = timer.tick();
     long lastAllSleepTimeMs = mAllSleepTimeMs;
     Assert.assertEquals(30 * Constants.MINUTE_MS, mAllSleepTimeMs);
     Assert.assertEquals(30 * Constants.MINUTE_MS, limitMs);
-    Assert.assertEquals(formatter.parse("2022-01-01 00:30:00"), new Date(timer.mPreviousTickMs));
+    Assert.assertEquals(formatter.parse("2022-01-01 00:30:00"), new Date(timer.mPreviousTickedMs));
     Assert.assertEquals(formatter.parse("2022-01-01 00:30:00"), new Date(mFakeClock.millis()));
     // Mock heartbeat 1 minute
     mFakeClock.addTime(Duration.ofMinutes(1));
@@ -80,7 +80,7 @@ public final class CronTimerTest {
     Assert.assertEquals(9 * Constants.MINUTE_MS, mAllSleepTimeMs - lastAllSleepTimeMs);
     lastAllSleepTimeMs = mAllSleepTimeMs;
     Assert.assertEquals(20 * Constants.MINUTE_MS, limitMs);
-    Assert.assertEquals(formatter.parse("2022-01-01 00:40:00"), new Date(timer.mPreviousTickMs));
+    Assert.assertEquals(formatter.parse("2022-01-01 00:40:00"), new Date(timer.mPreviousTickedMs));
     Assert.assertEquals(formatter.parse("2022-01-01 00:40:00"), new Date(mFakeClock.millis()));
     // Mock heartbeat 5 minute
     mFakeClock.addTime(Duration.ofMinutes(5));
@@ -89,7 +89,7 @@ public final class CronTimerTest {
     Assert.assertEquals(5 * Constants.MINUTE_MS, mAllSleepTimeMs - lastAllSleepTimeMs);
     lastAllSleepTimeMs = mAllSleepTimeMs;
     Assert.assertEquals(10 * Constants.MINUTE_MS, limitMs);
-    Assert.assertEquals(formatter.parse("2022-01-01 00:50:00"), new Date(timer.mPreviousTickMs));
+    Assert.assertEquals(formatter.parse("2022-01-01 00:50:00"), new Date(timer.mPreviousTickedMs));
     Assert.assertEquals(formatter.parse("2022-01-01 00:50:00"), new Date(mFakeClock.millis()));
     // Mock heartbeat 5 minute
     mFakeClock.addTime(Duration.ofMinutes(5));
@@ -98,7 +98,7 @@ public final class CronTimerTest {
     Assert.assertEquals(35 * Constants.MINUTE_MS, mAllSleepTimeMs - lastAllSleepTimeMs);
     lastAllSleepTimeMs = mAllSleepTimeMs;
     Assert.assertEquals(30 * Constants.MINUTE_MS, limitMs);
-    Assert.assertEquals(formatter.parse("2022-01-01 01:30:00"), new Date(timer.mPreviousTickMs));
+    Assert.assertEquals(formatter.parse("2022-01-01 01:30:00"), new Date(timer.mPreviousTickedMs));
     Assert.assertEquals(formatter.parse("2022-01-01 01:30:00"), new Date(mFakeClock.millis()));
     // Mock heartbeat 30 minute
     mFakeClock.addTime(Duration.ofMinutes(30));
@@ -106,7 +106,7 @@ public final class CronTimerTest {
     limitMs = timer.tick();
     Assert.assertEquals(150 * Constants.MINUTE_MS, mAllSleepTimeMs - lastAllSleepTimeMs);
     Assert.assertEquals(30 * Constants.MINUTE_MS, limitMs);
-    Assert.assertEquals(formatter.parse("2022-01-01 04:30:00"), new Date(timer.mPreviousTickMs));
+    Assert.assertEquals(formatter.parse("2022-01-01 04:30:00"), new Date(timer.mPreviousTickedMs));
     Assert.assertEquals(formatter.parse("2022-01-01 04:30:00"), new Date(mFakeClock.millis()));
   }
 }
