@@ -16,6 +16,7 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
+import alluxio.grpc.MasterVersion;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.wire.BlockMasterInfo;
@@ -82,7 +83,8 @@ public class SummaryCommand {
             MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
             MasterInfoField.UP_TIME_MS, MasterInfoField.VERSION,
             MasterInfoField.SAFE_MODE, MasterInfoField.ZOOKEEPER_ADDRESSES,
-            MasterInfoField.RAFT_JOURNAL, MasterInfoField.RAFT_ADDRESSES));
+            MasterInfoField.RAFT_JOURNAL, MasterInfoField.RAFT_ADDRESSES,
+            MasterInfoField.MASTER_VERSION));
     MasterInfo masterInfo = mMetaMasterClient.getMasterInfo(masterInfoFilter);
 
     print("Master Address: " + masterInfo.getLeaderMasterAddress());
@@ -117,6 +119,14 @@ public class SummaryCommand {
       mIndentationLevel--;
     } else {
       print("Raft-based Journal: false");
+    }
+    print("Master Versions");
+    for (MasterVersion masterVersion: masterInfo.getMasterVersionsList()) {
+      print(String.format("%s:%s %s %s",
+          masterVersion.getAddresses().getHost(),
+          masterVersion.getAddresses().getRpcPort(),
+          masterVersion.getVersion(),
+          masterVersion.getState()));
     }
   }
 
