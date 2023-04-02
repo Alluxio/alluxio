@@ -483,7 +483,10 @@ public final class RocksStore implements Closeable {
     }
     Duration elapsed = Duration.between(waitStart, Instant.now());
     LOG.info("Waited {}ms for ongoing read/write to complete/abort", elapsed.toMillis());
-    // Reset the ref count to forget about the aborted operations
+
+    /*
+     * Reset the ref count to forget about the aborted operations
+     */
     long unclosedOperations = mRefCount.sumThenReset();
     if (unclosedOperations != 0) {
       LOG.warn("{} readers/writers fail to complete/abort before we stop/restart the RocksDB",

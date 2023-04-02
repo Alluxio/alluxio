@@ -363,13 +363,11 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
     LOG.info("RocksBlockStore is being closed");
     try (RocksWriteLockHandle lock = mRocksStore.lockForClosing()) {
       mSize.reset();
-      LOG.info("Closing RocksBlockStore and recycling all RocksDB JNI objects");
       mRocksStore.close();
       // Close the elements in the reverse order they were added
       Collections.reverse(mToClose);
       mToClose.forEach(RocksObject::close);
     }
-    LOG.info("RocksBlockStore closed");
   }
 
   @Override
@@ -421,6 +419,11 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
 
   @Override
   /**
+   * Acquires an iterator to iterate all Blocks in RocksDB.
+   * A shared lock will be acquired when this iterator is created, and released when:
+   * 1. This iterator is complete.
+   * 2. At each step, the iterator finds the RocksDB is closing and aborts voluntarily.
+   *
    * This iterator is used in:
    * 1. {@link BlockIntegrityChecker} to iterate all existing blocks
    * 2. Journal dumping like checkpoint/backup sequences
@@ -431,6 +434,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
     RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
     return RocksUtils.createCloseableIterator(iterator,
         (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())),
+        // TODO(jiacheng): UT that aborting gives correct ref count
         () -> {
           mRocksStore.abortIfClosing();
           return null;

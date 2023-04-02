@@ -394,9 +394,10 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
       if (seekTo != null && seekTo.length() > 0) {
         iter.seek(RocksUtils.toByteArray(inodeId, seekTo));
       }
-      // TODO(jiacheng): double check how this is released on exception
       RocksReadLockHandle readLock = mRocksStore.checkAndAcquireSharedLock();
       RocksIter rocksIter = new RocksIter(iter, prefix, () -> {
+        // TODO(jiacheng): double check how this is released on exception
+        //  UT and check ref count
         mRocksStore.abortIfClosing();
         return null;
       });
@@ -532,8 +533,14 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   }
 
   /**
-   * The name is intentional, in order to distinguish from the {@code Iterable} interface.
-   * This method is only used for creating an escaping iterator used by external classes.
+   * Acquires an iterator to iterate all Inodes in RocksDB.
+   * A shared lock will be acquired when this iterator is created, and released when:
+   * 1. This iterator is complete.
+   * 2. At each step, the iterator finds the RocksDB is closing and aborts voluntarily.
+   *
+   * Except tests, this iterator is only used in:
+   * 1. {@link alluxio.master.journal.tool.AbstractJournalDumper} which translates RocksDB
+   *    checkpoints to a human-readable form.
    *
    * @return an iterator over stored inodes
    */
@@ -636,15 +643,13 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public void close() {
-    LOG.info("RocksBlockStore is being closed");
+    LOG.info("RocksInodeStore is being closed");
     try (RocksWriteLockHandle lock = mRocksStore.lockForClosing()) {
-      LOG.info("Closing RocksInodeStore and recycling all RocksDB JNI objects");
       mRocksStore.close();
       // Close the elements in the reverse order they were added
       Collections.reverse(mToClose);
       mToClose.forEach(RocksObject::close);
     }
-    LOG.info("RocksInodeStore closed");
   }
 
   private RocksDB db() {
