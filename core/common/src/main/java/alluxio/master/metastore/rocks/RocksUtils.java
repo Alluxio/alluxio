@@ -13,17 +13,13 @@ package alluxio.master.metastore.rocks;
 
 import alluxio.resource.CloseableIterator;
 
-import alluxio.resource.LockResource;
 import com.google.common.primitives.Longs;
 import org.rocksdb.RocksIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -116,7 +112,7 @@ public final class RocksUtils {
    */
   public static <T> CloseableIterator<T> createCloseableIterator(
         RocksIterator rocksIterator, RocksIteratorParser<T> parser,
-        Supplier<Void> abortCheck, RocksReadLock rocksDbSharedLock) {
+        Supplier<Void> abortCheck, RocksReadLockHandle rocksDbSharedLock) {
     rocksIterator.seekToFirst();
     AtomicBoolean valid = new AtomicBoolean(true);
     Iterator<T> iter = new Iterator<T>() {

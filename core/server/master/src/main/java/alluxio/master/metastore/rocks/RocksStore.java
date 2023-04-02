@@ -27,7 +27,6 @@ import alluxio.util.SleepUtils;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
-import jdk.nashorn.internal.runtime.regexp.joni.Config;
 import org.apache.commons.io.IOUtils;
 import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.BloomFilter;
@@ -59,7 +58,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
@@ -150,7 +148,7 @@ public final class RocksStore implements Closeable {
     mDbOpts = dbOpts;
     mColumnHandles = columnHandles;
     LOG.info("Resetting RocksDB for {} on init", name);
-    try (RocksWriteLock lock = lockForRestart()) {
+    try (RocksWriteLockHandle lock = lockForRestart()) {
       resetDb();
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -436,7 +434,7 @@ public final class RocksStore implements Closeable {
    * The shared lock guarantees the RocksDB will not be restarted/cleared during the
    * r/w access.
    */
-  public RocksReadLock checkAndAcquireSharedLock() {
+  public RocksReadLockHandle checkAndAcquireSharedLock() {
     if (mStopServing.get()) {
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.toString());
     }
@@ -460,7 +458,7 @@ public final class RocksStore implements Closeable {
       mRefCount.decrement();
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.toString());
     }
-    return new RocksReadLock(mRefCount);
+    return new RocksReadLockHandle(mRefCount);
   }
 
   private void blockingWait() {
@@ -485,7 +483,8 @@ public final class RocksStore implements Closeable {
     }
     Duration elapsed = Duration.between(waitStart, Instant.now());
     LOG.info("Waited {}ms for ongoing read/write to complete/abort", elapsed.toMillis());
-    long unclosedOperations = mRefCount.sum();
+    // Reset the ref count to forget about the aborted operations
+    long unclosedOperations = mRefCount.sumThenReset();
     if (unclosedOperations != 0) {
       LOG.warn("{} readers/writers fail to complete/abort before we stop/restart the RocksDB",
           unclosedOperations);
@@ -501,9 +500,9 @@ public final class RocksStore implements Closeable {
    *
    * The CLOSING status will NOT be reset, because the process will shut down soon.
    */
-  public RocksWriteLock lockForClosing() {
+  public RocksWriteLockHandle lockForClosing() {
     blockingWait();
-    return new RocksWriteLock(null);
+    return new RocksWriteLockHandle(false, mStopServing, mRefCount);
   }
 
   /**
@@ -517,11 +516,9 @@ public final class RocksStore implements Closeable {
    * gets the shared lock, it is able to tell the RocksDB has been cleared.
    * See {@link #checkAndAcquireSharedLock} for how this affects the shared lock logic.
    */
-  public RocksWriteLock lockForRestart() {
+  public RocksWriteLockHandle lockForRestart() {
     blockingWait();
-    return new RocksWriteLock(() -> {
-      mStopServing.set(false);
-    });
+    return new RocksWriteLockHandle(true, mStopServing, mRefCount);
   }
 
   /**
