@@ -26,14 +26,15 @@ import org.junit.Test;
 import org.slf4j.Logger;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Date;
 
 /**
- * Unit tests for {@link CronTimer}.
+ * Unit tests for {@link SleepingTimer}.
  */
-public final class CronTimerTest {
+public final class SleepingTimerForCronExpressionIntervalSupplierTest {
   private static final String THREAD_NAME = "crontimer-test-thread-name";
   private static final long INTERVAL_MS = 10 * Constants.MINUTE_MS;
   private Logger mMockLogger;
@@ -61,13 +62,21 @@ public final class CronTimerTest {
    */
   @Test
   public void maintainInterval() throws Exception {
-    CronExpressionIntervalSupplier timer =
-        new CronExpressionIntervalSupplier(new CronExpression("* 30-59 0-1,4-9,13-23 * * ? *"), INTERVAL_MS);
+    SleepingTimer timer =
+        new SleepingTimer(THREAD_NAME, mMockLogger, mFakeClock, mMockSleeper,
+            () -> {
+              try {
+                return new CronExpressionIntervalSupplier(
+                    new CronExpression("* 30-59 0-1,4-9,13-23 * * ? *"), INTERVAL_MS);
+              } catch (ParseException e) {
+                throw new RuntimeException(e);
+              }
+            });
     DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     Date startDate = formatter.parse("2022-01-01 00:00:00");
     Assert.assertEquals(-1, timer.mPreviousTickedMs);
     mFakeClock.setTimeMs(startDate.getTime());
-    long limitMs = timer.getNextInterval(-1, startDate.getTime());
+    long limitMs = timer.tick();
     long lastAllSleepTimeMs = mAllSleepTimeMs;
     Assert.assertEquals(30 * Constants.MINUTE_MS, mAllSleepTimeMs);
     Assert.assertEquals(30 * Constants.MINUTE_MS, limitMs);

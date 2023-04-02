@@ -17,28 +17,43 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 
-public class CronExpressionIntervalSupplier extends FixedIntervalSupplier {
-    private final CronExpression mCron;
-    public CronExpressionIntervalSupplier(CronExpression cronExpression, long fixedInterval) {
-      super(fixedInterval);
-      mCron = cronExpression;
-    }
+/**
+* Calculate the next interval by given cron expression.
+*/
+public class CronExpressionIntervalSupplier implements SleepIntervalSupplier {
+  private final long mInterval;
+  private final CronExpression mCron;
 
-    @Override
-    public long getNextInterval(long mPreviousTickedMs, long nowTimeStampMillis) {
-      long nextInterval = super.getNextInterval(mPreviousTickedMs, nowTimeStampMillis);
-      Date now = Date.from(Instant.ofEpochMilli(nowTimeStampMillis + nextInterval));
-      if (mCron.isSatisfiedBy(now)) {
-        return nextInterval;
-      }
-      return nextInterval + Duration.between(
-          now.toInstant(), mCron.getNextValidTimeAfter(now).toInstant()).toMillis();
-    }
-
-    @Override
-    public long getRunLimit(long mPreviousTickedMs) {
-      Date now = Date.from(Instant.ofEpochMilli(mPreviousTickedMs));
-      return Duration.between(now.toInstant(),
-          mCron.getNextInvalidTimeAfter(now).toInstant()).toMillis();
-    }
+  /**
+   * Constructs a new {@link CronExpressionIntervalSupplier}
+   *
+   * @param cronExpression the cron expression
+   * @param fixedInterval the fixed interval
+   */
+  public CronExpressionIntervalSupplier(CronExpression cronExpression, long fixedInterval) {
+    mInterval = fixedInterval;
+    mCron = cronExpression;
   }
+
+  @Override
+  public long getNextInterval(long mPreviousTickedMs, long nowTimeStampMillis) {
+    long nextInterval = 0;
+    long executionTimeMs = nowTimeStampMillis - mPreviousTickedMs;
+    if (executionTimeMs < mInterval) {
+      nextInterval = mInterval - executionTimeMs;
+    }
+    Date now = Date.from(Instant.ofEpochMilli(nowTimeStampMillis + nextInterval));
+    if (mCron.isSatisfiedBy(now)) {
+      return nextInterval;
+    }
+    return nextInterval + Duration.between(
+        now.toInstant(), mCron.getNextValidTimeAfter(now).toInstant()).toMillis();
+  }
+
+  @Override
+  public long getRunLimit(long mPreviousTickedMs) {
+    Date now = Date.from(Instant.ofEpochMilli(mPreviousTickedMs));
+    return Duration.between(now.toInstant(),
+        mCron.getNextInvalidTimeAfter(now).toInstant()).toMillis();
+  }
+}

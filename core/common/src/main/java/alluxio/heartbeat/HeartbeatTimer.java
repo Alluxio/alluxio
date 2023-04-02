@@ -19,7 +19,9 @@ import alluxio.conf.Reconfigurable;
 public interface HeartbeatTimer extends Reconfigurable {
 
   /**
-   * When the property changed, this function will be invoked.
+   * When this object needs to be reconfigured
+   * due to external configuration change etc.,
+   * this function will be invoked.
    */
   default void update() {
   }

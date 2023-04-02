@@ -49,11 +49,10 @@ public final class ScheduledTimer implements HeartbeatTimer {
    *
    * @param threadName the thread name
    * @param clock for telling the current time (unused)
-   * @param intervalSupplier Sleep time between different heartbeat supplier (unused)
-   * @param periodCronExpressionSupplier the period cron expression (unused)
+   * @param intervalSupplierSupplier Sleep time between different heartbeat supplier
    */
-  public ScheduledTimer(String threadName, Clock clock, Supplier<Long> intervalSupplier,
-      Supplier<String> periodCronExpressionSupplier) {
+  public ScheduledTimer(String threadName, Clock clock,
+      Supplier<SleepIntervalSupplier> intervalSupplierSupplier) {
     mThreadName = threadName;
     mLock = new ReentrantLock();
     mTickCondition = mLock.newCondition();

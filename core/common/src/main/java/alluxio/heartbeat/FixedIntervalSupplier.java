@@ -11,9 +11,17 @@
 
 package alluxio.heartbeat;
 
+/**
+ * Fixed interval supplier.
+ */
 public class FixedIntervalSupplier implements SleepIntervalSupplier {
   private final long mInterval;
 
+  /**
+   * Constructs a new {@link FixedIntervalSupplier}
+   *
+   * @param fixedInterval the fixed interval
+   */
   public FixedIntervalSupplier(long fixedInterval) {
     mInterval = fixedInterval;
   }
@@ -29,6 +37,6 @@ public class FixedIntervalSupplier implements SleepIntervalSupplier {
 
   @Override
   public long getRunLimit(long mPreviousTickedMs) {
-    return Long.MAX_VALUE;
+    return mInterval;
   }
 }

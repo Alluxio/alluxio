@@ -102,7 +102,8 @@ public final class HeartbeatThread implements Runnable {
    * @param userState the user state for this heartbeat thread
    */
   public HeartbeatThread(String executorName, HeartbeatExecutor executor,
-      Supplier<SleepIntervalSupplier> intervalSupplier, AlluxioConfiguration conf, UserState userState) {
+      Supplier<SleepIntervalSupplier> intervalSupplier, AlluxioConfiguration conf,
+      UserState userState) {
     this(executorName, null, executor, intervalSupplier, conf, userState, Clock.systemUTC());
   }
 

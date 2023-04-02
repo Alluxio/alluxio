@@ -11,10 +11,14 @@
 
 package alluxio.heartbeat;
 
+/**
+ * A policy to calculate the next interval to sleep.
+ */
 public interface SleepIntervalSupplier {
   /**
    * Gets the next interval for sleeping.
    *
+   * @param mPreviousTickedMs previous ticked time stamp in millisecond
    * @param nowTimeStampMillis current time stamp in millisecond
    * @return the interval to sleep starting from now before next time the timer triggers
    */
@@ -28,4 +32,3 @@ public interface SleepIntervalSupplier {
    */
   long getRunLimit(long mPreviousTickedMs);
 }
-
