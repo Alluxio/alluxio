@@ -4374,7 +4374,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(4)
           .setDescription("The minimum number of threads used to cache blocks asynchronously "
               + "in the data server. Setting a value less than or equal to 0 "
-              + "will be corrected to the default value.")
+              + "will be corrected to 1.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
