@@ -39,7 +39,9 @@ public final class GrpcExecutors {
   private static final int THREADS_MIN = 4;
 
   private static final ThreadPoolExecutor CACHE_MANAGER_THREAD_POOL_EXECUTOR =
-      new ThreadPoolExecutor(THREADS_MIN,
+      new ThreadPoolExecutor(
+          Math.max(Configuration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MIN),
+              (int) PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MIN.getDefaultValue()),
           Configuration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new UniqueBlockingQueue<>(
           Configuration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)),
