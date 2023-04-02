@@ -288,7 +288,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   }
 
   private long getProperty(String rocksPropertyName) {
-    try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
       return db().getAggregatedLongProperty(rocksPropertyName);
     } catch (RocksDBException e) {
       LOG.warn(String.format("error collecting %s", rocksPropertyName), e);
@@ -298,7 +298,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public void remove(Long inodeId) {
-    try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
       byte[] id = Longs.toByteArray(inodeId);
       db().delete(mInodesColumn.get(), mDisableWAL, id);
     } catch (RocksDBException e) {
@@ -308,7 +308,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public void writeInode(MutableInode<?> inode) {
-    try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
       db().put(mInodesColumn.get(), mDisableWAL, Longs.toByteArray(inode.getId()),
           inode.toProto().toByteArray());
     } catch (RocksDBException e) {
@@ -323,19 +323,18 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public void clear() {
-    // Block all new readers and make concurrent readers bail asap
-    LOG.info("Marking RocksDB closed so all concurrent read/write should stop");
-    try (RocksWriteLockHandle lock = mRocksStore.lockForRestart()) {
+    LOG.info("Waiting to clear RocksInodeStore..");
+    try (RocksExclusiveLockHandle lock = mRocksStore.lockForRestart()) {
       LOG.info("Clearing RocksDB");
       mRocksStore.clear();
     }
     // Reset the DB state and prepare to serve again
-    LOG.info("RocksDB ready to serve again");
+    LOG.info("RocksInodeStore cleared and ready to serve again");
   }
 
   @Override
   public void addChild(long parentId, String childName, Long childId) {
-    try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
       db().put(mEdgesColumn.get(), mDisableWAL, RocksUtils.toByteArray(parentId, childName),
           Longs.toByteArray(childId));
     } catch (RocksDBException e) {
@@ -345,7 +344,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public void removeChild(long parentId, String name) {
-    try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
       db().delete(mEdgesColumn.get(), mDisableWAL, RocksUtils.toByteArray(parentId, name));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -355,7 +354,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   @Override
   public Optional<MutableInode<?>> getMutable(long id, ReadOption option) {
     byte[] inode;
-    try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
       inode = db().get(mInodesColumn.get(), Longs.toByteArray(id));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -372,7 +371,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public CloseableIterator<Long> getChildIds(Long inodeId, ReadOption option) {
-    try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart);
       // first seek to the correct bucket
       iter.seek(Longs.toByteArray(inodeId));
@@ -394,7 +393,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
       if (seekTo != null && seekTo.length() > 0) {
         iter.seek(RocksUtils.toByteArray(inodeId, seekTo));
       }
-      RocksReadLockHandle readLock = mRocksStore.checkAndAcquireSharedLock();
+      RocksSharedLockHandle readLock = mRocksStore.checkAndAcquireSharedLock();
       RocksIter rocksIter = new RocksIter(iter, prefix, () -> {
         // TODO(jiacheng): double check how this is released on exception
         //  UT and check ref count
@@ -413,7 +412,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   @Override
   public Optional<Long> getChildId(Long inodeId, String name, ReadOption option) {
     byte[] id;
-    try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
       id = db().get(mEdgesColumn.get(), RocksUtils.toByteArray(inodeId, name));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -490,7 +489,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public boolean hasChildren(InodeDirectoryView inode, ReadOption option) {
-    try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
          RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart)) {
       iter.seek(Longs.toByteArray(inode.getId()));
       return iter.isValid();
@@ -500,7 +499,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   @Override
   public Set<EdgeEntry> allEdges() {
     Set<EdgeEntry> edges = new HashSet<>();
-    try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
          RocksIterator iter = db().newIterator(mEdgesColumn.get(),
         mIteratorOption)) {
       iter.seekToFirst();
@@ -519,7 +518,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   @Override
   public Set<MutableInode<?>> allInodes() {
     Set<MutableInode<?>> inodes = new HashSet<>();
-    try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
          RocksIterator iter = db().newIterator(mInodesColumn.get(),
         mIteratorOption)) {
       iter.seekToFirst();
@@ -545,7 +544,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
    * @return an iterator over stored inodes
    */
   public CloseableIterator<InodeView> getCloseableIterator() {
-    RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
+    RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
     return RocksUtils.createCloseableIterator(
         db().newIterator(mInodesColumn.get(), mIteratorOption),
         (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get(),
@@ -573,14 +572,14 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
-    try (RocksWriteLockHandle lock = mRocksStore.lockForRestart()) {
+    try (RocksExclusiveLockHandle lock = mRocksStore.lockForRestart()) {
       mRocksStore.writeToCheckpoint(output);
     }
   }
 
   @Override
   public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
-    try (RocksWriteLockHandle lock = mRocksStore.lockForRestart()) {
+    try (RocksExclusiveLockHandle lock = mRocksStore.lockForRestart()) {
       mRocksStore.restoreFromCheckpoint(input);
     }
   }
@@ -590,7 +589,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
     @Override
     public void writeInode(MutableInode<?> inode) {
-      try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
+      try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
         mBatch.put(mInodesColumn.get(), Longs.toByteArray(inode.getId()),
             inode.toProto().toByteArray());
       } catch (RocksDBException e) {
@@ -600,7 +599,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
     @Override
     public void removeInode(Long key) {
-      try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
+      try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
         mBatch.delete(mInodesColumn.get(), Longs.toByteArray(key));
       } catch (RocksDBException e) {
         throw new RuntimeException(e);
@@ -609,7 +608,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
     @Override
     public void addChild(Long parentId, String childName, Long childId) {
-      try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
+      try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
         mBatch.put(mEdgesColumn.get(), RocksUtils.toByteArray(parentId, childName),
             Longs.toByteArray(childId));
       } catch (RocksDBException e) {
@@ -619,7 +618,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
     @Override
     public void removeChild(Long parentId, String childName) {
-      try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
+      try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
         mBatch.delete(mEdgesColumn.get(), RocksUtils.toByteArray(parentId, childName));
       } catch (RocksDBException e) {
         throw new RuntimeException(e);
@@ -628,7 +627,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
     @Override
     public void commit() {
-      try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
+      try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
         db().write(mDisableWAL, mBatch);
       } catch (RocksDBException e) {
         throw new RuntimeException(e);
@@ -644,7 +643,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   @Override
   public void close() {
     LOG.info("RocksInodeStore is being closed");
-    try (RocksWriteLockHandle lock = mRocksStore.lockForClosing()) {
+    try (RocksExclusiveLockHandle lock = mRocksStore.lockForClosing()) {
       mRocksStore.close();
       // Close the elements in the reverse order they were added
       Collections.reverse(mToClose);
@@ -662,7 +661,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
    */
   public String toStringEntries() {
     StringBuilder sb = new StringBuilder();
-    try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
          ReadOptions readOptions = new ReadOptions().setTotalOrderSeek(true);
          RocksIterator inodeIter = db().newIterator(mInodesColumn.get(), readOptions)) {
       inodeIter.seekToFirst();
@@ -679,7 +678,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
         inodeIter.next();
       }
     }
-    try (RocksReadLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
          RocksIterator edgeIter = db().newIterator(mEdgesColumn.get())) {
       edgeIter.seekToFirst();
       while (edgeIter.isValid()) {

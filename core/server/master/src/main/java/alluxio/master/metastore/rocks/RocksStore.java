@@ -80,7 +80,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * For reading/writing on the RocksDB, use the shared lock
  * <blockquote><pre>
- *   try (RocksReadLock r = mRocksStore.checkAndAcquireSharedLock() {
+ *   try (RocksSharedLockHandle r = mRocksStore.checkAndAcquireSharedLock() {
  *     // perform your read/write operation
  *   }
  * </pre></blockquote>
@@ -89,7 +89,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  * be acquired by calling one of:
  * 1. {@link #lockForClosing()}
  * 2. {@link #lockForRestart()}
- * TODO(jiacheng): move the locking doc into RocksReadLock and RocksWriteLock
  */
 @NotThreadSafe
 public final class RocksStore implements Closeable {
@@ -148,7 +147,7 @@ public final class RocksStore implements Closeable {
     mDbOpts = dbOpts;
     mColumnHandles = columnHandles;
     LOG.info("Resetting RocksDB for {} on init", name);
-    try (RocksWriteLockHandle lock = lockForRestart()) {
+    try (RocksExclusiveLockHandle lock = lockForRestart()) {
       resetDb();
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -434,7 +433,7 @@ public final class RocksStore implements Closeable {
    * The shared lock guarantees the RocksDB will not be restarted/cleared during the
    * r/w access.
    */
-  public RocksReadLockHandle checkAndAcquireSharedLock() {
+  public RocksSharedLockHandle checkAndAcquireSharedLock() {
     if (mStopServing.get()) {
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.toString());
     }
@@ -445,11 +444,13 @@ public final class RocksStore implements Closeable {
     mRefCount.increment();
 
     /*
-     * Need to check the flag again to prevent the sequence of events below:
+     * Need to check the flag again to PREVENT the sequence of events below:
      * 1. Reader checks flag
      * 2. Closer sets flag
      * 3. Closer sees refCount=0
      * 4. Reader increments refCount
+     * 5. Closer closes RocksDB
+     * 6. Reader reads RocksDB and incurs a segfault
      *
      * With the 2nd check, we make sure the ref count will be respected by the closer and
      * the closer will therefore wait for this reader to complete/abort.
@@ -458,7 +459,7 @@ public final class RocksStore implements Closeable {
       mRefCount.decrement();
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.toString());
     }
-    return new RocksReadLockHandle(mRefCount);
+    return new RocksSharedLockHandle(mRefCount);
   }
 
   private void blockingWait() {
@@ -473,8 +474,17 @@ public final class RocksStore implements Closeable {
     * https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/atomic/LongAdder.html
     * In absence of concurrent updates, sum() returns an accurate result.
     * But sum() does not see concurrent updates and therefore can miss an update.
+    *
     * The correctness then relies on the 2nd check in checkAndAcquireSharedLock()
-    * because the reader will see the flag and just abort voluntarily.
+    * because the reader will see the flag and just abort voluntarily. An example sequence
+    * of events is like below:
+    * 1. Reader checks flag, the flag is not set by the closer
+    * 2. Closer sets flag
+    * 3. Closer sees refCount=0
+    * 4. Reader increments refCount
+    * 5. Closer closes RocksDB
+    * 6. Reader checks flag again and sees the flag
+    * 7. Reader decrements refCount aborts in checkAndAcquireSharedLock()
     */
     Instant waitStart = Instant.now();
     CountingSleepRetry retry = new CountingSleepRetry(ROCKS_CLOSE_WAIT_TIMEOUT.getSeconds(), 1000);
@@ -496,32 +506,31 @@ public final class RocksStore implements Closeable {
 
   /**
    * Before the process shuts down, acquire an exclusive lock on the RocksDB before closing.
-   * Note this lock only exists on the Alluxio side. A CLOSING flag will be set so all
+   * Note this lock only exists on the Alluxio side. A STOP_SERVING flag will be set so all
    * existing readers/writers will abort asap.
    * The exclusive lock ensures there are no existing concurrent r/w operations, so it is safe to
    * close the RocksDB and recycle all relevant resources.
    *
-   * The CLOSING status will NOT be reset, because the process will shut down soon.
+   * The STOP_SERVING status will NOT be reset, because the process will shut down soon.
    */
-  public RocksWriteLockHandle lockForClosing() {
+  public RocksExclusiveLockHandle lockForClosing() {
     blockingWait();
-    return new RocksWriteLockHandle(false, mStopServing, mRefCount);
+    return new RocksExclusiveLockHandle(false, mStopServing, mRefCount);
   }
 
   /**
    * Before the process shuts down, acquire an exclusive lock on the RocksDB before closing.
-   * Note this lock only exists on the Alluxio side. A CLOSING flag will be set so all
+   * Note this lock only exists on the Alluxio side. A STOP_SERVING flag will be set so all
    * existing readers/writers will abort asap.
    * The exclusive lock ensures there are no existing concurrent r/w operations, so it is safe to
-   * close the RocksDB and recycle all relevant resources.
+   * restart/checkpoint the RocksDB and update the DB reference.
    *
-   * The CLOSING status will be reset and the version will be updated, so if a later r/w operation
-   * gets the shared lock, it is able to tell the RocksDB has been cleared.
+   * The STOP_SERVING status will be reset and the RocksDB will be open for operations again.
    * See {@link #checkAndAcquireSharedLock} for how this affects the shared lock logic.
    */
-  public RocksWriteLockHandle lockForRestart() {
+  public RocksExclusiveLockHandle lockForRestart() {
     blockingWait();
-    return new RocksWriteLockHandle(true, mStopServing, mRefCount);
+    return new RocksExclusiveLockHandle(true, mStopServing, mRefCount);
   }
 
   /**
@@ -530,11 +539,13 @@ public final class RocksStore implements Closeable {
    */
   public void abortIfClosing() {
     if (mStopServing.get()) {
-      throw new UnavailableRuntimeException(
-          "RocksDB is closed. Master is failing over or shutting down.");
+      throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.toString());
     }
   }
 
+  /**
+   * Checks whether the RocksDB is marked for exclusive access, so the operation should abort.
+   */
   public boolean isServiceStopping() {
     return mStopServing.get();
   }

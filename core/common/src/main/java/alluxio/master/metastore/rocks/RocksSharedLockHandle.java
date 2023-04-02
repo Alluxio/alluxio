@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.LongAdder;
  * RocksStore uses ref count for locking so releasing a read lock is just decrementing the
  * reference count.
  */
-public class RocksReadLockHandle implements AutoCloseable {
+public class RocksSharedLockHandle implements AutoCloseable {
   final LongAdder mRefCount;
 
   /**
@@ -15,7 +15,7 @@ public class RocksReadLockHandle implements AutoCloseable {
    *
    * @param refCount the ref count to decrement on close
    */
-  public RocksReadLockHandle(LongAdder refCount) {
+  public RocksSharedLockHandle(LongAdder refCount) {
     mRefCount = refCount;
   }
 

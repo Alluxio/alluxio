@@ -95,10 +95,16 @@ public final class RocksUtils {
    * Used to wrap an {@link CloseableIterator} over {@link RocksIterator}.
    * It seeks given iterator to first entry before returning the iterator.
    *
-   * The abort check is checked in hasNext(), where we check whether the RocksDB is closed and
-   * iteration should end. However, hasNext() and next() is a check-then-act race condition,
-   * where RocksDB may be closed immediately after hasNext() and before next(). We avoid that by
-   * acquiring a lock in next() access. The lock should guarantee safety during the data access.
+   * The Iterator is associated with a shared lock to the RocksStore. The lock should be acquired
+   * by the caller (See java doc on RocksStore.checkAndAcquireSharedLock()) for how.
+   * And the lock is held throughout the lifecycle of this iterator until it is closed
+   * either on completion or on exception. This shared lock guarantees thread safety when
+   * accessing the RocksDB. In other word, when this shared lock is held, the underlying
+   * RocksDB will not be stopped/restarted.
+   *
+   * The abortCheck defines a way to voluntarily abort the iteration. This typically happens
+   * when the underlying RocksDB will be closed/restart/checkpointed, where all accesses should
+   * be stopped.
    *
    * With the thread safety baked into hasNext() and next(), users of this Iterator do not need
    * to worry about safety and can use this Iterator normally.
@@ -112,7 +118,7 @@ public final class RocksUtils {
    */
   public static <T> CloseableIterator<T> createCloseableIterator(
         RocksIterator rocksIterator, RocksIteratorParser<T> parser,
-        Supplier<Void> abortCheck, RocksReadLockHandle rocksDbSharedLock) {
+        Supplier<Void> abortCheck, RocksSharedLockHandle rocksDbSharedLock) {
     rocksIterator.seekToFirst();
     AtomicBoolean valid = new AtomicBoolean(true);
     Iterator<T> iter = new Iterator<T>() {
@@ -125,7 +131,11 @@ public final class RocksUtils {
       public T next() {
         boolean succeeded = false;
 
-        // If the RocksDB wants to stop, abort the loop instead of finishing it
+        /*
+         * If the RocksDB wants to stop, abort the loop instead of finishing it.
+         * The abortCheck will throw an exception, which closes the CloseableIterator
+         * if the CloseableIterator is correctly put in a try-with-resource section.
+         */
         abortCheck.get();
 
         try {

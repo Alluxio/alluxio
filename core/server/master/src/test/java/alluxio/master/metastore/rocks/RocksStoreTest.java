@@ -66,17 +66,17 @@ public class RocksStoreTest {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RocksDB db;
     int count = 10;
-    try (RocksReadLockHandle lock = store.checkAndAcquireSharedLock()) {
+    try (RocksSharedLockHandle lock = store.checkAndAcquireSharedLock()) {
       db = store.getDb();
       for (int i = 0; i < count; i++) {
         db.put(testColumn.get(), new WriteOptions().setDisableWAL(true), ("a" + i).getBytes(),
                 "b".getBytes());
       }
     }
-    try (RocksWriteLockHandle lock = store.lockForRestart()) {
+    try (RocksExclusiveLockHandle lock = store.lockForRestart()) {
       store.writeToCheckpoint(baos);
     }
-    try (RocksWriteLockHandle lock = store.lockForClosing()) {
+    try (RocksExclusiveLockHandle lock = store.lockForClosing()) {
       store.close();
     }
 
@@ -88,17 +88,17 @@ public class RocksStoreTest {
     store =
         new RocksStore("test-new", newBbDir, backupsDir, dbOpts, columnDescriptors,
             Arrays.asList(testColumn));
-    try (RocksWriteLockHandle lock = store.lockForRestart()) {
+    try (RocksExclusiveLockHandle lock = store.lockForRestart()) {
       store.restoreFromCheckpoint(
           new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
     }
-    try (RocksReadLockHandle lock = store.checkAndAcquireSharedLock()) {
+    try (RocksSharedLockHandle lock = store.checkAndAcquireSharedLock()) {
       db = store.getDb();
       for (int i = 0; i < count; i++) {
         assertArrayEquals("b".getBytes(), db.get(testColumn.get(), ("a" + i).getBytes()));
       }
     }
-    try (RocksWriteLockHandle lock = store.lockForClosing()) {
+    try (RocksExclusiveLockHandle lock = store.lockForClosing()) {
       store.close();
     }
 

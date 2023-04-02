@@ -2,7 +2,6 @@ package alluxio.master.metastore.rocks;
 
 import com.google.common.base.Preconditions;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -11,7 +10,7 @@ import java.util.concurrent.atomic.LongAdder;
  * The exclusive lock is acquired when ref count is zero, and the StopServingFlag ensures
  * no new r/w will come in, so the ref count will stay zero throughout the period.
  */
-public class RocksWriteLockHandle implements AutoCloseable {
+public class RocksExclusiveLockHandle implements AutoCloseable {
   /*
    * true: the RocksDB is temporarily closed and can serve after the lock is released
    * false: the RocksDB is closed permanently because the master is shutting down
@@ -27,7 +26,7 @@ public class RocksWriteLockHandle implements AutoCloseable {
    * @param stopServingFlag the flag on RocksStore
    * @param refCount the ref count on RocksStore
    */
-  public RocksWriteLockHandle(
+  public RocksExclusiveLockHandle(
       boolean isRestart, AtomicBoolean stopServingFlag, LongAdder refCount) {
     mIsRestart = isRestart;
     mStopServingFlag = stopServingFlag;

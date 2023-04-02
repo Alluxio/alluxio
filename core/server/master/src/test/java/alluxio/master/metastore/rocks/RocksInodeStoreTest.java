@@ -29,6 +29,16 @@ public class RocksInodeStoreTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
+  // TODO(jiacheng): ref count closing Iterator from abort
+
+
+  // TODO(jiacheng): ref count normally
+
+  // TODO(jiacheng): ref count closing iterator vs listing
+
+  // TODO(jiacheng): concurrent ops and close
+
+
   @Test
   public void batchWrite() throws IOException {
     RocksInodeStore store = new RocksInodeStore(mFolder.newFolder().getAbsolutePath());
