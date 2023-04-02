@@ -24,8 +24,7 @@ public final class HeartbeatContextTest {
   public void allThreadsUseProductionTimer() {
     for (String threadName : HeartbeatContext.getTimerClasses().keySet()) {
       Class<? extends HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(threadName);
-      assertTrue(timerClass.isAssignableFrom(SleepingTimer.class)
-          || timerClass.isAssignableFrom(CronTimer.class));
+      assertTrue(timerClass.isAssignableFrom(SleepingTimer.class));
     }
   }
 

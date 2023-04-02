@@ -25,7 +25,7 @@ public class CronExpressionIntervalSupplier implements SleepIntervalSupplier {
   private final CronExpression mCron;
 
   /**
-   * Constructs a new {@link CronExpressionIntervalSupplier}
+   * Constructs a new {@link CronExpressionIntervalSupplier}.
    *
    * @param cronExpression the cron expression
    * @param fixedInterval the fixed interval

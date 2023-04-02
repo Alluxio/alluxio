@@ -18,7 +18,7 @@ public class FixedIntervalSupplier implements SleepIntervalSupplier {
   private final long mInterval;
 
   /**
-   * Constructs a new {@link FixedIntervalSupplier}
+   * Constructs a new {@link FixedIntervalSupplier}.
    *
    * @param fixedInterval the fixed interval
    */

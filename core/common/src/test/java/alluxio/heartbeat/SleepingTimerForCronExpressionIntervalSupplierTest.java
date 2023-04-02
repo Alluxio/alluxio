@@ -35,7 +35,7 @@ import java.util.Date;
  * Unit tests for {@link SleepingTimer}.
  */
 public final class SleepingTimerForCronExpressionIntervalSupplierTest {
-  private static final String THREAD_NAME = "crontimer-test-thread-name";
+  private static final String THREAD_NAME = "cron-test-thread-name";
   private static final long INTERVAL_MS = 10 * Constants.MINUTE_MS;
   private Logger mMockLogger;
   private ManualClock mFakeClock;
