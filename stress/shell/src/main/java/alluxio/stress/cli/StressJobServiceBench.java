@@ -192,7 +192,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       for (Map.Entry<String, MethodStatistics> entry : nameStatistics.entrySet()) {
         final JobServiceBenchTaskResultStatistics stats = new JobServiceBenchTaskResultStatistics();
         stats.encodeResponseTimeNsRaw(entry.getValue().getTimeNs());
-        stats.mNumSuccess = entry.getValue().getNumSuccess();
+        stats.mNumSuccesses = entry.getValue().getNumSuccess();
         stats.mMaxResponseTimeNs = entry.getValue().getMaxTimeNs();
         mResult.putStatisticsForMethod(entry.getKey(), stats);
       }

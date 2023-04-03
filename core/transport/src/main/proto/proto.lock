@@ -392,6 +392,19 @@
             ]
           },
           {
+            "name": "DecommissionWorkerPResponse"
+          },
+          {
+            "name": "DecommissionWorkerPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
+              }
+            ]
+          },
+          {
             "name": "TierList",
             "fields": [
               {
@@ -831,6 +844,11 @@
                 "name": "GetWorkerLostStorage",
                 "in_type": "GetWorkerLostStoragePOptions",
                 "out_type": "GetWorkerLostStoragePResponse"
+              },
+              {
+                "name": "DecommissionWorker",
+                "in_type": "DecommissionWorkerPOptions",
+                "out_type": "DecommissionWorkerPResponse"
               }
             ]
           },
@@ -2304,6 +2322,11 @@
                     "value": "true"
                   }
                 ]
+              },
+              {
+                "id": 15,
+                "name": "ufsReadWorkerLocation",
+                "type": "grpc.WorkerNetAddress"
               }
             ]
           },
@@ -2464,6 +2487,11 @@
                 "id": 14,
                 "name": "checkS3BucketPath",
                 "type": "bool"
+              },
+              {
+                "id": 15,
+                "name": "workerLocation",
+                "type": "grpc.WorkerNetAddress"
               }
             ],
             "maps": [

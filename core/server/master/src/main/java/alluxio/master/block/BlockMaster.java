@@ -123,11 +123,17 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   List<WorkerLostStorageInfo> getWorkerLostStorage();
 
   /**
+   * @param workerId the worker id
+   * @return true if the worker is excluded, otherwise false
+   */
+  boolean isNotServing(long workerId);
+
+  /**
    * Decommission a worker.
    *
-   * @param workerId the WorkerInfo of worker to be decommissioned
+   * @param workerName the worker hostname of worker to be decommissioned
    */
-  void decommissionWorker(long workerId) throws Exception;
+  void decommissionWorker(String workerName) throws NotFoundException;
 
   /**
    * Removes blocks from workers.

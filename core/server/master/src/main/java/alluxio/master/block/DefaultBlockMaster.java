@@ -48,6 +48,7 @@ import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
+import alluxio.master.block.meta.WorkerState;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.BlockMetaStore;
@@ -628,7 +629,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     for (MasterWorkerInfo worker : mWorkers) {
       // extractWorkerInfo handles the locking internally
       workerInfoList.add(extractWorkerInfo(worker,
-          GetWorkerReportOptions.WorkerInfoField.ALL, true));
+          GetWorkerReportOptions.WorkerInfoField.ALL, WorkerState.LIVE));
     }
     return workerInfoList;
   }
@@ -642,7 +643,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     for (MasterWorkerInfo worker : mLostWorkers) {
       // extractWorkerInfo handles the locking internally
       workerInfoList.add(extractWorkerInfo(worker,
-          GetWorkerReportOptions.WorkerInfoField.ALL, false));
+          GetWorkerReportOptions.WorkerInfoField.ALL, WorkerState.LOST));
     }
     workerInfoList.sort(new WorkerInfo.LastContactSecComparator());
     return workerInfoList;
@@ -724,15 +725,15 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             + selectedDecommissionedWorkers.size());
     for (MasterWorkerInfo worker : selectedLiveWorkers) {
       // extractWorkerInfo handles the locking internally
-      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), true));
+      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), WorkerState.LIVE));
     }
     for (MasterWorkerInfo worker : selectedLostWorkers) {
       // extractWorkerInfo handles the locking internally
-      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), false));
+      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), WorkerState.LOST));
     }
     for (MasterWorkerInfo worker : selectedDecommissionedWorkers) {
       // extractWorkerInfo handles the locking internally
-      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), false));
+      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), WorkerState.LOST));
     }
     return workerInfoList;
   }
@@ -741,9 +742,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * Locks the {@link MasterWorkerInfo} properly and convert it to a {@link WorkerInfo}.
    */
   private WorkerInfo extractWorkerInfo(MasterWorkerInfo worker,
-      Set<GetWorkerReportOptions.WorkerInfoField> fieldRange, boolean isLiveWorker) {
+      Set<GetWorkerReportOptions.WorkerInfoField> fieldRange, WorkerState workerState) {
     try (LockResource r = worker.lockWorkerMetaForInfo(fieldRange)) {
-      return worker.generateWorkerInfo(fieldRange, isLiveWorker);
+      return worker.generateWorkerInfo(fieldRange, workerState);
     }
   }
 
@@ -815,9 +816,25 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void decommissionWorker(long workerId)
-      throws Exception {
-    //TODO(Tony Sun): added in another pr.
+  public boolean isNotServing(long workerId) {
+    return mDecommissionedWorkers.getFirstByField(ID_INDEX, workerId) != null;
+  }
+
+  @Override
+  public void decommissionWorker(String workerHostName)
+      throws NotFoundException {
+    for (MasterWorkerInfo workerInfo : mWorkers) {
+      if (workerHostName.equals(workerInfo.getWorkerAddress().getHost())) {
+        try (LockResource r = workerInfo.lockWorkerMeta(
+            EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+          processDecommissionedWorker(workerInfo);
+        }
+        LOG.info("{} has been added to the decommissionedWorkers set.",
+            workerHostName);
+        return;
+      }
+    }
+    throw new NotFoundException("Worker {} not found in alive worker set");
   }
 
   @Override
@@ -942,7 +959,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       throws NotFoundException, UnavailableException {
     LOG.debug("Commit block from workerId: {}, usedBytesOnTier: {}, blockId: {}, length: {}",
         workerId, usedBytesOnTier, blockId, length);
-
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     // TODO(peis): Check lost workers as well.
     if (worker == null) {
@@ -1201,6 +1217,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
       throws NotFoundException {
 
+    if (isNotServing(workerId)) {
+      return;
+    }
+
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
 
     if (worker == null) {
@@ -1267,9 +1287,32 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return worker;
   }
 
+  private void processDecommissionedWorkerBlocks(MasterWorkerInfo workerInfo) {
+    processWorkerRemovedBlocks(workerInfo, workerInfo.getBlocks(), false);
+  }
+
+  /**
+   * Updates the metadata for the specified decommissioned worker.
+   * @param worker the master worker info
+   */
+  private void processDecommissionedWorker(MasterWorkerInfo worker) {
+    mDecommissionedWorkers.add(worker);
+    mWorkers.remove(worker);
+    WorkerNetAddress workerNetAddress = worker.getWorkerAddress();
+    // TODO(bzheng888): Maybe need a new listener such as WorkerDecommissionListener.
+    for (Consumer<Address> function : mWorkerLostListeners) {
+      function.accept(new Address(workerNetAddress.getHost(), workerNetAddress.getRpcPort()));
+    }
+    processDecommissionedWorkerBlocks(worker);
+  }
+
   @Override
   public void workerRegisterStream(WorkerRegisterContext context,
                                   RegisterWorkerPRequest chunk, boolean isFirstMsg) {
+    if (isNotServing(context.getWorkerId())) {
+      // Stop register the excluded worker
+      return;
+    }
     // TODO(jiacheng): find a place to check the lease
     if (isFirstMsg) {
       workerRegisterStart(context, chunk);
@@ -1378,6 +1421,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       Map<BlockLocation, List<Long>> addedBlocks,
       Map<String, StorageList> lostStorage,
       List<Metric> metrics) {
+    if (isNotServing(workerId)) {
+      return Command.newBuilder().setCommandType(CommandType.Nothing).build();
+    }
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);

@@ -272,7 +272,8 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
           break;
         }
         localCounter = mContext.getOperationCounter(0).getAndIncrement();
-        if (mParameters.mOperation == Operation.CREATE_TREE && localCounter >= mTreeTotalCount) {
+        if (mParameters.mOperation == Operation.CREATE_TREE
+            && localCounter >= mTreeTotalNodeCount) {
           break;
         }
         if (mParameters.mOperation == Operation.LOAD_METADATA

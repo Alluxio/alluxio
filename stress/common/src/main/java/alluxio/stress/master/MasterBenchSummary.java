@@ -72,7 +72,7 @@ public final class MasterBenchSummary extends GeneralBenchSummary<MasterBenchTas
 
     mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
-    mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
+    mThroughput = ((float) mStatistics.mNumSuccesses / mDurationMs) * 1000.0f;
     mParameters = mergedTaskResults.getParameters();
     mNodeResults = nodes;
   }
@@ -221,7 +221,7 @@ public final class MasterBenchSummary extends GeneralBenchSummary<MasterBenchTas
 
             // collect max success for each method
             methodCounts.put(method,
-                Math.max(methodCounts.getOrDefault(method, 0L), entry.getValue().mNumSuccess));
+                Math.max(methodCounts.getOrDefault(method, 0L), entry.getValue().mNumSuccesses));
           }
         }
 
