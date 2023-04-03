@@ -26,6 +26,7 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.SetAclAction;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.master.Master;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
@@ -639,9 +640,11 @@ public interface FileSystemMaster extends Master {
 
   /**
    * Syncs the metadata of a given path.
-   * @param path the path to sync
+   *
+   * @param path    the path to sync
    * @param context the method context
+   * @return the sync metadata response
    */
-  void syncMetadata(AlluxioURI path, SyncMetadataContext context)
+  SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataContext context)
       throws InvalidPathException, IOException;
 }

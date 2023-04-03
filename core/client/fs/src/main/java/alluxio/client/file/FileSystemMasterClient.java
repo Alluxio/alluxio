@@ -35,6 +35,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.SyncMetadataPOptions;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -378,9 +379,10 @@ public interface FileSystemMasterClient extends Client {
   /**
    * Syncs metadata for a given alluxio path.
    *
-   * @param path the path to sync metadata on
+   * @param path    the path to sync metadata on
    * @param options options to associate with this operation
+   * @return the sync metadata response
    */
-  void syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+  SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
       throws AlluxioStatusException;
 }

@@ -21,12 +21,13 @@ public class SyncResult {
   public SyncResult(boolean success, long syncDuration,
                     Map<SyncOperation, Long> successOperationCount,
                     Map<SyncOperation, Long> failedOperationCount,
-                    @Nullable SyncFailReason failReason) {
+                    @Nullable SyncFailReason failReason, long numUfsFileScanned) {
     mSuccess = success;
     mSyncDuration = syncDuration;
     mSuccessOperationCount = successOperationCount;
     mFailedOperationCount = failedOperationCount;
     mSyncFailReason = failReason;
+    mNumUfsFileScanned = numUfsFileScanned;
   }
 
   private final boolean mSuccess;
@@ -36,6 +37,7 @@ public class SyncResult {
   private final Map<SyncOperation, Long> mFailedOperationCount;
 
   private @Nullable final SyncFailReason mSyncFailReason;
+  private final long mNumUfsFileScanned;
 
   /**
    * @return the sync duration in ms
@@ -49,6 +51,13 @@ public class SyncResult {
    */
   public Map<SyncOperation, Long> getSuccessOperationCount() {
     return mSuccessOperationCount;
+  }
+
+  /**
+   * @return # of ufs files scanned
+   */
+  public long getNumUfsFileScanned() {
+    return mNumUfsFileScanned;
   }
 
   /**

@@ -980,7 +980,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   protected ObjectListingChunk getObjectListingChunkForPath(String path, boolean recursive)
       throws IOException {
-    return getObjectListingChunk(path, recursive, null, 0);
+    return getObjectListingChunkForPath(path, recursive, null, 0);
   }
 
   /**

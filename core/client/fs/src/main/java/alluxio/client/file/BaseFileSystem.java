@@ -57,6 +57,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.SyncMetadataPOptions;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -551,11 +552,11 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+  public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     try (CloseableResource<FileSystemMasterClient> client =
              mFsContext.acquireMasterClientResource()) {
-      client.get().syncMetadata(path, options);
+      return client.get().syncMetadata(path, options);
     }
   }
 

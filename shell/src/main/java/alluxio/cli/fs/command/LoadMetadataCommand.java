@@ -19,6 +19,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.util.CommonUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -98,7 +99,9 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
       } else {
         options = ListStatusPOptions.newBuilder().setRecursive(recursive).build();
       }
+      long time = CommonUtils.getCurrentMs();
       mFileSystem.loadMetadata(path, options);
+      System.out.println("Time elapsed " + (CommonUtils.getCurrentMs() - time));
     } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }

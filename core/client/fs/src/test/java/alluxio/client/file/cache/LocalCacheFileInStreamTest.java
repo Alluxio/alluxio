@@ -50,6 +50,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.SyncMetadataPOptions;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -916,8 +917,9 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public void syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+    public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
+      return null;
     }
 
     @Override

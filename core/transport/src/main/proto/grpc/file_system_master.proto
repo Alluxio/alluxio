@@ -673,6 +673,8 @@ message SyncMetadataPRequest {
 
 message SyncMetadataPResponse {
   optional bool success = 1;
+  // Use this field for anything that is wanted to be printed on the console for debug purpose.
+  optional string debugInfo = 1000;
   // TODO: add the followings:
   // # of files success
   // continuation token?

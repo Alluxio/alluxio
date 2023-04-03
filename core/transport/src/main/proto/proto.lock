@@ -3970,6 +3970,11 @@
                 "id": 1,
                 "name": "success",
                 "type": "bool"
+              },
+              {
+                "id": 1000,
+                "name": "debugInfo",
+                "type": "string"
               }
             ]
           },

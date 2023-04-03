@@ -18,6 +18,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.SyncMetadataPOptions;
+import alluxio.grpc.SyncMetadataPResponse;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -80,7 +81,9 @@ public class SyncMetadataCommand extends AbstractFileSystemCommand {
     try {
       SyncMetadataPOptions options =
           SyncMetadataPOptions.newBuilder().setIsRecursive(recursive).build();
-      mFileSystem.syncMetadata(path, options);
+      SyncMetadataPResponse response = mFileSystem.syncMetadata(path, options);
+      System.out.println("Sync metadata result: " + response);
+      System.out.println(response.getDebugInfo());
     } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }

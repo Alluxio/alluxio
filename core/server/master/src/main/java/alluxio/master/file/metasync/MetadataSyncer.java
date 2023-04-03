@@ -187,6 +187,9 @@ public class MetadataSyncer {
       }
       System.out.println("-------Syncing root-------------");
       System.out.println("Sync root path: " + path);
+      if (ufsSyncPathRoot != null) {
+        context.ufsFileScanned();
+      }
       try {
         syncOne(context, path, ufsSyncPathRoot, inodeWithName, true);
       } catch (AlluxioException | IOException e) {
@@ -313,6 +316,7 @@ public class MetadataSyncer {
     //    4. unlock /foo
     //    5. move two pointers
     while (currentInode != null || currentUfsStatus != null) {
+      /*
       if (currentInode == null) {
         System.out.println("Inode null");
       } else {
@@ -323,6 +327,7 @@ public class MetadataSyncer {
       } else {
         System.out.println("Ufs " + currentUfsStatus.getName());
       }
+       */
 
       SingleInodeSyncResult result = syncOne(
           context, syncRootPath, currentUfsStatus, currentInode, false);
@@ -341,6 +346,9 @@ public class MetadataSyncer {
         if (context.isRecursive() && currentUfsStatus != null && currentUfsStatus.isDirectory()) {
           context.addDirectoriesToUpdateIsChildrenLoaded(
               syncRootPath.join(currentUfsStatus.getName()));
+        }
+        if (currentUfsStatus != null) {
+          context.ufsFileScanned();
         }
       }
     }
@@ -506,7 +514,7 @@ public class MetadataSyncer {
                 .setUnchecked(true))
         .setMetadataLoad(true);
     mFsMaster.deleteInternal(context.getRpcContext(), lockedInodePath, syncDeleteContext, true);
-    System.out.println("Deleted file " + lockedInodePath.getUri());
+    //System.out.println("Deleted file " + lockedInodePath.getUri());
   }
 
   private void updateInodeMetadata(
@@ -530,7 +538,7 @@ public class MetadataSyncer {
     // Why previously clock is used?
     mFsMaster.setAttributeSingleFile(context.getRpcContext(), lockedInodePath, false,
         CommonUtils.getCurrentMs(), ctx);
-    System.out.println("Updated file " + lockedInodePath.getUri());
+    //System.out.println("Updated file " + lockedInodePath.getUri());
   }
 
   private void createInodeFileMetadata(
@@ -581,7 +589,7 @@ public class MetadataSyncer {
     }
     mFsMaster.createCompleteFileInternalForMetadataSync(
         context.getRpcContext(), lockedInodePath, createFileContext, (UfsFileStatus) ufsStatus);
-    System.out.println("Created file " + lockedInodePath.getUri());
+    //System.out.println("Created file " + lockedInodePath.getUri());
   }
 
   private void createInodeDirectoryMetadata(
@@ -628,7 +636,7 @@ public class MetadataSyncer {
         resolution.getUri(),
         createDirectoryContext
     );
-    System.out.println("Created directory " + lockedInodePath.getUri());
+    //System.out.println("Created directory " + lockedInodePath.getUri());
   }
 
   protected static class SingleInodeSyncResult {
