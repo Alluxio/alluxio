@@ -68,6 +68,11 @@ public interface Job<T extends Task<?>> {
   void failJob(AlluxioRuntimeException reason);
 
   /**
+   * set job as success.
+   */
+  void setJobSuccess();
+
+  /**
    * Get job progress.
    * @param format progress report format
    * @param verbose whether to include detailed information
