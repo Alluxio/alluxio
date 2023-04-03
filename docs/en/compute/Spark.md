@@ -312,7 +312,7 @@ executor on `host2` and have poor locality.
 However, if `--num-executors=2` and executors are started on `host1` and
 `host2`, Spark will be smart enough to prioritize placing the job on `host1`.
 
-### `Class alluxio.hadoop.FileSystem not found` Issues with SparkSQL and Hive Metastore
+### `Class hadoop.alluxio.dora.FileSystem not found` Issues with SparkSQL and Hive Metastore
 
 To run the `spark-shell` with the Alluxio client, the Alluxio client jar will
 must be added to the classpath of the Spark driver and Spark executors, as
@@ -321,7 +321,7 @@ However, sometimes SparkSQL may fail to save tables to the Hive Metastore
 (location in Alluxio), with an error message similar to the following:
 
 ```
-org.apache.hadoop.hive.ql.metadata.HiveException: MetaException(message:java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found)
+org.apache.hadoop.hive.ql.metadata.HiveException: MetaException(message:java.lang.RuntimeException: java.lang.ClassNotFoundException: Class hadoop.alluxio.dora.FileSystem not found)
 ```
 
 The recommended solution is to configure
@@ -351,7 +351,7 @@ following content to `${SPARK_HOME}/conf/core-site.xml`:
 <configuration>
   <property>
     <name>fs.alluxio.impl</name>
-    <value>alluxio.hadoop.FileSystem</value>
+    <value>hadoop.alluxio.dora.FileSystem</value>
   </property>
 </configuration>
 ```

@@ -9,4 +9,4 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-alluxio.master.table.TestUdbFactory
+table.master.alluxio.dora.TestUdbFactory

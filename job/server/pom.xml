@@ -165,9 +165,9 @@
               </description>
             </info>
             <locations>
-              <location>alluxio.master.AlluxioJobMasterRestServiceHandler</location>
-              <location>alluxio.worker.AlluxioJobWorkerRestServiceHandler</location>
-              <location>alluxio.master.job.JobMasterClientRestServiceHandler</location>
+              <location>alluxio.dora.dora.master.AlluxioJobMasterRestServiceHandler</location>
+              <location>alluxio.dora.dora.worker.AlluxioJobWorkerRestServiceHandler</location>
+              <location>alluxio.dora.dora.master.job.JobMasterClientRestServiceHandler</location>
             </locations>
             <templatePath>${project.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
             <outputPath>${project.parent.parent.basedir}/generated/job/index.html</outputPath>

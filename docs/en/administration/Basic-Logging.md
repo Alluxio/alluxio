@@ -86,11 +86,11 @@ For example, to modify the level for all logs to `DEBUG`, change the
 log4j.rootLogger=DEBUG, ${alluxio.logger.type}, ${alluxio.remote.logger.type}
 ```
 
-To modify the logging level for a particular Java class (e.g., set `alluxio.client.file.AlluxioFileInStream` to `DEBUG`),
+To modify the logging level for a particular Java class (e.g., set `file.client.alluxio.dora.AlluxioFileInStream` to `DEBUG`),
 add a new line at the end of this file:
 
 ```properties
-log4j.logger.alluxio.client.file.AlluxioFileInStream=DEBUG
+log4j.logger.file.client.alluxio.dora.AlluxioFileInStream=DEBUG
 ```
 
 To modify the logging level for a package (e.g., set all classes under `alluxio` to `DEBUG`), 
@@ -109,17 +109,17 @@ and causes a configuration mismatch between the running process and its `log4j.p
 See the [logLevel command documentation]({{ '/en/operation/User-CLI.html#loglevel' | relativize_url }})
 for the command options.
 
-For example, the following command sets the logger level of the class `alluxio.underfs.hdfs.HdfsUnderFileSystem` to
+For example, the following command sets the logger level of the class `hdfs.underfs.alluxio.dora.HdfsUnderFileSystem` to
 `DEBUG` on master as well as a worker at `192.168.100.100:30000`:
 
 ```shell
-$ ./bin/alluxio logLevel --logName=alluxio.underfs.hdfs.HdfsUnderFileSystem \
+$ ./bin/alluxio logLevel --logName=hdfs.underfs.alluxio.dora.HdfsUnderFileSystem \
   --target=master,192.168.100.100:30000 --level=DEBUG
 ```
 
-And the following command returns the log level of the class `alluxio.underfs.hdfs.HdfsUnderFileSystem` among all the workers:
+And the following command returns the log level of the class `hdfs.underfs.alluxio.dora.HdfsUnderFileSystem` among all the workers:
 ```shell
-$ ./bin/alluxio logLevel --logName=alluxio.underfs.hdfs.HdfsUnderFileSystem --target=workers
+$ ./bin/alluxio logLevel --logName=hdfs.underfs.alluxio.dora.HdfsUnderFileSystem --target=workers
 ```
 
 You can also update the log level at a package level.
@@ -128,7 +128,7 @@ For example, you can update the log level of all classes in `alluxio.underfs` pa
 $ ./bin/alluxio logLevel --logName=alluxio.underfs --target=workers --level=DEBUG
 ```
 This works because log4j loggers will inherit the log level from their ancestors.
-In this case `alluxio.underfs.hdfs.HdfsUnderFileSystem` inherits the log level if it is set on `alluxio.underfs`
+In this case `hdfs.underfs.alluxio.dora.HdfsUnderFileSystem` inherits the log level if it is set on `alluxio.underfs`
  or `alluxio.underfs.hdfs`.
 
 Furthermore, you can turn on Alluxio debug logging when you are troubleshooting a certain issue
@@ -174,7 +174,7 @@ to turn on GC for each individual process.
 Set in `conf/log4j.properties`:
 
 ```properties
-log4j.logger.alluxio.fuse.AlluxioJniFuseFileSystem=DEBUG
+log4j.logger.fuse.alluxio.dora.AlluxioJniFuseFileSystem=DEBUG
 ```
 
 You will see debug logs at both the start and end of each FUSE API call with its arguments and result
@@ -196,13 +196,13 @@ Add the following to your application-side `log4j.properties` to capture RPCs be
 and FileSystem Master:
 
 ```properties
-log4j.logger.alluxio.client.file.FileSystemMasterClient=DEBUG
+log4j.logger.file.client.alluxio.dora.FileSystemMasterClient=DEBUG
 ```
 
 Similarly, capture lower-level RPCs between Alluxio client and Block Master:
 
 ```properties
-log4j.logger.alluxio.client.block.BlockMasterClient=DEBUG
+log4j.logger.block.client.alluxio.dora.BlockMasterClient=DEBUG
 ```
 
 You will see debug logs at the beginning and end of each RPC with its arguments and result
@@ -222,7 +222,7 @@ commonOptions {
   ttl: -1
   ttlAction: DELETE
 }
-) in 2 ms: alluxio.exception.status.NotFoundException: Path "/.DS_Store" does not exist.
+) in 2 ms: status.exception.alluxio.dora.NotFoundException: Path "/.DS_Store" does not exist.
 ```
 
 ### Logging RPC Calls Received by Masters
@@ -232,7 +232,7 @@ creating/reading/writing/removing files, updating file attributions) using the `
 
 ```console
 $ ./bin/alluxio logLevel \
---logName=alluxio.master.file.FileSystemMasterClientServiceHandler \
+--logName=file.master.alluxio.dora.FileSystemMasterClientServiceHandler \
 --target master --level=DEBUG
 ```
 
@@ -241,7 +241,7 @@ blocks):
 
 ```console
 $ ./bin/alluxio logLevel \
---logName=alluxio.master.block.BlockMasterClientServiceHandler \
+--logName=block.master.alluxio.dora.BlockMasterClientServiceHandler \
 --target master --level=DEBUG
 ```
 
@@ -256,7 +256,7 @@ creating/reading/writing/removing files on UFS) using the `logLevel` command:
 
 ```console
 $ ./bin/alluxio logLevel \
---logName=alluxio.underfs.UnderFileSystemWithLogging \
+--logName=underfs.alluxio.dora.UnderFileSystemWithLogging \
 --target master --level=DEBUG
 ```
 
@@ -308,12 +308,12 @@ This can be useful for reasons including but not limited to:
 1. Use a separate logger to send logs to a remote endpoint like a socket.
 
 This can be achieved by adding a separate logger in the `conf/log4j.properties`.
-For example, the below example redirects debug logs of `alluxio.master.StateLockManager` to a separate set of files,
-so the `master.log` will not be full of DEBUG logs created by `alluxio.master.StateLockManager`.
+For example, the below example redirects debug logs of `master.alluxio.dora.StateLockManager` to a separate set of files,
+so the `master.log` will not be full of DEBUG logs created by `master.alluxio.dora.StateLockManager`.
 
 ```properties
-log4j.category.alluxio.master.StateLockManager=DEBUG, State_LOCK_LOGGER
-log4j.additivity.alluxio.master.StateLockManager=false
+log4j.category.master.alluxio.dora.StateLockManager=DEBUG, State_LOCK_LOGGER
+log4j.additivity.master.alluxio.dora.StateLockManager=false
 log4j.appender.State_LOCK_LOGGER=org.apache.log4j.RollingFileAppender
 log4j.appender.State_LOCK_LOGGER.File=<ALLUXIO_HOME>/logs/statelock.log
 log4j.appender.State_LOCK_LOGGER.MaxFileSize=10MB

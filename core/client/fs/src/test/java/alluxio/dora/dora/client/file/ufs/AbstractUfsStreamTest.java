@@ -1,0 +1,92 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.dora.dora.client.file.ufs;
+
+import alluxio.dora.dora.AlluxioTestDirectory;
+import alluxio.dora.dora.AlluxioURI;
+import alluxio.dora.dora.ClientContext;
+import alluxio.dora.dora.client.file.FileSystem;
+import alluxio.dora.dora.client.file.FileSystemContext;
+import alluxio.dora.dora.client.file.URIStatus;
+import alluxio.dora.dora.client.file.options.FileSystemOptions;
+import alluxio.dora.dora.client.file.options.UfsFileSystemOptions;
+import alluxio.dora.dora.conf.Configuration;
+import alluxio.dora.dora.conf.InstancedConfiguration;
+import alluxio.dora.dora.conf.PropertyKey;
+import alluxio.dora.dora.conf.Source;
+import alluxio.dora.dora.exception.AlluxioException;
+import alluxio.dora.dora.underfs.UnderFileSystemFactoryRegistry;
+import alluxio.dora.dora.underfs.local.LocalUnderFileSystemFactory;
+import alluxio.grpc.DeletePOptions;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * Add unit tests for streams of {@link UfsBaseFileSystem}.
+ */
+@RunWith(Parameterized.class)
+public abstract class AbstractUfsStreamTest {
+  protected static final int CHUNK_SIZE = 100;
+  protected InstancedConfiguration mConf;
+  protected AlluxioURI mRootUfs;
+  protected FileSystem mFileSystem;
+
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {{false}, {true}});
+  }
+
+  /**
+   * Runs {@link AbstractUfsStreamTest} with different configuration combinations.
+   *
+   * @param localDataCacheEnabled whether local data cache is enabled
+   */
+  public AbstractUfsStreamTest(boolean localDataCacheEnabled) {
+    mConf = Configuration.copyGlobal();
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED,
+        PropertyKey.USER_CLIENT_CACHE_ENABLED.formatValue(localDataCacheEnabled), Source.RUNTIME);
+  }
+
+  /**
+   * Sets up the file system and the context before a test runs.
+   */
+  @Before
+  public void before() {
+    String ufs = AlluxioTestDirectory.createTemporaryDirectory("ufsInStream").toString();
+    mRootUfs = new AlluxioURI(ufs);
+    UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
+    mFileSystem = FileSystem.Factory.create(FileSystemContext.create(
+        ClientContext.create(mConf)), FileSystemOptions.create(mConf,
+        Optional.of(new UfsFileSystemOptions(ufs))));
+  }
+
+  @After
+  public void after() throws IOException, AlluxioException {
+    for (URIStatus status : mFileSystem.listStatus(mRootUfs)) {
+      mFileSystem.delete(new AlluxioURI(status.getPath()),
+          DeletePOptions.newBuilder().setRecursive(true).build());
+    }
+  }
+
+  protected AlluxioURI getUfsPath() {
+    return mRootUfs.join("streamTest" + UUID.randomUUID());
+  }
+}

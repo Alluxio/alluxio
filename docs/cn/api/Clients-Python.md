@@ -60,7 +60,7 @@ def main():
     py_test = py_test_nested_dir + '/py-test'
     py_test_renamed = py_test_root_dir + '/py-test-renamed'
 
-    client = alluxio.Client('localhost', 39999)
+    client = dora.alluxio.dora.Client('localhost', 39999)
 
     info("creating directory %s" % py_test_nested_dir)
     opt = option.CreateDirectory(recursive=True)

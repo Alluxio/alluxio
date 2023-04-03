@@ -91,11 +91,11 @@ If a message like this is returned, then you'll need to double check the name of
 The property for the bucket name is controlled by [`alluxio.master.mount.table.root.ufs`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.master.mount.table.root.ufs)
 
 ```
-Exception in thread "main" alluxio.exception.DirectoryNotEmptyException: Failed to delete /default_tests_files (com.amazonaws.services.s3.model.AmazonS3Exception: The specified bucket does not exist (Service: Amazon S3; Status Code: 404; Error Code: NoSuchBucke
+Exception in thread "main" exception.alluxio.dora.DirectoryNotEmptyException: Failed to delete /default_tests_files (com.amazonaws.services.s3.model.AmazonS3Exception: The specified bucket does not exist (Service: Amazon S3; Status Code: 404; Error Code: NoSuchBucke
 t; Request ID: 158681CA87E59BA0; S3 Extended Request ID: 2d47b54e-7dd4-4e32-bc6e-48ffb8e2265c), S3 Extended Request ID: 2d47b54e-7dd4-4e32-bc6e-48ffb8e2265c) from the under file system
-        at alluxio.client.file.BaseFileSystem.delete(BaseFileSystem.java:234)
-        at alluxio.cli.TestRunner.runTests(TestRunner.java:118)
-        at alluxio.cli.TestRunner.main(TestRunner.java:100)
+        at file.client.alluxio.dora.BaseFileSystem.delete(BaseFileSystem.java:234)
+        at cli.alluxio.dora.TestRunner.runTests(TestRunner.java:118)
+        at cli.alluxio.dora.TestRunner.main(TestRunner.java:100)
 ```
 
 ### DNS Resolution - Unable to execute HTTP request
@@ -106,10 +106,10 @@ is set to `false`.
 Setting this value to `true` for MinIO will allow Alluxio to resolve the proper bucket location.
 
 ```
-Exception in thread "main" alluxio.exception.DirectoryNotEmptyException: Failed to delete /default_tests_files (com.amazonaws.SdkClientException: Unable to execute HTTP request: {{BUCKET_NAME}}) from the under file system
-        at alluxio.client.file.BaseFileSystem.delete(BaseFileSystem.java:234)
-        at alluxio.cli.TestRunner.runTests(TestRunner.java:118)
-        at alluxio.cli.TestRunner.main(TestRunner.java:100)
+Exception in thread "main" exception.alluxio.dora.DirectoryNotEmptyException: Failed to delete /default_tests_files (com.amazonaws.SdkClientException: Unable to execute HTTP request: {{BUCKET_NAME}}) from the under file system
+        at file.client.alluxio.dora.BaseFileSystem.delete(BaseFileSystem.java:234)
+        at cli.alluxio.dora.TestRunner.runTests(TestRunner.java:118)
+        at cli.alluxio.dora.TestRunner.main(TestRunner.java:100)
 ```
 
 ### Connection Refused - Unable to execute HTTP request
@@ -122,11 +122,11 @@ is correct and that the node running the Alluxio master can reach the MinIO endp
 network.
 
 ```
-Exception in thread "main" alluxio.exception.DirectoryNotEmptyException: Failed to delete /default_tests_files (com.amazonaws.SdkClientException: Unable to execute HTTP request: Connect to localhost:9001 [localhost/127.0.0.1] failed: Connection refused (Connect
+Exception in thread "main" exception.alluxio.dora.DirectoryNotEmptyException: Failed to delete /default_tests_files (com.amazonaws.SdkClientException: Unable to execute HTTP request: Connect to localhost:9001 [localhost/127.0.0.1] failed: Connection refused (Connect
 ion refused)) from the under file system
-        at alluxio.client.file.BaseFileSystem.delete(BaseFileSystem.java:234)
-        at alluxio.cli.TestRunner.runTests(TestRunner.java:118)
-        at alluxio.cli.TestRunner.main(TestRunner.java:100)
+        at file.client.alluxio.dora.BaseFileSystem.delete(BaseFileSystem.java:234)
+        at cli.alluxio.dora.TestRunner.runTests(TestRunner.java:118)
+        at cli.alluxio.dora.TestRunner.main(TestRunner.java:100)
 ```
 
 ### Request Forbidden
@@ -139,16 +139,16 @@ If this error is appearing, double check that both properties are set correctly.
 
 ```
 ERROR CliUtils - Exception running test: alluxio.examples.BasicNonByteBufferOperations@388526fb
-alluxio.exception.AlluxioException: com.amazonaws.services.s3.model.AmazonS3Exception: Forbidden (Service: Amazon S3; Status Code: 403; Error Code: 403 Forbidden; Request ID: 1586BF770688AB20; S3 Extended Request ID: null), S3 Extended Request ID: null
-        at alluxio.exception.status.AlluxioStatusException.toAlluxioException(AlluxioStatusException.java:111)
-        at alluxio.client.file.BaseFileSystem.createFile(BaseFileSystem.java:200)
+exception.alluxio.dora.AlluxioException: com.amazonaws.services.s3.model.AmazonS3Exception: Forbidden (Service: Amazon S3; Status Code: 403; Error Code: 403 Forbidden; Request ID: 1586BF770688AB20; S3 Extended Request ID: null), S3 Extended Request ID: null
+        at status.exception.alluxio.dora.AlluxioStatusException.toAlluxioException(AlluxioStatusException.java:111)
+        at file.client.alluxio.dora.BaseFileSystem.createFile(BaseFileSystem.java:200)
         at alluxio.examples.BasicNonByteBufferOperations.createFile(BasicNonByteBufferOperations.java:102)
         at alluxio.examples.BasicNonByteBufferOperations.write(BasicNonByteBufferOperations.java:85)
         at alluxio.examples.BasicNonByteBufferOperations.call(BasicNonByteBufferOperations.java:80)
         at alluxio.examples.BasicNonByteBufferOperations.call(BasicNonByteBufferOperations.java:49)
         at alluxio.cli.CliUtils.runExample(CliUtils.java:51)
-        at alluxio.cli.TestRunner.runTest(TestRunner.java:164)
-        at alluxio.cli.TestRunner.runTests(TestRunner.java:134)
-        at alluxio.cli.TestRunner.main(TestRunner.java:100)
-Caused by: alluxio.exception.status.UnknownException: com.amazonaws.services.s3.model.AmazonS3Exception: Forbidden (Service: Amazon S3; Status Code: 403; Error Code: 403 Forbidden; Request ID: 1586BF770688AB20; S3 Extended Request ID: null), S3 Extended Request ID: null
+        at cli.alluxio.dora.TestRunner.runTest(TestRunner.java:164)
+        at cli.alluxio.dora.TestRunner.runTests(TestRunner.java:134)
+        at cli.alluxio.dora.TestRunner.main(TestRunner.java:100)
+Caused by: status.exception.alluxio.dora.UnknownException: com.amazonaws.services.s3.model.AmazonS3Exception: Forbidden (Service: Amazon S3; Status Code: 403; Error Code: 403 Forbidden; Request ID: 1586BF770688AB20; S3 Extended Request ID: null), S3 Extended Request ID: null
 ```

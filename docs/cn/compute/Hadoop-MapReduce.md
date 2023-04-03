@@ -34,12 +34,12 @@ priority: 2
 ```xml
 <property>
   <name>fs.alluxio.impl</name>
-  <value>alluxio.hadoop.FileSystem</value>
+  <value>hadoop.alluxio.dora.FileSystem</value>
   <description>The Alluxio FileSystem (Hadoop 1.x and 2.x)</description>
 </property>
 <property>
   <name>fs.AbstractFileSystem.alluxio.impl</name>
-  <value>alluxio.hadoop.AlluxioFileSystem</value>
+  <value>hadoop.alluxio.dora.AlluxioFileSystem</value>
   <description>The Alluxio AbstractFileSystem (Hadoop 2.x)</description>
 </property>
 ```

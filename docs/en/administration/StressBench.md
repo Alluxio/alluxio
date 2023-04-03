@@ -32,7 +32,7 @@ Run a benchmark by its class name using the `runClass` command (there is a featu
 For example,
 
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.StressMasterBench --help
+$ bin/alluxio runClass cli.stress.alluxio.dora.StressMasterBench --help
 ```
 
 This command invokes the `StressMasterBench` and prints its usage.
@@ -40,20 +40,20 @@ This command invokes the `StressMasterBench` and prints its usage.
 To test RPC throughput of Alluxio master (e.g., for certain RPCs):
 
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.GetPinnedFileIdsBench
-$ bin/alluxio runClass alluxio.stress.cli.RegisterWorkerBench
-$ bin/alluxio runClass alluxio.stress.cli.WorkerHeartbeatBench
-$ bin/allixio runClass alluxio.stress.cli.StreamRegisterWorkerBench
+$ bin/alluxio runClass cli.stress.alluxio.dora.GetPinnedFileIdsBench
+$ bin/alluxio runClass cli.stress.alluxio.dora.RegisterWorkerBench
+$ bin/alluxio runClass cli.stress.alluxio.dora.WorkerHeartbeatBench
+$ bin/allixio runClass cli.stress.alluxio.dora.StreamRegisterWorkerBench
 ```
 
 To benchmark Alluxio FUSE performance
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench
+$ bin/alluxio runClass fuse.cli.stress.alluxio.dora.FuseIOBench
 ```
 
 To benchmark job service
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench
+$ bin/alluxio runClass cli.stress.alluxio.dora.StressJobServiceBench
 ```
 
 ### Options
@@ -183,12 +183,12 @@ The parameters for the Fuse IO Stress Bench are (other than common parameters fo
 #### Write test files
 Write the test files by running the benchmark with `--operation Write` into the mount point for writing files
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation Write --local-path /path/to/writing/mount/point ...
+$ bin/alluxio runClass fuse.cli.stress.alluxio.dora.FuseIOBench --operation Write --local-path /path/to/writing/mount/point ...
 ```
 
 For example,
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation Write --local-path /mnt/FuseIOBenchWrite --num-dirs 128 \
+$ bin/alluxio runClass fuse.cli.stress.alluxio.dora.FuseIOBench --operation Write --local-path /mnt/FuseIOBenchWrite --num-dirs 128 \
 --num-files-per-dir 100 --file-size 1m --threads 32
 ```
 
@@ -201,12 +201,12 @@ This step could be particularly useful when the file size is small and metadata 
 
 To cache the file metadata, run the benchmark with `--operation ListFile` at the mount point for reading files. More specifically, run
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation ListFile --local-path /path/to/reading/mount/point ...
+$ bin/alluxio runClass fuse.cli.stress.alluxio.dora.FuseIOBench --operation ListFile --local-path /path/to/reading/mount/point ...
 ```
 
 For example,
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation ListFile --local-path /mnt/FuseIOBenchRead
+$ bin/alluxio runClass fuse.cli.stress.alluxio.dora.FuseIOBench --operation ListFile --local-path /mnt/FuseIOBenchRead
 ```
 
 `num-dirs`, `num-files-per-dir`, `file-size`, `warmup`, and `duration` are not valid in listing stage.
@@ -214,12 +214,12 @@ $ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation ListFile 
 #### Read test files 
 Read the test files written by running the benchmark with `--operation LocalRead` from the reading mount point.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation LocalRead --local-path /path/to/reading/mount/point ...
+$ bin/alluxio runClass fuse.cli.stress.alluxio.dora.FuseIOBench --operation LocalRead --local-path /path/to/reading/mount/point ...
 ```
 
 For example,
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation LocalRead --local-path /mnt/FuseIOBenchRead --num-dirs 128 \
+$ bin/alluxio runClass fuse.cli.stress.alluxio.dora.FuseIOBench --operation LocalRead --local-path /mnt/FuseIOBenchRead --num-dirs 128 \
 --num-files-per-dir 100 --files-size 1m --buffer-size 512k --warmup 5s --duration 30s 
 ```
 
@@ -241,7 +241,7 @@ By tweaking the setups, the reading performance under more scenarios can also be
 ### Cluster testing
 #### Prerequisite
 - A running Alluxio cluster. Each worker node contains one worker, one job worker, and one Fuse mount point.
-- Alluxio cluster is configured with `alluxio.user.block.write.location.policy.class=alluxio.client.block.policy.LocalFirstPolicy` (which is the default configuration)
+- Alluxio cluster is configured with `alluxio.user.block.write.location.policy.class=policy.block.client.alluxio.dora.LocalFirstPolicy` (which is the default configuration)
 - Each Alluxio worker has enough space to store the test data. The worker storage size for each worker is bigger than
 `num-dirs` * `num-files-per-dir` * `file-size` / `worker-number` / `alluxio.worker.tieredstore.levelX.watermark.low.ratio=0.7 by default`.
 
@@ -323,18 +323,18 @@ The parameters for the Job Service Stress Bench(including JobServiceMaxThroughpu
 #### Create test files
 Write the test files by running the benchmark with `--operation CreateFiles` into the test directory
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --operation CreateFiles --base /path/to/test/directory ...
+$ bin/alluxio runClass cli.stress.alluxio.dora.StressJobServiceBench --operation CreateFiles --base /path/to/test/directory ...
 ```
 
 For example, we are creating 10 directories with 1000 files per directory.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --base alluxio://localhost:19998/stress-job-service-base --file-size 1k --files-per-dir 1000 --threads 10 --operation CreateFiles
+$ bin/alluxio runClass cli.stress.alluxio.dora.StressJobServiceBench --base alluxio://localhost:19998/stress-job-service-base --file-size 1k --files-per-dir 1000 --threads 10 --operation CreateFiles
 ```
 
 #### DistributedLoad test files
 Load the test files written by running the benchmark with `--operation DistributedLoad` from the test directory. The parameter should be the same as CreateFiles operation. It would send distributedLoad requests concurrently(one directory per request)
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --base alluxio://localhost:19998/stress-job-service-base --file-size 1k --files-per-dir 1000 --threads 10 --operation DistributedLoad
+$ bin/alluxio runClass cli.stress.alluxio.dora.StressJobServiceBench --base alluxio://localhost:19998/stress-job-service-base --file-size 1k --files-per-dir 1000 --threads 10 --operation DistributedLoad
 ```
 
 ### Single node testing with operation: NoOp
@@ -344,13 +344,13 @@ NoOp is mainly for measuring the throughput of Job Master(job management capabil
 #### Single Test
 Continuously Sending NoOp jobs and measure the throughput within certain time range.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --warmup 30s --duration 30s --threads 10 --operation NoOp
+$ bin/alluxio runClass cli.stress.alluxio.dora.StressJobServiceBench --warmup 30s --duration 30s --threads 10 --operation NoOp
 ```
 #### JobServiceMaxThroughput Test for NoOp operation
 JobServiceMaxThroughput is applying MaxThroughput algorithm to job service. Testing the job management capability of job master.
 Only NoOp operation is supported for JobServiceMaxThroughput.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.suite.JobServiceMaxThroughput --duration 30s --threads 16 --warmup 30s --operation NoOp 
+$ bin/alluxio runClass suite.cli.stress.alluxio.dora.JobServiceMaxThroughput --duration 30s --threads 16 --warmup 30s --operation NoOp 
 ```
 
 ### Cluster testing
@@ -479,12 +479,12 @@ THROUGH, ASYNC_THROUGH, ALL]. ALL will make the benchmark run with every write t
 #### Write test files
 Write the test files by running the benchmark with `--operation Write`
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation Write --base /path/to/test/directory ...
+$ bin/alluxio runClass client.cli.stress.alluxio.dora.StressClientIOBench --operation Write --base /path/to/test/directory ...
 ```
 
 For example,
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation Write --base alluxio://localhost:19998/stress-client-io-base \
+$ bin/alluxio runClass client.cli.stress.alluxio.dora.StressClientIOBench --operation Write --base alluxio://localhost:19998/stress-client-io-base \
 --write-num-workers 100 --file-size 1m --threads 32
 ```
 
@@ -493,12 +493,12 @@ $ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation
 #### Read test files
 Read the test files written by running the benchmark with read operations. You can test different kinds of read operation.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation ReadArray ...
+$ bin/alluxio runClass client.cli.stress.alluxio.dora.StressClientIOBench --operation ReadArray ...
 ```
 
 For example, we are testing Streaming read api, using byte buffers with buffer size 512k.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation ReadByteBuffer --files-size 1m --buffer-size 512k --warmup 5s --duration 30s 
+$ bin/alluxio runClass client.cli.stress.alluxio.dora.StressClientIOBench --operation ReadByteBuffer --files-size 1m --buffer-size 512k --warmup 5s --duration 30s 
 ```
 
 ### Cluster testing
@@ -614,12 +614,12 @@ THROUGH, ASYNC_THROUGH, ALL]. ALL will make the benchmark run with every write t
 #### Single test
 Run the test with the operation you want to test.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.StressMasterBench --operation ListDir ...
+$ bin/alluxio runClass cli.stress.alluxio.dora.StressMasterBench --operation ListDir ...
 ```
 
 For example, this would continuously run `ListDir` operation for 30s and record the throughput after 5s warmup.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.StressMasterBench --operation ListDir --warmup 5s --duration 30s 
+$ bin/alluxio runClass cli.stress.alluxio.dora.StressMasterBench --operation ListDir --warmup 5s --duration 30s 
 ```
 #### MaxThroughput test
 MaxThroughput test is the recommended way to test the master throughput for certain operation.
@@ -794,7 +794,7 @@ A running Alluxio cluster with one master and one worker.
 
 #### Single test
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.MaxFileBench ...
+$ bin/alluxio runClass cli.stress.alluxio.dora.MaxFileBench ...
 ```
 ### Cluster testing
 This is only useful if the throughput provided by running this stress bench on the master node directly is insufficient.
@@ -862,7 +862,7 @@ The parameters for the Worker Stress Bench are (other than common parameters for
 #### Single test
 Run the test with the operation you want to test.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.UfsIOBench --io-size 1G ...
+$ bin/alluxio runClass cli.stress.alluxio.dora.UfsIOBench --io-size 1G ...
 ```
 
 For example, this runs the UFS I/O benchmark in the Alluxio cluster, where each thread is writing and then reading 512MB of data from HDFS:
@@ -909,14 +909,14 @@ For example, this runs the `RegisterWorkerBench` in the single node mode, with a
 simulated workers:
 
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.RegisterWorkerBench --concurrency 8 --tiers "5000,5000"
+$ bin/alluxio runClass cli.stress.alluxio.dora.RegisterWorkerBench --concurrency 8 --tiers "5000,5000"
 ```
 
 This runs the same benchmark in the cluster mode, on 2 job workers each simulating 4 workers,
 so the total number of simulated workers is also 8:
 
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.RegisterWorkerBench --concurrency 4 --cluster 
+$ bin/alluxio runClass cli.stress.alluxio.dora.RegisterWorkerBench --concurrency 4 --cluster 
 --cluster-limit 2 --tiers "5000,5000"
 ```
 
@@ -1104,7 +1104,7 @@ Batch tasks are simple wrappers around existing benchmarks. The following batch 
 
 To run the batch tasks, run
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.BatchTaskRunner <TASK_NAME> 
+$ bin/alluxio runClass cli.stress.alluxio.dora.BatchTaskRunner <TASK_NAME> 
 ```
 
 ### Master Comprehensive File Batch Task
@@ -1143,7 +1143,7 @@ This example runs the master comprehensive file batch task which operates on 100
 threads:
 
 ```console
-bin/alluxio runClass alluxio.stress.cli.BatchTaskRunner MasterComprehensiveFileBatchTask \ 
+bin/alluxio runClass cli.stress.alluxio.dora.BatchTaskRunner MasterComprehensiveFileBatchTask \ 
 --num-files 1000 \
 --threads 10 \
 --create-file-size 1k \ 

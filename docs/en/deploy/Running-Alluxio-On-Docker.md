@@ -238,7 +238,7 @@ Notes:
      clients outside the docker network. Otherwise, clients can't connect to worker, since
      they do not recognize the worker's container Id. It will throw error like below:
      ```
-     Target: 5a1a840d2a98:29999, Error: alluxio.exception.status.UnavailableException: Unable to resolve host 5a1a840d2a98
+     Target: 5a1a840d2a98:29999, Error: status.exception.alluxio.dora.UnavailableException: Unable to resolve host 5a1a840d2a98
      ```
 
 {% endnavtab %}

@@ -151,8 +151,8 @@ In this case, check Alluxio Fuse logs (located at `${ALLUXIO_HOME}/logs/fuse.log
 For example, the command may fail because unable to connect to the Alluxio master:
 ```
 2021-08-30 12:07:52,489 ERROR AlluxioJniFuseFileSystem - Failed to getattr /mnt/people/LICENSE:
-alluxio.exception.status.UnavailableException: Failed to connect to master (localhost:19998) after 44 attempts.Please check if Alluxio master is currently running on "localhost:19998". Service="FileSystemMasterClient"
-        at alluxio.AbstractClient.connect(AbstractClient.java:279)
+status.exception.alluxio.dora.UnavailableException: Failed to connect to master (localhost:19998) after 44 attempts.Please check if Alluxio master is currently running on "localhost:19998". Service="FileSystemMasterClient"
+        at dora.alluxio.dora.AbstractClient.connect(AbstractClient.java:279)
 ```
 
 ### Unmount
@@ -477,7 +477,7 @@ The detailed configuration and example usage are listed below:
 
 {% navtabs userGroupPolicy %}
   {% navtab Launch User Group Policy %}
-This is the default user group policy (set via `alluxio.fuse.auth.policy.class=alluxio.fuse.auth.LaunchUserGroupAuthPolicy`).
+This is the default user group policy (set via `alluxio.fuse.auth.policy.class=auth.fuse.alluxio.dora.LaunchUserGroupAuthPolicy`).
 
 Assuming user `alluxio-user` with group `alluxio-group` launches the FUSE process.
 ```console
@@ -498,7 +498,7 @@ $ ls -al /mnt/people/file
 This policy has weak security support but with minimum performance overhead.
   {% endnavtab %}
   {% navtab System User Group Policy %}
-Enabled via setting `alluxio.fuse.auth.policy.class=alluxio.fuse.auth.SystemUserGroupAuthPolicy` in `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
+Enabled via setting `alluxio.fuse.auth.policy.class=auth.fuse.alluxio.dora.SystemUserGroupAuthPolicy` in `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
 
 Assuming user `alluxio-user` with group `alluxio-group` launches the FUSE process
 and user `end-user` with group `end-group` runs the actual operations against the FUSE mount point:
@@ -531,7 +531,7 @@ This matches POSIX standard but sacrifices performance.
   {% navtab Custom User Group Policy %}
 Enabling by adding the following configuration in `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
 ```config
-alluxio.fuse.auth.policy.class=alluxio.fuse.auth.CustomAuthPolicy
+alluxio.fuse.auth.policy.class=auth.fuse.alluxio.dora.CustomAuthPolicy
 alluxio.fuse.auth.policy.custom.user=<user_name>
 alluxio.fuse.auth.policy.custom.group=<group_name>
 ```

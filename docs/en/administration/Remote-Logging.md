@@ -116,7 +116,7 @@ log4j.appender.REMOTE_MASTER_LOGGER=org.apache.log4j.net.SocketAppender
 log4j.appender.REMOTE_MASTER_LOGGER.Port=${alluxio.logserver.port}
 log4j.appender.REMOTE_MASTER_LOGGER.RemoteHost=${alluxio.logserver.hostname}
 log4j.appender.REMOTE_MASTER_LOGGER.ReconnectionDelay=10000
-log4j.appender.REMOTE_MASTER_LOGGER.filter.ID=alluxio.AlluxioRemoteLogFilter
+log4j.appender.REMOTE_MASTER_LOGGER.filter.ID=dora.alluxio.dora.AlluxioRemoteLogFilter
 log4j.appender.REMOTE_MASTER_LOGGER.filter.ID.ProcessType=MASTER
 # Set the threshold to your desired log level
 log4j.appender.REMOTE_MASTER_LOGGER.Threshold=WARN
@@ -141,7 +141,7 @@ log4j.appender.CLIENT_REMOTE_LOGGER=org.apache.log4j.net.SocketAppender
 log4j.appender.CLIENT_REMOTE_LOGGER.Port=<PORT_OF_LOG_SERVER>
 log4j.appender.CLIENT_REMOTE_LOGGER.RemoteHost=<HOSTNAME_OF_LOG_SERVER>
 log4j.appender.CLIENT_REMOTE_LOGGER.ReconnectionDelay=10000
-log4j.appender.CLIENT_REMOTE_LOGGER.filter.ID=alluxio.AlluxioRemoteLogFilter
+log4j.appender.CLIENT_REMOTE_LOGGER.filter.ID=dora.alluxio.dora.AlluxioRemoteLogFilter
 log4j.appender.CLIENT_REMOTE_LOGGER.filter.ID.ProcessType=CLIENT
 log4j.appender.CLIENT_REMOTE_LOGGER.layout=org.apache.log4j.PatternLayout
 log4j.appender.CLIENT_REMOTE_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n

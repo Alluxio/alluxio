@@ -198,8 +198,8 @@ workers选择使用的注释策略由Alluxio属性
 [alluxio.worker.block.annotator.class]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.worker.block.annotator.class)决定。
 该属性应在配置中指定完全验证的策略名称。当前可用的选项有:
 
-- `alluxio.worker.block.annotator.LRUAnnotator`
-- `alluxio.worker.block.annotator.LRFUAnnotator`
+- `annotator.block.worker.alluxio.dora.LRUAnnotator`
+- `annotator.block.worker.alluxio.dora.LRFUAnnotator`
 
 #### 释放空间模拟
 旧的释放空间策略和Alluxio提供的实施现在已去掉了，并用适当的注释策略替换。

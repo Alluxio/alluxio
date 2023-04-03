@@ -385,14 +385,14 @@ installation or `spark/conf/` if you customize this file for Spark) has the foll
 <configuration>
   <property>
     <name>fs.alluxio.impl</name>
-    <value>alluxio.hadoop.FileSystem</value>
+    <value>hadoop.alluxio.dora.FileSystem</value>
   </property>
 </configuration>
 ```
 
 See the doc page for your specific compute framework for detailed setup instructions.
 
-### Q: Why do I see exceptions like "java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found"?
+### Q: Why do I see exceptions like "java.lang.RuntimeException: java.lang.ClassNotFoundException: Class hadoop.alluxio.dora.FileSystem not found"?
 
 A: This error message is seen when your applications (e.g., MapReduce, Spark) try to access
 Alluxio as an HDFS-compatible file system, the `alluxio://` scheme has been

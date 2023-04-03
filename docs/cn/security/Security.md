@@ -46,7 +46,7 @@ Alluxio还支持其它身份验证模式，如`NOSASL`和`CUSTOM`。
 
 当`alluxio.security.authentication.type`为`CUSTOM`时，身份验证被启用。Alluxio客户端
 检查`alluxio.security.authentication.custom.provider.class`类的名称
-用于检索用户。此类必须实现`alluxio.security.authentication.AuthenticationProvider`接口。
+用于检索用户。此类必须实现`authentication.security.alluxio.dora.AuthenticationProvider`接口。
 
 这种模式目前还处于试验阶段，应该只在测试中使用。
 
@@ -85,7 +85,7 @@ drwxr-xr-x jack           staff                       24       PERSISTED 11-20-2
 ### 用户-组映射 {#user-group-mapping}
 
 当用户确定后，其组列表通过一个组映射服务确定，该服务通过`alluxio.security.group.mapping.class`配置，其默认实现是
-`alluxio.security.group.provider.ShellBasedUnixGroupsMapping`，该实现通过执行`groups` shell命令获取一个给定用户的组关系。
+`provider.group.security.alluxio.dora.ShellBasedUnixGroupsMapping`，该实现通过执行`groups` shell命令获取一个给定用户的组关系。
 用户-组映射默认使用了一种缓存机制，映射关系默认会缓存60秒，这个可以通过`alluxio.security.group.mapping.cache.timeout`进行配置，如果这个值设置成为"0"，缓存就不会启用.
 
 `alluxio.security.authorization.permission.supergroup`属性定义了一个超级组，该组中的所有用户都是超级用户。

@@ -1,0 +1,2 @@
+alluxio.dora.dora.table.common.transform.action.EarlyActionFactory
+alluxio.dora.dora.table.common.transform.action.LateActionFactory

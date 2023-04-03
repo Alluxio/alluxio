@@ -31,7 +31,7 @@ If you have a Hadoop setup next to the Flink installation, add the following pro
 ```xml
 <property>
   <name>fs.alluxio.impl</name>
-  <value>alluxio.hadoop.FileSystem</value>
+  <value>hadoop.alluxio.dora.FileSystem</value>
 </property>
 ```
 
@@ -42,7 +42,7 @@ following contents:
 <configuration>
   <property>
     <name>fs.alluxio.impl</name>
-    <value>alluxio.hadoop.FileSystem</value>
+    <value>hadoop.alluxio.dora.FileSystem</value>
   </property>
 </configuration>
 ```
@@ -64,7 +64,7 @@ by following the instructions [here]({{ '/en/contributor/Building-Alluxio-From-S
 The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 We need to make the Alluxio `jar` file available to Flink, because it contains the configured
-`alluxio.hadoop.FileSystem` class.
+`hadoop.alluxio.dora.FileSystem` class.
 
 There are different ways to achieve that:
 

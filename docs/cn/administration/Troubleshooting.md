@@ -264,14 +264,14 @@ Alluxio有一个内置的探测机制来识别潜在的资源泄漏问题。此�
 <configuration>
   <property>
     <name>fs.alluxio.impl</name>
-    <value>alluxio.hadoop.FileSystem</value>
+    <value>hadoop.alluxio.dora.FileSystem</value>
   </property>
 </configuration>
 ```
 
 有关详细的设置说明，请参见你的特定计算应用的文档页。
 
-### 问题：出现"java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found"这种错误信息是什么原因？
+### 问题：出现"java.lang.RuntimeException: java.lang.ClassNotFoundException: Class hadoop.alluxio.dora.FileSystem not found"这种错误信息是什么原因？
 
 解决办法：当你的应用（例如MapReduce、Spark）尝试以HDFS兼容文件系统接口访问Alluxio，并且`alluxio://`模式也已配置正确，但应用的classpath未包含Alluxio客户端jar包时会产生该异常。用户通常需要通过设置环境变量或者属性的方式将Alluxio客户端jar包添加到所有节点上的应用的classpath中，这取决于具体的计算框架。以下是一些示例：
 

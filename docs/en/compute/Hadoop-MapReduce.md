@@ -37,7 +37,7 @@ Add the following property to the `core-site.xml` of your Hadoop installation:
 ```xml
 <property>
   <name>fs.alluxio.impl</name>
-  <value>alluxio.hadoop.FileSystem</value>
+  <value>hadoop.alluxio.dora.FileSystem</value>
   <description>The Alluxio FileSystem</description>
 </property>
 ```
@@ -203,12 +203,12 @@ Please make sure your Hadoop configuration file `core-site.xml` has the followin
 <configuration>
   <property>
     <name>fs.alluxio.impl</name>
-    <value>alluxio.hadoop.FileSystem</value>
+    <value>hadoop.alluxio.dora.FileSystem</value>
   </property>
 </configuration>
 ```
 
-### Q: Why do I see exceptions like "java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found"?
+### Q: Why do I see exceptions like "java.lang.RuntimeException: java.lang.ClassNotFoundException: Class hadoop.alluxio.dora.FileSystem not found"?
 
 A: This error message is seen when your MapReduce application tries to access
 Alluxio as an HDFS-compatible file system, the `alluxio://` scheme has been

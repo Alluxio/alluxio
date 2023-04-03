@@ -100,6 +100,6 @@ To stop Alluxio, you can run:
 ### What should I do if I get http not support error?
 If you mount the Blob and configure the Blob path start with `wasb://`, you may see the error as follows:
 ```
-alluxio.exception.AlluxioException: com.microsoft.azure.storage.StorageException: The account being accessed does not support http.
+exception.alluxio.dora.AlluxioException: com.microsoft.azure.storage.StorageException: The account being accessed does not support http.
 ```
 You can change the Blob path start with `wasbs://`.

@@ -416,7 +416,7 @@ imageTag: "2.3.0-SNAPSHOT-b7629dc"
 imagePullPolicy: Always
 
 properties:
-    alluxio.user.ufs.block.read.location.policy: alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy
+    alluxio.user.ufs.block.read.location.policy: policy.block.client.alluxio.dora.LocalFirstAvoidEvictionPolicy
     alluxio.fuse.jnifuse.enabled: true
     alluxio.user.client.cache.enabled: false
     alluxio.user.client.cache.store.type: MEMORY
@@ -430,8 +430,8 @@ properties:
     alluxio.fuse.debug.enabled: "false"
     alluxio.web.ui.enabled: false
     alluxio.user.file.writetype.default: MUST_CACHE
-    alluxio.user.block.write.location.policy.class: alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy
-    alluxio.worker.allocator.class: alluxio.worker.block.allocator.GreedyAllocator
+    alluxio.user.block.write.location.policy.class: policy.block.client.alluxio.dora.LocalFirstAvoidEvictionPolicy
+    alluxio.worker.allocator.class: allocator.block.worker.alluxio.dora.GreedyAllocator
     alluxio.user.block.size.bytes.default: 32MB
     # set OSS endpoint
     fs.oss.endpoint: <OSS_ENDPOINT>

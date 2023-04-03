@@ -13,7 +13,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="AlluxioFuse" type="Application" factoryName="Application" activateToolWindowBeforeRun="false" nameIsGenerated="true">
     <option name="INCLUDE_PROVIDED_SCOPE" value="true" />
-    <option name="MAIN_CLASS_NAME" value="alluxio.fuse.AlluxioFuse" />
+    <option name="MAIN_CLASS_NAME" value="fuse.alluxio.dora.AlluxioFuse" />
     <module name="alluxio-integration-fuse" />
     <option name="PROGRAM_PARAMETERS" value="-m /tmp/alluxio-fuse/ -r /" />
     <option name="VM_PARAMETERS" value="-Xbootclasspath/a:$PROJECT_DIR$/conf  -Dalluxio.logger.type=Console -Dalluxio.home=$PROJECT_DIR$" />

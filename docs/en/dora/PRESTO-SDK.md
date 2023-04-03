@@ -83,7 +83,7 @@ You can see that data are cached in the directory specified in `/etc/catalog/hiv
 ### Monitor metrics about local caching
 In order to expose the metrics of local caching, follow the steps below:
 - **Step 1**: Add `-Dalluxio.metrics.conf.file=<ALLUXIO_HOME>/conf/metrics.properties` to specify the metrics configuration for the SDK used by Presto.
-- **Step 2**: Add `sink.jmx.class=alluxio.metrics.sink.JmxSink` to `<ALLUXIO_HOME>/conf/metrics.properties` to expose the metrics.
+- **Step 2**: Add `sink.jmx.class=sink.metrics.alluxio.dora.JmxSink` to `<ALLUXIO_HOME>/conf/metrics.properties` to expose the metrics.
 - **Step 3**: Add `cache.alluxio.metrics-enabled=true` in `<PRESTO_HOME>/etc/catalog.hive.properties` to enable metric collection.
 - **Step 4**: Restart the Presto process by executing `<PRESTO_HOME>/bin/laucher restart`.
 - **Step 5**: Metrics about local caching should be seen in JMX if we access Presto's JMX RESTful API `<PRESTO_NODE_HOST_NAME>:<PRESTO_PORT>/v1/jmx`.

@@ -1,0 +1,3 @@
+alluxio.dora.dora.job.plan.CrashPlanDefinition
+alluxio.dora.dora.job.plan.SleepPlanDefinition
+alluxio.dora.dora.job.plan.TestPlanDefinition

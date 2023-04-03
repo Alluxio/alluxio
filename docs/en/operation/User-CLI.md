@@ -226,7 +226,7 @@ on specific instances. Users are able to change Alluxio server-side log levels a
 
 The command follows the format `alluxio logLevel --logName=NAME [--target=<master|workers|job_master|job_workers|host:webPort[:role]>] [--level=LEVEL]`,
 where:
-* `--logName <arg>` indicates the logger's class (e.g. `alluxio.master.file.DefaultFileSystemMaster`)
+* `--logName <arg>` indicates the logger's class (e.g. `file.master.alluxio.dora.DefaultFileSystemMaster`)
 * `--target <arg>` lists the Alluxio master or workers to set.
 The target could be of the form `<master|workers|job_master|job_workers|host:webPort[:role]>` and multiple targets can be listed as comma-separated entries.
 `role` can be one of `master|worker|job_master|job_worker`. Using the `role` option is useful when an Alluxio process
@@ -251,7 +251,7 @@ The `runClass` command runs the main method of an Alluxio class.
 
 For example, to run the multi-mount demo:
 ```console
-$ ./bin/alluxio runClass alluxio.examples.MultiMount <HDFS_URL>
+$ ./bin/alluxio runClass examples.alluxio.dora.MultiMount <HDFS_URL>
 ```
 
 ### runTest

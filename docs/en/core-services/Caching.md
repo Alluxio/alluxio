@@ -288,8 +288,8 @@ The annotator utilized by workers is determined by the Alluxio property
 The property should specify the fully qualified class name within the configuration.
 Currently, the available options are:
 
-- `alluxio.worker.block.annotator.LRUAnnotator`
-- `alluxio.worker.block.annotator.LRFUAnnotator`
+- `annotator.block.worker.alluxio.dora.LRUAnnotator`
+- `annotator.block.worker.alluxio.dora.LRFUAnnotator`
 
 #### Evictor Emulation
 

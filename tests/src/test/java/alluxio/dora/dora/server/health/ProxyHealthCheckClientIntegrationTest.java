@@ -1,0 +1,56 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.dora.dora.server.health;
+
+import alluxio.dora.dora.HealthCheckClient;
+import alluxio.dora.dora.conf.Configuration;
+import alluxio.dora.dora.master.LocalAlluxioCluster;
+import alluxio.dora.dora.retry.CountingRetry;
+import alluxio.dora.dora.testutils.BaseIntegrationTest;
+import alluxio.dora.dora.testutils.LocalAlluxioClusterResource;
+import alluxio.dora.dora.util.network.NetworkAddressUtils;
+import alluxio.dora.dora.proxy.ProxyHealthCheckClient;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+public class ProxyHealthCheckClientIntegrationTest extends BaseIntegrationTest {
+
+  @Rule
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+          new LocalAlluxioClusterResource.Builder().setIncludeProxy(true).build();
+
+  private LocalAlluxioCluster mLocalAlluxioCluster = null;
+  private HealthCheckClient mHealthCheckClient;
+
+  @Before
+  public final void before() throws Exception {
+    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
+    mHealthCheckClient = new ProxyHealthCheckClient(
+        NetworkAddressUtils.getBindAddress(NetworkAddressUtils.ServiceType.PROXY_WEB,
+            Configuration.global()),
+        () -> new CountingRetry(1));
+  }
+
+  @Test
+  public void isServing() {
+    Assert.assertTrue(mHealthCheckClient.isServing());
+  }
+
+  @Test
+  public void isServingStopFS() throws Exception {
+    mLocalAlluxioCluster.stopFS();
+    Assert.assertFalse(mHealthCheckClient.isServing());
+  }
+}

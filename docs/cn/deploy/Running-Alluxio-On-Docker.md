@@ -154,7 +154,7 @@ Notes:
   1. 仅指定的端口(`-p`选项)公开给客户端所在外部网络。命令 `-p <host-port>:<container-port>` 会将容器端口映射到主机端口。因此，必须明确开放master容器两个端口19999和19998和worker容器端口29999和30000。否则，客户端将无法与master和worker进行通信。
   1. 如果所有通信都在docker网络内部(例如，没有在docker网络外部客户端)，可以通过容器名称(`alluxio-master` for master容器， `alluxio-worker` for worker容器)或通过Docker主机的IP地址$ {`hostname -i`)主机来引用容器 。否则，就必须指定客户端可以访问的master和worker的docker主机IP(例如, 通过`-Dalluxio.worker.hostname = $(hostname -I`))。这是docker网络外部客户端与master/worker通信所必需的。否则，客户端将无法连接到worker，因为它们无法识别worker的容器ID。将触发以下错误:
      ```
-     Target: 5a1a840d2a98:29999, Error: alluxio.exception.status.UnavailableException: Unable to resolve host 5a1a840d2a98
+     Target: 5a1a840d2a98:29999, Error: status.exception.alluxio.dora.UnavailableException: Unable to resolve host 5a1a840d2a98
      ```
 
 ## 验证集群

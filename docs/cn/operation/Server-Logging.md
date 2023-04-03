@@ -80,16 +80,16 @@ Alluxio shell附带了一个`logLevel`命令，可以在特定实例上获取或
 
 语法是`alluxio logLevel --logName = NAME [--target = <master | worker | host：port>] [--level = LEVEL]`，其中`logName`表示日志的名称，`target`列出了需要设定的Alluxio master或worker列表 。 如果提供了参数`level`，则命令更改日志级别，否则将获取并显示当前日志级别。
 
-例如，以下命令将`alluxio.heartbeat.HeartbeatContext`类的日志级别在master和`192.168.100.100：30000`的worker上设置为调试级别。
+例如，以下命令将`heartbeat.alluxio.dora.HeartbeatContext`类的日志级别在master和`192.168.100.100：30000`的worker上设置为调试级别。
 
 ```console
-$ ./bin/alluxio logLevel --loggerName=alluxio.heartbeat.HeartbeatContext \
+$ ./bin/alluxio logLevel --loggerName=heartbeat.alluxio.dora.HeartbeatContext \
   --target=master,192.168.100.100:30000 --level=DEBUG
 ```
 
-以下命令获取`alluxio.heartbeat.HeartbeatContext`类的所有worker的日志级别
+以下命令获取`heartbeat.alluxio.dora.HeartbeatContext`类的所有worker的日志级别
 ```console
-$ ./bin/alluxio logLevel --loggerName=alluxio.heartbeat.HeartbeatContext --target=workers
+$ ./bin/alluxio logLevel --loggerName=heartbeat.alluxio.dora.HeartbeatContext --target=workers
 ```
 
 ## 客户端日志记录配置
