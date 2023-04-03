@@ -410,7 +410,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @return the updated builder instance
      */
     public Builder setDefaultValue(Object defaultValue) {
-      checkArgument(validateValue(defaultValue, mType, mEnumType, mValueValidationFunction));
+      checkArgument(validateValue(defaultValue, mType, mEnumType, mValueValidationFunction),
+          "default value " + defaultValue + " of " + mName + " validate failed");
       mDefaultValue = formatValue(defaultValue, mType, mEnumType, mDelimiter);
       return this;
     }
