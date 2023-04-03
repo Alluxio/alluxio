@@ -41,6 +41,11 @@ import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
@@ -129,29 +134,81 @@ public class PollingMasterInquireClient implements MasterInquireClient {
       addresses = mConnectDetails.getAddresses();
     }
 
+    if (mConfiguration.getBoolean(PropertyKey.USER_MASTER_POLLING_CONCURRENT)) {
+      return getAddressConcurrent(addresses);
+    } else {
+      return getAddress(addresses);
+    }
+  }
+
+  @Nullable
+  private InetSocketAddress getAddressConcurrent(List<InetSocketAddress> addresses) {
+    ExecutorService executorService = Executors.newFixedThreadPool(addresses.size());
+    try {
+      ExecutorCompletionService<InetSocketAddress> completionService =
+          new ExecutorCompletionService<>(executorService);
+      for (InetSocketAddress address : addresses) {
+        completionService.submit(() -> checkActiveAddress(address));
+      }
+      for (int i = 0; i < addresses.size(); i++) {
+        try {
+          Future<InetSocketAddress> future = completionService.take();
+          InetSocketAddress address = future.get();
+          if (address != null) {
+            return address;
+          }
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+          break;
+        }
+      }
+      return null;
+    } finally {
+      executorService.shutdownNow();
+    }
+  }
+
+  @Nullable
+  private InetSocketAddress getAddress(List<InetSocketAddress> addresses) {
     for (InetSocketAddress address : addresses) {
       try {
-        LOG.debug("Checking whether {} is listening for RPCs", address);
-        pingMetaService(address);
-        LOG.debug("Successfully connected to {}", address);
-        return address;
-      } catch (UnavailableException e) {
-        LOG.debug("Failed to connect to {}", address);
-      } catch (DeadlineExceededException e) {
-        LOG.debug("Timeout while connecting to {}", address);
-      } catch (CancelledException e) {
-        LOG.debug("Cancelled while connecting to {}", address);
-      } catch (NotFoundException e) {
-        // If the gRPC server is enabled but the metadata service isn't enabled,
-        // try the next master address.
-        LOG.debug("Meta service rpc endpoint not found on {}. {}", address, e);
-      }  catch (AlluxioStatusException e) {
-        LOG.error("Error while connecting to {}. {}", address, e);
-        // Breaking the loop on non filtered error.
+        if (checkActiveAddress(address) != null) {
+          return address;
+        }
+      } catch (AlluxioStatusException e) {
         break;
       }
     }
     return null;
+  }
+
+  private InetSocketAddress checkActiveAddress(InetSocketAddress address)
+      throws AlluxioStatusException {
+    try {
+      LOG.debug("Checking whether {} is listening for RPCs", address);
+      pingMetaService(address);
+      LOG.debug("Successfully connected to {}", address);
+      return address;
+    } catch (UnavailableException e) {
+      LOG.debug("Failed to connect to {}", address);
+      return null;
+    } catch (DeadlineExceededException e) {
+      LOG.debug("Timeout while connecting to {}", address);
+      return null;
+    } catch (CancelledException e) {
+      LOG.debug("Cancelled while connecting to {}", address);
+      return null;
+    } catch (NotFoundException e) {
+      // If the gRPC server is enabled but the metadata service isn't enabled,
+      // try the next master address.
+      LOG.debug("Meta service rpc endpoint not found on {}. {}", address, e);
+      return null;
+    } catch (AlluxioStatusException e) {
+      LOG.error("Error while connecting to {}. {}", address, e);
+      // Breaking the loop on non filtered error.
+      throw e;
+    }
   }
 
   private void pingMetaService(InetSocketAddress address) throws AlluxioStatusException {
