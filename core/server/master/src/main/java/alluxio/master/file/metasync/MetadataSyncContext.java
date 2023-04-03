@@ -31,6 +31,7 @@ public class MetadataSyncContext {
   private String mStartAfter;
   private final Map<SyncOperation, Long> mFailedMap = new HashMap<>();
   private final Map<SyncOperation, Long> mSuccessMap = new HashMap<>();
+  private long mNumUfsFilesScanned = 0;
   /** temporary one. */
   private final Set<AlluxioURI> mDirectoriesToUpdateIsLoaded = new ConcurrentHashSet<>();
   private Long mSyncStartTime = null;
@@ -179,6 +180,16 @@ public class MetadataSyncContext {
   }
 
   /**
+   * reports a file from ufs has been scanned;
+   */
+  public void ufsFileScanned() {
+    mNumUfsFilesScanned++;
+    if (mNumUfsFilesScanned % 10000 == 0) {
+      System.out.println(mNumUfsFilesScanned + " files scanned");
+    }
+  }
+
+  /**
    * @param failReason the fail reason
    */
   public void setFailReason(SyncFailReason failReason) {
@@ -199,7 +210,7 @@ public class MetadataSyncContext {
   public SyncResult success() {
     Preconditions.checkNotNull(mSyncStartTime);
     mSyncFinishTime = CommonUtils.getCurrentMs();
-    return new SyncResult(true, mSyncFinishTime - mSyncStartTime, mSuccessMap, mFailedMap, null);
+    return new SyncResult(true, mSyncFinishTime - mSyncStartTime, mSuccessMap, mFailedMap, null, mNumUfsFilesScanned);
   }
 
   /**
@@ -210,7 +221,7 @@ public class MetadataSyncContext {
     Preconditions.checkNotNull(mSyncStartTime);
     mSyncFinishTime = CommonUtils.getCurrentMs();
     return new SyncResult(false, mSyncFinishTime - mSyncStartTime, mSuccessMap, mFailedMap,
-        mFailReason);
+        mFailReason, mNumUfsFilesScanned);
   }
 
   /**

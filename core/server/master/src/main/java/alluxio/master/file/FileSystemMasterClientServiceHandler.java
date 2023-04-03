@@ -595,10 +595,9 @@ public final class FileSystemMasterClientServiceHandler
       SyncMetadataPRequest request,
       StreamObserver<SyncMetadataPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.syncMetadata(
+      return mFileSystemMaster.syncMetadata(
           new AlluxioURI(request.getPath()),
           SyncMetadataContext.create(request.getOptions().toBuilder()));
-      return SyncMetadataPResponse.newBuilder().build();
     }, "syncMetadata", "request=%s", responseObserver, request);
   }
 }

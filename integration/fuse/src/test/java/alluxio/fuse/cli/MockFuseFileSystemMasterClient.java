@@ -36,6 +36,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.SyncMetadataPOptions;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -223,8 +224,9 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public void syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+  public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
       throws AlluxioStatusException {
+    return null;
   }
 
   @Override

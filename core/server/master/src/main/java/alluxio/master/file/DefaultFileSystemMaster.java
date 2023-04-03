@@ -59,6 +59,7 @@ import alluxio.grpc.MountPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.TtlAction;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -164,6 +165,7 @@ import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
@@ -201,7 +203,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
-import io.grpc.Metadata;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -4143,21 +4144,21 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void syncMetadata(AlluxioURI path, SyncMetadataContext context)
+  public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataContext context)
       throws InvalidPathException, IOException {
     // The followings are test code to test UFS partial listing
     /*
+    int count = 0;
+    long start = CommonUtils.getCurrentMs();
     MountTable.Resolution reso = mMountTable.resolve(path);
     UnderFileSystem ufs = reso.acquireUfsResource().get();
     ListOptions options = ListOptions.defaults();
     options.setRecursive(true);
-    Iterator<UfsStatus> status = ufs.listStatusIterable(
-        reso.getUri().toString(), options, null, 2
-    );
-    while (status.hasNext()) {
-      System.out.println(status.next());
-    }
-     */
+    UfsStatus[] status = ufs.listStatus(reso.getUri().toString(), options);
+    System.out.println(status.length);
+    System.out.println(CommonUtils.getCurrentMs() - start);
+    return SyncMetadataPResponse.getDefaultInstance();
+    */
     boolean isRecursive = context.getOptions().getIsRecursive();
     DescendantType descendantType = isRecursive ? DescendantType.ALL : DescendantType.ONE;
     try (RpcContext rpcContext = createRpcContext()) {
@@ -4165,6 +4166,13 @@ public class DefaultFileSystemMaster extends CoreMaster
           MetadataSyncContext.Builder.builder(rpcContext, descendantType)
               .setBatchSize(1000).build();
       SyncResult result = syncMetadataInternal(path, metadataSyncContext);
+      return SyncMetadataPResponse.newBuilder().setSuccess(result.getSuccess())
+          .setDebugInfo(
+              String.format("Sync duration %dms, %d files scanned from ufs, %d files created",
+                  result.getSyncDuration(),
+                  result.getNumUfsFileScanned(),
+                  result.getSuccessOperationCount()
+                      .getOrDefault(SyncOperation.CREATE, 0L))).build();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -4175,6 +4183,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws UnavailableException, AccessControlException, InvalidPathException {
     SyncResult result = mMetadataSyncer.sync(path, context);
     System.out.println("Sync duration: " + result.getSyncDuration() + " ms");
+    System.out.println("# of Ufs files scanned: " + result.getNumUfsFileScanned());
     System.out.println("# of Inodes created: " + result.getSuccessOperationCount()
         .getOrDefault(SyncOperation.CREATE, 0L));
     System.out.println("# of Inodes recreated: " + result.getSuccessOperationCount()

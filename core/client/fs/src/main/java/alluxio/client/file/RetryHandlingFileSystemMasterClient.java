@@ -480,16 +480,15 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public void syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+  public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
       throws AlluxioStatusException {
-    retryRPC(() -> {
+    return retryRPC(() -> {
       SyncMetadataPRequest request = SyncMetadataPRequest.newBuilder()
           .setPath(path.getPath())
           .setOptions(options)
           .build();
       SyncMetadataPResponse response = mClient.syncMetadata(request);
-      System.out.println("SyncMetadata result: " + response.getSuccess());
-      return null;
+      return response;
     }, RPC_LOG, "SyncMetadata", "path=%s,options=%s", path, options);
   }
 
