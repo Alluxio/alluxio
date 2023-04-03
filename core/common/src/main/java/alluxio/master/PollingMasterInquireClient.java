@@ -135,14 +135,14 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     }
 
     if (mConfiguration.getBoolean(PropertyKey.USER_MASTER_POLLING_CONCURRENT)) {
-      return getAddressConcurrent(addresses);
+      return findActiveAddressConcurrent(addresses);
     } else {
-      return getAddress(addresses);
+      return findActiveAddress(addresses);
     }
   }
 
   @Nullable
-  private InetSocketAddress getAddressConcurrent(List<InetSocketAddress> addresses) {
+  private InetSocketAddress findActiveAddressConcurrent(List<InetSocketAddress> addresses) {
     ExecutorService executorService = Executors.newFixedThreadPool(addresses.size());
     try {
       ExecutorCompletionService<InetSocketAddress> completionService =
@@ -170,7 +170,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   }
 
   @Nullable
-  private InetSocketAddress getAddress(List<InetSocketAddress> addresses) {
+  private InetSocketAddress findActiveAddress(List<InetSocketAddress> addresses) {
     for (InetSocketAddress address : addresses) {
       try {
         if (checkActiveAddress(address) != null) {
