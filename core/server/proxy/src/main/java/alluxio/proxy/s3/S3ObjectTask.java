@@ -890,7 +890,7 @@ public class S3ObjectTask extends S3BaseTask {
                 ByteString.copyFrom(mHandler.getObject(), S3Constants.XATTR_STR_CHARSET));
             xattrMap.put(S3Constants.UPLOADS_FILE_ID_XATTR_KEY, ByteString.copyFrom(
                 Longs.toByteArray(userFs.getStatus(multipartTemporaryDir).getFileId())));
-            mHandler.getMetaFS().createFile(
+            try (FileOutStream fos = mHandler.getMetaFS().createFile(
                 new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
                 CreateFilePOptions.newBuilder()
                     .setRecursive(true)
@@ -902,7 +902,9 @@ public class S3ObjectTask extends S3BaseTask {
                     .putAllXattr(xattrMap)
                     .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
                     .build()
-            ).close();
+            )) {
+              // Empty file creation, nothing to do.
+            }
             SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
                 .setOwner(user)
                 .build();
