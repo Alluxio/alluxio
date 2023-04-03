@@ -19,7 +19,7 @@ import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
-import alluxio.retry.CountingSleepRetry;
+import alluxio.retry.CountingRetry;
 import alluxio.retry.TimeoutRetry;
 import alluxio.util.compression.ParallelZipUtils;
 import alluxio.util.compression.TarUtils;
@@ -50,6 +50,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
@@ -107,8 +109,6 @@ public final class RocksStore implements Closeable {
   private final boolean mParallelBackup = Configuration.getBoolean(
       PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP);
 
-  private final LongAdder mRefCount = new LongAdder();
-
   /*
    * Below 2 fields are created and managed by the external user class,
    * no need to close in this class.
@@ -123,8 +123,8 @@ public final class RocksStore implements Closeable {
   private volatile Checkpoint mCheckpoint;
   private final List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
 
-  protected final AtomicBoolean mStopServing = new AtomicBoolean(false);
-  protected final ReadWriteLock mDbStateLock = new ReentrantReadWriteLock();
+  public final AtomicBoolean mStopServing = new AtomicBoolean(false);
+  public final LongAdder mRefCount = new LongAdder();
 
   /**
    * @param name a name to distinguish what store this is
@@ -435,7 +435,7 @@ public final class RocksStore implements Closeable {
    */
   public RocksSharedLockHandle checkAndAcquireSharedLock() {
     if (mStopServing.get()) {
-      throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.toString());
+      throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
     /*
      * The lock action is merely incrementing the lock so it is very fast
@@ -457,7 +457,7 @@ public final class RocksStore implements Closeable {
      */
     if (mStopServing.get()) {
       mRefCount.decrement();
-      throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.toString());
+      throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
     return new RocksSharedLockHandle(mRefCount);
   }
@@ -487,18 +487,23 @@ public final class RocksStore implements Closeable {
     * 7. Reader decrements refCount aborts in checkAndAcquireSharedLock()
     */
     Instant waitStart = Instant.now();
-    CountingSleepRetry retry = new CountingSleepRetry(ROCKS_CLOSE_WAIT_TIMEOUT.getSeconds(), 1000);
+    CountingRetry retry = new CountingRetry((int) ROCKS_CLOSE_WAIT_TIMEOUT.getSeconds() * 10);
     while (mRefCount.sum() != 0 && retry.attempt()) {
-      SleepUtils.sleepMs(1000);
+      SleepUtils.sleepMs(100);
     }
     Duration elapsed = Duration.between(waitStart, Instant.now());
     LOG.info("Waited {}ms for ongoing read/write to complete/abort", elapsed.toMillis());
+    System.out.println("Waited " + elapsed.toMillis() + " for ongoing read/write to complete/abort");
 
     /*
      * Reset the ref count to forget about the aborted operations
      */
     long unclosedOperations = mRefCount.sumThenReset();
     if (unclosedOperations != 0) {
+      if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+        ThreadInfo[] allThreads = ManagementFactory.getThreadMXBean().dumpAllThreads(true, true);
+        throw new RuntimeException("ref count=" + unclosedOperations + " some operations are not updating ref count correctly!");
+      }
       LOG.warn("{} readers/writers fail to complete/abort before we stop/restart the RocksDB",
           unclosedOperations);
     }
@@ -539,7 +544,7 @@ public final class RocksStore implements Closeable {
    */
   public void abortIfClosing() {
     if (mStopServing.get()) {
-      throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.toString());
+      throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
   }
 

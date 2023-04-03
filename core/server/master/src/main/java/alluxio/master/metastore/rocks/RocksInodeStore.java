@@ -95,7 +95,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   // See https://github.com/facebook/rocksdb/wiki/Prefix-Seek
   private final ReadOptions mIteratorOption;
 
-  private final RocksStore mRocksStore;
+  public final RocksStore mRocksStore;
   private final List<RocksObject> mToClose = new ArrayList<>();
 
   /*
@@ -393,10 +393,13 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
       if (seekTo != null && seekTo.length() > 0) {
         iter.seek(RocksUtils.toByteArray(inodeId, seekTo));
       }
+      /*
+       * Acquire a second lock for iteration, instead of using the same lock for initialization.
+       * Because init takes many operations and should be protected by try-with-resource.
+       * This is fine because the shared lock is reentrant.
+       */
       RocksSharedLockHandle readLock = mRocksStore.checkAndAcquireSharedLock();
       RocksIter rocksIter = new RocksIter(iter, prefix, () -> {
-        // TODO(jiacheng): double check how this is released on exception
-        //  UT and check ref count
         mRocksStore.abortIfClosing();
         return null;
       });
