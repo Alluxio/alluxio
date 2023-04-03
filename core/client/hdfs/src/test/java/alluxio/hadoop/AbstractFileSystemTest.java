@@ -449,12 +449,13 @@ public class AbstractFileSystemTest {
     AlluxioConfiguration alluxioConf = alluxio.conf.Configuration.copyGlobal();
     ClientContext clientContext = ClientContext.create(alluxioConf);
     FileSystemContext fsContext = PowerMockito.mock(FileSystemContext.class);
-    FileSystemMasterClient mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
+    FileSystemMasterClient fileSystemMasterClient =
+        PowerMockito.mock(FileSystemMasterClient.class);
     when(fsContext.getClientContext()).thenReturn(clientContext);
     when(fsContext.getClusterConf()).thenReturn(alluxioConf);
     when(fsContext.getPathConf(any())).thenReturn(alluxioConf);
     when(fsContext.acquireMasterClientResource()).thenReturn(
-        new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClient) {
+        new CloseableResource<FileSystemMasterClient>(fileSystemMasterClient) {
             @Override
             public void closeResource() {
               // Noop.
@@ -482,7 +483,8 @@ public class AbstractFileSystemTest {
 
     Assert.assertTrue(mergedOptions.getExcludeMountInfo());
 
-    when(mFileSystemMasterClient.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)), mergedOptions))
+    when(fileSystemMasterClient.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
+            mergedOptions))
         .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
 
     FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
@@ -519,6 +521,7 @@ public class AbstractFileSystemTest {
       when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
           .thenThrow(new FileNotFoundException("ALLUXIO-2036 not Found"));
       alluxioHadoopFs = new FileSystem(alluxioFs);
+      FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
       // if we reach here, FileNotFoundException is not thrown hence Fail the test case
       assertTrue(false);
     } catch (FileNotFoundException fnf) {
