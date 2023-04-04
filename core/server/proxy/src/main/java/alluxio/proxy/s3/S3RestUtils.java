@@ -37,6 +37,7 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
+import alluxio.util.ThreadUtils;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -129,7 +130,11 @@ public final class S3RestUtils {
       XmlMapper mapper = new XmlMapper();
       return Response.ok(mapper.writeValueAsString(result)).build();
     } catch (Exception e) {
-      LOG.warn("Error invoking REST endpoint for {}:\n{}", resource, e.getMessage(), e);
+      String errOutputMsg = e.getMessage();
+      if (StringUtils.isEmpty(errOutputMsg)) {
+        errOutputMsg = ThreadUtils.formatStackTrace(e);
+      }
+      LOG.warn("Error invoking REST endpoint for {}:\n{}", resource, errOutputMsg);
       return S3ErrorResponse.createErrorResponse(e, resource);
     }
   }
