@@ -36,6 +36,7 @@ import com.github.oxo42.stateless4j.StateMachine;
 import com.github.oxo42.stateless4j.StateMachineConfig;
 import com.github.oxo42.stateless4j.transitions.Transition;
 import com.github.oxo42.stateless4j.triggers.TriggerWithParameters1;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import io.grpc.Status;
 import io.netty.buffer.ByteBuf;
@@ -47,8 +48,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -141,6 +146,14 @@ public class NettyClientStateMachine {
     }
   }
 
+  /**
+   * Constructor.
+   *
+   * @param context
+   * @param address
+   * @param requestBuilder
+   * @param outChannel
+   */
   public NettyClientStateMachine(FileSystemContext context, WorkerNetAddress address,
       Protocol.ReadRequest.Builder requestBuilder, WritableByteChannel outChannel) {
     mContext = context;
@@ -253,6 +266,21 @@ public class NettyClientStateMachine {
    */
   public int getBytesRead() {
     return mBytesRead;
+  }
+
+  /**
+   * Generates a diagram describing the state transition in a .dot file.
+   * Only used for testing purposes.
+   *
+   * @param outputFile path to the output file
+   * @throws IOException when writing file fails
+   */
+  @VisibleForTesting
+  public void generateStateDiagram(Path outputFile) throws IOException {
+    try (OutputStream outFile = Files.newOutputStream(outputFile,
+        StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
+      mStateMachine.configuration().generateDotFileInto(outFile, /* printLabels */ true);
+    }
   }
 
   /**
