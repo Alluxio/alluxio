@@ -1657,8 +1657,17 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
+  // TODO(jiacheng): understand why this gets so big
   public static final MetricKey WORKER_ACTIVE_CLIENTS =
       new Builder("Worker.ActiveClients")
+          .setDescription("The number of clients actively reading from or writing to this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
+  // TODO(jiacheng): consider queue size
+  // TODO(jiacheng): consider short circuit and domain socket r/w
+  public static final MetricKey WORKER_ACTIVE_OPERATIONS =
+      new Builder("Worker.ActiveOperations")
           .setDescription("The number of clients actively reading from or writing to this worker")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)

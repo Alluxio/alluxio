@@ -12,6 +12,7 @@
 package alluxio.worker.grpc;
 
 import alluxio.Constants;
+import alluxio.client.metrics.ClientMasterSync;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
@@ -20,14 +21,24 @@ import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.UniqueBlockingQueue;
+import alluxio.util.logging.SamplingLogger;
+import alluxio.worker.block.DefaultBlockWorker;
+import com.codahale.metrics.Counter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -35,6 +46,10 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class GrpcExecutors {
+  private static final Logger LOG = LoggerFactory.getLogger(GrpcExecutors.class);
+  private static final Logger SAMPLING_LOG =
+          new SamplingLogger(LoggerFactory.getLogger(GrpcExecutors.class),
+                  100L);
   private static final long THREAD_STOP_MS = Constants.SECOND_MS * 10;
   private static final int THREADS_MIN = 4;
 
@@ -44,17 +59,23 @@ public final class GrpcExecutors {
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new UniqueBlockingQueue<>(
           Configuration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)),
           ThreadFactoryUtils.build("CacheManagerExecutor-%d", true));
+  // Async caching is an optimization internal to Alluxio, which can be aborted any time
   public static final ExecutorService CACHE_MANAGER_EXECUTOR =
-      new ImpersonateThreadPoolExecutor(CACHE_MANAGER_THREAD_POOL_EXECUTOR);
+      new ImpersonateThreadPoolExecutor(CACHE_MANAGER_THREAD_POOL_EXECUTOR, false);
 
+  // TODO(jiacheng): where is each one used??????
+
+  // Only in BlockWorkerClientServiceHandler.readBlock() and if not zero_copy enabled
+  // Is this only used for creating the DataReader?
   private static final ThreadPoolExecutor BLOCK_READER_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN, Configuration.getInt(
           PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX), THREAD_STOP_MS,
           TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
           ThreadFactoryUtils.build("BlockDataReaderExecutor-%d", true));
   public static final ExecutorService BLOCK_READER_EXECUTOR =
-      new ImpersonateThreadPoolExecutor(BLOCK_READER_THREAD_POOL_EXECUTOR);
+      new ImpersonateThreadPoolExecutor(BLOCK_READER_THREAD_POOL_EXECUTOR, true);
 
+  // For replying data to the client in BlockReadHandler
   private static final ThreadPoolExecutor BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
@@ -62,15 +83,16 @@ public final class GrpcExecutors {
           ThreadFactoryUtils.build("BlockDataReaderSerializedExecutor-%d", true),
           new ThreadPoolExecutor.CallerRunsPolicy());
   public static final ExecutorService BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR =
-      new ImpersonateThreadPoolExecutor(BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR);
+      new ImpersonateThreadPoolExecutor(BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR, true);
 
+  // For writing
   private static final ThreadPoolExecutor BLOCK_WRITE_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN, Configuration.getInt(
           PropertyKey.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX), THREAD_STOP_MS,
           TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
           ThreadFactoryUtils.build("BlockDataWriterExecutor-%d", true));
   public static final ExecutorService BLOCK_WRITER_EXECUTOR =
-          new ImpersonateThreadPoolExecutor(BLOCK_WRITE_THREAD_POOL_EXECUTOR);
+          new ImpersonateThreadPoolExecutor(BLOCK_WRITE_THREAD_POOL_EXECUTOR, true);
 
   static {
     MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
@@ -142,34 +164,127 @@ public final class GrpcExecutors {
    * This executor delegates operations to the underlying executor while setting the
    * ThreadLocal context for execution.
    * */
+  // TODO(jiacheng): double check EE code
   private static class ImpersonateThreadPoolExecutor extends AbstractExecutorService {
     private final ExecutorService mDelegate;
+    private final boolean mTracked;
 
-    public ImpersonateThreadPoolExecutor(ExecutorService service) {
+    public ImpersonateThreadPoolExecutor(ExecutorService service, boolean tracked) {
       mDelegate = service;
+      mTracked = tracked;
     }
 
     @Override
     public void execute(final Runnable command) {
+      // TODO(jiacheng): however, this needs to consider queueing requests
+      final Counter clientCounter = DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS;
       // If there's no impersonation, proxyUser is just null
       User proxyUser = AuthenticatedClientUser.getOrNull();
       mDelegate.execute(() -> {
+        if (mTracked) {
+          clientCounter.inc();
+          LOG.warn("Incremented count from execute(Runnable) to {}", clientCounter.getCount());
+        }
         try {
           AuthenticatedClientUser.set(proxyUser);
           command.run();
         } finally {
+          if (mTracked) {
+            clientCounter.dec();
+          }
           AuthenticatedClientUser.remove();
         }
       });
     }
 
     @Override
+    public <T> Future<T> submit(Callable<T> task) {
+      final Counter clientCounter = DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS;
+      // If there's no impersonation, proxyUser is just null
+      User proxyUser = AuthenticatedClientUser.getOrNull();
+      return mDelegate.submit(() -> {
+        if (mTracked) {
+          clientCounter.inc();
+          LOG.warn("Incremented count from submit(Callable) to {}", clientCounter.getCount());
+        }
+        try {
+          AuthenticatedClientUser.set(proxyUser);
+          return task.call();
+        } finally {
+          if (mTracked) {
+            clientCounter.dec();
+          }
+          AuthenticatedClientUser.remove();
+        }
+      });
+    }
+
+    @Override
+    public <T> Future<T> submit(Runnable task, T result) {
+      throw new UnsupportedOperationException("submit(Runnable,T) is not supported");
+    }
+
+    @Override
+    public Future<?> submit(Runnable task) {
+      final Counter clientCounter = DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS;
+      // If there's no impersonation, proxyUser is just null
+      User proxyUser = AuthenticatedClientUser.getOrNull();
+      return mDelegate.submit(() -> {
+        if (mTracked) {
+          clientCounter.inc();
+          LOG.warn("Incremented count from submit(Runnable) to {}", clientCounter.getCount());
+        }
+        try {
+          AuthenticatedClientUser.set(proxyUser);
+          task.run();
+        } finally {
+          if (mTracked) {
+            clientCounter.dec();
+          }
+          AuthenticatedClientUser.remove();
+        }
+      });
+    }
+
+    @Override
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
+            throws InterruptedException {
+      throw new UnsupportedOperationException("invokeAll(Collection) is not supported");
+    }
+
+    @Override
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout,
+                                         TimeUnit unit) throws InterruptedException {
+      throw new UnsupportedOperationException("invokeAll(Collection,long,TimeUnit) is not supported");
+    }
+
+    @Override
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
+            throws InterruptedException, ExecutionException {
+      throw new UnsupportedOperationException("invokeAny(Callable) is not supported");
+    }
+
+    @Override
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
+      throw new UnsupportedOperationException("invokeAny(Callable,long,TimeUnit) is not supported");
+    }
+
+    @Override
     public void shutdown() {
+      long operationCount = DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.getCount();
+      if (operationCount > 0) {
+        LOG.warn("{} operations have not completed", operationCount);
+      }
       mDelegate.shutdown();
     }
 
     @Override
     public List<Runnable> shutdownNow() {
+      long operationCount = DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.getCount();
+      if (operationCount > 0) {
+        LOG.warn("{} operations have not completed", operationCount);
+      }
       return mDelegate.shutdownNow();
     }
 

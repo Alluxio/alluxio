@@ -48,6 +48,7 @@ import alluxio.wire.WorkerWebUIConfiguration;
 import alluxio.wire.WorkerWebUIInit;
 import alluxio.wire.WorkerWebUILogs;
 import alluxio.wire.WorkerWebUIMetrics;
+import alluxio.wire.WorkerWebUIOperations;
 import alluxio.wire.WorkerWebUIOverview;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
@@ -107,6 +108,7 @@ public final class AlluxioWorkerRestServiceHandler {
 
   // endpoints
   public static final String GET_INFO = "info";
+  public static final String GET_OPERATIONS = "operations";
 
   // webui endpoints // TODO(william): DRY up these enpoints
   public static final String WEBUI_INIT = "webui_init";
@@ -167,6 +169,18 @@ public final class AlluxioWorkerRestServiceHandler {
           .setUptimeMs(mWorkerProcess.getUptimeMs())
           .setVersion(RuntimeConstants.VERSION)
           .setRevision(ProjectConstants.REVISION);
+    }, Configuration.global());
+  }
+
+  @GET
+  @Path(GET_OPERATIONS)
+  public Response getActiveOperations() {
+    return RestUtils.call(() -> {
+      WorkerWebUIOperations response = new WorkerWebUIOperations();
+      long operations = MetricsSystem.counter(MetricKey.WORKER_ACTIVE_OPERATIONS.getName()).getCount();
+      long clients = MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName()).getCount();
+      response.setOperationCount(operations).setClientCount(clients);
+      return response;
     }, Configuration.global());
   }
 

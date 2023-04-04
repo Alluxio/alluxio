@@ -504,6 +504,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   @Override
   public void cleanupSession(long sessionId) {
     mBlockStore.cleanupSession(sessionId);
+    // TODO(jiacheng): is this a correct spot for block reader close?
     Metrics.WORKER_ACTIVE_CLIENTS.dec();
   }
 
@@ -514,8 +515,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    */
   @ThreadSafe
   public static final class Metrics {
+    // TODO(jiacheng): remove all usages
     public static final Counter WORKER_ACTIVE_CLIENTS =
         MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName());
+    public static final Counter WORKER_ACTIVE_OPERATIONS =
+        MetricsSystem.counter(MetricKey.WORKER_ACTIVE_OPERATIONS.getName());
 
     /**
      * Registers metric gauges.

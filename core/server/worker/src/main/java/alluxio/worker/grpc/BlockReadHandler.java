@@ -186,6 +186,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
             + "stream",
         sessionId, status);
     AlluxioStatusException statusExc = AlluxioStatusException.from(status);
+    // TODO(jiacheng): are the RPC count updated correctly?
     try (LockResource lr = new LockResource(mLock)) {
       if (mContext == null) {
         mContext = createRequestContext(alluxio.grpc.ReadRequest.newBuilder().build());
@@ -452,6 +453,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           }
         } catch (Throwable e) {
           if (isFatalError(e)) {
+            // TODO(jiacheng): beware this direct crash
             ProcessUtils.fatalError(LOG, e, "Error while reading");
           }
           LogUtils.warnWithException(LOG,
@@ -484,6 +486,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           replyCancel();
         }
       }
+      // TODO(jiacheng): what else can be the case?
     }
 
     /**
