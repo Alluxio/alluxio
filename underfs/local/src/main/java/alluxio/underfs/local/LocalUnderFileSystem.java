@@ -48,6 +48,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -114,7 +115,15 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
         throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
       }
     }
-    OutputStream stream = new BufferedOutputStream(new FileOutputStream(path));
+    OutputStream stream;
+    try {
+      stream = new BufferedOutputStream(new FileOutputStream(path));
+    } catch (FileNotFoundException e) {
+      if (exists(path)) {
+        throw new FileAlreadyExistsException(path, path, e.getMessage());
+      }
+      throw e;
+    }
     try {
       setMode(path, options.getMode().toShort());
     } catch (IOException e) {
