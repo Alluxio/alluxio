@@ -84,7 +84,7 @@ public final class JobServiceBenchTaskResult implements TaskResult {
    * @param numSuccess the amount to increment by
    */
   public void incrementNumSuccess(long numSuccess) {
-    mStatistics.mNumSuccess += numSuccess;
+    mStatistics.mNumSuccesses += numSuccess;
   }
 
   @Override

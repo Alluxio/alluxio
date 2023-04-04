@@ -208,6 +208,12 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
     JOB_LOAD_FAIL.inc();
   }
 
+  @Override
+  public void setJobSuccess() {
+    setJobState(JobState.SUCCEEDED);
+    JOB_LOAD_SUCCESS.inc();
+  }
+
   /**
    * Add bytes to total loaded bytes.
    * @param bytes bytes to be added to total

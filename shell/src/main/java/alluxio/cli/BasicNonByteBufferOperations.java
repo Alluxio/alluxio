@@ -22,6 +22,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.WorkerNetAddress;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 
@@ -32,6 +33,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.concurrent.Callable;
+import javax.annotation.Nullable;
 
 /**
  * Basic example of using the {@link FileSystem} for writing to and reading from files.
@@ -55,6 +57,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   private final boolean mDeleteIfExists;
   private final int mLength;
   private final FileSystemContext mFsContext;
+  private final @Nullable WorkerNetAddress mWorkerNetAddress;
 
   /**
    * @param filePath the path for the files
@@ -63,15 +66,19 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
    * @param deleteIfExists delete files if they already exist
    * @param length the number of files
    * @param fsContext the {@link FileSystemContext} to use for client operations
+   * @param workerNetAddress if not null, the worker address the file data will be written into
    */
-  public BasicNonByteBufferOperations(AlluxioURI filePath, ReadType readType, WriteType writeType,
-      boolean deleteIfExists, int length, FileSystemContext fsContext) {
+  public BasicNonByteBufferOperations(
+      AlluxioURI filePath, ReadType readType, WriteType writeType,
+      boolean deleteIfExists, int length, FileSystemContext fsContext,
+      @Nullable WorkerNetAddress workerNetAddress) {
     mFilePath = filePath;
     mWriteType = writeType;
     mReadType = readType;
     mDeleteIfExists = deleteIfExists;
     mLength = length;
     mFsContext = fsContext;
+    mWorkerNetAddress = workerNetAddress;
   }
 
   @Override
@@ -95,8 +102,15 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private FileOutStream createFile(FileSystem fileSystem, AlluxioURI filePath,
       boolean deleteIfExists) throws IOException, AlluxioException {
-    CreateFilePOptions options = CreateFilePOptions.newBuilder().setWriteType(mWriteType.toProto())
-        .setRecursive(true).build();
+    CreateFilePOptions.Builder optionsBuilder =
+        CreateFilePOptions.newBuilder().setWriteType(mWriteType.toProto())
+        .setRecursive(true);
+    if (mWorkerNetAddress != null) {
+      optionsBuilder.setWorkerLocation(mWorkerNetAddress);
+      optionsBuilder.setReplicationMax(1);
+      optionsBuilder.setReplicationMin(1);
+    }
+    CreateFilePOptions options = optionsBuilder.build();
     if (!fileSystem.exists(filePath)) {
       // file doesn't exist yet, so create it
       return fileSystem.createFile(filePath, options);
@@ -110,8 +124,13 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   }
 
   private boolean read(FileSystem alluxioClient) throws IOException, AlluxioException {
-    OpenFilePOptions options =
-        OpenFilePOptions.newBuilder().setReadType(mReadType.toProto()).build();
+    OpenFilePOptions.Builder optionsBuilder =
+        OpenFilePOptions.newBuilder().setReadType(mReadType.toProto());
+    if (mWorkerNetAddress != null) {
+      optionsBuilder.setUfsReadWorkerLocation(mWorkerNetAddress);
+    }
+    OpenFilePOptions options = optionsBuilder.build();
+
     boolean pass = true;
     long startTimeMs = CommonUtils.getCurrentMs();
     try (DataInputStream input = new DataInputStream(alluxioClient.openFile(mFilePath, options))) {

@@ -76,7 +76,7 @@ public final class MultiOperationMasterBenchSummary
     mThroughput = ((float) mergedTaskResults.getNumSuccessOperations() / mDurationMs) * 1000.0f;
     mOperationThroughputs = new ArrayList<>();
     for (MasterBenchTaskResultStatistics statistics : mergedTaskResults.getAllStatistics()) {
-      float throughput = ((float) statistics.mNumSuccess / mDurationMs) * 1000.0f;
+      float throughput = ((float) statistics.mNumSuccesses / mDurationMs) * 1000.0f;
       mOperationThroughputs.add(new Pair<>(statistics.mOperation, throughput));
     }
     mParameters = mergedTaskResults.getParameters();
