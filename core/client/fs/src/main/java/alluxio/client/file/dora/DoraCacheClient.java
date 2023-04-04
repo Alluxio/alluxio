@@ -18,6 +18,7 @@ import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.GrpcDataReader;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.dora.netty.NettyDataReader;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPOptions;

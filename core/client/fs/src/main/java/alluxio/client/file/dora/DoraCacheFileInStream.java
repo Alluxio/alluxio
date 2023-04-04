@@ -12,6 +12,7 @@
 package alluxio.client.file.dora;
 
 import alluxio.client.file.FileInStream;
+import alluxio.client.file.dora.netty.PartialReadException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.ChannelAdapters;
 

@@ -9,10 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.dora;
+package alluxio.client.file.dora.netty;
 
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.CancelledException;
 
 import com.google.common.base.Preconditions;
 
@@ -78,7 +77,6 @@ public class PartialReadException extends IOException {
    *     interrupted</li>
    * <li>TimeoutException: no new packets have been delivered in a long time, but the channel is
    *     considered still alive </li>
-   * <li>CancelledException: server explicitly cancels the request</li>
    * <li>AlluxioStatusException: server side error, channel is intact</li>
    * <li>Throwable (unknown exception): the channel is closed, or an unhandled exception in
    *     channel handler, etc., the channel is probably in a bad state to do any further I/O</li>
@@ -91,7 +89,6 @@ public class PartialReadException extends IOException {
   public enum CauseType {
     INTERRUPT(InterruptedException.class),
     TIMEOUT(TimeoutException.class),
-    CANCELLED(CancelledException.class),
     SERVER_ERROR(AlluxioStatusException.class),
     TRANSPORT_ERROR(Throwable.class),
     OUTPUT(IOException.class),

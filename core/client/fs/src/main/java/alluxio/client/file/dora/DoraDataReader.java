@@ -11,6 +11,8 @@
 
 package alluxio.client.file.dora;
 
+import alluxio.client.file.dora.netty.PartialReadException;
+
 import java.io.Closeable;
 import java.nio.channels.WritableByteChannel;
 
