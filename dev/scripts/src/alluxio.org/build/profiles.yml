@@ -1,0 +1,80 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+default:
+  mvnArgs: ""
+  libModules: default
+  pluginModules: default
+  targetName: alluxio-${VERSION}-bin.tar.gz
+  tarball:
+    assemblyJars:
+      - client
+      - server
+      - fuseBundled
+    emptyDirList:
+      - underFSStorage
+    fileList:
+      - bin/alluxio
+      - bin/alluxio-common.sh
+      - bin/alluxio-masters.sh
+      - bin/alluxio-monitor.sh
+      - bin/alluxio-mount.sh
+      - bin/alluxio-start.sh
+      - bin/alluxio-stop.sh
+      - bin/alluxio-workers.sh
+      - bin/launch-process
+      - conf/alluxio-env.sh.template
+      - conf/alluxio-site.properties.template
+      - conf/core-site.xml.template
+      - conf/log4j.properties
+      - conf/masters
+      - conf/metrics.properties.template
+      - conf/rocks-inode-bloom.ini.template
+      - conf/rocks-block-bloom.ini.template
+      - conf/rocks-inode.ini.template
+      - conf/rocks-block.ini.template
+      - conf/workers
+      - dora/integration/fuse/bin/alluxio-fuse
+      - integration/docker/.dockerignore
+      - integration/docker/conf/alluxio-env.sh.template
+      - integration/docker/conf/alluxio-site.properties.template
+      - integration/docker/Dockerfile
+      - integration/docker/Dockerfile-dev
+      - integration/docker/entrypoint.sh
+      - integration/metrics/docker-compose-master.yaml
+      - integration/metrics/docker-compose-worker.yaml
+      - integration/metrics/otel-agent-config.yaml
+      - integration/metrics/otel-agent-config-worker.yaml
+      - integration/metrics/otel-collector-config.yaml
+      - integration/metrics/prometheus.yaml
+      - libexec/alluxio-config.sh
+      - LICENSE
+fuse:
+  mvnArgs: ""
+  libModules: fuse
+  pluginModules: fuse
+  targetName: alluxio-fuse-${VERSION}.tar.gz
+  tarball:
+    skipCopyClientJar: true
+    skipCopyWebUi: true
+    assemblyJars:
+      - fuseStandalone
+    fileList:
+      - conf/alluxio-env.sh.template
+      - conf/alluxio-site.properties.template
+      - conf/core-site.xml.template
+      - conf/log4j.properties
+      - conf/metrics.properties.template
+      - dora/integration/fuse/bin/alluxio-fuse
+      - libexec/alluxio-config.sh
+      - LICENSE
+    symlinks:
+      bin/alluxio-fuse: ../../dora/integration/fuse/bin/alluxio-fuse
