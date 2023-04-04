@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.dora.Constants;
 import alluxio.dora.client.quota.CacheScope;
-import alluxio.dora.util.ConcurrencyUtils;
+import alluxio.dora.test.util.ConcurrencyUtils;
 
 import com.google.common.hash.Funnels;
 import org.junit.Before;

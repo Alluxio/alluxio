@@ -37,7 +37,6 @@ import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.FileDoesNotExistException;
 import alluxio.dora.exception.InvalidPathException;
 import alluxio.dora.exception.UnexpectedAlluxioException;
-import alluxio.dora.wire.CommandType;
 import alluxio.dora.grpc.Command;
 import alluxio.dora.grpc.CommandType;
 import alluxio.dora.grpc.CreateDirectoryPOptions;
@@ -1407,7 +1406,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
 
     FileSystemCommand command = mFileSystemMaster
         .workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId), WorkerHeartbeatContext.defaults());
-    assertEquals(CommandType.PERSIST, command.getCommandType());
+    assertEquals(alluxio.dora.wire.CommandType.PERSIST, command.getCommandType());
     assertEquals(0, command.getCommandOptions().getPersistOptions().getFilesToPersist().size());
   }
 

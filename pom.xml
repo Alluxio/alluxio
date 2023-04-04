@@ -176,17 +176,17 @@
   <modules>
     <module>assembly</module>
     <module>dora/core</module>
+    <module>dora/minicluster</module>
+    <module>dora/job</module>
+    <module>dora/tests</module>
     <module>examples</module>
     <module>integration</module>
     <module>logserver</module>
     <module>microbench</module>
-    <module>minicluster</module>
-    <module>job</module>
     <module>shaded</module>
     <module>shell</module>
     <module>stress</module>
     <module>table</module>
-    <module>tests</module>
     <module>underfs</module>
     <module>webui</module>
   </modules>

@@ -13,7 +13,7 @@ package alluxio.master.table;
 
 import alluxio.dora.Constants;
 import alluxio.dora.Server;
-import alluxio.client.job.JobMasterClient;
+import alluxio.dora.job.JobMasterClient;
 import alluxio.dora.clock.SystemClock;
 import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.grpc.GrpcService;

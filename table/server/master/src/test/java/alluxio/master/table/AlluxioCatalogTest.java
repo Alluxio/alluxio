@@ -349,7 +349,7 @@ public class AlluxioCatalogTest {
 
     List<TransformPlan> plans = mCatalog.getTransformPlan(dbName, tableName, transformDefinition);
     assertEquals(1, plans.size());
-    alluxio.job.plan.transform.PartitionInfo transformedPartitionInfo =
+    alluxio.dora.job.plan.transform.PartitionInfo transformedPartitionInfo =
         TransformActionUtils.generatePartitionInfo(plans.get(0).getTransformedLayout());
     assertEquals("uncompressed",
         transformedPartitionInfo.getSerdeProperties().get("file.parquet.compression"));

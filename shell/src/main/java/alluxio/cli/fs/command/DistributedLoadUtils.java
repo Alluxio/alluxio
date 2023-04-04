@@ -16,8 +16,8 @@ import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.job.CmdConfig;
-import alluxio.job.cmd.load.LoadCliConfig;
+import alluxio.dora.job.CmdConfig;
+import alluxio.dora.job.cmd.load.LoadCliConfig;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;

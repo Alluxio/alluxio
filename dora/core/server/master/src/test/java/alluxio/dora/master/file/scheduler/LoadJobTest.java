@@ -29,7 +29,7 @@ import alluxio.dora.grpc.JobProgressReportFormat;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.master.job.FileIterable;
 import alluxio.dora.master.job.LoadJob;
-import alluxio.scheduler.job.JobState;
+import alluxio.dora.job.JobState;
 import alluxio.dora.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;

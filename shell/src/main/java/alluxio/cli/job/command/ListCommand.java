@@ -15,10 +15,10 @@ import alluxio.dora.annotation.PublicApi;
 import alluxio.dora.cli.CommandUtils;
 import alluxio.cli.fs.command.AbstractFileSystemCommand;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.client.job.JobContext;
-import alluxio.client.job.JobMasterClient;
+import alluxio.dora.job.JobContext;
+import alluxio.dora.job.JobMasterClient;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.job.wire.JobInfo;
+import alluxio.dora.job.wire.JobInfo;
 import alluxio.dora.resource.CloseableResource;
 
 import org.apache.commons.cli.CommandLine;

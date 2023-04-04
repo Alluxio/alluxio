@@ -13,7 +13,7 @@ package alluxio.dora.client.file.cache.cuckoofilter;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.util.ConcurrencyUtils;
+import alluxio.dora.test.util.ConcurrencyUtils;
 
 import org.junit.Before;
 import org.junit.Test;

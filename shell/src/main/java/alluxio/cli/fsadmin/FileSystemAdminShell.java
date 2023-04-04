@@ -18,7 +18,7 @@ import alluxio.dora.cli.CommandUtils;
 import alluxio.cli.fsadmin.command.Context;
 import alluxio.dora.client.block.RetryHandlingBlockMasterClient;
 import alluxio.dora.client.file.RetryHandlingFileSystemMasterClient;
-import alluxio.client.job.RetryHandlingJobMasterClient;
+import alluxio.dora.job.RetryHandlingJobMasterClient;
 import alluxio.dora.client.journal.RetryHandlingJournalMasterClient;
 import alluxio.dora.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.dora.client.meta.RetryHandlingMetaMasterConfigClient;
@@ -30,7 +30,7 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.conf.Source;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.util.ConfigurationUtils;
-import alluxio.worker.job.JobMasterClientContext;
+import alluxio.dora.job.JobMasterClientContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

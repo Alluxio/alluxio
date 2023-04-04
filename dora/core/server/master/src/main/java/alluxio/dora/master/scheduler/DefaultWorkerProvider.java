@@ -18,7 +18,7 @@ import alluxio.dora.exception.runtime.UnavailableRuntimeException;
 import alluxio.dora.exception.status.UnavailableException;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.resource.CloseableResource;
-import alluxio.scheduler.job.WorkerProvider;
+import alluxio.dora.job.WorkerProvider;
 import alluxio.dora.wire.WorkerInfo;
 import alluxio.dora.wire.WorkerNetAddress;
 

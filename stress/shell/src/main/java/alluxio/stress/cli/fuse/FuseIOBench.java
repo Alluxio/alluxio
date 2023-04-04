@@ -14,7 +14,7 @@ package alluxio.stress.cli.fuse;
 import alluxio.dora.ClientContext;
 import alluxio.dora.Constants;
 import alluxio.dora.annotation.SuppressFBWarnings;
-import alluxio.client.job.JobMasterClient;
+import alluxio.dora.job.JobMasterClient;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.cli.Benchmark;
@@ -25,7 +25,7 @@ import alluxio.stress.fuse.FuseIOTaskResult;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.FormatUtils;
 import alluxio.dora.util.executor.ExecutorServiceFactories;
-import alluxio.worker.job.JobMasterClientContext;
+import alluxio.dora.job.JobMasterClientContext;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.collect.ImmutableList;

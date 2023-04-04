@@ -12,7 +12,7 @@
 package alluxio.master.table.transform;
 
 import alluxio.dora.collections.Pair;
-import alluxio.job.wire.Status;
+import alluxio.dora.job.wire.Status;
 import alluxio.table.common.Layout;
 
 import com.google.common.base.Preconditions;

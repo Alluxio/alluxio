@@ -11,10 +11,10 @@
 
 package alluxio.cli.fs.command.job;
 
-import alluxio.client.job.JobMasterClient;
-import alluxio.job.JobConfig;
-import alluxio.job.wire.JobInfo;
-import alluxio.job.wire.Status;
+import alluxio.dora.job.JobMasterClient;
+import alluxio.dora.job.JobConfig;
+import alluxio.dora.job.wire.JobInfo;
+import alluxio.dora.job.wire.Status;
 import alluxio.dora.retry.RetryPolicy;
 
 import org.slf4j.Logger;

@@ -15,7 +15,7 @@ import alluxio.dora.job.JobRequest;
 import alluxio.dora.job.LoadJobRequest;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.proto.journal.Journal;
-import alluxio.scheduler.job.JobFactory;
+import alluxio.dora.job.JobFactory;
 
 /**
  * Producer for {@link JobFactory}.

@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.dora.client.quota.CacheScope;
-import alluxio.dora.util.ConcurrencyUtils;
+import alluxio.dora.test.util.ConcurrencyUtils;
 
 import org.junit.Before;
 import org.junit.Test;

@@ -97,7 +97,7 @@ public final class RoundRobinPolicyTest {
   @Test
   public void equalsTest() {
     AlluxioConfiguration conf = Configuration.global();
-    CommonUtils.testEquals(RoundRobinPolicy.class, new Class[]{AlluxioConfiguration.class},
+    alluxio.dora.test.util.CommonUtils.testEquals(RoundRobinPolicy.class, new Class[]{AlluxioConfiguration.class},
         new Object[]{conf});
   }
 }

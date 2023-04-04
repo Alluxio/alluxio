@@ -46,7 +46,7 @@ import alluxio.dora.master.scheduler.JournaledJobMetaStore;
 import alluxio.dora.master.scheduler.Scheduler;
 import alluxio.dora.proto.journal.Job;
 import alluxio.dora.resource.CloseableResource;
-import alluxio.scheduler.job.JobState;
+import alluxio.dora.job.JobState;
 import alluxio.dora.security.authentication.AuthenticatedClientUser;
 import alluxio.dora.wire.FileInfo;
 import alluxio.dora.wire.WorkerInfo;

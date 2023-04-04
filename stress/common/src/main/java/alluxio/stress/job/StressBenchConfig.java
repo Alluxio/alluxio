@@ -11,7 +11,7 @@
 
 package alluxio.stress.job;
 
-import alluxio.job.plan.PlanConfig;
+import alluxio.dora.job.plan.PlanConfig;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;

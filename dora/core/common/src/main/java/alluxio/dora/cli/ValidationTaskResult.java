@@ -19,7 +19,7 @@ import java.io.Serializable;
 public class ValidationTaskResult implements Serializable {
   private static final long serialVersionUID = -2746652850515278409L;
 
-  ValidationUtils.State mState = ValidationUtils.State.OK;
+  public ValidationUtils.State mState = ValidationUtils.State.OK;
   String mName = "";
   String mDesc = "";
   // Output stores stdout if test passed or stderr if error thrown

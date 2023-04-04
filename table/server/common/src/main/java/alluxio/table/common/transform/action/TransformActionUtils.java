@@ -11,8 +11,8 @@
 
 package alluxio.table.common.transform.action;
 
-import alluxio.job.plan.transform.FieldSchema;
-import alluxio.job.plan.transform.PartitionInfo;
+import alluxio.dora.job.plan.transform.FieldSchema;
+import alluxio.dora.job.plan.transform.PartitionInfo;
 import alluxio.table.ProtoUtils;
 import alluxio.table.common.Layout;
 
@@ -46,7 +46,7 @@ public class TransformActionUtils {
       colList.add(new FieldSchema(col.getId(), col.getName(), col.getType(), col.getComment()));
     }
 
-    return new alluxio.job.plan.transform.PartitionInfo(serdeClass, inputFormat,
+    return new PartitionInfo(serdeClass, inputFormat,
         new HashMap<>(partitionInfo.getStorage().getStorageFormat().getSerdelibParametersMap()),
         new HashMap<>(partitionInfo.getParametersMap()),
         colList);

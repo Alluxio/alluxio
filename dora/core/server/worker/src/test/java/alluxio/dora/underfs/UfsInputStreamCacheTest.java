@@ -23,11 +23,7 @@ import static org.mockito.Mockito.when;
 import alluxio.dora.ConfigurationRule;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.underfs.FileId;
-import alluxio.dora.underfs.SeekableUnderFileInputStream;
-import alluxio.dora.underfs.UfsInputStreamCache;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.util.ConcurrencyUtils;
+import alluxio.dora.test.util.ConcurrencyUtils;
 import alluxio.dora.underfs.options.OpenOptions;
 
 import org.junit.Assert;

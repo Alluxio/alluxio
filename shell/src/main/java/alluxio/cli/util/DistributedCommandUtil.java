@@ -11,10 +11,10 @@
 
 package alluxio.cli.util;
 
-import alluxio.client.job.JobMasterClient;
+import alluxio.dora.job.JobMasterClient;
 import alluxio.dora.grpc.OperationType;
-import alluxio.job.wire.CmdStatusBlock;
-import alluxio.job.wire.SimpleJobStatusBlock;
+import alluxio.dora.job.wire.CmdStatusBlock;
+import alluxio.dora.job.wire.SimpleJobStatusBlock;
 
 import java.io.IOException;
 import java.util.Arrays;

@@ -37,7 +37,7 @@ public final class AlluxioWorkerInfoTest {
 
   @Test
   public void equals() {
-    CommonUtils.testEquals(AlluxioMasterInfo.class);
+    alluxio.dora.test.util.CommonUtils.testEquals(AlluxioMasterInfo.class);
   }
 
   private void checkEquality(AlluxioWorkerInfo a, AlluxioWorkerInfo b) {

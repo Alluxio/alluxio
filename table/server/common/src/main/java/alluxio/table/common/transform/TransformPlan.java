@@ -11,7 +11,7 @@
 
 package alluxio.table.common.transform;
 
-import alluxio.job.JobConfig;
+import alluxio.dora.job.JobConfig;
 import alluxio.table.common.Layout;
 import alluxio.table.common.transform.action.TransformAction;
 

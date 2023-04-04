@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
-import alluxio.client.job.JobMasterClient;
+import alluxio.dora.job.JobMasterClient;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.ExceptionMessage;
@@ -23,9 +23,9 @@ import alluxio.dora.exception.status.NotFoundException;
 import alluxio.dora.heartbeat.HeartbeatContext;
 import alluxio.dora.heartbeat.HeartbeatScheduler;
 import alluxio.dora.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.job.JobConfig;
-import alluxio.job.wire.PlanInfo;
-import alluxio.job.wire.Status;
+import alluxio.dora.job.JobConfig;
+import alluxio.dora.job.wire.PlanInfo;
+import alluxio.dora.job.wire.Status;
 import alluxio.dora.master.CoreMasterContext;
 import alluxio.dora.master.MasterTestUtils;
 import alluxio.dora.master.PortRegistry;
@@ -69,7 +69,7 @@ import javax.annotation.Nullable;
  * 3. if job master crashes before finishing the transformation jobs,
  * or a transformation job fails, the transformation job status and reason of failure are kept.
  *
- * The test mocks the manager's {@link alluxio.client.job.JobMasterClient} without running a real
+ * The test mocks the manager's {@link JobMasterClient} without running a real
  * job service.
  *
  * The test manually controls the manager's heartbeat by {@link HeartbeatScheduler}.

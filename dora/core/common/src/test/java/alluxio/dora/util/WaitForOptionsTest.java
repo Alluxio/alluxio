@@ -13,6 +13,8 @@ package alluxio.dora.util;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.dora.test.util.CommonUtils;
+
 import org.junit.Test;
 
 import java.util.Random;

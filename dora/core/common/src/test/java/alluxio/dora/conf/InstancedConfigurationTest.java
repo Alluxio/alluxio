@@ -29,7 +29,7 @@ import alluxio.dora.SystemPropertyRule;
 import alluxio.dora.TestLoggerRule;
 import alluxio.dora.client.ReadType;
 import alluxio.dora.conf.PropertyKey.Template;
-import alluxio.dora.util.CommonUtils;
+import alluxio.dora.test.util.CommonUtils;
 import alluxio.dora.util.FormatUtils;
 
 import com.google.common.base.Joiner;

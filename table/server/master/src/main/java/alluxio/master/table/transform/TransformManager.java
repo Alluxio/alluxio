@@ -11,7 +11,7 @@
 
 package alluxio.master.table.transform;
 
-import alluxio.client.job.JobMasterClient;
+import alluxio.dora.job.JobMasterClient;
 import alluxio.dora.collections.Pair;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
@@ -21,10 +21,10 @@ import alluxio.dora.exception.status.UnavailableException;
 import alluxio.dora.heartbeat.HeartbeatContext;
 import alluxio.dora.heartbeat.HeartbeatExecutor;
 import alluxio.dora.heartbeat.HeartbeatThread;
-import alluxio.job.JobConfig;
-import alluxio.job.wire.JobInfo;
-import alluxio.job.wire.Status;
-import alluxio.job.workflow.composite.CompositeConfig;
+import alluxio.dora.job.JobConfig;
+import alluxio.dora.job.wire.JobInfo;
+import alluxio.dora.job.wire.Status;
+import alluxio.dora.job.workflow.composite.CompositeConfig;
 import alluxio.dora.master.journal.DelegatingJournaled;
 import alluxio.dora.master.journal.JournalContext;
 import alluxio.dora.master.journal.Journaled;

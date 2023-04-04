@@ -13,7 +13,7 @@ package alluxio.dora.underfs.options;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.util.CommonUtils;
+import alluxio.dora.test.util.CommonUtils;
 
 import org.junit.Test;
 

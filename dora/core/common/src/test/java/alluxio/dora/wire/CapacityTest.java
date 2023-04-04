@@ -13,7 +13,7 @@ package alluxio.dora.wire;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.util.CommonUtils;
+import alluxio.dora.test.util.CommonUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;

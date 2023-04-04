@@ -16,7 +16,7 @@ import alluxio.dora.conf.Configuration;
 import alluxio.dora.grpc.table.ColumnStatisticsInfo;
 import alluxio.dora.grpc.table.layout.hive.PartitionInfo;
 import alluxio.dora.grpc.table.layout.hive.StorageFormat;
-import alluxio.job.plan.transform.HiveConstants;
+import alluxio.dora.job.plan.transform.HiveConstants;
 import alluxio.table.common.Layout;
 import alluxio.table.common.LayoutFactory;
 import alluxio.table.common.transform.TransformContext;
@@ -123,7 +123,7 @@ public class HiveLayout implements Layout {
         .setInputFormat(HiveConstants.PARQUET_INPUT_FORMAT_CLASS)
         .setOutputFormat(HiveConstants.PARQUET_OUTPUT_FORMAT_CLASS);
 
-    final String compressionKey = alluxio.job.plan.transform.PartitionInfo.PARQUET_COMPRESSION;
+    final String compressionKey = alluxio.dora.job.plan.transform.PartitionInfo.PARQUET_COMPRESSION;
     final String compression = properties.getProperty(compressionKey);
     if (!StringUtils.isEmpty(compression)) {
       storageFormatBuilder.putSerdelibParameters(compressionKey, compression);

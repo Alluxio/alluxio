@@ -29,12 +29,6 @@ import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.status.InvalidArgumentException;
 import alluxio.dora.exception.status.NotFoundException;
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.master.CoreMaster;
-import alluxio.dora.master.CoreMasterContext;
-import alluxio.dora.master.block.meta.WorkerMetaLockSection;
-import alluxio.dora.master.metastore.BlockMetaStore;
-import alluxio.dora.master.metrics.MetricsMaster;
-import alluxio.dora.wire.BlockLocation;
 import alluxio.dora.grpc.Command;
 import alluxio.dora.grpc.CommandType;
 import alluxio.dora.grpc.ConfigProperty;
@@ -49,9 +43,15 @@ import alluxio.dora.grpc.WorkerLostStorageInfo;
 import alluxio.dora.heartbeat.HeartbeatContext;
 import alluxio.dora.heartbeat.HeartbeatExecutor;
 import alluxio.dora.heartbeat.HeartbeatThread;
+import alluxio.dora.master.CoreMaster;
+import alluxio.dora.master.CoreMasterContext;
 import alluxio.dora.master.block.meta.MasterWorkerInfo;
+import alluxio.dora.master.block.meta.WorkerMetaLockSection;
 import alluxio.dora.master.journal.JournalContext;
 import alluxio.dora.master.journal.checkpoint.CheckpointName;
+import alluxio.dora.master.metastore.BlockMetaStore;
+import alluxio.dora.master.metastore.BlockMetaStore.Block;
+import alluxio.dora.master.metrics.MetricsMaster;
 import alluxio.dora.metrics.Metric;
 import alluxio.dora.metrics.MetricInfo;
 import alluxio.dora.metrics.MetricKey;
@@ -1510,7 +1510,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     blockLocations.sort(Comparator.comparingInt(
             o -> MASTER_STORAGE_TIER_ASSOC.getOrdinal(o.getTier())));
 
-    List<BlockLocation> locations = new ArrayList<>(blockLocations.size());
+    List<alluxio.dora.wire.BlockLocation> locations = new ArrayList<>(blockLocations.size());
     for (BlockLocation location : blockLocations) {
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(ID_INDEX, location.getWorkerId());
@@ -1518,7 +1518,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         // worker metadata is intentionally not locked here because:
         // - it would be an incorrect order (correct order is lock worker first, then block)
         // - only uses getters of final variables
-        locations.add(new BlockLocation().setWorkerId(location.getWorkerId())
+        locations.add(new alluxio.dora.wire.BlockLocation().setWorkerId(location.getWorkerId())
             .setWorkerAddress(workerInfo.getWorkerAddress())
             .setTierAlias(location.getTier()).setMediumType(location.getMediumType()));
       }

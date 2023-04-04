@@ -12,8 +12,8 @@
 package alluxio.stress.cli.suite;
 
 import alluxio.dora.ClientContext;
-import alluxio.client.job.JobMasterClient;
-import alluxio.job.util.SerializationUtils;
+import alluxio.dora.job.JobMasterClient;
+import alluxio.dora.job.util.SerializationUtils;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.cli.StressMasterBench;
 import alluxio.stress.common.GeneralBenchSummary;
@@ -24,7 +24,7 @@ import alluxio.stress.master.MasterMaxThroughputSummary;
 import alluxio.stress.master.Operation;
 import alluxio.dora.util.FormatUtils;
 import alluxio.dora.util.JsonSerializable;
-import alluxio.worker.job.JobMasterClientContext;
+import alluxio.dora.job.JobMasterClientContext;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;

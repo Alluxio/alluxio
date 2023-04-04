@@ -14,8 +14,8 @@ package alluxio.dora.master.job;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.grpc.LoadJobPOptions;
 import alluxio.dora.job.LoadJobRequest;
-import alluxio.scheduler.job.Job;
-import alluxio.scheduler.job.JobFactory;
+import alluxio.dora.job.Job;
+import alluxio.dora.job.JobFactory;
 import alluxio.dora.security.User;
 import alluxio.dora.security.authentication.AuthenticatedClientUser;
 

@@ -22,8 +22,8 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.job.CmdConfig;
-import alluxio.job.cmd.migrate.MigrateCliConfig;
+import alluxio.dora.job.CmdConfig;
+import alluxio.dora.job.cmd.migrate.MigrateCliConfig;
 import alluxio.dora.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;

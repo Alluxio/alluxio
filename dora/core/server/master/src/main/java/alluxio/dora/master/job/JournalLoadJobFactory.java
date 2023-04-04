@@ -12,9 +12,9 @@
 package alluxio.dora.master.job;
 
 import alluxio.dora.master.file.FileSystemMaster;
-import alluxio.scheduler.job.Job;
-import alluxio.scheduler.job.JobFactory;
-import alluxio.scheduler.job.JobState;
+import alluxio.dora.job.Job;
+import alluxio.dora.job.JobFactory;
+import alluxio.dora.job.JobState;
 
 import java.util.Optional;
 import java.util.OptionalLong;

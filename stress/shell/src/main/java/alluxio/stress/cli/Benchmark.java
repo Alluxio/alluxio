@@ -12,12 +12,12 @@
 package alluxio.stress.cli;
 
 import alluxio.dora.annotation.SuppressFBWarnings;
-import alluxio.client.job.JobGrpcClientUtils;
+import alluxio.dora.job.JobGrpcClientUtils;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.job.plan.PlanConfig;
-import alluxio.job.wire.JobInfo;
+import alluxio.dora.job.plan.PlanConfig;
+import alluxio.dora.job.wire.JobInfo;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.TaskResult;

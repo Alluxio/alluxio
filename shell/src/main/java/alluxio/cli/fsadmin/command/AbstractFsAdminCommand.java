@@ -14,7 +14,7 @@ package alluxio.cli.fsadmin.command;
 import alluxio.dora.cli.Command;
 import alluxio.dora.client.block.BlockMasterClient;
 import alluxio.dora.client.file.FileSystemMasterClient;
-import alluxio.client.job.JobMasterClient;
+import alluxio.dora.job.JobMasterClient;
 import alluxio.dora.client.journal.JournalMasterClient;
 import alluxio.dora.client.meta.MetaMasterClient;
 import alluxio.dora.client.meta.MetaMasterConfigClient;

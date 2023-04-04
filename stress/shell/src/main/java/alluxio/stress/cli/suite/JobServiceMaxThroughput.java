@@ -11,7 +11,7 @@
 
 package alluxio.stress.cli.suite;
 
-import alluxio.job.util.SerializationUtils;
+import alluxio.dora.job.util.SerializationUtils;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.cli.StressJobServiceBench;
 import alluxio.stress.common.GeneralBenchSummary;

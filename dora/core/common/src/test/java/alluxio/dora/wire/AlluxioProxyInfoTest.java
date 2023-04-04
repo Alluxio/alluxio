@@ -35,7 +35,7 @@ public class AlluxioProxyInfoTest {
 
   @Test
   public void equals() {
-    CommonUtils.testEquals(AlluxioProxyInfo.class);
+    alluxio.dora.test.util.CommonUtils.testEquals(AlluxioProxyInfo.class);
   }
 
   private void checkEquality(AlluxioProxyInfo a, AlluxioProxyInfo b) {

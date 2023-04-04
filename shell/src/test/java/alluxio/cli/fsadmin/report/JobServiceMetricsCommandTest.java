@@ -13,12 +13,12 @@ package alluxio.cli.fsadmin.report;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.client.job.JobMasterClient;
-import alluxio.job.wire.JobInfo;
-import alluxio.job.wire.JobServiceSummary;
-import alluxio.job.wire.JobWorkerHealth;
-import alluxio.job.wire.PlanInfo;
-import alluxio.job.wire.Status;
+import alluxio.dora.job.JobMasterClient;
+import alluxio.dora.job.wire.JobInfo;
+import alluxio.dora.job.wire.JobServiceSummary;
+import alluxio.dora.job.wire.JobWorkerHealth;
+import alluxio.dora.job.wire.PlanInfo;
+import alluxio.dora.job.wire.Status;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.ArrayUtils;
