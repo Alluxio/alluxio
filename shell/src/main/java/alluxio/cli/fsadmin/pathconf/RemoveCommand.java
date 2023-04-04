@@ -19,7 +19,7 @@ import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.InvalidPathException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.dora.grpc.GetConfigurationPOptions;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;

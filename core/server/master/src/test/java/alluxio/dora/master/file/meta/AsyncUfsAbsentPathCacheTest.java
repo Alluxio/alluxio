@@ -22,7 +22,7 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.master.file.meta.AsyncUfsAbsentPathCache;
 import alluxio.dora.master.file.meta.MountTable;
 import alluxio.dora.master.file.meta.UfsAbsentPathCache;
-import alluxio.grpc.MountPOptions;
+import alluxio.dora.grpc.MountPOptions;
 import alluxio.dora.master.file.contexts.MountContext;
 import alluxio.dora.master.file.meta.options.MountInfo;
 import alluxio.dora.master.journal.NoopJournalContext;

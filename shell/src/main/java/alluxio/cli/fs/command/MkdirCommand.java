@@ -17,7 +17,7 @@ import alluxio.dora.cli.CommandUtils;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.dora.grpc.CreateDirectoryPOptions;
 
 import org.apache.commons.cli.CommandLine;
 

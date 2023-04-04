@@ -13,7 +13,7 @@ package alluxio.dora.master.file.contexts;
 
 import alluxio.dora.Constants;
 import alluxio.dora.conf.Configuration;
-import alluxio.grpc.SetAttributePOptions;
+import alluxio.dora.grpc.SetAttributePOptions;
 import alluxio.dora.util.FileSystemOptionsUtils;
 
 import com.google.common.base.MoreObjects;

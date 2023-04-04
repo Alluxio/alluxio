@@ -15,7 +15,7 @@ import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.JournalClosedException;
 import alluxio.dora.master.journal.JournalWriter;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 import alluxio.dora.util.FormatUtils;
 
 import com.google.common.base.Preconditions;

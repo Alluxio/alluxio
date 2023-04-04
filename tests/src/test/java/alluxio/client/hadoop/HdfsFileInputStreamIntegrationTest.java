@@ -22,7 +22,7 @@ import alluxio.dora.conf.InstancedConfiguration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.PreconditionMessage;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.WritePType;
 import alluxio.dora.hadoop.HadoopClientTestUtils;
 import alluxio.dora.hadoop.HdfsFileInputStream;
 import alluxio.testutils.BaseIntegrationTest;

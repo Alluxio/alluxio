@@ -11,7 +11,7 @@
 
 package alluxio.master.table;
 
-import alluxio.grpc.table.PrincipalType;
+import alluxio.dora.grpc.table.PrincipalType;
 
 import com.google.common.base.MoreObjects;
 

@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.grpc.BlockStoreLocationProto;
+import alluxio.dora.grpc.BlockStoreLocationProto;
 
 import com.google.common.base.MoreObjects;
 

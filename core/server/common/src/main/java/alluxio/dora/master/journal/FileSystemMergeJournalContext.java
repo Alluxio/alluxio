@@ -15,7 +15,7 @@ import alluxio.dora.Constants;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 import alluxio.dora.util.logging.SamplingLogger;
 
 import com.google.common.base.Preconditions;

@@ -20,7 +20,7 @@ import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.InvalidWorkerStateException;
 import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.network.protocol.RPCProtoMessage;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.proto.dataserver.Protocol;
 import alluxio.dora.util.IdUtils;
 import alluxio.dora.util.proto.ProtoMessage;
 import alluxio.dora.worker.block.BlockLockManager;

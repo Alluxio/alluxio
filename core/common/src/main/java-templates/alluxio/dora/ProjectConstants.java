@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.dora;
 
 /**
  * Project constants from compilation time by maven.

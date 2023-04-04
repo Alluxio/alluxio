@@ -15,7 +15,7 @@ import alluxio.dora.conf.Configuration;
 import alluxio.dora.annotation.SuppressFBWarnings;
 import alluxio.dora.metrics.MetricsSystem;
 import alluxio.dora.network.protocol.RPCProtoMessage;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.proto.dataserver.Protocol;
 import alluxio.dora.security.authorization.Mode;
 import alluxio.dora.underfs.UfsManager;
 import alluxio.dora.underfs.UnderFileSystem;

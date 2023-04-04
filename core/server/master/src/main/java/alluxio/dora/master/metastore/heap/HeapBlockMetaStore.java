@@ -17,8 +17,8 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.master.metastore.BlockMetaStore;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
-import alluxio.proto.meta.Block.BlockLocation;
-import alluxio.proto.meta.Block.BlockMeta;
+import alluxio.dora.proto.meta.Block.BlockLocation;
+import alluxio.dora.proto.meta.Block.BlockMeta;
 import alluxio.dora.resource.CloseableIterator;
 import alluxio.dora.util.ObjectSizeCalculator;
 

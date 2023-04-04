@@ -19,7 +19,7 @@ import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.client.file.FileSystemUtils;
 import alluxio.dora.client.file.URIStatus;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.WritePType;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -12,10 +12,10 @@
 package alluxio.dora.master.journal;
 
 import alluxio.dora.master.journal.JournalType;
-import alluxio.grpc.GetNodeStatePResponse;
-import alluxio.grpc.GetQuorumInfoPResponse;
-import alluxio.grpc.GetTransferLeaderMessagePResponse;
-import alluxio.grpc.NetAddress;
+import alluxio.dora.grpc.GetNodeStatePResponse;
+import alluxio.dora.grpc.GetQuorumInfoPResponse;
+import alluxio.dora.grpc.GetTransferLeaderMessagePResponse;
+import alluxio.dora.grpc.NetAddress;
 import alluxio.dora.master.Master;
 
 import java.io.IOException;

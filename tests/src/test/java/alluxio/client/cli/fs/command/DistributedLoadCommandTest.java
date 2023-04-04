@@ -21,7 +21,7 @@ import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.WritePType;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

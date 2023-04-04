@@ -14,7 +14,7 @@ package alluxio.dora.worker;
 import alluxio.dora.ProcessUtils;
 import alluxio.dora.RuntimeConstants;
 import alluxio.dora.conf.Configuration;
-import alluxio.grpc.Scope;
+import alluxio.dora.grpc.Scope;
 import alluxio.dora.master.MasterInquireClient;
 import alluxio.dora.retry.RetryUtils;
 import alluxio.dora.user.ServerUserState;

@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.dora.exception.status.UnavailableException;
 import alluxio.dora.master.journal.CatchupFuture;
 import alluxio.dora.master.journal.CountingNoopFileSystemMaster;
-import alluxio.proto.journal.Journal;
+import alluxio.dora.proto.journal.Journal;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.URIUtils;
 import alluxio.dora.util.WaitForOptions;
@@ -356,7 +356,7 @@ public final class UfsJournalTest {
     // This one will corrupt the journal catch thread
     Journal.JournalEntry corruptedEntry = Journal.JournalEntry.newBuilder()
         .setSequenceNumber(entryCount + 1)
-        .setDeleteFile(alluxio.proto.journal.File.DeleteFileEntry.newBuilder()
+        .setDeleteFile(alluxio.dora.proto.journal.File.DeleteFileEntry.newBuilder()
             .setId(4563728)
             .setPath("/crash")
             .build())

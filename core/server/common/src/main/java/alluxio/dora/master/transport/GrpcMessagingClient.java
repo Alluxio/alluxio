@@ -16,7 +16,7 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.grpc.GrpcChannel;
 import alluxio.dora.grpc.GrpcChannelBuilder;
 import alluxio.dora.grpc.GrpcServerAddress;
-import alluxio.grpc.MessagingServiceGrpc;
+import alluxio.dora.grpc.MessagingServiceGrpc;
 import alluxio.dora.security.user.UserState;
 
 import org.slf4j.Logger;

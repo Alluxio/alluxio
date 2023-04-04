@@ -20,7 +20,7 @@ import alluxio.dora.UnderFileSystemFactoryRegistryRule;
 import alluxio.dora.client.WriteType;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.WritePType;
 import alluxio.job.plan.load.LoadConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
 import alluxio.job.plan.persist.PersistConfig;

@@ -23,7 +23,7 @@ import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.master.journal.sink.JournalSink;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 import alluxio.dora.util.logging.SamplingLogger;
 
 import com.codahale.metrics.Counter;

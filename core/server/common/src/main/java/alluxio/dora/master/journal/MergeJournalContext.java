@@ -13,7 +13,7 @@ package alluxio.dora.master.journal;
 
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

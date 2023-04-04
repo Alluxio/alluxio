@@ -11,7 +11,7 @@
 
 package alluxio.dora.wire;
 
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.proto.dataserver.Protocol;
 import alluxio.dora.util.IdUtils;
 
 import com.google.common.base.MoreObjects;
@@ -38,7 +38,7 @@ public final class BlockReadRequest {
    * @param request the block read request
    * @return a BlockReadRequest object
    */
-  public static BlockReadRequest from(alluxio.grpc.ReadRequest request) {
+  public static BlockReadRequest from(alluxio.dora.grpc.ReadRequest request) {
     return new BlockReadRequest(request.getBlockId(), request.getOffset(),
         request.getOffset() + request.getLength(),
         request.getChunkSize(), request.getPromote(), request.getPositionShort(),

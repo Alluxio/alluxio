@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.dora.AlluxioTestDirectory;
 import alluxio.dora.AlluxioURI;
-import alluxio.grpc.MetricType;
+import alluxio.dora.grpc.MetricType;
 
 import com.codahale.metrics.Counter;
 import org.junit.Before;

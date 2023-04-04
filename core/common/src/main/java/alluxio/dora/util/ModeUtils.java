@@ -14,7 +14,7 @@ package alluxio.dora.util;
 import alluxio.dora.Constants;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.ExceptionMessage;
-import alluxio.grpc.PMode;
+import alluxio.dora.grpc.PMode;
 import alluxio.dora.security.authorization.Mode;
 
 import javax.annotation.Nullable;

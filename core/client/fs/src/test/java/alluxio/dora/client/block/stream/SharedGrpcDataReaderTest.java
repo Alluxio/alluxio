@@ -13,8 +13,8 @@ package alluxio.dora.client.block.stream;
 
 import alluxio.dora.Constants;
 import alluxio.dora.collections.ConcurrentHashSet;
-import alluxio.grpc.ReadRequest;
-import alluxio.grpc.ReadResponse;
+import alluxio.dora.grpc.ReadRequest;
+import alluxio.dora.grpc.ReadResponse;
 import alluxio.dora.wire.WorkerNetAddress;
 
 import com.google.common.base.Throwables;

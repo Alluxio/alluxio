@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.master.meta.checkconf.ConfigRecord;
 import alluxio.dora.master.meta.checkconf.ConfigurationStore;
-import alluxio.grpc.ConfigProperty;
+import alluxio.dora.grpc.ConfigProperty;
 import alluxio.dora.wire.Address;
 
 import org.apache.commons.lang3.RandomStringUtils;

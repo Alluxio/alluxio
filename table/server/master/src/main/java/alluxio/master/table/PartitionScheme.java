@@ -11,8 +11,8 @@
 
 package alluxio.master.table;
 
-import alluxio.grpc.table.FieldSchema;
-import alluxio.grpc.table.Layout;
+import alluxio.dora.grpc.table.FieldSchema;
+import alluxio.dora.grpc.table.Layout;
 
 import java.util.List;
 

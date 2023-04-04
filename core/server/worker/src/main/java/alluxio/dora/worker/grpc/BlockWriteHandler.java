@@ -12,7 +12,7 @@
 package alluxio.dora.worker.grpc;
 
 import alluxio.dora.annotation.SuppressFBWarnings;
-import alluxio.grpc.WriteResponse;
+import alluxio.dora.grpc.WriteResponse;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
 import alluxio.dora.network.protocol.databuffer.DataBuffer;
@@ -64,7 +64,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
   }
 
   @Override
-  protected BlockWriteRequestContext createRequestContext(alluxio.grpc.WriteRequest msg) {
+  protected BlockWriteRequestContext createRequestContext(alluxio.dora.grpc.WriteRequest msg) {
     long bytesToReserve = FILE_BUFFER_SIZE;
     if (msg.getCommand().hasSpaceToReserve()) {
       bytesToReserve = msg.getCommand().getSpaceToReserve();

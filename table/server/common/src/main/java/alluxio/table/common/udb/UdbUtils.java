@@ -15,8 +15,8 @@ import alluxio.dora.AlluxioURI;
 import alluxio.dora.Constants;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.InvalidPathException;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.MountPOptions;
+import alluxio.dora.grpc.CreateDirectoryPOptions;
+import alluxio.dora.grpc.MountPOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

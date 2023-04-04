@@ -191,7 +191,7 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
           GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
           Configuration.global());
 
-      for (Map.Entry<alluxio.grpc.ServiceType, GrpcService> serviceEntry : mJobWorker.getServices()
+      for (Map.Entry<alluxio.dora.grpc.ServiceType, GrpcService> serviceEntry : mJobWorker.getServices()
           .entrySet()) {
         LOG.info("Registered service:{}", serviceEntry.getKey().name());
         serverBuilder.addService(serviceEntry.getValue());

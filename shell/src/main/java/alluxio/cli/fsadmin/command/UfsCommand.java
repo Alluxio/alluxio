@@ -17,8 +17,8 @@ import alluxio.dora.cli.CommandUtils;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.UfsPMode;
-import alluxio.grpc.UpdateUfsModePOptions;
+import alluxio.dora.grpc.UfsPMode;
+import alluxio.dora.grpc.UpdateUfsModePOptions;
 import alluxio.dora.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;

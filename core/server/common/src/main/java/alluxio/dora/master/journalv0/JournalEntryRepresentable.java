@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.journalv0;
 
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 
 /**
  * This interface enables representing a class as a {@link JournalEntry}.

@@ -11,11 +11,11 @@
 
 package alluxio.table.under.glue;
 
-import alluxio.grpc.table.FieldSchema;
-import alluxio.grpc.table.Schema;
-import alluxio.grpc.table.layout.hive.HiveBucketProperty;
-import alluxio.grpc.table.layout.hive.Storage;
-import alluxio.grpc.table.layout.hive.StorageFormat;
+import alluxio.dora.grpc.table.FieldSchema;
+import alluxio.dora.grpc.table.Schema;
+import alluxio.dora.grpc.table.layout.hive.HiveBucketProperty;
+import alluxio.dora.grpc.table.layout.hive.Storage;
+import alluxio.dora.grpc.table.layout.hive.StorageFormat;
 
 import com.amazonaws.services.glue.model.Column;
 import com.amazonaws.services.glue.model.Database;

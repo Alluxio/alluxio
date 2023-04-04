@@ -22,7 +22,7 @@ import alluxio.dora.master.journal.checkpoint.Checkpointed;
 import alluxio.dora.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckpointReader;
 import alluxio.dora.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckpointReader.Entry;
 import alluxio.dora.master.journal.sink.JournalSink;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 import alluxio.dora.resource.CloseableIterator;
 import alluxio.dora.util.StreamUtils;
 

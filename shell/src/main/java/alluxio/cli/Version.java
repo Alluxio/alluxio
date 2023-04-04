@@ -11,7 +11,7 @@
 
 package alluxio.cli;
 
-import alluxio.ProjectConstants;
+import alluxio.dora.ProjectConstants;
 import alluxio.dora.RuntimeConstants;
 import alluxio.dora.annotation.PublicApi;
 

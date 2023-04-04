@@ -11,7 +11,7 @@
 
 package alluxio.job.cmd.persist;
 
-import alluxio.grpc.OperationType;
+import alluxio.dora.grpc.OperationType;
 import alluxio.job.cmd.CliConfig;
 import alluxio.job.plan.persist.PersistConfig;
 import alluxio.job.wire.JobSource;

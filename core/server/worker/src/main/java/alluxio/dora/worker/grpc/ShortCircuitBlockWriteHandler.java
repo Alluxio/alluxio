@@ -13,8 +13,8 @@ package alluxio.dora.worker.grpc;
 
 import alluxio.dora.RpcUtils;
 import alluxio.dora.exception.runtime.ResourceExhaustedRuntimeException;
-import alluxio.grpc.CreateLocalBlockRequest;
-import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.dora.grpc.CreateLocalBlockRequest;
+import alluxio.dora.grpc.CreateLocalBlockResponse;
 import alluxio.dora.grpc.GrpcExceptionUtils;
 import alluxio.dora.util.IdUtils;
 import alluxio.dora.util.LogUtils;

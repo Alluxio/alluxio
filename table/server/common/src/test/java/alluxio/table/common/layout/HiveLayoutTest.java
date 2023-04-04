@@ -14,10 +14,10 @@ package alluxio.table.common.layout;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import alluxio.grpc.table.ColumnStatisticsInfo;
-import alluxio.grpc.table.FieldSchema;
-import alluxio.grpc.table.layout.hive.PartitionInfo;
-import alluxio.grpc.table.layout.hive.Storage;
+import alluxio.dora.grpc.table.ColumnStatisticsInfo;
+import alluxio.dora.grpc.table.FieldSchema;
+import alluxio.dora.grpc.table.layout.hive.PartitionInfo;
+import alluxio.dora.grpc.table.layout.hive.Storage;
 import alluxio.table.common.Layout;
 import alluxio.table.common.LayoutRegistry;
 import alluxio.dora.util.CommonUtils;
@@ -57,9 +57,9 @@ public class HiveLayoutTest {
   @Test
   public void factoryConversions() throws Exception {
     HiveLayout layout = createRandom();
-    alluxio.grpc.table.Layout layoutProto = layout.toProto();
+    alluxio.dora.grpc.table.Layout layoutProto = layout.toProto();
     Layout layout2 = new HiveLayout.HiveLayoutFactory().create(layoutProto);
-    alluxio.grpc.table.Layout layout2Proto = layout2.toProto();
+    alluxio.dora.grpc.table.Layout layout2Proto = layout2.toProto();
     assertEquals(layoutProto, layout2Proto);
   }
 

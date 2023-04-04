@@ -14,7 +14,7 @@ package alluxio.dora.master.meta.checkconf;
 import static alluxio.dora.conf.PropertyKey.Builder.stringBuilder;
 
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.ConfigProperty;
+import alluxio.dora.grpc.ConfigProperty;
 import alluxio.dora.wire.Address;
 
 import com.google.common.base.Preconditions;

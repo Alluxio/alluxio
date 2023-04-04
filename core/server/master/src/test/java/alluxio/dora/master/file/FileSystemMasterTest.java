@@ -38,22 +38,22 @@ import alluxio.dora.exception.FileDoesNotExistException;
 import alluxio.dora.exception.InvalidPathException;
 import alluxio.dora.exception.UnexpectedAlluxioException;
 import alluxio.dora.wire.CommandType;
-import alluxio.grpc.Command;
-import alluxio.grpc.CommandType;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.ExistsPOptions;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.grpc.FreePOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPType;
-import alluxio.grpc.MountPOptions;
-import alluxio.grpc.SetAclAction;
-import alluxio.grpc.SetAclPOptions;
-import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.StorageList;
-import alluxio.grpc.XAttrPropagationStrategy;
+import alluxio.dora.grpc.Command;
+import alluxio.dora.grpc.CommandType;
+import alluxio.dora.grpc.CreateDirectoryPOptions;
+import alluxio.dora.grpc.CreateFilePOptions;
+import alluxio.dora.grpc.DeletePOptions;
+import alluxio.dora.grpc.ExistsPOptions;
+import alluxio.dora.grpc.FileSystemMasterCommonPOptions;
+import alluxio.dora.grpc.FreePOptions;
+import alluxio.dora.grpc.ListStatusPOptions;
+import alluxio.dora.grpc.LoadMetadataPType;
+import alluxio.dora.grpc.MountPOptions;
+import alluxio.dora.grpc.SetAclAction;
+import alluxio.dora.grpc.SetAclPOptions;
+import alluxio.dora.grpc.SetAttributePOptions;
+import alluxio.dora.grpc.StorageList;
+import alluxio.dora.grpc.XAttrPropagationStrategy;
 import alluxio.dora.heartbeat.HeartbeatContext;
 import alluxio.dora.heartbeat.HeartbeatScheduler;
 import alluxio.dora.master.file.contexts.CompleteFileContext;
@@ -72,7 +72,7 @@ import alluxio.dora.master.file.contexts.SetAttributeContext;
 import alluxio.dora.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.dora.master.file.meta.PersistenceState;
 import alluxio.dora.master.journal.JournalContext;
-import alluxio.proto.journal.Journal;
+import alluxio.dora.proto.journal.Journal;
 import alluxio.dora.security.authorization.AclEntry;
 import alluxio.dora.security.authorization.Mode;
 import alluxio.dora.util.FileSystemOptionsUtils;
@@ -663,7 +663,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.mergeFrom(
         SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptionsUtils
             .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
-            .setTtlAction(alluxio.grpc.TtlAction.FREE))));
+            .setTtlAction(alluxio.dora.grpc.TtlAction.FREE))));
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.of(), ImmutableMap.of(), mMetrics);
@@ -683,7 +683,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.mergeFrom(
         SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptionsUtils
             .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
-            .setTtlAction(alluxio.grpc.TtlAction.FREE))));
+            .setTtlAction(alluxio.dora.grpc.TtlAction.FREE))));
     // Simulate restart.
     stopServices();
     startServices();
@@ -710,7 +710,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     // Set ttl & operation.
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(
         SetAttributePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
-            .newBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE))));
+            .newBuilder().setTtl(0).setTtlAction(alluxio.dora.grpc.TtlAction.FREE))));
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.of(), ImmutableMap.<String, StorageList>of(), mMetrics);
@@ -733,7 +733,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(
         SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptionsUtils
             .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
-            .setTtlAction(alluxio.grpc.TtlAction.FREE))));
+            .setTtlAction(alluxio.dora.grpc.TtlAction.FREE))));
 
     // Simulate restart.
     stopServices();
@@ -1552,7 +1552,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     mFileSystemMaster.setAttribute(ROOT_FILE_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .putXattr("bar", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
-            .setXattrUpdateStrategy(alluxio.proto.journal.File.XAttrUpdateStrategy.TRUNCATE)));
+            .setXattrUpdateStrategy(alluxio.dora.proto.journal.File.XAttrUpdateStrategy.TRUNCATE)));
     FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
     assertEquals(updatedFileInfo.getXAttr().size(), 1);
     assertEquals(new String(updatedFileInfo.getXAttr().get("bar"), StandardCharsets.UTF_8),
@@ -1579,7 +1579,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
             .putXattr("foo", ByteString.copyFrom("baz", StandardCharsets.UTF_8))
             .putXattr("bar", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
             .setXattrUpdateStrategy(
-                alluxio.proto.journal.File.XAttrUpdateStrategy.UNION_REPLACE)));
+                alluxio.dora.proto.journal.File.XAttrUpdateStrategy.UNION_REPLACE)));
     FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
     assertEquals(updatedFileInfo.getXAttr().size(), 2);
     assertEquals(new String(updatedFileInfo.getXAttr().get("foo"), StandardCharsets.UTF_8),
@@ -1608,7 +1608,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
             .putXattr("foo", ByteString.copyFrom("baz", StandardCharsets.UTF_8))
             .putXattr("bar", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
             .setXattrUpdateStrategy(
-                alluxio.proto.journal.File.XAttrUpdateStrategy.UNION_PRESERVE)));
+                alluxio.dora.proto.journal.File.XAttrUpdateStrategy.UNION_PRESERVE)));
     FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
     assertEquals(updatedFileInfo.getXAttr().size(), 2);
     assertEquals(new String(updatedFileInfo.getXAttr().get("foo"), StandardCharsets.UTF_8),
@@ -1635,7 +1635,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     mFileSystemMaster.setAttribute(ROOT_FILE_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .putXattr("bar", ByteString.copyFrom("", StandardCharsets.UTF_8))
-            .setXattrUpdateStrategy(alluxio.proto.journal.File.XAttrUpdateStrategy.DELETE_KEYS)));
+            .setXattrUpdateStrategy(alluxio.dora.proto.journal.File.XAttrUpdateStrategy.DELETE_KEYS)));
     FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
     assertEquals(updatedFileInfo.getXAttr().size(), 1);
 
@@ -1643,7 +1643,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     mFileSystemMaster.setAttribute(ROOT_FILE_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .putXattr("foo", ByteString.copyFrom("", StandardCharsets.UTF_8))
-            .setXattrUpdateStrategy(alluxio.proto.journal.File.XAttrUpdateStrategy.DELETE_KEYS)));
+            .setXattrUpdateStrategy(alluxio.dora.proto.journal.File.XAttrUpdateStrategy.DELETE_KEYS)));
     updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
     assertNullOrEmpty(updatedFileInfo.getXAttr());
   }

@@ -15,7 +15,7 @@ import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.master.MockMaster;
 import alluxio.dora.master.NoopMaster;
-import alluxio.proto.journal.Journal;
+import alluxio.dora.proto.journal.Journal;
 import alluxio.dora.resource.CloseableIterator;
 import alluxio.dora.underfs.UnderFileSystem;
 import alluxio.dora.util.CommonUtils;

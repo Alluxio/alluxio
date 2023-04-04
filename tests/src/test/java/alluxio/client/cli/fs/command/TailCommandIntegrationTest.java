@@ -14,7 +14,7 @@ package alluxio.client.cli.fs.command;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.WritePType;
 import alluxio.dora.util.io.BufferUtils;
 
 import org.junit.Assert;

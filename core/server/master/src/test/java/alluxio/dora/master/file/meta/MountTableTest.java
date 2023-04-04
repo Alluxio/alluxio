@@ -22,7 +22,7 @@ import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.FileAlreadyExistsException;
 import alluxio.dora.exception.InvalidPathException;
 import alluxio.dora.master.file.meta.MountTable;
-import alluxio.grpc.MountPOptions;
+import alluxio.dora.grpc.MountPOptions;
 import alluxio.dora.master.file.contexts.MountContext;
 import alluxio.dora.master.file.meta.options.MountInfo;
 import alluxio.dora.master.journal.NoopJournalContext;

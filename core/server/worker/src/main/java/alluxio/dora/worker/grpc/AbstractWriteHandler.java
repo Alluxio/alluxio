@@ -18,9 +18,9 @@ import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.WriteRequest;
-import alluxio.grpc.WriteRequestCommand;
-import alluxio.grpc.WriteResponse;
+import alluxio.dora.grpc.WriteRequest;
+import alluxio.dora.grpc.WriteRequestCommand;
+import alluxio.dora.grpc.WriteResponse;
 import alluxio.dora.network.protocol.databuffer.DataBuffer;
 import alluxio.dora.network.protocol.databuffer.NioDataBuffer;
 import alluxio.dora.security.authentication.AuthenticatedUserInfo;
@@ -259,7 +259,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    * @throws InvalidArgumentException if the write request is invalid
    */
   @GuardedBy("mLock")
-  private void validateWriteRequest(alluxio.grpc.WriteRequest request)
+  private void validateWriteRequest(alluxio.dora.grpc.WriteRequest request)
       throws InvalidArgumentException {
     if (request.hasCommand() && request.getCommand().hasOffset()
         && request.getCommand().getOffset() != mContext.getPos()) {

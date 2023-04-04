@@ -15,8 +15,8 @@ import alluxio.dora.AlluxioURI;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileOutStream;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.CreateFilePOptions;
+import alluxio.dora.grpc.WritePType;
 
 import org.apache.commons.io.IOUtils;
 

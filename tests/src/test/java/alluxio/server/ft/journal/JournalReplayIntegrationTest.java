@@ -18,7 +18,7 @@ import alluxio.dora.AlluxioURI;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.DeletePOptions;
+import alluxio.dora.grpc.DeletePOptions;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;

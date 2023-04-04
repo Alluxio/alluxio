@@ -22,7 +22,7 @@ import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.WritePType;
 import alluxio.dora.util.io.BufferUtils;
 
 import org.junit.Assert;

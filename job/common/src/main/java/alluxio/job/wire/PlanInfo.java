@@ -12,7 +12,7 @@
 package alluxio.job.wire;
 
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.JobType;
+import alluxio.dora.grpc.JobType;
 import alluxio.job.util.SerializationUtils;
 
 import com.google.common.base.MoreObjects;
@@ -96,7 +96,7 @@ public final class PlanInfo implements JobInfo {
    * @param jobInfo the proto object
    * @throws IOException if the deserialization fails
    */
-  public PlanInfo(alluxio.grpc.JobInfo jobInfo) throws IOException {
+  public PlanInfo(alluxio.dora.grpc.JobInfo jobInfo) throws IOException {
     Preconditions.checkArgument(jobInfo.getType().equals(JobType.PLAN), "Invalid type");
 
     mId = jobInfo.getId();
@@ -105,7 +105,7 @@ public final class PlanInfo implements JobInfo {
     mErrorType = jobInfo.getErrorType();
     mErrorMessage = jobInfo.getErrorMessage();
     mChildren = new ArrayList<>();
-    for (alluxio.grpc.JobInfo taskInfo : jobInfo.getChildrenList()) {
+    for (alluxio.dora.grpc.JobInfo taskInfo : jobInfo.getChildrenList()) {
       mChildren.add(new TaskInfo(taskInfo));
     }
     mStatus = Status.valueOf(jobInfo.getStatus().name());
@@ -187,12 +187,12 @@ public final class PlanInfo implements JobInfo {
   }
 
   @Override
-  public alluxio.grpc.JobInfo toProto() throws IOException {
-    List<alluxio.grpc.JobInfo> taskInfos = new ArrayList<>();
+  public alluxio.dora.grpc.JobInfo toProto() throws IOException {
+    List<alluxio.dora.grpc.JobInfo> taskInfos = new ArrayList<>();
     for (JobInfo taskInfo : mChildren) {
       taskInfos.add(taskInfo.toProto());
     }
-    alluxio.grpc.JobInfo.Builder jobInfoBuilder = alluxio.grpc.JobInfo.newBuilder().setId(mId)
+    alluxio.dora.grpc.JobInfo.Builder jobInfoBuilder = alluxio.dora.grpc.JobInfo.newBuilder().setId(mId)
         .setErrorMessage(mErrorMessage).addAllChildren(taskInfos).setStatus(mStatus.toProto())
         .setName(mName).setDescription(mDescription).addAllAffectedPaths(mAffectedPaths)
         .setErrorType(mErrorType).setType(JobType.PLAN);

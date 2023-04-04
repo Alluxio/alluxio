@@ -11,7 +11,7 @@
 
 package alluxio.dora.job;
 
-import alluxio.grpc.LoadJobPOptions;
+import alluxio.dora.grpc.LoadJobPOptions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;

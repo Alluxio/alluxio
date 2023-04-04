@@ -19,7 +19,7 @@ import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.grpc.CreateFilePOptions;
+import alluxio.dora.grpc.CreateFilePOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

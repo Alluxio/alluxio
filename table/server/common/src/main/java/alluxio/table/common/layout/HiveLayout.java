@@ -13,9 +13,9 @@ package alluxio.table.common.layout;
 
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.conf.Configuration;
-import alluxio.grpc.table.ColumnStatisticsInfo;
-import alluxio.grpc.table.layout.hive.PartitionInfo;
-import alluxio.grpc.table.layout.hive.StorageFormat;
+import alluxio.dora.grpc.table.ColumnStatisticsInfo;
+import alluxio.dora.grpc.table.layout.hive.PartitionInfo;
+import alluxio.dora.grpc.table.layout.hive.StorageFormat;
 import alluxio.job.plan.transform.HiveConstants;
 import alluxio.table.common.Layout;
 import alluxio.table.common.LayoutFactory;
@@ -55,7 +55,7 @@ public class HiveLayout implements Layout {
     }
 
     @Override
-    public Layout create(alluxio.grpc.table.Layout layoutProto) {
+    public Layout create(alluxio.dora.grpc.table.Layout layoutProto) {
       if (!TYPE.equals(layoutProto.getLayoutType())) {
         throw new IllegalStateException(
             "Cannot parse HiveLayout from layout type: " + layoutProto.getLayoutType());

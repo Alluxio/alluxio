@@ -15,7 +15,7 @@ import static java.util.Objects.requireNonNull;
 
 import alluxio.dora.exception.status.NotFoundException;
 import alluxio.dora.master.block.meta.WorkerMetaLockSection;
-import alluxio.grpc.RegisterWorkerPRequest;
+import alluxio.dora.grpc.RegisterWorkerPRequest;
 import alluxio.dora.master.block.meta.MasterWorkerInfo;
 import alluxio.dora.resource.LockResource;
 

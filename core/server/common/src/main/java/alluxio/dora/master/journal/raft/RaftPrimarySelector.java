@@ -12,7 +12,7 @@
 package alluxio.dora.master.journal.raft;
 
 import alluxio.dora.master.AbstractPrimarySelector;
-import alluxio.grpc.NodeState;
+import alluxio.dora.grpc.NodeState;
 
 import java.net.InetSocketAddress;
 import javax.annotation.concurrent.ThreadSafe;

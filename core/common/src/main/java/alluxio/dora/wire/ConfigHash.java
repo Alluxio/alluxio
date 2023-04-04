@@ -11,7 +11,7 @@
 
 package alluxio.dora.wire;
 
-import alluxio.grpc.GetConfigHashPResponse;
+import alluxio.dora.grpc.GetConfigHashPResponse;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;

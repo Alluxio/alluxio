@@ -21,12 +21,12 @@ import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.status.NotFoundException;
 import alluxio.dora.master.MasterTestUtils;
-import alluxio.grpc.BuildVersion;
-import alluxio.grpc.Command;
-import alluxio.grpc.CommandType;
-import alluxio.grpc.RegisterWorkerPOptions;
-import alluxio.grpc.StorageList;
-import alluxio.grpc.WorkerLostStorageInfo;
+import alluxio.dora.grpc.BuildVersion;
+import alluxio.dora.grpc.Command;
+import alluxio.dora.grpc.CommandType;
+import alluxio.dora.grpc.RegisterWorkerPOptions;
+import alluxio.dora.grpc.StorageList;
+import alluxio.dora.grpc.WorkerLostStorageInfo;
 import alluxio.dora.heartbeat.HeartbeatContext;
 import alluxio.dora.heartbeat.HeartbeatScheduler;
 import alluxio.dora.heartbeat.ManuallyScheduleHeartbeat;
@@ -37,7 +37,7 @@ import alluxio.dora.master.journal.noop.NoopJournalSystem;
 import alluxio.dora.master.metrics.MetricsMaster;
 import alluxio.dora.master.metrics.MetricsMasterFactory;
 import alluxio.dora.metrics.Metric;
-import alluxio.proto.meta.Block;
+import alluxio.dora.proto.meta.Block;
 import alluxio.dora.util.ThreadFactoryUtils;
 import alluxio.dora.util.executor.ExecutorServiceFactories;
 import alluxio.dora.wire.BlockInfo;
@@ -295,7 +295,7 @@ public class BlockMasterTest {
 
     // Check that the worker heartbeat tells the worker to remove the block.
     Map<String, Long> memUsage = ImmutableMap.of(Constants.MEDIUM_MEM, 0L);
-    alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(worker1, null, memUsage,
+    alluxio.dora.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(worker1, null, memUsage,
         NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
     assertEquals(ImmutableList.of(1L), heartBeat.getDataList());
   }
@@ -316,7 +316,7 @@ public class BlockMasterTest {
         RegisterWorkerPOptions.getDefaultInstance());
 
     // Check that the worker heartbeat tells the worker to remove the blocks.
-    alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(workerId, null,
+    alluxio.dora.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(workerId, null,
         memUsage, NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
     assertEquals(orphanedBlocks,
         heartBeat.getDataList().stream().sorted().collect(Collectors.toList()));

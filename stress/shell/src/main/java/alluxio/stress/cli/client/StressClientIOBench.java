@@ -21,7 +21,7 @@ import alluxio.dora.conf.InstancedConfiguration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.conf.Source;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.grpc.CreateFilePOptions;
+import alluxio.dora.grpc.CreateFilePOptions;
 import alluxio.dora.hadoop.HadoopConfigurationUtils;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;

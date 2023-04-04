@@ -18,10 +18,10 @@ import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.CreateDirectoryPOptions;
+import alluxio.dora.grpc.CreateFilePOptions;
+import alluxio.dora.grpc.ListStatusPOptions;
+import alluxio.dora.grpc.WritePType;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.IOUtils;

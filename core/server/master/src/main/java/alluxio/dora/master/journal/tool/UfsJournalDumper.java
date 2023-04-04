@@ -18,7 +18,7 @@ import alluxio.dora.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.dora.master.journal.ufs.UfsJournal;
 import alluxio.dora.master.journal.ufs.UfsJournalReader;
 import alluxio.dora.master.journal.ufs.UfsJournalSystem;
-import alluxio.proto.journal.Journal;
+import alluxio.dora.proto.journal.Journal;
 
 import org.apache.commons.lang3.StringUtils;
 

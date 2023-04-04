@@ -17,7 +17,7 @@ import alluxio.cli.fsadmin.command.Context;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.NetAddress;
+import alluxio.dora.grpc.NetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 

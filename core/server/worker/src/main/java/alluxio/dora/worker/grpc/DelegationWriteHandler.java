@@ -14,8 +14,8 @@ package alluxio.dora.worker.grpc;
 import alluxio.dora.grpc.DataMessageMarshaller;
 import alluxio.dora.grpc.DataMessageMarshallerProvider;
 import alluxio.dora.worker.block.DefaultBlockWorker;
-import alluxio.grpc.WriteRequest;
-import alluxio.grpc.WriteResponse;
+import alluxio.dora.grpc.WriteRequest;
+import alluxio.dora.grpc.WriteResponse;
 import alluxio.dora.security.authentication.AuthenticatedUserInfo;
 import alluxio.dora.underfs.UfsManager;
 
@@ -25,7 +25,7 @@ import io.grpc.stub.StreamObserver;
  * A write request handler that delegate worker write request of different types
  * to corresponding write handlers.
  */
-public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.WriteRequest> {
+public class DelegationWriteHandler implements StreamObserver<alluxio.dora.grpc.WriteRequest> {
   private final StreamObserver<WriteResponse> mResponseObserver;
   private final DefaultBlockWorker mBlockWorker;
   private final UfsManager mUfsManager;
@@ -57,7 +57,7 @@ public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.Write
     mDomainSocketEnabled = domainSocketEnabled;
   }
 
-  private AbstractWriteHandler createWriterHandler(alluxio.grpc.WriteRequest request) {
+  private AbstractWriteHandler createWriterHandler(alluxio.dora.grpc.WriteRequest request) {
     switch (request.getCommand().getType()) {
       case ALLUXIO_BLOCK:
         return new BlockWriteHandler(mBlockWorker, mResponseObserver,

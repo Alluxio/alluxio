@@ -45,7 +45,7 @@ import alluxio.dora.master.journal.JournalType;
 import alluxio.dora.master.journal.NoopJournalContext;
 import alluxio.dora.master.metastore.InodeStore;
 import alluxio.dora.master.metrics.MetricsMasterFactory;
-import alluxio.proto.journal.Journal;
+import alluxio.dora.proto.journal.Journal;
 import alluxio.dora.security.authorization.Mode;
 import alluxio.dora.underfs.UfsManager;
 import alluxio.dora.util.CommonUtils;

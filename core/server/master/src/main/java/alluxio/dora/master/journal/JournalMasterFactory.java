@@ -12,7 +12,7 @@
 package alluxio.dora.master.journal;
 
 import alluxio.dora.Constants;
-import alluxio.grpc.JournalDomain;
+import alluxio.dora.grpc.JournalDomain;
 import alluxio.dora.master.Master;
 import alluxio.dora.master.MasterContext;
 import alluxio.dora.master.MasterFactory;

@@ -11,7 +11,7 @@
 
 package alluxio.scheduler.job;
 
-import alluxio.proto.journal.Job;
+import alluxio.dora.proto.journal.Job;
 
 /**
  * Job status.

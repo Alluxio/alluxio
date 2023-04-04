@@ -12,7 +12,7 @@
 package alluxio.cli.util;
 
 import alluxio.client.job.JobMasterClient;
-import alluxio.grpc.OperationType;
+import alluxio.dora.grpc.OperationType;
 import alluxio.job.wire.CmdStatusBlock;
 import alluxio.job.wire.SimpleJobStatusBlock;
 

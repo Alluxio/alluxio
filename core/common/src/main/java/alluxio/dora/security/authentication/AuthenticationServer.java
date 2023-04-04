@@ -12,7 +12,7 @@
 package alluxio.dora.security.authentication;
 
 import alluxio.dora.exception.status.UnauthenticatedException;
-import alluxio.grpc.ChannelAuthenticationScheme;
+import alluxio.dora.grpc.ChannelAuthenticationScheme;
 
 import io.grpc.BindableService;
 

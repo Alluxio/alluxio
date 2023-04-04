@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.dora.metrics.Metric;
 import alluxio.dora.metrics.MetricsSystem;
-import alluxio.grpc.MetricType;
+import alluxio.dora.grpc.MetricType;
 import alluxio.dora.util.CommonUtils;
 
 import org.junit.Test;

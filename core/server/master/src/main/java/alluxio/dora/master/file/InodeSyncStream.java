@@ -27,13 +27,13 @@ import alluxio.dora.exception.InvalidPathException;
 import alluxio.dora.exception.status.UnavailableException;
 import alluxio.dora.file.options.DescendantType;
 import alluxio.dora.master.metastore.ReadOnlyInodeStore;
-import alluxio.grpc.CompleteFilePOptions;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.dora.grpc.CompleteFilePOptions;
+import alluxio.dora.grpc.DeletePOptions;
+import alluxio.dora.grpc.FileSystemMasterCommonPOptions;
 import alluxio.dora.grpc.GrpcUtils;
-import alluxio.grpc.LoadDescendantPType;
-import alluxio.grpc.LoadMetadataPOptions;
-import alluxio.grpc.SetAttributePOptions;
+import alluxio.dora.grpc.LoadDescendantPType;
+import alluxio.dora.grpc.LoadMetadataPOptions;
+import alluxio.dora.grpc.SetAttributePOptions;
 import alluxio.dora.master.file.contexts.CompleteFileContext;
 import alluxio.dora.master.file.contexts.CreateDirectoryContext;
 import alluxio.dora.master.file.contexts.CreateFileContext;
@@ -58,8 +58,8 @@ import alluxio.dora.master.journal.JournalContext;
 import alluxio.dora.master.journal.MergeJournalContext;
 import alluxio.dora.master.journal.MetadataSyncMergeJournalContext;
 import alluxio.dora.master.journal.NoopJournalContext;
-import alluxio.proto.journal.File;
-import alluxio.proto.journal.Journal;
+import alluxio.dora.proto.journal.File;
+import alluxio.dora.proto.journal.Journal;
 import alluxio.dora.resource.CloseableIterator;
 import alluxio.dora.resource.CloseableResource;
 import alluxio.dora.security.authorization.AccessControlList;
@@ -1101,11 +1101,11 @@ public class InodeSyncStream {
    * @return a list of compacted journal entries
    */
   public static List<Journal.JournalEntry> mergeCreateComplete(
-      List<alluxio.proto.journal.Journal.JournalEntry> entries) {
-    List<alluxio.proto.journal.Journal.JournalEntry> newEntries = new ArrayList<>(entries.size());
+      List<alluxio.dora.proto.journal.Journal.JournalEntry> entries) {
+    List<alluxio.dora.proto.journal.Journal.JournalEntry> newEntries = new ArrayList<>(entries.size());
     // file id : index in the newEntries, InodeFileEntry
     Map<Long, Pair<Integer, MutableInodeFile>> fileEntryMap = new HashMap<>(entries.size());
-    for (alluxio.proto.journal.Journal.JournalEntry oldEntry : entries) {
+    for (alluxio.dora.proto.journal.Journal.JournalEntry oldEntry : entries) {
       if (oldEntry.hasInodeFile()) {
         // Use the old entry as a placeholder, to be replaced later
         newEntries.add(oldEntry);

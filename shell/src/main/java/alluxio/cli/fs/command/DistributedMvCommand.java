@@ -15,7 +15,7 @@ import alluxio.dora.AlluxioURI;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.DeletePOptions;
+import alluxio.dora.grpc.DeletePOptions;
 
 import org.apache.commons.cli.CommandLine;
 

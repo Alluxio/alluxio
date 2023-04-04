@@ -16,7 +16,7 @@ import alluxio.dora.master.NoopMaster;
 import alluxio.dora.master.journal.ufs.UfsJournal;
 import alluxio.dora.master.journal.ufs.UfsJournalCheckpointWriter;
 import alluxio.dora.master.journal.ufs.UfsJournalSnapshot;
-import alluxio.proto.journal.Journal;
+import alluxio.dora.proto.journal.Journal;
 import alluxio.dora.underfs.UnderFileSystem;
 import alluxio.dora.util.URIUtils;
 

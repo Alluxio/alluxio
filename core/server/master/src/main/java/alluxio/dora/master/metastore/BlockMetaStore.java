@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.metastore;
 
-import alluxio.proto.meta.Block.BlockLocation;
-import alluxio.proto.meta.Block.BlockMeta;
+import alluxio.dora.proto.meta.Block.BlockLocation;
+import alluxio.dora.proto.meta.Block.BlockMeta;
 import alluxio.dora.resource.CloseableIterator;
 
 import java.util.List;

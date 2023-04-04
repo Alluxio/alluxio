@@ -12,9 +12,9 @@
 package alluxio.scheduler.job;
 
 import alluxio.dora.exception.runtime.AlluxioRuntimeException;
-import alluxio.grpc.JobProgressReportFormat;
+import alluxio.dora.grpc.JobProgressReportFormat;
 import alluxio.dora.job.JobDescription;
-import alluxio.proto.journal.Journal;
+import alluxio.dora.proto.journal.Journal;
 import alluxio.dora.wire.WorkerInfo;
 
 import java.util.Optional;

@@ -14,7 +14,7 @@ package alluxio.master.job;
 import alluxio.dora.Constants;
 import alluxio.dora.RestUtils;
 import alluxio.dora.conf.Configuration;
-import alluxio.grpc.ListAllPOptions;
+import alluxio.dora.grpc.ListAllPOptions;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
 import alluxio.job.wire.JobInfo;

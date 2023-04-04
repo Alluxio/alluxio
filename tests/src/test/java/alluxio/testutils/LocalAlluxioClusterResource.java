@@ -15,7 +15,7 @@ import alluxio.dora.AlluxioURI;
 import alluxio.dora.AuthenticatedClientUserResource;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.DeletePOptions;
+import alluxio.dora.grpc.DeletePOptions;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.master.file.contexts.DeleteContext;

@@ -16,7 +16,7 @@ import static alluxio.stress.rpc.TierAlias.MEM;
 import alluxio.dora.ClientContext;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.ConfigProperty;
+import alluxio.dora.grpc.ConfigProperty;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.stress.rpc.TierAlias;
 import alluxio.dora.util.executor.ExecutorServiceFactories;

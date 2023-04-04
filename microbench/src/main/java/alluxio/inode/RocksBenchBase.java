@@ -21,7 +21,7 @@ import alluxio.dora.master.file.meta.MutableInode;
 import alluxio.dora.master.file.meta.MutableInodeDirectory;
 import alluxio.dora.master.file.meta.MutableInodeFile;
 import alluxio.dora.master.metastore.rocks.RocksInodeStore;
-import alluxio.proto.meta.InodeMeta;
+import alluxio.dora.proto.meta.InodeMeta;
 
 import com.google.common.primitives.Longs;
 import org.apache.log4j.Level;

@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.NodeState;
+import alluxio.dora.grpc.NodeState;
 import alluxio.dora.master.journal.JournalSystem;
 import alluxio.dora.master.journal.JournalType;
 import alluxio.dora.master.journal.JournalUtils;
@@ -24,8 +24,8 @@ import alluxio.dora.master.journal.ufs.UfsJournal;
 import alluxio.dora.master.journal.ufs.UfsJournalLogWriter;
 import alluxio.dora.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
 import alluxio.dora.master.journal.ufs.UfsJournalSystem;
-import alluxio.proto.journal.File;
-import alluxio.proto.journal.Journal;
+import alluxio.dora.proto.journal.File;
+import alluxio.dora.proto.journal.Journal;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.URIUtils;
 

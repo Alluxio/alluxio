@@ -11,7 +11,7 @@
 
 package alluxio.master.job.command;
 
-import alluxio.grpc.JobCommand;
+import alluxio.dora.grpc.JobCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.TestPlanConfig;
 import alluxio.job.util.SerializationUtils;

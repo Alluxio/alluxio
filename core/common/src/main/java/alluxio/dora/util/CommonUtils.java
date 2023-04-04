@@ -15,7 +15,7 @@ import alluxio.dora.Constants;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.proto.dataserver.Protocol;
 import alluxio.dora.security.group.CachedGroupMapping;
 import alluxio.dora.security.group.GroupMappingService;
 import alluxio.dora.util.ShellUtils.ExitCodeException;
@@ -688,7 +688,7 @@ public final class CommonUtils {
       new AtomicReference<>(ProcessType.CLIENT);
 
   /**
-   * Unwraps a {@link alluxio.proto.dataserver.Protocol.Response}.
+   * Unwraps a {@link alluxio.dora.proto.dataserver.Protocol.Response}.
    *
    * @param response the response
    */
@@ -700,7 +700,7 @@ public final class CommonUtils {
   }
 
   /**
-   * Unwraps a {@link alluxio.proto.dataserver.Protocol.Response} associated with a channel.
+   * Unwraps a {@link alluxio.dora.proto.dataserver.Protocol.Response} associated with a channel.
    *
    * @param response the response
    * @param channel the channel that receives this response

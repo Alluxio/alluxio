@@ -17,7 +17,7 @@ import alluxio.client.table.TableMasterClient;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.table.TransformJobInfo;
+import alluxio.dora.grpc.table.TransformJobInfo;
 
 import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;

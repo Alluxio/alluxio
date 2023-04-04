@@ -21,7 +21,7 @@ import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.exception.status.NotFoundException;
 import alluxio.dora.exception.status.UnavailableException;
 import alluxio.dora.grpc.GrpcServerAddress;
-import alluxio.grpc.ServiceType;
+import alluxio.dora.grpc.ServiceType;
 import alluxio.dora.retry.CountingRetry;
 import alluxio.dora.security.user.BaseUserState;
 

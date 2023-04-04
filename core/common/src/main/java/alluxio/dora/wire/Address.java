@@ -48,7 +48,7 @@ public final class Address implements Serializable {
    *
    * @param netAddress the proto master address
    */
-  protected Address(alluxio.grpc.NetAddress netAddress) {
+  protected Address(alluxio.dora.grpc.NetAddress netAddress) {
     mHost = netAddress.getHost();
     mRpcPort = netAddress.getRpcPort();
   }
@@ -88,8 +88,8 @@ public final class Address implements Serializable {
   /**
    * @return a master address of proto construct
    */
-  public alluxio.grpc.NetAddress toProto() {
-    return alluxio.grpc.NetAddress.newBuilder().setHost(mHost).setRpcPort(mRpcPort).build();
+  public alluxio.dora.grpc.NetAddress toProto() {
+    return alluxio.dora.grpc.NetAddress.newBuilder().setHost(mHost).setRpcPort(mRpcPort).build();
   }
 
   /**
@@ -98,7 +98,7 @@ public final class Address implements Serializable {
    * @param address the proto representation of a master address
    * @return the instance
    */
-  public static Address fromProto(alluxio.grpc.NetAddress address) {
+  public static Address fromProto(alluxio.dora.grpc.NetAddress address) {
     return new Address(address);
   }
 

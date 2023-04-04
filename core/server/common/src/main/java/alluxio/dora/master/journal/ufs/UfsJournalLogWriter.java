@@ -21,7 +21,7 @@ import alluxio.dora.master.journal.JournalEntryStreamReader;
 import alluxio.dora.master.journal.JournalWriter;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 import alluxio.dora.underfs.UnderFileSystem;
 import alluxio.dora.underfs.options.CreateOptions;
 import alluxio.dora.underfs.options.OpenOptions;

@@ -11,7 +11,7 @@
 
 package alluxio.dora.check;
 
-import alluxio.ProjectConstants;
+import alluxio.dora.ProjectConstants;
 import alluxio.dora.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.dora.util.EnvironmentUtils;
 import alluxio.dora.util.FeatureUtils;

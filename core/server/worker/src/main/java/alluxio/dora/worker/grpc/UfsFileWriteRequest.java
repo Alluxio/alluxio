@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.grpc;
 
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.proto.dataserver.Protocol;
 
 import com.google.common.base.MoreObjects;
 
@@ -25,7 +25,7 @@ public final class UfsFileWriteRequest extends WriteRequest {
   private final String mUfsPath;
   private final Protocol.CreateUfsFileOptions mCreateUfsFileOptions;
 
-  UfsFileWriteRequest(alluxio.grpc.WriteRequest request) {
+  UfsFileWriteRequest(alluxio.dora.grpc.WriteRequest request) {
     super(request);
     mUfsPath = request.getCommand().getCreateUfsFileOptions().getUfsPath();
     mCreateUfsFileOptions = request.getCommand().getCreateUfsFileOptions();

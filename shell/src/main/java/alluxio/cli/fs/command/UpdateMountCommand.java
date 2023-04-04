@@ -16,7 +16,7 @@ import alluxio.dora.annotation.PublicApi;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.MountPOptions;
+import alluxio.dora.grpc.MountPOptions;
 
 import com.google.common.collect.Maps;
 import org.apache.commons.cli.CommandLine;

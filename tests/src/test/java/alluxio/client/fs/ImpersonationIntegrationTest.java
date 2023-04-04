@@ -19,7 +19,7 @@ import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.status.UnauthenticatedException;
-import alluxio.grpc.SetAttributePOptions;
+import alluxio.dora.grpc.SetAttributePOptions;
 import alluxio.dora.security.CurrentUser;
 import alluxio.dora.security.authorization.Mode;
 import alluxio.dora.security.group.GroupMappingService;

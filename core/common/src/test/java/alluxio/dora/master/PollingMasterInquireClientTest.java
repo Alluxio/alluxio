@@ -16,7 +16,7 @@ import static org.junit.Assert.fail;
 import alluxio.dora.Constants;
 import alluxio.dora.conf.ConfigurationBuilder;
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.grpc.ServiceType;
+import alluxio.dora.grpc.ServiceType;
 import alluxio.dora.network.RejectingServer;
 import alluxio.dora.retry.CountingRetry;
 import alluxio.dora.util.network.NetworkAddressUtils;

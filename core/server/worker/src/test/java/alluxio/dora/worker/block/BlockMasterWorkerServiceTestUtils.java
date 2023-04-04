@@ -20,7 +20,7 @@ import alluxio.dora.grpc.GrpcServer;
 import alluxio.dora.grpc.GrpcServerAddress;
 import alluxio.dora.grpc.GrpcServerBuilder;
 import alluxio.dora.grpc.GrpcService;
-import alluxio.grpc.ServiceType;
+import alluxio.dora.grpc.ServiceType;
 
 import io.grpc.BindableService;
 

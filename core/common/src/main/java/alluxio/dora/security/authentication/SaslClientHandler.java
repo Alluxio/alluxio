@@ -11,7 +11,7 @@
 
 package alluxio.dora.security.authentication;
 
-import alluxio.grpc.SaslMessage;
+import alluxio.dora.grpc.SaslMessage;
 
 import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;

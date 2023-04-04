@@ -14,7 +14,7 @@ package alluxio.table.under.hive;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.dora.grpc.table.ColumnStatisticsInfo;
 import alluxio.dora.util.CommonUtils;
 
 import org.apache.hadoop.hive.metastore.api.BinaryColumnStatsData;
@@ -244,13 +244,13 @@ public class HiveUtilsTest {
     assertEquals(hiveColStats.isSetStatsData(), colStats.hasData());
     if (hiveColStats.isSetStatsData()) {
       ColumnStatisticsData hiveData = hiveColStats.getStatsData();
-      alluxio.grpc.table.ColumnStatisticsData data = colStats.getData();
+      alluxio.dora.grpc.table.ColumnStatisticsData data = colStats.getData();
 
       // verify binary
       assertEquals(hiveData.isSetBinaryStats(), data.hasBinaryStats());
       if (hiveData.isSetBinaryStats()) {
         BinaryColumnStatsData hiveBinary = hiveData.getBinaryStats();
-        alluxio.grpc.table.BinaryColumnStatsData binary = data.getBinaryStats();
+        alluxio.dora.grpc.table.BinaryColumnStatsData binary = data.getBinaryStats();
         assertEquals(hiveBinary.isSetBitVectors(), binary.hasBitVectors());
         if (hiveBinary.isSetBitVectors()) {
           assertEquals(hiveBinary.getBitVectors(), binary.getBitVectors());
@@ -264,7 +264,7 @@ public class HiveUtilsTest {
       assertEquals(hiveData.isSetBooleanStats(), data.hasBooleanStats());
       if (hiveData.isSetBooleanStats()) {
         BooleanColumnStatsData hiveBoolean = hiveData.getBooleanStats();
-        alluxio.grpc.table.BooleanColumnStatsData bool = data.getBooleanStats();
+        alluxio.dora.grpc.table.BooleanColumnStatsData bool = data.getBooleanStats();
         assertEquals(hiveBoolean.isSetBitVectors(), bool.hasBitVectors());
         if (hiveBoolean.isSetBitVectors()) {
           assertEquals(hiveBoolean.getBitVectors(), bool.getBitVectors());
@@ -278,7 +278,7 @@ public class HiveUtilsTest {
       assertEquals(hiveData.isSetDateStats(), data.hasDateStats());
       if (hiveData.isSetDateStats()) {
         DateColumnStatsData hiveDate = hiveData.getDateStats();
-        alluxio.grpc.table.DateColumnStatsData date = data.getDateStats();
+        alluxio.dora.grpc.table.DateColumnStatsData date = data.getDateStats();
         assertEquals(hiveDate.isSetBitVectors(), date.hasBitVectors());
         if (hiveDate.isSetBitVectors()) {
           assertEquals(hiveDate.getBitVectors(), date.getBitVectors());
@@ -301,7 +301,7 @@ public class HiveUtilsTest {
       assertEquals(hiveData.isSetDecimalStats(), data.hasDecimalStats());
       if (hiveData.isSetDecimalStats()) {
         DecimalColumnStatsData hiveDecimal = hiveData.getDecimalStats();
-        alluxio.grpc.table.DecimalColumnStatsData decimal = data.getDecimalStats();
+        alluxio.dora.grpc.table.DecimalColumnStatsData decimal = data.getDecimalStats();
         assertEquals(hiveDecimal.isSetBitVectors(), decimal.hasBitVectors());
         if (hiveDecimal.isSetBitVectors()) {
           assertEquals(hiveDecimal.getBitVectors(), decimal.getBitVectors());
@@ -326,7 +326,7 @@ public class HiveUtilsTest {
       assertEquals(hiveData.isSetDoubleStats(), data.hasDoubleStats());
       if (hiveData.isSetDoubleStats()) {
         DoubleColumnStatsData hiveDouble = hiveData.getDoubleStats();
-        alluxio.grpc.table.DoubleColumnStatsData dbl = data.getDoubleStats();
+        alluxio.dora.grpc.table.DoubleColumnStatsData dbl = data.getDoubleStats();
         assertEquals(hiveDouble.isSetBitVectors(), dbl.hasBitVectors());
         if (hiveDouble.isSetBitVectors()) {
           assertEquals(hiveDouble.getBitVectors(), dbl.getBitVectors());
@@ -347,7 +347,7 @@ public class HiveUtilsTest {
       assertEquals(hiveData.isSetLongStats(), data.hasLongStats());
       if (hiveData.isSetLongStats()) {
         LongColumnStatsData hiveLong = hiveData.getLongStats();
-        alluxio.grpc.table.LongColumnStatsData dbl = data.getLongStats();
+        alluxio.dora.grpc.table.LongColumnStatsData dbl = data.getLongStats();
         assertEquals(hiveLong.isSetBitVectors(), dbl.hasBitVectors());
         if (hiveLong.isSetBitVectors()) {
           assertEquals(hiveLong.getBitVectors(), dbl.getBitVectors());
@@ -368,7 +368,7 @@ public class HiveUtilsTest {
       assertEquals(hiveData.isSetStringStats(), data.hasStringStats());
       if (hiveData.isSetStringStats()) {
         StringColumnStatsData hiveString = hiveData.getStringStats();
-        alluxio.grpc.table.StringColumnStatsData string = data.getStringStats();
+        alluxio.dora.grpc.table.StringColumnStatsData string = data.getStringStats();
         assertEquals(hiveString.isSetBitVectors(), string.hasBitVectors());
         if (hiveString.isSetBitVectors()) {
           assertEquals(hiveString.getBitVectors(), string.getBitVectors());

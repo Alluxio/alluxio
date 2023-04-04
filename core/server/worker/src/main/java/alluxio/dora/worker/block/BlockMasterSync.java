@@ -17,9 +17,9 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.ConnectionFailedException;
 import alluxio.dora.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.dora.wire.RegisterLease;
-import alluxio.grpc.Command;
-import alluxio.grpc.ConfigProperty;
-import alluxio.grpc.Scope;
+import alluxio.dora.grpc.Command;
+import alluxio.dora.grpc.ConfigProperty;
+import alluxio.dora.grpc.Scope;
 import alluxio.dora.heartbeat.HeartbeatExecutor;
 import alluxio.dora.metrics.MetricsSystem;
 import alluxio.dora.retry.ExponentialTimeBoundedRetry;
@@ -174,7 +174,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 
     // Send the heartbeat and execute the response
     Command cmdFromMaster = null;
-    List<alluxio.grpc.Metric> metrics = MetricsSystem.reportWorkerMetrics();
+    List<alluxio.dora.grpc.Metric> metrics = MetricsSystem.reportWorkerMetrics();
 
     try {
       cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), storeMeta.getCapacityBytesOnTiers(),

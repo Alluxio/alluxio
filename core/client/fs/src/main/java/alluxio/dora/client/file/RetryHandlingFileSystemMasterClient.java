@@ -16,66 +16,66 @@ import alluxio.dora.AlluxioURI;
 import alluxio.dora.Constants;
 import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.wire.MountPointInfo;
-import alluxio.grpc.CheckAccessPOptions;
-import alluxio.grpc.CheckAccessPRequest;
-import alluxio.grpc.CheckConsistencyPOptions;
-import alluxio.grpc.CheckConsistencyPRequest;
-import alluxio.grpc.CompleteFilePOptions;
-import alluxio.grpc.CompleteFilePRequest;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateDirectoryPRequest;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.CreateFilePRequest;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.DeletePRequest;
-import alluxio.grpc.ExistsPOptions;
-import alluxio.grpc.ExistsPRequest;
-import alluxio.grpc.FileSystemMasterClientServiceGrpc;
-import alluxio.grpc.FreePOptions;
-import alluxio.grpc.FreePRequest;
-import alluxio.grpc.GetFilePathPRequest;
-import alluxio.grpc.GetJobProgressPRequest;
-import alluxio.grpc.GetJobProgressPResponse;
-import alluxio.grpc.GetMountTablePRequest;
-import alluxio.grpc.GetNewBlockIdForFilePOptions;
-import alluxio.grpc.GetNewBlockIdForFilePRequest;
-import alluxio.grpc.GetStateLockHoldersPOptions;
-import alluxio.grpc.GetStateLockHoldersPRequest;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.GetStatusPRequest;
-import alluxio.grpc.GetSyncPathListPRequest;
+import alluxio.dora.grpc.CheckAccessPOptions;
+import alluxio.dora.grpc.CheckAccessPRequest;
+import alluxio.dora.grpc.CheckConsistencyPOptions;
+import alluxio.dora.grpc.CheckConsistencyPRequest;
+import alluxio.dora.grpc.CompleteFilePOptions;
+import alluxio.dora.grpc.CompleteFilePRequest;
+import alluxio.dora.grpc.CreateDirectoryPOptions;
+import alluxio.dora.grpc.CreateDirectoryPRequest;
+import alluxio.dora.grpc.CreateFilePOptions;
+import alluxio.dora.grpc.CreateFilePRequest;
+import alluxio.dora.grpc.DeletePOptions;
+import alluxio.dora.grpc.DeletePRequest;
+import alluxio.dora.grpc.ExistsPOptions;
+import alluxio.dora.grpc.ExistsPRequest;
+import alluxio.dora.grpc.FileSystemMasterClientServiceGrpc;
+import alluxio.dora.grpc.FreePOptions;
+import alluxio.dora.grpc.FreePRequest;
+import alluxio.dora.grpc.GetFilePathPRequest;
+import alluxio.dora.grpc.GetJobProgressPRequest;
+import alluxio.dora.grpc.GetJobProgressPResponse;
+import alluxio.dora.grpc.GetMountTablePRequest;
+import alluxio.dora.grpc.GetNewBlockIdForFilePOptions;
+import alluxio.dora.grpc.GetNewBlockIdForFilePRequest;
+import alluxio.dora.grpc.GetStateLockHoldersPOptions;
+import alluxio.dora.grpc.GetStateLockHoldersPRequest;
+import alluxio.dora.grpc.GetStatusPOptions;
+import alluxio.dora.grpc.GetStatusPRequest;
+import alluxio.dora.grpc.GetSyncPathListPRequest;
 import alluxio.dora.grpc.GrpcUtils;
-import alluxio.grpc.JobProgressPOptions;
-import alluxio.grpc.JobProgressReportFormat;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.ListStatusPRequest;
-import alluxio.grpc.ListStatusPartialPOptions;
-import alluxio.grpc.ListStatusPartialPRequest;
-import alluxio.grpc.MountPOptions;
-import alluxio.grpc.MountPRequest;
-import alluxio.grpc.NeedsSyncRequest;
-import alluxio.grpc.RenamePOptions;
-import alluxio.grpc.RenamePRequest;
-import alluxio.grpc.ReverseResolvePRequest;
-import alluxio.grpc.ScheduleAsyncPersistencePOptions;
-import alluxio.grpc.ScheduleAsyncPersistencePRequest;
-import alluxio.grpc.ServiceType;
-import alluxio.grpc.SetAclAction;
-import alluxio.grpc.SetAclPOptions;
-import alluxio.grpc.SetAclPRequest;
-import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.SetAttributePRequest;
-import alluxio.grpc.StartSyncPRequest;
-import alluxio.grpc.StopJobPRequest;
-import alluxio.grpc.StopJobPResponse;
-import alluxio.grpc.StopSyncPRequest;
-import alluxio.grpc.SubmitJobPRequest;
-import alluxio.grpc.SubmitJobPResponse;
-import alluxio.grpc.UnmountPOptions;
-import alluxio.grpc.UnmountPRequest;
-import alluxio.grpc.UpdateMountPRequest;
-import alluxio.grpc.UpdateUfsModePOptions;
-import alluxio.grpc.UpdateUfsModePRequest;
+import alluxio.dora.grpc.JobProgressPOptions;
+import alluxio.dora.grpc.JobProgressReportFormat;
+import alluxio.dora.grpc.ListStatusPOptions;
+import alluxio.dora.grpc.ListStatusPRequest;
+import alluxio.dora.grpc.ListStatusPartialPOptions;
+import alluxio.dora.grpc.ListStatusPartialPRequest;
+import alluxio.dora.grpc.MountPOptions;
+import alluxio.dora.grpc.MountPRequest;
+import alluxio.dora.grpc.NeedsSyncRequest;
+import alluxio.dora.grpc.RenamePOptions;
+import alluxio.dora.grpc.RenamePRequest;
+import alluxio.dora.grpc.ReverseResolvePRequest;
+import alluxio.dora.grpc.ScheduleAsyncPersistencePOptions;
+import alluxio.dora.grpc.ScheduleAsyncPersistencePRequest;
+import alluxio.dora.grpc.ServiceType;
+import alluxio.dora.grpc.SetAclAction;
+import alluxio.dora.grpc.SetAclPOptions;
+import alluxio.dora.grpc.SetAclPRequest;
+import alluxio.dora.grpc.SetAttributePOptions;
+import alluxio.dora.grpc.SetAttributePRequest;
+import alluxio.dora.grpc.StartSyncPRequest;
+import alluxio.dora.grpc.StopJobPRequest;
+import alluxio.dora.grpc.StopJobPResponse;
+import alluxio.dora.grpc.StopSyncPRequest;
+import alluxio.dora.grpc.SubmitJobPRequest;
+import alluxio.dora.grpc.SubmitJobPResponse;
+import alluxio.dora.grpc.UnmountPOptions;
+import alluxio.dora.grpc.UnmountPRequest;
+import alluxio.dora.grpc.UpdateMountPRequest;
+import alluxio.dora.grpc.UpdateUfsModePOptions;
+import alluxio.dora.grpc.UpdateUfsModePRequest;
 import alluxio.dora.job.JobDescription;
 import alluxio.dora.job.JobRequest;
 import alluxio.dora.master.MasterClientContext;
@@ -255,7 +255,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       throws AlluxioStatusException {
     return retryRPC(() -> {
       Map<String, MountPointInfo> mountTableWire = new HashMap<>();
-      for (Map.Entry<String, alluxio.grpc.MountPointInfo> entry : mClient
+      for (Map.Entry<String, alluxio.dora.grpc.MountPointInfo> entry : mClient
           .getMountTable(GetMountTablePRequest.newBuilder().setCheckUfs(checkUfs).build())
           .getMountPointsMap()
           .entrySet()) {
@@ -449,7 +449,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     connectWithRuntimeException();
     StopJobPResponse response = mClient.stopJob(StopJobPRequest
         .newBuilder()
-        .setJobDescription(alluxio.grpc.JobDescription
+        .setJobDescription(alluxio.dora.grpc.JobDescription
             .newBuilder()
             .setType(jobDescription.getType())
             .setPath(jobDescription.getPath())
@@ -467,7 +467,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     connectWithRuntimeException();
     GetJobProgressPResponse response = mClient.getJobProgress(
         GetJobProgressPRequest.newBuilder()
-            .setJobDescription(alluxio.grpc.JobDescription
+            .setJobDescription(alluxio.dora.grpc.JobDescription
             .newBuilder()
             .setType(jobDescription.getType())
             .setPath(jobDescription.getPath())

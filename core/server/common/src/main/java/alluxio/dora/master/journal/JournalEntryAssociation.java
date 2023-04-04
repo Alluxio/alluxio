@@ -12,7 +12,7 @@
 package alluxio.dora.master.journal;
 
 import alluxio.dora.Constants;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 
 /**
  * Association from journal entry to the master it applies to.

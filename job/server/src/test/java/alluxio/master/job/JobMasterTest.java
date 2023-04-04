@@ -26,7 +26,7 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.JobDoesNotExistException;
 import alluxio.dora.exception.status.ResourceExhaustedException;
-import alluxio.grpc.ListAllPOptions;
+import alluxio.dora.grpc.ListAllPOptions;
 import alluxio.job.CmdConfig;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;

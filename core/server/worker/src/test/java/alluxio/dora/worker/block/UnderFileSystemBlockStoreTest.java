@@ -22,7 +22,7 @@ import alluxio.dora.exception.runtime.NotFoundRuntimeException;
 import alluxio.dora.master.NoopUfsManager;
 import alluxio.dora.worker.block.LocalBlockStore;
 import alluxio.dora.worker.block.UnderFileSystemBlockStore;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.proto.dataserver.Protocol;
 import alluxio.dora.underfs.UfsManager;
 import alluxio.dora.underfs.UnderFileSystemConfiguration;
 import alluxio.dora.worker.block.io.BlockReader;

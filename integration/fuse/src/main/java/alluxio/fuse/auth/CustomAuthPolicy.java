@@ -19,7 +19,7 @@ import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.runtime.AlluxioRuntimeException;
 import alluxio.dora.exception.runtime.InternalRuntimeException;
 import alluxio.fuse.AlluxioFuseUtils;
-import alluxio.grpc.SetAttributePOptions;
+import alluxio.dora.grpc.SetAttributePOptions;
 import alluxio.jnifuse.FuseFileSystem;
 
 import com.google.common.base.Preconditions;

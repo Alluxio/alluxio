@@ -37,8 +37,8 @@ import alluxio.dora.master.metastore.rocks.RocksBlockMetaStore;
 import alluxio.dora.master.metastore.rocks.RocksInodeStore;
 import alluxio.dora.master.metrics.MetricsMaster;
 import alluxio.dora.master.metrics.MetricsMasterFactory;
-import alluxio.proto.meta.Block;
-import alluxio.proto.meta.InodeMeta;
+import alluxio.dora.proto.meta.Block;
+import alluxio.dora.proto.meta.InodeMeta;
 import alluxio.dora.resource.CloseableIterator;
 import alluxio.dora.util.ThreadFactoryUtils;
 import alluxio.dora.util.executor.ExecutorServiceFactories;
@@ -107,7 +107,7 @@ public class BackupManagerTest {
         .setPersistenceState(PersistenceState.PERSISTED.toString())
         .setIsDirectory(true)
         .setDefaultAcl(
-            alluxio.proto.shared.Acl.AccessControlList.newBuilder().setIsDefault(true).build());
+            alluxio.dora.proto.shared.Acl.AccessControlList.newBuilder().setIsDefault(true).build());
     return MutableInodeDirectory.fromProto(builder);
   }
 

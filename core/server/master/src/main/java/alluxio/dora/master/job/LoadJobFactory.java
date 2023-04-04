@@ -12,7 +12,7 @@
 package alluxio.dora.master.job;
 
 import alluxio.dora.master.file.FileSystemMaster;
-import alluxio.grpc.LoadJobPOptions;
+import alluxio.dora.grpc.LoadJobPOptions;
 import alluxio.dora.job.LoadJobRequest;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobFactory;

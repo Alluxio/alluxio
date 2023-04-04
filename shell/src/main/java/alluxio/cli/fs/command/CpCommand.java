@@ -27,9 +27,9 @@ import alluxio.dora.exception.FileAlreadyExistsException;
 import alluxio.dora.exception.FileDoesNotExistException;
 import alluxio.dora.exception.InvalidPathException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.SetAclAction;
-import alluxio.grpc.SetAttributePOptions;
+import alluxio.dora.grpc.DeletePOptions;
+import alluxio.dora.grpc.SetAclAction;
+import alluxio.dora.grpc.SetAttributePOptions;
 import alluxio.dora.security.authorization.Mode;
 import alluxio.dora.util.io.PathUtils;
 

@@ -14,7 +14,7 @@ package alluxio.dora.client.block.stream;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.options.OutStreamOptions;
 import alluxio.dora.exception.status.ResourceExhaustedException;
-import alluxio.grpc.RequestType;
+import alluxio.dora.grpc.RequestType;
 import alluxio.dora.wire.WorkerNetAddress;
 
 import io.netty.buffer.ByteBuf;

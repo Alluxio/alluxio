@@ -14,7 +14,7 @@ package alluxio.dora;
 import alluxio.dora.Registry;
 import alluxio.dora.Server;
 import alluxio.dora.grpc.GrpcService;
-import alluxio.grpc.ServiceType;
+import alluxio.dora.grpc.ServiceType;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Assert;

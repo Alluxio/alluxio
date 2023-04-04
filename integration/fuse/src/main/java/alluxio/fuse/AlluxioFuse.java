@@ -12,7 +12,7 @@
 package alluxio.fuse;
 
 import alluxio.dora.Constants;
-import alluxio.ProjectConstants;
+import alluxio.dora.ProjectConstants;
 import alluxio.dora.RuntimeConstants;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;

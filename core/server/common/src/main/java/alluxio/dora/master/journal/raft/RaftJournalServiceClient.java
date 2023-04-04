@@ -13,12 +13,12 @@ package alluxio.dora.master.journal.raft;
 
 import alluxio.dora.AbstractMasterClient;
 import alluxio.dora.Constants;
-import alluxio.grpc.DownloadSnapshotPRequest;
-import alluxio.grpc.DownloadSnapshotPResponse;
-import alluxio.grpc.RaftJournalServiceGrpc;
-import alluxio.grpc.ServiceType;
-import alluxio.grpc.UploadSnapshotPRequest;
-import alluxio.grpc.UploadSnapshotPResponse;
+import alluxio.dora.grpc.DownloadSnapshotPRequest;
+import alluxio.dora.grpc.DownloadSnapshotPResponse;
+import alluxio.dora.grpc.RaftJournalServiceGrpc;
+import alluxio.dora.grpc.ServiceType;
+import alluxio.dora.grpc.UploadSnapshotPRequest;
+import alluxio.dora.grpc.UploadSnapshotPResponse;
 import alluxio.dora.master.MasterClientContext;
 
 import io.grpc.stub.StreamObserver;

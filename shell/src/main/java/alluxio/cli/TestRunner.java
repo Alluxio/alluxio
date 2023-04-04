@@ -17,7 +17,7 @@ import alluxio.dora.client.ReadType;
 import alluxio.dora.client.WriteType;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.grpc.DeletePOptions;
+import alluxio.dora.grpc.DeletePOptions;
 import alluxio.dora.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;

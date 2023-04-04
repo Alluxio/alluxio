@@ -16,7 +16,7 @@ import alluxio.client.job.JobMasterClient;
 import alluxio.client.job.JobMasterClientPool;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.NotFoundException;
-import alluxio.grpc.ListAllPOptions;
+import alluxio.dora.grpc.ListAllPOptions;
 import alluxio.job.wire.Status;
 
 import java.io.IOException;

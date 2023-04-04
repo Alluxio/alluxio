@@ -12,7 +12,7 @@
 package alluxio.job.wire;
 
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.JobType;
+import alluxio.dora.grpc.JobType;
 import alluxio.job.util.SerializableVoid;
 import alluxio.job.util.SerializationUtils;
 import alluxio.dora.util.CommonUtils;
@@ -97,7 +97,7 @@ public class TaskInfo implements JobInfo {
    * @param taskInfo the task info in proto format
    * @throws IOException if the deserialization fails
    */
-  public TaskInfo(alluxio.grpc.JobInfo taskInfo) throws IOException {
+  public TaskInfo(alluxio.dora.grpc.JobInfo taskInfo) throws IOException {
     Preconditions.checkArgument(taskInfo.getType().equals(JobType.TASK), "Invalid type");
 
     mJobId = taskInfo.getParentId();
@@ -268,7 +268,7 @@ public class TaskInfo implements JobInfo {
   }
 
   @Override
-  public alluxio.grpc.JobInfo toProto() {
+  public alluxio.dora.grpc.JobInfo toProto() {
     ByteBuffer result = null;
     try {
       result = mResult == null ? null : ByteBuffer.wrap(SerializationUtils.serialize(mResult));
@@ -277,8 +277,8 @@ public class TaskInfo implements JobInfo {
       LOG.error("Failed to serialize {}", mResult, e);
     }
 
-    alluxio.grpc.JobInfo.Builder taskInfoBuilder =
-        alluxio.grpc.JobInfo.newBuilder().setParentId(mJobId).setId(mTaskId)
+    alluxio.dora.grpc.JobInfo.Builder taskInfoBuilder =
+        alluxio.dora.grpc.JobInfo.newBuilder().setParentId(mJobId).setId(mTaskId)
             .setStatus(mStatus.toProto()).setErrorMessage(mErrorMessage)
             .setErrorType(mErrorType).setLastUpdated(mLastUpdated).setWorkerHost(mWorkerHost)
             .setType(JobType.TASK).setDescription(mDescription);

@@ -18,8 +18,8 @@ import alluxio.dora.Constants;
 import alluxio.dora.client.file.FileOutStream;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.CreateFilePOptions;
+import alluxio.dora.grpc.WritePType;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.dora.util.CommonUtils;
 

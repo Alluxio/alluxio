@@ -17,7 +17,7 @@ import alluxio.dora.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.dora.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.dora.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.file.FuseFileStream;
-import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.dora.grpc.CreateDirectoryPOptions;
 import alluxio.dora.util.io.BufferUtils;
 import alluxio.dora.util.io.PathUtils;
 

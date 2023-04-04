@@ -12,7 +12,7 @@
 package alluxio.job.cmd.migrate;
 
 import alluxio.dora.client.WriteType;
-import alluxio.grpc.OperationType;
+import alluxio.dora.grpc.OperationType;
 import alluxio.job.cmd.CliConfig;
 import alluxio.job.wire.JobSource;
 

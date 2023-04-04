@@ -11,7 +11,7 @@
 
 package alluxio.dora.wire;
 
-import alluxio.grpc.InconsistentPropertyValues;
+import alluxio.dora.grpc.InconsistentPropertyValues;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -46,7 +46,7 @@ public final class InconsistentProperty {
    *
    * @param inconsistentProperty the proto inconsistent property
    */
-  protected InconsistentProperty(alluxio.grpc.InconsistentProperty inconsistentProperty) {
+  protected InconsistentProperty(alluxio.dora.grpc.InconsistentProperty inconsistentProperty) {
     mName = inconsistentProperty.getName();
     mValues = new HashMap<>(inconsistentProperty.getValuesCount());
     for (Map.Entry<String, InconsistentPropertyValues> entry : inconsistentProperty.getValuesMap()
@@ -134,7 +134,7 @@ public final class InconsistentProperty {
   /**
    * @return an inconsistent property of proto construct
    */
-  public alluxio.grpc.InconsistentProperty toProto() {
+  public alluxio.dora.grpc.InconsistentProperty toProto() {
     Map<String, InconsistentPropertyValues> inconsistentPropsMap = new HashMap<>();
     for (Map.Entry<Optional<String>, List<String>> entry : mValues.entrySet()) {
       String pKey = OPTIONAL_STRING_VAL;
@@ -145,7 +145,7 @@ public final class InconsistentProperty {
       inconsistentPropsMap.put(pKey,
           InconsistentPropertyValues.newBuilder().addAllValues(entry.getValue()).build());
     }
-    return alluxio.grpc.InconsistentProperty.newBuilder().setName(mName)
+    return alluxio.dora.grpc.InconsistentProperty.newBuilder().setName(mName)
         .putAllValues(inconsistentPropsMap).build();
   }
 
@@ -156,7 +156,7 @@ public final class InconsistentProperty {
    * @return the instance
    */
   public static InconsistentProperty fromProto(
-          alluxio.grpc.InconsistentProperty inconsistentProperty) {
+          alluxio.dora.grpc.InconsistentProperty inconsistentProperty) {
     return new InconsistentProperty(inconsistentProperty);
   }
 }

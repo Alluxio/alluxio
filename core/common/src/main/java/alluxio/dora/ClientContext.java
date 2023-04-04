@@ -19,8 +19,8 @@ import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.conf.path.PathConfiguration;
 import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.grpc.GetConfigurationPResponse;
-import alluxio.grpc.Scope;
+import alluxio.dora.grpc.GetConfigurationPResponse;
+import alluxio.dora.grpc.Scope;
 import alluxio.dora.security.user.UserState;
 
 import java.net.InetSocketAddress;

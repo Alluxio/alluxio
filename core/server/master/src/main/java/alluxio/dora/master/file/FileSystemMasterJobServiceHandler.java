@@ -12,13 +12,13 @@
 package alluxio.dora.master.file;
 
 import alluxio.dora.RpcUtils;
-import alluxio.grpc.FileSystemMasterJobServiceGrpc;
-import alluxio.grpc.GetFileInfoPOptions;
-import alluxio.grpc.GetFileInfoPRequest;
-import alluxio.grpc.GetFileInfoPResponse;
-import alluxio.grpc.GetUfsInfoPOptions;
-import alluxio.grpc.GetUfsInfoPRequest;
-import alluxio.grpc.GetUfsInfoPResponse;
+import alluxio.dora.grpc.FileSystemMasterJobServiceGrpc;
+import alluxio.dora.grpc.GetFileInfoPOptions;
+import alluxio.dora.grpc.GetFileInfoPRequest;
+import alluxio.dora.grpc.GetFileInfoPResponse;
+import alluxio.dora.grpc.GetUfsInfoPOptions;
+import alluxio.dora.grpc.GetUfsInfoPRequest;
+import alluxio.dora.grpc.GetUfsInfoPResponse;
 import alluxio.dora.grpc.GrpcUtils;
 
 import com.google.common.base.Preconditions;

@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
-import alluxio.ProjectConstants;
+import alluxio.dora.ProjectConstants;
 import alluxio.dora.client.file.cache.PageId;
 import alluxio.dora.client.file.cache.PageStore;
 import alluxio.dora.exception.PageNotFoundException;

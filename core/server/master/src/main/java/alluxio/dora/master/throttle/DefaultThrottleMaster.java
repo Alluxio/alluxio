@@ -20,7 +20,7 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.grpc.GrpcService;
 import alluxio.dora.master.MasterProcess;
 import alluxio.dora.master.metrics.MetricsMaster;
-import alluxio.grpc.ServiceType;
+import alluxio.dora.grpc.ServiceType;
 import alluxio.dora.heartbeat.HeartbeatContext;
 import alluxio.dora.heartbeat.HeartbeatExecutor;
 import alluxio.dora.heartbeat.HeartbeatThread;

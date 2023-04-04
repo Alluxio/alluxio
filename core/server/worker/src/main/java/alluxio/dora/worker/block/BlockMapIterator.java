@@ -14,9 +14,9 @@ package alluxio.dora.worker.block;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.BlockIdList;
-import alluxio.grpc.BlockStoreLocationProto;
-import alluxio.grpc.LocationBlockIdListEntry;
+import alluxio.dora.grpc.BlockIdList;
+import alluxio.dora.grpc.BlockStoreLocationProto;
+import alluxio.dora.grpc.LocationBlockIdListEntry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ import java.util.Map;
 
 /**
  * Each iteration returns a list of {@link LocationBlockIdListEntry} which consists of
- * blocks for one {@link alluxio.grpc.RegisterWorkerPRequest}.
+ * blocks for one {@link alluxio.dora.grpc.RegisterWorkerPRequest}.
  * The number of blocks included in one iteration is specified by
  * {@code PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE}.
  */

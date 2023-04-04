@@ -28,7 +28,7 @@ import alluxio.dora.master.journal.MasterJournalContext;
 import alluxio.dora.master.journal.sink.JournalSink;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 import alluxio.dora.resource.CloseableResource;
 import alluxio.dora.retry.ExponentialTimeBoundedRetry;
 import alluxio.dora.retry.RetryPolicy;

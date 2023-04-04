@@ -22,7 +22,7 @@ import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.dora.util.io.BufferUtils;

@@ -23,7 +23,7 @@ import alluxio.dora.exception.BlockInfoException;
 import alluxio.dora.exception.FileAlreadyExistsException;
 import alluxio.dora.exception.FileDoesNotExistException;
 import alluxio.dora.exception.InvalidPathException;
-import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.dora.grpc.CreateDirectoryPOptions;
 import alluxio.dora.master.CoreMasterContext;
 import alluxio.dora.master.MasterRegistry;
 import alluxio.dora.master.MasterTestUtils;

@@ -13,11 +13,11 @@ package alluxio.dora.master.file.contexts;
 
 import alluxio.dora.client.WriteType;
 import alluxio.dora.conf.Configuration;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.TtlAction;
-import alluxio.grpc.WritePType;
-import alluxio.grpc.XAttrPropagationStrategy;
+import alluxio.dora.grpc.CreateDirectoryPOptions;
+import alluxio.dora.grpc.CreateFilePOptions;
+import alluxio.dora.grpc.TtlAction;
+import alluxio.dora.grpc.WritePType;
+import alluxio.dora.grpc.XAttrPropagationStrategy;
 import alluxio.dora.security.authorization.AclEntry;
 import alluxio.dora.security.authorization.Mode;
 import alluxio.dora.util.CommonUtils;

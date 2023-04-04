@@ -13,7 +13,7 @@ package alluxio.master.job.tracker;
 
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.grpc.OperationType;
+import alluxio.dora.grpc.OperationType;
 import alluxio.job.cmd.persist.PersistCmdConfig;
 import alluxio.job.wire.JobSource;
 import alluxio.master.job.JobMaster;

@@ -18,7 +18,7 @@ import alluxio.client.table.TableMasterClient;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.table.SyncStatus;
+import alluxio.dora.grpc.table.SyncStatus;
 
 import com.google.common.collect.Maps;
 import org.apache.commons.cli.CommandLine;

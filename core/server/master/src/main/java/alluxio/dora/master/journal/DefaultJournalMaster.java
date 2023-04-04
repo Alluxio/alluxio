@@ -13,13 +13,13 @@ package alluxio.dora.master.journal;
 
 import alluxio.dora.Constants;
 import alluxio.dora.clock.SystemClock;
-import alluxio.grpc.GetNodeStatePResponse;
-import alluxio.grpc.GetQuorumInfoPResponse;
-import alluxio.grpc.GetTransferLeaderMessagePResponse;
+import alluxio.dora.grpc.GetNodeStatePResponse;
+import alluxio.dora.grpc.GetQuorumInfoPResponse;
+import alluxio.dora.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.dora.grpc.GrpcService;
-import alluxio.grpc.JournalDomain;
-import alluxio.grpc.NetAddress;
-import alluxio.grpc.ServiceType;
+import alluxio.dora.grpc.JournalDomain;
+import alluxio.dora.grpc.NetAddress;
+import alluxio.dora.grpc.ServiceType;
 import alluxio.dora.master.AbstractMaster;
 import alluxio.dora.master.MasterContext;
 import alluxio.dora.master.PrimarySelector;
@@ -110,7 +110,7 @@ public class DefaultJournalMaster extends AbstractMaster implements JournalMaste
   @Override
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
-    services.put(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
+    services.put(alluxio.dora.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
         new GrpcService(new JournalMasterClientServiceHandler(this)));
     return services;
   }

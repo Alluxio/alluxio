@@ -12,7 +12,7 @@
 package alluxio.dora.master.journal;
 
 import alluxio.dora.exception.JournalClosedException;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 
 import java.io.Closeable;
 import java.io.IOException;

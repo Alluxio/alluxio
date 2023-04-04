@@ -19,10 +19,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import alluxio.dora.Constants;
-import alluxio.grpc.Chunk;
-import alluxio.grpc.RequestType;
-import alluxio.grpc.WriteRequestCommand;
-import alluxio.grpc.WriteResponse;
+import alluxio.dora.grpc.Chunk;
+import alluxio.dora.grpc.RequestType;
+import alluxio.dora.grpc.WriteRequestCommand;
+import alluxio.dora.grpc.WriteResponse;
 import alluxio.dora.databuffer.ByteArrayDataBuffer;
 import alluxio.dora.network.protocol.databuffer.DataBuffer;
 import alluxio.dora.security.authentication.AuthenticatedUserInfo;
@@ -222,8 +222,8 @@ public abstract class AbstractWriteHandlerTest {
     verify(responseObserver).onCompleted();
   }
 
-  protected alluxio.grpc.WriteRequest newWriteRequestCommand(long offset) {
-    return alluxio.grpc.WriteRequest.newBuilder().setCommand(
+  protected alluxio.dora.grpc.WriteRequest newWriteRequestCommand(long offset) {
+    return alluxio.dora.grpc.WriteRequest.newBuilder().setCommand(
         WriteRequestCommand.newBuilder().setId(TEST_BLOCK_ID).setOffset(offset)
         .setType(getWriteRequestType())).build();
   }
@@ -234,8 +234,8 @@ public abstract class AbstractWriteHandlerTest {
    * @param buffer the data to write
    * @return the write request
    */
-  protected alluxio.grpc.WriteRequest newWriteRequest(DataBuffer buffer) {
-    alluxio.grpc.WriteRequest writeRequest = alluxio.grpc.WriteRequest.newBuilder().setChunk(
+  protected alluxio.dora.grpc.WriteRequest newWriteRequest(DataBuffer buffer) {
+    alluxio.dora.grpc.WriteRequest writeRequest = alluxio.dora.grpc.WriteRequest.newBuilder().setChunk(
         Chunk.newBuilder().setData(ByteString.copyFrom(buffer.getReadOnlyByteBuffer()))).build();
     return writeRequest;
   }

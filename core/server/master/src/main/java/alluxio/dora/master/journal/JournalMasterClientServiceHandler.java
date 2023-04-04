@@ -12,19 +12,19 @@
 package alluxio.dora.master.journal;
 
 import alluxio.dora.RpcUtils;
-import alluxio.grpc.GetNodeStatePRequest;
-import alluxio.grpc.GetNodeStatePResponse;
-import alluxio.grpc.GetQuorumInfoPRequest;
-import alluxio.grpc.GetQuorumInfoPResponse;
-import alluxio.grpc.GetTransferLeaderMessagePRequest;
-import alluxio.grpc.GetTransferLeaderMessagePResponse;
-import alluxio.grpc.JournalMasterClientServiceGrpc;
-import alluxio.grpc.RemoveQuorumServerPRequest;
-import alluxio.grpc.RemoveQuorumServerPResponse;
-import alluxio.grpc.ResetPrioritiesPRequest;
-import alluxio.grpc.ResetPrioritiesPResponse;
-import alluxio.grpc.TransferLeadershipPRequest;
-import alluxio.grpc.TransferLeadershipPResponse;
+import alluxio.dora.grpc.GetNodeStatePRequest;
+import alluxio.dora.grpc.GetNodeStatePResponse;
+import alluxio.dora.grpc.GetQuorumInfoPRequest;
+import alluxio.dora.grpc.GetQuorumInfoPResponse;
+import alluxio.dora.grpc.GetTransferLeaderMessagePRequest;
+import alluxio.dora.grpc.GetTransferLeaderMessagePResponse;
+import alluxio.dora.grpc.JournalMasterClientServiceGrpc;
+import alluxio.dora.grpc.RemoveQuorumServerPRequest;
+import alluxio.dora.grpc.RemoveQuorumServerPResponse;
+import alluxio.dora.grpc.ResetPrioritiesPRequest;
+import alluxio.dora.grpc.ResetPrioritiesPResponse;
+import alluxio.dora.grpc.TransferLeadershipPRequest;
+import alluxio.dora.grpc.TransferLeadershipPResponse;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;

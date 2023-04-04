@@ -12,7 +12,7 @@
 package alluxio.dora.master.journalv0;
 
 import alluxio.dora.RuntimeConstants;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 import alluxio.dora.util.CommonUtils;
 
 import org.apache.commons.cli.BasicParser;

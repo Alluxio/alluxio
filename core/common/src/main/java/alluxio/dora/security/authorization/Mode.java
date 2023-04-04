@@ -13,7 +13,7 @@ package alluxio.dora.security.authorization;
 
 import alluxio.dora.Constants;
 import alluxio.dora.annotation.PublicApi;
-import alluxio.grpc.PMode;
+import alluxio.dora.grpc.PMode;
 
 import com.google.common.base.Preconditions;
 
@@ -247,9 +247,9 @@ public final class Mode {
    */
   public PMode toProto() {
     return PMode.newBuilder()
-        .setOwnerBits(alluxio.grpc.Bits.valueOf(mOwnerBits.name()))
-        .setGroupBits(alluxio.grpc.Bits.valueOf(mGroupBits.name()))
-        .setOtherBits(alluxio.grpc.Bits.valueOf(mOtherBits.name()))
+        .setOwnerBits(alluxio.dora.grpc.Bits.valueOf(mOwnerBits.name()))
+        .setGroupBits(alluxio.dora.grpc.Bits.valueOf(mGroupBits.name()))
+        .setOtherBits(alluxio.dora.grpc.Bits.valueOf(mOtherBits.name()))
         .build();
   }
 
@@ -320,15 +320,15 @@ public final class Mode {
      * @param protoBits the proto bits
      * @return created instance from proto representation
      */
-    public static Bits fromProto(alluxio.grpc.Bits protoBits) {
+    public static Bits fromProto(alluxio.dora.grpc.Bits protoBits) {
       return Bits.valueOf(protoBits.name());
     }
 
     /**
      * @return the proto representation of Bits
      */
-    public alluxio.grpc.Bits toProto() {
-      return alluxio.grpc.Bits.valueOf(name());
+    public alluxio.dora.grpc.Bits toProto() {
+      return alluxio.dora.grpc.Bits.valueOf(name());
     }
 
     @Override

@@ -12,7 +12,7 @@
 package alluxio.dora.master.journal.checkpoint;
 
 import alluxio.dora.master.journal.JournalEntryStreamReader;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;

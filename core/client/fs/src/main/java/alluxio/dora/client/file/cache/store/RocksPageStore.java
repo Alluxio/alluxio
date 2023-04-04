@@ -15,7 +15,7 @@ import alluxio.dora.Constants;
 import alluxio.dora.client.file.cache.PageId;
 import alluxio.dora.client.file.cache.PageStore;
 import alluxio.dora.exception.PageNotFoundException;
-import alluxio.proto.client.Cache;
+import alluxio.dora.proto.client.Cache;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;

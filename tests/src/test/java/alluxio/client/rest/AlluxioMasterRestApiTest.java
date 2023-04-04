@@ -20,7 +20,7 @@ import alluxio.dora.RuntimeConstants;
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.WritePType;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.master.file.contexts.GetStatusContext;
 import alluxio.dora.master.meta.AlluxioMasterRestServiceHandler;

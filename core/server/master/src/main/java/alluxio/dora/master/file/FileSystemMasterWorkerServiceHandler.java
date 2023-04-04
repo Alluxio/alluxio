@@ -12,19 +12,19 @@
 package alluxio.dora.master.file;
 
 import alluxio.dora.RpcUtils;
-import alluxio.grpc.FileSystemHeartbeatPOptions;
-import alluxio.grpc.FileSystemHeartbeatPRequest;
-import alluxio.grpc.FileSystemHeartbeatPResponse;
-import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
-import alluxio.grpc.GetFileInfoPOptions;
-import alluxio.grpc.GetFileInfoPRequest;
-import alluxio.grpc.GetFileInfoPResponse;
-import alluxio.grpc.GetPinnedFileIdsPOptions;
-import alluxio.grpc.GetPinnedFileIdsPRequest;
-import alluxio.grpc.GetPinnedFileIdsPResponse;
-import alluxio.grpc.GetUfsInfoPOptions;
-import alluxio.grpc.GetUfsInfoPRequest;
-import alluxio.grpc.GetUfsInfoPResponse;
+import alluxio.dora.grpc.FileSystemHeartbeatPOptions;
+import alluxio.dora.grpc.FileSystemHeartbeatPRequest;
+import alluxio.dora.grpc.FileSystemHeartbeatPResponse;
+import alluxio.dora.grpc.FileSystemMasterWorkerServiceGrpc;
+import alluxio.dora.grpc.GetFileInfoPOptions;
+import alluxio.dora.grpc.GetFileInfoPRequest;
+import alluxio.dora.grpc.GetFileInfoPResponse;
+import alluxio.dora.grpc.GetPinnedFileIdsPOptions;
+import alluxio.dora.grpc.GetPinnedFileIdsPRequest;
+import alluxio.dora.grpc.GetPinnedFileIdsPResponse;
+import alluxio.dora.grpc.GetUfsInfoPOptions;
+import alluxio.dora.grpc.GetUfsInfoPRequest;
+import alluxio.dora.grpc.GetUfsInfoPResponse;
 import alluxio.dora.grpc.GrpcUtils;
 import alluxio.dora.master.file.contexts.WorkerHeartbeatContext;
 

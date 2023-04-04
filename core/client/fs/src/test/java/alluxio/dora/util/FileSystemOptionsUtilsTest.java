@@ -17,11 +17,11 @@ import static org.junit.Assert.assertNotNull;
 
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.LoadDescendantPType;
-import alluxio.grpc.LoadMetadataPOptions;
-import alluxio.grpc.MountPOptions;
-import alluxio.grpc.SetAclPOptions;
+import alluxio.dora.grpc.DeletePOptions;
+import alluxio.dora.grpc.LoadDescendantPType;
+import alluxio.dora.grpc.LoadMetadataPOptions;
+import alluxio.dora.grpc.MountPOptions;
+import alluxio.dora.grpc.SetAclPOptions;
 
 import org.junit.Test;
 

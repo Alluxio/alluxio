@@ -17,7 +17,7 @@ import alluxio.dora.master.file.contexts.InternalOperationContext;
 import alluxio.dora.master.file.contexts.OperationContext;
 import alluxio.dora.master.journal.JournalContext;
 import alluxio.dora.master.journal.NoopJournalContext;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 import alluxio.dora.wire.OperationId;
 
 import com.google.common.base.Throwables;

@@ -12,8 +12,8 @@
 package alluxio.cli.fsadmin.doctor;
 
 import alluxio.dora.client.meta.MetaMasterClient;
-import alluxio.grpc.ConfigStatus;
-import alluxio.grpc.Scope;
+import alluxio.dora.grpc.ConfigStatus;
+import alluxio.dora.grpc.Scope;
 import alluxio.dora.wire.ConfigCheckReport;
 import alluxio.dora.wire.InconsistentProperty;
 

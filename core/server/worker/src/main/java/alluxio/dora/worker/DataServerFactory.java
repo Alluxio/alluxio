@@ -19,7 +19,7 @@ import alluxio.dora.worker.block.DefaultBlockWorker;
 import alluxio.dora.worker.grpc.BlockWorkerClientServiceHandler;
 import alluxio.dora.worker.grpc.DoraWorkerClientServiceHandler;
 import alluxio.dora.worker.grpc.GrpcDataServer;
-import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.dora.grpc.BlockWorkerGrpc;
 import alluxio.dora.underfs.UfsManager;
 import alluxio.dora.util.io.FileUtils;
 import alluxio.dora.util.io.PathUtils;

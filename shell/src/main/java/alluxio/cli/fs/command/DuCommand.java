@@ -18,7 +18,7 @@ import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.ListStatusPOptions;
+import alluxio.dora.grpc.ListStatusPOptions;
 import alluxio.dora.util.FormatUtils;
 import alluxio.dora.wire.BlockLocation;
 import alluxio.dora.wire.FileBlockInfo;

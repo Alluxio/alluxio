@@ -14,7 +14,7 @@ package alluxio.dora.master.file.meta;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.master.metastore.InodeStore;
-import alluxio.proto.journal.Journal;
+import alluxio.dora.proto.journal.Journal;
 import alluxio.dora.resource.CloseableIterator;
 import alluxio.dora.util.ThreadFactoryUtils;
 

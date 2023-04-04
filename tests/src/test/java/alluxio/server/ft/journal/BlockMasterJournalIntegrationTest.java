@@ -19,7 +19,7 @@ import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.exception.BlockInfoException;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.WritePType;
 import alluxio.dora.master.AlluxioMasterProcess;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.dora.master.block.BlockMaster;

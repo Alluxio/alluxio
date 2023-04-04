@@ -21,7 +21,7 @@ import alluxio.dora.grpc.GrpcServerBuilder;
 import alluxio.dora.master.AlluxioSimpleMasterProcess;
 import alluxio.dora.master.MasterContext;
 import alluxio.dora.master.PrimarySelector;
-import alluxio.grpc.JournalDomain;
+import alluxio.dora.grpc.JournalDomain;
 import alluxio.master.job.JobMaster;
 import alluxio.dora.master.journal.DefaultJournalMaster;
 import alluxio.dora.master.journal.JournalMaster;

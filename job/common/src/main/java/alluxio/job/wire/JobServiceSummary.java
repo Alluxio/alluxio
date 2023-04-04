@@ -66,24 +66,24 @@ public final class JobServiceSummary {
    *
    * @param jobServiceSummary the proto object
    */
-  public JobServiceSummary(alluxio.grpc.JobServiceSummary jobServiceSummary) throws IOException {
+  public JobServiceSummary(alluxio.dora.grpc.JobServiceSummary jobServiceSummary) throws IOException {
     mSummaryPerStatus = new ArrayList<>();
-    for (alluxio.grpc.StatusSummary statusSummary : jobServiceSummary.getSummaryPerStatusList()) {
+    for (alluxio.dora.grpc.StatusSummary statusSummary : jobServiceSummary.getSummaryPerStatusList()) {
       mSummaryPerStatus.add(new StatusSummary(statusSummary));
     }
 
     mRecentActivities = new ArrayList<>();
-    for (alluxio.grpc.JobInfo lastActivity : jobServiceSummary.getRecentActivitiesList()) {
+    for (alluxio.dora.grpc.JobInfo lastActivity : jobServiceSummary.getRecentActivitiesList()) {
       mRecentActivities.add(ProtoUtils.fromProto(lastActivity));
     }
 
     mRecentFailures = new ArrayList<>();
-    for (alluxio.grpc.JobInfo lastFailure : jobServiceSummary.getRecentFailuresList()) {
+    for (alluxio.dora.grpc.JobInfo lastFailure : jobServiceSummary.getRecentFailuresList()) {
       mRecentFailures.add(ProtoUtils.fromProto(lastFailure));
     }
 
     mLongestRunning = new ArrayList<>();
-    for (alluxio.grpc.JobInfo longestRunning : jobServiceSummary.getLongestRunningList()) {
+    for (alluxio.dora.grpc.JobInfo longestRunning : jobServiceSummary.getLongestRunningList()) {
       mLongestRunning.add(ProtoUtils.fromProto(longestRunning));
     }
   }
@@ -144,9 +144,9 @@ public final class JobServiceSummary {
    * @return proto representation of the job service summary
    * @throws IOException if serialization fails
    */
-  public alluxio.grpc.JobServiceSummary toProto() throws IOException {
-    alluxio.grpc.JobServiceSummary.Builder jobServiceBuilder =
-          alluxio.grpc.JobServiceSummary.newBuilder();
+  public alluxio.dora.grpc.JobServiceSummary toProto() throws IOException {
+    alluxio.dora.grpc.JobServiceSummary.Builder jobServiceBuilder =
+          alluxio.dora.grpc.JobServiceSummary.newBuilder();
 
     for (StatusSummary statusSummary : mSummaryPerStatus) {
       jobServiceBuilder.addSummaryPerStatus(statusSummary.toProto());

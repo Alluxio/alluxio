@@ -11,9 +11,9 @@
 
 package alluxio.dora.security.authentication;
 
-import alluxio.grpc.ChannelAuthenticationScheme;
-import alluxio.grpc.SaslMessage;
-import alluxio.grpc.SaslMessageType;
+import alluxio.dora.grpc.ChannelAuthenticationScheme;
+import alluxio.dora.grpc.SaslMessage;
+import alluxio.dora.grpc.SaslMessageType;
 
 import com.google.common.base.Preconditions;
 import com.google.protobuf.ByteString;

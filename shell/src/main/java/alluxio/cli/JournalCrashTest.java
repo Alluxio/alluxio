@@ -20,8 +20,8 @@ import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.FileAlreadyExistsException;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.CreateFilePOptions;
+import alluxio.dora.grpc.WritePType;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.io.PathUtils;
 

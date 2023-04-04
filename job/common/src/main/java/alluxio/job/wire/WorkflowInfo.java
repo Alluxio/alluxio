@@ -11,7 +11,7 @@
 
 package alluxio.job.wire;
 
-import alluxio.grpc.JobType;
+import alluxio.dora.grpc.JobType;
 import alluxio.job.ProtoUtils;
 
 import com.google.common.base.MoreObjects;
@@ -64,7 +64,7 @@ public class WorkflowInfo implements JobInfo {
    * Constructor from the proto object.
    * @param jobInfo proto representation of the job
    */
-  public WorkflowInfo(alluxio.grpc.JobInfo jobInfo) throws IOException {
+  public WorkflowInfo(alluxio.dora.grpc.JobInfo jobInfo) throws IOException {
     Preconditions.checkArgument(jobInfo.getType().equals(JobType.WORKFLOW), "Invalid type");
 
     mId = jobInfo.getId();
@@ -74,7 +74,7 @@ public class WorkflowInfo implements JobInfo {
     mErrorType = jobInfo.getErrorType();
     mErrorMessage = jobInfo.getErrorMessage();
     mChildren = Lists.newArrayList();
-    for (alluxio.grpc.JobInfo childJobInfo : jobInfo.getChildrenList()) {
+    for (alluxio.dora.grpc.JobInfo childJobInfo : jobInfo.getChildrenList()) {
       mChildren.add(ProtoUtils.fromProto(childJobInfo));
     }
   }
@@ -139,8 +139,8 @@ public class WorkflowInfo implements JobInfo {
 
   @Nonnull
   @Override
-  public alluxio.grpc.JobInfo toProto() throws IOException {
-    alluxio.grpc.JobInfo.Builder builder = alluxio.grpc.JobInfo.newBuilder().setId(mId)
+  public alluxio.dora.grpc.JobInfo toProto() throws IOException {
+    alluxio.dora.grpc.JobInfo.Builder builder = alluxio.dora.grpc.JobInfo.newBuilder().setId(mId)
         .setName(mName).setStatus(mStatus.toProto()).setLastUpdated(mLastUpdated)
         .setErrorType(mErrorType).setErrorMessage(mErrorMessage).setType(JobType.WORKFLOW);
 

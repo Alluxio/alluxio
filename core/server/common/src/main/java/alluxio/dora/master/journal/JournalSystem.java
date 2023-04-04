@@ -20,7 +20,7 @@ import alluxio.dora.master.journal.noop.NoopJournalSystem;
 import alluxio.dora.master.journal.raft.RaftJournalSystem;
 import alluxio.dora.master.journal.sink.JournalSink;
 import alluxio.dora.master.journal.ufs.UfsJournalSystem;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.network.NetworkAddressUtils.ServiceType;
 
@@ -238,7 +238,7 @@ public interface JournalSystem {
   /**
    * @return RPC services for journal system
    */
-  default Map<alluxio.grpc.ServiceType, GrpcService> getJournalServices() {
+  default Map<alluxio.dora.grpc.ServiceType, GrpcService> getJournalServices() {
     return Collections.emptyMap();
   }
 

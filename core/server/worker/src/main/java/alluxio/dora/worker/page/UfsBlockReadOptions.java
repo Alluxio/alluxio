@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.page;
 
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.proto.dataserver.Protocol;
 
 import com.google.common.base.Preconditions;
 

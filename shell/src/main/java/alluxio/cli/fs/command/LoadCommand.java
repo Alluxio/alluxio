@@ -26,13 +26,13 @@ import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.CacheRequest;
-import alluxio.grpc.JobProgressReportFormat;
-import alluxio.grpc.LoadJobPOptions;
-import alluxio.grpc.OpenFilePOptions;
+import alluxio.dora.grpc.CacheRequest;
+import alluxio.dora.grpc.JobProgressReportFormat;
+import alluxio.dora.grpc.LoadJobPOptions;
+import alluxio.dora.grpc.OpenFilePOptions;
 import alluxio.dora.job.JobDescription;
 import alluxio.dora.job.LoadJobRequest;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.proto.dataserver.Protocol;
 import alluxio.dora.resource.CloseableResource;
 import alluxio.dora.util.FileSystemOptionsUtils;
 import alluxio.dora.util.FormatUtils;
@@ -232,7 +232,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
 
   private int submitLoad(AlluxioURI path, OptionalLong bandwidth,
       boolean usePartialListing, boolean verify) {
-    LoadJobPOptions.Builder options = alluxio.grpc.LoadJobPOptions
+    LoadJobPOptions.Builder options = alluxio.dora.grpc.LoadJobPOptions
         .newBuilder().setPartialListing(usePartialListing).setVerify(verify);
     if (bandwidth.isPresent()) {
       options.setBandwidth(bandwidth.getAsLong());

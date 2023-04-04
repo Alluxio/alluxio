@@ -15,7 +15,7 @@ import alluxio.dora.AlluxioURI;
 import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.file.FuseFileStream;
-import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.dora.grpc.CreateDirectoryPOptions;
 import alluxio.dora.util.io.BufferUtils;
 import alluxio.dora.util.io.PathUtils;
 

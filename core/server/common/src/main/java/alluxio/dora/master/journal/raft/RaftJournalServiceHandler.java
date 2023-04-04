@@ -11,11 +11,11 @@
 
 package alluxio.dora.master.journal.raft;
 
-import alluxio.grpc.DownloadSnapshotPRequest;
-import alluxio.grpc.DownloadSnapshotPResponse;
-import alluxio.grpc.RaftJournalServiceGrpc;
-import alluxio.grpc.UploadSnapshotPRequest;
-import alluxio.grpc.UploadSnapshotPResponse;
+import alluxio.dora.grpc.DownloadSnapshotPRequest;
+import alluxio.dora.grpc.DownloadSnapshotPResponse;
+import alluxio.dora.grpc.RaftJournalServiceGrpc;
+import alluxio.dora.grpc.UploadSnapshotPRequest;
+import alluxio.dora.grpc.UploadSnapshotPResponse;
 
 import io.grpc.stub.StreamObserver;
 

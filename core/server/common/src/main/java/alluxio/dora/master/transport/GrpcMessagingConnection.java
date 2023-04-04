@@ -11,9 +11,9 @@
 
 package alluxio.dora.master.transport;
 
-import alluxio.grpc.MessagingRequestHeader;
-import alluxio.grpc.MessagingResponseHeader;
-import alluxio.grpc.TransportMessage;
+import alluxio.dora.grpc.MessagingRequestHeader;
+import alluxio.dora.grpc.MessagingResponseHeader;
+import alluxio.dora.grpc.TransportMessage;
 import alluxio.dora.resource.LockResource;
 
 import com.google.common.base.MoreObjects;

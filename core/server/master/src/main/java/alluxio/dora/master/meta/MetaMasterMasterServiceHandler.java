@@ -12,14 +12,14 @@
 package alluxio.dora.master.meta;
 
 import alluxio.dora.RpcUtils;
-import alluxio.grpc.GetMasterIdPRequest;
-import alluxio.grpc.GetMasterIdPResponse;
-import alluxio.grpc.MasterHeartbeatPRequest;
-import alluxio.grpc.MasterHeartbeatPResponse;
-import alluxio.grpc.MetaMasterMasterServiceGrpc;
-import alluxio.grpc.NetAddress;
-import alluxio.grpc.RegisterMasterPRequest;
-import alluxio.grpc.RegisterMasterPResponse;
+import alluxio.dora.grpc.GetMasterIdPRequest;
+import alluxio.dora.grpc.GetMasterIdPResponse;
+import alluxio.dora.grpc.MasterHeartbeatPRequest;
+import alluxio.dora.grpc.MasterHeartbeatPResponse;
+import alluxio.dora.grpc.MetaMasterMasterServiceGrpc;
+import alluxio.dora.grpc.NetAddress;
+import alluxio.dora.grpc.RegisterMasterPRequest;
+import alluxio.dora.grpc.RegisterMasterPResponse;
 import alluxio.dora.wire.Address;
 
 import io.grpc.stub.StreamObserver;

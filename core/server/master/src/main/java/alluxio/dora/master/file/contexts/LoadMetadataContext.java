@@ -12,7 +12,7 @@
 package alluxio.dora.master.file.contexts;
 
 import alluxio.dora.conf.Configuration;
-import alluxio.grpc.LoadMetadataPOptions;
+import alluxio.dora.grpc.LoadMetadataPOptions;
 import alluxio.dora.underfs.UfsStatus;
 import alluxio.dora.util.FileSystemOptionsUtils;
 

@@ -21,7 +21,7 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.ConnectionFailedException;
 import alluxio.dora.grpc.GrpcService;
 import alluxio.dora.worker.AbstractWorker;
-import alluxio.grpc.ServiceType;
+import alluxio.dora.grpc.ServiceType;
 import alluxio.dora.heartbeat.HeartbeatContext;
 import alluxio.dora.heartbeat.HeartbeatThread;
 import alluxio.job.JobServerContext;

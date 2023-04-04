@@ -16,7 +16,7 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.runtime.AlluxioRuntimeException;
 import alluxio.dora.master.MasterProcess;
 import alluxio.dora.master.service.SimpleService;
-import alluxio.grpc.ErrorType;
+import alluxio.dora.grpc.ErrorType;
 import alluxio.dora.grpc.GrpcServer;
 import alluxio.dora.grpc.GrpcServerBuilder;
 import alluxio.dora.master.AlluxioExecutorService;

@@ -19,7 +19,7 @@ import alluxio.dora.exception.status.UnavailableException;
 import alluxio.dora.underfs.AbstractUfsManager;
 import alluxio.dora.underfs.UnderFileSystem;
 import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.grpc.UfsInfo;
+import alluxio.dora.grpc.UfsInfo;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.master.file.FileSystemMasterClient;
 import alluxio.dora.resource.CloseableResource;

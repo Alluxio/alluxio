@@ -22,7 +22,7 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.BlockAlreadyExistsException;
 import alluxio.dora.exception.BlockDoesNotExistException;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.proto.dataserver.Protocol;
 import alluxio.dora.util.io.BufferUtils;
 import alluxio.dora.util.network.NetworkAddressUtils;
 import alluxio.dora.worker.block.io.BlockReader;

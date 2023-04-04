@@ -13,7 +13,7 @@ package alluxio.worker.job.task;
 
 import alluxio.dora.exception.JobDoesNotExistException;
 import alluxio.dora.exception.status.CancelledException;
-import alluxio.grpc.RunTaskCommand;
+import alluxio.dora.grpc.RunTaskCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.RunTaskContext;
 import alluxio.job.plan.PlanDefinition;

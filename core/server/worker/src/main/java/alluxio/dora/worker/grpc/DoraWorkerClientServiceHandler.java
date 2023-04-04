@@ -20,14 +20,14 @@ import alluxio.dora.exception.runtime.AlluxioRuntimeException;
 import alluxio.dora.exception.runtime.NotFoundRuntimeException;
 import alluxio.dora.wire.FileInfo;
 import alluxio.dora.worker.dora.PagedDoraWorker;
-import alluxio.grpc.BlockWorkerGrpc;
-import alluxio.grpc.GetStatusPRequest;
-import alluxio.grpc.GetStatusPResponse;
+import alluxio.dora.grpc.BlockWorkerGrpc;
+import alluxio.dora.grpc.GetStatusPRequest;
+import alluxio.dora.grpc.GetStatusPResponse;
 import alluxio.dora.grpc.GrpcUtils;
-import alluxio.grpc.ListStatusPRequest;
-import alluxio.grpc.ListStatusPResponse;
-import alluxio.grpc.ReadRequest;
-import alluxio.grpc.ReadResponse;
+import alluxio.dora.grpc.ListStatusPRequest;
+import alluxio.dora.grpc.ListStatusPResponse;
+import alluxio.dora.grpc.ReadRequest;
+import alluxio.dora.grpc.ReadResponse;
 import alluxio.dora.grpc.ReadResponseMarshaller;
 import alluxio.dora.underfs.UfsStatus;
 import alluxio.dora.underfs.options.ListOptions;
@@ -136,7 +136,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       for (int i = 0; i < statuses.length; i++) {
         UfsStatus status = statuses[i];
         String ufsFullPath = status.getName();
-        alluxio.grpc.FileInfo fi =
+        alluxio.dora.grpc.FileInfo fi =
             ((PagedDoraWorker) mWorker).buildFileInfoFromUfsStatus(status, ufsFullPath);
 
         builder.addFileInfos(fi);

@@ -15,7 +15,7 @@ import alluxio.dora.HealthCheckClient;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.grpc.ServiceType;
+import alluxio.dora.grpc.ServiceType;
 import alluxio.dora.retry.RetryPolicy;
 import alluxio.dora.security.user.UserState;
 import alluxio.dora.util.network.NetworkAddressUtils;

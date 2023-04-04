@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 import alluxio.dora.clock.ManualClock;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.dora.grpc.RegisterWorkerPOptions;
 import alluxio.dora.master.CoreMasterContext;
 import alluxio.dora.master.MasterRegistry;
 import alluxio.dora.master.MasterTestUtils;

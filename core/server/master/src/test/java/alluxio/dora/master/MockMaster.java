@@ -15,11 +15,11 @@ import alluxio.dora.Server;
 import alluxio.dora.grpc.GrpcService;
 import alluxio.dora.master.Master;
 import alluxio.dora.master.MasterContext;
-import alluxio.grpc.ServiceType;
+import alluxio.dora.grpc.ServiceType;
 import alluxio.dora.master.journal.JournalContext;
 import alluxio.dora.master.journal.checkpoint.CheckpointName;
-import alluxio.proto.journal.Journal;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 import alluxio.dora.resource.CloseableIterator;
 
 import java.util.ArrayDeque;

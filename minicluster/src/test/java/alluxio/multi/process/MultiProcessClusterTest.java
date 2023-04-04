@@ -20,7 +20,7 @@ import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.CreateFilePOptions;
+import alluxio.dora.grpc.CreateFilePOptions;
 import alluxio.dora.master.journal.JournalType;
 
 import org.junit.Rule;

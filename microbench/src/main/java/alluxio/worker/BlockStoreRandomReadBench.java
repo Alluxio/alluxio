@@ -12,7 +12,7 @@
 package alluxio.worker;
 
 import alluxio.dora.AlluxioTestDirectory;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.proto.dataserver.Protocol;
 import alluxio.dora.util.io.PathUtils;
 import alluxio.dora.worker.block.BlockStore;
 import alluxio.dora.worker.block.io.BlockReader;

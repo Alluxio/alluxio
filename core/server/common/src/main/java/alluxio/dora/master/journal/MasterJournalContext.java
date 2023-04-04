@@ -17,7 +17,7 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.JournalClosedException;
 import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 import alluxio.dora.retry.RetryPolicy;
 import alluxio.dora.retry.TimeoutRetry;
 

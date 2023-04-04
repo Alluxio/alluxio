@@ -11,9 +11,9 @@
 
 package alluxio.dora.client.file;
 
-import alluxio.grpc.FileInfo;
+import alluxio.dora.grpc.FileInfo;
 import alluxio.dora.grpc.GrpcUtils;
-import alluxio.grpc.ListStatusPartialPResponse;
+import alluxio.dora.grpc.ListStatusPartialPResponse;
 
 import java.util.ArrayList;
 import java.util.List;

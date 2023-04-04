@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.backup;
 
-import alluxio.grpc.BackupPStatus;
+import alluxio.dora.grpc.BackupPStatus;
 import alluxio.dora.wire.BackupStatus;
 
 import com.google.common.base.MoreObjects;

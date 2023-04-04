@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.dora.Constants;
 import alluxio.dora.master.AbstractPrimarySelector;
-import alluxio.grpc.NodeState;
+import alluxio.dora.grpc.NodeState;
 import alluxio.dora.util.interfaces.Scoped;
 
 import org.junit.After;

@@ -14,8 +14,8 @@ package alluxio.worker.job;
 import alluxio.dora.Client;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.ConnectionFailedException;
-import alluxio.grpc.JobCommand;
-import alluxio.grpc.JobInfo;
+import alluxio.dora.grpc.JobCommand;
+import alluxio.dora.grpc.JobInfo;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.dora.wire.WorkerNetAddress;
 

@@ -23,7 +23,7 @@ import alluxio.dora.client.meta.MetaMasterConfigClient;
 import alluxio.dora.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.CreateFilePOptions;
+import alluxio.dora.grpc.CreateFilePOptions;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.resource.CloseableResource;
 import alluxio.testutils.BaseIntegrationTest;

@@ -32,7 +32,7 @@ public class TransformActionUtils {
    * @return the generated partition info
    */
   public static PartitionInfo generatePartitionInfo(Layout layout) {
-    alluxio.grpc.table.layout.hive.PartitionInfo partitionInfo;
+    alluxio.dora.grpc.table.layout.hive.PartitionInfo partitionInfo;
     try {
       partitionInfo = ProtoUtils.toHiveLayout(layout.toProto());
     } catch (InvalidProtocolBufferException e) {
@@ -42,7 +42,7 @@ public class TransformActionUtils {
     String inputFormat = partitionInfo.getStorage().getStorageFormat().getInputFormat();
 
     ArrayList<FieldSchema> colList = new ArrayList<>(partitionInfo.getDataColsList().size());
-    for (alluxio.grpc.table.FieldSchema col : partitionInfo.getDataColsList()) {
+    for (alluxio.dora.grpc.table.FieldSchema col : partitionInfo.getDataColsList()) {
       colList.add(new FieldSchema(col.getId(), col.getName(), col.getType(), col.getComment()));
     }
 

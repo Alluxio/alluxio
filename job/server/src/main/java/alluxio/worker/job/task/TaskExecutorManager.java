@@ -14,7 +14,7 @@ package alluxio.worker.job.task;
 import alluxio.dora.collections.Pair;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.RunTaskCommand;
+import alluxio.dora.grpc.RunTaskCommand;
 import alluxio.job.ErrorUtils;
 import alluxio.job.RunTaskContext;
 import alluxio.job.wire.Status;

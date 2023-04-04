@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.meta;
 
-import alluxio.ProjectConstants;
+import alluxio.dora.ProjectConstants;
 import alluxio.dora.check.UpdateCheck;
 import alluxio.dora.heartbeat.HeartbeatExecutor;
 

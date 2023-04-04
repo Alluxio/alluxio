@@ -16,7 +16,7 @@ import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.FileDoesNotExistException;
 import alluxio.dora.exception.InvalidPathException;
 import alluxio.dora.master.metastore.ReadOnlyInodeStore;
-import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.dora.grpc.ListStatusPartialPOptions;
 import alluxio.dora.master.file.contexts.ListStatusContext;
 import alluxio.dora.master.file.meta.Inode;
 import alluxio.dora.master.file.meta.InodeTree;

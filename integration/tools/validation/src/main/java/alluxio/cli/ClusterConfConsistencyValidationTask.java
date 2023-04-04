@@ -17,7 +17,7 @@ import alluxio.dora.cli.ValidationUtils;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.grpc.GrpcUtils;
-import alluxio.grpc.Scope;
+import alluxio.dora.grpc.Scope;
 import alluxio.dora.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableSet;

@@ -24,19 +24,19 @@ import alluxio.dora.master.journal.AbstractJournalSystem;
 import alluxio.dora.master.journal.AsyncJournalWriter;
 import alluxio.dora.master.journal.CatchupFuture;
 import alluxio.dora.master.journal.Journal;
-import alluxio.grpc.AddQuorumServerRequest;
-import alluxio.grpc.ErrorType;
+import alluxio.dora.grpc.AddQuorumServerRequest;
+import alluxio.dora.grpc.ErrorType;
 import alluxio.dora.grpc.GrpcService;
-import alluxio.grpc.JournalQueryRequest;
-import alluxio.grpc.NetAddress;
-import alluxio.grpc.NodeState;
-import alluxio.grpc.QuorumServerInfo;
-import alluxio.grpc.QuorumServerState;
-import alluxio.grpc.TransferLeaderMessage;
+import alluxio.dora.grpc.JournalQueryRequest;
+import alluxio.dora.grpc.NetAddress;
+import alluxio.dora.grpc.NodeState;
+import alluxio.dora.grpc.QuorumServerInfo;
+import alluxio.dora.grpc.QuorumServerState;
+import alluxio.dora.grpc.TransferLeaderMessage;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
 import alluxio.dora.sink.RatisDropwizardExports;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.ConfigurationUtils;
 import alluxio.dora.util.LogUtils;
@@ -652,9 +652,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public synchronized Map<alluxio.grpc.ServiceType, GrpcService> getJournalServices() {
-    Map<alluxio.grpc.ServiceType, GrpcService> services = new HashMap<>();
-    services.put(alluxio.grpc.ServiceType.RAFT_JOURNAL_SERVICE, new GrpcService(
+  public synchronized Map<alluxio.dora.grpc.ServiceType, GrpcService> getJournalServices() {
+    Map<alluxio.dora.grpc.ServiceType, GrpcService> services = new HashMap<>();
+    services.put(alluxio.dora.grpc.ServiceType.RAFT_JOURNAL_SERVICE, new GrpcService(
         new RaftJournalServiceHandler(mStateMachine.getSnapshotReplicationManager())));
     return services;
   }

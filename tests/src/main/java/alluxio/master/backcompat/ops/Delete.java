@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.grpc.DeletePOptions;
+import alluxio.dora.grpc.DeletePOptions;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Utils;
 

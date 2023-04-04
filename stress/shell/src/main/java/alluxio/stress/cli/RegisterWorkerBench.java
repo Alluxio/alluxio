@@ -18,7 +18,7 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
 import alluxio.dora.ClientContext;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.LocationBlockIdListEntry;
+import alluxio.dora.grpc.LocationBlockIdListEntry;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;

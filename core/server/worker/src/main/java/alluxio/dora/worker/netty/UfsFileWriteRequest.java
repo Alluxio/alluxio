@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.netty;
 
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.proto.dataserver.Protocol;
 
 import javax.annotation.concurrent.ThreadSafe;
 

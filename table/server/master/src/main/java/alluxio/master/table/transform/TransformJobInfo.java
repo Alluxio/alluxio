@@ -137,8 +137,8 @@ public final class TransformJobInfo {
   /**
    * @return the proto representation
    */
-  public alluxio.grpc.table.TransformJobInfo toProto() {
-    return alluxio.grpc.table.TransformJobInfo.newBuilder()
+  public alluxio.dora.grpc.table.TransformJobInfo toProto() {
+    return alluxio.dora.grpc.table.TransformJobInfo.newBuilder()
         .setDbName(getDb())
         .setTableName(getTable())
         .setDefinition(getDefinition())

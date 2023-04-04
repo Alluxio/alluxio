@@ -12,9 +12,9 @@
 package alluxio.dora.wire;
 
 import alluxio.dora.conf.Source;
-import alluxio.grpc.ConfigProperties;
-import alluxio.grpc.ConfigProperty;
-import alluxio.grpc.GetConfigurationPResponse;
+import alluxio.dora.grpc.ConfigProperties;
+import alluxio.dora.grpc.ConfigProperty;
+import alluxio.dora.grpc.GetConfigurationPResponse;
 
 import com.google.common.base.Preconditions;
 

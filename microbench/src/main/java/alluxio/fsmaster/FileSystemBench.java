@@ -15,10 +15,10 @@ import alluxio.dora.AlluxioURI;
 import alluxio.dora.annotation.SuppressFBWarnings;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.hadoop.AbstractFileSystem;
-import alluxio.grpc.FileSystemMasterClientServiceGrpc;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.GetStatusPRequest;
-import alluxio.grpc.GetStatusPResponse;
+import alluxio.dora.grpc.FileSystemMasterClientServiceGrpc;
+import alluxio.dora.grpc.GetStatusPOptions;
+import alluxio.dora.grpc.GetStatusPRequest;
+import alluxio.dora.grpc.GetStatusPResponse;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;

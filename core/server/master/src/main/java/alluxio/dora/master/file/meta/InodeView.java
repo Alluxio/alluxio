@@ -11,9 +11,9 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.grpc.TtlAction;
+import alluxio.dora.grpc.TtlAction;
 import alluxio.dora.master.journal.JournalEntryRepresentable;
-import alluxio.proto.meta.InodeMeta;
+import alluxio.dora.proto.meta.InodeMeta;
 import alluxio.dora.security.authorization.AccessControlList;
 import alluxio.dora.security.authorization.AclAction;
 import alluxio.dora.security.authorization.AclActions;

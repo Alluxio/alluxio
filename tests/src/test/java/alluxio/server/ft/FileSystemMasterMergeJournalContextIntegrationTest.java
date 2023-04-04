@@ -19,7 +19,7 @@ import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.SetAttributePOptions;
+import alluxio.dora.grpc.SetAttributePOptions;
 import alluxio.dora.master.file.contexts.CreateDirectoryContext;
 import alluxio.dora.master.file.contexts.CreateFileContext;
 import alluxio.dora.master.file.contexts.ListStatusContext;

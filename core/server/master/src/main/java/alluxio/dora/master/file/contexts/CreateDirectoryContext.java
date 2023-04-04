@@ -12,7 +12,7 @@
 package alluxio.dora.master.file.contexts;
 
 import alluxio.dora.conf.Configuration;
-import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.dora.grpc.CreateDirectoryPOptions;
 import alluxio.dora.security.authorization.AclEntry;
 import alluxio.dora.underfs.UfsStatus;
 import alluxio.dora.util.FileSystemOptionsUtils;

@@ -17,7 +17,7 @@ import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.grpc.CreateFilePOptions;
+import alluxio.dora.grpc.CreateFilePOptions;
 import alluxio.dora.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;

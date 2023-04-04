@@ -14,8 +14,8 @@ package alluxio.dora.worker.grpc;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.dora.AlluxioURI;
-import alluxio.grpc.RequestType;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.grpc.RequestType;
+import alluxio.dora.proto.dataserver.Protocol;
 import alluxio.dora.underfs.UfsManager;
 import alluxio.dora.underfs.UfsManager.UfsClient;
 import alluxio.dora.underfs.UnderFileSystem;
@@ -83,7 +83,7 @@ public final class UfsFileWriteHandlerTest extends AbstractWriteHandlerTest {
   }
 
   @Override
-  protected alluxio.grpc.WriteRequest newWriteRequestCommand(long offset) {
+  protected alluxio.dora.grpc.WriteRequest newWriteRequestCommand(long offset) {
     Protocol.CreateUfsFileOptions createUfsFileOptions =
         Protocol.CreateUfsFileOptions.newBuilder().setUfsPath("/test").setOwner("owner")
             .setGroup("group").setMode(0).setMountId(TEST_MOUNT_ID).build();

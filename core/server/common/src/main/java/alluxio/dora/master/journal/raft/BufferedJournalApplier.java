@@ -19,7 +19,7 @@ import alluxio.dora.master.journal.JournalEntryAssociation;
 import alluxio.dora.master.journal.JournalUtils;
 import alluxio.dora.master.journal.Journaled;
 import alluxio.dora.master.journal.sink.JournalSink;
-import alluxio.proto.journal.Journal;
+import alluxio.dora.proto.journal.Journal;
 import alluxio.dora.resource.LockResource;
 
 import com.google.common.base.Preconditions;

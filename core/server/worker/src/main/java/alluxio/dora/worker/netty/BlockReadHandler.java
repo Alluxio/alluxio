@@ -23,7 +23,7 @@ import alluxio.dora.network.netty.FileTransferType;
 import alluxio.dora.network.protocol.databuffer.DataBuffer;
 import alluxio.dora.network.protocol.databuffer.DataFileChannel;
 import alluxio.dora.network.protocol.databuffer.NettyDataBuffer;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.proto.dataserver.Protocol;
 import alluxio.dora.retry.RetryPolicy;
 import alluxio.dora.retry.TimeoutRetry;
 import alluxio.dora.worker.block.BlockWorker;

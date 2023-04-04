@@ -16,7 +16,7 @@ import alluxio.dora.HealthCheckClient;
 import alluxio.common.RpcPortHealthCheckClient;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.master.MasterInquireClient;
-import alluxio.grpc.ServiceType;
+import alluxio.dora.grpc.ServiceType;
 import alluxio.dora.retry.RetryPolicy;
 import alluxio.dora.security.user.UserState;
 import alluxio.dora.util.CommonUtils;

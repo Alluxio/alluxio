@@ -15,9 +15,9 @@ import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.status.UnauthenticatedException;
 import alluxio.dora.security.authentication.plain.SaslServerHandlerPlain;
-import alluxio.grpc.ChannelAuthenticationScheme;
-import alluxio.grpc.SaslAuthenticationServiceGrpc;
-import alluxio.grpc.SaslMessage;
+import alluxio.dora.grpc.ChannelAuthenticationScheme;
+import alluxio.dora.grpc.SaslAuthenticationServiceGrpc;
+import alluxio.dora.grpc.SaslMessage;
 import alluxio.dora.util.ThreadFactoryUtils;
 
 import io.grpc.Status;

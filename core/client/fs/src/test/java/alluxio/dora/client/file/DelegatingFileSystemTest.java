@@ -16,10 +16,10 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 
 import alluxio.dora.AlluxioURI;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.grpc.MountPOptions;
-import alluxio.grpc.SetAclAction;
-import alluxio.grpc.SetAclPOptions;
+import alluxio.dora.grpc.FileSystemMasterCommonPOptions;
+import alluxio.dora.grpc.MountPOptions;
+import alluxio.dora.grpc.SetAclAction;
+import alluxio.dora.grpc.SetAclPOptions;
 import alluxio.dora.security.authorization.AclEntry;
 
 import org.junit.Before;

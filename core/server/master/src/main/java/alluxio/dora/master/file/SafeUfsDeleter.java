@@ -16,7 +16,7 @@ import alluxio.dora.collections.Pair;
 import alluxio.dora.exception.FileDoesNotExistException;
 import alluxio.dora.exception.InvalidPathException;
 import alluxio.dora.master.metastore.ReadOnlyInodeStore;
-import alluxio.grpc.DeletePOptions;
+import alluxio.dora.grpc.DeletePOptions;
 import alluxio.dora.master.file.meta.Inode;
 import alluxio.dora.master.file.meta.LockedInodePath;
 import alluxio.dora.master.file.meta.MountTable;

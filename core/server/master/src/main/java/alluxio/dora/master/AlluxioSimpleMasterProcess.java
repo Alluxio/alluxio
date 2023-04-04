@@ -13,8 +13,8 @@ package alluxio.dora.master;
 
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.JournalDomain;
-import alluxio.grpc.NodeState;
+import alluxio.dora.grpc.JournalDomain;
+import alluxio.dora.grpc.NodeState;
 import alluxio.dora.master.journal.JournalSystem;
 import alluxio.dora.master.service.SimpleService;
 import alluxio.dora.util.network.NetworkAddressUtils;

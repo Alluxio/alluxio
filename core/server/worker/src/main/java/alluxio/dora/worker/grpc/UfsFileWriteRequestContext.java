@@ -28,7 +28,7 @@ public final class UfsFileWriteRequestContext extends WriteRequestContext<UfsFil
   private CreateOptions mCreateOptions;
   private OutputStream mOutputStream;
 
-  UfsFileWriteRequestContext(alluxio.grpc.WriteRequest request) {
+  UfsFileWriteRequestContext(alluxio.dora.grpc.WriteRequest request) {
     super(new UfsFileWriteRequest(request));
   }
 

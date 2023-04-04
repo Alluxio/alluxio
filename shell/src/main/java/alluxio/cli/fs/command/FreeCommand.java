@@ -19,7 +19,7 @@ import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.FreePOptions;
+import alluxio.dora.grpc.FreePOptions;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.WaitForOptions;
 

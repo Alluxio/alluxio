@@ -21,7 +21,7 @@ import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.WritePType;
 import alluxio.dora.master.AlluxioMasterProcess;
 import alluxio.master.TestUtils;
 import alluxio.dora.network.TieredIdentityFactory;

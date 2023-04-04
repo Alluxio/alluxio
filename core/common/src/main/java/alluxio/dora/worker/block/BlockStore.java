@@ -19,10 +19,10 @@ import alluxio.dora.worker.block.io.BlockReader;
 import alluxio.dora.worker.block.io.BlockWriter;
 import alluxio.dora.worker.block.meta.BlockMeta;
 import alluxio.dora.worker.block.meta.TempBlockMeta;
-import alluxio.grpc.Block;
-import alluxio.grpc.BlockStatus;
-import alluxio.grpc.UfsReadOptions;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.grpc.Block;
+import alluxio.dora.grpc.BlockStatus;
+import alluxio.dora.grpc.UfsReadOptions;
+import alluxio.dora.proto.dataserver.Protocol;
 
 import java.io.Closeable;
 import java.io.IOException;

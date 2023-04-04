@@ -13,7 +13,7 @@ package alluxio.dora.master.journal.ufs;
 
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.master.journal.JournalFileParser;
-import alluxio.proto.journal.Journal;
+import alluxio.dora.proto.journal.Journal;
 import alluxio.dora.underfs.UnderFileSystem;
 import alluxio.dora.underfs.UnderFileSystemConfiguration;
 import alluxio.dora.util.proto.ProtoUtils;

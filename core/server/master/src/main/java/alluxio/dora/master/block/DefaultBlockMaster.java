@@ -35,17 +35,17 @@ import alluxio.dora.master.block.meta.WorkerMetaLockSection;
 import alluxio.dora.master.metastore.BlockMetaStore;
 import alluxio.dora.master.metrics.MetricsMaster;
 import alluxio.dora.wire.BlockLocation;
-import alluxio.grpc.Command;
-import alluxio.grpc.CommandType;
-import alluxio.grpc.ConfigProperty;
-import alluxio.grpc.GetRegisterLeasePRequest;
+import alluxio.dora.grpc.Command;
+import alluxio.dora.grpc.CommandType;
+import alluxio.dora.grpc.ConfigProperty;
+import alluxio.dora.grpc.GetRegisterLeasePRequest;
 import alluxio.dora.grpc.GrpcService;
 import alluxio.dora.grpc.GrpcUtils;
-import alluxio.grpc.RegisterWorkerPOptions;
-import alluxio.grpc.RegisterWorkerPRequest;
-import alluxio.grpc.ServiceType;
-import alluxio.grpc.StorageList;
-import alluxio.grpc.WorkerLostStorageInfo;
+import alluxio.dora.grpc.RegisterWorkerPOptions;
+import alluxio.dora.grpc.RegisterWorkerPRequest;
+import alluxio.dora.grpc.ServiceType;
+import alluxio.dora.grpc.StorageList;
+import alluxio.dora.grpc.WorkerLostStorageInfo;
 import alluxio.dora.heartbeat.HeartbeatContext;
 import alluxio.dora.heartbeat.HeartbeatExecutor;
 import alluxio.dora.heartbeat.HeartbeatThread;
@@ -56,12 +56,12 @@ import alluxio.dora.metrics.Metric;
 import alluxio.dora.metrics.MetricInfo;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
-import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
-import alluxio.proto.journal.Block.BlockInfoEntry;
-import alluxio.proto.journal.Block.DeleteBlockEntry;
-import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.proto.meta.Block.BlockLocation;
-import alluxio.proto.meta.Block.BlockMeta;
+import alluxio.dora.proto.journal.Block.BlockContainerIdGeneratorEntry;
+import alluxio.dora.proto.journal.Block.BlockInfoEntry;
+import alluxio.dora.proto.journal.Block.DeleteBlockEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.meta.Block.BlockLocation;
+import alluxio.dora.proto.meta.Block.BlockMeta;
 import alluxio.dora.resource.CloseableIterator;
 import alluxio.dora.resource.LockResource;
 import alluxio.dora.util.CommonUtils;
@@ -1202,7 +1202,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     final Map<String, Long> usedBytesOnTiers = chunk.getUsedBytesOnTiersMap();
     final Map<String, StorageList> lostStorage = chunk.getLostStorageMap();
 
-    final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
+    final Map<alluxio.dora.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
         BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(
             chunk.getCurrentBlocksList(), context.getWorkerId());
     RegisterWorkerPOptions options = chunk.getOptions();
@@ -1235,7 +1235,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   protected void workerRegisterBatch(WorkerRegisterContext context, RegisterWorkerPRequest chunk) {
-    final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
+    final Map<alluxio.dora.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
             BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(
                 chunk.getCurrentBlocksList(), context.getWorkerId());
     MasterWorkerInfo workerInfo = context.getWorkerInfo();

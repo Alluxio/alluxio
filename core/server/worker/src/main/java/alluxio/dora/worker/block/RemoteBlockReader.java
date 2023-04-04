@@ -15,7 +15,7 @@ import alluxio.dora.client.block.stream.BlockInStream;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.proto.dataserver.Protocol;
 import alluxio.dora.wire.WorkerNetAddress;
 import alluxio.dora.worker.block.io.BlockReader;
 

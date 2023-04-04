@@ -13,7 +13,7 @@ package alluxio.dora;
 
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.grpc.ServiceType;
+import alluxio.dora.grpc.ServiceType;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.master.MasterInquireClient;
 import alluxio.dora.master.selectionpolicy.MasterSelectionPolicy;

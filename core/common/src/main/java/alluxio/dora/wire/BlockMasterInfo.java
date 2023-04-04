@@ -154,8 +154,8 @@ public final class BlockMasterInfo implements Serializable {
   /**
    * @return proto representation of the block master information
    */
-  protected alluxio.grpc.BlockMasterInfo toProto() {
-    return alluxio.grpc.BlockMasterInfo.newBuilder().setCapacityBytes(mCapacityBytes)
+  protected alluxio.dora.grpc.BlockMasterInfo toProto() {
+    return alluxio.dora.grpc.BlockMasterInfo.newBuilder().setCapacityBytes(mCapacityBytes)
         .putAllCapacityBytesOnTiers(mCapacityBytesOnTiers).setFreeBytes(mFreeBytes)
         .setLiveWorkerNum(mLiveWorkerNum).setLostWorkerNum(mLostWorkerNum).setUsedBytes(mUsedBytes)
         .putAllUsedBytesOnTiers(mUsedBytesOnTiers).build();
@@ -167,7 +167,7 @@ public final class BlockMasterInfo implements Serializable {
    * @param info the proto representation of a block master information
    * @return the instance
    */
-  public static BlockMasterInfo fromProto(alluxio.grpc.BlockMasterInfo info) {
+  public static BlockMasterInfo fromProto(alluxio.dora.grpc.BlockMasterInfo info) {
     return new BlockMasterInfo()
         .setCapacityBytes(info.getCapacityBytes())
         .setCapacityBytesOnTiers(info.getCapacityBytesOnTiersMap())
@@ -226,15 +226,15 @@ public final class BlockMasterInfo implements Serializable {
     /**
      * @return the proto representation of this block master info field
      */
-    public alluxio.grpc.BlockMasterInfoField toProto() {
-      return alluxio.grpc.BlockMasterInfoField.valueOf(name());
+    public alluxio.dora.grpc.BlockMasterInfoField toProto() {
+      return alluxio.dora.grpc.BlockMasterInfoField.valueOf(name());
     }
 
     /**
      * @param field the proto representation of the block master info field to create
      * @return the wire type version of the block master info field
      */
-    public static BlockMasterInfoField fromProto(alluxio.grpc.BlockMasterInfoField field) {
+    public static BlockMasterInfoField fromProto(alluxio.dora.grpc.BlockMasterInfoField field) {
       return BlockMasterInfoField.valueOf(field.name());
     }
   }

@@ -30,7 +30,7 @@ public final class BlockWriteRequestContext extends WriteRequestContext<BlockWri
   private java.io.OutputStream mOutputStream;
   private String mUfsPath;
 
-  BlockWriteRequestContext(alluxio.grpc.WriteRequest request, long bytesReserved) {
+  BlockWriteRequestContext(alluxio.dora.grpc.WriteRequest request, long bytesReserved) {
     super(new BlockWriteRequest(request));
     mBytesReserved = bytesReserved;
   }

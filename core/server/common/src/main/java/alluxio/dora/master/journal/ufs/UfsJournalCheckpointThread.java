@@ -17,7 +17,7 @@ import alluxio.dora.master.Master;
 import alluxio.dora.master.journal.JournalReader;
 import alluxio.dora.master.journal.JournalUtils;
 import alluxio.dora.master.journal.sink.JournalSink;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 import alluxio.dora.retry.ExponentialBackoffRetry;
 import alluxio.dora.thread.AutopsyThread;
 import alluxio.dora.util.CommonUtils;

@@ -11,7 +11,7 @@
 
 package alluxio.fuse.meta;
 
-import alluxio.ProjectConstants;
+import alluxio.dora.ProjectConstants;
 import alluxio.dora.check.UpdateCheck;
 import alluxio.fuse.FuseConstants;
 import alluxio.fuse.options.FuseOptions;

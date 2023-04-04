@@ -24,7 +24,7 @@ import static alluxio.client.fs.RegisterStreamTestUtils.USAGE_MAP;
 import static alluxio.client.fs.RegisterStreamTestUtils.findFirstBlock;
 import static alluxio.client.fs.RegisterStreamTestUtils.getTierAliases;
 import static alluxio.client.fs.RegisterStreamTestUtils.parseTierConfig;
-import static alluxio.grpc.BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub;
+import static alluxio.dora.grpc.BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -45,15 +45,15 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.status.DeadlineExceededException;
 import alluxio.dora.exception.status.InternalException;
 import alluxio.dora.exception.status.NotFoundException;
-import alluxio.grpc.BlockMasterWorkerServiceGrpc;
-import alluxio.grpc.Command;
-import alluxio.grpc.ConfigProperty;
+import alluxio.dora.grpc.BlockMasterWorkerServiceGrpc;
+import alluxio.dora.grpc.Command;
+import alluxio.dora.grpc.ConfigProperty;
 import alluxio.dora.grpc.GrpcExceptionUtils;
-import alluxio.grpc.LocationBlockIdListEntry;
-import alluxio.grpc.Metric;
-import alluxio.grpc.RegisterWorkerPRequest;
-import alluxio.grpc.RegisterWorkerPResponse;
-import alluxio.grpc.StorageList;
+import alluxio.dora.grpc.LocationBlockIdListEntry;
+import alluxio.dora.grpc.Metric;
+import alluxio.dora.grpc.RegisterWorkerPRequest;
+import alluxio.dora.grpc.RegisterWorkerPResponse;
+import alluxio.dora.grpc.StorageList;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.stress.cli.RpcBenchPreparationUtils;
 import alluxio.stress.rpc.TierAlias;
@@ -594,7 +594,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     }
 
     @Override
-    public void onNext(alluxio.grpc.RegisterWorkerPRequest chunk) {
+    public void onNext(alluxio.dora.grpc.RegisterWorkerPRequest chunk) {
       if (mMasterMode == MasterMode.HANG_IN_STREAM) {
         return;
       }

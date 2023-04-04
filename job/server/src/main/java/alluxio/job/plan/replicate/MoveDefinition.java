@@ -16,7 +16,7 @@ import alluxio.dora.client.block.stream.BlockWorkerClient;
 import alluxio.dora.collections.Pair;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.exception.status.NotFoundException;
-import alluxio.grpc.MoveBlockRequest;
+import alluxio.dora.grpc.MoveBlockRequest;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.AbstractVoidPlanDefinition;

@@ -13,10 +13,10 @@ package alluxio.master.backcompat;
 
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.Constants;
-import alluxio.ProjectConstants;
+import alluxio.dora.ProjectConstants;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.BackupPOptions;
-import alluxio.grpc.BackupPRequest;
+import alluxio.dora.grpc.BackupPOptions;
+import alluxio.dora.grpc.BackupPRequest;
 import alluxio.master.backcompat.ops.AsyncPersist;
 import alluxio.master.backcompat.ops.CreateDirectory;
 import alluxio.master.backcompat.ops.CreateFile;

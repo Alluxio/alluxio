@@ -16,9 +16,9 @@ import alluxio.dora.cli.CommandUtils;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.BackupPOptions;
-import alluxio.grpc.BackupPRequest;
-import alluxio.grpc.BackupState;
+import alluxio.dora.grpc.BackupPOptions;
+import alluxio.dora.grpc.BackupPRequest;
+import alluxio.dora.grpc.BackupState;
 import alluxio.dora.wire.BackupStatus;
 
 import org.apache.commons.cli.CommandLine;

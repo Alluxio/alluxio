@@ -19,10 +19,10 @@ import alluxio.dora.client.file.FileOutStream;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.OpenFilePOptions;
-import alluxio.grpc.ReadPType;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.CreateFilePOptions;
+import alluxio.dora.grpc.OpenFilePOptions;
+import alluxio.dora.grpc.ReadPType;
+import alluxio.dora.grpc.WritePType;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.FormatUtils;
 

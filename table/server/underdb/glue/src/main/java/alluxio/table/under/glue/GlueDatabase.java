@@ -14,9 +14,9 @@ package alluxio.table.under.glue;
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.NotFoundException;
-import alluxio.grpc.table.ColumnStatisticsInfo;
-import alluxio.grpc.table.Layout;
-import alluxio.grpc.table.layout.hive.PartitionInfo;
+import alluxio.dora.grpc.table.ColumnStatisticsInfo;
+import alluxio.dora.grpc.table.Layout;
+import alluxio.dora.grpc.table.layout.hive.PartitionInfo;
 import alluxio.master.table.DatabaseInfo;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
@@ -81,7 +81,7 @@ public class GlueDatabase implements UnderDatabase {
 
   /** the owner name of glue database, which is an fake place holder. */
   private final String mOwnerName = "PUBLIC_OWNER";
-  private final alluxio.grpc.table.PrincipalType mOwnerType = alluxio.grpc.table.PrincipalType.ROLE;
+  private final alluxio.dora.grpc.table.PrincipalType mOwnerType = alluxio.dora.grpc.table.PrincipalType.ROLE;
 
   @VisibleForTesting
   protected GlueDatabase(UdbContext udbContext, UdbConfiguration glueConfig, String glueDbName) {

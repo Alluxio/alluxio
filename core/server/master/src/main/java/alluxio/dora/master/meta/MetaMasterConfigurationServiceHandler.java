@@ -13,17 +13,17 @@ package alluxio.dora.master.meta;
 
 import alluxio.dora.RpcUtils;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.GetConfigHashPOptions;
-import alluxio.grpc.GetConfigHashPResponse;
-import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.grpc.GetConfigurationPResponse;
-import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
-import alluxio.grpc.RemovePathConfigurationPRequest;
-import alluxio.grpc.RemovePathConfigurationPResponse;
-import alluxio.grpc.SetPathConfigurationPRequest;
-import alluxio.grpc.SetPathConfigurationPResponse;
-import alluxio.grpc.UpdateConfigurationPRequest;
-import alluxio.grpc.UpdateConfigurationPResponse;
+import alluxio.dora.grpc.GetConfigHashPOptions;
+import alluxio.dora.grpc.GetConfigHashPResponse;
+import alluxio.dora.grpc.GetConfigurationPOptions;
+import alluxio.dora.grpc.GetConfigurationPResponse;
+import alluxio.dora.grpc.MetaMasterConfigurationServiceGrpc;
+import alluxio.dora.grpc.RemovePathConfigurationPRequest;
+import alluxio.dora.grpc.RemovePathConfigurationPResponse;
+import alluxio.dora.grpc.SetPathConfigurationPRequest;
+import alluxio.dora.grpc.SetPathConfigurationPResponse;
+import alluxio.dora.grpc.UpdateConfigurationPRequest;
+import alluxio.dora.grpc.UpdateConfigurationPResponse;
 import alluxio.dora.wire.ConfigHash;
 
 import io.grpc.stub.StreamObserver;

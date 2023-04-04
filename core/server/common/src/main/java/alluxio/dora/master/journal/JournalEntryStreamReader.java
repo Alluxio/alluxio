@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.journal;
 
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 import alluxio.dora.util.proto.ProtoUtils;
 
 import org.slf4j.Logger;

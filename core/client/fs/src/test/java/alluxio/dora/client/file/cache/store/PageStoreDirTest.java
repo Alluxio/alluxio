@@ -15,7 +15,7 @@ import static alluxio.dora.client.file.cache.CacheUsage.PartitionDescriptor.file
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.ProjectConstants;
+import alluxio.dora.ProjectConstants;
 import alluxio.dora.client.file.cache.CacheManagerOptions;
 import alluxio.dora.client.file.cache.CacheUsage;
 import alluxio.dora.client.file.cache.CacheUsageView;

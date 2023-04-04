@@ -22,8 +22,8 @@ import alluxio.dora.client.meta.MetaMasterConfigClient;
 import alluxio.dora.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.CreateFilePOptions;
+import alluxio.dora.grpc.WritePType;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

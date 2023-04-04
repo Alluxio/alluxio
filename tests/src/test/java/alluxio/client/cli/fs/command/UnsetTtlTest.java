@@ -17,7 +17,7 @@ import alluxio.dora.AlluxioURI;
 import alluxio.dora.Constants;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.WritePType;
 
 import org.junit.Test;
 

@@ -15,7 +15,7 @@ import alluxio.dora.AlluxioURI;
 import alluxio.dora.Constants;
 import alluxio.dora.client.file.FileOutStream;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.grpc.CreateFilePOptions;
+import alluxio.dora.grpc.CreateFilePOptions;
 
 /**
  * Util methods.

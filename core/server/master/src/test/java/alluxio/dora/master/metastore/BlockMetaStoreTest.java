@@ -25,7 +25,7 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.master.metastore.BlockMetaStore;
 import alluxio.dora.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.dora.master.metastore.rocks.RocksBlockMetaStore;
-import alluxio.proto.meta.Block;
+import alluxio.dora.proto.meta.Block;
 import alluxio.dora.resource.CloseableIterator;
 
 import org.junit.After;

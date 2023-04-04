@@ -12,7 +12,7 @@
 package alluxio.dora.worker.netty;
 
 import alluxio.dora.network.protocol.RPCProtoMessage;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.proto.dataserver.Protocol;
 import alluxio.dora.worker.block.AsyncCacheRequestManager;
 
 import io.netty.channel.ChannelHandlerContext;

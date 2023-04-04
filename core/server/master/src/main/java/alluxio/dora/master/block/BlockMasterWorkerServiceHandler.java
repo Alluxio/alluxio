@@ -15,25 +15,25 @@ import alluxio.dora.RpcUtils;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.RegisterLeaseNotFoundException;
-import alluxio.grpc.BlockHeartbeatPRequest;
-import alluxio.grpc.BlockHeartbeatPResponse;
-import alluxio.grpc.BlockMasterWorkerServiceGrpc;
-import alluxio.grpc.CommitBlockInUfsPRequest;
-import alluxio.grpc.CommitBlockInUfsPResponse;
-import alluxio.grpc.CommitBlockPRequest;
-import alluxio.grpc.CommitBlockPResponse;
-import alluxio.grpc.GetRegisterLeasePRequest;
-import alluxio.grpc.GetRegisterLeasePResponse;
-import alluxio.grpc.GetWorkerIdPRequest;
-import alluxio.grpc.GetWorkerIdPResponse;
+import alluxio.dora.grpc.BlockHeartbeatPRequest;
+import alluxio.dora.grpc.BlockHeartbeatPResponse;
+import alluxio.dora.grpc.BlockMasterWorkerServiceGrpc;
+import alluxio.dora.grpc.CommitBlockInUfsPRequest;
+import alluxio.dora.grpc.CommitBlockInUfsPResponse;
+import alluxio.dora.grpc.CommitBlockPRequest;
+import alluxio.dora.grpc.CommitBlockPResponse;
+import alluxio.dora.grpc.GetRegisterLeasePRequest;
+import alluxio.dora.grpc.GetRegisterLeasePResponse;
+import alluxio.dora.grpc.GetWorkerIdPRequest;
+import alluxio.dora.grpc.GetWorkerIdPResponse;
 import alluxio.dora.grpc.GrpcUtils;
-import alluxio.grpc.LocationBlockIdListEntry;
-import alluxio.grpc.RegisterWorkerPOptions;
-import alluxio.grpc.RegisterWorkerPRequest;
-import alluxio.grpc.RegisterWorkerPResponse;
-import alluxio.grpc.StorageList;
+import alluxio.dora.grpc.LocationBlockIdListEntry;
+import alluxio.dora.grpc.RegisterWorkerPOptions;
+import alluxio.dora.grpc.RegisterWorkerPRequest;
+import alluxio.dora.grpc.RegisterWorkerPResponse;
+import alluxio.dora.grpc.StorageList;
 import alluxio.dora.metrics.Metric;
-import alluxio.proto.meta.Block;
+import alluxio.dora.proto.meta.Block;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -180,8 +180,8 @@ public final class BlockMasterWorkerServiceHandler extends
   }
 
   @Override
-  public io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPRequest> registerWorkerStream(
-      io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> responseObserver) {
+  public io.grpc.stub.StreamObserver<alluxio.dora.grpc.RegisterWorkerPRequest> registerWorkerStream(
+      io.grpc.stub.StreamObserver<alluxio.dora.grpc.RegisterWorkerPResponse> responseObserver) {
     return new RegisterStreamObserver(mBlockMaster, responseObserver);
   }
 

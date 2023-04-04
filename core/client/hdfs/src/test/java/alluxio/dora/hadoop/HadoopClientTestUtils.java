@@ -11,7 +11,7 @@
 
 package alluxio.dora.hadoop;
 
-import alluxio.ProjectConstants;
+import alluxio.dora.ProjectConstants;
 import alluxio.dora.conf.InstancedConfiguration;
 import alluxio.dora.conf.PropertyKey;
 

@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.transport;
 
-import alluxio.grpc.MessagingServiceGrpc;
-import alluxio.grpc.TransportMessage;
+import alluxio.dora.grpc.MessagingServiceGrpc;
+import alluxio.dora.grpc.TransportMessage;
 import alluxio.dora.security.authentication.ClientIpAddressInjector;
 
 import com.google.common.base.MoreObjects;

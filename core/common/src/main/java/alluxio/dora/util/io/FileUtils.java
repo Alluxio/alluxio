@@ -21,7 +21,7 @@ import alluxio.dora.exception.runtime.NotFoundRuntimeException;
 import alluxio.dora.exception.runtime.PermissionDeniedRuntimeException;
 import alluxio.dora.exception.runtime.UnimplementedRuntimeException;
 import alluxio.dora.exception.runtime.UnknownRuntimeException;
-import alluxio.grpc.ErrorType;
+import alluxio.dora.grpc.ErrorType;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;

@@ -20,7 +20,7 @@ import alluxio.dora.master.journal.JournalEntryStreamReader;
 import alluxio.dora.master.journal.JournalUtils;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
 import alluxio.dora.resource.CloseableIterator;
 import alluxio.dora.util.ThreadFactoryUtils;
 

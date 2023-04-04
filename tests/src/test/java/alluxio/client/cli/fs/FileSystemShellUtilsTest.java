@@ -23,9 +23,9 @@ import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.CreateDirectoryPOptions;
+import alluxio.dora.grpc.DeletePOptions;
+import alluxio.dora.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

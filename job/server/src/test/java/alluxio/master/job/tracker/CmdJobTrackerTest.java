@@ -19,7 +19,7 @@ import alluxio.dora.client.WriteType;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.exception.JobDoesNotExistException;
-import alluxio.grpc.OperationType;
+import alluxio.dora.grpc.OperationType;
 import alluxio.job.cmd.load.LoadCliConfig;
 import alluxio.job.cmd.migrate.MigrateCliConfig;
 import alluxio.job.wire.CmdStatusBlock;

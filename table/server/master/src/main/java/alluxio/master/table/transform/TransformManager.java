@@ -31,10 +31,10 @@ import alluxio.dora.master.journal.Journaled;
 import alluxio.dora.master.journal.checkpoint.CheckpointName;
 import alluxio.master.table.AlluxioCatalog;
 import alluxio.master.table.Partition;
-import alluxio.proto.journal.Journal;
-import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.proto.journal.Table.AddTransformJobInfoEntry;
-import alluxio.proto.journal.Table.RemoveTransformJobInfoEntry;
+import alluxio.dora.proto.journal.Journal;
+import alluxio.dora.proto.journal.Journal.JournalEntry;
+import alluxio.dora.proto.journal.Table.AddTransformJobInfoEntry;
+import alluxio.dora.proto.journal.Table.RemoveTransformJobInfoEntry;
 import alluxio.dora.resource.CloseableIterator;
 import alluxio.dora.security.user.UserState;
 import alluxio.table.common.Layout;
@@ -414,7 +414,7 @@ public class TransformManager implements DelegatingJournaled {
     }
 
     private void applyAddTransformJobInfoEntry(AddTransformJobInfoEntry entry) {
-      Map<String, alluxio.grpc.table.Layout> layouts = entry.getTransformedLayoutsMap();
+      Map<String, alluxio.dora.grpc.table.Layout> layouts = entry.getTransformedLayoutsMap();
       Map<String, Layout> transformedLayouts = Maps.transformValues(layouts,
           layout -> mCatalog.getLayoutRegistry().create(layout));
       TransformJobInfo job = new TransformJobInfo(entry.getDbName(), entry.getTableName(),

@@ -15,7 +15,7 @@ import alluxio.dora.AlluxioTestDirectory;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.worker.grpc.BlockReadHandler;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.dora.proto.dataserver.Protocol;
 import alluxio.dora.util.io.PathUtils;
 import alluxio.dora.worker.block.BlockStore;
 import alluxio.dora.worker.block.io.BlockReader;

@@ -27,7 +27,7 @@ import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.InstancedConfiguration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.TtlAction;
+import alluxio.dora.grpc.TtlAction;
 import alluxio.dora.security.User;
 import alluxio.dora.security.authorization.Mode;
 import alluxio.dora.security.group.GroupMappingService;

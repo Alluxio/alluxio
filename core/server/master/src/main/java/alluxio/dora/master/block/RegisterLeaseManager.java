@@ -13,7 +13,7 @@ package alluxio.dora.master.block;
 
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.GetRegisterLeasePRequest;
+import alluxio.dora.grpc.GetRegisterLeasePRequest;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.wire.RegisterLease;
 

@@ -20,17 +20,17 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.runtime.AlluxioRuntimeException;
 import alluxio.dora.exception.runtime.InternalRuntimeException;
 import alluxio.dora.exception.runtime.InvalidArgumentRuntimeException;
-import alluxio.grpc.Block;
-import alluxio.grpc.BlockStatus;
-import alluxio.grpc.JobProgressReportFormat;
-import alluxio.grpc.LoadRequest;
-import alluxio.grpc.LoadResponse;
-import alluxio.grpc.TaskStatus;
-import alluxio.grpc.UfsReadOptions;
+import alluxio.dora.grpc.Block;
+import alluxio.dora.grpc.BlockStatus;
+import alluxio.dora.grpc.JobProgressReportFormat;
+import alluxio.dora.grpc.LoadRequest;
+import alluxio.dora.grpc.LoadResponse;
+import alluxio.dora.grpc.TaskStatus;
+import alluxio.dora.grpc.UfsReadOptions;
 import alluxio.dora.job.JobDescription;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
-import alluxio.proto.journal.Journal;
+import alluxio.dora.proto.journal.Journal;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
@@ -494,7 +494,7 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
 
   @Override
   public Journal.JournalEntry toJournalEntry() {
-    alluxio.proto.journal.Job.LoadJobEntry.Builder jobEntry = alluxio.proto.journal.Job.LoadJobEntry
+    alluxio.dora.proto.journal.Job.LoadJobEntry.Builder jobEntry = alluxio.dora.proto.journal.Job.LoadJobEntry
         .newBuilder()
         .setLoadPath(mPath)
         .setState(JobState.toProto(mState))

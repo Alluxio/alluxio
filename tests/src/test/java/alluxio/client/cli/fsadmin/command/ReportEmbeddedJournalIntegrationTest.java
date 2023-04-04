@@ -11,7 +11,7 @@
 
 package alluxio.client.cli.fsadmin.command;
 
-import alluxio.ProjectConstants;
+import alluxio.dora.ProjectConstants;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;

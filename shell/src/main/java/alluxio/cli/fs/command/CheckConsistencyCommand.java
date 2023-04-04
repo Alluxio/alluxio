@@ -21,8 +21,8 @@ import alluxio.dora.collections.ConcurrentHashSet;
 import alluxio.dora.exception.AggregateException;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.grpc.CheckConsistencyPOptions;
-import alluxio.grpc.DeletePOptions;
+import alluxio.dora.grpc.CheckConsistencyPOptions;
+import alluxio.dora.grpc.DeletePOptions;
 import alluxio.dora.resource.CloseableResource;
 import alluxio.dora.util.FileSystemOptionsUtils;
 

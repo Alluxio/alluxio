@@ -20,7 +20,7 @@ import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.client.file.FileSystemUtils;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.grpc.WritePType;
+import alluxio.dora.grpc.WritePType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.ClassRule;

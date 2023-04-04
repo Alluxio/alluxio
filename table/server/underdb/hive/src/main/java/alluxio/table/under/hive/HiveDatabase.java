@@ -14,9 +14,9 @@ package alluxio.table.under.hive;
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.NotFoundException;
-import alluxio.grpc.table.ColumnStatisticsInfo;
-import alluxio.grpc.table.Layout;
-import alluxio.grpc.table.layout.hive.PartitionInfo;
+import alluxio.dora.grpc.table.ColumnStatisticsInfo;
+import alluxio.dora.grpc.table.Layout;
+import alluxio.dora.grpc.table.layout.hive.PartitionInfo;
 import alluxio.master.table.DatabaseInfo;
 import alluxio.dora.resource.CloseableResource;
 import alluxio.table.common.UdbPartition;
@@ -126,9 +126,9 @@ public class HiveDatabase implements UnderDatabase {
   public DatabaseInfo getDatabaseInfo() throws IOException {
     try (CloseableResource<IMetaStoreClient> client = mClientPool.acquireClientResource()) {
       Database hiveDb = client.get().getDatabase(mHiveDbName);
-      alluxio.grpc.table.PrincipalType type = alluxio.grpc.table.PrincipalType.USER;
+      alluxio.dora.grpc.table.PrincipalType type = alluxio.dora.grpc.table.PrincipalType.USER;
       if (Objects.equals(hiveDb.getOwnerType(), PrincipalType.ROLE)) {
-        type = alluxio.grpc.table.PrincipalType.ROLE;
+        type = alluxio.dora.grpc.table.PrincipalType.ROLE;
       }
       return new DatabaseInfo(hiveDb.getLocationUri(), hiveDb.getOwnerName(), type,
           hiveDb.getDescription(), hiveDb.getParameters());

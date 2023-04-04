@@ -11,8 +11,8 @@
 
 package alluxio.dora.security.authentication;
 
-import alluxio.grpc.SaslMessage;
-import alluxio.grpc.SaslMessageType;
+import alluxio.dora.grpc.SaslMessage;
+import alluxio.dora.grpc.SaslMessageType;
 
 import com.google.protobuf.ByteString;
 import org.slf4j.Logger;
