@@ -15,6 +15,9 @@ import com.obs.services.ObsClient;
 
 import java.util.Map;
 
+/**
+ * An extension of ObsClient to support config.
+ */
 public class ObsClientExt extends ObsClient {
   public ObsClientExt(String accessKey, String secretKey, String endPoint,
       Map<String, Object> conf) {
