@@ -32,6 +32,10 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
+      <groupId>com.github.stateless4j</groupId>
+      <artifactId>stateless4j</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>

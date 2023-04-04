@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.dora;
+package alluxio.client.file.dora.netty;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -28,7 +28,6 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.exception.status.UnknownException;
 import alluxio.network.protocol.RPCMessage;
@@ -101,27 +100,6 @@ public class NettyDataReaderTest {
   }
 
   @Test
-  public void serverCancel() throws Exception {
-    final long offset = 0;
-    final int length = 11;
-
-    ServerState start = new WaitForRequestState(
-        mRequestBuilder.clone().setLength(length).setOffset(offset).build());
-    start.andThen(new SendDataState("hello".getBytes()))
-        .andThen(new SendDataState("world".getBytes()))
-        .andThen(new CancelState());
-    Future<Throwable> serverFault = mStateDriver.run(start);
-    PartialReadException exception =
-        assertThrows(PartialReadException.class,
-            () -> mReader.read(offset, Channels.newChannel(mOut), length));
-
-    assertNull(serverFault.get());
-    assertTrue(exception.getCause() instanceof CancelledException);
-    assertEquals(10, exception.getBytesRead());
-    assertArrayEquals("helloworld".getBytes(), mOut.toByteArray());
-  }
-
-  @Test
   public void eof() throws Exception {
     final long offset = 0;
     final int length = 11;
@@ -145,10 +123,15 @@ public class NettyDataReaderTest {
     final int length = 11;
     final String serverErrorMsg = "server sent an exception";
 
-    ServerState start = new WaitForRequestState(
-        mRequestBuilder.clone().setLength(length).setOffset(offset).build());
+    Protocol.ReadRequest.Builder builder = mRequestBuilder.clone()
+        .setLength(length)
+        .setOffset(offset);
+    ServerState start = new WaitForRequestState(builder.clone().build());
     start.andThen(new SendDataState("hello".getBytes()))
-        .andThen(new ErrorState(new UnknownException(serverErrorMsg)));
+        .andThen(new ErrorState(new UnknownException(serverErrorMsg)))
+        .andThen(new WaitForRequestState(
+            builder.clone().setCancel(true).build()))
+        .andThen(new CancelState());
     Future<Throwable> serverFault = mStateDriver.run(start);
     PartialReadException exception = assertThrows(PartialReadException.class,
         () -> mReader.read(offset, Channels.newChannel(mOut), length));
@@ -190,14 +173,16 @@ public class NettyDataReaderTest {
     conf.set(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS, 100);
     when(mFsContext.getClusterConf())
         .thenReturn(conf);
-    mReader = new NettyDataReader(mFsContext, mWorkerAddress, mRequestBuilder);
-    ServerState start = new WaitForRequestState(
-        mRequestBuilder.clone().setLength(length).setOffset(offset).build());
+    Protocol.ReadRequest.Builder builder = mRequestBuilder.clone()
+        .setLength(length)
+        .setOffset(offset);
+    mReader = new NettyDataReader(mFsContext, mWorkerAddress, builder);
+    ServerState start = new WaitForRequestState(builder.clone().build());
     start.andThen(new DelayState(150))
         .andThen(new SendDataState("helloworld".getBytes()))
         .andThen(new EofState())
         .andThen(new WaitForRequestState(
-            Protocol.ReadRequest.newBuilder().setCancel(true).build()))
+            builder.clone().setCancel(true).build()))
         .andThen(new CancelState());
     Future<Throwable> serverFault = mStateDriver.run(start);
 
