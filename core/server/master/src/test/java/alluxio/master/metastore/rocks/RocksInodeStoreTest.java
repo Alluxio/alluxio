@@ -22,6 +22,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.MutableInodeDirectory;
+import alluxio.master.journal.JournalUtils;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.metastore.InodeStore.WriteBatch;
 
 import alluxio.master.metastore.ReadOption;
@@ -33,7 +35,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -259,6 +267,197 @@ public class RocksInodeStoreTest {
     long completedAgain = resultsAgain.stream().filter(n -> n == fileNumber).count();
     assertEquals(20, completedAgain);
   }
+
+
+  @Test
+  // This only happens on primary and when checkpoint is specified to happen on primary
+  public void concurrentListAndCheckpoint() throws Exception {
+    int fileNumber = 400;
+    int threadCount = 20;
+    prepareFiles(fileNumber);
+
+    ExecutorService threadpool = Executors.newFixedThreadPool(threadCount, ThreadFactoryUtils.build("test-executor-%d", true));
+
+    CountDownLatch latch = new CountDownLatch(20);
+    List<Future> futures = new ArrayList<>();
+    ArrayBlockingQueue<Exception> queue = new ArrayBlockingQueue<>(threadCount);
+    ArrayBlockingQueue<Integer> results = new ArrayBlockingQueue<>(threadCount);
+    for (int k = 0; k < threadCount; k++) {
+      futures.add(threadpool.submit(() -> {
+        int listedCount = 0;
+        try (CloseableIterator<Long> iter = mStore.getChildIds(0L)) {
+          while (iter.hasNext()) {
+            if (listedCount == 10) {
+              latch.countDown();
+            }
+            iter.next();
+            listedCount++;
+          }
+        } catch (Exception e) {
+          queue.add(e);
+        } finally {
+          results.add(listedCount);
+          System.out.println("End - RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
+        }
+      }));
+    }
+
+    // Await for the 20 threads to be iterating in the middle, then trigger the shutdown event
+    latch.await();
+    System.out.println("All 20 threads are running, shut down now");
+    File checkpointFile = mFolder.newFile("checkpoint-file");
+    try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(checkpointFile))) {
+      mStore.writeToCheckpoint(out);
+    }
+    System.out.println("Write to checkpoint finished, now the RocksDB should be back");
+    System.out.println("The checkpoint file is " + Files.size(checkpointFile.toPath()));
+
+    futures.stream().forEach(f -> {
+      try {
+        f.get();
+      } catch (Exception e) {
+        fail("Met uncaught exception from iteration");
+      }
+    });
+    System.out.println("All threads finished");
+    // Reaching here means close() was successfully, which implies ref count reached zero
+    // By chance, some iterations may complete so not all iterations will abort
+    assertTrue(queue.size() <= threadCount);
+    long completed = results.stream().filter(n -> n == fileNumber).count();
+    // List attempts either completed or aborted
+    assertEquals(completed + queue.size(), threadCount);
+
+    System.out.println("Submit new operations to RocksDB");
+    List<Future> futuresAgain = new ArrayList<>();
+    ArrayBlockingQueue<Exception> queueAgain = new ArrayBlockingQueue<>(threadCount);
+    ArrayBlockingQueue<Integer> resultsAgain = new ArrayBlockingQueue<>(threadCount);
+    for (int k = 0; k < threadCount; k++) {
+      futuresAgain.add(threadpool.submit(() -> {
+        int listedCount = 0;
+        try (CloseableIterator<Long> iter = mStore.getChildIds(0L)) {
+          while (iter.hasNext()) {
+            iter.next();
+            listedCount++;
+          }
+        } catch (Exception e) {
+          queueAgain.add(e);
+        } finally {
+          resultsAgain.add(listedCount);
+          System.out.println("End - RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
+        }
+      }));
+    }
+    futuresAgain.stream().forEach(f -> {
+      try {
+        f.get();
+      } catch (Exception e) {
+        fail("Met uncaught exception from iteration");
+      }
+    });
+    System.out.println("All threads finished on the new RocksDB");
+
+    assertEquals(0, queueAgain.size());
+    long completedAgain = resultsAgain.stream().filter(n -> n == fileNumber).count();
+    assertEquals(20, completedAgain);
+  }
+
+  @Test
+  public void concurrentListAndRestore() throws Exception {
+    int fileNumber = 400;
+    int threadCount = 20;
+    prepareFiles(fileNumber);
+    // Prepare a checkpoint file
+    File checkpointFile = File.createTempFile("checkpoint-for-recovery", "");
+    try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(checkpointFile))) {
+      mStore.writeToCheckpoint(out);
+    }
+    System.out.println("Prepared checkpoint file with size " + Files.size(checkpointFile.toPath()));
+
+
+    ExecutorService threadpool = Executors.newFixedThreadPool(threadCount, ThreadFactoryUtils.build("test-executor-%d", true));
+
+    CountDownLatch latch = new CountDownLatch(20);
+    List<Future> futures = new ArrayList<>();
+    ArrayBlockingQueue<Exception> queue = new ArrayBlockingQueue<>(threadCount);
+    ArrayBlockingQueue<Integer> results = new ArrayBlockingQueue<>(threadCount);
+    for (int k = 0; k < threadCount; k++) {
+      futures.add(threadpool.submit(() -> {
+        int listedCount = 0;
+        try (CloseableIterator<Long> iter = mStore.getChildIds(0L)) {
+          while (iter.hasNext()) {
+            if (listedCount == 10) {
+              latch.countDown();
+            }
+            iter.next();
+            listedCount++;
+          }
+        } catch (Exception e) {
+          queue.add(e);
+        } finally {
+          results.add(listedCount);
+          System.out.println("End - RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
+        }
+      }));
+    }
+
+    // Await for the 20 threads to be iterating in the middle, then trigger the shutdown event
+    latch.await();
+    System.out.println("All 20 threads are running, shut down now");
+    try (CheckpointInputStream in = new CheckpointInputStream((new DataInputStream(new FileInputStream(checkpointFile))))) {
+      mStore.restoreFromCheckpoint(in);
+    }
+    System.out.println("Restored from checkpoint");
+
+    futures.stream().forEach(f -> {
+      try {
+        f.get();
+      } catch (Exception e) {
+        fail("Met uncaught exception from iteration");
+      }
+    });
+    System.out.println("All threads finished");
+    // Reaching here means close() was successfully, which implies ref count reached zero
+    // By chance, some iterations may complete so not all iterations will abort
+    assertTrue(queue.size() <= threadCount);
+    long completed = results.stream().filter(n -> n == fileNumber).count();
+    // List attempts either completed or aborted
+    assertEquals(completed + queue.size(), threadCount);
+
+    // Verify that the RocksDB can still serve
+    System.out.println("Submit new operations to the RocksDB");
+    List<Future> futuresAgain = new ArrayList<>();
+    ArrayBlockingQueue<Exception> queueAgain = new ArrayBlockingQueue<>(threadCount);
+    ArrayBlockingQueue<Integer> resultsAgain = new ArrayBlockingQueue<>(threadCount);
+    for (int k = 0; k < threadCount; k++) {
+      futuresAgain.add(threadpool.submit(() -> {
+        int listedCount = 0;
+        try (CloseableIterator<Long> iter = mStore.getChildIds(0L)) {
+          while (iter.hasNext()) {
+            iter.next();
+            listedCount++;
+          }
+        } catch (Exception e) {
+          queueAgain.add(e);
+        } finally {
+          resultsAgain.add(listedCount);
+          System.out.println("End - RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
+        }
+      }));
+    }
+    futuresAgain.stream().forEach(f -> {
+      try {
+        f.get();
+      } catch (Exception e) {
+        fail("Met uncaught exception from iteration");
+      }
+    });
+    System.out.println("All threads finished on the new RocksDB");
+
+    assertEquals(0, queueAgain.size());
+    long completedAgain = resultsAgain.stream().filter(n -> n == fileNumber).count();
+    assertEquals(20, completedAgain);
+  }
+
 
   @Test
   public void concurrentGetAndClose() throws Exception {
