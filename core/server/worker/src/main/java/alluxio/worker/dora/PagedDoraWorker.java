@@ -18,9 +18,13 @@ import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageId;
+import alluxio.client.file.options.FileSystemOptions;
+import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -35,8 +39,12 @@ import alluxio.grpc.FileFailure;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.Route;
+import alluxio.grpc.RouteFailure;
 import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.UfsReadOptions;
+import alluxio.grpc.WriteOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -46,6 +54,7 @@ import alluxio.proto.meta.DoraMeta;
 import alluxio.resource.PooledResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsInputStreamCache;
@@ -63,6 +72,7 @@ import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.grpc.GrpcExecutors;
+import alluxio.worker.task.CopyHandler;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
@@ -72,8 +82,10 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Closer;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import com.google.inject.Inject;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
@@ -461,12 +473,15 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public ListenableFuture<List<FileFailure>> load(List<File> files) {
+  public ListenableFuture<List<FileFailure>> load(List<File> files, UfsReadOptions options) {
     List<ListenableFuture<Void>> futures = new ArrayList<>();
     List<FileFailure> errors = Collections.synchronizedList(new ArrayList<>());
     for (File file : files) {
       ListenableFuture<Void> loadFuture = Futures.submit(() -> {
         try {
+          if (options.hasUser()) {
+            AuthenticatedClientUser.set(options.getUser());
+          }
           load(file.getUfsPath(), file.getMountId(), file.getLength());
         } catch (Exception e) {
           AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
@@ -496,6 +511,41 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     finally {
       buf.release();
     }
+  }
+
+  @Override
+  public ListenableFuture<List<RouteFailure>> copy(List<Route> routes, UfsReadOptions readOptions,
+      WriteOptions writeOptions) {
+    List<ListenableFuture<Void>> futures = new ArrayList<>();
+    List<RouteFailure> errors = Collections.synchronizedList(new ArrayList<>());
+    FileSystemContext fsContext = FileSystemContext.create(Configuration.global());
+    for (Route route : routes) {
+      FileSystem srcFs = FileSystem.Factory.create(fsContext,
+          FileSystemOptions.create(Configuration.global(),
+              Optional.of(new UfsFileSystemOptions(route.getSrcUfsAddress()))));
+      FileSystem dstFs = FileSystem.Factory.create(fsContext,
+          FileSystemOptions.create(Configuration.global(),
+              Optional.of(new UfsFileSystemOptions(route.getDstUfsAddress()))));
+
+      ListenableFuture<Void> future = Futures.submit(() -> {
+        try {
+          if (readOptions.hasUser()) {
+            AuthenticatedClientUser.set(readOptions.getUser());
+          }
+          CopyHandler.copy(route, writeOptions, srcFs, dstFs);
+        } catch (Exception t) {
+          AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
+          RouteFailure.Builder builder =
+              RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value());
+          if (e.getMessage() != null) {
+            builder.setMessage(e.getMessage());
+          }
+          errors.add(builder.build());
+        }
+      }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+      futures.add(future);
+    }
+    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
   }
 
   @Override

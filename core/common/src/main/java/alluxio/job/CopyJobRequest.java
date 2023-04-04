@@ -29,18 +29,27 @@ public class CopyJobRequest implements JobRequest {
   private final String mDst;
   private final CopyJobPOptions mOptions;
   private final String mSrc;
+  private final String mSrcUfsAddress;
+  private final String mDstUfsAddress;
 
   /**
    * @param src the source file path
    * @param dst the destination file path
+   * @param srcUfsAddress the source ufs path
+   * @param dstUfsAddress the destination ufs path
    * @param options copy job options
    **/
   public CopyJobRequest(@JsonProperty("src") String src,
       @JsonProperty("dst") String dst,
+      @JsonProperty("srcUfsAddress") String srcUfsAddress,
+      @JsonProperty("dstUfsAddress") String dstUfsAddress,
       @JsonProperty("copyJobPOptions") CopyJobPOptions options) {
     mSrc = Preconditions.checkNotNull(src, "The source path cannot be null");
-
     mDst = Preconditions.checkNotNull(dst, "The destination path cannot be null");
+    mSrcUfsAddress =
+        Preconditions.checkNotNull(srcUfsAddress, "The source ufs path cannot be null");
+    mDstUfsAddress =
+        Preconditions.checkNotNull(dstUfsAddress, "The source ufs path cannot be null");
     mOptions = Preconditions.checkNotNull(options, "The job options cannot be null");
   }
 
@@ -59,6 +68,20 @@ public class CopyJobRequest implements JobRequest {
   }
 
   /**
+   * @return the source ufs path
+   */
+  public String getSrcUfsAddress() {
+    return mSrcUfsAddress;
+  }
+
+  /**
+   * @return the destination ufs path
+   */
+  public String getDstUfsAddress() {
+    return mDstUfsAddress;
+  }
+
+  /**
    * @return job options
    */
   public CopyJobPOptions getOptions() {
@@ -71,6 +94,8 @@ public class CopyJobRequest implements JobRequest {
         .toStringHelper(this)
         .add("Src", mSrc)
         .add("Dst", mDst)
+        .add("SrcUfsAddress", mSrcUfsAddress)
+        .add("DstUfsAddress", mDstUfsAddress)
         .add("Options", mOptions)
         .toString();
   }

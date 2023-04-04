@@ -26,16 +26,12 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -71,7 +67,7 @@ public class FileIterable implements Iterable<FileInfo> {
    * @return file iterator. generate new iterator each time
    */
   public FileIterator iterator() {
-    return new FileIterator(mFileSystemMaster, mPath, mUser, mUsePartialListing, mFilter);
+    return new FileIterator();
   }
 
   /**
@@ -82,35 +78,13 @@ public class FileIterable implements Iterable<FileInfo> {
         .newBuilder()
         .setRecursive(true);
     private static final int PARTIAL_LISTING_BATCH_SIZE = 100;
-    private final FileSystemMaster mFileSystemMaster;
-    private final String mPath;
-    private final Optional<String> mUser;
-    private final boolean mUsePartialListing;
-    private final Predicate<FileInfo> mFilter;
     private String mStartAfter = "";
     private List<FileInfo> mFiles;
     private Iterator<FileInfo> mFileInfoIterator;
-    private final AtomicLong mTotalFileCount = new AtomicLong();
-    private final AtomicLong mTotalByteCount = new AtomicLong();
 
-    /**
-     * Creates a new instance of {@link FileIterator}.
-     *
-     * @param fileSystemMaster file system master
-     * @param path path to list
-     * @param user user to list as
-     * @param usePartialListing whether to use partial listing
-     * @param filter filter to apply to the file infos
-     */
-    public FileIterator(FileSystemMaster fileSystemMaster, String path, Optional<String> user,
-        boolean usePartialListing, Predicate<FileInfo> filter) {
-      mFileSystemMaster = requireNonNull(fileSystemMaster, "fileSystemMaster is null");
-      mPath = requireNonNull(path, "path is null");
-      mUser = requireNonNull(user, "user is null");
-      mUsePartialListing = usePartialListing;
-      mFilter = filter;
+    private FileIterator() {
       checkAccess();
-      if (usePartialListing) {
+      if (mUsePartialListing) {
         partialListFileInfos();
       }
       else {
@@ -182,18 +156,6 @@ public class FileIterable implements Iterable<FileInfo> {
       } finally {
         AuthenticatedClientUser.remove();
       }
-      mTotalFileCount.set(mFiles.size());
-      mTotalByteCount.set(mFiles
-          .stream()
-          .map(FileInfo::getFileBlockInfos)
-          .flatMap(Collection::stream)
-          .map(FileBlockInfo::getBlockInfo)
-          .filter(blockInfo -> blockInfo
-              .getLocations()
-              .isEmpty())
-          .map(BlockInfo::getLength)
-          .reduce(Long::sum)
-          .orElse(0L));
     }
   }
 }

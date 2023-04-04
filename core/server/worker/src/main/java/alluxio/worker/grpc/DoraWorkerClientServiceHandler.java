@@ -20,6 +20,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.CopyRequest;
+import alluxio.grpc.CopyResponse;
 import alluxio.grpc.FileFailure;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
@@ -31,6 +33,7 @@ import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
+import alluxio.grpc.RouteFailure;
 import alluxio.grpc.TaskStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.options.ListOptions;
@@ -111,7 +114,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
     try {
 
       ListenableFuture<List<FileFailure>> failures =
-          mWorker.load(request.getFilesList());
+          mWorker.load(request.getFilesList(), request.getOptions());
       ListenableFuture<LoadFileResponse> future = Futures.transform(failures, fail -> {
         int numFiles = request.getFilesCount();
         TaskStatus taskStatus = TaskStatus.SUCCESS;
@@ -124,6 +127,27 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       RpcUtils.invoke(LOG, future, "loadFile", "request=%s", responseObserver, request);
     } catch (Exception e) {
       LOG.debug(String.format("Failed to load file %s: ", request.getFilesList()), e);
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
+    }
+  }
+
+  @Override
+  public void copy(CopyRequest request, StreamObserver<CopyResponse> responseObserver) {
+    try {
+      ListenableFuture<List<RouteFailure>> failures =
+          mWorker.copy(request.getRoutesList(),request.getUfsReadOptions(),request.getWriteOptions());
+      ListenableFuture<CopyResponse> future = Futures.transform(failures, fail -> {
+        int numFiles = request.getRoutesCount();
+        TaskStatus taskStatus = TaskStatus.SUCCESS;
+        if (fail.size() > 0) {
+          taskStatus = numFiles > fail.size() ? TaskStatus.PARTIAL_FAILURE : TaskStatus.FAILURE;
+        }
+        CopyResponse.Builder response = CopyResponse.newBuilder();
+        return response.addAllFailures(fail).setStatus(taskStatus).build();
+      }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+      RpcUtils.invoke(LOG, future, "loadFile", "request=%s", responseObserver, request);
+    } catch (Exception e) {
+      LOG.debug(String.format("Failed to load file %s: ", request.getRoutesList()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }

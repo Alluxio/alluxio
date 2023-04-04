@@ -11,10 +11,11 @@
 
 package alluxio.master.job;
 
-import alluxio.master.file.FileSystemMaster;
+import alluxio.client.WriteType;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.scheduler.job.JobState;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.FileInfo;
 
 import java.util.Optional;
@@ -23,20 +24,20 @@ import java.util.OptionalLong;
 /**
  * Factory for creating {@link LoadJob}s from journal entries.
  */
-public class JournalLoadJobFactory implements JobFactory {
+public class JournalCopyJobFactory implements JobFactory {
 
-  private final FileSystemMaster mFsMaster;
+  private final UnderFileSystem mFs;
 
-  private final alluxio.proto.journal.Job.LoadJobEntry mJobEntry;
+  private final alluxio.proto.journal.Job.CopyJobEntry mJobEntry;
 
   /**
    * Create factory.
    * @param journalEntry journal entry
-   * @param fsMaster file system master
+   * @param fs file system master
    */
-  public JournalLoadJobFactory(alluxio.proto.journal.Job.LoadJobEntry journalEntry,
-       FileSystemMaster fsMaster) {
-    mFsMaster = fsMaster;
+  public JournalCopyJobFactory(alluxio.proto.journal.Job.CopyJobEntry journalEntry,
+       UnderFileSystem fs) {
+    mFs = fs;
     mJobEntry = journalEntry;
   }
 
@@ -45,15 +46,23 @@ public class JournalLoadJobFactory implements JobFactory {
     Optional<String> user =
         mJobEntry.hasUser() ? Optional.of(mJobEntry.getUser()) : Optional.empty();
     Iterable<FileInfo> fileIterator =
-        new FileIterable(mFsMaster, mJobEntry.getLoadPath(), user, mJobEntry.getPartialListing(),
-            LoadJob.QUALIFIED_FILE_FILTER);
-    LoadJob job = new LoadJob(mJobEntry.getLoadPath(), user, mJobEntry.getJobId(),
-        mJobEntry.hasBandwidth() ? OptionalLong.of(mJobEntry.getBandwidth()) : OptionalLong.empty(),
-        mJobEntry.getPartialListing(), mJobEntry.getVerify(), fileIterator);
+        new UfsFileIterable(mFs, mJobEntry.getSrc(), user, mJobEntry.getPartialListing(),
+            FileInfo::isCompleted, mJobEntry.getSrcUfsAddress());
+    AbstractJob<?> job = getCopyJob(user, fileIterator);
     job.setJobState(JobState.fromProto(mJobEntry.getState()));
     if (mJobEntry.hasEndTime()) {
       job.setEndTime(mJobEntry.getEndTime());
     }
+    return job;
+  }
+
+  private CopyJob getCopyJob(Optional<String> user, Iterable<FileInfo> fileIterator) {
+    CopyJob job = new CopyJob(mJobEntry.getSrc(), mJobEntry.getDst(),
+        mJobEntry.getSrcUfsAddress(), mJobEntry.getDstUfsAddress(),
+        mJobEntry.getOverwrite(), WriteType.fromProto(mJobEntry.getWriteType()), user,
+        mJobEntry.getJobId(),
+        mJobEntry.hasBandwidth() ? OptionalLong.of(mJobEntry.getBandwidth()) : OptionalLong.empty(),
+        mJobEntry.getPartialListing(), mJobEntry.getVerify(), fileIterator);
     return job;
   }
 }
