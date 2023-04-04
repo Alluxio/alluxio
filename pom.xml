@@ -175,7 +175,7 @@
 
   <modules>
     <module>assembly</module>
-    <module>core</module>
+    <module>dora/core</module>
     <module>examples</module>
     <module>integration</module>
     <module>logserver</module>

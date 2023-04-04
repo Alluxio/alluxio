@@ -189,7 +189,7 @@
           </execution>
         </executions>
         <configuration>
-          <outputDirectory>${project.build.directory}/generated/build-metadata</outputDirectory>
+          <outputDirectory>target/generated/build-metadata</outputDirectory>
           <outputName>build.properties</outputName>
           <revisionPropertyName>git.revision</revisionPropertyName>
         </configuration>
@@ -221,8 +221,8 @@
               <goal>filter-sources</goal>
             </goals>
             <configuration>
-              <sourceDirectory>${basedir}/src/main/java-templates</sourceDirectory>
-              <outputDirectory>${project.build.directory}/generated-sources/java-templates
+              <sourceDirectory>src/main/java-templates</sourceDirectory>
+              <outputDirectory>target/generated-sources/java-templates
               </outputDirectory>
             </configuration>
           </execution>
