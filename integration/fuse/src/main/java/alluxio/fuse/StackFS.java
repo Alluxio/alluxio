@@ -11,15 +11,15 @@
 
 package alluxio.fuse;
 
-import alluxio.Constants;
+import alluxio.dora.Constants;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
-import alluxio.metrics.MetricsSystem;
-import alluxio.util.io.FileUtils;
+import alluxio.dora.metrics.MetricsSystem;
+import alluxio.dora.util.io.FileUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

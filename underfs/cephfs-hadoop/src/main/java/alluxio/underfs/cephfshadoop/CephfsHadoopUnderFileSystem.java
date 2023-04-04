@@ -11,9 +11,9 @@
 
 package alluxio.underfs.cephfshadoop;
 
-import alluxio.AlluxioURI;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 
 import org.apache.hadoop.conf.Configuration;

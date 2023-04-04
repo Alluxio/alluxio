@@ -54,10 +54,10 @@ with if you used the AWS S3 console to create all parent folders for each object
 ### Tagging & Metadata Limits
 
 User-defined tags on buckets & objects are limited to 10 and obey the [S3 tag restrictions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-tagging.html).
-- Set the property key `alluxio.proxy.s3.tagging.restrictions.enabled=false` to disable this behavior.
+- Set the property key `alluxio.dora.proxy.s3.tagging.restrictions.enabled=false` to disable this behavior.
 
 The maximum size for user-defined metadata in PUT-requests is 2KB by default in accordance with [S3 object metadata restrictions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html).
-- Set the property key `alluxio.proxy.s3.header.metadata.max.size` to change this behavior.
+- Set the property key `alluxio.dora.proxy.s3.header.metadata.max.size` to change this behavior.
 
 ### Performance Implications
 
@@ -153,7 +153,7 @@ which pertain to the Alluxio S3 API.
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
 {% for item in site.data.table.common-configuration %}
-  {% if item.propertyName contains "alluxio.proxy.s3" %}
+  {% if item.propertyName contains "alluxio.dora.proxy.s3" %}
   <tr>
     <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
@@ -172,7 +172,7 @@ which pertain to the Alluxio S3 API.
 You can use the [AWS command line interface](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html)
 to send S3 API requests to the Alluxio S3 API. Note that you will have to provide the `--endpoint` parameter
 to specify the location of the Alluxio S3 REST API with the server's base URI included
-(i.e: `--endpoint "http://{alluxio.proxy.web.hostname}:{alluxio.proxy.web.port}/api/v1/s3/"`).
+(i.e: `--endpoint "http://{alluxio.dora.proxy.web.hostname}:{alluxio.dora.proxy.web.port}/api/v1/s3/"`).
 
 As a pre-requisite for operations which involve the `Authorization` header you may need to
 [configure AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html).
@@ -190,7 +190,7 @@ Default output format [None]:
 {% navtab REST Clients %}
 You can directly use any HTTP client to send S3 API requests to the Alluxio S3 API.
 Note that the base URI for the Alluxio S3 API's REST server is `/api/v1/s3/`
-(i.e: your requests should be directed to `"http://{alluxio.proxy.web.hostname}:{alluxio.proxy.web.port}/api/v1/s3/"`).
+(i.e: your requests should be directed to `"http://{alluxio.dora.proxy.web.hostname}:{alluxio.dora.proxy.web.port}/api/v1/s3/"`).
 
 At the moment, access key and secret key validation does not exist for the Alluxio S3 API.
 Therefore the [Authorization header]({{ '/en/api/S3-API.html#global-request-headers' | relativize_url }})

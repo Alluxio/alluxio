@@ -17,7 +17,7 @@ import alluxio.grpc.table.Constraint;
 import alluxio.grpc.table.Database;
 import alluxio.grpc.table.Partition;
 import alluxio.grpc.table.SyncStatus;
-import alluxio.master.Master;
+import alluxio.dora.master.Master;
 import alluxio.master.table.transform.TransformJobInfo;
 
 import java.io.IOException;

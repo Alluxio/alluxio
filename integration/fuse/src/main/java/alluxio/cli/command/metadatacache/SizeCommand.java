@@ -11,13 +11,13 @@
 
 package alluxio.cli.command.metadatacache;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.MetadataCachingFileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.wire.FileInfo;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.MetadataCachingFileSystem;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.wire.FileInfo;
 
 /**
  * The metadata cache 'size' subcommand.

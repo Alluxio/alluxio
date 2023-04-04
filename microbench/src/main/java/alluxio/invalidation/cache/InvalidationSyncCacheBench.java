@@ -11,13 +11,13 @@
 
 package alluxio.invalidation.cache;
 
-import alluxio.AlluxioURI;
+import alluxio.dora.AlluxioURI;
 import alluxio.BaseFileStructure;
 import alluxio.BaseThreadState;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.file.options.DescendantType;
-import alluxio.master.file.meta.UfsSyncPathCache;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.file.options.DescendantType;
+import alluxio.dora.master.file.meta.UfsSyncPathCache;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;

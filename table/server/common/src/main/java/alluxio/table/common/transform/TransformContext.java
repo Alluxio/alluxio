@@ -11,9 +11,9 @@
 
 package alluxio.table.common.transform;
 
-import alluxio.AlluxioURI;
+import alluxio.dora.AlluxioURI;
 import alluxio.table.common.CatalogPathUtils;
-import alluxio.util.CommonUtils;
+import alluxio.dora.util.CommonUtils;
 
 import org.apache.commons.lang3.time.FastDateFormat;
 

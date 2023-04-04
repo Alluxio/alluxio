@@ -11,8 +11,8 @@
 
 package alluxio.master.table;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.TableInfo;
@@ -23,7 +23,7 @@ import alluxio.table.common.transform.TransformContext;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
 import alluxio.table.common.udb.UdbTable;
-import alluxio.util.CommonUtils;
+import alluxio.dora.util.CommonUtils;
 
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;

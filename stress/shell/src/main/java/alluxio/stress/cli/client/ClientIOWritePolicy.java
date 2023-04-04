@@ -11,11 +11,11 @@
 
 package alluxio.stress.cli.client;
 
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.client.block.BlockWorkerInfo;
+import alluxio.dora.client.block.policy.BlockLocationPolicy;
+import alluxio.dora.client.block.policy.options.GetWorkerOptions;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;

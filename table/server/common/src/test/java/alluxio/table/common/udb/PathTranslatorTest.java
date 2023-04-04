@@ -13,10 +13,10 @@ package alluxio.table.common.udb;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.ConfigurationRule;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.ConfigurationRule;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;

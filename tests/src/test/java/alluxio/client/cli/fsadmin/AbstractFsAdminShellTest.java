@@ -13,7 +13,7 @@ package alluxio.client.cli.fsadmin;
 
 import alluxio.cli.fsadmin.FileSystemAdminShell;
 import alluxio.client.cli.fs.AbstractShellIntegrationTest;
-import alluxio.conf.Configuration;
+import alluxio.dora.conf.Configuration;
 import alluxio.master.LocalAlluxioCluster;
 
 import org.junit.After;

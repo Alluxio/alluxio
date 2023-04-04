@@ -13,8 +13,8 @@ package alluxio.fuse.file;
 
 import static jnr.constants.platform.OpenFlags.O_ACCMODE;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.FileSystem;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.lock.FuseReadWriteLockManager;
 

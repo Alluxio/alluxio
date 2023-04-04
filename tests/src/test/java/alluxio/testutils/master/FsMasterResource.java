@@ -11,8 +11,8 @@
 
 package alluxio.testutils.master;
 
-import alluxio.master.MasterRegistry;
-import alluxio.master.journal.JournalSystem;
+import alluxio.dora.master.MasterRegistry;
+import alluxio.dora.master.journal.JournalSystem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

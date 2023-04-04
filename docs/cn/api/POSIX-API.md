@@ -155,7 +155,7 @@ INFO  NativeLibraryLoader - Loaded libjnifuse with libfuse version 2(或者3).
 
 * 文件只能顺序地写入一次，并且无法修改;这意味着如果要修改一个文件，你需要先删除改文件，然后再重新创建。例如当目标文件存在时拷贝命令`cp`会失败。
 * Alluxio没有hard-link和soft-link的概念，所以不支持与之相关的命令如`ln`。此外关于hard-link的信息也不在`ll`的输出中显示。
-* 只有当Alluxio的`alluxio.security.group.mapping.class`选项设置为`ShellBasedUnixGroupsMapping`的值时，文件的用户与分组信息才与Unix系统的用户分组对应。否则`chown`与`chgrp`的操作不生效，而`ll`返回的用户与分组为启动Alluxio-FUSE进程的用户与分组信息。
+* 只有当Alluxio的`alluxio.dora.security.group.mapping.class`选项设置为`ShellBasedUnixGroupsMapping`的值时，文件的用户与分组信息才与Unix系统的用户分组对应。否则`chown`与`chgrp`的操作不生效，而`ll`返回的用户与分组为启动Alluxio-FUSE进程的用户与分组信息。
 
 ## 性能考虑
 

@@ -11,19 +11,19 @@
 
 package alluxio.examples;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.RuntimeConstants;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.conf.Configuration;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.RuntimeConstants;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.InstancedConfiguration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;

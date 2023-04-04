@@ -11,15 +11,15 @@
 
 package alluxio.underfs.wasb;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.conf.PropertyKey;
-import alluxio.underfs.UfsFileStatus;
-import alluxio.underfs.UfsStatus;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.underfs.UfsFileStatus;
+import alluxio.dora.underfs.UfsStatus;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
-import alluxio.underfs.options.FileLocationOptions;
+import alluxio.dora.underfs.options.FileLocationOptions;
 
 import com.google.common.base.MoreObjects;
 import org.apache.hadoop.conf.Configuration;

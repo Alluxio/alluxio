@@ -11,20 +11,20 @@
 
 package alluxio.client.fs;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.URIStatus;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.URIStatus;
 import alluxio.client.fs.io.AbstractFileOutStreamIntegrationTest;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.file.meta.PersistenceState;
+import alluxio.dora.master.file.meta.PersistenceState;
 import alluxio.testutils.IntegrationTestUtils;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.util.CommonUtils;
-import alluxio.util.UnderFileSystemUtils;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.UnderFileSystemUtils;
+import alluxio.dora.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Assume;

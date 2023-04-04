@@ -11,17 +11,17 @@
 
 package alluxio.client.cli.fs;
 
-import static alluxio.conf.PropertyKey.Builder.stringBuilder;
+import static alluxio.dora.conf.PropertyKey.Builder.stringBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 
-import alluxio.ClientContext;
-import alluxio.SystemOutRule;
-import alluxio.SystemPropertyRule;
+import alluxio.dora.ClientContext;
+import alluxio.dora.SystemOutRule;
+import alluxio.dora.SystemPropertyRule;
 import alluxio.cli.GetConf;
-import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPResponse;
 
@@ -148,7 +148,7 @@ public final class GetConfTest {
     RetryHandlingMetaMasterConfigClient client =
         Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
     Mockito.when(client.getConfiguration(any())).thenReturn(
-        alluxio.wire.Configuration.fromProto(prepareGetConfigurationResponse()));
+        alluxio.dora.wire.Configuration.fromProto(prepareGetConfigurationResponse()));
 
     assertEquals(0, GetConf.getConfImpl(() -> client, Configuration.global(), "--master"));
     String expectedOutput = "alluxio.logger.type=MASTER_LOGGER\n"
@@ -165,7 +165,7 @@ public final class GetConfTest {
     // Prepare mock meta master client
     RetryHandlingMetaMasterConfigClient client =
         Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
-    Mockito.when(client.getConfiguration(any())).thenReturn(alluxio.wire.Configuration.fromProto(
+    Mockito.when(client.getConfiguration(any())).thenReturn(alluxio.dora.wire.Configuration.fromProto(
         prepareGetConfigurationResponse()));
     assertEquals(0, GetConf.getConfImpl(() -> client, Configuration.global(), "--master",
         "--source"));

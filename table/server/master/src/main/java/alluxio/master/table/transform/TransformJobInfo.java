@@ -11,7 +11,7 @@
 
 package alluxio.master.table.transform;
 
-import alluxio.collections.Pair;
+import alluxio.dora.collections.Pair;
 import alluxio.job.wire.Status;
 import alluxio.table.common.Layout;
 

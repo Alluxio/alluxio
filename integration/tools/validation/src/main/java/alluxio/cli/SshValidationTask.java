@@ -11,11 +11,14 @@
 
 package alluxio.cli;
 
-import alluxio.Constants;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
+import alluxio.dora.Constants;
+import alluxio.dora.cli.AbstractValidationTask;
+import alluxio.dora.cli.ValidationTaskResult;
+import alluxio.dora.cli.ValidationUtils;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.ConfigurationUtils;
 
 import java.util.Map;
 import java.util.Set;

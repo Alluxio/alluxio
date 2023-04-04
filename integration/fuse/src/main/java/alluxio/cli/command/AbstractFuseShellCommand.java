@@ -12,8 +12,8 @@
 package alluxio.cli.command;
 
 import alluxio.cli.FuseCommand;
-import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.conf.AlluxioConfiguration;
 
 import javax.annotation.concurrent.ThreadSafe;
 

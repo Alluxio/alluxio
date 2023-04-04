@@ -11,11 +11,11 @@
 
 package alluxio.table.common.udb;
 
-import alluxio.AlluxioURI;
-import alluxio.conf.Configuration;
-import alluxio.exception.InvalidPathException;
-import alluxio.util.ConfigurationUtils;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.exception.InvalidPathException;
+import alluxio.dora.util.ConfigurationUtils;
+import alluxio.dora.util.io.PathUtils;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;

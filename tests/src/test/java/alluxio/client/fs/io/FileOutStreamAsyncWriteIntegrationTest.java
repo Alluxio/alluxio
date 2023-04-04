@@ -14,31 +14,32 @@ package alluxio.client.fs.io;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.AlluxioURI;
-import alluxio.ClientContext;
-import alluxio.Constants;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.FileSystemUtils;
-import alluxio.client.file.URIStatus;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.status.UnavailableException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.ClientContext;
+import alluxio.dora.Constants;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemTestUtils;
+import alluxio.dora.client.file.FileSystemUtils;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.status.UnavailableException;
+import alluxio.dora.worker.file.FileSystemMasterClient;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.MasterClientContext;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.meta.PersistenceState;
+import alluxio.dora.master.MasterClientContext;
+import alluxio.dora.master.block.BlockMaster;
+import alluxio.dora.master.file.FileSystemMaster;
+import alluxio.dora.master.file.meta.PersistenceState;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
-import alluxio.util.io.PathUtils;
-import alluxio.wire.FileBlockInfo;
-import alluxio.wire.WorkerInfo;
-import alluxio.worker.block.BlockWorker;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.FormatUtils;
+import alluxio.dora.util.io.PathUtils;
+import alluxio.dora.wire.FileBlockInfo;
+import alluxio.dora.wire.WorkerInfo;
+import alluxio.dora.worker.block.BlockWorker;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -46,7 +47,7 @@ import org.junit.Test;
 import java.util.Arrays;
 
 /**
- * Integration tests for {@link alluxio.client.file.FileOutStream} of under storage type being async
+ * Integration tests for {@link FileOutStream} of under storage type being async
  * persist.
  */
 public final class FileOutStreamAsyncWriteIntegrationTest
@@ -127,8 +128,8 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.ASYNC_THROUGH, 100);
     URIStatus status = mFileSystem.getStatus(filePath);
-    alluxio.worker.file.FileSystemMasterClient fsMasterClient = new
-        alluxio.worker.file.FileSystemMasterClient(MasterClientContext
+    FileSystemMasterClient fsMasterClient = new
+            FileSystemMasterClient(MasterClientContext
             .newBuilder(ClientContext.create(Configuration.global())).build());
     Assert.assertTrue(fsMasterClient.getPinList().contains(status.getFileId()));
     IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, filePath);

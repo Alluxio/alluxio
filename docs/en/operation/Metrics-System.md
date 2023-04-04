@@ -51,7 +51,7 @@ Each instance can report to zero or more sinks.
 * `MetricsServlet`: Adds a servlet in Web UI to serve metrics data as JSON data.
 
 The metrics system is configured via a configuration file that Alluxio expects to be present at `${ALLUXIO_HOME}/conf/metrics.properties`.
-A custom file location can be specified via the `alluxio.metrics.conf.file` configuration property.
+A custom file location can be specified via the `alluxio.dora.metrics.conf.file` configuration property.
 Refer to `${ALLUXIO_HOME}/conf/metrics.properties.template` for all possible sink specific configurations.
 To configure the metrics system on Kubernetes, refer to [Metrics On Kubernetes]({{ '/en/kubernetes/Metrics-On-Kubernetes.html' | relativize_url }}#metrics-sink-configuration)
 
@@ -99,7 +99,7 @@ In the metrics property file, `$ALLUXIO_HOME/conf/metrics.properties` by default
 
 ```properties
 # Enable PrometheusMetricsServlet
-sink.prometheus.class=alluxio.metrics.sink.PrometheusMetricsServlet
+sink.prometheus.class=alluxio.dora.sink.PrometheusMetricsServlet
 ```
 
 If Alluxio is deployed in a cluster, this file needs to be distributed to all the nodes.
@@ -179,7 +179,7 @@ In the metrics property file, `$ALLUXIO_HOME/conf/metrics.properties` by default
 
 ```properties
 # Enable CsvSink
-sink.csv.class=alluxio.metrics.sink.CsvSink
+sink.csv.class=alluxio.dora.metrics.sink.CsvSink
 
 # Polling period for CsvSink
 sink.csv.period=1

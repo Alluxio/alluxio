@@ -11,7 +11,7 @@
 
 package alluxio.client.rest;
 
-import alluxio.Constants;
+import alluxio.dora.Constants;
 import alluxio.testutils.BaseIntegrationTest;
 
 import com.google.common.collect.ImmutableMap;

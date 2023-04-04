@@ -84,7 +84,7 @@ $ ./bin/alluxio runTests
 ```
 Exception in thread "main" alluxio.exception.DirectoryNotEmptyException: Failed to delete /default_tests_files (com.amazonaws.services.s3.model.AmazonS3Exception: The specified bucket does not exist (Service: Amazon S3; Status Code: 404; Error Code: NoSuchBucke
 t; Request ID: 158681CA87E59BA0; S3 Extended Request ID: 2d47b54e-7dd4-4e32-bc6e-48ffb8e2265c), S3 Extended Request ID: 2d47b54e-7dd4-4e32-bc6e-48ffb8e2265c) from the under file system
-        at alluxio.client.file.BaseFileSystem.delete(BaseFileSystem.java:234)
+        at alluxio.dora.file.client.BaseFileSystem.delete(BaseFileSystem.java:234)
         at alluxio.cli.TestRunner.runTests(TestRunner.java:118)
         at alluxio.cli.TestRunner.main(TestRunner.java:100)
 ```
@@ -98,7 +98,7 @@ t; Request ID: 158681CA87E59BA0; S3 Extended Request ID: 2d47b54e-7dd4-4e32-bc6e
 
 ```
 Exception in thread "main" alluxio.exception.DirectoryNotEmptyException: Failed to delete /default_tests_files (com.amazonaws.SdkClientException: Unable to execute HTTP request: {{BUCKET_NAME}}) from the under file system
-        at alluxio.client.file.BaseFileSystem.delete(BaseFileSystem.java:234)
+        at alluxio.dora.file.client.BaseFileSystem.delete(BaseFileSystem.java:234)
         at alluxio.cli.TestRunner.runTests(TestRunner.java:118)
         at alluxio.cli.TestRunner.main(TestRunner.java:100)
 ```
@@ -113,7 +113,7 @@ Exception in thread "main" alluxio.exception.DirectoryNotEmptyException: Failed 
 ```
 Exception in thread "main" alluxio.exception.DirectoryNotEmptyException: Failed to delete /default_tests_files (com.amazonaws.SdkClientException: Unable to execute HTTP request: Connect to localhost:9001 [localhost/127.0.0.1] failed: Connection refused (Connect
 ion refused)) from the under file system
-        at alluxio.client.file.BaseFileSystem.delete(BaseFileSystem.java:234)
+        at alluxio.dora.file.client.BaseFileSystem.delete(BaseFileSystem.java:234)
         at alluxio.cli.TestRunner.runTests(TestRunner.java:118)
         at alluxio.cli.TestRunner.main(TestRunner.java:100)
 ```
@@ -130,7 +130,7 @@ Alluxio master凭证配置不正确。
 ERROR CliUtils - Exception running test: alluxio.examples.BasicNonByteBufferOperations@388526fb
 alluxio.exception.AlluxioException: com.amazonaws.services.s3.model.AmazonS3Exception: Forbidden (Service: Amazon S3; Status Code: 403; Error Code: 403 Forbidden; Request ID: 1586BF770688AB20; S3 Extended Request ID: null), S3 Extended Request ID: null
         at alluxio.exception.status.AlluxioStatusException.toAlluxioException(AlluxioStatusException.java:111)
-        at alluxio.client.file.BaseFileSystem.createFile(BaseFileSystem.java:200)
+        at alluxio.dora.file.client.BaseFileSystem.createFile(BaseFileSystem.java:200)
         at alluxio.examples.BasicNonByteBufferOperations.createFile(BasicNonByteBufferOperations.java:102)
         at alluxio.examples.BasicNonByteBufferOperations.write(BasicNonByteBufferOperations.java:85)
         at alluxio.examples.BasicNonByteBufferOperations.call(BasicNonByteBufferOperations.java:80)

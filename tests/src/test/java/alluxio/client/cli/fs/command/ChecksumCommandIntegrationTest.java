@@ -12,10 +12,10 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.exception.ExceptionMessage;
+import alluxio.dora.client.file.FileSystemTestUtils;
+import alluxio.dora.exception.ExceptionMessage;
 import alluxio.grpc.WritePType;
-import alluxio.util.io.BufferUtils;
+import alluxio.dora.util.io.BufferUtils;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Assert;

@@ -14,17 +14,17 @@ package alluxio.master.backcompat.ops;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.client.file.FileSystem;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.client.file.FileSystem;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Utils;
-import alluxio.security.authorization.Mode;
-import alluxio.security.authorization.ModeParser;
+import alluxio.dora.security.authorization.Mode;
+import alluxio.dora.security.authorization.ModeParser;
 
 import java.util.Arrays;
 

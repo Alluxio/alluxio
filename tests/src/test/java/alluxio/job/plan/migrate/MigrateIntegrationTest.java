@@ -11,10 +11,10 @@
 
 package alluxio.job.plan.migrate;
 
-import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.WriteType;
+import alluxio.dora.client.file.FileInStream;
+import alluxio.dora.client.file.FileOutStream;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;

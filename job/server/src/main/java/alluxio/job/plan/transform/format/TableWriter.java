@@ -11,7 +11,7 @@
 
 package alluxio.job.plan.transform.format;
 
-import alluxio.AlluxioURI;
+import alluxio.dora.AlluxioURI;
 import alluxio.job.plan.transform.PartitionInfo;
 import alluxio.job.plan.transform.format.parquet.ParquetWriter;
 

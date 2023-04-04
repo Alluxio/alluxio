@@ -11,11 +11,11 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.annotation.PublicApi;
-import alluxio.cli.Command;
+import alluxio.dora.annotation.PublicApi;
+import alluxio.dora.cli.Command;
 import alluxio.cli.fsadmin.journal.CheckpointCommand;
 import alluxio.cli.fsadmin.journal.QuorumCommand;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.dora.conf.AlluxioConfiguration;
 
 import com.google.common.annotations.VisibleForTesting;
 

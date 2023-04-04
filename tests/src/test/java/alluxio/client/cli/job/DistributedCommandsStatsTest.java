@@ -14,20 +14,20 @@ package alluxio.client.cli.job;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.UnderFileSystemFactoryRegistryRule;
-import alluxio.client.WriteType;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemTestUtils;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.UnderFileSystemFactoryRegistryRule;
+import alluxio.dora.client.WriteType;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
 import alluxio.job.plan.load.LoadConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
 import alluxio.job.plan.persist.PersistConfig;
 import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.Status;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
+import alluxio.dora.metrics.MetricKey;
+import alluxio.dora.metrics.MetricsSystem;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 

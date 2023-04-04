@@ -11,10 +11,10 @@
 
 package alluxio.client.fuse;
 
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.fuse.AlluxioJnrFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
 

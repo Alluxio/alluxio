@@ -11,17 +11,18 @@
 
 package alluxio.master;
 
-import alluxio.Constants;
-import alluxio.HealthCheckClient;
+import alluxio.dora.Constants;
+import alluxio.dora.HealthCheckClient;
 import alluxio.common.RpcPortHealthCheckClient;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.master.MasterInquireClient;
 import alluxio.grpc.ServiceType;
-import alluxio.retry.RetryPolicy;
-import alluxio.security.user.UserState;
-import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
-import alluxio.util.ShellUtils;
-import alluxio.util.network.NetworkAddressUtils;
+import alluxio.dora.retry.RetryPolicy;
+import alluxio.dora.security.user.UserState;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.ConfigurationUtils;
+import alluxio.dora.util.ShellUtils;
+import alluxio.dora.util.network.NetworkAddressUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

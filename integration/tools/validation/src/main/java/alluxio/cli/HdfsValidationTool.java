@@ -11,9 +11,13 @@
 
 package alluxio.cli;
 
-import alluxio.AlluxioURI;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.cli.ValidationTask;
+import alluxio.dora.cli.ValidationTaskResult;
+import alluxio.dora.cli.ValidationTool;
+import alluxio.dora.cli.ValidationUtils;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableMap;
 

@@ -13,10 +13,10 @@ package alluxio.client.cli.fsadmin;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.AlluxioTestDirectory;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.PropertyKey.Name;
+import alluxio.dora.AlluxioTestDirectory;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.conf.PropertyKey.Name;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Test;

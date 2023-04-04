@@ -13,20 +13,20 @@ package alluxio.client.fs;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.clock.ManualClock;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.clock.ManualClock;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.RegisterWorkerPOptions;
-import alluxio.master.CoreMasterContext;
-import alluxio.master.MasterRegistry;
-import alluxio.master.MasterTestUtils;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.block.DefaultBlockMaster;
-import alluxio.master.block.meta.MasterWorkerInfo;
-import alluxio.master.metrics.MetricsMaster;
-import alluxio.master.metrics.MetricsMasterFactory;
-import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.master.CoreMasterContext;
+import alluxio.dora.master.MasterRegistry;
+import alluxio.dora.master.MasterTestUtils;
+import alluxio.dora.master.block.BlockMaster;
+import alluxio.dora.master.block.DefaultBlockMaster;
+import alluxio.dora.master.block.meta.MasterWorkerInfo;
+import alluxio.dora.master.metrics.MetricsMaster;
+import alluxio.dora.master.metrics.MetricsMasterFactory;
+import alluxio.dora.util.executor.ExecutorServiceFactories;
+import alluxio.dora.wire.WorkerNetAddress;
 
 import org.junit.After;
 import org.junit.Before;

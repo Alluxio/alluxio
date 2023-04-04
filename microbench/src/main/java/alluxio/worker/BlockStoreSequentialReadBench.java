@@ -11,13 +11,14 @@
 
 package alluxio.worker;
 
-import alluxio.AlluxioTestDirectory;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.AlluxioTestDirectory;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.worker.grpc.BlockReadHandler;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.io.PathUtils;
-import alluxio.worker.block.BlockStore;
-import alluxio.worker.block.io.BlockReader;
+import alluxio.dora.util.io.PathUtils;
+import alluxio.dora.worker.block.BlockStore;
+import alluxio.dora.worker.block.io.BlockReader;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -135,7 +136,7 @@ public class BlockStoreSequentialReadBench {
 
   /**
    * Use {@link BlockReader#read} to read all block cached locally to memory.
-   * This method simulates {@link alluxio.worker.grpc.BlockReadHandler}'s use of BlockStore
+   * This method simulates {@link BlockReadHandler}'s use of BlockStore
    * when pooling is not enabled.
    *
    * @param store the block store
@@ -157,7 +158,7 @@ public class BlockStoreSequentialReadBench {
 
   /**
    * Use {@link BlockReader#transferTo} to read all block cached locally to memory.
-   * This method simulates {@link alluxio.worker.grpc.BlockReadHandler}'s use of BlockStore
+   * This method simulates {@link BlockReadHandler}'s use of BlockStore
    * when pooling is enabled.
    *
    * @param store the block store

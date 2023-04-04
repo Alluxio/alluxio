@@ -111,7 +111,7 @@ run_monitor() {
       alluxio_config="${alluxio_config} ${ALLUXIO_JOB_WORKER_MONITOR_JAVA_OPTS}"
       ;;
     proxy)
-      monitor_exec=alluxio.proxy.AlluxioProxyMonitor
+      monitor_exec=alluxio.dora.proxy.AlluxioProxyMonitor
       ;;
     *)
       echo "Error: Invalid NODE_TYPE: ${node_type}" >&2

@@ -11,10 +11,10 @@
 
 package alluxio.stress.common;
 
-import alluxio.client.ReadType;
-import alluxio.client.WriteType;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.client.ReadType;
+import alluxio.dora.client.WriteType;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.stress.Parameters;
 
 import com.beust.jcommander.IStringConverter;

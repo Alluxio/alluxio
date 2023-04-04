@@ -11,18 +11,18 @@
 
 package alluxio.client.rest;
 
-import alluxio.Constants;
-import alluxio.RuntimeConstants;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
-import alluxio.security.authentication.AuthType;
+import alluxio.dora.Constants;
+import alluxio.dora.RuntimeConstants;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.metrics.MetricKey;
+import alluxio.dora.metrics.MetricsSystem;
+import alluxio.dora.security.authentication.AuthType;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.AlluxioWorkerInfo;
-import alluxio.wire.Capacity;
-import alluxio.worker.AlluxioWorkerRestServiceHandler;
+import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.dora.wire.AlluxioWorkerInfo;
+import alluxio.dora.wire.Capacity;
+import alluxio.dora.worker.AlluxioWorkerRestServiceHandler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;

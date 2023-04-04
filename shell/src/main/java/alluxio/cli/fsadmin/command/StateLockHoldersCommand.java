@@ -11,8 +11,8 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.AlluxioException;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
 

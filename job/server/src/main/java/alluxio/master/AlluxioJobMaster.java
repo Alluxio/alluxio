@@ -11,9 +11,9 @@
 
 package alluxio.master;
 
-import alluxio.ProcessUtils;
-import alluxio.RuntimeConstants;
-import alluxio.util.CommonUtils;
+import alluxio.dora.ProcessUtils;
+import alluxio.dora.RuntimeConstants;
+import alluxio.dora.util.CommonUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public final class AlluxioJobMaster {
       System.exit(-1);
     }
 
-    CommonUtils.PROCESS_TYPE.set(alluxio.util.CommonUtils.ProcessType.JOB_MASTER);
+    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.JOB_MASTER);
     AlluxioJobMasterProcess process;
     try {
       process = AlluxioJobMasterProcess.Factory.create();

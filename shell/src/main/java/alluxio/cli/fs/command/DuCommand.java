@@ -11,17 +11,17 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.AlluxioURI;
-import alluxio.annotation.PublicApi;
-import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.InvalidArgumentException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.annotation.PublicApi;
+import alluxio.dora.cli.CommandUtils;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.status.InvalidArgumentException;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.util.FormatUtils;
-import alluxio.wire.BlockLocation;
-import alluxio.wire.FileBlockInfo;
+import alluxio.dora.util.FormatUtils;
+import alluxio.dora.wire.BlockLocation;
+import alluxio.dora.wire.FileBlockInfo;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;

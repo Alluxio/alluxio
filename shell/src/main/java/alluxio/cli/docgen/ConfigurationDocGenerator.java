@@ -11,10 +11,10 @@
 
 package alluxio.cli.docgen;
 
-import alluxio.annotation.PublicApi;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.annotation.PublicApi;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Closer;
@@ -101,7 +101,7 @@ public final class ConfigurationDocGenerator {
           fileWriter = fileWriterMap.get("master");
         } else if (pKey.startsWith("alluxio.worker.")) {
           fileWriter = fileWriterMap.get("worker");
-        } else if (pKey.startsWith("alluxio.security.")) {
+        } else if (pKey.startsWith("alluxio.dora.security.")) {
           fileWriter = fileWriterMap.get("security");
         } else if (pKey.startsWith("alluxio.integration")) {
           fileWriter = fileWriterMap.get("cluster-management");
@@ -179,7 +179,7 @@ public final class ConfigurationDocGenerator {
           fileWriter = fileWriterMap.get("master");
         } else if (pKey.startsWith("alluxio.worker.")) {
           fileWriter = fileWriterMap.get("worker");
-        } else if (pKey.startsWith("alluxio.security.")) {
+        } else if (pKey.startsWith("alluxio.dora.security.")) {
           fileWriter = fileWriterMap.get("security");
         } else if (pKey.startsWith("alluxio.integration.")) {
           fileWriter = fileWriterMap.get("cluster-management");

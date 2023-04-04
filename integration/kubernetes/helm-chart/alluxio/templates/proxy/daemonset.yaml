@@ -73,7 +73,7 @@ spec:
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           {{- if .Values.proxy.resources  }}
-{{ include "alluxio.proxy.resources" . | indent 10 }}
+{{ include "alluxio.dora.proxy.resources" . | indent 10 }}
           {{- end }}
           command: ["/entrypoint.sh"]
           {{- if .Values.proxy.args }}

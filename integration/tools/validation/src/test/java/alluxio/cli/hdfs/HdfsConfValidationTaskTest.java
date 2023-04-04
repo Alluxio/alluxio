@@ -15,12 +15,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
 
-import alluxio.cli.ValidationTaskResult;
+import alluxio.dora.cli.ValidationTaskResult;
 import alluxio.cli.ValidationTestUtils;
-import alluxio.cli.ValidationUtils;
-import alluxio.conf.Configuration;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.cli.ValidationUtils;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.InstancedConfiguration;
+import alluxio.dora.conf.PropertyKey;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;

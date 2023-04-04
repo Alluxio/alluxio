@@ -75,7 +75,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 从v1.8开始，每个Alluxio客户端都可以使用从master节点获取的集群范围的配置值初始化其配置。
 具体来说，当不同的客户端应用程序(如Alluxio Shell命令、Spark作业或MapReduce作业)连接到一个Alluxio服务时，
-它们将使用master节点提供的默认值初始化自己的Alluxio配置属性，这些默认值是基于master节点的`${ALLUXIO_HOME}/conf/alluxio-site.properties`属性文件。因此，集群管理员可以放置客户端设置(例如，`alluxio.user.*`)或网络传输设置(如`alluxio.security.authentication.type`)在master节点的`${ALLUXIO_HOME}/conf/alluxio-site.properties`。
+它们将使用master节点提供的默认值初始化自己的Alluxio配置属性，这些默认值是基于master节点的`${ALLUXIO_HOME}/conf/alluxio-site.properties`属性文件。因此，集群管理员可以放置客户端设置(例如，`alluxio.user.*`)或网络传输设置(如`alluxio.dora.security.authentication.type`)在master节点的`${ALLUXIO_HOME}/conf/alluxio-site.properties`。
 它将被分布并成为集群范围内的默认值，用于新的Aluxio客户端。
 
 例如，一个常见的Alluxio属性`alluxio.user.file.writetype.default` 是设置写方式为默认的

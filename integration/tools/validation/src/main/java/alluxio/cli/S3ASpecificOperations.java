@@ -11,13 +11,13 @@
 
 package alluxio.cli;
 
-import alluxio.Constants;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.underfs.UfsStatus;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.CreateOptions;
-import alluxio.util.CommonUtils;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.Constants;
+import alluxio.dora.conf.InstancedConfiguration;
+import alluxio.dora.underfs.UfsStatus;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.underfs.options.CreateOptions;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.io.PathUtils;
 
 import java.io.IOException;
 import java.io.InputStream;

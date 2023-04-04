@@ -11,10 +11,10 @@
 
 package alluxio.client.cli.fs.command;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.UnderFileSystemFactoryRegistryRule;
-import alluxio.client.WriteType;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.UnderFileSystemFactoryRegistryRule;
+import alluxio.dora.client.WriteType;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.job.plan.migrate.MigrateConfig;
 import alluxio.job.util.JobTestUtils;

@@ -13,10 +13,10 @@ package alluxio.table.common;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.AlluxioURI;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.util.io.PathUtils;
 
 import org.junit.Test;
 

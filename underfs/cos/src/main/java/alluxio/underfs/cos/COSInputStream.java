@@ -11,8 +11,8 @@
 
 package alluxio.underfs.cos;
 
-import alluxio.retry.RetryPolicy;
-import alluxio.underfs.MultiRangeObjectInputStream;
+import alluxio.dora.retry.RetryPolicy;
+import alluxio.dora.underfs.MultiRangeObjectInputStream;
 
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.exception.CosServiceException;

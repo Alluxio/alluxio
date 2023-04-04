@@ -15,15 +15,15 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.Constants;
-import alluxio.client.block.BlockMasterClient;
-import alluxio.client.meta.MetaMasterClient;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.Constants;
+import alluxio.dora.client.block.BlockMasterClient;
+import alluxio.dora.client.meta.MetaMasterClient;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.MasterInfo;
-import alluxio.util.CommonUtils;
-import alluxio.wire.BlockMasterInfo;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.wire.BlockMasterInfo;
 
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.After;

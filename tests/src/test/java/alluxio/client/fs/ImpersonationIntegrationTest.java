@@ -11,18 +11,18 @@
 
 package alluxio.client.fs;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.status.UnauthenticatedException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.status.UnauthenticatedException;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.security.CurrentUser;
-import alluxio.security.authorization.Mode;
-import alluxio.security.group.GroupMappingService;
+import alluxio.dora.security.CurrentUser;
+import alluxio.dora.security.authorization.Mode;
+import alluxio.dora.security.group.GroupMappingService;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

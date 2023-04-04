@@ -11,13 +11,13 @@
 
 package alluxio.worker.job;
 
-import alluxio.Client;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
+import alluxio.dora.Client;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.ConnectionFailedException;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.JobInfo;
 import alluxio.job.wire.JobWorkerHealth;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.wire.WorkerNetAddress;
 
 import java.io.IOException;
 import java.util.List;

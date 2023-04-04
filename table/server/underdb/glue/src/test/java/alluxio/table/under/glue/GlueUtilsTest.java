@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.grpc.table.ColumnStatisticsInfo;
-import alluxio.util.CommonUtils;
+import alluxio.dora.util.CommonUtils;
 
 import com.amazonaws.services.glue.model.BinaryColumnStatisticsData;
 import com.amazonaws.services.glue.model.BooleanColumnStatisticsData;

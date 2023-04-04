@@ -15,9 +15,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.AlluxioURI;
+import alluxio.dora.AlluxioURI;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.client.file.FileSystemTestUtils;
+import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
 
 import org.junit.Test;

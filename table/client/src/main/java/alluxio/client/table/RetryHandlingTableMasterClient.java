@@ -11,9 +11,9 @@
 
 package alluxio.client.table;
 
-import alluxio.AbstractMasterClient;
-import alluxio.Constants;
-import alluxio.exception.status.AlluxioStatusException;
+import alluxio.dora.AbstractMasterClient;
+import alluxio.dora.Constants;
+import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.table.AttachDatabasePRequest;
 import alluxio.grpc.table.ColumnStatisticsInfo;
@@ -35,7 +35,7 @@ import alluxio.grpc.table.TableInfo;
 import alluxio.grpc.table.TableMasterClientServiceGrpc;
 import alluxio.grpc.table.TransformJobInfo;
 import alluxio.grpc.table.TransformTablePRequest;
-import alluxio.master.MasterClientContext;
+import alluxio.dora.master.MasterClientContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

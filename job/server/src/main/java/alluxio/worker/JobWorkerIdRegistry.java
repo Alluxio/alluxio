@@ -11,9 +11,9 @@
 
 package alluxio.worker;
 
-import alluxio.exception.ConnectionFailedException;
+import alluxio.dora.exception.ConnectionFailedException;
 import alluxio.master.job.JobMaster;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.wire.WorkerNetAddress;
 import alluxio.worker.job.JobMasterClient;
 
 import java.io.IOException;

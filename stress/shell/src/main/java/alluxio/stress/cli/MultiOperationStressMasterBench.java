@@ -17,13 +17,13 @@ import static alluxio.stress.master.MultiOperationMasterBenchParameters.OPERATIO
 import static alluxio.stress.master.MultiOperationMasterBenchParameters.TARGET_THROUGHPUTS_OPTION_NAME;
 import static alluxio.stress.master.MultiOperationMasterBenchParameters.THREADS_RATIO_OPTION_NAME;
 
-import alluxio.AlluxioURI;
-import alluxio.annotation.SuppressFBWarnings;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.Source;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.InvalidArgumentException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.dora.conf.InstancedConfiguration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.conf.Source;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.status.InvalidArgumentException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.stress.StressConstants;
@@ -33,9 +33,9 @@ import alluxio.stress.master.MasterBenchTaskResultStatistics;
 import alluxio.stress.master.MultiOperationMasterBenchParameters;
 import alluxio.stress.master.MultiOperationMasterBenchTaskResult;
 import alluxio.stress.master.Operation;
-import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.FormatUtils;
+import alluxio.dora.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.RateLimiter;
@@ -216,12 +216,12 @@ public class MultiOperationStressMasterBench
 
     // set hdfs conf for all test clients
     LOG.info("Using ALLUXIO Native API to perform the test.");
-    InstancedConfiguration alluxioProperties = alluxio.conf.Configuration.copyGlobal();
+    InstancedConfiguration alluxioProperties = alluxio.dora.conf.Configuration.copyGlobal();
     alluxioProperties.set(
         PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType, Source.RUNTIME);
-    mCachedNativeFs = new alluxio.client.file.FileSystem[mParameters.mClients];
+    mCachedNativeFs = new alluxio.dora.client.file.FileSystem[mParameters.mClients];
     for (int i = 0; i < mCachedNativeFs.length; i++) {
-      mCachedNativeFs[i] = alluxio.client.file.FileSystem.Factory
+      mCachedNativeFs[i] = alluxio.dora.client.file.FileSystem.Factory
           .create(alluxioProperties);
     }
 
@@ -476,11 +476,11 @@ public class MultiOperationStressMasterBench
   }
 
   private final class AlluxioNativeBenchThread extends BenchThread {
-    private final alluxio.client.file.FileSystem mFs;
+    private final alluxio.dora.client.file.FileSystem mFs;
 
     private AlluxioNativeBenchThread(
-        BenchContext context,
-        alluxio.client.file.FileSystem fs, int threadIndex) {
+            BenchContext context,
+            alluxio.dora.client.file.FileSystem fs, int threadIndex) {
       super(context, threadIndex);
       mFs = fs;
     }

@@ -11,25 +11,25 @@
 
 package alluxio.stress.cli;
 
-import alluxio.AlluxioURI;
-import alluxio.ClientContext;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.status.AlluxioStatusException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.ClientContext;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileSystemMasterClient;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
 import alluxio.grpc.GetPinnedFileIdsPRequest;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.master.MasterClientContext;
-import alluxio.resource.CloseableResource;
+import alluxio.dora.master.MasterClientContext;
+import alluxio.dora.resource.CloseableResource;
 import alluxio.stress.rpc.GetPinnedFileIdsParameters;
 import alluxio.stress.rpc.RpcTaskResult;
-import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.FormatUtils;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Stopwatch;
@@ -93,7 +93,7 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
     }
 
     AlluxioURI baseUri = new AlluxioURI(mParameters.mBasePath);
-    try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
+    try (CloseableResource<FileSystemMasterClient> client =
              mFileSystemContext.acquireMasterClientResource()) {
       LOG.info("Creating temporary directory {} for benchmark", baseUri);
       client.get().createDirectory(baseUri,
@@ -203,7 +203,7 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
    * (in this benchmark's case the master) can achieve.
    */
   private static class PinListFileSystemMasterClient
-      extends alluxio.worker.file.FileSystemMasterClient {
+      extends alluxio.dora.worker.file.FileSystemMasterClient {
     private static final Logger LOG =
         LoggerFactory.getLogger(PinListFileSystemMasterClient.class);
     private FileSystemMasterWorkerServiceGrpc.FileSystemMasterWorkerServiceBlockingStub mClient =

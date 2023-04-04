@@ -11,12 +11,12 @@
 
 package alluxio.underfs.ozone;
 
-import alluxio.AlluxioURI;
+import alluxio.dora.AlluxioURI;
 import alluxio.OzoneUfsConstants;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsUnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;

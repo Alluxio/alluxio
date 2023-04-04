@@ -11,7 +11,7 @@
 
 package alluxio.master.table;
 
-import alluxio.RpcUtils;
+import alluxio.dora.RpcUtils;
 import alluxio.grpc.table.AttachDatabasePRequest;
 import alluxio.grpc.table.AttachDatabasePResponse;
 import alluxio.grpc.table.DetachDatabasePRequest;

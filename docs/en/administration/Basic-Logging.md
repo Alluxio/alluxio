@@ -86,11 +86,11 @@ For example, to modify the level for all logs to `DEBUG`, change the
 log4j.rootLogger=DEBUG, ${alluxio.logger.type}, ${alluxio.remote.logger.type}
 ```
 
-To modify the logging level for a particular Java class (e.g., set `alluxio.client.file.AlluxioFileInStream` to `DEBUG`),
+To modify the logging level for a particular Java class (e.g., set `alluxio.dora.file.client.AlluxioFileInStream` to `DEBUG`),
 add a new line at the end of this file:
 
 ```properties
-log4j.logger.alluxio.client.file.AlluxioFileInStream=DEBUG
+log4j.logger.alluxio.dora.file.client.AlluxioFileInStream=DEBUG
 ```
 
 To modify the logging level for a package (e.g., set all classes under `alluxio` to `DEBUG`), 
@@ -196,13 +196,13 @@ Add the following to your application-side `log4j.properties` to capture RPCs be
 and FileSystem Master:
 
 ```properties
-log4j.logger.alluxio.client.file.FileSystemMasterClient=DEBUG
+log4j.logger.alluxio.dora.file.client.FileSystemMasterClient=DEBUG
 ```
 
 Similarly, capture lower-level RPCs between Alluxio client and Block Master:
 
 ```properties
-log4j.logger.alluxio.client.block.BlockMasterClient=DEBUG
+log4j.logger.alluxio.dora.block.client.BlockMasterClient=DEBUG
 ```
 
 You will see debug logs at the beginning and end of each RPC with its arguments and result
@@ -308,12 +308,12 @@ This can be useful for reasons including but not limited to:
 1. Use a separate logger to send logs to a remote endpoint like a socket.
 
 This can be achieved by adding a separate logger in the `conf/log4j.properties`.
-For example, the below example redirects debug logs of `alluxio.master.StateLockManager` to a separate set of files,
-so the `master.log` will not be full of DEBUG logs created by `alluxio.master.StateLockManager`.
+For example, the below example redirects debug logs of `alluxio.dora.master.StateLockManager` to a separate set of files,
+so the `master.log` will not be full of DEBUG logs created by `alluxio.dora.master.StateLockManager`.
 
 ```properties
-log4j.category.alluxio.master.StateLockManager=DEBUG, State_LOCK_LOGGER
-log4j.additivity.alluxio.master.StateLockManager=false
+log4j.category.alluxio.dora.master.StateLockManager=DEBUG, State_LOCK_LOGGER
+log4j.additivity.alluxio.dora.master.StateLockManager=false
 log4j.appender.State_LOCK_LOGGER=org.apache.log4j.RollingFileAppender
 log4j.appender.State_LOCK_LOGGER.File=<ALLUXIO_HOME>/logs/statelock.log
 log4j.appender.State_LOCK_LOGGER.MaxFileSize=10MB

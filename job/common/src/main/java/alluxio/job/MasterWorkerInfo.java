@@ -11,10 +11,10 @@
 
 package alluxio.job;
 
-import alluxio.Constants;
-import alluxio.util.CommonUtils;
-import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.Constants;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.wire.WorkerInfo;
+import alluxio.dora.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 

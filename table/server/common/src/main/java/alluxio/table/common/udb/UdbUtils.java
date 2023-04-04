@@ -11,10 +11,10 @@
 
 package alluxio.table.common.udb;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.InvalidPathException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.InvalidPathException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.MountPOptions;
 

@@ -11,7 +11,7 @@
 
 package alluxio.underfs.kodo;
 
-import alluxio.exception.status.NotFoundException;
+import alluxio.dora.exception.status.NotFoundException;
 
 import com.qiniu.common.QiniuException;
 import com.qiniu.storage.BucketManager;

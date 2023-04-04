@@ -11,8 +11,8 @@
 
 package alluxio.cli;
 
-import alluxio.annotation.PublicApi;
-import alluxio.conf.Configuration;
+import alluxio.dora.annotation.PublicApi;
+import alluxio.dora.conf.Configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

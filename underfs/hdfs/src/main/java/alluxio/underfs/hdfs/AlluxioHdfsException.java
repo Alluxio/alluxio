@@ -11,7 +11,7 @@
 
 package alluxio.underfs.hdfs;
 
-import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.dora.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import com.sun.jersey.api.ParamException;

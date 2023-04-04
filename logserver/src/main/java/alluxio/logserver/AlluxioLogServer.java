@@ -11,7 +11,7 @@
 
 package alluxio.logserver;
 
-import alluxio.ProcessUtils;
+import alluxio.dora.ProcessUtils;
 
 /**
  * Alluxio log server receiving logs pushed from Alluxio servers.

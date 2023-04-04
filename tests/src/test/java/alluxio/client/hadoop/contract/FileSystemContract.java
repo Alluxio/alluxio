@@ -11,8 +11,9 @@
 
 package alluxio.client.hadoop.contract;
 
-import alluxio.Constants;
-import alluxio.hadoop.FileSystem;
+import alluxio.dora.Constants;
+import alluxio.dora.hadoop.AbstractFileSystem;
+import alluxio.dora.hadoop.FileSystem;
 import alluxio.master.LocalAlluxioCluster;
 
 import org.apache.hadoop.conf.Configuration;
@@ -25,7 +26,7 @@ import java.net.URI;
 /**
  * This class provides an implementation of {@link AbstractFSContract} using {@link FileSystem}.
  * This will be used to run Hadoop Contract tests which verify the
- * {@link alluxio.hadoop.AbstractFileSystem} interface. More information can be found here:
+ * {@link AbstractFileSystem} interface. More information can be found here:
  * http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/filesystem/testing.html
  */
 public class FileSystemContract extends AbstractFSContract {

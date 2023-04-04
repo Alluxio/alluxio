@@ -15,15 +15,15 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.AlluxioURI;
+import alluxio.dora.AlluxioURI;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.URIStatus;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.client.file.FileInStream;
+import alluxio.dora.client.file.FileSystemTestUtils;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.WritePType;
-import alluxio.util.io.BufferUtils;
+import alluxio.dora.util.io.BufferUtils;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -11,7 +11,7 @@
 
 package alluxio.client.job;
 
-import alluxio.Client;
+import alluxio.dora.Client;
 import alluxio.grpc.ListAllPOptions;
 import alluxio.job.CmdConfig;
 import alluxio.job.JobConfig;

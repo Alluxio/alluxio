@@ -21,12 +21,12 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import alluxio.AlluxioURI;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.underfs.SeekableUnderFileInputStream;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.options.OpenOptions;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.underfs.SeekableUnderFileInputStream;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.underfs.options.OpenOptions;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FileUtils;

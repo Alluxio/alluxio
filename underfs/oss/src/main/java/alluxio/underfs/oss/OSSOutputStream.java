@@ -11,8 +11,8 @@
 
 package alluxio.underfs.oss;
 
-import alluxio.util.CommonUtils;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.io.PathUtils;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.ServiceException;

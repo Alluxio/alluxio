@@ -11,12 +11,12 @@
 
 package alluxio.client.hadoop;
 
-import alluxio.Constants;
-import alluxio.client.WriteType;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.hadoop.FileSystem;
-import alluxio.hadoop.HadoopConfigurationUtils;
+import alluxio.dora.Constants;
+import alluxio.dora.client.WriteType;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.hadoop.FileSystem;
+import alluxio.dora.hadoop.HadoopConfigurationUtils;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

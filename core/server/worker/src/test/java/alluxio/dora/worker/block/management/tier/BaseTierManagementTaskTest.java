@@ -1,0 +1,110 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.dora.worker.block.management.tier;
+
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.worker.block.AllocateOptions;
+import alluxio.dora.worker.block.BlockLockManager;
+import alluxio.dora.worker.block.BlockMetadataManager;
+import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.dora.worker.block.TieredBlockReaderFactory;
+import alluxio.dora.worker.block.TieredBlockStore;
+import alluxio.dora.worker.block.TieredBlockStoreTestUtils;
+import alluxio.dora.worker.block.TieredBlockWriterFactory;
+import alluxio.dora.worker.block.TieredTempBlockMetaFactory;
+import alluxio.dora.worker.block.annotator.BlockIterator;
+import alluxio.dora.worker.block.annotator.LRUAnnotator;
+import alluxio.dora.worker.block.io.BlockWriter;
+import alluxio.dora.worker.block.meta.StorageDir;
+
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.lang.reflect.Field;
+
+/**
+ * Provides base functionality for tier-management tests.
+ */
+public abstract class BaseTierManagementTaskTest {
+  protected static final String FIRST_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[0];
+  protected static final String SECOND_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[1];
+  protected static final long SIMULATE_LOAD_SESSION_ID = 1;
+  protected static final long SIMULATE_LOAD_BLOCK_ID = 1;
+  protected static final long SMALL_BLOCK_SIZE = 10;
+  protected static final long BLOCK_SIZE = 100;
+
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
+
+  protected TieredBlockStore mBlockStore;
+  protected BlockMetadataManager mMetaManager;
+  protected BlockIterator mBlockIterator;
+
+  protected StorageDir mTestDir1;
+  protected StorageDir mTestDir2;
+  protected StorageDir mTestDir3;
+  protected StorageDir mTestDir4;
+
+  protected BlockWriter mSimulateWriter;
+
+  /**
+   * Sets up all dependencies before a test runs.
+   */
+  protected void init() throws Exception {
+    // Disable reviewer to make sure the allocator behavior stays deterministic
+    Configuration.set(PropertyKey.WORKER_REVIEWER_CLASS,
+            "alluxio.worker.block.reviewer.AcceptingReviewer");
+    // Use LRU for stronger overlap guarantee.
+    Configuration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS, LRUAnnotator.class.getName());
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
+    // Set timeout for faster task execution.
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME, "100ms");
+
+    File tempFolder = mTestFolder.newFolder();
+    TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
+    mBlockStore = new TieredBlockStore(BlockMetadataManager.createBlockMetadataManager(),
+        new BlockLockManager(),
+        new TieredBlockReaderFactory(),
+        new TieredBlockWriterFactory(),
+        new TieredTempBlockMetaFactory());
+    mBlockStore.initialize();
+    Field field = mBlockStore.getClass().getDeclaredField("mMetaManager");
+    field.setAccessible(true);
+    mMetaManager = (BlockMetadataManager) field.get(mBlockStore);
+    mBlockIterator = mMetaManager.getBlockIterator();
+
+    mTestDir1 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(0);
+    mTestDir2 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(1);
+    mTestDir3 = mMetaManager.getTier(SECOND_TIER_ALIAS).getDir(1);
+    mTestDir4 = mMetaManager.getTier(SECOND_TIER_ALIAS).getDir(2);
+  }
+
+  /**
+   * Stars simulating load on the worker.
+   */
+  protected void startSimulateLoad() throws Exception {
+    mBlockStore.createBlock(SIMULATE_LOAD_SESSION_ID, SIMULATE_LOAD_BLOCK_ID,
+        AllocateOptions.forCreate(0, BlockStoreLocation.anyTier()));
+    mSimulateWriter =
+        mBlockStore.createBlockWriter(SIMULATE_LOAD_SESSION_ID, SIMULATE_LOAD_BLOCK_ID);
+  }
+
+  /**
+   * Stops simulating load on the worker.
+   */
+  protected void stopSimulateLoad() throws Exception {
+    mBlockStore.abortBlock(SIMULATE_LOAD_SESSION_ID, SIMULATE_LOAD_BLOCK_ID);
+    mSimulateWriter.close();
+  }
+}

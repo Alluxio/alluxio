@@ -11,7 +11,7 @@
 
 package alluxio.stress;
 
-import alluxio.util.JsonSerializable;
+import alluxio.dora.util.JsonSerializable;
 
 import java.util.List;
 

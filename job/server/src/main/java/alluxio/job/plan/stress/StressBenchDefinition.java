@@ -11,25 +11,25 @@
 
 package alluxio.job.plan.stress;
 
-import alluxio.collections.Pair;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.collections.Pair;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.PlanDefinition;
 import alluxio.job.util.SerializationUtils;
-import alluxio.resource.CloseableResource;
+import alluxio.dora.resource.CloseableResource;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.TaskResult;
 import alluxio.stress.job.StressBenchConfig;
 import alluxio.stress.worker.UfsIOParameters;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.util.JsonSerializable;
-import alluxio.util.ShellUtils;
-import alluxio.wire.MountPointInfo;
-import alluxio.wire.WorkerInfo;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.util.JsonSerializable;
+import alluxio.dora.util.ShellUtils;
+import alluxio.dora.wire.MountPointInfo;
+import alluxio.dora.wire.WorkerInfo;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;

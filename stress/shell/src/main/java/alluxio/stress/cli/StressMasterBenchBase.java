@@ -11,12 +11,12 @@
 
 package alluxio.stress.cli;
 
-import alluxio.AlluxioURI;
-import alluxio.annotation.SuppressFBWarnings;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.URIStatus;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.UnexpectedAlluxioException;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -30,10 +30,10 @@ import alluxio.stress.master.MasterBenchBaseParameters;
 import alluxio.stress.master.MasterBenchTaskResultBase;
 import alluxio.stress.master.MasterBenchTaskResultStatistics;
 import alluxio.stress.master.Operation;
-import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
-import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.FormatUtils;
+import alluxio.dora.util.executor.ExecutorServiceFactories;
+import alluxio.dora.util.io.PathUtils;
 
 import com.google.common.util.concurrent.RateLimiter;
 import org.apache.hadoop.fs.FileStatus;
@@ -70,7 +70,7 @@ public abstract class StressMasterBenchBase
   protected FileSystem[] mCachedFs;
 
   /** In case the Alluxio Native API is used,  use the following instead. */
-  protected alluxio.client.file.FileSystem[] mCachedNativeFs;
+  protected alluxio.dora.client.file.FileSystem[] mCachedNativeFs;
   /* Directories where the stress bench creates files depending on the --operation chosen. */
   protected final String mDirsDir = "dirs";
   protected final String mFilesDir = "files";
@@ -346,8 +346,8 @@ public abstract class StressMasterBenchBase
 
   @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   protected void applyNativeOperation(
-      alluxio.client.file.FileSystem fs, Operation operation, long counter,
-      Path basePath, Path fixedBasePath, int fixedCount)
+          alluxio.dora.client.file.FileSystem fs, Operation operation, long counter,
+          Path basePath, Path fixedBasePath, int fixedCount)
       throws IOException, AlluxioException {
     Path path;
     AlluxioURI uri;
@@ -388,7 +388,7 @@ public abstract class StressMasterBenchBase
         fs.getStatus(new AlluxioURI(path.toString()));
         break;
       case LIST_DIR:
-        List<alluxio.client.file.URIStatus> files
+        List<URIStatus> files
             = fs.listStatus(new AlluxioURI(fixedBasePath.toString()));
         if (files.size() != fixedCount) {
           throw new IOException(String

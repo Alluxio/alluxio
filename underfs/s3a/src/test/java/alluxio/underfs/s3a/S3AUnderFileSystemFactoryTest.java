@@ -17,12 +17,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemFactoryRegistry;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.underfs.UnderFileSystemFactory;
+import alluxio.dora.underfs.UnderFileSystemFactoryRegistry;
 
 import org.junit.Test;
 

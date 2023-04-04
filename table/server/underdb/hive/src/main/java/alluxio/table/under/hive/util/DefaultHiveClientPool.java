@@ -11,15 +11,15 @@
 
 package alluxio.table.under.hive.util;
 
-import static alluxio.conf.PropertyKey.TABLE_UDB_HIVE_CLIENTPOOL_MAX;
-import static alluxio.conf.PropertyKey.TABLE_UDB_HIVE_CLIENTPOOL_MIN;
+import static alluxio.dora.conf.PropertyKey.TABLE_UDB_HIVE_CLIENTPOOL_MAX;
+import static alluxio.dora.conf.PropertyKey.TABLE_UDB_HIVE_CLIENTPOOL_MIN;
 
-import alluxio.Constants;
-import alluxio.conf.Configuration;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
-import alluxio.resource.CloseableResource;
-import alluxio.util.ThreadFactoryUtils;
+import alluxio.dora.Constants;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.metrics.MetricKey;
+import alluxio.dora.metrics.MetricsSystem;
+import alluxio.dora.resource.CloseableResource;
+import alluxio.dora.util.ThreadFactoryUtils;
 
 import com.codahale.metrics.Counter;
 import org.apache.hadoop.hive.conf.HiveConf;

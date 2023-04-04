@@ -17,8 +17,8 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.ExceptionMessage;
 
 import org.junit.Test;
 

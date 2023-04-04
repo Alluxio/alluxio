@@ -11,13 +11,13 @@
 
 package alluxio.client.fuse.dora.readonly;
 
-import alluxio.client.file.options.FileSystemOptions;
-import alluxio.conf.Configuration;
+import alluxio.dora.client.file.options.FileSystemOptions;
+import alluxio.dora.conf.Configuration;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.jnifuse.struct.FileStat;
-import alluxio.util.io.BufferUtils;
+import alluxio.dora.util.io.BufferUtils;
 
 import java.io.FileOutputStream;
 import java.io.IOException;

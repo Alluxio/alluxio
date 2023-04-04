@@ -11,11 +11,11 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.AlluxioURI;
+import alluxio.dora.AlluxioURI;
 import alluxio.cli.fs.FileSystemShellUtils;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.AlluxioException;
 import alluxio.job.CmdConfig;
 import alluxio.job.cmd.load.LoadCliConfig;
 

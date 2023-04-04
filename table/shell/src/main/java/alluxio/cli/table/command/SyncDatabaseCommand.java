@@ -11,13 +11,13 @@
 
 package alluxio.cli.table.command;
 
-import alluxio.cli.CommandUtils;
+import alluxio.dora.cli.CommandUtils;
 import alluxio.cli.table.TableShellUtils;
-import alluxio.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileSystemContext;
 import alluxio.client.table.TableMasterClient;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.InvalidArgumentException;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.exception.status.AlluxioStatusException;
+import alluxio.dora.exception.status.InvalidArgumentException;
 import alluxio.grpc.table.SyncStatus;
 
 import org.apache.commons.cli.CommandLine;

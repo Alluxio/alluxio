@@ -15,22 +15,22 @@ import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import alluxio.AlluxioURI;
+import alluxio.dora.AlluxioURI;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.URIStatus;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileSystemTestUtils;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.AlluxioException;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.WritePType;
-import alluxio.security.authorization.AclEntry;
-import alluxio.security.user.TestUserState;
+import alluxio.dora.security.authorization.AclEntry;
+import alluxio.dora.security.user.TestUserState;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.CommonUtils;
+import alluxio.dora.util.CommonUtils;
 
 import org.junit.Test;
 
@@ -45,7 +45,7 @@ import java.util.function.Function;
     confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
         PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
         PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
-        "alluxio.security.group.provider.IdentityUserGroupsMapping",
+        "alluxio.dora.security.group.provider.IdentityUserGroupsMapping",
         PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls",
         PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"})
 public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemShellTest {

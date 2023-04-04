@@ -15,10 +15,10 @@ import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.AlluxioURI;
-import alluxio.conf.Configuration;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.options.DeleteOptions;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.underfs.options.DeleteOptions;
 
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;

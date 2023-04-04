@@ -11,8 +11,8 @@
 
 package alluxio.testutils;
 
-import alluxio.Constants;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.Constants;
+import alluxio.dora.util.io.PathUtils;
 
 import org.apache.log4j.Appender;
 import org.apache.log4j.FileAppender;

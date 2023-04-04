@@ -11,9 +11,9 @@
 
 package alluxio.underfs.kodo;
 
-import alluxio.conf.Configuration;
-import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemFactoryRegistry;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.underfs.UnderFileSystemFactory;
+import alluxio.dora.underfs.UnderFileSystemFactoryRegistry;
 
 import org.junit.Assert;
 import org.junit.Test;

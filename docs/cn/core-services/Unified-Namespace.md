@@ -87,9 +87,9 @@ alluxio.master.mount.table.root.option.s3a.secretKey=<AWS_SECRET_ACCESS_KEY>
 以下配置显示了如何为根挂载点设置其他参数。
 
 ```
-alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.principal=client
-alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.keytab.file=keytab
-alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.impersonation.enabled=true
+alluxio.master.mount.table.root.option.alluxio.dora.security.underfs.hdfs.kerberos.client.principal=client
+alluxio.master.mount.table.root.option.alluxio.dora.security.underfs.hdfs.kerberos.client.keytab.file=keytab
+alluxio.master.mount.table.root.option.alluxio.dora.security.underfs.hdfs.impersonation.enabled=true
 alluxio.master.mount.table.root.option.alluxio.underfs.version=2.7
 ```
 

@@ -19,7 +19,7 @@ import alluxio.stress.cli.BatchTaskRunner;
 import alluxio.stress.common.FileSystemClientType;
 import alluxio.stress.master.MasterBenchSummary;
 import alluxio.stress.master.MasterBenchTaskResult;
-import alluxio.util.JsonSerializable;
+import alluxio.dora.util.JsonSerializable;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.After;

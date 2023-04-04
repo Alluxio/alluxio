@@ -11,8 +11,8 @@
 
 package alluxio.underfs.cos;
 
-import alluxio.util.CommonUtils;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import com.qcloud.cos.COSClient;

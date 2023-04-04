@@ -11,12 +11,12 @@
 
 package alluxio.master.table;
 
-import alluxio.Constants;
-import alluxio.Server;
+import alluxio.dora.Constants;
+import alluxio.dora.Server;
 import alluxio.client.job.JobMasterClient;
-import alluxio.clock.SystemClock;
-import alluxio.exception.ExceptionMessage;
-import alluxio.grpc.GrpcService;
+import alluxio.dora.clock.SystemClock;
+import alluxio.dora.exception.ExceptionMessage;
+import alluxio.dora.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.ColumnStatisticsList;
@@ -24,18 +24,18 @@ import alluxio.grpc.table.Constraint;
 import alluxio.grpc.table.Database;
 import alluxio.grpc.table.Partition;
 import alluxio.grpc.table.SyncStatus;
-import alluxio.master.CoreMaster;
-import alluxio.master.CoreMasterContext;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.journal.DelegatingJournaled;
-import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.Journaled;
-import alluxio.master.journal.JournaledGroup;
-import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.dora.master.CoreMaster;
+import alluxio.dora.master.CoreMasterContext;
+import alluxio.dora.master.file.FileSystemMaster;
+import alluxio.dora.master.journal.DelegatingJournaled;
+import alluxio.dora.master.journal.JournalContext;
+import alluxio.dora.master.journal.Journaled;
+import alluxio.dora.master.journal.JournaledGroup;
+import alluxio.dora.master.journal.checkpoint.CheckpointName;
 import alluxio.master.table.transform.TransformJobInfo;
 import alluxio.master.table.transform.TransformManager;
 import alluxio.table.common.transform.TransformDefinition;
-import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.dora.util.executor.ExecutorServiceFactories;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;

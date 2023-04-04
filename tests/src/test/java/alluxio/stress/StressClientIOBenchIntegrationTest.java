@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.stress.cli.client.StressClientIOBench;
 import alluxio.stress.client.ClientIOSummary;
 import alluxio.stress.client.ClientIOTaskResult;
-import alluxio.util.JsonSerializable;
+import alluxio.dora.util.JsonSerializable;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;

@@ -11,11 +11,11 @@
 
 package alluxio.cli.hms;
 
-import alluxio.cli.ValidationTaskResult;
-import alluxio.cli.ValidationUtils;
-import alluxio.collections.Pair;
-import alluxio.util.CommonUtils;
-import alluxio.util.ExceptionUtils;
+import alluxio.dora.cli.ValidationTaskResult;
+import alluxio.dora.cli.ValidationUtils;
+import alluxio.dora.collections.Pair;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.ExceptionUtils;
 
 import java.net.InetAddress;
 import java.net.URI;

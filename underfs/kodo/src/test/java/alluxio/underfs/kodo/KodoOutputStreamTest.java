@@ -11,8 +11,8 @@
 
 package alluxio.underfs.kodo;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 
 import org.junit.Before;
 import org.junit.Rule;

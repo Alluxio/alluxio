@@ -13,32 +13,32 @@ package alluxio.server.ft;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.client.WriteType;
-import alluxio.client.block.BlockStoreClient;
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.file.options.OutStreamOptions;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.client.WriteType;
+import alluxio.dora.client.block.BlockStoreClient;
+import alluxio.dora.client.block.BlockWorkerInfo;
+import alluxio.dora.client.block.policy.BlockLocationPolicy;
+import alluxio.dora.client.block.policy.options.GetWorkerOptions;
+import alluxio.dora.client.file.FileInStream;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileSystemTestUtils;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.client.file.options.InStreamOptions;
+import alluxio.dora.client.file.options.OutStreamOptions;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.io.BufferUtils;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.FileBlockInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.util.io.BufferUtils;
+import alluxio.dora.wire.BlockInfo;
+import alluxio.dora.wire.FileBlockInfo;
+import alluxio.dora.wire.WorkerNetAddress;
 
 import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
@@ -87,7 +87,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.USER_BLOCK_WRITE_LOCATION_POLICY,
-      "alluxio.client.block.policy.RoundRobinPolicy",
+      "alluxio.dora.policy.block.client.RoundRobinPolicy",
       })
   public void writeLargeFile() throws Exception {
     int fileSize = NUM_WORKERS * WORKER_MEMORY_SIZE_BYTES;

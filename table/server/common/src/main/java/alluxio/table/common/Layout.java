@@ -11,7 +11,7 @@
 
 package alluxio.table.common;
 
-import alluxio.AlluxioURI;
+import alluxio.dora.AlluxioURI;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.LayoutSpec;
 import alluxio.table.common.transform.TransformContext;

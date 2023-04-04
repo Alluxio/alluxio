@@ -11,17 +11,17 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.annotation.PublicApi;
-import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.exception.status.InvalidArgumentException;
-import alluxio.exception.status.UnavailableException;
+import alluxio.dora.annotation.PublicApi;
+import alluxio.dora.cli.CommandUtils;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileSystemMasterClient;
+import alluxio.dora.exception.status.InvalidArgumentException;
+import alluxio.dora.exception.status.UnavailableException;
 import alluxio.grpc.ServiceType;
-import alluxio.master.MasterInquireClient;
-import alluxio.master.PollingMasterInquireClient;
-import alluxio.resource.CloseableResource;
-import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.dora.master.MasterInquireClient;
+import alluxio.dora.master.PollingMasterInquireClient;
+import alluxio.dora.resource.CloseableResource;
+import alluxio.dora.retry.ExponentialBackoffRetry;
 
 import org.apache.commons.cli.CommandLine;
 

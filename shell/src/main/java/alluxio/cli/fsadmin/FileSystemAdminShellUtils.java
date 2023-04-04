@@ -11,17 +11,17 @@
 
 package alluxio.cli.fsadmin;
 
-import alluxio.ClientContext;
-import alluxio.Constants;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.status.UnavailableException;
+import alluxio.dora.ClientContext;
+import alluxio.dora.Constants;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileSystemMasterClient;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.exception.status.UnavailableException;
 import alluxio.grpc.ServiceType;
-import alluxio.master.MasterInquireClient;
-import alluxio.master.PollingMasterInquireClient;
-import alluxio.resource.CloseableResource;
-import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.dora.master.MasterInquireClient;
+import alluxio.dora.master.PollingMasterInquireClient;
+import alluxio.dora.resource.CloseableResource;
+import alluxio.dora.retry.ExponentialBackoffRetry;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

@@ -11,10 +11,13 @@
 
 package alluxio.cli;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.Source;
-import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.cli.ValidationConfig;
+import alluxio.dora.cli.ValidationTool;
+import alluxio.dora.cli.ValidationToolRegistry;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.InstancedConfiguration;
+import alluxio.dora.conf.Source;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;

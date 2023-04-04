@@ -385,14 +385,14 @@ installation or `spark/conf/` if you customize this file for Spark) has the foll
 <configuration>
   <property>
     <name>fs.alluxio.impl</name>
-    <value>alluxio.hadoop.FileSystem</value>
+    <value>alluxio.dora.hadoop.FileSystem</value>
   </property>
 </configuration>
 ```
 
 See the doc page for your specific compute framework for detailed setup instructions.
 
-### Q: Why do I see exceptions like "java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found"?
+### Q: Why do I see exceptions like "java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.dora.hadoop.FileSystem not found"?
 
 A: This error message is seen when your applications (e.g., MapReduce, Spark) try to access
 Alluxio as an HDFS-compatible file system, the `alluxio://` scheme has been
@@ -449,7 +449,7 @@ A: This problem can be caused by different possible reasons.
 - Please double check if the port of Alluxio master address is correct. The default listening port for Alluxio master is port 19998,
 while a common mistake causing this error message is due to using a wrong port in master address (e.g., using port 19999 which is the default Web UI port for Alluxio master).
 - Please ensure that the security settings of Alluxio client and master are consistent.
-Alluxio provides different approaches to [authenticate]({{ '/en/security/Security.html' | relativize_url }}#authentication) users by configuring `alluxio.security.authentication.type`.
+Alluxio provides different approaches to [authenticate]({{ '/en/security/Security.html' | relativize_url }}#authentication) users by configuring `alluxio.dora.security.authentication.type`.
 This error happens if this property is configured with different values across servers and clients
 (e.g., one uses the default value `NOSASL` while the other is customized to `SIMPLE`).
 Please read [Configuration-Settings]({{ '/en/operation/Configuration.html' | relativize_url }}) for how to customize Alluxio clusters and applications.

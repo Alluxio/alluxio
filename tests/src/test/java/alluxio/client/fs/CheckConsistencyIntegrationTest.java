@@ -11,20 +11,20 @@
 
 package alluxio.client.fs;
 
-import alluxio.AlluxioURI;
-import alluxio.AuthenticatedUserRule;
-import alluxio.client.file.FileSystem;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.AuthenticatedUserRule;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.contexts.CheckConsistencyContext;
+import alluxio.dora.master.file.FileSystemMaster;
+import alluxio.dora.master.file.contexts.CheckConsistencyContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.DeleteOptions;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.underfs.options.DeleteOptions;
 
 import com.google.common.collect.Lists;
 import org.junit.Assert;

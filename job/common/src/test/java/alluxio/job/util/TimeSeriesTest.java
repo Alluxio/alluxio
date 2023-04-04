@@ -11,7 +11,7 @@
 
 package alluxio.job.util;
 
-import alluxio.Constants;
+import alluxio.dora.Constants;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -11,10 +11,13 @@
 
 package alluxio.cli;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.util.ShellUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.dora.cli.AbstractValidationTask;
+import alluxio.dora.cli.ValidationTaskResult;
+import alluxio.dora.cli.ValidationUtils;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.util.ShellUtils;
+import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.dora.util.network.NetworkAddressUtils.ServiceType;
 
 import java.io.IOException;
 import java.net.ServerSocket;

@@ -16,9 +16,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.Constants;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.dora.Constants;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.status.ResourceExhaustedException;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.plan.PlanDefinitionRegistryRule;
 import alluxio.job.plan.SleepPlanDefinition;
@@ -31,9 +31,9 @@ import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
-import alluxio.wire.WorkerInfo;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.WaitForOptions;
+import alluxio.dora.wire.WorkerInfo;
 import alluxio.worker.JobWorkerProcess;
 
 import com.google.common.collect.Lists;

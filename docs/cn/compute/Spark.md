@@ -248,13 +248,13 @@ SPARK_LOCAL_HOSTNAME=simple30
 例如，如果`host1`包含`blockA`，并且使用`blockA`的作业已经在 YARN 集群上以`--num-executors=1`的方式启动了，Spark 可能会将唯一的 executor 放置在`host2`上，本地性会较差。
 但是，如果以`--num-executors=2`的方式启动，并且 executor 在`host1`和`host2`上启动，Spark 会足够智能地将作业优先放置在`host1`上。
 
-### `Class alluxio.hadoop.FileSystem not found`与 SparkSQL 和 Hive MetaStore 有关的问题
+### `Class alluxio.dora.hadoop.FileSystem not found`与 SparkSQL 和 Hive MetaStore 有关的问题
 
 为了用 Alluxio 客户端运行`spark-shell`，Alluxio 客户端 jar 包必须如[之前描述](#basic-setup)的那样，被添加到 Spark driver 和 Spark executor 的 classpath 中。
 然而有的时候，SparkSQL 在保存表到 Hive MetaStore（位于 Alluxio 中）中时可能会失败，出现类似于下面的错误信息：
 
 ```
-org.apache.hadoop.hive.ql.metadata.HiveException: MetaException(message:java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found)
+org.apache.hadoop.hive.ql.metadata.HiveException: MetaException(message:java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.dora.hadoop.FileSystem not found)
 ```
 
 推荐的解决方案是配置[`spark.sql.hive.metastore.sharedPrefixes`](http://spark.apache.org/docs/2.0.0/sql-programming-guide.html#interacting-with-different-versions-of-hive-metastore)。
@@ -275,7 +275,7 @@ spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.micros
 <configuration>
   <property>
     <name>fs.alluxio.impl</name>
-    <value>alluxio.hadoop.FileSystem</value>
+    <value>alluxio.dora.hadoop.FileSystem</value>
   </property>
 </configuration>
 ```

@@ -11,22 +11,22 @@
 
 package alluxio.worker.job.command;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.ConnectionFailedException;
 import alluxio.grpc.CancelTaskCommand;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.JobInfo;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.grpc.SetTaskPoolSizeCommand;
-import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.dora.heartbeat.HeartbeatExecutor;
 import alluxio.job.JobServerContext;
 import alluxio.job.RunTaskContext;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.TaskInfo;
-import alluxio.util.ThreadFactoryUtils;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.util.ThreadFactoryUtils;
+import alluxio.dora.wire.WorkerNetAddress;
 import alluxio.worker.JobWorkerIdRegistry;
 import alluxio.worker.job.JobMasterClient;
 import alluxio.worker.job.task.TaskExecutorManager;

@@ -11,14 +11,14 @@
 
 package alluxio.stress.cli.suite;
 
-import alluxio.ClientContext;
+import alluxio.dora.ClientContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.stress.Parameters;
 import alluxio.stress.TaskResult;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.common.AbstractMaxThroughputSummary;
 import alluxio.stress.common.GeneralBenchSummary;
-import alluxio.util.CommonUtils;
+import alluxio.dora.util.CommonUtils;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.beust.jcommander.JCommander;

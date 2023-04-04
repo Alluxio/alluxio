@@ -11,8 +11,8 @@
 
 package alluxio.table.common.layout;
 
-import alluxio.AlluxioURI;
-import alluxio.conf.Configuration;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.conf.Configuration;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
 import alluxio.grpc.table.layout.hive.StorageFormat;
@@ -22,7 +22,7 @@ import alluxio.table.common.LayoutFactory;
 import alluxio.table.common.transform.TransformContext;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
-import alluxio.util.ConfigurationUtils;
+import alluxio.dora.util.ConfigurationUtils;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.lang3.StringUtils;

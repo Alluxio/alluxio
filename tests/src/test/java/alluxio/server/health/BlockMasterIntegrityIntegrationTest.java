@@ -11,23 +11,23 @@
 
 package alluxio.server.health;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemTestUtils;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.file.DefaultFileSystemMaster;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.RpcContext;
-import alluxio.master.file.contexts.DeleteContext;
-import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.InodeTree.LockPattern;
-import alluxio.master.file.meta.LockedInodePath;
+import alluxio.dora.master.file.DefaultFileSystemMaster;
+import alluxio.dora.master.file.FileSystemMaster;
+import alluxio.dora.master.file.RpcContext;
+import alluxio.dora.master.file.contexts.DeleteContext;
+import alluxio.dora.master.file.meta.InodeTree;
+import alluxio.dora.master.file.meta.InodeTree.LockPattern;
+import alluxio.dora.master.file.meta.LockedInodePath;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
-import alluxio.worker.block.BlockWorker;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.WaitForOptions;
+import alluxio.dora.worker.block.BlockWorker;
 
 import org.junit.Assert;
 import org.junit.Before;

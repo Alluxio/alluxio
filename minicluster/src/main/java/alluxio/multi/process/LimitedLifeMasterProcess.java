@@ -11,8 +11,8 @@
 
 package alluxio.multi.process;
 
-import alluxio.Constants;
-import alluxio.master.AlluxioMaster;
+import alluxio.dora.Constants;
+import alluxio.dora.master.AlluxioMaster;
 
 /**
  * Wrapper around AlluxioMaster which will exit after a limited amount of time.

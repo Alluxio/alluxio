@@ -15,17 +15,17 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY_MEM;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.USED_MEM_EMPTY;
 
-import alluxio.ClientContext;
+import alluxio.dora.ClientContext;
 import alluxio.grpc.Command;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.Metric;
-import alluxio.master.MasterClientContext;
+import alluxio.dora.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
-import alluxio.util.FormatUtils;
-import alluxio.worker.block.BlockMasterClient;
-import alluxio.worker.block.BlockStoreLocation;
+import alluxio.dora.util.FormatUtils;
+import alluxio.dora.worker.block.BlockMasterClient;
+import alluxio.dora.worker.block.BlockStoreLocation;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Preconditions;
@@ -97,7 +97,7 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
     return mParameters;
   }
 
-  private RpcTaskResult simulateBlockHeartbeat(alluxio.worker.block.BlockMasterClient client,
+  private RpcTaskResult simulateBlockHeartbeat(BlockMasterClient client,
                                                long workerId,
                                                Instant endTime) {
     RpcTaskResult result = new RpcTaskResult();

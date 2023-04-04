@@ -11,12 +11,12 @@
 
 package alluxio.underfs.gcs;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.conf.PropertyKey;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.UnderFileSystemFactory;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.underfs.UnderFileSystemFactory;
 import alluxio.underfs.gcs.v2.GCSV2UnderFileSystem;
 
 import com.google.common.base.Preconditions;

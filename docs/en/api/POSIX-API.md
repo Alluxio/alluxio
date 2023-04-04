@@ -152,7 +152,7 @@ For example, the command may fail because unable to connect to the Alluxio maste
 ```
 2021-08-30 12:07:52,489 ERROR AlluxioJniFuseFileSystem - Failed to getattr /mnt/people/LICENSE:
 alluxio.exception.status.UnavailableException: Failed to connect to master (localhost:19998) after 44 attempts.Please check if Alluxio master is currently running on "localhost:19998". Service="FileSystemMasterClient"
-        at alluxio.AbstractClient.connect(AbstractClient.java:279)
+        at alluxio.dora.AbstractClient.connect(AbstractClient.java:279)
 ```
 
 ### Unmount

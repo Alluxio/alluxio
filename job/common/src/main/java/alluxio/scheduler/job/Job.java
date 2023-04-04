@@ -11,11 +11,11 @@
 
 package alluxio.scheduler.job;
 
-import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.dora.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.JobProgressReportFormat;
-import alluxio.job.JobDescription;
+import alluxio.dora.job.JobDescription;
 import alluxio.proto.journal.Journal;
-import alluxio.wire.WorkerInfo;
+import alluxio.dora.wire.WorkerInfo;
 
 import java.util.Optional;
 import java.util.OptionalLong;

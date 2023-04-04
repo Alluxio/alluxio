@@ -13,7 +13,8 @@ package alluxio.fsmaster;
 
 import alluxio.BaseFileStructure;
 import alluxio.BaseThreadState;
-import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.dora.master.file.FileSystemMaster;
+import alluxio.dora.security.authentication.AuthenticatedClientUser;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -37,7 +38,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Benchmarks for {@link alluxio.master.file.FileSystemMaster}.
+ * Benchmarks for {@link FileSystemMaster}.
  */
 @Fork(value = 1, jvmArgsPrepend = "-server")
 @Warmup(iterations = 2, time = 3, timeUnit = TimeUnit.SECONDS)

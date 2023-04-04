@@ -11,14 +11,14 @@
 
 package alluxio.fuse.meta;
 
-import alluxio.client.file.options.FileSystemOptions;
-import alluxio.client.file.options.UfsFileSystemOptions;
-import alluxio.conf.Configuration;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.client.file.options.FileSystemOptions;
+import alluxio.dora.client.file.options.UfsFileSystemOptions;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.InstancedConfiguration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.fuse.FuseConstants;
 import alluxio.fuse.options.FuseOptions;
-import alluxio.metrics.MetricsSystem;
+import alluxio.dora.metrics.MetricsSystem;
 
 import org.junit.Assert;
 import org.junit.Assume;

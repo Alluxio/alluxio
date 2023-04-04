@@ -16,19 +16,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.AlluxioURI;
+import alluxio.dora.AlluxioURI;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.URIStatus;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileSystemTestUtils;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.AlluxioException;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.security.user.TestUserState;
+import alluxio.dora.security.user.TestUserState;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Test;

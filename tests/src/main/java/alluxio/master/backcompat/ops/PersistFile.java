@@ -13,16 +13,16 @@ package alluxio.master.backcompat.ops;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.client.file.FileSystem;
-import alluxio.conf.Configuration;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.conf.Configuration;
 import alluxio.master.backcompat.TestOp;
 import alluxio.master.backcompat.Utils;
 import alluxio.multi.process.Clients;
-import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptionsUtils;
-import alluxio.util.WaitForOptions;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.FileSystemOptionsUtils;
+import alluxio.dora.util.WaitForOptions;
 
 import java.util.Arrays;
 

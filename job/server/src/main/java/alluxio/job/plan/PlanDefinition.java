@@ -11,11 +11,11 @@
 
 package alluxio.job.plan;
 
-import alluxio.collections.Pair;
+import alluxio.dora.collections.Pair;
 import alluxio.job.JobConfig;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
-import alluxio.wire.WorkerInfo;
+import alluxio.dora.wire.WorkerInfo;
 
 import java.io.Serializable;
 import java.util.List;

@@ -116,7 +116,7 @@ $ ./bin/alluxio runTests
 If the test fails with permission errors, make sure that the current user (`${USER}`) has
 read/write access to the HDFS directory mounted to Alluxio. By default,
 the login user is the current user of the host OS. To change the user, set the value of
-`alluxio.security.login.username` in `conf/alluxio-site.properties` to the desired username.
+`alluxio.dora.security.login.username` in `conf/alluxio-site.properties` to the desired username.
 
 After this succeeds, you can visit HDFS web UI at [http://localhost:9870](http://localhost:9870)
 ([http://localhost:50070](http://localhost:50070) if you are running HDFS 2.x)

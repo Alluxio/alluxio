@@ -11,10 +11,10 @@
 
 package alluxio.master.job.tracker;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystemContext;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.JobDoesNotExistException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.exception.ExceptionMessage;
+import alluxio.dora.exception.JobDoesNotExistException;
 import alluxio.job.CmdConfig;
 import alluxio.job.cmd.load.LoadCliConfig;
 import alluxio.job.cmd.migrate.MigrateCliConfig;

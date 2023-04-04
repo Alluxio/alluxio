@@ -11,9 +11,9 @@
 
 package alluxio.table.under.glue;
 
-import alluxio.AlluxioURI;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.NotFoundException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.status.NotFoundException;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
@@ -27,7 +27,7 @@ import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UdbUtils;
 import alluxio.table.common.udb.UnderDatabase;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.util.io.PathUtils;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.ClientConfiguration;

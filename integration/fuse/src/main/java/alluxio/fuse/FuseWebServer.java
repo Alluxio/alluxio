@@ -11,7 +11,7 @@
 
 package alluxio.fuse;
 
-import alluxio.web.WebServer;
+import alluxio.dora.web.WebServer;
 
 import java.net.InetSocketAddress;
 import javax.annotation.concurrent.NotThreadSafe;

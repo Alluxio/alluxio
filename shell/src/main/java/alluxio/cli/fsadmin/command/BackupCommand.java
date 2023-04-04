@@ -11,15 +11,15 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.annotation.PublicApi;
-import alluxio.cli.CommandUtils;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.InvalidArgumentException;
+import alluxio.dora.annotation.PublicApi;
+import alluxio.dora.cli.CommandUtils;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.exception.status.AlluxioStatusException;
+import alluxio.dora.exception.status.InvalidArgumentException;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupState;
-import alluxio.wire.BackupStatus;
+import alluxio.dora.wire.BackupStatus;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;

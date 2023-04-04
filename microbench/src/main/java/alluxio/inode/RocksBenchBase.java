@@ -11,16 +11,16 @@
 
 package alluxio.inode;
 
-import alluxio.AlluxioTestDirectory;
-import alluxio.collections.Pair;
-import alluxio.conf.Configuration;
-import alluxio.master.file.contexts.CreateDirectoryContext;
-import alluxio.master.file.contexts.CreateFileContext;
-import alluxio.master.file.meta.Inode;
-import alluxio.master.file.meta.MutableInode;
-import alluxio.master.file.meta.MutableInodeDirectory;
-import alluxio.master.file.meta.MutableInodeFile;
-import alluxio.master.metastore.rocks.RocksInodeStore;
+import alluxio.dora.AlluxioTestDirectory;
+import alluxio.dora.collections.Pair;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.master.file.contexts.CreateDirectoryContext;
+import alluxio.dora.master.file.contexts.CreateFileContext;
+import alluxio.dora.master.file.meta.Inode;
+import alluxio.dora.master.file.meta.MutableInode;
+import alluxio.dora.master.file.meta.MutableInodeDirectory;
+import alluxio.dora.master.file.meta.MutableInodeFile;
+import alluxio.dora.master.metastore.rocks.RocksInodeStore;
 import alluxio.proto.meta.InodeMeta;
 
 import com.google.common.primitives.Longs;

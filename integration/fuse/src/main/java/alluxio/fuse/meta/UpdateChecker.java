@@ -12,12 +12,12 @@
 package alluxio.fuse.meta;
 
 import alluxio.ProjectConstants;
-import alluxio.check.UpdateCheck;
+import alluxio.dora.check.UpdateCheck;
 import alluxio.fuse.FuseConstants;
 import alluxio.fuse.options.FuseOptions;
-import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.metrics.MetricsSystem;
-import alluxio.util.URIUtils;
+import alluxio.dora.heartbeat.HeartbeatExecutor;
+import alluxio.dora.metrics.MetricsSystem;
+import alluxio.dora.util.URIUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;

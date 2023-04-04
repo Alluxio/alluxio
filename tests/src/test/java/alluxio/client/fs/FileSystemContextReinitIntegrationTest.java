@@ -11,21 +11,21 @@
 
 package alluxio.client.fs;
 
-import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
-import alluxio.client.block.stream.BlockWorkerClient;
-import alluxio.client.file.ConfigHashSync;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemContextReinitializer;
-import alluxio.client.meta.MetaMasterConfigClient;
-import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.ReadType;
+import alluxio.dora.client.block.stream.BlockWorkerClient;
+import alluxio.dora.client.file.ConfigHashSync;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileSystemContextReinitializer;
+import alluxio.dora.client.meta.MetaMasterConfigClient;
+import alluxio.dora.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.master.MasterClientContext;
-import alluxio.resource.CloseableResource;
+import alluxio.dora.master.MasterClientContext;
+import alluxio.dora.resource.CloseableResource;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

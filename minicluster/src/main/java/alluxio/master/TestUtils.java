@@ -11,10 +11,11 @@
 
 package alluxio.master;
 
-import alluxio.Constants;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.meta.InodeLockManager;
-import alluxio.util.ThreadUtils;
+import alluxio.dora.Constants;
+import alluxio.dora.Process;
+import alluxio.dora.master.file.FileSystemMaster;
+import alluxio.dora.master.file.meta.InodeLockManager;
+import alluxio.dora.util.ThreadUtils;
 
 import org.powermock.reflect.Whitebox;
 
@@ -27,7 +28,7 @@ public class TestUtils {
   /**
    * @param process the process to wait for
    */
-  public static void waitForReady(alluxio.Process process) {
+  public static void waitForReady(Process process) {
     if (!process.waitForReady(SERVER_START_TIMEOUT_MS)) {
       ThreadUtils.logAllThreads();
       throw new RuntimeException(

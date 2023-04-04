@@ -129,7 +129,7 @@ or Alluxio workers connect to an Alluxio master, they will initialize their own 
 configuration properties with the default values supplied by the masters based on the master-side
 `${ALLUXIO_HOME}/conf/alluxio-site.properties` files.
 As a result, cluster admins can set default client-side settings (e.g., `alluxio.user.*`), or
-network transport settings (e.g., `alluxio.security.authentication.type`) in
+network transport settings (e.g., `alluxio.dora.security.authentication.type`) in
 `${ALLUXIO_HOME}/conf/alluxio-site.properties` on all the masters, which will be distributed and
 become cluster-wide default values when clients and workers connect.
 

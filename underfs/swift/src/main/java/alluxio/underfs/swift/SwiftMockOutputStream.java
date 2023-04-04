@@ -11,8 +11,8 @@
 
 package alluxio.underfs.swift;
 
-import alluxio.util.CommonUtils;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.io.PathUtils;
 
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.Container;

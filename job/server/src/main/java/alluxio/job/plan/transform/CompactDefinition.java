@@ -11,9 +11,9 @@
 
 package alluxio.job.plan.transform;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.URIStatus;
-import alluxio.collections.Pair;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.collections.Pair;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
@@ -22,8 +22,8 @@ import alluxio.job.plan.transform.format.TableRow;
 import alluxio.job.plan.transform.format.TableSchema;
 import alluxio.job.plan.transform.format.TableWriter;
 import alluxio.job.util.SerializableVoid;
-import alluxio.util.CommonUtils;
-import alluxio.wire.WorkerInfo;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;

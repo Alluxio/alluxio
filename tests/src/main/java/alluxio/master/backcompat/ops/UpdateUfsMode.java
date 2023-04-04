@@ -13,8 +13,8 @@ package alluxio.master.backcompat.ops;
 
 import static org.junit.Assert.assertFalse;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystemMasterClient;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.FileSystemMasterClient;
 import alluxio.grpc.UfsPMode;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.master.backcompat.TestOp;

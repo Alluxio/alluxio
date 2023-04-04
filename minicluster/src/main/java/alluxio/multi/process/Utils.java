@@ -11,7 +11,7 @@
 
 package alluxio.multi.process;
 
-import alluxio.util.CommonUtils;
+import alluxio.dora.util.CommonUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

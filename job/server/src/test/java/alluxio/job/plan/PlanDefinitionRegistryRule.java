@@ -11,7 +11,7 @@
 
 package alluxio.job.plan;
 
-import alluxio.AlluxioMockUtil;
+import alluxio.dora.AlluxioMockUtil;
 import alluxio.job.JobConfig;
 
 import org.junit.rules.TestRule;

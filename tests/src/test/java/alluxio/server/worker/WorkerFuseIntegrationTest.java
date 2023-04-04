@@ -11,11 +11,11 @@
 
 package alluxio.server.worker;
 
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
 import alluxio.client.fuse.AbstractFuseIntegrationTest;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 
 /**
  * Integration tests for worker embedded Fuse application.

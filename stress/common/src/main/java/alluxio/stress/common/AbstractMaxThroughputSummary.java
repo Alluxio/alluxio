@@ -11,7 +11,7 @@
 
 package alluxio.stress.common;
 
-import alluxio.collections.Pair;
+import alluxio.dora.collections.Pair;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;

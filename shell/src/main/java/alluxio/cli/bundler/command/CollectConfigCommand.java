@@ -11,11 +11,11 @@
 
 package alluxio.cli.bundler.command;
 
-import alluxio.Constants;
-import alluxio.client.file.FileSystemContext;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
-import alluxio.util.CommonUtils;
+import alluxio.dora.Constants;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.util.CommonUtils;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.cli.CommandLine;

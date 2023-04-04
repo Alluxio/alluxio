@@ -11,10 +11,10 @@
 
 package alluxio.fuse.file;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.exception.runtime.UnimplementedRuntimeException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.auth.AuthPolicy;

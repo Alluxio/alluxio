@@ -15,10 +15,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.cli.docgen.ConfigurationDocGenerator;
-import alluxio.collections.Pair;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.collections.Pair;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.lang3.StringUtils;

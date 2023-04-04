@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.cli.table.command.TransformTableCommand;
 import alluxio.client.table.TableMasterClient;
-import alluxio.conf.Configuration;
+import alluxio.dora.conf.Configuration;
 
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;

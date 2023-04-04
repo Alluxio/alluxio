@@ -11,16 +11,16 @@
 
 package alluxio.underfs.obs;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.conf.PropertyKey;
-import alluxio.retry.RetryPolicy;
-import alluxio.underfs.ObjectUnderFileSystem;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.options.OpenOptions;
-import alluxio.util.UnderFileSystemUtils;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.retry.RetryPolicy;
+import alluxio.dora.underfs.ObjectUnderFileSystem;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.underfs.options.OpenOptions;
+import alluxio.dora.util.UnderFileSystemUtils;
+import alluxio.dora.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import com.obs.services.ObsClient;

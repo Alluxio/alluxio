@@ -11,11 +11,11 @@
 
 package alluxio.server.health;
 
-import alluxio.HealthCheckClient;
-import alluxio.conf.Configuration;
+import alluxio.dora.HealthCheckClient;
+import alluxio.dora.conf.Configuration;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterHealthCheckClient;
-import alluxio.retry.CountingRetry;
+import alluxio.dora.retry.CountingRetry;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

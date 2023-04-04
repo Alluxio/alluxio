@@ -11,11 +11,11 @@
 
 package alluxio.client.hadoop;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.hadoop.FileSystem;
-import alluxio.hadoop.HadoopConfigurationUtils;
-import alluxio.security.authentication.AuthType;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.hadoop.FileSystem;
+import alluxio.dora.hadoop.HadoopConfigurationUtils;
+import alluxio.dora.security.authentication.AuthType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.apache.hadoop.fs.FSDataOutputStream;

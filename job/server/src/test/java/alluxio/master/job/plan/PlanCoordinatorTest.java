@@ -14,10 +14,10 @@ package alluxio.master.job.plan;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.AlluxioMockUtil;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.collections.Pair;
+import alluxio.dora.AlluxioMockUtil;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.collections.Pair;
 import alluxio.grpc.JobCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
@@ -27,8 +27,8 @@ import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.master.job.command.CommandManager;
-import alluxio.underfs.UfsManager;
-import alluxio.wire.WorkerInfo;
+import alluxio.dora.underfs.UfsManager;
+import alluxio.dora.wire.WorkerInfo;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;

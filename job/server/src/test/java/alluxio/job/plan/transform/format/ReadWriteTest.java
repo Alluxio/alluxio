@@ -13,7 +13,7 @@ package alluxio.job.plan.transform.format;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.AlluxioURI;
+import alluxio.dora.AlluxioURI;
 import alluxio.job.plan.transform.BaseTransformTest;
 import alluxio.job.plan.transform.HiveConstants;
 import alluxio.job.plan.transform.PartitionInfo;

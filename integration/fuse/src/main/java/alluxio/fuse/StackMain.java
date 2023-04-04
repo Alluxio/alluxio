@@ -11,12 +11,12 @@
 
 package alluxio.fuse;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.jnifuse.LibFuse;
-import alluxio.metrics.MetricsSystem;
-import alluxio.util.CommonUtils;
+import alluxio.dora.metrics.MetricsSystem;
+import alluxio.dora.util.CommonUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

@@ -458,7 +458,7 @@ Limitations:
 - Only support one under storage dataset and is not modifiable
 - Only support read-only workloads
 
-### Launch dora distributed cache cluster
+### Launch alluxio distributed cache cluster
 
 Launch an Alluxio cluster with one master and multiple workers.
 Each worker should have its own unique worker hostname
@@ -467,11 +467,11 @@ alluxio.master.hostname=<master_hostname>
 alluxio.worker.hostname=<worker_hostname_id>
 ```
 
-Enable dora distributed cache:
+Enable alluxio distributed cache:
 ```
 alluxio.master.worker.register.lease.enabled=false
-alluxio.dora.client.read.location.policy.enabled=true
-alluxio.dora.client.ufs.root=<under_storage_dataset>
+alluxio.alluxio.client.read.location.policy.enabled=true
+alluxio.alluxio.client.ufs.root=<under_storage_dataset>
 alluxio.user.short.circuit.enabled=false
 ```
 Make sure the `<under_storage_dataset>` is exactly the same path that is going to mount to local mount point via `alluxio-fuse` command.
@@ -491,7 +491,7 @@ Other configuration is the same as launching a standalone FUSE SDK.
 ```console
 $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o option
 ```
-`<under_storage_dataset>` should be exactly the same as the configured `alluxio.dora.client.ufs.root`.
+`<under_storage_dataset>` should be exactly the same as the configured `alluxio.alluxio.client.ufs.root`.
 
 All the metadata and data will be cached by Alluxio workers.
 Optional disable default FUSE SDK local metadata cache with `-o local_metadata_cache_size=0`.

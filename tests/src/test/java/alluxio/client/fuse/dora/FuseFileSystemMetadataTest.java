@@ -13,13 +13,13 @@ package alluxio.client.fuse.dora;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.Constants;
+import alluxio.dora.Constants;
 import alluxio.fuse.AlluxioJniRenameUtils;
 import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.Statvfs;
-import alluxio.security.authorization.Mode;
-import alluxio.util.io.BufferUtils;
+import alluxio.dora.security.authorization.Mode;
+import alluxio.dora.util.io.BufferUtils;
 
 import org.junit.Assert;
 import org.junit.Test;

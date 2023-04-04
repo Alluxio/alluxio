@@ -11,11 +11,11 @@
 
 package alluxio.client.fuse.dora.readonly.stream;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.URIStatus;
-import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.exception.runtime.NotFoundRuntimeException;
 import alluxio.fuse.file.FuseFileStream;
-import alluxio.util.io.BufferUtils;
+import alluxio.dora.util.io.BufferUtils;
 
 import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;

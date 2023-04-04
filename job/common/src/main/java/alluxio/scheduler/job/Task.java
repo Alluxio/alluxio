@@ -11,7 +11,7 @@
 
 package alluxio.scheduler.job;
 
-import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.dora.client.block.stream.BlockWorkerClient;
 
 import com.google.common.util.concurrent.ListenableFuture;
 

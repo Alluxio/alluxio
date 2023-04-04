@@ -11,25 +11,25 @@
 
 package alluxio.cli.fsadmin;
 
-import alluxio.ClientContext;
-import alluxio.cli.AbstractShell;
-import alluxio.cli.Command;
-import alluxio.cli.CommandUtils;
+import alluxio.dora.ClientContext;
+import alluxio.dora.cli.AbstractShell;
+import alluxio.dora.cli.Command;
+import alluxio.dora.cli.CommandUtils;
 import alluxio.cli.fsadmin.command.Context;
-import alluxio.client.block.RetryHandlingBlockMasterClient;
-import alluxio.client.file.RetryHandlingFileSystemMasterClient;
+import alluxio.dora.client.block.RetryHandlingBlockMasterClient;
+import alluxio.dora.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.client.job.RetryHandlingJobMasterClient;
-import alluxio.client.journal.RetryHandlingJournalMasterClient;
-import alluxio.client.meta.RetryHandlingMetaMasterClient;
-import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
-import alluxio.client.metrics.RetryHandlingMetricsMasterClient;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.Source;
-import alluxio.master.MasterClientContext;
-import alluxio.util.ConfigurationUtils;
+import alluxio.dora.client.journal.RetryHandlingJournalMasterClient;
+import alluxio.dora.client.meta.RetryHandlingMetaMasterClient;
+import alluxio.dora.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.dora.client.metrics.RetryHandlingMetricsMasterClient;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.InstancedConfiguration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.conf.Source;
+import alluxio.dora.master.MasterClientContext;
+import alluxio.dora.util.ConfigurationUtils;
 import alluxio.worker.job.JobMasterClientContext;
 
 import org.slf4j.Logger;

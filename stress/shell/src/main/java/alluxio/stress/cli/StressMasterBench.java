@@ -11,19 +11,19 @@
 
 package alluxio.stress.cli;
 
-import alluxio.annotation.SuppressFBWarnings;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.Source;
-import alluxio.exception.AlluxioException;
-import alluxio.hadoop.HadoopConfigurationUtils;
+import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.dora.conf.InstancedConfiguration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.conf.Source;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.hadoop.HadoopConfigurationUtils;
 import alluxio.stress.StressConstants;
 import alluxio.stress.common.FileSystemClientType;
 import alluxio.stress.master.MasterBenchParameters;
 import alluxio.stress.master.MasterBenchTaskResult;
 import alluxio.stress.master.Operation;
-import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.FormatUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.RateLimiter;
@@ -157,13 +157,13 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
         mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
       }
     } else if (mParameters.mClientType == FileSystemClientType.ALLUXIO_NATIVE) {
-      InstancedConfiguration alluxioProperties = alluxio.conf.Configuration.copyGlobal();
+      InstancedConfiguration alluxioProperties = alluxio.dora.conf.Configuration.copyGlobal();
       alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf),
           Source.RUNTIME);
 
-      mCachedNativeFs = new alluxio.client.file.FileSystem[mParameters.mClients];
+      mCachedNativeFs = new alluxio.dora.client.file.FileSystem[mParameters.mClients];
       for (int i = 0; i < mCachedNativeFs.length; i++) {
-        mCachedNativeFs[i] = alluxio.client.file.FileSystem.Factory
+        mCachedNativeFs[i] = alluxio.dora.client.file.FileSystem.Factory
             .create(alluxioProperties);
       }
     }
@@ -393,9 +393,9 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
   }
 
   private final class AlluxioNativeBenchThread extends BenchThread {
-    private final alluxio.client.file.FileSystem mFs;
+    private final alluxio.dora.client.file.FileSystem mFs;
 
-    private AlluxioNativeBenchThread(BenchContext context, alluxio.client.file.FileSystem fs) {
+    private AlluxioNativeBenchThread(BenchContext context, alluxio.dora.client.file.FileSystem fs) {
       super(context);
       mFs = fs;
     }

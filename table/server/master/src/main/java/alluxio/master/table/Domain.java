@@ -11,7 +11,7 @@
 
 package alluxio.master.table;
 
-import alluxio.collections.Pair;
+import alluxio.dora.collections.Pair;
 import alluxio.grpc.table.Range;
 import alluxio.grpc.table.Value;
 

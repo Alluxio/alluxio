@@ -13,15 +13,15 @@ package alluxio.cli.fsadmin.journal;
 
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
-import alluxio.client.journal.JournalMasterClient;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.status.InvalidArgumentException;
+import alluxio.dora.client.journal.JournalMasterClient;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.exception.ExceptionMessage;
+import alluxio.dora.exception.status.InvalidArgumentException;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
-import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.WaitForOptions;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;

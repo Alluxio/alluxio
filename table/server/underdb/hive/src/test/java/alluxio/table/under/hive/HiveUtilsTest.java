@@ -15,7 +15,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.grpc.table.ColumnStatisticsInfo;
-import alluxio.util.CommonUtils;
+import alluxio.dora.util.CommonUtils;
 
 import org.apache.hadoop.hive.metastore.api.BinaryColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.BooleanColumnStatsData;

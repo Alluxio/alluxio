@@ -11,9 +11,9 @@
 
 package alluxio.master.backcompat.ops;
 
-import alluxio.AlluxioURI;
-import alluxio.annotation.SuppressFBWarnings;
-import alluxio.client.file.FileSystem;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.dora.client.file.FileSystem;
 import alluxio.master.backcompat.FsTestOp;
 
 import org.junit.Assert;

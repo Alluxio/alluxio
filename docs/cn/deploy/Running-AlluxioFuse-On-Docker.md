@@ -416,7 +416,7 @@ imageTag: "2.3.0-SNAPSHOT-b7629dc"
 imagePullPolicy: Always
 
 properties:
-    alluxio.user.ufs.block.read.location.policy: alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy
+    alluxio.user.ufs.block.read.location.policy: alluxio.dora.policy.block.client.LocalFirstAvoidEvictionPolicy
     alluxio.fuse.jnifuse.enabled: true
     alluxio.user.client.cache.enabled: false
     alluxio.user.client.cache.store.type: MEMORY
@@ -428,9 +428,9 @@ properties:
     alluxio.user.block.worker.client.pool.min: 512
     # It should be great than (120)*0.01 = 2GB
     alluxio.fuse.debug.enabled: "false"
-    alluxio.web.ui.enabled: false
+    alluxio.dora.web.ui.enabled: false
     alluxio.user.file.writetype.default: MUST_CACHE
-    alluxio.user.block.write.location.policy.class: alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy
+    alluxio.user.block.write.location.policy.class: alluxio.dora.policy.block.client.LocalFirstAvoidEvictionPolicy
     alluxio.worker.allocator.class: alluxio.worker.block.allocator.GreedyAllocator
     alluxio.user.block.size.bytes.default: 32MB
     # set OSS endpoint
@@ -456,7 +456,7 @@ properties:
     alluxio.user.file.master.client.threads: 1024
     alluxio.user.block.master.client.threads: 1024
     alluxio.user.file.readtype.default: CACHE
-    alluxio.security.stale.channel.purge.interval: 365d
+    alluxio.dora.security.stale.channel.purge.interval: 365d
     alluxio.user.metadata.cache.enabled: true
     alluxio.user.metadata.cache.expiration.time: 2day
     alluxio.user.metadata.cache.max.size: "1000000"

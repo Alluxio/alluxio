@@ -14,8 +14,8 @@ package alluxio.master.backcompat.ops;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.FileSystem;
 import alluxio.grpc.DeletePOptions;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Utils;

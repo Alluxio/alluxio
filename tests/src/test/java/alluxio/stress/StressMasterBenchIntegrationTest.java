@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.stress.cli.StressMasterBench;
 import alluxio.stress.master.MasterBenchSummary;
-import alluxio.util.JsonSerializable;
+import alluxio.dora.util.JsonSerializable;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;

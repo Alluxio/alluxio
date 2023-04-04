@@ -19,7 +19,7 @@ Authentication mode `SIMPLE` is required to enable authorization.
 1. [User Authorization](#authorization): 
 Alluxio filesystem will grant or deny user access based on the requesting user and
 the POSIX permissions model of the files or directories to access,
-when `alluxio.security.authorization.permission.enabled=true`.
+when `alluxio.dora.security.authorization.permission.enabled=true`.
 Note that, authentication cannot be `NOSASL` as authorization requires user information.
 1. [Access Control Lists](#access-control-lists): In addition to the POSIX permission model, Alluxio
 implements an Access Control List (ACL) model similar to those found in Linux and HDFS. The ACL model
@@ -37,14 +37,14 @@ for different security properties.
 ## Authentication
 
 The authentication protocol is determined by the configuration property
-`alluxio.security.authentication.type`, with a default value of `SIMPLE`.
+`alluxio.dora.security.authentication.type`, with a default value of `SIMPLE`.
 
 ### SIMPLE
 
 Authentication is **enabled** when the authentication type is `SIMPLE`.
 
 A client must identify itself with a username to the Alluxio service.
-If the property `alluxio.security.login.username` is set on the Alluxio client, its value will be
+If the property `alluxio.dora.security.login.username` is set on the Alluxio client, its value will be
 used as the login user, otherwise, the login user is inferred from the operating system user
 executing the client process.
 The provided user information is attached to the corresponding metadata when the client creates
@@ -62,8 +62,8 @@ corresponding metadata when the client creates directories or files.
 Authentication is **enabled** when the authentication type is `CUSTOM`.
 
 Alluxio clients retrieves user information via the class provided by the
-`alluxio.security.authentication.custom.provider.class` property.
-The specified class must implement the interface `alluxio.security.authentication.AuthenticationProvider`.
+`alluxio.dora.security.authentication.custom.provider.class` property.
+The specified class must implement the interface `alluxio.dora.security.authentication.AuthenticationProvider`.
 
 This mode is currently experimental and should only be used in tests.
 
@@ -106,13 +106,13 @@ drwxr-xr-x jack           staff                       24       PERSISTED 06-14-2
 ### User group mapping
 
 For a given user, the list of groups is determined by a group mapping service, configured by
-the `alluxio.security.group.mapping.class` property, with a default implementation of
-`alluxio.security.group.provider.ShellBasedUnixGroupsMapping`.
+the `alluxio.dora.security.group.mapping.class` property, with a default implementation of
+`alluxio.dora.security.group.provider.ShellBasedUnixGroupsMapping`.
 This implementation executes the `groups` shell command on the local machine
 to fetch the group memberships of a particular user.
 Running the `groups` command for every query may be expensive, so
 the user group mapping is cached, with an expiration period configured by the
-`alluxio.security.group.mapping.cache.timeout` property, with a default value of `60s`.
+`alluxio.dora.security.group.mapping.cache.timeout` property, with a default value of `60s`.
 If set to a value of `0`, the caching is disabled.
 If the cache timeout is too low or disabled, the `groups` command will be run very frequently, and
 may increase latency for operations.
@@ -121,7 +121,7 @@ results may become stale.
 
 Alluxio has super user, a user with special privileges typically needed to administer and maintain the system.
 The super user is the operating system user executing the Alluxio master process. 
-The `alluxio.security.authorization.permission.supergroup` property defines a super group.
+The `alluxio.dora.security.authorization.permission.supergroup` property defines a super group.
 Any additional operating system users belong to this operating system group are also super users.
 The default value is `supergroup`.
 
@@ -130,7 +130,7 @@ The default value is `supergroup`.
 When a file is created, it is initially assigned fully opened permissions of `666` by default.
 Similarly, a directory is initially assigned with `777` permissions.
 A umask is applied on the initial permissions; this is configured by the
-`alluxio.security.authorization.permission.umask` property, with a default of `022`.
+`alluxio.dora.security.authorization.permission.umask` property, with a default of `022`.
 Without any property modifications, files and directories are created with `644` and `755`
 permissions respectively.
 
@@ -296,7 +296,7 @@ client user.
 
 After enabling impersonation on the servers for a given Alluxio client user,
 the client must indicate which user it wants to impersonate.
-This is configured by the `alluxio.security.login.impersonation.username` property.
+This is configured by the `alluxio.dora.security.login.impersonation.username` property.
 
 If the property is set to an empty string or `_NONE_`, impersonation is disabled, and the Alluxio
 client will interact with Alluxio servers as the Alluxio client user.

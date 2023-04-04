@@ -11,27 +11,28 @@
 
 package alluxio.fuse;
 
-import alluxio.AlluxioURI;
-import alluxio.ClientContext;
-import alluxio.Constants;
-import alluxio.client.block.BlockMasterClient;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.collections.IndexDefinition;
-import alluxio.collections.IndexedSet;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.FileIncompleteException;
-import alluxio.exception.OpenDirectoryException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.ClientContext;
+import alluxio.dora.Constants;
+import alluxio.dora.client.block.BlockMasterClient;
+import alluxio.dora.client.file.FileInStream;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.collections.IndexDefinition;
+import alluxio.dora.collections.IndexedSet;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.FileDoesNotExistException;
+import alluxio.dora.exception.FileIncompleteException;
+import alluxio.dora.exception.OpenDirectoryException;
+import alluxio.dora.security.authorization.Mode;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.master.MasterClientContext;
-import alluxio.wire.BlockMasterInfo;
+import alluxio.dora.master.MasterClientContext;
+import alluxio.dora.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.LoadingCache;
@@ -153,7 +154,7 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
     AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
     SetAttributePOptions options = SetAttributePOptions.newBuilder()
-        .setMode(new alluxio.security.authorization.Mode((short) mode).toProto()).build();
+        .setMode(new Mode((short) mode).toProto()).build();
     try {
       mFileSystem.setAttribute(uri, options);
     } catch (Throwable t) {
@@ -230,7 +231,7 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
       }
       FileOutStream os = mFileSystem.createFile(uri,
           CreateFilePOptions.newBuilder()
-              .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
+              .setMode(new Mode((short) mode).toProto())
               .build());
       long fid = mNextOpenFileId.getAndIncrement();
       mOpenFiles.add(new OpenFileEntry(fid, path, null, os));
@@ -406,7 +407,7 @@ public final class AlluxioJnrFuseFileSystem extends FuseStubFS
     try {
       mFileSystem.createDirectory(turi,
           CreateDirectoryPOptions.newBuilder()
-              .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
+              .setMode(new Mode((short) mode).toProto())
               .build());
 
       FuseContext fc = getContext();

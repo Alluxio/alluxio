@@ -11,8 +11,8 @@
 
 package alluxio.table.under.hive.util;
 
-import alluxio.resource.CloseableResource;
-import alluxio.resource.DynamicResourcePool;
+import alluxio.dora.resource.CloseableResource;
+import alluxio.dora.resource.DynamicResourcePool;
 
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 

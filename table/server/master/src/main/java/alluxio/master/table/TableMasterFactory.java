@@ -11,14 +11,14 @@
 
 package alluxio.master.table;
 
-import alluxio.ClientContext;
-import alluxio.Constants;
+import alluxio.dora.ClientContext;
+import alluxio.dora.Constants;
 import alluxio.client.job.JobMasterClient;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.master.CoreMasterContext;
-import alluxio.master.MasterFactory;
-import alluxio.master.MasterRegistry;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.master.CoreMasterContext;
+import alluxio.dora.master.MasterFactory;
+import alluxio.dora.master.MasterRegistry;
 import alluxio.worker.job.JobMasterClientContext;
 
 import org.slf4j.Logger;

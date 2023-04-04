@@ -11,10 +11,10 @@
 
 package alluxio.stress.cli.worker;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.annotation.SuppressFBWarnings;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.WritePType;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.AbstractStressBench;
@@ -22,9 +22,9 @@ import alluxio.stress.cli.client.ClientIOWritePolicy;
 import alluxio.stress.common.FileSystemParameters;
 import alluxio.stress.worker.WorkerBenchParameters;
 import alluxio.stress.worker.WorkerBenchTaskResult;
-import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
-import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.FormatUtils;
+import alluxio.dora.util.executor.ExecutorServiceFactories;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.conf.Configuration;
@@ -166,7 +166,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
           }
           if (mParameters.mFree && Constants.SCHEME.equals(filePath.toUri().getScheme())) {
             // free the alluxio file
-            alluxio.client.file.FileSystem.Factory.get().free(new AlluxioURI(filePath.toString()));
+            alluxio.dora.client.file.FileSystem.Factory.get().free(new AlluxioURI(filePath.toString()));
             LOG.info("Freed file before reading: " + filePath);
           }
         }

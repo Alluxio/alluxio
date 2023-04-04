@@ -264,14 +264,14 @@ Alluxio有一个内置的探测机制来识别潜在的资源泄漏问题。此�
 <configuration>
   <property>
     <name>fs.alluxio.impl</name>
-    <value>alluxio.hadoop.FileSystem</value>
+    <value>alluxio.dora.hadoop.FileSystem</value>
   </property>
 </configuration>
 ```
 
 有关详细的设置说明，请参见你的特定计算应用的文档页。
 
-### 问题：出现"java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found"这种错误信息是什么原因？
+### 问题：出现"java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.dora.hadoop.FileSystem not found"这种错误信息是什么原因？
 
 解决办法：当你的应用（例如MapReduce、Spark）尝试以HDFS兼容文件系统接口访问Alluxio，并且`alluxio://`模式也已配置正确，但应用的classpath未包含Alluxio客户端jar包时会产生该异常。用户通常需要通过设置环境变量或者属性的方式将Alluxio客户端jar包添加到所有节点上的应用的classpath中，这取决于具体的计算框架。以下是一些示例：
 
@@ -321,7 +321,7 @@ $ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 - 请仔细检查Alluxio的master节点的端口(port)是否正确，Alluxio的master节点默认的监听端口号为19998。
 通常情况下master地址的端口号错误会导致这种错误提示的出现(例如端口号写成了19999,而19999是Alluxio的master节点的web用户界面的端口号)
 - 请确保Alluxio的master节点和client节点的安全设置保持一致.
-Alluxio通过配置`alluxio.security.authentication.type`来提供不同的[用户身份验证]({{ '/cn/security/Security.html' | relativize_url }}#authentication)的方法。
+Alluxio通过配置`alluxio.dora.security.authentication.type`来提供不同的[用户身份验证]({{ '/cn/security/Security.html' | relativize_url }}#authentication)的方法。
 如果客户端和服务器的这项配置属性不一致，这种错误将会发生。(例如，客户端的属性为默认值`NOSASL`,而服务器端设为`SIMPLE`)
 有关如何设定Alluxio的集群和应用的问题，用户请参照[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }})
 - Spark调用Alluxio-1.3.0文件时报错，如果是直接下载编译好的alluxio文件进行安装的，一般会出现该错误。

@@ -11,7 +11,10 @@
 
 package alluxio.cli;
 
-import alluxio.util.ExceptionUtils;
+import alluxio.dora.cli.AbstractValidationTask;
+import alluxio.dora.cli.ValidationTaskResult;
+import alluxio.dora.cli.ValidationUtils;
+import alluxio.dora.util.ExceptionUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;

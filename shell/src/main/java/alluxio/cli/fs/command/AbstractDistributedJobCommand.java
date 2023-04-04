@@ -11,15 +11,16 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.ClientContext;
+import alluxio.dora.ClientContext;
 import alluxio.cli.fs.command.job.JobAttempt;
 import alluxio.cli.util.DistributedCommandUtil;
-import alluxio.client.file.FileSystemContext;
+import alluxio.dora.cli.Command;
+import alluxio.dora.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
-import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.dora.exception.runtime.AlluxioRuntimeException;
 import alluxio.job.CmdConfig;
 import alluxio.job.wire.Status;
-import alluxio.util.CommonUtils;
+import alluxio.dora.util.CommonUtils;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.google.common.collect.Lists;
@@ -39,7 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
- * The base class for all the distributed job based {@link alluxio.cli.Command} classes.
+ * The base class for all the distributed job based {@link Command} classes.
  * It provides handling for submitting multiple jobs and handling retries of them.
  */
 public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCommand {

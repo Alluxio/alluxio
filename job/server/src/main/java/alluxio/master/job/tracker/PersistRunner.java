@@ -11,15 +11,15 @@
 
 package alluxio.master.job.tracker;
 
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
 import alluxio.grpc.OperationType;
 import alluxio.job.cmd.persist.PersistCmdConfig;
 import alluxio.job.wire.JobSource;
 import alluxio.master.job.JobMaster;
 import alluxio.master.job.common.CmdInfo;
 import alluxio.master.job.metrics.DistributedCmdMetrics;
-import alluxio.retry.CountingRetry;
+import alluxio.dora.retry.CountingRetry;
 
 import com.google.common.collect.Lists;
 

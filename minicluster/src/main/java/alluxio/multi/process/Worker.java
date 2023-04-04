@@ -11,7 +11,7 @@
 
 package alluxio.multi.process;
 
-import alluxio.conf.PropertyKey;
+import alluxio.dora.conf.PropertyKey;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

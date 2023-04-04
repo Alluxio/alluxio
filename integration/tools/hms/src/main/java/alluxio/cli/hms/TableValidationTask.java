@@ -11,10 +11,10 @@
 
 package alluxio.cli.hms;
 
-import alluxio.cli.ValidationTaskResult;
-import alluxio.cli.ValidationUtils;
-import alluxio.collections.Pair;
-import alluxio.util.ExceptionUtils;
+import alluxio.dora.cli.ValidationTaskResult;
+import alluxio.dora.cli.ValidationUtils;
+import alluxio.dora.collections.Pair;
+import alluxio.dora.util.ExceptionUtils;
 
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;

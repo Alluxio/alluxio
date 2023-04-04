@@ -11,7 +11,7 @@
 
 package alluxio.underfs.gcs;
 
-import alluxio.retry.RetryPolicy;
+import alluxio.dora.retry.RetryPolicy;
 
 import org.apache.http.HttpStatus;
 import org.jets3t.service.ServiceException;

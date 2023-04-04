@@ -16,13 +16,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.URIStatus;
-import alluxio.collections.Pair;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.collections.Pair;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.SelectExecutorsTest;
-import alluxio.wire.WorkerInfo;
+import alluxio.dora.wire.WorkerInfo;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;

@@ -11,12 +11,12 @@
 
 package alluxio.job.wire;
 
-import alluxio.exception.status.InvalidArgumentException;
+import alluxio.dora.exception.status.InvalidArgumentException;
 import alluxio.grpc.JobType;
 import alluxio.job.util.SerializableVoid;
 import alluxio.job.util.SerializationUtils;
-import alluxio.util.CommonUtils;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;

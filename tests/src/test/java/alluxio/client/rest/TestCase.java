@@ -11,7 +11,7 @@
 
 package alluxio.client.rest;
 
-import alluxio.exception.status.InvalidArgumentException;
+import alluxio.dora.exception.status.InvalidArgumentException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

@@ -11,18 +11,18 @@
 
 package alluxio.client.fuse.dora.stream;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.URIStatus;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.FileInStream;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.URIStatus;
 import alluxio.client.fuse.dora.AbstractFuseDoraTest;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.LaunchUserGroupAuthPolicy;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
-import alluxio.security.authorization.Mode;
-import alluxio.util.io.BufferUtils;
+import alluxio.dora.security.authorization.Mode;
+import alluxio.dora.util.io.BufferUtils;
 
 import org.junit.Assert;
 import org.junit.Before;

@@ -11,8 +11,8 @@
 
 package alluxio.underfs.obs;
 
-import alluxio.retry.RetryPolicy;
-import alluxio.underfs.MultiRangeObjectInputStream;
+import alluxio.dora.retry.RetryPolicy;
+import alluxio.dora.underfs.MultiRangeObjectInputStream;
 
 import com.obs.services.ObsClient;
 import com.obs.services.exception.ObsException;

@@ -11,13 +11,13 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.AlluxioURI;
-import alluxio.annotation.PublicApi;
-import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystemContext;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.InvalidArgumentException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.annotation.PublicApi;
+import alluxio.dora.cli.CommandUtils;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 

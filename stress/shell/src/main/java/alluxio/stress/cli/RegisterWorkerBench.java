@@ -15,18 +15,18 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.EMPTY_CONFIG;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
 
-import alluxio.ClientContext;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.ClientContext;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.LocationBlockIdListEntry;
-import alluxio.master.MasterClientContext;
+import alluxio.dora.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.stress.rpc.TierAlias;
-import alluxio.worker.block.BlockMasterClient;
-import alluxio.worker.block.BlockMasterSync;
-import alluxio.worker.block.BlockStoreLocation;
+import alluxio.dora.worker.block.BlockMasterClient;
+import alluxio.dora.worker.block.BlockMasterSync;
+import alluxio.dora.worker.block.BlockStoreLocation;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Preconditions;
@@ -124,7 +124,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     mainInternal(args, new RegisterWorkerBench());
   }
 
-  private RpcTaskResult simulateRegisterWorker(alluxio.worker.block.BlockMasterClient client) {
+  private RpcTaskResult simulateRegisterWorker(BlockMasterClient client) {
     RpcTaskResult result = new RpcTaskResult();
     long i = 0;
 
@@ -151,7 +151,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     return tierConfig.keySet().stream().map(TierAlias::toString).collect(Collectors.toList());
   }
 
-  private void runOnce(alluxio.worker.block.BlockMasterClient client,
+  private void runOnce(BlockMasterClient client,
                        RpcTaskResult result, long i, long workerId) {
     try {
       Instant s = Instant.now();

@@ -11,18 +11,18 @@
 
 package alluxio.job.plan.replicate;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.URIStatus;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.URIStatus;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
-import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
-import alluxio.util.io.BufferUtils;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.WaitForOptions;
+import alluxio.dora.util.io.BufferUtils;
+import alluxio.dora.wire.BlockInfo;
+import alluxio.dora.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Before;

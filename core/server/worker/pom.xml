@@ -158,7 +158,7 @@
                   The Alluxio Workers are processes which provide clients access to the data exposed by the Alluxio System.
                 </description>
               </info>
-              <locations>alluxio.worker.AlluxioWorkerRestServiceHandler</locations>
+              <locations>alluxio.dora.worker.AlluxioWorkerRestServiceHandler</locations>
               <templatePath>${project.parent.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
               <outputPath>${project.parent.parent.parent.basedir}/generated/worker/index.html</outputPath>
               <swaggerDirectory>${project.parent.parent.parent.basedir}/generated/worker/swagger-ui</swaggerDirectory>

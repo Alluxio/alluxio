@@ -11,13 +11,14 @@
 
 package alluxio.underfs.abfs;
 
-import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
-import alluxio.underfs.UfsFileStatus;
-import alluxio.underfs.UfsStatus;
-import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.underfs.UfsFileStatus;
+import alluxio.dora.underfs.UfsStatus;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
-import alluxio.underfs.options.FileLocationOptions;
+import alluxio.dora.underfs.options.FileLocationOptions;
 
 import com.google.common.base.MoreObjects;
 import org.apache.hadoop.conf.Configuration;
@@ -105,7 +106,7 @@ public class AbfsUnderFileSystem extends HdfsUnderFileSystem {
   }
 
   /**
-   * Constructs a new HDFS {@link alluxio.underfs.UnderFileSystem}.
+   * Constructs a new HDFS {@link UnderFileSystem}.
    *
    * @param ufsUri   the {@link AlluxioURI} for this UFS
    * @param conf     the configuration for this UFS

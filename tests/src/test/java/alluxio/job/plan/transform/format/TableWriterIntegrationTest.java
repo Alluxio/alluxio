@@ -14,12 +14,12 @@ package alluxio.job.plan.transform.format;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.AlluxioURI;
-import alluxio.exception.ExceptionMessage;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.exception.ExceptionMessage;
 import alluxio.job.JobIntegrationTest;
 import alluxio.job.plan.transform.format.parquet.ParquetSchema;
 import alluxio.job.plan.transform.format.parquet.ParquetTestUtils;
-import alluxio.uri.Authority;
+import alluxio.dora.uri.Authority;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;

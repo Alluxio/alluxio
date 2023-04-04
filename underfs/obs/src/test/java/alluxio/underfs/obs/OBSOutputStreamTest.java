@@ -11,9 +11,9 @@
 
 package alluxio.underfs.obs;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 
 import com.obs.services.ObsClient;
 import com.obs.services.exception.ObsException;

@@ -13,10 +13,10 @@ package alluxio.client.cli.fs.command;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.client.file.FileSystemTestUtils;
+import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
 
 import org.junit.Test;

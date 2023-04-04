@@ -11,8 +11,8 @@
 
 package alluxio.master.job;
 
-import alluxio.RpcUtils;
-import alluxio.exception.status.InvalidArgumentException;
+import alluxio.dora.RpcUtils;
+import alluxio.dora.exception.status.InvalidArgumentException;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.CancelPResponse;
 import alluxio.grpc.GetAllWorkerHealthPRequest;

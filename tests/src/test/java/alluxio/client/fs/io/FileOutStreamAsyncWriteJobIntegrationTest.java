@@ -11,26 +11,26 @@
 
 package alluxio.client.fs.io;
 
-import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.URIStatus;
-import alluxio.conf.Configuration;
-import alluxio.exception.AlluxioException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.WriteType;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
-import alluxio.master.file.meta.PersistenceState;
-import alluxio.security.authorization.Mode;
+import alluxio.dora.master.file.meta.PersistenceState;
+import alluxio.dora.security.authorization.Mode;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.PersistenceTestUtils;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.util.CommonUtils;
-import alluxio.util.ModeUtils;
-import alluxio.util.WaitForOptions;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.ModeUtils;
+import alluxio.dora.util.WaitForOptions;
+import alluxio.dora.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Assume;

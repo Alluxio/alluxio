@@ -11,8 +11,8 @@
 
 package alluxio.client.job;
 
-import alluxio.AbstractJobMasterClient;
-import alluxio.Constants;
+import alluxio.dora.AbstractJobMasterClient;
+import alluxio.dora.Constants;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.GetAllWorkerHealthPRequest;
 import alluxio.grpc.GetCmdStatusDetailedRequest;

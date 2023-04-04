@@ -19,7 +19,7 @@ import alluxio.stress.jobservice.JobServiceBenchParameters;
 import alluxio.stress.jobservice.JobServiceBenchSummary;
 import alluxio.stress.jobservice.JobServiceBenchTaskResult;
 import alluxio.stress.jobservice.JobServiceMaxThroughputSummary;
-import alluxio.util.JsonSerializable;
+import alluxio.dora.util.JsonSerializable;
 
 import com.google.common.collect.ImmutableList;
 

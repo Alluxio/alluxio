@@ -11,24 +11,24 @@
 
 package alluxio.master.table;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.status.NotFoundException;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.ExceptionMessage;
+import alluxio.dora.exception.status.NotFoundException;
 import alluxio.grpc.table.FileStatistics;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.SyncStatus;
-import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.Journaled;
-import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.dora.master.journal.JournalContext;
+import alluxio.dora.master.journal.Journaled;
+import alluxio.dora.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
-import alluxio.resource.CloseableIterator;
+import alluxio.dora.resource.CloseableIterator;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
-import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
-import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.ConfigurationUtils;
+import alluxio.dora.util.executor.ExecutorServiceFactories;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

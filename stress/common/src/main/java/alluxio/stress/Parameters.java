@@ -11,9 +11,9 @@
 
 package alluxio.stress;
 
-import alluxio.AlluxioURI;
-import alluxio.collections.Pair;
-import alluxio.util.JsonSerializable;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.collections.Pair;
+import alluxio.dora.util.JsonSerializable;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;

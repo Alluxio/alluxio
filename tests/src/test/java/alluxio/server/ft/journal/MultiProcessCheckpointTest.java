@@ -13,13 +13,13 @@ package alluxio.server.ft.journal;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.client.file.FileSystem;
-import alluxio.client.metrics.MetricsMasterClient;
-import alluxio.conf.PropertyKey;
-import alluxio.master.journal.JournalType;
-import alluxio.metrics.MetricKey;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.metrics.MetricsMasterClient;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.master.journal.JournalType;
+import alluxio.dora.metrics.MetricKey;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.IntegrationTestUtils;

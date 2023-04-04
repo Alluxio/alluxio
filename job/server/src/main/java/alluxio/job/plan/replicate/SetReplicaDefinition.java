@@ -11,26 +11,26 @@
 
 package alluxio.job.plan.replicate;
 
-import alluxio.AlluxioURI;
-import alluxio.client.block.BlockStoreClient;
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.stream.BlockWorkerClient;
-import alluxio.client.file.URIStatus;
-import alluxio.collections.Pair;
-import alluxio.conf.Configuration;
-import alluxio.exception.status.NotFoundException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.block.BlockStoreClient;
+import alluxio.dora.client.block.BlockWorkerInfo;
+import alluxio.dora.client.block.stream.BlockWorkerClient;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.collections.Pair;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.exception.status.NotFoundException;
 import alluxio.grpc.RemoveBlockRequest;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
-import alluxio.resource.CloseableResource;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.BlockLocation;
-import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.resource.CloseableResource;
+import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.dora.wire.BlockInfo;
+import alluxio.dora.wire.BlockLocation;
+import alluxio.dora.wire.WorkerInfo;
+import alluxio.dora.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;

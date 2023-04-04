@@ -11,25 +11,26 @@
 
 package alluxio.server.tieredstore;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.URIStatus;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.client.file.FileInStream;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemTestUtils;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.worker.block.meta.StorageTier;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.block.BlockMaster;
+import alluxio.dora.master.block.BlockMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
-import alluxio.util.io.BufferUtils;
-import alluxio.worker.block.allocator.GreedyAllocator;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.WaitForOptions;
+import alluxio.dora.util.io.BufferUtils;
+import alluxio.dora.worker.block.allocator.GreedyAllocator;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
@@ -40,7 +41,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 /**
- * Integration tests for {@link alluxio.worker.block.meta.StorageTier}.
+ * Integration tests for {@link StorageTier}.
  */
 public class TieredStoreIntegrationTest extends BaseIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 1000;

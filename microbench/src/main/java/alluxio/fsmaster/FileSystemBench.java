@@ -11,9 +11,10 @@
 
 package alluxio.fsmaster;
 
-import alluxio.AlluxioURI;
-import alluxio.annotation.SuppressFBWarnings;
-import alluxio.conf.Configuration;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.hadoop.AbstractFileSystem;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
@@ -95,11 +96,11 @@ public class FileSystemBench {
 
   @State(Scope.Thread)
   public static class AlluxioBenchThreadState extends ThreadState {
-    alluxio.client.file.FileSystem mFs;
+    alluxio.dora.client.file.FileSystem mFs;
 
     @Setup(Level.Trial)
     public void setup() {
-      mFs = alluxio.client.file.FileSystem.Factory.create(Configuration.global());
+      mFs = alluxio.dora.client.file.FileSystem.Factory.create(Configuration.global());
     }
 
     @TearDown
@@ -115,14 +116,14 @@ public class FileSystemBench {
 
   @State(Scope.Thread)
   public static class HadoopBenchThreadState extends ThreadState {
-    alluxio.hadoop.AbstractFileSystem mFs;
+    AbstractFileSystem mFs;
     Path mPath = new Path(mURI.getPath());
 
     @Setup(Level.Trial)
     public void setup() {
-      alluxio.client.file.FileSystem system =
-          alluxio.client.file.FileSystem.Factory.create(Configuration.global());
-      mFs = new alluxio.hadoop.FileSystem(system);
+      alluxio.dora.client.file.FileSystem system =
+          alluxio.dora.client.file.FileSystem.Factory.create(Configuration.global());
+      mFs = new alluxio.dora.hadoop.FileSystem(system);
     }
 
     @TearDown

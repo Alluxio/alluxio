@@ -11,11 +11,11 @@
 
 package alluxio.worker;
 
-import alluxio.AlluxioTestDirectory;
+import alluxio.dora.AlluxioTestDirectory;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.io.PathUtils;
-import alluxio.worker.block.BlockStore;
-import alluxio.worker.block.io.BlockReader;
+import alluxio.dora.util.io.PathUtils;
+import alluxio.dora.worker.block.BlockStore;
+import alluxio.dora.worker.block.io.BlockReader;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;

@@ -11,7 +11,7 @@
 
 package alluxio.stress.master;
 
-import alluxio.collections.Pair;
+import alluxio.dora.collections.Pair;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.graph.BarGraph;

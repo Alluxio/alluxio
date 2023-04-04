@@ -11,13 +11,13 @@
 
 package alluxio.master;
 
-import alluxio.RestUtils;
-import alluxio.RuntimeConstants;
-import alluxio.conf.Configuration;
-import alluxio.conf.ConfigurationValueOptions;
-import alluxio.util.LogUtils;
-import alluxio.web.JobMasterWebServer;
-import alluxio.wire.AlluxioJobMasterInfo;
+import alluxio.dora.RestUtils;
+import alluxio.dora.RuntimeConstants;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.ConfigurationValueOptions;
+import alluxio.dora.util.LogUtils;
+import alluxio.dora.web.JobMasterWebServer;
+import alluxio.dora.wire.AlluxioJobMasterInfo;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -75,7 +75,7 @@ public final class AlluxioJobMasterRestServiceHandler {
   @GET
   @Path(GET_INFO)
   @ApiOperation(value = "Get general job master service information",
-      response = alluxio.wire.AlluxioJobMasterInfo.class)
+      response = AlluxioJobMasterInfo.class)
   public Response getInfo(
       @ApiParam("Returns raw configuration values if true, false be default.")
       @QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {

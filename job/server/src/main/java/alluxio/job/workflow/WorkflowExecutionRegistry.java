@@ -11,8 +11,8 @@
 
 package alluxio.job.workflow;
 
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.JobDoesNotExistException;
+import alluxio.dora.exception.ExceptionMessage;
+import alluxio.dora.exception.JobDoesNotExistException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

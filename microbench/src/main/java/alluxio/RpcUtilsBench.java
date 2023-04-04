@@ -11,8 +11,9 @@
 
 package alluxio;
 
-import static alluxio.RpcUtils.callAndReturn;
+import static alluxio.dora.RpcUtils.callAndReturn;
 
+import alluxio.dora.RpcUtils;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -36,7 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Benchmarks for {@link alluxio.RpcUtils}.
+ * Benchmarks for {@link RpcUtils}.
  */
 @Fork(value = 1, jvmArgsPrepend = "-server")
 @Warmup(iterations = 2, time = 3, timeUnit = TimeUnit.SECONDS)

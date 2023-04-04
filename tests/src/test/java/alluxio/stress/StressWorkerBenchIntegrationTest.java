@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.stress.cli.worker.StressWorkerBench;
 import alluxio.stress.worker.WorkerBenchSummary;
-import alluxio.util.JsonSerializable;
+import alluxio.dora.util.JsonSerializable;
 
 import org.junit.Test;
 

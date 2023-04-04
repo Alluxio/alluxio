@@ -11,7 +11,7 @@
 
 package alluxio.job.plan.transform.format.csv;
 
-import alluxio.collections.Pair;
+import alluxio.dora.collections.Pair;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

@@ -11,8 +11,8 @@
 
 package alluxio.table.common.udb;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.FileSystem;
 import alluxio.table.common.CatalogPathUtils;
 
 import org.slf4j.Logger;

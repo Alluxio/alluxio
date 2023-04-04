@@ -11,15 +11,15 @@
 
 package alluxio.job.plan.load;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.URIStatus;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.URIStatus;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
-import alluxio.master.file.meta.PersistenceState;
-import alluxio.util.io.BufferUtils;
+import alluxio.dora.master.file.meta.PersistenceState;
+import alluxio.dora.util.io.BufferUtils;
 
 import org.junit.Assert;
 import org.junit.Test;

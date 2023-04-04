@@ -11,10 +11,10 @@ priority: 0
 
 该文档介绍Alluxio安全性相关的的功能。
 
-1. [身份验证](#authentication): 如果`alluxio.security.authentication.type=SIMPLE`(默认情况下)，
+1. [身份验证](#authentication): 如果`alluxio.dora.security.authentication.type=SIMPLE`(默认情况下)，
 Alluxio文件系统将区分使用服务的用户。要使用其他高级安全特性(如访问权限控制以及审计日志)，`SIMPLE`身份验证需要被开启。
 Alluxio还支持其它身份验证模式，如`NOSASL`和`CUSTOM`。
-1. [访问权限控制](#authorization): 如果是 `alluxio.security.authorization.permission.enabled=true`
+1. [访问权限控制](#authorization): 如果是 `alluxio.dora.security.authorization.permission.enabled=true`
 (默认情况下)，根据请求用户和要访问的文件或目录的POSIX权限模型，Alluxio文件系统将授予或拒绝用户访问。
 注意，身份验证不能是`NOSASL`，因为授权需要用户信息。
 1. [用户模拟](#impersonation)：Alluxio支持用户模拟，以便某一个用户可以代表其他用户访问Alluxio。这个机制在Alluxio客户端需要为多个用户提供数据访问的服务的一部分时相当有用。
@@ -27,10 +27,10 @@ Alluxio还支持其它身份验证模式，如`NOSASL`和`CUSTOM`。
 
 ### SIMPLE
 
-当`alluxio.security.authentication.type` 被设置为`SIMPLE`时，身份验证被启用。
+当`alluxio.dora.security.authentication.type` 被设置为`SIMPLE`时，身份验证被启用。
 在客户端访问Alluxio服务之前，该客户端将按以下列次序获取用户信息以汇报给Alluxio服务进行身份验证：
 
-1. 如果属性`alluxio.security.login.username`在客户端上被设置，其值将作为
+1. 如果属性`alluxio.dora.security.login.username`在客户端上被设置，其值将作为
 此客户端的登录用户。
 2. 否则，将从操作系统获取登录用户。
 
@@ -39,14 +39,14 @@ Alluxio还支持其它身份验证模式，如`NOSASL`和`CUSTOM`。
 
 ### NOSASL
 
-当`alluxio.security.authentication.type`为`NOSASL`时，身份验证被禁用。Alluxio服务将忽略客户端的用户，
+当`alluxio.dora.security.authentication.type`为`NOSASL`时，身份验证被禁用。Alluxio服务将忽略客户端的用户，
 并不把任何用户信息与创建的文件或目录关联。
 
 ### CUSTOM
 
-当`alluxio.security.authentication.type`为`CUSTOM`时，身份验证被启用。Alluxio客户端
-检查`alluxio.security.authentication.custom.provider.class`类的名称
-用于检索用户。此类必须实现`alluxio.security.authentication.AuthenticationProvider`接口。
+当`alluxio.dora.security.authentication.type`为`CUSTOM`时，身份验证被启用。Alluxio客户端
+检查`alluxio.dora.security.authentication.custom.provider.class`类的名称
+用于检索用户。此类必须实现`alluxio.dora.security.authentication.AuthenticationProvider`接口。
 
 这种模式目前还处于试验阶段，应该只在测试中使用。
 
@@ -84,15 +84,15 @@ drwxr-xr-x jack           staff                       24       PERSISTED 11-20-2
 
 ### 用户-组映射 {#user-group-mapping}
 
-当用户确定后，其组列表通过一个组映射服务确定，该服务通过`alluxio.security.group.mapping.class`配置，其默认实现是
-`alluxio.security.group.provider.ShellBasedUnixGroupsMapping`，该实现通过执行`groups` shell命令获取一个给定用户的组关系。
-用户-组映射默认使用了一种缓存机制，映射关系默认会缓存60秒，这个可以通过`alluxio.security.group.mapping.cache.timeout`进行配置，如果这个值设置成为"0"，缓存就不会启用.
+当用户确定后，其组列表通过一个组映射服务确定，该服务通过`alluxio.dora.security.group.mapping.class`配置，其默认实现是
+`alluxio.dora.security.group.provider.ShellBasedUnixGroupsMapping`，该实现通过执行`groups` shell命令获取一个给定用户的组关系。
+用户-组映射默认使用了一种缓存机制，映射关系默认会缓存60秒，这个可以通过`alluxio.dora.security.group.mapping.cache.timeout`进行配置，如果这个值设置成为"0"，缓存就不会启用.
 
-`alluxio.security.authorization.permission.supergroup`属性定义了一个超级组，该组中的所有用户都是超级用户。
+`alluxio.dora.security.authorization.permission.supergroup`属性定义了一个超级组，该组中的所有用户都是超级用户。
 
 ### 目录和文件初始访问权限
 
-初始创建访问权限是777，并且目录和文件的区别为111。默认的umask值为022，新创建的目录权限为755，文件为644。umask可以通过`alluxio.security.authorization.permission.umask`属性设置。
+初始创建访问权限是777，并且目录和文件的区别为111。默认的umask值为022，新创建的目录权限为755，文件为644。umask可以通过`alluxio.dora.security.authorization.permission.umask`属性设置。
 
 ### 更新目录和文件访问权限
 
@@ -132,7 +132,7 @@ Alluxio支持用户模拟，以便用户代表另一个用户访问Alluxio。这
 `alluxio.master.security.impersonation.<USERNAME>.groups`的其中一个（将`<USERNAME>`替换为`alluxio_user`）。你可以将两个参数设置为同一个用户。
 
 ### 客户端配置
-如果服务端配置为允许某些用户模拟其他的用户，client端也要进行相应的配置。使用`alluxio.security.login.impersonation.username`进行配置。
+如果服务端配置为允许某些用户模拟其他的用户，client端也要进行相应的配置。使用`alluxio.dora.security.login.impersonation.username`进行配置。
 这样Alluxio的客户端连接到服务的方式不变，但是该客户端模拟的是其他的用户。参数可以设置为以下值：
 
 - 不设置

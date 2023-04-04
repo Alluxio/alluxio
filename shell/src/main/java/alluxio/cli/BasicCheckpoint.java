@@ -11,13 +11,14 @@
 
 package alluxio.cli;
 
-import alluxio.AlluxioURI;
-import alluxio.RuntimeConstants;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
-import alluxio.exception.AlluxioException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.RuntimeConstants;
+import alluxio.dora.cli.RunTestUtils;
+import alluxio.dora.client.file.FileInStream;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 
 import org.slf4j.Logger;

@@ -17,7 +17,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import alluxio.AlluxioMockUtil;
+import alluxio.dora.AlluxioMockUtil;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.RunTaskContext;

@@ -129,9 +129,9 @@
                 </description>
               </info>
               <locations>
-                <location>alluxio.proxy.AlluxioProxyRestServiceHandler</location>
-                <location>alluxio.proxy.PathsRestServiceHandler</location>
-                <location>alluxio.proxy.StreamsRestServiceHandler</location>
+                <location>alluxio.dora.proxy.AlluxioProxyRestServiceHandler</location>
+                <location>alluxio.dora.proxy.PathsRestServiceHandler</location>
+                <location>alluxio.dora.proxy.StreamsRestServiceHandler</location>
               </locations>
               <templatePath>${project.parent.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
               <outputPath>${project.parent.parent.parent.basedir}/generated/proxy/index.html</outputPath>

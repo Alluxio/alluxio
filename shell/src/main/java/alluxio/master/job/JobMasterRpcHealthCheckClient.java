@@ -12,9 +12,9 @@
 package alluxio.master.job;
 
 import alluxio.common.RpcPortHealthCheckClient;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.grpc.ServiceType;
-import alluxio.retry.RetryPolicy;
+import alluxio.dora.retry.RetryPolicy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -11,18 +11,18 @@
 
 package alluxio.client.fs.concurrent;
 
-import alluxio.AlluxioURI;
-import alluxio.AuthenticatedUserRule;
-import alluxio.Constants;
-import alluxio.UnderFileSystemFactoryRegistryRule;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.AuthenticatedUserRule;
+import alluxio.dora.Constants;
+import alluxio.dora.UnderFileSystemFactoryRegistryRule;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.file.FileSystemMaster;
+import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;

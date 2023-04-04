@@ -11,13 +11,13 @@
 
 package alluxio.cli.job;
 
-import alluxio.cli.AbstractShell;
-import alluxio.cli.Command;
-import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystemContext;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
-import alluxio.util.ConfigurationUtils;
+import alluxio.dora.cli.AbstractShell;
+import alluxio.dora.cli.Command;
+import alluxio.dora.cli.CommandUtils;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
 

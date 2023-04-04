@@ -3,7 +3,7 @@ alluxio.security.authentication.type:
   默认为SIMPLE，即不启用安全认证功能。
 alluxio.security.authentication.custom.provider.class:
   当alluxio.security.authentication.type被设为CUSTOM时，实现安全认证功能的类。
-  该类必须实现'alluxio.security.authentication.AuthenticationProvider'接口。
+  该类必须实现'alluxio.dora.security.authentication.AuthenticationProvider'接口。
 alluxio.security.login.username:
   当alluxio.security.authentication.type被设为SIMPLE或CUSTOM时，用户应用使用此配置项
   作为连接Alluxio的用户名。若未设置该项，则使用系统登录用户名。
@@ -18,5 +18,5 @@ alluxio.security.authorization.permission.supergroup:
   Alluxio文件系统的超级用户组。所有该组下的用户拥有超级权限。
 alluxio.security.group.mapping.class:
   提供"用户-用户组"映射服务的实现类。Master可以通过该服务得到指定用户所在组的组成员。
-  该类必须实现'alluxio.security.group.GroupMappingService'接口。
+  该类必须实现'alluxio.dora.security.group.GroupMappingService'接口。
   默认的实现类通过执行'groups'命令得到指定用户所在组的组成员。

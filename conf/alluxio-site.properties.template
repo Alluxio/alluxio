@@ -17,8 +17,8 @@
 # alluxio.master.mount.table.root.ufs=${alluxio.work.dir}/underFSStorage
 
 # Security properties
-# alluxio.security.authorization.permission.enabled=true
-# alluxio.security.authentication.type=SIMPLE
+# alluxio.dora.security.authorization.permission.enabled=true
+# alluxio.dora.security.authentication.type=SIMPLE
 
 # Worker properties
 # alluxio.worker.ramdisk.size=1GB

@@ -11,18 +11,18 @@
 
 package alluxio.client.fs.io;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.FileInStream;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.MasterProcess;
-import alluxio.master.block.BlockMaster;
+import alluxio.dora.master.MasterProcess;
+import alluxio.dora.master.block.BlockMaster;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Test;

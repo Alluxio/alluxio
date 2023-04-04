@@ -13,13 +13,13 @@ package alluxio.cli.fsadmin.report;
 
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.cli.fsadmin.command.ReportCommand;
-import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.options.GetWorkerReportOptions;
-import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
-import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
-import alluxio.exception.status.InvalidArgumentException;
-import alluxio.util.FormatUtils;
-import alluxio.wire.WorkerInfo;
+import alluxio.dora.client.block.BlockMasterClient;
+import alluxio.dora.client.block.options.GetWorkerReportOptions;
+import alluxio.dora.client.block.options.GetWorkerReportOptions.WorkerInfoField;
+import alluxio.dora.client.block.options.GetWorkerReportOptions.WorkerRange;
+import alluxio.dora.exception.status.InvalidArgumentException;
+import alluxio.dora.util.FormatUtils;
+import alluxio.dora.wire.WorkerInfo;
 
 import com.google.common.base.Strings;
 import org.apache.commons.cli.CommandLine;

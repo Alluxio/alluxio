@@ -11,20 +11,20 @@
 
 package alluxio.server.worker;
 
-import static alluxio.util.CommonUtils.waitFor;
+import static alluxio.dora.util.CommonUtils.waitFor;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.ConfigurationRule;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.block.DefaultBlockMaster;
+import alluxio.dora.ConfigurationRule;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.master.block.BlockMaster;
+import alluxio.dora.master.block.DefaultBlockMaster;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.WaitForOptions;
-import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.CreateBlockOptions;
-import alluxio.worker.block.DefaultBlockWorker;
+import alluxio.dora.util.WaitForOptions;
+import alluxio.dora.worker.block.BlockWorker;
+import alluxio.dora.worker.block.CreateBlockOptions;
+import alluxio.dora.worker.block.DefaultBlockWorker;
 
 import org.junit.Rule;
 import org.junit.Test;

@@ -11,11 +11,11 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.AlluxioURI;
-import alluxio.annotation.PublicApi;
-import alluxio.client.file.FileSystemContext;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.InvalidArgumentException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.annotation.PublicApi;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.status.InvalidArgumentException;
 import alluxio.grpc.MountPOptions;
 
 import com.google.common.collect.Maps;

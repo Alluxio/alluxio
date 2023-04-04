@@ -11,9 +11,9 @@
 
 package alluxio.client.hadoop.contract;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.hadoop.HadoopConfigurationUtils;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.hadoop.HadoopConfigurationUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.apache.hadoop.fs.contract.AbstractContractMkdirTest;

@@ -75,7 +75,7 @@ resources:
     {{- end }}
 {{- end -}}
 
-{{- define "alluxio.proxy.resources" -}}
+{{- define "alluxio.dora.proxy.resources" -}}
 resources:
   limits:
     {{- if .Values.proxy.resources.limits }}

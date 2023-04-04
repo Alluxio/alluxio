@@ -11,12 +11,12 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.AlluxioURI;
-import alluxio.cli.Command;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.cli.Command;
 import alluxio.cli.fs.FileSystemShellUtils;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.exception.AlluxioException;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.exception.AlluxioException;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The base class for all the FileSystem {@link alluxio.cli.Command} classes.
+ * The base class for all the FileSystem {@link Command} classes.
  * It provides a place to hold the {@link FileSystem} client.
  */
 @ThreadSafe

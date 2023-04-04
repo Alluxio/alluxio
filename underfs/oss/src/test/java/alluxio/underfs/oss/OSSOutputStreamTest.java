@@ -11,9 +11,9 @@
 
 package alluxio.underfs.oss;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSException;

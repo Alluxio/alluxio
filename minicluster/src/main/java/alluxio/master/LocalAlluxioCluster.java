@@ -11,13 +11,13 @@
 
 package alluxio.master;
 
-import alluxio.ConfigurationTestUtils;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.WorkerProcess;
+import alluxio.dora.ConfigurationTestUtils;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.dora.worker.WorkerProcess;
 
 import java.io.IOException;
 import java.util.Map;

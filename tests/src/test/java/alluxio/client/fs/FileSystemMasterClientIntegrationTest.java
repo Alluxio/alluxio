@@ -11,19 +11,19 @@
 
 package alluxio.client.fs;
 
-import alluxio.AlluxioURI;
-import alluxio.ClientContext;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.NotFoundException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.ClientContext;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemMasterClient;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.status.NotFoundException;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.master.MasterClientContext;
+import alluxio.dora.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.FileSystemOptionsUtils;
+import alluxio.dora.util.FileSystemOptionsUtils;
 
 import com.google.common.base.Throwables;
 import org.junit.Assert;

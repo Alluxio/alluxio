@@ -11,7 +11,7 @@
 
 package alluxio.master.backcompat;
 
-import alluxio.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystem;
 import alluxio.multi.process.Clients;
 
 /**

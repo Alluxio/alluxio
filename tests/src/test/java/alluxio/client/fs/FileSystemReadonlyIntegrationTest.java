@@ -13,15 +13,15 @@ package alluxio.client.fs;
 
 import static junit.framework.TestCase.assertTrue;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.AccessControlException;
-import alluxio.master.file.FileSystemMaster;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.AccessControlException;
+import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.wire.MountPointInfo;
+import alluxio.dora.wire.MountPointInfo;
 
 import org.junit.Before;
 import org.junit.ClassRule;

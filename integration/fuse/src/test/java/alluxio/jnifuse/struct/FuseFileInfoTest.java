@@ -13,8 +13,8 @@ package alluxio.jnifuse.struct;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.LibFuse;
 

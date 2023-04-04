@@ -11,9 +11,10 @@
 
 package alluxio.cli.hms;
 
-import alluxio.cli.AbstractValidationTask;
-import alluxio.cli.ValidationTaskResult;
-import alluxio.collections.Pair;
+import alluxio.dora.cli.AbstractValidationTask;
+import alluxio.dora.cli.ValidationTaskResult;
+import alluxio.dora.cli.ValidationUtils;
+import alluxio.dora.collections.Pair;
 
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -42,7 +43,7 @@ public abstract class MetastoreValidationTask<K, T> extends AbstractValidationTa
 
   /**
    * @return a result of the validation. If {@link Pair#getFirst()} has a state of
-   * {@link alluxio.cli.ValidationUtils.State#OK}, then {@link Pair#getSecond()} will be non-null
+   * {@link ValidationUtils.State#OK}, then {@link Pair#getSecond()} will be non-null
    */
   abstract Pair<ValidationTaskResult, T> getValidationWithResult() throws InterruptedException;
 

@@ -11,9 +11,9 @@
 
 package alluxio.fuse.auth;
 
-import alluxio.AlluxioURI;
-import alluxio.conf.Configuration;
-import alluxio.exception.FileDoesNotExistException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.exception.FileDoesNotExistException;
 import alluxio.fuse.AlluxioFuseUtils;
 
 import org.junit.Assert;

@@ -13,17 +13,17 @@ package alluxio.stress.cli;
 
 import static alluxio.stress.rpc.TierAlias.MEM;
 
-import alluxio.ClientContext;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.ClientContext;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
-import alluxio.master.MasterClientContext;
+import alluxio.dora.master.MasterClientContext;
 import alluxio.stress.rpc.TierAlias;
-import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.BlockMasterClient;
-import alluxio.worker.block.BlockStoreLocation;
+import alluxio.dora.util.executor.ExecutorServiceFactories;
+import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.dora.worker.block.BlockMasterClient;
+import alluxio.dora.worker.block.BlockStoreLocation;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;

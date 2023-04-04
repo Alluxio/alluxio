@@ -11,7 +11,7 @@
 
 package alluxio.underfs.cephfs;
 
-import alluxio.underfs.SeekableUnderFileInputStream;
+import alluxio.dora.underfs.SeekableUnderFileInputStream;
 
 import java.io.IOException;
 

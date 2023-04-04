@@ -11,24 +11,24 @@
 
 package alluxio.fuse.ufs;
 
-import alluxio.AlluxioTestDirectory;
-import alluxio.AlluxioURI;
-import alluxio.ClientContext;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.options.UfsFileSystemOptions;
-import alluxio.client.file.ufs.UfsBaseFileSystem;
-import alluxio.conf.Configuration;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.Source;
+import alluxio.dora.AlluxioTestDirectory;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.ClientContext;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.client.file.options.UfsFileSystemOptions;
+import alluxio.dora.client.file.ufs.UfsBaseFileSystem;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.InstancedConfiguration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.conf.Source;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.LibFuse;
-import alluxio.security.authorization.Mode;
-import alluxio.underfs.UnderFileSystemFactoryRegistry;
+import alluxio.dora.security.authorization.Mode;
+import alluxio.dora.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.underfs.s3a.S3AUnderFileSystemFactory;
-import alluxio.util.io.FileUtils;
+import alluxio.dora.util.io.FileUtils;
 
 import org.junit.After;
 import org.junit.Before;

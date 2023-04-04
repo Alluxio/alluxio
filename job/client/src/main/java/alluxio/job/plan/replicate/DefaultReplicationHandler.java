@@ -11,11 +11,11 @@
 
 package alluxio.job.plan.replicate;
 
-import alluxio.AlluxioURI;
+import alluxio.dora.AlluxioURI;
 import alluxio.client.job.JobMasterClient;
 import alluxio.client.job.JobMasterClientPool;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.NotFoundException;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.status.NotFoundException;
 import alluxio.grpc.ListAllPOptions;
 import alluxio.job.wire.Status;
 

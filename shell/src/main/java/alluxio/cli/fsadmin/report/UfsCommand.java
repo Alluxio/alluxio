@@ -11,9 +11,9 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.util.FormatUtils;
-import alluxio.wire.MountPointInfo;
+import alluxio.dora.client.file.FileSystemMasterClient;
+import alluxio.dora.util.FormatUtils;
+import alluxio.dora.wire.MountPointInfo;
 
 import java.io.IOException;
 import java.util.Comparator;

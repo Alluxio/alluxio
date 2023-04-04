@@ -11,8 +11,8 @@
 
 package alluxio.master;
 
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
 
 import java.io.Closeable;
 import java.io.IOException;

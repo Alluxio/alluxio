@@ -11,11 +11,11 @@
 
 package alluxio.client.cli.fs.command;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.URIStatus;
+import alluxio.dora.client.file.FileSystemTestUtils;
+import alluxio.dora.client.file.URIStatus;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 

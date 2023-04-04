@@ -21,9 +21,9 @@ import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.stress.cli.RpcBenchPreparationUtils;
 import alluxio.stress.rpc.TierAlias;
-import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.RegisterStreamer;
+import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.dora.worker.block.RegisterStreamer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

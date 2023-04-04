@@ -18,7 +18,7 @@ import alluxio.table.common.UdbPartition;
 import alluxio.table.common.transform.TransformContext;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
-import alluxio.util.CommonUtils;
+import alluxio.dora.util.CommonUtils;
 
 import java.io.IOException;
 import java.util.List;

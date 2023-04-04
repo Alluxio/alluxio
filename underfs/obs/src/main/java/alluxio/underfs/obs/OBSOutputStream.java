@@ -11,8 +11,8 @@
 
 package alluxio.underfs.obs;
 
-import alluxio.util.CommonUtils;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import com.obs.services.ObsClient;

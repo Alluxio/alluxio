@@ -11,12 +11,12 @@
 
 package alluxio.cli.fsadmin.journal;
 
-import alluxio.cli.CommandUtils;
+import alluxio.dora.cli.CommandUtils;
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.status.InvalidArgumentException;
-import alluxio.util.CommonUtils;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.exception.status.InvalidArgumentException;
+import alluxio.dora.util.CommonUtils;
 
 import org.apache.commons.cli.CommandLine;
 

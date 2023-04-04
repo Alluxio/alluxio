@@ -11,21 +11,21 @@
 
 package alluxio.cli;
 
-import alluxio.ClientContext;
-import alluxio.Constants;
-import alluxio.annotation.PublicApi;
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.FileSystemContext;
+import alluxio.dora.ClientContext;
+import alluxio.dora.Constants;
+import alluxio.dora.annotation.PublicApi;
+import alluxio.dora.client.block.BlockWorkerInfo;
+import alluxio.dora.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.job.wire.JobWorkerHealth;
-import alluxio.util.network.HttpUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
-import alluxio.wire.LogInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.util.network.HttpUtils;
+import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.dora.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.dora.wire.LogInfo;
+import alluxio.dora.wire.WorkerNetAddress;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -11,7 +11,7 @@
 
 package alluxio.multi.process;
 
-import alluxio.conf.PropertyKey;
+import alluxio.dora.conf.PropertyKey;
 
 import java.io.File;
 import java.io.IOException;

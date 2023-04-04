@@ -11,14 +11,14 @@
 
 package alluxio.server.health;
 
-import alluxio.HealthCheckClient;
-import alluxio.conf.Configuration;
+import alluxio.dora.HealthCheckClient;
+import alluxio.dora.conf.Configuration;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.proxy.ProxyHealthCheckClient;
-import alluxio.retry.CountingRetry;
+import alluxio.dora.proxy.ProxyHealthCheckClient;
+import alluxio.dora.retry.CountingRetry;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.network.NetworkAddressUtils;
+import alluxio.dora.util.network.NetworkAddressUtils;
 
 import org.junit.Assert;
 import org.junit.Before;

@@ -13,22 +13,22 @@ package alluxio.job.plan.persist;
 
 import static org.mockito.Mockito.mock;
 
-import alluxio.AlluxioURI;
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
-import alluxio.collections.Pair;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.block.BlockWorkerInfo;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.collections.Pair;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
-import alluxio.underfs.UfsManager;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.BlockLocation;
-import alluxio.wire.FileBlockInfo;
-import alluxio.wire.FileInfo;
-import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.underfs.UfsManager;
+import alluxio.dora.wire.BlockInfo;
+import alluxio.dora.wire.BlockLocation;
+import alluxio.dora.wire.FileBlockInfo;
+import alluxio.dora.wire.FileInfo;
+import alluxio.dora.wire.WorkerInfo;
+import alluxio.dora.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import org.junit.Assert;

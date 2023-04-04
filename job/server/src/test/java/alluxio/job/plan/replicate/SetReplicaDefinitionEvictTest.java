@@ -15,18 +15,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
-import alluxio.client.block.BlockStoreClient;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.collections.Pair;
+import alluxio.dora.client.block.BlockStoreClient;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.collections.Pair;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
-import alluxio.underfs.UfsManager;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.BlockLocation;
-import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.underfs.UfsManager;
+import alluxio.dora.wire.BlockInfo;
+import alluxio.dora.wire.BlockLocation;
+import alluxio.dora.wire.WorkerInfo;
+import alluxio.dora.wire.WorkerNetAddress;
 
 import com.beust.jcommander.internal.Sets;
 import com.google.common.collect.Lists;

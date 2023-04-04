@@ -11,14 +11,14 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.cli.Command;
-import alluxio.client.block.BlockMasterClient;
-import alluxio.client.file.FileSystemMasterClient;
+import alluxio.dora.cli.Command;
+import alluxio.dora.client.block.BlockMasterClient;
+import alluxio.dora.client.file.FileSystemMasterClient;
 import alluxio.client.job.JobMasterClient;
-import alluxio.client.journal.JournalMasterClient;
-import alluxio.client.meta.MetaMasterClient;
-import alluxio.client.meta.MetaMasterConfigClient;
-import alluxio.client.metrics.MetricsMasterClient;
+import alluxio.dora.client.journal.JournalMasterClient;
+import alluxio.dora.client.meta.MetaMasterClient;
+import alluxio.dora.client.meta.MetaMasterConfigClient;
+import alluxio.dora.client.metrics.MetricsMasterClient;
 
 import java.io.PrintStream;
 

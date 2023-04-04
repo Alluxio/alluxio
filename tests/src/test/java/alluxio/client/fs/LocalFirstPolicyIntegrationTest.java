@@ -13,23 +13,23 @@ package alluxio.client.fs;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.AlluxioTestDirectory;
-import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
-import alluxio.Process;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.AlluxioTestDirectory;
+import alluxio.dora.ConfigurationRule;
+import alluxio.dora.ConfigurationTestUtils;
+import alluxio.dora.Process;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemTestUtils;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.WritePType;
-import alluxio.master.AlluxioMasterProcess;
+import alluxio.dora.master.AlluxioMasterProcess;
 import alluxio.master.TestUtils;
-import alluxio.network.TieredIdentityFactory;
+import alluxio.dora.network.TieredIdentityFactory;
 import alluxio.testutils.BaseIntegrationTest;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.AlluxioWorkerProcess;
-import alluxio.worker.WorkerProcess;
-import alluxio.worker.block.BlockWorker;
+import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.dora.worker.AlluxioWorkerProcess;
+import alluxio.dora.worker.WorkerProcess;
+import alluxio.dora.worker.block.BlockWorker;
 
 import org.junit.After;
 import org.junit.Before;

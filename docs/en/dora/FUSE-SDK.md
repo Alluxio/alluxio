@@ -450,7 +450,7 @@ Other configuration is the same as launching a standalone FUSE SDK.
 ```console
 $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o option
 ```
-`<under_storage_dataset>` should be exactly the same as the configured `alluxio.dora.client.ufs.root`.
+`<under_storage_dataset>` should be exactly the same as the configured `alluxio.alluxio.client.ufs.root`.
 
 All the metadata and data will be cached by Alluxio workers.
 Optional disable default FUSE SDK local metadata cache with `-o local_metadata_cache_size=0`.

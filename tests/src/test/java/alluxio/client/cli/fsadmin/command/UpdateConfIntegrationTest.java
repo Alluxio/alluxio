@@ -49,7 +49,7 @@ public final class UpdateConfIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void updateNonDynamicKey() {
     int ret = mFsAdminShell.run("updateConf",
-        "alluxio.security.authorization.permission.enabled=false");
+        "alluxio.dora.security.authorization.permission.enabled=false");
     Assert.assertEquals(-2, ret);
   }
 

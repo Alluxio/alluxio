@@ -137,9 +137,9 @@ alluxio.logserver.threads.min:
 alluxio.metrics.conf.file:
   'The file path of the metrics system configuration file. By default it is `metrics.properties` in the `conf` directory.'
 alluxio.metrics.executor.task.warn.frequency:
-  'When instrumenting an executor withInstrumentedExecutorService, if the number of active tasks (queued or running) is greater than alluxio.metrics.executor.task.warn.size value, a warning log will be printed at the given interval'
+  'When instrumenting an executor withInstrumentedExecutorService, if the number of active tasks (queued or running) is greater than alluxio.dora.metrics.executor.task.warn.size value, a warning log will be printed at the given interval'
 alluxio.metrics.executor.task.warn.size:
-  'When instrumenting an executor with InstrumentedExecutorService, if the number of active tasks (queued or running) is greater than this value, a warning log will be printed at the interval given by alluxio.metrics.executor.task.warn.frequency'
+  'When instrumenting an executor with InstrumentedExecutorService, if the number of active tasks (queued or running) is greater than this value, a warning log will be printed at the interval given by alluxio.dora.metrics.executor.task.warn.frequency'
 alluxio.network.connection.auth.timeout:
   'Maximum time to wait for a connection (gRPC channel) to attempt to receive an authentication response.'
 alluxio.network.connection.health.check.timeout:

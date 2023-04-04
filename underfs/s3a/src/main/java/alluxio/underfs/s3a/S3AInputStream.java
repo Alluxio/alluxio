@@ -11,9 +11,10 @@
 
 package alluxio.underfs.s3a;
 
-import alluxio.Seekable;
-import alluxio.exception.PreconditionMessage;
-import alluxio.retry.RetryPolicy;
+import alluxio.dora.Seekable;
+import alluxio.dora.exception.PreconditionMessage;
+import alluxio.dora.file.SeekableBufferedInputStream;
+import alluxio.dora.retry.RetryPolicy;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -29,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * An S3A input stream that supports skip and seek efficiently.
  * Recommended wrap around an BufferedInputStream or
- * {@link alluxio.file.SeekableBufferedInputStream} to improve performance.
+ * {@link SeekableBufferedInputStream} to improve performance.
  */
 @NotThreadSafe
 public class S3AInputStream extends InputStream implements Seekable {

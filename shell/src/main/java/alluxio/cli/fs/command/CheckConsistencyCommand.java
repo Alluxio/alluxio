@@ -11,20 +11,20 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.AlluxioURI;
-import alluxio.annotation.PublicApi;
-import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.file.URIStatus;
-import alluxio.collections.ConcurrentHashSet;
-import alluxio.exception.AggregateException;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.InvalidArgumentException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.annotation.PublicApi;
+import alluxio.dora.cli.CommandUtils;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileSystemMasterClient;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.collections.ConcurrentHashSet;
+import alluxio.dora.exception.AggregateException;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.status.InvalidArgumentException;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.DeletePOptions;
-import alluxio.resource.CloseableResource;
-import alluxio.util.FileSystemOptionsUtils;
+import alluxio.dora.resource.CloseableResource;
+import alluxio.dora.util.FileSystemOptionsUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;

@@ -11,7 +11,7 @@
 
 package alluxio.stress.fuse;
 
-import alluxio.Constants;
+import alluxio.dora.Constants;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.TaskResult;
 

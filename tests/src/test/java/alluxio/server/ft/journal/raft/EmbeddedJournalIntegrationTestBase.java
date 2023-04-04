@@ -11,17 +11,17 @@
 
 package alluxio.server.ft.journal.raft;
 
-import alluxio.ConfigurationRule;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.status.AlluxioStatusException;
+import alluxio.dora.ConfigurationRule;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.testutils.BaseIntegrationTest;
-import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.WaitForOptions;
 
 import org.junit.After;
 import org.junit.Rule;

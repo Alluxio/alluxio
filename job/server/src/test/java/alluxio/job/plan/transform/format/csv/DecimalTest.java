@@ -13,7 +13,7 @@ package alluxio.job.plan.transform.format.csv;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.collections.Pair;
+import alluxio.dora.collections.Pair;
 
 import org.junit.Test;
 

@@ -11,13 +11,13 @@
 
 package alluxio.worker;
 
-import alluxio.HealthCheckClient;
-import alluxio.RuntimeConstants;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
-import alluxio.retry.ExponentialBackoffRetry;
-import alluxio.retry.RetryPolicy;
-import alluxio.util.network.NetworkAddressUtils;
+import alluxio.dora.HealthCheckClient;
+import alluxio.dora.RuntimeConstants;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.retry.ExponentialBackoffRetry;
+import alluxio.dora.retry.RetryPolicy;
+import alluxio.dora.util.network.NetworkAddressUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

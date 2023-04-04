@@ -11,20 +11,20 @@
 
 package alluxio.client.fs;
 
-import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemUtils;
-import alluxio.client.meta.MetaMasterConfigClient;
-import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.ReadType;
+import alluxio.dora.client.file.FileInStream;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileSystemUtils;
+import alluxio.dora.client.meta.MetaMasterConfigClient;
+import alluxio.dora.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.MasterClientContext;
+import alluxio.dora.master.MasterClientContext;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import com.google.common.io.ByteStreams;

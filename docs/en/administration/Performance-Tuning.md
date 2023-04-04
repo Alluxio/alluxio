@@ -126,7 +126,7 @@ One way to avoid this situation is to apply a deterministic hashing policy by sp
 following configuration property:
 
 ```
-alluxio.user.ufs.block.read.location.policy=alluxio.client.block.policy.DeterministicHashPolicy
+alluxio.user.ufs.block.read.location.policy=alluxio.dora.policy.block.client.DeterministicHashPolicy
 ```
 
 This will cause Alluxio to select a single random worker to read the given block from the UFS

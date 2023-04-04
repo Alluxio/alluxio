@@ -13,8 +13,8 @@ package alluxio.client.fs.concurrent;
 
 import static org.junit.Assert.assertThat;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.FileSystem;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

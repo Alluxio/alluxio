@@ -11,22 +11,22 @@
 
 package alluxio.client.cli.fsadmin.pathconf;
 
-import alluxio.AlluxioURI;
+import alluxio.dora.AlluxioURI;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.fsadmin.FileSystemAdminShell;
 import alluxio.cli.fsadmin.pathconf.AddCommand;
-import alluxio.client.ReadType;
-import alluxio.client.WriteType;
+import alluxio.dora.client.ReadType;
+import alluxio.dora.client.WriteType;
 import alluxio.client.cli.fs.AbstractShellIntegrationTest;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.URIStatus;
-import alluxio.conf.Configuration;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemTestUtils;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.InstancedConfiguration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.master.file.meta.PersistenceState;
+import alluxio.dora.master.file.meta.PersistenceState;
 
 import org.junit.Assert;
 import org.junit.Test;

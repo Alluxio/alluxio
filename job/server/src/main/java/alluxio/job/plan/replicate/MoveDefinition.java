@@ -11,21 +11,21 @@
 
 package alluxio.job.plan.replicate;
 
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.stream.BlockWorkerClient;
-import alluxio.collections.Pair;
-import alluxio.conf.Configuration;
-import alluxio.exception.status.NotFoundException;
+import alluxio.dora.client.block.BlockWorkerInfo;
+import alluxio.dora.client.block.stream.BlockWorkerClient;
+import alluxio.dora.collections.Pair;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.exception.status.NotFoundException;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.util.SerializableVoid;
-import alluxio.resource.CloseableResource;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
-import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.resource.CloseableResource;
+import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.dora.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.dora.wire.WorkerInfo;
+import alluxio.dora.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;

@@ -11,19 +11,23 @@
 
 package alluxio.cli;
 
-import alluxio.Constants;
+import alluxio.dora.Constants;
 import alluxio.cli.hdfs.HdfsConfParityValidationTask;
 import alluxio.cli.hdfs.HdfsConfValidationTask;
 import alluxio.cli.hdfs.HdfsProxyUserValidationTask;
 import alluxio.cli.hdfs.HdfsVersionValidationTask;
 import alluxio.cli.hdfs.SecureHdfsValidationTask;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.status.InvalidArgumentException;
-import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.dora.cli.AbstractValidationTask;
+import alluxio.dora.cli.ValidationTask;
+import alluxio.dora.cli.ValidationTaskResult;
+import alluxio.dora.cli.ValidationUtils;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.status.InvalidArgumentException;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.ConfigurationUtils;
+import alluxio.dora.util.network.NetworkAddressUtils.ServiceType;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -70,7 +74,7 @@ public final class ValidateEnv {
 
   private static final String ALLUXIO_MASTER_CLASS = "alluxio.master.AlluxioMaster";
   private static final String ALLUXIO_WORKER_CLASS = "alluxio.worker.AlluxioWorker";
-  private static final String ALLUXIO_PROXY_CLASS = "alluxio.proxy.AlluxioProxy";
+  private static final String ALLUXIO_PROXY_CLASS = "alluxio.dora.proxy.AlluxioProxy";
   private static final Options OPTIONS = new Options();
 
   private final Map<ValidationTask, String> mTasks = new HashMap<>();
@@ -201,7 +205,7 @@ public final class ValidateEnv {
   }
 
   private ValidationTask registerTask(String name, String description,
-                   AbstractValidationTask task, List<ValidationTask> tasks) {
+                                      AbstractValidationTask task, List<ValidationTask> tasks) {
     mTasks.put(task, name);
     mTaskDescriptions.put(name, description);
     tasks.add(task);

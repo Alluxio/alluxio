@@ -12,11 +12,11 @@
 package alluxio.cli.hdfs;
 
 import alluxio.cli.ApplicableUfsType;
-import alluxio.cli.ValidationTaskResult;
-import alluxio.cli.ValidationUtils;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.util.ExceptionUtils;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.cli.ValidationTaskResult;
+import alluxio.dora.cli.ValidationUtils;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.util.ExceptionUtils;
+import alluxio.dora.util.io.PathUtils;
 
 import org.apache.commons.cli.Option;
 

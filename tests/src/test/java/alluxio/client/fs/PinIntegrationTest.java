@@ -11,26 +11,26 @@
 
 package alluxio.client.fs;
 
-import alluxio.AlluxioURI;
-import alluxio.ClientContext;
-import alluxio.client.WriteType;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.ClientContext;
+import alluxio.dora.client.WriteType;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.MasterClientContext;
+import alluxio.dora.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.io.PathUtils;
-import alluxio.wire.LoadMetadataType;
-import alluxio.worker.file.FileSystemMasterClient;
+import alluxio.dora.util.io.PathUtils;
+import alluxio.dora.wire.LoadMetadataType;
+import alluxio.dora.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;

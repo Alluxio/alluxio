@@ -11,11 +11,11 @@
 
 package alluxio.master.table;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.exception.AlluxioException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.table.ColumnStatisticsData;
 import alluxio.grpc.table.ColumnStatisticsInfo;
@@ -28,10 +28,10 @@ import alluxio.grpc.table.layout.hive.Storage;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.UdbTable;
-import alluxio.uri.Authority;
-import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
-import alluxio.util.WaitForOptions;
+import alluxio.dora.uri.Authority;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.ConfigurationUtils;
+import alluxio.dora.util.WaitForOptions;
 
 import com.google.common.collect.ImmutableList;
 

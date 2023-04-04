@@ -13,20 +13,20 @@ package alluxio.server.ft;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.master.file.contexts.CreateDirectoryContext;
-import alluxio.master.file.contexts.CreateFileContext;
-import alluxio.master.file.contexts.ListStatusContext;
-import alluxio.master.journal.JournalType;
+import alluxio.dora.master.file.contexts.CreateDirectoryContext;
+import alluxio.dora.master.file.contexts.CreateFileContext;
+import alluxio.dora.master.file.contexts.ListStatusContext;
+import alluxio.dora.master.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
-import alluxio.security.authorization.Mode;
+import alluxio.dora.security.authorization.Mode;
 import alluxio.server.ft.journal.raft.EmbeddedJournalIntegrationTestBase;
 
 import org.junit.Ignore;

@@ -14,16 +14,16 @@ package alluxio.server.ft.journal.ufs;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.FileSystem;
 import alluxio.grpc.MountPOptions;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.meta.MountTable;
-import alluxio.resource.CloseableResource;
+import alluxio.dora.master.file.FileSystemMaster;
+import alluxio.dora.master.file.meta.MountTable;
+import alluxio.dora.resource.CloseableResource;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.underfs.UfsManager;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.underfs.UfsManager;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;

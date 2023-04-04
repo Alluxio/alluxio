@@ -11,12 +11,12 @@
 
 package alluxio.cli.table.command;
 
-import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystemContext;
+import alluxio.dora.cli.CommandUtils;
+import alluxio.dora.client.file.FileSystemContext;
 import alluxio.client.table.TableMasterClient;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.InvalidArgumentException;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;

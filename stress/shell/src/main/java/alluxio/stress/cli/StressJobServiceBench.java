@@ -11,17 +11,17 @@
 
 package alluxio.stress.cli;
 
-import alluxio.AlluxioURI;
-import alluxio.ClientContext;
-import alluxio.Constants;
-import alluxio.annotation.SuppressFBWarnings;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.ClientContext;
+import alluxio.dora.Constants;
+import alluxio.dora.annotation.SuppressFBWarnings;
 import alluxio.cli.fs.command.DistributedLoadCommand;
 import alluxio.cli.fs.command.DistributedLoadUtils;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
-import alluxio.exception.AlluxioException;
+import alluxio.dora.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
@@ -33,10 +33,10 @@ import alluxio.stress.StressConstants;
 import alluxio.stress.jobservice.JobServiceBenchParameters;
 import alluxio.stress.jobservice.JobServiceBenchTaskResult;
 import alluxio.stress.jobservice.JobServiceBenchTaskResultStatistics;
-import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
-import alluxio.util.WaitForOptions;
-import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.FormatUtils;
+import alluxio.dora.util.WaitForOptions;
+import alluxio.dora.util.executor.ExecutorServiceFactories;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.beust.jcommander.ParametersDelegate;

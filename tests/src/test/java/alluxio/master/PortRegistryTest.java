@@ -17,7 +17,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.master.PortRegistry.Registry;
+import alluxio.dora.master.PortRegistry;
+import alluxio.dora.master.PortRegistry.Registry;
 
 import org.junit.Test;
 

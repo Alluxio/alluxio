@@ -11,16 +11,16 @@
 
 package alluxio.cli;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.RuntimeConstants;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
-import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.RuntimeConstants;
+import alluxio.dora.client.file.FileInStream;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;

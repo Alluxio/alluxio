@@ -11,24 +11,24 @@
 
 package alluxio.client.fs.io;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.client.WriteType;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.URIStatus;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.client.WriteType;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.file.FileSystemMaster;
+import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.util.CommonUtils;
-import alluxio.util.io.BufferUtils;
-import alluxio.util.io.PathUtils;
-import alluxio.wire.FileBlockInfo;
-import alluxio.wire.WorkerInfo;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.io.BufferUtils;
+import alluxio.dora.util.io.PathUtils;
+import alluxio.dora.wire.FileBlockInfo;
+import alluxio.dora.wire.WorkerInfo;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -40,7 +40,7 @@ import org.junit.runners.Parameterized.Parameters;
 import java.util.List;
 
 /**
- * Integration tests for {@link alluxio.client.file.FileOutStream}, parameterized by the write
+ * Integration tests for {@link FileOutStream}, parameterized by the write
  * types.
  */
 @RunWith(Parameterized.class)
@@ -158,7 +158,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.USER_BLOCK_WRITE_LOCATION_POLICY,
-      "alluxio.client.block.policy.LocalFirstPolicy"
+      "alluxio.dora.policy.block.client.LocalFirstPolicy"
       })
   public void writeSpecifyLocal() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());

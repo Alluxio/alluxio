@@ -11,12 +11,12 @@
 
 package alluxio.testutils.underfs.sleeping;
 
-import alluxio.AlluxioURI;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.UnderFileSystemFactory;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.conf.InstancedConfiguration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
 

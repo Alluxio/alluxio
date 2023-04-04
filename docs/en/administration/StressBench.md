@@ -241,7 +241,7 @@ By tweaking the setups, the reading performance under more scenarios can also be
 ### Cluster testing
 #### Prerequisite
 - A running Alluxio cluster. Each worker node contains one worker, one job worker, and one Fuse mount point.
-- Alluxio cluster is configured with `alluxio.user.block.write.location.policy.class=alluxio.client.block.policy.LocalFirstPolicy` (which is the default configuration)
+- Alluxio cluster is configured with `alluxio.user.block.write.location.policy.class=alluxio.dora.policy.block.client.LocalFirstPolicy` (which is the default configuration)
 - Each Alluxio worker has enough space to store the test data. The worker storage size for each worker is bigger than
 `num-dirs` * `num-files-per-dir` * `file-size` / `worker-number` / `alluxio.worker.tieredstore.levelX.watermark.low.ratio=0.7 by default`.
 

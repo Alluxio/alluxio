@@ -11,11 +11,10 @@
 
 package alluxio.testutils;
 
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.PersistJob;
-import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.time.ExponentialTimer;
-import alluxio.util.CommonUtils;
+import alluxio.dora.master.file.FileSystemMaster;
+import alluxio.dora.master.file.PersistJob;
+import alluxio.dora.time.ExponentialTimer;
+import alluxio.dora.util.CommonUtils;
 
 import org.powermock.reflect.Whitebox;
 

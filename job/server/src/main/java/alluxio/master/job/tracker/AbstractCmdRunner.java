@@ -11,11 +11,11 @@
 
 package alluxio.master.job.tracker;
 
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
 import alluxio.job.wire.Status;
 import alluxio.master.job.JobMaster;
-import alluxio.util.CommonUtils;
+import alluxio.dora.util.CommonUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

@@ -14,7 +14,7 @@ package alluxio.table.common.udb;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.table.common.ConfigurationUtils;
-import alluxio.util.CommonUtils;
+import alluxio.dora.util.CommonUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;

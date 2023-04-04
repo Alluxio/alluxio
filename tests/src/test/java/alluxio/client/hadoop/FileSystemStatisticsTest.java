@@ -11,12 +11,12 @@
 
 package alluxio.client.hadoop;
 
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.dora.client.file.FileSystemTestUtils;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
 import alluxio.grpc.WritePType;
-import alluxio.hadoop.FileSystem;
-import alluxio.hadoop.HadoopConfigurationUtils;
+import alluxio.dora.hadoop.FileSystem;
+import alluxio.dora.hadoop.HadoopConfigurationUtils;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
@@ -52,7 +52,7 @@ public class FileSystemStatisticsTest extends BaseIntegrationTest {
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     conf.set("fs.alluxio.impl", FileSystem.class.getName());
 
-    alluxio.client.file.FileSystem alluxioFS = sLocalAlluxioClusterResource.get().getClient();
+    alluxio.dora.client.file.FileSystem alluxioFS = sLocalAlluxioClusterResource.get().getClient();
     FileSystemTestUtils.createByteFile(alluxioFS, "/testFile-read", WritePType.CACHE_THROUGH,
         FILE_LEN);
 

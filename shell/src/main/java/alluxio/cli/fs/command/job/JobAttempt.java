@@ -15,7 +15,7 @@ import alluxio.client.job.JobMasterClient;
 import alluxio.job.JobConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
-import alluxio.retry.RetryPolicy;
+import alluxio.dora.retry.RetryPolicy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

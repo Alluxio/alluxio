@@ -11,14 +11,14 @@
 
 package alluxio.table.under.hive;
 
-import alluxio.AlluxioURI;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.NotFoundException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.status.NotFoundException;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
 import alluxio.master.table.DatabaseInfo;
-import alluxio.resource.CloseableResource;
+import alluxio.dora.resource.CloseableResource;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.PathTranslator;
@@ -30,7 +30,7 @@ import alluxio.table.common.udb.UdbUtils;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.table.under.hive.util.AbstractHiveClientPool;
 import alluxio.table.under.hive.util.HiveClientPoolCache;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;

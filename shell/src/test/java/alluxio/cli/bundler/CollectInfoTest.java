@@ -13,9 +13,9 @@ package alluxio.cli.bundler;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.cli.Command;
+import alluxio.dora.cli.Command;
 import alluxio.cli.bundler.command.AbstractCollectInfoCommand;
-import alluxio.conf.Configuration;
+import alluxio.dora.conf.Configuration;
 
 import org.junit.Test;
 import org.reflections.Reflections;

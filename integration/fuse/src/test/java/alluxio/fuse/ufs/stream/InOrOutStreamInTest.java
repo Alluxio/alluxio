@@ -11,8 +11,8 @@
 
 package alluxio.fuse.ufs.stream;
 
-import alluxio.AlluxioURI;
-import alluxio.exception.runtime.AlreadyExistsRuntimeException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.fuse.file.FuseFileStream;
 
 import jnr.constants.platform.OpenFlags;

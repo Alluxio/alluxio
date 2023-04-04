@@ -11,29 +11,29 @@
 
 package alluxio.testutils;
 
-import static alluxio.util.network.NetworkAddressUtils.ServiceType;
+import static alluxio.dora.util.network.NetworkAddressUtils.ServiceType;
 
-import alluxio.AlluxioURI;
-import alluxio.ClientContext;
-import alluxio.Constants;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatScheduler;
-import alluxio.master.MasterClientContext;
-import alluxio.master.NoopMaster;
-import alluxio.master.PortRegistry;
-import alluxio.master.journal.JournalUtils;
-import alluxio.master.journal.ufs.UfsJournal;
-import alluxio.master.journal.ufs.UfsJournalSnapshot;
-import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptionsUtils;
-import alluxio.util.URIUtils;
-import alluxio.util.WaitForOptions;
-import alluxio.worker.block.BlockHeartbeatReporter;
-import alluxio.worker.block.BlockWorker;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.ClientContext;
+import alluxio.dora.Constants;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemMasterClient;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.heartbeat.HeartbeatContext;
+import alluxio.dora.heartbeat.HeartbeatScheduler;
+import alluxio.dora.master.MasterClientContext;
+import alluxio.dora.master.NoopMaster;
+import alluxio.dora.master.PortRegistry;
+import alluxio.dora.master.journal.JournalUtils;
+import alluxio.dora.master.journal.ufs.UfsJournal;
+import alluxio.dora.master.journal.ufs.UfsJournalSnapshot;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.FileSystemOptionsUtils;
+import alluxio.dora.util.URIUtils;
+import alluxio.dora.util.WaitForOptions;
+import alluxio.dora.worker.block.BlockHeartbeatReporter;
+import alluxio.dora.worker.block.BlockWorker;
 
 import com.google.common.base.Throwables;
 import org.powermock.reflect.Whitebox;

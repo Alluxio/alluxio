@@ -11,17 +11,18 @@
 
 package alluxio.stress.cli.client;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.annotation.SuppressFBWarnings;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.Source;
-import alluxio.exception.AlluxioException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.dora.client.file.FileInStream;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.conf.AlluxioProperties;
+import alluxio.dora.conf.InstancedConfiguration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.conf.Source;
+import alluxio.dora.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.hadoop.HadoopConfigurationUtils;
+import alluxio.dora.hadoop.HadoopConfigurationUtils;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.cli.AbstractStressBench;
@@ -30,9 +31,9 @@ import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
 import alluxio.stress.common.FileSystemClientType;
 import alluxio.stress.common.SummaryStatistics;
-import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
-import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.FormatUtils;
+import alluxio.dora.util.executor.ExecutorServiceFactories;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.conf.Configuration;
@@ -73,7 +74,7 @@ public class StressClientIOBench extends AbstractStressBench
   private FileSystem[] mCachedFs;
 
   /** In case the Alluxio Native API is used,  use the following instead. */
-  private alluxio.client.file.FileSystem[] mCachedNativeFs;
+  private alluxio.dora.client.file.FileSystem[] mCachedNativeFs;
 
     /** Set to true after the first barrier is passed. */
   private volatile boolean mStartBarrierPassed = false;
@@ -166,14 +167,14 @@ public class StressClientIOBench extends AbstractStressBench
     } else if (mParameters.mClientType == FileSystemClientType.ALLUXIO_NATIVE) {
       LOG.info("Using ALLUXIO Native API to perform the test.");
 
-      alluxio.conf.AlluxioProperties alluxioProperties = alluxio.conf.Configuration
+      AlluxioProperties alluxioProperties = alluxio.dora.conf.Configuration
           .copyProperties();
       alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf),
           Source.RUNTIME);
 
-      mCachedNativeFs = new alluxio.client.file.FileSystem[mParameters.mClients];
+      mCachedNativeFs = new alluxio.dora.client.file.FileSystem[mParameters.mClients];
       for (int i = 0; i < mCachedNativeFs.length; i++) {
-        mCachedNativeFs[i] = alluxio.client.file.FileSystem.Factory
+        mCachedNativeFs[i] = alluxio.dora.client.file.FileSystem.Factory
             .create(new InstancedConfiguration(alluxioProperties));
       }
     } else {
@@ -552,12 +553,12 @@ public class StressClientIOBench extends AbstractStressBench
   }
 
   private final class AlluxioNativeBenchThread extends BenchThread {
-    private final alluxio.client.file.FileSystem mFs;
+    private final alluxio.dora.client.file.FileSystem mFs;
 
     private FileInStream mInStream = null;
     private FileOutStream mOutStream = null;
 
-    private AlluxioNativeBenchThread(BenchContext context, alluxio.client.file.FileSystem fs,
+    private AlluxioNativeBenchThread(BenchContext context, alluxio.dora.client.file.FileSystem fs,
                                      int threadId) {
       super(context, threadId);
 

@@ -11,14 +11,14 @@
 
 package alluxio.cli.command;
 
-import alluxio.Constants;
-import alluxio.cli.Command;
+import alluxio.dora.Constants;
+import alluxio.dora.cli.Command;
 import alluxio.cli.command.metadatacache.DropAllCommand;
 import alluxio.cli.command.metadatacache.DropCommand;
 import alluxio.cli.command.metadatacache.SizeCommand;
-import alluxio.client.file.FileSystem;
-import alluxio.collections.TwoKeyConcurrentMap;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.collections.TwoKeyConcurrentMap;
+import alluxio.dora.conf.AlluxioConfiguration;
 
 import java.util.HashMap;
 import java.util.Map;

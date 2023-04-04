@@ -89,7 +89,7 @@ FileSystem fs = FileSystem.Factory.get();
 All metadata operations as well as opening a file for reading or creating a file for writing are
 executed through the `FileSystem` object. Since Alluxio files are immutable once written, the
 idiomatic way to create files is to use
-[`FileSystem#createFile(AlluxioURI)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.AlluxioURI-),
+[`FileSystem#createFile(AlluxioURI)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.dora.AlluxioURI-),
 which returns a stream object that can be used to write the file. For example:
 
 > Note: there are some file path name limitation when creating files through Alluxio. Please check [Alluxio limitations]({{ '/en/administration/Troubleshooting.html' | relativize_url }}#file-path-limitations)
@@ -113,7 +113,7 @@ metadata (i.e. TTL or pin state) or getting an input stream to read the file.
 
 #### Reading Data
 
-Use [`FileSystem#openFile(AlluxioURI)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#openFile-alluxio.AlluxioURI-)
+Use [`FileSystem#openFile(AlluxioURI)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#openFile-alluxio.dora.AlluxioURI-)
 to obtain a stream object that can be used to read a file. For example:
 
 ```java
@@ -285,7 +285,7 @@ The built-in policies include:
   > workers changes, the workers chosen by the policy for a given block will likely change.
 
 Alluxio supports custom policies, so you can also develop your own policy appropriate for your
-workload by implementing the interface `alluxio.client.block.policy.BlockLocationPolicy`. Note that a
+workload by implementing the interface `alluxio.dora.policy.block.client.BlockLocationPolicy`. Note that a
 default policy must have a constructor which takes `alluxio.conf.AlluxioConfiguration`.
 To use the `ASYNC_THROUGH` write type, all the blocks of a file must be written to the same worker.
 
@@ -298,7 +298,7 @@ blocks to the highest tier.
 By default, data is written to the top tier. Users can modify the default setting through the
 `alluxio.user.file.write.tier.default` [property]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.user.file.write.tier.default)
 or override it through an option to the 
-[`FileSystem#createFile(AlluxioURI, CreateFilePOptions)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.AlluxioURI-alluxio.grpc.CreateFilePOptions-)
+[`FileSystem#createFile(AlluxioURI, CreateFilePOptions)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.dora.AlluxioURI-alluxio.grpc.CreateFilePOptions-)
 API call.
 
 #### Javadoc
@@ -309,7 +309,7 @@ For additional API information, please refer to the
 ### Hadoop-Compatible Java Client
 
 On top of the [Alluxio file system](#java-client), Alluxio also has a convenience class
-`alluxio.hadoop.FileSystem` that provides applications with a
+`alluxio.dora.hadoop.FileSystem` that provides applications with a
 [Hadoop compatible `FileSystem` interface](https://cwiki.apache.org/confluence/display/HADOOP2/HCFS).
 This client translates Hadoop file operations to Alluxio file system operations,
 allowing users to reuse existing code written for Hadoop without modification.
@@ -324,9 +324,9 @@ interface.
 ```java
 // create a new hadoop configuration
 org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-// enforce hadoop client to bind alluxio.hadoop.FileSystem for URIs like alluxio://
-conf.set("fs.alluxio.impl", "alluxio.hadoop.FileSystem");
-conf.set("fs.AbstractFileSystem.alluxio.impl", "alluxio.hadoop.AlluxioFileSystem");
+// enforce hadoop client to bind alluxio.dora.hadoop.FileSystem for URIs like alluxio://
+conf.set("fs.alluxio.impl", "alluxio.dora.hadoop.FileSystem");
+conf.set("fs.AbstractFileSystem.alluxio.impl", "alluxio.dora.hadoop.AlluxioFileSystem");
 
 // Now alluxio address can be used like any other hadoop-compatible file system URIs
 org.apache.orc.OrcFile.ReaderOptions options = new org.apache.orc.OrcFile.ReaderOptions(conf)

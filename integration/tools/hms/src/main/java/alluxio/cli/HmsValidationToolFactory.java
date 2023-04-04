@@ -11,6 +11,10 @@
 
 package alluxio.cli;
 
+import alluxio.dora.cli.ValidationConfig;
+import alluxio.dora.cli.ValidationTool;
+import alluxio.dora.cli.ValidationToolFactory;
+
 import java.util.Map;
 
 /**

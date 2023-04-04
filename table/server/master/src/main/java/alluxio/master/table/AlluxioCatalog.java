@@ -11,28 +11,28 @@
 
 package alluxio.master.table;
 
-import alluxio.client.file.FileSystem;
-import alluxio.collections.Pair;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.status.NotFoundException;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.collections.Pair;
+import alluxio.dora.exception.ExceptionMessage;
+import alluxio.dora.exception.status.NotFoundException;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.ColumnStatisticsList;
 import alluxio.grpc.table.Constraint;
 import alluxio.grpc.table.SyncStatus;
-import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalEntryIterable;
-import alluxio.master.journal.Journaled;
-import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.dora.master.journal.JournalContext;
+import alluxio.dora.master.journal.JournalEntryIterable;
+import alluxio.dora.master.journal.Journaled;
+import alluxio.dora.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
-import alluxio.resource.CloseableIterator;
-import alluxio.resource.LockResource;
+import alluxio.dora.resource.CloseableIterator;
+import alluxio.dora.resource.LockResource;
 import alluxio.table.common.Layout;
 import alluxio.table.common.LayoutRegistry;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
-import alluxio.util.StreamUtils;
+import alluxio.dora.util.StreamUtils;
 
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;

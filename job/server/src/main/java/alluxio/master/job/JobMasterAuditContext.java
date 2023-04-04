@@ -11,9 +11,10 @@
 
 package alluxio.master.job;
 
-import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
-import alluxio.master.audit.AuditContext;
-import alluxio.security.authentication.AuthType;
+import alluxio.dora.master.Master;
+import alluxio.dora.master.audit.AsyncUserAccessAuditLogWriter;
+import alluxio.dora.master.audit.AuditContext;
+import alluxio.dora.security.authentication.AuthType;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -49,7 +50,7 @@ public class JobMasterAuditContext implements AuditContext {
   /**
    * Sets mCommand field.
    *
-   * @param command the command associated with this {@link alluxio.master.Master}
+   * @param command the command associated with this {@link Master}
    * @return this {@link AuditContext} instance
    */
   public JobMasterAuditContext setCommand(String command) {

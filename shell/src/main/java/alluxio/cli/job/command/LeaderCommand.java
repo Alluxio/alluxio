@@ -11,12 +11,12 @@
 
 package alluxio.cli.job.command;
 
-import alluxio.annotation.PublicApi;
-import alluxio.cli.CommandUtils;
+import alluxio.dora.annotation.PublicApi;
+import alluxio.dora.cli.CommandUtils;
 import alluxio.cli.fs.command.AbstractFileSystemCommand;
-import alluxio.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileSystemContext;
 import alluxio.client.job.JobContext;
-import alluxio.exception.status.InvalidArgumentException;
+import alluxio.dora.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;

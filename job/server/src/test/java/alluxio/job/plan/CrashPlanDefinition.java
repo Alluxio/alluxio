@@ -11,12 +11,12 @@
 
 package alluxio.job.plan;
 
-import alluxio.collections.Pair;
+import alluxio.dora.collections.Pair;
 import alluxio.job.CrashPlanConfig;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
-import alluxio.wire.WorkerInfo;
+import alluxio.dora.wire.WorkerInfo;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;

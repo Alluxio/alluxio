@@ -12,15 +12,15 @@
 package alluxio.cli.hdfs;
 
 import alluxio.cli.ApplicableUfsType;
-import alluxio.cli.ValidationTaskResult;
-import alluxio.cli.ValidationUtils;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.status.UnauthenticatedException;
-import alluxio.security.authentication.AuthType;
-import alluxio.security.authentication.ImpersonationAuthenticator;
-import alluxio.security.user.UserState;
-import alluxio.util.ExceptionUtils;
+import alluxio.dora.cli.ValidationTaskResult;
+import alluxio.dora.cli.ValidationUtils;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.status.UnauthenticatedException;
+import alluxio.dora.security.authentication.AuthType;
+import alluxio.dora.security.authentication.ImpersonationAuthenticator;
+import alluxio.dora.security.user.UserState;
+import alluxio.dora.util.ExceptionUtils;
 
 import java.util.Map;
 

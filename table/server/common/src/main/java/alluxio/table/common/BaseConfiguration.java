@@ -11,7 +11,7 @@
 
 package alluxio.table.common;
 
-import alluxio.exception.ExceptionMessage;
+import alluxio.dora.exception.ExceptionMessage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

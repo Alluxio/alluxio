@@ -11,10 +11,10 @@
 
 package alluxio.master.backcompat;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.FileSystem;
 import alluxio.grpc.CreateFilePOptions;
 
 /**

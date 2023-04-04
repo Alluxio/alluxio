@@ -11,7 +11,7 @@
 
 package alluxio.job.plan.persist;
 
-import alluxio.util.CommonUtils;
+import alluxio.dora.util.CommonUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;

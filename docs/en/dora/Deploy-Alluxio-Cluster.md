@@ -14,7 +14,7 @@ to be the same on all Alluxio nodes.
 ## Enable Dora Distributed Cache
 
 ```properties
-alluxio.dora.client.read.location.policy.enabled=true
+alluxio.alluxio.client.read.location.policy.enabled=true
 ```
 
 This will enable the consistent hashing algorithm to distribute the load among Dora cache nodes.
@@ -31,7 +31,7 @@ These features are not supported in Dora and needs to be disabled for Dora to wo
 ## Enable client UFS fallback
 
 ```properties
-alluxio.dora.client.ufs.root=<under_fs_uri>
+alluxio.alluxio.client.ufs.root=<under_fs_uri>
 ```
 
 This property specifies the UFS clients will fall back to, in the same way as the
@@ -66,12 +66,12 @@ on how to configure the paged block store.
 
 The existing Alluxio helm chart works with Dora cluster except Alluxio Fuse. Note that:
 1. Set your image to `alluxio/alluxio:291-gamma`.
-2. Property `alluxio.master.mount.table.root.ufs` is no longer required. It is replaced by `alluxio.dora.client.ufs.root`
+2. Property `alluxio.master.mount.table.root.ufs` is no longer required. It is replaced by `alluxio.alluxio.client.ufs.root`
 3. Make sure to include the required configurations specified in previous sections in your helm chart configuration file, including:
-    - `alluxio.dora.client.read.localtion.policy.enabled: "true"`
+    - `alluxio.alluxio.client.read.localtion.policy.enabled: "true"`
     - `alluxio.user.short.circuit.enabled: "false"`
     - `alluxio.master.worker.register.lease.enabled: "false"`
-    - `alluxio.dora.client.ufs.root: <under_fs_uri>`
+    - `alluxio.alluxio.client.ufs.root: <under_fs_uri>`
 
 
 See [here](https://docs.alluxio.io/os/user/edge/en/kubernetes/Running-Alluxio-On-Kubernetes.html) 
@@ -84,7 +84,7 @@ The Helm Chart tailored for Dora and supports Alluxo Fuse is under development.
 ### Optional Dora Server-side Metadata Cache
 
 By default, Dora worker caches metadata and data.
-Set `alluxio.dora.client.metadata.cache.enabled` to `false` to disable the metadata cache on docker worker if needed.
+Set `alluxio.alluxio.client.metadata.cache.enabled` to `false` to disable the metadata cache on docker worker if needed.
 If disabled, client will always fetch metadata from under storage directly.
 
 ### High performance data transmission over Netty

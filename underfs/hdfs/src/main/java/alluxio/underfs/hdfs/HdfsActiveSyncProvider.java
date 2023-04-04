@@ -11,8 +11,8 @@
 
 package alluxio.underfs.hdfs;
 
-import alluxio.AlluxioURI;
-import alluxio.SyncInfo;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.SyncInfo;
 
 import java.io.IOException;
 

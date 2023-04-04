@@ -13,13 +13,13 @@ package alluxio.client.cli.fsadmin.command;
 
 import static org.hamcrest.CoreMatchers.containsString;
 
-import alluxio.AlluxioURI;
+import alluxio.dora.AlluxioURI;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.exception.AlluxioException;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemTestUtils;
+import alluxio.dora.exception.AlluxioException;
 import alluxio.grpc.WritePType;
-import alluxio.master.block.BlockId;
+import alluxio.dora.master.block.BlockId;
 
 import org.junit.Assert;
 import org.junit.Test;

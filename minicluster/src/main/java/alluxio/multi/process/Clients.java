@@ -11,10 +11,10 @@
 
 package alluxio.multi.process;
 
-import alluxio.client.block.BlockMasterClient;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.meta.MetaMasterClient;
+import alluxio.dora.client.block.BlockMasterClient;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemMasterClient;
+import alluxio.dora.client.meta.MetaMasterClient;
 
 /**
  * Container for various Alluxio clients.

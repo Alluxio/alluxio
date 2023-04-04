@@ -13,18 +13,18 @@ package alluxio.job.master;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.ConfigurationRule;
-import alluxio.Constants;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatScheduler;
-import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.dora.ConfigurationRule;
+import alluxio.dora.Constants;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.heartbeat.HeartbeatContext;
+import alluxio.dora.heartbeat.HeartbeatScheduler;
+import alluxio.dora.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.WaitForOptions;
 import alluxio.worker.JobWorkerIdRegistry;
 
 import com.google.common.collect.ImmutableMap;

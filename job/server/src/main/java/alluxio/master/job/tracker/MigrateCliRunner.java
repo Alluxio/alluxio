@@ -11,17 +11,17 @@
 
 package alluxio.master.job.tracker;
 
-import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
-import alluxio.collections.Pair;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.FileAlreadyExistsException;
-import alluxio.exception.InvalidPathException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.WriteType;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.collections.Pair;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.FileAlreadyExistsException;
+import alluxio.dora.exception.InvalidPathException;
 import alluxio.grpc.OperationType;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.BatchedJobConfig;
@@ -30,8 +30,8 @@ import alluxio.job.wire.JobSource;
 import alluxio.master.job.JobMaster;
 import alluxio.master.job.common.CmdInfo;
 import alluxio.master.job.metrics.DistributedCmdMetrics;
-import alluxio.retry.CountingRetry;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.retry.CountingRetry;
+import alluxio.dora.util.io.PathUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;

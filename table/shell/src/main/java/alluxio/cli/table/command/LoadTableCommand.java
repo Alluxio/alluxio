@@ -11,16 +11,16 @@
 
 package alluxio.cli.table.command;
 
-import alluxio.AlluxioURI;
-import alluxio.annotation.PublicApi;
-import alluxio.cli.CommandUtils;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.annotation.PublicApi;
+import alluxio.dora.cli.CommandUtils;
 import alluxio.cli.fs.command.DistributedLoadUtils;
-import alluxio.client.file.FileSystemContext;
+import alluxio.dora.client.file.FileSystemContext;
 import alluxio.client.table.TableMasterClient;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.InvalidArgumentException;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.status.AlluxioStatusException;
+import alluxio.dora.exception.status.InvalidArgumentException;
 import alluxio.table.common.CatalogPathUtils;
 
 import org.apache.commons.cli.CommandLine;

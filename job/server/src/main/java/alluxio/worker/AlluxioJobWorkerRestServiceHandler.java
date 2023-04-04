@@ -11,13 +11,13 @@
 
 package alluxio.worker;
 
-import alluxio.RestUtils;
-import alluxio.RuntimeConstants;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.util.LogUtils;
-import alluxio.web.JobWorkerWebServer;
-import alluxio.wire.AlluxioJobWorkerInfo;
+import alluxio.dora.RestUtils;
+import alluxio.dora.RuntimeConstants;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.util.LogUtils;
+import alluxio.dora.web.JobWorkerWebServer;
+import alluxio.dora.wire.AlluxioJobWorkerInfo;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -78,7 +78,7 @@ public final class  AlluxioJobWorkerRestServiceHandler {
   @GET
   @Path(GET_INFO)
   @ApiOperation(value = "Get general job worker service information",
-      response = alluxio.wire.AlluxioJobWorkerInfo.class)
+      response = AlluxioJobWorkerInfo.class)
   public Response getInfo(
       @ApiParam("Returns raw configuration values if true, false be default")
       @QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {

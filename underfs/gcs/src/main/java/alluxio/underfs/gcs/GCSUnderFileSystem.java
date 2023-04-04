@@ -11,19 +11,19 @@
 
 package alluxio.underfs.gcs;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.conf.PropertyKey;
-import alluxio.retry.RetryPolicy;
-import alluxio.underfs.ObjectUnderFileSystem;
-import alluxio.underfs.UfsDirectoryStatus;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.options.OpenOptions;
-import alluxio.util.CommonUtils;
-import alluxio.util.ModeUtils;
-import alluxio.util.UnderFileSystemUtils;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.retry.RetryPolicy;
+import alluxio.dora.underfs.ObjectUnderFileSystem;
+import alluxio.dora.underfs.UfsDirectoryStatus;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.underfs.options.OpenOptions;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.ModeUtils;
+import alluxio.dora.util.UnderFileSystemUtils;
+import alluxio.dora.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.http.HttpStatus;

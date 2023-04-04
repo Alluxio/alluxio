@@ -13,8 +13,8 @@ package alluxio.job.workflow;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.JobDoesNotExistException;
+import alluxio.dora.exception.ExceptionMessage;
+import alluxio.dora.exception.JobDoesNotExistException;
 import alluxio.job.workflow.composite.CompositeConfig;
 import alluxio.job.workflow.composite.CompositeExecution;
 

@@ -11,7 +11,7 @@
 
 package alluxio.underfs.hdfs;
 
-import alluxio.underfs.SeekableUnderFileInputStream;
+import alluxio.dora.underfs.SeekableUnderFileInputStream;
 
 import org.apache.hadoop.fs.FSDataInputStream;
 

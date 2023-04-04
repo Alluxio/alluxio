@@ -11,16 +11,16 @@
 
 package alluxio.master.file;
 
-import alluxio.AbstractMasterClient;
-import alluxio.Constants;
+import alluxio.dora.AbstractMasterClient;
+import alluxio.dora.Constants;
 import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
 import alluxio.grpc.GetFileInfoPRequest;
 import alluxio.grpc.GetUfsInfoPRequest;
-import alluxio.grpc.GrpcUtils;
+import alluxio.dora.grpc.GrpcUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.UfsInfo;
-import alluxio.master.MasterClientContext;
-import alluxio.wire.FileInfo;
+import alluxio.dora.master.MasterClientContext;
+import alluxio.dora.wire.FileInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

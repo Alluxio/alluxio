@@ -11,13 +11,13 @@
 
 package alluxio.job.plan.transform.format;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.client.ReadType;
-import alluxio.client.WriteType;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.ExceptionMessage;
-import alluxio.uri.NoAuthority;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.client.ReadType;
+import alluxio.dora.client.WriteType;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.ExceptionMessage;
+import alluxio.dora.uri.NoAuthority;
 
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.conf.Configuration;

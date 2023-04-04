@@ -11,8 +11,8 @@
 
 package alluxio.client.job;
 
-import alluxio.conf.PropertyKey;
-import alluxio.resource.ResourcePool;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.resource.ResourcePool;
 import alluxio.worker.job.JobMasterClientContext;
 
 import java.io.IOException;

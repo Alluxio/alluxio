@@ -11,16 +11,16 @@
 
 package alluxio.master.job;
 
-import alluxio.Constants;
-import alluxio.RestUtils;
-import alluxio.conf.Configuration;
+import alluxio.dora.Constants;
+import alluxio.dora.RestUtils;
+import alluxio.dora.conf.Configuration;
 import alluxio.grpc.ListAllPOptions;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.AlluxioJobMasterProcess;
-import alluxio.web.JobMasterWebServer;
+import alluxio.dora.web.JobMasterWebServer;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.jaxrs.annotation.JacksonFeatures;

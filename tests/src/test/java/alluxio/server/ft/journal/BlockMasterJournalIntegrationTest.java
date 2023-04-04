@@ -14,18 +14,18 @@ package alluxio.server.ft.journal;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.URIStatus;
-import alluxio.exception.BlockInfoException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemTestUtils;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.exception.BlockInfoException;
 import alluxio.grpc.WritePType;
-import alluxio.master.AlluxioMasterProcess;
+import alluxio.dora.master.AlluxioMasterProcess;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.block.BlockMaster;
+import alluxio.dora.master.block.BlockMaster;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.CommonUtils;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.wire.WorkerNetAddress;
 
 import org.junit.Before;
 import org.junit.Rule;

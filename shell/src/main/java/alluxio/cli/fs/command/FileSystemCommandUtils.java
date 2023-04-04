@@ -11,11 +11,11 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.annotation.PublicApi;
-import alluxio.client.file.FileSystem;
-import alluxio.exception.AlluxioException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.Constants;
+import alluxio.dora.annotation.PublicApi;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.exception.AlluxioException;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;

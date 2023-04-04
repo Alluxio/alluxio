@@ -11,8 +11,8 @@
 
 package alluxio.stress.worker;
 
-import alluxio.Constants;
-import alluxio.collections.Pair;
+import alluxio.dora.Constants;
+import alluxio.dora.collections.Pair;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.common.GeneralBenchSummary;

@@ -11,10 +11,10 @@
 
 package alluxio.fuse.auth;
 
-import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.InvalidArgumentRuntimeException;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.jnifuse.FuseFileSystem;
 
 import java.lang.reflect.InvocationTargetException;

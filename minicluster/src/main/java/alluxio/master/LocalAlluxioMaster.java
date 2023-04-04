@@ -11,16 +11,19 @@
 
 package alluxio.master;
 
-import alluxio.AlluxioTestDirectory;
-import alluxio.Constants;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.master.journal.JournalType;
-import alluxio.util.io.FileUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.dora.AlluxioTestDirectory;
+import alluxio.dora.Constants;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.master.AlluxioMasterProcess;
+import alluxio.dora.master.AlluxioSecondaryMaster;
+import alluxio.dora.master.MasterProcess;
+import alluxio.dora.master.journal.JournalType;
+import alluxio.dora.util.io.FileUtils;
+import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.dora.util.network.NetworkAddressUtils.ServiceType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -176,7 +179,7 @@ public final class LocalAlluxioMaster {
       mMasterThread = null;
     }
     clearClients();
-    System.clearProperty("alluxio.web.resources");
+    System.clearProperty("alluxio.dora.web.resources");
     System.clearProperty("alluxio.master.min.worker.threads");
   }
 

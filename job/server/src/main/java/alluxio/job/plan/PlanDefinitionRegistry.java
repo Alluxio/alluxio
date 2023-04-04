@@ -11,8 +11,8 @@
 
 package alluxio.job.plan;
 
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.JobDoesNotExistException;
+import alluxio.dora.exception.ExceptionMessage;
+import alluxio.dora.exception.JobDoesNotExistException;
 import alluxio.job.JobConfig;
 
 import com.google.common.base.Throwables;

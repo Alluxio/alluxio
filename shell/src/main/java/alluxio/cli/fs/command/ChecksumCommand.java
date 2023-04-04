@@ -11,16 +11,16 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.AlluxioURI;
-import alluxio.annotation.PublicApi;
-import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.status.InvalidArgumentException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.annotation.PublicApi;
+import alluxio.dora.cli.CommandUtils;
+import alluxio.dora.client.file.FileInStream;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.client.file.URIStatus;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.ExceptionMessage;
+import alluxio.dora.exception.FileDoesNotExistException;
+import alluxio.dora.exception.status.InvalidArgumentException;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 

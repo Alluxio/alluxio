@@ -11,17 +11,17 @@
 
 package alluxio.master.job.metrics;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.exception.AlluxioException;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.exception.AlluxioException;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.BatchedJobConfig;
 import alluxio.job.plan.load.LoadConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
 import alluxio.job.plan.persist.PersistConfig;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
-import alluxio.retry.RetryPolicy;
+import alluxio.dora.metrics.MetricKey;
+import alluxio.dora.metrics.MetricsSystem;
+import alluxio.dora.retry.RetryPolicy;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;

@@ -11,11 +11,11 @@
 
 package alluxio.master.job.plan;
 
-import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.JobDoesNotExistException;
-import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.dora.collections.Pair;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.exception.ExceptionMessage;
+import alluxio.dora.exception.JobDoesNotExistException;
+import alluxio.dora.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.plan.PlanConfig;
@@ -24,8 +24,8 @@ import alluxio.job.plan.replicate.SetReplicaConfig;
 import alluxio.job.wire.Status;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.workflow.WorkflowTracker;
-import alluxio.util.CommonUtils;
-import alluxio.wire.WorkerInfo;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;

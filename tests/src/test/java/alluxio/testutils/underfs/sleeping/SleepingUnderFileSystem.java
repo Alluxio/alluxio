@@ -11,21 +11,21 @@
 
 package alluxio.testutils.underfs.sleeping;
 
-import alluxio.AlluxioURI;
-import alluxio.underfs.Fingerprint;
-import alluxio.underfs.UfsDirectoryStatus;
-import alluxio.underfs.UfsFileStatus;
-import alluxio.underfs.UfsStatus;
-import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.underfs.Fingerprint;
+import alluxio.dora.underfs.UfsDirectoryStatus;
+import alluxio.dora.underfs.UfsFileStatus;
+import alluxio.dora.underfs.UfsStatus;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.local.LocalUnderFileSystem;
-import alluxio.underfs.options.CreateOptions;
-import alluxio.underfs.options.DeleteOptions;
-import alluxio.underfs.options.FileLocationOptions;
-import alluxio.underfs.options.ListOptions;
-import alluxio.underfs.options.MkdirsOptions;
-import alluxio.underfs.options.OpenOptions;
-import alluxio.util.CommonUtils;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.underfs.options.CreateOptions;
+import alluxio.dora.underfs.options.DeleteOptions;
+import alluxio.dora.underfs.options.FileLocationOptions;
+import alluxio.dora.underfs.options.ListOptions;
+import alluxio.dora.underfs.options.MkdirsOptions;
+import alluxio.dora.underfs.options.OpenOptions;
+import alluxio.dora.util.CommonUtils;
+import alluxio.dora.util.io.PathUtils;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -11,21 +11,24 @@
 
 package alluxio.cli;
 
-import static alluxio.conf.PropertyKey.PropertyType.STRING;
+import static alluxio.dora.conf.PropertyKey.PropertyType.STRING;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.Source;
-import alluxio.underfs.UfsFileStatus;
-import alluxio.underfs.UfsStatus;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemFactoryRegistry;
-import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.ExceptionUtils;
-import alluxio.util.io.PathUtils;
+import alluxio.dora.cli.RunTestUtils;
+import alluxio.dora.cli.ValidationTaskResult;
+import alluxio.dora.cli.ValidationUtils;
+import alluxio.dora.conf.Configuration;
+import alluxio.dora.conf.InstancedConfiguration;
+import alluxio.dora.conf.PropertyKey;
+import alluxio.dora.conf.Source;
+import alluxio.dora.underfs.UfsFileStatus;
+import alluxio.dora.underfs.UfsStatus;
+import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.dora.underfs.UnderFileSystemConfiguration;
+import alluxio.dora.underfs.UnderFileSystemFactory;
+import alluxio.dora.underfs.UnderFileSystemFactoryRegistry;
+import alluxio.dora.underfs.options.DeleteOptions;
+import alluxio.dora.util.ExceptionUtils;
+import alluxio.dora.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;

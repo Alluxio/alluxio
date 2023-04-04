@@ -11,10 +11,10 @@
 
 package alluxio.examples;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
+import alluxio.dora.AlluxioURI;
+import alluxio.dora.client.file.FileInStream;
+import alluxio.dora.client.file.FileOutStream;
+import alluxio.dora.client.file.FileSystem;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 

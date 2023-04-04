@@ -13,11 +13,11 @@ package alluxio.job.plan;
 
 import static org.mockito.Mockito.mock;
 
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.underfs.UfsManager;
-import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.client.file.FileSystem;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.underfs.UfsManager;
+import alluxio.dora.wire.WorkerInfo;
+import alluxio.dora.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;

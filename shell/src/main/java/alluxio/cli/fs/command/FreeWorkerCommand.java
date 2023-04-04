@@ -13,15 +13,15 @@ package alluxio.cli.fs.command;
 
 import static java.util.stream.Collectors.toList;
 
-import alluxio.annotation.PublicApi;
-import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.stream.BlockWorkerClient;
-import alluxio.client.file.FileSystemContext;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.NotFoundException;
-import alluxio.resource.CloseableResource;
-import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.dora.annotation.PublicApi;
+import alluxio.dora.client.block.BlockMasterClient;
+import alluxio.dora.client.block.stream.BlockWorkerClient;
+import alluxio.dora.client.file.FileSystemContext;
+import alluxio.dora.exception.AlluxioException;
+import alluxio.dora.exception.status.NotFoundException;
+import alluxio.dora.resource.CloseableResource;
+import alluxio.dora.wire.WorkerInfo;
+import alluxio.dora.wire.WorkerNetAddress;
 
 import io.grpc.StatusRuntimeException;
 import org.apache.commons.cli.CommandLine;
