@@ -225,25 +225,11 @@ public class RaftSnapshotManager implements AutoCloseable {
     try {
       client.connect();
       Iterator<SnapshotData> it = client.requestLatestSnapshotData(snapshotMetadata);
-      final long[] totalBytesRead = {0L};
+      long totalBytesRead;
       long snapshotDiskSize;
-      try (InputStream snapshotInStream = new InputStream() {
-        ByteBuffer mCurrentBuffer = null; // using a read-only ByteBuffer avoids array copy
-
-        @Override
-        public int read() {
-          if (mCurrentBuffer == null || !mCurrentBuffer.hasRemaining()) {
-            if (!it.hasNext()) {
-              return -1;
-            }
-            mCurrentBuffer = it.next().getChunk().asReadOnlyByteBuffer();
-            LOG.trace("Received chunk of size {}: {}", mCurrentBuffer.capacity(), mCurrentBuffer);
-            totalBytesRead[0] += mCurrentBuffer.capacity();
-          }
-          return Byte.toUnsignedInt(mCurrentBuffer.get());
-        }
-      }) {
-        snapshotDiskSize = TarUtils.readTarGz(mStorage.getTmpDir().toPath(), snapshotInStream);
+      try (SnapshotGrpcInputStream stream = new SnapshotGrpcInputStream(it)) {
+        snapshotDiskSize = TarUtils.readTarGz(mStorage.getTmpDir().toPath(), stream);
+        totalBytesRead = stream.totalBytes();
       }
 
       File finalSnapshotDestination = new File(mStorage.getSnapshotDir(),
@@ -262,7 +248,7 @@ public class RaftSnapshotManager implements AutoCloseable {
           .update(mLastSnapshotDownloadDiskSize);
       LOG.debug("Total extracted bytes of snapshot {}: {}", index, mLastSnapshotDownloadDiskSize);
       // update compressed snapshot size (aka size sent over the network)
-      mLastSnapshotDownloadSize = totalBytesRead[0];
+      mLastSnapshotDownloadSize = totalBytesRead;
       MetricsSystem.histogram(
               MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_HISTOGRAM.getName())
           .update(mLastSnapshotDownloadSize);
@@ -291,5 +277,33 @@ public class RaftSnapshotManager implements AutoCloseable {
 
   private TermIndex toTermIndex(SnapshotMetadata metadata) {
     return TermIndex.valueOf(metadata.getSnapshotTerm(), metadata.getSnapshotIndex());
+  }
+
+  static class SnapshotGrpcInputStream extends InputStream {
+    private final Iterator<SnapshotData> mIt;
+    private long mTotalBytesRead = 0;
+    // using a read-only ByteBuffer avoids array copy
+    private ByteBuffer mCurrentBuffer = ByteBuffer.allocate(0);
+
+    public SnapshotGrpcInputStream(Iterator<SnapshotData> iterator) {
+      mIt = iterator;
+    }
+
+    @Override
+    public int read() {
+      if (!mCurrentBuffer.hasRemaining()) {
+        if (!mIt.hasNext()) {
+          return -1;
+        }
+        mCurrentBuffer = mIt.next().getChunk().asReadOnlyByteBuffer();
+        LOG.debug("Received chunk of size {}: {}", mCurrentBuffer.capacity(), mCurrentBuffer);
+        mTotalBytesRead += mCurrentBuffer.capacity();
+      }
+      return Byte.toUnsignedInt(mCurrentBuffer.get());
+    }
+
+    public long totalBytes() {
+      return mTotalBytesRead;
+    }
   }
 }

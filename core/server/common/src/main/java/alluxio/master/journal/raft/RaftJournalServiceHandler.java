@@ -44,10 +44,7 @@ import java.util.concurrent.TimeUnit;
  * RPC handler for raft journal service.
  */
 public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJournalServiceImplBase {
-  private static final Logger LOG =
-      LoggerFactory.getLogger(RaftJournalServiceHandler.class);
-  private final int mSnapshotReplicationChunkSize = (int) Configuration.getBytes(
-      PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE);
+  private static final Logger LOG = LoggerFactory.getLogger(RaftJournalServiceHandler.class);
   private final int mSnapshotCompressionLevel =
       Configuration.getInt(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
 
@@ -99,7 +96,7 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
 
   @Override
   public void requestLatestSnapshotData(SnapshotMetadata request,
-                                     StreamObserver<SnapshotData> responseObserver) {
+                                        StreamObserver<SnapshotData> responseObserver) {
     TermIndex index = TermIndex.valueOf(request.getSnapshotTerm(), request.getSnapshotIndex());
     LOG.info("Received request for snapshot data {}", index);
     if (Context.current().isCancelled()) {
@@ -111,40 +108,13 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
     String snapshotDirName = SimpleStateMachineStorage
         .getSnapshotFileName(request.getSnapshotTerm(), request.getSnapshotIndex());
     Path snapshotPath = new File(mStateMachineStorage.getSnapshotDir(), snapshotDirName).toPath();
-    final long[] totalBytesSent = {0L}; // needs to be effectively final
+    long totalBytesSent;
     long diskSize;
     LOG.info("Begin snapshot upload of {}", index);
     Instant start = Instant.now();
-    try (OutputStream snapshotOutStream = new OutputStream() {
-      byte[] mBuffer = new byte[mSnapshotReplicationChunkSize];
-      int mBufferPosition = 0;
-
-      @Override
-      public void write(int b) {
-        mBuffer[mBufferPosition++] = (byte) b;
-        if (mBufferPosition == mBuffer.length) {
-          flushBuffer();
-        }
-      }
-
-      @Override
-      public void close() {
-        if (mBufferPosition > 0) {
-          flushBuffer();
-        }
-      }
-
-      private void flushBuffer() {
-        // avoids copy
-        ByteString bytes = UnsafeByteOperations.unsafeWrap(mBuffer, 0, mBufferPosition);
-        mBuffer = new byte[mSnapshotReplicationChunkSize];
-        LOG.trace("Sending chunk of size {}: {}", mBufferPosition, bytes.toByteArray());
-        responseObserver.onNext(SnapshotData.newBuilder().setChunk(bytes).build());
-        totalBytesSent[0] += mBufferPosition;
-        mBufferPosition = 0;
-      }
-    }) {
-      diskSize = TarUtils.writeTarGz(snapshotPath, snapshotOutStream, mSnapshotCompressionLevel);
+    try (SnapshotGrpcOutputStream stream = new SnapshotGrpcOutputStream(responseObserver)) {
+      diskSize = TarUtils.writeTarGz(snapshotPath, stream, mSnapshotCompressionLevel);
+      totalBytesSent = stream.totalBytes();
     } catch (Exception e) {
       LOG.warn("Failed to upload snapshot {}", index, e);
       responseObserver.onError(Status.INTERNAL.withCause(e).asRuntimeException());
@@ -163,10 +133,52 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
         .update(mLastSnapshotUploadDiskSize);
     LOG.debug("Total snapshot uncompressed bytes for {}: {}", index, mLastSnapshotUploadDiskSize);
     // update compressed snapshot size (aka size sent over the network)
-    mLastSnapshotUploadSize = totalBytesSent[0];
+    mLastSnapshotUploadSize = totalBytesSent;
     MetricsSystem.histogram(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_HISTOGRAM.getName())
         .update(mLastSnapshotUploadSize);
     LOG.info("Total bytes sent for {}: {}", index, mLastSnapshotUploadSize);
     LOG.info("Uploaded snapshot {}", index);
+  }
+
+  static class SnapshotGrpcOutputStream extends OutputStream {
+    private final int mSnapshotReplicationChunkSize = (int) Configuration.getBytes(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE);
+    private final StreamObserver<SnapshotData> mObserver;
+    private long mTotalBytesSent = 0;
+    private byte[] mBuffer = new byte[mSnapshotReplicationChunkSize];
+    private int mBufferPosition = 0;
+
+    public SnapshotGrpcOutputStream(StreamObserver<SnapshotData> responseObserver) {
+      mObserver = responseObserver;
+    }
+
+    @Override
+    public void write(int b) {
+      mBuffer[mBufferPosition++] = (byte) b;
+      if (mBufferPosition == mBuffer.length) {
+        flushBuffer();
+      }
+    }
+
+    @Override
+    public void close() {
+      if (mBufferPosition > 0) {
+        flushBuffer();
+      }
+    }
+
+    private void flushBuffer() {
+      // avoids copy
+      ByteString bytes = UnsafeByteOperations.unsafeWrap(mBuffer, 0, mBufferPosition);
+      mBuffer = new byte[mSnapshotReplicationChunkSize];
+      LOG.debug("Sending chunk of size {}: {}", mBufferPosition, bytes);
+      mObserver.onNext(SnapshotData.newBuilder().setChunk(bytes).build());
+      mTotalBytesSent += mBufferPosition;
+      mBufferPosition = 0;
+    }
+
+    public long totalBytes() {
+      return mTotalBytesSent + mBufferPosition;
+    }
   }
 }
