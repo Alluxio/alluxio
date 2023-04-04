@@ -14,6 +14,7 @@ package alluxio.master.file.scheduler;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
@@ -27,8 +28,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.LongStream;
 
-public final class LoadTestUtils {
-  private LoadTestUtils() {}
+public final class JobTestUtils {
+  private JobTestUtils() {}
 
   public static List<BlockStatus> generateRandomBlockStatus(
       List<Block> blocks, double failureRate) {
@@ -49,6 +50,17 @@ public final class LoadTestUtils {
       }
     }
     return blockStatus.build();
+  }
+
+  public static  List<FileInfo> generateRandomFileInfoUnderRoot(
+      int fileCount, int blockCountPerFile, long blockSizeLimit, String rootPath) {
+    List<FileInfo> fileInfos = Lists.newArrayList();
+    for (int i = 0; i < fileCount; i++) {
+      FileInfo info = createFileInfo(blockCountPerFile, blockSizeLimit);
+      info.setPath(PathUtils.concatPath(rootPath, info.getPath()));
+      fileInfos.add(info);
+    }
+    return fileInfos;
   }
 
   public static List<FileInfo> fileWithBlockLocations(List<FileInfo> files, double ratio) {
@@ -94,13 +106,14 @@ public final class LoadTestUtils {
         .map(i -> random.nextLong())
         .boxed()
         .collect(ImmutableList.toImmutableList());
-    info.setUfsPath(ufs)
+    info.setPath(ufs)
+        .setUfsPath(ufs)
         .setBlockSizeBytes(blockSize)
         .setLength(blockSizeLimit * blockCount)
         .setBlockIds(blockIds)
         .setFileBlockInfos(blockIds
             .stream()
-            .map(id -> LoadTestUtils.createFileBlockInfo(id, blockSizeLimit))
+            .map(id -> JobTestUtils.createFileBlockInfo(id, blockSizeLimit))
             .collect(ImmutableList.toImmutableList()))
         .setCompleted(true)
         .setPersisted(true);

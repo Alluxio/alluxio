@@ -19,6 +19,8 @@ import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
+import alluxio.grpc.CopyRequest;
+import alluxio.grpc.CopyResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshaller;
@@ -247,5 +249,10 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   @Override
   public ListenableFuture<LoadResponse> load(LoadRequest request) {
     return mRpcFutureStub.load(request);
+  }
+
+  @Override
+  public ListenableFuture<CopyResponse> copy(CopyRequest request) {
+    return mRpcFutureStub.copy(request);
   }
 }

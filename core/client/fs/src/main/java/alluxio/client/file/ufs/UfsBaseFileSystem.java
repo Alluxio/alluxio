@@ -164,6 +164,9 @@ public class UfsBaseFileSystem implements FileSystem {
       if (options.hasRecursive()) {
         ufsOptions.setCreateParent(options.getRecursive());
       }
+      if (options.hasIsAtomicWrite()) {
+        ufsOptions.setEnsureAtomic(options.getIsAtomicWrite());
+      }
       return new UfsFileOutStream(mUfs.get().create(path.getPath(), ufsOptions));
     });
   }

@@ -537,7 +537,9 @@ public final class FileSystemMasterClientServiceHandler
       } catch (Exception e) {
         throw new IllegalArgumentException("fail to parse job request", e);
       }
-      Job<?> job = JobFactoryProducer.create(jobRequest, mFileSystemMaster).create();
+      Job<?> job =
+          JobFactoryProducer.create(jobRequest, (DefaultFileSystemMaster) mFileSystemMaster)
+                            .create();
       boolean submitted = mScheduler.submitJob(job);
       SubmitJobPResponse.Builder builder = SubmitJobPResponse.newBuilder();
       if (submitted) {

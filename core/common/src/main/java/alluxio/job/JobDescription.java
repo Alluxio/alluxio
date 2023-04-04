@@ -28,14 +28,14 @@ public class JobDescription {
   }
 
   /**
-   * @return the path of the job affected
+   * @return the type of the job
    */
   public String getType() {
     return mType;
   }
 
   /**
-   * @return the type of the job
+   * @return the path of the job affected
    */
   public String getPath() {
     return mPath;

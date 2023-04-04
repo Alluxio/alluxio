@@ -11,7 +11,7 @@
 
 package alluxio.master.file.scheduler;
 
-import static alluxio.master.file.scheduler.JobTestUtils.generateRandomFileInfo;
+import static alluxio.master.file.scheduler.JobTestUtils.generateRandomFileInfoUnderRoot;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -21,19 +21,20 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
+import alluxio.client.WriteType;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.InternalRuntimeException;
-import alluxio.grpc.Block;
 import alluxio.grpc.JobProgressReportFormat;
+import alluxio.grpc.Route;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.job.CopyJob;
 import alluxio.master.job.FileIterable;
-import alluxio.master.job.LoadJob;
 import alluxio.scheduler.job.JobState;
 import alluxio.wire.FileInfo;
 
-import com.google.common.collect.ImmutableSet;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -41,108 +42,92 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
 
-public class LoadJobTest {
+public class CopyJobTest {
+  // test CopyJob get next task
   @Test
-  public void testGetNextBatch()
+  public void testGetNextTask()
       throws FileDoesNotExistException, AccessControlException, IOException, InvalidPathException {
-    List<FileInfo> fileInfos = generateRandomFileInfo(5, 20, 64 * Constants.MB);
-
+    String srcPath = "/src";
+    String dstPath = "/dst";
+    List<FileInfo> fileInfos = generateRandomFileInfoUnderRoot(5, 20, 64 * Constants.MB, srcPath);
     FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
     when(fileSystemMaster.listStatus(any(), any())).thenReturn(fileInfos);
-    String testPath = "test";
     Optional<String> user = Optional.of("user");
     FileIterable files =
-        new FileIterable(fileSystemMaster, testPath, user, false,
-            LoadJob.QUALIFIED_FILE_FILTER);
-    LoadJob load =
-        new LoadJob(testPath, user, "1", OptionalLong.empty(), false, false, files);
-    List<Block> batch = load.getNextBatchBlocks(10);
-    assertEquals(10, batch.size());
-    assertEquals(1, batch.stream().map(Block::getUfsPath).distinct().count());
-
-    batch.forEach(load::addBlockToRetry);
-
-    batch = load.getNextBatchBlocks(80);
-    assertEquals(80, batch.size());
-    assertEquals(5, batch.stream().map(Block::getUfsPath).distinct().count());
-
-    batch = load.getNextBatchBlocks(80);
-    assertEquals(10, batch.size());
-    assertEquals(1, batch.stream().map(Block::getUfsPath).distinct().count());
-
-    batch = load.getNextBatchBlocks(80);
-    assertEquals(10, batch.size());
-    assertEquals(1, batch.stream().map(Block::getUfsPath).distinct().count());
-    assertEquals(ImmutableSet.of(fileInfos.get(0).getUfsPath()),
-        batch.stream().map(Block::getUfsPath).collect(ImmutableSet.toImmutableSet()));
-
-    batch = load.getNextBatchBlocks(80);
-    assertEquals(0, batch.size());
+        new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
+    CopyJob copy = new CopyJob(srcPath, dstPath, "/", "/", false, WriteType.NONE, user, "1",
+        OptionalLong.empty(), false, false, files);
+    Optional<CopyJob.CopyTask> nextTask = copy.getNextTask(null);
+    Assert.assertEquals(5, nextTask.get().getRoutes().size());
   }
 
   @Test
   public void testIsHealthy()
       throws FileDoesNotExistException, AccessControlException, IOException, InvalidPathException {
-    List<FileInfo> fileInfos = generateRandomFileInfo(100, 5, 64 * 1024 * 1024);
+    String srcPath = "/src";
+    String dstPath = "/dst";
+    List<FileInfo> fileInfos = generateRandomFileInfoUnderRoot(500, 20, 64 * Constants.MB, srcPath);
     FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
     when(fileSystemMaster.listStatus(any(), any())).thenReturn(fileInfos);
-    FileIterable files = new FileIterable(fileSystemMaster, "test", Optional.of("user"), false,
-        LoadJob.QUALIFIED_FILE_FILTER);
-    LoadJob loadJob =
-        new LoadJob("test", Optional.of("user"), "1", OptionalLong.empty(), false, false, files);
-    List<Block> batch = loadJob.getNextBatchBlocks(100);
-    assertTrue(loadJob.isHealthy());
-    loadJob.getNextBatchBlocks(100);
-    assertTrue(loadJob.isHealthy());
-    batch.forEach(loadJob::addBlockToRetry);
-    assertTrue(loadJob.isHealthy());
-    batch = loadJob.getNextBatchBlocks(100);
-    assertTrue(loadJob.isHealthy());
-    batch.forEach(loadJob::addBlockToRetry);
-    assertFalse(loadJob.isHealthy());
+    Optional<String> user = Optional.of("user");
+    FileIterable files =
+        new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
+    CopyJob copy = new CopyJob(srcPath, dstPath, "/", "/", false, WriteType.NONE, user, "1",
+        OptionalLong.empty(), false, false, files);
+    List<Route> routes = copy.getNextRoutes(100);
+    assertTrue(copy.isHealthy());
+    routes.forEach(copy::addToRetry);
+    assertTrue(copy.isHealthy());
+    routes = copy.getNextRoutes(100);
+    assertTrue(copy.isHealthy());
+    routes.forEach(copy::addToRetry);
+    assertFalse(copy.isHealthy());
   }
 
   @Test
-  public void testLoadProgressReport() throws Exception {
-    List<FileInfo> fileInfos = generateRandomFileInfo(10, 10, 64 * Constants.MB);
+  public void testProgressReport() throws Exception {
+    String srcPath = "/src";
+    String dstPath = "/dst";
+    List<FileInfo> fileInfos = generateRandomFileInfoUnderRoot(500, 20, 64 * Constants.MB, srcPath);
     FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
     when(fileSystemMaster.listStatus(any(), any())).thenReturn(fileInfos);
-    FileIterable files = new FileIterable(fileSystemMaster, "test", Optional.of("user"), false,
-        LoadJob.QUALIFIED_FILE_FILTER);
-    LoadJob job =
-        spy(new LoadJob("test", Optional.of("user"), "1", OptionalLong.empty(), false, false,
-            files));
+    Optional<String> user = Optional.of("user");
+    FileIterable files =
+        new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
+    CopyJob job = spy(new CopyJob(srcPath, dstPath, "/", "/", false, WriteType.NONE, user, "1",
+        OptionalLong.empty(), false, false, files));
     when(job.getDurationInSec()).thenReturn(0L);
     job.setJobState(JobState.RUNNING);
-    List<Block> blocks = job.getNextBatchBlocks(25);
-    job.addLoadedBytes(640 * Constants.MB);
+    List<Route> nextRoutes = job.getNextRoutes(25);
+    job.addCopiedBytes(640 * Constants.MB);
     String expectedTextReport = "\tSettings:\tbandwidth: unlimited\tverify: false\n"
         + "\tJob State: RUNNING\n"
-        + "\tFiles Processed: 3\n"
-        + "\tBytes Loaded: 640.00MB out of 1600.00MB\n"
-        + "\tBlock load failure rate: 0.00%\n"
+        + "\tFiles Processed: 25\n"
+        + "\tBytes Copied: 640.00MB out of 31.25GB\n"
+        + "\tFiles failure rate: 0.00%\n"
         + "\tFiles Failed: 0\n";
     assertEquals(expectedTextReport, job.getProgress(JobProgressReportFormat.TEXT, false));
     assertEquals(expectedTextReport, job.getProgress(JobProgressReportFormat.TEXT, true));
     String expectedJsonReport = "{\"mVerbose\":false,\"mJobState\":\"RUNNING\","
-        + "\"mVerificationEnabled\":false,\"mProcessedFileCount\":3,"
-        + "\"mLoadedByteCount\":671088640,\"mTotalByteCount\":1677721600,"
+        + "\"mVerificationEnabled\":false,\"mProcessedFileCount\":25,"
+        + "\"mByteCount\":671088640,\"mTotalByteCount\":33554432000,"
         + "\"mFailurePercentage\":0.0,\"mFailedFileCount\":0,\"mFailedFilesWithReasons\":{}}";
     assertEquals(expectedJsonReport, job.getProgress(JobProgressReportFormat.JSON, false));
-    job.addBlockFailure(blocks.get(0), "Test error 1", 2);
-    job.addBlockFailure(blocks.get(4), "Test error 2", 2);
-    job.addBlockFailure(blocks.get(10),  "Test error 3", 2);
+    job.addFailure(nextRoutes.get(0).getSrc(), "Test error 1", 2);
+    job.addFailure(nextRoutes.get(4).getSrc(), "Test error 2", 2);
+    job.addFailure(nextRoutes.get(10).getSrc(),  "Test error 3", 2);
     job.failJob(new InternalRuntimeException("test"));
+    assertEquals(JobState.FAILED, job.getJobState());
     String expectedTextReportWithError = "\tSettings:\tbandwidth: unlimited\tverify: false\n"
         + "\tJob State: FAILED (alluxio.exception.runtime.InternalRuntimeException: test)\n"
-        + "\tFiles Processed: 3\n"
-        + "\tBytes Loaded: 640.00MB out of 1600.00MB\n"
-        + "\tBlock load failure rate: 12.00%\n"
-        + "\tFiles Failed: 2\n";
+        + "\tFiles Processed: 25\n"
+        + "\tBytes Copied: 640.00MB out of 31.25GB\n"
+        + "\tFiles failure rate: 12.00%\n"
+        + "\tFiles Failed: 3\n";
     assertEquals(expectedTextReportWithError,
         job.getProgress(JobProgressReportFormat.TEXT, false));
     String textReport = job.getProgress(JobProgressReportFormat.TEXT, true);
-    assertFalse(textReport.contains("Test error 1"));
+    assertTrue(textReport.contains("Test error 1"));
     assertTrue(textReport.contains("Test error 2"));
     assertTrue(textReport.contains("Test error 3"));
     String jsonReport = job.getProgress(JobProgressReportFormat.JSON, false);
@@ -150,7 +135,7 @@ public class LoadJobTest {
     assertTrue(jsonReport.contains("mFailureReason"));
     assertFalse(jsonReport.contains("Test error 2"));
     jsonReport = job.getProgress(JobProgressReportFormat.JSON, true);
-    assertFalse(jsonReport.contains("Test error 1"));
+    assertTrue(jsonReport.contains("Test error 1"));
     assertTrue(jsonReport.contains("Test error 2"));
     assertTrue(jsonReport.contains("Test error 3"));
   }

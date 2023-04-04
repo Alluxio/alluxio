@@ -11,13 +11,16 @@
 
 package alluxio.master.job;
 
-import alluxio.grpc.LoadJobPOptions;
-import alluxio.job.LoadJobRequest;
-import alluxio.master.file.FileSystemMaster;
+import alluxio.client.WriteType;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.grpc.CopyJobPOptions;
+import alluxio.job.CopyJobRequest;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.FileInfo;
 
 import java.util.Optional;
@@ -27,40 +30,41 @@ import java.util.UUID;
 /**
  * Factory for creating {@link LoadJob}s that get file infos from master.
  */
-public class LoadJobFactory implements JobFactory {
+public class CopyJobFactory implements JobFactory {
 
-  private final FileSystemMaster mFsMaster;
-  private final LoadJobRequest mRequest;
+  private final UnderFileSystem mFs;
+  private final CopyJobRequest mRequest;
 
   /**
    * Create factory.
    * @param request load job request
-   * @param fsMaster file system master
+   * @param underFileSystem file system master
    */
-  public LoadJobFactory(LoadJobRequest request, FileSystemMaster fsMaster) {
-    mFsMaster = fsMaster;
+  public CopyJobFactory(CopyJobRequest request, UnderFileSystem underFileSystem) {
+    mFs = underFileSystem;
     mRequest = request;
   }
 
   @Override
   public Job<?> create() {
-    LoadJobPOptions options = mRequest.getOptions();
-    String path = mRequest.getPath();
+    CopyJobPOptions options = mRequest.getOptions();
+    String src = mRequest.getSrc();
     OptionalLong bandwidth =
         options.hasBandwidth() ? OptionalLong.of(options.getBandwidth()) : OptionalLong.empty();
     boolean partialListing = options.hasPartialListing() && options.getPartialListing();
     boolean verificationEnabled = options.hasVerify() && options.getVerify();
-    Iterable<FileInfo> fileIterator = new FileIterable(mFsMaster, path, Optional
+    boolean overwrite = options.hasOverwrite() && options.getOverwrite();
+    WriteType writeType = options.hasWriteType() ? WriteType.fromProto(options.getWriteType()) :
+        Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+    Iterable<FileInfo> fileIterator = new UfsFileIterable(mFs, src, Optional
         .ofNullable(AuthenticatedClientUser.getOrNull())
-        .map(User::getName), partialListing,
-        LoadJob.QUALIFIED_FILE_FILTER);
+        .map(User::getName), partialListing, FileInfo::isCompleted, mRequest.getSrcUfsAddress());
     Optional<String> user = Optional
         .ofNullable(AuthenticatedClientUser.getOrNull())
         .map(User::getName);
-    return new LoadJob(path, user, UUID.randomUUID().toString(),
-        bandwidth,
-        partialListing,
-        verificationEnabled, fileIterator);
+    return new CopyJob(src, mRequest.getDst(), mRequest.getSrcUfsAddress(),
+        mRequest.getDstUfsAddress(), overwrite, writeType, user, UUID.randomUUID().toString(),
+        bandwidth, partialListing, verificationEnabled, fileIterator);
   }
 }
 

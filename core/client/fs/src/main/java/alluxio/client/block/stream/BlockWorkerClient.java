@@ -15,6 +15,8 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
+import alluxio.grpc.CopyRequest;
+import alluxio.grpc.CopyResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcServerAddress;
@@ -161,4 +163,13 @@ public interface BlockWorkerClient extends Closeable {
    * @throws StatusRuntimeException if any error occurs
    */
   ListenableFuture<LoadResponse> load(LoadRequest request);
+
+  /**
+   * copy files from src to dst.
+   *
+   * @param request the copy request
+   * @return listenable future of CopyResponse
+   * @throws StatusRuntimeException if any error occurs
+   */
+  ListenableFuture<CopyResponse> copy(CopyRequest request);
 }
