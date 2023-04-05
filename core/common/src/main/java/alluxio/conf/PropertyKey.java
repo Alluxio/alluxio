@@ -2584,12 +2584,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL =
       intBuilder(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL)
-          .setDefaultValue(1)
+          .setDefaultValue(0)
           .setDescription("The zip compression level of checkpointing rocksdb, the zip"
                   + " format defines ten levels of compression, ranging from 0"
                   + " (no compression, but very fast) to 9 (best compression, but slow)."
                   + " Or -1 for the system default compression level.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE =
@@ -3897,13 +3897,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       booleanBuilder(Name.STANDBY_MASTER_GRPC_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether a standby master runs a grpc server")
-          .setScope(Scope.ALL)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .build();
-  public static final PropertyKey STANDBY_MASTER_GRPC_WORKER_REGISTRATION =
-      booleanBuilder(Name.STANDBY_MASTER_GRPC_WORKER_REGISTRATION)
-          .setDefaultValue(false)
-          .setDescription("Whether a standby master registers with workers")
           .setScope(Scope.ALL)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
@@ -8305,8 +8298,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.standby.master.web.enabled";
     public static final String STANDBY_MASTER_GRPC_ENABLED =
         "alluxio.standby.master.grpc.enabled";
-    public static final String STANDBY_MASTER_GRPC_WORKER_REGISTRATION =
-        "alluxio.standby.master.grpc.worker.registration";
 
     //
     // Worker related properties

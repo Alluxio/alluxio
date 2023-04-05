@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,20 +31,26 @@ import java.util.stream.Stream;
  * Simple marshaller that applies no compression.
  */
 public class NoCompressionMarshaller implements DirectoryMarshaller {
+  private static final char DIR_CHAR = 'd';
+  private static final char FILE_CHAR = 'f';
+
   @Override
   public long write(Path path, OutputStream outputStream) throws IOException, InterruptedException {
     long totalBytesCopied = 0;
     try (final Stream<Path> stream = Files.walk(path);
         DataOutputStream dataOS = new DataOutputStream(outputStream)) {
-      List<Path> paths = stream.filter(subpath -> subpath.toFile().isFile())
-          .collect(Collectors.toList());
-      for (Path subpath : paths) {
+      for (Path subpath : stream.collect(Collectors.toList())) {
         byte[] relativePath = path.relativize(subpath).toString().getBytes();
         dataOS.write(relativePath.length);
-        outputStream.write(relativePath);
-        try (InputStream fileIn = new BufferedInputStream(Files.newInputStream(subpath))) {
+        dataOS.write(relativePath);
+        if (subpath.toFile().isDirectory()) {
+          dataOS.writeChar(DIR_CHAR);
+        } else {
+          dataOS.writeChar(FILE_CHAR);
           dataOS.writeLong(FileUtils.sizeOf(subpath.toFile()));
-          totalBytesCopied += IOUtils.copyLarge(fileIn, dataOS);
+          try (InputStream fileIn = new BufferedInputStream(Files.newInputStream(subpath))) {
+            totalBytesCopied += IOUtils.copyLarge(fileIn, dataOS);
+          }
         }
       }
     }
@@ -54,6 +59,7 @@ public class NoCompressionMarshaller implements DirectoryMarshaller {
 
   @Override
   public long read(Path path, InputStream inputStream) throws IOException {
+    path.toFile().mkdirs();
     long totalBytesRead = 0;
     try (DataInputStream dataIS = new DataInputStream(inputStream)) {
       int pathSize;
@@ -61,11 +67,16 @@ public class NoCompressionMarshaller implements DirectoryMarshaller {
         byte[] relativePath = new byte[pathSize];
         dataIS.read(relativePath);
         File filePath = new File(path.toFile(), new String(relativePath));
-        filePath.getParentFile().mkdirs();
-        long fileSize = dataIS.readLong();
-        try (OutputStream fileOut =
-                 new BufferedOutputStream(Files.newOutputStream(filePath.toPath()))) {
-          totalBytesRead += IOUtils.copyLarge(dataIS, fileOut, 0, fileSize);
+        char c = dataIS.readChar();
+        if (c == DIR_CHAR) {
+          filePath.mkdirs();
+        } else {
+          filePath.getParentFile().mkdirs();
+          long fileSize = dataIS.readLong();
+          try (OutputStream fileOut =
+                   new BufferedOutputStream(Files.newOutputStream(filePath.toPath()))) {
+            totalBytesRead += IOUtils.copyLarge(dataIS, fileOut, 0, fileSize);
+          }
         }
       }
     }

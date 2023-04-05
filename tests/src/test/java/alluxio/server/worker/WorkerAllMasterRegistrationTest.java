@@ -80,7 +80,7 @@ public class WorkerAllMasterRegistrationTest {
     Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT, "10sec");
     Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "3s");
     Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "6s");
-    Configuration.set(PropertyKey.STANDBY_MASTER_GRPC_WORKER_REGISTRATION, true);
+    Configuration.set(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS, true);
 
     mCluster.start();
 
