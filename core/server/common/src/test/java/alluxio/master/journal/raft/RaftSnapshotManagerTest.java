@@ -59,6 +59,7 @@ public class RaftSnapshotManagerTest {
 
   @Before
   public void before() throws IOException {
+    Configuration.set(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL, 0);
     Configuration.set(PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT, "10ms");
     // create Raft Storages and grpc servers for all masters
     // no need to create full master processes

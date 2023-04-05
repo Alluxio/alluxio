@@ -23,7 +23,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.TarUtils;
+import alluxio.util.DirectoryMarshaller;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -228,7 +228,8 @@ public class RaftSnapshotManager implements AutoCloseable {
       long totalBytesRead;
       long snapshotDiskSize;
       try (SnapshotGrpcInputStream stream = new SnapshotGrpcInputStream(it)) {
-        snapshotDiskSize = TarUtils.readTarGz(mStorage.getTmpDir().toPath(), stream);
+        DirectoryMarshaller marshaller = DirectoryMarshaller.Factory.create();
+        snapshotDiskSize = marshaller.read(mStorage.getTmpDir().toPath(), stream);
         totalBytesRead = stream.totalBytes();
       }
 

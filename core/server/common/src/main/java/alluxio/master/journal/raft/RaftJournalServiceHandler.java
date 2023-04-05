@@ -19,7 +19,7 @@ import alluxio.grpc.SnapshotData;
 import alluxio.grpc.SnapshotMetadata;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.TarUtils;
+import alluxio.util.DirectoryMarshaller;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.UnsafeByteOperations;
@@ -45,8 +45,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJournalServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalServiceHandler.class);
-  private final int mSnapshotCompressionLevel =
-      Configuration.getInt(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
 
   private final StateMachineStorage mStateMachineStorage;
   private volatile long mLastSnapshotUploadDurationMs = -1;
@@ -113,7 +111,8 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
     LOG.info("Begin snapshot upload of {}", index);
     Instant start = Instant.now();
     try (SnapshotGrpcOutputStream stream = new SnapshotGrpcOutputStream(responseObserver)) {
-      diskSize = TarUtils.writeTarGz(snapshotPath, stream, mSnapshotCompressionLevel);
+      DirectoryMarshaller marshaller = DirectoryMarshaller.Factory.create();
+      diskSize = marshaller.write(snapshotPath, stream);
       totalBytesSent = stream.totalBytes();
     } catch (Exception e) {
       LOG.warn("Failed to upload snapshot {}", index, e);
