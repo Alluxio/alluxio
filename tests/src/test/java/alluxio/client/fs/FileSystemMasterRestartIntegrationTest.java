@@ -36,6 +36,7 @@ import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.TtlIntervalRule;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -112,7 +113,11 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
   }
 
   private FsMasterResource createFileSystemMasterFromJournal() throws Exception {
-    return MasterTestUtils.createLeaderFileSystemMasterFromJournalCopy();
+    FsMasterResource resource = MasterTestUtils.createLeaderFileSystemMasterFromJournalCopy();
+    if (AuthenticatedClientUser.getOrNull() == null) {
+      AuthenticatedClientUser.set(TEST_USER);
+    }
+    return resource;
   }
 
   @Test
