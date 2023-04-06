@@ -254,7 +254,7 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
         .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, snapshotPeriod)
-        .addProperty(PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT, "1ms")
+        .addProperty(PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT, "50ms")
         .build();
     mCluster.start();
 
