@@ -78,7 +78,7 @@ public class DoraCacheFileInStream extends FileInStream {
       }
       // otherwise ignore the exception and let the caller decide whether to continue
     } finally {
-      if (bytesRead >= 0) { // -1 indicates EOF
+      if (bytesRead > 0) { // -1 indicates EOF
         mPos += bytesRead;
       }
     }
