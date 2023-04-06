@@ -175,10 +175,12 @@
 
   <modules>
     <module>assembly</module>
+    <!--
     <module>dora/core</module>
     <module>dora/minicluster</module>
     <module>dora/job</module>
-    <module>dora/tests</module>
+    <module>dora/tests</module>-->
+    <module>dora</module>
     <module>examples</module>
     <module>integration</module>
     <module>logserver</module>
