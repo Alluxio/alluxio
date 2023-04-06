@@ -11,6 +11,7 @@
 
 package alluxio.worker.netty;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -150,8 +151,9 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
       do {
         try {
           BlockReader reader =
-              mWorker.createFileReader(blockReadRequest.getOpenUfsBlockOptions().getUfsPath(),
-              blockReadRequest.getStart(),
+              mWorker.createFileReader(
+                  new AlluxioURI(blockReadRequest.getOpenUfsBlockOptions().getUfsPath()).hash(),
+                  blockReadRequest.getStart(),
                   false, blockReadRequest.getOpenUfsBlockOptions());
           String metricName = "BytesReadAlluxio";
           context.setBlockReader(reader);
