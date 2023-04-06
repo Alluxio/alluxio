@@ -130,13 +130,13 @@ public class RaftSnapshotManager implements AutoCloseable {
     }
     if (mDownloadFuture == null) {
       mDownloadFuture = CompletableFuture.supplyAsync(this::core).exceptionally(err -> {
-        LOG.debug("Failed to download snapshot", err);
+        LOG.info("Failed to download snapshot", err);
         return RaftLog.INVALID_LOG_INDEX;
       });
     } else if (mDownloadFuture.isDone()) {
-      LOG.debug("Download operation is done");
+      LOG.info("Download operation is done");
       Long snapshotIndex = mDownloadFuture.join();
-      LOG.debug("Retrieved downloaded snapshot at index {}", snapshotIndex);
+      LOG.info("Retrieved downloaded snapshot at index {}", snapshotIndex);
       mDownloadFuture = null;
       return snapshotIndex;
     }
@@ -146,9 +146,9 @@ public class RaftSnapshotManager implements AutoCloseable {
   private long core() {
     SnapshotInfo localSnapshotInfo = mStorage.getLatestSnapshot();
     if (localSnapshotInfo == null) {
-      LOG.debug("No local snapshot found");
+      LOG.info("No local snapshot found");
     } else {
-      LOG.debug("Local snapshot is {}", TermIndex.valueOf(localSnapshotInfo.getTerm(),
+      LOG.info("Local snapshot is {}", TermIndex.valueOf(localSnapshotInfo.getTerm(),
           localSnapshotInfo.getIndex()));
     }
     // max heap based on TermIndex extracted from the SnapshotMetadata of each pair
@@ -159,9 +159,9 @@ public class RaftSnapshotManager implements AutoCloseable {
     RetryPolicy retryPolicy =
         new ExponentialBackoffRetry(mRequestInfoTimeout, mRequestInfoTimeout, 10);
     while (otherInfos.isEmpty() && retryPolicy.attempt()) {
-      LOG.debug("Attempt to retrieve info");
+      LOG.info("Attempt to retrieve info");
       otherInfos.addAll(retrieveFollowerInfos(localSnapshotInfo));
-      LOG.debug("Attempt to retrieve info over");
+      LOG.info("Attempt to retrieve info over");
     }
 
     while (!otherInfos.isEmpty()) {
@@ -199,7 +199,7 @@ public class RaftSnapshotManager implements AutoCloseable {
             return ImmutablePair.of(metadata, address);
           } catch (Exception e) {
             client.disconnect();
-            LOG.debug("Failed to retrieve snapshot info from {}", address, e);
+            LOG.info("Failed to retrieve snapshot info from {}", address, e);
             return ImmutablePair.of(SnapshotMetadata.newBuilder().setExists(false).build(),
                 address);
           }
@@ -241,19 +241,19 @@ public class RaftSnapshotManager implements AutoCloseable {
       mLastSnapshotDownloadDurationMs = Duration.between(start, Instant.now()).toMillis();
       MetricsSystem.timer(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER.getName())
               .update(mLastSnapshotDownloadDurationMs, TimeUnit.MILLISECONDS);
-      LOG.debug("Total milliseconds to download {}: {}", index, mLastSnapshotDownloadDurationMs);
+      LOG.info("Total milliseconds to download {}: {}", index, mLastSnapshotDownloadDurationMs);
       // update uncompressed snapshot size metric
       mLastSnapshotDownloadDiskSize = snapshotDiskSize;
       MetricsSystem.histogram(
               MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_DISK_HISTOGRAM.getName())
           .update(mLastSnapshotDownloadDiskSize);
-      LOG.debug("Total extracted bytes of snapshot {}: {}", index, mLastSnapshotDownloadDiskSize);
+      LOG.info("Total extracted bytes of snapshot {}: {}", index, mLastSnapshotDownloadDiskSize);
       // update compressed snapshot size (aka size sent over the network)
       mLastSnapshotDownloadSize = totalBytesRead;
       MetricsSystem.histogram(
               MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_HISTOGRAM.getName())
           .update(mLastSnapshotDownloadSize);
-      LOG.debug("Total bytes read from {} for {}: {}", address, index, mLastSnapshotDownloadSize);
+      LOG.info("Total bytes read from {} for {}: {}", address, index, mLastSnapshotDownloadSize);
       try (Timer.Context ctx = MetricsSystem.timer(
           MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_INSTALL_TIMER.getName()).time()) {
         mStorage.loadLatestSnapshot();
@@ -264,7 +264,7 @@ public class RaftSnapshotManager implements AutoCloseable {
     } catch (Exception e) {
       client.disconnect();
       LOG.warn("Failed to download snapshot {} from {}", index, address);
-      LOG.debug("Download failure error", e);
+      LOG.info("Download failure error", e);
       return RaftLog.INVALID_LOG_INDEX;
     } finally {
       FileUtils.deleteQuietly(mStorage.getTmpDir());
@@ -297,7 +297,7 @@ public class RaftSnapshotManager implements AutoCloseable {
           return -1;
         }
         mCurrentBuffer = mIt.next().getChunk().asReadOnlyByteBuffer();
-        LOG.debug("Received chunk of size {}: {}", mCurrentBuffer.capacity(), mCurrentBuffer);
+        LOG.info("Received chunk of size {}: {}", mCurrentBuffer.capacity(), mCurrentBuffer);
         mTotalBytesRead += mCurrentBuffer.capacity();
       }
       return Byte.toUnsignedInt(mCurrentBuffer.get());
