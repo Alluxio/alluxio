@@ -572,10 +572,8 @@ public class NettyClientStateMachine {
               Preconditions.checkState(dataBuffer.getNettyOutput() instanceof ByteBuf,
                   "dataBuffer.getNettyOutput is not of type ByteBuf");
               ByteBuf data = (ByteBuf) dataBuffer.getNettyOutput();
-              // need to retain this buffer so that it won't get recycled before we are able to
-              // process it
-              // will be released in reader
-              payload = NettyDataReader.Payload.data(data.retain());
+              // no need to retain this buffer since it's already retained by RPCProtoMessage.decode
+              payload = NettyDataReader.Payload.data(data);
             } else {
               // an empty response indicates the worker has done sending data
               payload = NettyDataReader.Payload.eof();
