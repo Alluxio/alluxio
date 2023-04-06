@@ -52,6 +52,16 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
 
   /**
+   * Invalidate all cached pages of this file.
+   *
+   * @param fileInfo the FileInfo of this file. Cached pages are identified by PageId and PageId is
+   *                 generated from fileInfo.fullUfsPath.
+   *
+   * @return successful or not
+   */
+  boolean invalidateCachedFile(FileInfo fileInfo);
+
+  /**
    * Creates the file reader to read from Alluxio dora.
    * Owner of this block reader must close it or lock will leak.
    *
