@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.util;
+package alluxio.util.compression;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -23,8 +23,8 @@ import java.nio.file.Path;
  * Marshall directory following the .tar.gz specification.
  */
 public class TarGzMarshaller implements DirectoryMarshaller {
-  private final int mSnapshotCompressionLevel =
-      Configuration.getInt(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
+  private final int mSnapshotCompressionLevel = Configuration.getInt(
+      PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL);
 
   @Override
   public long write(Path path, OutputStream outputStream) throws IOException, InterruptedException {

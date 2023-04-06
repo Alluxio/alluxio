@@ -19,7 +19,7 @@ import alluxio.grpc.SnapshotData;
 import alluxio.grpc.SnapshotMetadata;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.DirectoryMarshaller;
+import alluxio.util.compression.DirectoryMarshaller;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.UnsafeByteOperations;

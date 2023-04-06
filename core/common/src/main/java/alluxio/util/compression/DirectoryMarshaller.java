@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.util;
+package alluxio.util.compression;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -41,6 +41,15 @@ public interface DirectoryMarshaller {
   long read(Path path, InputStream inputStream) throws IOException;
 
   /**
+   * An enum to represent the different {@link DirectoryMarshaller} types.
+   */
+  enum Type {
+    NO_COMPRESSION,
+    GZIP,
+    TAR_GZIP,
+  }
+
+  /**
    * Factory to access the DirectoryMarshaller.
    */
   class Factory {
@@ -48,12 +57,16 @@ public interface DirectoryMarshaller {
      * @return a {@link DirectoryMarshaller}
      */
     public static DirectoryMarshaller create() {
-      int snapshotCompressionLevel =
-          Configuration.getInt(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
-      if (snapshotCompressionLevel == 0) {
-        return new NoCompressionMarshaller();
+      Type compressionType = Configuration.getEnum(
+          PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_TYPE, Type.class);
+      switch (compressionType) {
+        case GZIP:
+          return new GzipMarshaller();
+        case TAR_GZIP:
+          return new TarGzMarshaller();
+        default:
+          return new NoCompressionMarshaller();
       }
-      return new TarGzMarshaller();
     }
   }
 }

@@ -23,7 +23,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.DirectoryMarshaller;
+import alluxio.util.compression.DirectoryMarshaller;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.util.network.NetworkAddressUtils;
 

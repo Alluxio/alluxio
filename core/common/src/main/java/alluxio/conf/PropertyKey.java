@@ -52,6 +52,7 @@ import alluxio.network.ChannelType;
 import alluxio.security.authentication.AuthType;
 import alluxio.util.FormatUtils;
 import alluxio.util.OSUtils;
+import alluxio.util.compression.DirectoryMarshaller;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockStoreType;
 import alluxio.worker.block.management.BackoffStrategy;
@@ -2399,6 +2400,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_TYPE =
+      enumBuilder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_TYPE,
+          DirectoryMarshaller.Type.class)
+          .setDefaultValue(DirectoryMarshaller.Type.GZIP)
+          .setDescription("The type of compression to use when transferring a snapshot from one "
+              + "master to another. Options are NO_COMPRESSION, GZIP, TAR_GZIP")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL =
+      intBuilder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL)
+          .setAlias(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL)
+          .setDefaultValue(1)
+          .setDescription("The zip compression level of sending a snapshot from one master to "
+              + "another. Only applicable when "
+              + "alluxio.master.embedded.journal.snapshot.replication.compression.type is not "
+              + "NO_COMPRESSION. The zip format defines ten levels of compression, ranging from 0 "
+              + "(no compression, but very fast) to 9 (best compression, but slow). "
+              + "Or -1 for the system default compression level.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
       dataSizeBuilder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE)
           .setDefaultValue("4MB")
@@ -2580,16 +2603,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + ". And it can be used to change block metadata storage path to a different disk "
               + "to improve RocksDB performance.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL =
-      intBuilder(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL)
-          .setDefaultValue(0)
-          .setDescription("The zip compression level of checkpointing rocksdb, the zip"
-                  + " format defines ten levels of compression, ranging from 0"
-                  + " (no compression, but very fast) to 9 (best compression, but slow)."
-                  + " Or -1 for the system default compression level.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE =
@@ -7977,6 +7990,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.write.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
         "alluxio.master.embedded.journal.snapshot.replication.chunk.size";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_TYPE =
+        "alluxio.master.embedded.journal.snapshot.replication.compression.type";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL =
+        "alluxio.master.embedded.journal.snapshot.replication.compression.level";
     public static final String MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT =
         "alluxio.master.embedded.journal.raft.client.request.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL =

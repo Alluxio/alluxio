@@ -18,8 +18,8 @@ import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.retry.TimeoutRetry;
-import alluxio.util.ParallelZipUtils;
-import alluxio.util.TarUtils;
+import alluxio.util.compression.ParallelZipUtils;
+import alluxio.util.compression.TarUtils;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
@@ -73,7 +73,7 @@ public final class RocksStore implements Closeable {
   private final DBOptions mDbOpts;
 
   private final int mCompressLevel = Configuration.getInt(
-      PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
+      PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL);
   private final boolean mParallelBackup = Configuration.getBoolean(
       PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP);
 

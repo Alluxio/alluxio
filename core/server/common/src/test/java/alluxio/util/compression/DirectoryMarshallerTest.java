@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.util;
+package alluxio.util.compression;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,7 +28,9 @@ import java.util.Collection;
 public class DirectoryMarshallerTest {
   @Parameterized.Parameters
   public static Collection<DirectoryMarshaller> data() {
-    return Arrays.asList(new NoCompressionMarshaller(), new TarGzMarshaller());
+    return Arrays.asList(new NoCompressionMarshaller(),
+        new GzipMarshaller(),
+        new TarGzMarshaller());
   }
 
   @Parameterized.Parameter
