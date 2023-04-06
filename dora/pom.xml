@@ -20,7 +20,7 @@
   <artifactId>alluxio-dora</artifactId>
   <packaging>pom</packaging>
   <name>Alluxio Dora</name>
-  <description>Parent POM for Alluxio core</description>
+  <description>Parent POM for Alluxio dora</description>
 
   <modules>
     <module>core</module>
