@@ -53,7 +53,7 @@ public class AlluxioExecutorService implements ExecutorService {
   /**
    * @return the current RPC queue size
    */
-  public long getRpcQueueLength() {
+  public int getRpcQueueLength() {
     if (mExecutor instanceof ThreadPoolExecutor) {
       return ((ThreadPoolExecutor) mExecutor).getQueue().size();
     } else if (mExecutor instanceof ForkJoinPool) {
@@ -67,7 +67,7 @@ public class AlluxioExecutorService implements ExecutorService {
   /**
    * @return the current RPC active thread count
    */
-  public long getActiveCount() {
+  public int getActiveCount() {
     if (mExecutor instanceof ThreadPoolExecutor) {
       return ((ThreadPoolExecutor) mExecutor).getActiveCount();
     } else if (mExecutor instanceof ForkJoinPool) {
@@ -81,7 +81,7 @@ public class AlluxioExecutorService implements ExecutorService {
   /**
    * @return the current RPC thread pool size
    */
-  public long getPoolSize() {
+  public int getPoolSize() {
     if (mExecutor instanceof ThreadPoolExecutor) {
       return ((ThreadPoolExecutor) mExecutor).getPoolSize();
     } else if (mExecutor instanceof ForkJoinPool) {

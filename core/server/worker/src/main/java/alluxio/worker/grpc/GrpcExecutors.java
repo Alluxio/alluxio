@@ -63,10 +63,12 @@ public final class GrpcExecutors {
   public static final ExecutorService CACHE_MANAGER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(CACHE_MANAGER_THREAD_POOL_EXECUTOR, false);
 
-  // TODO(jiacheng): where is each one used??????
-
   // Only in BlockWorkerClientServiceHandler.readBlock() and if not zero_copy enabled
-  // Is this only used for creating the DataReader?
+  // This is used by DataReader threads where each DataReader reads a block content for reply
+  // This pool is 4~2048 threads, the queue is always empty
+  // If the non-core threads have no tasks to execute, they will terminate after the keepalive time
+  // But the core threads will never die so we never know if there are tasks by looking at the
+  // thread pool size
   private static final ThreadPoolExecutor BLOCK_READER_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN, Configuration.getInt(
           PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX), THREAD_STOP_MS,
@@ -76,6 +78,9 @@ public final class GrpcExecutors {
       new ImpersonateThreadPoolExecutor(BLOCK_READER_THREAD_POOL_EXECUTOR, true);
 
   // For replying data to the client in BlockReadHandler
+  // This thread pool has 4~2048 threads
+  // A new task goes to new core thread -> queue -> new thread
+  // so the queue size does not help much
   private static final ThreadPoolExecutor BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
@@ -86,6 +91,8 @@ public final class GrpcExecutors {
       new ImpersonateThreadPoolExecutor(BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR, true);
 
   // For writing
+  // This thread pool has 4~2048 threads, the queue is always empty
+  // So the queue size does not really help
   private static final ThreadPoolExecutor BLOCK_WRITE_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN, Configuration.getInt(
           PropertyKey.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX), THREAD_STOP_MS,
@@ -113,6 +120,7 @@ public final class GrpcExecutors {
         MetricKey.WORKER_CACHE_MANAGER_COMPLETED_TASK_COUNT.getName()),
         CACHE_MANAGER_THREAD_POOL_EXECUTOR::getCompletedTaskCount, 5, TimeUnit.SECONDS);
 
+    // TODO(jiacheng): many of these gauges can be cached
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_READER_THREAD_ACTIVE_COUNT.getName()),
         BLOCK_READER_THREAD_POOL_EXECUTOR::getActiveCount);
@@ -125,6 +133,10 @@ public final class GrpcExecutors {
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_READER_COMPLETED_TASK_COUNT.getName()),
         BLOCK_READER_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
+    // TODO(jiacheng): Remove the queue sizes because they are not helpful
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+        MetricKey.WORKER_BLOCK_READER_THREAD_QUEUE_WAITING_TASK_COUNT.getName()),
+        BLOCK_READER_THREAD_POOL_EXECUTOR.getQueue()::size);
 
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_SERIALIZED_THREAD_ACTIVE_COUNT.getName()),
@@ -138,6 +150,9 @@ public final class GrpcExecutors {
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_SERIALIZED_COMPLETED_TASK_COUNT.getName()),
         BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+        MetricKey.WORKER_BLOCK_SERIALIZED_THREAD_QUEUE_WAITING_TASK_COUNT.getName()),
+        BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR.getQueue()::size);
 
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_WRITER_THREAD_ACTIVE_COUNT.getName()),
@@ -151,6 +166,9 @@ public final class GrpcExecutors {
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_WRITER_COMPLETED_TASK_COUNT.getName()),
         BLOCK_WRITE_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+        MetricKey.WORKER_BLOCK_WRITER_THREAD_QUEUE_WAITING_TASK_COUNT.getName()),
+        BLOCK_WRITE_THREAD_POOL_EXECUTOR.getQueue()::size);
   }
 
   /**

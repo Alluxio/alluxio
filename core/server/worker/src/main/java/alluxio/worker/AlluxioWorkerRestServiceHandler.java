@@ -177,11 +177,57 @@ public final class AlluxioWorkerRestServiceHandler {
   public Response getActiveOperations() {
     return RestUtils.call(() -> {
       WorkerWebUIOperations response = new WorkerWebUIOperations();
+      /*
+       * This contains running operations in:
+       * 1. Worker RPC thread pool, for ongoing RPCs
+       * 2. GrpcExecutors.BLOCK_READER_EXECUTOR, for block readers
+       * 3. GrpcExecutors.BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR, for replying to the client
+       * 4. GrpcExecutors.BLOCK_WRITER_EXECUTOR, for block writers
+       *
+       * So this is the number of operations actively running in the thread pools.
+       * In other to know the total accepted but not finished request, we need to consider the
+       * thread pool task queues.
+       */
       long operations = MetricsSystem.counter(MetricKey.WORKER_ACTIVE_OPERATIONS.getName()).getCount();
+
+      // Queue sizes are not very helpful so we can remove them
+      // This name is just different from others
+      String workerRpcPoolSizeGaugeName = MetricKey.WORKER_RPC_QUEUE_LENGTH.getName();
+      int rpcQueueSize = getGaugeValue(workerRpcPoolSizeGaugeName);
+
+      String readerQueueSizeGaugeName = MetricsSystem.getMetricName(MetricKey.WORKER_BLOCK_READER_THREAD_QUEUE_WAITING_TASK_COUNT.getName());
+      int readerQueueSize = getGaugeValue(readerQueueSizeGaugeName);
+
+      String serializedQueueSizeGaugeName = MetricsSystem.getMetricName(MetricKey.WORKER_BLOCK_SERIALIZED_THREAD_QUEUE_WAITING_TASK_COUNT.getName());
+      int serializedQueueSize = getGaugeValue(serializedQueueSizeGaugeName);
+
+      String writerQueueSizeGaugeName = MetricsSystem.getMetricName(MetricKey.WORKER_BLOCK_WRITER_THREAD_QUEUE_WAITING_TASK_COUNT.getName());
+      long writerQueueSize = getGaugeValue(writerQueueSizeGaugeName);
+
+      // TODO(jiacheng): short circuit requests how are they counted?
+
+
+      // Return the WORKER_ACTIVE_CLIENTS as a reference, as info from another source
       long clients = MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName()).getCount();
-      response.setOperationCount(operations).setClientCount(clients);
+
+
+
+      response.setOperationCount(operations).setClientCount(clients)
+          .setRpcQueueLength(rpcQueueSize).setReaderQueueLength(readerQueueSize).setWriterQueueLength(writerQueueSize).setSerializedQueueLength(serializedQueueSize);
+      LOG.info("{}", response);
       return response;
     }, Configuration.global());
+  }
+
+  private static int getGaugeValue(String gaugeName) {
+    try {
+      Gauge gauge = MetricsSystem.METRIC_REGISTRY.gauge(gaugeName, null);
+      return (int) gauge.getValue();
+    } catch (Exception e) {
+      LOG.error("Incorrect gauge name {}. Available names are: {}",
+          gaugeName, MetricsSystem.METRIC_REGISTRY.getGauges().keySet(), e);
+      return 0;
+    }
   }
 
   /**
