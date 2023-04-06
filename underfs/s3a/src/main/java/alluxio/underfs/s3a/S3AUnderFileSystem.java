@@ -697,7 +697,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
   public void performGetStatusAsync(
       String path, Consumer<UfsLoadResult> onComplete,
       Consumer<Throwable> onError) {
-
     String folderSuffix = getFolderSuffix();
     path = stripPrefixIfPresent(path);
     path = path.equals(folderSuffix) ? "" : path;
@@ -779,7 +778,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
               }
               onComplete.accept(
                   new UfsLoadResult(resultToStream(result),
-                      result.keyCount() + result.commonPrefixes().size(),
+                      result.contents().size() + result.commonPrefixes().size(),
                       result.nextContinuationToken(), lastItem, result.isTruncated(), false));
             } catch (Throwable t) {
               onError.accept(t);

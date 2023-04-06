@@ -35,6 +35,10 @@ import alluxio.master.mdsync.BaseTask;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.google.common.collect.ImmutableMap;
@@ -43,6 +47,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CommonPrefix;
@@ -84,6 +90,7 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
   @Rule
   public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
       .withPort(8001)
+      .withBlobStoreProvider("transient")
       .withCredentials("_", "_")
       .build();
 
@@ -92,34 +99,34 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
 
   @Override
   public void before() throws Exception {
-//    Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001");
-//    Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2");
-//    Configuration.set(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true);
-//    Configuration.set(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey());
-//    Configuration.set(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey());
+    Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001");
+    Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2");
+    Configuration.set(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true);
+    Configuration.set(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey());
+    Configuration.set(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey());
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false);
     Configuration.set(PropertyKey.UNDERFS_LISTING_LENGTH, 2);
 
-    Configuration.set(PropertyKey.UNDERFS_S3_REGION, "us-west-1");
-    mClient = S3Client.builder().region(Region.US_WEST_1).build();
-    mS3Client = AmazonS3ClientBuilder.standard()
-        .withRegion(Region.US_WEST_1.toString()).build();
+//    Configuration.set(PropertyKey.UNDERFS_S3_REGION, "us-west-1");
+//    mClient = S3Client.builder().region(Region.US_WEST_1).build();
+//    mS3Client = AmazonS3ClientBuilder.standard()
+//        .withRegion(Region.US_WEST_1.toString()).build();
 
-//    mClient = S3Client.builder().credentialsProvider(StaticCredentialsProvider.create(
-//            AwsBasicCredentials.create(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
-//        .endpointOverride(mS3Proxy.getUri()).region(Region.US_WEST_2).forcePathStyle(true)
-//        .build();
-//
-//    mS3Client = AmazonS3ClientBuilder
-//        .standard()
-//        .withPathStyleAccessEnabled(true)
-//        .withCredentials(
-//            new AWSStaticCredentialsProvider(
-//                new BasicAWSCredentials(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
-//        .withEndpointConfiguration(
-//            new AwsClientBuilder.EndpointConfiguration(mS3Proxy.getUri().toString(),
-//                Regions.US_WEST_2.getName()))
-//        .build();
+    mClient = S3Client.builder().credentialsProvider(StaticCredentialsProvider.create(
+            AwsBasicCredentials.create(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
+        .endpointOverride(mS3Proxy.getUri()).region(Region.US_WEST_2).forcePathStyle(true)
+        .build();
+
+    mS3Client = AmazonS3ClientBuilder
+        .standard()
+        .withPathStyleAccessEnabled(true)
+        .withCredentials(
+            new AWSStaticCredentialsProvider(
+                new BasicAWSCredentials(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
+        .withEndpointConfiguration(
+            new AwsClientBuilder.EndpointConfiguration(mS3Proxy.getUri().toString(),
+                Regions.US_WEST_2.getName()))
+        .build();
     mS3Client.createBucket(TEST_BUCKET);
     // mS3Client.createBucket(TEST_BUCKET2);
     super.before();
@@ -127,11 +134,14 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
 
   @Override
   public void after() throws Exception {
+    /*
     mClient.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(TEST_BUCKET).build())
         .forEach(resp -> resp.contents().forEach(s3Object ->
             mClient.deleteObject(DeleteObjectRequest.builder()
                 .bucket(TEST_BUCKET).key(s3Object.key()).build())));
     mClient.deleteBucket(DeleteBucketRequest.builder().bucket(TEST_BUCKET).build());
+
+     */
     mS3Client.shutdown();
     mClient.close();
     super.after();
