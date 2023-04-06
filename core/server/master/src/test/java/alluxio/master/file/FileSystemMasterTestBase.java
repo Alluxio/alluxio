@@ -393,7 +393,7 @@ public class FileSystemMasterTestBase {
             Constants.MEDIUM_SSD, (long) Constants.KB), ImmutableMap.of(),
         new HashMap<String, StorageList>(), RegisterWorkerPOptions.getDefaultInstance());
     mWorkerId2 = mBlockMaster.getWorkerId(
-        new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
+        new WorkerNetAddress().setHost("localhost").setRpcPort(83).setDataPort(84).setWebPort(85));
     mBlockMaster.workerRegister(mWorkerId2,
         Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD),
         ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.MB,

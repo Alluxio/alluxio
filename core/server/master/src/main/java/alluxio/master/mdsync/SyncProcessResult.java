@@ -12,27 +12,44 @@
 package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
+import alluxio.master.file.metasync.SyncResult;
+
+import java.util.Optional;
+import javax.annotation.Nullable;
 
 /**
  * This is the result of performing the metadata sync in Alluxio.
  */
-class SyncProcessResult {
+public class SyncProcessResult {
 
   private final AlluxioURI mBaseLoadPath;
   private final TaskInfo mTaskInfo;
   private final PathSequence mLoaded;
   private final boolean mIsTruncated;
   private final boolean mRootPathIsFile;
+  private final SyncResult mSyncResult;
+  private final boolean mIsFirstLoad;
 
-  SyncProcessResult(
+  public SyncProcessResult(
       TaskInfo taskInfo, AlluxioURI baseLoadPath,
-      PathSequence loaded, boolean isTruncated,
-      boolean rootPathIsFile) {
+      @Nullable PathSequence loaded, boolean isTruncated,
+      boolean rootPathIsFile, SyncResult result,
+      boolean isFirstLoad) {
     mRootPathIsFile = rootPathIsFile;
     mBaseLoadPath = baseLoadPath;
     mTaskInfo = taskInfo;
     mLoaded = loaded;
     mIsTruncated = isTruncated;
+    mSyncResult = result;
+    mIsFirstLoad = isFirstLoad;
+  }
+
+  public boolean isFirstLoad() {
+    return mIsFirstLoad;
+  }
+
+  public SyncResult getSyncResult() {
+    return mSyncResult;
   }
 
   public boolean rootPathIsFile() {
@@ -47,8 +64,8 @@ class SyncProcessResult {
     return mIsTruncated;
   }
 
-  public PathSequence getLoaded() {
-    return mLoaded;
+  public Optional<PathSequence> getLoaded() {
+    return Optional.ofNullable(mLoaded);
   }
 
   public TaskInfo getTaskInfo() {

@@ -15,11 +15,11 @@ import alluxio.AlluxioURI;
 
 import java.util.Objects;
 
-class PathSequence {
+public class PathSequence {
   private final AlluxioURI mStart;
   private final AlluxioURI mEnd;
 
-  PathSequence(AlluxioURI start, AlluxioURI end) {
+  public PathSequence(AlluxioURI start, AlluxioURI end) {
     mStart = start;
     mEnd = end;
   }

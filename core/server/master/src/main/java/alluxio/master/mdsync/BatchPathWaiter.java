@@ -12,6 +12,8 @@
 package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsClient;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -19,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.function.Function;
 
 class BatchPathWaiter extends BaseTask implements PathWaiter {
   private static final Logger LOG = LoggerFactory.getLogger(BatchPathWaiter.class);
@@ -28,8 +31,9 @@ class BatchPathWaiter extends BaseTask implements PathWaiter {
   final PathSequence mNoneCompleted;
 
   BatchPathWaiter(
-      TaskInfo info, long startTime) {
-    super(info, startTime);
+      TaskInfo info, long startTime,
+      Function<AlluxioURI, CloseableResource<UfsClient>> clientSupplier) {
+    super(info, startTime, clientSupplier);
     mNoneCompleted = new PathSequence(EMPTY, info.getBasePath());
     mLastCompleted = Lists.newArrayList(mNoneCompleted);
   }
@@ -63,31 +67,35 @@ class BatchPathWaiter extends BaseTask implements PathWaiter {
 
   @Override
   public synchronized void nextCompleted(SyncProcessResult completed) {
+    if (!completed.getLoaded().isPresent()) {
+      return;
+    }
+    PathSequence loaded = completed.getLoaded().get();
     AlluxioURI newRight = null;
     AlluxioURI newLeft = null;
     int i = 0;
     for (; i < mLastCompleted.size(); i++) {
-      int rightCmp = mLastCompleted.get(i).getStart().compareTo(completed.getLoaded().getEnd());
+      int rightCmp = mLastCompleted.get(i).getStart().compareTo(loaded.getEnd());
       if (rightCmp == 0) {
         newRight = mLastCompleted.get(i).getEnd();
       }
       if (rightCmp >= 0) {
         break;
       }
-      int leftCmp = mLastCompleted.get(i).getEnd().compareTo(completed.getLoaded().getStart());
+      int leftCmp = mLastCompleted.get(i).getEnd().compareTo(loaded.getStart());
       if (leftCmp == 0) {
         newLeft = mLastCompleted.get(i).getStart();
       }
     }
     if (newRight == null && newLeft == null) {
-      mLastCompleted.add(i, completed.getLoaded());
+      mLastCompleted.add(i, loaded);
     } else if (newRight != null && newLeft != null) {
       mLastCompleted.set(i, new PathSequence(newLeft, newRight));
       mLastCompleted.remove(i - 1);
     } else if (newLeft != null) {
-      mLastCompleted.set(i - 1, new PathSequence(newLeft, completed.getLoaded().getEnd()));
+      mLastCompleted.set(i - 1, new PathSequence(newLeft, loaded.getEnd()));
     } else {
-      mLastCompleted.set(i, new PathSequence(completed.getLoaded().getStart(), newRight));
+      mLastCompleted.set(i, new PathSequence(loaded.getStart(), newRight));
     }
     notifyAll();
   }

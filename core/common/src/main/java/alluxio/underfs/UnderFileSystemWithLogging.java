@@ -17,7 +17,9 @@ import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.status.UnimplementedException;
+import alluxio.file.options.DescendantType;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricsSystem;
@@ -44,6 +46,7 @@ import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
 /**
@@ -1248,6 +1251,62 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    */
   public UnderFileSystem getUnderFileSystem() {
     return mUnderFileSystem;
+  }
+
+  @Override
+  public void performGetStatusAsync(
+      String path, Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError) {
+    try {
+      call(new UfsCallable<Void>() {
+        @Override
+        public Void call() {
+          mUnderFileSystem.performGetStatusAsync(path, onComplete, onError);
+          return null;
+        }
+
+        @Override
+        public String methodName() {
+          return "PerformGetStatusAsync";
+        }
+
+        @Override
+        public String toString() {
+          return String.format("path=%s", path);
+        }
+      });
+    } catch (IOException e) {
+      throw new InternalRuntimeException("should not reach");
+    }
+  }
+
+  @Override
+  public void performListingAsync(
+      String path, @Nullable String continuationToken, @Nullable String startAfter,
+      DescendantType descendantType, Consumer<UfsLoadResult> onComplete,
+      Consumer<Throwable> onError) {
+    try {
+      call(new UfsCallable<Void>() {
+        @Override
+        public Void call() {
+          mUnderFileSystem.performListingAsync(path, continuationToken, startAfter,
+              descendantType, onComplete, onError);
+          return null;
+        }
+
+        @Override
+        public String methodName() {
+          return "PerformListingAsync";
+        }
+
+        @Override
+        public String toString() {
+          return String.format("path=%s, continuationToken=%s, startAfter=%s, descendantType=%s",
+              path, continuationToken, startAfter, descendantType);
+        }
+      });
+    } catch (IOException e) {
+      throw new InternalRuntimeException("should not reach");
+    }
   }
 
   /**

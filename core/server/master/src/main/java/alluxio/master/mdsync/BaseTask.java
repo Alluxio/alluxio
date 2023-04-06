@@ -13,21 +13,28 @@ package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.DeadlineExceededRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.status.CancelledException;
 import alluxio.file.options.DescendantType;
+import alluxio.master.file.metasync.SyncResult;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsClient;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Stopwatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * This is the overall task for a sync operation.
  */
-abstract class BaseTask implements PathWaiter {
+public abstract class BaseTask implements PathWaiter {
   private static final Logger LOG = LoggerFactory.getLogger(BaseTask.class);
 
   private final long mStartTime;
@@ -35,12 +42,11 @@ abstract class BaseTask implements PathWaiter {
   private final TaskInfo mTaskInfo;
   private final PathLoaderTask mPathLoadTask;
 
-  @VisibleForTesting
-  Optional<BaseTaskResult> isCompleted() {
+  public synchronized Optional<BaseTaskResult> isCompleted() {
     return Optional.ofNullable(mIsCompleted);
   }
 
-  boolean succeeded() {
+  public synchronized boolean succeeded() {
     return mIsCompleted != null && mIsCompleted.succeeded();
   }
 
@@ -50,20 +56,22 @@ abstract class BaseTask implements PathWaiter {
   }
 
   static BaseTask create(
-      TaskInfo info, long startTime) {
+      TaskInfo info, long startTime,
+      Function<AlluxioURI, CloseableResource<UfsClient>> clientSupplier) {
     if (info.getLoadByDirectory() != DirectoryLoadType.NONE
         && info.getDescendantType() == DescendantType.ALL) {
-      return new DirectoryPathWaiter(info, startTime);
+      return new DirectoryPathWaiter(info, startTime, clientSupplier);
     } else {
-      return new BatchPathWaiter(info, startTime);
+      return new BatchPathWaiter(info, startTime, clientSupplier);
     }
   }
 
   BaseTask(
-      TaskInfo info, long startTime) {
+      TaskInfo info, long startTime,
+      Function<AlluxioURI, CloseableResource<UfsClient>> clientSupplier) {
     mTaskInfo = info;
     mStartTime = startTime;
-    mPathLoadTask = new PathLoaderTask(mTaskInfo, null);
+    mPathLoadTask = new PathLoaderTask(mTaskInfo, null, clientSupplier);
   }
 
   public TaskInfo getTaskInfo() {
@@ -80,18 +88,27 @@ abstract class BaseTask implements PathWaiter {
     return mPathLoadTask;
   }
 
-  synchronized void onComplete(boolean isFile) {
+  synchronized void onComplete(boolean isFile, SyncResult result) {
     if (mIsCompleted != null) {
       return;
     }
-    mIsCompleted = new BaseTaskResult(null);
+    mIsCompleted = new BaseTaskResult(null, result);
     mTaskInfo.getMdSync().onTaskComplete(mTaskInfo.getId(), isFile);
     notifyAll();
   }
 
-  synchronized void waitComplete(long timeoutMs) throws InterruptedException {
-    while (mIsCompleted == null) {
-      wait(timeoutMs);
+  public synchronized void waitComplete(long timeoutMs) throws Throwable {
+    Stopwatch sw = Stopwatch.createStarted();
+    long waitTime = timeoutMs;
+    while (mIsCompleted == null && (timeoutMs == 0 || waitTime > 0)) {
+      wait(waitTime);
+      waitTime = waitTime - sw.elapsed(TimeUnit.MILLISECONDS);
+    }
+    if (mIsCompleted == null) {
+      throw new DeadlineExceededRuntimeException("Task still running.");
+    }
+    if (mIsCompleted.getResult().isPresent()) {
+      throw mIsCompleted.getResult().get();
     }
   }
 
@@ -99,7 +116,7 @@ abstract class BaseTask implements PathWaiter {
     if (mIsCompleted != null) {
       return;
     }
-    mIsCompleted = new BaseTaskResult(t);
+    mIsCompleted = new BaseTaskResult(t, null);
     LOG.warn("Task {} failed with error", mTaskInfo, t);
     cancel();
     mTaskInfo.getMdSync().onTaskError(mTaskInfo.getId(), t);
@@ -107,7 +124,7 @@ abstract class BaseTask implements PathWaiter {
 
   synchronized long cancel() {
     if (mIsCompleted == null) {
-      mIsCompleted = new BaseTaskResult(new CancelledException("Task was cancelled"));
+      mIsCompleted = new BaseTaskResult(new CancelledException("Task was cancelled"), null);
     }
     mPathLoadTask.cancel();
     notifyAll();

@@ -18,6 +18,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
+import alluxio.collections.Pair;
 import alluxio.concurrent.jsr.CompletableFuture;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -47,7 +48,9 @@ import alluxio.master.file.metasync.SyncFailReason;
 import alluxio.master.file.metasync.SyncOperation;
 import alluxio.master.file.metasync.SyncResult;
 import alluxio.master.file.metasync.TestMetadataSyncer;
+import alluxio.master.mdsync.BaseTask;
 import alluxio.security.authorization.Mode;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -64,27 +67,39 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CommonPrefix;
+import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
+import java.util.stream.Stream;
 
 /**
  * Unit tests for {@link FileSystemMaster}.
  */
 public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemMetadataSyncV2Test.class);
-  private static final String TEST_BUCKET = "test-bucket";
+  private static final String TEST_BUCKET = "tyler-alluxio-test-bucket";
   private static final String TEST_BUCKET2 = "test-bucket-2";
   private static final String TEST_FILE = "test_file";
   private static final String TEST_DIRECTORY = "test_directory";
   private static final String TEST_CONTENT = "test_content";
-  private static final AlluxioURI UFS_ROOT = new AlluxioURI("s3://test-bucket/");
-  private static final AlluxioURI UFS_ROOT2 = new AlluxioURI("s3://test-bucket-2/");
+  private static final AlluxioURI UFS_ROOT = new AlluxioURI("s3://" + TEST_BUCKET + "/");
+  private static final AlluxioURI UFS_ROOT2 = new AlluxioURI("s3://" + TEST_BUCKET2 + "/");
   private static final AlluxioURI MOUNT_POINT = new AlluxioURI("/s3_mount");
   private static final AlluxioURI MOUNT_POINT2 = new AlluxioURI("/s3_mount2");
   private static final AlluxioURI NESTED_MOUNT_POINT = new AlluxioURI("/mnt/nested_s3_mount");
@@ -94,79 +109,239 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
    * If you see invalid keystore format error when the mock server starts,
    * please install the latest jdk 8.
    */
-//  @Rule
-//  public final S3MockRule s3MockRule = S3MockRule.builder().silent().withHttpPort(8001).build();
+  private static final long TIMEOUT_MS = 5_000;
 
   @Rule
-  public S3ProxyRule s3Proxy = S3ProxyRule.builder()
+  public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
       .withPort(8001)
       .withCredentials("_", "_")
       .build();
 
   private AmazonS3 mS3Client;
+  private S3Client mClient;
 
   @Override
   public void before() throws Exception {
-    Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001");
-    Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2");
-    Configuration.set(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true);
-    Configuration.set(PropertyKey.S3A_ACCESS_KEY, s3Proxy.getAccessKey());
-    Configuration.set(PropertyKey.S3A_SECRET_KEY, s3Proxy.getSecretKey());
+//    Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001");
+//    Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2");
+//    Configuration.set(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true);
+//    Configuration.set(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey());
+//    Configuration.set(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey());
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false);
+    Configuration.set(PropertyKey.UNDERFS_LISTING_LENGTH, 2);
 
-    mS3Client = AmazonS3ClientBuilder
-        .standard()
-        .withPathStyleAccessEnabled(true)
-        .withCredentials(
-            new AWSStaticCredentialsProvider(
-                new BasicAWSCredentials(s3Proxy.getAccessKey(), s3Proxy.getSecretKey())))
-        .withEndpointConfiguration(
-            new AwsClientBuilder.EndpointConfiguration(s3Proxy.getUri().toString(),
-                Regions.US_WEST_2.getName()))
-        .build();
+    Configuration.set(PropertyKey.UNDERFS_S3_REGION, "us-west-1");
+    mClient = S3Client.builder().region(Region.US_WEST_1).build();
+    mS3Client = AmazonS3ClientBuilder.standard()
+        .withRegion(Region.US_WEST_1.toString()).build();
+
+//    mClient = S3Client.builder().credentialsProvider(StaticCredentialsProvider.create(
+//            AwsBasicCredentials.create(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
+//        .endpointOverride(mS3Proxy.getUri()).region(Region.US_WEST_2).forcePathStyle(true)
+//        .build();
+//
+//    mS3Client = AmazonS3ClientBuilder
+//        .standard()
+//        .withPathStyleAccessEnabled(true)
+//        .withCredentials(
+//            new AWSStaticCredentialsProvider(
+//                new BasicAWSCredentials(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
+//        .withEndpointConfiguration(
+//            new AwsClientBuilder.EndpointConfiguration(mS3Proxy.getUri().toString(),
+//                Regions.US_WEST_2.getName()))
+//        .build();
     mS3Client.createBucket(TEST_BUCKET);
-    mS3Client.createBucket(TEST_BUCKET2);
+    // mS3Client.createBucket(TEST_BUCKET2);
     super.before();
   }
 
+  @Override
+  public void after() throws Exception {
+    mClient.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(TEST_BUCKET).build())
+        .forEach(resp -> resp.contents().forEach(s3Object ->
+            mClient.deleteObject(DeleteObjectRequest.builder()
+                .bucket(TEST_BUCKET).key(s3Object.key()).build())));
+    mClient.deleteBucket(DeleteBucketRequest.builder().bucket(TEST_BUCKET).build());
+    mS3Client.shutdown();
+    mClient.close();
+    super.after();
+  }
+
   @Test
-  public void syncInodeHappyPath()
-      throws FileDoesNotExistException, FileAlreadyExistsException, AccessControlException,
-      IOException, InvalidPathException {
+  public void basicSyncMultiRequest() throws Throwable {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    for (int i = 0; i < 10; i++) {
+      mS3Client.putObject(TEST_BUCKET, TEST_FILE + i, TEST_CONTENT);
+    }
+    mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
+
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, 0, TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    System.out.println(result.getTaskInfo().toString());
+    System.out.println(result.getTaskInfo().getStats().toString());
+    System.out.println(result.isCompleted().get().getSyncResult());
+
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET,
+        "", mFileSystemMaster, mClient);
+
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, 0, TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    System.out.println(result.getTaskInfo().toString());
+    System.out.println(result.getTaskInfo().getStats().toString());
+    System.out.println(result.isCompleted().get().getSyncResult());
+
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET,
+        "", mFileSystemMaster, mClient);
+  }
+
+  @Test
+  public void basicSync() throws Throwable {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
+
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, 0, TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    System.out.println(result.getTaskInfo().toString());
+    System.out.println(result.getTaskInfo().getStats().toString());
+    System.out.println(result.isCompleted().get().getSyncResult());
+
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET,
+        "", mFileSystemMaster, mClient);
+
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, 0, TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    System.out.println(result.getTaskInfo().toString());
+    System.out.println(result.getTaskInfo().getStats().toString());
+    System.out.println(result.isCompleted().get().getSyncResult());
+
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET,
+        "", mFileSystemMaster, mClient);
+  }
+
+  @Test
+  public void basicSyncNestedMount() throws Throwable {
+    mS3Client.putObject(TEST_BUCKET,
+        TEST_DIRECTORY + "/", "");
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT.join(TEST_DIRECTORY), MountContext.defaults());
+    mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE, TEST_CONTENT);
+
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, 0, TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    System.out.println(result.getTaskInfo());
+    System.out.println(result.getTaskInfo().getStats());
+    System.out.println(result.isCompleted().get().getSyncResult());
+
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, TEST_DIRECTORY, mFileSystemMaster, mClient);
+
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, 0, TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    System.out.println(result.getTaskInfo());
+    System.out.println(result.getTaskInfo().getStats());
+    System.out.println(result.isCompleted().get().getSyncResult());
+
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, TEST_DIRECTORY, mFileSystemMaster, mClient);
+  }
+
+  @Test
+  public void basicSyncNestedMountNestedDir() throws Throwable {
+    mS3Client.putObject(TEST_BUCKET,
+        TEST_DIRECTORY + "/", "");
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT.join(TEST_DIRECTORY), MountContext.defaults());
+    // create files
+    for (int i = 0; i < 1; i++) {
+      mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE + i, TEST_CONTENT);
+    }
+    // create nested files
+    for (int i = 0; i < 1; i++) {
+      mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/"
+          + TEST_DIRECTORY + "/" + TEST_FILE + i, TEST_CONTENT);
+    }
+
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, 0, TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    System.out.println(result.getTaskInfo());
+    System.out.println(result.getTaskInfo().getStats());
+    System.out.println(result.isCompleted().get().getSyncResult());
+
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, TEST_DIRECTORY, mFileSystemMaster, mClient);
+
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, 0, TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    System.out.println(result.getTaskInfo());
+    System.out.println(result.getTaskInfo().getStats());
+    System.out.println(result.isCompleted().get().getSyncResult());
+
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, TEST_DIRECTORY, mFileSystemMaster, mClient);
+  }
+
+  @Test
+  public void basicSyncNestedFile() throws Throwable {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    for (int i = 0; i < 10; i++) {
+      mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE + i, TEST_CONTENT);
+    }
+
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, 0, TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    System.out.println(result.getTaskInfo());
+    System.out.println(result.getTaskInfo().getStats());
+    System.out.println(result.isCompleted().get().getSyncResult());
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
+
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, 0, TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    System.out.println(result.getTaskInfo());
+    System.out.println(result.getTaskInfo().getStats());
+    System.out.println(result.isCompleted().get().getSyncResult());
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
+  }
+
+  @Test
+  public void syncInodeHappyPath() throws Throwable {
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
 
     // Sync one file from UFS
-    SyncResult result =
-        mFileSystemMaster.syncMetadataInternal(MOUNT_POINT.join(TEST_FILE), createContext(DescendantType.ONE));
-    assertTrue(result.getSuccess());
-    assertSyncOperations(result, ImmutableMap.of(
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT.join(TEST_FILE), DescendantType.ONE, 0, TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.isCompleted().get().getSyncResult(), ImmutableMap.of(
         SyncOperation.CREATE, 1L
     ));
     FileInfo info = mFileSystemMaster.getFileInfo(MOUNT_POINT.join(TEST_FILE), getNoSync());
     assertFalse(info.isFolder());
     assertTrue(info.isCompleted());
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
 
     // Sync again, expect no change
-    result =
-        mFileSystemMaster.syncMetadataInternal(MOUNT_POINT.join(TEST_FILE), createContext(DescendantType.ONE));
-    assertTrue(result.getSuccess());
-    assertSyncOperations(result, ImmutableMap.of(
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT.join(TEST_FILE), DescendantType.ONE, 0, TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.isCompleted().get().getSyncResult(), ImmutableMap.of(
         SyncOperation.NOOP, 1L
     ));
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
 
     // Delete the file from UFS, then sync again
     mS3Client.deleteObject(TEST_BUCKET, TEST_FILE);
-    result =
-        mFileSystemMaster.syncMetadataInternal(MOUNT_POINT.join(TEST_FILE), createContext(DescendantType.NONE));
-    assertTrue(result.getSuccess());
-    assertSyncOperations(result, ImmutableMap.of(
-        SyncOperation.RECREATE, 1L
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT.join(TEST_FILE), DescendantType.ONE, 0, TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.isCompleted().get().getSyncResult(), ImmutableMap.of(
+        SyncOperation.DELETE, 1L
     ));
-    info = mFileSystemMaster.getFileInfo(MOUNT_POINT.join(TEST_FILE), getNoSync());
-    assertTrue(info.isFolder());
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
   }
-
 
   @Test
   public void syncInodeUfsDown()
@@ -178,14 +353,15 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
 
     stopS3Server();
     SyncResult result =
-        mFileSystemMaster.syncMetadataInternal(MOUNT_POINT.join(TEST_FILE), createContext(DescendantType.NONE));
+        mFileSystemMaster.syncMetadataInternal(MOUNT_POINT.join(TEST_FILE),
+            createContext(DescendantType.NONE));
     assertFalse(result.getSuccess());
     assertEquals(SyncFailReason.UFS_IO_FAILURE, result.getFailReason());
     startS3Server();
   }
 
   @Test
-  public void syncDirectoryHappyPath() throws Exception {
+  public void syncDirectoryHappyPath() throws Throwable {
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     mS3Client.putObject(TEST_BUCKET, "file1", TEST_CONTENT);
     mS3Client.putObject(TEST_BUCKET, "file2", TEST_CONTENT);
@@ -199,19 +375,17 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     mFileSystemMaster.createDirectory(MOUNT_POINT.join("directory1"),
         CreateDirectoryContext.defaults());
 
-    SyncResult result =
-        mFileSystemMaster.syncMetadataInternal(MOUNT_POINT, createContext(DescendantType.ONE));
-    assertTrue(result.getSuccess());
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ONE, 0, TIMEOUT_MS);
+    assertTrue(result.succeeded());
 
-    assertSyncOperations(result, ImmutableMap.of(
+    assertSyncOperations(result.isCompleted().get().getSyncResult(), ImmutableMap.of(
         // file2 & file 3
         SyncOperation.CREATE, 2L,
         // directory1
         SyncOperation.DELETE, 1L,
         // file1
-        SyncOperation.RECREATE, 1L,
-        // sync root
-        SyncOperation.NOOP, 1L
+        SyncOperation.RECREATE, 1L
     ));
   }
 
@@ -223,8 +397,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     }
 
     SyncResult result =
-        mFileSystemMaster.syncMetadataInternal
-            (MOUNT_POINT, createContextWithBatchSize(DescendantType.ONE, 10));
+        mFileSystemMaster.syncMetadataInternal(MOUNT_POINT, createContextWithBatchSize(
+            DescendantType.ONE, 10));
     assertTrue(result.getSuccess());
     assertSyncOperations(result, ImmutableMap.of(
         SyncOperation.CREATE, 100L,
@@ -236,8 +410,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
   public void syncDirectoryTestUFSIterationRecursive() throws Exception {
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     int filePerDirectory = 5;
-    int createdInodeCount = filePerDirectory * filePerDirectory * filePerDirectory +
-        filePerDirectory * filePerDirectory + filePerDirectory;
+    int createdInodeCount = filePerDirectory * filePerDirectory * filePerDirectory
+        + filePerDirectory * filePerDirectory + filePerDirectory;
     for (int i = 0; i < 5; ++i) {
       for (int j = 0; j < 5; ++j) {
         for (int k = 0; k < 5; ++k) {
@@ -254,7 +428,6 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
         SyncOperation.CREATE, (long) createdInodeCount,
         SyncOperation.NOOP, 1L
     ));
-
 
     result =
         mFileSystemMaster.syncMetadataInternal(
@@ -275,7 +448,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     mFileSystemMaster.createDirectory(new AlluxioURI("/test_directory"),
         CreateDirectoryContext.defaults());
     SyncResult result =
-        mFileSystemMaster.syncMetadataInternal(new AlluxioURI("/"), createContext(DescendantType.ONE));
+        mFileSystemMaster.syncMetadataInternal(new AlluxioURI("/"),
+            createContext(DescendantType.ONE));
     assertTrue(result.getSuccess());
     assertSyncOperations(result, ImmutableMap.of(
         SyncOperation.NOOP, 1L,
@@ -290,7 +464,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     /*
       / (root) -> local file system (disk)
       /s3_mount -> s3 bucket
-      create /s3_mount in the local first system that shadows the mount point and then do a metadata sync
+      create /s3_mount in the local first system that shadows the mount point and then do
+      a metadata sync
       the sync of the local file system /s3_mount is expected to be skipped
      */
 
@@ -299,7 +474,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     assertTrue(new File(localUfsPath).createNewFile());
 
     SyncResult result =
-        mFileSystemMaster.syncMetadataInternal(new AlluxioURI("/"), createContext(DescendantType.ONE));
+        mFileSystemMaster.syncMetadataInternal(new AlluxioURI("/"),
+            createContext(DescendantType.ONE));
     assertTrue(result.getSuccess());
     assertSyncOperations(result, ImmutableMap.of(
         // Root (/)
@@ -341,7 +517,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     mS3Client.putObject(TEST_BUCKET2, "foo/baz", TEST_CONTENT);
 
     SyncResult result =
-        mFileSystemMaster.syncMetadataInternal(new AlluxioURI("/"), createContext(DescendantType.ALL));
+        mFileSystemMaster.syncMetadataInternal(new AlluxioURI("/"),
+            createContext(DescendantType.ALL));
 
     /*
       / (ROOT) -> unchanged (root mount point local fs)
@@ -412,7 +589,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
             .setWriteType(WriteType.MUST_CACHE));
 
     SyncResult result =
-        mFileSystemMaster.syncMetadataInternal(new AlluxioURI("/"), createContext(DescendantType.ONE));
+        mFileSystemMaster.syncMetadataInternal(new AlluxioURI("/"),
+            createContext(DescendantType.ONE));
 
     assertSyncOperations(result, ImmutableMap.of(
         // root
@@ -471,14 +649,15 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
 
     CompletableFuture<SyncResult> syncFuture = CompletableFuture.supplyAsync(() -> {
       try {
-        return mFileSystemMaster.syncMetadataInternal(MOUNT_POINT, createContext(DescendantType.ALL));
+        return mFileSystemMaster.syncMetadataInternal(MOUNT_POINT,
+            createContext(DescendantType.ALL));
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
     });
     // blocks on the sync of "/d" (the 2nd sync target)
     syncer.blockUntilNthSyncThenDo(2,
-        ()-> mFileSystemMaster.delete(MOUNT_POINT.join("/d"), DeleteContext.defaults()));
+        () -> mFileSystemMaster.delete(MOUNT_POINT.join("/d"), DeleteContext.defaults()));
     SyncResult result = syncFuture.get();
     assertTrue(result.getSuccess());
     assertSyncOperations(result, ImmutableMap.of(
@@ -500,14 +679,15 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
 
     CompletableFuture<SyncResult> syncFuture = CompletableFuture.supplyAsync(() -> {
       try {
-        return mFileSystemMaster.syncMetadataInternal(MOUNT_POINT, createContext(DescendantType.ALL));
+        return mFileSystemMaster.syncMetadataInternal(MOUNT_POINT,
+            createContext(DescendantType.ALL));
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
     });
     // blocks on the sync of "/test_file" (the 2nd sync target)
     syncer.blockUntilNthSyncThenDo(2,
-        ()-> mFileSystemMaster.createFile(MOUNT_POINT.join(TEST_FILE),
+        () -> mFileSystemMaster.createFile(MOUNT_POINT.join(TEST_FILE),
             CreateFileContext.defaults().setWriteType(WriteType.MUST_CACHE)));
     SyncResult result = syncFuture.get();
     assertTrue(result.getSuccess());
@@ -537,7 +717,7 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
       }
     });
     syncer.blockUntilNthSyncThenDo(1,
-        ()-> mFileSystemMaster.delete(MOUNT_POINT.join(TEST_FILE), DeleteContext.defaults()));
+        () -> mFileSystemMaster.delete(MOUNT_POINT.join(TEST_FILE), DeleteContext.defaults()));
     SyncResult result = syncFuture.get();
     assertFalse(result.getSuccess());
     assertEquals(SyncFailReason.CONCURRENT_UPDATE_DURING_SYNC, result.getFailReason());
@@ -564,7 +744,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     // The S3 mock server has a bug where 403 is returned if startAfter exceeds the last
     // object key.
     MetadataSyncContext context =
-        MetadataSyncContext.Builder.builder(mFileSystemMaster.createRpcContext(), DescendantType.ALL)
+        MetadataSyncContext.Builder.builder(mFileSystemMaster.createRpcContext(),
+                DescendantType.ALL)
         .setStartAfter("f2").build();
     SyncResult result =
         mFileSystemMaster.syncMetadataInternal(MOUNT_POINT, context);
@@ -572,7 +753,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     assertEquals(1, mFileSystemMaster.listStatus(MOUNT_POINT, listNoSync(false)).size());
 
     context =
-        MetadataSyncContext.Builder.builder(mFileSystemMaster.createRpcContext(), DescendantType.ALL)
+        MetadataSyncContext.Builder.builder(mFileSystemMaster.createRpcContext(),
+                DescendantType.ALL)
             .setStartAfter("f1").build();
     result =
         mFileSystemMaster.syncMetadataInternal(MOUNT_POINT, context);
@@ -580,7 +762,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     assertEquals(2, mFileSystemMaster.listStatus(MOUNT_POINT, listNoSync(false)).size());
 
     context =
-        MetadataSyncContext.Builder.builder(mFileSystemMaster.createRpcContext(), DescendantType.ALL)
+        MetadataSyncContext.Builder.builder(mFileSystemMaster.createRpcContext(),
+                DescendantType.ALL)
             .setStartAfter("a").build();
     result =
         mFileSystemMaster.syncMetadataInternal(MOUNT_POINT, context);
@@ -612,7 +795,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     SyncResult result =
         mFileSystemMaster.syncMetadataInternal(MOUNT_POINT.join("root"), context);
     assertTrue(result.getSuccess());
-    assertEquals(1, mFileSystemMaster.listStatus(MOUNT_POINT.join("root"), listNoSync(false)).size());
+    assertEquals(1, mFileSystemMaster.listStatus(MOUNT_POINT.join("root"),
+        listNoSync(false)).size());
 
     context =
         MetadataSyncContext.Builder.builder(mFileSystemMaster.createRpcContext(),
@@ -621,7 +805,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     result =
         mFileSystemMaster.syncMetadataInternal(MOUNT_POINT.join("root"), context);
     assertTrue(result.getSuccess());
-    assertEquals(3, mFileSystemMaster.listStatus(MOUNT_POINT.join("root"), listNoSync(false)).size());
+    assertEquals(3, mFileSystemMaster.listStatus(MOUNT_POINT.join("root"),
+        listNoSync(false)).size());
     // TODO look into WARNING: xattr not supported on root/
   }
 
@@ -638,7 +823,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     // The S3 mock server has a bug where 403 is returned if startAfter exceeds the last
     // object key.
     MetadataSyncContext context =
-        MetadataSyncContext.Builder.builder(mFileSystemMaster.createRpcContext(), DescendantType.ALL)
+        MetadataSyncContext.Builder.builder(mFileSystemMaster.createRpcContext(),
+                DescendantType.ALL)
             .setStartAfter("d1/d2/f2").build();
     SyncResult result =
         mFileSystemMaster.syncMetadataInternal(MOUNT_POINT.join("root"), context);
@@ -668,7 +854,6 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
         ));
   }
 
-
   private ListStatusContext listNoSync(boolean isRecursive) {
     return ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder()
         .setRecursive(isRecursive)
@@ -694,12 +879,11 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
         ));
   }
 
-
   private void stopS3Server() {
     try {
       Field coreField = S3ProxyRule.class.getDeclaredField("core");
       coreField.setAccessible(true);
-      S3ProxyJunitCore core = (S3ProxyJunitCore) coreField.get(s3Proxy);
+      S3ProxyJunitCore core = (S3ProxyJunitCore) coreField.get(mS3Proxy);
       Field s3ProxyField = S3ProxyJunitCore.class.getDeclaredField("s3Proxy");
       s3ProxyField.setAccessible(true);
       S3Proxy proxy = (S3Proxy) s3ProxyField.get(core);
@@ -713,7 +897,7 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     try {
       Field coreField = S3ProxyRule.class.getDeclaredField("core");
       coreField.setAccessible(true);
-      S3ProxyJunitCore core = (S3ProxyJunitCore) coreField.get(s3Proxy);
+      S3ProxyJunitCore core = (S3ProxyJunitCore) coreField.get(mS3Proxy);
       Field s3ProxyField = S3ProxyJunitCore.class.getDeclaredField("s3Proxy");
       s3ProxyField.setAccessible(true);
       S3Proxy proxy = (S3Proxy) s3ProxyField.get(core);
@@ -723,10 +907,65 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     }
   }
 
-  @Override
-  public void after() throws Exception {
-    mS3Client = null;
-    super.after();
+  public static void checkUfsMatches(
+      AlluxioURI alluxioPath, String s3Bucket,
+      String mountPrefix,
+      DefaultFileSystemMaster master, S3Client s3client) throws Exception {
+
+    Stack<Pair<String, String>> toCheck = new Stack<>();
+    toCheck.push(new Pair<>(alluxioPath.getPath(), mountPrefix));
+    while (!toCheck.isEmpty()) {
+      Pair<String, String> nxt = toCheck.pop();
+      Iterator<FileInfo> alluxioItems = master.listStatus(new AlluxioURI(nxt.getFirst()),
+          ListStatusContext.defaults()).stream().iterator();
+      Iterator<Pair<String, String>> ufsItems = listUfsPath(s3Bucket, nxt.getSecond(), s3client,
+          mountPrefix, alluxioPath.getPath());
+      while (alluxioItems.hasNext()) {
+        FileInfo nxtAlluxio = alluxioItems.next();
+        if (!ufsItems.hasNext()) {
+          throw new IllegalStateException(
+              String.format("Ufs did not find alluxio item %s", nxtAlluxio));
+        }
+        Pair<String, String> nxtUfs = ufsItems.next();
+        String nxtInode = nxtAlluxio.getPath();
+        if (nxtAlluxio.isFolder()) {
+          toCheck.push(new Pair<>(nxtAlluxio.getPath(), nxtUfs.getSecond()));
+          nxtInode = PathUtils.normalizePath(nxtInode, AlluxioURI.SEPARATOR);
+        }
+        System.out.printf("Checking %s, %s%n", nxtInode, nxtUfs.getFirst());
+        assertEquals(nxtInode, nxtUfs.getFirst());
+      }
+      if (ufsItems.hasNext()) {
+        throw new IllegalStateException(
+            String.format("alluxio did not find ufs item %s", ufsItems.next()));
+      }
+    }
+  }
+
+  static Iterator<Pair<String, String>> listUfsPath(
+      String s3Bucket, String s3Path, S3Client client,
+      String mountPrefix, String alluxioPrefix) {
+    String normalizedPrefix = PathUtils.normalizePath(alluxioPrefix, AlluxioURI.SEPARATOR);
+    if (!s3Path.isEmpty()) {
+      s3Path = PathUtils.normalizePath(s3Path, AlluxioURI.SEPARATOR);
+    }
+    if (!mountPrefix.isEmpty()) {
+      mountPrefix = PathUtils.normalizePath(mountPrefix, AlluxioURI.SEPARATOR);
+    }
+    ListObjectsV2Iterable result = client.listObjectsV2Paginator(ListObjectsV2Request.builder()
+        .bucket(s3Bucket).delimiter(AlluxioURI.SEPARATOR).prefix(s3Path).build());
+    String finalMountPrefix = mountPrefix;
+    String finalS3Path = s3Path;
+    return result.stream().flatMap(resp ->
+            Stream.concat(resp.commonPrefixes().stream().map(CommonPrefix::prefix),
+                resp.contents().stream().map(S3Object::key)))
+        .filter(nxt -> {
+          assertTrue(nxt.startsWith(finalS3Path));
+          return nxt.length() > finalS3Path.length();
+        }).sorted().distinct()
+        .map(nxt -> {
+          return new Pair<>(normalizedPrefix + nxt.substring(finalMountPrefix.length()), nxt);
+        }).iterator();
   }
 
   private void assertSyncOperations(SyncResult result, Map<SyncOperation, Long> operations) {

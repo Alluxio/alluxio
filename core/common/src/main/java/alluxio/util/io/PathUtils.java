@@ -443,5 +443,10 @@ public final class PathUtils {
     return path.endsWith(separator) ? path : path + separator;
   }
 
+  public static String normalizePathStart(
+      String path, String separator) {
+    return path.startsWith(separator) ? path : separator + path;
+  }
+
   private PathUtils() {} // prevent instantiation
 }

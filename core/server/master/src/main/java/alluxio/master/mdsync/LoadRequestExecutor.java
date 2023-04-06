@@ -13,7 +13,12 @@ package alluxio.master.mdsync;
 
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.runtime.InternalRuntimeException;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsClient;
+import alluxio.underfs.UfsLoadResult;
+import alluxio.underfs.UfsStatus;
 
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,10 +129,21 @@ class LoadRequestExecutor implements Closeable {
     LoadRequest nxtRequest = mLoadRequests.take();
     PathLoaderTask task = mPathLoaderTasks.get(nxtRequest.getBaseTaskId());
     if (task != null) {
-      task.getClient().performQueryAsync(nxtRequest.getLoadPath().getPath(),
-          nxtRequest.getContinuationToken(), nxtRequest.getDescendantType(),
-          ufsLoadResult -> processLoadResult(nxtRequest, ufsLoadResult),
-          t -> onLoadError(nxtRequest, t));
+      try (CloseableResource<UfsClient> client = task.getClient()) {
+        if (nxtRequest.isFirstLoad()) {
+          client.get().performGetStatusAsync(nxtRequest.getLoadPath().getPath(),
+              ufsLoadResult -> processLoadResult(nxtRequest, ufsLoadResult),
+              t -> onLoadError(nxtRequest, t));
+        } else {
+          client.get().performListingAsync(nxtRequest.getLoadPath().getPath(),
+              nxtRequest.getContinuationToken(), nxtRequest.getTaskInfo().getStartAfter(),
+              nxtRequest.getDescendantType(),
+              ufsLoadResult -> processLoadResult(nxtRequest, ufsLoadResult),
+              t -> onLoadError(nxtRequest, t));
+        }
+      } catch (Throwable t) {
+        onLoadError(nxtRequest, t);
+      }
     } else {
       LOG.debug("Got load request {} with task id {} with no corresponding task",
           nxtRequest.getLoadRequestId(), nxtRequest.getLoadRequestId());

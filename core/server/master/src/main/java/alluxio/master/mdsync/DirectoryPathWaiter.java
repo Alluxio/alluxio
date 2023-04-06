@@ -13,9 +13,13 @@ package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.path.TrieNode;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsClient;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Function;
 
 class DirectoryPathWaiter extends BaseTask implements PathWaiter {
   private static final Logger LOG = LoggerFactory.getLogger(DirectoryPathWaiter.class);
@@ -23,8 +27,9 @@ class DirectoryPathWaiter extends BaseTask implements PathWaiter {
   private final TrieNode<AlluxioURI> mCompletedDirs = new TrieNode<>();
 
   DirectoryPathWaiter(
-      TaskInfo info, long startTime) {
-    super(info, startTime);
+      TaskInfo info, long startTime, Function<AlluxioURI,
+      CloseableResource<UfsClient>> clientSupplier) {
+    super(info, startTime, clientSupplier);
   }
 
   @Override

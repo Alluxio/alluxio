@@ -38,6 +38,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,6 +63,7 @@ public class S3AUnderFileSystemMockServerTest {
 
   private S3AUnderFileSystem mS3UnderFileSystem;
   private AmazonS3 mClient;
+  private S3AsyncClient mAsyncClient;
 
   @Rule
   public S3ProxyRule s3Proxy = S3ProxyRule.builder()
@@ -85,9 +89,13 @@ public class S3AUnderFileSystemMockServerTest {
             new AwsClientBuilder.EndpointConfiguration(s3Proxy.getUri().toString(),
                 Regions.US_WEST_2.getName()))
         .build();
+    mAsyncClient = S3AsyncClient.builder().credentialsProvider(StaticCredentialsProvider.create(
+        AwsBasicCredentials.create(s3Proxy.getAccessKey(), s3Proxy.getSecretKey())))
+            .endpointOverride(s3Proxy.getUri()).build();
     mClient.createBucket(TEST_BUCKET);
     mS3UnderFileSystem =
-        new S3AUnderFileSystem(new AlluxioURI("s3://" + TEST_BUCKET), mClient, TEST_BUCKET,
+        new S3AUnderFileSystem(new AlluxioURI("s3://" + TEST_BUCKET), mClient,
+            mAsyncClient, TEST_BUCKET,
             Executors.newSingleThreadExecutor(), new TransferManager(),
             UnderFileSystemConfiguration.defaults(CONF), false);
   }

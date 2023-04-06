@@ -14,6 +14,10 @@ package alluxio.master.mdsync;
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.file.options.DescendantType;
+import alluxio.master.file.metasync.SyncResult;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsClient;
+import alluxio.underfs.UfsLoadResult;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -22,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Function;
 import javax.annotation.Nullable;
 
 /**
@@ -49,8 +54,9 @@ public class PathLoaderTask {
   private long mNxtLoadId = 0;
   private boolean mCompleted = false;
   private Runnable mRunOnPendingLoad;
+  SyncResult mSyncResult = null;
 
-  private final UfsClient mClient;
+  private final Function<AlluxioURI, CloseableResource<UfsClient>> mClientSupplier;
 
   private DescendantType computeDescendantType() {
     if (mTaskInfo.getDescendantType() == DescendantType.ALL
@@ -62,22 +68,22 @@ public class PathLoaderTask {
 
   /**
    * Create a new PathLoaderTask.
-   * @param taskInfo
-   * @param continuationToken
+   * @param taskInfo task info
+   * @param continuationToken token
+   * @param clientSupplier the client supplier
    */
   public PathLoaderTask(
-      TaskInfo taskInfo, @Nullable String continuationToken) {
+      TaskInfo taskInfo, @Nullable String continuationToken,
+      Function<AlluxioURI, CloseableResource<UfsClient>> clientSupplier) {
     mTaskInfo = taskInfo;
     final long loadId = mNxtLoadId++;
+    // the first load request will get a GetStatus check on the path
+    // the following loads will be listings
     LoadRequest firstRequest = new LoadRequest(loadId, loadId, mTaskInfo, mTaskInfo.getBasePath(),
-        continuationToken, computeDescendantType());
-    if (mTaskInfo.getDescendantType() == DescendantType.NONE) {
-      mNextLoad = new ConcurrentLinkedDeque<>();
-    } else {
-      mNextLoad = new ConcurrentLinkedDeque<>();
-    }
-    addLoadRequest(firstRequest, true);
-    mClient = mTaskInfo.getMdSync().getClient(taskInfo.getBasePath());
+        continuationToken, null, computeDescendantType(), true);
+    mNextLoad = new ConcurrentLinkedDeque<>();
+    addLoadRequest(firstRequest, false);
+    mClientSupplier = clientSupplier;
   }
 
   boolean isComplete() {
@@ -88,8 +94,8 @@ public class PathLoaderTask {
     return mTaskInfo;
   }
 
-  UfsClient getClient() {
-    return mClient;
+  CloseableResource<UfsClient> getClient() {
+    return mClientSupplier.apply(mTaskInfo.getBasePath());
   }
 
   synchronized void runOnPendingLoad(Runnable toRun) {
@@ -98,7 +104,6 @@ public class PathLoaderTask {
 
   synchronized Optional<LoadResult> createLoadResult(
       long requestId, UfsLoadResult ufsLoadResult) {
-    mTaskInfo.getStats().gotBatch(ufsLoadResult.getItemsCount());
     if (mCompleted) {
       return Optional.empty();
     }
@@ -109,15 +114,58 @@ public class PathLoaderTask {
           mTaskInfo, requestId);
       return Optional.empty();
     }
-    if (ufsLoadResult.isTruncated()) {
+    TaskStats stats = mTaskInfo.getStats();
+    if (!originalRequest.isFirstLoad()) {
+      stats.gotBatch(ufsLoadResult.getItemsCount());
+    }
+    boolean shouldLoadMore;
+    boolean shouldProcessResult = true;
+    if (originalRequest.isFirstLoad()) {
+      if (ufsLoadResult.getItemsCount() > 0) {
+        stats.setFirstLoadHadResult();
+      }
+      if (ufsLoadResult.isFirstFile()) {
+        stats.setFirstLoadFile();
+      }
+      if (originalRequest.getDescendantType() == DescendantType.NONE) {
+        // If our initial request returned a value, and the descendant type was NONE
+        // then we do not need to load any more values
+        shouldLoadMore = ufsLoadResult.getItemsCount() == 0;
+        shouldProcessResult = !shouldLoadMore;
+      } else {
+        // If our initial request returned a value, and it was a file, then
+        // we don't need to load more
+        shouldLoadMore = ufsLoadResult.getItemsCount() == 0 || !ufsLoadResult.isFirstFile();
+        if (ufsLoadResult.getItemsCount() == 0
+            || (ufsLoadResult.getItemsCount() > 0 && !ufsLoadResult.isFirstFile())) {
+          // if the first load did not return anything, or if it returned a directory
+          // then we don't need to process it, as the processing will be done on our
+          // next load
+          shouldProcessResult = false;
+        }
+      }
+      if (!shouldProcessResult) {
+        mRunningLoads.remove(requestId);
+        assert shouldLoadMore;
+      }
+    } else {
       // If truncated, need to submit a new task for the next set of items
+      shouldLoadMore = ufsLoadResult.isTruncated();
+    }
+    if (shouldLoadMore) {
       final long loadId = mNxtLoadId++;
       addLoadRequest(new LoadRequest(loadId, originalRequest.getBatchSetId(), mTaskInfo,
           originalRequest.getLoadPath(), ufsLoadResult.getContinuationToken(),
-          computeDescendantType()), false);
+          ufsLoadResult.getLastItem().orElse(null), computeDescendantType(), false),
+          originalRequest.isFirstLoad());
     }
-    return Optional.of(new LoadResult(requestId, originalRequest.getLoadPath(),
-        mTaskInfo, ufsLoadResult));
+    if (shouldProcessResult) {
+      return Optional.of(new LoadResult(requestId, originalRequest.getLoadPath(),
+          mTaskInfo, originalRequest.getPreviousLoadLast().orElse(null),
+          ufsLoadResult, originalRequest.isFirstLoad()));
+    } else {
+      return Optional.empty();
+    }
   }
 
   void loadNestedDirectory(AlluxioURI path) {
@@ -126,7 +174,7 @@ public class PathLoaderTask {
     synchronized (this) {
       final long loadId = mNxtLoadId++;
       addLoadRequest(new LoadRequest(loadId, loadId, mTaskInfo, path,
-          null, computeDescendantType()), true);
+          null, null, computeDescendantType(), false), true);
     }
   }
 
@@ -138,7 +186,7 @@ public class PathLoaderTask {
       mNextLoad.addFirst(loadRequest);
     }
     if (isFirstForPath) {
-      mTruncatedLoads.add(loadRequest.getLoadRequestId());
+      mTruncatedLoads.add(loadRequest.getBatchSetId());
     }
     if (mRunOnPendingLoad != null) {
       mRunOnPendingLoad.run();
@@ -152,18 +200,25 @@ public class PathLoaderTask {
    */
   void onProcessComplete(long loadRequestId, SyncProcessResult result) {
     mTaskInfo.getMdSync().onEachResult(mTaskInfo.getId(), result);
+    boolean completed = false;
     synchronized (this) {
+      mSyncResult = mSyncResult == null ? result.getSyncResult()
+          : SyncResult.merge(result.getSyncResult(), mSyncResult);
       LoadRequest request = mRunningLoads.remove(loadRequestId);
-      if (request != null && !result.isTruncated()) {
+      if (request != null && !result.isFirstLoad() && !result.isTruncated()) {
         Preconditions.checkState(mTruncatedLoads.remove(request.getBatchSetId()),
             "load request %s finished, without finding the load %s that started the batch loading",
             loadRequestId, request.getBatchSetId());
       }
       if (mTruncatedLoads.size() == 0 && mRunningLoads.size() == 0) {
         // all sets of loads have finished
+        completed = true;
         mCompleted = true;
-        mTaskInfo.getMdSync().onPathLoadComplete(mTaskInfo.getId(), result.rootPathIsFile());
       }
+    }
+    if (completed) {
+      mTaskInfo.getMdSync().onPathLoadComplete(mTaskInfo.getId(),
+          result.rootPathIsFile(), mSyncResult);
     }
   }
 

@@ -12,6 +12,9 @@
 package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
+import alluxio.master.file.metasync.SyncResult;
+import alluxio.underfs.UfsClient;
+import alluxio.underfs.UfsLoadResult;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -21,27 +24,13 @@ import java.util.function.Function;
  * standard interface in order to allow changes in the future, for example calling
  * separate components over the network.
  */
-class MdSync {
+public class MdSync {
 
   TaskTracker mTaskTracker;
-  Function<AlluxioURI, AlluxioURI> mReverseResolve;
   Function<AlluxioURI, UfsClient> mGetClient;
 
-  MdSync(
-      TaskTracker taskTracker,
-      Function<AlluxioURI, AlluxioURI> reverseResolve,
-      Function<AlluxioURI, UfsClient> getClient) {
+  public MdSync(TaskTracker taskTracker) {
     mTaskTracker = taskTracker;
-    mReverseResolve = reverseResolve;
-    mGetClient = getClient;
-  }
-
-  UfsClient getClient(AlluxioURI path) {
-    return mGetClient.apply(path);
-  }
-
-  AlluxioURI reverseResolve(AlluxioURI path) {
-    return mReverseResolve.apply(path);
   }
 
   void onLoadRequestError(long taskId, long loadId, Throwable t) {
@@ -70,11 +59,11 @@ class MdSync {
     mTaskTracker.taskComplete(taskId, isFile);
   }
 
-  void onPathLoadComplete(long taskId, boolean isFile) {
-    mTaskTracker.getTask(taskId).ifPresent(task -> task.onComplete(isFile));
+  void onPathLoadComplete(long taskId, boolean isFile, SyncResult result) {
+    mTaskTracker.getTask(taskId).ifPresent(task -> task.onComplete(isFile, result));
   }
 
-  void loadNestedDirectory(long taskId, AlluxioURI path) {
+  public void loadNestedDirectory(long taskId, AlluxioURI path) {
     mTaskTracker.getTask(taskId).ifPresent(
         task -> task.getPathLoadTask().loadNestedDirectory(path));
   }

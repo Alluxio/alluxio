@@ -9,16 +9,21 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.mdsync;
+package alluxio.underfs;
 
 import alluxio.file.options.DescendantType;
 
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
-interface UfsClient {
+public interface UfsClient {
 
-  void performQueryAsync(
-      String path, @Nullable String continuationToken, DescendantType descendantType,
-      Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError);
+  void performGetStatusAsync(
+      String path, Consumer<UfsLoadResult> onComplete,
+      Consumer<Throwable> onError);
+
+  void performListingAsync(
+      String path, @Nullable String continuationToken, @Nullable String startAfter,
+      DescendantType descendantType, Consumer<UfsLoadResult> onComplete,
+      Consumer<Throwable> onError);
 }

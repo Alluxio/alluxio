@@ -14,8 +14,14 @@ package alluxio.underfs.s3a;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.file.options.DescendantType;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
+import alluxio.underfs.UfsClient;
+import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsLoadResult;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
@@ -62,19 +68,46 @@ import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.http.nio.netty.Http2Configuration;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
+import software.amazon.awssdk.services.s3.model.GetObjectAttributesRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.ObjectAttributes;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -82,7 +115,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * S3 {@link UnderFileSystem} implementation based on the aws-java-sdk-s3 library.
  */
 @ThreadSafe
-public class S3AUnderFileSystem extends ObjectUnderFileSystem {
+public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClient {
   private static final Logger LOG = LoggerFactory.getLogger(S3AUnderFileSystem.class);
 
   /** Static hash for a directory's empty contents. */
@@ -98,6 +131,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   /** AWS-SDK S3 client. */
   private final AmazonS3 mClient;
+
+  private final S3AsyncClient mAsyncClient;
 
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
@@ -212,6 +247,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     AmazonS3 amazonS3Client
         = createAmazonS3(credentials, clientConf, endpointConfiguration, conf);
+    S3AsyncClient asyncClient = createAmazonS3Async(
+        createEndpointConfigurationAsync(conf, clientConf), conf, clientConf);
 
     ExecutorService service = ExecutorServiceFactories
         .fixedThreadPool("alluxio-s3-transfer-manager-worker",
@@ -223,8 +260,99 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         .withMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD)
         .build();
 
-    return new S3AUnderFileSystem(uri, amazonS3Client, bucketName,
+    return new S3AUnderFileSystem(uri, amazonS3Client, asyncClient, bucketName,
         service, transferManager, conf, streamingUploadEnabled);
+  }
+
+  /**
+   * Create an async S3 client.
+   * @param endpointConfiguration the endpoint conf
+   * @param conf the conf
+   * @param clientConf the client conf
+   * @return the client
+   */
+  public static S3AsyncClient createAmazonS3Async(
+      S3EndpointParams endpointConfiguration,
+      UnderFileSystemConfiguration conf,
+      ClientConfiguration clientConf) {
+
+    S3AsyncClientBuilder clientBuilder = S3AsyncClient.builder();
+    // need to check all the additional parameters for these
+    S3Configuration.builder();
+    ClientOverrideConfiguration.builder();
+    Http2Configuration.builder();
+    ClientAsyncConfiguration.builder();
+
+    NettyNioAsyncHttpClient.Builder httpClientBuilder = NettyNioAsyncHttpClient.builder();
+    AwsCredentialsProvider credentialsProvider;
+    // Set the aws credential system properties based on Alluxio properties, if they are set;
+    // otherwise, use the default credential provider.
+    if (conf.isSet(PropertyKey.S3A_ACCESS_KEY)
+        && conf.isSet(PropertyKey.S3A_SECRET_KEY)) {
+      credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
+          conf.getString(PropertyKey.S3A_ACCESS_KEY), conf.getString(PropertyKey.S3A_SECRET_KEY)));
+    } else {
+      // Checks, in order, env variables, system properties, profile file, and instance profile.
+      credentialsProvider = DefaultCredentialsProvider.builder().build();
+    }
+
+    if (conf.getBoolean(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
+      clientBuilder.forcePathStyle(true);
+    }
+
+    // Proxy host
+    if (conf.isSet(PropertyKey.UNDERFS_S3_PROXY_HOST)) {
+      ProxyConfiguration.Builder proxyBuilder = ProxyConfiguration.builder();
+      proxyBuilder.host(conf.getString(PropertyKey.UNDERFS_S3_PROXY_HOST));
+      // Proxy port
+      if (conf.isSet(PropertyKey.UNDERFS_S3_PROXY_PORT)) {
+        proxyBuilder.port(conf.getInt(PropertyKey.UNDERFS_S3_PROXY_PORT));
+      }
+      httpClientBuilder.proxyConfiguration(proxyBuilder.build());
+    }
+    boolean enableGlobalBucketAccess = true;
+    if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT)) {
+      String endpoint = conf.getString(PropertyKey.UNDERFS_S3_ENDPOINT);
+      final URI epr = RuntimeHttpUtils.toUri(endpoint, clientConf);
+      clientBuilder.endpointOverride(epr);
+      if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT_REGION)) {
+        enableGlobalBucketAccess = setRegionAsync(clientBuilder,
+            conf.getString(PropertyKey.UNDERFS_S3_ENDPOINT_REGION));
+      }
+    } else if (conf.isSet(PropertyKey.UNDERFS_S3_REGION)) {
+      enableGlobalBucketAccess = setRegionAsync(clientBuilder,
+          conf.getString(PropertyKey.UNDERFS_S3_REGION));
+    }
+
+    if (enableGlobalBucketAccess) {
+      // access bucket without region information
+      // at the cost of an extra HEAD request
+      clientBuilder.disableMultiRegionAccessPoints(false);
+      // The special S3 region which can be used to talk to any bucket
+      // Region is required even if global bucket access enabled
+      String defaultRegion = Regions.US_EAST_1.getName();
+      clientBuilder.region(Region.of(defaultRegion));
+      LOG.debug("Cannot find S3 endpoint or s3 region in Alluxio configuration, "
+              + "set region to {} and enable global bucket access with extra overhead",
+          defaultRegion);
+    }
+    clientBuilder.httpClientBuilder(httpClientBuilder);
+    clientBuilder.credentialsProvider(credentialsProvider);
+    return clientBuilder.build();
+  }
+
+  private static boolean setRegionAsync(
+      S3AsyncClientBuilder builder, String region) {
+    try {
+      builder.region(Region.of(region));
+      LOG.debug("Set S3 region {} to {}", PropertyKey.UNDERFS_S3_REGION.getName(), region);
+      return false;
+    } catch (SdkClientException e) {
+      LOG.error("S3 region {} cannot be recognized, "
+              + "fall back to use global bucket access with an extra HEAD request",
+          region, e);
+      return true;
+    }
   }
 
   /**
@@ -288,6 +416,46 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @return the endpoint configuration
    */
   @Nullable
+  private static S3EndpointParams createEndpointConfigurationAsync(
+      UnderFileSystemConfiguration conf, ClientConfiguration clientConf) {
+    if (!conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT)) {
+      LOG.debug("No endpoint configuration generated, using default s3 endpoint");
+      return null;
+    }
+    String endpoint = conf.getString(PropertyKey.UNDERFS_S3_ENDPOINT);
+    final URI epr = RuntimeHttpUtils.toUri(endpoint, clientConf);
+    LOG.debug("Creating endpoint configuration for {}", epr);
+
+    String region;
+    if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT_REGION)) {
+      region = conf.getString(PropertyKey.UNDERFS_S3_ENDPOINT_REGION);
+    } else if (ServiceUtils.isS3USStandardEndpoint(endpoint)) {
+      // endpoint is standard s3 endpoint with default region, no need to set region
+      LOG.debug("Standard s3 endpoint, declare region as null");
+      region = null;
+    } else {
+      LOG.debug("Parsing region fom non-standard s3 endpoint");
+      region = AwsHostNameUtils.parseRegion(
+          epr.getHost(),
+          S3_SERVICE_NAME);
+    }
+    LOG.debug("Region for endpoint {}, URI {} is determined as {}",
+        endpoint, epr, region);
+    S3EndpointParams.Builder params = S3EndpointParams.builder().endpoint(endpoint);
+    if (region != null) {
+      params.region(Region.of(region));
+    }
+    return params.build();
+  }
+
+  /**
+   * Creates an endpoint configuration.
+   *
+   * @param conf the aluxio conf
+   * @param clientConf the aws conf
+   * @return the endpoint configuration
+   */
+  @Nullable
   private static AwsClientBuilder.EndpointConfiguration createEndpointConfiguration(
       UnderFileSystemConfiguration conf, ClientConfiguration clientConf) {
     if (!conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT)) {
@@ -327,11 +495,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @param conf configuration for this S3A ufs
    * @param streamingUploadEnabled whether streaming upload is enabled
    */
-  protected S3AUnderFileSystem(AlluxioURI uri, AmazonS3 amazonS3Client, String bucketName,
+  protected S3AUnderFileSystem(
+      AlluxioURI uri, AmazonS3 amazonS3Client, S3AsyncClient asyncClient, String bucketName,
       ExecutorService executor, TransferManager transferManager, UnderFileSystemConfiguration conf,
       boolean streamingUploadEnabled) {
     super(uri, conf);
     mClient = amazonS3Client;
+    mAsyncClient = asyncClient;
     mBucketName = bucketName;
     mExecutor = MoreExecutors.listeningDecorator(executor);
     mManager = transferManager;
@@ -462,7 +632,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Nullable
   @Override
-  protected ObjectListingChunk getObjectListingChunk(String key, boolean recursive, @Nullable String startAfter, int batchSize)
+  protected ObjectListingChunk getObjectListingChunk(
+      String key, boolean recursive, @Nullable String startAfter, int batchSize)
       throws IOException {
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
@@ -521,6 +692,137 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       throw AlluxioS3Exception.from(e);
     }
     return result;
+  }
+
+  @Override
+  public void performGetStatusAsync(
+      String path, Consumer<UfsLoadResult> onComplete,
+      Consumer<Throwable> onError) {
+
+    String folderSuffix = getFolderSuffix();
+    path = stripPrefixIfPresent(path);
+    path = path.equals(folderSuffix) ? "" : path;
+    if (path.isEmpty()) {
+      onComplete.accept(new UfsLoadResult(Stream.empty(), 0, null, null, false, false));
+      return;
+    }
+    GetObjectAttributesRequest request =
+        GetObjectAttributesRequest.builder()
+            .objectAttributes(ObjectAttributes.E_TAG, ObjectAttributes.OBJECT_SIZE)
+            .bucket(mBucketName).key(path).build();
+    String finalPath = path;
+    mAsyncClient.getObjectAttributes(request).whenCompleteAsync((result, err) -> {
+      if (err != null) {
+        if (err.getCause() instanceof NoSuchKeyException) {
+          onComplete.accept(new UfsLoadResult(Stream.empty(), 0, null, null, false, false));
+        } else {
+          onError.accept(err);
+        }
+      } else {
+        ObjectPermissions permissions = getPermissions();
+        long bytes = mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+        Instant lastModifiedDate = result.lastModified();
+        Long lastModifiedTime = lastModifiedDate == null ? null
+            : lastModifiedDate.toEpochMilli();
+        UfsStatus status;
+        if (finalPath.endsWith(folderSuffix)) {
+          status = new UfsDirectoryStatus(finalPath, permissions.getOwner(),
+              permissions.getGroup(), permissions.getMode());
+        } else {
+          status = new UfsFileStatus(finalPath, result.eTag(), result.objectSize(),
+              lastModifiedTime, permissions.getOwner(), permissions.getGroup(),
+              permissions.getMode(), bytes);
+        }
+        onComplete.accept(new UfsLoadResult(Stream.of(status), 1, null,
+            null, false, status.isFile()));
+      }
+    });
+  }
+
+  @Override
+  public void performListingAsync(
+      String path, @Nullable String continuationToken, @Nullable String startAfter,
+      DescendantType descendantType,
+      Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError) {
+
+    int maxKeys = getListingChunkLength(mUfsConf);
+    path = stripPrefixIfPresent(path);
+    String delimiter = descendantType == DescendantType.ALL ? "" : PATH_SEPARATOR;
+    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
+    // In case key is root (empty string) do not normalize prefix.
+    path = path.equals(PATH_SEPARATOR) ? "" : path;
+    software.amazon.awssdk.services.s3.model.ListObjectsV2Request.Builder request =
+        software.amazon.awssdk.services.s3.model.ListObjectsV2Request
+            .builder().bucket(mBucketName).prefix(path).continuationToken(continuationToken)
+            .startAfter(startAfter).delimiter(delimiter).maxKeys(maxKeys);
+    mAsyncClient.listObjectsV2(request.build())
+        .whenCompleteAsync((result, err) -> {
+          if (err != null) {
+            System.out.println("got error");
+            onError.accept(err);
+          } else {
+            System.out.printf("got result, cont token %s%n", result.nextContinuationToken());
+            AlluxioURI lastItem = null;
+            String lastPrefix = result.commonPrefixes().size() == 0 ? null
+                : result.commonPrefixes().get(result.commonPrefixes().size() - 1).prefix();
+            String lastResult = result.contents().size() == 0 ? null
+                : result.contents().get(result.contents().size() - 1).key();
+            if (lastPrefix == null && lastResult != null) {
+              lastItem = new AlluxioURI(lastResult);
+            } else if (lastPrefix != null && lastResult == null) {
+              lastItem = new AlluxioURI(lastPrefix);
+            } else if (lastPrefix != null) { // both are non-null
+              lastItem = new AlluxioURI(lastPrefix.compareTo(lastResult) > 0
+                  ? lastPrefix : lastResult);
+            }
+            onComplete.accept(
+                new UfsLoadResult(resultToStream(result),
+                    result.keyCount() + result.commonPrefixes().size(),
+                    result.nextContinuationToken(), lastItem, result.isTruncated(), false));
+          }
+        });
+  }
+
+  private UfsStatus s3ObjToUfsStatus(
+      S3Object obj, String folderSuffix, ObjectPermissions permissions, long bytes) {
+    if (obj.key().endsWith(folderSuffix)) {
+      return new UfsDirectoryStatus(obj.key(), permissions.getOwner(),
+          permissions.getGroup(), permissions.getMode());
+    } else {
+      Instant lastModifiedDate = obj.lastModified();
+      Long lastModifiedTime = lastModifiedDate == null ? null
+          : lastModifiedDate.toEpochMilli();
+      return new UfsFileStatus(obj.key(), obj.eTag(), obj.size(), lastModifiedTime,
+          permissions.getOwner(), permissions.getGroup(), permissions.getMode(), bytes);
+    }
+  }
+
+  private Stream<UfsStatus> resultToStream(ListObjectsV2Response response) {
+    // Directories are either keys that end with /
+    // Or common prefixes which will also end with /
+    // All results contain the full path from the bucket root
+    ObjectPermissions permissions = getPermissions();
+    String folderSuffix = getFolderSuffix();
+    long bytes = mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    Iterator<UfsStatus> prefixes = response.commonPrefixes().stream().map(
+        prefix -> (UfsStatus) new UfsDirectoryStatus(
+        prefix.prefix(), permissions.getOwner(), permissions.getGroup(),
+            permissions.getMode())).iterator();
+    Iterator<UfsStatus> items = response.contents().stream().map(obj ->
+        s3ObjToUfsStatus(obj, folderSuffix, permissions, bytes)).iterator();
+    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(
+        IteratorUtils.collatedIterator((s1, s2) -> {
+          int val = s1.getName().compareTo(s2.getName());
+          if (val != 0) {
+            return val;
+          }
+          // If they have the same name, then return the directory first
+          if (s1.isDirectory() && s2.isDirectory()) {
+            return 0;
+          }
+          return s1.isDirectory() ? -1 : 1;
+        }, prefixes, items),
+        Spliterator.ORDERED), false);
   }
 
   /**

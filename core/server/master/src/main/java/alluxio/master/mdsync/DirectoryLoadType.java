@@ -11,7 +11,7 @@
 
 package alluxio.master.mdsync;
 
-enum DirectoryLoadType {
+public enum DirectoryLoadType {
   NONE,
   BFS,
   DFS

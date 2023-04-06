@@ -11,10 +11,15 @@
 
 package alluxio.master.metastore;
 
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeIterationResult;
+import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MutableInode;
 import alluxio.resource.CloseableIterator;
 
@@ -185,18 +190,48 @@ public interface ReadOnlyInodeStore extends Closeable {
   }
 
   /**
-   * @param inodeId the root inode id
    * @param option the read option
    * @param recursive if the list is recursive
+   * @param lockedPath the locked path to the root inode
    * @return a skippable iterator that supports to skip children during the iteration
    */
   default SkippableInodeIterator getSkippableChildrenIterator(
-      Long inodeId, ReadOption option, boolean recursive) {
-    if (recursive) {
-      return new RecursiveInodeIterator(this, inodeId, option);
+      ReadOption option, boolean recursive, LockedInodePath lockedPath) {
+    Inode inode;
+    try {
+      inode = lockedPath.getInode();
+    } catch (FileDoesNotExistException e) {
+      return new SkippableInodeIterator() {
+        @Override
+        public void skipChildrenOfTheCurrent() {
+        }
+
+        @Override
+        public void close() {
+        }
+
+        @Override
+        public boolean hasNext() {
+          return false;
+        }
+
+        @Override
+        public InodeIterationResult next() {
+          return null;
+        }
+      };
     }
-    final CloseableIterator<? extends Inode> iterator = getChildren(inodeId, option);
+    if (recursive) {
+      return new RecursiveInodeIterator(this, inode, option, lockedPath);
+    }
+
+    final CloseableIterator<? extends Inode> iterator = getChildren(inode.getId(), option);
     return new SkippableInodeIterator() {
+
+      LockedInodePath mPreviousPath = null;
+      final LockedInodePath mRootPath = lockedPath;
+      Inode mFirst = inode;
+
       @Override
       public void skipChildrenOfTheCurrent() {
         // No-op
@@ -204,18 +239,36 @@ public interface ReadOnlyInodeStore extends Closeable {
 
       @Override
       public boolean hasNext() {
-        return iterator.hasNext();
+        return mFirst != null || iterator.hasNext();
       }
 
       @Override
       public InodeIterationResult next() {
+        if (mFirst != null) {
+          Inode ret = mFirst;
+          mFirst = null;
+          return new InodeIterationResult(ret, ret.getName(), lockedPath, lockedPath);
+        }
+        if (mPreviousPath != null) {
+          mPreviousPath.close();
+        }
         Inode inode = iterator.next();
-        return new InodeIterationResult(inode, inode.getName());
+
+        try {
+          mPreviousPath = mRootPath.lockChild(inode, InodeTree.LockPattern.WRITE_EDGE);
+        } catch (InvalidPathException e) {
+          // Should not reach here since the path should be valid
+          throw new InternalRuntimeException(e);
+        }
+        return new InodeIterationResult(inode, inode.getName(), mPreviousPath, lockedPath);
       }
 
       @Override
       public void close() throws IOException {
         iterator.close();
+        if (mPreviousPath != null) {
+          mPreviousPath.close();
+        }
       }
     };
   }

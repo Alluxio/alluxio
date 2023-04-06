@@ -57,7 +57,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 // TODO(adit); API calls should use a URI instead of a String wherever appropriate
-public interface UnderFileSystem extends Closeable {
+public interface UnderFileSystem extends Closeable, UfsClient {
   /**
    * The factory for the {@link UnderFileSystem}.
    */
@@ -624,7 +624,6 @@ public interface UnderFileSystem extends Closeable {
    */
   @Nullable
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
-
 
   /**
    * Lists the ufs statuses iteratively.

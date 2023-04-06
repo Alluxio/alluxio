@@ -12,25 +12,43 @@
 package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
+import alluxio.underfs.UfsLoadResult;
+
+import java.util.Optional;
+import javax.annotation.Nullable;
 
 /**
  * This is the result of a single batch load from the UFS.
  */
-class LoadResult {
+public class LoadResult {
   private final TaskInfo mTaskInfo;
   private final AlluxioURI mBaseLoadPath;
   private final UfsLoadResult mUfsLoadResult;
   private final long mLoadRequestId;
+  private final AlluxioURI mPreviousLast;
+  private final boolean mIsFirstLoad;
 
-  LoadResult(
-      long loadRequestId, AlluxioURI baseLoadPath, TaskInfo taskInfo, UfsLoadResult ufsLoadResult) {
+  public LoadResult(
+      long loadRequestId, AlluxioURI baseLoadPath, TaskInfo taskInfo,
+      @Nullable AlluxioURI previousLast, UfsLoadResult ufsLoadResult,
+      boolean isFirstLoad) {
     mLoadRequestId = loadRequestId;
     mBaseLoadPath = baseLoadPath;
     mTaskInfo = taskInfo;
     mUfsLoadResult = ufsLoadResult;
+    mPreviousLast = previousLast;
+    mIsFirstLoad = isFirstLoad;
   }
 
-  AlluxioURI getBaseLoadPath() {
+  public boolean isFirstLoad() {
+    return mIsFirstLoad;
+  }
+
+  public Optional<AlluxioURI> getPreviousLast() {
+    return Optional.ofNullable(mPreviousLast);
+  }
+
+  public AlluxioURI getBaseLoadPath() {
     return mBaseLoadPath;
   }
 
@@ -38,7 +56,7 @@ class LoadResult {
     return mUfsLoadResult;
   }
 
-  TaskInfo getTaskInfo() {
+  public TaskInfo getTaskInfo() {
     return mTaskInfo;
   }
 

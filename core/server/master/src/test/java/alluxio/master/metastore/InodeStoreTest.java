@@ -19,42 +19,52 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.meta.Edge;
 import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeIterationResult;
 import alluxio.master.file.meta.InodeLockManager;
+import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeView;
+import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.file.meta.LockingScheme;
+import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
+import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore.WriteBatch;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
+import alluxio.underfs.UfsManager;
 
 import com.google.common.collect.ImmutableMap;
 import io.netty.util.ResourceLeakDetector;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.mockito.Mockito;
 import org.rocksdb.RocksDBException;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.Charset;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -311,7 +321,8 @@ public class InodeStoreTest {
   // TODO move this to a dedicated file
   // TODO also test the resource close
   @Test
-  public void recursiveListing() throws IOException {
+  public void recursiveListing() throws Exception {
+    writeInode(mRoot);
     /*
       /
       /a
@@ -375,42 +386,56 @@ public class InodeStoreTest {
     writeEdge(mRoot, f1);
     writeEdge(mRoot, f2);
 
-    RecursiveInodeIterator iterator = (RecursiveInodeIterator)mStore.getSkippableChildrenIterator(0L, ReadOption.defaults(), true);
-    while(iterator.hasNext()) {
-      InodeIterationResult result = iterator.next();
-      String currentPath = String.join("/", result.getName());
-      System.out.println(currentPath);
-      if (currentPath.equals("/a/b/c") || currentPath.equals("/a/c")) {
-        iterator.skipChildrenOfTheCurrent();
+    InodeTree tree = new InodeTree(mStore, Mockito.mock(ContainerIdGenerable.class),
+        Mockito.mock(InodeDirectoryIdGenerator.class), new MountTable(
+            Mockito.mock(UfsManager.class), Mockito.mock(MountInfo.class), Clock.systemUTC()),
+        mLockManager);
+
+    LockingScheme lockingScheme = new LockingScheme(new AlluxioURI("/"),
+        InodeTree.LockPattern.READ, false);
+    try (LockedInodePath lockedPath =
+             tree.lockInodePath(lockingScheme, NoopJournalContext.INSTANCE)) {
+
+      RecursiveInodeIterator iterator = (RecursiveInodeIterator)
+          mStore.getSkippableChildrenIterator(ReadOption.defaults(), true, lockedPath);
+      while (iterator.hasNext()) {
+        InodeIterationResult result = iterator.next();
+        String currentPath = String.join("/", result.getName());
+        System.out.println(currentPath);
+        if (currentPath.equals("/a/b/c") || currentPath.equals("/a/c")) {
+          iterator.skipChildrenOfTheCurrent();
+        }
       }
-    }
 
-    iterator.close();
+      iterator.close();
 
-    System.out.println("------------------------------");
+      System.out.println("------------------------------");
 
-    iterator = (RecursiveInodeIterator)mStore.getSkippableChildrenIterator(0L, ReadOption.defaults(), true);
-    while(iterator.hasNext()) {
-      iterator.next();
+      iterator = (RecursiveInodeIterator) mStore.getSkippableChildrenIterator(
+          ReadOption.defaults(), true, lockedPath);
+      while (iterator.hasNext()) {
+        iterator.next();
 //      System.out.println(String.join("/", iterator.getCurrentURI()));
-    }
+      }
 
-    iterator.close();
+      iterator.close();
 
-    System.out.println("------------------------------");
+      System.out.println("------------------------------");
 
-    iterator = (RecursiveInodeIterator)mStore.getSkippableChildrenIterator(0L, ReadOption.newBuilder().setReadFrom("a/c/f2").build(), true);
-    while(iterator.hasNext()) {
-      iterator.next();
+      iterator = (RecursiveInodeIterator) mStore.getSkippableChildrenIterator(
+          ReadOption.newBuilder().setReadFrom("a/c/f2").build(), true, lockedPath);
+      while (iterator.hasNext()) {
+        iterator.next();
 //      System.out.println(String.join("/", iterator.getCurrentURI()));
+      }
+
+      iterator.close();
     }
-
-    iterator.close();
-
   }
 
   @Test
-  public void recursiveListing2() throws IOException {
+  public void recursiveListing2() throws Exception {
+    writeInode(mRoot);
     /*
       /
       /a
@@ -474,18 +499,28 @@ public class InodeStoreTest {
     writeEdge(mRoot, f1);
     writeEdge(mRoot, f2);
 
-    RecursiveInodeIterator iterator =
-        (RecursiveInodeIterator) mStore.getSkippableChildrenIterator(1L,
-            ReadOption.newBuilder().setReadFrom("b/c/f2").build(),
-            true);
-    while (iterator.hasNext()) {
-      InodeIterationResult result = iterator.next();
-      String currentPath = String.join("/", result.getName());
-      System.out.println(currentPath);
-    }
-    iterator.close();
-  }
+    InodeTree tree = new InodeTree(mStore, Mockito.mock(ContainerIdGenerable.class),
+        Mockito.mock(InodeDirectoryIdGenerator.class), new MountTable(
+        Mockito.mock(UfsManager.class), Mockito.mock(MountInfo.class), Clock.systemUTC()),
+        mLockManager);
 
+    LockingScheme lockingScheme = new LockingScheme(new AlluxioURI("/a"),
+        InodeTree.LockPattern.READ, false);
+    try (LockedInodePath lockedPath =
+             tree.lockInodePath(lockingScheme, NoopJournalContext.INSTANCE)) {
+
+      RecursiveInodeIterator iterator =
+          (RecursiveInodeIterator) mStore.getSkippableChildrenIterator(
+              ReadOption.newBuilder().setReadFrom("b/c/f2").build(),
+              true, lockedPath);
+      while (iterator.hasNext()) {
+        InodeIterationResult result = iterator.next();
+        String currentPath = String.join("/", result.getName());
+        System.out.println(currentPath);
+      }
+      iterator.close();
+    }
+  }
 
   private void writeInode(MutableInode<?> inode) {
     try (LockResource lr = mLockManager.lockInode(inode, LockMode.WRITE, false)) {

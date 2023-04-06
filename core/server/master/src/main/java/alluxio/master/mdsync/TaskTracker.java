@@ -16,6 +16,8 @@ import alluxio.collections.Pair;
 import alluxio.conf.path.TrieNode;
 import alluxio.file.options.DescendantType;
 import alluxio.master.file.meta.UfsSyncPathCache;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsClient;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -25,6 +27,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.function.Function;
+import javax.annotation.Nullable;
 
 /**
  * Tracks metadata sync tasks. The tasks will be submitted by UFS URL by user RPC threads.
@@ -38,6 +42,7 @@ public class TaskTracker implements Closeable {
   private final HashMap<Long, BaseTask> mTaskMap = new HashMap<>();
   private final LoadRequestExecutor mLoadRequestExecutor;
   private final UfsSyncPathCache mSyncPathCache;
+  private final Function<AlluxioURI, CloseableResource<UfsClient>> mClientSupplier;
 
   private long mNxtId = 0;
 
@@ -52,11 +57,13 @@ public class TaskTracker implements Closeable {
    *                                 with recursive list tasks
    * @param syncPathCache the sync path cache
    * @param syncProcess the sync process
+   * @param clientSupplier the client supplier
    */
   public TaskTracker(
       int executorThreads, int maxUfsRequests,
       boolean allowConcurrentGetStatus, boolean allowConcurrentNonRecursiveList,
-      UfsSyncPathCache syncPathCache, SyncProcess syncProcess) {
+      UfsSyncPathCache syncPathCache, SyncProcess syncProcess,
+      Function<AlluxioURI, CloseableResource<UfsClient>> clientSupplier) {
     mSyncPathCache = syncPathCache;
     mLoadRequestExecutor = new LoadRequestExecutor(maxUfsRequests,
         new LoadResultExecutor(syncProcess, executorThreads, syncPathCache));
@@ -71,6 +78,7 @@ public class TaskTracker implements Closeable {
     } else {
       mActiveStatusTasks = mActiveRecursiveListTasks;
     }
+    mClientSupplier = clientSupplier;
   }
 
   synchronized Optional<BaseTask> getTask(long taskId) {
@@ -134,9 +142,10 @@ public class TaskTracker implements Closeable {
     }
   }
 
-  Pair<Boolean, BaseTask> checkTask(
+  public Pair<Boolean, BaseTask> checkTask(
       MdSync mdSync,
-      AlluxioURI path, DescendantType depth, long syncInterval,
+      AlluxioURI path, @Nullable String startAfter,
+      DescendantType depth, long syncInterval,
       DirectoryLoadType loadByDirectory) {
     BaseTask task;
     synchronized (this) {
@@ -147,8 +156,9 @@ public class TaskTracker implements Closeable {
             TrieNode<BaseTask> newNode = activeTasks.insert(path.getPath());
             final long id = mNxtId++;
             BaseTask newTask = BaseTask.create(
-                new TaskInfo(mdSync, path, depth, syncInterval, loadByDirectory, id),
-                mSyncPathCache.recordStartSync());
+                new TaskInfo(mdSync, path, startAfter, depth, syncInterval, loadByDirectory, id),
+                mSyncPathCache.recordStartSync(),
+                mClientSupplier);
             mTaskMap.put(id, newTask);
             newNode.setValue(newTask);
             mLoadRequestExecutor.addPathLoaderTask(newTask.getLoadTask());

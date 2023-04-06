@@ -14,11 +14,14 @@ package alluxio.master.mdsync;
 import alluxio.AlluxioURI;
 import alluxio.file.options.DescendantType;
 
+import javax.annotation.Nullable;
+
 /**
  * This represents the overall metadata sync task information.
  */
-class TaskInfo {
+public class TaskInfo {
   private final AlluxioURI mBasePath;
+  private final String mStartAfter;
   private final DescendantType mDescendantType;
   private final long mId;
   private final DirectoryLoadType mLoadByDirectory;
@@ -28,7 +31,9 @@ class TaskInfo {
 
   TaskInfo(
       MdSync mdSync,
-      AlluxioURI basePath, DescendantType descendantType,
+      AlluxioURI basePath, // basePath should be without the header/bucket, e.g. no s3://
+      @Nullable String startAfter,
+      DescendantType descendantType,
       long syncInterval,
       DirectoryLoadType loadByDirectory, long id) {
     mBasePath = basePath;
@@ -36,11 +41,12 @@ class TaskInfo {
     mDescendantType = descendantType;
     mLoadByDirectory = loadByDirectory;
     mId = id;
+    mStartAfter = startAfter;
     mMdSync = mdSync;
     mStats = new TaskStats();
   }
 
-  TaskStats getStats() {
+  public TaskStats getStats() {
     return mStats;
   }
 
@@ -48,20 +54,24 @@ class TaskInfo {
     return mSyncInterval;
   }
 
-  boolean hasDirLoadTasks() {
+  public boolean hasDirLoadTasks() {
     return mDescendantType == DescendantType.ALL
         && mLoadByDirectory != DirectoryLoadType.NONE;
+  }
+
+  String getStartAfter() {
+    return mStartAfter;
   }
 
   public MdSync getMdSync() {
     return mMdSync;
   }
 
-  AlluxioURI getBasePath() {
+  public AlluxioURI getBasePath() {
     return mBasePath;
   }
 
-  long getId() {
+  public long getId() {
     return mId;
   }
 

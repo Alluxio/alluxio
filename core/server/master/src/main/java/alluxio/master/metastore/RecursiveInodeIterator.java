@@ -1,7 +1,13 @@
 package alluxio.master.metastore;
 
+import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeIterationResult;
+import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.resource.CloseableIterator;
 
 import org.slf4j.Logger;
@@ -13,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
+import java.util.StringJoiner;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 
@@ -22,31 +29,41 @@ import javax.annotation.Nullable;
 public class RecursiveInodeIterator implements SkippableInodeIterator {
   private static final Logger LOG = LoggerFactory.getLogger(RecursiveInodeIterator.class);
 
-  Stack<CloseableIterator<? extends Inode>> mIteratorStack = new Stack<>();
+  Stack<Pair<CloseableIterator<? extends Inode>, LockedInodePath>> mIteratorStack = new Stack<>();
   ReadOnlyInodeStore mInodeStore;
   boolean mHasNextCalled = false;
+  boolean mHasNext;
   List<String> mNameComponents = new ArrayList<>();
   List<String> mStartAfterPathComponents;
+  LockedInodePath mLastLockedPath = null;
+  Inode mFirst;
+  LockedInodePath mRootPath;
 
   /**
    * Constructs an instance.
    *
    * @param inodeStore the inode store
-   * @param inodeId    the root inode id
+   * @param inode    the root inode
    * @param readOption the read option
+   * @param lockedPath the locked path to the root inode
    */
   public RecursiveInodeIterator(
       ReadOnlyInodeStore inodeStore,
-      long inodeId,
-      ReadOption readOption
+      Inode inode,
+      ReadOption readOption,
+      LockedInodePath lockedPath
   ) {
+    mFirst = inode;
+    mRootPath = lockedPath;
     String startFrom = readOption.getStartFrom();
     if (startFrom == null) {
       mStartAfterPathComponents = Collections.emptyList();
     } else {
       try {
-        mStartAfterPathComponents = Arrays.asList(readOption.getStartFrom()
-            .split("/"));
+        startFrom = readOption.getStartFrom().startsWith(AlluxioURI.SEPARATOR)
+            ? readOption.getStartFrom().substring(1) : readOption.getStartFrom();
+        mStartAfterPathComponents = Arrays.asList(startFrom
+            .split(AlluxioURI.SEPARATOR));
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
@@ -58,7 +75,8 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
     } else {
       firstReadOption = ReadOption.defaults();
     }
-    mIteratorStack.push(inodeStore.getChildren(inodeId, firstReadOption));
+    mIteratorStack.push(new Pair<>(inodeStore.getChildren(
+        inode.getId(), firstReadOption), lockedPath));
     mInodeStore = inodeStore;
   }
 
@@ -67,36 +85,89 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
     if (mHasNextCalled) {
       throw new IllegalStateException("Cannot call hasNext");
     }
-    mIteratorStack.pop().close();
+    popStack();
     mNameComponents.remove(mNameComponents.size() - 1);
+  }
+
+  private void popStack() {
+    Pair<CloseableIterator<? extends Inode>, LockedInodePath> item = mIteratorStack.pop();
+    item.getFirst().close();
+    if (!mIteratorStack.isEmpty()) {
+      item.getSecond().close();
+    }
   }
 
   @Override
   public boolean hasNext() {
+    if (mFirst != null) {
+      return true;
+    }
+    if (mHasNextCalled) {
+      return mHasNext;
+    }
     while (!mIteratorStack.isEmpty() && !tryOnIterator(
-        mIteratorStack.peek(), CloseableIterator::hasNext
+        mIteratorStack.peek().getFirst(), CloseableIterator::hasNext
     )) {
-      mIteratorStack.pop().close();
+      popStack();
       // When the iteration finishes, the size of mPathComponents is 0
       if (mNameComponents.size() > 0) {
         mNameComponents.remove(mNameComponents.size() - 1);
       }
     }
     mHasNextCalled = true;
-    return !mIteratorStack.isEmpty();
+    mHasNext = !mIteratorStack.isEmpty();
+    return mHasNext;
   }
 
   @Override
   public InodeIterationResult next() {
-    Inode current = tryOnIterator(mIteratorStack.peek(), CloseableIterator::next);
-    ReadOption readOption = ReadOption.newBuilder()
-        .setReadFrom(populateStartAfter(current.getName())).build();
-    CloseableIterator<? extends Inode> nextLevelIterator =
-        mInodeStore.getChildren(current.getId(), readOption);
-    mIteratorStack.push(nextLevelIterator);
-    mNameComponents.add(current.getName());
+    if (!hasNext()) {
+      throw new InternalRuntimeException("Called next on a completed iterator");
+    }
+    if (mFirst != null) {
+      Inode ret = mFirst;
+      mFirst = null;
+      return new InodeIterationResult(ret, ret.getName(), mRootPath, mRootPath);
+    }
+    if (mLastLockedPath != null) {
+      mLastLockedPath.close();
+      mLastLockedPath = null;
+    }
+    Pair<CloseableIterator<? extends Inode>, LockedInodePath> top = mIteratorStack.peek();
+    if (top.getSecond().getLockPattern() != InodeTree.LockPattern.READ) {
+      // after the parent has been returned, we can downgrade it to a read lock
+      top.getSecond().downgradeToRead();
+    }
+    Inode current = tryOnIterator(top.getFirst(), CloseableIterator::next);
+    LockedInodePath lockedPath;
+    try {
+      lockedPath = top.getSecond().lockChild(current, InodeTree.LockPattern.WRITE_EDGE);
+    } catch (InvalidPathException e) {
+      // should not reach here as the path is valid
+      throw new InternalRuntimeException(e);
+    }
+    StringJoiner joiner = new StringJoiner("/");
+    for (String nxt : mNameComponents) {
+      joiner.add(nxt);
+    }
+    joiner.add(current.getName());
+    String name = joiner.toString();
+    if (current.isDirectory()) {
+      ReadOption readOption = ReadOption.newBuilder()
+          .setReadFrom(populateStartAfter(current.getName())).build();
+      if (readOption.getStartFrom() != null
+          && !readOption.getStartFrom().isEmpty()) {
+        System.out.println(readOption.getStartFrom());
+      }
+      CloseableIterator<? extends Inode> nextLevelIterator =
+          mInodeStore.getChildren(current.getId(), readOption);
+      mIteratorStack.push(new Pair<>(nextLevelIterator, lockedPath));
+      mNameComponents.add(current.getName());
+    } else {
+      mLastLockedPath = lockedPath;
+    }
     mHasNextCalled = false;
-    return new InodeIterationResult(current, String.join("/", mNameComponents));
+    return new InodeIterationResult(current, name, lockedPath, top.getSecond());
   }
 
   // TODO add comments
@@ -127,13 +198,12 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
 
   @Override
   public void close() throws IOException {
+    if (mLastLockedPath != null) {
+      mLastLockedPath.close();
+      mLastLockedPath = null;
+    }
     while (!mIteratorStack.isEmpty()) {
-      CloseableIterator<? extends Inode> iterator = mIteratorStack.pop();
-      try {
-        iterator.close();
-      } catch (Exception e) {
-        LOG.error("Closing resource " + iterator + "failed");
-      }
+      popStack();
     }
   }
 }

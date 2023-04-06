@@ -33,13 +33,13 @@ public class BaseTaskTest {
 
   @Before
   public void before() {
-    mMdSync = new MdSync(Mockito.mock(TaskTracker.class), a -> a, a -> null);
+    mMdSync = new MdSync(Mockito.mock(TaskTracker.class));
   }
 
   @Test
   public void PathIsCoveredNone() {
-    BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"),
-        NONE, 0, DirectoryLoadType.NONE, 0), mClock.millis());
+    BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"), null,
+        NONE, 0, DirectoryLoadType.NONE, 0), mClock.millis(), a -> null);
     assertTrue(path.pathIsCovered(new AlluxioURI("/path"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/p"), NONE));
@@ -61,8 +61,8 @@ public class BaseTaskTest {
 
   @Test
   public void PathIsCoveredOne() {
-    BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"),
-        ONE, 0, DirectoryLoadType.NONE, 0), mClock.millis());
+    BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"), null,
+        ONE, 0, DirectoryLoadType.NONE, 0), mClock.millis(), a -> null);
     assertTrue(path.pathIsCovered(new AlluxioURI("/path"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/p"), NONE));
@@ -87,8 +87,8 @@ public class BaseTaskTest {
 
   @Test
   public void PathIsCoveredAll() {
-    BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"),
-        ALL, 0, DirectoryLoadType.NONE, 0), mClock.millis());
+    BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"), null,
+        ALL, 0, DirectoryLoadType.NONE, 0), mClock.millis(), a -> null);
     assertTrue(path.pathIsCovered(new AlluxioURI("/path"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/p"), NONE));

@@ -11,22 +11,37 @@
 
 package alluxio.master.file.meta;
 
+import javax.annotation.Nullable;
+
 /**
- * Pair<Inode, Name>.
+ * The inode, its full path, and the locked path.
  */
 public class InodeIterationResult {
   private final Inode mInode;
-
   private final String mName;
+  private final LockedInodePath mLockedPath;
+  private final LockedInodePath mParentLockedPath;
 
   /**
    * Creates an instance.
    * @param inode the inode
    * @param name the inode names
+   * @param lockedPath the locked path
+   * @param parentLockedPath the locked path of the parent
    */
-  public InodeIterationResult(Inode inode, String name) {
+  public InodeIterationResult(
+      Inode inode, String name, LockedInodePath lockedPath, LockedInodePath parentLockedPath) {
     mInode = inode;
     mName = name;
+    mLockedPath = lockedPath;
+    mParentLockedPath = parentLockedPath;
+  }
+
+  /**
+   * @return the locked path of the parent
+   */
+  public LockedInodePath getParentLockedPath() {
+    return mParentLockedPath;
   }
 
   /**
@@ -41,5 +56,12 @@ public class InodeIterationResult {
    */
   public String getName() {
     return mName;
+  }
+
+  /**
+   * @return the locked path
+   */
+  public LockedInodePath getLockedPath() {
+    return mLockedPath;
   }
 }

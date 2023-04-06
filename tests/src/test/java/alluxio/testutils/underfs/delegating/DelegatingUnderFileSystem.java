@@ -15,12 +15,14 @@ import alluxio.AlluxioURI;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.file.options.DescendantType;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsLoadResult;
 import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -39,6 +41,7 @@ import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * UFS which delegates to another UFS. Extend this class to override method behavior.
@@ -365,5 +368,21 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   @Override
   public boolean stopActiveSyncPolling() throws IOException {
     return mUfs.stopActiveSyncPolling();
+  }
+
+  @Override
+  public void performGetStatusAsync(
+      String path, Consumer<UfsLoadResult> onComplete,
+      Consumer<Throwable> onError) {
+    mUfs.performGetStatusAsync(path, onComplete, onError);
+  }
+
+  @Override
+  public void performListingAsync(
+      String path, @Nullable String continuationToken, @Nullable String startAfter,
+      DescendantType descendantType, Consumer<UfsLoadResult> onComplete,
+      Consumer<Throwable> onError) {
+    mUfs.performListingAsync(path, continuationToken,
+        startAfter, descendantType, onComplete, onError);
   }
 }

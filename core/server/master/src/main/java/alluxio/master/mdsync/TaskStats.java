@@ -13,7 +13,7 @@ package alluxio.master.mdsync;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-class TaskStats {
+public class TaskStats {
   final AtomicInteger mBatches = new AtomicInteger();
   final AtomicInteger mStatuses = new AtomicInteger();
   final AtomicInteger mLoadErrors = new AtomicInteger();
@@ -22,13 +22,24 @@ class TaskStats {
   final AtomicInteger mProcessCompleted = new AtomicInteger();
   volatile boolean mLoadFailed;
   volatile boolean mProcessFailed;
+  volatile boolean mFirstLoadFile;
+  volatile boolean mFirstLoadHadResult;
 
   @Override
   public String toString() {
-    return String.format("{TaskStats, batches %d, statuses %d, load errors %d, "
-        + "load requests %d, load failed: %s, process failed: %s}",
-        mBatches.get(), mStatuses.get(), mLoadErrors.get(), mLoadRequests.get(),
-        mLoadFailed, mProcessFailed);
+    return String.format("{TaskStats, first load had result: %s, first load was file: %s,"
+            + "batches %d, statuses %d, load errors %d, "
+            + "load requests %d, load failed: %s, process failed: %s}",
+        mFirstLoadHadResult, mFirstLoadFile, mBatches.get(), mStatuses.get(),
+        mLoadErrors.get(), mLoadRequests.get(), mLoadFailed, mProcessFailed);
+  }
+
+  public boolean firstLoadWasFile() {
+    return mFirstLoadFile;
+  }
+
+  public boolean firstLoadHadResult() {
+    return mFirstLoadHadResult;
   }
 
   public boolean isLoadFailed() {
@@ -57,7 +68,7 @@ class TaskStats {
 
   void gotBatch(int size) {
     mBatches.incrementAndGet();
-    mStatuses.addAndGet(size);
+    System.out.println(mStatuses.addAndGet(size));
   }
 
   void gotLoadRequest() {
@@ -74,5 +85,13 @@ class TaskStats {
 
   void setProcessFailed() {
     mProcessFailed = true;
+  }
+
+  void setFirstLoadHadResult() {
+    mFirstLoadHadResult = true;
+  }
+
+  void setFirstLoadFile() {
+    mFirstLoadFile = true;
   }
 }

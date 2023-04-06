@@ -9,42 +9,55 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.mdsync;
+package alluxio.underfs;
 
-import alluxio.underfs.UfsStatus;
+import alluxio.AlluxioURI;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
-class UfsLoadResult {
+public class UfsLoadResult {
 
   private final Stream<UfsStatus> mItems;
   private final String mContinuationToken;
   private final boolean mIsTruncated;
   private final int mItemsCount;
+  private final AlluxioURI mLastItem;
+  private final boolean mFirstIsfile;
 
-  UfsLoadResult(
+  public UfsLoadResult(
       Stream<UfsStatus> items, int itemsCount, @Nullable String continuationToken,
-      boolean isTruncated) {
+      @Nullable AlluxioURI lastItem, boolean isTruncated, boolean firstIsFile) {
     mItems = items;
     mContinuationToken = continuationToken;
     mIsTruncated = isTruncated;
     mItemsCount = itemsCount;
+    mLastItem = lastItem;
+    mFirstIsfile = firstIsFile;
   }
 
-  int getItemsCount() {
+  public boolean isFirstFile() {
+    return mFirstIsfile;
+  }
+
+  public Optional<AlluxioURI> getLastItem() {
+    return Optional.ofNullable(mLastItem);
+  }
+
+  public int getItemsCount() {
     return mItemsCount;
   }
 
-  boolean isTruncated() {
+  public boolean isTruncated() {
     return mIsTruncated;
   }
 
-  Stream<UfsStatus> getItems() {
+  public Stream<UfsStatus> getItems() {
     return mItems;
   }
 
-  String getContinuationToken() {
+  public String getContinuationToken() {
     return mContinuationToken;
   }
 }

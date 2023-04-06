@@ -3696,6 +3696,33 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_CONCURRENT_GET_STATUS =
+      booleanBuilder(Name.MASTER_METADATA_SYNC_UFS_CONCURRENT_GET_STATUS)
+          .setDefaultValue(true)
+          .setDescription("Allows metadata sync operations on single items (i.e. getStatus) "
+              + "operations to run concurrently with metadata sync operations on directories "
+              + "(i.e listings) on intersecting paths.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_CONCURRENT_LISTING =
+      booleanBuilder(Name.MASTER_METADATA_SYNC_UFS_CONCURRENT_LISTING)
+          .setDefaultValue(true)
+          .setDescription("Allows non-recursive metadata sync operations directories "
+              + "to run concurrently with recursive metadata sync operations on "
+              + "intersecting paths.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_CONCURRENT_LOADS =
+      intBuilder(Name.MASTER_METADATA_SYNC_UFS_CONCURRENT_LOADS)
+          .setDefaultValue(100)
+          .setDescription("The number of concurrently running UFS listing operations "
+              + "during metadata sync. This includes loads that have completed, but "
+              + "have not yet been processed.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   // In Java8 in container environment Runtime.availableProcessors() always returns 1,
   // which is not the actual number of cpus, so we set a safe default value 32.
   public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
@@ -8038,6 +8065,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.report.failure";
     public static final String MASTER_METADATA_SYNC_GET_DIRECTORY_STATUS_SKIP_LOADING_CHILDREN =
         "alluxio.master.metadata.sync.get.directory.status.skip.loading.children";
+    public static final String MASTER_METADATA_SYNC_UFS_CONCURRENT_LOADS =
+        "alluxio.master.metadata.sync.ufs.concurrent.loads";
+    public static final String MASTER_METADATA_SYNC_UFS_CONCURRENT_GET_STATUS =
+        "alluxio.master.metadata.sync.ufs.concurrent.get.status";
+    public static final String MASTER_METADATA_SYNC_UFS_CONCURRENT_LISTING =
+        "alluxio.master.metadata.sync.ufs.concurrent.listing";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
         "alluxio.master.metadata.sync.ufs.prefetch.pool.size";
     public static final String MASTER_METADATA_SYNC_TRAVERSAL_ORDER =

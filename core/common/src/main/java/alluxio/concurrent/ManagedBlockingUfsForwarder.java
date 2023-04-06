@@ -16,12 +16,14 @@ import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.file.options.DescendantType;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsLoadResult;
 import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -38,6 +40,7 @@ import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
 /**
@@ -587,6 +590,23 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
         return mUfs.listStatusIterable(path, options, startAfter, batchSize);
       }
     }.get();
+  }
+
+  @Override
+  public void performGetStatusAsync(
+      String path, Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError) {
+    // given this is an async function, we do not execute it in the thread pool
+    mUfs.performGetStatusAsync(path, onComplete, onError);
+  }
+
+  @Override
+  public void performListingAsync(
+      String path, @Nullable String continuationToken, @Nullable String startAfter,
+      DescendantType descendantType, Consumer<UfsLoadResult> onComplete,
+      Consumer<Throwable> onError) {
+    // given this is an async function, we do not execute it in the thread pool
+    mUfs.performListingAsync(path, continuationToken, startAfter, descendantType,
+        onComplete, onError);
   }
 
   /**

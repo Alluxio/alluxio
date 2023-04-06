@@ -17,6 +17,7 @@ import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 /**
  * This is a request for a single batch load sent to the UFS.
@@ -27,6 +28,8 @@ class LoadRequest {
   private final String mContinuationToken;
   private final DescendantType mDescendantType;
   private final long mId;
+  private final AlluxioURI mPreviousLoadLast;
+  private final boolean mIsFirstLoad;
   /**
    * This is the id of the load request that started a set of batches of load requests, i.e.
    * the batches of loads until one is not truncated.
@@ -36,7 +39,10 @@ class LoadRequest {
 
   LoadRequest(
       long id, long batchSetId, TaskInfo taskInfo, AlluxioURI path,
-      @Nullable String continuationToken, DescendantType descendantType) {
+      @Nullable String continuationToken,
+      @Nullable AlluxioURI previousLoadLast,
+      DescendantType descendantType,
+      boolean isFirstLoad) {
     taskInfo.getStats().gotLoadRequest();
     mTaskInfo = taskInfo;
     mPath = path;
@@ -44,6 +50,12 @@ class LoadRequest {
     mBatchSetId = batchSetId;
     mContinuationToken = continuationToken;
     mDescendantType = descendantType;
+    mPreviousLoadLast = previousLoadLast;
+    mIsFirstLoad = isFirstLoad;
+  }
+
+  Optional<AlluxioURI> getPreviousLoadLast() {
+    return Optional.ofNullable(mPreviousLoadLast);
   }
 
   long getBatchSetId() {
@@ -56,6 +68,10 @@ class LoadRequest {
 
   public TaskInfo getTaskInfo() {
     return mTaskInfo;
+  }
+
+  public boolean isFirstLoad() {
+    return mIsFirstLoad;
   }
 
   AlluxioURI getLoadPath() {

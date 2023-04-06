@@ -11,6 +11,8 @@
 
 package alluxio.master.mdsync;
 
+import alluxio.master.file.metasync.SyncResult;
+
 import java.util.Optional;
 import javax.annotation.Nullable;
 
@@ -20,13 +22,19 @@ import javax.annotation.Nullable;
 public class BaseTaskResult {
 
   private final Throwable mT;
+  private final SyncResult mResult;
 
-  BaseTaskResult(@Nullable Throwable t) {
+  BaseTaskResult(@Nullable Throwable t, SyncResult result) {
     mT = t;
+    mResult = result;
   }
 
   boolean succeeded() {
     return mT == null;
+  }
+
+  public SyncResult getSyncResult() {
+    return mResult;
   }
 
   Optional<Throwable> getResult() {

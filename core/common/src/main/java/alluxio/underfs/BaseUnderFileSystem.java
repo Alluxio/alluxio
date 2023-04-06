@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.file.options.DescendantType;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -24,6 +25,7 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -42,6 +44,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -49,7 +55,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A base abstract {@link UnderFileSystem}.
  */
 @ThreadSafe
-public abstract class BaseUnderFileSystem implements UnderFileSystem {
+public abstract class BaseUnderFileSystem implements UnderFileSystem, UfsClient {
   private static final Logger LOG = LoggerFactory.getLogger(BaseUnderFileSystem.class);
   public static final Pair<AccessControlList, DefaultAccessControlList> EMPTY_ACL =
       new Pair<>(null, null);
@@ -60,6 +66,8 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   /** UFS Configuration options. */
   protected final UnderFileSystemConfiguration mUfsConf;
 
+  private final ExecutorService mAsyncIOExecutor;
+
   /**
    * Constructs an {@link BaseUnderFileSystem}.
    *
@@ -69,6 +77,9 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   protected BaseUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
     mUri = Preconditions.checkNotNull(uri, "uri");
     mUfsConf = Preconditions.checkNotNull(ufsConf, "ufsConf");
+    // TODO(tcrain) close this executor
+    mAsyncIOExecutor = Executors.newCachedThreadPool(
+        ThreadFactoryUtils.build(uri.getPath() + "IOThread", true));
   }
 
   @Override
@@ -178,6 +189,47 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
     }
     Arrays.sort(result, Comparator.comparing(UfsStatus::getName));
     return Iterators.forArray(result);
+  }
+
+  @Override
+  public void performGetStatusAsync(
+      String path, Consumer<UfsLoadResult> onComplete,
+      Consumer<Throwable> onError) {
+
+    mAsyncIOExecutor.submit(() -> {
+      try {
+        UfsStatus result = getStatus(path);
+        onComplete.accept(new UfsLoadResult(
+            result == null ? Stream.empty() : Stream.of(result),
+            result == null ? 0 : 1,
+            null, null, false,
+            result != null && result.isFile()));
+      } catch (Throwable t) {
+        onError.accept(t);
+      }
+    });
+  }
+
+  @Override
+  public void performListingAsync(
+      String path, @Nullable String continuationToken, @Nullable String startAfter,
+      DescendantType descendantType, Consumer<UfsLoadResult> onComplete,
+      Consumer<Throwable> onError) {
+
+    mAsyncIOExecutor.submit(() -> {
+      try {
+        UfsStatus[] items = listStatus(path, ListOptions.defaults()
+            .setRecursive(descendantType == DescendantType.ALL));
+        AlluxioURI lastItem = items == null ? null
+            : new AlluxioURI(items[items.length - 1].getName());
+        onComplete.accept(new UfsLoadResult(
+            items == null ? Stream.empty() : Arrays.stream(items), items == null ? 0 : items.length,
+            null, lastItem, false,
+            items != null && items[0].isFile()));
+      } catch (Throwable t) {
+        onError.accept(t);
+      }
+    });
   }
 
   @Override
