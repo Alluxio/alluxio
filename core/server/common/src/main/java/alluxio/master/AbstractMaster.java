@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Clock;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -75,7 +75,7 @@ public abstract class AbstractMaster implements Master {
 
   @Override
   public Set<Class<? extends Server>> getDependencies() {
-    return new HashSet<>();
+    return Collections.emptySet();
   }
 
   @Override
