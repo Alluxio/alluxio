@@ -22,6 +22,8 @@ fi
 
 if [ -n "${ALLUXIO_GIT_CLEAN}" ]
 then
+  # https://stackoverflow.com/questions/72978485/git-submodule-update-failed-with-fatal-detected-dubious-ownership-in-repositor
+  git config --global --add safe.directory '*'
   git clean -fdx
 fi
 
@@ -39,10 +41,10 @@ fi
 
 export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
 
-# Always use java 8 to compile the source code
+# Always use java 11 to compile the source code
 JAVA_HOME_BACKUP=${JAVA_HOME}
 PATH_BACKUP=${PATH}
-JAVA_HOME=/usr/local/openjdk-8
+JAVA_HOME=/usr/local/openjdk-11
 PATH=$JAVA_HOME/bin:$PATH
 mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -Dfindbugs.skip -Dcheckstyle.skip -DskipTests -Dmaven.javadoc.skip \
 -Dlicense.skip -Dsurefire.forkCount=2 ${mvn_args}
