@@ -17,7 +17,6 @@ import alluxio.Server;
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
-import alluxio.clock.SystemClock;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -297,7 +296,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * @param masterContext the context for Alluxio master
    */
   DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext) {
-    this(metricsMaster, masterContext, new SystemClock(),
+    this(metricsMaster, masterContext, Clock.systemUTC(),
         ExecutorServiceFactories.cachedThreadPool(Constants.BLOCK_MASTER_NAME));
   }
 

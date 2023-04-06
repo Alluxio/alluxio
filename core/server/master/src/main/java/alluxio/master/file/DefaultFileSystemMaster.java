@@ -23,7 +23,6 @@ import alluxio.Server;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.client.job.JobMasterClientPool;
-import alluxio.clock.SystemClock;
 import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
 import alluxio.conf.Configuration;
@@ -469,7 +468,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    */
   public DefaultFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
       ExecutorServiceFactory executorServiceFactory, Clock clock) {
-    super(masterContext, new SystemClock(), executorServiceFactory);
+    super(masterContext, clock, executorServiceFactory);
 
     mBlockMaster = blockMaster;
     mClock = clock;

@@ -12,7 +12,6 @@
 package alluxio.master.journal;
 
 import alluxio.Constants;
-import alluxio.clock.SystemClock;
 import alluxio.grpc.GetNodeStatePResponse;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.GetTransferLeaderMessagePResponse;
@@ -30,6 +29,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import io.grpc.ServerInterceptors;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,7 +47,7 @@ public class DefaultJournalMaster extends AbstractMaster implements JournalMaste
    * @param masterContext the context for Alluxio master
    */
   public DefaultJournalMaster(JournalDomain journalDomain, MasterContext masterContext) {
-    super(masterContext, new SystemClock(),
+    super(masterContext, Clock.systemUTC(),
         ExecutorServiceFactories.cachedThreadPool(Constants.JOURNAL_MASTER_NAME));
     mJournalDomain = journalDomain;
     mJournalSystem = masterContext.getJournalSystem();

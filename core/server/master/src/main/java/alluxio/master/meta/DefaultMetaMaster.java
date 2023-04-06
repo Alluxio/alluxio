@@ -14,7 +14,6 @@ package alluxio.master.meta;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.Server;
-import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.Configuration;
@@ -106,7 +105,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private final CoreMasterContext mCoreMasterContext;
 
   /** The clock to use for determining the time. */
-  private final Clock mClock = new SystemClock();
+  private final Clock mClock = Clock.systemUTC();
 
   /** The master configuration store. */
   private final ConfigurationStore mMasterConfigStore = new ConfigurationStore();
@@ -232,7 +231,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
    */
   DefaultMetaMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
       ExecutorServiceFactory executorServiceFactory) {
-    super(masterContext, new SystemClock(), executorServiceFactory);
+    super(masterContext, Clock.systemUTC(), executorServiceFactory);
     mCoreMasterContext = masterContext;
     mMasterAddress =
         new Address().setHost(Configuration.getOrDefault(PropertyKey.MASTER_HOSTNAME,

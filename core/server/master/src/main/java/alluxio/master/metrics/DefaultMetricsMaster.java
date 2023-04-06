@@ -12,7 +12,6 @@
 package alluxio.master.metrics;
 
 import alluxio.Constants;
-import alluxio.clock.SystemClock;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcService;
@@ -64,7 +63,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
    * @param masterContext the context for metrics master
    */
   DefaultMetricsMaster(CoreMasterContext masterContext) {
-    this(masterContext, new SystemClock(),
+    this(masterContext, Clock.systemUTC(),
         ExecutorServiceFactories.fixedThreadPool(Constants.METRICS_MASTER_NAME,
             Configuration.getInt(PropertyKey.MASTER_METRICS_SERVICE_THREADS)));
   }

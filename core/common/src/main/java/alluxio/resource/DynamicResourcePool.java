@@ -12,7 +12,6 @@
 package alluxio.resource;
 
 import alluxio.Constants;
-import alluxio.clock.SystemClock;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -266,7 +265,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   private ScheduledExecutorService mExecutor;
   private ScheduledFuture<?> mGcFuture;
 
-  protected Clock mClock = new SystemClock();
+  protected Clock mClock = Clock.systemUTC();
 
   /**
    * Creates a dynamic pool instance.
