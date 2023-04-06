@@ -24,6 +24,7 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.GetFileStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -422,7 +423,20 @@ public interface UnderFileSystem extends Closeable {
    * @return the file status
    * @throws FileNotFoundException when the path does not exist
    */
-  UfsFileStatus getFileStatus(String path) throws IOException;
+  default UfsFileStatus getFileStatus(String path) throws IOException {
+    return getFileStatus(path, GetFileStatusOptions.defaults());
+  }
+
+  /**
+   * Gets the file status. The caller must already know the path is a file. This method will
+   * throw an exception if the path exists, but is a directory.
+   *
+   * @param path the path to the file
+   * @param options method options
+   * @return the file status
+   * @throws FileNotFoundException when the path does not exist
+   */
+  UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException;
 
   /**
    * Gets the file status.

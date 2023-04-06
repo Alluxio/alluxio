@@ -28,6 +28,7 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.GetFileStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -520,7 +521,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public UfsFileStatus getFileStatus(final String path) throws IOException {
+  public UfsFileStatus getFileStatus(final String path, GetFileStatusOptions options)
+      throws IOException {
     return call(new UfsCallable<UfsFileStatus>() {
       @Override
       public UfsFileStatus call() throws IOException {

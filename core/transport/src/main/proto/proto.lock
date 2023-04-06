@@ -2684,6 +2684,11 @@
                     "value": "true"
                   }
                 ]
+              },
+              {
+                "id": 5,
+                "name": "includeRealContentHash",
+                "type": "bool"
               }
             ]
           },
