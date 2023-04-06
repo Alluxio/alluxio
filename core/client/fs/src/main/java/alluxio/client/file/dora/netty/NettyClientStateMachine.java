@@ -62,6 +62,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
+/**
+ * State machine of Netty Client.
+ */
 public class NettyClientStateMachine {
   private static final Logger LOG = LoggerFactory.getLogger(NettyClientStateMachine.class);
   private final StateMachine<State, Trigger> mStateMachine;
@@ -149,6 +152,37 @@ public class NettyClientStateMachine {
   /**
    * Constructor.
    *
+   * @startuml
+   * digraph G {
+   *         node [fontname="sans-serif", shape = rect];
+   *         edge [fontname="sans-serif"];
+   *
+   *         CLIENT_CANCEL -> CLIENT_CANCEL [label = "EOF" ];
+   *         CLIENT_CANCEL -> CLIENT_CANCEL [label = "HEART_BEAT" ];
+   *         CLIENT_CANCEL -> TERMINATED_NORMALLY [label = "SERVER_CANCEL" ];
+   *         CLIENT_CANCEL -> TERMINATED_EXCEPTIONALLY [label = "CHANNEL_ERROR" ];
+   *         CLIENT_CANCEL -> TERMINATED_EXCEPTIONALLY [label = "SERVER_ERROR" ];
+   *         CLIENT_CANCEL -> CLIENT_CANCEL_DATA_RECEIVED [label = "DATA_AVAILABLE" ];
+   *         CLIENT_CANCEL -> TERMINATED_EXCEPTIONALLY [label = "INTERRUPTED" ];
+   *         CLIENT_CANCEL -> TERMINATED_EXCEPTIONALLY [label = "TIMEOUT" ];
+   *         CLIENT_CANCEL_DATA_RECEIVED -> CLIENT_CANCEL [label = "DATA_DISCARDED" ];
+   *         RECEIVED_EOF -> TERMINATED_NORMALLY [label = "OUTPUT_LENGTH_FULFILLED" ];
+   *         RECEIVED_EOF -> TERMINATED_NORMALLY [label = "OUTPUT_LENGTH_NOT_FULFILLED" ];
+   *         CHANNEL_ACTIVE -> RECEIVED_EOF [label = "EOF" ];
+   *         CHANNEL_ACTIVE -> CHANNEL_ACTIVE [label = "HEART_BEAT" ];
+   *         CHANNEL_ACTIVE -> CLIENT_CANCEL [label = "CHANNEL_ERROR" ];
+   *         CHANNEL_ACTIVE -> CLIENT_CANCEL [label = "SERVER_ERROR" ];
+   *         CHANNEL_ACTIVE -> RECEIVED_DATA [label = "DATA_AVAILABLE" ];
+   *         CHANNEL_ACTIVE -> CLIENT_CANCEL [label = "INTERRUPTED" ];
+   *         CHANNEL_ACTIVE -> CLIENT_CANCEL [label = "TIMEOUT" ];
+   *         ACQUIRING_CHANNEL -> CHANNEL_ACTIVE [label = "CHANNEL_AVAILABLE" ];
+   *         ACQUIRING_CHANNEL -> TERMINATED_EXCEPTIONALLY [label = "CHANNEL_UNAVAILABLE" ];
+   *         RECEIVED_DATA -> CLIENT_CANCEL [label = "OUTPUT_ERROR" ];
+   *         RECEIVED_DATA -> TERMINATED_NORMALLY [label = "OUTPUT_LENGTH_FULFILLED" ];
+   *         RECEIVED_DATA -> CHANNEL_ACTIVE [label = "OUTPUT_LENGTH_NOT_FULFILLED" ];
+   *         CREATED -> ACQUIRING_CHANNEL [label = "START" ];
+   * }
+   * @enduml
    * @param context
    * @param address
    * @param requestBuilder
@@ -377,7 +411,8 @@ public class NettyClientStateMachine {
     } else if (payload.type() == NettyDataReader.Payload.Type.SERVER_ERROR) {
       fireNext(mTriggers.mServerError, payload.payload(NettyDataReader.Payload.Type.SERVER_ERROR));
     } else if (payload.type() == NettyDataReader.Payload.Type.TRANSPORT_ERROR) {
-      fireNext(mTriggers.mChannelError, payload.payload(NettyDataReader.Payload.Type.TRANSPORT_ERROR));
+      fireNext(mTriggers.mChannelError,
+          payload.payload(NettyDataReader.Payload.Type.TRANSPORT_ERROR));
     } else if (payload.type() == HEART_BEAT) {
       fireNext(Trigger.HEART_BEAT);
     } else {
