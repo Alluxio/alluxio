@@ -123,7 +123,6 @@ public final class HttpUtils {
         .build();
     CloseableHttpClient client =
         HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
-
     HttpResponse response = client.execute(RequestBuilder.get(url).build());
     int statusCode = response.getStatusLine().getStatusCode();
 

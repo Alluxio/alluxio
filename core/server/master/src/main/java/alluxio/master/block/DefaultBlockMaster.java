@@ -829,6 +829,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
           processDecommissionedWorker(workerInfo);
         }
+        // Invalidate cache to trigger new build of worker info list
+        mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
         LOG.info("{} has been added to the decommissionedWorkers set.",
             workerHostName);
         return;
@@ -1784,6 +1786,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private void processLostWorker(MasterWorkerInfo worker) {
     mLostWorkers.add(worker);
     mWorkers.remove(worker);
+    // Invalidate cache to trigger new build of worker info list
+    mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
     // If a worker is gone before registering, avoid it getting stuck in mTempWorker forever
     mTempWorkers.remove(worker);
     WorkerNetAddress workerAddress = worker.getWorkerAddress();
