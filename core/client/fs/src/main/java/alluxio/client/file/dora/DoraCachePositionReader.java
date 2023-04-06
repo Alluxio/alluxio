@@ -14,6 +14,8 @@ package alluxio.client.file.dora;
 import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
 import alluxio.client.file.cache.store.PageReadTargetBuffer;
+import alluxio.client.file.dora.netty.NettyDataReader;
+import alluxio.client.file.dora.netty.PartialReadException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
