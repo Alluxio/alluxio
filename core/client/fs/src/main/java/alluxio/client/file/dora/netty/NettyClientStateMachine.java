@@ -98,6 +98,7 @@ public class NettyClientStateMachine {
     ACQUIRING_CHANNEL,
     CHANNEL_ACTIVE,
     RECEIVED_DATA,
+    EXPECTING_EOF,
     RECEIVED_EOF
   }
 
@@ -222,8 +223,18 @@ public class NettyClientStateMachine {
     config.configure(State.RECEIVED_DATA)
         .onEntryFrom(mTriggers.mDataAvailable, this::onReceivedData)
         .permit(Trigger.OUTPUT_ERROR, State.CLIENT_CANCEL, this::sendClientCancel)
-        .permit(Trigger.OUTPUT_LENGTH_FULFILLED, State.TERMINATED_NORMALLY)
+        .permit(Trigger.OUTPUT_LENGTH_FULFILLED, State.EXPECTING_EOF)
         .permit(Trigger.OUTPUT_LENGTH_NOT_FULFILLED, State.CHANNEL_ACTIVE);
+    config.configure(State.EXPECTING_EOF)
+        .onEntry(this::pollResponseFromQueue)
+        .permit(Trigger.EOF, State.TERMINATED_NORMALLY)
+        // todo(bowen): do we need to handle DATA_AVAILABLE from an insane server?
+        // we have got enough data to exit correctly,
+        // so just close the channel if anything unexpected happens instead of throwing an error
+        .permit(Trigger.TIMEOUT, State.TERMINATED_NORMALLY, this::syncCloseChannel)
+        .permit(Trigger.INTERRUPTED, State.TERMINATED_NORMALLY, this::syncCloseChannel)
+        .permit(Trigger.SERVER_ERROR, State.TERMINATED_NORMALLY, this::syncCloseChannel)
+        .permit(Trigger.CHANNEL_ERROR, State.TERMINATED_NORMALLY, this::syncCloseChannel);
     config.configure(State.RECEIVED_EOF)
         .onEntry(this::onReceivedEof)
         .permit(Trigger.OUTPUT_LENGTH_FULFILLED, State.TERMINATED_NORMALLY)
@@ -480,6 +491,14 @@ public class NettyClientStateMachine {
             mQueue.offer(NettyDataReader.Payload.transportError(future.cause()));
           }
         });
+  }
+
+  /**
+   * Synchronously closes the channel.
+   */
+  void syncCloseChannel() {
+    Preconditions.checkNotNull(mChannel, "cannot close channel when channel has not been acquired");
+    CommonUtils.closeChannel(mChannel);
   }
 
   // discard data remaining in the queue
