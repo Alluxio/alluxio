@@ -26,6 +26,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SlidingTimeWindowMovingAverages;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.UniformReservoir;
 import com.codahale.metrics.jvm.CachedThreadStatesGaugeSet;
@@ -592,7 +593,8 @@ public final class MetricsSystem {
    * @return a meter object with the qualified metric name
    */
   public static Meter meter(String name) {
-    return METRIC_REGISTRY.meter(getMetricName(name));
+    return METRIC_REGISTRY.meter(getMetricName(name),
+        () -> new Meter(new SlidingTimeWindowMovingAverages()));
   }
 
   /**
