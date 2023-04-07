@@ -11,22 +11,13 @@
 
 package alluxio.client.file.dora.netty;
 
-import static alluxio.client.file.dora.netty.NettyDataReader.Payload.Type.CANCEL;
-import static alluxio.client.file.dora.netty.NettyDataReader.Payload.Type.EOF;
-import static alluxio.client.file.dora.netty.NettyDataReader.Payload.Type.HEART_BEAT;
-import static alluxio.client.file.dora.netty.NettyDataReader.Payload.Type.SERVER_ERROR;
-import static alluxio.client.file.dora.netty.NettyDataReader.Payload.Type.TRANSPORT_ERROR;
-
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.dora.DoraDataReader;
 import alluxio.client.file.dora.netty.PartialReadException.CauseType;
-import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.CancelledException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,104 +127,5 @@ public class NettyDataReader implements DoraDataReader {
       return;
     }
     mClosed = true;
-  }
-
-  static class Payload<T extends Payload.Type<?>> {
-    interface Type<P> {
-      Class<P> payloadType();
-
-      Data DATA = new Data();
-      UfsReadHeartBeat HEART_BEAT = new UfsReadHeartBeat();
-      Eof EOF = new Eof();
-      Cancel CANCEL = new Cancel();
-      ServerError SERVER_ERROR = new ServerError();
-      TransportError TRANSPORT_ERROR = new TransportError();
-    }
-
-    static class Data implements Type<ByteBuf> {
-      @Override
-      public Class<ByteBuf> payloadType() {
-        return ByteBuf.class;
-      }
-    }
-
-    static class UfsReadHeartBeat implements Type<Void> {
-      @Override
-      public Class<Void> payloadType() {
-        return Void.TYPE;
-      }
-    }
-
-    static class Eof implements Type<Void> {
-      @Override
-      public Class<Void> payloadType() {
-        return Void.TYPE;
-      }
-    }
-
-    static class Cancel implements Type<CancelledException> {
-      @Override
-      public Class<CancelledException> payloadType() {
-        return CancelledException.class;
-      }
-    }
-
-    static class ServerError implements Type<AlluxioStatusException> {
-      @Override
-      public Class<AlluxioStatusException> payloadType() {
-        return AlluxioStatusException.class;
-      }
-    }
-
-    static class TransportError implements Type<Throwable> {
-      @Override
-      public Class<Throwable> payloadType() {
-        return Throwable.class;
-      }
-    }
-
-    private final T mType;
-    private final Object mPayload;
-
-    private Payload(T type, Object payload) {
-      Preconditions.checkArgument((type.payloadType() == Void.TYPE && payload == null)
-          || type.payloadType().isInstance(payload));
-      mType = type;
-      mPayload = payload;
-    }
-
-    static Payload<Data> data(ByteBuf buf) {
-      return new Payload<>(Type.DATA, buf);
-    }
-
-    static Payload<UfsReadHeartBeat> ufsReadHeartBeat() {
-      return new Payload<>(HEART_BEAT, null);
-    }
-
-    static Payload<Eof> eof() {
-      return new Payload<>(EOF, null);
-    }
-
-    static Payload<Cancel> cancel(CancelledException exception) {
-      return new Payload<>(CANCEL, exception);
-    }
-
-    static Payload<ServerError> serverError(AlluxioStatusException error) {
-      return new Payload<>(SERVER_ERROR, error);
-    }
-
-    static Payload<TransportError> transportError(Throwable error) {
-      return new Payload<>(TRANSPORT_ERROR, error);
-    }
-
-    public T type() {
-      return mType;
-    }
-
-    public <P> P payload(Type<P> type) {
-      Preconditions.checkArgument(type == mType, "payload type mismatch");
-      Class<P> clazz = type.payloadType();
-      return clazz.cast(mPayload);
-    }
   }
 }
