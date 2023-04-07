@@ -19,6 +19,15 @@ import java.util.Map;
  * An extension of ObsClient to support config.
  */
 public class ObsClientExt extends ObsClient {
+
+  /**
+   * Construct obs client
+   *
+   * @param accessKey ak in the access key secretKey
+   * @param secretKey sk in the access key endPoint
+   * @param endPoint OBS endpoint
+   * @param conf the map of OBS configuration
+   */
   public ObsClientExt(String accessKey, String secretKey, String endPoint,
       Map<String, Object> conf) {
     super(accessKey, secretKey, endPoint);
