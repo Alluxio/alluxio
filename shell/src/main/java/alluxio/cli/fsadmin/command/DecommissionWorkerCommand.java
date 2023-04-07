@@ -16,6 +16,7 @@ import alluxio.cli.fs.command.AbstractFileSystemCommand;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -87,8 +88,15 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
    * Constructs a new instance to decommission the given worker from Alluxio.
    * @param context the context containing all operator handles
    */
-  public DecommissionWorkerCommand(Context context) {
+  private final AlluxioConfiguration mConf;
+
+  /**
+   * @param context fsadmin command context
+   * @param alluxioConf Alluxio configuration
+   */
+  public DecommissionWorkerCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
+    mConf = alluxioConf;
   }
 
   private List<WorkerNetAddress> getWorkerAddresses(CommandLine cl) {
@@ -123,7 +131,7 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
           e.printStackTrace();
           host = part;
         }
-        int port = Configuration.getInt(PropertyKey.WORKER_WEB_PORT);
+        int port = mConf.getInt(PropertyKey.WORKER_WEB_PORT);
         WorkerNetAddress addr = new WorkerNetAddress().setHost(host).setWebPort(port);
         result.add(addr);
       }
@@ -313,10 +321,10 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
   // Then we manually block for a while so clients/proxies in the cluster all get the update
   private void verifyFromMasterAndWait(FileSystemContext context, Collection<WorkerNetAddress> removedWorkers) {
     // Wait a while so the proxy instances will get updated worker list from master
-    long workerListLag = Configuration.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL);
+    long workerListLag = mConf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL);
     System.out.format("Clients take %s to be updated on the new worker list so this command will "
                     + "block for the same amount of time to ensure the update propagates to clients in the cluster.%n",
-            Configuration.get(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
+            mConf.get(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
     SleepUtils.sleepMs(workerListLag);
 
     // Poll the latest worker list and verify the workers are decommissioned

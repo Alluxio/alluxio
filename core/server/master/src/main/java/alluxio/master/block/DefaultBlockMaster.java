@@ -32,6 +32,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
@@ -116,6 +117,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.function.BiConsumer;
@@ -650,15 +652,25 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void removeDecommissionedWorker(long workerId) throws NotFoundException {
+  public void removeDecommissionedWorker(String workerHostName) throws NotFoundException {
     if (mStandbyMasterRpcEnabled && mPrimarySelector.getStateUnsafe() == NodeState.STANDBY) {
       throw new UnavailableRuntimeException(
           "RemoveDecommissionedWorker operation is not supported on standby masters");
     }
-    MasterWorkerInfo worker = getWorker(workerId);
-    Preconditions.checkNotNull(mDecommissionedWorkers
-        .getFirstByField(ADDRESS_INDEX, worker.getWorkerAddress()));
-    processFreedWorker(worker);
+    AtomicBoolean found = new AtomicBoolean(false);
+    mDecommissionedWorkers.removeIf(entry -> {
+      if (entry.getWorkerAddress().getHost().equals(workerHostName)) {
+        LOG.info("Received admin command to re-accept worker {}. The worker should be " +
+                "accepted to the cluster when it registers again.", entry.getWorkerAddress());
+        found.set(true);
+        return true;
+      }
+      return false;
+    });
+    if (!found.get()) {
+      LOG.info("Received admin command to re-accept worker {} but the worker is not decommissioned. " +
+              "The worker will be able to register to the cluster normally. No further action is required.", workerHostName);
+    }
   }
 
   @Override
