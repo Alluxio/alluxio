@@ -25,7 +25,7 @@
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
-    <build.path>${project.parent.parent.parent.basedir}/build</build.path>
+    <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
     <failIfNoTests>false</failIfNoTests>
     <lib.jar.name>${project.artifactId}-${project.version}.jar</lib.jar.name>
   </properties>
@@ -89,8 +89,8 @@
               <goal>copy</goal>
             </goals>
             <configuration>
-              <sourceFile>${basedir}/target/${project.artifactId}-${project.version}.jar</sourceFile>
-              <destinationFile>${project.parent.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
+              <sourceFile>target/alluxio-integration-tools-validation-2.10.0-SNAPSHOT.jar</sourceFile>
+              <destinationFile>../../../../lib/alluxio-integration-tools-validation-2.10.0-SNAPSHOT.jar</destinationFile>
             </configuration>
           </execution>
         </executions>

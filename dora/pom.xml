@@ -25,6 +25,7 @@
   <modules>
     <module>core</module>
     <module>job</module>
+    <module>integration</module>
     <module>minicluster</module>
     <module>stress</module>
     <module>tests</module>

@@ -17,7 +17,7 @@ ARG JAVA_VERSION=8
 FROM golang:1.15.13-alpine AS csi-dev
 ENV GO111MODULE=on
 RUN mkdir -p /alluxio-csi
-COPY ./csi /alluxio-csi
+COPY csi /alluxio-csi
 RUN cd /alluxio-csi && \
     CGO_ENABLED=0 go build -o /usr/local/bin/alluxio-csi
 

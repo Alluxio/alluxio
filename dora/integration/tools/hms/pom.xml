@@ -28,7 +28,7 @@
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
-    <build.path>${project.parent.parent.parent.basedir}/build</build.path>
+    <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
     <lib.jar.name>${project.artifactId}-${project.version}.jar</lib.jar.name>
     <failIfNoTests>false</failIfNoTests>
     <hive-metastore.version>3.1.2</hive-metastore.version>
@@ -140,8 +140,8 @@
               <goal>copy</goal>
             </goals>
             <configuration>
-              <sourceFile>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</sourceFile>
-              <destinationFile>${project.parent.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
+              <sourceFile>target/alluxio-integration-tools-hms-2.10.0-SNAPSHOT-jar-with-dependencies.jar</sourceFile>
+              <destinationFile>../../../../lib/alluxio-integration-tools-hms-2.10.0-SNAPSHOT.jar</destinationFile>
             </configuration>
           </execution>
         </executions>

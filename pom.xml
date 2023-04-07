@@ -182,7 +182,6 @@
     <module>dora/tests</module>-->
     <module>dora</module>
     <module>examples</module>
-    <module>integration</module>
     <module>logserver</module>
     <module>microbench</module>
     <module>shaded</module>
