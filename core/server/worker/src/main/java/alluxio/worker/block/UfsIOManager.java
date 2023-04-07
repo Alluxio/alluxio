@@ -125,7 +125,7 @@ public class UfsIOManager implements Closeable {
    */
   @VisibleForTesting
   public double getUsedThroughput(Meter meter) {
-    return meter.getOneMinuteRate();
+    return meter.getOneMinuteRate() / 60;
   }
 
   /**
