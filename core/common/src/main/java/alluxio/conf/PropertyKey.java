@@ -411,7 +411,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public Builder setDefaultValue(Object defaultValue) {
       checkArgument(validateValue(defaultValue, mType, mEnumType, mValueValidationFunction),
-          "default value " + defaultValue + " of " + mName + " validate failed");
+          String.format("default value %s of %s validate failed", defaultValue, mName));
       mDefaultValue = formatValue(defaultValue, mType, mEnumType, mDelimiter);
       return this;
     }
