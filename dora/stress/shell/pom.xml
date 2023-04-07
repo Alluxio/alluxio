@@ -17,26 +17,25 @@
       <groupId>org.alluxio</groupId>
       <version>2.10.0-SNAPSHOT</version>
   </parent>
-  <name>Alluxio Stress - Common</name>
-  <artifactId>alluxio-stress-common</artifactId>
+  <name>Alluxio Stress - Shell</name>
+  <artifactId>alluxio-stress-shell</artifactId>
   <packaging>jar</packaging>
-  <description>Common between client and server</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
-    <build.path>${project.parent.parent.basedir}/build</build.path>
+    <build.path>${project.parent.parent.parent.basedir}/build</build.path>
   </properties>
 
   <dependencies>
-    <!-- External dependencies -->
     <dependency>
+      <!-- External dependencies -->
       <groupId>com.beust</groupId>
       <artifactId>jcommander</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hdrhistogram</groupId>
@@ -46,18 +45,34 @@
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-hdfs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-job-common</artifactId>
+      <artifactId>alluxio-job-client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-stress-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-server-worker</artifactId>
       <version>${project.version}</version>
+      <scope>compile</scope>
     </dependency>
+      <dependency>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-shell</artifactId>
+          <version>2.10.0-SNAPSHOT</version>
+      </dependency>
   </dependencies>
 </project>

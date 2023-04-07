@@ -187,7 +187,6 @@
     <module>microbench</module>
     <module>shaded</module>
     <module>shell</module>
-    <module>stress</module>
     <module>table</module>
     <module>webui</module>
   </modules>
