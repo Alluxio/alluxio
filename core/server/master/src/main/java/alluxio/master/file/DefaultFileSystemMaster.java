@@ -40,6 +40,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
@@ -50,6 +51,8 @@ import alluxio.file.options.DescendantType;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.GetSyncPathListPResponse;
+import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LoadDescendantPType;
@@ -59,6 +62,7 @@ import alluxio.grpc.MountPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
 import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.TtlAction;
 import alluxio.heartbeat.HeartbeatContext;
@@ -123,6 +127,7 @@ import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.master.mdsync.BaseTask;
+import alluxio.master.mdsync.TaskInfo;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
@@ -218,6 +223,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.Spliterators;
@@ -4168,8 +4174,38 @@ public class DefaultFileSystemMaster extends CoreMaster
     } catch (Throwable t) {
       throw new RuntimeException(t);
     }
+  }
 
-     */
+  @Override
+  public SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path, SyncMetadataContext context)
+      throws InvalidPathException, IOException {
+    BaseTask result = mMetadataSyncer.syncPath(path,
+        GrpcUtils.fromProto(context.getOptions().getLoadDescendantType()), 0, true);
+    return SyncMetadataAsyncPResponse.newBuilder()
+        .setSubmitted(true).setTaskId(result.getTaskInfo().getId()).build();
+  }
+
+  @Override
+  public GetSyncProgressPResponse getSyncProgress(long taskId) {
+    Optional<BaseTask> task = mMetadataSyncer.getTaskTracker().getTask(taskId);
+    if (!task.isPresent()) {
+      throw new NotFoundRuntimeException("Task id " + taskId + " not found");
+    }
+    GetSyncProgressPResponse.Builder responseBuilder = GetSyncProgressPResponse.newBuilder();
+    if (!task.get().isCompleted().isPresent()) {
+      responseBuilder.setState(GetSyncProgressPResponse.State.IN_PROGRESS);
+    } else if (task.get().succeeded()) {
+      responseBuilder.setState(GetSyncProgressPResponse.State.SUCCESS);
+      responseBuilder.setDebugInfo(String.format(
+          "Sync stats: %s%n Load stats: %s%n",
+          task.get().isCompleted().get().getSyncResult(),
+          task.get().getTaskInfo().getStats())).build();
+    } else {
+      responseBuilder.setState(GetSyncProgressPResponse.State.FAIL);
+    }
+    TaskInfo taskInfo = task.get().getTaskInfo();
+    responseBuilder.setNumFilesSynced(taskInfo.getStats().getStatusCount());
+    return responseBuilder.build();
   }
 
   @FunctionalInterface

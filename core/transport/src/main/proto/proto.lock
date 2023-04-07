@@ -4063,6 +4063,11 @@
                 "id": 2,
                 "name": "numFilesSynced",
                 "type": "int64"
+              },
+              {
+                "id": 1000,
+                "name": "debugInfo",
+                "type": "string"
               }
             ]
           },

@@ -623,7 +623,5 @@ public final class FileSystemMasterClientServiceHandler
       return mFileSystemMaster.getSyncProgress(
           request.getTaskId());
     }, "syncMetadataAsync", "request=%s", responseObserver, request);
-
-    super.getSyncProgress(request, responseObserver);
   }
 }

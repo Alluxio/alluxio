@@ -58,7 +58,10 @@ public class TaskStats {
     return mBatches.get();
   }
 
-  int getStatusCount() {
+  /**
+   * @return the status count
+   */
+  public int getStatusCount() {
     return mStatuses.get();
   }
 

@@ -82,7 +82,11 @@ public class TaskTracker implements Closeable {
     mClientSupplier = clientSupplier;
   }
 
-  synchronized Optional<BaseTask> getTask(long taskId) {
+  /**
+   * @param taskId the task id
+   * @return the task
+   */
+  public synchronized Optional<BaseTask> getTask(long taskId) {
     return Optional.ofNullable(mTaskMap.get(taskId));
   }
 
@@ -93,8 +97,12 @@ public class TaskTracker implements Closeable {
   }
 
   synchronized void taskComplete(long taskId, boolean isFile) {
-    BaseTask baseTask = mTaskMap.remove(taskId);
+    BaseTask baseTask = mTaskMap.get(taskId);
     if (baseTask != null) {
+      if (baseTask.removeOnComplete()) {
+        mTaskMap.remove(taskId);
+      }
+      // TODO(yimin): should we create a new completeTaskMap?
       LOG.debug("Task {} completed", baseTask);
       mSyncPathCache.notifySyncedPath(baseTask.getTaskInfo().getBasePath(),
           baseTask.getTaskInfo().getDescendantType(), baseTask.getStartTime(),
@@ -153,6 +161,7 @@ public class TaskTracker implements Closeable {
    * @param depth the depth of descendents to load
    * @param syncInterval the sync interval
    * @param loadByDirectory the load by directory type
+   * @param removeOnComplete if the task should be removed on complete
    * @return the running task object
    */
   public BaseTask launchTaskAsync(
@@ -160,7 +169,8 @@ public class TaskTracker implements Closeable {
       AlluxioURI ufsPath, AlluxioURI alluxioPath,
       @Nullable String startAfter,
       DescendantType depth, long syncInterval,
-      DirectoryLoadType loadByDirectory) {
+      DirectoryLoadType loadByDirectory,
+      boolean removeOnComplete) {
     BaseTask task;
     synchronized (this) {
       TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(depth);
@@ -173,7 +183,8 @@ public class TaskTracker implements Closeable {
                 new TaskInfo(mdSync, ufsPath, alluxioPath, startAfter,
                     depth, syncInterval, loadByDirectory, id),
                 mSyncPathCache.recordStartSync(),
-                mClientSupplier);
+                mClientSupplier,
+                removeOnComplete);
             mTaskMap.put(id, newTask);
             newNode.setValue(newTask);
             mLoadRequestExecutor.addPathLoaderTask(newTask.getLoadTask());
@@ -213,7 +224,7 @@ public class TaskTracker implements Closeable {
       DescendantType depth, long syncInterval,
       DirectoryLoadType loadByDirectory) {
     BaseTask task = launchTaskAsync(mdSync, ufsPath, alluxioPath, startAfter,
-        depth, syncInterval, loadByDirectory);
+        depth, syncInterval, loadByDirectory, true);
     return new Pair<>(task.waitForSync(ufsPath), task);
   }
 

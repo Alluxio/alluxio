@@ -37,6 +37,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
@@ -49,6 +50,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
 import alluxio.grpc.SyncMetadataPOptions;
 import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UnmountPOptions;
@@ -781,4 +783,22 @@ public interface FileSystem extends Closeable {
    */
   SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Syncs metadata asynchronously for a given alluxio path.
+   *
+   * @param path    the path to sync metadata on
+   * @param options options to associate with this operation
+   * @return the sync metadata async response
+   */
+  SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path, SyncMetadataPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * @param taskId the task id
+   * @return the sync progress
+   */
+  GetSyncProgressPResponse getSyncProgress(long taskId)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
 }

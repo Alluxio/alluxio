@@ -27,6 +27,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GetSyncProgressPRequest;
+import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SyncMetadataAsyncPResponse;
 import alluxio.grpc.SyncMetadataPRequest;
@@ -668,5 +669,5 @@ public interface FileSystemMaster extends Master {
    * @param taskId
    * @return
    */
-  GetSyncPathListPResponse getSyncProgress(long taskId);
+  GetSyncProgressPResponse getSyncProgress(long taskId);
 }

@@ -18,7 +18,12 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadDescendantPType;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
+import alluxio.grpc.SyncMetadataPOptions;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.util.CommonUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -50,6 +55,21 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
           .desc("update the metadata of the existing sub file forcibly")
           .build();
 
+  private static final Option ASYNC_OPTION =
+      Option.builder("a")
+          .longOpt("async")
+          .required(false)
+          .hasArg(false)
+          .desc("load the metadata asynchronously")
+          .build();
+
+  private static final Option V2_OPTION =
+      Option.builder("v2")
+          .required(false)
+          .hasArg(false)
+          .desc("use the load metadata v2 implementation")
+          .build();
+
   /**
    * Constructs a new instance to load metadata for the given Alluxio path from UFS.
    *
@@ -68,14 +88,20 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
   public Options getOptions() {
     return new Options()
         .addOption(RECURSIVE_OPTION)
-        .addOption(FORCE_OPTION);
+        .addOption(FORCE_OPTION)
+        .addOption(ASYNC_OPTION)
+        .addOption(V2_OPTION);
   }
 
   @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
-    loadMetadata(plainPath, cl.hasOption(RECURSIVE_OPTION.getOpt()),
-        cl.hasOption(FORCE_OPTION.getOpt()));
+    if (cl.hasOption(V2_OPTION.getOpt())) {
+      loadMetadataV2(plainPath, cl.hasOption(RECURSIVE_OPTION.getOpt()), cl.hasOption(ASYNC_OPTION.getOpt()));
+    } else {
+      loadMetadata(plainPath, cl.hasOption(RECURSIVE_OPTION.getOpt()),
+          cl.hasOption(FORCE_OPTION.getOpt()));
+    }
   }
 
   @Override
@@ -85,6 +111,43 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
     runWildCardCmd(path, cl);
 
     return 0;
+  }
+
+  private void loadMetadataV2(AlluxioURI path, boolean recursive, boolean async) throws IOException {
+    SyncMetadataPOptions options =
+        SyncMetadataPOptions.newBuilder().setLoadDescendantType(recursive
+            ? LoadDescendantPType.ALL : LoadDescendantPType.ONE).build();
+    if (!async) {
+      try {
+        SyncMetadataPResponse response = mFileSystem.syncMetadata(path, options);
+        System.out.println("Sync metadata result: " + response);
+        System.out.println(response.getDebugInfo());
+        return;
+      } catch (AlluxioException e) {
+        throw new IOException(e.getMessage());
+      }
+    }
+    try {
+      System.out.println("Submitting metadata sync task");
+      SyncMetadataAsyncPResponse response = mFileSystem.syncMetadataAsync(path, options);
+      long taskId = response.getTaskId();
+      System.out.println("Task " + taskId + " submitted");
+      while (true) {
+        GetSyncProgressPResponse syncProgress = mFileSystem.getSyncProgress(taskId);
+        if (syncProgress.getState() == GetSyncProgressPResponse.State.SUCCESS) {
+          System.out.println("Sync succeeded");
+          System.out.println(syncProgress.getDebugInfo());
+          return;
+        } else if (syncProgress.getState() == GetSyncProgressPResponse.State.FAIL) {
+          System.out.println("Sync failed");
+          return;
+        }
+        System.out.println(syncProgress.getNumFilesSynced());
+        CommonUtils.sleepMs(2000);
+      }
+    } catch (AlluxioException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   private void loadMetadata(AlluxioURI path, boolean recursive, boolean force) throws IOException {
@@ -109,7 +172,7 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "loadMetadata [-R] [-F] <path>";
+    return "loadMetadata [-R] [-F] [-v2] [-a/--async] <path>";
   }
 
   @Override
@@ -120,5 +183,11 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
+    if (cl.hasOption(FORCE_OPTION.getOpt()) && cl.hasOption(V2_OPTION.getOpt())) {
+      throw new InvalidArgumentException("LoadMetadata v2 does not support -F option.");
+    }
+    if (cl.hasOption(ASYNC_OPTION.getOpt()) && !cl.hasOption(V2_OPTION.getOpt())) {
+      throw new InvalidArgumentException("LoadMetadata v1 does not support -a/--async option.");
+    }
   }
 }

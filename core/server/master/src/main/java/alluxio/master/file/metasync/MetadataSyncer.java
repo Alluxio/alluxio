@@ -95,6 +95,7 @@ public class MetadataSyncer implements SyncProcess {
   private final ReadOnlyInodeStore mInodeStore;
   private final MountTable mMountTable;
   private final InodeTree mInodeTree;
+
   private final TaskTracker mTaskTracker;
   private final MdSync mMdSync;
   private final boolean mIgnoreTTL =
@@ -132,15 +133,29 @@ public class MetadataSyncer implements SyncProcess {
    * @param alluxioPath the path to sync
    * @param descendantType the depth of descendents to load
    * @param syncInterval the sync interval to check if a sync is needed
+   * @param isAsyncMetadataLoading if the sync is initiated by an async load metadata cli command
+   * @return the running task
+   */
+  public BaseTask syncPath(
+      AlluxioURI alluxioPath, DescendantType descendantType,
+      long syncInterval, boolean isAsyncMetadataLoading) throws InvalidPathException {
+    MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
+    AlluxioURI ufsPath = resolution.getUri();
+    return mTaskTracker.launchTaskAsync(mMdSync, ufsPath, alluxioPath, null,
+        descendantType, syncInterval, DirectoryLoadType.NONE, !isAsyncMetadataLoading);
+  }
+
+  /**
+   * Perform a metadata sync on the given path. Launches the task asynchronously.
+   * @param alluxioPath the path to sync
+   * @param descendantType the depth of descendents to load
+   * @param syncInterval the sync interval to check if a sync is needed
    * @return the running task
    */
   public BaseTask syncPath(
       AlluxioURI alluxioPath, DescendantType descendantType,
       long syncInterval) throws InvalidPathException {
-    MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
-    AlluxioURI ufsPath = resolution.getUri();
-    return mTaskTracker.launchTaskAsync(mMdSync, ufsPath, alluxioPath, null,
-        descendantType, syncInterval, DirectoryLoadType.NONE);
+    return syncPath(alluxioPath, descendantType, syncInterval, false);
   }
 
   private CloseableResource<UfsClient> getUfsClient(AlluxioURI ufsPath) {
@@ -361,7 +376,11 @@ public class MetadataSyncer implements SyncProcess {
 
           // after taking the lock on the root path,
           // we must verify the mount is still valid
-          if (!mMountTable.resolve(alluxioSyncPath).getUfsMountPointUri().equals(ufsMountURI)) {
+          String ufsMountUriString = PathUtils.normalizePath(ufsMountPath, "/");
+          String ufsMountUriStringAfterTakingLock =
+              PathUtils.normalizePath(
+                  mMountTable.resolve(alluxioSyncPath).getUfsMountPointUri().getPath(), "/");
+          if (!ufsMountUriString.equals(ufsMountUriStringAfterTakingLock)) {
             NotFoundRuntimeException ex = new NotFoundRuntimeException(String.format(
                 "Mount path %s no longer exists during sync of %s",
                 ufsMountURI, alluxioSyncPath));
@@ -800,6 +819,13 @@ public class MetadataSyncer implements SyncProcess {
         createDirectoryContext
     );
     //System.out.println("Created directory " + lockedInodePath.getUri());
+  }
+
+  /**
+   * @return the task tracker
+   */
+  public TaskTracker getTaskTracker() {
+    return mTaskTracker;
   }
 
   protected static class SingleInodeSyncResult {

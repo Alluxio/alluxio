@@ -705,6 +705,8 @@ message GetSyncProgressPResponse {
   }
   optional State state = 1;
   optional int64 numFilesSynced = 2;
+
+  optional string debugInfo = 1000;
 }
 
 /**

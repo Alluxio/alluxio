@@ -42,6 +42,8 @@ public abstract class BaseTask implements PathWaiter {
   private final TaskInfo mTaskInfo;
   private final PathLoaderTask mPathLoadTask;
 
+  private final boolean mRemoveOnComplete;
+
   public synchronized Optional<BaseTaskResult> isCompleted() {
     return Optional.ofNullable(mIsCompleted);
   }
@@ -57,25 +59,38 @@ public abstract class BaseTask implements PathWaiter {
 
   static BaseTask create(
       TaskInfo info, long startTime,
-      Function<AlluxioURI, CloseableResource<UfsClient>> clientSupplier) {
+      Function<AlluxioURI, CloseableResource<UfsClient>> clientSupplier,
+      boolean removeOnComplete) {
     if (info.getLoadByDirectory() != DirectoryLoadType.NONE
         && info.getDescendantType() == DescendantType.ALL) {
-      return new DirectoryPathWaiter(info, startTime, clientSupplier);
+      return new DirectoryPathWaiter(info, startTime, clientSupplier, removeOnComplete);
     } else {
-      return new BatchPathWaiter(info, startTime, clientSupplier);
+      return new BatchPathWaiter(info, startTime, clientSupplier, removeOnComplete);
     }
+  }
+
+  static BaseTask create(
+      TaskInfo info, long startTime,
+      Function<AlluxioURI, CloseableResource<UfsClient>> clientSupplier) {
+    return create(info, startTime, clientSupplier, true);
   }
 
   BaseTask(
       TaskInfo info, long startTime,
-      Function<AlluxioURI, CloseableResource<UfsClient>> clientSupplier) {
+      Function<AlluxioURI, CloseableResource<UfsClient>> clientSupplier,
+      boolean removeOnComplete) {
     mTaskInfo = info;
     mStartTime = startTime;
     mPathLoadTask = new PathLoaderTask(mTaskInfo, null, clientSupplier);
+    mRemoveOnComplete = removeOnComplete;
   }
 
   public TaskInfo getTaskInfo() {
     return mTaskInfo;
+  }
+
+  boolean removeOnComplete() {
+    return mRemoveOnComplete;
   }
 
   public long getStartTime() {

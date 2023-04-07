@@ -31,6 +31,7 @@ import alluxio.grpc.ErrorType;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
@@ -41,6 +42,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
 import alluxio.grpc.SyncMetadataPOptions;
 import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UnmountPOptions;
@@ -417,6 +419,18 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path, SyncMetadataPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public GetSyncProgressPResponse getSyncProgress(long taskId)
       throws FileDoesNotExistException, IOException, AlluxioException {
     throw new UnsupportedOperationException();
   }

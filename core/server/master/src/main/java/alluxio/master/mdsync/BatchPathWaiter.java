@@ -32,8 +32,9 @@ class BatchPathWaiter extends BaseTask implements PathWaiter {
 
   BatchPathWaiter(
       TaskInfo info, long startTime,
-      Function<AlluxioURI, CloseableResource<UfsClient>> clientSupplier) {
-    super(info, startTime, clientSupplier);
+      Function<AlluxioURI, CloseableResource<UfsClient>> clientSupplier,
+      boolean removeOnComplete) {
+    super(info, startTime, clientSupplier, removeOnComplete);
     mNoneCompleted = new PathSequence(EMPTY, info.getAlluxioPath());
     mLastCompleted = Lists.newArrayList(mNoneCompleted);
   }
