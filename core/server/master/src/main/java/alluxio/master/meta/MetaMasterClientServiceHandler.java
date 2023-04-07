@@ -151,22 +151,24 @@ public final class MetaMasterClientServiceHandler
                     .setState("PRIMARY")
                     .build()
             );
-            List<MasterVersion> standbyMasterVersions = Arrays.stream(mMetaMaster.getStandbyMasterInfos())
-                .map(it -> MasterVersion.newBuilder()
-                    .setVersion(it.getVersion())
-                    .setAddresses(it.getAddress().toProto())
-                    .setState("STANDBY")
-                    .build())
-                .collect(Collectors.toList());
+            List<MasterVersion> standbyMasterVersions =
+                Arrays.stream(mMetaMaster.getStandbyMasterInfos())
+                  .map(it -> MasterVersion.newBuilder()
+                      .setVersion(it.getVersion())
+                      .setAddresses(it.getAddress().toProto())
+                      .setState("STANDBY")
+                      .build())
+                  .collect(Collectors.toList());
 
             masterInfo.addAllMasterVersions(standbyMasterVersions);
-            List<MasterVersion> lostMasterVersions = Arrays.stream(mMetaMaster.getLostMasterInfos())
-                .map(it -> MasterVersion.newBuilder()
-                    .setVersion(it.getVersion())
-                    .setAddresses(it.getAddress().toProto())
-                    .setState("LOST")
-                    .build())
-                .collect(Collectors.toList());
+            List<MasterVersion> lostMasterVersions =
+                Arrays.stream(mMetaMaster.getLostMasterInfos())
+                  .map(it -> MasterVersion.newBuilder()
+                      .setVersion(it.getVersion())
+                      .setAddresses(it.getAddress().toProto())
+                      .setState("LOST")
+                      .build())
+                  .collect(Collectors.toList());
             masterInfo.addAllMasterVersions(lostMasterVersions);
             break;
           default:
