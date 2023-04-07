@@ -11,7 +11,7 @@
 
 # See https://hub.docker.com/r/alluxio/alluxio-maven for instructions on running the image.
 
-FROM maven:3.8.5-jdk-11
+FROM maven:3.8.6-jdk-11
 
 # need to create /.config to avoid npm errors
 RUN mkdir -p /home/jenkins && \
