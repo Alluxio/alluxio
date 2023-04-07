@@ -17,6 +17,7 @@ import alluxio.client.meta.MetaMasterClient;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MasterVersion;
+import alluxio.grpc.NetAddress;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.wire.BlockMasterInfo;
@@ -120,13 +121,15 @@ public class SummaryCommand {
     } else {
       print("Raft-based Journal: false");
     }
-    print("Master Versions");
+    print("");
+    String formatString = "%-32s %-8s %-32s";
+    print(String.format(formatString, "Master Address", "State", "Version"));
     for (MasterVersion masterVersion: masterInfo.getMasterVersionsList()) {
-      print(String.format("%s:%s %s %s",
-          masterVersion.getAddresses().getHost(),
-          masterVersion.getAddresses().getRpcPort(),
-          masterVersion.getVersion(),
-          masterVersion.getState()));
+      NetAddress address = masterVersion.getAddresses();
+      print(String.format(formatString,
+              address.getHost() + ":" + address.getRpcPort(),
+          masterVersion.getState(),
+          masterVersion.getVersion()));
     }
   }
 
