@@ -86,6 +86,8 @@ RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
       chmod -R g=u /mnt/alluxio && \
       mkdir /mnt/alluxio/journal && \
       chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /mnt/alluxio/journal && \
+      mkdir /mnt/alluxio/metastore && \
+      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /mnt/alluxio/metastore && \
       mkdir /mnt/alluxio/fuse && \
       chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /mnt/alluxio/fuse; \
     fi
