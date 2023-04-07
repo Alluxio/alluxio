@@ -9,9 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.fs.command;
+package alluxio.cli.fsadmin.command;
 
 import alluxio.Constants;
+import alluxio.cli.fs.command.AbstractFileSystemCommand;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
@@ -59,7 +60,7 @@ import java.util.stream.Collectors;
  * Decommission a specific worker, the decommissioned worker is not automatically
  * shutdown and are not chosen for writing new replicas.
  */
-public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
+public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
   private static final Option ADDRESSES_OPTION =
       Option.builder("h")
           .longOpt("addresses")
@@ -84,10 +85,10 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
 
   /**
    * Constructs a new instance to decommission the given worker from Alluxio.
-   * @param fsContext the filesystem of Alluxio
+   * @param context the context containing all operator handles
    */
-  public DecommissionWorkerCommand(FileSystemContext fsContext) {
-    super(fsContext);
+  public DecommissionWorkerCommand(Context context) {
+    super(context);
   }
 
   private List<WorkerNetAddress> getWorkerAddresses(CommandLine cl) {
@@ -161,11 +162,11 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  // TODO(jiacheng): make this a fsadmin command
   public int run(CommandLine cl) throws AlluxioException, IOException {
     List<WorkerNetAddress> addresses = getWorkerAddresses(cl);
     long waitTimeMs = parseWaitTimeMs(cl);
-    List<BlockWorkerInfo> cachedWorkers = mFsContext.getCachedWorkers();
+    FileSystemContext context = FileSystemContext.create();
+    List<BlockWorkerInfo> cachedWorkers = context.getCachedWorkers();
 
     Set<WorkerNetAddress> failedWorkers = new HashSet<>();
     Map<WorkerNetAddress, WorkerStatus> waitingWorkers = new HashMap<>();
@@ -178,11 +179,8 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
       DecommissionWorkerPOptions options =
               DecommissionWorkerPOptions.newBuilder()
                       .setWorkerName(workerAddress.getHost()).build();
-
-      try (CloseableResource<BlockMasterClient> blockMasterClient =
-                   mFsContext.acquireBlockMasterClientResource()) {
-        // TODO(jiacheng): Add a response to this rpc for additional info?
-        blockMasterClient.get().decommissionWorker(options);
+      try {
+        mBlockClient.decommissionWorker(options);
         System.out.format("Set worker %s:%s decommissioned on master%n", workerAddress.getHost(), workerAddress.getWebPort());
         // Start counting for this worker
         waitingWorkers.put(worker.getNetAddress(), new WorkerStatus());
@@ -201,7 +199,7 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
       return 1;
     }
 
-    verifyFromMasterAndWait(waitingWorkers.keySet());
+    verifyFromMasterAndWait(context, waitingWorkers.keySet());
 
     // We block and wait for the workers to quiet down, so when this command returns without error,
     // the admin is safe to proceed to stopping those workers
@@ -313,7 +311,7 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
 
   // We verify the target workers have been taken off the list on the master
   // Then we manually block for a while so clients/proxies in the cluster all get the update
-  private void verifyFromMasterAndWait(Collection<WorkerNetAddress> removedWorkers) {
+  private void verifyFromMasterAndWait(FileSystemContext context, Collection<WorkerNetAddress> removedWorkers) {
     // Wait a while so the proxy instances will get updated worker list from master
     long workerListLag = Configuration.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL);
     System.out.format("Clients take %s to be updated on the new worker list so this command will "
@@ -325,7 +323,7 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
     System.out.println("Verify the decommission has taken effect by listing all available workers on the master");
     try {
       // TODO(jiacheng): add a way to force refresh the worker list so we can verify before wait
-      Set<BlockWorkerInfo> cachedWorkers = new HashSet<>(mFsContext.getCachedWorkers());
+      Set<BlockWorkerInfo> cachedWorkers = new HashSet<>(context.getCachedWorkers());
       System.out.println("Now on master the available workers are: ");
       System.out.println(cachedWorkers.stream().map(w -> {
         WorkerNetAddress address = w.getNetAddress();
