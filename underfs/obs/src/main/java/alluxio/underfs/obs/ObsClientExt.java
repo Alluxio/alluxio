@@ -21,7 +21,7 @@ import java.util.Map;
 public class ObsClientExt extends ObsClient {
 
   /**
-   * Construct obs client
+   * Construct obs client.
    *
    * @param accessKey ak in the access key secretKey
    * @param secretKey sk in the access key endPoint
