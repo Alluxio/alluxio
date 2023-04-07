@@ -21,6 +21,7 @@ import javax.annotation.Nullable;
  */
 public class TaskInfo {
   private final AlluxioURI mBasePath;
+  private final AlluxioURI mAlluxioPath;
   private final String mStartAfter;
   private final DescendantType mDescendantType;
   private final long mId;
@@ -31,12 +32,14 @@ public class TaskInfo {
 
   TaskInfo(
       MdSync mdSync,
-      AlluxioURI basePath, // basePath should be without the header/bucket, e.g. no s3://
+      AlluxioURI ufsPath, // basePath should be without the header/bucket, e.g. no s3://
+      AlluxioURI alluxioPath,
       @Nullable String startAfter,
       DescendantType descendantType,
       long syncInterval,
       DirectoryLoadType loadByDirectory, long id) {
-    mBasePath = basePath;
+    mBasePath = ufsPath;
+    mAlluxioPath = alluxioPath;
     mSyncInterval = syncInterval;
     mDescendantType = descendantType;
     mLoadByDirectory = loadByDirectory;
@@ -48,6 +51,10 @@ public class TaskInfo {
 
   public TaskStats getStats() {
     return mStats;
+  }
+
+  public AlluxioURI getAlluxioPath() {
+    return mAlluxioPath;
   }
 
   public long getSyncInterval() {

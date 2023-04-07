@@ -182,7 +182,8 @@ public class S3Test {
   @Test
   public void s3Test() throws Throwable {
     Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMdSync,
-        new AlluxioURI("c3991175-9f1e-4ec6-8ed9-23b1370ed4ea/"), null, DescendantType.ALL, 0, DirectoryLoadType.NONE);
+        new AlluxioURI("c3991175-9f1e-4ec6-8ed9-23b1370ed4ea/"), new AlluxioURI("/"),
+        null, DescendantType.ALL, 0, DirectoryLoadType.NONE);
     result.getSecond().waitComplete(0);
     System.out.println(result.getSecond().getTaskInfo().getStats());
   }

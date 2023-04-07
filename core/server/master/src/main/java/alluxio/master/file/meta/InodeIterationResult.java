@@ -20,28 +20,18 @@ public class InodeIterationResult {
   private final Inode mInode;
   private final String mName;
   private final LockedInodePath mLockedPath;
-  private final LockedInodePath mParentLockedPath;
 
   /**
    * Creates an instance.
    * @param inode the inode
    * @param name the inode names
    * @param lockedPath the locked path
-   * @param parentLockedPath the locked path of the parent
    */
   public InodeIterationResult(
-      Inode inode, String name, LockedInodePath lockedPath, LockedInodePath parentLockedPath) {
+      Inode inode, String name, LockedInodePath lockedPath) {
     mInode = inode;
     mName = name;
     mLockedPath = lockedPath;
-    mParentLockedPath = parentLockedPath;
-  }
-
-  /**
-   * @return the locked path of the parent
-   */
-  public LockedInodePath getParentLockedPath() {
-    return mParentLockedPath;
   }
 
   /**

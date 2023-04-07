@@ -68,7 +68,8 @@ public class DirectoryPathWaiterTest {
 
   @Test
   public void TestWaiter() throws Exception {
-    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"), null,
+    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
+        new AlluxioURI("/path"), null,
         ALL, 0, mDirLoadType, 0);
     BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
     Mockito.doAnswer(ans -> {
@@ -87,7 +88,8 @@ public class DirectoryPathWaiterTest {
 
   @Test
   public void TestMultiWaiter() throws Exception {
-    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"), null,
+    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
+        new AlluxioURI("/path"), null,
         ALL, 0, mDirLoadType, 0);
     BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
     Mockito.doAnswer(ans -> {
@@ -116,7 +118,8 @@ public class DirectoryPathWaiterTest {
 
   @Test
   public void TestNestedWaiter() throws Exception {
-    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"), null,
+    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
+        new AlluxioURI("/path"), null,
         ALL, 0, mDirLoadType, 0);
     BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
     Mockito.doAnswer(ans -> {
@@ -144,7 +147,8 @@ public class DirectoryPathWaiterTest {
   @Test
   public void TestParentWaiter() throws Exception {
     long loadRequestID = 0;
-    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/"), null,
+    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/"),
+        new AlluxioURI("/path"), null,
         ALL, 0, mDirLoadType, 0);
     BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
     Mockito.doAnswer(ans -> {

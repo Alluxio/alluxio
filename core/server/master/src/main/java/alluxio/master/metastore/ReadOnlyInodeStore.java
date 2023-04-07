@@ -247,7 +247,7 @@ public interface ReadOnlyInodeStore extends Closeable {
         if (mFirst != null) {
           Inode ret = mFirst;
           mFirst = null;
-          return new InodeIterationResult(ret, ret.getName(), lockedPath, lockedPath);
+          return new InodeIterationResult(ret, ret.getName(), lockedPath);
         }
         if (mPreviousPath != null) {
           mPreviousPath.close();
@@ -260,7 +260,7 @@ public interface ReadOnlyInodeStore extends Closeable {
           // Should not reach here since the path should be valid
           throw new InternalRuntimeException(e);
         }
-        return new InodeIterationResult(inode, inode.getName(), mPreviousPath, lockedPath);
+        return new InodeIterationResult(inode, inode.getName(), mPreviousPath);
       }
 
       @Override

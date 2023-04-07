@@ -127,7 +127,7 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
     if (mFirst != null) {
       Inode ret = mFirst;
       mFirst = null;
-      return new InodeIterationResult(ret, ret.getName(), mRootPath, mRootPath);
+      return new InodeIterationResult(ret, ret.getName(), mRootPath);
     }
     if (mLastLockedPath != null) {
       mLastLockedPath.close();
@@ -167,7 +167,7 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
       mLastLockedPath = lockedPath;
     }
     mHasNextCalled = false;
-    return new InodeIterationResult(current, name, lockedPath, top.getSecond());
+    return new InodeIterationResult(current, name, lockedPath);
   }
 
   // TODO add comments

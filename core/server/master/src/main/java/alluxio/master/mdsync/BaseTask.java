@@ -102,7 +102,10 @@ public abstract class BaseTask implements PathWaiter {
     long waitTime = timeoutMs;
     while (mIsCompleted == null && (timeoutMs == 0 || waitTime > 0)) {
       wait(waitTime);
-      waitTime = waitTime - sw.elapsed(TimeUnit.MILLISECONDS);
+      if (timeoutMs != 0) {
+        waitTime = waitTime - sw.elapsed(TimeUnit.MILLISECONDS);
+        sw.reset();
+      }
     }
     if (mIsCompleted == null) {
       throw new DeadlineExceededRuntimeException("Task still running.");

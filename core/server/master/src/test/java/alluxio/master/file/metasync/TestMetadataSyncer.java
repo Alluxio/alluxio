@@ -11,26 +11,13 @@
 
 package alluxio.master.file.metasync;
 
-import alluxio.AlluxioURI;
-import alluxio.exception.AccessControlException;
-import alluxio.exception.BlockInfoException;
-import alluxio.exception.DirectoryNotEmptyException;
-import alluxio.exception.FileAlreadyExistsException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
 import alluxio.master.file.DefaultFileSystemMaster;
-import alluxio.master.file.meta.InodeIterationResult;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.metastore.ReadOnlyInodeStore;
-import alluxio.underfs.UfsStatus;
 
-import java.io.IOException;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import javax.annotation.Nullable;
 
 /**
  * The metadata syncer.
@@ -48,7 +35,7 @@ public class TestMetadataSyncer extends MetadataSyncer {
     super(fsMaster, inodeStore, mountTable, inodeTree, syncPathCache);
   }
 
-  Semaphore lock = new Semaphore(0);
+  Semaphore mLock = new Semaphore(0);
   private int mBlockOnNth = -1;
   private int mSyncCount = 0;
   private Callback mCallback = null;
@@ -64,30 +51,6 @@ public class TestMetadataSyncer extends MetadataSyncer {
       throws InterruptedException {
     mBlockOnNth = nth;
     mCallback = callback;
-    lock.acquire();
-  }
-
-  @Override
-  protected SingleInodeSyncResult syncOne(
-      MetadataSyncContext context,
-      AlluxioURI syncRootPath,
-      @Nullable UfsStatus currentUfsStatus,
-      @Nullable InodeIterationResult currentInode,
-      boolean isSyncRoot
-  )
-      throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
-      IOException, BlockInfoException, DirectoryNotEmptyException, AccessControlException {
-   mSyncCount++;
-   if (mSyncCount == mBlockOnNth) {
-     if (mCallback != null) {
-       try {
-         mCallback.apply();
-       } catch (Exception e) {
-         throw new RuntimeException(e);
-       }
-     }
-     lock.release();
-   }
-    return super.syncOne(context, syncRootPath, currentUfsStatus, currentInode, isSyncRoot);
+    mLock.acquire();
   }
 }

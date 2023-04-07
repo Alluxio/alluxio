@@ -11,14 +11,14 @@
 
 package alluxio.master.mdsync;
 
+import alluxio.Constants;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
 import alluxio.underfs.UfsLoadResult;
-import alluxio.underfs.UfsStatus;
+import alluxio.util.logging.SamplingLogger;
 
-import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +35,7 @@ import java.util.concurrent.Semaphore;
 
 class LoadRequestExecutor implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(LoadRequestExecutor.class);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 5L * Constants.SECOND_MS);
 
   /** Limit the number of running (or completed but not yet processed) load requests. **/
   private final Semaphore mRunning;
@@ -125,7 +126,8 @@ class LoadRequestExecutor implements Closeable {
         }
       }
     }
-
+    SAMPLING_LOG.info("Concurrent running ufs load tasks {}",
+        mMaxRunning - mRunning.availablePermits());
     LoadRequest nxtRequest = mLoadRequests.take();
     PathLoaderTask task = mPathLoaderTasks.get(nxtRequest.getBaseTaskId());
     if (task != null) {

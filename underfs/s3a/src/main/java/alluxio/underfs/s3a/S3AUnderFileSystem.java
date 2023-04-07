@@ -85,10 +85,9 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
-import software.amazon.awssdk.services.s3.model.GetObjectAttributesRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
-import software.amazon.awssdk.services.s3.model.ObjectAttributes;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 import java.io.ByteArrayInputStream;
@@ -706,12 +705,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
       onComplete.accept(new UfsLoadResult(Stream.empty(), 0, null, null, false, false));
       return;
     }
-    GetObjectAttributesRequest request =
-        GetObjectAttributesRequest.builder()
-            .objectAttributes(ObjectAttributes.E_TAG, ObjectAttributes.OBJECT_SIZE)
-            .bucket(mBucketName).key(path).build();
+    HeadObjectRequest request =
+        HeadObjectRequest.builder().bucket(mBucketName).key(path).build();
     String finalPath = path;
-    mAsyncClient.getObjectAttributes(request).whenCompleteAsync((result, err) -> {
+    mAsyncClient.headObject(request).whenCompleteAsync((result, err) -> {
       if (err != null) {
         if (err.getCause() instanceof NoSuchKeyException) {
           onComplete.accept(new UfsLoadResult(Stream.empty(), 0, null, null, false, false));
@@ -719,22 +716,26 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
           onError.accept(err);
         }
       } else {
-        ObjectPermissions permissions = getPermissions();
-        long bytes = mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-        Instant lastModifiedDate = result.lastModified();
-        Long lastModifiedTime = lastModifiedDate == null ? null
-            : lastModifiedDate.toEpochMilli();
-        UfsStatus status;
-        if (finalPath.endsWith(folderSuffix)) {
-          status = new UfsDirectoryStatus(finalPath, permissions.getOwner(),
-              permissions.getGroup(), permissions.getMode());
-        } else {
-          status = new UfsFileStatus(finalPath, result.eTag(), result.objectSize(),
-              lastModifiedTime, permissions.getOwner(), permissions.getGroup(),
-              permissions.getMode(), bytes);
+        try {
+          ObjectPermissions permissions = getPermissions();
+          long bytes = mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+          Instant lastModifiedDate = result.lastModified();
+          Long lastModifiedTime = lastModifiedDate == null ? null
+              : lastModifiedDate.toEpochMilli();
+          UfsStatus status;
+          if (finalPath.endsWith(folderSuffix)) {
+            status = new UfsDirectoryStatus(finalPath, permissions.getOwner(),
+                permissions.getGroup(), permissions.getMode());
+          } else {
+            status = new UfsFileStatus(finalPath, result.eTag(), result.contentLength(),
+                lastModifiedTime, permissions.getOwner(), permissions.getGroup(),
+                permissions.getMode(), bytes);
+          }
+          onComplete.accept(new UfsLoadResult(Stream.of(status), 1, null,
+              null, false, status.isFile()));
+        } catch (Throwable t) {
+          onError.accept(t);
         }
-        onComplete.accept(new UfsLoadResult(Stream.of(status), 1, null,
-            null, false, status.isFile()));
       }
     });
   }
@@ -761,24 +762,28 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
             System.out.println("got error");
             onError.accept(err);
           } else {
-            System.out.printf("got result, cont token %s%n", result.nextContinuationToken());
-            AlluxioURI lastItem = null;
-            String lastPrefix = result.commonPrefixes().size() == 0 ? null
-                : result.commonPrefixes().get(result.commonPrefixes().size() - 1).prefix();
-            String lastResult = result.contents().size() == 0 ? null
-                : result.contents().get(result.contents().size() - 1).key();
-            if (lastPrefix == null && lastResult != null) {
-              lastItem = new AlluxioURI(lastResult);
-            } else if (lastPrefix != null && lastResult == null) {
-              lastItem = new AlluxioURI(lastPrefix);
-            } else if (lastPrefix != null) { // both are non-null
-              lastItem = new AlluxioURI(lastPrefix.compareTo(lastResult) > 0
-                  ? lastPrefix : lastResult);
+            try {
+              System.out.printf("got result, cont token %s%n", result.nextContinuationToken());
+              AlluxioURI lastItem = null;
+              String lastPrefix = result.commonPrefixes().size() == 0 ? null
+                  : result.commonPrefixes().get(result.commonPrefixes().size() - 1).prefix();
+              String lastResult = result.contents().size() == 0 ? null
+                  : result.contents().get(result.contents().size() - 1).key();
+              if (lastPrefix == null && lastResult != null) {
+                lastItem = new AlluxioURI(lastResult);
+              } else if (lastPrefix != null && lastResult == null) {
+                lastItem = new AlluxioURI(lastPrefix);
+              } else if (lastPrefix != null) { // both are non-null
+                lastItem = new AlluxioURI(lastPrefix.compareTo(lastResult) > 0
+                    ? lastPrefix : lastResult);
+              }
+              onComplete.accept(
+                  new UfsLoadResult(resultToStream(result),
+                      result.keyCount() + result.commonPrefixes().size(),
+                      result.nextContinuationToken(), lastItem, result.isTruncated(), false));
+            } catch (Throwable t) {
+              onError.accept(t);
             }
-            onComplete.accept(
-                new UfsLoadResult(resultToStream(result),
-                    result.keyCount() + result.commonPrefixes().size(),
-                    result.nextContinuationToken(), lastItem, result.isTruncated(), false));
           }
         });
   }

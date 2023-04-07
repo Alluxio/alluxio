@@ -1212,7 +1212,7 @@ public class InodeSyncStream {
             .setTtl(context.getOptions().getCommonOptions().getTtl())
             .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
     createFileContext.setWriteType(WriteType.THROUGH); // set as through since already in UFS
-    createFileContext.setMetadataLoad(true);
+    createFileContext.setMetadataLoad(true, true);
     createFileContext.setOwner(context.getUfsStatus().getOwner());
     createFileContext.setGroup(context.getUfsStatus().getGroup());
     createFileContext.setXAttr(context.getUfsStatus().getXAttr());
@@ -1322,7 +1322,7 @@ public class InodeSyncStream {
             .setTtl(context.getOptions().getCommonOptions().getTtl())
             .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
     createDirectoryContext.setMountPoint(isMountPoint);
-    createDirectoryContext.setMetadataLoad(true);
+    createDirectoryContext.setMetadataLoad(true, true);
     createDirectoryContext.setWriteType(WriteType.THROUGH);
 
     AccessControlList acl = null;

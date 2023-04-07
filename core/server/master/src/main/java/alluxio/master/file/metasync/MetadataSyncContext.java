@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 public class MetadataSyncContext {
   private final DescendantType mDescendantType;
   private final RpcContext mRpcContext;
-  private boolean mAllowConcurrentModification = true;
+  private final boolean mAllowConcurrentModification;
   private final FileSystemMasterCommonPOptions mCommonOptions;
   @Nullable
   private String mStartAfter;
@@ -36,7 +36,6 @@ public class MetadataSyncContext {
   private final Set<AlluxioURI> mDirectoriesToUpdateIsLoaded = new ConcurrentHashSet<>();
   private Long mSyncStartTime = null;
   private Long mSyncFinishTime = null;
-  private int mBatchSize = 1000;
   @Nullable
   private SyncFailReason mFailReason = null;
 
@@ -46,24 +45,18 @@ public class MetadataSyncContext {
    * @param rpcContext the rpc context
    * @param commonOptions the common options for TTL configurations
    * @param startAfter indicates where the sync starts (exclusive), used on retries
-   * @param batchSize the batch size to fetch the files from UFS
    */
   private MetadataSyncContext(
       DescendantType descendantType, RpcContext rpcContext,
       FileSystemMasterCommonPOptions commonOptions,
-      @Nullable String startAfter, int batchSize,
+      @Nullable String startAfter,
       boolean allowConcurrentModification
   ) {
     mDescendantType = descendantType;
     mRpcContext = rpcContext;
     mCommonOptions = commonOptions;
     mAllowConcurrentModification = allowConcurrentModification;
-    if (startAfter == null) {
-      mStartAfter = null;
-    } else {
-      mStartAfter = startAfter;
-      mBatchSize = batchSize;
-    }
+    mStartAfter = startAfter;
   }
 
   public void validateStartAfter(AlluxioURI syncRoot) throws InvalidPathException {
@@ -106,13 +99,6 @@ public class MetadataSyncContext {
    */
   public boolean isConcurrentModificationAllowed() {
     return mAllowConcurrentModification;
-  }
-
-  /**
-   * @return the batch size to fetch the data from UFS
-   */
-  public int getBatchSize() {
-    return mBatchSize;
   }
 
   /**
@@ -180,7 +166,7 @@ public class MetadataSyncContext {
   }
 
   /**
-   * reports a file from ufs has been scanned;
+   * reports a file from ufs has been scanned.
    */
   public void ufsFileScanned() {
     mNumUfsFilesScanned++;
@@ -210,7 +196,8 @@ public class MetadataSyncContext {
   public SyncResult success() {
     Preconditions.checkNotNull(mSyncStartTime);
     mSyncFinishTime = CommonUtils.getCurrentMs();
-    return new SyncResult(true, mSyncFinishTime - mSyncStartTime, mSuccessMap, mFailedMap, null, mNumUfsFilesScanned);
+    return new SyncResult(true, mSyncFinishTime - mSyncStartTime, mSuccessMap,
+        mFailedMap, null, mNumUfsFilesScanned);
   }
 
   /**
@@ -232,7 +219,6 @@ public class MetadataSyncContext {
     private RpcContext mRpcContext;
     private FileSystemMasterCommonPOptions mCommonOptions = MetadataSyncer.NO_TTL_OPTION;
     private String mStartAfter = null;
-    private int mBatchSize = 1000;
     private boolean mAllowConcurrentModification = true;
 
     /**
@@ -285,15 +271,6 @@ public class MetadataSyncContext {
     }
 
     /**
-     * @param batchSize the batch size
-     * @return the builder
-     */
-    public Builder setBatchSize(int batchSize) {
-      mBatchSize = batchSize;
-      return this;
-    }
-
-    /**
      * @param allowModification the current modification is allowed
      * @return the builder
      */
@@ -308,7 +285,7 @@ public class MetadataSyncContext {
     public MetadataSyncContext build() {
       return new MetadataSyncContext(
           mDescendantType, mRpcContext, mCommonOptions,
-          mStartAfter, mBatchSize, mAllowConcurrentModification);
+          mStartAfter, mAllowConcurrentModification);
     }
   }
 }

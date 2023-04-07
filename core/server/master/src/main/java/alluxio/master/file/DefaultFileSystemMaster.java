@@ -113,10 +113,7 @@ import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.file.metasync.MetadataSyncContext;
 import alluxio.master.file.metasync.MetadataSyncer;
-import alluxio.master.file.metasync.SyncOperation;
-import alluxio.master.file.metasync.SyncResult;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.FileSystemMergeJournalContext;
 import alluxio.master.journal.JournalContext;
@@ -125,6 +122,7 @@ import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.ufs.UfsJournalSystem;
+import alluxio.master.mdsync.BaseTask;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
@@ -165,7 +163,6 @@ import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
@@ -1709,10 +1706,10 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param rpcContext the rpc context for journaling
    * @param inodePath the inode path
    * @param createFileContext the create file context
-   * @param ufsLength the file length from UFS
    * @param ufsStatus the ufs status, used to generate fingerprint
+   * @return the path of inodes to the created node
    */
-  public void createCompleteFileInternalForMetadataSync(
+  public List<Inode> createCompleteFileInternalForMetadataSync(
       RpcContext rpcContext, LockedInodePath inodePath, CreateFileContext createFileContext,
       UfsFileStatus ufsStatus
   )
@@ -1733,13 +1730,14 @@ public class DefaultFileSystemMaster extends CoreMaster
     createFileContext.setCompleteFileInfo(
         new CreateFileContext.CompleteFileInfo(containerId, ufsLength, blockIds)
     );
-    createFileContext.setMetadataLoad(true);
+    createFileContext.setMetadataLoad(true, false);
     createFileContext.setFingerprint(getUfsFingerprint(inodePath.getUri(), ufsStatus, null));
 
-    createFileInternal(rpcContext, inodePath, createFileContext);
+    List<Inode> inodes = createFileInternal(rpcContext, inodePath, createFileContext);
 
     commitBlockInfosForFile(blockIds, ufsLength, blockSize, rpcContext.getJournalContext());
     mUfsAbsentPathCache.processExisting(inodePath.getUri());
+    return inodes;
   }
 
   /**
@@ -4144,8 +4142,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataContext context)
-      throws InvalidPathException, IOException {
+  public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataContext context) {
     // The followings are test code to test UFS partial listing
     /*
     int count = 0;
@@ -4159,42 +4156,18 @@ public class DefaultFileSystemMaster extends CoreMaster
     System.out.println(CommonUtils.getCurrentMs() - start);
     return SyncMetadataPResponse.getDefaultInstance();
     */
-    boolean isRecursive = context.getOptions().getIsRecursive();
-    DescendantType descendantType = isRecursive ? DescendantType.ALL : DescendantType.ONE;
-    try (RpcContext rpcContext = createRpcContext()) {
-      MetadataSyncContext metadataSyncContext =
-          MetadataSyncContext.Builder.builder(rpcContext, descendantType)
-              .setBatchSize(1000).build();
-      SyncResult result = syncMetadataInternal(path, metadataSyncContext);
-      return SyncMetadataPResponse.newBuilder().setSuccess(result.getSuccess())
+    try {
+      BaseTask result = mMetadataSyncer.syncPath(path,
+          GrpcUtils.fromProto(context.getOptions().getLoadDescendantType()), 0);
+      result.waitComplete(0);
+      return SyncMetadataPResponse.newBuilder().setSuccess(result.succeeded())
           .setDebugInfo(
-              String.format("Sync duration %dms, %d files scanned from ufs, %d files created",
-                  result.getSyncDuration(),
-                  result.getNumUfsFileScanned(),
-                  result.getSuccessOperationCount()
-                      .getOrDefault(SyncOperation.CREATE, 0L))).build();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+              String.format("Sync stats: %s%n Load stats: %s%n",
+                  result.isCompleted().get().getSyncResult(),
+                  result.getTaskInfo().getStats())).build();
+    } catch (Throwable t) {
+      throw new RuntimeException(t);
     }
-  }
-
-  @VisibleForTesting
-  SyncResult syncMetadataInternal(AlluxioURI path, MetadataSyncContext context)
-      throws UnavailableException, AccessControlException, InvalidPathException {
-    SyncResult result = mMetadataSyncer.sync(path, context);
-    System.out.println("Sync duration: " + result.getSyncDuration() + " ms");
-    System.out.println("# of Ufs files scanned: " + result.getNumUfsFileScanned());
-    System.out.println("# of Inodes created: " + result.getSuccessOperationCount()
-        .getOrDefault(SyncOperation.CREATE, 0L));
-    System.out.println("# of Inodes recreated: " + result.getSuccessOperationCount()
-        .getOrDefault(SyncOperation.RECREATE, 0L));
-    System.out.println("# of Inodes updated: " + result.getSuccessOperationCount()
-        .getOrDefault(SyncOperation.UPDATE, 0L));
-    System.out.println("# of Inodes deleted: " + result.getSuccessOperationCount()
-        .getOrDefault(SyncOperation.DELETE, 0L));
-    System.out.println("# of Inodes were not changed: " + result.getSuccessOperationCount()
-        .getOrDefault(SyncOperation.NOOP, 0L));
-    return result;
   }
 
   @FunctionalInterface
@@ -4260,6 +4233,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
+   * @param rpcContext the rpc context
    * @param inodePath the {@link LockedInodePath} to use
    * @param updateUfs whether to update the UFS with the attribute change
    * @param opTimeMs the operation time (in milliseconds)

@@ -64,6 +64,7 @@ public class TaskTracker implements Closeable {
       boolean allowConcurrentGetStatus, boolean allowConcurrentNonRecursiveList,
       UfsSyncPathCache syncPathCache, SyncProcess syncProcess,
       Function<AlluxioURI, CloseableResource<UfsClient>> clientSupplier) {
+    LOG.info("Metadata sync executor threads {}, max concurrent ufs requests {}", executorThreads, maxUfsRequests);
     mSyncPathCache = syncPathCache;
     mLoadRequestExecutor = new LoadRequestExecutor(maxUfsRequests,
         new LoadResultExecutor(syncProcess, executorThreads, syncPathCache));
@@ -142,21 +143,35 @@ public class TaskTracker implements Closeable {
     }
   }
 
-  public Pair<Boolean, BaseTask> checkTask(
+  /**
+   * Launches a metadata sync task asynchronously with the given parameters.
+   * This function should be used when manually launching metadata sync tasks.
+   * @param mdSync the MdSync object
+   * @param ufsPath the ufsPath to sync
+   * @param alluxioPath the alluxio path matching the mounted ufsPath
+   * @param startAfter if the sync should start after a given internal path
+   * @param depth the depth of descendents to load
+   * @param syncInterval the sync interval
+   * @param loadByDirectory the load by directory type
+   * @return the running task object
+   */
+  public BaseTask launchTaskAsync(
       MdSync mdSync,
-      AlluxioURI path, @Nullable String startAfter,
+      AlluxioURI ufsPath, AlluxioURI alluxioPath,
+      @Nullable String startAfter,
       DescendantType depth, long syncInterval,
       DirectoryLoadType loadByDirectory) {
     BaseTask task;
     synchronized (this) {
       TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(depth);
-      task = activeTasks.getLeafChildren(path.getPath())
-          .map(TrieNode::getValue).filter(nxt -> nxt.pathIsCovered(path, depth)).findFirst()
+      task = activeTasks.getLeafChildren(ufsPath.getPath())
+          .map(TrieNode::getValue).filter(nxt -> nxt.pathIsCovered(ufsPath, depth)).findFirst()
           .orElseGet(() -> {
-            TrieNode<BaseTask> newNode = activeTasks.insert(path.getPath());
+            TrieNode<BaseTask> newNode = activeTasks.insert(ufsPath.getPath());
             final long id = mNxtId++;
             BaseTask newTask = BaseTask.create(
-                new TaskInfo(mdSync, path, startAfter, depth, syncInterval, loadByDirectory, id),
+                new TaskInfo(mdSync, ufsPath, alluxioPath, startAfter,
+                    depth, syncInterval, loadByDirectory, id),
                 mSyncPathCache.recordStartSync(),
                 mClientSupplier);
             mTaskMap.put(id, newTask);
@@ -165,7 +180,41 @@ public class TaskTracker implements Closeable {
             return newTask;
           });
     }
-    return new Pair<>(task.waitForSync(path), task);
+    return task;
+  }
+
+  /**
+   * Launches a metadata sync task with the given parameters.
+   * This function should be used when traversing the tree, and the
+   * path being traversed is needing a sync.
+   * This method will not return until the initial sync path has been
+   * synchronized. For example if the alluxio sync path is "/mount/file"
+   * it will not return until "file" has been synchronized. If instead
+   * the path being synchronized is a directory, e.g. "/mount/directory/"
+   * then the function will return as soon as the first batch of items
+   * in the directory has been synchronized, e.g. "/mount/directory/first",
+   * allowing the user to start listing the file before the sync has been
+   * completed entirely. As the directory is traversed, this function should
+   * be called on each subsequent path until the sync is complete.
+   * TODO(tcrain) integrate this in the filesystem operations traversal
+   * @param mdSync the MdSync object
+   * @param ufsPath the ufsPath to sync
+   * @param alluxioPath the alluxio path matching the mounted ufsPath
+   * @param startAfter if the sync should start after a given internal path
+   * @param depth the depth of descendents to load
+   * @param syncInterval the sync interval
+   * @param loadByDirectory the load by directory type
+   * @return the running task object
+   */
+  public Pair<Boolean, BaseTask> checkTask(
+      MdSync mdSync,
+      AlluxioURI ufsPath, AlluxioURI alluxioPath,
+      @Nullable String startAfter,
+      DescendantType depth, long syncInterval,
+      DirectoryLoadType loadByDirectory) {
+    BaseTask task = launchTaskAsync(mdSync, ufsPath, alluxioPath, startAfter,
+        depth, syncInterval, loadByDirectory);
+    return new Pair<>(task.waitForSync(ufsPath), task);
   }
 
   @Override

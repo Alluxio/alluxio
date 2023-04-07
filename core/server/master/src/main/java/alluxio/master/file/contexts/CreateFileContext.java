@@ -112,6 +112,10 @@ public class CreateFileContext
     return new CreateFileContext(mergedOptionsBuilder);
   }
 
+  public static CreateFileContext mergeFromDefault(CreateFilePOptions optionsBuilder) {
+    return new CreateFileContext(CreateFilePOptions.newBuilder().mergeFrom(optionsBuilder));
+  }
+
   /**
    * @return the instance of {@link CreateFileContext} with default values for master
    */

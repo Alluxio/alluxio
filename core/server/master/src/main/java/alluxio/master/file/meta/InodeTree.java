@@ -874,7 +874,7 @@ public class InodeTree implements DelegatingJournaled {
     InodeDirectoryView currentInodeDirectory = ancestorInode.asDirectory();
 
     List<Inode> createdInodes = new ArrayList<>();
-    if (context.isPersisted()) {
+    if (context.isPersisted() && context.isPersistNonExistingParentDirectories()) {
       // Synchronously persist directories. These inodes are already READ locked.
       for (Inode inode : inodePath.getInodeList()) {
         if (!inode.isPersisted()) {
@@ -913,23 +913,27 @@ public class InodeTree implements DelegatingJournaled {
     // NOTE, we set the mode of missing ancestor directories to be the default value, rather
     // than inheriting the option of the final file to create, because it may not have
     // "execute" permission.
-    CreateDirectoryContext missingDirContext = CreateDirectoryContext.defaults();
-    missingDirContext.getOptions().setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
-        .setTtl(context.getTtl()).setTtlAction(context.getTtlAction()));
-    missingDirContext.setWriteType(context.getWriteType());
-    missingDirContext.setOperationTimeMs(context.getOperationTimeMs());
-    missingDirContext.setMountPoint(false);
-    missingDirContext.setOwner(context.getOwner());
-    missingDirContext.setGroup(context.getGroup());
-    if (context.getXAttr() != null
-        && context.getXAttrPropStrat() != null
-        && context.getXAttrPropStrat() == XAttrPropagationStrategy.NEW_PATHS) {
-      missingDirContext.setXAttr(context.getXAttr());
-    }
     StringBuilder pathBuilder = new StringBuilder().append(
         String.join(AlluxioURI.SEPARATOR, Arrays.asList(pathComponents).subList(0, pathIndex))
     );
+    CreateDirectoryContext missingDirContext = null;
+    if (pathIndex < pathComponents.length - 1) {
+      missingDirContext = CreateDirectoryContext.defaults();
+      missingDirContext.getOptions().setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+          .setTtl(context.getTtl()).setTtlAction(context.getTtlAction()));
+      missingDirContext.setWriteType(context.getWriteType());
+      missingDirContext.setOperationTimeMs(context.getOperationTimeMs());
+      missingDirContext.setMountPoint(false);
+      missingDirContext.setOwner(context.getOwner());
+      missingDirContext.setGroup(context.getGroup());
+      if (context.getXAttr() != null
+          && context.getXAttrPropStrat() != null
+          && context.getXAttrPropStrat() == XAttrPropagationStrategy.NEW_PATHS) {
+        missingDirContext.setXAttr(context.getXAttr());
+      }
+    }
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
+      assert missingDirContext != null;
       MutableInodeDirectory newDir = MutableInodeDirectory.create(
           mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
           currentInodeDirectory.getId(), pathComponents[k], missingDirContext);
@@ -961,7 +965,7 @@ public class InodeTree implements DelegatingJournaled {
 
       // Persist the directory *after* it exists in the inode tree. This prevents multiple
       // concurrent creates from trying to persist the same directory name.
-      if (context.isPersisted()) {
+      if (context.isPersisted() && context.isPersistNonExistingParentDirectories()) {
         syncPersistExistingDirectory(rpcContext, newDir, context.isMetadataLoad());
       }
       createdInodes.add(Inode.wrap(newDir));
