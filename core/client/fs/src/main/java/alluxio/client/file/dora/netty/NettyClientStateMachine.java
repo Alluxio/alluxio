@@ -63,6 +63,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * State machine of Netty Client.
@@ -71,6 +72,7 @@ import javax.annotation.Nullable;
  * {@link #generateStateDiagram(Path)}. After you update the states and triggers, create a diagram
  * and check if the new state transitions are properly handled.
  */
+@NotThreadSafe
 public class NettyClientStateMachine {
   private static final Logger LOG = LoggerFactory.getLogger(NettyClientStateMachine.class);
   private final StateMachine<State, Trigger> mStateMachine;
