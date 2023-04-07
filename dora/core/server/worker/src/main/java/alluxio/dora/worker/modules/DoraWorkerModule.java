@@ -22,6 +22,8 @@ import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.network.TieredIdentityFactory;
 import alluxio.dora.underfs.UfsManager;
 import alluxio.dora.wire.TieredIdentity;
+import alluxio.dora.worker.AlluxioDataServerFactory;
+import alluxio.dora.worker.DataServerFactory;
 import alluxio.dora.worker.WorkerFactory;
 import alluxio.dora.worker.block.BlockStore;
 import alluxio.dora.worker.dora.DoraUfsManager;
@@ -56,6 +58,7 @@ public class DoraWorkerModule extends AbstractModule {
     bind(FileSystemMasterClient.class).toProvider(() -> new FileSystemMasterClient(
         MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build()));
     bind(UfsManager.class).to(DoraUfsManager.class).in(Scopes.SINGLETON);
+    bind(DataServerFactory.class).to(AlluxioDataServerFactory.class);
     bind(AlluxioConfiguration.class).toProvider(() -> Configuration.global());
 
     // Note that dora can only use Paged Store

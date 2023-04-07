@@ -37,81 +37,22 @@ import javax.inject.Named;
 /**
  * Factory for data server.
  */
-public class DataServerFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(DataServerFactory.class);
+public interface DataServerFactory {
+  DataServer createRemoteGrpcDataServer(DataWorker dataWorker);
 
-  private final UfsManager mUfsManager;
-  private InetSocketAddress mConnectAddress;
-  private InetSocketAddress mGRpcBindAddress;
-
-  @Inject
-  DataServerFactory(UfsManager ufsManager,
-                    @Named("GrpcConnectAddress") InetSocketAddress connectAddress,
-                    @Named("GrpcBindAddress") InetSocketAddress gRpcBindAddress) {
-    mUfsManager = requireNonNull(ufsManager);
-    mConnectAddress = requireNonNull(connectAddress);
-    mGRpcBindAddress = requireNonNull(gRpcBindAddress);
-  }
-
-  DataServer createRemoteGrpcDataServer(DataWorker dataWorker) {
-    BlockWorkerGrpc.BlockWorkerImplBase blockWorkerService;
-    if (dataWorker instanceof DoraWorker) {
-      blockWorkerService =
-          new DoraWorkerClientServiceHandler((DoraWorker) dataWorker);
-    } else {
-      blockWorkerService =
-          new BlockWorkerClientServiceHandler(
-              //TODO(beinan): inject BlockWorker abstraction
-              (DefaultBlockWorker) dataWorker,
-              mUfsManager,
-              false);
-    }
-    return new GrpcDataServer(
-        mConnectAddress.getHostName(), mGRpcBindAddress, blockWorkerService);
-  }
-
-  DataServer createDomainSocketDataServer(DataWorker worker) {
-    String domainSocketPath =
-        Configuration.getString(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
-    if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
-      domainSocketPath =
-          PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
-    }
-    LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
-    BlockWorkerGrpc.BlockWorkerImplBase blockWorkerService;
-    if (worker instanceof DoraWorker) {
-      blockWorkerService =
-          new DoraWorkerClientServiceHandler((DoraWorker) worker);
-    } else {
-      blockWorkerService =
-          new BlockWorkerClientServiceHandler(
-            //TODO(beinan):inject BlockWorker abstraction
-            (DefaultBlockWorker) worker,
-            mUfsManager,
-            true);
-    }
-    GrpcDataServer domainSocketDataServer = new GrpcDataServer(mConnectAddress.getHostName(),
-        new DomainSocketAddress(domainSocketPath), blockWorkerService);
-    // Share domain socket so that clients can access it.
-    FileUtils.changeLocalFileToFullPermission(domainSocketPath);
-    return domainSocketDataServer;
-  }
+  DataServer createDomainSocketDataServer(DataWorker worker);
 
   /**
    * Get gRPC bind address.
    *
    * @return the InetSocketAddress object with gRPC bind address
    */
-  public InetSocketAddress getGRpcBindAddress() {
-    return mGRpcBindAddress;
-  }
+  InetSocketAddress getGRpcBindAddress();
 
   /**
    * Get gRPC connect address.
    *
    * @return the InetSocketAddress object with gRPC connect address
    */
-  public InetSocketAddress getConnectAddress() {
-    return mConnectAddress;
-  }
+  InetSocketAddress getConnectAddress();
 }
