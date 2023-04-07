@@ -2114,6 +2114,26 @@
                 "integer": 2
               }
             ]
+          },
+          {
+            "name": "GetSyncProgressPResponse.State",
+            "enum_fields": [
+              {
+                "name": "UNKNOWN"
+              },
+              {
+                "name": "SUCCESS",
+                "integer": 1
+              },
+              {
+                "name": "FAIL",
+                "integer": 2
+              },
+              {
+                "name": "IN_PROGRESS",
+                "integer": 3
+              }
+            ]
           }
         ],
         "messages": [
@@ -4007,6 +4027,46 @@
             ]
           },
           {
+            "name": "SyncMetadataAsyncPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "submitted",
+                "type": "bool"
+              },
+              {
+                "id": 2,
+                "name": "taskId",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "GetSyncProgressPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "taskId",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "GetSyncProgressPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "state",
+                "type": "State"
+              },
+              {
+                "id": 2,
+                "name": "numFilesSynced",
+                "type": "int64"
+              }
+            ]
+          },
+          {
             "name": "FileSystemHeartbeatPResponse",
             "fields": [
               {
@@ -4293,6 +4353,16 @@
                 "name": "SyncMetadata",
                 "in_type": "SyncMetadataPRequest",
                 "out_type": "SyncMetadataPResponse"
+              },
+              {
+                "name": "SyncMetadataAsync",
+                "in_type": "SyncMetadataPRequest",
+                "out_type": "SyncMetadataAsyncPResponse"
+              },
+              {
+                "name": "GetSyncProgress",
+                "in_type": "GetSyncProgressPRequest",
+                "out_type": "GetSyncProgressPResponse"
               }
             ]
           },

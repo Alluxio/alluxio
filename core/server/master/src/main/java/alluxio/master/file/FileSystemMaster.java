@@ -25,7 +25,11 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.GetSyncPathListPResponse;
+import alluxio.grpc.GetSyncProgressPRequest;
 import alluxio.grpc.SetAclAction;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
+import alluxio.grpc.SyncMetadataPRequest;
 import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.master.Master;
 import alluxio.master.file.contexts.CheckAccessContext;
@@ -647,4 +651,22 @@ public interface FileSystemMaster extends Master {
    */
   SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataContext context)
       throws InvalidPathException, IOException;
+
+  /**
+   * *
+   * @param path
+   * @param context
+   * @return
+   * @throws InvalidPathException
+   * @throws IOException
+   */
+  SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path, SyncMetadataContext context)
+      throws InvalidPathException, IOException;
+
+  /**
+   * *
+   * @param taskId
+   * @return
+   */
+  GetSyncPathListPResponse getSyncProgress(long taskId);
 }

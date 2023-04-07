@@ -53,6 +53,8 @@ import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GetSyncPathListPResponse;
+import alluxio.grpc.GetSyncProgressPRequest;
+import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPRequest;
@@ -81,6 +83,7 @@ import alluxio.grpc.StopSyncPRequest;
 import alluxio.grpc.StopSyncPResponse;
 import alluxio.grpc.SubmitJobPRequest;
 import alluxio.grpc.SubmitJobPResponse;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
 import alluxio.grpc.SyncMetadataPRequest;
 import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UnmountPRequest;
@@ -599,5 +602,28 @@ public final class FileSystemMasterClientServiceHandler
           new AlluxioURI(request.getPath()),
           SyncMetadataContext.create(request.getOptions().toBuilder()));
     }, "syncMetadata", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void syncMetadataAsync(
+      SyncMetadataPRequest request,
+      StreamObserver<SyncMetadataAsyncPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      return mFileSystemMaster.syncMetadataAsync(
+          new AlluxioURI(request.getPath()),
+          SyncMetadataContext.create(request.getOptions().toBuilder()));
+    }, "syncMetadataAsync", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getSyncProgress(
+      GetSyncProgressPRequest request,
+      StreamObserver<GetSyncProgressPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      return mFileSystemMaster.getSyncProgress(
+          request.getTaskId());
+    }, "syncMetadataAsync", "request=%s", responseObserver, request);
+
+    super.getSyncProgress(request, responseObserver);
   }
 }

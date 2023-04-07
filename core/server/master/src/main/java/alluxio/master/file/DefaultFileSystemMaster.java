@@ -4168,6 +4168,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     } catch (Throwable t) {
       throw new RuntimeException(t);
     }
+
+     */
   }
 
   @FunctionalInterface

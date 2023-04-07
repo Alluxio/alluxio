@@ -89,6 +89,7 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
 
   @Rule
   public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
+      .withBlobStoreProvider("transient")
       .withPort(8001)
       .withBlobStoreProvider("transient")
       .withCredentials("_", "_")
