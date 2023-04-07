@@ -23,6 +23,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeBoundedRetry;
 import alluxio.retry.TimeoutRetry;
 import alluxio.util.SleepUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.resource.CloseableResource;
 
@@ -39,6 +40,7 @@ import org.apache.commons.cli.Options;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -51,6 +53,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.Collectors;
 
 /**
  * Decommission a specific worker, the decommissioned worker is not automatically
@@ -78,6 +81,7 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
                   .desc("Time to wait, in human readable form like 5m.")
                   .build();
 
+
   /**
    * Constructs a new instance to decommission the given worker from Alluxio.
    * @param fsContext the filesystem of Alluxio
@@ -97,14 +101,29 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
       if (part.contains(":")) {
         String[] p = part.split(":");
         Preconditions.checkState(p.length == 2, "worker address %s cannot be recognized", part);
-        String host = p[0];
+        String host;
+        try {
+          host = NetworkAddressUtils.resolveHostName(p[0]);
+          System.out.println("Resolved hostname is " + host);
+        } catch (UnknownHostException e) {
+          e.printStackTrace();
+          host = p[0];
+        }
         String port = p[1];
         WorkerNetAddress addr = new WorkerNetAddress().setHost(host).setWebPort(Integer.getInteger(port));
         result.add(addr);
       } else {
         // Assume the whole string is hostname
+        String host;
+        try {
+          host = NetworkAddressUtils.resolveHostName(part);
+          System.out.println("Resolved hostname is " + host);
+        } catch (UnknownHostException e) {
+          e.printStackTrace();
+          host = part;
+        }
         int port = Configuration.getInt(PropertyKey.WORKER_WEB_PORT);
-        WorkerNetAddress addr = new WorkerNetAddress().setHost(part).setWebPort(port);
+        WorkerNetAddress addr = new WorkerNetAddress().setHost(host).setWebPort(port);
         result.add(addr);
       }
     }
@@ -142,36 +161,41 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  // TODO(jiacheng): make this a fsadmin command
   public int run(CommandLine cl) throws AlluxioException, IOException {
     List<WorkerNetAddress> addresses = getWorkerAddresses(cl);
     long waitTimeMs = parseWaitTimeMs(cl);
     List<BlockWorkerInfo> cachedWorkers = mFsContext.getCachedWorkers();
 
     Set<WorkerNetAddress> failedWorkers = new HashSet<>();
-    Map<WorkerNetAddress, LongAdder> waitingWorkers = new HashMap<>();
+    Map<WorkerNetAddress, WorkerStatus> waitingWorkers = new HashMap<>();
     Set<WorkerNetAddress> finishedWorkers = new HashSet<>();
     for (WorkerNetAddress a : addresses) {
-      System.out.println("Decommissioning worker on " + a.getHost());
+      System.out.format("Decommissioning worker %s:%s%n", a.getHost(), a.getWebPort());
 
       BlockWorkerInfo worker = findMatchingWorkerAddress(a, cachedWorkers);
+      WorkerNetAddress workerAddress = worker.getNetAddress();
       DecommissionWorkerPOptions options =
               DecommissionWorkerPOptions.newBuilder()
-                      .setWorkerName(worker.getNetAddress().getHost()).build();
+                      .setWorkerName(workerAddress.getHost()).build();
 
       try (CloseableResource<BlockMasterClient> blockMasterClient =
                    mFsContext.acquireBlockMasterClientResource()) {
         // TODO(jiacheng): Add a response to this rpc for additional info?
         blockMasterClient.get().decommissionWorker(options);
-        System.out.format("Decommissioned worker %s on master%n", worker.getNetAddress());
-        waitingWorkers.put(worker.getNetAddress(), new LongAdder());
+        System.out.format("Set worker %s:%s decommissioned on master%n", workerAddress.getHost(), workerAddress.getWebPort());
+        // Start counting for this worker
+        waitingWorkers.put(worker.getNetAddress(), new WorkerStatus());
       } catch (IOException ie) {
-        System.err.format("Failed to decommission worker %s:%n", worker.getNetAddress());
+        System.err.format("Failed to decommission worker %s:%s%n", workerAddress.getHost(), workerAddress.getWebPort());
         ie.printStackTrace();
-        failedWorkers.add(worker.getNetAddress());
+        failedWorkers.add(workerAddress);
       }
     }
-    System.out.format("Sent decommission messages to the master, %s failed and %s succeeded",
-            failedWorkers, waitingWorkers);
+    System.out.format("Sent decommission messages to the master, %s failed and %s succeeded%n",
+            failedWorkers.size(), waitingWorkers.size());
+    System.out.format("Failed ones: %s%n", failedWorkers.stream()
+        .map(w -> w.getHost() + ":" + w.getWebPort()).collect(Collectors.toList()));
     if (waitingWorkers.size() == 0) {
       System.out.println("Failed to decommission all workers on the master. The admin should check the worker hostnames.");
       return 1;
@@ -179,50 +203,111 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
 
     verifyFromMasterAndWait(waitingWorkers.keySet());
 
-    // We blocking wait for the workers to quiet down, so when this command returns without error,
+    // We block and wait for the workers to quiet down, so when this command returns without error,
     // the admin is safe to proceed to stopping those workers
+    boolean helpPrinted = false;
     Instant startWaiting = Instant.now();
+    Set<WorkerNetAddress> lostWorkers = new HashSet<>();
     RetryPolicy retry = new TimeoutRetry(startWaiting.toEpochMilli() + waitTimeMs, 1000);
     while (waitingWorkers.size() > 0 && retry.attempt()) {
       // Poll the status from each worker
-      for (Map.Entry<WorkerNetAddress, LongAdder> entry : waitingWorkers.entrySet()) {
+      for (Map.Entry<WorkerNetAddress, WorkerStatus> entry : waitingWorkers.entrySet()) {
         WorkerNetAddress address = entry.getKey();
         System.out.format("Polling status from worker %s:%s%n", address.getHost(), address.getWebPort());
         try {
           if (canWorkerBeStopped(address)) {
-            entry.getValue().increment();
+            entry.getValue().countWorkerIsQuiet();
+          } else {
+            /*
+             * If there are operations on the worker, clear the counter.
+             * The worker is considered quiet only if there are zero operations in consecutive checks.
+             */
+            entry.getValue().countWorkerNotQuiet();
           }
         } catch (Exception e) {
           System.err.format("Failed to poll progress from worker %s%n", address.getHost());
-          System.err.println("There are many reasons why the poll can fail, including but not limited to:");
-          System.err.println("1. Worker is running with a low version which does not contain this endpoint");
-          System.err.println("2. alluxio.worker.web.port is not configured correctly or is not accessible");
-          System.err.println("3. Some transient I/O error");
+          if (!helpPrinted) {
+            System.err.println("There are many reasons why the poll can fail, including but not limited to:");
+            System.err.println("1. Worker is running with a low version which does not contain this endpoint");
+            System.err.println("2. alluxio.worker.web.port is not configured correctly or is not accessible");
+            System.err.println("3. Some transient I/O error");
+            helpPrinted = true;
+          }
           e.printStackTrace();
-          // TODO(Jiacheng): consider moving this to failedWorkers, now it's an endless retry
+          entry.getValue().countError();
         }
       }
 
       waitingWorkers.entrySet().removeIf(entry -> {
-        boolean isQuiet = entry.getValue().sum() >= 3;
+        boolean isQuiet = entry.getValue().isWorkerQuiet();
         if (isQuiet) {
-          System.out.format("There is no operation on worker %s for 3 times in a row. Worker is considered safe to stop.", entry.getKey());
+          System.out.format("There is no operation on worker %s:%s for %s times in a row. Worker is considered safe to stop.",
+              entry.getKey().getHost(), entry.getKey().getWebPort(), WorkerStatus.WORKER_QUIET_THRESHOLD);
           finishedWorkers.add(entry.getKey());
+          return true;
         }
-        return isQuiet;
+        boolean isError = entry.getValue().isWorkerInaccessible();
+        if (isError) {
+          System.out.format("Failed to poll status from worker %s:%s for %s times in a row. "
+              + "Worker is considered inaccessible and not functioning. "
+              + "If the worker is not functioning, it probably does not currently have ongoing I/O and can be stopped. "
+              + "But the admin is advised to manually check the working before stopping it. %n",
+              entry.getKey().getHost(), entry.getKey().getWebPort(), WorkerStatus.WORKER_ERROR_THRESHOLD);
+          lostWorkers.add(entry.getKey());
+          return true;
+        }
+        return false;
       });
     }
 
     Instant end = Instant.now();
-    System.out.format("Waited %s for all workers", Duration.between(startWaiting, end));
-    if (waitingWorkers.size() > 0) {
+    System.out.format("Waited %s minutes operations to quiet down on all workers%n", Duration.between(startWaiting, end).toMinutes());
+    if (waitingWorkers.size() > 0 || lostWorkers.size() > 0) {
       System.out.format("%s workers still have not finished all their operations%n", waitingWorkers.keySet());
       System.out.println("The admin should manually intervene and check those workers, before shutting them down.");
-      System.out.format("%s workers finished all their operations successfully: %s%n", finishedWorkers.size(), finishedWorkers);
+      System.out.format("%s workers finished all their operations successfully: %s%n",
+          finishedWorkers.size(), finishedWorkers.stream().map(WorkerNetAddress::getHost).collect(Collectors.toList()));
+      System.out.format("%s workers became inaccessible and we assume there are no operations: %s%n",
+          lostWorkers.size(), lostWorkers.stream().map(WorkerNetAddress::getHost).collect(Collectors.toList()));
       return 1;
     } else {
-      System.out.println("Finished polling workers " + finishedWorkers);
+      System.out.println("There is no operation running on all workers. Decommission is successful");
       return 0;
+    }
+  }
+
+  public static class WorkerStatus {
+    public static final int WORKER_QUIET_THRESHOLD = 20;
+    public static final int WORKER_ERROR_THRESHOLD = 5;
+
+    public final LongAdder mConsecutiveQuietCount;
+    public final LongAdder mConsecutiveFailureCount;
+    public WorkerStatus() {
+      mConsecutiveQuietCount = new LongAdder();
+      mConsecutiveFailureCount = new LongAdder();
+    }
+
+    public void countWorkerIsQuiet() {
+      mConsecutiveFailureCount.reset();
+      mConsecutiveQuietCount.increment();
+    }
+
+    public void countWorkerNotQuiet() {
+      mConsecutiveFailureCount.reset();
+      mConsecutiveQuietCount.reset();
+    }
+
+    public void countError() {
+      mConsecutiveQuietCount.reset();
+      mConsecutiveFailureCount.increment();
+    }
+
+    public boolean isWorkerQuiet() {
+      return mConsecutiveQuietCount.sum() >= WORKER_QUIET_THRESHOLD;
+    }
+
+    public boolean isWorkerInaccessible() {
+      return mConsecutiveFailureCount.sum() >= WORKER_ERROR_THRESHOLD;
     }
   }
 
@@ -241,6 +326,11 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
     try {
       // TODO(jiacheng): add a way to force refresh the worker list so we can verify before wait
       Set<BlockWorkerInfo> cachedWorkers = new HashSet<>(mFsContext.getCachedWorkers());
+      System.out.println("Now on master the available workers are: ");
+      System.out.println(cachedWorkers.stream().map(w -> {
+        WorkerNetAddress address = w.getNetAddress();
+        return address.getHost() + ":" + address.getWebPort();
+      }).collect(Collectors.toList()));
       for (WorkerNetAddress addr : removedWorkers) {
         if (cachedWorkers.contains(addr)) {
           System.err.format("Worker %s is still showing available on the master. Please check why the decommission did not work.%n", addr);
@@ -253,7 +343,6 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
     }
   }
 
-  // TODO(jiacheng): use NetworkAddressUtils so localhost and 0.0.0.0 can be resolved
   private boolean canWorkerBeStopped(WorkerNetAddress worker) throws IOException {
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme("http");
@@ -276,7 +365,7 @@ public final class DecommissionWorkerCommand extends AbstractFileSystemCommand {
     }
     WorkerWebUIOperations operationState = workerState.get();
     if (operationState.getOperationCount() == 0) {
-      // TODO(jiacheng): consider short circuit
+      // TODO(jiacheng): test what happens if worker is stopped during a short circuit read
       return true;
     }
     return false;
