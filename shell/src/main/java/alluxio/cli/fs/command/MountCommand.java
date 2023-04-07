@@ -51,6 +51,13 @@ public final class MountCommand extends AbstractFileSystemCommand {
           .hasArg(false)
           .desc("mount point is shared")
           .build();
+  private static final Option EXCLUDE_UFS_OPTION =
+      Option.builder()
+          .longOpt("exclude-ufs")
+          .required(false)
+          .hasArg(false)
+          .desc("Get mount point info without checking ufs.")
+          .build();
   private static final Option OPTION_OPTION =
       Option.builder()
           .longOpt("option")
@@ -77,14 +84,15 @@ public final class MountCommand extends AbstractFileSystemCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
-        .addOption(OPTION_OPTION);
+        .addOption(EXCLUDE_UFS_OPTION).addOption(OPTION_OPTION);
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    if (args.length == 0) {
-      Map<String, MountPointInfo> mountTable = mFileSystem.getMountTable();
+    if (args.length == 0 || cl.hasOption(EXCLUDE_UFS_OPTION.getLongOpt())) {
+      Map<String, MountPointInfo> mountTable =
+          mFileSystem.getMountTable(!cl.hasOption(EXCLUDE_UFS_OPTION.getLongOpt()));
       UfsCommand.printMountInfo(mountTable);
       return 0;
     }
@@ -109,7 +117,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "mount [--readonly] [--shared] [--option <key=val>] <alluxioPath> <ufsURI>";
+    return "mount [exclude-ufs]/[--readonly] [--shared] [--option <key=val>] <alluxioPath> <ufsURI>";
   }
 
   @Override
