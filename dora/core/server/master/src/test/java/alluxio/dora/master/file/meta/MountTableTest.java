@@ -21,7 +21,6 @@ import alluxio.dora.exception.AccessControlException;
 import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.FileAlreadyExistsException;
 import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.master.file.meta.MountTable;
 import alluxio.dora.grpc.MountPOptions;
 import alluxio.dora.master.file.contexts.MountContext;
 import alluxio.dora.master.file.meta.options.MountInfo;
@@ -30,7 +29,7 @@ import alluxio.dora.underfs.UfsManager;
 import alluxio.dora.underfs.UfsManager.UfsClient;
 import alluxio.dora.underfs.UnderFileSystem;
 import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.local.LocalUnderFileSystemFactory;
+import alluxio.dora.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.dora.util.IdUtils;
 
 import org.junit.Assert;

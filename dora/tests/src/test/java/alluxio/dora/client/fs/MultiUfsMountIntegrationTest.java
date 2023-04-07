@@ -30,7 +30,7 @@ import alluxio.dora.testutils.underfs.ConfExpectingUnderFileSystemFactory;
 import alluxio.dora.underfs.UnderFileSystem;
 import alluxio.dora.underfs.UnderFileSystemConfiguration;
 import alluxio.dora.underfs.UnderFileSystemFactoryRegistry;
-import alluxio.underfs.local.LocalUnderFileSystemFactory;
+import alluxio.dora.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.dora.util.UnderFileSystemUtils;
 import alluxio.dora.util.io.PathUtils;
 import alluxio.dora.wire.MountPointInfo;

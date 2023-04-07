@@ -189,7 +189,6 @@
     <module>shell</module>
     <module>stress</module>
     <module>table</module>
-    <module>underfs</module>
     <module>webui</module>
   </modules>
 

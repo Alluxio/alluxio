@@ -34,7 +34,7 @@ import alluxio.dora.grpc.DeletePOptions;
 import alluxio.dora.grpc.SetAttributePOptions;
 import alluxio.dora.security.authorization.Mode;
 import alluxio.dora.underfs.UnderFileSystemFactoryRegistry;
-import alluxio.underfs.local.LocalUnderFileSystemFactory;
+import alluxio.dora.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.dora.util.io.BufferUtils;
 
 import org.junit.After;

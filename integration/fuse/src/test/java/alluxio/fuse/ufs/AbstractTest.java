@@ -26,7 +26,7 @@ import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.LibFuse;
 import alluxio.dora.security.authorization.Mode;
 import alluxio.dora.underfs.UnderFileSystemFactoryRegistry;
-import alluxio.underfs.local.LocalUnderFileSystemFactory;
+import alluxio.dora.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.underfs.s3a.S3AUnderFileSystemFactory;
 import alluxio.dora.util.io.FileUtils;
 

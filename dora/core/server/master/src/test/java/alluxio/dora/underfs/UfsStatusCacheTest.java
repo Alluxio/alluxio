@@ -28,7 +28,6 @@ import alluxio.dora.AlluxioURI;
 import alluxio.dora.Constants;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.underfs.*;
 import alluxio.dora.grpc.MountPOptions;
 import alluxio.dora.master.file.BlockDeletionContext;
 import alluxio.dora.master.file.RpcContext;
@@ -39,7 +38,7 @@ import alluxio.dora.master.file.meta.NoopUfsAbsentPathCache;
 import alluxio.dora.master.file.meta.UfsAbsentPathCache;
 import alluxio.dora.master.file.meta.options.MountInfo;
 import alluxio.dora.master.journal.JournalContext;
-import alluxio.underfs.local.LocalUnderFileSystem;
+import alluxio.dora.underfs.local.LocalUnderFileSystem;
 import alluxio.dora.util.IdUtils;
 import alluxio.dora.util.io.PathUtils;
 

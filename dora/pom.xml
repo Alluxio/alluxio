@@ -27,6 +27,7 @@
     <module>job</module>
     <module>minicluster</module>
     <module>tests</module>
+    <module>underfs</module>
   </modules>
 
   <properties>

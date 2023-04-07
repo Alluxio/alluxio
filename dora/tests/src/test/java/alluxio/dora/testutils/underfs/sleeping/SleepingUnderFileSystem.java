@@ -17,7 +17,7 @@ import alluxio.dora.underfs.UfsDirectoryStatus;
 import alluxio.dora.underfs.UfsFileStatus;
 import alluxio.dora.underfs.UfsStatus;
 import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.local.LocalUnderFileSystem;
+import alluxio.dora.underfs.local.LocalUnderFileSystem;
 import alluxio.dora.underfs.options.CreateOptions;
 import alluxio.dora.underfs.options.DeleteOptions;
 import alluxio.dora.underfs.options.FileLocationOptions;

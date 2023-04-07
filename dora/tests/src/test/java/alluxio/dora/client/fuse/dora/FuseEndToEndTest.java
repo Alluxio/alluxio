@@ -35,7 +35,7 @@ import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.jnifuse.LibFuse;
 import alluxio.dora.underfs.UnderFileSystemFactoryRegistry;
-import alluxio.underfs.local.LocalUnderFileSystemFactory;
+import alluxio.dora.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.underfs.s3a.S3AUnderFileSystemFactory;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.OSUtils;

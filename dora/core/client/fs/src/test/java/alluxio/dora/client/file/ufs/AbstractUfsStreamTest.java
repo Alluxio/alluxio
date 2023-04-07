@@ -26,7 +26,7 @@ import alluxio.dora.conf.Source;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.grpc.DeletePOptions;
 import alluxio.dora.underfs.UnderFileSystemFactoryRegistry;
-import alluxio.underfs.local.LocalUnderFileSystemFactory;
+import alluxio.dora.underfs.local.LocalUnderFileSystemFactory;
 
 import org.junit.After;
 import org.junit.Before;

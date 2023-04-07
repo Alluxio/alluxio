@@ -15,7 +15,7 @@ import alluxio.dora.AlluxioURI;
 import alluxio.dora.underfs.UnderFileSystem;
 import alluxio.dora.underfs.UnderFileSystemConfiguration;
 import alluxio.dora.underfs.UnderFileSystemFactory;
-import alluxio.underfs.local.LocalUnderFileSystem;
+import alluxio.dora.underfs.local.LocalUnderFileSystem;
 
 import com.google.common.base.Preconditions;
 
