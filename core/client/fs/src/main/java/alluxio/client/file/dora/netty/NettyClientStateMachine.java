@@ -11,10 +11,12 @@
 
 package alluxio.client.file.dora.netty;
 
-import static alluxio.client.file.dora.netty.NettyDataReader.Payload.Type.CANCEL;
-import static alluxio.client.file.dora.netty.NettyDataReader.Payload.Type.DATA;
-import static alluxio.client.file.dora.netty.NettyDataReader.Payload.Type.EOF;
-import static alluxio.client.file.dora.netty.NettyDataReader.Payload.Type.HEART_BEAT;
+import static alluxio.client.file.dora.netty.NettyClientStateMachine.Payload.Type.CANCEL;
+import static alluxio.client.file.dora.netty.NettyClientStateMachine.Payload.Type.CHANNEL_ERROR;
+import static alluxio.client.file.dora.netty.NettyClientStateMachine.Payload.Type.DATA;
+import static alluxio.client.file.dora.netty.NettyClientStateMachine.Payload.Type.EOF;
+import static alluxio.client.file.dora.netty.NettyClientStateMachine.Payload.Type.HEART_BEAT;
+import static alluxio.client.file.dora.netty.NettyClientStateMachine.Payload.Type.SERVER_ERROR;
 import static alluxio.client.file.dora.netty.PartialReadException.CauseType;
 
 import alluxio.client.file.FileSystemContext;
@@ -64,6 +66,10 @@ import javax.annotation.Nullable;
 
 /**
  * State machine of Netty Client.
+ * <br>
+ * You can get a diagram describing the state transitions of this state machine, by calling
+ * {@link #generateStateDiagram(Path)}. After you update the states and triggers, create a diagram
+ * and check if the new state transitions are properly handled.
  */
 public class NettyClientStateMachine {
   private static final Logger LOG = LoggerFactory.getLogger(NettyClientStateMachine.class);
@@ -78,7 +84,7 @@ public class NettyClientStateMachine {
   private final long mOffset;
   private final int mLength;
   private final WritableByteChannel mOutputChannel;
-  private final BlockingQueue<NettyDataReader.Payload<?>> mQueue = new LinkedBlockingQueue<>();
+  private final BlockingQueue<Payload<?>> mQueue = new LinkedBlockingQueue<>();
 
   @Nullable
   private Channel mChannel;
@@ -153,37 +159,6 @@ public class NettyClientStateMachine {
   /**
    * Constructor.
    *
-   * @startuml
-   * digraph G {
-   *         node [fontname="sans-serif", shape = rect];
-   *         edge [fontname="sans-serif"];
-   *
-   *         CLIENT_CANCEL -> CLIENT_CANCEL [label = "EOF" ];
-   *         CLIENT_CANCEL -> CLIENT_CANCEL [label = "HEART_BEAT" ];
-   *         CLIENT_CANCEL -> TERMINATED_NORMALLY [label = "SERVER_CANCEL" ];
-   *         CLIENT_CANCEL -> TERMINATED_EXCEPTIONALLY [label = "CHANNEL_ERROR" ];
-   *         CLIENT_CANCEL -> TERMINATED_EXCEPTIONALLY [label = "SERVER_ERROR" ];
-   *         CLIENT_CANCEL -> CLIENT_CANCEL_DATA_RECEIVED [label = "DATA_AVAILABLE" ];
-   *         CLIENT_CANCEL -> TERMINATED_EXCEPTIONALLY [label = "INTERRUPTED" ];
-   *         CLIENT_CANCEL -> TERMINATED_EXCEPTIONALLY [label = "TIMEOUT" ];
-   *         CLIENT_CANCEL_DATA_RECEIVED -> CLIENT_CANCEL [label = "DATA_DISCARDED" ];
-   *         RECEIVED_EOF -> TERMINATED_NORMALLY [label = "OUTPUT_LENGTH_FULFILLED" ];
-   *         RECEIVED_EOF -> TERMINATED_NORMALLY [label = "OUTPUT_LENGTH_NOT_FULFILLED" ];
-   *         CHANNEL_ACTIVE -> RECEIVED_EOF [label = "EOF" ];
-   *         CHANNEL_ACTIVE -> CHANNEL_ACTIVE [label = "HEART_BEAT" ];
-   *         CHANNEL_ACTIVE -> CLIENT_CANCEL [label = "CHANNEL_ERROR" ];
-   *         CHANNEL_ACTIVE -> CLIENT_CANCEL [label = "SERVER_ERROR" ];
-   *         CHANNEL_ACTIVE -> RECEIVED_DATA [label = "DATA_AVAILABLE" ];
-   *         CHANNEL_ACTIVE -> CLIENT_CANCEL [label = "INTERRUPTED" ];
-   *         CHANNEL_ACTIVE -> CLIENT_CANCEL [label = "TIMEOUT" ];
-   *         ACQUIRING_CHANNEL -> CHANNEL_ACTIVE [label = "CHANNEL_AVAILABLE" ];
-   *         ACQUIRING_CHANNEL -> TERMINATED_EXCEPTIONALLY [label = "CHANNEL_UNAVAILABLE" ];
-   *         RECEIVED_DATA -> CLIENT_CANCEL [label = "OUTPUT_ERROR" ];
-   *         RECEIVED_DATA -> TERMINATED_NORMALLY [label = "OUTPUT_LENGTH_FULFILLED" ];
-   *         RECEIVED_DATA -> CHANNEL_ACTIVE [label = "OUTPUT_LENGTH_NOT_FULFILLED" ];
-   *         CREATED -> ACQUIRING_CHANNEL [label = "START" ];
-   * }
-   * @enduml
    * @param context
    * @param address
    * @param requestBuilder
@@ -392,7 +367,7 @@ public class NettyClientStateMachine {
             // Note: cannot call fireNext(Trigger.CHANNEL_ERROR, future.cause()) directly
             // as the callback is called on a Netty I/O thread, it would bypass the blocking queue
             // and create a race condition with the thread the state machine is executing on
-            mQueue.offer(NettyDataReader.Payload.transportError(future.cause()));
+            mQueue.offer(Payload.channelError(future.cause()));
           }
         });
   }
@@ -401,7 +376,7 @@ public class NettyClientStateMachine {
     if (!tooManyPacketsPending(mQueue, mMaxPacketsInFlight)) {
       NettyUtils.enableAutoRead(mChannel);
     }
-    NettyDataReader.Payload<?> payload;
+    Payload<?> payload;
     try {
       payload = mQueue.poll(mReadTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException interruptedException) {
@@ -410,6 +385,7 @@ public class NettyClientStateMachine {
       return;
     }
     // todo(bowen): make this a visitor pattern
+    // todo(bowen): find a way to do exhaustive enum matching and get rid of the UNKNOWN_PAYLOAD
     if (payload == null) {
       fireNext(mTriggers.mTimeout, new TimeoutException(
           "Timed out when waiting for server response for " + mReadTimeoutMs + " ms"));
@@ -419,11 +395,10 @@ public class NettyClientStateMachine {
       fireNext(Trigger.SERVER_CANCEL);
     } else if (payload.type() == EOF) {
       fireNext(Trigger.EOF);
-    } else if (payload.type() == NettyDataReader.Payload.Type.SERVER_ERROR) {
-      fireNext(mTriggers.mServerError, payload.payload(NettyDataReader.Payload.Type.SERVER_ERROR));
-    } else if (payload.type() == NettyDataReader.Payload.Type.TRANSPORT_ERROR) {
-      fireNext(mTriggers.mChannelError,
-          payload.payload(NettyDataReader.Payload.Type.TRANSPORT_ERROR));
+    } else if (payload.type() == SERVER_ERROR) {
+      fireNext(mTriggers.mServerError, payload.payload(SERVER_ERROR));
+    } else if (payload.type() == CHANNEL_ERROR) {
+      fireNext(mTriggers.mChannelError, payload.payload(CHANNEL_ERROR));
     } else if (payload.type() == HEART_BEAT) {
       fireNext(Trigger.HEART_BEAT);
     } else {
@@ -488,7 +463,7 @@ public class NettyClientStateMachine {
             // Note: cannot call fireNext(Trigger.CHANNEL_ERROR, future.cause()) directly
             // as the callback is called on a Netty I/O thread, it would bypass the blocking queue
             // and create a race condition with the thread the state machine is executing on
-            mQueue.offer(NettyDataReader.Payload.transportError(future.cause()));
+            mQueue.offer(Payload.channelError(future.cause()));
           }
         });
   }
@@ -528,15 +503,15 @@ public class NettyClientStateMachine {
   }
 
   private static boolean tooManyPacketsPending(
-      BlockingQueue<NettyDataReader.Payload<?>> queue, int maxPacketsInFlight) {
+      BlockingQueue<Payload<?>> queue, int maxPacketsInFlight) {
     return queue.size() >= maxPacketsInFlight;
   }
 
   private static class PacketReadHandler extends ChannelInboundHandlerAdapter {
-    private final BlockingQueue<NettyDataReader.Payload<?>> mPackets;
+    private final BlockingQueue<Payload<?>> mPackets;
     private final int mMaxPacketsInFlight;
 
-    PacketReadHandler(BlockingQueue<NettyDataReader.Payload<?>> queue, int maxPacketsInFlight) {
+    PacketReadHandler(BlockingQueue<Payload<?>> queue, int maxPacketsInFlight) {
       mPackets = queue;
       mMaxPacketsInFlight = maxPacketsInFlight;
     }
@@ -550,20 +525,20 @@ public class NettyClientStateMachine {
             .format("Incorrect response type %s, %s.", msg.getClass().getCanonicalName(), msg));
       }
 
-      NettyDataReader.Payload<?> payload;
+      Payload<?> payload;
       RPCProtoMessage rpcProtoMessage = (RPCProtoMessage) msg;
       ProtoMessage message = rpcProtoMessage.getMessage();
       if (message.isReadResponse()) {
         Preconditions.checkState(
             message.asReadResponse().getType() == Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT);
-        payload = NettyDataReader.Payload.ufsReadHeartBeat();
+        payload = Payload.ufsReadHeartBeat();
       } else if (message.isResponse()) {
         Protocol.Response response = message.asResponse();
         // Canceled is considered a valid status and handled in the reader. We avoid creating a
         // CanceledException as an optimization.
         switch (response.getStatus()) {
           case CANCELLED:
-            payload = NettyDataReader.Payload.cancel(
+            payload = Payload.cancel(
                 new CancelledException("Server canceled: " + response.getMessage()));
             break;
           case OK:
@@ -573,10 +548,10 @@ public class NettyClientStateMachine {
                   "dataBuffer.getNettyOutput is not of type ByteBuf");
               ByteBuf data = (ByteBuf) dataBuffer.getNettyOutput();
               // no need to retain this buffer since it's already retained by RPCProtoMessage.decode
-              payload = NettyDataReader.Payload.data(data);
+              payload = Payload.data(data);
             } else {
               // an empty response indicates the worker has done sending data
-              payload = NettyDataReader.Payload.eof();
+              payload = Payload.eof();
             }
             break;
           default:
@@ -584,7 +559,7 @@ public class NettyClientStateMachine {
             AlluxioStatusException error = AlluxioStatusException.from(
                 status.withDescription(String.format("Error from server %s: %s",
                     ctx.channel().remoteAddress(), response.getMessage())));
-            payload = NettyDataReader.Payload.serverError(error);
+            payload = Payload.serverError(error);
         }
       } else {
         throw new IllegalStateException(
@@ -601,7 +576,7 @@ public class NettyClientStateMachine {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
       LOG.error("Exception is caught while reading data from channel {}:",
           ctx.channel(), cause);
-      NettyDataReader.Payload<?> payload = NettyDataReader.Payload.transportError(cause);
+      Payload<?> payload = Payload.channelError(cause);
       mPackets.offer(payload);
       ctx.fireExceptionCaught(cause);
     }
@@ -609,10 +584,122 @@ public class NettyClientStateMachine {
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
       LOG.warn("Channel is closed while reading data from channel {}.", ctx.channel());
-      NettyDataReader.Payload<?> payload = NettyDataReader.Payload.transportError(
+      Payload<?> payload = Payload.channelError(
           new UnavailableException(String.format("Channel %s is closed.", ctx.channel())));
       mPackets.offer(payload);
       ctx.fireChannelUnregistered();
+    }
+  }
+
+  static class Payload<T extends Payload.Type<?>> {
+    interface Type<P> {
+      Class<P> payloadType();
+
+      /** A packet containing data. */
+      Data DATA = new Data();
+      /** A packet containing a heart beat from server. */
+      UfsReadHeartBeat HEART_BEAT = new UfsReadHeartBeat();
+      /** The EOF message. */
+      Eof EOF = new Eof();
+      /** The cancel reply from server, in acknowledge to a client cancel message. */
+      Cancel CANCEL = new Cancel();
+      /**
+       * The server rejected the client due to a bad request, encountered an internal error, etc.,
+       * and sent an error response,
+       * but the channel is otherwise not affected and should be good for reuse.
+       */
+      ServerError SERVER_ERROR = new ServerError();
+      /**
+       * There is an error on the channel, may be an exception from pipeline handlers,
+       * or the channel has been closed, etc. The channel is probably not good for reuse any more.
+       */
+      ChannelError CHANNEL_ERROR = new ChannelError();
+    }
+
+    static class Data implements Type<ByteBuf> {
+      @Override
+      public Class<ByteBuf> payloadType() {
+        return ByteBuf.class;
+      }
+    }
+
+    static class UfsReadHeartBeat implements Type<Void> {
+      @Override
+      public Class<Void> payloadType() {
+        return Void.TYPE;
+      }
+    }
+
+    static class Eof implements Type<Void> {
+      @Override
+      public Class<Void> payloadType() {
+        return Void.TYPE;
+      }
+    }
+
+    static class Cancel implements Type<CancelledException> {
+      @Override
+      public Class<CancelledException> payloadType() {
+        return CancelledException.class;
+      }
+    }
+
+    static class ServerError implements Type<AlluxioStatusException> {
+      @Override
+      public Class<AlluxioStatusException> payloadType() {
+        return AlluxioStatusException.class;
+      }
+    }
+
+    static class ChannelError implements Type<Throwable> {
+      @Override
+      public Class<Throwable> payloadType() {
+        return Throwable.class;
+      }
+    }
+
+    private final T mType;
+    private final Object mPayload;
+
+    private Payload(T type, Object payload) {
+      Preconditions.checkArgument((type.payloadType() == Void.TYPE && payload == null)
+          || type.payloadType().isInstance(payload));
+      mType = type;
+      mPayload = payload;
+    }
+
+    static Payload<Data> data(ByteBuf buf) {
+      return new Payload<>(Type.DATA, buf);
+    }
+
+    static Payload<UfsReadHeartBeat> ufsReadHeartBeat() {
+      return new Payload<>(HEART_BEAT, null);
+    }
+
+    static Payload<Eof> eof() {
+      return new Payload<>(EOF, null);
+    }
+
+    static Payload<Cancel> cancel(CancelledException exception) {
+      return new Payload<>(CANCEL, exception);
+    }
+
+    static Payload<ServerError> serverError(AlluxioStatusException error) {
+      return new Payload<>(SERVER_ERROR, error);
+    }
+
+    static Payload<ChannelError> channelError(Throwable error) {
+      return new Payload<>(CHANNEL_ERROR, error);
+    }
+
+    public T type() {
+      return mType;
+    }
+
+    public <P> P payload(Type<P> type) {
+      Preconditions.checkArgument(type == mType, "payload type mismatch");
+      Class<P> clazz = type.payloadType();
+      return clazz.cast(mPayload);
     }
   }
 }
