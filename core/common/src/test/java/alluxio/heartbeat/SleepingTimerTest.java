@@ -48,7 +48,7 @@ public final class SleepingTimerTest {
   public void warnWhenExecutionTakesLongerThanInterval() throws Exception {
     SleepingTimer timer =
         new SleepingTimer(THREAD_NAME, mMockLogger, mFakeClock, mMockSleeper,
-            () -> new FixedIntervalSupplier(INTERVAL_MS));
+            () -> new FixedIntervalSupplier(INTERVAL_MS, mMockLogger));
 
     timer.tick();
     mFakeClock.addTimeMs(5 * INTERVAL_MS);
