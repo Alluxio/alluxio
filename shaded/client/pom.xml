@@ -293,6 +293,10 @@
                     <exclude>org/rocksdb/**/*</exclude>
                   </excludes>
                 </relocation>
+                <relocation>
+                  <pattern>software/amazon/ion/</pattern>
+                  <shadedPattern>${shading.prefix}.software.amazon.ion</shadedPattern>
+                </relocation>
               </relocations>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
