@@ -150,12 +150,15 @@ public class IOTaskSummary implements Summary {
   public static class SpeedStat implements JsonSerializable {
     public double mTotalDurationSeconds;
     public long mTotalSizeBytes;
+    // Max speed among all nodes
     public double mMaxSpeedMbps;
+    // Min speed among all nodes
     public double mMinSpeedMbps;
-    // Average speed of all points
+    // Average speed of all nodes
     public double mAvgSpeedMbps;
-    // The average speed to write/read UFS on the cluster view
+    // Cluster-wide throughput
     public double mClusterAvgSpeedMbps;
+    // Standard deviation of speed reported by each node
     public double mStdDev;
 
     /**
