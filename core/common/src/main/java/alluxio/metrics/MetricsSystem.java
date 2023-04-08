@@ -86,7 +86,6 @@ public final class MetricsSystem {
   // A flag telling whether metrics have been reported yet.
   // Using this prevents us from initializing {@link #SHOULD_REPORT_METRICS} more than once
   private static Set<InstanceType> sReported = new HashSet<>();
-  private static final int sSecondsInAMinute = 60;
   // The source of the metrics in this metrics system.
   // It can be set through property keys based on process types.
   // Local hostname will be used if no related property key founds.
@@ -94,7 +93,7 @@ public final class MetricsSystem {
       CommonUtils.memoize(() -> constructSourceName());
   private static final Map<String, InstrumentedExecutorService>
       EXECUTOR_SERVICES = new ConcurrentHashMap<>();
-
+  private static final int SECONDS_IN_A_MINUTE = 60;
 
   /**
    * An enum of supported instance type.
@@ -791,7 +790,7 @@ public final class MetricsSystem {
         // that a value marked. For clients, especially short-life clients,
         // the minute rates will be zero for their whole life.
         // That's why all throughput meters are not aggregated at cluster level.
-        rpcMetrics.add(Metric.from(entry.getKey(), meter.getOneMinuteRate() / sSecondsInAMinute,
+        rpcMetrics.add(Metric.from(entry.getKey(), meter.getOneMinuteRate() / SECONDS_IN_A_MINUTE,
             MetricType.METER).toProto());
       } else if (metric instanceof Timer) {
         Timer timer = (Timer) metric;
@@ -876,7 +875,7 @@ public final class MetricsSystem {
       return Metric.from(name, counter.getCount(), MetricType.COUNTER);
     } else if (metric instanceof Meter) {
       Meter meter = (Meter) metric;
-      return Metric.from(name, meter.getOneMinuteRate() / sSecondsInAMinute, MetricType.METER);
+      return Metric.from(name, meter.getOneMinuteRate() / SECONDS_IN_A_MINUTE, MetricType.METER);
     } else if (metric instanceof Timer) {
       Timer timer = (Timer) metric;
       return Metric.from(name, timer.getCount(), MetricType.TIMER);
@@ -908,7 +907,7 @@ public final class MetricsSystem {
             .setDoubleValue(((Counter) metric).getCount());
       } else if (metric instanceof Meter) {
         valueBuilder.setMetricType(MetricType.METER)
-            .setDoubleValue(((Meter) metric).getOneMinuteRate() / sSecondsInAMinute);
+            .setDoubleValue(((Meter) metric).getOneMinuteRate() / SECONDS_IN_A_MINUTE);
       } else if (metric instanceof Timer) {
         valueBuilder.setMetricType(MetricType.TIMER)
             .setDoubleValue(((Timer) metric).getCount());
