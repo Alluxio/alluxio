@@ -726,9 +726,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
             status = new UfsDirectoryStatus(finalPath, permissions.getOwner(),
                 permissions.getGroup(), permissions.getMode());
           } else {
-            status = new UfsFileStatus(finalPath, result.eTag(), result.contentLength(),
-                lastModifiedTime, permissions.getOwner(), permissions.getGroup(),
-                permissions.getMode(), bytes);
+            status = new UfsFileStatus(finalPath,
+                result.eTag().substring(1, result.eTag().length() - 1),
+                result.contentLength(), lastModifiedTime, permissions.getOwner(),
+                permissions.getGroup(), permissions.getMode(), bytes);
           }
           onComplete.accept(new UfsLoadResult(Stream.of(status), 1, null,
               null, false, status.isFile()));
@@ -758,11 +759,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
     mAsyncClient.listObjectsV2(request.build())
         .whenCompleteAsync((result, err) -> {
           if (err != null) {
-            System.out.println("got error");
             onError.accept(err);
           } else {
             try {
-              System.out.printf("got result, cont token %s%n", result.nextContinuationToken());
               AlluxioURI lastItem = null;
               String lastPrefix = result.commonPrefixes().size() == 0 ? null
                   : result.commonPrefixes().get(result.commonPrefixes().size() - 1).prefix();
@@ -778,7 +777,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
               }
               onComplete.accept(
                   new UfsLoadResult(resultToStream(result),
-                      result.contents().size() + result.commonPrefixes().size(),
+                      result.keyCount(),
                       result.nextContinuationToken(), lastItem, result.isTruncated(), false));
             } catch (Throwable t) {
               onError.accept(t);
@@ -796,7 +795,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
       Instant lastModifiedDate = obj.lastModified();
       Long lastModifiedTime = lastModifiedDate == null ? null
           : lastModifiedDate.toEpochMilli();
-      return new UfsFileStatus(obj.key(), obj.eTag(), obj.size(), lastModifiedTime,
+      return new UfsFileStatus(obj.key(),
+          obj.eTag().substring(1, obj.eTag().length() - 1), obj.size(), lastModifiedTime,
           permissions.getOwner(), permissions.getGroup(), permissions.getMode(), bytes);
     }
   }

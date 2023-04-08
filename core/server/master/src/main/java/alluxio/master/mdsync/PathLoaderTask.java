@@ -14,6 +14,7 @@ package alluxio.master.mdsync;
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.file.options.DescendantType;
+import alluxio.file.options.DirectoryLoadType;
 import alluxio.master.file.metasync.SyncResult;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
@@ -60,7 +61,7 @@ public class PathLoaderTask {
 
   private DescendantType computeDescendantType() {
     if (mTaskInfo.getDescendantType() == DescendantType.ALL
-        && mTaskInfo.getLoadByDirectory() != DirectoryLoadType.NONE) {
+        && mTaskInfo.getLoadByDirectory() != DirectoryLoadType.SINGLE_LISTING) {
       return DescendantType.ONE;
     }
     return mTaskInfo.getDescendantType();

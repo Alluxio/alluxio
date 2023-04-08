@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.conf.path.TrieNode;
 import alluxio.file.options.DescendantType;
+import alluxio.file.options.DirectoryLoadType;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
@@ -64,7 +65,8 @@ public class TaskTracker implements Closeable {
       boolean allowConcurrentGetStatus, boolean allowConcurrentNonRecursiveList,
       UfsSyncPathCache syncPathCache, SyncProcess syncProcess,
       Function<AlluxioURI, CloseableResource<UfsClient>> clientSupplier) {
-    LOG.info("Metadata sync executor threads {}, max concurrent ufs requests {}", executorThreads, maxUfsRequests);
+    LOG.info("Metadata sync executor threads {}, max concurrent ufs requests {}",
+        executorThreads, maxUfsRequests);
     mSyncPathCache = syncPathCache;
     mLoadRequestExecutor = new LoadRequestExecutor(maxUfsRequests,
         new LoadResultExecutor(syncProcess, executorThreads, syncPathCache));

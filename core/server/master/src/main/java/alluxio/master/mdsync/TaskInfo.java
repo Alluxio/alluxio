@@ -13,6 +13,7 @@ package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
 import alluxio.file.options.DescendantType;
+import alluxio.file.options.DirectoryLoadType;
 
 import javax.annotation.Nullable;
 
@@ -63,7 +64,7 @@ public class TaskInfo {
 
   public boolean hasDirLoadTasks() {
     return mDescendantType == DescendantType.ALL
-        && mLoadByDirectory != DirectoryLoadType.NONE;
+        && mLoadByDirectory != DirectoryLoadType.SINGLE_LISTING;
   }
 
   String getStartAfter() {
@@ -82,7 +83,7 @@ public class TaskInfo {
     return mId;
   }
 
-  DirectoryLoadType getLoadByDirectory() {
+  public DirectoryLoadType getLoadByDirectory() {
     return mLoadByDirectory;
   }
 

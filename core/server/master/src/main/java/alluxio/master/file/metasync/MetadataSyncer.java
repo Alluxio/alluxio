@@ -25,6 +25,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.file.options.DescendantType;
+import alluxio.file.options.DirectoryLoadType;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -46,7 +47,6 @@ import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.mdsync.BaseTask;
-import alluxio.master.mdsync.DirectoryLoadType;
 import alluxio.master.mdsync.LoadResult;
 import alluxio.master.mdsync.MdSync;
 import alluxio.master.mdsync.PathSequence;
@@ -132,30 +132,32 @@ public class MetadataSyncer implements SyncProcess {
    * Perform a metadata sync on the given path. Launches the task asynchronously.
    * @param alluxioPath the path to sync
    * @param descendantType the depth of descendents to load
+   * @param directoryLoadType the type of listing to do on directories in the UFS
    * @param syncInterval the sync interval to check if a sync is needed
    * @param isAsyncMetadataLoading if the sync is initiated by an async load metadata cli command
    * @return the running task
    */
   public BaseTask syncPath(
-      AlluxioURI alluxioPath, DescendantType descendantType,
+      AlluxioURI alluxioPath, DescendantType descendantType, DirectoryLoadType directoryLoadType,
       long syncInterval, boolean isAsyncMetadataLoading) throws InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
     AlluxioURI ufsPath = resolution.getUri();
     return mTaskTracker.launchTaskAsync(mMdSync, ufsPath, alluxioPath, null,
-        descendantType, syncInterval, DirectoryLoadType.NONE, !isAsyncMetadataLoading);
+        descendantType, syncInterval, directoryLoadType, !isAsyncMetadataLoading);
   }
 
   /**
    * Perform a metadata sync on the given path. Launches the task asynchronously.
    * @param alluxioPath the path to sync
    * @param descendantType the depth of descendents to load
+   * @param directoryLoadType the type of listing to do on directories in the UFS
    * @param syncInterval the sync interval to check if a sync is needed
    * @return the running task
    */
   public BaseTask syncPath(
-      AlluxioURI alluxioPath, DescendantType descendantType,
+      AlluxioURI alluxioPath, DescendantType descendantType, DirectoryLoadType directoryLoadType,
       long syncInterval) throws InvalidPathException {
-    return syncPath(alluxioPath, descendantType, syncInterval, false);
+    return syncPath(alluxioPath, descendantType, directoryLoadType, syncInterval, false);
   }
 
   private CloseableResource<UfsClient> getUfsClient(AlluxioURI ufsPath) {
@@ -290,7 +292,7 @@ public class MetadataSyncer implements SyncProcess {
       context.startSync();
 
       MountTable.ReverseResolution reverseResolution
-          = reverseResolve(loadResult.getTaskInfo().getBasePath());
+          = reverseResolve(loadResult.getBaseLoadPath());
       try (CloseableResource<UnderFileSystem> ufsResource =
                getClient(reverseResolution).acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
@@ -303,6 +305,9 @@ public class MetadataSyncer implements SyncProcess {
         // and without the s3://bucket, e.g. the above would be /dir + /
         final String ufsMountPath = PathUtils.normalizePath(
             ufsMountURI.getPath(), AlluxioURI.SEPARATOR);
+        // the loaded and normalized ufs path without the bucket, e.g. /dir/
+        final String baseLoadPath = PathUtils.normalizePath(loadResult.getBaseLoadPath().getPath(),
+            AlluxioURI.SEPARATOR);
 
         // the mounted path in alluxio, eg /mount
         AlluxioURI alluxioMountUri = reverseResolution.getMountInfo().getAlluxioUri();
@@ -310,25 +315,27 @@ public class MetadataSyncer implements SyncProcess {
             alluxioMountUri.getPath(), AlluxioURI.SEPARATOR);
 
         Stream<UfsItem> stream = loadResult.getUfsLoadResult().getItems().map(status -> {
-          // If we are loading by directory, then we must create a new load task on each
-          // directory traversed
-          if (loadResult.getTaskInfo().hasDirLoadTasks() && status.isDirectory()) {
-            try {
-              AlluxioURI fullPath = new AlluxioURI(ufsPathToAlluxioPath(
-                  status.getName(), ufsMountPath, alluxioMountPath));
+          UfsItem item = new UfsItem(status, ufsMountPath, alluxioMountPath);
+          try {
+            // If we are loading by directory, then we must create a new load task on each
+            // directory traversed
+            if (loadResult.getTaskInfo().hasDirLoadTasks() && status.isDirectory()
+                && !item.mAlluxioUri.isAncestorOf(loadResult.getTaskInfo().getAlluxioPath())
+                && !(baseLoadPath.equals(
+                PathUtils.normalizePathStart(status.getName(), AlluxioURI.SEPARATOR)))) {
               // first check if the directory needs to be synced
-              if (syncPathCache.shouldSyncPath(
-                  reverseResolve(fullPath).getUri(),
+              if (syncPathCache.shouldSyncPath(item.mAlluxioUri,
                   loadResult.getTaskInfo().getSyncInterval(),
                   loadResult.getTaskInfo().getDescendantType()).isShouldSync()) {
                 loadResult.getTaskInfo().getMdSync()
-                    .loadNestedDirectory(loadResult.getTaskInfo().getId(), fullPath);
+                    .loadNestedDirectory(loadResult.getTaskInfo().getId(),
+                        ufsMountBaseUri.join(status.getName()));
               }
-            } catch (InvalidPathException e) {
-              throw new InvalidArgumentRuntimeException(e);
             }
+          } catch (Exception e) {
+            throw new InvalidArgumentRuntimeException(e);
           }
-          return new UfsItem(status, ufsMountPath, alluxioMountPath);
+          return item;
         });
 
         PeekingIterator<UfsItem> ufsIterator = new PeekingIterator<>(stream.iterator());
@@ -347,8 +354,7 @@ public class MetadataSyncer implements SyncProcess {
         // load path
         AlluxioURI readFrom = new AlluxioURI(ufsPathToAlluxioPath(
             loadResult.getPreviousLast().map(AlluxioURI::getPath).orElse(
-                PathUtils.normalizePath(loadResult.getBaseLoadPath().getPath(),
-                    AlluxioURI.SEPARATOR)), ufsMountPath, alluxioMountPath));
+                baseLoadPath), ufsMountPath, alluxioMountPath));
         // we skip the initial inode if this is not the initial listing, as this
         // inode was processed in the previous listing
         boolean skipInitialReadFrom = loadResult.getPreviousLast().isPresent();
@@ -389,7 +395,10 @@ public class MetadataSyncer implements SyncProcess {
           }
           // Get the inode of the sync start
           try (SkippableInodeIterator inodeIterator = mInodeStore.getSkippableChildrenIterator(
-              readOptionBuilder.build(), context.isRecursive(), lockedInodePath)) {
+              readOptionBuilder.build(), context.isRecursive()
+                  && loadResult.getTaskInfo().getLoadByDirectory()
+                  == DirectoryLoadType.SINGLE_LISTING,
+              lockedInodePath)) {
 
             SyncProcessState syncState = new SyncProcessState(alluxioMountPath,
                 alluxioSyncPath, lockedInodePath,
@@ -702,7 +711,6 @@ public class MetadataSyncer implements SyncProcess {
                 .setUnchecked(true))
         .setMetadataLoad(true);
     mFsMaster.deleteInternal(context.getRpcContext(), lockedInodePath, syncDeleteContext, true);
-    //System.out.println("Deleted file " + lockedInodePath.getUri());
   }
 
   private void updateInodeMetadata(
@@ -726,7 +734,6 @@ public class MetadataSyncer implements SyncProcess {
     // Why previously clock is used?
     mFsMaster.setAttributeSingleFile(context.getRpcContext(), lockedInodePath, false,
         CommonUtils.getCurrentMs(), ctx);
-    //System.out.println("Updated file " + lockedInodePath.getUri());
   }
 
   private List<Inode> createInodeFileMetadata(
@@ -818,7 +825,6 @@ public class MetadataSyncer implements SyncProcess {
         resolution.getUri(),
         createDirectoryContext
     );
-    //System.out.println("Created directory " + lockedInodePath.getUri());
   }
 
   /**

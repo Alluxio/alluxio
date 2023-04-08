@@ -71,7 +71,7 @@ public class TaskStats {
 
   void gotBatch(int size) {
     mBatches.incrementAndGet();
-    System.out.println(mStatuses.addAndGet(size));
+    mStatuses.addAndGet(size);
   }
 
   void gotLoadRequest() {

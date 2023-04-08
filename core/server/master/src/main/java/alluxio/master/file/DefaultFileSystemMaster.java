@@ -4164,7 +4164,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     */
     try {
       BaseTask result = mMetadataSyncer.syncPath(path,
-          GrpcUtils.fromProto(context.getOptions().getLoadDescendantType()), 0);
+          GrpcUtils.fromProto(context.getOptions().getLoadDescendantType()),
+          GrpcUtils.fromProto(context.getOptions().getDirectoryLoadType()), 0);
       result.waitComplete(0);
       return SyncMetadataPResponse.newBuilder().setSuccess(result.succeeded())
           .setDebugInfo(
@@ -4180,7 +4181,8 @@ public class DefaultFileSystemMaster extends CoreMaster
   public SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path, SyncMetadataContext context)
       throws InvalidPathException, IOException {
     BaseTask result = mMetadataSyncer.syncPath(path,
-        GrpcUtils.fromProto(context.getOptions().getLoadDescendantType()), 0, true);
+        GrpcUtils.fromProto(context.getOptions().getLoadDescendantType()),
+        GrpcUtils.fromProto(context.getOptions().getDirectoryLoadType()), 0, true);
     return SyncMetadataAsyncPResponse.newBuilder()
         .setSubmitted(true).setTaskId(result.getTaskInfo().getId()).build();
   }

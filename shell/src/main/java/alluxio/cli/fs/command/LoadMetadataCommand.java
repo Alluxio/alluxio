@@ -17,6 +17,7 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.DirectoryLoadPType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.ListStatusPOptions;
@@ -70,6 +71,13 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
           .desc("use the load metadata v2 implementation")
           .build();
 
+  private static final Option DIR_LOAD_TYPE_OPTION =
+      Option.builder("d")
+          .required(false)
+          .hasArg()
+          .desc("load directory type, can be SINGLE_LISTING, BFS, or DFS")
+          .build();
+
   /**
    * Constructs a new instance to load metadata for the given Alluxio path from UFS.
    *
@@ -90,6 +98,7 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
         .addOption(RECURSIVE_OPTION)
         .addOption(FORCE_OPTION)
         .addOption(ASYNC_OPTION)
+        .addOption(DIR_LOAD_TYPE_OPTION)
         .addOption(V2_OPTION);
   }
 
@@ -97,7 +106,10 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
     if (cl.hasOption(V2_OPTION.getOpt())) {
-      loadMetadataV2(plainPath, cl.hasOption(RECURSIVE_OPTION.getOpt()), cl.hasOption(ASYNC_OPTION.getOpt()));
+      DirectoryLoadPType loadPType = DirectoryLoadPType.valueOf(cl.getOptionValue(
+          DIR_LOAD_TYPE_OPTION.getOpt(), "SINGLE_LISTING"));
+      loadMetadataV2(plainPath, cl.hasOption(RECURSIVE_OPTION.getOpt()), loadPType,
+          cl.hasOption(ASYNC_OPTION.getOpt()));
     } else {
       loadMetadata(plainPath, cl.hasOption(RECURSIVE_OPTION.getOpt()),
           cl.hasOption(FORCE_OPTION.getOpt()));
@@ -113,10 +125,13 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
     return 0;
   }
 
-  private void loadMetadataV2(AlluxioURI path, boolean recursive, boolean async) throws IOException {
+  private void loadMetadataV2(
+      AlluxioURI path, boolean recursive, DirectoryLoadPType dirLoadType,
+      boolean async) throws IOException {
     SyncMetadataPOptions options =
         SyncMetadataPOptions.newBuilder().setLoadDescendantType(recursive
-            ? LoadDescendantPType.ALL : LoadDescendantPType.ONE).build();
+            ? LoadDescendantPType.ALL : LoadDescendantPType.ONE)
+            .setDirectoryLoadType(dirLoadType).build();
     if (!async) {
       try {
         SyncMetadataPResponse response = mFileSystem.syncMetadata(path, options);

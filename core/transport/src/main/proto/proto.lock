@@ -3993,6 +3993,11 @@
                 "id": 1,
                 "name": "loadDescendantType",
                 "type": "fscommon.LoadDescendantPType"
+              },
+              {
+                "id": 2,
+                "name": "directoryLoadType",
+                "type": "fscommon.DirectoryLoadPType"
               }
             ]
           },
@@ -4458,6 +4463,22 @@
               },
               {
                 "name": "ALL",
+                "integer": 2
+              }
+            ]
+          },
+          {
+            "name": "DirectoryLoadPType",
+            "enum_fields": [
+              {
+                "name": "SINGLE_LISTING"
+              },
+              {
+                "name": "BFS",
+                "integer": 1
+              },
+              {
+                "name": "DFS",
                 "integer": 2
               }
             ]

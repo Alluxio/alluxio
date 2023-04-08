@@ -16,9 +16,9 @@ import static org.junit.Assert.assertFalse;
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.file.options.DescendantType;
+import alluxio.file.options.DirectoryLoadType;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.resource.CloseableResource;
-import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UfsClient;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
@@ -183,7 +183,7 @@ public class S3Test {
   public void s3Test() throws Throwable {
     Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMdSync,
         new AlluxioURI("c3991175-9f1e-4ec6-8ed9-23b1370ed4ea/"), new AlluxioURI("/"),
-        null, DescendantType.ALL, 0, DirectoryLoadType.NONE);
+        null, DescendantType.ALL, 0, DirectoryLoadType.SINGLE_LISTING);
     result.getSecond().waitComplete(0);
     System.out.println(result.getSecond().getTaskInfo().getStats());
   }

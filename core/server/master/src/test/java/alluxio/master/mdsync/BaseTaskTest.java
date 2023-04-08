@@ -18,6 +18,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.file.options.DirectoryLoadType;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -40,7 +41,7 @@ public class BaseTaskTest {
   public void PathIsCoveredNone() {
     BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
-        NONE, 0, DirectoryLoadType.NONE, 0), mClock.millis(), a -> null);
+        NONE, 0, DirectoryLoadType.SINGLE_LISTING, 0), mClock.millis(), a -> null);
     assertTrue(path.pathIsCovered(new AlluxioURI("/path"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/p"), NONE));
@@ -64,7 +65,7 @@ public class BaseTaskTest {
   public void PathIsCoveredOne() {
     BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
-        ONE, 0, DirectoryLoadType.NONE, 0), mClock.millis(), a -> null);
+        ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0), mClock.millis(), a -> null);
     assertTrue(path.pathIsCovered(new AlluxioURI("/path"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/p"), NONE));
@@ -91,7 +92,7 @@ public class BaseTaskTest {
   public void PathIsCoveredAll() {
     BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
-        ALL, 0, DirectoryLoadType.NONE, 0), mClock.millis(), a -> null);
+        ALL, 0, DirectoryLoadType.SINGLE_LISTING, 0), mClock.millis(), a -> null);
     assertTrue(path.pathIsCovered(new AlluxioURI("/path"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/p"), NONE));

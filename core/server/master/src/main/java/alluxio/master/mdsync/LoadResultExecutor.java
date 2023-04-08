@@ -33,7 +33,7 @@ class LoadResultExecutor implements Closeable {
       SyncProcess syncProcess,
       int executorThreads, UfsSyncPathCache syncPathCache) {
     mExecutor = Executors.newFixedThreadPool(executorThreads,
-        ThreadFactoryUtils.build("mdsync-perform-sync", true));
+        ThreadFactoryUtils.build("mdsync-perform-sync-%d", true));
     mSyncPathCache = syncPathCache;
     mSyncProcess = syncProcess;
   }

@@ -17,6 +17,7 @@ import alluxio.exception.runtime.DeadlineExceededRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.status.CancelledException;
 import alluxio.file.options.DescendantType;
+import alluxio.file.options.DirectoryLoadType;
 import alluxio.master.file.metasync.SyncResult;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
@@ -61,7 +62,7 @@ public abstract class BaseTask implements PathWaiter {
       TaskInfo info, long startTime,
       Function<AlluxioURI, CloseableResource<UfsClient>> clientSupplier,
       boolean removeOnComplete) {
-    if (info.getLoadByDirectory() != DirectoryLoadType.NONE
+    if (info.getLoadByDirectory() != DirectoryLoadType.SINGLE_LISTING
         && info.getDescendantType() == DescendantType.ALL) {
       return new DirectoryPathWaiter(info, startTime, clientSupplier, removeOnComplete);
     } else {

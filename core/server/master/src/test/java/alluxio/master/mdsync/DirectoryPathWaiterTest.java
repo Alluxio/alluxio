@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 
 import alluxio.AlluxioURI;
+import alluxio.file.options.DirectoryLoadType;
 import alluxio.master.file.metasync.SyncResult;
 
 import org.junit.After;

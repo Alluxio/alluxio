@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.file.options.DescendantType;
+import alluxio.file.options.DirectoryLoadType;
 import alluxio.master.file.meta.SyncCheck;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.resource.CloseableResource;
@@ -146,7 +147,7 @@ public class TaskTrackerTest {
       }).when(mSyncProcess).performSync(any(), any());
       Future<Pair<Boolean, BaseTask>> task = mThreadPool.submit(() ->
           mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
-              DescendantType.ALL, 0, DirectoryLoadType.NONE));
+              DescendantType.ALL, 0, DirectoryLoadType.SINGLE_LISTING));
       CommonUtils.waitForResult("Concurrent load", remainingLoadCount::get,
           v -> v == totalBatches - concurrentUfsLoads - concurrentProcessing,
           WaitForOptions.defaults().setTimeoutMs(1000));
@@ -323,7 +324,7 @@ public class TaskTrackerTest {
       processingCount.set(0);
       Future<Pair<Boolean, BaseTask>> task = mThreadPool.submit(() ->
           mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
-              DescendantType.ALL, 0, DirectoryLoadType.NONE));
+              DescendantType.ALL, 0, DirectoryLoadType.SINGLE_LISTING));
       Pair<Boolean, BaseTask> result = task.get();
       assertFalse(result.getFirst());
       assertThrows(IOException.class, () -> result.getSecond().waitComplete(WAIT_TIMEOUT));
@@ -359,7 +360,7 @@ public class TaskTrackerTest {
       remainingLoadCount.set(totalBatches);
       Future<Pair<Boolean, BaseTask>> task = mThreadPool.submit(() ->
           mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
-              DescendantType.ALL, 0, DirectoryLoadType.NONE));
+              DescendantType.ALL, 0, DirectoryLoadType.SINGLE_LISTING));
       Pair<Boolean, BaseTask> result = task.get();
       assertFalse(result.getFirst());
       assertThrows(RuntimeException.class, () -> result.getSecond().waitComplete(WAIT_TIMEOUT));
@@ -398,7 +399,7 @@ public class TaskTrackerTest {
 
       Future<Pair<Boolean, BaseTask>> task = mThreadPool.submit(() ->
           mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
-              DescendantType.ALL, 0, DirectoryLoadType.NONE));
+              DescendantType.ALL, 0, DirectoryLoadType.SINGLE_LISTING));
       CommonUtils.waitForResult("Concurrent load", count::get,
           v -> v == totalBatches - concurrentUfsLoads - 1,
           WaitForOptions.defaults().setTimeoutMs(1000));
@@ -456,7 +457,7 @@ public class TaskTrackerTest {
       mUfsClient.setResult(Collections.singletonList(Stream.of(mFileStatus)).iterator());
       Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"),
           new AlluxioURI("/"), null,
-          DescendantType.NONE, 0, DirectoryLoadType.NONE);
+          DescendantType.NONE, 0, DirectoryLoadType.SINGLE_LISTING);
       assertTrue(result.getFirst());
       result.getSecond().waitComplete(WAIT_TIMEOUT);
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
@@ -472,7 +473,7 @@ public class TaskTrackerTest {
           Stream.of(mFileStatus)).iterator());
       Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"),
           new AlluxioURI("/"), null,
-          DescendantType.NONE, 0, DirectoryLoadType.NONE);
+          DescendantType.NONE, 0, DirectoryLoadType.SINGLE_LISTING);
       assertTrue(result.getFirst());
       result.getSecond().waitComplete(WAIT_TIMEOUT);
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
@@ -487,7 +488,7 @@ public class TaskTrackerTest {
       mUfsClient.setError(new Throwable());
       Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"),
           new AlluxioURI("/"), null,
-          DescendantType.NONE, 0, DirectoryLoadType.NONE);
+          DescendantType.NONE, 0, DirectoryLoadType.SINGLE_LISTING);
       assertFalse(result.getFirst());
       assertThrows(Throwable.class, () -> result.getSecond().waitComplete(WAIT_TIMEOUT));
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
@@ -512,7 +513,7 @@ public class TaskTrackerTest {
       count.set(totalBatches);
       Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMdSync,
           new AlluxioURI("/"), new AlluxioURI("/"), null, DescendantType.NONE, 0,
-          DirectoryLoadType.NONE);
+          DirectoryLoadType.SINGLE_LISTING);
       assertTrue(result.getFirst());
       result.getSecond().waitComplete(WAIT_TIMEOUT);
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
@@ -530,7 +531,7 @@ public class TaskTrackerTest {
       Mockito.doThrow(new IOException()).when(mSyncProcess).performSync(any(), any());
       Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"),
           new AlluxioURI("/"), null,
-          DescendantType.NONE, 0, DirectoryLoadType.NONE);
+          DescendantType.NONE, 0, DirectoryLoadType.SINGLE_LISTING);
       assertFalse(result.getFirst());
       assertThrows(IOException.class, () -> result.getSecond().waitComplete(WAIT_TIMEOUT));
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
@@ -553,11 +554,11 @@ public class TaskTrackerTest {
       // Submit two concurrent tasks on the same path
       Future<Pair<Boolean, BaseTask>> task1 = mThreadPool.submit(() ->
           mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
-              DescendantType.NONE, 0, DirectoryLoadType.NONE));
+              DescendantType.NONE, 0, DirectoryLoadType.SINGLE_LISTING));
       assertThrows(TimeoutException.class, () -> task1.get(1, TimeUnit.SECONDS));
       Future<Pair<Boolean, BaseTask>> task2 = mThreadPool.submit(() ->
           mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
-              DescendantType.NONE, 0, DirectoryLoadType.NONE));
+              DescendantType.NONE, 0, DirectoryLoadType.SINGLE_LISTING));
       assertThrows(TimeoutException.class, () -> task2.get(1, TimeUnit.SECONDS));
       // Let one task be processed
       blocker.release();

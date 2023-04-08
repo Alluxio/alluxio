@@ -665,6 +665,7 @@ message GetJobProgressPResponse {
 
 message SyncMetadataPOptions {
   optional fscommon.LoadDescendantPType loadDescendantType = 1;
+  optional fscommon.DirectoryLoadPType directoryLoadType = 2;
   // TODO: add the followings:
   // the when to sync options (NEVER/ONCE/Time based/Invalidation based/ALWAYS)
   // currently it is always ALWAYS
