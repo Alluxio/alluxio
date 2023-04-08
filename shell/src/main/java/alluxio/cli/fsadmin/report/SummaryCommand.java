@@ -121,7 +121,6 @@ public class SummaryCommand {
     } else {
       print("Raft-based Journal: false");
     }
-    print("");
     String formatString = "%-32s %-8s %-32s";
     print(String.format(formatString, "Master Address", "State", "Version"));
     for (MasterVersion masterVersion: masterInfo.getMasterVersionsList()) {
