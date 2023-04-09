@@ -3231,6 +3231,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The period for the block integrity check, disabled if <= 0.")
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_PERSIST_CHECKER_POOL_THREADS =
+      intBuilder(Name.MASTER_PERSIST_CHECKER_POOL_THREADS)
+          .setDefaultValue(128)
+          .setDescription("The number of threads in the thread pool used to "
+              + "perform persistence checks.")
+          .build();
   public static final PropertyKey MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
       durationBuilder(Name.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS)
           .setDefaultValue("1s")
@@ -8114,6 +8120,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.metrics.refresh.interval";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval";
+    public static final String MASTER_PERSIST_CHECKER_POOL_THREADS =
+        "alluxio.master.persist.checker.pool.threads";
     public static final String MASTER_METRICS_HEAP_ENABLED =
         "alluxio.master.metrics.heap.enabled";
     public static final String MASTER_METRICS_SERVICE_THREADS =

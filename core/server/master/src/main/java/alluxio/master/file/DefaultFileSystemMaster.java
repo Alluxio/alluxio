@@ -243,9 +243,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
 
-  /** The number of threads to use in the {@link #mPersistCheckerPool}. */
-  private static final int PERSIST_CHECKER_POOL_THREADS = 128;
-
   /**
    * Locking in DefaultFileSystemMaster
    *
@@ -742,9 +739,14 @@ public class DefaultFileSystemMaster extends CoreMaster
               new PersistenceScheduler(),
               () -> Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS),
               Configuration.global(), mMasterContext.getUserState()));
+      int persistCheckerThreads = Configuration.getInt(
+          PropertyKey.MASTER_PERSIST_CHECKER_POOL_THREADS);
+      Preconditions.checkArgument(persistCheckerThreads > 0,
+          "The value of '" + PropertyKey.MASTER_PERSIST_CHECKER_POOL_THREADS.getName()
+          + "' should be greater than 0");
       mPersistCheckerPool =
-          new java.util.concurrent.ThreadPoolExecutor(PERSIST_CHECKER_POOL_THREADS,
-              PERSIST_CHECKER_POOL_THREADS, 1, java.util.concurrent.TimeUnit.MINUTES,
+          new java.util.concurrent.ThreadPoolExecutor(persistCheckerThreads,
+              persistCheckerThreads, 1, java.util.concurrent.TimeUnit.MINUTES,
               new LinkedBlockingQueue<>(),
               alluxio.util.ThreadFactoryUtils.build("Persist-Checker-%d", true));
       mPersistCheckerPool.allowCoreThreadTimeOut(true);
@@ -5465,5 +5467,14 @@ public class DefaultFileSystemMaster extends CoreMaster
    */
   public Scheduler getScheduler() {
     return mScheduler;
+  }
+
+  /**
+   * Access at the time of testing.
+   * @return {@link #mPersistCheckerPool}
+   */
+  @VisibleForTesting
+  public ThreadPoolExecutor getPersistCheckerPool() {
+    return mPersistCheckerPool;
   }
 }
