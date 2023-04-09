@@ -1,4 +1,4 @@
-name: Java 8 Integration Tests (w/ webui)
+name: Java 11 Unit Tests
 
 on: [pull_request]
 
@@ -11,7 +11,9 @@ jobs:
       matrix:
         modules:
           - >-
-            alluxio.web.**
+            !alluxio.client.**,!alluxio.master.**
+          - >-
+            alluxio.client.**,alluxio.master.**
 
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.title, 'DOCFIX') &&
@@ -30,7 +32,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-java8-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-java11-${{ hashFiles('**/pom.xml') }}
 
       - name: Cache local Go modules
         uses: actions/cache@v2
@@ -45,10 +47,10 @@ jobs:
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!shaded/client,!integration/tools/hms,!integration/yarn,!assembly/client,!assembly/server \
-          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
+          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!shaded/client,!assembly/client,!assembly/server \
+          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl '!tests,!webui'
         timeout-minutes: 60
-      
+
       - name: Archive artifacts
         continue-on-error: true
         uses: actions/upload-artifact@v2
