@@ -13,8 +13,6 @@ priority: 2
 
 This page describes the basic logging function provided by Alluxio server processes (e.g., masters, workers and etc)
 and application processes utilizing Alluxio clients (e.g., Spark or MapReduce jobs running on Alluxio).
-Note that there is an experimental feature that streams server-side and client-side logs to separate Alluxio logservers
-(see [remote logging]({{ '/en/administration/Remote-Logging.html' | relativize_url }}) for more details).
 
 Alluxio logging is implemented using [`log4j`](https://logging.apache.org/log4j/) and thus
 most of the configuration is done through modifying `log4j.properties`.

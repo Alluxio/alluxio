@@ -27,7 +27,6 @@ Where component is one of:
   proxies             \tStop proxies on master and worker nodes.
   worker  [-c cache]  \tStop local worker.
   workers [-c cache]  \tStop workers on worker nodes.
-  logserver           \tStop the logserver
 "
 USAGE+="
 -c cache   save the worker ramcache(s) from the worker node(s) to the
@@ -177,12 +176,6 @@ stop_workers() {
   ${LAUNCHER} "${KILL_COMMAND[@]}" ${start_opts}
 }
 
-stop_logserver() {
-  generate_kill_command "alluxio.logserver.AlluxioLogServer"
-  ${LAUNCHER} "${KILL_COMMAND[@]}"
-}
-
-
 WHAT=${1:--h}
 
 # shift argument index for getopts
@@ -254,9 +247,6 @@ case "${WHAT}" in
     ;;
   workers)
     stop_workers
-    ;;
-  logserver)
-    stop_logserver
     ;;
   -h)
     echo -e "${USAGE}"
