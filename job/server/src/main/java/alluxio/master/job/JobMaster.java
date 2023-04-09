@@ -11,6 +11,7 @@
 
 package alluxio.master.job;
 
+import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -22,11 +23,18 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.JobCommand;
+import alluxio.grpc.JobMasterHeartbeatPOptions;
+import alluxio.grpc.JobMasterMetaCommand;
 import alluxio.grpc.ListAllPOptions;
+import alluxio.grpc.MasterHeartbeatPOptions;
+import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterCommand;
+import alluxio.grpc.RegisterJobMasterPOptions;
+import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -46,6 +54,7 @@ import alluxio.job.wire.TaskInfo;
 import alluxio.job.wire.WorkflowInfo;
 import alluxio.job.workflow.WorkflowConfig;
 import alluxio.master.AbstractMaster;
+import alluxio.master.MasterClientContext;
 import alluxio.master.MasterContext;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
@@ -55,6 +64,9 @@ import alluxio.master.job.plan.PlanTracker;
 import alluxio.master.job.tracker.CmdJobTracker;
 import alluxio.master.job.workflow.WorkflowTracker;
 import alluxio.master.journal.NoopJournaled;
+import alluxio.master.meta.JobMasterSync;
+import alluxio.master.meta.MasterInfo;
+import alluxio.master.meta.RetryHandlingJobMasterMasterClient;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
@@ -63,7 +75,11 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
+import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.Address;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -75,6 +91,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -103,6 +121,29 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
 
   private final IndexDefinition<MasterWorkerInfo, WorkerNetAddress> mAddressIndex =
       IndexDefinition.ofUnique(MasterWorkerInfo::getWorkerAddress);
+
+  // Master metadata management.
+  private static final IndexDefinition<MasterInfo, Long> ID_INDEX =
+          IndexDefinition.ofUnique(MasterInfo::getId);
+
+  private static final IndexDefinition<MasterInfo, Address> ADDRESS_INDEX =
+          IndexDefinition.ofUnique(MasterInfo::getAddress);
+
+  /** Keeps track of standby masters which are in communication with the leader master. */
+  private final IndexedSet<MasterInfo> mJobMasters =
+          new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+  /** Keeps track of standby masters which are no longer in communication with the leader master. */
+  private final IndexedSet<MasterInfo> mLostJobMasters =
+          new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+
+  /** The connect address for the rpc server. */
+  private final InetSocketAddress mRpcConnectAddress
+          = NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC,
+          Configuration.global());
+
+  private final int mPort;
+  /** The address of this master. */
+  private final Address mJobMasterAddress;
 
   /**
    * The Filesystem context that the job master uses for its client.
@@ -154,6 +195,11 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     mJobIdGenerator = new JobIdGenerator();
     mWorkflowTracker = new WorkflowTracker(this);
 
+    mPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.MASTER_RPC, Configuration.global());
+    mJobMasterAddress = new Address().setHost(Configuration.getOrDefault(PropertyKey.JOB_MASTER_HOSTNAME,
+                    mRpcConnectAddress.getHostName()))
+            .setRpcPort(mPort);
+
     mPlanTracker = new PlanTracker(
         Configuration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY),
         Configuration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME),
@@ -192,23 +238,42 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     for (PlanCoordinator planCoordinator : mPlanTracker.coordinators()) {
       if (!planCoordinator.isJobFinished()) {
         planCoordinator.setJobAsFailed("JobMasterShutdown",
-            "Job failed: Job master shut down during execution");
+                "Job failed: Job master shut down during execution");
       }
     }
     if (isLeader) {
       getExecutorService()
-          .submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_WORKER_DETECTION,
-              new LostWorkerDetectionHeartbeatExecutor(),
-              () -> Configuration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL),
+              .submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_WORKER_DETECTION,
+                      new LostWorkerDetectionHeartbeatExecutor(),
+                      () -> Configuration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL),
+                      Configuration.global(), mMasterContext.getUserState()));
+      getExecutorService().submit(new HeartbeatThread(
+              HeartbeatContext.JOB_MASTER_LOST_MASTER_DETECTION,
+              new LostMasterDetectionHeartbeatExecutor(),
+              () -> Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
               Configuration.global(), mMasterContext.getUserState()));
       if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("JOB_MASTER_AUDIT_LOG");
         mAsyncAuditLogWriter.start();
         MetricsSystem.registerGaugeIfAbsent(
-            MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
-            () -> mAsyncAuditLogWriter != null
-                ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
+                MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
+                () -> mAsyncAuditLogWriter != null
+                        ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
       }
+    } else {
+      if (ConfigurationUtils.isHaMode(Configuration.global())) {
+        // Standby master should setup MetaMasterSync to communicate with the leader master
+        RetryHandlingJobMasterMasterClient jobMasterClient =
+                new RetryHandlingJobMasterMasterClient(MasterClientContext
+                        .newBuilder(ClientContext.create(Configuration.global())).build());
+        getExecutorService().submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_SYNC,
+                new JobMasterSync(mJobMasterAddress, jobMasterClient),
+                () -> Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
+                Configuration.global(), mMasterContext.getUserState()));
+        LOG.info("Standby job master with address {} starts sending heartbeat to leader master.",
+                mJobMasterAddress);
+      }
+
     }
   }
 
@@ -542,7 +607,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    * @param workerNetAddress the worker {@link WorkerNetAddress}
    * @return the worker id for this worker
    */
-  public long registerWorker(WorkerNetAddress workerNetAddress) {
+  public long registerWorker(WorkerNetAddress workerNetAddress, String version, String revision) {
     // Run under exclusive lock for mWorkers
     try (LockResource workersLockExclusive = new LockResource(mWorkerRWLock.writeLock())) {
       // Check if worker has already been registered with this job master
@@ -562,8 +627,9 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       }
       // Generate a new worker id.
       long workerId = mNextWorkerId.getAndIncrement();
-      mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress));
-      LOG.info("registerWorker(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
+      mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress, version, revision));
+      LOG.info("registerWorker(): WorkerNetAddress: {} id: {} version-revision: {}-{}",
+          workerNetAddress, workerId, version, revision);
       return workerId;
     }
   }
@@ -639,6 +705,83 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     return mCommandManager.pollAllPendingCommands(workerId);
   }
 
+
+  public JobMasterMetaCommand jobMasterHeartbeat(long masterId, JobMasterHeartbeatPOptions options) {
+    LOG.info("Received master heartbeat from {}", masterId);
+    MasterInfo master = mJobMasters.getFirstByField(ID_INDEX, masterId);
+    if (master == null) {
+      LOG.warn("Could not find master id: {} for heartbeat.", masterId);
+      return JobMasterMetaCommand.MetaCommand_Register;
+    }
+
+    master.updateLastUpdatedTimeMs();
+    if (options.hasLastCheckpointTime()) {
+      master.setLastCheckpointTimeMs(options.getLastCheckpointTime());
+    }
+    if (options.hasJournalEntriesSinceCheckpoint()) {
+      master.setJournalEntriesSinceCheckpoint(options.getJournalEntriesSinceCheckpoint());
+    }
+    return JobMasterMetaCommand.MetaCommand_Nothing;
+  }
+
+  public void masterRegister(long masterId, RegisterJobMasterPOptions options)
+          throws NotFoundException {
+    MasterInfo master = mJobMasters.getFirstByField(ID_INDEX, masterId);
+    if (master == null) {
+      throw new NotFoundException(
+              MessageFormat.format("No master with masterId {0,number,#} is found", masterId));
+    }
+
+    master.updateLastUpdatedTimeMs();
+    if (options.hasStartTimeMs()) {
+      master.setStartTimeMs(options.getStartTimeMs());
+    }
+    if (options.hasLosePrimacyTimeMs()) {
+      master.setLosePrimacyTimeMs(options.getLosePrimacyTimeMs());
+    }
+    if (options.hasVersion()) {
+      master.setVersion(options.getVersion());
+    }
+    if (options.hasRevision()) {
+      master.setRevision(options.getRevision());
+    }
+    LOG.info("registerMaster(): master: {}", master);
+  }
+
+  public long getMasterId(Address address) {
+    MasterInfo existingMaster = mJobMasters.getFirstByField(ADDRESS_INDEX, address);
+    if (existingMaster != null) {
+      // This master address is already mapped to a master id.
+      long oldMasterId = existingMaster.getId();
+      LOG.warn("The master {} already exists as id {}.", address, oldMasterId);
+      return oldMasterId;
+    }
+
+    MasterInfo lostMaster = mLostJobMasters.getFirstByField(ADDRESS_INDEX, address);
+    if (lostMaster != null) {
+      // This is one of the lost masters
+      synchronized (lostMaster) {
+        final long lostMasterId = lostMaster.getId();
+        LOG.warn("A lost master {} has requested its old id {}.", address, lostMasterId);
+
+        // Update the timestamp of the master before it is considered an active master.
+        lostMaster.updateLastUpdatedTimeMs();
+        mJobMasters.add(lostMaster);
+        mLostJobMasters.remove(lostMaster);
+        return lostMasterId;
+      }
+    }
+
+    // Generate a new master id.
+    long masterId = IdUtils.getRandomNonNegativeLong();
+    while (!mJobMasters.add(new MasterInfo(masterId, address))) {
+      masterId = IdUtils.getRandomNonNegativeLong();
+    }
+
+    LOG.info("getMasterId(): MasterAddress: {} id: {}", address, masterId);
+    return masterId;
+  }
+
   /**
    * Creates a {@link JobMasterAuditContext} instance.
    *
@@ -682,6 +825,40 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     }
     return auditContext;
   }
+
+  /**
+   * Lost master periodic check.
+   */
+  private final class LostMasterDetectionHeartbeatExecutor implements HeartbeatExecutor {
+
+    /**
+     * Constructs a new {@link LostMasterDetectionHeartbeatExecutor}.
+     */
+    public LostMasterDetectionHeartbeatExecutor() {
+    }
+
+    @Override
+    public void heartbeat() {
+      long masterTimeoutMs = Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT);
+      for (MasterInfo master : mJobMasters) {
+        synchronized (master) {
+          final long lastUpdate = mClock.millis() - master.getLastUpdatedTimeMs();
+          if (lastUpdate > masterTimeoutMs) {
+            LOG.error("The standby job master {}({}) timed out after {}ms without a heartbeat!", master.getId(),
+                    master.getAddress(), lastUpdate);
+            mLostJobMasters.add(master);
+            mJobMasters.remove(master);
+          }
+        }
+      }
+    }
+
+    @Override
+    public void close() {
+      // Nothing to clean up
+    }
+  }
+
 
   /**
    * Lost worker periodic check.

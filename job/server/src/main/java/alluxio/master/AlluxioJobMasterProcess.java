@@ -26,6 +26,8 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
+import alluxio.master.meta.MetaMaster;
+import alluxio.master.meta.MetaMasterFactory;
 import alluxio.master.service.rpc.RpcServerService;
 import alluxio.master.service.web.WebServerService;
 import alluxio.underfs.JobUfsManager;

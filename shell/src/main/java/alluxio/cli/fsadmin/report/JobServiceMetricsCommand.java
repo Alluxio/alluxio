@@ -54,10 +54,15 @@ public class JobServiceMetricsCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
+    // TODO(jiacheng): get all job master status
+
+
     List<JobWorkerHealth> allWorkerHealth = mJobMasterClient.getAllWorkerHealth();
 
     for (JobWorkerHealth workerHealth : allWorkerHealth) {
       mPrintStream.print(String.format("Worker: %-10s  ", workerHealth.getHostname()));
+      mPrintStream.print(String.format("Worker Version: %-16s  ", workerHealth.getVersion()));
+      mPrintStream.print(String.format("Worker Revision: %-16s  ", workerHealth.getRevision()));
       mPrintStream.print(String.format("Task Pool Size: %-7s", workerHealth.getTaskPoolSize()));
       mPrintStream.print(String.format("Unfinished Tasks: %-7s",
           workerHealth.getUnfinishedTasks()));

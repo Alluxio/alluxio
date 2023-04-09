@@ -72,9 +72,11 @@ public final class JobMasterWorkerServiceHandler
   @Override
   public void registerJobWorker(RegisterJobWorkerPRequest request,
       StreamObserver<RegisterJobWorkerPResponse> responseObserver) {
-
+    String version = request.hasVersion() ? request.getVersion() : "UNKNOWN";
+    String revision = request.hasRevision() ? request.getRevision() : "UNKNOWN";
     RpcUtils.call(LOG, () -> RegisterJobWorkerPResponse.newBuilder()
-        .setId(mJobMaster.registerWorker(GrpcUtils.fromProto(request.getWorkerNetAddress())))
+        .setId(mJobMaster.registerWorker(
+            GrpcUtils.fromProto(request.getWorkerNetAddress()), version, revision))
         .build(), "registerJobWorker", "request=%s", responseObserver, request);
   }
 }

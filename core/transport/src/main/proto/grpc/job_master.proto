@@ -107,6 +107,8 @@ message JobWorkerHealth {
   optional int32 taskPoolSize = 5;
   optional int32 numActiveTasks = 6;
   optional int32 unfinishedTasks = 7;
+  optional string version = 8;
+  optional string revision = 9;
 }
 
 message JobCommand {
@@ -305,6 +307,8 @@ message RegisterJobWorkerPOptions {}
 message RegisterJobWorkerPRequest {
   optional grpc.WorkerNetAddress workerNetAddress = 1;
   optional RegisterJobWorkerPOptions options = 2;
+  optional string version = 3;
+  optional string revision = 4;
 }
 message RegisterJobWorkerPResponse {
  optional int64 id = 1;
@@ -325,3 +329,65 @@ service JobMasterWorkerService {
    */
   rpc RegisterJobWorker(RegisterJobWorkerPRequest) returns (RegisterJobWorkerPResponse);
 }
+
+message GetJobMasterIdPOptions {}
+message GetJobMasterIdPRequest {
+  optional grpc.NetAddress masterAddress = 1;
+  optional GetJobMasterIdPOptions options = 2;
+}
+message GetJobMasterIdPResponse {
+  optional int64 masterId = 1;
+}
+
+enum JobMasterMetaCommand {
+  MetaCommand_Unknown = 0;
+  MetaCommand_Nothing = 1;
+  MetaCommand_Register = 2; // Ask the standby master to re-register.
+}
+
+message RegisterJobMasterPOptions {
+  optional int64 startTimeMs = 2;
+  optional int64 losePrimacyTimeMs = 3;
+  optional string version = 4;
+  optional string revision = 5;
+}
+
+message RegisterJobMasterPRequest {
+  optional int64 jobMasterId = 1;
+  optional RegisterJobMasterPOptions options = 2;
+}
+message RegisterJobMasterPResponse {}
+
+message JobMasterHeartbeatPOptions {
+  optional int64 lastCheckpointTime = 1;
+  optional int64 journalEntriesSinceCheckpoint = 2;
+}
+message JobMasterHeartbeatPRequest {
+  optional int64 masterId = 1;
+  optional JobMasterHeartbeatPOptions options = 2;
+}
+message JobMasterHeartbeatPResponse {
+  optional JobMasterMetaCommand command = 1;
+}
+
+/**
+  * This interface contains meta master service endpoints for Alluxio standby masters.
+  */
+service JobMasterMasterService {
+
+  /**
+   * Returns a master id for the given master address.
+   */
+  rpc GetMasterId(GetJobMasterIdPRequest) returns (GetJobMasterIdPResponse);
+
+  /**
+   * Registers a master.
+   */
+  rpc RegisterMaster(RegisterJobMasterPRequest) returns (RegisterJobMasterPResponse);
+
+  /**
+   * Heartbeats to indicate the master is lost or not.
+   */
+  rpc MasterHeartbeat(JobMasterHeartbeatPRequest) returns (JobMasterHeartbeatPResponse);
+}
+
