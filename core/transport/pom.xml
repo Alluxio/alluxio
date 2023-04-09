@@ -143,7 +143,8 @@
         <executions>
           <execution>
             <goals>
-              <goal>backwards-compatibility-check</goal>
+              <!-- Disabled before 300 is released -->
+              <!--              <goal>backwards-compatibility-check</goal>-->
             </goals>
           </execution>
         </executions>
