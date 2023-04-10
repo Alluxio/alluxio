@@ -20,12 +20,15 @@ import com.google.common.base.Joiner;
  * Metadata sync results.
  */
 public class SyncResult {
-  public SyncResult(boolean success, long syncDuration,
-                    Map<SyncOperation, Long> successOperationCount,
-                    Map<SyncOperation, Long> failedOperationCount,
-                    @Nullable SyncFailReason failReason, long numUfsFileScanned) {
+  public SyncResult(
+      boolean success,
+      long syncStartTime, long syncFinishTime,
+      Map<SyncOperation, Long> successOperationCount,
+      Map<SyncOperation, Long> failedOperationCount,
+      @Nullable SyncFailReason failReason, long numUfsFileScanned) {
     mSuccess = success;
-    mSyncDuration = syncDuration;
+    mSyncStartTime = syncStartTime;
+    mSyncFinishTime = syncFinishTime;
     mSuccessOperationCount = successOperationCount;
     mFailedOperationCount = failedOperationCount;
     mSyncFailReason = failReason;
@@ -36,7 +39,7 @@ public class SyncResult {
   public String toString() {
     StringBuilder builder = new StringBuilder("{ SyncResult ");
     builder.append("success: ").append(mSuccess);
-    builder.append(", sync duration: ").append(mSyncDuration).append("ms");
+    builder.append(", sync duration: ").append(getSyncDuration()).append("ms");
     builder.append(", fail reason: ").append(mSyncFailReason);
     builder.append(", num ufs files scanned: ").append(mNumUfsFileScanned);
     builder.append(", success op count: ");
@@ -52,7 +55,9 @@ public class SyncResult {
     if (!r1.mSuccess || !r2.mSuccess) {
       success = false;
     }
-    long syncDuration = r1.mSyncDuration + r2.mSyncDuration;
+    long syncStartTime = Math.min(r1.mSyncStartTime, r2.mSyncStartTime);
+    long syncFinishTime = Math.max(r1.mSyncFinishTime, r2.mSyncFinishTime);
+
     SyncFailReason failReason = null;
     if (r1.mSyncFailReason != null) {
       failReason = r1.mSyncFailReason;
@@ -69,12 +74,15 @@ public class SyncResult {
     for (Map.Entry<SyncOperation, Long> nxt : r2.mFailedOperationCount.entrySet()) {
       failedOperationCount.merge(nxt.getKey(), nxt.getValue(), Long::sum);
     }
-    return new SyncResult(success, syncDuration, successOperationCount,
+    return new SyncResult(success, syncStartTime, syncFinishTime, successOperationCount,
         failedOperationCount, failReason, numUfsFileScanned);
   }
 
   private final boolean mSuccess;
-  private final long mSyncDuration;
+
+  private final long mSyncStartTime;
+
+  private final long mSyncFinishTime;
 
   private final Map<SyncOperation, Long> mSuccessOperationCount;
   private final Map<SyncOperation, Long> mFailedOperationCount;
@@ -86,7 +94,7 @@ public class SyncResult {
    * @return the sync duration in ms
    */
   public long getSyncDuration() {
-    return mSyncDuration;
+    return mSyncFinishTime - mSyncStartTime;
   }
 
   /**

@@ -24,6 +24,7 @@ import alluxio.master.file.meta.MutableInode;
 import alluxio.resource.CloseableIterator;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterators;
 
 import java.io.Closeable;
 import java.io.IOException;

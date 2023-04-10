@@ -13,12 +13,17 @@ package alluxio.master.file;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -43,6 +48,8 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.google.common.collect.ImmutableMap;
+import org.gaul.s3proxy.S3Proxy;
+import org.gaul.s3proxy.junit.S3ProxyJunitCore;
 import org.gaul.s3proxy.junit.S3ProxyRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,6 +68,9 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -154,12 +164,14 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
 
   @Override
   public void after() throws Exception {
-
+    /*
     mClient.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(TEST_BUCKET).build())
         .forEach(resp -> resp.contents().forEach(s3Object ->
             mClient.deleteObject(DeleteObjectRequest.builder()
                 .bucket(TEST_BUCKET).key(s3Object.key()).build())));
     mClient.deleteBucket(DeleteBucketRequest.builder().bucket(TEST_BUCKET).build());
+
+     */
 
     mS3Client.shutdown();
     mClient.close();
@@ -392,22 +404,66 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
   }
 
-//  @Test
-//  public void syncInodeUfsDown()
-//      throws FileDoesNotExistException, FileAlreadyExistsException, AccessControlException,
-//      IOException, InvalidPathException, NoSuchMethodException, InvocationTargetException,
-//      IllegalAccessException {
-//    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
-//    mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
-//
-//    stopS3Server();
-//    SyncResult result =
-//        mFileSystemMaster.syncMetadataInternal(MOUNT_POINT.join(TEST_FILE),
-//            createContext(DescendantType.NONE));
-//    assertFalse(result.getSuccess());
-//    assertEquals(SyncFailReason.UFS_IO_FAILURE, result.getFailReason());
-//    startS3Server();
-//  }
+  @Test
+  public void syncInodeHappyPathNestedObjects() throws Throwable {
+    mS3Client.putObject(TEST_BUCKET, "d1/1", TEST_CONTENT);
+    mS3Client.putObject(TEST_BUCKET, "d1/2", TEST_CONTENT);
+    mS3Client.putObject(TEST_BUCKET, "d1/3", TEST_CONTENT);
+    mS3Client.putObject(TEST_BUCKET, "d2/1", TEST_CONTENT);
+    mS3Client.putObject(TEST_BUCKET, "d2/2", TEST_CONTENT);
+    mS3Client.putObject(TEST_BUCKET, "d2/3", TEST_CONTENT);
+    mS3Client.putObject(TEST_BUCKET, "d3/1", TEST_CONTENT);
+    mS3Client.putObject(TEST_BUCKET, "d3/2", TEST_CONTENT);
+    mS3Client.putObject(TEST_BUCKET, "d3/3", TEST_CONTENT);
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+
+    // TODO(yimin/tcrain) seems like when the DirectoryLoadType is set to SINGLE_LISTING
+    // the # of inodes is counted incorrectly.
+    long numInodes = mDirectoryLoadType == DirectoryLoadType.SINGLE_LISTING ? 9 : 12;
+
+    // Sync one file from UFS
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.isCompleted().get().getSyncResult(), ImmutableMap.of(
+        SyncOperation.CREATE, numInodes
+    ));
+
+    // Sync again, expect no change
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.isCompleted().get().getSyncResult(), ImmutableMap.of(
+        SyncOperation.NOOP, numInodes
+    ));
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
+  }
+
+  @Test
+  public void syncInodeUfsDown()
+      throws Throwable {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
+
+    stopS3Server();
+    assertThrows(IOException.class, ()->{
+      BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+          MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0);
+      result.waitComplete(TIMEOUT_MS);
+    });
+
+    startS3Server();
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0);
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.isCompleted().get().getSyncResult(), ImmutableMap.of(
+        SyncOperation.CREATE, 1L
+    ));
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
+  }
 
   @Test
   public void syncDirectoryHappyPath() throws Throwable {
@@ -943,33 +999,33 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
 //        ));
 //  }
 //
-//  private void stopS3Server() {
-//    try {
-//      Field coreField = S3ProxyRule.class.getDeclaredField("core");
-//      coreField.setAccessible(true);
-//      S3ProxyJunitCore core = (S3ProxyJunitCore) coreField.get(mS3Proxy);
-//      Field s3ProxyField = S3ProxyJunitCore.class.getDeclaredField("s3Proxy");
-//      s3ProxyField.setAccessible(true);
-//      S3Proxy proxy = (S3Proxy) s3ProxyField.get(core);
-//      proxy.stop();
-//    } catch (Exception e) {
-//      throw new RuntimeException(e);
-//    }
-//  }
-//
-//  private void startS3Server() {
-//    try {
-//      Field coreField = S3ProxyRule.class.getDeclaredField("core");
-//      coreField.setAccessible(true);
-//      S3ProxyJunitCore core = (S3ProxyJunitCore) coreField.get(mS3Proxy);
-//      Field s3ProxyField = S3ProxyJunitCore.class.getDeclaredField("s3Proxy");
-//      s3ProxyField.setAccessible(true);
-//      S3Proxy proxy = (S3Proxy) s3ProxyField.get(core);
-//      proxy.start();
-//    } catch (Exception e) {
-//      throw new RuntimeException(e);
-//    }
-//  }
+  private void stopS3Server() {
+    try {
+      Field coreField = S3ProxyRule.class.getDeclaredField("core");
+      coreField.setAccessible(true);
+      S3ProxyJunitCore core = (S3ProxyJunitCore) coreField.get(mS3Proxy);
+      Field s3ProxyField = S3ProxyJunitCore.class.getDeclaredField("s3Proxy");
+      s3ProxyField.setAccessible(true);
+      S3Proxy proxy = (S3Proxy) s3ProxyField.get(core);
+      proxy.stop();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void startS3Server() {
+    try {
+      Field coreField = S3ProxyRule.class.getDeclaredField("core");
+      coreField.setAccessible(true);
+      S3ProxyJunitCore core = (S3ProxyJunitCore) coreField.get(mS3Proxy);
+      Field s3ProxyField = S3ProxyJunitCore.class.getDeclaredField("s3Proxy");
+      s3ProxyField.setAccessible(true);
+      S3Proxy proxy = (S3Proxy) s3ProxyField.get(core);
+      proxy.start();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   public static void checkUfsMatches(
       AlluxioURI alluxioPath, String s3Bucket,

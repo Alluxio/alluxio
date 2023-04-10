@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.security.authorization.AccessControlList;
 
 import com.google.common.base.Splitter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,6 +50,8 @@ public final class Fingerprint {
 
   private final Map<Tag, String> mValues;
 
+  private final String[] mSearchList = new String[] {"|", " "};
+  private final String[] mReplaceList = new String[] {"_", "_"};
   /**
    * The possible types of the fingerprint.
    */
@@ -286,6 +289,7 @@ public final class Fingerprint {
     if (input == null || input.isEmpty()) {
       return UNDERSCORE;
     }
-    return SANITIZE_REGEX.matcher(input).replaceAll(UNDERSCORE);
+    return StringUtils.replaceEachRepeatedly(input, mSearchList, mReplaceList);
+//    return SANITIZE_REGEX.matcher(input).replaceAll(UNDERSCORE);
   }
 }

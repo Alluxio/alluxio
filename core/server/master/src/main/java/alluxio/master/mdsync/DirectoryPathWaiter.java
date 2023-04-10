@@ -36,7 +36,7 @@ class DirectoryPathWaiter extends BaseTask implements PathWaiter {
   public synchronized boolean waitForSync(AlluxioURI path) {
     while (true) {
       if (mIsCompleted != null) {
-        return !mIsCompleted.getResult().isPresent();
+        return !mIsCompleted.getThrowable().isPresent();
       }
       boolean completed = mCompletedDirs.getClosestTerminal(path.getPath())
           .map(result -> {

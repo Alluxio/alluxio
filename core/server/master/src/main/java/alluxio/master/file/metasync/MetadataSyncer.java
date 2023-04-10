@@ -359,8 +359,9 @@ public class MetadataSyncer implements SyncProcess {
         // inode was processed in the previous listing
         boolean skipInitialReadFrom = loadResult.getPreviousLast().isPresent();
         Preconditions.checkState(readFrom.getPath().startsWith(alluxioMountUri.getPath()));
-        String readFromSubstring = readFrom.getPath().substring(
-            alluxioMountUri.getPath().length());
+        AlluxioURI alluxioSyncPath = reverseResolution.getUri();
+        String readFromSubstring =
+            PathUtils.subtractPaths(readFrom.getPath(), alluxioSyncPath.getPath());
         if (!readFromSubstring.isEmpty()) {
           readOptionBuilder.setReadFrom(readFromSubstring);
         }
@@ -374,12 +375,11 @@ public class MetadataSyncer implements SyncProcess {
               ufsMountPath, alluxioMountPath));
         }
 
-        AlluxioURI alluxioSyncPath = reverseResolution.getUri();
         LockingScheme lockingScheme = new LockingScheme(alluxioSyncPath,
             InodeTree.LockPattern.WRITE_EDGE, false);
+        // TODO (yimin) why did we WRITE LOCK the whole path?
         try (LockedInodePath lockedInodePath =
                  mInodeTree.lockInodePath(lockingScheme, rpcContext.getJournalContext())) {
-
           // after taking the lock on the root path,
           // we must verify the mount is still valid
           String ufsMountUriString = PathUtils.normalizePath(ufsMountPath, "/");
@@ -480,6 +480,7 @@ public class MetadataSyncer implements SyncProcess {
       SingleInodeSyncResult result = performSyncOne(syncState, currentUfsStatus, currentInode);
       if (result.mLoadChildrenMountPoint) {
         // TODO(tcrain) this should be submitted as a job when the initial task is created
+        // TODO(yimin) should we remove this?
         // sync(syncRootPath.join(currentInode.getName()), context);
       }
       if (result.mSkipChildren) {

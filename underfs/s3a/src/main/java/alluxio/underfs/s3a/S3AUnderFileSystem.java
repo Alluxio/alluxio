@@ -102,6 +102,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -759,7 +760,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
     mAsyncClient.listObjectsV2(request.build())
         .whenCompleteAsync((result, err) -> {
           if (err != null) {
-            onError.accept(err);
+            if (err instanceof CompletionException) {
+              onError.accept(new IOException(err.getCause()));
+            } else {
+              onError.accept(err);
+            }
           } else {
             try {
               AlluxioURI lastItem = null;

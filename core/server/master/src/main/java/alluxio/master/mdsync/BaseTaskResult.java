@@ -37,7 +37,7 @@ public class BaseTaskResult {
     return mResult;
   }
 
-  Optional<Throwable> getResult() {
+  Optional<Throwable> getThrowable() {
     return Optional.ofNullable(mT);
   }
 }

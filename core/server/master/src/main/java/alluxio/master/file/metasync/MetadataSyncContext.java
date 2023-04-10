@@ -196,7 +196,7 @@ public class MetadataSyncContext {
   public SyncResult success() {
     Preconditions.checkNotNull(mSyncStartTime);
     mSyncFinishTime = CommonUtils.getCurrentMs();
-    return new SyncResult(true, mSyncFinishTime - mSyncStartTime, mSuccessMap,
+    return new SyncResult(true, mSyncStartTime, mSyncFinishTime, mSuccessMap,
         mFailedMap, null, mNumUfsFilesScanned);
   }
 
@@ -207,7 +207,7 @@ public class MetadataSyncContext {
   public SyncResult fail() {
     Preconditions.checkNotNull(mSyncStartTime);
     mSyncFinishTime = CommonUtils.getCurrentMs();
-    return new SyncResult(false, mSyncFinishTime - mSyncStartTime, mSuccessMap, mFailedMap,
+    return new SyncResult(false, mSyncStartTime, mSyncFinishTime, mSuccessMap, mFailedMap,
         mFailReason, mNumUfsFilesScanned);
   }
 

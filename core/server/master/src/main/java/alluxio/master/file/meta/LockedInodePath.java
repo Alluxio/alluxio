@@ -20,7 +20,9 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.journal.FileSystemMergeJournalContext;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.MetadataSyncMergeJournalContext;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.resource.AlluxioResourceLeakDetectorFactory;
 import alluxio.util.io.PathUtils;
@@ -85,9 +87,7 @@ public class LockedInodePath implements Closeable {
   @Nullable
   private final ResourceLeakTracker<LockedInodePath> mTracker;
   /** To determine if we should flush the journals when lock is released or scope reduced. */
-  private final boolean mMergeInodeJournals = Configuration.getBoolean(
-      PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS
-  );
+  private final boolean mMergeInodeJournals;
 
   /**
    * Keeps a reference of JournalContext and flushes it before the lock is released.
@@ -159,6 +159,9 @@ public class LockedInodePath implements Closeable {
     mLockList = new SimpleInodeLockList(inodeLockManager, mUseTryLock);
     mTracker = DETECTOR.track(this);
     mJournalContext = journalContext;
+    mMergeInodeJournals = Configuration.getBoolean(
+        PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS
+    ) && mJournalContext instanceof FileSystemMergeJournalContext;
   }
 
   /**
@@ -184,6 +187,9 @@ public class LockedInodePath implements Closeable {
     // So the new created LockInodePath instance must be on the same thread with
     // the original one and hence they will use the same JournalContext.
     mJournalContext = path.mJournalContext;
+    mMergeInodeJournals = Configuration.getBoolean(
+        PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS
+    ) && mJournalContext instanceof FileSystemMergeJournalContext;
   }
 
   /**

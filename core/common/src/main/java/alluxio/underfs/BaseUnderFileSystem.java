@@ -220,6 +220,14 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem, UfsClient 
       try {
         UfsStatus[] items = listStatus(path, ListOptions.defaults()
             .setRecursive(descendantType == DescendantType.ALL));
+        if (items != null) {
+          Arrays.sort(items, Comparator.comparing(UfsStatus::getName));
+          for (UfsStatus item: items) {
+            // performListingAsync is used by metadata sync v2
+            // which expects the name of an item to be a full path
+            item.setName(PathUtils.concatPath(path, item.getName()));
+          }
+        }
         AlluxioURI lastItem = items == null ? null
             : new AlluxioURI(items[items.length - 1].getName());
         onComplete.accept(new UfsLoadResult(

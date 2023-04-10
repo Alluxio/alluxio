@@ -126,8 +126,9 @@ public abstract class BaseTask implements PathWaiter {
     if (mIsCompleted == null) {
       throw new DeadlineExceededRuntimeException("Task still running.");
     }
-    if (mIsCompleted.getResult().isPresent()) {
-      throw mIsCompleted.getResult().get();
+    if (mIsCompleted.getThrowable().isPresent()) {
+      // TODO(yimin) should we wrap the exception here so that we know the exception is thrown from here?
+      throw mIsCompleted.getThrowable().get();
     }
   }
 
