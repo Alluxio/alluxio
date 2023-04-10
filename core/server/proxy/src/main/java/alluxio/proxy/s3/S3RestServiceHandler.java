@@ -914,6 +914,7 @@ public final class S3RestServiceHandler {
                   .setOwnerBits(Bits.ALL)
                   .setGroupBits(Bits.ALL)
                   .setOtherBits(Bits.NONE).build())
+              .setWriteType(S3RestUtils.getS3WriteType())
               .setCheckS3BucketPath(true)
               .setOverwrite(true);
           // Handle metadata directive
@@ -1089,7 +1090,7 @@ public final class S3RestServiceHandler {
                   .putAllXattr(xattrMap)
                   .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
                   .build()
-          );
+          ).close();
           SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
               .setOwner(user)
               .build();
