@@ -56,7 +56,6 @@ public final class JobMasterSync implements HeartbeatExecutor {
   public JobMasterSync(Address masterAddress, RetryHandlingJobMasterMasterClient masterClient) {
     mMasterAddress = masterAddress;
     mMasterClient = masterClient;
-    LOG.info("Created sync thread to register/heartbeat to primary job master");
   }
 
   /**

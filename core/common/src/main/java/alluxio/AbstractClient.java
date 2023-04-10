@@ -168,8 +168,10 @@ public abstract class AbstractClient implements Client {
     if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
       mServiceVersion = getRemoteServiceVersion();
       if (mServiceVersion != clientVersion) {
-        throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(getServiceName(),
-            clientVersion, mServiceVersion));
+        LOG.warn("{}", ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(getServiceName(),
+                clientVersion, mServiceVersion));
+//        throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(getServiceName(),
+//            clientVersion, mServiceVersion));
       }
     }
   }
@@ -250,13 +252,13 @@ public abstract class AbstractClient implements Client {
       try {
         mServerAddress = queryGrpcServerAddress();
       } catch (UnavailableException e) {
-        LOG.debug("Failed to determine {} rpc address ({}): {}",
+        LOG.warn("Failed to determine {} rpc address ({}): {}",
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
         continue;
       }
       try {
         beforeConnect();
-        LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",
+        LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mServerAddress);
         AlluxioConfiguration conf = mContext.getClusterConf();
         // set up rpc group channel
@@ -270,11 +272,11 @@ public abstract class AbstractClient implements Client {
         afterConnect();
         checkVersion(getServiceVersion());
 
-        LOG.debug("Alluxio client (version {}) is connected with {} @ {}", RuntimeConstants.VERSION,
+        LOG.info("Alluxio client (version {}) is connected with {} @ {}", RuntimeConstants.VERSION,
             getServiceName(), mServerAddress);
         return;
       } catch (IOException e) {
-        LOG.debug("Failed to connect ({}) with {} @ {}", retryPolicy.getAttemptCount(),
+        LOG.warn("Failed to connect ({}) with {} @ {}", retryPolicy.getAttemptCount(),
             getServiceName(), mServerAddress, e);
         lastConnectFailure = e;
         if (e instanceof UnauthenticatedException) {

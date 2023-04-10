@@ -199,6 +199,22 @@ message GetAllWorkerHealthPResponse {
   repeated JobWorkerHealth workerHealths = 1;
 }
 
+message JobMasterStatus {
+  optional string state = 1;
+  optional grpc.NetAddress masterAddress = 2;
+  optional int64 startTime = 3;
+  optional string version = 4;
+  optional string revision = 5;
+}
+
+message GetAllMasterStatusPOptions {}
+message GetAllMasterStatusPRequest {
+  optional GetAllMasterStatusPOptions options = 1;
+}
+message GetAllMasterStatusPResponse {
+  repeated JobMasterStatus jobMasterStatus = 1;
+}
+
 message SubmitOptions {}
 message SubmitRequest {
   optional bytes cmdConfig = 1;
@@ -276,6 +292,8 @@ service JobMasterClientService {
    * Lists all worker health.
    */
   rpc GetAllWorkerHealth(GetAllWorkerHealthPRequest) returns (GetAllWorkerHealthPResponse);
+
+  rpc GetAllMasterStatus(GetAllMasterStatusPRequest) returns (GetAllMasterStatusPResponse);
 
   /**
    * Submit a CMD job, return a jobControlId.

@@ -11,9 +11,12 @@
 
 package alluxio.master.meta;
 
+import alluxio.AbstractJobMasterClient;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.ProjectConstants;
+import alluxio.RuntimeConstants;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetJobMasterIdPRequest;
 import alluxio.grpc.GetMasterIdPRequest;
@@ -35,6 +38,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.Address;
 
+import alluxio.worker.job.JobMasterClientContext;
 import com.codahale.metrics.Gauge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +53,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * used by Alluxio standby masters.
  */
 @ThreadSafe
-public final class RetryHandlingJobMasterMasterClient extends AbstractMasterClient {
+public final class RetryHandlingJobMasterMasterClient extends AbstractJobMasterClient {
   private static final Logger LOG =
           LoggerFactory.getLogger(RetryHandlingJobMasterMasterClient.class);
   private JobMasterMasterServiceGrpc.JobMasterMasterServiceBlockingStub mClient = null;
@@ -59,24 +63,31 @@ public final class RetryHandlingJobMasterMasterClient extends AbstractMasterClie
    *
    * @param conf master client configuration
    */
-  public RetryHandlingJobMasterMasterClient(MasterClientContext conf) {
+  public RetryHandlingJobMasterMasterClient(JobMasterClientContext conf) {
     super(conf);
+  }
+
+  @Override
+  public void connect() throws AlluxioStatusException {
+    super.connect();
+    LOG.info("Connected to target {}", mServerAddress);
   }
 
   @Override
   // TODO(jiacheng): update these names
   protected ServiceType getRemoteServiceType() {
-    return ServiceType.META_MASTER_MASTER_SERVICE;
+    return ServiceType.JOB_MASTER_MASTER_SERVICE;
   }
 
   @Override
   protected String getServiceName() {
-    return Constants.META_MASTER_MASTER_SERVICE_NAME;
+    return Constants.JOB_MASTER_MASTER_SERVICE_NAME;
   }
 
   @Override
   protected long getServiceVersion() {
-    return Constants.META_MASTER_MASTER_SERVICE_VERSION;
+    LOG.info("Returning JOB_MASTER_MASTER_SERVICE_VERSION={}", Constants.JOB_MASTER_MASTER_SERVICE_VERSION);
+    return Constants.JOB_MASTER_MASTER_SERVICE_VERSION;
   }
 
   @Override
@@ -122,8 +133,8 @@ public final class RetryHandlingJobMasterMasterClient extends AbstractMasterClie
           throws IOException {
     final Map<String, Gauge> gauges = MetricsSystem.METRIC_REGISTRY.getGauges();
     RegisterJobMasterPOptions.Builder optionsBuilder = RegisterJobMasterPOptions.newBuilder()
-            .setVersion(ProjectConstants.VERSION)
-            .setRevision(ProjectConstants.REVISION);
+            .setVersion(RuntimeConstants.VERSION)
+            .setRevision(RuntimeConstants.REVISION_SHORT);
     Gauge startTimeGauge = gauges.get(MetricKey.MASTER_START_TIME.getName());
     if (startTimeGauge != null) {
       optionsBuilder.setStartTimeMs((long) startTimeGauge.getValue());

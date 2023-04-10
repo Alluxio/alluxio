@@ -129,6 +129,7 @@ public interface MasterInquireClient {
       } else {
         List<InetSocketAddress> addresses = ConfigurationUtils.getJobMasterRpcAddresses(conf);
         if (addresses.size() > 1) {
+          // TODO(jiacheng): How does this work for job workers???
           return new PollingMasterInquireClient(addresses, conf, userState,
               alluxio.grpc.ServiceType.JOB_MASTER_CLIENT_SERVICE);
         } else {

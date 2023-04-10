@@ -5017,6 +5017,60 @@
             ]
           },
           {
+            "name": "JobMasterStatus",
+            "fields": [
+              {
+                "id": 1,
+                "name": "state",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "masterAddress",
+                "type": "grpc.NetAddress"
+              },
+              {
+                "id": 3,
+                "name": "startTime",
+                "type": "int64"
+              },
+              {
+                "id": 4,
+                "name": "version",
+                "type": "string"
+              },
+              {
+                "id": 5,
+                "name": "revision",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "GetAllMasterStatusPOptions"
+          },
+          {
+            "name": "GetAllMasterStatusPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "options",
+                "type": "GetAllMasterStatusPOptions"
+              }
+            ]
+          },
+          {
+            "name": "GetAllMasterStatusPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "jobMasterStatus",
+                "type": "JobMasterStatus",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
             "name": "SubmitOptions"
           },
           {
@@ -5369,6 +5423,11 @@
                 "name": "GetAllWorkerHealth",
                 "in_type": "GetAllWorkerHealthPRequest",
                 "out_type": "GetAllWorkerHealthPResponse"
+              },
+              {
+                "name": "GetAllMasterStatus",
+                "in_type": "GetAllMasterStatusPRequest",
+                "out_type": "GetAllMasterStatusPResponse"
               },
               {
                 "name": "Submit",
