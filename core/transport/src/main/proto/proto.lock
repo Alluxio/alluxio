@@ -8491,6 +8491,10 @@
                 "integer": 11
               },
               {
+                "name": "JOB_MASTER_MASTER_SERVICE",
+                "integer": 18
+              },
+              {
                 "name": "JOURNAL_MASTER_CLIENT_SERVICE",
                 "integer": 13
               },

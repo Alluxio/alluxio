@@ -64,6 +64,7 @@ import alluxio.master.job.plan.PlanTracker;
 import alluxio.master.job.tracker.CmdJobTracker;
 import alluxio.master.job.workflow.WorkflowTracker;
 import alluxio.master.journal.NoopJournaled;
+import alluxio.master.meta.JobMasterMasterServiceHandler;
 import alluxio.master.meta.JobMasterSync;
 import alluxio.master.meta.MasterInfo;
 import alluxio.master.meta.RetryHandlingJobMasterMasterClient;
@@ -242,6 +243,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       }
     }
     if (isLeader) {
+      LOG.info("Starting job master as primary");
       getExecutorService()
               .submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_WORKER_DETECTION,
                       new LostWorkerDetectionHeartbeatExecutor(),
@@ -252,6 +254,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
               new LostMasterDetectionHeartbeatExecutor(),
               () -> Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
               Configuration.global(), mMasterContext.getUserState()));
+      LOG.info("Created heartbeater to detect lost standby job masters");
       if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("JOB_MASTER_AUDIT_LOG");
         mAsyncAuditLogWriter.start();
@@ -261,6 +264,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
                         ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
       }
     } else {
+      LOG.info("Starting job master as standby");
       if (ConfigurationUtils.isHaMode(Configuration.global())) {
         // Standby master should setup MetaMasterSync to communicate with the leader master
         RetryHandlingJobMasterMasterClient jobMasterClient =
@@ -295,6 +299,8 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
                 new ClientContextServerInjector())));
     services.put(ServiceType.JOB_MASTER_WORKER_SERVICE,
         new GrpcService(new JobMasterWorkerServiceHandler(this)));
+    services.put(ServiceType.JOB_MASTER_MASTER_SERVICE,
+        new GrpcService(new JobMasterMasterServiceHandler(this)));
     return services;
   }
 

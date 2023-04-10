@@ -44,6 +44,7 @@ public class JobWorkerHealth {
    * @param unfinishedTasks number of unfinished tasks that the worker has
    * @param hostname hostname of the worker
    */
+  // TODO(jiacheng): migrate tests to not use this constructor
   public JobWorkerHealth(long workerId, List<Double> loadAverage, int taskPoolSize,
       int numActiveTasks, int unfinishedTasks, String hostname) {
     mWorkerId = workerId;
@@ -92,6 +93,12 @@ public class JobWorkerHealth {
     mTaskPoolSize = jobWorkerHealth.getTaskPoolSize();
     mNumActiveTasks = jobWorkerHealth.getNumActiveTasks();
     mHostname = jobWorkerHealth.getHostname();
+    if (jobWorkerHealth.hasVersion()) {
+      mVersion = jobWorkerHealth.getVersion();
+    }
+    if (jobWorkerHealth.hasRevision()) {
+      mRevision = jobWorkerHealth.getRevision();
+    }
   }
 
   /**

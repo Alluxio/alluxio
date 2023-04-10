@@ -72,6 +72,7 @@ public final class JobMasterWorkerServiceHandler
   @Override
   public void registerJobWorker(RegisterJobWorkerPRequest request,
       StreamObserver<RegisterJobWorkerPResponse> responseObserver) {
+    LOG.info("Received job worker {}", request);
     String version = request.hasVersion() ? request.getVersion() : "UNKNOWN";
     String revision = request.hasRevision() ? request.getRevision() : "UNKNOWN";
     RpcUtils.call(LOG, () -> RegisterJobWorkerPResponse.newBuilder()
