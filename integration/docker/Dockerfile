@@ -56,8 +56,8 @@ RUN \
 
 WORKDIR /
 
-# /lib64 is for rocksdb native libraries
-ENV LD_LIBRARY_PATH "/lib64:${LD_LIBRARY_PATH}"
+# /lib64 is for rocksdb native libraries, /usr/local/lib is for libfuse2 native libraries
+ENV LD_LIBRARY_PATH "/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
 
 ARG ALLUXIO_USERNAME=alluxio
 ARG ALLUXIO_GROUP=alluxio
