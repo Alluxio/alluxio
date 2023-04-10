@@ -59,8 +59,8 @@ public class NettyDataReader implements DoraDataReader {
         .setLength(length)
         .setOffset(offset)
         .clearCancel();
-    NettyClientStateMachine clientStateMachine =
-        new NettyClientStateMachine(mContext, mAddress, builder, outChannel);
+    NettyDataReaderStateMachine clientStateMachine =
+        new NettyDataReaderStateMachine(mContext, mAddress, builder, outChannel);
     clientStateMachine.run();
     int bytesRead = clientStateMachine.getBytesRead();
     PartialReadException exception = clientStateMachine.getException();
