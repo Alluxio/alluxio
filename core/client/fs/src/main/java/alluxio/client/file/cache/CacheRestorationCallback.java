@@ -17,7 +17,5 @@ public interface CacheRestorationCallback {
    */
   void onCacheRestorationSuccess();
 
-  static void NO_OP() {
-    //NOOP
-  }
+  CacheRestorationCallback NOOP = () -> { };
 }

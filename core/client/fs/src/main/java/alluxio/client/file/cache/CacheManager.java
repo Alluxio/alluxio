@@ -106,7 +106,7 @@ public interface CacheManager extends AutoCloseable {
     public static CacheManager create(AlluxioConfiguration conf) throws IOException {
       CacheManagerOptions options = CacheManagerOptions.create(conf);
       return create(conf, options, PageMetaStore.create(options),
-          () -> CacheRestorationCallback.NO_OP());
+          CacheRestorationCallback.NOOP);
     }
 
     /**

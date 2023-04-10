@@ -106,7 +106,7 @@ public class LocalCacheManager implements CacheManager {
    */
   public static LocalCacheManager create(CacheManagerOptions options,
       PageMetaStore pageMetaStore) throws IOException {
-    return create(options, pageMetaStore, () -> CacheRestorationCallback.NO_OP());
+    return create(options, pageMetaStore, CacheRestorationCallback.NOOP);
   }
 
   /**

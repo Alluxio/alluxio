@@ -103,7 +103,7 @@ public class PagedBlockStore implements BlockStore {
       PagedBlockMetaStore pageMetaStore = new PagedBlockMetaStore(dirs);
       CacheManager cacheManager =
           CacheManager.Factory.create(conf, cacheManagerOptions, pageMetaStore,
-              () -> pageMetaStore.reportBlocks());
+              () -> pageMetaStore.onCacheRestorationSuccess());
       return new PagedBlockStore(cacheManager, ufsManager, pool, workerId, pageMetaStore,
           cacheManagerOptions.getPageSize());
     } catch (IOException e) {
