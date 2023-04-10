@@ -296,3 +296,19 @@ service MetaMasterMasterService {
    */
   rpc MasterHeartbeat(MasterHeartbeatPRequest) returns (MasterHeartbeatPResponse);
 }
+
+message ProxyHeartbeatPOptions {
+  optional grpc.NetAddress proxyAddress = 1;
+  optional int64 startTime = 2;
+  optional string version = 3;
+  optional string revision = 4;
+}
+message ProxyHeartbeatPRequest {
+  optional ProxyHeartbeatPOptions options = 1;
+}
+message ProxyHeartbeatPResponse {
+}
+
+service MetaMasterProxyService {
+  rpc ProxyHeartbeat(ProxyHeartbeatPRequest) returns (ProxyHeartbeatPResponse);
+}

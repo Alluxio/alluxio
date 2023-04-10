@@ -17,6 +17,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MasterHeartbeatPOptions;
 import alluxio.grpc.MetaCommand;
+import alluxio.grpc.ProxyHeartbeatPRequest;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.master.Master;
 import alluxio.master.backup.BackupOps;
@@ -37,6 +38,9 @@ import java.util.Set;
  * The interface of meta master.
  */
 public interface MetaMaster extends BackupOps, Master {
+
+  // TODO(jiacheng): finish this today
+  void proxyHeartbeat(ProxyHeartbeatPRequest request);
 
   /**
    * @return the cluster ID

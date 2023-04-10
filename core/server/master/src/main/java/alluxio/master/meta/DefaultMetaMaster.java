@@ -32,6 +32,9 @@ import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.MasterHeartbeatPOptions;
 import alluxio.grpc.MetaCommand;
+import alluxio.grpc.NetAddress;
+import alluxio.grpc.ProxyHeartbeatPOptions;
+import alluxio.grpc.ProxyHeartbeatPRequest;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
@@ -84,6 +87,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -123,6 +127,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** Keeps track of standby masters which are no longer in communication with the leader master. */
   private final IndexedSet<MasterInfo> mLostMasters =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+
+  // TODO(jiacheng): address hashCode double check
+  private final Map<NetAddress, ProxyInfo> mProxies = new ConcurrentHashMap<>();
+  private final Map<NetAddress, ProxyInfo> mLostProxies = new ConcurrentHashMap<>();
 
   /** The connect address for the rpc server. */
   private final InetSocketAddress mRpcConnectAddress
@@ -272,6 +280,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         new GrpcService(ServerInterceptors.intercept(
             new MetaMasterMasterServiceHandler(this),
             new ClientContextServerInjector())));
+    services.put(ServiceType.META_MASTER_PROXY_SERVICE,
+            new GrpcService(new MetaMasterProxyServiceHandler(this)));
     // Add backup role services.
     services.putAll(mBackupRole.getRoleServices());
     services.putAll(mJournalSystem.getJournalServices());
@@ -646,6 +656,25 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     mMasterConfigStore.registerNewConf(master.getAddress(), options.getConfigsList());
 
     LOG.info("registerMaster(): master: {}", master);
+  }
+
+  @Override
+  public void proxyHeartbeat(ProxyHeartbeatPRequest request) {
+    LOG.info("Received proxy heartbeat {}", request);
+    ProxyHeartbeatPOptions options = request.getOptions();
+    NetAddress address = options.getProxyAddress();
+    mProxies.compute(address, (key, proxyInfo) -> {
+      if (proxyInfo == null) {
+        ProxyInfo info = new ProxyInfo(address);
+        info.setVersion(options.getVersion());
+        info.setRevision(options.getRevision());
+        return info;
+      } else {
+        proxyInfo.updateLastHeartbeatTimeMs();
+        return proxyInfo;
+      }
+    });
+    mLostProxies.remove(address);
   }
 
   @Override

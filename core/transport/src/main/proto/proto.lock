@@ -6386,6 +6386,44 @@
                 }
               }
             ]
+          },
+          {
+            "name": "ProxyHeartbeatPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "proxyAddress",
+                "type": "grpc.NetAddress"
+              },
+              {
+                "id": 2,
+                "name": "startTime",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "version",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "revision",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "ProxyHeartbeatPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "options",
+                "type": "ProxyHeartbeatPOptions"
+              }
+            ]
+          },
+          {
+            "name": "ProxyHeartbeatPResponse"
           }
         ],
         "services": [
@@ -6466,6 +6504,16 @@
                 "name": "MasterHeartbeat",
                 "in_type": "MasterHeartbeatPRequest",
                 "out_type": "MasterHeartbeatPResponse"
+              }
+            ]
+          },
+          {
+            "name": "MetaMasterProxyService",
+            "rpcs": [
+              {
+                "name": "ProxyHeartbeat",
+                "in_type": "ProxyHeartbeatPRequest",
+                "out_type": "ProxyHeartbeatPResponse"
               }
             ]
           }
@@ -8373,6 +8421,10 @@
               {
                 "name": "META_MASTER_MASTER_SERVICE",
                 "integer": 8
+              },
+              {
+                "name": "META_MASTER_PROXY_SERVICE",
+                "integer": 18
               },
               {
                 "name": "METRICS_MASTER_CLIENT_SERVICE",
