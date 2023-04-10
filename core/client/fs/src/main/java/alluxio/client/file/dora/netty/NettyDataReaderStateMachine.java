@@ -11,19 +11,15 @@
 
 package alluxio.client.file.dora.netty;
 
-import static alluxio.client.file.dora.netty.NettyDataReaderStateMachine.Payload.Type.CANCEL;
-import static alluxio.client.file.dora.netty.NettyDataReaderStateMachine.Payload.Type.CHANNEL_ERROR;
-import static alluxio.client.file.dora.netty.NettyDataReaderStateMachine.Payload.Type.DATA;
-import static alluxio.client.file.dora.netty.NettyDataReaderStateMachine.Payload.Type.EOF;
-import static alluxio.client.file.dora.netty.NettyDataReaderStateMachine.Payload.Type.HEART_BEAT;
-import static alluxio.client.file.dora.netty.NettyDataReaderStateMachine.Payload.Type.SERVER_ERROR;
 import static alluxio.client.file.dora.netty.PartialReadException.CauseType;
 
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.dora.netty.event.ResponseEvent;
+import alluxio.client.file.dora.netty.event.ResponseEventContext;
+import alluxio.client.file.dora.netty.event.ResponseEventFactory;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -75,18 +71,19 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class NettyDataReaderStateMachine {
   private static final Logger LOG = LoggerFactory.getLogger(NettyDataReaderStateMachine.class);
-  private final StateMachine<State, Trigger> mStateMachine;
-  private final Triggers mTriggers;
-  private final AtomicReference<Runnable> mNextTrigger = new AtomicReference<>();
+  private final StateMachine<State, TriggerEvent> mStateMachine;
+  private final TriggerEventsWithParam mTriggerEventsWithParam;
+
+  private final AtomicReference<Runnable> mNextTriggerEvent = new AtomicReference<>();
+
   private final FileSystemContext mContext;
   private final long mReadTimeoutMs;
   private final int mMaxPacketsInFlight;
   private final WorkerNetAddress mAddress;
   private final Supplier<Protocol.ReadRequest.Builder> mRequestBuilder;
-  private final long mOffset;
   private final int mLength;
   private final WritableByteChannel mOutputChannel;
-  private final BlockingQueue<Payload<?>> mQueue = new LinkedBlockingQueue<>();
+  private final BlockingQueue<ResponseEvent> mResponseEventQueue = new LinkedBlockingQueue<>();
 
   @Nullable
   private Channel mChannel;
@@ -94,7 +91,7 @@ public class NettyDataReaderStateMachine {
   @Nullable
   private Throwable mLastException;
   @Nullable
-  private Trigger mLastExceptionTrigger;
+  private TriggerEvent mLastExceptionTrigger;
 
   enum State {
     CREATED,
@@ -110,7 +107,10 @@ public class NettyDataReaderStateMachine {
     RECEIVED_EOF
   }
 
-  enum Trigger {
+  /**
+   * Trigger event definition for {@code NettyClientStateMachine}.
+   */
+  public enum TriggerEvent {
     START,
     CHANNEL_AVAILABLE,
     CHANNEL_UNAVAILABLE,
@@ -131,30 +131,39 @@ public class NettyDataReaderStateMachine {
     DATA_DISCARDED,
   }
 
-  private static class Triggers {
-    final TriggerWithParameters1<IOException, Trigger> mChannelUnavailable;
-    final TriggerWithParameters1<ByteBuf, Trigger> mDataAvailable;
-    final TriggerWithParameters1<AlluxioStatusException, Trigger> mServerError;
-    final TriggerWithParameters1<Throwable, Trigger> mChannelError;
-    final TriggerWithParameters1<IOException, Trigger> mOutputError;
-    final TriggerWithParameters1<TimeoutException, Trigger> mTimeout;
-    final TriggerWithParameters1<InterruptedException, Trigger> mInterrupted;
+  /**
+   * Trigger event with parameters for @{NettyClientStateMacine}.
+   */
+  public static class TriggerEventsWithParam {
 
-    public Triggers(StateMachineConfig<State, Trigger> config) {
-      mChannelUnavailable =
-          config.setTriggerParameters(Trigger.CHANNEL_UNAVAILABLE, IOException.class);
-      mDataAvailable =
-          config.setTriggerParameters(Trigger.DATA_AVAILABLE, ByteBuf.class);
-      mServerError =
-          config.setTriggerParameters(Trigger.SERVER_ERROR, AlluxioStatusException.class);
-      mChannelError =
-          config.setTriggerParameters(Trigger.CHANNEL_ERROR, Throwable.class);
-      mOutputError =
-          config.setTriggerParameters(Trigger.OUTPUT_ERROR, IOException.class);
-      mTimeout =
-          config.setTriggerParameters(Trigger.TIMEOUT, TimeoutException.class);
-      mInterrupted =
-          config.setTriggerParameters(Trigger.INTERRUPTED, InterruptedException.class);
+    public final TriggerWithParameters1<IOException, TriggerEvent> mChannelUnavailableEvent;
+    public final TriggerWithParameters1<ByteBuf, TriggerEvent> mDataAvailableEvent;
+    public final TriggerWithParameters1<AlluxioStatusException, TriggerEvent> mServerErrorEvent;
+    public final TriggerWithParameters1<Throwable, TriggerEvent> mChannelErrorEvent;
+    public final TriggerWithParameters1<IOException, TriggerEvent> mOutputErrorEvent;
+    public final TriggerWithParameters1<TimeoutException, TriggerEvent> mTimeoutEvent;
+    public final TriggerWithParameters1<InterruptedException, TriggerEvent> mInterruptedEvent;
+
+    /**
+     * Trigger event with parameters for @{NettyClientStateMacine}.
+     * @param config the {@code StateMachineConfig} for binding trigger event with parameter
+     *               for {@code StateMachine}
+     */
+    public TriggerEventsWithParam(StateMachineConfig<State, TriggerEvent> config) {
+      mChannelUnavailableEvent =
+          config.setTriggerParameters(TriggerEvent.CHANNEL_UNAVAILABLE, IOException.class);
+      mDataAvailableEvent =
+          config.setTriggerParameters(TriggerEvent.DATA_AVAILABLE, ByteBuf.class);
+      mServerErrorEvent =
+          config.setTriggerParameters(TriggerEvent.SERVER_ERROR, AlluxioStatusException.class);
+      mChannelErrorEvent =
+          config.setTriggerParameters(TriggerEvent.CHANNEL_ERROR, Throwable.class);
+      mOutputErrorEvent =
+          config.setTriggerParameters(TriggerEvent.OUTPUT_ERROR, IOException.class);
+      mTimeoutEvent =
+          config.setTriggerParameters(TriggerEvent.TIMEOUT, TimeoutException.class);
+      mInterruptedEvent =
+          config.setTriggerParameters(TriggerEvent.INTERRUPTED, InterruptedException.class);
     }
   }
 
@@ -167,7 +176,7 @@ public class NettyDataReaderStateMachine {
    * @param outChannel
    */
   public NettyDataReaderStateMachine(FileSystemContext context, WorkerNetAddress address,
-      Protocol.ReadRequest.Builder requestBuilder, WritableByteChannel outChannel) {
+                                 Protocol.ReadRequest.Builder requestBuilder, WritableByteChannel outChannel) {
     mContext = context;
     AlluxioConfiguration conf = context.getClusterConf();
     mReadTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
@@ -175,75 +184,75 @@ public class NettyDataReaderStateMachine {
     mAddress = address;
     // clone the builder so that the initial values does not get overridden
     mRequestBuilder = requestBuilder::clone;
-    mOffset = requestBuilder.getOffset();
     mLength = (int) requestBuilder.getLength();
     mOutputChannel = outChannel;
 
-    StateMachineConfig<State, Trigger> config = new StateMachineConfig<>();
-    mTriggers = new Triggers(config);
+    StateMachineConfig<State, TriggerEvent> config = new StateMachineConfig<>();
+    mTriggerEventsWithParam = new TriggerEventsWithParam(config);
 
     config.configure(State.CREATED)
-        .permit(Trigger.START, State.ACQUIRING_CHANNEL);
+        .permit(TriggerEvent.START, State.ACQUIRING_CHANNEL);
     config.configure(State.ACQUIRING_CHANNEL)
         .onEntry(this::acquireNettyChannel)
-        .permit(Trigger.CHANNEL_AVAILABLE, State.CHANNEL_ACTIVE, this::sendRequest)
-        .permit(Trigger.CHANNEL_UNAVAILABLE, State.TERMINATED_EXCEPTIONALLY); // no need to cancel
+        .permit(TriggerEvent.CHANNEL_AVAILABLE, State.CHANNEL_ACTIVE, this::sendRequest)
+        // no need to cancel
+        .permit(TriggerEvent.CHANNEL_UNAVAILABLE, State.TERMINATED_EXCEPTIONALLY);
     config.configure(State.CHANNEL_ACTIVE)
         .onEntry(this::pollResponseFromQueue)
-        .permit(Trigger.DATA_AVAILABLE, State.RECEIVED_DATA)
-        .permitReentry(Trigger.HEART_BEAT)
-        .permit(Trigger.EOF, State.RECEIVED_EOF)
-        .permit(Trigger.TIMEOUT, State.CLIENT_CANCEL, this::sendClientCancel)
-        .permit(Trigger.INTERRUPTED, State.CLIENT_CANCEL, this::sendClientCancel)
-        .permit(Trigger.SERVER_ERROR, State.CLIENT_CANCEL, this::sendClientCancel)
-        .permit(Trigger.CHANNEL_ERROR, State.CLIENT_CANCEL, this::sendClientCancel);
+        .permit(TriggerEvent.DATA_AVAILABLE, State.RECEIVED_DATA)
+        .permitReentry(TriggerEvent.HEART_BEAT)
+        .permit(TriggerEvent.EOF, State.RECEIVED_EOF)
+        .permit(TriggerEvent.TIMEOUT, State.CLIENT_CANCEL, this::sendClientCancel)
+        .permit(TriggerEvent.INTERRUPTED, State.CLIENT_CANCEL, this::sendClientCancel)
+        .permit(TriggerEvent.SERVER_ERROR, State.CLIENT_CANCEL, this::sendClientCancel)
+        .permit(TriggerEvent.CHANNEL_ERROR, State.CLIENT_CANCEL, this::sendClientCancel);
     config.configure(State.RECEIVED_DATA)
-        .onEntryFrom(mTriggers.mDataAvailable, this::onReceivedData)
-        .permit(Trigger.OUTPUT_ERROR, State.CLIENT_CANCEL, this::sendClientCancel)
-        .permit(Trigger.OUTPUT_LENGTH_FULFILLED, State.EXPECTING_EOF)
-        .permit(Trigger.OUTPUT_LENGTH_NOT_FULFILLED, State.CHANNEL_ACTIVE);
+        .onEntryFrom(mTriggerEventsWithParam.mDataAvailableEvent, this::onReceivedData)
+        .permit(TriggerEvent.OUTPUT_ERROR, State.CLIENT_CANCEL, this::sendClientCancel)
+        .permit(TriggerEvent.OUTPUT_LENGTH_FULFILLED, State.EXPECTING_EOF)
+        .permit(TriggerEvent.OUTPUT_LENGTH_NOT_FULFILLED, State.CHANNEL_ACTIVE);
     config.configure(State.EXPECTING_EOF)
         .onEntry(this::pollResponseFromQueue)
-        .permit(Trigger.EOF, State.TERMINATED_NORMALLY)
+        .permit(TriggerEvent.EOF, State.TERMINATED_NORMALLY)
         // todo(bowen): do we need to handle DATA_AVAILABLE from an insane server?
         // we have got enough data to exit correctly,
         // so just close the channel if anything unexpected happens instead of throwing an error
-        .permit(Trigger.TIMEOUT, State.TERMINATED_NORMALLY, this::syncCloseChannel)
-        .permit(Trigger.INTERRUPTED, State.TERMINATED_NORMALLY, this::syncCloseChannel)
-        .permit(Trigger.SERVER_ERROR, State.TERMINATED_NORMALLY, this::syncCloseChannel)
-        .permit(Trigger.CHANNEL_ERROR, State.TERMINATED_NORMALLY, this::syncCloseChannel);
+        .permit(TriggerEvent.TIMEOUT, State.TERMINATED_NORMALLY, this::syncCloseChannel)
+        .permit(TriggerEvent.INTERRUPTED, State.TERMINATED_NORMALLY, this::syncCloseChannel)
+        .permit(TriggerEvent.SERVER_ERROR, State.TERMINATED_NORMALLY, this::syncCloseChannel)
+        .permit(TriggerEvent.CHANNEL_ERROR, State.TERMINATED_NORMALLY, this::syncCloseChannel);
     config.configure(State.RECEIVED_EOF)
         .onEntry(this::onReceivedEof)
-        .permit(Trigger.OUTPUT_LENGTH_FULFILLED, State.TERMINATED_NORMALLY)
-        .permit(Trigger.OUTPUT_LENGTH_NOT_FULFILLED, State.TERMINATED_NORMALLY);
+        .permit(TriggerEvent.OUTPUT_LENGTH_FULFILLED, State.TERMINATED_NORMALLY)
+        .permit(TriggerEvent.OUTPUT_LENGTH_NOT_FULFILLED, State.TERMINATED_NORMALLY);
     config.configure(State.CLIENT_CANCEL)
-        .onEntryFrom(mTriggers.mInterrupted, this::setException)
-        .onEntryFrom(mTriggers.mTimeout, this::setException)
-        .onEntryFrom(mTriggers.mServerError, this::setException)
-        .onEntryFrom(mTriggers.mChannelError, this::setException)
-        .onEntryFrom(mTriggers.mOutputError, this::setException)
+        .onEntryFrom(mTriggerEventsWithParam.mInterruptedEvent, this::setException)
+        .onEntryFrom(mTriggerEventsWithParam.mTimeoutEvent, this::setException)
+        .onEntryFrom(mTriggerEventsWithParam.mServerErrorEvent, this::setException)
+        .onEntryFrom(mTriggerEventsWithParam.mChannelErrorEvent, this::setException)
+        .onEntryFrom(mTriggerEventsWithParam.mOutputErrorEvent, this::setException)
         .onEntry(this::pollResponseFromQueue)
-        .permit(Trigger.DATA_AVAILABLE, State.CLIENT_CANCEL_DATA_RECEIVED)
-        .permitReentry(Trigger.EOF)
-        .permitReentry(Trigger.HEART_BEAT)
+        .permit(TriggerEvent.DATA_AVAILABLE, State.CLIENT_CANCEL_DATA_RECEIVED)
+        .permitReentry(TriggerEvent.EOF)
+        .permitReentry(TriggerEvent.HEART_BEAT)
         // this is the good case where server has acknowledged client cancel
         // and the channel is OK for reuse
-        .permit(Trigger.SERVER_CANCEL, State.TERMINATED_NORMALLY)
-        .permit(Trigger.INTERRUPTED, State.TERMINATED_EXCEPTIONALLY)
-        .permit(Trigger.TIMEOUT, State.TERMINATED_EXCEPTIONALLY)
-        .permit(Trigger.SERVER_ERROR, State.TERMINATED_EXCEPTIONALLY)
-        .permit(Trigger.CHANNEL_ERROR, State.TERMINATED_EXCEPTIONALLY);
+        .permit(TriggerEvent.SERVER_CANCEL, State.TERMINATED_NORMALLY)
+        .permit(TriggerEvent.INTERRUPTED, State.TERMINATED_EXCEPTIONALLY)
+        .permit(TriggerEvent.TIMEOUT, State.TERMINATED_EXCEPTIONALLY)
+        .permit(TriggerEvent.SERVER_ERROR, State.TERMINATED_EXCEPTIONALLY)
+        .permit(TriggerEvent.CHANNEL_ERROR, State.TERMINATED_EXCEPTIONALLY);
     config.configure(State.TERMINATED_EXCEPTIONALLY)
         .substateOf(State.TERMINATED)
-        .onEntryFrom(mTriggers.mChannelUnavailable, this::setException)
-        .onEntryFrom(mTriggers.mInterrupted, this::addExceptionAsSuppressed)
-        .onEntryFrom(mTriggers.mTimeout, this::addExceptionAsSuppressed)
-        .onEntryFrom(mTriggers.mServerError, this::addExceptionAsSuppressed)
-        .onEntryFrom(mTriggers.mChannelError, this::addExceptionAsSuppressed)
+        .onEntryFrom(mTriggerEventsWithParam.mChannelUnavailableEvent, this::setException)
+        .onEntryFrom(mTriggerEventsWithParam.mInterruptedEvent, this::addExceptionAsSuppressed)
+        .onEntryFrom(mTriggerEventsWithParam.mTimeoutEvent, this::addExceptionAsSuppressed)
+        .onEntryFrom(mTriggerEventsWithParam.mServerErrorEvent, this::addExceptionAsSuppressed)
+        .onEntryFrom(mTriggerEventsWithParam.mChannelErrorEvent, this::addExceptionAsSuppressed)
         .onEntry(this::onTerminatedExceptionally);
     config.configure(State.CLIENT_CANCEL_DATA_RECEIVED)
-        .onEntryFrom(mTriggers.mDataAvailable, this::onClientCancelDataReceived)
-        .permit(Trigger.DATA_DISCARDED, State.CLIENT_CANCEL);
+        .onEntryFrom(mTriggerEventsWithParam.mDataAvailableEvent, this::onClientCancelDataReceived)
+        .permit(TriggerEvent.DATA_DISCARDED, State.CLIENT_CANCEL);
     config.configure(State.TERMINATED_NORMALLY)
         .substateOf(State.TERMINATED)
         .onEntry(this::onTerminatedNormally);
@@ -254,17 +263,48 @@ public class NettyDataReaderStateMachine {
   }
 
   /**
+   * Helper method to allow firing triggers within state handler methods.
+   * If the triggers are fired directly within state handler methods, they will likely make
+   * recursive calls and blow up the stack.
+   * @param triggerEvent the next trigger event to fire
+   */
+  public void fireNext(TriggerEvent triggerEvent) {
+    mNextTriggerEvent.set(() -> mStateMachine.fire(triggerEvent));
+  }
+
+  /**
+   * Helper method to allow firing triggers within state handler methods.
+   * If the triggers are fired directly within state handler methods, they will likely make
+   * recursive calls and blow up the stack.
+   * @param triggerEvent the next trigger event to fire
+   * @param arg0 the argument to be used
+   * @param <Arg0T> the type of the argument to be used
+   */
+  public <Arg0T> void fireNext(
+      TriggerWithParameters1<Arg0T, TriggerEvent> triggerEvent, Arg0T arg0) {
+    mNextTriggerEvent.set(() -> mStateMachine.fire(triggerEvent, arg0));
+  }
+
+  /**
+   * Get the TriggerEventsWithParam.
+   * @return the TriggerEventsWithParam object
+   */
+  public TriggerEventsWithParam getTriggerEventsWithParam() {
+    return mTriggerEventsWithParam;
+  }
+
+  /**
    * Starts the state machine.
    */
   public void run() {
     Preconditions.checkState(mStateMachine.isInState(State.CREATED),
         "state machine cannot be restarted: expected initial state %s, encountered %s",
         State.CREATED, mStateMachine.getState());
-    fireNext(Trigger.START);
+    fireNext(TriggerEvent.START);
     try {
-      for (Runnable trigger = mNextTrigger.getAndSet(null);
+      for (Runnable trigger = mNextTriggerEvent.getAndSet(null);
            trigger != null;
-           trigger = mNextTrigger.getAndSet(null)) {
+           trigger = mNextTriggerEvent.getAndSet(null)) {
         trigger.run();
       }
     } catch (RuntimeException e) {
@@ -335,29 +375,15 @@ public class NettyDataReaderStateMachine {
     }
   }
 
-  /**
-   * Helper method to allow firing triggers within state handler methods.
-   * If the triggers are fired directly within state handler methods, they will likely make
-   * recursive calls and blow up the stack.
-   * @param trigger the next trigger to fire
-   */
-  void fireNext(Trigger trigger) {
-    mNextTrigger.set(() -> mStateMachine.fire(trigger));
-  }
-
-  <Arg0T> void fireNext(TriggerWithParameters1<Arg0T, Trigger> trigger, Arg0T arg0) {
-    mNextTrigger.set(() -> mStateMachine.fire(trigger, arg0));
-  }
-
   void acquireNettyChannel() {
     try {
       mChannel = mContext.acquireNettyChannel(mAddress);
-      mChannel.pipeline().addLast(new PacketReadHandler(mQueue, mMaxPacketsInFlight));
+      mChannel.pipeline().addLast(new PacketReadHandler(mResponseEventQueue, mMaxPacketsInFlight));
     } catch (IOException ioe) {
-      fireNext(mTriggers.mChannelUnavailable, ioe);
+      fireNext(mTriggerEventsWithParam.mChannelUnavailableEvent, ioe);
       return;
     }
-    fireNext(Trigger.CHANNEL_AVAILABLE);
+    fireNext(TriggerEvent.CHANNEL_AVAILABLE);
   }
 
   void sendRequest() {
@@ -366,50 +392,40 @@ public class NettyDataReaderStateMachine {
     mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(readRequest)))
         .addListener((ChannelFutureListener) future -> {
           if (!future.isSuccess()) {
-            // Note: cannot call fireNext(Trigger.CHANNEL_ERROR, future.cause()) directly
+            // Note: cannot call fireNext(TriggerEvent.CHANNEL_ERROR, future.cause()) directly
             // as the callback is called on a Netty I/O thread, it would bypass the blocking queue
             // and create a race condition with the thread the state machine is executing on
-            mQueue.offer(Payload.channelError(future.cause()));
+            mResponseEventQueue.offer(ResponseEventFactory.getResponseEventFactory()
+                .createChannelErrorResponseEvent(future.cause()));
           }
         });
   }
 
   void pollResponseFromQueue() {
-    if (!tooManyPacketsPending(mQueue, mMaxPacketsInFlight)) {
+    if (!tooManyResponseEventsPending(mResponseEventQueue, mMaxPacketsInFlight)) {
       NettyUtils.enableAutoRead(mChannel);
     }
-    Payload<?> payload;
+    ResponseEventContext responseEventContext =
+        new ResponseEventContext(this);
+    ResponseEvent responseEvent;
     try {
-      payload = mQueue.poll(mReadTimeoutMs, TimeUnit.MILLISECONDS);
+      responseEvent = mResponseEventQueue.poll(mReadTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException interruptedException) {
       Thread.currentThread().interrupt();
-      fireNext(mTriggers.mInterrupted, interruptedException);
+      fireNext(mTriggerEventsWithParam.mInterruptedEvent, interruptedException);
       return;
     }
-    // todo(bowen): make this a visitor pattern
-    // todo(bowen): find a way to do exhaustive enum matching and get rid of the UNKNOWN_PAYLOAD
-    if (payload == null) {
-      fireNext(mTriggers.mTimeout, new TimeoutException(
+
+    if (responseEvent == null) {
+      fireNext(mTriggerEventsWithParam.mTimeoutEvent, new TimeoutException(
           "Timed out when waiting for server response for " + mReadTimeoutMs + " ms"));
-    } else if (payload.type() == DATA) {
-      fireNext(mTriggers.mDataAvailable, payload.payload(DATA));
-    } else if (payload.type() == CANCEL) {
-      fireNext(Trigger.SERVER_CANCEL);
-    } else if (payload.type() == EOF) {
-      fireNext(Trigger.EOF);
-    } else if (payload.type() == SERVER_ERROR) {
-      fireNext(mTriggers.mServerError, payload.payload(SERVER_ERROR));
-    } else if (payload.type() == CHANNEL_ERROR) {
-      fireNext(mTriggers.mChannelError, payload.payload(CHANNEL_ERROR));
-    } else if (payload.type() == HEART_BEAT) {
-      fireNext(Trigger.HEART_BEAT);
     } else {
-      fireNext(Trigger.UNKNOWN_PAYLOAD);
+      responseEvent.postProcess(responseEventContext);
     }
   }
 
-  void onReceivedData(ByteBuf buf, Transition<State, Trigger> transition) {
-    Preconditions.checkState(Trigger.DATA_AVAILABLE == transition.getTrigger());
+  void onReceivedData(ByteBuf buf, Transition<State, TriggerEvent> transition) {
+    Preconditions.checkState(TriggerEvent.DATA_AVAILABLE == transition.getTrigger());
     ByteBuf byteBuf = buf.slice();
     int readableBytes = byteBuf.readableBytes();
     int sliceEnd = Math.min(readableBytes, mLength - mBytesRead);
@@ -418,28 +434,28 @@ public class NettyDataReaderStateMachine {
     try {
       mBytesRead += mOutputChannel.write(toWrite);
     } catch (IOException ioe) {
-      fireNext(mTriggers.mOutputError, ioe);
+      fireNext(mTriggerEventsWithParam.mOutputErrorEvent, ioe);
       return;
     } finally {
       // previously retained in packet read handler
       byteBuf.release();
     }
     if (mBytesRead < mLength) {
-      fireNext(Trigger.OUTPUT_LENGTH_NOT_FULFILLED);
+      fireNext(TriggerEvent.OUTPUT_LENGTH_NOT_FULFILLED);
     } else {
-      fireNext(Trigger.OUTPUT_LENGTH_FULFILLED);
+      fireNext(TriggerEvent.OUTPUT_LENGTH_FULFILLED);
     }
   }
 
-  void onReceivedEof(Transition<State, Trigger> transition) {
+  void onReceivedEof(Transition<State, TriggerEvent> transition) {
     if (mBytesRead < mLength) {
-      fireNext(Trigger.OUTPUT_LENGTH_NOT_FULFILLED);
+      fireNext(TriggerEvent.OUTPUT_LENGTH_NOT_FULFILLED);
     } else {
-      fireNext(Trigger.OUTPUT_LENGTH_FULFILLED);
+      fireNext(TriggerEvent.OUTPUT_LENGTH_FULFILLED);
     }
   }
 
-  <T extends Throwable> void setException(T e, Transition<State, Trigger> transition) {
+  <T extends Throwable> void setException(T e, Transition<State, TriggerEvent> transition) {
     mLastException = e;
     mLastExceptionTrigger = transition.getTrigger();
   }
@@ -450,7 +466,7 @@ public class NettyDataReaderStateMachine {
    * a main exception, it is ignored.
    */
   <T extends Throwable> void addExceptionAsSuppressed(T suppressed,
-      Transition<State, Trigger> transition) {
+                                                      Transition<State, TriggerEvent> transition) {
     if (mLastException != null) {
       mLastException.addSuppressed(suppressed);
     }
@@ -462,10 +478,11 @@ public class NettyDataReaderStateMachine {
     mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(cancelRequest)))
         .addListener((ChannelFutureListener) future -> {
           if (!future.isSuccess()) {
-            // Note: cannot call fireNext(Trigger.CHANNEL_ERROR, future.cause()) directly
+            // Note: cannot call fireNext(TriggerEvent.CHANNEL_ERROR, future.cause()) directly
             // as the callback is called on a Netty I/O thread, it would bypass the blocking queue
             // and create a race condition with the thread the state machine is executing on
-            mQueue.offer(Payload.channelError(future.cause()));
+            mResponseEventQueue.offer(ResponseEventFactory.getResponseEventFactory()
+                .createChannelErrorResponseEvent(future.cause()));
           }
         });
   }
@@ -479,14 +496,14 @@ public class NettyDataReaderStateMachine {
   }
 
   // discard data remaining in the queue
-  void onClientCancelDataReceived(ByteBuf byteBuf, Transition<State, Trigger> transition) {
-    Preconditions.checkState(transition.getTrigger() == Trigger.DATA_AVAILABLE);
+  void onClientCancelDataReceived(ByteBuf byteBuf, Transition<State, TriggerEvent> transition) {
+    Preconditions.checkState(transition.getTrigger() == TriggerEvent.DATA_AVAILABLE);
     Preconditions.checkState(transition.getSource() == State.CLIENT_CANCEL);
     byteBuf.release();
-    fireNext(Trigger.DATA_DISCARDED);
+    fireNext(TriggerEvent.DATA_DISCARDED);
   }
 
-  void onTerminatedExceptionally(Transition<State, Trigger> transition) {
+  void onTerminatedExceptionally(Transition<State, TriggerEvent> transition) {
     if (mChannel != null) {
       if (mChannel.isOpen()) {
         CommonUtils.closeChannel(mChannel);
@@ -495,7 +512,7 @@ public class NettyDataReaderStateMachine {
     }
   }
 
-  void onTerminatedNormally(Transition<State, Trigger> transition) {
+  void onTerminatedNormally(Transition<State, TriggerEvent> transition) {
     Preconditions.checkNotNull(mChannel, "terminated normally but channel is null");
     if (mChannel.isOpen()) {
       mChannel.pipeline().removeLast();
@@ -504,17 +521,20 @@ public class NettyDataReaderStateMachine {
     mContext.releaseNettyChannel(mAddress, mChannel);
   }
 
-  private static boolean tooManyPacketsPending(
-      BlockingQueue<Payload<?>> queue, int maxPacketsInFlight) {
+  private static boolean tooManyResponseEventsPending(
+      BlockingQueue<ResponseEvent> queue, int maxPacketsInFlight) {
     return queue.size() >= maxPacketsInFlight;
   }
 
   private static class PacketReadHandler extends ChannelInboundHandlerAdapter {
-    private final BlockingQueue<Payload<?>> mPackets;
+    private final BlockingQueue<ResponseEvent> mResponseEventQueue;
     private final int mMaxPacketsInFlight;
 
-    PacketReadHandler(BlockingQueue<Payload<?>> queue, int maxPacketsInFlight) {
-      mPackets = queue;
+    private final ResponseEventFactory mResponseEventFactory =
+        ResponseEventFactory.getResponseEventFactory();
+
+    PacketReadHandler(BlockingQueue<ResponseEvent> responseEventQueue, int maxPacketsInFlight) {
+      mResponseEventQueue = responseEventQueue;
       mMaxPacketsInFlight = maxPacketsInFlight;
     }
 
@@ -527,33 +547,31 @@ public class NettyDataReaderStateMachine {
             .format("Incorrect response type %s, %s.", msg.getClass().getCanonicalName(), msg));
       }
 
-      Payload<?> payload;
+      ResponseEvent responseEvent;
       RPCProtoMessage rpcProtoMessage = (RPCProtoMessage) msg;
       ProtoMessage message = rpcProtoMessage.getMessage();
       if (message.isReadResponse()) {
         Preconditions.checkState(
             message.asReadResponse().getType() == Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT);
-        payload = Payload.ufsReadHeartBeat();
+        responseEvent = mResponseEventFactory.createUfsReadHeartBeatResponseEvent();
       } else if (message.isResponse()) {
         Protocol.Response response = message.asResponse();
         // Canceled is considered a valid status and handled in the reader. We avoid creating a
         // CanceledException as an optimization.
         switch (response.getStatus()) {
           case CANCELLED:
-            payload = Payload.cancel(
-                new CancelledException("Server canceled: " + response.getMessage()));
+            responseEvent = mResponseEventFactory.createCancelResponseEvent();
             break;
           case OK:
             DataBuffer dataBuffer = rpcProtoMessage.getPayloadDataBuffer();
             if (dataBuffer != null) {
               Preconditions.checkState(dataBuffer.getNettyOutput() instanceof ByteBuf,
                   "dataBuffer.getNettyOutput is not of type ByteBuf");
-              ByteBuf data = (ByteBuf) dataBuffer.getNettyOutput();
               // no need to retain this buffer since it's already retained by RPCProtoMessage.decode
-              payload = Payload.data(data);
+              responseEvent = mResponseEventFactory.createDataResponseEvent(dataBuffer);
             } else {
               // an empty response indicates the worker has done sending data
-              payload = Payload.eof();
+              responseEvent = mResponseEventFactory.createEofResponseEvent();
             }
             break;
           default:
@@ -561,147 +579,35 @@ public class NettyDataReaderStateMachine {
             AlluxioStatusException error = AlluxioStatusException.from(
                 status.withDescription(String.format("Error from server %s: %s",
                     ctx.channel().remoteAddress(), response.getMessage())));
-            payload = Payload.serverError(error);
+            responseEvent = mResponseEventFactory.createServerErrorResponseEvent(error);
         }
       } else {
         throw new IllegalStateException(
             String.format("Incorrect response type %s.", message));
       }
 
-      if (tooManyPacketsPending(mPackets, mMaxPacketsInFlight)) {
+      if (tooManyResponseEventsPending(mResponseEventQueue, mMaxPacketsInFlight)) {
         NettyUtils.disableAutoRead(ctx.channel());
       }
-      mPackets.offer(payload);
+      mResponseEventQueue.offer(responseEvent);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
       LOG.error("Exception is caught while reading data from channel {}:",
           ctx.channel(), cause);
-      Payload<?> payload = Payload.channelError(cause);
-      mPackets.offer(payload);
+      ResponseEvent responseEvent = mResponseEventFactory.createChannelErrorResponseEvent(cause);
+      mResponseEventQueue.offer(responseEvent);
       ctx.fireExceptionCaught(cause);
     }
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
       LOG.warn("Channel is closed while reading data from channel {}.", ctx.channel());
-      Payload<?> payload = Payload.channelError(
+      ResponseEvent responseEvent = mResponseEventFactory.createChannelErrorResponseEvent(
           new UnavailableException(String.format("Channel %s is closed.", ctx.channel())));
-      mPackets.offer(payload);
+      mResponseEventQueue.offer(responseEvent);
       ctx.fireChannelUnregistered();
-    }
-  }
-
-  static class Payload<T extends Payload.Type<?>> {
-    interface Type<P> {
-      Class<P> payloadType();
-
-      /** A packet containing data. */
-      Data DATA = new Data();
-      /** A packet containing a heart beat from server. */
-      UfsReadHeartBeat HEART_BEAT = new UfsReadHeartBeat();
-      /** The EOF message. */
-      Eof EOF = new Eof();
-      /** The cancel reply from server, in acknowledge to a client cancel message. */
-      Cancel CANCEL = new Cancel();
-      /**
-       * The server rejected the client due to a bad request, encountered an internal error, etc.,
-       * and sent an error response,
-       * but the channel is otherwise not affected and should be good for reuse.
-       */
-      ServerError SERVER_ERROR = new ServerError();
-      /**
-       * There is an error on the channel, may be an exception from pipeline handlers,
-       * or the channel has been closed, etc. The channel is probably not good for reuse any more.
-       */
-      ChannelError CHANNEL_ERROR = new ChannelError();
-    }
-
-    static class Data implements Type<ByteBuf> {
-      @Override
-      public Class<ByteBuf> payloadType() {
-        return ByteBuf.class;
-      }
-    }
-
-    static class UfsReadHeartBeat implements Type<Void> {
-      @Override
-      public Class<Void> payloadType() {
-        return Void.TYPE;
-      }
-    }
-
-    static class Eof implements Type<Void> {
-      @Override
-      public Class<Void> payloadType() {
-        return Void.TYPE;
-      }
-    }
-
-    static class Cancel implements Type<CancelledException> {
-      @Override
-      public Class<CancelledException> payloadType() {
-        return CancelledException.class;
-      }
-    }
-
-    static class ServerError implements Type<AlluxioStatusException> {
-      @Override
-      public Class<AlluxioStatusException> payloadType() {
-        return AlluxioStatusException.class;
-      }
-    }
-
-    static class ChannelError implements Type<Throwable> {
-      @Override
-      public Class<Throwable> payloadType() {
-        return Throwable.class;
-      }
-    }
-
-    private final T mType;
-    private final Object mPayload;
-
-    private Payload(T type, Object payload) {
-      Preconditions.checkArgument((type.payloadType() == Void.TYPE && payload == null)
-          || type.payloadType().isInstance(payload));
-      mType = type;
-      mPayload = payload;
-    }
-
-    static Payload<Data> data(ByteBuf buf) {
-      return new Payload<>(Type.DATA, buf);
-    }
-
-    static Payload<UfsReadHeartBeat> ufsReadHeartBeat() {
-      return new Payload<>(HEART_BEAT, null);
-    }
-
-    static Payload<Eof> eof() {
-      return new Payload<>(EOF, null);
-    }
-
-    static Payload<Cancel> cancel(CancelledException exception) {
-      return new Payload<>(CANCEL, exception);
-    }
-
-    static Payload<ServerError> serverError(AlluxioStatusException error) {
-      return new Payload<>(SERVER_ERROR, error);
-    }
-
-    static Payload<ChannelError> channelError(Throwable error) {
-      return new Payload<>(CHANNEL_ERROR, error);
-    }
-
-    public T type() {
-      return mType;
-    }
-
-    public <P> P payload(Type<P> type) {
-      Preconditions.checkArgument(type == mType, "payload type mismatch");
-      Class<P> clazz = type.payloadType();
-      return clazz.cast(mPayload);
     }
   }
 }
