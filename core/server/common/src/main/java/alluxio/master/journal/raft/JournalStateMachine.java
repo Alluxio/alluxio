@@ -207,7 +207,7 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public void reinitialize() throws IOException {
     LOG.info("Reinitializing state machine.");
-    mStorage.loadLatestSnapshot();
+    mStorage.getLatestSnapshot();
     loadSnapshot(mStorage.getLatestSnapshot());
     unpause();
     synchronized (mSnapshotManager) {
@@ -634,7 +634,7 @@ public class JournalStateMachine extends BaseStateMachine {
         return RaftLog.INVALID_LOG_INDEX;
       }
       try {
-        mStorage.loadLatestSnapshot();
+        mStorage.getLatestSnapshot();
       } catch (Exception e) {
         snapshotFile.delete();
         LogUtils.warnWithException(LOG, "Failed to refresh latest snapshot: {}", snapshotId, e);

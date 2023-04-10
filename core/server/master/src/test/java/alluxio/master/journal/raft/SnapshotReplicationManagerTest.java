@@ -184,7 +184,7 @@ public class SnapshotReplicationManagerTest {
       throws IOException {
     java.io.File file = storage.getSnapshotFile(term, index);
     FileUtils.writeByteArrayToFile(file, BufferUtils.getIncreasingByteArray(SNAPSHOT_SIZE));
-    storage.loadLatestSnapshot();
+    storage.getLatestSnapshot();
   }
 
   private void validateSnapshotFile(SimpleStateMachineStorage storage) throws IOException {

@@ -469,7 +469,7 @@ public class SnapshotReplicationManager {
         throw new IOException(String.format("Failed to rename %s to %s", tempFile, snapshotFile));
       }
       synchronized (this) {
-        mStorage.loadLatestSnapshot();
+        mStorage.getLatestSnapshot();
         notifyAll();
       }
       LOG.info("Completed storing snapshot at {} to file {} with size {}", downloaded,
