@@ -184,7 +184,7 @@
     <module>examples</module>
     <module>logserver</module>
     <module>microbench</module>
-    <module>table</module>
+    <!--<module>table</module>-->
     <module>webui</module>
   </modules>
 
