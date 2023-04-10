@@ -26,7 +26,9 @@ import alluxio.grpc.GetMasterInfoPOptions;
 import alluxio.grpc.GetMasterInfoPResponse;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
+import alluxio.grpc.MasterVersion;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
+import alluxio.grpc.NetAddress;
 import alluxio.master.StateLockOptions;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.wire.Address;
@@ -138,6 +140,36 @@ public final class MetaMasterClientServiceHandler
           case RAFT_JOURNAL:
             masterInfo.setRaftJournal(mMetaMaster.getMasterContext().getJournalSystem()
                 instanceof RaftJournalSystem);
+            break;
+          case MASTER_VERSION:
+            masterInfo.addMasterVersions(
+                MasterVersion.newBuilder()
+                    .setAddresses(NetAddress.newBuilder().setHost(
+                        mMetaMaster.getRpcAddress().getHostName())
+                        .setRpcPort(mMetaMaster.getRpcAddress().getPort()).build())
+                    .setVersion(RuntimeConstants.VERSION)
+                    .setState("PRIMARY")
+                    .build()
+            );
+            List<MasterVersion> standbyMasterVersions =
+                Arrays.stream(mMetaMaster.getStandbyMasterInfos())
+                  .map(it -> MasterVersion.newBuilder()
+                      .setVersion(it.getVersion())
+                      .setAddresses(it.getAddress().toProto())
+                      .setState("STANDBY")
+                      .build())
+                  .collect(Collectors.toList());
+
+            masterInfo.addAllMasterVersions(standbyMasterVersions);
+            List<MasterVersion> lostMasterVersions =
+                Arrays.stream(mMetaMaster.getLostMasterInfos())
+                  .map(it -> MasterVersion.newBuilder()
+                      .setVersion(it.getVersion())
+                      .setAddresses(it.getAddress().toProto())
+                      .setState("LOST")
+                      .build())
+                  .collect(Collectors.toList());
+            masterInfo.addAllMasterVersions(lostMasterVersions);
             break;
           default:
             LOG.warn("Unrecognized meta master info field: " + field);
