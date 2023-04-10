@@ -1385,7 +1385,47 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.fail("Upload part of an object without multipart upload initialization should fail");
   }
 
-  // TODO(czhu): Add test for UploadPartCopy
+  @Test
+  public void testUploadPartCopy() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String objectName = "src-object";
+    String srcObjectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
+    final byte[] srcObjectContent = CommonUtils.randomAlphaNumString(DATA_SIZE).getBytes();
+    putObjectTest(bucketName, objectName, srcObjectContent, null, null);
+
+    // UploadPartCopy object
+    String targetObjectName = "target-MP-object";
+    String targetMPObjectKey = bucketName + AlluxioURI.SEPARATOR + targetObjectName;
+    String result = initiateMultipartUploadRestCall(targetMPObjectKey);
+    final String uploadId = XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class)
+        .getUploadId();
+    Map<String, String> params = new HashMap<>();
+    params.put("uploadId", uploadId);
+    params.put("partNumber", "1");
+
+    new TestCase(mHostname, mPort, mBaseUri,
+        targetMPObjectKey,
+        params, HttpMethod.PUT,
+        getDefaultOptionsWithAuth()
+            .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, srcObjectKey)).runAndGetResponse();
+
+    List<CompleteMultipartUploadRequest.Part> partList = new ArrayList<>();
+    partList.add(new CompleteMultipartUploadRequest.Part("", 1));
+    result = completeMultipartUploadRestCall(targetMPObjectKey, uploadId,
+        new CompleteMultipartUploadRequest(partList));
+
+    // Verify the object's content.
+    byte[] downloadTargetMpObj = new byte[DATA_SIZE];
+    MessageDigest md5 = MessageDigest.getInstance("MD5");
+    try (FileInStream is = mFileSystem
+        .openFile(new AlluxioURI("/" + targetMPObjectKey))) {
+      is.read(downloadTargetMpObj, 0, DATA_SIZE);
+      Assert.assertTrue(is.available() <= 0);
+    }
+    Assert.assertArrayEquals(srcObjectContent, downloadTargetMpObj);
+  }
 
   @Test
   public void listParts() throws Exception {
