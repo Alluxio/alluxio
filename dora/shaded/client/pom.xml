@@ -25,7 +25,7 @@
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
-    <build.path>${project.parent.parent.basedir}/build</build.path>
+    <build.path>${project.parent.parent.parent.basedir}/build</build.path>
     <failIfNoTests>false</failIfNoTests>
     <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
     <shading.prefix>alluxio.shaded.client</shading.prefix>
@@ -333,8 +333,8 @@
               <goal>copy</goal>
             </goals>
             <configuration>
-              <sourceFile>${basedir}/target/${project.artifactId}-${project.version}.jar</sourceFile>
-              <destinationFile>${project.parent.parent.basedir}/client/alluxio-${project.version}-client.jar</destinationFile>
+              <sourceFile>target/alluxio-shaded-client-2.10.0-SNAPSHOT.jar</sourceFile>
+              <destinationFile>../../../client/alluxio-2.10.0-SNAPSHOT-client.jar</destinationFile>
             </configuration>
           </execution>
         </executions>
