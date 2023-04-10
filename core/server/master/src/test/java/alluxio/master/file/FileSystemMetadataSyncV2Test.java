@@ -28,6 +28,7 @@ import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
@@ -64,7 +65,9 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CommonPrefix;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 
@@ -74,6 +77,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.stream.Stream;
@@ -84,7 +88,7 @@ import java.util.stream.Stream;
 @RunWith(Parameterized.class)
 public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemMetadataSyncV2Test.class);
-  private static final String TEST_BUCKET = "tyler-alluxio-test-bucket2";
+  private static final String TEST_BUCKET = "tyler-alluxio-test-bucket3";
   private static final String TEST_BUCKET2 = "test-bucket-2";
   private static final String TEST_FILE = "test_file";
   private static final String TEST_DIRECTORY = "test_directory";
@@ -123,40 +127,43 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
       .withCredentials("_", "_")
       .build();
 
+  private boolean mUseRealS3 = false;
   private AmazonS3 mS3Client;
   private S3Client mClient;
   private DirectoryLoadType mDirectoryLoadType;
 
   @Override
   public void before() throws Exception {
-    Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001");
-    Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2");
-    Configuration.set(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true);
-    Configuration.set(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey());
-    Configuration.set(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey());
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false);
     Configuration.set(PropertyKey.UNDERFS_LISTING_LENGTH, 2);
 
-//    Configuration.set(PropertyKey.UNDERFS_S3_REGION, "us-west-1");
-//    mClient = S3Client.builder().region(Region.US_WEST_1).build();
-//    mS3Client = AmazonS3ClientBuilder.standard()
-//        .withRegion(Region.US_WEST_1.toString()).build();
+    if (mUseRealS3) {
+      Configuration.set(PropertyKey.UNDERFS_S3_REGION, "us-west-1");
+      mClient = S3Client.builder().region(Region.US_WEST_1).build();
+      mS3Client = AmazonS3ClientBuilder.standard()
+          .withRegion(Region.US_WEST_1.toString()).build();
+    } else {
+      Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001");
+      Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2");
+      Configuration.set(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true);
+      Configuration.set(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey());
+      Configuration.set(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey());
+      mClient = S3Client.builder().credentialsProvider(StaticCredentialsProvider.create(
+              AwsBasicCredentials.create(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
+          .endpointOverride(mS3Proxy.getUri()).region(Region.US_WEST_2).forcePathStyle(true)
+          .build();
 
-    mClient = S3Client.builder().credentialsProvider(StaticCredentialsProvider.create(
-            AwsBasicCredentials.create(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
-        .endpointOverride(mS3Proxy.getUri()).region(Region.US_WEST_2).forcePathStyle(true)
-        .build();
-
-    mS3Client = AmazonS3ClientBuilder
-        .standard()
-        .withPathStyleAccessEnabled(true)
-        .withCredentials(
-            new AWSStaticCredentialsProvider(
-                new BasicAWSCredentials(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
-        .withEndpointConfiguration(
-            new AwsClientBuilder.EndpointConfiguration(mS3Proxy.getUri().toString(),
-                Regions.US_WEST_2.getName()))
-        .build();
+      mS3Client = AmazonS3ClientBuilder
+          .standard()
+          .withPathStyleAccessEnabled(true)
+          .withCredentials(
+              new AWSStaticCredentialsProvider(
+                  new BasicAWSCredentials(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
+          .withEndpointConfiguration(
+              new AwsClientBuilder.EndpointConfiguration(mS3Proxy.getUri().toString(),
+                  Regions.US_WEST_2.getName()))
+          .build();
+    }
     mS3Client.createBucket(TEST_BUCKET);
     // mS3Client.createBucket(TEST_BUCKET2);
     super.before();
@@ -207,6 +214,24 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
 
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET,
         "", mFileSystemMaster, mClient);
+  }
+
+  @Test
+  public void dirTest() throws Throwable {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    List<FileInfo> items = mFileSystemMaster.listStatus(MOUNT_POINT, ListStatusContext.defaults());
+    mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE, TEST_CONTENT);
+
+    // load the dir with depth 1
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.NONE, mDirectoryLoadType, 0);
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    System.out.println(result.getTaskInfo().toString());
+    System.out.println(result.getTaskInfo().getStats().toString());
+    System.out.println(result.isCompleted().get().getSyncResult());
+    items = mFileSystemMaster.listStatus(MOUNT_POINT, ListStatusContext.create(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
+    System.out.println(Arrays.toString(items.toArray()));
   }
 
   @Test
@@ -1036,6 +1061,7 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     toCheck.push(new Pair<>(alluxioPath.getPath(), mountPrefix));
     while (!toCheck.isEmpty()) {
       Pair<String, String> nxt = toCheck.pop();
+
       Iterator<FileInfo> alluxioItems = master.listStatus(new AlluxioURI(nxt.getFirst()),
           ListStatusContext.defaults()).stream().iterator();
       Iterator<Pair<String, String>> ufsItems = listUfsPath(s3Bucket, nxt.getSecond(), s3client,

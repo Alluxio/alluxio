@@ -359,12 +359,16 @@ public class MetadataSyncer implements SyncProcess {
         // inode was processed in the previous listing
         boolean skipInitialReadFrom = loadResult.getPreviousLast().isPresent();
         Preconditions.checkState(readFrom.getPath().startsWith(alluxioMountUri.getPath()));
+        // the Alluxio path that was loaded from the UFS
         AlluxioURI alluxioSyncPath = reverseResolution.getUri();
-        String readFromSubstring =
-            PathUtils.subtractPaths(readFrom.getPath(), alluxioSyncPath.getPath());
-        if (!readFromSubstring.isEmpty()) {
+        loadResult.getPreviousLast().ifPresent(prevLast -> {
+          String prevLastAlluxio = ufsPathToAlluxioPath(
+              prevLast.getPath(), ufsMountPath, alluxioMountPath);
+          String readFromSubstring = prevLastAlluxio.substring(
+              alluxioSyncPath.getPath().endsWith(AlluxioURI.SEPARATOR)
+                  ? alluxioSyncPath.getPath().length() : alluxioSyncPath.getPath().length() + 1);
           readOptionBuilder.setReadFrom(readFromSubstring);
-        }
+        });
         // We stop iterating the Alluxio metadata at the last loaded item if the load result
         // is truncated
         AlluxioURI readUntil = null;

@@ -100,6 +100,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.CompletionException;
@@ -747,7 +748,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
       DescendantType descendantType,
       Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError) {
 
-    int maxKeys = getListingChunkLength(mUfsConf);
+    // if descendant type is NONE then we only want to return the directory itself
+    int maxKeys = descendantType == DescendantType.NONE ? 1 : getListingChunkLength(mUfsConf);
     path = stripPrefixIfPresent(path);
     String delimiter = descendantType == DescendantType.ALL ? "" : PATH_SEPARATOR;
     path = PathUtils.normalizePath(path, PATH_SEPARATOR);
@@ -757,6 +759,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
         software.amazon.awssdk.services.s3.model.ListObjectsV2Request
             .builder().bucket(mBucketName).prefix(path).continuationToken(continuationToken)
             .startAfter(startAfter).delimiter(delimiter).maxKeys(maxKeys);
+    String finalPath = path;
     mAsyncClient.listObjectsV2(request.build())
         .whenCompleteAsync((result, err) -> {
           if (err != null) {
@@ -780,9 +783,30 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
                 lastItem = new AlluxioURI(lastPrefix.compareTo(lastResult) > 0
                     ? lastPrefix : lastResult);
               }
+              int keyCount = result.keyCount();
+              Stream<UfsStatus> resultStream = resultToStream(result);
+              if (descendantType == DescendantType.NONE) {
+                // if descendant type is NONE then we only want to return the directory itself
+                Optional<Stream<UfsStatus>> str = resultStream.findFirst().map(item -> {
+                  if (item.isDirectory()) {
+                    return Stream.of(item);
+                  } else {
+                    if (item.getName().startsWith(finalPath)) {
+                      // in this case we received a file nested under the path, this can happen
+                      // if there was no marker object for the directory, and it contained
+                      // a nested object
+                      ObjectPermissions permissions = getPermissions();
+                      return Stream.of(new UfsDirectoryStatus(finalPath,
+                          permissions.getOwner(), permissions.getGroup(), permissions.getMode()));
+                    }
+                  }
+                  return Stream.empty();
+                });
+                resultStream = str.orElse(Stream.empty());
+              }
               onComplete.accept(
-                  new UfsLoadResult(resultToStream(result),
-                      result.keyCount(),
+                  new UfsLoadResult(resultStream,
+                      keyCount,
                       result.nextContinuationToken(), lastItem, result.isTruncated(), false));
             } catch (Throwable t) {
               onError.accept(t);
