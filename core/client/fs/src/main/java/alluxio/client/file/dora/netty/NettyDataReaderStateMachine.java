@@ -11,12 +11,12 @@
 
 package alluxio.client.file.dora.netty;
 
-import static alluxio.client.file.dora.netty.NettyClientStateMachine.Payload.Type.CANCEL;
-import static alluxio.client.file.dora.netty.NettyClientStateMachine.Payload.Type.CHANNEL_ERROR;
-import static alluxio.client.file.dora.netty.NettyClientStateMachine.Payload.Type.DATA;
-import static alluxio.client.file.dora.netty.NettyClientStateMachine.Payload.Type.EOF;
-import static alluxio.client.file.dora.netty.NettyClientStateMachine.Payload.Type.HEART_BEAT;
-import static alluxio.client.file.dora.netty.NettyClientStateMachine.Payload.Type.SERVER_ERROR;
+import static alluxio.client.file.dora.netty.NettyDataReaderStateMachine.Payload.Type.CANCEL;
+import static alluxio.client.file.dora.netty.NettyDataReaderStateMachine.Payload.Type.CHANNEL_ERROR;
+import static alluxio.client.file.dora.netty.NettyDataReaderStateMachine.Payload.Type.DATA;
+import static alluxio.client.file.dora.netty.NettyDataReaderStateMachine.Payload.Type.EOF;
+import static alluxio.client.file.dora.netty.NettyDataReaderStateMachine.Payload.Type.HEART_BEAT;
+import static alluxio.client.file.dora.netty.NettyDataReaderStateMachine.Payload.Type.SERVER_ERROR;
 import static alluxio.client.file.dora.netty.PartialReadException.CauseType;
 
 import alluxio.client.file.FileSystemContext;
@@ -73,8 +73,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * and check if the new state transitions are properly handled.
  */
 @NotThreadSafe
-public class NettyClientStateMachine {
-  private static final Logger LOG = LoggerFactory.getLogger(NettyClientStateMachine.class);
+public class NettyDataReaderStateMachine {
+  private static final Logger LOG = LoggerFactory.getLogger(NettyDataReaderStateMachine.class);
   private final StateMachine<State, Trigger> mStateMachine;
   private final Triggers mTriggers;
   private final AtomicReference<Runnable> mNextTrigger = new AtomicReference<>();
@@ -166,7 +166,7 @@ public class NettyClientStateMachine {
    * @param requestBuilder
    * @param outChannel
    */
-  public NettyClientStateMachine(FileSystemContext context, WorkerNetAddress address,
+  public NettyDataReaderStateMachine(FileSystemContext context, WorkerNetAddress address,
       Protocol.ReadRequest.Builder requestBuilder, WritableByteChannel outChannel) {
     mContext = context;
     AlluxioConfiguration conf = context.getClusterConf();
