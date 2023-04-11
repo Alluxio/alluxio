@@ -89,18 +89,3 @@ Proxy进程提供一个基于REST的客户端，需要：
 * 已安装Fuse
   * libfuse 2.9.3或更高版本（适用于Linux）
   * osxfuse 3.7.1或更高版本（适用于MacOS）
-
-## 其他要求
-
-Alluxio还可以将日志汇总到一个远程服务器中以便统一查看。 
-以下是Logging Server的端口和资源要求。
- 
-### Remote Logging Server要求
-
-下面是Alluxio针对运行Remote Logging Server要求:
-
-* 最少1 GB硬盘空间
-* 最少1 GB内存
-* 最少2个CPU核
-* 开放以下端口和协议：
-  * Inbound TCP 45600 - 以便日志程序将日志写入服务器。

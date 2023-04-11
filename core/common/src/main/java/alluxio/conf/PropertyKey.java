@@ -5279,51 +5279,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
-  // Log server related properties
-  //
-  // Used in alluxio-config.sh and conf/log4j.properties
-  public static final PropertyKey LOGSERVER_LOGS_DIR =
-      stringBuilder(Name.LOGSERVER_LOGS_DIR)
-          .setDefaultValue(format("${%s}/logs", Name.WORK_DIR))
-          .setDescription("Default location for remote log files.")
-          .setIgnoredSiteProperty(true)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  // Used in alluxio-config.sh and conf/log4j.properties
-  public static final PropertyKey LOGSERVER_HOSTNAME =
-      stringBuilder(Name.LOGSERVER_HOSTNAME)
-          .setDescription("The hostname of Alluxio logserver.")
-          .setIgnoredSiteProperty(true)
-          .setScope(Scope.SERVER)
-          .build();
-  // Used in alluxio-config.sh and conf/log4j.properties
-  public static final PropertyKey LOGSERVER_PORT =
-      intBuilder(Name.LOGSERVER_PORT)
-          .setDefaultValue(45600)
-          .setDescription("Default port of logserver to receive logs from alluxio servers.")
-          .setIgnoredSiteProperty(true)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey LOGSERVER_THREADS_MAX =
-      intBuilder(Name.LOGSERVER_THREADS_MAX)
-          .setDefaultValue(2048)
-          .setDescription("The maximum number of threads used by logserver to service"
-              + " logging requests.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey LOGSERVER_THREADS_MIN =
-      intBuilder(Name.LOGSERVER_THREADS_MIN)
-          .setDefaultValue(512)
-          .setDescription("The minimum number of threads used by logserver to service"
-              + " logging requests.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-
-  //
   // User related properties
   //
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN =
@@ -8480,15 +8435,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String LOCALITY_ORDER = "alluxio.locality.order";
     public static final String LOCALITY_SCRIPT = "alluxio.locality.script";
     public static final String LOCALITY_COMPARE_NODE_IP = "alluxio.locality.compare.node.ip";
-
-    //
-    // Log server related properties
-    //
-    public static final String LOGSERVER_HOSTNAME = "alluxio.logserver.hostname";
-    public static final String LOGSERVER_LOGS_DIR = "alluxio.logserver.logs.dir";
-    public static final String LOGSERVER_PORT = "alluxio.logserver.port";
-    public static final String LOGSERVER_THREADS_MAX = "alluxio.logserver.threads.max";
-    public static final String LOGSERVER_THREADS_MIN = "alluxio.logserver.threads.min";
 
     //
     // User related properties

@@ -30,7 +30,6 @@ Where ACTION is one of:
   safe                      \tScript will run continuously and start the master if it's not running.
   worker  [MOPT] [-c cache] \tStart a worker on this node.
   workers [MOPT] [-c cache] \tStart workers on worker nodes.
-  logserver                 \tStart the logserver
   restart_worker            \tRestart a failed worker on this node.
   restart_workers           \tRestart any failed workers on worker nodes.
 "
@@ -197,20 +196,6 @@ start_job_worker() {
 
 start_job_workers() {
   ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "-a" "job_worker"
-}
-
-start_logserver() {
-    if [[ ! -d "${ALLUXIO_LOGSERVER_LOGS_DIR}" ]]; then
-        echo "ALLUXIO_LOGSERVER_LOGS_DIR: ${ALLUXIO_LOGSERVER_LOGS_DIR}"
-        mkdir -p ${ALLUXIO_LOGSERVER_LOGS_DIR}
-    fi
-
-    echo "Starting logserver @ $(hostname -f)."
-    (ALLUXIO_LOGSERVER_LOGS_DIR="${ALLUXIO_LOGSERVER_LOGS_DIR}" \
-    nohup ${BIN}/launch-process logserver > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
-    # Wait for 1s before starting other Alluxio servers, otherwise may cause race condition
-    # leading to connection errors.
-    sleep 1
 }
 
 start_master() {
@@ -383,8 +368,6 @@ start_monitor() {
     if [[ -z "${nodes}" ]]; then
       run="false"
     fi
-  elif [[ "${action}" == "logserver" || "${action}" == "safe" ]]; then
-    run="false"
   fi
   if [[ -z "${run}" ]]; then
     ${LAUNCHER} "${BIN}/alluxio-monitor.sh" "${action}" "${nodes}"
@@ -503,7 +486,7 @@ main() {
 
   if [[ "${killonstart}" != "no" ]]; then
     case "${ACTION}" in
-      all | local | master | masters | secondary_master | job_master | job_masters | proxy | proxies | worker | workers | job_worker | job_workers | logserver)
+      all | local | master | masters | secondary_master | job_master | job_masters | proxy | proxies | worker | workers | job_worker | job_workers )
         stop ${ACTION}
         sleep 1
         ;;
@@ -604,9 +587,6 @@ main() {
       ;;
     workers)
       start_workers "${MOPT}"
-      ;;
-    logserver)
-      start_logserver
       ;;
     *)
     echo "Error: Invalid ACTION: ${ACTION}" >&2

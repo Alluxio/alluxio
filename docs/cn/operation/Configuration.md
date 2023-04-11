@@ -151,18 +151,6 @@ Alluxio通过环境变量来支持一些常用的配置设置，包括:
   <td><code class="highlighter-rouge">ALLUXIO_CLASSPATH</code></td>
   <td>Alluxio进程的额外classpath入口. 默认为空</td>
 </tr>
-<tr>
-  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_HOSTNAME</code></td>
-  <td>log server的主机名.默认为空.</td>
-</tr>
-<tr>
-  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_PORT</code></td>
-  <td>log server的端口名.默认为45600.</td>
-</tr>
-<tr>
-  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_LOGS_DIR</code></td>
-  <td>Alluxio log服务器存储从Alluxio服务器接收的log的本地目录路径.</td>
-</tr>
 </table>
 
 例如，如果你希望将Alluxio master运行在`localhost`上，其底层存储系统HDFS的namenode也运行在`localhost`上，并且在7001端口启用Java远程调试，可以使用：
