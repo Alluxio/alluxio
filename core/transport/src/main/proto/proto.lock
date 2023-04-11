@@ -6169,6 +6169,65 @@
             ]
           },
           {
+            "name": "ProxyStatus",
+            "fields": [
+              {
+                "id": 1,
+                "name": "address",
+                "type": "grpc.NetAddress"
+              },
+              {
+                "id": 2,
+                "name": "state",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "startTime",
+                "type": "int64"
+              },
+              {
+                "id": 4,
+                "name": "lastHeartbeatTime",
+                "type": "int64"
+              },
+              {
+                "id": 5,
+                "name": "version",
+                "type": "string"
+              },
+              {
+                "id": 6,
+                "name": "revision",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "ListProxyStatusPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "options",
+                "type": "ListProxyStatusPOptions"
+              }
+            ]
+          },
+          {
+            "name": "ListProxyStatusPOptions"
+          },
+          {
+            "name": "ListProxyStatusPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "proxyStatuses",
+                "type": "ProxyStatus",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
             "name": "SetPathConfigurationPOptions"
           },
           {
@@ -6454,6 +6513,11 @@
                 "name": "Checkpoint",
                 "in_type": "CheckpointPOptions",
                 "out_type": "CheckpointPResponse"
+              },
+              {
+                "name": "ListProxyStatus",
+                "in_type": "ListProxyStatusPRequest",
+                "out_type": "ListProxyStatusPResponse"
               }
             ]
           },

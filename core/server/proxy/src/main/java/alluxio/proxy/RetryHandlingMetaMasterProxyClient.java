@@ -89,7 +89,8 @@ public class RetryHandlingMetaMasterProxyClient extends AbstractMasterClient {
     RPC_LOG.info("Heart beating to master");
     // TODO(jiacheng): timeout appropriately
     ProxyHeartbeatPOptions options = ProxyHeartbeatPOptions.newBuilder()
-        .setProxyAddress(mProxyAddress.toProto()).setStartTime(mStartTimeMs)
+        .setProxyAddress(mProxyAddress.toProto())
+        .setStartTime(mStartTimeMs)
         .setVersion(RuntimeConstants.VERSION)
         .setRevision(RuntimeConstants.REVISION_SHORT).build();
     retryRPC(() -> mClient.withDeadlineAfter(

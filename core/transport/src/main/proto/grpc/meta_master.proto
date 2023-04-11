@@ -148,6 +148,27 @@ message BackupStatusPRequest {
     optional string backupId = 1;
 }
 
+message ProxyStatus {
+  optional grpc.NetAddress address = 1;
+  optional string state = 2;
+  optional int64 startTime = 3;
+  optional int64 lastHeartbeatTime = 4;
+  optional string version = 5;
+  optional string revision = 6;
+}
+
+message ListProxyStatusPRequest {
+  optional ListProxyStatusPOptions options = 1;
+}
+
+message ListProxyStatusPOptions {
+
+}
+
+message ListProxyStatusPResponse {
+  repeated ProxyStatus proxyStatuses = 1;
+}
+
  /**
   * This interface contains meta master service endpoints for Alluxio clients.
   */
@@ -176,6 +197,8 @@ service MetaMasterClientService {
    * Creates a checkpoint in the primary master journal system.
    */
   rpc Checkpoint(CheckpointPOptions) returns (CheckpointPResponse);
+
+  rpc ListProxyStatus(ListProxyStatusPRequest) returns (ListProxyStatusPResponse);
 }
 
 message SetPathConfigurationPOptions {}

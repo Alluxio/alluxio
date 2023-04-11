@@ -35,6 +35,7 @@ import alluxio.grpc.MetaCommand;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.ProxyHeartbeatPOptions;
 import alluxio.grpc.ProxyHeartbeatPRequest;
+import alluxio.grpc.ProxyStatus;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
@@ -81,8 +82,10 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.text.MessageFormat;
 import java.time.Clock;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -326,6 +329,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
               new LogConfigReportHeartbeatExecutor(),
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)),
+              Configuration.global(), mMasterContext.getUserState()));
+      getExecutorService().submit(new HeartbeatThread(
+              HeartbeatContext.MASTER_LOST_PROXY_DETECTION,
+              new LostProxyDetectionHeartbeatExecutor(),
+              () -> Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
               Configuration.global(), mMasterContext.getUserState()));
 
       if (Configuration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
@@ -666,6 +674,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     mProxies.compute(address, (key, proxyInfo) -> {
       if (proxyInfo == null) {
         ProxyInfo info = new ProxyInfo(address);
+        info.setStartTimeMs(options.getStartTime());
         info.setVersion(options.getVersion());
         info.setRevision(options.getRevision());
         return info;
@@ -736,6 +745,30 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     return result;
   }
 
+  @Override
+  // TODO(jiacheng): Use ProxyInfo in the call
+  public List<ProxyStatus> listProxyStatus() {
+    List<ProxyStatus> result = new ArrayList<>();
+    for (Map.Entry<NetAddress, ProxyInfo> entry : mProxies.entrySet()) {
+      ProxyInfo info = entry.getValue();
+      result.add(ProxyStatus.newBuilder().setAddress(entry.getKey())
+              .setState("ACTIVE")
+              .setVersion(info.getVersion()).setRevision(info.getRevision())
+              .setStartTime(info.getStartTimeMs())
+              .setLastHeartbeatTime(info.getLastHeartbeatTimeMs()).build());
+    }
+    // TODO(jiacheng): add lost proxy detector
+    for (Map.Entry<NetAddress, ProxyInfo> entry : mLostProxies.entrySet()) {
+      ProxyInfo info = entry.getValue();
+      result.add(ProxyStatus.newBuilder().setAddress(entry.getKey())
+              .setState("LOST")
+              .setVersion(info.getVersion()).setRevision(info.getRevision())
+              .setStartTime(info.getStartTimeMs())
+              .setLastHeartbeatTime(info.getLastHeartbeatTimeMs()).build());
+    }
+    return result;
+  }
+
   /**
    * Lost master periodic check.
    */
@@ -769,6 +802,42 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       // Nothing to clean up
     }
   }
+
+  /**
+   * Lost master periodic check.
+   */
+  private final class LostProxyDetectionHeartbeatExecutor implements HeartbeatExecutor {
+
+    /**
+     * Constructs a new {@link LostMasterDetectionHeartbeatExecutor}.
+     */
+    public LostProxyDetectionHeartbeatExecutor() {
+    }
+
+    @Override
+    public void heartbeat() {
+      // TODO(jiacheng): update these keys
+      long masterTimeoutMs = Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT);
+      LOG.info("LostProxyDetection checking proxies at {}", mProxies.keySet());
+      mProxies.entrySet().removeIf(entry -> {
+        final long lastUpdate = mClock.millis() - entry.getValue().getLastHeartbeatTimeMs();
+        if (lastUpdate > masterTimeoutMs) {
+          LOG.warn("Proxy {} last heartbeat time {} was more than {} ago",
+                  entry.getKey(), entry.getValue().getLastHeartbeatTimeMs(), masterTimeoutMs);
+          mLostProxies.put(entry.getKey(), entry.getValue());
+          return true;
+        }
+        return false;
+      });
+      // TODO(jiacheng): remove from LostProxies too
+    }
+
+    @Override
+    public void close() {
+      // Nothing to clean up
+    }
+  }
+
 
   /**
    * Periodically log the config check report.

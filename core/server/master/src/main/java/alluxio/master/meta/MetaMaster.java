@@ -18,6 +18,7 @@ import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MasterHeartbeatPOptions;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.ProxyHeartbeatPRequest;
+import alluxio.grpc.ProxyStatus;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.master.Master;
 import alluxio.master.backup.BackupOps;
@@ -39,7 +40,6 @@ import java.util.Set;
  */
 public interface MetaMaster extends BackupOps, Master {
 
-  // TODO(jiacheng): finish this today
   void proxyHeartbeat(ProxyHeartbeatPRequest request);
 
   /**
@@ -192,4 +192,7 @@ public interface MetaMaster extends BackupOps, Master {
    * @return the update properties status map
    */
   Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap);
+
+  // TODO(jiacheng): Use ProxyInfo in the call
+  List<ProxyStatus> listProxyStatus();
 }

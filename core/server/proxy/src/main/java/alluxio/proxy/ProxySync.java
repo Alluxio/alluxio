@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
 /**
@@ -45,6 +46,7 @@ public final class ProxySync implements HeartbeatExecutor {
     mMasterAddress = masterAddress;
     mStartTimeMs = startTimeMs;
     mMasterClient = new RetryHandlingMetaMasterProxyClient(mMasterAddress, context, mStartTimeMs);
+    LOG.info("Proxy start time is {}", Instant.ofEpochMilli(startTimeMs));
   }
 
   /**
