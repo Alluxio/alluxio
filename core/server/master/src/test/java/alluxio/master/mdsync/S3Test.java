@@ -70,7 +70,8 @@ public class S3Test {
         path = CommonUtils.stripPrefixIfPresent(path, AlluxioURI.SEPARATOR);
         path = path.equals(AlluxioURI.SEPARATOR) ? "" : path;
         if (path.isEmpty()) {
-          onComplete.accept(new UfsLoadResult(Stream.empty(), 0, null, null, false, false));
+          onComplete.accept(
+              new UfsLoadResult(Stream.empty(), 0, null, null, false, false, true));
           return;
         }
         GetObjectAttributesRequest request =
@@ -81,7 +82,8 @@ public class S3Test {
         mS3Client.getObjectAttributes(request).whenCompleteAsync((result, err) -> {
           if (err != null) {
             if (err.getCause() instanceof NoSuchKeyException) {
-              onComplete.accept(new UfsLoadResult(Stream.empty(), 0, null, null, false, false));
+              onComplete.accept(
+                  new UfsLoadResult(Stream.empty(), 0, null, null, false, false, true));
             } else {
               onError.accept(err);
             }
@@ -97,7 +99,7 @@ public class S3Test {
                   lastModifiedTime, "", "", (short) 0, 0L);
             }
             onComplete.accept(new UfsLoadResult(Stream.of(status), 1, null,
-                null, false, status.isFile()));
+                null, false, status.isFile(), true));
           }
         });
       }
@@ -143,7 +145,7 @@ public class S3Test {
                         item.lastModified() == null ? null : item.lastModified().toEpochMilli(),
                         "", "", (short) 0, 0L)),
                         result.keyCount(), result.nextContinuationToken(), lastItem,
-                        result.isTruncated(), false));
+                        result.isTruncated(), false, true));
               }
             });
       }

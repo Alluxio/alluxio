@@ -703,7 +703,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
     path = stripPrefixIfPresent(path);
     path = path.equals(folderSuffix) ? "" : path;
     if (path.isEmpty()) {
-      onComplete.accept(new UfsLoadResult(Stream.empty(), 0, null, null, false, false));
+      onComplete.accept(new UfsLoadResult(Stream.empty(), 0, null, null, false, false, true));
       return;
     }
     HeadObjectRequest request =
@@ -712,7 +712,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
     mAsyncClient.headObject(request).whenCompleteAsync((result, err) -> {
       if (err != null) {
         if (err.getCause() instanceof NoSuchKeyException) {
-          onComplete.accept(new UfsLoadResult(Stream.empty(), 0, null, null, false, false));
+          onComplete.accept(new UfsLoadResult(Stream.empty(), 0, null, null, false, false, true));
         } else {
           onError.accept(err);
         }
@@ -734,7 +734,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
                 permissions.getGroup(), permissions.getMode(), bytes);
           }
           onComplete.accept(new UfsLoadResult(Stream.of(status), 1, null,
-              null, false, status.isFile()));
+              null, false, status.isFile(), true));
         } catch (Throwable t) {
           onError.accept(t);
         }
@@ -807,7 +807,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClie
               onComplete.accept(
                   new UfsLoadResult(resultStream,
                       keyCount,
-                      result.nextContinuationToken(), lastItem, result.isTruncated(), false));
+                      result.nextContinuationToken(), lastItem, result.isTruncated(), false, true));
             } catch (Throwable t) {
               onError.accept(t);
             }

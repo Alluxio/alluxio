@@ -56,7 +56,7 @@ public class MockUfsClient implements UfsClient {
         mUfsStatus == null ? Stream.empty() : Stream.of(mUfsStatus),
         mUfsStatus == null ? 0 : 1,
         null, null, false,
-        mUfsStatus != null && mUfsStatus.isFile()));
+        mUfsStatus != null && mUfsStatus.isFile(), true));
   }
 
   @Override
@@ -73,7 +73,7 @@ public class MockUfsClient implements UfsClient {
         AlluxioURI lastItem = new AlluxioURI(items.get(items.size() - 1).getName());
         onComplete.accept(new UfsLoadResult(items.stream(), items.size(),
             continuationToken, lastItem, result.getSecond(),
-            items.size() > 0 && items.get(0).isFile()));
+            items.size() > 0 && items.get(0).isFile(), true));
       } catch (Throwable t) {
         onError.accept(t);
       }
@@ -83,7 +83,7 @@ public class MockUfsClient implements UfsClient {
         AlluxioURI lastItem = new AlluxioURI(items.get(items.size() - 1).getName());
         onComplete.accept(new UfsLoadResult(items.stream(), items.size(),
             continuationToken, lastItem, mItems.hasNext(),
-            items.size() > 0 && items.get(0).isFile()));
+            items.size() > 0 && items.get(0).isFile(), true));
       }
     }
   }

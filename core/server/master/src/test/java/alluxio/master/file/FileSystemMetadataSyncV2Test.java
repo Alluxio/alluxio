@@ -482,7 +482,7 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
 
     stopS3Server();
-    assertThrows(IOException.class, ()->{
+    assertThrows(IOException.class, () -> {
       BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
           MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0);
       result.waitComplete(TIMEOUT_MS);

@@ -128,22 +128,34 @@ public class PathLoaderTask {
       if (ufsLoadResult.isFirstFile()) {
         stats.setFirstLoadFile();
       }
-      if (originalRequest.getDescendantType() == DescendantType.NONE) {
-        // If our initial request returned a value, and the descendant type was NONE
-        // then we do not need to load any more values
-        shouldLoadMore = ufsLoadResult.getItemsCount() == 0;
-        shouldProcessResult = !shouldLoadMore;
-      } else {
-        // If our initial request returned a value, and it was a file, then
-        // we don't need to load more
-        shouldLoadMore = ufsLoadResult.getItemsCount() == 0 || !ufsLoadResult.isFirstFile();
-        if (ufsLoadResult.getItemsCount() == 0
-            || (ufsLoadResult.getItemsCount() > 0 && !ufsLoadResult.isFirstFile())) {
-          // if the first load did not return anything, or if it returned a directory
-          // then we don't need to process it, as the processing will be done on our
-          // next load
-          shouldProcessResult = false;
+      if (ufsLoadResult.isIsObjectStore()) {
+        if (originalRequest.getDescendantType() == DescendantType.NONE) {
+          // On our first load, and descendant type is none, we have a special
+          // case for the object store, because performing GetObject on a path
+          // will return nothing if there are only nested items for that path.
+          // So we must try the check again, except by trying to list the path
+          // e.g. if there is an object /nested/file, then performing
+          // GetObject on /nested will return nothing, so we then call
+          // ListObjects on /nested/ which will return file, indicating
+          // that /nested should be created as a directory
+          // If our initial request returned a value, and the descendant type was NONE
+          // then we do not need to load any more values
+          shouldLoadMore = ufsLoadResult.getItemsCount() == 0;
+          shouldProcessResult = !shouldLoadMore;
+        } else {
+          // If our initial request returned a value, and it was a file, then
+          // we don't need to load more
+          shouldLoadMore = ufsLoadResult.getItemsCount() == 0 || !ufsLoadResult.isFirstFile();
+          if (ufsLoadResult.getItemsCount() == 0
+              || (ufsLoadResult.getItemsCount() > 0 && !ufsLoadResult.isFirstFile())) {
+            // if the first load did not return anything, or if it returned a directory
+            // then we don't need to process it, as the processing will be done on our
+            // next load
+            shouldProcessResult = false;
+          }
         }
+      } else {
+        shouldLoadMore = false;
       }
       if (!shouldProcessResult) {
         mRunningLoads.remove(requestId);
@@ -151,7 +163,9 @@ public class PathLoaderTask {
       }
     } else {
       // If truncated, need to submit a new task for the next set of items
-      shouldLoadMore = ufsLoadResult.isTruncated();
+      // unless descendant type is none
+      shouldLoadMore = originalRequest.getDescendantType() != DescendantType.NONE
+          && ufsLoadResult.isTruncated();
     }
     if (shouldLoadMore) {
       final long loadId = mNxtLoadId++;

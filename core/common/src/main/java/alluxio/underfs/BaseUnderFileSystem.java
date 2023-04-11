@@ -199,11 +199,14 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem, UfsClient 
     mAsyncIOExecutor.submit(() -> {
       try {
         UfsStatus result = getStatus(path);
+        if (result != null) {
+          result.setName(PathUtils.concatPath(path, result.getName()));
+        }
         onComplete.accept(new UfsLoadResult(
             result == null ? Stream.empty() : Stream.of(result),
             result == null ? 0 : 1,
             null, null, false,
-            result != null && result.isFile()));
+            result != null && result.isFile(), isObjectStorage()));
       } catch (Throwable t) {
         onError.accept(t);
       }
@@ -233,7 +236,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem, UfsClient 
         onComplete.accept(new UfsLoadResult(
             items == null ? Stream.empty() : Arrays.stream(items), items == null ? 0 : items.length,
             null, lastItem, false,
-            items != null && items[0].isFile()));
+            items != null && items[0].isFile(), isObjectStorage()));
       } catch (Throwable t) {
         onError.accept(t);
       }

@@ -65,7 +65,7 @@ public class BatchPathWaiterTest {
     // here we complete it as an empty value, which
     // can happen for example when loading a directory from an ObjectStore
     task.getPathLoadTask().createLoadResult(0,
-        new UfsLoadResult(Stream.empty(), 0, null, null, false, false));
+        new UfsLoadResult(Stream.empty(), 0, null, null, false, false, true));
   }
 
   @Test

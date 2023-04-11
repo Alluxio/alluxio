@@ -24,21 +24,28 @@ public class UfsLoadResult {
   private final boolean mIsTruncated;
   private final int mItemsCount;
   private final AlluxioURI mLastItem;
-  private final boolean mFirstIsfile;
+  private final boolean mFirstIsFile;
+  private final boolean mIsObjectStore;
 
   public UfsLoadResult(
       Stream<UfsStatus> items, int itemsCount, @Nullable String continuationToken,
-      @Nullable AlluxioURI lastItem, boolean isTruncated, boolean firstIsFile) {
+      @Nullable AlluxioURI lastItem, boolean isTruncated, boolean firstIsFile,
+      boolean isObjectStore) {
     mItems = items;
     mContinuationToken = continuationToken;
     mIsTruncated = isTruncated;
     mItemsCount = itemsCount;
     mLastItem = lastItem;
-    mFirstIsfile = firstIsFile;
+    mFirstIsFile = firstIsFile;
+    mIsObjectStore = isObjectStore;
+  }
+
+  public boolean isIsObjectStore() {
+    return mIsObjectStore;
   }
 
   public boolean isFirstFile() {
-    return mFirstIsfile;
+    return mFirstIsFile;
   }
 
   public Optional<AlluxioURI> getLastItem() {
