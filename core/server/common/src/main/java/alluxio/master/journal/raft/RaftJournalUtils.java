@@ -68,7 +68,8 @@ public class RaftJournalUtils {
    * @throws IOException if error occurred while creating the snapshot file
    */
   public static File createTempSnapshotFile(SimpleStateMachineStorage storage) throws IOException {
-    File tempDir = new File(storage.getSmDir().getParentFile(), "tmp");
+    File smDir = storage.getSnapshotFile(0, 0).getParentFile();
+    File tempDir = new File(smDir.getParentFile(), "tmp");
     if (!tempDir.isDirectory() && !tempDir.mkdir()) {
       throw new IOException(
           "Cannot create temporary snapshot directory at " + tempDir.getAbsolutePath());
