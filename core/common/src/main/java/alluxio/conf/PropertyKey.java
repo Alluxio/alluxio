@@ -2403,7 +2403,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_TYPE =
       enumBuilder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_TYPE,
           DirectoryMarshaller.Type.class)
-          .setDefaultValue(DirectoryMarshaller.Type.GZIP)
+          .setDefaultValue(DirectoryMarshaller.Type.NO_COMPRESSION)
           .setDescription("The type of compression to use when transferring a snapshot from one "
               + "master to another. Options are NO_COMPRESSION, GZIP, TAR_GZIP")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -2419,7 +2419,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "NO_COMPRESSION. The zip format defines ten levels of compression, ranging from 0 "
               + "(no compression, but very fast) to 9 (best compression, but slow). "
               + "Or -1 for the system default compression level.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
