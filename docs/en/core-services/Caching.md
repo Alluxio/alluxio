@@ -657,8 +657,12 @@ Alluxio cluster summary:
     Started: 09-28-2018 12:52:09:486
     Uptime: 0 day(s), 0 hour(s), 0 minute(s), and 26 second(s)
     Version: 2.0.0
-    Safe Mode: true
+    Safe Mode: false
     Zookeeper Enabled: false
+    Raft-based Journal: true
+    Raft Journal Addresses: 
+        localhost:19200
+        localhost:19201
     Live Workers: 1
     Lost Workers: 0
     Total Capacity: 10.67GB

@@ -27,8 +27,11 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CacheRequest;
-import alluxio.grpc.LoadProgressReportFormat;
+import alluxio.grpc.JobProgressReportFormat;
+import alluxio.grpc.LoadJobPOptions;
 import alluxio.grpc.OpenFilePOptions;
+import alluxio.job.JobDescription;
+import alluxio.job.LoadJobRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FileSystemOptionsUtils;
@@ -56,6 +59,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class LoadCommand extends AbstractFileSystemCommand {
+  private static final JobProgressReportFormat DEFAULT_FORMAT = JobProgressReportFormat.TEXT;
+  private static final String JOB_TYPE = "load";
   private static final Option LOCAL_OPTION =
       Option.builder()
           .longOpt("local")
@@ -105,7 +110,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       .longOpt("bandwidth")
       .required(false)
       .hasArg(true)
-      .desc("Run verification when load finish and load new files if any.")
+      .desc("Single worker read bandwidth limit.")
       .build();
 
   private static final Option PROGRESS_FORMAT = Option.builder()
@@ -180,12 +185,10 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     if (cl.hasOption(STOP_OPTION.getLongOpt())) {
       return stopLoad(path);
     }
-
+    JobProgressReportFormat format = DEFAULT_FORMAT;
     if (cl.hasOption(PROGRESS_OPTION.getLongOpt())) {
-      Optional<LoadProgressReportFormat> format = Optional.empty();
       if (cl.hasOption(PROGRESS_FORMAT.getLongOpt())) {
-        format = Optional.of(LoadProgressReportFormat.valueOf(
-            cl.getOptionValue(PROGRESS_FORMAT.getLongOpt())));
+        format = JobProgressReportFormat.valueOf(cl.getOptionValue(PROGRESS_FORMAT.getLongOpt()));
       }
       return getProgress(path, format, cl.hasOption(PROGRESS_VERBOSE.getLongOpt()));
     }
@@ -229,9 +232,16 @@ public final class LoadCommand extends AbstractFileSystemCommand {
 
   private int submitLoad(AlluxioURI path, OptionalLong bandwidth,
       boolean usePartialListing, boolean verify) {
+    LoadJobPOptions.Builder options = alluxio.grpc.LoadJobPOptions
+        .newBuilder().setPartialListing(usePartialListing).setVerify(verify);
+    if (bandwidth.isPresent()) {
+      options.setBandwidth(bandwidth.getAsLong());
+    }
+    LoadJobRequest job = new LoadJobRequest(path.getPath(), options.build());
     try {
-      if (mFileSystem.submitLoad(path, bandwidth, usePartialListing, verify)) {
-        System.out.printf("Load '%s' is successfully submitted.%n", path);
+      Optional<String> jobId = mFileSystem.submitJob(job);
+      if (jobId.isPresent()) {
+        System.out.printf("Load '%s' is successfully submitted. JobId: %s%n", path, jobId.get());
       } else {
         System.out.printf("Load already running for path '%s', updated the job with "
                 + "new bandwidth: %s, verify: %s%n",
@@ -248,7 +258,11 @@ public final class LoadCommand extends AbstractFileSystemCommand {
 
   private int stopLoad(AlluxioURI path) {
     try {
-      if (mFileSystem.stopLoad(path)) {
+      if (mFileSystem.stopJob(JobDescription
+          .newBuilder()
+          .setPath(path.getPath())
+          .setType(JOB_TYPE)
+          .build())) {
         System.out.printf("Load '%s' is successfully stopped.%n", path);
       }
       else {
@@ -262,11 +276,15 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     }
   }
 
-  private int getProgress(AlluxioURI path, Optional<LoadProgressReportFormat> format,
+  private int getProgress(AlluxioURI path, JobProgressReportFormat format,
       boolean verbose) {
     try {
       System.out.println("Progress for loading path '" + path + "':");
-      System.out.println(mFileSystem.getLoadProgress(path, format, verbose));
+      System.out.println(mFileSystem.getJobProgress(JobDescription
+          .newBuilder()
+          .setPath(path.getPath())
+          .setType(JOB_TYPE)
+          .build(), format, verbose));
       return 0;
     } catch (StatusRuntimeException e) {
       if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {

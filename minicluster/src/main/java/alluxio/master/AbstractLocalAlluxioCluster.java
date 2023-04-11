@@ -224,7 +224,11 @@ public abstract class AbstractLocalAlluxioCluster {
     String underfsAddress = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
     // Deletes the ufs dir for this test from to avoid permission problems
-    UnderFileSystemUtils.deleteDirIfExists(ufs, underfsAddress);
+    // Do not delete the ufs root if the ufs is an object storage.
+    // In test environment, this means s3 mock is used.
+    if (!ufs.isObjectStorage()) {
+      UnderFileSystemUtils.deleteDirIfExists(ufs, underfsAddress);
+    }
 
     // Creates ufs dir. This must be called before starting UFS with UnderFileSystemCluster.create()
     UnderFileSystemUtils.mkdirIfNotExists(ufs, underfsAddress);

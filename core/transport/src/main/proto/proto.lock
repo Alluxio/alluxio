@@ -392,6 +392,19 @@
             ]
           },
           {
+            "name": "DecommissionWorkerPResponse"
+          },
+          {
+            "name": "DecommissionWorkerPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
+              }
+            ]
+          },
+          {
             "name": "TierList",
             "fields": [
               {
@@ -831,6 +844,11 @@
                 "name": "GetWorkerLostStorage",
                 "in_type": "GetWorkerLostStoragePOptions",
                 "out_type": "GetWorkerLostStoragePResponse"
+              },
+              {
+                "name": "DecommissionWorker",
+                "in_type": "DecommissionWorkerPOptions",
+                "out_type": "DecommissionWorkerPResponse"
               }
             ]
           },
@@ -2085,7 +2103,7 @@
             ]
           },
           {
-            "name": "LoadProgressReportFormat",
+            "name": "JobProgressReportFormat",
             "enum_fields": [
               {
                 "name": "TEXT",
@@ -2304,6 +2322,11 @@
                     "value": "true"
                   }
                 ]
+              },
+              {
+                "id": 15,
+                "name": "ufsReadWorkerLocation",
+                "type": "grpc.WorkerNetAddress"
               }
             ]
           },
@@ -2464,6 +2487,11 @@
                 "id": 14,
                 "name": "checkS3BucketPath",
                 "type": "bool"
+              },
+              {
+                "id": 15,
+                "name": "workerLocation",
+                "type": "grpc.WorkerNetAddress"
               }
             ],
             "maps": [
@@ -3794,7 +3822,27 @@
             "name": "NeedsSyncResponse"
           },
           {
-            "name": "LoadPathPOptions",
+            "name": "SubmitJobPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "request_body",
+                "type": "bytes"
+              }
+            ]
+          },
+          {
+            "name": "SubmitJobPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "jobId",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "LoadJobPOptions",
             "fields": [
               {
                 "id": 1,
@@ -3814,57 +3862,72 @@
             ]
           },
           {
-            "name": "LoadPathPRequest",
+            "name": "CopyJobPOptions",
             "fields": [
               {
                 "id": 1,
-                "name": "path",
+                "name": "bandwidth",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "verify",
+                "type": "bool"
+              },
+              {
+                "id": 3,
+                "name": "partialListing",
+                "type": "bool"
+              },
+              {
+                "id": 4,
+                "name": "overwrite",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "StopJobPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "jobDescription",
+                "type": "JobDescription"
+              }
+            ]
+          },
+          {
+            "name": "StopJobPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "jobStopped",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "JobDescription",
+            "fields": [
+              {
+                "id": 1,
+                "name": "type",
                 "type": "string"
               },
               {
                 "id": 2,
-                "name": "options",
-                "type": "LoadPathPOptions"
-              }
-            ]
-          },
-          {
-            "name": "LoadPathPResponse",
-            "fields": [
-              {
-                "id": 1,
-                "name": "newLoadSubmitted",
-                "type": "bool"
-              }
-            ]
-          },
-          {
-            "name": "StopLoadPathPRequest",
-            "fields": [
-              {
-                "id": 1,
                 "name": "path",
                 "type": "string"
               }
             ]
           },
           {
-            "name": "StopLoadPathPResponse",
-            "fields": [
-              {
-                "id": 1,
-                "name": "existingLoadStopped",
-                "type": "bool"
-              }
-            ]
-          },
-          {
-            "name": "LoadProgressPOptions",
+            "name": "JobProgressPOptions",
             "fields": [
               {
                 "id": 1,
                 "name": "format",
-                "type": "LoadProgressReportFormat"
+                "type": "JobProgressReportFormat"
               },
               {
                 "id": 2,
@@ -3874,22 +3937,22 @@
             ]
           },
           {
-            "name": "GetLoadProgressPRequest",
+            "name": "GetJobProgressPRequest",
             "fields": [
               {
                 "id": 1,
-                "name": "path",
-                "type": "string"
+                "name": "jobDescription",
+                "type": "JobDescription"
               },
               {
                 "id": 2,
                 "name": "options",
-                "type": "LoadProgressPOptions"
+                "type": "JobProgressPOptions"
               }
             ]
           },
           {
-            "name": "GetLoadProgressPResponse",
+            "name": "GetJobProgressPResponse",
             "fields": [
               {
                 "id": 1,
@@ -3899,7 +3962,7 @@
               {
                 "id": 2,
                 "name": "format",
-                "type": "LoadProgressReportFormat"
+                "type": "JobProgressReportFormat"
               }
             ]
           },
@@ -4172,19 +4235,19 @@
                 "out_type": "NeedsSyncResponse"
               },
               {
-                "name": "LoadPath",
-                "in_type": "LoadPathPRequest",
-                "out_type": "LoadPathPResponse"
+                "name": "submitJob",
+                "in_type": "SubmitJobPRequest",
+                "out_type": "SubmitJobPResponse"
               },
               {
-                "name": "StopLoadPath",
-                "in_type": "StopLoadPathPRequest",
-                "out_type": "StopLoadPathPResponse"
+                "name": "StopJob",
+                "in_type": "StopJobPRequest",
+                "out_type": "StopJobPResponse"
               },
               {
-                "name": "GetLoadProgress",
-                "in_type": "GetLoadProgressPRequest",
-                "out_type": "GetLoadProgressPResponse"
+                "name": "GetJobProgress",
+                "in_type": "GetJobProgressPRequest",
+                "out_type": "GetJobProgressPResponse"
               }
             ]
           },
@@ -5683,6 +5746,10 @@
               {
                 "name": "RAFT_ADDRESSES",
                 "integer": 12
+              },
+              {
+                "name": "MASTER_VERSION",
+                "integer": 13
               }
             ]
           },
@@ -5949,6 +6016,32 @@
                 "name": "raftAddress",
                 "type": "string",
                 "is_repeated": true
+              },
+              {
+                "id": 14,
+                "name": "masterVersions",
+                "type": "MasterVersion",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "MasterVersion",
+            "fields": [
+              {
+                "id": 1,
+                "name": "addresses",
+                "type": "grpc.NetAddress"
+              },
+              {
+                "id": 2,
+                "name": "version",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "state",
+                "type": "string"
               }
             ]
           },
@@ -9744,6 +9837,61 @@
                 "type": "int64"
               }
             ]
+          },
+          {
+            "name": "CopyJobEntry",
+            "fields": [
+              {
+                "id": 1,
+                "name": "src",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "dst",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "state",
+                "type": "PJobState"
+              },
+              {
+                "id": 4,
+                "name": "bandwidth",
+                "type": "int64"
+              },
+              {
+                "id": 5,
+                "name": "verify",
+                "type": "bool"
+              },
+              {
+                "id": 6,
+                "name": "user",
+                "type": "string"
+              },
+              {
+                "id": 7,
+                "name": "partialListing",
+                "type": "bool"
+              },
+              {
+                "id": 8,
+                "name": "job_id",
+                "type": "string"
+              },
+              {
+                "id": 9,
+                "name": "end_time",
+                "type": "int64"
+              },
+              {
+                "id": 10,
+                "name": "overwrite",
+                "type": "int64"
+              }
+            ]
           }
         ],
         "package": {
@@ -9967,6 +10115,11 @@
                 "id": 53,
                 "name": "load_job",
                 "type": "LoadJobEntry"
+              },
+              {
+                "id": 54,
+                "name": "copy_job",
+                "type": "CopyJobEntry"
               },
               {
                 "id": 39,

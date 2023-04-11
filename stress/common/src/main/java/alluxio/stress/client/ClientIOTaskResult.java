@@ -178,7 +178,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
           threadEntry.getValue().entrySet()) {
         String prefix = series + ", method: " + methodEntry.getKey();
         LineGraph.Data currentData = data.getOrDefault(prefix, new LineGraph.Data());
-        currentData.addData(threadEntry.getKey(), methodEntry.getValue().mNumSuccess);
+        currentData.addData(threadEntry.getKey(), methodEntry.getValue().mNumSuccesses);
         data.put(prefix, currentData);
       }
     }

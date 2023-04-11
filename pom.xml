@@ -153,7 +153,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.build.outputTimestamp>${git.commit.time}</project.build.outputTimestamp>
     <slf4j.version>1.7.30</slf4j.version>
-    <jackson.version>2.13.3</jackson.version>
+    <jackson.version>2.13.5</jackson.version>
     <hadoop-cos.version>3.1.0-5.8.5</hadoop-cos.version>
     <cos_api.version>5.6.19</cos_api.version>
     <surefire.forkCount>2</surefire.forkCount>
@@ -171,6 +171,7 @@
     <jnr-fuse.version>0.5.5</jnr-fuse.version>
     <kerby.version>1.0.1</kerby.version>
     <fastutil.version>8.5.9</fastutil.version>
+    <s3mock.version>0.2.6</s3mock.version>
   </properties>
 
   <modules>
@@ -715,6 +716,12 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava-testlib</artifactId>
         <version>${guava.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.findify</groupId>
+        <artifactId>s3mock_2.13</artifactId>
+        <version>${s3mock.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>

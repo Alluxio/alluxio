@@ -121,7 +121,7 @@ public class BlockSyncMasterGroup implements Closeable {
     try {
       CommonUtils.waitFor(this + " to start",
           primaryMasterSync::isRegistered,
-          WaitForOptions.defaults().setTimeoutMs((int) WORKER_MASTER_CONNECT_RETRY_TIMEOUT));
+          WaitForOptions.defaults().setTimeoutMs(WORKER_MASTER_CONNECT_RETRY_TIMEOUT));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       LOG.warn("Exit the worker on interruption", e);

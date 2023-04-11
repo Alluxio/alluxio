@@ -16,12 +16,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
+import alluxio.RuntimeConstants;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.MasterInfo;
+import alluxio.grpc.MasterVersion;
+import alluxio.grpc.NetAddress;
 import alluxio.util.CommonUtils;
 import alluxio.wire.BlockMasterInfo;
 
@@ -93,19 +96,45 @@ public class SummaryCommandTest {
   }
 
   void prepareZKHADependencies() throws IOException {
+    MasterVersion primaryVersion = MasterVersion.newBuilder()
+        .setVersion(RuntimeConstants.VERSION).setState("Primary").setAddresses(
+            NetAddress.newBuilder().setHost("hostname1").setRpcPort(10000).build()
+        ).build();
+    MasterVersion standby1Version = MasterVersion.newBuilder()
+        .setVersion(RuntimeConstants.VERSION).setState("Standby").setAddresses(
+            NetAddress.newBuilder().setHost("hostname2").setRpcPort(10001).build()
+        ).build();
+    MasterVersion standby2Version = MasterVersion.newBuilder()
+        .setVersion(RuntimeConstants.VERSION).setState("Standby").setAddresses(
+            NetAddress.newBuilder().setHost("hostname3").setRpcPort(10002).build()
+        ).build();
     mMasterInfo = MasterInfo.newBuilder(mMasterInfo)
         .addAllZookeeperAddresses(Arrays.asList("[zookeeper_hostname1]:2181",
             "[zookeeper_hostname2]:2181", "[zookeeper_hostname3]:2181"))
+        .addAllMasterVersions(Arrays.asList(primaryVersion, standby1Version, standby2Version))
         .setRaftJournal(false)
         .build();
     when(mMetaMasterClient.getMasterInfo(any())).thenReturn(mMasterInfo);
   }
 
   void prepareRaftHaDependencies() throws IOException {
+    MasterVersion primaryVersion = MasterVersion.newBuilder()
+        .setVersion(RuntimeConstants.VERSION).setState("Primary").setAddresses(
+            NetAddress.newBuilder().setHost("hostname1").setRpcPort(10000).build()
+        ).build();
+    MasterVersion standby1Version = MasterVersion.newBuilder()
+        .setVersion(RuntimeConstants.VERSION).setState("Standby").setAddresses(
+            NetAddress.newBuilder().setHost("hostname2").setRpcPort(10001).build()
+        ).build();
+    MasterVersion standby2Version = MasterVersion.newBuilder()
+        .setVersion(RuntimeConstants.VERSION).setState("Standby").setAddresses(
+            NetAddress.newBuilder().setHost("hostname3").setRpcPort(10002).build()
+        ).build();
     mMasterInfo = MasterInfo.newBuilder(mMasterInfo)
         .setRaftJournal(true)
         .addAllRaftAddress(Arrays.asList("[raftJournal_hostname1]:19200",
             "[raftJournal_hostname2]:19200", "[raftJournal_hostname3]:19200"))
+        .addAllMasterVersions(Arrays.asList(primaryVersion, standby1Version, standby2Version))
         .build();
     when(mMetaMasterClient.getMasterInfo(any())).thenReturn(mMasterInfo);
   }
@@ -165,6 +194,10 @@ public class SummaryCommandTest {
         "    Safe Mode: false"));
     expectedOutput.addAll(HAPattern);
     expectedOutput.addAll(new ArrayList<>(Arrays.asList(
+        "    Master Address                   State    Version                         ",
+        "    hostname1:10000                  Primary  2.10.0-SNAPSHOT                 ",
+        "    hostname2:10001                  Standby  2.10.0-SNAPSHOT                 ",
+        "    hostname3:10002                  Standby  2.10.0-SNAPSHOT                 ",
         "    Live Workers: 12",
         "    Lost Workers: 4",
         "    Total Capacity: 1309.92KB",

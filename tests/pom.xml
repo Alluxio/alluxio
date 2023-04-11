@@ -56,6 +56,11 @@
       <artifactId>commons-io</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.findify</groupId>
+      <artifactId>s3mock_2.13</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest</artifactId>
       <scope>compile</scope>
@@ -217,6 +222,12 @@
       <artifactId>alluxio-integration-fuse</artifactId>
       <version>${project.version}</version>
     </dependency>
+      <dependency>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-underfs-s3a</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+      </dependency>
   </dependencies>
 
   <profiles>
