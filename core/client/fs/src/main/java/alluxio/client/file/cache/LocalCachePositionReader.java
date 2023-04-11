@@ -180,7 +180,7 @@ public class LocalCachePositionReader implements PositionReader {
     while (totalBytesRead < pageSize) {
       try {
         bytesRead = mFallbackReader.get()
-            .positionRead(position, page, totalBytesRead, pageSize);
+            .positionRead(position, page, totalBytesRead, pageSize - totalBytesRead);
       } catch (IOException e) {
         throw AlluxioRuntimeException.from(e);
       }
