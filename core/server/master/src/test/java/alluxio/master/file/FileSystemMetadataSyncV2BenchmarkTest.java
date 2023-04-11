@@ -44,8 +44,9 @@ import java.io.IOException;
  */
 public final class FileSystemMetadataSyncV2BenchmarkTest extends FileSystemMasterTestBase {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemMetadataSyncV2BenchmarkTest.class);
-  private static final String LOCAL_FS_ABSOLUTE_PATH = "/tmp/s3-test-filess/bucket/0/0/0/0";
-  private static final AlluxioURI UFS_ROOT = new AlluxioURI("file://" + LOCAL_FS_ABSOLUTE_PATH);
+  private static final String LOCAL_FS_ABSOLUTE_PATH = "/tmp/s3-test-files/bucket";
+  private static final String SUB_DIR = "/0/0/0/0";
+  private static final AlluxioURI UFS_ROOT = new AlluxioURI("file://" + LOCAL_FS_ABSOLUTE_PATH + SUB_DIR);
   private static final AlluxioURI MOUNT_POINT = new AlluxioURI("/local_mount");
 
   @Override

@@ -33,6 +33,7 @@ import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -199,14 +200,14 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem, UfsClient 
     mAsyncIOExecutor.submit(() -> {
       try {
         UfsStatus result = getStatus(path);
-        if (result != null) {
-          result.setName(PathUtils.concatPath(path, result.getName()));
-        }
         onComplete.accept(new UfsLoadResult(
             result == null ? Stream.empty() : Stream.of(result),
             result == null ? 0 : 1,
             null, null, false,
             result != null && result.isFile(), isObjectStorage()));
+      } catch (FileNotFoundException e) {
+        onComplete.accept(new UfsLoadResult(
+            Stream.empty(), 0, null, null, false, false, isObjectStorage()));
       } catch (Throwable t) {
         onError.accept(t);
       }

@@ -86,7 +86,9 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
       throw new IllegalStateException("Cannot call hasNext");
     }
     popStack();
-    mNameComponents.remove(mNameComponents.size() - 1);
+    if (mNameComponents.size() > 0) {
+      mNameComponents.remove(mNameComponents.size() - 1);
+    }
   }
 
   private void popStack() {

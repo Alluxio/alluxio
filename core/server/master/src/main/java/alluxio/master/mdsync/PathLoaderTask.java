@@ -155,7 +155,10 @@ public class PathLoaderTask {
           }
         }
       } else {
-        shouldLoadMore = false;
+        shouldLoadMore =
+            originalRequest.getDescendantType() != DescendantType.NONE
+                && ufsLoadResult.getItemsCount() > 0 && !ufsLoadResult.isFirstFile();
+        shouldProcessResult = !shouldLoadMore;
       }
       if (!shouldProcessResult) {
         mRunningLoads.remove(requestId);
