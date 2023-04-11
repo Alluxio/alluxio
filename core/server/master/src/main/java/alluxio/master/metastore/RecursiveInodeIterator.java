@@ -129,19 +129,26 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
       mFirst = null;
       return new InodeIterationResult(ret, ret.getName(), mRootPath);
     }
+    Pair<CloseableIterator<? extends Inode>, LockedInodePath> top = mIteratorStack.peek();
+    try {
+      top.getSecond().traverse();
+    } catch (InvalidPathException e) {
+      // should not reach here as the path is valid
+      throw new InternalRuntimeException(e);
+    }
     if (mLastLockedPath != null) {
       mLastLockedPath.close();
       mLastLockedPath = null;
-    }
-    Pair<CloseableIterator<? extends Inode>, LockedInodePath> top = mIteratorStack.peek();
-    if (top.getSecond().getLockPattern() != InodeTree.LockPattern.READ) {
-      // after the parent has been returned, we can downgrade it to a read lock
-      top.getSecond().downgradeToRead();
+    } else {
+      if (top.getSecond().getLockPattern() != InodeTree.LockPattern.READ) {
+        // after the parent has been returned, we can downgrade it to a read lock
+        top.getSecond().downgradeToRead();
+      }
     }
     Inode current = tryOnIterator(top.getFirst(), CloseableIterator::next);
     LockedInodePath lockedPath;
     try {
-      lockedPath = top.getSecond().lockChild(current, InodeTree.LockPattern.WRITE_EDGE);
+      lockedPath = top.getSecond().lockChild(current, InodeTree.LockPattern.WRITE_EDGE, false);
     } catch (InvalidPathException e) {
       // should not reach here as the path is valid
       throw new InternalRuntimeException(e);

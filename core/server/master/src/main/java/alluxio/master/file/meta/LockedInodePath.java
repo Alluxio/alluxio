@@ -22,7 +22,6 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.journal.FileSystemMergeJournalContext;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.MetadataSyncMergeJournalContext;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.resource.AlluxioResourceLeakDetectorFactory;
 import alluxio.util.io.PathUtils;
@@ -410,7 +409,28 @@ public class LockedInodePath implements Closeable {
    */
   public LockedInodePath lockChild(Inode child, LockPattern lockPattern)
       throws InvalidPathException {
-    return lockChild(child, lockPattern, addComponent(mPathComponents, child.getName()));
+    return lockChild(child, lockPattern, true);
+  }
+
+  /**
+   * Returns a new locked inode path composed of the current path plus the child inode.
+   * The original locked inode path is unaffected.
+   * The path is traversed or not depending on the shouldTraverse parameter.
+   *
+   * childComponentsHint can be used to save the work of computing path components when the path
+   * components for the new path are already known.
+   *
+   * On failure, all locks taken by this method will be released.
+   *
+   * @param child the child inode
+   * @param lockPattern the lock pattern
+   * @param shouldTraverse if the path should be traversed or not
+   * @return the new locked path
+   */
+  public LockedInodePath lockChild(Inode child, LockPattern lockPattern, boolean shouldTraverse)
+      throws InvalidPathException {
+    return lockChild(child, lockPattern, addComponent(mPathComponents, child.getName()),
+        shouldTraverse);
   }
 
   /**
@@ -424,7 +444,23 @@ public class LockedInodePath implements Closeable {
    */
   public LockedInodePath lockChild(Inode child, LockPattern lockPattern,
       String[] childComponentsHint) throws InvalidPathException {
-    return lockChildByName(child.getName(), lockPattern, childComponentsHint);
+    return lockChildByName(child.getName(), lockPattern, childComponentsHint, true);
+  }
+
+  /**
+   * Efficient version of {@link #lockChild(Inode, LockPattern)} for when the child path
+   * components are already known.
+   *
+   * @param child the child inode
+   * @param lockPattern the lock pattern
+   * @param childComponentsHint path components for the new path
+   * @param shouldTraverse if the path should be traversed or not
+   * @return the new locked path
+   */
+  public LockedInodePath lockChild(
+      Inode child, LockPattern lockPattern, String[] childComponentsHint,
+      boolean shouldTraverse) throws InvalidPathException {
+    return lockChildByName(child.getName(), lockPattern, childComponentsHint, shouldTraverse);
   }
 
   /**
@@ -434,13 +470,16 @@ public class LockedInodePath implements Closeable {
    * @param childName the name of the child inode
    * @param lockPattern the lock pattern
    * @param childComponentsHint path components for the new path
+   * @param shouldTraverse if the path should be traversed or not
    * @return the new locked path
    */
   public LockedInodePath lockChildByName(String childName, LockPattern lockPattern,
-      String[] childComponentsHint) throws InvalidPathException {
+      String[] childComponentsHint, boolean shouldTraverse) throws InvalidPathException {
     LockedInodePath path = new LockedInodePath(mUri.joinUnsafe(childName), this,
         childComponentsHint, lockPattern, mUseTryLock);
-    path.traverseOrClose();
+    if (shouldTraverse) {
+      path.traverseOrClose();
+    }
     return path;
   }
 

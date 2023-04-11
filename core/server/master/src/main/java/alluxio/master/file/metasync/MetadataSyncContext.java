@@ -162,7 +162,16 @@ public class MetadataSyncContext {
    * @param operation the operation
    */
   public void reportSyncOperationSuccess(SyncOperation operation) {
-    mSuccessMap.put(operation, mSuccessMap.getOrDefault(operation, 0L) + 1);
+    reportSyncOperationSuccess(operation, 1);
+  }
+
+  /**
+   * reports the completion of a successful sync operation.
+   * @param operation the operation
+   * @param count the number of successes
+   */
+  public void reportSyncOperationSuccess(SyncOperation operation, long count) {
+    mSuccessMap.put(operation, mSuccessMap.getOrDefault(operation, 0L) + count);
   }
 
   /**

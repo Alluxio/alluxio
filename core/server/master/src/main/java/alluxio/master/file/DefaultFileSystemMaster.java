@@ -51,7 +51,6 @@ import alluxio.file.options.DescendantType;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
@@ -1342,7 +1341,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
           try (LockedInodePath childInodePath =
                    currInodePath.lockChildByName(
-                       childName, LockPattern.READ, childComponentsHint)) {
+                       childName, LockPattern.READ, childComponentsHint, true)) {
             listStatusInternal(context, rpcContext, childInodePath, auditContext,
                 nextDescendantType, resultStream, depth + 1, counter,
                 partialPath, prefixComponents);

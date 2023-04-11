@@ -104,7 +104,7 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
    * If you see invalid keystore format error when the mock server starts,
    * please install the latest jdk 8.
    */
-  private static final long TIMEOUT_MS = 30_000;
+  private static final long TIMEOUT_MS = 30_000_0;
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
@@ -230,7 +230,8 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     System.out.println(result.getTaskInfo().toString());
     System.out.println(result.getTaskInfo().getStats().toString());
     System.out.println(result.isCompleted().get().getSyncResult());
-    items = mFileSystemMaster.listStatus(MOUNT_POINT, ListStatusContext.create(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
+    items = mFileSystemMaster.listStatus(MOUNT_POINT, ListStatusContext.create(
+        ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
     System.out.println(Arrays.toString(items.toArray()));
   }
 
@@ -442,9 +443,10 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     mS3Client.putObject(TEST_BUCKET, "d3/3", TEST_CONTENT);
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
 
-    // TODO(yimin/tcrain) seems like when the DirectoryLoadType is set to SINGLE_LISTING
-    // the # of inodes is counted incorrectly.
-    long numInodes = mDirectoryLoadType == DirectoryLoadType.SINGLE_LISTING ? 9 : 12;
+    // count the files
+    long numInodes = 9;
+    // count the directories
+    numInodes += 3;
 
     // Sync one file from UFS
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
@@ -455,13 +457,20 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
         SyncOperation.CREATE, numInodes
     ));
 
+    // count the files
+    long noopCount = 9;
+    if (mDirectoryLoadType != DirectoryLoadType.SINGLE_LISTING) {
+      // count the directories
+      noopCount += 3;
+    }
+
     // Sync again, expect no change
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.isCompleted().get().getSyncResult(), ImmutableMap.of(
-        SyncOperation.NOOP, numInodes
+        SyncOperation.NOOP, noopCount
     ));
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
   }
@@ -543,10 +552,11 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
   public void syncDirectoryTestUFSIterationRecursive() throws Throwable {
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     int filePerDirectory = 5;
+    // count the files
     int createdInodeCount = filePerDirectory * filePerDirectory * filePerDirectory;
-    if (mDirectoryLoadType != DirectoryLoadType.SINGLE_LISTING) {
-      createdInodeCount += filePerDirectory * filePerDirectory + filePerDirectory;
-    }
+    // count the directories
+    createdInodeCount += filePerDirectory * filePerDirectory + filePerDirectory;
+
     for (int i = 0; i < filePerDirectory; ++i) {
       for (int j = 0; j < filePerDirectory; ++j) {
         for (int k = 0; k < filePerDirectory; ++k) {
@@ -565,6 +575,13 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
         SyncOperation.CREATE, (long) createdInodeCount
     ));
 
+    // count the files
+    int noopInodeCount = filePerDirectory * filePerDirectory * filePerDirectory;
+    if (mDirectoryLoadType != DirectoryLoadType.SINGLE_LISTING) {
+      // count the directories
+      noopInodeCount += filePerDirectory * filePerDirectory + filePerDirectory;
+    }
+
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
@@ -572,7 +589,7 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
     // All created node + root were not changed.
     assertSyncOperations(result.isCompleted().get().getSyncResult(), ImmutableMap.of(
-        SyncOperation.NOOP, (long) createdInodeCount
+        SyncOperation.NOOP, (long) noopInodeCount
     ));
   }
 

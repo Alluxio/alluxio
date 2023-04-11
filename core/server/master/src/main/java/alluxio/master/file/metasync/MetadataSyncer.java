@@ -513,6 +513,9 @@ public class MetadataSyncer implements SyncProcess {
     if (syncState.mContext.getDescendantType() != DescendantType.NONE) {
       if (inode.isDirectory() && !inode.asDirectory().isDirectChildrenLoaded()) {
         AlluxioURI inodePath = mInodeTree.getPath(inode.getId());
+        // The children have been loaded if
+        // (1) The descendant type is ALL and the inode is contained in the sync path
+        // (2) The descendant type is ONE and the inode is the synced path
         if ((syncState.mContext.getDescendantType() == DescendantType.ALL
             && syncState.mAlluxioSyncPath.isAncestorOf(inodePath))
             || (syncState.mContext.getDescendantType() == DescendantType.ONE
@@ -572,7 +575,7 @@ public class MetadataSyncer implements SyncProcess {
             checkShouldSetDescendantsLoaded(next, syncState);
           }
         }
-        syncState.mContext.reportSyncOperationSuccess(SyncOperation.CREATE);
+        syncState.mContext.reportSyncOperationSuccess(SyncOperation.CREATE, createdInodes.size());
       } catch (FileAlreadyExistsException e) {
         handleConcurrentModification(
             syncState.mContext, currentUfsStatus.mAlluxioPath, false, e);
@@ -588,7 +591,9 @@ public class MetadataSyncer implements SyncProcess {
       }
       // (Case 3) - in this case the inode is not in the UFS, so we must delete it
       try {
-        deleteFile(syncState.mContext, currentInode.getLockedPath());
+        LockedInodePath path = currentInode.getLockedPath();
+        path.traverse();
+        deleteFile(syncState.mContext, path);
         syncState.mContext.reportSyncOperationSuccess(SyncOperation.DELETE);
       } catch (FileDoesNotExistException e) {
         handleConcurrentModification(
@@ -607,6 +612,7 @@ public class MetadataSyncer implements SyncProcess {
         UfsSyncUtils.computeSyncPlan(currentInode.getInode(), ufsFingerprint, containsMountPoint);
     if (syncPlan.toUpdateMetaData() || syncPlan.toDelete() || syncPlan.toLoadMetadata()) {
       try {
+        currentInode.getLockedPath().traverse();
         LockedInodePath lockedInodePath = currentInode.getLockedPath();
         if (syncPlan.toUpdateMetaData()) {
           /*

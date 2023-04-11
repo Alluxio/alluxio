@@ -256,7 +256,7 @@ public interface ReadOnlyInodeStore extends Closeable {
         Inode inode = iterator.next();
 
         try {
-          mPreviousPath = mRootPath.lockChild(inode, InodeTree.LockPattern.WRITE_EDGE);
+          mPreviousPath = mRootPath.lockChild(inode, InodeTree.LockPattern.WRITE_EDGE, false);
         } catch (InvalidPathException e) {
           // Should not reach here since the path should be valid
           throw new InternalRuntimeException(e);
