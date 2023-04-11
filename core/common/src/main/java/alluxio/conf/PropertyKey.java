@@ -3120,14 +3120,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_JOURNAL_LOG_CONCURRENCY_MAX =
-          intBuilder(Name.MASTER_JOURNAL_LOG_CONCURRENCY_MAX)
-                  .setDefaultValue(256)
-                  .setDescription("Max concurrency for notifyTermIndexUpdated method, be sure it's "
-                          + "enough")
-                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-                  .setScope(Scope.MASTER)
-                  .build();
   public static final PropertyKey MASTER_JOURNAL_REQUEST_DATA_TIMEOUT =
       durationBuilder(Name.MASTER_JOURNAL_REQUEST_DATA_TIMEOUT)
           .setDefaultValue(20000)
@@ -3909,7 +3901,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey STANDBY_MASTER_GRPC_ENABLED =
       booleanBuilder(Name.STANDBY_MASTER_GRPC_ENABLED)
           .setDefaultValue(true)
-          .setDescription("Whether a standby master runs a grpc server")
+          .setIsHidden(true)
+          .setDescription("Whether a standby master runs a grpc server. WARNING: disabling this "
+              + "will prevent master snapshotting from working correctly.")
           .setScope(Scope.ALL)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();

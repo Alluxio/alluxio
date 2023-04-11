@@ -130,7 +130,7 @@ public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJourna
     MetricsSystem.histogram(
             MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_DISK_HISTOGRAM.getName())
         .update(mLastSnapshotUploadDiskSize);
-    LOG.debug("Total snapshot uncompressed bytes for {}: {}", index, mLastSnapshotUploadDiskSize);
+    LOG.info("Total snapshot uncompressed bytes for {}: {}", index, mLastSnapshotUploadDiskSize);
     // update compressed snapshot size (aka size sent over the network)
     mLastSnapshotUploadSize = totalBytesSent;
     MetricsSystem.histogram(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_HISTOGRAM.getName())

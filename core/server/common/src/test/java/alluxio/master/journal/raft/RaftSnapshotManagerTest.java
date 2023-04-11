@@ -47,6 +47,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class RaftSnapshotManagerTest {
@@ -83,7 +84,8 @@ public class RaftSnapshotManagerTest {
     // rpc addresses, excluding their own.
     for (int i = 0; i < mGrpcServers.size(); i++) {
       Configuration.set(PropertyKey.MASTER_RPC_PORT, mGrpcServers.get(i).getBindPort());
-      mManagers.add(new RaftSnapshotManager(mSmStorages.get(i)));
+      mManagers.add(new RaftSnapshotManager(mSmStorages.get(i),
+          Executors.newSingleThreadExecutor()));
     }
   }
 

@@ -104,6 +104,7 @@ public class SnapshotDirStateMachineStorage implements StateMachineStorage {
     } catch (Exception e) {
       // Files.list may throw an unchecked exception
       // do nothing and return null
+      LOG.warn("Error reading snapshot directory", e);
     }
     return null;
   }

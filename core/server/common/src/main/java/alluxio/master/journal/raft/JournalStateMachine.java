@@ -67,7 +67,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import javax.annotation.concurrent.GuardedBy;
@@ -112,7 +112,7 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile boolean mSnapshotting = false;
   private volatile boolean mIsLeader = false;
 
-  private final ExecutorService mJournalPool;
+  private final ExecutorService mJournalPool = Executors.newCachedThreadPool();
 
   /**
    * This callback is used for interrupting someone who suspends the journal applier to work on
@@ -153,11 +153,6 @@ public class JournalStateMachine extends BaseStateMachine {
    */
   public JournalStateMachine(Map<String, RaftJournal> journals, RaftJournalSystem journalSystem,
                              SnapshotDirStateMachineStorage storage) {
-    int maxConcurrencyPoolSize =
-        Configuration.getInt(PropertyKey.MASTER_JOURNAL_LOG_CONCURRENCY_MAX);
-    mJournalPool = new ForkJoinPool(maxConcurrencyPoolSize);
-    LOG.info("Ihe max concurrency for notifyTermIndexUpdated is loading with max threads {}",
-        maxConcurrencyPoolSize);
     mJournals = journals;
     mJournalApplier = new BufferedJournalApplier(journals,
         () -> journalSystem.getJournalSinks(null));
@@ -165,7 +160,7 @@ public class JournalStateMachine extends BaseStateMachine {
     LOG.info("Initialized new journal state machine");
     mJournalSystem = journalSystem;
     mStorage = storage;
-    mSnapshotManager = new RaftSnapshotManager(mStorage);
+    mSnapshotManager = new RaftSnapshotManager(mStorage, mJournalPool);
 
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX.getName(),
@@ -253,13 +248,13 @@ public class JournalStateMachine extends BaseStateMachine {
     long index;
     StateLockManager stateLockManager = mStateLockManagerRef.get();
     if (!mIsLeader) {
-      LOG.debug("Taking local snapshot as follower");
+      LOG.info("Taking local snapshot as follower");
       index = takeLocalSnapshot(false);
     } else if (stateLockManager != null) {
       // the leader has been allowed to take a local snapshot by being given a non-null
       // StateLockManager through the #allowLeaderSnapshots method
       try (LockResource stateLock = stateLockManager.lockExclusive(StateLockOptions.defaults())) {
-        LOG.debug("Taking local snapshot as leader");
+        LOG.info("Taking local snapshot as leader");
         index = takeLocalSnapshot(true);
       } catch (Exception e) {
         return RaftLog.INVALID_LOG_INDEX;
@@ -356,6 +351,9 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public CompletableFuture<TermIndex> notifyInstallSnapshotFromLeader(
       RaftProtos.RoleInfoProto roleInfoProto, TermIndex firstTermIndexInLog) {
+    // this method is called automatically by Ratis when the leader does not have all the logs to
+    // give to this follower. This method instructs the follower to download a snapshot from
+    // other masters to become up-to-date.
     LOG.info("Received instruction to install snapshot from other master asynchronously");
     return CompletableFuture.supplyAsync(() -> {
       mSnapshotManager.downloadSnapshotFromOtherMasters();

@@ -58,7 +58,7 @@ public interface Checkpointed {
       } catch (Exception e) {
         throw new AlluxioRuntimeException(Status.INTERNAL,
             String.format("Failed to take snapshot %s", getCheckpointName()),
-            null, ErrorType.Internal, false);
+            e, ErrorType.Internal, false);
       }
       LOG.debug("taking {} snapshot finished", getCheckpointName());
     }, executorService);
@@ -94,7 +94,7 @@ public interface Checkpointed {
       } catch (Exception e) {
         throw new AlluxioRuntimeException(Status.INTERNAL,
             String.format("Failed to restore snapshot %s", getCheckpointName()),
-            null, ErrorType.Internal, false);
+            e, ErrorType.Internal, false);
       }
       LOG.debug("loading {} snapshot finished", getCheckpointName());
     }, executorService);
