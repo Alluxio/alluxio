@@ -175,7 +175,7 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
     rs.initialize();
     SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
     storage.init(rs);
-    SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
+    SingleFileSnapshotInfo snapshot = storage.getLatestSnapshot();
     assertNotNull(snapshot);
     mCluster.notifySuccess();
   }
@@ -222,7 +222,7 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
     rs.initialize();
     SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
     storage.init(rs);
-    SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
+    SingleFileSnapshotInfo snapshot = storage.getLatestSnapshot();
     assertNotNull(snapshot);
     mCluster.notifySuccess();
   }
