@@ -15,6 +15,7 @@ import static alluxio.rocks.RocksStore.checkSetTableConfig;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.BlockMetaStore;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -61,7 +62,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Block store backed by RocksDB.
  */
 @ThreadSafe
-public class RocksBlockMetaStore implements BlockMetaStore {
+public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   private static final Logger LOG = LoggerFactory.getLogger(RocksBlockMetaStore.class);
   private static final String BLOCKS_DB_NAME = "blocks";
   private static final String BLOCK_META_COLUMN = "block-meta";
@@ -120,16 +121,20 @@ public class RocksBlockMetaStore implements BlockMetaStore {
           .setCreateMissingColumnFamilies(true)
           .setCreateIfMissing(true)
           .setMaxOpenFiles(-1);
+      // This is a field instead of a constant as it depends on the call to RocksDB.loadLibrary().
+      CompressionType compressionType =
+          Configuration.getEnum(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE,
+              CompressionType.class);
       columns.add(new ColumnFamilyDescriptor(BLOCK_META_COLUMN.getBytes(),
           new ColumnFamilyOptions()
               .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by block id
               .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains single value
-              .setCompressionType(CompressionType.NO_COMPRESSION)));
+              .setCompressionType(compressionType)));
       columns.add(new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(),
           new ColumnFamilyOptions()
               .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by block id
               .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains worker info
-              .setCompressionType(CompressionType.NO_COMPRESSION)));
+              .setCompressionType(compressionType)));
     }
 
     mToClose.addAll(columns.stream().map(
@@ -395,5 +400,15 @@ public class RocksBlockMetaStore implements BlockMetaStore {
 
   private RocksDB db() {
     return mRocksStore.getDb();
+  }
+
+  @Override
+  public RocksStore getRocksStore() {
+    return mRocksStore;
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.BLOCK_MASTER;
   }
 }

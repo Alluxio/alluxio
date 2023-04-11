@@ -293,6 +293,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
+  public Map<ServiceType, GrpcService> getStandbyServices() {
+    // for snapshot propagation
+    return new HashMap<>(mJournalSystem.getJournalServices());
+  }
+
+  @Override
   public String getName() {
     return Constants.META_MASTER_NAME;
   }

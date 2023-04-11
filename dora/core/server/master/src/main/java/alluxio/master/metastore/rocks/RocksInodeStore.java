@@ -21,7 +21,6 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.MutableInode;
-import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOption;
@@ -53,8 +52,6 @@ import org.rocksdb.WriteOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -77,7 +74,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * File store backed by RocksDB.
  */
 @ThreadSafe
-public class RocksInodeStore implements InodeStore {
+public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   private static final Logger LOG = LoggerFactory.getLogger(RocksInodeStore.class);
   private static final String INODES_DB_NAME = "inodes";
   private static final String INODES_COLUMN = "inodes";
@@ -139,16 +136,20 @@ public class RocksInodeStore implements InodeStore {
           .setCreateMissingColumnFamilies(true)
           .setCreateIfMissing(true)
           .setMaxOpenFiles(-1);
+      // This is a field instead of a constant because it depends on RocksDB.loadLibrary().
+      CompressionType compressionType =
+          Configuration.getEnum(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE,
+              CompressionType.class);
       columns.add(new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(),
           new ColumnFamilyOptions()
           .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by inode id
           .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains children ids
-          .setCompressionType(CompressionType.NO_COMPRESSION)));
+          .setCompressionType(compressionType)));
       columns.add(new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(),
           new ColumnFamilyOptions()
               .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by inode id
               .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket only contains an id
-              .setCompressionType(CompressionType.NO_COMPRESSION)));
+              .setCompressionType(compressionType)));
     }
     mToClose.addAll(columns.stream().map(
         ColumnFamilyDescriptor::getOptions).collect(Collectors.toList()));
@@ -514,13 +515,8 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
-    mRocksStore.writeToCheckpoint(output);
-  }
-
-  @Override
-  public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
-    mRocksStore.restoreFromCheckpoint(input);
+  public RocksStore getRocksStore() {
+    return mRocksStore;
   }
 
   private class RocksWriteBatch implements WriteBatch {

@@ -12,32 +12,36 @@
 package alluxio.master.journal.tool;
 
 import alluxio.master.journal.JournalEntryAssociation;
-import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.OptimizedCheckpointInputStream;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.raft.RaftJournalUtils;
+import alluxio.master.journal.raft.SnapshotDirStateMachineStorage;
 import alluxio.proto.journal.Journal;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
+import org.apache.ratis.io.MD5Hash;
 import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.server.raftlog.segmented.LogSegment;
 import org.apache.ratis.server.raftlog.segmented.LogSegmentPath;
+import org.apache.ratis.server.storage.FileInfo;
 import org.apache.ratis.server.storage.RaftStorage;
 import org.apache.ratis.server.storage.StorageImplUtils;
+import org.apache.ratis.statemachine.SnapshotInfo;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
-import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
+import org.apache.ratis.util.MD5FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
 import java.util.List;
 
 /**
@@ -121,27 +125,31 @@ public class RaftJournalDumper extends AbstractJournalDumper {
         RaftStorage.StartupOption.RECOVER,
         RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize())) {
       storage.initialize();
-      SimpleStateMachineStorage stateMachineStorage = new SimpleStateMachineStorage();
+      SnapshotDirStateMachineStorage stateMachineStorage = new SnapshotDirStateMachineStorage();
       stateMachineStorage.init(storage);
-      SingleFileSnapshotInfo currentSnapshot = stateMachineStorage.getLatestSnapshot();
+      SnapshotInfo currentSnapshot = stateMachineStorage.getLatestSnapshot();
       if (currentSnapshot == null) {
         LOG.debug("No snapshot found");
         return;
       }
-      final File snapshotFile = currentSnapshot.getFile().getPath().toFile();
+      File snapshotDir = new File(stateMachineStorage.getSnapshotDir(),
+          SimpleStateMachineStorage.getSnapshotFileName(currentSnapshot.getTerm(),
+              currentSnapshot.getIndex()));
       String checkpointPath = String.format("%s-%s-%s", mCheckpointsDir, currentSnapshot.getIndex(),
-          snapshotFile.lastModified());
+          snapshotDir.lastModified());
+      new File(checkpointPath).mkdirs();
 
-      try (DataInputStream inputStream = new DataInputStream(new FileInputStream(snapshotFile))) {
-        LOG.debug("Reading snapshot-Id: {}", inputStream.readLong());
-        try (CheckpointInputStream checkpointStream = new CheckpointInputStream(inputStream)) {
-          readCheckpoint(checkpointStream, Paths.get(checkpointPath));
-        } catch (Exception e) {
-          LOG.error("Failed to read snapshot from journal.", e);
+      for (FileInfo file : currentSnapshot.getFiles()) {
+        if (file.getFileDigest() != null) {
+          File snapshotFile = new File(snapshotDir, file.getPath().toString());
+          Path humanReadableFile = Paths.get(checkpointPath, file.getPath().toString());
+          MessageDigest md5 = MD5Hash.getDigester();
+          try (OptimizedCheckpointInputStream is =
+                   new OptimizedCheckpointInputStream(snapshotFile, md5)) {
+            readCheckpoint(is, humanReadableFile);
+          }
+          MD5FileUtil.verifySavedMD5(snapshotFile, new MD5Hash(md5.digest()));
         }
-      } catch (Exception e) {
-        LOG.error("Failed to load snapshot {}", snapshotFile, e);
-        throw e;
       }
     }
   }

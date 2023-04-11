@@ -42,6 +42,16 @@ public class RpcServerStandbyGrpcService extends RpcServerService {
   }
 
   @Override
+  public synchronized boolean isServingLeader() {
+    return mIsPromoted && isGrpcServerServing();
+  }
+
+  @Override
+  public synchronized boolean isServingStandby() {
+    return !mIsPromoted && isGrpcServerServing();
+  }
+
+  @Override
   public synchronized void start() {
     LOG.info("Starting {}", this.getClass().getSimpleName());
     startGrpcServer(Master::getStandbyServices);
