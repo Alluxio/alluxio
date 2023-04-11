@@ -966,9 +966,70 @@ public final class S3RestServiceHandler {
             if (partNumber != null) { // UploadPartCopy
               return new CopyPartResult(entityTag);
             }
+<<<<<<< HEAD
             // CopyObject
             return new CopyObjectResult(entityTag, System.currentTimeMillis());
           } catch (IOException e) {
+||||||| parent of 01bfecc16d (Fix CopyObject writetype and unclosed outstream in InitiateMPUpload)
+            // PutObject
+            return Response.ok().header(S3Constants.S3_ETAG_HEADER, entityTag).build();
+          } catch (Exception e) {
+            throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
+          }
+        } else { // CopyObject or UploadPartCopy
+          String copySource = !copySourceParam.startsWith(AlluxioURI.SEPARATOR)
+              ? AlluxioURI.SEPARATOR + copySourceParam : copySourceParam;
+          try {
+            copySource = URLDecoder.decode(copySource, "UTF-8");
+          } catch (UnsupportedEncodingException ex) {
+            throw S3RestUtils.toObjectS3Exception(ex, objectPath, auditContext);
+          }
+          URIStatus status = null;
+          CreateFilePOptions.Builder copyFilePOptionsBuilder = CreateFilePOptions.newBuilder()
+              .setRecursive(true)
+              .setMode(PMode.newBuilder()
+                  .setOwnerBits(Bits.ALL)
+                  .setGroupBits(Bits.ALL)
+                  .setOtherBits(Bits.NONE).build())
+              .setCheckS3BucketPath(true)
+              .setOverwrite(true);
+          // Handle metadata directive
+          if (metadataDirective == S3Constants.Directive.REPLACE
+              && filePOptions.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
+            copyFilePOptionsBuilder.putXattr(S3Constants.CONTENT_TYPE_XATTR_KEY,
+                filePOptions.getXattrMap().get(S3Constants.CONTENT_TYPE_XATTR_KEY));
+          } else { // defaults to COPY
+=======
+            // PutObject
+            return Response.ok().header(S3Constants.S3_ETAG_HEADER, entityTag).build();
+          } catch (Exception e) {
+            throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
+          }
+        } else { // CopyObject or UploadPartCopy
+          String copySource = !copySourceParam.startsWith(AlluxioURI.SEPARATOR)
+              ? AlluxioURI.SEPARATOR + copySourceParam : copySourceParam;
+          try {
+            copySource = URLDecoder.decode(copySource, "UTF-8");
+          } catch (UnsupportedEncodingException ex) {
+            throw S3RestUtils.toObjectS3Exception(ex, objectPath, auditContext);
+          }
+          URIStatus status = null;
+          CreateFilePOptions.Builder copyFilePOptionsBuilder = CreateFilePOptions.newBuilder()
+              .setRecursive(true)
+              .setMode(PMode.newBuilder()
+                  .setOwnerBits(Bits.ALL)
+                  .setGroupBits(Bits.ALL)
+                  .setOtherBits(Bits.NONE).build())
+              .setWriteType(S3RestUtils.getS3WriteType())
+              .setCheckS3BucketPath(true)
+              .setOverwrite(true);
+          // Handle metadata directive
+          if (metadataDirective == S3Constants.Directive.REPLACE
+              && filePOptions.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
+            copyFilePOptionsBuilder.putXattr(S3Constants.CONTENT_TYPE_XATTR_KEY,
+                filePOptions.getXattrMap().get(S3Constants.CONTENT_TYPE_XATTR_KEY));
+          } else { // defaults to COPY
+>>>>>>> 01bfecc16d (Fix CopyObject writetype and unclosed outstream in InitiateMPUpload)
             try {
               out.cancel();
             } catch (Throwable t2) {
@@ -1026,7 +1087,67 @@ public final class S3RestServiceHandler {
           if (e.getCause() instanceof S3Exception) {
             throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath);
           }
+<<<<<<< HEAD
           throw S3RestUtils.toObjectS3Exception(e, objectPath);
+||||||| parent of 01bfecc16d (Fix CopyObject writetype and unclosed outstream in InitiateMPUpload)
+          xattrMap.put(S3Constants.UPLOADS_BUCKET_XATTR_KEY,
+              ByteString.copyFrom(bucket, S3Constants.XATTR_STR_CHARSET));
+          xattrMap.put(S3Constants.UPLOADS_OBJECT_XATTR_KEY,
+              ByteString.copyFrom(object, S3Constants.XATTR_STR_CHARSET));
+          xattrMap.put(S3Constants.UPLOADS_FILE_ID_XATTR_KEY, ByteString.copyFrom(
+              Longs.toByteArray(userFs.getStatus(multipartTemporaryDir).getFileId())));
+          mMetaFS.createFile(
+              new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
+              CreateFilePOptions.newBuilder()
+                  .setRecursive(true)
+                  .setMode(PMode.newBuilder()
+                      .setOwnerBits(Bits.ALL)
+                      .setGroupBits(Bits.ALL)
+                      .setOtherBits(Bits.NONE).build())
+                  .setWriteType(S3RestUtils.getS3WriteType())
+                  .putAllXattr(xattrMap)
+                  .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                  .build()
+          );
+          SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
+              .setOwner(user)
+              .build();
+          mMetaFS.setAttribute(new AlluxioURI(
+              S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)), attrPOptions);
+          if (mMultipartCleanerEnabled) {
+            MultipartUploadCleaner.apply(mMetaFS, userFs, bucket, object, uploadId);
+          }
+          return new InitiateMultipartUploadResult(bucket, object, uploadId);
+=======
+          xattrMap.put(S3Constants.UPLOADS_BUCKET_XATTR_KEY,
+              ByteString.copyFrom(bucket, S3Constants.XATTR_STR_CHARSET));
+          xattrMap.put(S3Constants.UPLOADS_OBJECT_XATTR_KEY,
+              ByteString.copyFrom(object, S3Constants.XATTR_STR_CHARSET));
+          xattrMap.put(S3Constants.UPLOADS_FILE_ID_XATTR_KEY, ByteString.copyFrom(
+              Longs.toByteArray(userFs.getStatus(multipartTemporaryDir).getFileId())));
+          mMetaFS.createFile(
+              new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
+              CreateFilePOptions.newBuilder()
+                  .setRecursive(true)
+                  .setMode(PMode.newBuilder()
+                      .setOwnerBits(Bits.ALL)
+                      .setGroupBits(Bits.ALL)
+                      .setOtherBits(Bits.NONE).build())
+                  .setWriteType(S3RestUtils.getS3WriteType())
+                  .putAllXattr(xattrMap)
+                  .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                  .build()
+          ).close();
+          SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
+              .setOwner(user)
+              .build();
+          mMetaFS.setAttribute(new AlluxioURI(
+              S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)), attrPOptions);
+          if (mMultipartCleanerEnabled) {
+            MultipartUploadCleaner.apply(mMetaFS, userFs, bucket, object, uploadId);
+          }
+          return new InitiateMultipartUploadResult(bucket, object, uploadId);
+>>>>>>> 01bfecc16d (Fix CopyObject writetype and unclosed outstream in InitiateMPUpload)
         } catch (Exception e) {
           throw S3RestUtils.toObjectS3Exception(e, objectPath);
         }
