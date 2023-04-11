@@ -903,7 +903,7 @@ public final class S3RestServiceHandler {
         URIStatus status = null;
         CreateFilePOptions.Builder copyFilePOptionsBuilder =
             CreateFilePOptions.newBuilder().setRecursive(true)
-                .setWriteType(S3RestUtils.getS3WriteType()) ;
+                .setWriteType(S3RestUtils.getS3WriteType());
         // Handle metadata directive
         if (metadataDirective == S3Constants.Directive.REPLACE
             && filePOptions.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
