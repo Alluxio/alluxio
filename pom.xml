@@ -155,6 +155,7 @@
     <jackson.version>2.13.3</jackson.version>
     <hadoop-cos.version>3.1.0-5.8.5</hadoop-cos.version>
     <cos_api.version>5.6.19</cos_api.version>
+    <stateless4j.version>2.6.0</stateless4j.version>
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <surefire.excludesFile>slow-tests</surefire.excludesFile>
@@ -261,7 +262,7 @@
       <dependency>
         <groupId>com.github.stateless4j</groupId>
         <artifactId>stateless4j</artifactId>
-        <version>2.6.0</version>
+        <version>${stateless4j.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.gson</groupId>
