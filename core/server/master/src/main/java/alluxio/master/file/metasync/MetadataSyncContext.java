@@ -7,9 +7,16 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.master.file.BlockDeletionContext;
+import alluxio.master.file.FileSystemJournalEntryMerger;
 import alluxio.master.file.RpcContext;
+import alluxio.master.file.contexts.OperationContext;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.journal.FileSystemMergeJournalContext;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.MetadataSyncMergeJournalContext;
+import alluxio.master.mdsync.TaskInfo;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
@@ -23,8 +30,21 @@ import javax.annotation.Nullable;
  * The context for the metadata sync.
  */
 public class MetadataSyncContext {
+  static class MetadataSyncRpcContext extends RpcContext {
+    public MetadataSyncRpcContext(
+        BlockDeletionContext blockDeleter, MetadataSyncMergeJournalContext journalContext,
+        OperationContext operationContext) {
+      super(blockDeleter, journalContext, operationContext);
+    }
+
+    @Override
+    public MetadataSyncMergeJournalContext getJournalContext() {
+      return (MetadataSyncMergeJournalContext) super.getJournalContext();
+    }
+  }
+
   private final DescendantType mDescendantType;
-  private final RpcContext mRpcContext;
+  private final MetadataSyncRpcContext mRpcContext;
   private final boolean mAllowConcurrentModification;
   private final FileSystemMasterCommonPOptions mCommonOptions;
   @Nullable
@@ -38,25 +58,27 @@ public class MetadataSyncContext {
   private Long mSyncFinishTime = null;
   @Nullable
   private SyncFailReason mFailReason = null;
+  private final TaskInfo mTaskInfo;
 
   /**
    * Creates a metadata sync context.
-   * @param descendantType the sync descendant type (ALL/ONE/NONE)
+   * @param taskInfo the metadata sync task info
    * @param rpcContext the rpc context
    * @param commonOptions the common options for TTL configurations
    * @param startAfter indicates where the sync starts (exclusive), used on retries
    */
   private MetadataSyncContext(
-      DescendantType descendantType, RpcContext rpcContext,
+      TaskInfo taskInfo, MetadataSyncRpcContext rpcContext,
       FileSystemMasterCommonPOptions commonOptions,
       @Nullable String startAfter,
       boolean allowConcurrentModification
   ) {
-    mDescendantType = descendantType;
+    mDescendantType = taskInfo.getDescendantType();
     mRpcContext = rpcContext;
     mCommonOptions = commonOptions;
     mAllowConcurrentModification = allowConcurrentModification;
     mStartAfter = startAfter;
+    mTaskInfo = taskInfo;
   }
 
   public void validateStartAfter(AlluxioURI syncRoot) throws InvalidPathException {
@@ -111,8 +133,15 @@ public class MetadataSyncContext {
   /**
    * @return the rpc context
    */
-  public RpcContext getRpcContext() {
+  public MetadataSyncRpcContext getRpcContext() {
     return mRpcContext;
+  }
+
+  /**
+   * @return the metadata sync journal context
+   */
+  public MetadataSyncMergeJournalContext getMetadataSyncJournalContext() {
+    return mRpcContext.getJournalContext();
   }
 
   /**
@@ -172,6 +201,7 @@ public class MetadataSyncContext {
    */
   public void reportSyncOperationSuccess(SyncOperation operation, long count) {
     mSuccessMap.put(operation, mSuccessMap.getOrDefault(operation, 0L) + count);
+    mTaskInfo.getStats().reportSyncOperationSuccess(operation, count);
   }
 
   /**
@@ -195,7 +225,9 @@ public class MetadataSyncContext {
    * Starts the metadata sync.
    */
   public void startSync() {
-    mSyncStartTime = CommonUtils.getCurrentMs();
+    long timestamp = CommonUtils.getCurrentMs();
+    mSyncStartTime = timestamp;
+    mTaskInfo.getStats().updateSyncStartTime(timestamp);
   }
 
   /**
@@ -204,7 +236,9 @@ public class MetadataSyncContext {
    */
   public SyncResult success() {
     Preconditions.checkNotNull(mSyncStartTime);
-    mSyncFinishTime = CommonUtils.getCurrentMs();
+    long timestamp = CommonUtils.getCurrentMs();
+    mSyncFinishTime = timestamp;
+    mTaskInfo.getStats().updateSyncFinishTime(timestamp);
     return new SyncResult(true, mSyncStartTime, mSyncFinishTime, mSuccessMap,
         mFailedMap, null, mNumUfsFilesScanned);
   }
@@ -215,7 +249,10 @@ public class MetadataSyncContext {
    */
   public SyncResult fail() {
     Preconditions.checkNotNull(mSyncStartTime);
-    mSyncFinishTime = CommonUtils.getCurrentMs();
+    long timestamp = CommonUtils.getCurrentMs();
+    mSyncFinishTime = timestamp;
+    mTaskInfo.getStats().updateSyncFinishTime(timestamp);
+    mTaskInfo.getStats().setSyncFailed();
     return new SyncResult(false, mSyncStartTime, mSyncFinishTime, mSuccessMap, mFailedMap,
         mFailReason, mNumUfsFilesScanned);
   }
@@ -224,8 +261,8 @@ public class MetadataSyncContext {
    * Creates a builder.
    */
   public static class Builder {
-    private DescendantType mDescendantType;
-    private RpcContext mRpcContext;
+    private TaskInfo mTaskInfo;
+    private MetadataSyncRpcContext mRpcContext;
     private FileSystemMasterCommonPOptions mCommonOptions = MetadataSyncer.NO_TTL_OPTION;
     private String mStartAfter = null;
     private boolean mAllowConcurrentModification = true;
@@ -233,30 +270,34 @@ public class MetadataSyncContext {
     /**
      * Creates a builder.
      * @param rpcContext the rpc context
-     * @param descendantType the descendant type
+     * @param taskInfo metadata sync task info
      * @return a new builder
      */
-    public static Builder builder(RpcContext rpcContext, DescendantType descendantType) {
+    public static Builder builder(RpcContext rpcContext, TaskInfo taskInfo) {
+      Preconditions.checkState(
+          !(rpcContext.getJournalContext() instanceof FileSystemMergeJournalContext));
       Builder builder = new Builder();
-      builder.mDescendantType = descendantType;
-      builder.mRpcContext = rpcContext;
+      builder.mTaskInfo = taskInfo;
+      /*
+       * Wrap the journal context with a MetadataSyncMergeJournalContext, which behaves
+       * differently in:
+       *  1. the journals are merged and stayed in the context until it gets flushed
+       *  2. when close() or flush() are called, the journal does not trigger a hard flush
+       *  that commits the journals, instead, it only adds the journals to the async journal writer.
+       *  During the metadata sync process, we are creating/updating many files, but we don't want
+       *  to hard flush journals on every inode updates.
+       */
+      builder.mRpcContext = new MetadataSyncRpcContext(rpcContext.getBlockDeletionContext(),
+          new MetadataSyncMergeJournalContext(rpcContext.getJournalContext(),
+              new FileSystemJournalEntryMerger()), rpcContext.getOperationContext());
       return builder;
-    }
-
-    /**
-     * @param descendantType the descendant type
-     * @return the builder
-     */
-    public Builder setDescendantType(DescendantType descendantType) {
-      mDescendantType = descendantType;
-      return this;
     }
 
     /**
      * @param rpcContext the rpc context
      * @return builder
      */
-    public Builder setRpcContext(RpcContext rpcContext) {
+    public Builder setRpcContext(MetadataSyncRpcContext rpcContext) {
       mRpcContext = rpcContext;
       return this;
     }
@@ -293,7 +334,7 @@ public class MetadataSyncContext {
      */
     public MetadataSyncContext build() {
       return new MetadataSyncContext(
-          mDescendantType, mRpcContext, mCommonOptions,
+          mTaskInfo, mRpcContext, mCommonOptions,
           mStartAfter, mAllowConcurrentModification);
     }
   }

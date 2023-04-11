@@ -4167,10 +4167,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           GrpcUtils.fromProto(context.getOptions().getDirectoryLoadType()), 0);
       result.waitComplete(0);
       return SyncMetadataPResponse.newBuilder().setSuccess(result.succeeded())
-          .setDebugInfo(
-              String.format("Sync stats: %s%n Load stats: %s%n",
-                  result.isCompleted().get().getSyncResult(),
-                  result.getTaskInfo().getStats())).build();
+          .setDebugInfo(result.getTaskInfo().getStats().toString()).build();
     } catch (Throwable t) {
       throw new RuntimeException(t);
     }
@@ -4197,10 +4194,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       responseBuilder.setState(GetSyncProgressPResponse.State.IN_PROGRESS);
     } else if (task.get().succeeded()) {
       responseBuilder.setState(GetSyncProgressPResponse.State.SUCCESS);
-      responseBuilder.setDebugInfo(String.format(
-          "Sync stats: %s%n Load stats: %s%n",
-          task.get().isCompleted().get().getSyncResult(),
-          task.get().getTaskInfo().getStats())).build();
+      responseBuilder.setDebugInfo(task.get().getTaskInfo().getStats().toString()).build();
     } else {
       responseBuilder.setState(GetSyncProgressPResponse.State.FAIL);
     }
@@ -5509,7 +5503,11 @@ public class DefaultFileSystemMaster extends CoreMaster
         operationContext.withTracker(mStateLockCallTracker));
   }
 
-  private RpcContext createNonMergingJournalRpcContext(OperationContext operationContext)
+  /**
+   * @param operationContext the operation context
+   * @return an Rpc context that does not use a merge journal context
+   */
+  public RpcContext createNonMergingJournalRpcContext(OperationContext operationContext)
       throws UnavailableException {
     return new RpcContext(createBlockDeletionContext(), createJournalContext(false),
         operationContext.withTracker(mStateLockCallTracker));

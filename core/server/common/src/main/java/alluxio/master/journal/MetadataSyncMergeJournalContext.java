@@ -11,6 +11,8 @@
 
 package alluxio.master.journal;
 
+import alluxio.exception.status.UnavailableException;
+
 import com.google.common.annotations.VisibleForTesting;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -43,6 +45,9 @@ public class MetadataSyncMergeJournalContext extends FileSystemMergeJournalConte
     super(journalContext, journalEntryMerger);
   }
 
+  /**
+   * Flushes the journals into the async journal writer.
+   */
   @Override
   public void flush() {
     appendMergedJournals();
@@ -53,6 +58,14 @@ public class MetadataSyncMergeJournalContext extends FileSystemMergeJournalConte
     appendMergedJournals();
     // underlying JournalContext won't be closed here because it's still used by
     // the rpc thread.
+  }
+
+  /**
+   * Flushes and commits journals.
+   */
+  public void hardFlush() throws UnavailableException {
+    appendMergedJournals();
+    mJournalContext.flush();
   }
 
   /**

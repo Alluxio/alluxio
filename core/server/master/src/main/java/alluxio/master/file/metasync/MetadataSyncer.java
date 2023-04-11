@@ -35,6 +35,7 @@ import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.InternalOperationContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeIterationResult;
@@ -45,7 +46,6 @@ import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.mdsync.BaseTask;
 import alluxio.master.mdsync.LoadResult;
 import alluxio.master.mdsync.MdSync;
@@ -284,11 +284,10 @@ public class MetadataSyncer implements SyncProcess {
   @Override
   public SyncProcessResult performSync(
       LoadResult loadResult, UfsSyncPathCache syncPathCache) throws Throwable {
-
-    try (RpcContext rpcContext = mFsMaster.createRpcContext()) {
+    try (RpcContext rpcContext =
+             mFsMaster.createNonMergingJournalRpcContext(new InternalOperationContext())) {
       MetadataSyncContext context =
-          MetadataSyncContext.Builder.builder(rpcContext, loadResult.getTaskInfo()
-              .getDescendantType()).build();
+          MetadataSyncContext.Builder.builder(rpcContext, loadResult.getTaskInfo()).build();
       context.startSync();
 
       MountTable.ReverseResolution reverseResolution
@@ -560,7 +559,7 @@ public class MetadataSyncer implements SyncProcess {
       assert currentUfsStatus != null;
       try (LockedInodePath lockedInodePath = mInodeTree.lockInodePath(
           currentUfsStatus.mAlluxioUri, InodeTree.LockPattern.WRITE_EDGE,
-          NoopJournalContext.INSTANCE)) {
+          syncState.mContext.getMetadataSyncJournalContext())) {
         List<Inode> createdInodes;
         if (currentUfsStatus.mUfsItem.isDirectory()) {
           createdInodes = createInodeDirectoryMetadata(syncState.mContext, lockedInodePath,
@@ -651,7 +650,7 @@ public class MetadataSyncer implements SyncProcess {
           // TODO(tcrain) see why we need a new locked path here and cannot use the old one
           try (LockedInodePath newLockedInodePath = mInodeTree.lockInodePath(
               lockedInodePath.getUri(), InodeTree.LockPattern.WRITE_EDGE,
-              NoopJournalContext.INSTANCE)) {
+              syncState.mContext.getMetadataSyncJournalContext())) {
             if (currentUfsStatus.mUfsItem.isDirectory()) {
               createInodeDirectoryMetadata(syncState.mContext, newLockedInodePath,
                   currentUfsStatus.mUfsItem);

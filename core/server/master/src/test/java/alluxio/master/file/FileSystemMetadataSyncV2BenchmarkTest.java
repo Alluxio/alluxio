@@ -65,7 +65,6 @@ public final class FileSystemMetadataSyncV2BenchmarkTest extends FileSystemMaste
         MOUNT_POINT, DescendantType.ALL, DirectoryLoadType.BFS, 0
     );
     result.waitComplete(0);
-    System.out.println(result.isCompleted().get().getSyncResult());
     System.out.println(result.getTaskInfo().getStats());
 
     System.out.println("--------Second pass----------");
@@ -73,7 +72,6 @@ public final class FileSystemMetadataSyncV2BenchmarkTest extends FileSystemMaste
         MOUNT_POINT, DescendantType.ALL, DirectoryLoadType.BFS, 0
     );
     result.waitComplete(0);
-    System.out.println(result.isCompleted().get().getSyncResult());
     System.out.println(result.getTaskInfo().getStats());
   }
 
@@ -126,11 +124,5 @@ public final class FileSystemMetadataSyncV2BenchmarkTest extends FileSystemMaste
         .setCommonOptions(
             FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build()
         ));
-  }
-
-  private MetadataSyncContext createContext(DescendantType descendantType)
-      throws UnavailableException {
-    return MetadataSyncContext.Builder.builder(
-        mFileSystemMaster.createRpcContext(), descendantType).build();
   }
 }
