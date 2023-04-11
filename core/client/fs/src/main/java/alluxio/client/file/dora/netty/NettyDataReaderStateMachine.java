@@ -175,8 +175,11 @@ public class NettyDataReaderStateMachine {
    * @param requestBuilder
    * @param outChannel
    */
-  public NettyDataReaderStateMachine(FileSystemContext context, WorkerNetAddress address,
-                                 Protocol.ReadRequest.Builder requestBuilder, WritableByteChannel outChannel) {
+  public NettyDataReaderStateMachine(
+      FileSystemContext context,
+      WorkerNetAddress address,
+      Protocol.ReadRequest.Builder requestBuilder,
+      WritableByteChannel outChannel) {
     mContext = context;
     AlluxioConfiguration conf = context.getClusterConf();
     mReadTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
