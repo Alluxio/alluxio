@@ -487,6 +487,7 @@ public abstract class AbstractClient implements Client {
         if (se.getStatusCode() == Status.Code.UNAVAILABLE
             || se.getStatusCode() == Status.Code.CANCELLED
             || se.getStatusCode() == Status.Code.UNAUTHENTICATED
+            || se.getStatusCode() == Status.Code.UNIMPLEMENTED // for standby grpc enabled
             || e.getCause() instanceof UnresolvedAddressException) {
           ex = se;
         } else {

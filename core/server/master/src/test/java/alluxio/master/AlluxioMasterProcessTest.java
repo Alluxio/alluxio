@@ -127,7 +127,10 @@ public final class AlluxioMasterProcessTest {
       }
     });
     t.start();
+    master.waitForReady(10_000);
     startStopTest(master);
+    t.interrupt();
+    t.join();
   }
 
   @Test
@@ -275,8 +278,6 @@ public final class AlluxioMasterProcessTest {
       }
     });
     t.start();
-    final int TIMEOUT_MS = 10_000;
-    master.waitForGrpcServerReady(TIMEOUT_MS);
     startStopTest(master,
         true,
         Configuration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED),
@@ -296,7 +297,10 @@ public final class AlluxioMasterProcessTest {
     assertTrue(isBound(master.getRpcAddress().getPort()));
     assertTrue(isBound(master.getWebAddress().getPort()));
     if (expectGrpcServiceStarted) {
-      assertTrue(master.waitForGrpcServerReady(TIMEOUT_MS));
+      CommonUtils.waitFor("grpc server to serve",
+          () -> master.mServices.stream().anyMatch(service -> service instanceof RpcServerService
+          && ((RpcServerService) service).isServing()),
+          WaitForOptions.defaults().setTimeoutMs(TIMEOUT_MS));
     }
     if (expectWebServiceStarted) {
       assertTrue(master.waitForWebServerReady(TIMEOUT_MS));

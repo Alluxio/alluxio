@@ -75,11 +75,29 @@ public class RpcServerService implements SimpleService {
     mMasterProcess = masterProcess;
   }
 
+  protected final synchronized boolean isGrpcServerServing() {
+    return mGrpcServer != null && mGrpcServer.isServing();
+  }
+
   /**
    * @return whether the grpc server is serving or not
    */
   public synchronized boolean isServing() {
-    return mGrpcServer != null && mGrpcServer.isServing();
+    return isServingLeader() || isServingStandby();
+  }
+
+  /**
+   * @return whether the grpc server is serving in leader mode
+   */
+  public synchronized boolean isServingLeader() {
+    return isGrpcServerServing();
+  }
+
+  /**
+   * @return whether the grpc server is serving in standby mode
+   */
+  public synchronized boolean isServingStandby() {
+    return false;
   }
 
   @Override

@@ -30,6 +30,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.master.AlluxioMasterProcess;
+import alluxio.master.AlwaysPrimaryPrimarySelector;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterProcess;
 import alluxio.master.MasterRegistry;
@@ -38,6 +39,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterFactory;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.MetricKey;
@@ -133,7 +135,8 @@ public final class AlluxioMasterRestServiceHandlerTest {
     mMasterProcess = PowerMockito.mock(AlluxioMasterProcess.class);
     ServletContext context = mock(ServletContext.class);
     mRegistry = new MasterRegistry();
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
+    CoreMasterContext masterContext = MasterTestUtils.testMasterContext(new NoopJournalSystem(),
+        null, new AlwaysPrimaryPrimarySelector());
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     registerMockUfs();

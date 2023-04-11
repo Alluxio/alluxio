@@ -55,7 +55,7 @@ public class MultiProcessCheckpointTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 100)
         .addProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "500")
         .addProperty(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "500")
-        .addProperty(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL,
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL,
             compressionLevel)
         .addProperty(PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP,
             parallelCompression)

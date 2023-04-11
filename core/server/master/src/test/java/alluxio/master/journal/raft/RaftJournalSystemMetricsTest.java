@@ -66,7 +66,8 @@ public final class RaftJournalSystemMetricsTest {
         MetricKey.MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX.getName(),
         MetricKey.MASTER_JOURNAL_CHECKPOINT_WARN.getName(),
     };
-    JournalStateMachine stateMachine = new JournalStateMachine(system.getJournals(), system);
+    JournalStateMachine stateMachine = new JournalStateMachine(system.getJournals(), system,
+        new SnapshotDirStateMachineStorage());
     for (String name : metricsNames) {
       assertNotNull(MetricsSystem.METRIC_REGISTRY.getGauges().get(name));
     }
@@ -74,7 +75,8 @@ public final class RaftJournalSystemMetricsTest {
     for (String name : metricsNames) {
       assertNull(MetricsSystem.METRIC_REGISTRY.getGauges().get(name));
     }
-    JournalStateMachine newStateMachine = new JournalStateMachine(system.getJournals(), system);
+    JournalStateMachine newStateMachine = new JournalStateMachine(system.getJournals(), system,
+        new SnapshotDirStateMachineStorage());
     for (String name : metricsNames) {
       assertNotNull(MetricsSystem.METRIC_REGISTRY.getGauges().get(name));
     }
