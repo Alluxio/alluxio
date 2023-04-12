@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.file.options.DescendantType;
+import alluxio.util.RateLimiter;
 
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
@@ -26,4 +27,6 @@ public interface UfsClient {
       String path, @Nullable String continuationToken, @Nullable String startAfter,
       DescendantType descendantType, Consumer<UfsLoadResult> onComplete,
       Consumer<Throwable> onError);
+
+  RateLimiter getRateLimiter();
 }

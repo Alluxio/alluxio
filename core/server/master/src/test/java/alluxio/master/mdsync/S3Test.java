@@ -25,6 +25,7 @@ import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsLoadResult;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.CommonUtils;
+import alluxio.util.RateLimiter;
 import alluxio.util.io.PathUtils;
 
 import org.junit.After;
@@ -56,6 +57,7 @@ public class S3Test {
   SyncProcess mSyncProcess;
   S3AsyncClient mS3Client;
   String mBucket = "alluxiotyler";
+  RateLimiter mRateLimiter = RateLimiter.createRateLimiter(2);
 
   @Before
   public void before() {
@@ -149,6 +151,11 @@ public class S3Test {
               }
             });
       }
+
+      @Override
+      public RateLimiter getRateLimiter() {
+        return mRateLimiter;
+      }
     };
     mSyncProcess = Mockito.spy(new TestSyncProcess());
     mUfsSyncPathCache = Mockito.mock(UfsSyncPathCache.class);
@@ -164,27 +171,9 @@ public class S3Test {
   }
 
   @Test
-  public void stringTest() {
-    System.out.println(new AlluxioURI("asdf"));
-
-    AlluxioURI filePath = new AlluxioURI("s3:///afolder");
-    System.out.println(filePath.getPath());
-
-    AlluxioURI bucket = new AlluxioURI("s3://bucket/file/nested");
-    String testString = PathUtils.normalizePath(bucket.getPath(), AlluxioURI.SEPARATOR);
-    System.out.println(testString);
-
-    System.out.println(testString.substring(0, testString.indexOf(AlluxioURI.SEPARATOR, 1)));
-    System.out.println(bucket.getParent());
-    System.out.println(new AlluxioURI(bucket.getRootPath()).join("somepath"));
-    System.out.println(filePath.getRootPath());
-    System.out.println(bucket.getScheme());
-  }
-
-  @Test
   public void s3Test() throws Throwable {
     Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMdSync,
-        new AlluxioURI("c3991175-9f1e-4ec6-8ed9-23b1370ed4ea/"), new AlluxioURI("/"),
+        new AlluxioURI("/"), new AlluxioURI("/"),
         null, DescendantType.ALL, 0, DirectoryLoadType.SINGLE_LISTING);
     result.getSecond().waitComplete(0);
     System.out.println(result.getSecond().getTaskInfo().getStats());

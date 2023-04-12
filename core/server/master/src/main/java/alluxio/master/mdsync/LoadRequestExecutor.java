@@ -11,6 +11,8 @@
 
 package alluxio.master.mdsync;
 
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+
 import alluxio.Constants;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.runtime.InternalRuntimeException;
@@ -26,6 +28,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,6 +51,8 @@ class LoadRequestExecutor implements Closeable {
   private final ConcurrentLinkedDeque<Long> mPathLoaderTaskQueue = new ConcurrentLinkedDeque<>();
   // Load requests in order of to be processed
   private final BlockingQueue<LoadRequest> mLoadRequests = new LinkedBlockingQueue<>();
+  // Rate limited loads that are not yet ready to be run
+  private final PriorityQueue<RateLimitedRequest> mRateLimited = new PriorityQueue<>();
 
   private final LoadResultExecutor mResultExecutor;
 
@@ -116,40 +121,64 @@ class LoadRequestExecutor implements Closeable {
 
   private void runNextLoadTask() throws InterruptedException {
     mRunning.acquire();
-    while (mLoadRequests.isEmpty()) {
+    // loop until there is a task ready to execute
+    while (mLoadRequests.isEmpty() && (mRateLimited.isEmpty()
+        || !mRateLimited.peek().isReady())) {
       synchronized (this) {
         Long nextId = mPathLoaderTaskQueue.poll();
         if (nextId != null) {
           checkNextLoad(nextId);
         } else {
-          wait();
+          long waitNanos = 0;
+          if (!mRateLimited.isEmpty()) {
+            waitNanos = mRateLimited.peek().getWaitTime();
+            if (waitNanos <= 0) {
+              break;
+            }
+          }
+          // wait until a rate limited task is ready, or this.notify() is called
+          NANOSECONDS.timedWait(this, waitNanos);
         }
       }
     }
     SAMPLING_LOG.info("Concurrent running ufs load tasks {}",
         mMaxRunning - mRunning.availablePermits());
-    LoadRequest nxtRequest = mLoadRequests.take();
-    PathLoaderTask task = mPathLoaderTasks.get(nxtRequest.getBaseTaskId());
-    if (task != null) {
-      try (CloseableResource<UfsClient> client = task.getClient()) {
-        if (nxtRequest.isFirstLoad()) {
-          client.get().performGetStatusAsync(nxtRequest.getLoadPath().getPath(),
-              ufsLoadResult -> processLoadResult(nxtRequest, ufsLoadResult),
-              t -> onLoadError(nxtRequest, t));
-        } else {
-          client.get().performListingAsync(nxtRequest.getLoadPath().getPath(),
-              nxtRequest.getContinuationToken(), nxtRequest.getTaskInfo().getStartAfter(),
-              nxtRequest.getDescendantType(),
-              ufsLoadResult -> processLoadResult(nxtRequest, ufsLoadResult),
-              t -> onLoadError(nxtRequest, t));
-        }
-      } catch (Throwable t) {
-        onLoadError(nxtRequest, t);
-      }
+    if (!mRateLimited.isEmpty() && mRateLimited.peek().isReady()) {
+      RateLimitedRequest request = mRateLimited.remove();
+      runTask(request.mTask, request.mLoadRequest);
     } else {
-      LOG.debug("Got load request {} with task id {} with no corresponding task",
-          nxtRequest.getLoadRequestId(), nxtRequest.getLoadRequestId());
-      mRunning.release();
+      LoadRequest nxtRequest = mLoadRequests.take();
+      PathLoaderTask task = mPathLoaderTasks.get(nxtRequest.getBaseTaskId());
+      if (task != null) {
+        Optional<Long> rateLimit = task.getRateLimiter().acquire();
+        if (rateLimit.isPresent()) {
+          mRateLimited.add(new RateLimitedRequest(task, nxtRequest, rateLimit.get()));
+        } else {
+          runTask(task, nxtRequest);
+        }
+      } else {
+        LOG.debug("Got load request {} with task id {} with no corresponding task",
+            nxtRequest.getLoadRequestId(), nxtRequest.getLoadRequestId());
+        mRunning.release();
+      }
+    }
+  }
+
+  private void runTask(PathLoaderTask task, LoadRequest loadRequest) {
+    try (CloseableResource<UfsClient> client = task.getClient()) {
+      if (loadRequest.isFirstLoad()) {
+        client.get().performGetStatusAsync(loadRequest.getLoadPath().getPath(),
+            ufsLoadResult -> processLoadResult(loadRequest, ufsLoadResult),
+            t -> onLoadError(loadRequest, t));
+      } else {
+        client.get().performListingAsync(loadRequest.getLoadPath().getPath(),
+            loadRequest.getContinuationToken(), loadRequest.getTaskInfo().getStartAfter(),
+            loadRequest.getDescendantType(),
+            ufsLoadResult -> processLoadResult(loadRequest, ufsLoadResult),
+            t -> onLoadError(loadRequest, t));
+      }
+    } catch (Throwable t) {
+      onLoadError(loadRequest, t);
     }
   }
 

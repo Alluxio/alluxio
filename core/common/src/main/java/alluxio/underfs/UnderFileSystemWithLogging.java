@@ -33,6 +33,7 @@ import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.RateLimiter;
 import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
@@ -1307,6 +1308,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     } catch (IOException e) {
       throw new InternalRuntimeException("should not reach");
     }
+  }
+
+  @Override
+  public RateLimiter getRateLimiter() {
+    return mUnderFileSystem.getRateLimiter();
   }
 
   /**

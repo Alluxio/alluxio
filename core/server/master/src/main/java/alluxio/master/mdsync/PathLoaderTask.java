@@ -13,20 +13,25 @@ package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.concurrent.jsr.CompletableFuture;
+import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.master.file.metasync.SyncResult;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
 import alluxio.underfs.UfsLoadResult;
+import alluxio.util.RateLimiter;
 
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 
@@ -55,6 +60,7 @@ public class PathLoaderTask {
   private long mNxtLoadId = 0;
   private boolean mCompleted = false;
   private Runnable mRunOnPendingLoad;
+  private final RateLimiter mRateLimiter;
   SyncResult mSyncResult = null;
 
   private final Function<AlluxioURI, CloseableResource<UfsClient>> mClientSupplier;
@@ -85,6 +91,13 @@ public class PathLoaderTask {
     mNextLoad = new ConcurrentLinkedDeque<>();
     addLoadRequest(firstRequest, false);
     mClientSupplier = clientSupplier;
+    try (CloseableResource<UfsClient> client = mClientSupplier.apply(mTaskInfo.getBasePath())) {
+      mRateLimiter = client.get().getRateLimiter();
+    }
+  }
+
+  RateLimiter getRateLimiter() {
+    return mRateLimiter;
   }
 
   boolean isComplete() {
@@ -128,37 +141,29 @@ public class PathLoaderTask {
       if (ufsLoadResult.isFirstFile()) {
         stats.setFirstLoadFile();
       }
-      if (ufsLoadResult.isIsObjectStore()) {
-        if (originalRequest.getDescendantType() == DescendantType.NONE) {
-          // On our first load, and descendant type is none, we have a special
-          // case for the object store, because performing GetObject on a path
-          // will return nothing if there are only nested items for that path.
-          // So we must try the check again, except by trying to list the path
-          // e.g. if there is an object /nested/file, then performing
-          // GetObject on /nested will return nothing, so we then call
-          // ListObjects on /nested/ which will return file, indicating
-          // that /nested should be created as a directory
-          // If our initial request returned a value, and the descendant type was NONE
-          // then we do not need to load any more values
-          shouldLoadMore = ufsLoadResult.getItemsCount() == 0;
-          shouldProcessResult = !shouldLoadMore;
-        } else {
-          // If our initial request returned a value, and it was a file, then
-          // we don't need to load more
-          shouldLoadMore = ufsLoadResult.getItemsCount() == 0 || !ufsLoadResult.isFirstFile();
-          if (ufsLoadResult.getItemsCount() == 0
-              || (ufsLoadResult.getItemsCount() > 0 && !ufsLoadResult.isFirstFile())) {
-            // if the first load did not return anything, or if it returned a directory
-            // then we don't need to process it, as the processing will be done on our
-            // next load
-            shouldProcessResult = false;
-          }
-        }
-      } else {
-        shouldLoadMore =
-            originalRequest.getDescendantType() != DescendantType.NONE
-                && ufsLoadResult.getItemsCount() > 0 && !ufsLoadResult.isFirstFile();
+    }
+    if (originalRequest.isFirstLoad()) {
+      if (originalRequest.getDescendantType() == DescendantType.NONE
+          && ufsLoadResult.isIsObjectStore()) {
+        // On our first load, and descendant type is none, we have a special
+        // case for the object store, because performing GetObject on a path
+        // will return nothing if there are only nested items for that path.
+        // So we must try the check again, except by trying to list the path
+        // e.g. if there is an object /nested/file, then performing
+        // GetObject on /nested will return nothing, so we then call
+        // ListObjects on /nested/ which will return file, indicating
+        // that /nested should be created as a directory
+        // If our initial request returned a value, and the descendant type was NONE
+        // then we do not need to load any more values
+        shouldLoadMore = ufsLoadResult.getItemsCount() == 0;
         shouldProcessResult = !shouldLoadMore;
+      } else {
+        // If our initial request returned a value, and it was a file, then
+        // we don't need to load more
+        shouldLoadMore = ufsLoadResult.getItemsCount() == 0 || !ufsLoadResult.isFirstFile();
+        if (ufsLoadResult.isIsObjectStore() && ufsLoadResult.getItemsCount() == 0) {
+          shouldProcessResult = false;
+        }
       }
       if (!shouldProcessResult) {
         mRunningLoads.remove(requestId);

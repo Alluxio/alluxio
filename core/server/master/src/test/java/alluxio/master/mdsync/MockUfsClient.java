@@ -17,6 +17,7 @@ import alluxio.file.options.DescendantType;
 import alluxio.underfs.UfsClient;
 import alluxio.underfs.UfsLoadResult;
 import alluxio.underfs.UfsStatus;
+import alluxio.util.RateLimiter;
 
 import java.util.Iterator;
 import java.util.List;
@@ -32,9 +33,14 @@ public class MockUfsClient implements UfsClient {
   Iterator<Stream<UfsStatus>> mItems = null;
   Function<String, Pair<Stream<UfsStatus>, Boolean>> mResultFunc = null;
   UfsStatus mUfsStatus = null;
+  RateLimiter mRateLimiter = null;
 
   void setError(@Nullable Throwable t) {
     mError = t;
+  }
+
+  void setRateLimiter(RateLimiter rateLimiter) {
+    mRateLimiter = rateLimiter;
   }
 
   void setResult(Iterator<Stream<UfsStatus>> items) {
@@ -86,5 +92,13 @@ public class MockUfsClient implements UfsClient {
             items.size() > 0 && items.get(0).isFile(), true));
       }
     }
+  }
+
+  @Override
+  public RateLimiter getRateLimiter() {
+    if (mRateLimiter == null) {
+      return RateLimiter.createRateLimiter(0);
+    }
+    return mRateLimiter;
   }
 }

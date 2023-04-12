@@ -3762,6 +3762,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_RATE_LIMIT =
+      longBuilder(Name.MASTER_METADATA_SYNC_UFS_RATE_LIMIT)
+          .setDescription("The maximum number of operations per second to execute "
+              + "on an individual UFS during metadata sync operations. If 0 or unset "
+              + "then no rate limit is enforced.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   public static final PropertyKey MASTER_METADATA_SYNC_IGNORE_TTL =
       booleanBuilder(Name.MASTER_METADATA_SYNC_IGNORE_TTL)
           .setDefaultValue(false)
@@ -8079,6 +8087,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.ufs.prefetch.status";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
         "alluxio.master.metadata.sync.ufs.prefetch.timeout";
+    public static final String MASTER_METADATA_SYNC_UFS_RATE_LIMIT =
+        "alluxio.master.metadata.sync.ufs.rate.limit";
     public static final String MASTER_METADATA_SYNC_IGNORE_TTL =
         "alluxio.master.metadata.sync.ignore.ttl";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";

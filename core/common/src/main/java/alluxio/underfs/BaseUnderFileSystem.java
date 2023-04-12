@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.file.options.DescendantType;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
@@ -25,6 +26,7 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.RateLimiter;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 
@@ -69,6 +71,8 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem, UfsClient 
 
   private final ExecutorService mAsyncIOExecutor;
 
+  private final RateLimiter mRateLimiter;
+
   /**
    * Constructs an {@link BaseUnderFileSystem}.
    *
@@ -81,6 +85,14 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem, UfsClient 
     // TODO(tcrain) close this executor
     mAsyncIOExecutor = Executors.newCachedThreadPool(
         ThreadFactoryUtils.build(uri.getPath() + "IOThread", true));
+    long rateLimit = mUfsConf.isSet(PropertyKey.MASTER_METADATA_SYNC_UFS_RATE_LIMIT)
+        ? mUfsConf.getLong(PropertyKey.MASTER_METADATA_SYNC_UFS_RATE_LIMIT) : 0;
+    mRateLimiter = RateLimiter.createRateLimiter(rateLimit);
+  }
+
+  @Override
+  public RateLimiter getRateLimiter() {
+    return mRateLimiter;
   }
 
   @Override

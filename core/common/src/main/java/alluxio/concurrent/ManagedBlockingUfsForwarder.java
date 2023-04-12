@@ -33,6 +33,7 @@ import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.RateLimiter;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -607,6 +608,11 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
     // given this is an async function, we do not execute it in the thread pool
     mUfs.performListingAsync(path, continuationToken, startAfter, descendantType,
         onComplete, onError);
+  }
+
+  @Override
+  public RateLimiter getRateLimiter() {
+    return mUfs.getRateLimiter();
   }
 
   /**
