@@ -13,7 +13,9 @@ package alluxio.underfs.kodo;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.PositionReader;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
@@ -95,6 +97,11 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public String getUnderFSType() {
     return "kodo";
+  }
+
+  @Override
+  public PositionReader openPositionRead(String path, long fileLength) {
+    throw new UnimplementedRuntimeException("Position read is not implemented");
   }
 
   // No ACL integration currently, no-op

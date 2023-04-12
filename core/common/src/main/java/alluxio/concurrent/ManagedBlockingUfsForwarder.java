@@ -12,10 +12,12 @@
 package alluxio.concurrent;
 
 import alluxio.AlluxioURI;
+import alluxio.PositionReader;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -451,6 +453,20 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
         return mUfs.openExistingFile(path, options);
       }
     }.get();
+  }
+
+  @Override
+  public PositionReader openPositionRead(String path, long fileLength) {
+    try {
+      return new ManagedBlockingUfsMethod<PositionReader>() {
+        @Override
+        public PositionReader execute() throws IOException {
+          return mUfs.openPositionRead(path, fileLength);
+        }
+      }.get();
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
   }
 
   @Override

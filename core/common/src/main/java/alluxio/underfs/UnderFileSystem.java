@@ -18,7 +18,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.recorder.Recorder;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
@@ -682,9 +681,7 @@ public interface UnderFileSystem extends Closeable {
    * @return the position reader
    */
   // TODO(lu) how to use UFS IO manager to control UFS IO
-  default PositionReader openPositionRead(String path, long fileLength) {
-    throw new UnimplementedRuntimeException("position read not implemented");
-  }
+  PositionReader openPositionRead(String path, long fileLength);
 
   /**
    * Renames a directory from {@code src} to {@code dst} in under file system.

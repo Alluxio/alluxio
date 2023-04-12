@@ -12,9 +12,11 @@
 package alluxio.underfs.cephfs;
 
 import alluxio.AlluxioURI;
+import alluxio.PositionReader;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.AtomicFileOutputStream;
@@ -556,6 +558,11 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
       }
     }
     throw te;
+  }
+
+  @Override
+  public PositionReader openPositionRead(String path, long fileLength) {
+    throw new UnimplementedRuntimeException("Position read is not implemented");
   }
 
   @Override

@@ -12,7 +12,9 @@
 package alluxio.underfs.web;
 
 import alluxio.AlluxioURI;
+import alluxio.PositionReader;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.underfs.ConsistentUnderFileSystem;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
@@ -320,6 +322,11 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
       throw e;
     }
     return inputStream;
+  }
+
+  @Override
+  public PositionReader openPositionRead(String path, long fileLength) {
+    throw new UnimplementedRuntimeException(mUnsupportedMsg);
   }
 
   @Override
