@@ -12,10 +12,10 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.CacheContext;
-import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.file.ByteArrayTargetBuffer;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
@@ -270,7 +270,7 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
    * @param cacheContext cache related context
    * @return number of bytes read, 0 if page is not found, -1 on errors
    */
-  int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
+  int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
       CacheContext cacheContext);
 
   /**

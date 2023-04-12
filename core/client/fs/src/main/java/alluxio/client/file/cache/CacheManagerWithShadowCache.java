@@ -14,9 +14,9 @@ package alluxio.client.file.cache;
 import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
 
 import alluxio.client.file.CacheContext;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -54,7 +54,7 @@ public class CacheManagerWithShadowCache implements CacheManager {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+  public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
       CacheContext cacheContext) {
     int nread = mShadowCacheManager.get(pageId, bytesToRead, getCacheScope(cacheContext));
     if (nread > 0) {

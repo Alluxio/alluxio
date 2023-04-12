@@ -20,7 +20,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -32,6 +31,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -631,7 +631,7 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+    public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
         CacheContext cacheContext) {
       if (!mPages.containsKey(pageId)) {
         return 0;
@@ -1001,7 +1001,7 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+    public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
         CacheContext cacheContext) {
       int read = super.get(pageId, pageOffset, bytesToRead, target, cacheContext);
       if (read > 0) {

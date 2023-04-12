@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.cache.store;
+package alluxio.file;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -19,7 +19,7 @@ import java.nio.channels.WritableByteChannel;
 /**
  * TargetBuffer for zero-copy read from page store.
  */
-public interface PageReadTargetBuffer {
+public interface ReadTargetBuffer {
 
   /**
    * @return the byte array

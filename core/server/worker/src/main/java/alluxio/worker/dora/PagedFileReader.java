@@ -14,8 +14,9 @@ package alluxio.worker.dora;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.file.NettyBufTargetBuffer;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.NioDirectBufferPool;
@@ -23,7 +24,6 @@ import alluxio.underfs.FileId;
 import alluxio.underfs.PagedUfsReader;
 import alluxio.worker.block.io.BlockReadableChannel;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.page.NettyBufTargetBuffer;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -105,7 +105,7 @@ public class PagedFileReader extends BlockReader {
     Preconditions.checkArgument(byteBuf.writableBytes() >= length,
         "buffer overflow, trying to write %s bytes, only %s writable",
         length, byteBuf.writableBytes());
-    PageReadTargetBuffer target = new NettyBufTargetBuffer(byteBuf);
+    ReadTargetBuffer target = new NettyBufTargetBuffer(byteBuf);
     int bytesRead = 0;
     while (bytesRead < length) {
       long pos = offset + bytesRead;

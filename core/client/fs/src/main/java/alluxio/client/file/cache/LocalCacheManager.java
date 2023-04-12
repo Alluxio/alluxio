@@ -16,8 +16,6 @@ import static alluxio.client.file.cache.CacheManager.State.READ_ONLY;
 import static alluxio.client.file.cache.CacheManager.State.READ_WRITE;
 
 import alluxio.client.file.CacheContext;
-import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
@@ -25,6 +23,8 @@ import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.file.ByteArrayTargetBuffer;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
@@ -457,7 +457,7 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
+  public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
       CacheContext cacheContext) {
     Preconditions.checkArgument(pageOffset <= mOptions.getPageSize(),
         "Read exceeds page boundary: offset=%s size=%s", pageOffset, mOptions.getPageSize());
@@ -697,7 +697,7 @@ public class LocalCacheManager implements CacheManager {
   }
 
   private int getPage(PageInfo pageInfo, int pageOffset, int bytesToRead,
-      PageReadTargetBuffer target, CacheContext cacheContext) {
+      ReadTargetBuffer target, CacheContext cacheContext) {
     try {
       int ret = pageInfo.getLocalCacheDir().getPageStore()
           .get(pageInfo.getPageId(), pageOffset, bytesToRead, target,

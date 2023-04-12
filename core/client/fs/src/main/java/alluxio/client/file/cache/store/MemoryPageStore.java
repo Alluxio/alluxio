@@ -14,6 +14,7 @@ package alluxio.client.file.cache.store;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
+import alluxio.file.ReadTargetBuffer;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -57,7 +58,7 @@ public class MemoryPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+  public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
       boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(target != null, "buffer is null");
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");

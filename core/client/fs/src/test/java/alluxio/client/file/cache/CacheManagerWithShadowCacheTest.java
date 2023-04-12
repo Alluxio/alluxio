@@ -17,10 +17,10 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.client.file.CacheContext;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Before;
@@ -229,7 +229,7 @@ public final class CacheManagerWithShadowCacheTest {
     }
 
     @Override
-    public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
+    public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
         CacheContext cacheContext) {
       if (!mCache.containsKey(pageId)) {
         return 0;

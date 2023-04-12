@@ -9,29 +9,24 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.page;
-
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
-
-import io.netty.buffer.ByteBuf;
+package alluxio.file;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
 
 /**
- * Netty Buf backed target buffer for zero-copy read from page store.
+ * Target buffer backed by nio ByteBuffer for zero-copy read from page store.
  */
-public class NettyBufTargetBuffer implements PageReadTargetBuffer {
-  private final ByteBuf mTarget;
-  private long mOffset = 0;
+public class ByteBufferTargetBuffer implements ReadTargetBuffer {
+  private final ByteBuffer mTarget;
 
   /**
-   * @param target target buffer
+   * Constructor.
+   * @param target
    */
-  public NettyBufTargetBuffer(ByteBuf target) {
+  public ByteBufferTargetBuffer(ByteBuffer target) {
     mTarget = target;
   }
 
@@ -42,49 +37,36 @@ public class NettyBufTargetBuffer implements PageReadTargetBuffer {
 
   @Override
   public ByteBuffer byteBuffer() {
-    throw new UnsupportedOperationException();
+    return mTarget;
   }
 
   @Override
   public long offset() {
-    return mOffset;
+    return mTarget.position();
   }
 
   @Override
   public WritableByteChannel byteChannel() {
-    return new WritableByteChannel() {
-      @Override
-      public int write(ByteBuffer src) throws IOException {
-        int readableBytes = src.remaining();
-        mTarget.writeBytes(src);
-        return readableBytes - src.remaining();
-      }
-
-      @Override
-      public boolean isOpen() {
-        return true;
-      }
-
-      @Override
-      public void close() throws IOException {
-      }
-    };
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public long remaining() {
-    return mTarget.writableBytes();
+    return mTarget.remaining();
   }
 
   @Override
   public void writeBytes(byte[] srcArray, int srcOffset, int length) {
-    mTarget.writeBytes(srcArray, srcOffset, length);
+    mTarget.put(srcArray, srcOffset, length);
   }
 
   @Override
   public int readFromFile(RandomAccessFile file, int length) throws IOException {
-    try (FileChannel channel = file.getChannel()) {
-      return mTarget.writeBytes(channel, length);
-    }
+    int bytesToRead = Math.min(length, mTarget.remaining());
+    ByteBuffer slice = mTarget.slice();
+    slice.limit(bytesToRead);
+    int bytesRead = file.getChannel().read(slice);
+    mTarget.position(mTarget.position() + bytesRead);
+    return bytesRead;
   }
 }
