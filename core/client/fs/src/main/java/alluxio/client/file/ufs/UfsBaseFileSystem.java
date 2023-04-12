@@ -23,6 +23,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -432,6 +433,12 @@ public class UfsBaseFileSystem implements FileSystem {
   @Override
   public GetSyncProgressPResponse getSyncProgress(long taskId)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskId)
+      throws IOException, AlluxioException {
     throw new UnsupportedOperationException();
   }
 

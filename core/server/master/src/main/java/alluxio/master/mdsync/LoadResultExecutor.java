@@ -12,6 +12,7 @@
 package alluxio.master.mdsync;
 
 import alluxio.master.file.meta.UfsSyncPathCache;
+import alluxio.master.file.metasync.SyncFailReason;
 import alluxio.util.ThreadFactoryUtils;
 
 import java.io.Closeable;
@@ -46,6 +47,8 @@ class LoadResultExecutor implements Closeable {
       try {
         onComplete.accept(mSyncProcess.performSync(result, mSyncPathCache));
       } catch (Throwable t) {
+        result.getTaskInfo().getStats().reportSyncFailReason(
+            result.getLoadRequest(), result, SyncFailReason.PROCESSING_UNKNOWN, t);
         onError.accept(t);
       }
     });

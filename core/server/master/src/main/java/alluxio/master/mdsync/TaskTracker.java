@@ -14,6 +14,8 @@ package alluxio.master.mdsync;
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.conf.path.TrieNode;
+import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.master.file.meta.UfsSyncPathCache;
@@ -140,6 +142,24 @@ public class TaskTracker implements Closeable {
         mTaskMap.remove(nxt.getValue().cancel()));
     mActiveStatusTasks.getLeafChildren(path.getPath()).forEach(nxt ->
         mTaskMap.remove(nxt.getValue().cancel()));
+  }
+
+  public synchronized void cancelTaskById(long taskId) throws NotFoundException {
+    BaseTask baseTask = mTaskMap.get(taskId);
+    if (baseTask == null) {
+      throw new NotFoundException("Task " + taskId + " not found.");
+    }
+    if (baseTask.isCompleted().isPresent()) {
+      return;
+    }
+    if (baseTask.removeOnComplete()) {
+      mTaskMap.remove(taskId);
+    }
+    baseTask.cancel();
+    TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(
+        baseTask.getTaskInfo().getDescendantType());
+    Preconditions.checkNotNull(activeTasks.deleteIf(
+            baseTask.getTaskInfo().getBasePath().getPath(), a -> true), "task missing");
   }
 
   private TrieNode<BaseTask> getActiveTasksForDescendantType(DescendantType depth) {

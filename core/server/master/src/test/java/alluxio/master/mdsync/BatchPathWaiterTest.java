@@ -76,9 +76,9 @@ public class BatchPathWaiterTest {
         NONE, 0, DirectoryLoadType.SINGLE_LISTING, 0);
     BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
     Mockito.doAnswer(ans -> {
-      path.onComplete(ans.getArgument(1), Mockito.mock(SyncResult.class));
+      path.onComplete(ans.getArgument(1));
       return null;
-    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean(), any(SyncResult.class));
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     completeFirstLoadRequestEmpty(path);
     nxtLoadID++;
 
@@ -108,9 +108,9 @@ public class BatchPathWaiterTest {
         ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0);
     BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
     Mockito.doAnswer(ans -> {
-      path.onComplete(ans.getArgument(1), Mockito.mock(SyncResult.class));
+      path.onComplete(ans.getArgument(1));
       return null;
-    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean(), any(SyncResult.class));
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     completeFirstLoadRequestEmpty(path);
     nxtLoadID++;
 
@@ -143,9 +143,9 @@ public class BatchPathWaiterTest {
         ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0);
     BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
     Mockito.doAnswer(ans -> {
-      path.onComplete(ans.getArgument(1), Mockito.mock(SyncResult.class));
+      path.onComplete(ans.getArgument(1));
       return null;
-    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean(), any(SyncResult.class));
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     completeFirstLoadRequestEmpty(path);
     nxtLoadID++;
 
@@ -184,9 +184,9 @@ public class BatchPathWaiterTest {
         NONE, 0, DirectoryLoadType.SINGLE_LISTING, 0);
     BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
     Mockito.doAnswer(ans -> {
-      path.onComplete(ans.getArgument(1), Mockito.mock(SyncResult.class));
+      path.onComplete(ans.getArgument(1));
       return null;
-    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean(), any(SyncResult.class));
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     completeFirstLoadRequestEmpty(path);
     nxtLoadID++;
 
@@ -208,9 +208,9 @@ public class BatchPathWaiterTest {
     BatchPathWaiter root = (BatchPathWaiter) BaseTask.create(
         ti, mClock.millis(), a -> null);
     Mockito.doAnswer(ans -> {
-      root.onComplete(ans.getArgument(1), Mockito.mock(SyncResult.class));
+      root.onComplete(ans.getArgument(1));
       return null;
-    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean(), any(SyncResult.class));
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     assertFalse(root.isCompleted().isPresent());
     completeFirstLoadRequestEmpty(root);
     nxtLoadID++;
@@ -263,9 +263,9 @@ public class BatchPathWaiterTest {
         ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0);
     BatchPathWaiter root = (BatchPathWaiter) BaseTask.create(ti, mClock.millis(), a -> null);
     Mockito.doAnswer(ans -> {
-      root.onComplete(ans.getArgument(1), Mockito.mock(SyncResult.class));
+      root.onComplete(ans.getArgument(1));
       return null;
-    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean(), any(SyncResult.class));
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     assertFalse(root.isCompleted().isPresent());
     completeFirstLoadRequestEmpty(root);
     nxtLoadID++;

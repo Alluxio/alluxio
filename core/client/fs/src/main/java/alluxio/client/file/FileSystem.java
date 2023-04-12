@@ -30,6 +30,7 @@ import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -801,4 +802,10 @@ public interface FileSystem extends Closeable {
   GetSyncProgressPResponse getSyncProgress(long taskId)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
+  /**
+   * @param taskId the task id
+   * @return the sync progress
+   */
+  CancelSyncMetadataPResponse cancelSyncMetadata(long taskId)
+      throws IOException, AlluxioException;
 }

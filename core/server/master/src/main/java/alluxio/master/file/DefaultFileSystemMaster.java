@@ -48,6 +48,7 @@ import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.DescendantType;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
@@ -4194,13 +4195,18 @@ public class DefaultFileSystemMaster extends CoreMaster
       responseBuilder.setState(GetSyncProgressPResponse.State.IN_PROGRESS);
     } else if (task.get().succeeded()) {
       responseBuilder.setState(GetSyncProgressPResponse.State.SUCCESS);
-      responseBuilder.setDebugInfo(task.get().getTaskInfo().getStats().toString()).build();
     } else {
       responseBuilder.setState(GetSyncProgressPResponse.State.FAIL);
     }
+    responseBuilder.setDebugInfo(task.get().getTaskInfo().getStats().toString()).build();
     TaskInfo taskInfo = task.get().getTaskInfo();
-    responseBuilder.setNumFilesSynced(taskInfo.getStats().getStatusCount());
     return responseBuilder.build();
+  }
+
+  @Override
+  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskId) throws NotFoundException {
+    mMetadataSyncer.getTaskTracker().cancelTaskById(taskId);
+    return CancelSyncMetadataPResponse.newBuilder().build();
   }
 
   @FunctionalInterface

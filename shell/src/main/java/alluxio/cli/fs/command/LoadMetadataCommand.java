@@ -17,6 +17,7 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.DirectoryLoadPType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetSyncProgressPResponse;
@@ -32,6 +33,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -78,6 +81,23 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
           .desc("load directory type, can be SINGLE_LISTING, BFS, or DFS")
           .build();
 
+  private static final Option OPERATION_OPTION =
+      Option.builder("o")
+          .required(false)
+          .longOpt("option")
+          .hasArg()
+          .desc("operation, can be load, get, cancel")
+          .build();
+
+  private static final Option TASK_ID_OPTION =
+      Option.builder("id")
+          .required(false)
+          .hasArg()
+          .desc("the numeric task id")
+          .build();
+
+  private final List<String> operationValues = Arrays.asList("load", "get", "cancel");
+
   /**
    * Constructs a new instance to load metadata for the given Alluxio path from UFS.
    *
@@ -99,13 +119,20 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
         .addOption(FORCE_OPTION)
         .addOption(ASYNC_OPTION)
         .addOption(DIR_LOAD_TYPE_OPTION)
-        .addOption(V2_OPTION);
+        .addOption(V2_OPTION)
+        .addOption(OPERATION_OPTION)
+        .addOption(TASK_ID_OPTION);
   }
 
   @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
-    if (cl.hasOption(V2_OPTION.getOpt())) {
+    String operation = cl.getOptionValue(OPERATION_OPTION.getOpt(), "load");
+    if (operation.equals("get")) {
+      getSyncProgress(Long.parseLong(cl.getOptionValue(TASK_ID_OPTION.getOpt())));
+    } else if (operation.equals("cancel")) {
+      cancel(Long.parseLong(cl.getOptionValue(TASK_ID_OPTION.getOpt())));
+    } if (cl.hasOption(V2_OPTION.getOpt())) {
       DirectoryLoadPType loadPType = DirectoryLoadPType.valueOf(cl.getOptionValue(
           DIR_LOAD_TYPE_OPTION.getOpt(), "SINGLE_LISTING"));
       loadMetadataV2(plainPath, cl.hasOption(RECURSIVE_OPTION.getOpt()), loadPType,
@@ -123,6 +150,17 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
     runWildCardCmd(path, cl);
 
     return 0;
+  }
+
+  private void getSyncProgress(long taskId) throws IOException, AlluxioException {
+    GetSyncProgressPResponse syncProgress = mFileSystem.getSyncProgress(taskId);
+    System.out.println(syncProgress.getTaskInfoString());
+    System.out.println(syncProgress.getTaskStatString());
+  }
+
+  private void cancel(long taskId) throws IOException, AlluxioException {
+    CancelSyncMetadataPResponse response = mFileSystem.cancelSyncMetadata(taskId);
+    System.out.println("Task " + taskId + " cancelled");
   }
 
   private void loadMetadataV2(
@@ -157,7 +195,7 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
           System.out.println("Sync failed");
           return;
         }
-        System.out.println(syncProgress.getNumFilesSynced());
+        System.out.print("\r\033[K" + syncProgress.getDebugInfo());
         CommonUtils.sleepMs(2000);
       }
     } catch (AlluxioException e) {
@@ -187,7 +225,7 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "loadMetadata [-R] [-F] [-v2] [-a/--async] <path>";
+    return "loadMetadata [-R] [-F] [-v2] [-a/--async] [-o/--operation <operation>] [-d <type>] <path>";
   }
 
   @Override
@@ -203,6 +241,13 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
     }
     if (cl.hasOption(ASYNC_OPTION.getOpt()) && !cl.hasOption(V2_OPTION.getOpt())) {
       throw new InvalidArgumentException("LoadMetadata v1 does not support -a/--async option.");
+    }
+    String operation = cl.getOptionValue(OPERATION_OPTION.getOpt(), "load");
+    if (!operationValues.contains(operation)) {
+      throw new InvalidArgumentException("Operation value " + operation + " invalid. Possible values: load/cancel/get");
+    }
+    if (cl.hasOption(TASK_ID_OPTION.getOpt()) && operation.equals("load")) {
+      throw new InvalidArgumentException("-id option only works with get and cancel operation type");
     }
   }
 }

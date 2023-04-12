@@ -22,19 +22,13 @@ import javax.annotation.Nullable;
 public class BaseTaskResult {
 
   private final Throwable mT;
-  private final SyncResult mResult;
 
-  BaseTaskResult(@Nullable Throwable t, SyncResult result) {
+  BaseTaskResult(@Nullable Throwable t) {
     mT = t;
-    mResult = result;
   }
 
   boolean succeeded() {
     return mT == null;
-  }
-
-  public SyncResult getSyncResult() {
-    return mResult;
   }
 
   Optional<Throwable> getThrowable() {

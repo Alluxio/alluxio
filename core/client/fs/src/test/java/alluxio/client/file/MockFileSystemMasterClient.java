@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
@@ -273,6 +274,11 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
 
   @Override
   public GetSyncProgressPResponse getSyncProgress(long taskId) throws AlluxioStatusException {
+    return null;
+  }
+
+  @Override
+  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskId) throws AlluxioStatusException {
     return null;
   }
 }

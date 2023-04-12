@@ -12,7 +12,6 @@
 package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
-import alluxio.master.file.metasync.SyncResult;
 import alluxio.underfs.UfsClient;
 import alluxio.underfs.UfsLoadResult;
 
@@ -59,8 +58,8 @@ public class MdSync {
     mTaskTracker.taskComplete(taskId, isFile);
   }
 
-  void onPathLoadComplete(long taskId, boolean isFile, SyncResult result) {
-    mTaskTracker.getTask(taskId).ifPresent(task -> task.onComplete(isFile, result));
+  void onPathLoadComplete(long taskId, boolean isFile) {
+    mTaskTracker.getTask(taskId).ifPresent(task -> task.onComplete(isFile));
   }
 
   public void loadNestedDirectory(long taskId, AlluxioURI path) {

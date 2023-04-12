@@ -18,6 +18,9 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.CancelSyncMetadataPRequest;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -623,5 +626,15 @@ public final class FileSystemMasterClientServiceHandler
       return mFileSystemMaster.getSyncProgress(
           request.getTaskId());
     }, "syncMetadataAsync", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void cancelSyncMetadata(
+      CancelSyncMetadataPRequest request,
+      StreamObserver<CancelSyncMetadataPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      return mFileSystemMaster.cancelSyncMetadata(
+          request.getTaskId());
+    }, "cancelSyncMetadata", "request=%s", responseObserver, request);
   }
 }

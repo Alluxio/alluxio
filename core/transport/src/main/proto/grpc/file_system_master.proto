@@ -683,9 +683,8 @@ message SyncMetadataPResponse {
   optional bool success = 1;
   // Use this field for anything that is wanted to be printed on the console for debug purpose.
   optional string debugInfo = 1000;
-  // TODO: add the followings:
-  // # of files success
-  // continuation token?
+  optional string taskInfoString = 1001;
+  optional string taskStatString = 1002;
 }
 
 message SyncMetadataAsyncPResponse {
@@ -708,6 +707,16 @@ message GetSyncProgressPResponse {
   optional int64 numFilesSynced = 2;
 
   optional string debugInfo = 1000;
+  optional string taskInfoString = 1001;
+  optional string taskStatString = 1002;
+}
+
+message CancelSyncMetadataPRequest {
+  optional int64 taskId = 1;
+}
+
+message CancelSyncMetadataPResponse {
+  optional bool success = 1;
 }
 
 /**
@@ -873,6 +882,7 @@ service FileSystemMasterClientService {
   rpc SyncMetadata(SyncMetadataPRequest) returns (SyncMetadataPResponse);
   rpc SyncMetadataAsync(SyncMetadataPRequest) returns (SyncMetadataAsyncPResponse);
   rpc GetSyncProgress(GetSyncProgressPRequest) returns (GetSyncProgressPResponse);
+  rpc CancelSyncMetadata(CancelSyncMetadataPRequest) returns (CancelSyncMetadataPResponse);
 }
 
 message FileSystemHeartbeatPResponse {

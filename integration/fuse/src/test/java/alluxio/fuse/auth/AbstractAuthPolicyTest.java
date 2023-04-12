@@ -24,6 +24,7 @@ import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.fuse.AlluxioFuseUtils;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -335,6 +336,12 @@ public abstract class AbstractAuthPolicyTest {
     @Override
     public GetSyncProgressPResponse getSyncProgress(long taskId)
         throws FileDoesNotExistException, IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public CancelSyncMetadataPResponse cancelSyncMetadata(long taskId)
+        throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
 

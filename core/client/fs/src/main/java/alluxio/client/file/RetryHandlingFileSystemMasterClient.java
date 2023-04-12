@@ -15,6 +15,8 @@ import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.CancelSyncMetadataPRequest;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -521,6 +523,16 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
           .build();
       return mClient.getSyncProgress(request);
     }, RPC_LOG, "GetSyncProgress", "taskId=%s", taskId);
+  }
+
+  @Override
+  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskId) throws AlluxioStatusException {
+    return retryRPC(() -> {
+      CancelSyncMetadataPRequest request = CancelSyncMetadataPRequest.newBuilder()
+          .setTaskId(taskId)
+          .build();
+      return mClient.cancelSyncMetadata(request);
+    }, RPC_LOG, "CancelSyncMetadata", "taskId=%s", taskId);
   }
 
   /**

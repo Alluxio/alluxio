@@ -16,6 +16,7 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import alluxio.Constants;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.runtime.InternalRuntimeException;
+import alluxio.master.file.metasync.SyncFailReason;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
 import alluxio.underfs.UfsLoadResult;
@@ -92,6 +93,10 @@ class LoadRequestExecutor implements Closeable {
   }
 
   private void onLoadError(LoadRequest request, Throwable t) {
+    // TODO(elega) this might result in load request that is retried successfully being
+    // added incorrectly
+    request.getTaskInfo().getStats().reportSyncFailReason(
+        request, null, SyncFailReason.LOADING_UFS_IO_FAILURE, t);
     mRunning.release();
     request.onError(t);
   }

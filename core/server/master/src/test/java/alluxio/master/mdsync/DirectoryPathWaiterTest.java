@@ -74,9 +74,9 @@ public class DirectoryPathWaiterTest {
         ALL, 0, mDirLoadType, 0);
     BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
     Mockito.doAnswer(ans -> {
-      path.onComplete(ans.getArgument(1), Mockito.mock(SyncResult.class));
+      path.onComplete(ans.getArgument(1));
       return null;
-    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean(), any(SyncResult.class));
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     completeFirstLoadRequestEmpty(path);
 
     Future<Boolean> waiter = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path")));
@@ -94,9 +94,9 @@ public class DirectoryPathWaiterTest {
         ALL, 0, mDirLoadType, 0);
     BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
     Mockito.doAnswer(ans -> {
-      path.onComplete(ans.getArgument(1), Mockito.mock(SyncResult.class));
+      path.onComplete(ans.getArgument(1));
       return null;
-    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean(), any(SyncResult.class));
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     completeFirstLoadRequestEmpty(path);
 
     Future<Boolean> waiter1 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/1")));
@@ -124,9 +124,9 @@ public class DirectoryPathWaiterTest {
         ALL, 0, mDirLoadType, 0);
     BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
     Mockito.doAnswer(ans -> {
-      path.onComplete(ans.getArgument(1), Mockito.mock(SyncResult.class));
+      path.onComplete(ans.getArgument(1));
       return null;
-    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean(), any(SyncResult.class));
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     completeFirstLoadRequestEmpty(path);
 
     Future<Boolean> waiter1 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/1")));
@@ -153,9 +153,9 @@ public class DirectoryPathWaiterTest {
         ALL, 0, mDirLoadType, 0);
     BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
     Mockito.doAnswer(ans -> {
-      path.onComplete(ans.getArgument(1), Mockito.mock(SyncResult.class));
+      path.onComplete(ans.getArgument(1));
       return null;
-    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean(), any(SyncResult.class));
+    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     completeFirstLoadRequestEmpty(path);
     loadRequestID++;
 

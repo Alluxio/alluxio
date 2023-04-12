@@ -32,6 +32,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -934,6 +935,12 @@ public class LocalCacheFileInStreamTest {
     @Override
     public GetSyncProgressPResponse getSyncProgress(long taskId)
         throws FileDoesNotExistException, IOException, AlluxioException {
+      return null;
+    }
+
+    @Override
+    public CancelSyncMetadataPResponse cancelSyncMetadata(long taskId)
+        throws IOException, AlluxioException {
       return null;
     }
 

@@ -24,15 +24,15 @@ public class LoadResult {
   private final TaskInfo mTaskInfo;
   private final AlluxioURI mBaseLoadPath;
   private final UfsLoadResult mUfsLoadResult;
-  private final long mLoadRequestId;
+  private final LoadRequest mLoadRequest;
   private final AlluxioURI mPreviousLast;
   private final boolean mIsFirstLoad;
 
   public LoadResult(
-      long loadRequestId, AlluxioURI baseLoadPath, TaskInfo taskInfo,
+      LoadRequest loadRequest, AlluxioURI baseLoadPath, TaskInfo taskInfo,
       @Nullable AlluxioURI previousLast, UfsLoadResult ufsLoadResult,
       boolean isFirstLoad) {
-    mLoadRequestId = loadRequestId;
+    mLoadRequest = loadRequest;
     mBaseLoadPath = baseLoadPath;
     mTaskInfo = taskInfo;
     mUfsLoadResult = ufsLoadResult;
@@ -56,15 +56,23 @@ public class LoadResult {
     return mUfsLoadResult;
   }
 
+
   public TaskInfo getTaskInfo() {
     return mTaskInfo;
   }
 
   void onProcessComplete(SyncProcessResult result) {
-    mTaskInfo.getMdSync().onProcessComplete(mTaskInfo.getId(), mLoadRequestId, result);
+    mTaskInfo.getMdSync().onProcessComplete(mTaskInfo.getId(), mLoadRequest.getLoadRequestId(), result);
   }
 
   void onProcessError(Throwable t) {
     mTaskInfo.getMdSync().onProcessError(mTaskInfo.getId(), t);
+  }
+
+  /**
+   * @return the load request
+   */
+  public LoadRequest getLoadRequest() {
+    return mLoadRequest;
   }
 }

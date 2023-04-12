@@ -70,6 +70,7 @@ import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.IteratorUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.apache.commons.collections4.iterators.PeekingIterator;
 import org.slf4j.Logger;
@@ -226,7 +227,8 @@ public class MetadataSyncer implements SyncProcess {
     }
   }
 
-  static final class SyncProcessState {
+  @VisibleForTesting
+  public static final class SyncProcessState {
     final String mAlluxioMountPath;
     final AlluxioURI mAlluxioSyncPath;
     final LockedInodePath mAlluxioSyncPathLocked;
@@ -287,7 +289,7 @@ public class MetadataSyncer implements SyncProcess {
     try (RpcContext rpcContext =
              mFsMaster.createNonMergingJournalRpcContext(new InternalOperationContext())) {
       MetadataSyncContext context =
-          MetadataSyncContext.Builder.builder(rpcContext, loadResult.getTaskInfo()).build();
+          MetadataSyncContext.Builder.builder(rpcContext, loadResult).build();
       context.startSync();
 
       MountTable.ReverseResolution reverseResolution
@@ -408,15 +410,6 @@ public class MetadataSyncer implements SyncProcess {
                 readFrom, skipInitialReadFrom, ufsMountPath, readUntil,
                 context, inodeIterator, ufsIterator, mountInfo, ufs);
             lastUfsStatus = updateMetadataSync(syncState);
-          } catch (IOException | AlluxioS3Exception e) {
-            handleUfsIOException(context, readFrom, e);
-            // TODO(tcrain)
-            // return context.fail();
-            throw e;
-          } catch (AlluxioException e) {
-            // TODO(tcrain)
-            // return context.fail();
-            throw e;
           }
         }
         context.updateDirectChildrenLoaded(mInodeTree);
@@ -675,22 +668,8 @@ public class MetadataSyncer implements SyncProcess {
   }
 
   // TODO list:
-  // directory Fingerprint -> WIP
-  // sync file vs. directory
-  // sync empty directory
-  // update sync time? -> done
-  // update is direct children loaded -> WIP
   // metrics -> WIP
-  // performance?
-  // race condition (lock failed) -> addressing
-  // path prefix related (e.g. the startAfter param)
-  // error handling -> WIP
   // continuation sync
-  private void handleUfsIOException(MetadataSyncContext context, AlluxioURI path, Exception e) {
-    LOG.error("Sync on {} failed due to UFS IO Exception", path.toString(), e);
-    context.setFailReason(SyncFailReason.UFS_IO_FAILURE);
-  }
-
   private void handleConcurrentModification(
       MetadataSyncContext context, String path, boolean isRoot, Exception e)
       throws FileAlreadyExistsException, FileDoesNotExistException {
@@ -699,7 +678,7 @@ public class MetadataSyncer implements SyncProcess {
       context.reportSyncOperationSuccess(SyncOperation.SKIPPED_DUE_TO_CONCURRENT_MODIFICATION);
       LOG.info(loggingMessage, path, e);
     } else {
-      context.setFailReason(SyncFailReason.CONCURRENT_UPDATE_DURING_SYNC);
+      context.reportSyncFailReason(SyncFailReason.PROCESSING_CONCURRENT_UPDATE_DURING_SYNC, e);
       LOG.error(loggingMessage, path, e);
       if (e instanceof FileAlreadyExistsException) {
         throw (FileAlreadyExistsException) e;

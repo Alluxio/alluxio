@@ -14,8 +14,8 @@ import alluxio.master.file.contexts.OperationContext;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.journal.FileSystemMergeJournalContext;
-import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.MetadataSyncMergeJournalContext;
+import alluxio.master.mdsync.LoadResult;
 import alluxio.master.mdsync.TaskInfo;
 import alluxio.util.CommonUtils;
 
@@ -59,26 +59,28 @@ public class MetadataSyncContext {
   @Nullable
   private SyncFailReason mFailReason = null;
   private final TaskInfo mTaskInfo;
+  private final LoadResult mLoadResult;
 
   /**
    * Creates a metadata sync context.
-   * @param taskInfo the metadata sync task info
+   * @param loadResult the load UFS result
    * @param rpcContext the rpc context
    * @param commonOptions the common options for TTL configurations
    * @param startAfter indicates where the sync starts (exclusive), used on retries
    */
   private MetadataSyncContext(
-      TaskInfo taskInfo, MetadataSyncRpcContext rpcContext,
+      LoadResult loadResult, MetadataSyncRpcContext rpcContext,
       FileSystemMasterCommonPOptions commonOptions,
       @Nullable String startAfter,
       boolean allowConcurrentModification
   ) {
-    mDescendantType = taskInfo.getDescendantType();
+    mDescendantType = loadResult.getTaskInfo().getDescendantType();
     mRpcContext = rpcContext;
     mCommonOptions = commonOptions;
     mAllowConcurrentModification = allowConcurrentModification;
     mStartAfter = startAfter;
-    mTaskInfo = taskInfo;
+    mTaskInfo = loadResult.getTaskInfo();
+    mLoadResult = loadResult;
   }
 
   public void validateStartAfter(AlluxioURI syncRoot) throws InvalidPathException {
@@ -243,25 +245,15 @@ public class MetadataSyncContext {
         mFailedMap, null, mNumUfsFilesScanned);
   }
 
-  /**
-   * Concludes the sync with a fail.
-   * @return the sync result
-   */
-  public SyncResult fail() {
-    Preconditions.checkNotNull(mSyncStartTime);
-    long timestamp = CommonUtils.getCurrentMs();
-    mSyncFinishTime = timestamp;
-    mTaskInfo.getStats().updateSyncFinishTime(timestamp);
-    mTaskInfo.getStats().setSyncFailed();
-    return new SyncResult(false, mSyncStartTime, mSyncFinishTime, mSuccessMap, mFailedMap,
-        mFailReason, mNumUfsFilesScanned);
+  public void reportSyncFailReason(SyncFailReason reason, Throwable t) {
+    mTaskInfo.getStats().reportSyncFailReason(mLoadResult.getLoadRequest(), mLoadResult, reason, t);
   }
 
   /**
    * Creates a builder.
    */
   public static class Builder {
-    private TaskInfo mTaskInfo;
+    private LoadResult mLoadResult;
     private MetadataSyncRpcContext mRpcContext;
     private FileSystemMasterCommonPOptions mCommonOptions = MetadataSyncer.NO_TTL_OPTION;
     private String mStartAfter = null;
@@ -270,14 +262,14 @@ public class MetadataSyncContext {
     /**
      * Creates a builder.
      * @param rpcContext the rpc context
-     * @param taskInfo metadata sync task info
+     * @param loadResult the load UFS result
      * @return a new builder
      */
-    public static Builder builder(RpcContext rpcContext, TaskInfo taskInfo) {
+    public static Builder builder(RpcContext rpcContext, LoadResult loadResult) {
       Preconditions.checkState(
           !(rpcContext.getJournalContext() instanceof FileSystemMergeJournalContext));
       Builder builder = new Builder();
-      builder.mTaskInfo = taskInfo;
+      builder.mLoadResult = loadResult;
       /*
        * Wrap the journal context with a MetadataSyncMergeJournalContext, which behaves
        * differently in:
@@ -334,7 +326,7 @@ public class MetadataSyncContext {
      */
     public MetadataSyncContext build() {
       return new MetadataSyncContext(
-          mTaskInfo, mRpcContext, mCommonOptions,
+          mLoadResult, mRpcContext, mCommonOptions,
           mStartAfter, mAllowConcurrentModification);
     }
   }

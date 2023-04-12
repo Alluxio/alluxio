@@ -13,8 +13,6 @@ package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
-import alluxio.concurrent.jsr.CompletableFuture;
-import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.master.file.metasync.SyncResult;
@@ -24,14 +22,12 @@ import alluxio.underfs.UfsLoadResult;
 import alluxio.util.RateLimiter;
 
 import com.google.common.base.Preconditions;
-import com.google.common.util.concurrent.MoreExecutors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.Executors;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 
@@ -183,7 +179,7 @@ public class PathLoaderTask {
           originalRequest.isFirstLoad());
     }
     if (shouldProcessResult) {
-      return Optional.of(new LoadResult(requestId, originalRequest.getLoadPath(),
+      return Optional.of(new LoadResult(originalRequest, originalRequest.getLoadPath(),
           mTaskInfo, originalRequest.getPreviousLoadLast().orElse(null),
           ufsLoadResult, originalRequest.isFirstLoad()));
     } else {
@@ -225,8 +221,6 @@ public class PathLoaderTask {
     mTaskInfo.getMdSync().onEachResult(mTaskInfo.getId(), result);
     boolean completed = false;
     synchronized (this) {
-      mSyncResult = mSyncResult == null ? result.getSyncResult()
-          : SyncResult.merge(result.getSyncResult(), mSyncResult);
       LoadRequest request = mRunningLoads.remove(loadRequestId);
       if (request != null && !result.isFirstLoad() && !result.isTruncated()) {
         Preconditions.checkState(mTruncatedLoads.remove(request.getBatchSetId()),
@@ -241,7 +235,7 @@ public class PathLoaderTask {
     }
     if (completed) {
       mTaskInfo.getMdSync().onPathLoadComplete(mTaskInfo.getId(),
-          result.rootPathIsFile(), mSyncResult);
+          result.rootPathIsFile());
     }
   }
 

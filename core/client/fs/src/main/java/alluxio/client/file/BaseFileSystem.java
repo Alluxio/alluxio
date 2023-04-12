@@ -38,6 +38,7 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Bits;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -577,6 +578,15 @@ public class BaseFileSystem implements FileSystem {
     try (CloseableResource<FileSystemMasterClient> client =
              mFsContext.acquireMasterClientResource()) {
       return client.get().getSyncProgress(taskId);
+    }
+  }
+
+  @Override
+  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskId)
+      throws IOException, AlluxioException {
+    try (CloseableResource<FileSystemMasterClient> client =
+             mFsContext.acquireMasterClientResource()) {
+      return client.get().cancelSyncMetadata(taskId);
     }
   }
 

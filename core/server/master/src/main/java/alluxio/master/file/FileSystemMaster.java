@@ -24,7 +24,10 @@ import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.CancelSyncMetadataPRequest;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GetSyncProgressPRequest;
 import alluxio.grpc.GetSyncProgressPResponse;
@@ -670,4 +673,11 @@ public interface FileSystemMaster extends Master {
    * @return
    */
   GetSyncProgressPResponse getSyncProgress(long taskId);
+
+  /**
+   * *
+   * @param taskId
+   * @return
+   */
+  CancelSyncMetadataPResponse cancelSyncMetadata(long taskId) throws NotFoundException;
 }

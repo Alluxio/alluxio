@@ -18,7 +18,6 @@ import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.status.CancelledException;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
-import alluxio.master.file.metasync.SyncResult;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
 
@@ -104,12 +103,13 @@ public abstract class BaseTask implements PathWaiter {
     return mPathLoadTask;
   }
 
-  synchronized void onComplete(boolean isFile, SyncResult result) {
+  synchronized void onComplete(boolean isFile) {
     if (mIsCompleted != null) {
       return;
     }
-    mIsCompleted = new BaseTaskResult(null, result);
+    mIsCompleted = new BaseTaskResult(null);
     mTaskInfo.getMdSync().onTaskComplete(mTaskInfo.getId(), isFile);
+    mTaskInfo.getStats().setComplete();
     notifyAll();
   }
 
@@ -136,7 +136,7 @@ public abstract class BaseTask implements PathWaiter {
     if (mIsCompleted != null) {
       return;
     }
-    mIsCompleted = new BaseTaskResult(t, null);
+    mIsCompleted = new BaseTaskResult(t);
     LOG.warn("Task {} failed with error", mTaskInfo, t);
     cancel();
     mTaskInfo.getMdSync().onTaskError(mTaskInfo.getId(), t);
@@ -144,7 +144,7 @@ public abstract class BaseTask implements PathWaiter {
 
   synchronized long cancel() {
     if (mIsCompleted == null) {
-      mIsCompleted = new BaseTaskResult(new CancelledException("Task was cancelled"), null);
+      mIsCompleted = new BaseTaskResult(new CancelledException("Task was cancelled"));
     }
     mPathLoadTask.cancel();
     notifyAll();

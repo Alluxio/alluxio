@@ -16,6 +16,7 @@ import alluxio.Client;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
@@ -403,4 +404,10 @@ public interface FileSystemMasterClient extends Client {
    * @return the sync progress
    */
   GetSyncProgressPResponse getSyncProgress(long taskId) throws AlluxioStatusException;
+
+  /**
+   * @param taskId the task id
+   * @return the sync progress
+   */
+  CancelSyncMetadataPResponse cancelSyncMetadata(long taskId) throws AlluxioStatusException;
 }

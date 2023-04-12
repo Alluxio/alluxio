@@ -11,13 +11,23 @@
 
 package alluxio.master.file.metasync;
 
+import alluxio.exception.AccessControlException;
+import alluxio.exception.BlockInfoException;
+import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.master.file.DefaultFileSystemMaster;
+import alluxio.master.file.contexts.SyncMetadataContext;
+import alluxio.master.file.meta.InodeIterationResult;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 
+import java.io.IOException;
 import java.util.concurrent.Semaphore;
+import javax.annotation.Nullable;
 
 /**
  * The metadata syncer.
@@ -29,6 +39,12 @@ public class TestMetadataSyncer extends MetadataSyncer {
     void apply() throws Exception;
   }
 
+  @FunctionalInterface
+  public interface SyncOneCallback {
+    void apply(MetadataSyncContext context) throws Exception;
+  }
+
+
   public TestMetadataSyncer(DefaultFileSystemMaster fsMaster, ReadOnlyInodeStore inodeStore,
                             MountTable mountTable, InodeTree inodeTree,
                             UfsSyncPathCache syncPathCache) {
@@ -39,6 +55,28 @@ public class TestMetadataSyncer extends MetadataSyncer {
   private int mBlockOnNth = -1;
   private int mSyncCount = 0;
   private Callback mCallback = null;
+  private SyncOneCallback mCallbackBeforePerformSyncOne = null;
+
+  @Override
+  protected SingleInodeSyncResult performSyncOne(SyncProcessState syncState,
+                                                 @Nullable UfsItem currentUfsStatus,
+                                                 @Nullable InodeIterationResult currentInode)
+      throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
+      IOException, BlockInfoException, DirectoryNotEmptyException, AccessControlException {
+    if (mCallbackBeforePerformSyncOne != null) {
+      try {
+        mCallbackBeforePerformSyncOne.apply(syncState.mContext);
+      } catch (Exception e) {
+        throw new RuntimeException();
+      }
+    }
+    return super.performSyncOne(syncState, currentUfsStatus, currentInode);
+  }
+
+  public synchronized void beforePerformSyncOne(SyncOneCallback callback)
+      throws InterruptedException {
+    mCallbackBeforePerformSyncOne = callback;
+  }
 
   /**
    * Blocks the current thread until the nth inode sync (root included) is ABOUT TO execute,

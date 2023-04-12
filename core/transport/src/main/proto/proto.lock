@@ -4028,6 +4028,16 @@
                 "id": 1000,
                 "name": "debugInfo",
                 "type": "string"
+              },
+              {
+                "id": 1001,
+                "name": "taskInfoString",
+                "type": "string"
+              },
+              {
+                "id": 1002,
+                "name": "taskStatString",
+                "type": "string"
               }
             ]
           },
@@ -4073,6 +4083,36 @@
                 "id": 1000,
                 "name": "debugInfo",
                 "type": "string"
+              },
+              {
+                "id": 1001,
+                "name": "taskInfoString",
+                "type": "string"
+              },
+              {
+                "id": 1002,
+                "name": "taskStatString",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "CancelSyncMetadataPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "taskId",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "CancelSyncMetadataPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "success",
+                "type": "bool"
               }
             ]
           },
@@ -4373,6 +4413,11 @@
                 "name": "GetSyncProgress",
                 "in_type": "GetSyncProgressPRequest",
                 "out_type": "GetSyncProgressPResponse"
+              },
+              {
+                "name": "CancelSyncMetadata",
+                "in_type": "CancelSyncMetadataPRequest",
+                "out_type": "CancelSyncMetadataPResponse"
               }
             ]
           },

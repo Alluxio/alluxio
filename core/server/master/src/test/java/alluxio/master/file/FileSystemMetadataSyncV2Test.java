@@ -38,10 +38,13 @@ import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
+import alluxio.master.file.metasync.SyncFailReason;
 import alluxio.master.file.metasync.SyncOperation;
 import alluxio.master.file.metasync.SyncResult;
+import alluxio.master.file.metasync.TestMetadataSyncer;
 import alluxio.master.mdsync.BaseTask;
 import alluxio.master.mdsync.TaskInfo;
+import alluxio.master.mdsync.TaskStats;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 
@@ -85,6 +88,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -202,8 +206,7 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-    System.out.println(result.getTaskInfo().toString());
-    System.out.println(result.getTaskInfo().getStats().toString());
+    System.out.println(result.getTaskInfo().getStats().toReportString());
     System.out.println(result.getTaskInfo());
 
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET,
@@ -213,8 +216,7 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-    System.out.println(result.getTaskInfo().toString());
-    System.out.println(result.getTaskInfo().getStats().toString());
+    System.out.println(result.getTaskInfo().getStats().toReportString());
     System.out.println(result.getTaskInfo());
 
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET,
@@ -523,22 +525,54 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
     mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
 
     stopS3Server();
+    final BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0);
     assertThrows(IOException.class, () -> {
-      BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-          MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0);
       result.waitComplete(TIMEOUT_MS);
     });
+    assertSyncFailureReason(result.getTaskInfo(), SyncFailReason.LOADING_UFS_IO_FAILURE);
 
     startS3Server();
-    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+    BaseTask result2 = mFileSystemMaster.getMetadataSyncer().syncPath(
         MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0);
-    result.waitComplete(TIMEOUT_MS);
-    assertTrue(result.succeeded());
-    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+    result2.waitComplete(TIMEOUT_MS);
+    assertTrue(result2.succeeded());
+    assertSyncOperations(result2.getTaskInfo(), ImmutableMap.of(
         SyncOperation.CREATE, 1L
     ));
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
   }
+
+  @Test
+  public void syncInodeProcessingErrorHandling()
+      throws Throwable {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
+    TestMetadataSyncer syncer = (TestMetadataSyncer) mFileSystemMaster.getMetadataSyncer();
+    syncer.beforePerformSyncOne((ignored)->{
+      throw new Exception("fail");
+    });
+    final BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0);
+    assertThrows(Exception.class, () -> {
+      result.waitComplete(TIMEOUT_MS);
+    });
+    assertSyncFailureReason(result.getTaskInfo(), SyncFailReason.PROCESSING_UNKNOWN);
+    System.out.println(result.getTaskInfo().getStats().toReportString());
+
+    syncer.beforePerformSyncOne((context)->{
+      Exception e = new Exception("fail");
+      context.reportSyncFailReason(SyncFailReason.PROCESSING_CONCURRENT_UPDATE_DURING_SYNC, e);
+      throw e;
+    });
+    final BaseTask result2 = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0);
+    assertThrows(Exception.class, () -> {
+      result2.waitComplete(TIMEOUT_MS);
+    });
+    assertSyncFailureReason(result2.getTaskInfo(), SyncFailReason.PROCESSING_CONCURRENT_UPDATE_DURING_SYNC);
+  }
+
 
   @Test
   public void syncDirectoryHappyPath() throws Throwable {
@@ -1275,5 +1309,12 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
               .get()
       );
     }
+  }
+
+  private void assertSyncFailureReason(TaskInfo taskInfo, SyncFailReason failReason) {
+    Map<Long, TaskStats.SyncFailure> failReasons = taskInfo.getStats().getSyncFailReasons();
+    assertEquals(1, failReasons.size());
+    assertTrue(failReasons.entrySet().stream().map(it->it.getValue().getSyncFailReason()).collect(
+        Collectors.toList()).contains(failReason));
   }
 }
