@@ -189,8 +189,8 @@ public class RocksPageStore implements PageStore {
       Preconditions.checkArgument(pageOffset <= page.length,
           "page offset %s exceeded page size %s", pageOffset, page.length);
       int bytesLeft =
-          Math.min(page.length - pageOffset, Math.min((int) target.remaining(), bytesToRead));
-      System.arraycopy(page, pageOffset, target.byteArray(), (int) target.offset(), bytesLeft);
+          Math.min(page.length - pageOffset, Math.min(target.remaining(), bytesToRead));
+      System.arraycopy(page, pageOffset, target.byteArray(), target.offset(), bytesLeft);
       return bytesLeft;
     } catch (RocksDBException e) {
       throw new IOException("Failed to retrieve page", e);

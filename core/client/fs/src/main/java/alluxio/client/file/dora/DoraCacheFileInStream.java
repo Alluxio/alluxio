@@ -55,13 +55,12 @@ public class DoraCacheFileInStream extends FileInStream {
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     Objects.requireNonNull(b, "Read buffer cannot be null");
-    return read(ByteBuffer.wrap(b), off, len);
+    return read(ByteBuffer.wrap(b, off, len));
   }
 
   @Override
-  public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= byteBuffer.capacity(),
-        PreconditionMessage.ERR_BUFFER_STATE.toString(), byteBuffer.capacity(), off, len);
+  public int read(ByteBuffer byteBuffer) throws IOException {
+    int len = byteBuffer.remaining();
     Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockInStream");
     if (len == 0) {
       return 0;
@@ -82,7 +81,6 @@ public class DoraCacheFileInStream extends FileInStream {
       return -1;
     }
     int toRead = Math.min(len, mCurrentChunk.readableBytes());
-    byteBuffer.position(off).limit(off + toRead);
     mCurrentChunk.readBytes(byteBuffer);
     mPos += toRead;
     if (mPos == mLength) {

@@ -26,7 +26,6 @@ import java.nio.channels.WritableByteChannel;
  */
 public class NettyBufTargetBuffer implements PageReadTargetBuffer {
   private final ByteBuf mTarget;
-  private long mOffset = 0;
 
   /**
    * @param target target buffer
@@ -46,8 +45,8 @@ public class NettyBufTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
-  public long offset() {
-    return mOffset;
+  public int offset() {
+    return mTarget.writerIndex();
   }
 
   @Override
@@ -72,7 +71,7 @@ public class NettyBufTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
-  public long remaining() {
+  public int remaining() {
     return mTarget.writableBytes();
   }
 

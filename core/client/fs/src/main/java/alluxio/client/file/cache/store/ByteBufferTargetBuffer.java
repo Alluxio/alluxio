@@ -41,7 +41,7 @@ public class ByteBufferTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
-  public long offset() {
+  public int offset() {
     return mTarget.position();
   }
 
@@ -51,7 +51,7 @@ public class ByteBufferTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
-  public long remaining() {
+  public int remaining() {
     return mTarget.remaining();
   }
 

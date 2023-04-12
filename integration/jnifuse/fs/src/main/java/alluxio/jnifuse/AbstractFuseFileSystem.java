@@ -189,11 +189,16 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
   }
 
-  public int readCallback(String path, ByteBuffer buf, long size, long offset, ByteBuffer fibuf) {
+  public int readCallback(String path, long position, ByteBuffer buf, ByteBuffer fibuf) {
+    // this buffer is allocated by libfuse and wrapped as a DirectByteBuffer,
+    // its entirety should be appropriate for writing, so set its position to the beginning
+    // and the limit to the capacity
+    buf.clear();
+    final int size = buf.remaining();
     try {
-      return read(path, buf, size, offset, FuseFileInfo.of(fibuf));
+      return read(path, position, buf, FuseFileInfo.of(fibuf));
     } catch (Exception e) {
-      LOG.error("Failed to read {}, size {}, offset {}: ", path, size, offset, e);
+      LOG.error("Failed to read {}, size {}, position {}: ", path, size, position, e);
       return -ErrorCodes.EIO();
     }
   }
@@ -335,11 +340,15 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
   }
 
-  public int writeCallback(String path, ByteBuffer buf, long size, long offset, ByteBuffer fi) {
+  public int writeCallback(String path, long position, ByteBuffer buf, ByteBuffer fi) {
+    // this buffer comes from libfuse and its entirety is appropriate for reading
+    // set the position to the start and the limit to the capacity
+    buf.clear();
+    final int size = buf.remaining();
     try {
-      return write(path, buf, size, offset, FuseFileInfo.of(fi));
+      return write(path, position, buf, FuseFileInfo.of(fi));
     } catch (Exception e) {
-      LOG.error("Failed to write {}, size {}, offset {}: ", path, size, offset, e);
+      LOG.error("Failed to write {}, size {}, position {}: ", path, size, position, e);
       return -ErrorCodes.EIO();
     }
   }

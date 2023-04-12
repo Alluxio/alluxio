@@ -31,21 +31,19 @@ public interface FuseFileStream extends AutoCloseable {
   /**
    * Reads data from the stream.
    *
+   * @param position the offset of the target stream to begin reading
    * @param buf the byte buffer to read data to
-   * @param size the size to read
-   * @param offset the offset of the target stream to begin reading
    * @return the bytes read
    */
-  int read(ByteBuffer buf, long size, long offset);
+  int read(long position, ByteBuffer buf);
 
   /**
    * Writes data to the stream.
    *
+   * @param position the offset to starting writing into the stream
    * @param buf the byte buffer to read data from and write to the stream
-   * @param size the size to write
-   * @param offset the offset to write
    */
-  void write(ByteBuffer buf, long size, long offset);
+  void write(long position, ByteBuffer buf);
 
   /**
    * @return file status

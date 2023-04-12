@@ -100,7 +100,7 @@ ReadOperation::ReadOperation(JniFuseFileSystem *fs) {
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature =
-      "(Ljava/lang/String;Ljava/nio/ByteBuffer;JJLjava/nio/ByteBuffer;)I";
+      "(Ljava/lang/String;JLjava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)I";
   this->methodID = env->GetMethodID(this->clazz, "readCallback", signature);
 }
 
@@ -112,8 +112,8 @@ int ReadOperation::call(const char *path, char *buf, size_t size, off_t offset,
   jobject fibuf =
       env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
 
-  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, buffer, size,
-                               offset, fibuf);
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, offset, buffer,
+                               fibuf);
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(buffer);
   env->DeleteLocalRef(fibuf);
@@ -346,7 +346,7 @@ WriteOperation::WriteOperation(JniFuseFileSystem *fs) {
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature =
-      "(Ljava/lang/String;Ljava/nio/ByteBuffer;JJLjava/nio/ByteBuffer;)I";
+      "(Ljava/lang/String;JLjava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)I";
   this->methodID = env->GetMethodID(this->clazz, "writeCallback", signature);
 }
 
@@ -358,8 +358,8 @@ int WriteOperation::call(const char *path, const char *buf, size_t size,
   jobject fibuf =
       env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
 
-  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, buffer, size,
-                               off, fibuf);
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, off, buffer,
+                               fibuf);
 
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(buffer);

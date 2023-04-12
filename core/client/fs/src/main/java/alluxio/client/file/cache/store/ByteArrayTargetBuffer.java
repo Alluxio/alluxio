@@ -13,6 +13,8 @@ package alluxio.client.file.cache.store;
 
 import alluxio.annotation.SuppressFBWarnings;
 
+import com.google.common.base.Preconditions;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -26,15 +28,30 @@ import java.nio.channels.WritableByteChannel;
     justification = "The target byte array is exposed as we expect.")
 public class ByteArrayTargetBuffer implements PageReadTargetBuffer {
   private final byte[] mTarget;
+  private final int mLimit;
   private int mOffset;
 
   /**
    * Constructor.
+   * This sets the offset to 0 and the length to the length of the byte array.
+   *
    * @param target
-   * @param offset
    */
-  public ByteArrayTargetBuffer(byte[] target, int offset) {
+  public ByteArrayTargetBuffer(byte[] target) {
+    this(target, 0, target.length);
+  }
+
+  /**
+   * Constructor.
+   * @param target the target buffer
+   * @param offset the starting index of the byte array where data is written to
+   * @param length the maximum length of data that will be written to the array
+   */
+  public ByteArrayTargetBuffer(byte[] target, int offset, int length) {
+    Preconditions.checkArgument(offset >= 0 && offset <= target.length, "offset");
+    Preconditions.checkArgument(length >= 0 && length <= target.length - offset, "length");
     mTarget = target;
+    mLimit = offset + length;
     mOffset = offset;
   }
 
@@ -49,17 +66,21 @@ public class ByteArrayTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
-  public long offset() {
+  public int offset() {
     return mOffset;
   }
 
   @Override
-  public long remaining() {
-    return mTarget.length - mOffset;
+  public int remaining() {
+    return mLimit - mOffset;
   }
 
   @Override
   public void writeBytes(byte[] srcArray, int srcOffset, int length) {
+    if (length > remaining()) {
+      throw new IndexOutOfBoundsException(String.format(
+          "length: %d, remaining in buffer: %d", length, remaining()));
+    }
     System.arraycopy(srcArray, srcOffset, mTarget, mOffset, length);
     mOffset += length;
   }

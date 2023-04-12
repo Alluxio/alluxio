@@ -35,7 +35,7 @@ public interface PageReadTargetBuffer {
   /**
    * @return offset in the buffer
    */
-  long offset();
+  int offset();
 
   /**
    * @return the writable channel
@@ -45,7 +45,7 @@ public interface PageReadTargetBuffer {
   /**
    * @return the remaining for this buffer
    */
-  long remaining();
+  int remaining();
 
   /**
    * @param srcArray

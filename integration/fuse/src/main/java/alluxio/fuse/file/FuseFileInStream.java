@@ -17,7 +17,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.concurrent.LockMode;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.PreconditionMessage;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
@@ -101,26 +100,25 @@ public class FuseFileInStream implements FuseFileStream {
   }
 
   @Override
-  public synchronized int read(ByteBuffer buf, long size, long offset) {
-    Preconditions.checkArgument(size >= 0 && offset >= 0 && size <= buf.capacity(),
-        PreconditionMessage.ERR_BUFFER_STATE.toString(), buf.capacity(), offset, size);
-    if (size == 0) {
+  public synchronized int read(long position, ByteBuffer buf) {
+    Preconditions.checkArgument(position >= 0, "negative position");
+    final int bytesToRead = buf.remaining();
+    if (bytesToRead == 0) {
       return 0;
     }
-    if (offset >= mFileStatus.getFileLength()) {
+    if (position >= mFileStatus.getFileLength()) {
       return 0;
     }
-    final int sz = (int) size;
     int totalRead = 0;
     int currentRead;
     try {
-      mInStream.seek(offset);
+      mInStream.seek(position);
       do {
-        currentRead = mInStream.read(buf, totalRead, sz - totalRead);
+        currentRead = mInStream.read(buf);
         if (currentRead > 0) {
           totalRead += currentRead;
         }
-      } while (currentRead > 0 && totalRead < sz);
+      } while (currentRead > 0 && buf.hasRemaining());
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
     }
@@ -128,7 +126,7 @@ public class FuseFileInStream implements FuseFileStream {
   }
 
   @Override
-  public void write(ByteBuffer buf, long size, long offset) {
+  public void write(long position, ByteBuffer buf) {
     throw new FailedPreconditionRuntimeException(String
         .format("Cannot write to read-only stream of path %s", mURI));
   }

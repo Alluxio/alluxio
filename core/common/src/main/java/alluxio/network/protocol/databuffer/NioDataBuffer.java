@@ -72,10 +72,11 @@ public class NioDataBuffer implements DataBuffer {
     if (mBuffer.remaining() <= outputBuf.remaining()) {
       outputBuf.put(mBuffer);
     } else {
-      int oldLimit = mBuffer.limit();
-      mBuffer.limit(mBuffer.position() + outputBuf.remaining());
-      outputBuf.put(mBuffer);
-      mBuffer.limit(oldLimit);
+      int bytesToRead = outputBuf.remaining();
+      ByteBuffer slice = mBuffer.slice();
+      slice.limit(bytesToRead);
+      outputBuf.put(slice);
+      mBuffer.position(mBuffer.position() + bytesToRead);
     }
   }
 
