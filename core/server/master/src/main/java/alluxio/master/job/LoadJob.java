@@ -111,6 +111,8 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
   private FileInfo mCurrentFile;
   private Iterator<Long> mBlockIterator = Collections.emptyIterator();
 
+  private
+
   /**
    * Constructor.
    * @param path file path
@@ -292,6 +294,8 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
     }
     return Optional.of(new LoadTask(blocks));
   }
+  
+
 
   /**
    * Get next batch of blocks.

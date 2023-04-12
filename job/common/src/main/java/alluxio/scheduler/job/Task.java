@@ -13,14 +13,38 @@ package alluxio.scheduler.job;
 
 import alluxio.client.block.stream.BlockWorkerClient;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.ListenableFuture;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * A task that can be executed on a worker. Belongs to a {@link Job}.
  *
  * @param <V> the response type of the task
  */
-public abstract class Task<V> {
+public abstract class Task<V> implements Comparable<Task> {
+
+  public static class TaskStat {
+    private final Stopwatch mStopwatch = Stopwatch.createStarted();
+    private long mTimeInQ = -1L;
+    private long mTotalTimeToComplete = -1L;
+
+    public void recordTimeInQ() {
+      mTimeInQ = mStopwatch.elapsed(TimeUnit.MILLISECONDS);
+    }
+
+    public void recordTimeToComplete() {
+      mTotalTimeToComplete = mStopwatch.elapsed(TimeUnit.MILLISECONDS);
+    }
+
+    public String dumpStats() {
+      StringBuilder sb = new StringBuilder();
+      sb.append(String.format("TimeInQ:%s\n", mTimeInQ == -1 ? "N/A" : mTimeInQ))
+          .append(String.format("TotalTimeToComplete:%s\n", mTotalTimeToComplete == -1 ? "N/A" : mTimeInQ));
+      return sb.toString();
+    }
+  }
 
   /**
    * run the task.
@@ -28,6 +52,8 @@ public abstract class Task<V> {
   protected abstract ListenableFuture<V> run(BlockWorkerClient client);
 
   private ListenableFuture<V> mResponseFuture;
+  private TaskStat mTaskStat;
+  private int mPriority = 1;
 
   /**
    * @return the response future
@@ -42,5 +68,18 @@ public abstract class Task<V> {
    */
   public void execute(BlockWorkerClient client) {
     mResponseFuture = run(client);
+  }
+
+  public TaskStat getTaskStat() {
+    return mTaskStat;
+  }
+
+  public int getPriority() {
+    return mPriority;
+  }
+
+  @Override
+  public int compareTo(Task anotherTask) {
+    return mPriority - anotherTask.getPriority();
   }
 }
