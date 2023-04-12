@@ -478,7 +478,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         replyError(error);
       } else if (eof) {
         replyEof();
-      } else {
+      } else if (cancel) {
         replyCancel();
       }
     }
