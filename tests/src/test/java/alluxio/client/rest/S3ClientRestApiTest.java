@@ -1330,11 +1330,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     params.put("partNumber", "1");
 
     TestCaseOptions options = TestCaseOptions.defaults();
-    options.setAuthorization("AWS4-HMAC-SHA256 Credential=dummy/20220830");
     new TestCase(mHostname, mPort, mBaseUri,
         targetMPObjectKey,
         params, HttpMethod.PUT,
-        options.addHeader(S3Constants.S3_COPY_SOURCE_HEADER, srcObjectKey)).runAndGetResponse();
+        TestCaseOptions.defaults()
+            .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, srcObjectKey)).runAndGetResponse();
 
     List<CompleteMultipartUploadRequest.Part> partList = new ArrayList<>();
     partList.add(new CompleteMultipartUploadRequest.Part("", 1));
