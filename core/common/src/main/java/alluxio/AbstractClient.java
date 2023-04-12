@@ -168,11 +168,11 @@ public abstract class AbstractClient implements Client {
     if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
       mServiceVersion = getRemoteServiceVersion();
       if (mServiceVersion != clientVersion) {
-//        throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(getServiceName(),
-//            clientVersion, mServiceVersion));
-        // TODO(jiacheng): solve the version problem
-        LOG.warn("{}", ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(getServiceName(),
-                clientVersion, mServiceVersion));
+        throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(getServiceName(),
+            clientVersion, mServiceVersion));
+//        // TODO(jiacheng): solve the version problem
+//        LOG.warn("{}", ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(getServiceName(),
+//                clientVersion, mServiceVersion));
       }
     }
   }
