@@ -74,7 +74,6 @@ public final class RetryHandlingJobMasterMasterClient extends AbstractJobMasterC
   }
 
   @Override
-  // TODO(jiacheng): update these names
   protected ServiceType getRemoteServiceType() {
     return ServiceType.JOB_MASTER_MASTER_SERVICE;
   }
@@ -135,6 +134,7 @@ public final class RetryHandlingJobMasterMasterClient extends AbstractJobMasterC
     RegisterJobMasterPOptions.Builder optionsBuilder = RegisterJobMasterPOptions.newBuilder()
             .setVersion(RuntimeConstants.VERSION)
             .setRevision(RuntimeConstants.REVISION_SHORT);
+    // TODO(jiacheng): use separate metrics
     Gauge startTimeGauge = gauges.get(MetricKey.MASTER_START_TIME.getName());
     if (startTimeGauge != null) {
       optionsBuilder.setStartTimeMs((long) startTimeGauge.getValue());

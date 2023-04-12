@@ -115,6 +115,7 @@ public final class JobMasterSync implements HeartbeatExecutor {
     LOG.info("Prepare to register to primary job master");
     mMasterId.set(mMasterClient.getId(mMasterAddress));
     LOG.info("Received job master ID {}", mMasterId.get());
+    // TODO(jiacheng): double check the configs to use here
     mMasterClient.register(mMasterId.get(),
             Configuration.getConfiguration(Scope.MASTER));
     LOG.info("Registered with primary job master");

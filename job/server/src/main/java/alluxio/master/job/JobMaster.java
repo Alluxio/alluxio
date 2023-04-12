@@ -620,7 +620,6 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     try (JobMasterAuditContext auditContext =
                  createAuditContext("getAllMasterStatus")) {
       ArrayList<JobMasterStatus> result = new ArrayList<>();
-      // TODO(jiacheng): add the primary master itself
       final Map<String, Gauge> gauges = MetricsSystem.METRIC_REGISTRY.getGauges();
       Gauge startTimeGauge = gauges.get(MetricKey.MASTER_START_TIME.getName());
       JobMasterStatus primaryStatus = JobMasterStatus.newBuilder()
@@ -888,6 +887,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     }
 
     @Override
+    // TODO(jiacheng): update the config keys
     public void heartbeat() {
       long masterTimeoutMs = Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT);
       LOG.info("Heart beat checking status of masters {}",

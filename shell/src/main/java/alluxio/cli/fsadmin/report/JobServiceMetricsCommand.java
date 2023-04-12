@@ -55,6 +55,7 @@ public class JobServiceMetricsCommand {
     mDateFormatPattern = dateFormatPattern;
   }
 
+  // TODO(jiacheng): extract this
   public static final DateTimeFormatter DATETIME_FORMAT =
           DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).ofPattern("yyyyMMdd-HHmmss")
                   .withLocale(Locale.getDefault()).withZone(ZoneId.systemDefault());

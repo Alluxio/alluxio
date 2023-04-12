@@ -71,12 +71,6 @@ public final class RetryHandlingJobMasterClient extends AbstractJobMasterClient
   }
 
   @Override
-  public void connect() throws AlluxioStatusException {
-    super.connect();
-    RPC_LOG.info("Connected to target {}", mServerAddress);
-  }
-
-  @Override
   protected ServiceType getRemoteServiceType() {
     return ServiceType.JOB_MASTER_CLIENT_SERVICE;
   }
