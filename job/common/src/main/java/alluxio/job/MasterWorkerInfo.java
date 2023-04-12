@@ -29,6 +29,9 @@ public final class MasterWorkerInfo {
   private final WorkerNetAddress mWorkerAddress;
   /** The id of the worker. */
   private final long mId;
+
+  private final String mVersion;
+  private final String mRevision;
   /** Start time of the worker in ms. */
   private final long mStartTimeMs;
   /** Worker's last updated time in ms. */
@@ -45,6 +48,17 @@ public final class MasterWorkerInfo {
     mId = id;
     mStartTimeMs = System.currentTimeMillis();
     mLastUpdatedTimeMs = System.currentTimeMillis();
+    mVersion = "UNKNOWN";
+    mRevision = "UNKNOWN";
+  }
+
+  public MasterWorkerInfo(long id, WorkerNetAddress address, String version, String revision) {
+    mWorkerAddress = Preconditions.checkNotNull(address);
+    mId = id;
+    mStartTimeMs = System.currentTimeMillis();
+    mLastUpdatedTimeMs = System.currentTimeMillis();
+    mVersion = version;
+    mRevision = revision;
   }
 
   /**

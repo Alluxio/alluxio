@@ -25,6 +25,8 @@ import java.util.List;
 public class JobWorkerHealth {
 
   private final long mWorkerId;
+  private String mVersion = "UNKNOWN";
+  private String mRevision = "UNKNOWN";
   private final List<Double> mLoadAverage;
   private final int mUnfinishedTasks;
   private final long mLastUpdated;
@@ -42,6 +44,7 @@ public class JobWorkerHealth {
    * @param unfinishedTasks number of unfinished tasks that the worker has
    * @param hostname hostname of the worker
    */
+  // TODO(jiacheng): migrate tests to not use this constructor
   public JobWorkerHealth(long workerId, List<Double> loadAverage, int taskPoolSize,
       int numActiveTasks, int unfinishedTasks, String hostname) {
     mWorkerId = workerId;
@@ -51,6 +54,30 @@ public class JobWorkerHealth {
     mTaskPoolSize = taskPoolSize;
     mNumActiveTasks = numActiveTasks;
     mHostname = hostname;
+  }
+
+  /**
+   * Default constructor.
+   *
+   * @param workerId the worker id
+   * @param loadAverage output of CentralProcessor.getSystemLoadAverage on the worker
+   * @param taskPoolSize task pool size
+   * @param numActiveTasks number of active tasks in the worker
+   * @param unfinishedTasks number of unfinished tasks that the worker has
+   * @param hostname hostname of the worker
+   */
+  public JobWorkerHealth(long workerId, List<Double> loadAverage, int taskPoolSize,
+                         int numActiveTasks, int unfinishedTasks, String hostname,
+                         String version, String revision) {
+    mWorkerId = workerId;
+    mLoadAverage = loadAverage;
+    mUnfinishedTasks = unfinishedTasks;
+    mLastUpdated = CommonUtils.getCurrentMs();
+    mTaskPoolSize = taskPoolSize;
+    mNumActiveTasks = numActiveTasks;
+    mHostname = hostname;
+    mVersion = version;
+    mRevision = revision;
   }
 
   /**
@@ -66,6 +93,12 @@ public class JobWorkerHealth {
     mTaskPoolSize = jobWorkerHealth.getTaskPoolSize();
     mNumActiveTasks = jobWorkerHealth.getNumActiveTasks();
     mHostname = jobWorkerHealth.getHostname();
+    if (jobWorkerHealth.hasVersion()) {
+      mVersion = jobWorkerHealth.getVersion();
+    }
+    if (jobWorkerHealth.hasRevision()) {
+      mRevision = jobWorkerHealth.getRevision();
+    }
   }
 
   /**
@@ -114,6 +147,14 @@ public class JobWorkerHealth {
     return mHostname;
   }
 
+  public String getVersion() {
+    return mVersion;
+  }
+
+  public String getRevision() {
+    return mRevision;
+  }
+
   /**
    * @return proto representation of JobWorkerInfo
    */
@@ -121,7 +162,7 @@ public class JobWorkerHealth {
     alluxio.grpc.JobWorkerHealth.Builder builder = alluxio.grpc.JobWorkerHealth.newBuilder()
         .setWorkerId(mWorkerId).addAllLoadAverage(mLoadAverage).setUnfinishedTasks(mUnfinishedTasks)
         .setTaskPoolSize(mTaskPoolSize).setNumActiveTasks(mNumActiveTasks)
-        .setLastUpdated(mLastUpdated).setHostname(mHostname);
+        .setLastUpdated(mLastUpdated).setHostname(mHostname).setVersion(mVersion).setRevision(mRevision);
 
     return builder.build();
   }
@@ -149,7 +190,9 @@ public class JobWorkerHealth {
         && Objects.equal(mLastUpdated, that.mLastUpdated)
         && Objects.equal(mHostname, that.mHostname)
         && Objects.equal(mTaskPoolSize, that.mTaskPoolSize)
-        && Objects.equal(mNumActiveTasks, that.mNumActiveTasks);
+        && Objects.equal(mNumActiveTasks, that.mNumActiveTasks)
+        && Objects.equal(mVersion, that.mVersion)
+        && Objects.equal(mRevision, that.mRevision);
   }
 
   @Override
@@ -161,6 +204,8 @@ public class JobWorkerHealth {
         .add("hostname", mHostname)
         .add("taskPoolSize", mTaskPoolSize)
         .add("numActiveTasks", mNumActiveTasks)
+        .add("version", mVersion)
+        .add("revision", mRevision)
         .toString();
   }
 }

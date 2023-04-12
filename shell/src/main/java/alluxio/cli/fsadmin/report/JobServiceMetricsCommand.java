@@ -12,6 +12,8 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.job.JobMasterClient;
+import alluxio.grpc.JobMasterStatus;
+import alluxio.grpc.NetAddress;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobWorkerHealth;
@@ -22,8 +24,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Prints job service metric information.
@@ -48,19 +55,37 @@ public class JobServiceMetricsCommand {
     mDateFormatPattern = dateFormatPattern;
   }
 
+  // TODO(jiacheng): extract this
+  public static final DateTimeFormatter DATETIME_FORMAT =
+          DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).ofPattern("yyyyMMdd-HHmmss")
+                  .withLocale(Locale.getDefault()).withZone(ZoneId.systemDefault());
+
   /**
    * Runs a job services report metrics command.
    *
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
+    List<JobMasterStatus> allMasterStatus = mJobMasterClient.getAllMasterStatus();
+    for (JobMasterStatus masterStatus : allMasterStatus) {
+      NetAddress address = masterStatus.getMasterAddress();
+      mPrintStream.printf("Master Address (RPC port): %-32s  %n", address.getHost() + ":" + address.getRpcPort());
+      mPrintStream.printf("Master State: %-10s  %n", masterStatus.getState());
+      mPrintStream.printf("Master Start Time: %-16s  %n", DATETIME_FORMAT.format(Instant.ofEpochMilli(masterStatus.getStartTime())));
+      mPrintStream.printf("Master Version: %-16s  %n", masterStatus.getVersion());
+      mPrintStream.printf("Master Revision: %-16s  %n", masterStatus.getRevision());
+    }
+    mPrintStream.println();
+
     List<JobWorkerHealth> allWorkerHealth = mJobMasterClient.getAllWorkerHealth();
 
     for (JobWorkerHealth workerHealth : allWorkerHealth) {
-      mPrintStream.print(String.format("Worker: %-10s  ", workerHealth.getHostname()));
-      mPrintStream.print(String.format("Task Pool Size: %-7s", workerHealth.getTaskPoolSize()));
-      mPrintStream.print(String.format("Unfinished Tasks: %-7s",
-          workerHealth.getUnfinishedTasks()));
+      mPrintStream.printf("Worker: %-10s  ", workerHealth.getHostname());
+      mPrintStream.printf("Worker Version: %-16s  ", workerHealth.getVersion());
+      mPrintStream.printf("Worker Revision: %-16s  ", workerHealth.getRevision());
+      mPrintStream.printf("Task Pool Size: %-7s", workerHealth.getTaskPoolSize());
+      mPrintStream.printf("Unfinished Tasks: %-7s",
+          workerHealth.getUnfinishedTasks());
       mPrintStream.print(String.format("Active Tasks: %-7s",
           workerHealth.getNumActiveTasks()));
       mPrintStream.println(String.format("Load Avg: %s",

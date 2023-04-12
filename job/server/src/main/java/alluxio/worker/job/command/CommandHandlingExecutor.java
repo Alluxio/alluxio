@@ -11,6 +11,7 @@
 
 package alluxio.worker.job.command;
 
+import alluxio.RuntimeConstants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -99,7 +100,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
     JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(JobWorkerIdRegistry.getWorkerId(),
         jobWorkerHealthReport.getCpuLoadAverage(), mTaskExecutorManager.getTaskExecutorPoolSize(),
         mTaskExecutorManager.getNumActiveTasks(), mTaskExecutorManager.unfinishedTasks(),
-        mWorkerNetAddress.getHost());
+        mWorkerNetAddress.getHost(), RuntimeConstants.VERSION, RuntimeConstants.REVISION_SHORT);
 
     List<TaskInfo> taskStatusList = mTaskExecutorManager.getAndClearTaskUpdates();
 
