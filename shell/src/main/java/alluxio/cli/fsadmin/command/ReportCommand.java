@@ -181,6 +181,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
       case PROXY:
         ProxyCommand proxyCommand = new ProxyCommand(mMetaClient, mPrintStream);
         proxyCommand.run();
+        break;
       default:
         break;
     }

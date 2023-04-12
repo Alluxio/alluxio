@@ -130,8 +130,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** Keeps track of standby masters which are no longer in communication with the leader master. */
   private final IndexedSet<MasterInfo> mLostMasters =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
-
-  // TODO(jiacheng): address hashCode double check
+  
   private final Map<NetAddress, ProxyInfo> mProxies = new ConcurrentHashMap<>();
   private final Map<NetAddress, ProxyInfo> mLostProxies = new ConcurrentHashMap<>();
 
@@ -746,7 +745,6 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  // TODO(jiacheng): Use ProxyInfo in the call
   public List<ProxyStatus> listProxyStatus() {
     List<ProxyStatus> result = new ArrayList<>();
     for (Map.Entry<NetAddress, ProxyInfo> entry : mProxies.entrySet()) {
@@ -757,7 +755,6 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
               .setStartTime(info.getStartTimeMs())
               .setLastHeartbeatTime(info.getLastHeartbeatTimeMs()).build());
     }
-    // TODO(jiacheng): add lost proxy detector
     for (Map.Entry<NetAddress, ProxyInfo> entry : mLostProxies.entrySet()) {
       ProxyInfo info = entry.getValue();
       result.add(ProxyStatus.newBuilder().setAddress(entry.getKey())

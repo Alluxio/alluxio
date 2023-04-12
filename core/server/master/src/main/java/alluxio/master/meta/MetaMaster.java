@@ -193,6 +193,5 @@ public interface MetaMaster extends BackupOps, Master {
    */
   Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap);
 
-  // TODO(jiacheng): Use ProxyInfo in the call
   List<ProxyStatus> listProxyStatus();
 }

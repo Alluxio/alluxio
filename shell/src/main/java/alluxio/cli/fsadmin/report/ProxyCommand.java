@@ -64,7 +64,6 @@ public class ProxyCommand {
   public int run() throws IOException {
     List<ProxyStatus> allProxyStatus = mMetaMasterClient.listProxyStatus();
 
-    // TODO(jiacheng): print a table
     for (ProxyStatus proxyStatus : allProxyStatus) {
       NetAddress address = proxyStatus.getAddress();
       mPrintStream.printf("Proxy Address: %-24s  ", address.getHost() + ":" + address.getRpcPort());
