@@ -151,20 +151,9 @@ public final class BlockMasterClientServiceHandler
   public void removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions options,
       StreamObserver<RemoveDecommissionedWorkerPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      List<WorkerInfo> decommissionedWorkers = mBlockMaster.getWorkerReport(
-              new GetWorkerReportOptions(GetWorkerReportPOptions.newBuilder()
-                      .setWorkerRange(WorkerRange.DECOMMISSIONED)
-                      .addFieldRanges(WorkerInfoField.ADDRESS)
-                      .addFieldRanges(WorkerInfoField.ID)
-                      .build()));
-      for (WorkerInfo worker : decommissionedWorkers) {
-        if (worker.getAddress().getHost().equals(options.getWorkerName()))  {
-          mBlockMaster.removeDecommissionedWorker(worker.getId());
-          return RemoveDecommissionedWorkerPResponse.getDefaultInstance();
-        }
-      }
-      // Exception info has been added in FreeWorkerCommand.
-      throw new NotFoundException(options.getWorkerName());
+      // This command is idempotent and is no-op if the address is not recognized
+      mBlockMaster.removeDecommissionedWorker(options.getWorkerName());
+      return RemoveDecommissionedWorkerPResponse.getDefaultInstance();
     }, "RemoveDecommissionedWorker", "options=%s", responseObserver, options);
   }
 

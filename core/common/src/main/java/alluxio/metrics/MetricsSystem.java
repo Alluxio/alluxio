@@ -565,6 +565,10 @@ public final class MetricsSystem {
     return METRIC_REGISTRY.counter(getMetricName(name));
   }
 
+  public static Gauge getGauge(String name) {
+    return METRIC_REGISTRY.getGauges().get(getMetricName(name));
+  }
+
   /**
    * Get or add counter with the given name with tags.
    * The counter stores in the metrics system is never removed but may reset to zero.

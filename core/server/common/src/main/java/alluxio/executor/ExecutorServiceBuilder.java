@@ -17,8 +17,10 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.AlluxioExecutorService;
 import alluxio.util.ThreadFactoryUtils;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -38,6 +40,10 @@ public class ExecutorServiceBuilder {
    * @return instance of {@link ExecutorService}
    */
   public static AlluxioExecutorService buildExecutorService(RpcExecutorHost executorHost) {
+    return buildExecutorService(executorHost, null);
+  }
+
+  public static AlluxioExecutorService buildExecutorService(RpcExecutorHost executorHost, @Nullable Counter rpcCounter) {
     // Get executor type for given host.
     RpcExecutorType executorType = Configuration.getEnum(
         PropertyKey.Template.RPC_EXECUTOR_TYPE.format(executorHost.toString()),
@@ -123,7 +129,7 @@ public class ExecutorServiceBuilder {
       // Post settings.
       ((ThreadPoolExecutor) executorService).allowCoreThreadTimeOut(allowCoreThreadsTimeout);
     }
-    return new AlluxioExecutorService(executorService);
+    return new AlluxioExecutorService(executorService, rpcCounter);
   }
 
   /**

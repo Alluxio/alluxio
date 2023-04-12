@@ -397,7 +397,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * The worker to free must have been decommissioned.
    * @param workerId the workerId of target worker
    */
-  void removeDecommissionedWorker(long workerId) throws NotFoundException;
+  void removeDecommissionedWorker(String workerHostName) throws NotFoundException;
 
   /**
    * Notify the worker id to a master.
