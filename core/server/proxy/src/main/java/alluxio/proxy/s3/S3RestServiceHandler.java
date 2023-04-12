@@ -902,7 +902,8 @@ public final class S3RestServiceHandler {
         }
         URIStatus status = null;
         CreateFilePOptions.Builder copyFilePOptionsBuilder =
-            CreateFilePOptions.newBuilder().setRecursive(true);
+            CreateFilePOptions.newBuilder().setRecursive(true)
+                .setWriteType(S3RestUtils.getS3WriteType());
         // Handle metadata directive
         if (metadataDirective == S3Constants.Directive.REPLACE
             && filePOptions.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
@@ -1060,7 +1061,7 @@ public final class S3RestServiceHandler {
             ByteString.copyFrom(object, S3Constants.XATTR_STR_CHARSET));
         xattrMap.put(S3Constants.UPLOADS_FILE_ID_XATTR_KEY, ByteString.copyFrom(
             Longs.toByteArray(userFs.getStatus(multipartTemporaryDir).getFileId())));
-        mMetaFS.createFile(
+        try (FileOutStream fos = mMetaFS.createFile(
             new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
             CreateFilePOptions.newBuilder()
                 .setRecursive(true)
@@ -1072,7 +1073,9 @@ public final class S3RestServiceHandler {
                 .putAllXattr(xattrMap)
                 .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
                 .build()
-        );
+        )) {
+          // Empty file creation, nothing to do.
+        }
         SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
             .setOwner(user)
             .build();
