@@ -101,7 +101,6 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
             meta = mLocalBlockStore.getVolatileBlockMeta(mRequest.getBlockId());
           }
         }
-        // TODO(jiacheng): this is where the lock is acquired
         mBlockLock = mLocalBlockStore.pinBlock(mSessionId, mRequest.getBlockId());
         mLocalBlockStore.accessBlock(mSessionId, mRequest.getBlockId());
         DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.inc();

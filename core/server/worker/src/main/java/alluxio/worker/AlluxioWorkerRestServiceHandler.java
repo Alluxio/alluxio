@@ -195,26 +195,14 @@ public final class AlluxioWorkerRestServiceHandler {
       String workerRpcPoolSizeGaugeName = MetricKey.WORKER_RPC_QUEUE_LENGTH.getName();
       int rpcQueueSize = getGaugeValue(workerRpcPoolSizeGaugeName);
 
-      String readerQueueSizeGaugeName = MetricsSystem.getMetricName(MetricKey.WORKER_BLOCK_READER_THREAD_QUEUE_WAITING_TASK_COUNT.getName());
-      int readerQueueSize = getGaugeValue(readerQueueSizeGaugeName);
-
-      String serializedQueueSizeGaugeName = MetricsSystem.getMetricName(MetricKey.WORKER_BLOCK_SERIALIZED_THREAD_QUEUE_WAITING_TASK_COUNT.getName());
-      int serializedQueueSize = getGaugeValue(serializedQueueSizeGaugeName);
-
-      String writerQueueSizeGaugeName = MetricsSystem.getMetricName(MetricKey.WORKER_BLOCK_WRITER_THREAD_QUEUE_WAITING_TASK_COUNT.getName());
-      long writerQueueSize = getGaugeValue(writerQueueSizeGaugeName);
-
-      // TODO(jiacheng): short circuit requests how are they counted?
-
+      // TODO(jiacheng): Add comment about short circuit
 
       // Return the WORKER_ACTIVE_CLIENTS as a reference, as info from another source
       long clients = MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName()).getCount();
-
-
-
+      // TODO(jiacheng): further see if the rpc queue size is relevant
       response.setOperationCount(operations).setClientCount(clients)
-          .setRpcQueueLength(rpcQueueSize).setReaderQueueLength(readerQueueSize).setWriterQueueLength(writerQueueSize).setSerializedQueueLength(serializedQueueSize);
-      LOG.info("{}", response);
+          .setRpcQueueLength(rpcQueueSize);
+      LOG.info("Checking worker activity: {}", response);
       return response;
     }, Configuration.global());
   }

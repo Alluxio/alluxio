@@ -65,8 +65,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.LongAdder;
 
 /**
  * Server side implementation of the gRPC BlockWorker interface.
@@ -82,9 +80,6 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   private final WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();
   private final boolean mDomainSocketEnabled;
 
-  public final AtomicBoolean mStopServing;
-  public final LongAdder mRefCount;
-
   /**
    * Creates a new implementation of gRPC BlockWorker interface.
    *
@@ -96,9 +91,6 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
     mBlockWorker = (DefaultBlockWorker) workerProcess.getWorker(BlockWorker.class);
     mUfsManager = workerProcess.getUfsManager();
     mDomainSocketEnabled = domainSocketEnabled;
-    // Newly added tracking fields for graceful shutdown
-    mStopServing = new AtomicBoolean(false);
-    mRefCount = new LongAdder();
   }
 
   /**

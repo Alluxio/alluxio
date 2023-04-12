@@ -133,10 +133,6 @@ public final class GrpcExecutors {
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_READER_COMPLETED_TASK_COUNT.getName()),
         BLOCK_READER_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
-    // TODO(jiacheng): Remove the queue sizes because they are not helpful
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-        MetricKey.WORKER_BLOCK_READER_THREAD_QUEUE_WAITING_TASK_COUNT.getName()),
-        BLOCK_READER_THREAD_POOL_EXECUTOR.getQueue()::size);
 
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_SERIALIZED_THREAD_ACTIVE_COUNT.getName()),
@@ -150,9 +146,6 @@ public final class GrpcExecutors {
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_SERIALIZED_COMPLETED_TASK_COUNT.getName()),
         BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-        MetricKey.WORKER_BLOCK_SERIALIZED_THREAD_QUEUE_WAITING_TASK_COUNT.getName()),
-        BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR.getQueue()::size);
 
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_WRITER_THREAD_ACTIVE_COUNT.getName()),
@@ -166,9 +159,6 @@ public final class GrpcExecutors {
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_WRITER_COMPLETED_TASK_COUNT.getName()),
         BLOCK_WRITE_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-        MetricKey.WORKER_BLOCK_WRITER_THREAD_QUEUE_WAITING_TASK_COUNT.getName()),
-        BLOCK_WRITE_THREAD_POOL_EXECUTOR.getQueue()::size);
   }
 
   /**
@@ -194,14 +184,13 @@ public final class GrpcExecutors {
 
     @Override
     public void execute(final Runnable command) {
-      // TODO(jiacheng): however, this needs to consider queueing requests
       final Counter clientCounter = DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS;
       // If there's no impersonation, proxyUser is just null
       User proxyUser = AuthenticatedClientUser.getOrNull();
       mDelegate.execute(() -> {
         if (mTracked) {
           clientCounter.inc();
-          LOG.warn("Incremented count from execute(Runnable) to {}", clientCounter.getCount());
+          LOG.trace("Incremented count from execute(Runnable) to {}", clientCounter.getCount());
         }
         try {
           AuthenticatedClientUser.set(proxyUser);
@@ -223,7 +212,7 @@ public final class GrpcExecutors {
       return mDelegate.submit(() -> {
         if (mTracked) {
           clientCounter.inc();
-          LOG.warn("Incremented count from submit(Callable) to {}", clientCounter.getCount());
+          LOG.trace("Incremented count from submit(Callable) to {}", clientCounter.getCount());
         }
         try {
           AuthenticatedClientUser.set(proxyUser);
@@ -250,7 +239,7 @@ public final class GrpcExecutors {
       return mDelegate.submit(() -> {
         if (mTracked) {
           clientCounter.inc();
-          LOG.warn("Incremented count from submit(Runnable) to {}", clientCounter.getCount());
+          LOG.trace("Incremented count from submit(Runnable) to {}", clientCounter.getCount());
         }
         try {
           AuthenticatedClientUser.set(proxyUser);

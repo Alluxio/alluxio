@@ -660,16 +660,17 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     AtomicBoolean found = new AtomicBoolean(false);
     mDecommissionedWorkers.removeIf(entry -> {
       if (entry.getWorkerAddress().getHost().equals(workerHostName)) {
-        LOG.info("Received admin command to re-accept worker {}. The worker should be " +
-                "accepted to the cluster when it registers again.", entry.getWorkerAddress());
+        LOG.info("Received admin command to re-accept worker {}. The worker should be "
+            + "accepted to the cluster when it registers again.", entry.getWorkerAddress());
         found.set(true);
         return true;
       }
       return false;
     });
     if (!found.get()) {
-      LOG.info("Received admin command to re-accept worker {} but the worker is not decommissioned. " +
-              "The worker will be able to register to the cluster normally. No further action is required.", workerHostName);
+      LOG.info("Received admin command to re-accept worker {} but the worker is "
+          + "not decommissioned. The worker will be able to register to the cluster normally. "
+          + "No further action is required.", workerHostName);
     }
   }
 

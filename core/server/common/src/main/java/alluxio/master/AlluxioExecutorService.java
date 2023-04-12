@@ -133,7 +133,7 @@ public class AlluxioExecutorService implements ExecutorService {
   public <T> Future<T> submit(Callable<T> task) {
     if (mRpcTracker != null) {
       mRpcTracker.inc();
-      LOG.info("Inc from rpc server in submit(Callable)");
+      LOG.trace("Inc from rpc server in submit(Callable)");
     }
     try {
       return mExecutor.submit(task);
@@ -148,7 +148,7 @@ public class AlluxioExecutorService implements ExecutorService {
   public <T> Future<T> submit(Runnable task, T result) {
     if (mRpcTracker != null) {
       mRpcTracker.inc();
-      LOG.info("Inc from rpc server in submit(Runnable,T)");
+      LOG.trace("Inc from rpc server in submit(Runnable,T)");
     }
     try {
       return mExecutor.submit(task, result);
@@ -163,7 +163,7 @@ public class AlluxioExecutorService implements ExecutorService {
   public Future<?> submit(Runnable task) {
     if (mRpcTracker != null) {
       mRpcTracker.inc();
-      LOG.info("Inc from rpc server in submit(Runnable)");
+      LOG.trace("Inc from rpc server in submit(Runnable)");
     }
     try {
       return mExecutor.submit(task);
@@ -179,7 +179,7 @@ public class AlluxioExecutorService implements ExecutorService {
       throws InterruptedException {
     if (mRpcTracker != null) {
       mRpcTracker.inc();
-      LOG.info("Inc from rpc server in invokeAll(Collection)");
+      LOG.trace("Inc from rpc server in invokeAll(Collection)");
     }
     try {
       return mExecutor.invokeAll(tasks);
@@ -195,7 +195,7 @@ public class AlluxioExecutorService implements ExecutorService {
       TimeUnit unit) throws InterruptedException {
     if (mRpcTracker != null) {
       mRpcTracker.inc();
-      LOG.info("Inc from rpc server in invokeAll(Collection,long,TimeUnit)");
+      LOG.trace("Inc from rpc server in invokeAll(Collection,long,TimeUnit)");
     }
     try {
       return mExecutor.invokeAll(tasks, timeout, unit);
@@ -209,7 +209,7 @@ public class AlluxioExecutorService implements ExecutorService {
   @Override
   public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
       throws InterruptedException, ExecutionException {
-    // TODO(jiacheng): is this not used?
+    // TODO(jiacheng): change to UnsupportedOperationException
     return null;
   }
 
@@ -223,7 +223,7 @@ public class AlluxioExecutorService implements ExecutorService {
   public void execute(Runnable command) {
     if (mRpcTracker != null) {
       mRpcTracker.inc();
-      LOG.info("Inc from rpc server in execute(Runnable)");
+      LOG.trace("Inc from rpc server in execute(Runnable)");
     }
     try {
       mExecutor.execute(command);

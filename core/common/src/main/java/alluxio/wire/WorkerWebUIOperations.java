@@ -26,9 +26,6 @@ public final class WorkerWebUIOperations implements Serializable {
   private long mOperationCount;
   private long mClientCount;
   private long mRpcQueueLength;
-  private long mReaderQueueLength;
-  private long mWriterQueueLength;
-  private long mSerializedQueueLength;
 
   /**
    * Creates a new instance of {@link WorkerWebUIInit}.
@@ -41,18 +38,6 @@ public final class WorkerWebUIOperations implements Serializable {
   }
   public long getClientCount() {
     return mClientCount;
-  }
-
-  public long getRpcQueueLength() {
-    return mRpcQueueLength;
-  }
-
-  public long getReaderQueueLength() {
-    return mReaderQueueLength;
-  }
-
-  public long getWriterQueueLength() {
-    return mWriterQueueLength;
   }
 
   public WorkerWebUIOperations setOperationCount(long operationCount) {
@@ -70,30 +55,12 @@ public final class WorkerWebUIOperations implements Serializable {
     return this;
   }
 
-  public WorkerWebUIOperations setReaderQueueLength(long readerQueueLength) {
-    mReaderQueueLength = readerQueueLength;
-    return this;
-  }
-
-  public WorkerWebUIOperations setWriterQueueLength(long writerQueueLength) {
-    mWriterQueueLength = writerQueueLength;
-    return this;
-  }
-
-  public WorkerWebUIOperations setSerializedQueueLength(long serializedQueueLength) {
-    mSerializedQueueLength = serializedQueueLength;
-    return this;
-  }
-
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
             .add("operationCount", mOperationCount)
             .add("clientCount", mClientCount)
             .add("rpcQueueLength", mRpcQueueLength)
-            .add("readerQueueLength", mReaderQueueLength)
-            .add("writerQueueLength", mWriterQueueLength)
-            .add("serializedQueueLength", mSerializedQueueLength)
             .toString();
   }
 }

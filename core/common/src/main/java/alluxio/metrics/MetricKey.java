@@ -2021,13 +2021,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey WORKER_BLOCK_READER_THREAD_QUEUE_WAITING_TASK_COUNT =
-          new Builder("Worker.BlockReaderThreadQueueWaitingTaskCount")
-                  .setDescription("The approximate total number of block read tasks "
-                          + "that have completed execution")
-                  .setMetricType(MetricType.GAUGE)
-                  .setIsClusterAggregated(false)
-                  .build();
   public static final MetricKey WORKER_BLOCK_SERIALIZED_THREAD_ACTIVE_COUNT =
       new Builder("Worker.BlockSerializedThreadActiveCount")
           .setDescription("The approximate number of block serialized "
@@ -2055,13 +2048,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey WORKER_BLOCK_SERIALIZED_THREAD_QUEUE_WAITING_TASK_COUNT =
-          new Builder("Worker.BlockSerializedThreadQueueWaitingTaskCount")
-                  .setDescription("The approximate total number of block read tasks "
-                          + "that have completed execution")
-                  .setMetricType(MetricType.GAUGE)
-                  .setIsClusterAggregated(false)
-                  .build();
   public static final MetricKey WORKER_BLOCK_WRITER_THREAD_ACTIVE_COUNT =
       new Builder("Worker.BlockWriterThreadActiveCount")
           .setDescription("The approximate number of block write "
@@ -2089,13 +2075,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey WORKER_BLOCK_WRITER_THREAD_QUEUE_WAITING_TASK_COUNT =
-          new Builder("Worker.BlockWriterThreadQueueWaitingTaskCount")
-                  .setDescription("The approximate total number of block read tasks "
-                          + "that have completed execution")
-                  .setMetricType(MetricType.GAUGE)
-                  .setIsClusterAggregated(false)
-                  .build();
   public static final MetricKey WORKER_RPC_QUEUE_LENGTH =
       new Builder("Worker.RpcQueueLength")
           .setDescription("Length of the worker rpc queue. "

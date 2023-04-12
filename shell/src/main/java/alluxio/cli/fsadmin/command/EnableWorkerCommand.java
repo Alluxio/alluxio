@@ -32,15 +32,15 @@ import java.util.stream.Collectors;
 public class EnableWorkerCommand extends AbstractFsAdminCommand {
   private static final Option ADDRESSES_OPTION =
           Option.builder("h")
-                  .longOpt("addresses")
-                  .required(true)  // Host option is mandatory.
-                  .hasArg(true)
-                  .numberOfArgs(1)
-                  .argName("addresses")
-                  // TODO(jiacheng): this takes web port instead of RPC port!
-                  .desc("One or more worker addresses separated by comma. If port is not specified, "
-                          + PropertyKey.WORKER_WEB_PORT.getName() + " will be used.")
-                  .build();
+              .longOpt("addresses")
+              .required(true)  // Host option is mandatory.
+              .hasArg(true)
+              .numberOfArgs(1)
+              .argName("addresses")
+              .desc("One or more worker addresses separated by comma. If port is not specified, "
+                  + PropertyKey.WORKER_WEB_PORT.getName() + " will be used. "
+                  + "Note the addresses specify the WEB port instead of RPC port!")
+              .build();
 
   /**
    * Constructs a new instance to decommission the given worker from Alluxio.
@@ -144,8 +144,6 @@ public class EnableWorkerCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getDescription() {
-    return "Decommission a specific worker in the Alluxio cluster. The decommissioned"
-            + "worker is not shut down but will not accept new read/write operations. The ongoing "
-            + "operations will proceed until completion.";
+    return "Re-enables workers to register and join the cluster. This is used in pair with the decommissionWorker command.";
   }
 }
