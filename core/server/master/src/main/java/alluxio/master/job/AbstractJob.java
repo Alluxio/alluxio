@@ -17,9 +17,12 @@ import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
 
+import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
 
@@ -35,6 +38,8 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
   protected OptionalLong mEndTime = OptionalLong.empty();
   protected final long mStartTime;
   protected final Optional<String> mUser;
+  private final List<Task<T>> mTaskList = new BlockingArrayQueue<>();
+
 
   /**
    * Creates a new instance of {@link AbstractJob}.
