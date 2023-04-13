@@ -13,8 +13,8 @@ package alluxio.underfs.s3a;
 
 import alluxio.PositionReader;
 import alluxio.file.ByteArrayTargetBuffer;
-
 import alluxio.file.ReadTargetBuffer;
+
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;

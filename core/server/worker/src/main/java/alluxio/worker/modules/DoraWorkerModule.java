@@ -14,7 +14,7 @@ package alluxio.worker.modules;
 import alluxio.ClientContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
-import alluxio.client.file.cache.store.PageStoreDir;
+import alluxio.client.file.cache.PageMetaStore;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -22,16 +22,11 @@ import alluxio.master.MasterClientContext;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.TieredIdentity;
-import alluxio.worker.WorkerFactory;
-import alluxio.worker.block.BlockStore;
+import alluxio.worker.Worker;
 import alluxio.worker.dora.DoraUfsManager;
 import alluxio.worker.dora.DoraWorker;
-import alluxio.worker.dora.DoraWorkerFactory;
 import alluxio.worker.dora.PagedDoraWorker;
 import alluxio.worker.file.FileSystemMasterClient;
-import alluxio.worker.page.PagedBlockMetaStore;
-import alluxio.worker.page.PagedBlockStore;
-import alluxio.worker.page.PagedBlockStoreDir;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
@@ -39,7 +34,6 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -62,23 +56,23 @@ public class DoraWorkerModule extends AbstractModule {
     try {
       CacheManagerOptions cacheManagerOptions =
           CacheManagerOptions.createForWorker(Configuration.global());
-      List<PageStoreDir> pageStoreDirs = PageStoreDir.createPageStoreDirs(cacheManagerOptions);
-      List<PagedBlockStoreDir> dirs = PagedBlockStoreDir.fromPageStoreDirs(pageStoreDirs);
-      PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(dirs);
-      bind(PagedBlockMetaStore.class).toInstance(pagedBlockMetaStore);
+
+      PageMetaStore pageMetaStore = PageMetaStore.create(
+          CacheManagerOptions.createForWorker(Configuration.global()));
+      bind(PageMetaStore.class).toInstance(pageMetaStore);
       bind(CacheManager.class).toInstance(
           CacheManager.Factory.create(Configuration.global(),
-              cacheManagerOptions, pagedBlockMetaStore));
+              cacheManagerOptions, pageMetaStore));
+
       long pageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
       bind(new TypeLiteral<Long>() {
       }).annotatedWith(Names.named("pageSize")).toInstance(pageSize);
     } catch (IOException e) {
       throw new RuntimeException("Failed to create CacheManager", e);
     }
-    bind(BlockStore.class).to(PagedBlockStore.class).in(Scopes.SINGLETON);
 
     // the following objects are required when using dora
+    bind(Worker.class).to(PagedDoraWorker.class).in(Scopes.SINGLETON);
     bind(DoraWorker.class).to(PagedDoraWorker.class).in(Scopes.SINGLETON);
-    bind(WorkerFactory.class).to(DoraWorkerFactory.class).in(Scopes.SINGLETON);
   }
 }

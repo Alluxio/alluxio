@@ -91,7 +91,7 @@ public class DoraCacheClient {
    * @param externalPositionReader
    * @return a netty position reader
    */
-  public DoraCachePositionReader getNettyPositionReader(URIStatus status,
+  public DoraCachePositionReader createNettyPositionReader(URIStatus status,
       Protocol.OpenUfsBlockOptions ufsOptions,
       CloseableSupplier<PositionReader> externalPositionReader) {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getPath());

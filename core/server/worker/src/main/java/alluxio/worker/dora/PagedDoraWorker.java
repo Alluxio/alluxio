@@ -20,9 +20,7 @@ import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
 import alluxio.client.file.cache.CacheManager;
-import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.CacheUsage;
-import alluxio.client.file.cache.PageMetaStore;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -112,9 +110,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * Constructor.
    * @param workerId
    * @param conf
+   * @param cacheManager
    */
   @Inject
-  public PagedDoraWorker(AtomicReference<Long> workerId, AlluxioConfiguration conf) {
+  public PagedDoraWorker(
+      AtomicReference<Long> workerId,
+      AlluxioConfiguration conf,
+      CacheManager cacheManager) {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
     mWorkerId = workerId;
     mConf = conf;
@@ -152,14 +154,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       LOG.error("Cannot init RocksDBDoraMetaStore. Continue without MetaStore", e);
       mMetaStore = null;
     }
-
-    try {
-      CacheManagerOptions options = CacheManagerOptions.createForWorker(Configuration.global());
-      PageMetaStore metaStore = PageMetaStore.create(options);
-      mCacheManager = CacheManager.Factory.create(Configuration.global(), options, metaStore);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    mCacheManager = cacheManager;
   }
 
   @Override

@@ -103,7 +103,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
    */
   private JvmPauseMonitor mJvmPauseMonitor;
 
-  private boolean mDoraEnable;
   private boolean mNettyDataTransmissionEnable;
 
   /**
@@ -114,7 +113,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       TieredIdentity tieredIdentity,
       WorkerRegistry workerRegistry,
       UfsManager ufsManager,
-      WorkerFactory workerFactory,
+      Worker worker,
       DataServerFactory dataServerFactory,
       @Nullable NettyDataServer nettyDataServer) {
     try {
@@ -125,7 +124,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mRpcConnectAddress = requireNonNull(dataServerFactory.getConnectAddress());
       mStartTimeMs = System.currentTimeMillis();
       List<Callable<Void>> callables = ImmutableList.of(() -> {
-        Worker worker = workerFactory.create();
         if (worker instanceof BlockWorker) {
           mRegistry.add(BlockWorker.class, worker);
         } else if (worker instanceof DoraWorker) {

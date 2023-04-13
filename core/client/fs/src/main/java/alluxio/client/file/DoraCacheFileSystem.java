@@ -169,7 +169,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
             .setNoCache(!ReadType.fromProto(mergedOptions.getReadType()).isCache())
             .setMountId(DUMMY_MOUNT_ID)
             .build();
-    return mDoraClient.getNettyPositionReader(status, openUfsBlockOptions,
+    return mDoraClient.createNettyPositionReader(status, openUfsBlockOptions,
         new CloseableSupplier<>(() ->
             mDelegatedFileSystem.openPositionRead(status, mergedOptions)));
   }
@@ -278,6 +278,10 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
       // Treat this path as Alluxio relative, and add the UFS root before it.
       String ufsFullPath = PathUtils.concatPath(rootUFS, alluxioPath.toString());
+      if (alluxioPath.isRoot()) {
+        ufsFullPath = ufsFullPath + AlluxioURI.SEPARATOR;
+      }
+
       return new AlluxioURI(ufsFullPath);
     } else {
       return alluxioPath;
