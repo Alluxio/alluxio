@@ -23,6 +23,7 @@ import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.job.plan.replicate.ReplicationHandler;
 import alluxio.job.wire.Status;
+import alluxio.master.AlwaysPrimaryPrimarySelector;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
@@ -165,7 +166,8 @@ public final class ReplicationCheckerTest {
     Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     MasterRegistry registry = new MasterRegistry();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
-    mContext = MasterTestUtils.testMasterContext(journalSystem);
+    mContext = MasterTestUtils.testMasterContext(journalSystem,
+        null, new AlwaysPrimaryPrimarySelector());
     new MetricsMasterFactory().create(registry, mContext);
     mBlockMaster = new BlockMasterFactory().create(registry, mContext);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);

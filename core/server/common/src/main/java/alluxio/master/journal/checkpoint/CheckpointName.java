@@ -18,6 +18,7 @@ package alluxio.master.journal.checkpoint;
 public enum CheckpointName {
   ACTIVE_SYNC_MANAGER,
   BLOCK_MASTER,
+  BLOCK_MASTER_CONTAINER_ID,
   CACHING_INODE_STORE,
   CLUSTER_INFO,
   FILE_SYSTEM_MASTER,
@@ -40,4 +41,5 @@ public enum CheckpointName {
   TO_BE_PERSISTED_FILE_IDS,
   TTL_BUCKET_LIST,
   SCHEDULER,
+  SNAPSHOT_ID,
 }

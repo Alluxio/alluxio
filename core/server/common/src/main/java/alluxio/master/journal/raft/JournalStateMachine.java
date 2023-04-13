@@ -24,22 +24,19 @@ import alluxio.master.StateLockOptions;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
+import alluxio.master.journal.SingleEntryJournaled;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.LockResource;
-import alluxio.util.FormatUtils;
-import alluxio.util.LogUtils;
 import alluxio.util.StreamUtils;
 import alluxio.util.logging.SamplingLogger;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
-import org.apache.ratis.io.MD5Hash;
 import org.apache.ratis.proto.RaftProtos;
 import org.apache.ratis.protocol.Message;
-import org.apache.ratis.protocol.RaftGroup;
 import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftGroupMemberId;
 import org.apache.ratis.protocol.RaftPeerId;
@@ -52,19 +49,17 @@ import org.apache.ratis.statemachine.StateMachineStorage;
 import org.apache.ratis.statemachine.TransactionContext;
 import org.apache.ratis.statemachine.impl.BaseStateMachine;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
-import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.apache.ratis.util.LifeCycle;
-import org.apache.ratis.util.MD5FileUtil;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -72,10 +67,9 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Stream;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -101,17 +95,14 @@ public class JournalStateMachine extends BaseStateMachine {
   /** Journals managed by this applier. */
   private final Map<String, RaftJournal> mJournals;
   private final RaftJournalSystem mJournalSystem;
-  private final SnapshotReplicationManager mSnapshotManager;
+  private final RaftSnapshotManager mSnapshotManager;
+  private final SnapshotDirStateMachineStorage mStorage;
   private final AtomicReference<StateLockManager> mStateLockManagerRef
       = new AtomicReference<>(null);
   @GuardedBy("this")
   private boolean mIgnoreApplys = false;
   @GuardedBy("this")
   private boolean mClosed = false;
-
-  private final Lock mGroupLock = new ReentrantLock();
-  @GuardedBy("mGroupLock")
-  private boolean mServerClosing = false;
 
   private volatile long mLastAppliedCommitIndex = -1;
   // The last special "primary start" sequence number applied to this state machine. These special
@@ -121,7 +112,7 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile boolean mSnapshotting = false;
   private volatile boolean mIsLeader = false;
 
-  private final ExecutorService mJournalPool;
+  private final ExecutorService mJournalPool = Executors.newCachedThreadPool();
 
   /**
    * This callback is used for interrupting someone who suspends the journal applier to work on
@@ -142,31 +133,34 @@ public class JournalStateMachine extends BaseStateMachine {
   // The last index of the latest journal snapshot
   // created by this master or downloaded from other masters
   private volatile long mSnapshotLastIndex = -1;
+  private long mLastSnapshotTime = -1;
+  @SuppressFBWarnings(value = "IS2_INCONSISTENT_SYNC",
+      justification = "Written in synchronized block, read by metrics")
+  private long mLastSnapshotDurationMs = -1;
+  @SuppressFBWarnings(value = "IS2_INCONSISTENT_SYNC",
+      justification = "Written in synchronized block, read by metrics")
+  private long mLastSnapshotEntriesCount = -1;
+  private long mLastSnapshotReplayDurationMs = -1;
+  private long mLastSnapshotReplayEntriesCount = -1;
   /** Used to control applying to masters. */
   private BufferedJournalApplier mJournalApplier;
-  private final SimpleStateMachineStorage mStorage = new SimpleStateMachineStorage();
-  private RaftGroupId mRaftGroupId;
-  private RaftServer mServer;
-  private long mLastCheckPointTime = -1;
 
   /**
    * @param journals      master journals; these journals are still owned by the caller, not by the
    *                      journal state machine
    * @param journalSystem the raft journal system
+   * @param storage the {@link SnapshotDirStateMachineStorage} that this state machine will use
    */
-  public JournalStateMachine(Map<String, RaftJournal> journals, RaftJournalSystem journalSystem) {
-    int maxConcurrencyPoolSize =
-        Configuration.getInt(PropertyKey.MASTER_JOURNAL_LOG_CONCURRENCY_MAX);
-    mJournalPool = new ForkJoinPool(maxConcurrencyPoolSize);
-    LOG.info("Ihe max concurrency for notifyTermIndexUpdated is loading with max threads {}",
-        maxConcurrencyPoolSize);
+  public JournalStateMachine(Map<String, RaftJournal> journals, RaftJournalSystem journalSystem,
+                             SnapshotDirStateMachineStorage storage) {
     mJournals = journals;
     mJournalApplier = new BufferedJournalApplier(journals,
         () -> journalSystem.getJournalSinks(null));
     resetState();
     LOG.info("Initialized new journal state machine");
     mJournalSystem = journalSystem;
-    mSnapshotManager = new SnapshotReplicationManager(journalSystem, mStorage);
+    mStorage = storage;
+    mSnapshotManager = new RaftSnapshotManager(mStorage, mJournalPool);
 
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX.getName(),
@@ -176,7 +170,7 @@ public class JournalStateMachine extends BaseStateMachine {
         () -> getLastAppliedTermIndex().getIndex() - mSnapshotLastIndex);
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName(),
-        () -> mLastCheckPointTime);
+        () -> mLastSnapshotTime);
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX.getName(),
         () -> mLastAppliedCommitIndex);
@@ -184,9 +178,21 @@ public class JournalStateMachine extends BaseStateMachine {
         MetricKey.MASTER_JOURNAL_CHECKPOINT_WARN.getName(),
         () -> getLastAppliedTermIndex().getIndex() - mSnapshotLastIndex
                 > Configuration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)
-                && System.currentTimeMillis() - mLastCheckPointTime > Configuration.getMs(
+                && System.currentTimeMillis() - mLastSnapshotTime > Configuration.getMs(
                 PropertyKey.MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME)
     );
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DURATION_MS.getName(),
+        () -> mLastSnapshotDurationMs);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_ENTRIES_COUNT.getName(),
+        () -> mLastSnapshotEntriesCount);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_REPLAY_DURATION_MS.getName(),
+        () -> mLastSnapshotReplayDurationMs);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_REPLAY_ENTRIES_COUNT.getName(),
+        () -> mLastSnapshotReplayEntriesCount);
   }
 
   @Override
@@ -194,13 +200,8 @@ public class JournalStateMachine extends BaseStateMachine {
       RaftStorage raftStorage) throws IOException {
     getLifeCycle().startAndTransition(() -> {
       super.initialize(server, groupId, raftStorage);
-      mServer = server;
-      mRaftGroupId = groupId;
       mStorage.init(raftStorage);
-      loadSnapshot(mStorage.getLatestSnapshot());
-      synchronized (mSnapshotManager) {
-        mSnapshotManager.notifyAll();
-      }
+      loadSnapshot(getLatestSnapshot());
     });
   }
 
@@ -208,55 +209,24 @@ public class JournalStateMachine extends BaseStateMachine {
   public void reinitialize() throws IOException {
     LOG.info("Reinitializing state machine.");
     mStorage.loadLatestSnapshot();
-    loadSnapshot(mStorage.getLatestSnapshot());
+    loadSnapshot(getLatestSnapshot());
     unpause();
-    synchronized (mSnapshotManager) {
-      mSnapshotManager.notifyAll();
-    }
   }
 
-  private synchronized void loadSnapshot(SingleFileSnapshotInfo snapshot) throws IOException {
+  private synchronized void loadSnapshot(SnapshotInfo snapshot) throws IOException {
     if (snapshot == null) {
       LOG.info("No snapshot to load");
       return;
     }
-    LOG.info("Loading Snapshot {}", snapshot);
-    final File snapshotFile = snapshot.getFile().getPath().toFile();
-    if (!snapshotFile.exists()) {
-      throw new FileNotFoundException(
-          String.format("The snapshot file %s does not exist", snapshotFile.getPath()));
-    }
     try {
       resetState();
       setLastAppliedTermIndex(snapshot.getTermIndex());
-      install(snapshotFile);
+      LOG.debug("Loading snapshot {}", snapshot);
+      install(snapshot);
+      LOG.debug("Finished loading snapshot {}", snapshot);
       mSnapshotLastIndex = getLatestSnapshot() != null ? getLatestSnapshot().getIndex() : -1;
-      synchronized (mSnapshotManager) {
-        mSnapshotManager.notifyAll();
-      }
     } catch (Exception e) {
       throw new IOException(String.format("Failed to load snapshot %s", snapshot), e);
-    }
-  }
-
-  /**
-   * Called by {@link RaftJournalSystem} stop internal method before
-   * shutting down the raft server to prevent a deadlock on
-   * the lock in RaftServerProxy.
-   */
-  protected void setServerClosing() {
-    try (LockResource ignored = new LockResource(mGroupLock)) {
-      mServerClosing = true;
-    }
-  }
-
-  /**
-   * Called by {@link RaftJournalSystem} stop internal method after
-   * shutting down the raft server.
-   */
-  protected void afterServerClosing() {
-    try (LockResource ignored = new LockResource(mGroupLock)) {
-      mServerClosing = false;
     }
   }
 
@@ -278,48 +248,32 @@ public class JournalStateMachine extends BaseStateMachine {
     long index;
     StateLockManager stateLockManager = mStateLockManagerRef.get();
     if (!mIsLeader) {
+      LOG.info("Taking local snapshot as follower");
       index = takeLocalSnapshot(false);
     } else if (stateLockManager != null) {
       // the leader has been allowed to take a local snapshot by being given a non-null
       // StateLockManager through the #allowLeaderSnapshots method
       try (LockResource stateLock = stateLockManager.lockExclusive(StateLockOptions.defaults())) {
+        LOG.info("Taking local snapshot as leader");
         index = takeLocalSnapshot(true);
       } catch (Exception e) {
         return RaftLog.INVALID_LOG_INDEX;
       }
     } else {
-      RaftGroup group;
-      try (LockResource ignored = new LockResource(mGroupLock)) {
-        if (mServerClosing) {
-          return RaftLog.INVALID_LOG_INDEX;
-        }
-        // These calls are protected by mGroupLock and mServerClosing
-        // as they will access the lock in RaftServerProxy.java
-        // which is also accessed during raft server shutdown which
-        // can cause a deadlock as the shutdown takes the lock while
-        // waiting for this thread to finish
-        Preconditions.checkState(mServer.getGroups().iterator().hasNext());
-        group = mServer.getGroups().iterator().next();
-      } catch (IOException e) {
-        SAMPLING_LOG.warn("Failed to get raft group info: {}", e.getMessage());
-        return RaftLog.INVALID_LOG_INDEX;
-      }
-      if (group.getPeers().size() < 2) {
-        SAMPLING_LOG.warn("No follower to perform delegated snapshot. Please add more masters to "
-            + "the quorum or manually take snapshot using 'alluxio fsadmin journal checkpoint'");
-        return RaftLog.INVALID_LOG_INDEX;
-      } else {
-        index = mSnapshotManager.maybeCopySnapshotFromFollower();
-      }
+      index = mSnapshotManager.downloadSnapshotFromOtherMasters();
     }
     // update metrics if took a snapshot
     if (index != RaftLog.INVALID_LOG_INDEX) {
       mSnapshotLastIndex = index;
-      mLastCheckPointTime = System.currentTimeMillis();
+      mLastSnapshotTime = System.currentTimeMillis();
+      LOG.info("Took snapshot up to index {} at time {}", mSnapshotLastIndex, DateTime.now());
     }
     return index;
   }
 
+  /**
+   * @return the latest snapshot information, or null of no snapshot exists
+   */
   @Override
   public SnapshotInfo getLatestSnapshot() {
     return mStorage.getLatestSnapshot();
@@ -337,14 +291,6 @@ public class JournalStateMachine extends BaseStateMachine {
       JournalQueryRequest queryRequest = JournalQueryRequest.parseFrom(
           request.getContent().asReadOnlyByteBuffer());
       LOG.debug("Received query request: {}", queryRequest);
-      // give snapshot manager a chance to handle snapshot related requests
-      Message reply = mSnapshotManager.handleRequest(queryRequest);
-      if (reply != null) {
-        future.complete(reply);
-        return future;
-      }
-      // Snapshot manager returned null indicating the request is not handled. Check and handle
-      // other type of requests.
       if (queryRequest.hasAddQuorumServerRequest()) {
         AddQuorumServerRequest addRequest = queryRequest.getAddQuorumServerRequest();
         return CompletableFuture.supplyAsync(() -> {
@@ -355,13 +301,14 @@ public class JournalStateMachine extends BaseStateMachine {
           }
           return Message.EMPTY;
         });
+      } else {
+        return super.query(request);
       }
     } catch (Exception e) {
       LOG.error("failed processing request {}", request, e);
       future.completeExceptionally(e);
       return future;
     }
-    return super.query(request);
   }
 
   @Override
@@ -372,9 +319,7 @@ public class JournalStateMachine extends BaseStateMachine {
     MetricsSystem.removeMetrics(MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName());
     MetricsSystem.removeMetrics(MetricKey.MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX.getName());
     MetricsSystem.removeMetrics(MetricKey.MASTER_JOURNAL_CHECKPOINT_WARN.getName());
-    synchronized (mSnapshotManager) {
-      mSnapshotManager.notifyAll();
-    }
+    mSnapshotManager.close();
   }
 
   @Override
@@ -395,9 +340,6 @@ public class JournalStateMachine extends BaseStateMachine {
   public void notifyNotLeader(Collection<TransactionContext> pendingEntries) {
     mIsLeader = false;
     mJournalSystem.notifyLeadershipStateChanged(false);
-    synchronized (mSnapshotManager) {
-      mSnapshotManager.notifyAll();
-    }
   }
 
   @Override
@@ -406,38 +348,22 @@ public class JournalStateMachine extends BaseStateMachine {
     CompletableFuture.runAsync(mJournalSystem::updateGroup, mJournalPool);
   }
 
-  private long getNextIndex() {
-    try {
-      return mServer.getDivision(mRaftGroupId).getRaftLog().getNextIndex();
-    } catch (IOException e) {
-      throw new IllegalStateException("Cannot obtain raft log index", e);
-    }
-  }
-
   @Override
   public CompletableFuture<TermIndex> notifyInstallSnapshotFromLeader(
       RaftProtos.RoleInfoProto roleInfoProto, TermIndex firstTermIndexInLog) {
-    if (roleInfoProto.getRole() != RaftProtos.RaftPeerRole.FOLLOWER) {
-      return RaftJournalUtils.completeExceptionally(
-          new IllegalStateException(String.format(
-              "Server should be a follower when installing a snapshot from leader. Actual: %s",
-              roleInfoProto.getRole())));
-    }
-    return mSnapshotManager.installSnapshotFromLeader().thenApply(snapshotIndex -> {
-      long latestJournalIndex = getNextIndex() - 1;
-      if (latestJournalIndex >= snapshotIndex.getIndex()) {
-        // do not reload the state machine if the downloaded snapshot is older than the latest entry
-        // fail the request after installation so the leader will stop sending the same request
-        throw new IllegalArgumentException(
-            String.format("Downloaded snapshot index %d is older than the latest entry index %d",
-                snapshotIndex.getIndex(), latestJournalIndex));
+    // this method is called automatically by Ratis when the leader does not have all the logs to
+    // give to this follower. This method instructs the follower to download a snapshot from
+    // other masters to become up-to-date.
+    LOG.info("Received instruction to install snapshot from other master asynchronously");
+    return CompletableFuture.supplyAsync(() -> {
+      mSnapshotManager.downloadSnapshotFromOtherMasters();
+      long index = mSnapshotManager.waitForAttemptToComplete();
+      if (index == RaftLog.INVALID_LOG_INDEX) {
+        LOG.info("Failed to install snapshot from other master asynchronously");
+        return null;
       }
-      mSnapshotLastIndex = snapshotIndex.getIndex();
-      synchronized (mSnapshotManager) {
-        mSnapshotManager.notifyAll();
-      }
-      return snapshotIndex;
-    });
+      return getLatestSnapshot().getTermIndex();
+    }, mJournalPool);
   }
 
   @Override
@@ -571,9 +497,10 @@ public class JournalStateMachine extends BaseStateMachine {
       SAMPLING_LOG.info("Skip taking snapshot because state machine is closed.");
       return RaftLog.INVALID_LOG_INDEX;
     }
-    if (mServer.getLifeCycleState() != LifeCycle.State.RUNNING) {
+    RaftServer server = getServer().join(); // gets completed during initialization
+    if (server.getLifeCycleState() != LifeCycle.State.RUNNING) {
       SAMPLING_LOG.info("Skip taking snapshot because raft server is not in running state: "
-          + "current state is {}.", mServer.getLifeCycleState());
+          + "current state is {}.", server.getLifeCycleState());
       return RaftLog.INVALID_LOG_INDEX;
     }
     if (mJournalApplier.isSuspended()) {
@@ -590,66 +517,37 @@ public class JournalStateMachine extends BaseStateMachine {
     LOG.debug("Calling snapshot");
     Preconditions.checkState(!mSnapshotting, "Cannot call snapshot multiple times concurrently");
     mSnapshotting = true;
-    try (Timer.Context ctx = MetricsSystem
-        .timer(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER.getName()).time()) {
-      // The start time of the most recent snapshot
-      long lastSnapshotStartTime = System.currentTimeMillis();
+    TermIndex last = getLastAppliedTermIndex();
+
+    File snapshotDir = getSnapshotDir(last.getTerm(), last.getIndex());
+    if (!snapshotDir.isDirectory() && !snapshotDir.mkdir()) {
+      return RaftLog.INVALID_LOG_INDEX;
+    }
+    try (Timer.Context ctx = MetricsSystem.timer(
+             MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER.getName()).time()) {
+      Instant start = Instant.now();
       long snapshotId = mNextSequenceNumberToRead - 1;
-      TermIndex last = getLastAppliedTermIndex();
-      File tempFile;
-      try {
-        tempFile = RaftJournalUtils.createTempSnapshotFile(mStorage);
-      } catch (IOException e) {
-        LogUtils.warnWithException(LOG, "Failed to create temp snapshot file", e);
-        return RaftLog.INVALID_LOG_INDEX;
-      }
-      LOG.info("Taking a snapshot to file {}", tempFile);
-      final File snapshotFile = mStorage.getSnapshotFile(last.getTerm(), last.getIndex());
-      try (DataOutputStream outputStream = new DataOutputStream(new FileOutputStream(tempFile))) {
-        outputStream.writeLong(snapshotId);
-        JournalUtils.writeToCheckpoint(outputStream, getStateMachines());
-      } catch (Exception e) {
-        tempFile.delete();
-        LogUtils.warnWithException(LOG,
-            "Failed to write snapshot {} to file {}", snapshotId, tempFile, e);
-        return RaftLog.INVALID_LOG_INDEX;
-      }
-      try {
-        final MD5Hash digest = MD5FileUtil.computeMd5ForFile(tempFile);
-        LOG.info("Saving digest for snapshot file {}", snapshotFile);
-        MD5FileUtil.saveMD5File(snapshotFile, digest);
-        LOG.info("Renaming a snapshot file {} to {}", tempFile, snapshotFile);
-        if (!tempFile.renameTo(snapshotFile)) {
-          tempFile.delete();
-          LOG.warn("Failed to rename snapshot from {} to {}", tempFile, snapshotFile);
-          return RaftLog.INVALID_LOG_INDEX;
-        }
-        LOG.info("Completed snapshot with size {} up to SN {} in {}ms",
-            FormatUtils.getSizeFromBytes(snapshotFile.length()),
-            snapshotId, System.currentTimeMillis() - lastSnapshotStartTime);
-      } catch (Exception e) {
-        tempFile.delete();
-        LogUtils.warnWithException(LOG,
-            "Failed to complete snapshot: {} - {}", snapshotId, snapshotFile, e);
-        return RaftLog.INVALID_LOG_INDEX;
-      }
-      try {
-        mStorage.loadLatestSnapshot();
-      } catch (Exception e) {
-        snapshotFile.delete();
-        LogUtils.warnWithException(LOG, "Failed to refresh latest snapshot: {}", snapshotId, e);
-        return RaftLog.INVALID_LOG_INDEX;
-      }
+      SingleEntryJournaled idWriter = new SnapshotIdJournaled();
+      idWriter.processJournalEntry(JournalEntry.newBuilder().setSequenceNumber(snapshotId).build());
+      CompletableFuture.allOf(Stream.concat(Stream.of(idWriter), getStateMachines().stream())
+          .map(journaled -> journaled.writeToCheckpoint(snapshotDir, mJournalPool))
+          .toArray(CompletableFuture[]::new))
+          .join();
+      mStorage.loadLatestSnapshot();
+      mStorage.signalNewSnapshot();
+
+      mLastSnapshotDurationMs = Duration.between(start, Instant.now()).toMillis();
+      mLastSnapshotEntriesCount = mNextSequenceNumberToRead;
       return last.getIndex();
+    } catch (Exception e) {
+      LOG.error("error taking snapshot", e);
+      return RaftLog.INVALID_LOG_INDEX;
     } finally {
       mSnapshotting = false;
-      synchronized (mSnapshotManager) {
-        mSnapshotManager.notifyAll();
-      }
     }
   }
 
-  private void install(File snapshotFile) {
+  private void install(SnapshotInfo snapshot) {
     if (mClosed) {
       return;
     }
@@ -658,14 +556,29 @@ public class JournalStateMachine extends BaseStateMachine {
       return;
     }
 
+    File snapshotDir = getSnapshotDir(snapshot.getTerm(), snapshot.getIndex());
     long snapshotId = 0L;
     try (Timer.Context ctx = MetricsSystem.timer(MetricKey
-        .MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER.getName()).time();
-         DataInputStream stream =  new DataInputStream(new FileInputStream(snapshotFile))) {
-      snapshotId = stream.readLong();
-      JournalUtils.restoreFromCheckpoint(new CheckpointInputStream(stream), getStateMachines());
+        .MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER.getName()).time()) {
+      Instant start = Instant.now();
+      if (snapshotDir.isFile()) {
+        LOG.info("Restoring from snapshot {} in old format", snapshot.getTermIndex());
+        try (DataInputStream stream =  new DataInputStream(new FileInputStream(snapshotDir))) {
+          snapshotId = stream.readLong();
+          JournalUtils.restoreFromCheckpoint(new CheckpointInputStream(stream), getStateMachines());
+        }
+      } else {
+        SingleEntryJournaled idReader = new SnapshotIdJournaled();
+        CompletableFuture.allOf(Stream.concat(Stream.of(idReader), getStateMachines().stream())
+                .map(journaled -> journaled.restoreFromCheckpoint(snapshotDir, mJournalPool))
+                .toArray(CompletableFuture[]::new))
+            .join();
+        snapshotId = idReader.getEntry().getSequenceNumber();
+      }
+      mLastSnapshotReplayDurationMs = Duration.between(start, Instant.now()).toMillis();
     } catch (Exception e) {
-      JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to install snapshot: %s", snapshotId);
+      JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to install snapshot: %s",
+          snapshot.getTermIndex());
       if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
         return;
       }
@@ -676,7 +589,13 @@ public class JournalStateMachine extends BaseStateMachine {
           mNextSequenceNumberToRead);
     }
     mNextSequenceNumberToRead = snapshotId + 1;
+    mLastSnapshotReplayEntriesCount = mNextSequenceNumberToRead;
     LOG.info("Successfully installed snapshot up to SN {}", snapshotId);
+  }
+
+  private File getSnapshotDir(long term, long index) {
+    String dirName = SimpleStateMachineStorage.getSnapshotFileName(term, index);
+    return new File(mStorage.getSnapshotDir(), dirName);
   }
 
   /**
@@ -795,20 +714,13 @@ public class JournalStateMachine extends BaseStateMachine {
 
   @Override
   public void notifyLeaderChanged(RaftGroupMemberId groupMemberId, RaftPeerId raftPeerId) {
-    if (mRaftGroupId == groupMemberId.getGroupId()) {
+    if (getGroupId() == groupMemberId.getGroupId()) {
       mIsLeader = groupMemberId.getPeerId() == raftPeerId;
       mJournalSystem.notifyLeadershipStateChanged(mIsLeader);
     } else {
       LOG.warn("Received notification for unrecognized group {}, current group is {}",
-          groupMemberId.getGroupId(), mRaftGroupId);
+          groupMemberId.getGroupId(), getGroupId());
     }
-  }
-
-  /**
-   * @return the snapshot replication manager
-   */
-  public SnapshotReplicationManager getSnapshotReplicationManager() {
-    return mSnapshotManager;
   }
 
   /**

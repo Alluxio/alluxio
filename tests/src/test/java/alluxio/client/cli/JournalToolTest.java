@@ -205,14 +205,11 @@ public class JournalToolTest extends BaseIntegrationTest {
         new String[] {"-inputDir", leaderJournalDir, "-outputDir", mDumpDir.getAbsolutePath()});
     // Find the main checkpoint dir.
     String checkpointDir = findCheckpointDir();
-    // Embedded journal checkpoints are grouped by masters.
-    String fsMasterCheckpointsDir = PathUtils.concatPath(checkpointDir, "FILE_SYSTEM_MASTER");
 
-    assertNonemptyFileExists(
-        PathUtils.concatPath(fsMasterCheckpointsDir, "INODE_DIRECTORY_ID_GENERATOR"));
     for (String subPath : Arrays.asList("HEAP_INODE_STORE", "INODE_COUNTER",
-        "PINNED_INODE_FILE_IDS", "REPLICATION_LIMITED_FILE_IDS", "TO_BE_PERSISTED_FILE_IDS")) {
-      assertNonemptyFileExists(PathUtils.concatPath(fsMasterCheckpointsDir, "INODE_TREE", subPath));
+        "PINNED_INODE_FILE_IDS", "REPLICATION_LIMITED_FILE_IDS", "TO_BE_PERSISTED_FILE_IDS",
+        "INODE_DIRECTORY_ID_GENERATOR")) {
+      assertNonemptyFileExists(PathUtils.concatPath(checkpointDir, subPath));
     }
   }
 

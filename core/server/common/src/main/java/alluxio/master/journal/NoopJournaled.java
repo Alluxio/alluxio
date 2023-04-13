@@ -18,9 +18,12 @@ import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableIterator;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Interface providing default implementations which do nothing.
@@ -41,10 +44,22 @@ public interface NoopJournaled extends Journaled {
   }
 
   @Override
+  default CompletableFuture<Void> writeToCheckpoint(File directory,
+                                                    ExecutorService executorService) {
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
   default void writeToCheckpoint(OutputStream output) throws IOException {
     // Just write a checkpoint type with no data. The stream constructor writes unbuffered to the
     // underlying output, so we don't need to flush or close.
     new CheckpointOutputStream(output, CheckpointType.JOURNAL_ENTRY);
+  }
+
+  @Override
+  default CompletableFuture<Void> restoreFromCheckpoint(File directory,
+                                                        ExecutorService executorService) {
+    return CompletableFuture.completedFuture(null);
   }
 
   @Override

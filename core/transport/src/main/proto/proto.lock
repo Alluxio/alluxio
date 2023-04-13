@@ -1573,6 +1573,10 @@
                 "integer": 2
               },
               {
+                "name": "HISTOGRAM",
+                "integer": 5
+              },
+              {
                 "name": "TIMER",
                 "integer": 3
               },
@@ -6702,6 +6706,11 @@
                 "id": 2,
                 "name": "snapshotIndex",
                 "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "exists",
+                "type": "bool"
               }
             ]
           },
@@ -6774,6 +6783,9 @@
                 "type": "SnapshotData"
               }
             ]
+          },
+          {
+            "name": "LatestSnapshotInfoPRequest"
           }
         ],
         "services": [
@@ -6792,6 +6804,17 @@
                 "in_type": "DownloadSnapshotPRequest",
                 "out_type": "DownloadSnapshotPResponse",
                 "in_streamed": true,
+                "out_streamed": true
+              },
+              {
+                "name": "RequestLatestSnapshotInfo",
+                "in_type": "LatestSnapshotInfoPRequest",
+                "out_type": "SnapshotMetadata"
+              },
+              {
+                "name": "RequestLatestSnapshotData",
+                "in_type": "SnapshotMetadata",
+                "out_type": "SnapshotData",
                 "out_streamed": true
               }
             ]
