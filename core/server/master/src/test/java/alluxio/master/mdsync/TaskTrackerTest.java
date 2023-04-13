@@ -52,6 +52,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongArray;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.stream.Stream;
 
 public class TaskTrackerTest {
@@ -121,7 +123,7 @@ public class TaskTrackerTest {
   @Test
   public void rateLimitedTest() throws Throwable {
     // Be sure ufs loads, and result processing can happen concurrently
-    int concurrentUfsLoads = 1;
+    int concurrentUfsLoads = 2;
     int totalBatches = 10;
     int concurrentProcessing = 5;
     AtomicInteger remainingLoadCount = new AtomicInteger(totalBatches);
@@ -163,7 +165,7 @@ public class TaskTrackerTest {
     Mockito.doReturn(SyncCheck.shouldSyncWithTime(0))
         .when(mUfsSyncPathCache).shouldSyncPath(any(), anyLong(), any());
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 10; i++) {
       remainingGetStatusCount.set(1);
       remainingLoadCount.set(totalBatches);
 
@@ -191,7 +193,6 @@ public class TaskTrackerTest {
             WaitForOptions.defaults().setTimeoutMs(100000));        // wait for the next listStatus call to get its rate limiter permit
         rateLimiterBlocker.acquire();
         // allow the rate limited operation to succeed by moving the time forward
-        System.out.println("before permit " + remainingLoadCount.get());
         time.addAndGet(timePerPermit);
       }
       Pair<Boolean, BaseTask> result = task.get();

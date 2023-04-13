@@ -226,7 +226,7 @@ public class MetadataSyncer implements SyncProcess {
   }
 
   @VisibleForTesting
-  public static final class SyncProcessState {
+  static final class SyncProcessState {
     final String mAlluxioMountPath;
     final AlluxioURI mAlluxioSyncPath;
     final LockedInodePath mAlluxioSyncPathLocked;
@@ -371,7 +371,7 @@ public class MetadataSyncer implements SyncProcess {
         // We stop iterating the Alluxio metadata at the last loaded item if the load result
         // is truncated
         AlluxioURI readUntil = null;
-        if (loadResult.getUfsLoadResult().isTruncated()
+        if ((loadResult.getUfsLoadResult().isTruncated() || loadResult.isFirstLoad())
             && loadResult.getUfsLoadResult().getLastItem().isPresent()) {
           readUntil = new AlluxioURI(ufsPathToAlluxioPath(
               loadResult.getUfsLoadResult().getLastItem().get().getPath(),
@@ -414,13 +414,17 @@ public class MetadataSyncer implements SyncProcess {
         // TODO(tcrain)
         // return context.success();
         // the completed path sequence is from the previous last sync path, until our last UFS item
-        AlluxioURI syncStart = new AlluxioURI(ufsPathToAlluxioPath(loadResult.getPreviousLast()
-            .orElse(loadResult.getBaseLoadPath()).getPath(), ufsMountPath, alluxioMountPath));
-        AlluxioURI syncEnd = lastUfsStatus == null ? syncStart
-            : lastUfsStatus.mAlluxioUri;
-        LOG.debug("Completed processing sync from {} until {}", syncStart, syncEnd);
+        PathSequence pathSequence = null;
+        if (!loadResult.isFirstLoad()) {
+          AlluxioURI syncStart = new AlluxioURI(ufsPathToAlluxioPath(loadResult.getPreviousLast()
+              .orElse(loadResult.getBaseLoadPath()).getPath(), ufsMountPath, alluxioMountPath));
+          AlluxioURI syncEnd = lastUfsStatus == null ? syncStart
+              : lastUfsStatus.mAlluxioUri;
+          pathSequence = new PathSequence(syncStart, syncEnd);
+          LOG.debug("Completed processing sync from {} until {}", syncStart, syncEnd);
+        }
         return new SyncProcessResult(loadResult.getTaskInfo(), loadResult.getBaseLoadPath(),
-            new PathSequence(syncStart, syncEnd), loadResult.getUfsLoadResult().isTruncated(),
+            pathSequence, loadResult.getUfsLoadResult().isTruncated(),
             baseSyncPathIsFile, loadResult.isFirstLoad());
       }
     }
@@ -472,11 +476,6 @@ public class MetadataSyncer implements SyncProcess {
     //    5. move two pointers
     while (currentInode != null || currentUfsStatus != null) {
       SingleInodeSyncResult result = performSyncOne(syncState, currentUfsStatus, currentInode);
-      if (result.mLoadChildrenMountPoint) {
-        // TODO(tcrain) this should be submitted as a job when the initial task is created
-        // TODO(yimin) should we remove this?
-        // sync(syncRootPath.join(currentInode.getName()), context);
-      }
       if (result.mSkipChildren) {
         syncState.mInodeIterator.skipChildrenOfTheCurrent();
       }
@@ -536,7 +535,7 @@ public class MetadataSyncer implements SyncProcess {
         }
         checkShouldSetDescendantsLoaded(currentInode.getInode(), syncState);
         return new SingleInodeSyncResult(
-            skipUfs, true, true, syncState.mContext.getDescendantType() == DescendantType.ALL);
+            skipUfs, true, true);
       }
     }
 
@@ -570,14 +569,14 @@ public class MetadataSyncer implements SyncProcess {
         handleConcurrentModification(
             syncState.mContext, currentUfsStatus.mAlluxioPath, false, e);
       }
-      return new SingleInodeSyncResult(true, false, false, false);
+      return new SingleInodeSyncResult(true, false, false);
     } else if (currentUfsStatus == null || comparisonResult.get() < 0) {
       if (currentInode.getInode().isDirectory() && currentUfsStatus != null
           && currentInode.getLockedPath().getUri().isAncestorOf(currentUfsStatus.mAlluxioUri)) {
         // (Case 2) - in this case the inode is a directory and is an ancestor of the current
         // UFS state, so we skip it
         checkShouldSetDescendantsLoaded(currentInode.getInode(), syncState);
-        return new SingleInodeSyncResult(false, true, false, false);
+        return new SingleInodeSyncResult(false, true, false);
       }
       // (Case 3) - in this case the inode is not in the UFS, so we must delete it
       try {
@@ -589,7 +588,7 @@ public class MetadataSyncer implements SyncProcess {
         handleConcurrentModification(
             syncState.mContext, currentInode.getLockedPath().getUri().getPath(), false, e);
       }
-      return new SingleInodeSyncResult(false, true, true, false);
+      return new SingleInodeSyncResult(false, true, true);
     }
     // (Case 4) - in this case both the inode, and the UFS item exist, so we check if we need
     // to update the metadata
@@ -662,7 +661,7 @@ public class MetadataSyncer implements SyncProcess {
       syncState.mContext.reportSyncOperationSuccess(SyncOperation.NOOP);
     }
     checkShouldSetDescendantsLoaded(currentInode.getInode(), syncState);
-    return new SingleInodeSyncResult(true, true, false, false);
+    return new SingleInodeSyncResult(true, true, false);
   }
 
   // TODO list:
@@ -825,14 +824,11 @@ public class MetadataSyncer implements SyncProcess {
     boolean mMoveUfs;
     boolean mMoveInode;
     boolean mSkipChildren;
-    boolean mLoadChildrenMountPoint;
 
-    public SingleInodeSyncResult(boolean moveUfs, boolean moveInode, boolean skipChildren,
-                                 boolean loadChildrenMountPoint) {
+    public SingleInodeSyncResult(boolean moveUfs, boolean moveInode, boolean skipChildren) {
       mMoveUfs = moveUfs;
       mMoveInode = moveInode;
       mSkipChildren = skipChildren;
-      mLoadChildrenMountPoint = loadChildrenMountPoint;
     }
   }
 }

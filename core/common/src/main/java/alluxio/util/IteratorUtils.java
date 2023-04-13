@@ -1,7 +1,5 @@
 package alluxio.util;
 
-import alluxio.RuntimeConstants;
-
 import java.io.IOException;
 import java.util.Iterator;
 

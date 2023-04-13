@@ -25,7 +25,7 @@ public class TestSyncProcess implements SyncProcess {
 
   @Override
   public SyncProcessResult performSync(
-      LoadResult loadResult, UfsSyncPathCache syncPathCache) {
+      LoadResult loadResult, UfsSyncPathCache syncPathCache) throws Throwable {
 
     Stream<UfsStatus> stream = loadResult.getUfsLoadResult().getItems().peek(status -> {
       // If we are loading by directory, then we must create a new load task on each

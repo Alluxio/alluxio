@@ -152,9 +152,14 @@ public class PathLoaderTask {
         shouldLoadMore = ufsLoadResult.getItemsCount() == 0;
         shouldProcessResult = !shouldLoadMore;
       } else {
-        // If our initial request returned a value, and it was a file, then
-        // we don't need to load more
-        shouldLoadMore = ufsLoadResult.getItemsCount() == 0 || !ufsLoadResult.isFirstFile();
+        // If our initial request returned a value, and it was a file,
+        // or if descendant type was none
+        // then we don't need to load more
+        if (originalRequest.getDescendantType() == DescendantType.NONE) {
+          shouldLoadMore = false;
+        } else {
+          shouldLoadMore = (ufsLoadResult.getItemsCount() == 0 || !ufsLoadResult.isFirstFile());
+        }
         if (ufsLoadResult.isIsObjectStore() && ufsLoadResult.getItemsCount() == 0) {
           shouldProcessResult = false;
         }
