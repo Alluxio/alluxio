@@ -1217,6 +1217,53 @@
             ]
           },
           {
+            "name": "LoadFileRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "files",
+                "type": "File",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "File",
+            "fields": [
+              {
+                "id": 1,
+                "name": "ufs_path",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "length",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "mountId",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "LoadFileResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "status",
+                "type": "TaskStatus"
+              },
+              {
+                "id": 2,
+                "name": "files",
+                "type": "FileFailure",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
             "name": "FreeWorkerRequest"
           },
           {
@@ -1229,6 +1276,31 @@
                 "id": 1,
                 "name": "block",
                 "type": "Block"
+              },
+              {
+                "id": 2,
+                "name": "code",
+                "type": "int32"
+              },
+              {
+                "id": 3,
+                "name": "message",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "retryable",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "FileFailure",
+            "fields": [
+              {
+                "id": 1,
+                "name": "file",
+                "type": "File"
               },
               {
                 "id": 2,
@@ -1423,6 +1495,11 @@
                 "name": "Load",
                 "in_type": "LoadRequest",
                 "out_type": "LoadResponse"
+              },
+              {
+                "name": "LoadFile",
+                "in_type": "LoadFileRequest",
+                "out_type": "LoadFileResponse"
               },
               {
                 "name": "RemoveBlock",

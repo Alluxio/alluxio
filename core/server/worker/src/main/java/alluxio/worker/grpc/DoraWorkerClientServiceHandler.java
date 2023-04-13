@@ -13,20 +13,25 @@ package alluxio.worker.grpc;
 
 import static java.util.Objects.requireNonNull;
 
+import alluxio.RpcUtils;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.FileFailure;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
+import alluxio.grpc.LoadFileRequest;
+import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
+import alluxio.grpc.TaskStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.options.ListOptions;
 import alluxio.util.io.PathUtils;
@@ -34,6 +39,8 @@ import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.PagedDoraWorker;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
 import io.grpc.MethodDescriptor;
 import io.grpc.stub.CallStreamObserver;
@@ -43,6 +50,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -96,6 +104,28 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
         mWorker, callStreamObserver);
     callStreamObserver.setOnReadyHandler(readHandler::onReady);
     return readHandler;
+  }
+
+  @Override
+  public void loadFile(LoadFileRequest request, StreamObserver<LoadFileResponse> responseObserver) {
+    try {
+
+      ListenableFuture<List<FileFailure>> failures =
+          mWorker.load(request.getFilesList());
+      ListenableFuture<LoadFileResponse> future = Futures.transform(failures, fail -> {
+        int numFiles = request.getFilesCount();
+        TaskStatus taskStatus = TaskStatus.SUCCESS;
+        if (fail.size() > 0) {
+          taskStatus = numFiles > fail.size() ? TaskStatus.PARTIAL_FAILURE : TaskStatus.FAILURE;
+        }
+        LoadFileResponse.Builder response = LoadFileResponse.newBuilder();
+        return response.addAllFiles(fail).setStatus(taskStatus).build();
+      }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+      RpcUtils.invoke(LOG, future, "loadFile", "request=%s", responseObserver, request);
+    } catch (Exception e) {
+      LOG.debug(String.format("Failed to load file %s: ", request.getFilesList()), e);
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
+    }
   }
 
   @Override

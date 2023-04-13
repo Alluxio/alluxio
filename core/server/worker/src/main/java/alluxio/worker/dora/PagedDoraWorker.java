@@ -24,11 +24,14 @@ import alluxio.client.file.cache.PageId;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.file.FileId;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
+import alluxio.grpc.File;
+import alluxio.grpc.FileFailure;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
@@ -37,6 +40,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.meta.DoraMeta;
 import alluxio.resource.PooledResource;
@@ -57,6 +61,7 @@ import alluxio.worker.AbstractWorker;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.grpc.GrpcExecutors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
@@ -66,13 +71,18 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Closer;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
+import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -429,6 +439,44 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
     return PagedFileReader.create(mConf, mCacheManager, ufsClient, fileId,
         options.getUfsPath(), options.getBlockSize(), offset);
+  }
+
+  @Override
+  public ListenableFuture<List<FileFailure>> load(List<File> files) {
+    List<ListenableFuture<Void>> futures = new ArrayList<>();
+    List<FileFailure> errors = Collections.synchronizedList(new ArrayList<>());
+    for (File file : files) {
+      ListenableFuture<Void> loadFuture = Futures.submit(() -> {
+        try {
+          load(file.getUfsPath(), file.getMountId(), file.getLength());
+        } catch (Exception e) {
+          AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
+          errors.add(FileFailure.newBuilder().setFile(file).setCode(t.getStatus().getCode().value())
+                                .setMessage(t.getMessage()).build());
+        }
+      }, GrpcExecutors.BLOCK_READER_EXECUTOR);
+      futures.add(loadFuture);
+    }
+    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_READER_EXECUTOR);
+  }
+
+  private void load(String ufsPath, long mountId, long length) {
+    Protocol.OpenUfsBlockOptions options =
+        Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(ufsPath).setMountId(mountId)
+                                    .setNoCache(false).setOffsetInFile(0).setBlockSize(length)
+                                    .build();
+    String fileId = new AlluxioURI(ufsPath).hash();
+    ByteBuf buf = PooledDirectNioByteBuf.allocate((int) (4 * mPageSize));
+    try (BlockReader fileReader = createFileReader(fileId, 0, false, options)) {
+      while (fileReader.transferTo(buf) != -1) {
+        buf.clear();
+      }
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
+    finally {
+      buf.release();
+    }
   }
 
   @Override
