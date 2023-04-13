@@ -9,23 +9,14 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-FROM alluxio/alluxio:2.10.0-SNAPSHOT
+FROM alluxio/alluxio:291-gamma
 
 USER root
 
 RUN \
     yum update -y && yum upgrade -y && \
-    yum install -y java-11-openjdk-devel java-11-openjdk && \
     yum install -y ca-certificates pkgconfig wget udev git gcc gcc-c++ make cmake gettext-devel libtool autoconf unzip vim && \
     yum clean all
-
-# Create a symlink for setting JAVA_HOME depending on java version. ENV cannot be set conditionally.
-RUN ln -s /usr/lib/jvm/java-1.8.0-openjdk /usr/lib/jvm/java-8-openjdk
-ARG JAVA_VERSION=8
-ENV JAVA_HOME /usr/lib/jvm/java-${JAVA_VERSION}-openjdk
-
-# Disable JVM DNS cache in java11 (https://github.com/Alluxio/alluxio/pull/9452)
-RUN echo "networkaddress.cache.ttl=0" >> /usr/lib/jvm/java-11-openjdk/conf/security/java.security
 
 # Install arthas(https://github.com/alibaba/arthas) for analyzing performance bottleneck
 RUN wget -qO /tmp/arthas.zip "https://github.com/alibaba/arthas/releases/download/arthas-all-3.4.6/arthas-bin.zip" && \
