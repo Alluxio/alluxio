@@ -323,13 +323,11 @@ public final class MountTable implements DelegatingJournaled {
   public String getMountPoint(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
     String lastMount = ROOT;
+    List<String> possibleMounts = PathUtils.getPossibleMountPoints(path);
     try (LockResource r = new LockResource(mReadLock)) {
-      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-        String mount = entry.getKey();
-        // we choose a new candidate path if the previous candidate path is a prefix
-        // of the current alluxioPath and the alluxioPath is a prefix of the path
-        if (!mount.equals(ROOT) && PathUtils.hasPrefix(path, mount)
-            && lastMount.length() < mount.length()) {
+      Map<String, MountInfo> mountTable = mState.getMountTable();
+      for (String mount: possibleMounts) {
+        if (mountTable.containsKey(mount)) {
           lastMount = mount;
         }
       }
