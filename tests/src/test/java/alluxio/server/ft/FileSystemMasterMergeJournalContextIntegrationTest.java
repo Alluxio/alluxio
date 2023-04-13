@@ -29,6 +29,7 @@ import alluxio.multi.process.PortCoordination;
 import alluxio.security.authorization.Mode;
 import alluxio.server.ft.journal.raft.EmbeddedJournalIntegrationTestBase;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -43,6 +44,7 @@ public class FileSystemMasterMergeJournalContextIntegrationTest
   private static final int NUM_MASTERS = 3;
   private static final int NUM_WORKERS = 0;
 
+  @Ignore("Dora does not support setAttribute RECURSIVELY")
   @Test
   public void testForceFlush() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)

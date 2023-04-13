@@ -49,6 +49,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -99,7 +100,12 @@ public final class TieredBlockStoreTest {
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
     mMetaManager = BlockMetadataManager.createBlockMetadataManager();
     mLockManager = new BlockLockManager();
-    mBlockStore = new TieredBlockStore(mMetaManager, mLockManager);
+    mBlockStore = new TieredBlockStore(mMetaManager,
+        mLockManager,
+        new TieredBlockReaderFactory(),
+        new TieredBlockWriterFactory(),
+        new TieredTempBlockMetaFactory());
+    mBlockStore.initialize();
     mBlockIterator = mMetaManager.getBlockIterator();
 
     mTestDir1 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(0);
@@ -547,7 +553,7 @@ public final class TieredBlockStoreTest {
   }
 
   @Test
-  public void getBlockWriterForNonExistingBlock() {
+  public void getBlockWriterForNonExistingBlock() throws IOException {
     mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
     mBlockStore.createBlockWriter(SESSION_ID1, BLOCK_ID1);

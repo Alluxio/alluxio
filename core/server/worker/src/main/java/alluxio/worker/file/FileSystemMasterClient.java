@@ -24,6 +24,7 @@ import alluxio.grpc.UfsInfo;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.FileInfo;
 
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +48,7 @@ public class FileSystemMasterClient extends AbstractMasterClient {
    *
    * @param conf master client configuration
    */
+  @Inject
   public FileSystemMasterClient(MasterClientContext conf) {
     super(conf);
   }

@@ -85,6 +85,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
+import javax.inject.Inject;
+import javax.inject.Named;
 
 /**
  * The class is responsible for managing all top level components of the Block Worker.
@@ -161,10 +163,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    * @param workerId               worker id
    */
   @VisibleForTesting
+  @Inject
   public DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
                             FileSystemMasterClient fileSystemMasterClient, Sessions sessions,
                             BlockStore blockStore,
-                            AtomicReference<Long> workerId) {
+                            @Named("workerId") AtomicReference<Long> workerId) {
     super(ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5));
     mBlockMasterClientPool = mResourceCloser.register(blockMasterClientPool);
     mFileSystemMasterClient = mResourceCloser.register(fileSystemMasterClient);
@@ -186,10 +189,16 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       mUnderFileSystemBlockStore =
           new UnderFileSystemBlockStore(
               ((MonoBlockStore) mBlockStore).getLocalBlockStore(),
-              new WorkerUfsManager());
+              new WorkerUfsManager(mFileSystemMasterClient));
     } else {
       mUnderFileSystemBlockStore =
-          new UnderFileSystemBlockStore(new TieredBlockStore(), new WorkerUfsManager());
+          new UnderFileSystemBlockStore(new TieredBlockStore(
+              BlockMetadataManager.createBlockMetadataManager(),
+              new BlockLockManager(),
+              new TieredBlockReaderFactory(),
+              new TieredBlockWriterFactory(),
+              new TieredTempBlockMetaFactory()),
+              new WorkerUfsManager(mFileSystemMasterClient));
     }
     Metrics.registerGauges(this);
   }

@@ -69,6 +69,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import javax.inject.Inject;
+import javax.inject.Named;
 
 /**
  * A implementation of BlockStore.
@@ -106,10 +108,11 @@ public class MonoBlockStore implements BlockStore {
    * @param ufsManager
    * @param workerId
    */
+  @Inject
   public MonoBlockStore(LocalBlockStore localBlockStore,
       BlockMasterClientPool blockMasterClientPool,
       UfsManager ufsManager,
-      AtomicReference<Long> workerId) {
+      @Named("workerId") AtomicReference<Long> workerId) {
     mLocalBlockStore = requireNonNull(localBlockStore);
     mBlockMasterClientPool = requireNonNull(blockMasterClientPool);
     mUnderFileSystemBlockStore =
@@ -117,6 +120,11 @@ public class MonoBlockStore implements BlockStore {
     mWorkerId = workerId;
     mMetaManager = localBlockStore.getMetadataManager();
     mLockManager = localBlockStore.getLockManager();
+  }
+
+  @Override
+  public void initialize() {
+    mLocalBlockStore.initialize();
   }
 
   @Override

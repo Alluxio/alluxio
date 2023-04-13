@@ -45,7 +45,8 @@ public final class JournalEntryAssociation {
         || entry.hasUpdateInode()
         || entry.hasUpdateInodeDirectory()
         || entry.hasUpdateInodeFile()
-        || entry.hasLoadJob()) {
+        || entry.hasLoadJob()
+        || entry.hasCopyJob()) {
       return Constants.FILE_SYSTEM_MASTER_NAME;
     }
     if (entry.hasBlockContainerIdGenerator()
@@ -57,17 +58,6 @@ public final class JournalEntryAssociation {
         || entry.hasPathProperties()
         || entry.hasRemovePathProperties()) {
       return Constants.META_MASTER_NAME;
-    }
-    if (entry.hasAttachDb()
-        || entry.hasAddTable()
-        || entry.hasAddTablePartitions()
-        || entry.hasRemoveTable()
-        || entry.hasDetachDb()
-        || entry.hasUpdateDatabaseInfo()
-        || entry.hasAddTransformJobInfo()
-        || entry.hasRemoveTransformJobInfo()
-        || entry.hasCompleteTransformTable()) {
-      return Constants.TABLE_MASTER_NAME;
     }
     throw new IllegalStateException("Unrecognized journal entry: " + entry);
   }

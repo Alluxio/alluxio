@@ -87,11 +87,6 @@
       <artifactId>alluxio-core-client-fs</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-table-client</artifactId>
-      <version>${project.version}</version>
-    </dependency>
   </dependencies>
 
   <profiles>
@@ -292,6 +287,10 @@
                     <!-- Exclude the rocksdb-jni package-->
                     <exclude>org/rocksdb/**/*</exclude>
                   </excludes>
+                </relocation>
+                <relocation>
+                  <pattern>software/amazon/ion/</pattern>
+                  <shadedPattern>${shading.prefix}.software.amazon.ion</shadedPattern>
                 </relocation>
               </relocations>
               <transformers>

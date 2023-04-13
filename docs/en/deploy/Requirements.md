@@ -109,18 +109,3 @@ Running Alluxio Fuse under high load will increase these requirements.
   * libfuse 2.9.3 or newer for Linux
   * osxfuse 3.7.1 or newer for MacOS
 
-## Additional Requirements
-
-Alluxio can aggregate logs and send them to a remote server.
-This is useful to be able to view logs for the entire cluster from a single location.
-Below are the port and resource requirements for the remote logging server.
-
-### Remote Logging Server Requirements
-
-There are Alluxio-specific requirements for running the remote logging server:
-
-* Minimum 1 GB disk space
-* Minimum 1 GB memory
-* Minimum 2 CPU cores
-* Allow the following ports and protocols:
-  * Inbound TCP 45600 - Used by loggers to write logs to the server.

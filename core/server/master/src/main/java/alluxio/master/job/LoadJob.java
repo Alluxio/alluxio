@@ -76,7 +76,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * thus the state changing functions are not thread safe.
  */
 @NotThreadSafe
-public class LoadJob implements Job<LoadJob.LoadTask> {
+public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
   private static final Logger LOG = LoggerFactory.getLogger(LoadJob.class);
   public static final String TYPE = "load";
   private static final double FAILURE_RATIO_THRESHOLD = 0.05;
@@ -89,7 +89,7 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
           && fileInfo.getInAlluxioPercentage() != 100;
   // Job configurations
   private final String mPath;
-  private final Optional<String> mUser;
+
   private OptionalLong mBandwidth;
   private boolean mUsePartialListing;
   private boolean mVerificationEnabled;
@@ -97,7 +97,7 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
   // Job states
   private final LinkedList<Block> mRetryBlocks = new LinkedList<>();
   private final Map<String, String> mFailedFiles = new HashMap<>();
-  private final long mStartTime;
+
   private final AtomicLong mProcessedFileCount = new AtomicLong();
   private final AtomicLong mLoadedByteCount = new AtomicLong();
   private final AtomicLong mTotalByteCount = new AtomicLong();
@@ -105,14 +105,11 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
   private final AtomicLong mCurrentBlockCount = new AtomicLong();
   private final AtomicLong mTotalFailureCount = new AtomicLong();
   private final AtomicLong mCurrentFailureCount = new AtomicLong();
-  private final String mJobId;
-  private JobState mState;
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
   private final Iterable<FileInfo> mFileIterable;
   private Optional<Iterator<FileInfo>> mFileIterator = Optional.empty();
   private FileInfo mCurrentFile;
   private Iterator<Long> mBlockIterator = Collections.emptyIterator();
-  private OptionalLong mEndTime = OptionalLong.empty();
 
   /**
    * Constructor.
@@ -144,17 +141,14 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
       Optional<String> user, String jobId, OptionalLong bandwidth,
       boolean usePartialListing,
       boolean verificationEnabled, FileIterable fileIterable) {
+    super(user, jobId);
     mPath = requireNonNull(path, "path is null");
-    mUser = requireNonNull(user, "user is null");
-    mJobId = requireNonNull(jobId, "jobId is null");
     Preconditions.checkArgument(
         !bandwidth.isPresent() || bandwidth.getAsLong() > 0,
         format("bandwidth should be greater than 0 if provided, get %s", bandwidth));
     mBandwidth = bandwidth;
     mUsePartialListing = usePartialListing;
     mVerificationEnabled = verificationEnabled;
-    mStartTime = System.currentTimeMillis();
-    mState = JobState.RUNNING;
     mFileIterable = fileIterable;
   }
 
@@ -166,31 +160,9 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
     return mPath;
   }
 
-  /**
-   * Get user.
-   * @return user
-   */
-  public Optional<String> getUser() {
-    return mUser;
-  }
-
-  @Override
-  public String getJobId() {
-    return mJobId;
-  }
-
   @Override
   public JobDescription getDescription() {
     return JobDescription.newBuilder().setPath(mPath).setType(TYPE).build();
-  }
-
-  /**
-   * Get end time.
-   * @return end time
-   */
-  @Override
-  public OptionalLong getEndTime() {
-    return mEndTime;
   }
 
   /**
@@ -199,14 +171,6 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
    */
   public OptionalLong getBandwidth() {
     return mBandwidth;
-  }
-
-  /**
-   * Update end time.
-   * @param time time in ms
-   */
-  public void setEndTime(long time) {
-    mEndTime = OptionalLong.of(time);
   }
 
   /**
@@ -226,46 +190,11 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
   }
 
   /**
-   * Is verification enabled.
-   *
-   * @return whether verification is enabled
-   */
-  @Override
-  public boolean needVerification() {
-    return mVerificationEnabled && mCurrentBlockCount.get() > 0;
-  }
-
-  /**
    * Enable verification.
    * @param enableVerification whether to enable verification
    */
   public void setVerificationEnabled(boolean enableVerification) {
     mVerificationEnabled = enableVerification;
-  }
-
-  /**
-   * Get load status.
-   * @return the load job's status
-   */
-  @Override
-  public JobState getJobState() {
-    return mState;
-  }
-
-  /**
-   * Set load state.
-   * @param state new state
-   */
-  @Override
-  public void setJobState(JobState state) {
-    LOG.debug("Change JobState to {} for job {}", state, this);
-    mState = state;
-    if (!isRunning()) {
-      mEndTime = OptionalLong.of(System.currentTimeMillis());
-    }
-    if (state == JobState.SUCCEEDED) {
-      JOB_LOAD_SUCCESS.inc();
-    }
   }
 
   /**
@@ -277,6 +206,12 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
     setJobState(JobState.FAILED);
     mFailedReason = Optional.of(reason);
     JOB_LOAD_FAIL.inc();
+  }
+
+  @Override
+  public void setJobSuccess() {
+    setJobState(JobState.SUCCEEDED);
+    JOB_LOAD_SUCCESS.inc();
   }
 
   /**
@@ -327,16 +262,6 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
   }
 
   @Override
-  public boolean isRunning() {
-    return mState == JobState.RUNNING || mState == JobState.VERIFYING;
-  }
-
-  @Override
-  public boolean isDone() {
-    return mState == JobState.SUCCEEDED || mState == JobState.FAILED;
-  }
-
-  @Override
   public boolean isCurrentPassDone() {
     return  mFileIterator.isPresent() && !mFileIterator.get().hasNext() && !mBlockIterator.hasNext()
         && mRetryBlocks.isEmpty();
@@ -359,6 +284,7 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
    * @param worker blocker to worker
    * @return the next task to run. If there is no task to run, return empty
    */
+  @Override
   public Optional<LoadTask> getNextTask(WorkerInfo worker) {
     List<Block> blocks = getNextBatchBlocks(BATCH_SIZE);
     if (blocks.isEmpty()) {
@@ -573,9 +499,22 @@ public class LoadJob implements Job<LoadJob.LoadTask> {
 
   @Override
   public void updateJob(Job<?> job) {
+    if (!(job instanceof LoadJob)) {
+      throw new IllegalArgumentException("Job is not a LoadJob: " + job);
+    }
     LoadJob targetJob = (LoadJob) job;
     updateBandwidth(targetJob.getBandwidth());
     setVerificationEnabled(targetJob.isVerificationEnabled());
+  }
+
+  /**
+   * Is verification enabled.
+   *
+   * @return whether verification is enabled
+   */
+  @Override
+  public boolean needVerification() {
+    return mVerificationEnabled && mCurrentBlockCount.get() > 0;
   }
 
   /**

@@ -70,6 +70,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
    * This test starts alluxio in HA mode, kills Zookeeper, waits for Alluxio to fail, then restarts
    * Zookeeper. Alluxio should recover when Zookeeper is restarted.
    */
+  @Ignore("In Dora, Client does not use Master/Journal services.")
   @Test
   public void zkFailure() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.ZOOKEEPER_FAILURE)

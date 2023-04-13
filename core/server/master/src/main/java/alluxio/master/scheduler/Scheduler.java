@@ -334,7 +334,7 @@ public final class Scheduler {
         }
         else {
           if (job.isHealthy()) {
-            job.setJobState(JobState.SUCCEEDED);
+            job.setJobSuccess();
           }
           else {
             job.failJob(new InternalRuntimeException("Job failed because it's not healthy."));

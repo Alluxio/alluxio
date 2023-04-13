@@ -24,10 +24,12 @@ import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.IntegrationTestUtils;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URI;
 
+@Ignore("In Dora, Client does not use Master/Journal services.")
 public class MultiProcessCheckpointTest {
 
   @Test

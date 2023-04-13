@@ -20,14 +20,6 @@
     file system.
 - name: ALLUXIO_RAM_FOLDER
   description: The directory where a worker stores its in-memory data. Defaults to `/mnt/ramdisk`.
-- name: ALLUXIO_LOGSERVER_HOSTNAME
-  description: Hostname of the log server. Empty by default.
-- name: ALLUXIO_LOGSERVER_PORT
-  description: The port number of the log server. Defaults to `45600`
-- name: ALLUXIO_LOGSERVER_LOGS_DIR
-  description: >
-    The path to the local directory where the Alluxio log server stores logs received from the
-    Alluxio servers.
 - name: ALLUXIO_JAVA_OPTS
   description: >
     Java VM options for the Alluxio master, worker, and shell commands. By default,

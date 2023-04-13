@@ -27,11 +27,16 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.BufferUtils;
+import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
+import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.MonoBlockStore;
+import alluxio.worker.block.TieredBlockReaderFactory;
 import alluxio.worker.block.TieredBlockStore;
+import alluxio.worker.block.TieredBlockWriterFactory;
+import alluxio.worker.block.TieredTempBlockMetaFactory;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import org.apache.log4j.Level;
@@ -58,7 +63,12 @@ class BlockWorkerBase {
     BlockMasterClient blockMasterClient = mock(BlockMasterClient.class);
     BlockMasterClientPool blockMasterClientPool = spy(new BlockMasterClientPool());
     when(blockMasterClientPool.createNewResource()).thenReturn(blockMasterClient);
-    TieredBlockStore tieredBlockStore = new TieredBlockStore();
+    TieredBlockStore tieredBlockStore = new TieredBlockStore(
+        BlockMetadataManager.createBlockMetadataManager(),
+        new BlockLockManager(),
+        new TieredBlockReaderFactory(),
+        new TieredBlockWriterFactory(),
+        new TieredTempBlockMetaFactory());
     UfsManager ufsManager = mock(UfsManager.class);
     AtomicReference<Long> workerId = new AtomicReference<>(-1L);
     mUfs = AlluxioTestDirectory.createTemporaryDirectory("BlockWorkerBench").getAbsolutePath();
@@ -67,6 +77,7 @@ class BlockWorkerBase {
             UnderFileSystemConfiguration.defaults(Configuration.global())), new AlluxioURI(mUfs));
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mBlockStore = new MonoBlockStore(tieredBlockStore, blockMasterClientPool, ufsManager, workerId);
+    mBlockStore.initialize();
     FileSystemMasterClient fileSystemMasterClient = mock(FileSystemMasterClient.class);
     Sessions sessions = mock(Sessions.class);
     mBlockWorker =

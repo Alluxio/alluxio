@@ -18,6 +18,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.resource.ResourcePool;
 
 import com.google.common.io.Closer;
+import com.google.inject.Inject;
 
 import java.io.IOException;
 import java.util.Queue;
@@ -37,6 +38,7 @@ public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
   /**
    * Creates a new block master client pool.
    */
+  @Inject
   public BlockMasterClientPool() {
     super(Configuration.getInt(PropertyKey.WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE));
     mClientList = new ConcurrentLinkedQueue<>();

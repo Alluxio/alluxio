@@ -56,11 +56,6 @@
       <artifactId>alluxio-job-server</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-logserver</artifactId>
-      <version>${project.version}</version>
-    </dependency>
   </dependencies>
 
   <build>

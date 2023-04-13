@@ -21,12 +21,17 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.NoopUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
+import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.MonoBlockStore;
+import alluxio.worker.block.TieredBlockReaderFactory;
 import alluxio.worker.block.TieredBlockStore;
+import alluxio.worker.block.TieredBlockWriterFactory;
+import alluxio.worker.block.TieredTempBlockMetaFactory;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.page.PagedBlockStore;
 
@@ -82,7 +87,12 @@ public class BlockStoreBase implements AutoCloseable {
     BlockMasterClientPool mockPool = mock(BlockMasterClientPool.class);
     when(mockPool.acquire()).thenReturn(mockClient);
 
-    TieredBlockStore tieredBlockStore = new TieredBlockStore();
+    TieredBlockStore tieredBlockStore = new TieredBlockStore(
+        BlockMetadataManager.createBlockMetadataManager(),
+        new BlockLockManager(),
+        new TieredBlockReaderFactory(),
+        new TieredBlockWriterFactory(),
+        new TieredTempBlockMetaFactory());
 
     return new MonoBlockStore(tieredBlockStore, mockPool, ufsManager, new AtomicReference<>(1L));
   }

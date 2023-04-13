@@ -29,10 +29,12 @@ import alluxio.exception.OpenDirectoryException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
@@ -228,6 +230,23 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
 
     mDelegatedFileSystem.iterateStatus(ufsFullPath, options, action);
+  }
+
+  @Override
+  public boolean exists(AlluxioURI path, ExistsPOptions options)
+      throws InvalidPathException, IOException, AlluxioException {
+    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
+
+    return mDelegatedFileSystem.exists(ufsFullPath, options);
+  }
+
+  @Override
+  public void setAttribute(AlluxioURI path, SetAttributePOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
+    LOG.warn("Dora Client does not support create/write. This is only for test.");
+
+    mDelegatedFileSystem.setAttribute(ufsFullPath, options);
   }
 
   /**

@@ -64,6 +64,7 @@ import alluxio.wire.BackupStatus;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -86,6 +87,7 @@ import java.util.stream.Collectors;
 /**
  * Integration test for backing up and restoring alluxio master.
  */
+@Ignore("In Dora, Client does not use Master/Journal services.")
 public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public MultiProcessCluster mCluster;
   private static final int GET_PRIMARY_INDEX_TIMEOUT_MS = 30000;
