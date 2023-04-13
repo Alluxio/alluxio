@@ -679,12 +679,35 @@ message SyncMetadataPRequest {
   optional SyncMetadataPOptions options = 2;
 }
 
+enum SyncMetadataState {
+  UNKNOWN = 0;
+  RUNNING = 1;
+  SUCCEEDED = 2;
+  FAILED = 3;
+  CANCELED = 4;
+}
+
+message SyncMetadataTask {
+  message Exception {
+    optional string exceptionType = 1;
+    optional string exceptionMessage = 2;
+    optional string stacktrace = 3;
+  }
+
+  optional int64 id = 1;
+  optional SyncMetadataState state = 2;
+  optional int64 syncDurationMs = 3;
+  optional Exception exception = 4;
+
+  optional string taskInfoString = 100;
+  optional string taskStatString = 101;
+
+}
+
 message SyncMetadataPResponse {
-  optional bool success = 1;
-  // Use this field for anything that is wanted to be printed on the console for debug purpose.
+  optional SyncMetadataTask task = 1;
+
   optional string debugInfo = 1000;
-  optional string taskInfoString = 1001;
-  optional string taskStatString = 1002;
 }
 
 message SyncMetadataAsyncPResponse {
@@ -697,18 +720,9 @@ message GetSyncProgressPRequest {
 }
 
 message GetSyncProgressPResponse {
-  enum State {
-    UNKNOWN = 0;
-    SUCCESS = 1;
-    FAIL = 2;
-    IN_PROGRESS = 3;
-  }
-  optional State state = 1;
-  optional int64 numFilesSynced = 2;
+  optional SyncMetadataTask task = 1;
 
   optional string debugInfo = 1000;
-  optional string taskInfoString = 1001;
-  optional string taskStatString = 1002;
 }
 
 message CancelSyncMetadataPRequest {

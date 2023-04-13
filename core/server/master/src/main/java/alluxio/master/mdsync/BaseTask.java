@@ -18,9 +18,12 @@ import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.status.CancelledException;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
+import alluxio.grpc.SyncMetadataState;
+import alluxio.grpc.SyncMetadataTask;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
 import alluxio.util.CommonUtils;
+import alluxio.util.ExceptionUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -40,7 +43,22 @@ public abstract class BaseTask implements PathWaiter {
     RUNNING,
     SUCCEEDED,
     FAILED,
-    CANCELLED
+    CANCELED;
+
+    SyncMetadataState toProto() {
+      switch (this) {
+        case RUNNING:
+          return SyncMetadataState.RUNNING;
+        case SUCCEEDED:
+          return SyncMetadataState.SUCCEEDED;
+        case FAILED:
+          return SyncMetadataState.FAILED;
+        case CANCELED:
+          return SyncMetadataState.CANCELED;
+        default:
+          return SyncMetadataState.UNKNOWN;
+      }
+    }
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(BaseTask.class);
@@ -61,7 +79,7 @@ public abstract class BaseTask implements PathWaiter {
     if (result.succeeded()) {
       return State.SUCCEEDED;
     } else if (result.getThrowable().orElse(null) instanceof CancelledException) {
-      return State.CANCELLED;
+      return State.CANCELED;
     } else {
       return State.FAILED;
     }
@@ -204,5 +222,25 @@ public abstract class BaseTask implements PathWaiter {
       return CommonUtils.getCurrentMs() - mStartTime;
     }
     return mFinishTime - mStartTime;
+  }
+
+  public synchronized SyncMetadataTask toProtoTask() {
+    SyncMetadataTask.Builder builder = SyncMetadataTask.newBuilder();
+    builder.setId(getTaskInfo().getId());
+    builder.setState(getState().toProto());
+    builder.setSyncDurationMs(getSyncDuration());
+    Throwable t = null;
+    if (mIsCompleted != null && mIsCompleted.getThrowable().isPresent()) {
+      t = mIsCompleted.getThrowable().get();
+    }
+    if (t != null && getState() != State.CANCELED) {
+      builder.setException(SyncMetadataTask.Exception.newBuilder()
+              .setExceptionType(t.getClass().getTypeName())
+              .setExceptionMessage(t.getMessage())
+              .setStacktrace(ExceptionUtils.asPlainText(t)));
+    }
+    builder.setTaskInfoString(getTaskInfo().toString());
+    builder.setTaskStatString(getTaskInfo().getStats().toReportString());
+    return builder.build();
   }
 }

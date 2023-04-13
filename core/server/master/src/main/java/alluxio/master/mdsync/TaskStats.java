@@ -96,7 +96,7 @@ public class TaskStats {
   @Override
   public String toString() {
     MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(this)
-        .add("Success op count", mSuccessOperationCount)
+        .add("Success op count", getSuccessOperationCountString())
         .add("# of batches", mBatches.get())
         .add("# of objects loaded from UFS", mStatuses.get())
         .add("# of load requests", mLoadRequests.get())
@@ -111,7 +111,7 @@ public class TaskStats {
 
   public String toReportString() {
     MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(this);
-    helper.add("Success op count", mSuccessOperationCount)
+    helper.add("Success op count", getSuccessOperationCountString())
         .add("# of batches", mBatches.get())
         .add("# of objects loaded from UFS", mStatuses.get())
         .add("# of load requests", mLoadRequests.get())
@@ -191,6 +191,23 @@ public class TaskStats {
    */
   public AtomicLong[] getSuccessOperationCount() {
     return mSuccessOperationCount;
+  }
+
+  private String getSuccessOperationCountString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("{");
+    for (int i = 0; i < mSuccessOperationCount.length; ++i) {
+      long value = mSuccessOperationCount[i].get();
+      if (value != 0) {
+        sb.append("[")
+            .append(SyncOperation.fromInteger(i))
+            .append(":")
+            .append(value)
+            .append("]");
+      }
+    }
+    sb.append("}");
+    return sb.toString();
   }
 
   /**

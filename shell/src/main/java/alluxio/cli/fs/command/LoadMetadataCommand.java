@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
@@ -26,6 +27,8 @@ import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.SyncMetadataAsyncPResponse;
 import alluxio.grpc.SyncMetadataPOptions;
 import alluxio.grpc.SyncMetadataPResponse;
+import alluxio.grpc.SyncMetadataState;
+import alluxio.grpc.SyncMetadataTask;
 import alluxio.util.CommonUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -96,7 +99,9 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
           .desc("the numeric task id")
           .build();
 
-  private final List<String> operationValues = Arrays.asList("load", "get", "cancel");
+  private final List<String> mOperationValues = Arrays.asList("load", "get", "cancel");
+
+  private final int mPollingIntervalMs = 10000;
 
   /**
    * Constructs a new instance to load metadata for the given Alluxio path from UFS.
@@ -132,7 +137,7 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
       getSyncProgress(Long.parseLong(cl.getOptionValue(TASK_ID_OPTION.getOpt())));
     } else if (operation.equals("cancel")) {
       cancel(Long.parseLong(cl.getOptionValue(TASK_ID_OPTION.getOpt())));
-    } if (cl.hasOption(V2_OPTION.getOpt())) {
+    } else if (cl.hasOption(V2_OPTION.getOpt())) {
       DirectoryLoadPType loadPType = DirectoryLoadPType.valueOf(cl.getOptionValue(
           DIR_LOAD_TYPE_OPTION.getOpt(), "SINGLE_LISTING"));
       loadMetadataV2(plainPath, cl.hasOption(RECURSIVE_OPTION.getOpt()), loadPType,
@@ -146,16 +151,57 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    AlluxioURI path = new AlluxioURI(args[0]);
-    runWildCardCmd(path, cl);
+    AlluxioURI path = null;
+    if (args.length > 0) {
+      path = new AlluxioURI(args[0]);
+      runWildCardCmd(path, cl);
+    } else {
+      // -o cancel [task_id] / -o get [task_id]
+      runPlainPath(null, cl);
+    }
 
     return 0;
   }
 
+  private void printTask(SyncMetadataTask task) {
+    System.out.println("Task id: " + task.getId());
+    if (task.getState() == SyncMetadataState.SUCCEEDED) {
+      System.out.println(Constants.ANSI_GREEN + "State: " + task.getState() + Constants.ANSI_RESET);
+    } else if (task.getState() == SyncMetadataState.FAILED) {
+      System.out.println(Constants.ANSI_RED + "State: " + task.getState() + Constants.ANSI_RESET);
+    } else {
+      System.out.println("State: " + task.getState());
+    }
+    System.out.println("Sync duration: " + task.getSyncDurationMs());
+    if (task.hasException()) {
+      System.out.println(Constants.ANSI_RED + "Exception: " + Constants.ANSI_RESET);
+      System.out.println(Constants.ANSI_RED + "\t" + task.getException().getExceptionType()
+          + Constants.ANSI_RESET);
+      System.out.println(Constants.ANSI_RED + "\t" + task.getException().getExceptionMessage()
+          + Constants.ANSI_RESET);
+      System.out.println(Constants.ANSI_RED + "\t" + task.getException().getStacktrace()
+          + Constants.ANSI_RESET);
+    }
+    System.out.println("Task info: ");
+    System.out.println("\t" + task.getTaskInfoString());
+    System.out.println("Task stats: ");
+    System.out.println("\t" + task.getTaskStatString());
+    if (task.getState() == SyncMetadataState.SUCCEEDED) {
+      System.out.println(Constants.ANSI_GREEN + "Load Metadata Completed." + Constants.ANSI_RESET);
+    }
+    if (task.getState() == SyncMetadataState.FAILED) {
+      System.out.println(
+          Constants.ANSI_RED + "Load Metadata Failed. Please check the server log or retry!"
+              + Constants.ANSI_RESET);
+    }
+    if (task.getState() == SyncMetadataState.CANCELED) {
+      System.out.println("Load Metadata Canceled.");
+    }
+  }
+
   private void getSyncProgress(long taskId) throws IOException, AlluxioException {
     GetSyncProgressPResponse syncProgress = mFileSystem.getSyncProgress(taskId);
-    System.out.println(syncProgress.getTaskInfoString());
-    System.out.println(syncProgress.getTaskStatString());
+    printTask(syncProgress.getTask());
   }
 
   private void cancel(long taskId) throws IOException, AlluxioException {
@@ -168,35 +214,39 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
       boolean async) throws IOException {
     SyncMetadataPOptions options =
         SyncMetadataPOptions.newBuilder().setLoadDescendantType(recursive
-            ? LoadDescendantPType.ALL : LoadDescendantPType.ONE)
+                ? LoadDescendantPType.ALL : LoadDescendantPType.ONE)
             .setDirectoryLoadType(dirLoadType).build();
     if (!async) {
       try {
+        System.out.println("Starting metadata sync..");
         SyncMetadataPResponse response = mFileSystem.syncMetadata(path, options);
-        System.out.println("Sync metadata result: " + response);
-        System.out.println(response.getDebugInfo());
+        System.out.println("Sync Metadata finished");
+        printTask(response.getTask());
         return;
       } catch (AlluxioException e) {
         throw new IOException(e.getMessage());
       }
     }
     try {
-      System.out.println("Submitting metadata sync task");
+      System.out.println("Submitting metadata sync task...");
       SyncMetadataAsyncPResponse response = mFileSystem.syncMetadataAsync(path, options);
       long taskId = response.getTaskId();
-      System.out.println("Task " + taskId + " submitted");
+      System.out.println("Task " + taskId + " has been submitted successfully.");
+      System.out.println("Polling sync progress every " + mPollingIntervalMs + "ms");
+      System.out.println("You can also poll the sync progress in another terminal using:");
+      System.out.println("\t$bin/alluxio fs loadMetadata -o get -id " + taskId);
+      System.out.println("Sync is being executed asynchronously. Ctrl+C or closing the terminal "
+          + "does not stop the task. To cancel the task, you can use: ");
+      System.out.println("\t$bin/alluxio fs loadMetadata -o cancel -id " + taskId);
       while (true) {
+        System.out.println("------------------------------------------------------");
         GetSyncProgressPResponse syncProgress = mFileSystem.getSyncProgress(taskId);
-        if (syncProgress.getState() == GetSyncProgressPResponse.State.SUCCESS) {
-          System.out.println("Sync succeeded");
-          System.out.println(syncProgress.getDebugInfo());
-          return;
-        } else if (syncProgress.getState() == GetSyncProgressPResponse.State.FAIL) {
-          System.out.println("Sync failed");
+        SyncMetadataTask task = syncProgress.getTask();
+        printTask(task);
+        if (task.getState() != SyncMetadataState.RUNNING) {
           return;
         }
-        System.out.print("\r\033[K" + syncProgress.getDebugInfo());
-        CommonUtils.sleepMs(2000);
+        CommonUtils.sleepMs(mPollingIntervalMs);
       }
     } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
@@ -235,19 +285,33 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
 
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
+    String operation = cl.getOptionValue(OPERATION_OPTION.getOpt(), "load");
+    if (!mOperationValues.contains(operation)) {
+      throw new InvalidArgumentException(
+          "Operation value " + operation + " invalid. Possible values: load/cancel/get");
+    }
+    if (operation.equals("load")) {
+      CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
+    } else {
+      CommandUtils.checkNumOfArgsNoMoreThan(this, cl, 0);
+      if (cl.hasOption(FORCE_OPTION.getOpt())
+          || cl.hasOption(ASYNC_OPTION.getOpt())
+          || cl.hasOption(DIR_LOAD_TYPE_OPTION.getOpt())) {
+        throw new InvalidArgumentException("-o load/cancel only supports -id option");
+      }
+      if (!cl.hasOption(TASK_ID_OPTION.getOpt())) {
+        throw new InvalidArgumentException("-o load/cancel only comes with an -id option");
+      }
+    }
     if (cl.hasOption(FORCE_OPTION.getOpt()) && cl.hasOption(V2_OPTION.getOpt())) {
       throw new InvalidArgumentException("LoadMetadata v2 does not support -F option.");
     }
     if (cl.hasOption(ASYNC_OPTION.getOpt()) && !cl.hasOption(V2_OPTION.getOpt())) {
       throw new InvalidArgumentException("LoadMetadata v1 does not support -a/--async option.");
     }
-    String operation = cl.getOptionValue(OPERATION_OPTION.getOpt(), "load");
-    if (!operationValues.contains(operation)) {
-      throw new InvalidArgumentException("Operation value " + operation + " invalid. Possible values: load/cancel/get");
-    }
     if (cl.hasOption(TASK_ID_OPTION.getOpt()) && operation.equals("load")) {
-      throw new InvalidArgumentException("-id option only works with get and cancel operation type");
+      throw new InvalidArgumentException(
+          "-id option only works with get and cancel operation type");
     }
   }
 }

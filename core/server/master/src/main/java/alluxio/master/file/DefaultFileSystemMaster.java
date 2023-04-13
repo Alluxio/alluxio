@@ -4148,7 +4148,8 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataContext context) {
+  public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataContext context)
+      throws InvalidPathException {
     // The followings are test code to test UFS partial listing
     /*
     int count = 0;
@@ -4162,16 +4163,15 @@ public class DefaultFileSystemMaster extends CoreMaster
     System.out.println(CommonUtils.getCurrentMs() - start);
     return SyncMetadataPResponse.getDefaultInstance();
     */
+    BaseTask task = mMetadataSyncer.syncPath(path,
+        GrpcUtils.fromProto(context.getOptions().getLoadDescendantType()),
+        GrpcUtils.fromProto(context.getOptions().getDirectoryLoadType()), 0);
     try {
-      BaseTask result = mMetadataSyncer.syncPath(path,
-          GrpcUtils.fromProto(context.getOptions().getLoadDescendantType()),
-          GrpcUtils.fromProto(context.getOptions().getDirectoryLoadType()), 0);
-      result.waitComplete(0);
-      return SyncMetadataPResponse.newBuilder().setSuccess(result.succeeded())
-          .setDebugInfo(result.getTaskInfo().getStats().toString()).build();
+      task.waitComplete(0);
     } catch (Throwable t) {
-      throw new RuntimeException(t);
+      LOG.error("Sync metadata failed for task {}", task.getTaskInfo().getId(), t);
     }
+    return SyncMetadataPResponse.newBuilder().setTask(task.toProtoTask()).build();
   }
 
   @Override
@@ -4191,15 +4191,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       throw new NotFoundRuntimeException("Task id " + taskId + " not found");
     }
     GetSyncProgressPResponse.Builder responseBuilder = GetSyncProgressPResponse.newBuilder();
-    if (!task.get().isCompleted().isPresent()) {
-      responseBuilder.setState(GetSyncProgressPResponse.State.IN_PROGRESS);
-    } else if (task.get().succeeded()) {
-      responseBuilder.setState(GetSyncProgressPResponse.State.SUCCESS);
-    } else {
-      responseBuilder.setState(GetSyncProgressPResponse.State.FAIL);
-    }
-    responseBuilder.setDebugInfo(task.get().getTaskInfo().getStats().toString()).build();
-    TaskInfo taskInfo = task.get().getTaskInfo();
+    responseBuilder.setTask(task.get().toProtoTask());
+
     return responseBuilder.build();
   }
 

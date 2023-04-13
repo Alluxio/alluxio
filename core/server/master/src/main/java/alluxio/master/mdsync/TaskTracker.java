@@ -146,6 +146,9 @@ public class TaskTracker implements Closeable {
       Preconditions.checkNotNull(activeTasks.deleteIf(
               baseTask.getTaskInfo().getBasePath().getPath(), a -> true),
           "task missing");
+      if (!baseTask.removeOnComplete()) {
+        mFinishedTaskMap.put(taskId, baseTask);
+      }
     } else {
       LOG.debug("Task with id {} failed with error, but was already removed", taskId, t);
     }

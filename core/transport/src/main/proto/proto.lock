@@ -2116,22 +2116,26 @@
             ]
           },
           {
-            "name": "GetSyncProgressPResponse.State",
+            "name": "SyncMetadataState",
             "enum_fields": [
               {
                 "name": "UNKNOWN"
               },
               {
-                "name": "SUCCESS",
+                "name": "RUNNING",
                 "integer": 1
               },
               {
-                "name": "FAIL",
+                "name": "SUCCEEDED",
                 "integer": 2
               },
               {
-                "name": "IN_PROGRESS",
+                "name": "FAILED",
                 "integer": 3
+              },
+              {
+                "name": "CANCELED",
+                "integer": 4
               }
             ]
           }
@@ -4017,26 +4021,73 @@
             ]
           },
           {
-            "name": "SyncMetadataPResponse",
+            "name": "SyncMetadataTask",
             "fields": [
               {
                 "id": 1,
-                "name": "success",
-                "type": "bool"
+                "name": "id",
+                "type": "int64"
               },
               {
-                "id": 1000,
-                "name": "debugInfo",
-                "type": "string"
+                "id": 2,
+                "name": "state",
+                "type": "SyncMetadataState"
               },
               {
-                "id": 1001,
+                "id": 3,
+                "name": "syncDurationMs",
+                "type": "int64"
+              },
+              {
+                "id": 4,
+                "name": "exception",
+                "type": "Exception"
+              },
+              {
+                "id": 100,
                 "name": "taskInfoString",
                 "type": "string"
               },
               {
-                "id": 1002,
+                "id": 101,
                 "name": "taskStatString",
+                "type": "string"
+              }
+            ],
+            "messages": [
+              {
+                "name": "Exception",
+                "fields": [
+                  {
+                    "id": 1,
+                    "name": "exceptionType",
+                    "type": "string"
+                  },
+                  {
+                    "id": 2,
+                    "name": "exceptionMessage",
+                    "type": "string"
+                  },
+                  {
+                    "id": 3,
+                    "name": "stacktrace",
+                    "type": "string"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "SyncMetadataPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "task",
+                "type": "SyncMetadataTask"
+              },
+              {
+                "id": 1000,
+                "name": "debugInfo",
                 "type": "string"
               }
             ]
@@ -4071,27 +4122,12 @@
             "fields": [
               {
                 "id": 1,
-                "name": "state",
-                "type": "State"
-              },
-              {
-                "id": 2,
-                "name": "numFilesSynced",
-                "type": "int64"
+                "name": "task",
+                "type": "SyncMetadataTask"
               },
               {
                 "id": 1000,
                 "name": "debugInfo",
-                "type": "string"
-              },
-              {
-                "id": 1001,
-                "name": "taskInfoString",
-                "type": "string"
-              },
-              {
-                "id": 1002,
-                "name": "taskStatString",
                 "type": "string"
               }
             ]
