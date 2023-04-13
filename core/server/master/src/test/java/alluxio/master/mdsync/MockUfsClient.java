@@ -34,6 +34,7 @@ public class MockUfsClient implements UfsClient {
   Function<String, Pair<Stream<UfsStatus>, Boolean>> mResultFunc = null;
   UfsStatus mUfsStatus = null;
   RateLimiter mRateLimiter = null;
+  Function<String, UfsStatus> mGetStatusFunc = null;
 
   void setError(@Nullable Throwable t) {
     mError = t;
@@ -51,18 +52,26 @@ public class MockUfsClient implements UfsClient {
     mUfsStatus = item;
   }
 
-  void setResultFunc(Function<String, Pair<Stream<UfsStatus>, Boolean>> resultFunc) {
+  void setGetStatusFunc(Function<String, UfsStatus> getStatusFunc) {
+    mGetStatusFunc = getStatusFunc;
+  }
+
+  void setListingResultFunc(Function<String, Pair<Stream<UfsStatus>, Boolean>> resultFunc) {
     mResultFunc = resultFunc;
   }
 
   @Override
   public void performGetStatusAsync(
       String path, Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError) {
+    UfsStatus status = mUfsStatus;
+    if (mGetStatusFunc != null) {
+      status = mGetStatusFunc.apply(path);
+    }
     onComplete.accept(new UfsLoadResult(
-        mUfsStatus == null ? Stream.empty() : Stream.of(mUfsStatus),
-        mUfsStatus == null ? 0 : 1,
+        status == null ? Stream.empty() : Stream.of(status),
+        status == null ? 0 : 1,
         null, null, false,
-        mUfsStatus != null && mUfsStatus.isFile(), true));
+        status != null && status.isFile(), true));
   }
 
   @Override

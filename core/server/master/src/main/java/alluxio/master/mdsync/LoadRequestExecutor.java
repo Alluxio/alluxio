@@ -22,6 +22,7 @@ import alluxio.underfs.UfsClient;
 import alluxio.underfs.UfsLoadResult;
 import alluxio.util.logging.SamplingLogger;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,14 +36,14 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class LoadRequestExecutor implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(LoadRequestExecutor.class);
   private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 5L * Constants.SECOND_MS);
 
   /** Limit the number of running (or completed but not yet processed) load requests. **/
-  private final Semaphore mRunning;
+  private final AtomicInteger mRunning;
   private final int mMaxRunning;
 
   private final Map<Long, PathLoaderTask> mPathLoaderTasks = new ConcurrentHashMap<>();
@@ -61,7 +62,7 @@ class LoadRequestExecutor implements Closeable {
 
   LoadRequestExecutor(int maxRunning, LoadResultExecutor resultExecutor) {
     mMaxRunning = maxRunning;
-    mRunning = new Semaphore(maxRunning);
+    mRunning = new AtomicInteger(maxRunning);
     mResultExecutor = resultExecutor;
     mExecutor = new Thread(() -> {
       while (!Thread.interrupted()) {
@@ -97,7 +98,7 @@ class LoadRequestExecutor implements Closeable {
     // added incorrectly
     request.getTaskInfo().getStats().reportSyncFailReason(
         request, null, SyncFailReason.LOADING_UFS_IO_FAILURE, t);
-    mRunning.release();
+    releaseRunning();
     request.onError(t);
   }
 
@@ -110,26 +111,27 @@ class LoadRequestExecutor implements Closeable {
       if (task != null && loadResult.isPresent()) {
         LoadResult result = loadResult.get();
         mResultExecutor.processLoadResult(result, () -> {
-          mRunning.release();
+          releaseRunning();
           result.getTaskInfo().getStats().mProcessStarted.incrementAndGet();
         }, v -> {
           result.getTaskInfo().getStats().mProcessCompleted.incrementAndGet();
           result.onProcessComplete(v);
         }, result::onProcessError);
       } else {
-        mRunning.release();
-        LOG.debug("Got a load result for id {} with no corresponding"
-            + "path loader task", request.getBaseTaskId());
+        releaseRunning();
+        if (loadResult.isPresent()) {
+          LOG.debug("Got a load result for id {} with no corresponding"
+              + "path loader task", request.getBaseTaskId());
+        }
       }
     }
   }
 
   private void runNextLoadTask() throws InterruptedException {
-    mRunning.acquire();
     // loop until there is a task ready to execute
-    while (mLoadRequests.isEmpty() && (mRateLimited.isEmpty()
-        || !mRateLimited.peek().isReady())) {
-      synchronized (this) {
+    synchronized (this) {
+      while ((mLoadRequests.isEmpty() || mRunning.get() == 0)
+          && (mRateLimited.isEmpty() || !mRateLimited.peek().isReady())) {
         Long nextId = mPathLoaderTaskQueue.poll();
         if (nextId != null) {
           checkNextLoad(nextId);
@@ -142,12 +144,20 @@ class LoadRequestExecutor implements Closeable {
             }
           }
           // wait until a rate limited task is ready, or this.notify() is called
-          NANOSECONDS.timedWait(this, waitNanos);
+          if (waitNanos == 0) {
+            wait();
+          } else {
+            // we only sleep if our wait time is less than 1 ms
+            // otherwise we spin wait
+            if (waitNanos >= Constants.MS_NANO) {
+              NANOSECONDS.timedWait(this, waitNanos);
+            }
+          }
         }
       }
     }
     SAMPLING_LOG.info("Concurrent running ufs load tasks {}",
-        mMaxRunning - mRunning.availablePermits());
+        mMaxRunning - mRunning.get());
     if (!mRateLimited.isEmpty() && mRateLimited.peek().isReady()) {
       RateLimitedRequest request = mRateLimited.remove();
       runTask(request.mTask, request.mLoadRequest);
@@ -155,6 +165,7 @@ class LoadRequestExecutor implements Closeable {
       LoadRequest nxtRequest = mLoadRequests.take();
       PathLoaderTask task = mPathLoaderTasks.get(nxtRequest.getBaseTaskId());
       if (task != null) {
+        Preconditions.checkState(mRunning.decrementAndGet() >= 0);
         Optional<Long> rateLimit = task.getRateLimiter().acquire();
         if (rateLimit.isPresent()) {
           mRateLimited.add(new RateLimitedRequest(task, nxtRequest, rateLimit.get()));
@@ -164,9 +175,13 @@ class LoadRequestExecutor implements Closeable {
       } else {
         LOG.debug("Got load request {} with task id {} with no corresponding task",
             nxtRequest.getLoadRequestId(), nxtRequest.getLoadRequestId());
-        mRunning.release();
       }
     }
+  }
+
+  private synchronized void releaseRunning() {
+    mRunning.incrementAndGet();
+    notify();
   }
 
   private void runTask(PathLoaderTask task, LoadRequest loadRequest) {

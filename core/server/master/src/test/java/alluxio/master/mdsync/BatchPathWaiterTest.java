@@ -25,6 +25,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import alluxio.AlluxioURI;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.master.file.metasync.SyncResult;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsClient;
 import alluxio.underfs.UfsLoadResult;
 
 import com.google.common.collect.Lists;
@@ -40,6 +42,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class BatchPathWaiterTest {
@@ -48,6 +51,14 @@ public class BatchPathWaiterTest {
 
   private final Clock mClock = Clock.systemUTC();
   private MdSync mMdSync;
+
+  private final MockUfsClient mUfsClient = new MockUfsClient();
+
+  private final Function<AlluxioURI, CloseableResource<UfsClient>> mClientSupplier =
+      (uri) -> new CloseableResource<UfsClient>(mUfsClient) {
+        @Override
+        public void closeResource() {}
+      };
 
   @Before
   public void before() {
@@ -74,7 +85,7 @@ public class BatchPathWaiterTest {
     TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
         NONE, 0, DirectoryLoadType.SINGLE_LISTING, 0);
-    BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
+    BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       path.onComplete(ans.getArgument(1));
       return null;
@@ -106,7 +117,7 @@ public class BatchPathWaiterTest {
     TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
         ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0);
-    BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
+    BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       path.onComplete(ans.getArgument(1));
       return null;
@@ -141,7 +152,7 @@ public class BatchPathWaiterTest {
     TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
         ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0);
-    BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
+    BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       path.onComplete(ans.getArgument(1));
       return null;
@@ -182,7 +193,7 @@ public class BatchPathWaiterTest {
     TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
         NONE, 0, DirectoryLoadType.SINGLE_LISTING, 0);
-    BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
+    BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       path.onComplete(ans.getArgument(1));
       return null;
@@ -206,7 +217,7 @@ public class BatchPathWaiterTest {
         new AlluxioURI("/"), null,
         ALL, 0, DirectoryLoadType.SINGLE_LISTING, 0);
     BatchPathWaiter root = (BatchPathWaiter) BaseTask.create(
-        ti, mClock.millis(), a -> null);
+        ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       root.onComplete(ans.getArgument(1));
       return null;
@@ -261,7 +272,7 @@ public class BatchPathWaiterTest {
     TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/"),
         new AlluxioURI("/"), null,
         ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0);
-    BatchPathWaiter root = (BatchPathWaiter) BaseTask.create(ti, mClock.millis(), a -> null);
+    BatchPathWaiter root = (BatchPathWaiter) BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       root.onComplete(ans.getArgument(1));
       return null;

@@ -25,8 +25,7 @@ public class TestSyncProcess implements SyncProcess {
 
   @Override
   public SyncProcessResult performSync(
-      LoadResult loadResult, UfsSyncPathCache syncPathCache) throws Throwable {
-    // Thread.sleep(1000);
+      LoadResult loadResult, UfsSyncPathCache syncPathCache) {
 
     Stream<UfsStatus> stream = loadResult.getUfsLoadResult().getItems().peek(status -> {
       // If we are loading by directory, then we must create a new load task on each
@@ -49,12 +48,9 @@ public class TestSyncProcess implements SyncProcess {
     });
     List<UfsStatus> items = stream.collect(Collectors.toList());
     if (items.size() == 0) {
-      System.out.println("Got empty result");
       return new SyncProcessResult(loadResult.getTaskInfo(), loadResult.getBaseLoadPath(),
           null, false, false, null, loadResult.isFirstLoad());
     }
-    System.out.printf("Processes %s items, start %s, end %s%n",
-        items.size(), items.get(0).getName(), items.get(items.size() - 1).getName());
     boolean rootPathIsFile = items.size() == 1 && loadResult.getBaseLoadPath().equals(
         loadResult.getTaskInfo().getBasePath()) && !items.get(0).isDirectory();
     return new SyncProcessResult(loadResult.getTaskInfo(), loadResult.getBaseLoadPath(),

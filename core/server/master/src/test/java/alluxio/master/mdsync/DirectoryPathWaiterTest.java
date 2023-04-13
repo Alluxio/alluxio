@@ -15,13 +15,14 @@ import static alluxio.file.options.DescendantType.ALL;
 import static alluxio.master.mdsync.BatchPathWaiterTest.completeFirstLoadRequestEmpty;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 
 import alluxio.AlluxioURI;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.master.file.metasync.SyncResult;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsClient;
 
 import org.junit.After;
 import org.junit.Before;
@@ -38,6 +39,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 
 @RunWith(Parameterized.class)
 public class DirectoryPathWaiterTest {
@@ -50,6 +52,14 @@ public class DirectoryPathWaiterTest {
   public DirectoryPathWaiterTest(DirectoryLoadType loadType) {
     mDirLoadType = loadType;
   }
+
+  private final MockUfsClient mUfsClient = new MockUfsClient();
+
+  private final Function<AlluxioURI, CloseableResource<UfsClient>> mClientSupplier =
+      (uri) -> new CloseableResource<UfsClient>(mUfsClient) {
+        @Override
+        public void closeResource() {}
+      };
 
   DirectoryLoadType mDirLoadType;
   ExecutorService mThreadPool;
@@ -72,7 +82,7 @@ public class DirectoryPathWaiterTest {
     TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
         ALL, 0, mDirLoadType, 0);
-    BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
+    BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       path.onComplete(ans.getArgument(1));
       return null;
@@ -92,7 +102,7 @@ public class DirectoryPathWaiterTest {
     TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
         ALL, 0, mDirLoadType, 0);
-    BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
+    BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       path.onComplete(ans.getArgument(1));
       return null;
@@ -122,7 +132,7 @@ public class DirectoryPathWaiterTest {
     TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
         ALL, 0, mDirLoadType, 0);
-    BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
+    BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       path.onComplete(ans.getArgument(1));
       return null;
@@ -151,7 +161,7 @@ public class DirectoryPathWaiterTest {
     TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/"),
         new AlluxioURI("/path"), null,
         ALL, 0, mDirLoadType, 0);
-    BaseTask path = BaseTask.create(ti, mClock.millis(), a -> null);
+    BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       path.onComplete(ans.getArgument(1));
       return null;
