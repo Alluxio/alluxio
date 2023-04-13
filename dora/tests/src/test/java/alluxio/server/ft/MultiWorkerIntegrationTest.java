@@ -109,8 +109,8 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
-      "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
       PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB",
       PropertyKey.Name.USER_BLOCK_READ_RETRY_MAX_DURATION, "1s",
       PropertyKey.Name.WORKER_RAMDISK_SIZE, "1GB"})
@@ -135,8 +135,8 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
-      "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
       PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB",
       PropertyKey.Name.USER_BLOCK_READ_RETRY_MAX_DURATION, "1s",
       PropertyKey.Name.WORKER_RAMDISK_SIZE, "1GB"})
@@ -161,8 +161,8 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
-      "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
       PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB",
       PropertyKey.Name.USER_BLOCK_READ_RETRY_MAX_DURATION, "1s",
       PropertyKey.Name.WORKER_RAMDISK_SIZE, "1GB"})

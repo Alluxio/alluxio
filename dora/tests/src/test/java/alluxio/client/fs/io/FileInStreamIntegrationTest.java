@@ -99,7 +99,6 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
 
     if (blockStoreType == BlockStoreType.PAGE) {
       builder
-          .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
           // todo(bowen): this one has to be overridden with a much larger value as
           //  local cache opens a local file on every get call, even for 1 byte read,
           //  which makes small reads extremely slow
@@ -375,7 +374,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
+      confParams = {
           PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "10240",
           PropertyKey.Name.USER_FILE_BUFFER_BYTES, "128"})
   public void concurrentRemoteRead() throws Exception {
@@ -434,7 +433,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
    */
   @Test(timeout = 30000)
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
+      confParams = {
           PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
           PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB",
           PropertyKey.Name.WORKER_RAMDISK_SIZE, "1GB"})
