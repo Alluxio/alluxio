@@ -11,13 +11,13 @@
 
 package alluxio.client.file.dora;
 
-import alluxio.client.block.stream.DataReader;
 import alluxio.client.file.FileInStream;
+import alluxio.client.file.dora.netty.PartialReadException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.OutOfRangeException;
-import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.util.io.ChannelAdapters;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -27,23 +27,19 @@ import java.util.Objects;
  * Implementation of {@link FileInStream} that reads from a dora cache if possible.
  */
 public class DoraCacheFileInStream extends FileInStream {
-
-  private final DataReader.Factory mReaderFactory;
   private final long mLength;
-
   private long mPos = 0;
   private boolean mClosed;
-  private DataReader mDataReader;
-  private DataBuffer mCurrentChunk;
+  private final DoraDataReader mDataReader;
 
   /**
    * Constructor.
-   * @param readerFactory
+   * @param reader
    * @param length
    */
-  public DoraCacheFileInStream(DataReader.Factory readerFactory,
+  public DoraCacheFileInStream(DoraDataReader reader,
       long length) {
-    mReaderFactory = readerFactory;
+    mDataReader = reader;
     mLength = length;
   }
 
@@ -60,36 +56,34 @@ public class DoraCacheFileInStream extends FileInStream {
 
   @Override
   public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= byteBuffer.capacity(),
-        PreconditionMessage.ERR_BUFFER_STATE.toString(), byteBuffer.capacity(), off, len);
-    Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockInStream");
+    Preconditions.checkArgument(len >= 0, "negative length");
+    Preconditions.checkArgument(byteBuffer.remaining() >= len,
+        "insufficient space left in buffer: {} needed, {} remaining", len, byteBuffer.remaining());
+    Preconditions.checkState(!mClosed, "stream closed");
     if (len == 0) {
       return 0;
     }
     if (mPos == mLength) {
       return -1;
     }
-    readChunk();
-    if (mCurrentChunk == null) {
-      closeDataReader();
-      if (mPos < mLength) {
-        throw new OutOfRangeException(String.format("Block %s is expected to be %s bytes, "
-                + "but only %s bytes are available in the UFS. "
-                + "Please retry the read and on the next access, "
-                + "Alluxio will sync with the UFS and fetch the updated file content.",
-             mLength, mPos));
+    int bytesRead = 0;
+    try {
+      bytesRead = mDataReader.read(mPos, ChannelAdapters.intoByteBuffer(byteBuffer), len);
+    } catch (PartialReadException e) {
+      bytesRead = e.getBytesRead();
+      if (bytesRead == 0) {
+        // we didn't make any progress, throw the exception so that the caller needs to handle that
+        Throwables.propagateIfPossible(e.getCause(), IOException.class);
+        throw new IOException(e.getCause());
       }
-      return -1;
+      // otherwise ignore the exception and let the caller decide whether to continue
+    } finally {
+      if (bytesRead > 0) { // -1 indicates EOF
+        mPos += bytesRead;
+      }
     }
-    int toRead = Math.min(len, mCurrentChunk.readableBytes());
-    byteBuffer.position(off).limit(off + toRead);
-    mCurrentChunk.readBytes(byteBuffer);
-    mPos += toRead;
-    if (mPos == mLength) {
-      // a performance improvement introduced by https://github.com/Alluxio/alluxio/issues/14020
-      closeDataReader();
-    }
-    return toRead;
+
+    return bytesRead;
   }
 
   @Override
@@ -101,34 +95,21 @@ public class DoraCacheFileInStream extends FileInStream {
     if (position < 0 || position >= mLength) {
       return -1;
     }
-
-    int totalBytesRead = 0;
-    try (DataReader reader = mReaderFactory.create(position, length)) {
-      while (totalBytesRead < length) {
-        DataBuffer dataBuffer = null;
-        try {
-          dataBuffer = reader.readChunk();
-          if (dataBuffer == null) {
-            break;
-          }
-          int bytesRead = Math.min(dataBuffer.readableBytes(), buffer.length - offset);
-          if (bytesRead == 0) {
-            break;
-          }
-          dataBuffer.readBytes(buffer, offset, bytesRead);
-          totalBytesRead += bytesRead;
-          offset += bytesRead;
-        } finally {
-          if (dataBuffer != null) {
-            dataBuffer.release();
-          }
+    try {
+      mDataReader.readFully(position,
+          ChannelAdapters.intoByteArray(buffer, offset, length), length);
+    } catch (PartialReadException e) {
+      if (e.getCauseType() == PartialReadException.CauseType.EARLY_EOF) {
+        if (e.getBytesRead() > 0) {
+          return e.getBytesRead();
+        } else {
+          return -1;
         }
       }
+      Throwables.propagateIfPossible(e.getCause(), IOException.class);
+      throw new IOException(e.getCause());
     }
-    if (totalBytesRead == 0) {
-      return -1;
-    }
-    return totalBytesRead;
+    return length;
   }
 
   @Override
@@ -145,7 +126,6 @@ public class DoraCacheFileInStream extends FileInStream {
     if (pos == mPos) {
       return;
     }
-    closeDataReader();
     mPos = pos;
   }
 
@@ -165,39 +145,7 @@ public class DoraCacheFileInStream extends FileInStream {
     if (mClosed) {
       return;
     }
-    try {
-      closeDataReader();
-    } finally {
-      mReaderFactory.close();
-    }
     mClosed = true;
-  }
-
-  /**
-   * Reads a new chunk from the channel if all of the current chunk is read.
-   */
-  private void readChunk() throws IOException {
-    if (mDataReader == null) {
-      mDataReader = mReaderFactory.create(mPos, mLength - mPos);
-    }
-
-    if (mCurrentChunk != null && mCurrentChunk.readableBytes() == 0) {
-      mCurrentChunk.release();
-      mCurrentChunk = null;
-    }
-    if (mCurrentChunk == null) {
-      mCurrentChunk = mDataReader.readChunk();
-    }
-  }
-
-  private void closeDataReader() throws IOException {
-    if (mCurrentChunk != null) {
-      mCurrentChunk.release();
-      mCurrentChunk = null;
-    }
-    if (mDataReader != null) {
-      mDataReader.close();
-    }
-    mDataReader = null;
+    mDataReader.close();
   }
 }
