@@ -11,13 +11,12 @@
 
 package alluxio.client.file.dora;
 
+import alluxio.PositionReader;
 import alluxio.client.file.FileInStream;
-import alluxio.client.file.dora.netty.PartialReadException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.util.io.ChannelAdapters;
 
+import com.amazonaws.annotation.NotThreadSafe;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -26,20 +25,21 @@ import java.util.Objects;
 /**
  * Implementation of {@link FileInStream} that reads from a dora cache if possible.
  */
+@NotThreadSafe
 public class DoraCacheFileInStream extends FileInStream {
   private final long mLength;
   private long mPos = 0;
   private boolean mClosed;
-  private final DoraDataReader mDataReader;
+  private final PositionReader mPositionReader;
 
   /**
    * Constructor.
    * @param reader
    * @param length
    */
-  public DoraCacheFileInStream(DoraDataReader reader,
+  public DoraCacheFileInStream(PositionReader reader,
       long length) {
-    mDataReader = reader;
+    mPositionReader = reader;
     mLength = length;
   }
 
@@ -56,60 +56,18 @@ public class DoraCacheFileInStream extends FileInStream {
 
   @Override
   public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
-    Preconditions.checkArgument(len >= 0, "negative length");
-    Preconditions.checkArgument(byteBuffer.remaining() >= len,
-        "insufficient space left in buffer: {} needed, {} remaining", len, byteBuffer.remaining());
-    Preconditions.checkState(!mClosed, "stream closed");
-    if (len == 0) {
-      return 0;
+    int bytesRead = mPositionReader.read(mPos, byteBuffer, len);
+    if (bytesRead <= 0) {
+      return bytesRead;
     }
-    if (mPos == mLength) {
-      return -1;
-    }
-    int bytesRead = 0;
-    try {
-      bytesRead = mDataReader.read(mPos, ChannelAdapters.intoByteBuffer(byteBuffer), len);
-    } catch (PartialReadException e) {
-      bytesRead = e.getBytesRead();
-      if (bytesRead == 0) {
-        // we didn't make any progress, throw the exception so that the caller needs to handle that
-        Throwables.propagateIfPossible(e.getCause(), IOException.class);
-        throw new IOException(e.getCause());
-      }
-      // otherwise ignore the exception and let the caller decide whether to continue
-    } finally {
-      if (bytesRead > 0) { // -1 indicates EOF
-        mPos += bytesRead;
-      }
-    }
-
+    mPos += bytesRead;
     return bytesRead;
   }
 
   @Override
   public int positionedRead(long position, byte[] buffer, int offset, int length)
       throws IOException {
-    if (length == 0) {
-      return 0;
-    }
-    if (position < 0 || position >= mLength) {
-      return -1;
-    }
-    try {
-      mDataReader.readFully(position,
-          ChannelAdapters.intoByteArray(buffer, offset, length), length);
-    } catch (PartialReadException e) {
-      if (e.getCauseType() == PartialReadException.CauseType.EARLY_EOF) {
-        if (e.getBytesRead() > 0) {
-          return e.getBytesRead();
-        } else {
-          return -1;
-        }
-      }
-      Throwables.propagateIfPossible(e.getCause(), IOException.class);
-      throw new IOException(e.getCause());
-    }
-    return length;
+    return mPositionReader.read(position, buffer, offset, length);
   }
 
   @Override
@@ -146,6 +104,6 @@ public class DoraCacheFileInStream extends FileInStream {
       return;
     }
     mClosed = true;
-    mDataReader.close();
+    mPositionReader.close();
   }
 }

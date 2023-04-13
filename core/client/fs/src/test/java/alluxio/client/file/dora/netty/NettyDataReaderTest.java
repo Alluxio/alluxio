@@ -46,8 +46,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.channels.Channels;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -58,7 +56,6 @@ public class NettyDataReaderTest {
   private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
   private final EmbeddedChannel mChannel = new EmbeddedChannel();
   private final ServerStateDriver mStateDriver = new ServerStateDriver(mExecutor, mChannel);
-  private final ByteArrayOutputStream mOut = new ByteArrayOutputStream();
   private final WorkerNetAddress mWorkerAddress = new WorkerNetAddress();
   private final Protocol.ReadRequest.Builder mRequestBuilder = Protocol.ReadRequest.newBuilder();
   private FileSystemContext mFsContext;
@@ -86,41 +83,43 @@ public class NettyDataReaderTest {
   public void read() throws Exception {
     final int length = 10;
     final long offset = 0;
+    byte[] byteArray = new byte[length];
     ServerState start = new WaitForRequestState(
         mRequestBuilder.clone().setLength(length).setOffset(offset).build());
     start.andThen(new SendDataState("hello".getBytes()))
         .andThen(new SendDataState("world".getBytes()))
         .andThen(new EofState());
     Future<Throwable> serverFault = mStateDriver.run(start);
-    int bytesRead = mReader.read(offset, Channels.newChannel(mOut), length);
+    int bytesRead = mReader.read(offset, byteArray, length);
 
     assertNull(serverFault.get());
     assertEquals(length, bytesRead);
-    assertArrayEquals("helloworld".getBytes(), mOut.toByteArray());
+    assertArrayEquals("helloworld".getBytes(), byteArray);
   }
 
   @Test
   public void eof() throws Exception {
     final long offset = 0;
     final int length = 11;
-
+    byte[] byteArray = new byte[length];
     ServerState start = new WaitForRequestState(
         mRequestBuilder.clone().setLength(length).setOffset(offset).build());
     start.andThen(new SendDataState("hello".getBytes()))
         .andThen(new SendDataState("world".getBytes()))
         .andThen(new EofState());
     Future<Throwable> serverFault = mStateDriver.run(start);
-    int bytesRead = mReader.read(offset, Channels.newChannel(mOut), length);
+    int bytesRead = mReader.read(offset, byteArray, length);
 
     assertNull(serverFault.get());
     assertEquals(10, bytesRead);
-    assertArrayEquals("helloworld".getBytes(), mOut.toByteArray());
+    assertArrayEquals("helloworld".getBytes(), byteArray);
   }
 
   @Test
   public void serverError() throws Exception {
     final long offset = 0;
     final int length = 11;
+    byte[] byteArray = new byte[length];
     final String serverErrorMsg = "server sent an exception";
 
     Protocol.ReadRequest.Builder builder = mRequestBuilder.clone()
@@ -134,11 +133,11 @@ public class NettyDataReaderTest {
         .andThen(new CancelState());
     Future<Throwable> serverFault = mStateDriver.run(start);
     PartialReadException exception = assertThrows(PartialReadException.class,
-        () -> mReader.read(offset, Channels.newChannel(mOut), length));
+        () -> mReader.read(offset, byteArray, length));
 
     assertNull(serverFault.get());
     assertEquals(5, exception.getBytesRead());
-    assertArrayEquals("hello".getBytes(), mOut.toByteArray());
+    assertArrayEquals("hello".getBytes(), byteArray);
     Throwable serverException = exception.getCause();
     assertTrue(serverException instanceof UnknownException);
     assertTrue(serverException.getMessage().contains(serverErrorMsg));
@@ -148,18 +147,18 @@ public class NettyDataReaderTest {
   public void serverDisconnect() throws Exception {
     final long offset = 0;
     final int length = 11;
-
+    byte[] byteArray = new byte[length];
     ServerState start = new WaitForRequestState(
         mRequestBuilder.clone().setLength(length).setOffset(offset).build());
     start.andThen(new SendDataState("hello".getBytes()))
         .andThen(new DisconnectState());
     Future<Throwable> serverFault = mStateDriver.run(start);
     PartialReadException exception = assertThrows(PartialReadException.class,
-        () -> mReader.read(offset, Channels.newChannel(mOut), length));
+        () -> mReader.read(offset, byteArray, length));
 
     assertNull(serverFault.get());
     assertEquals(5, exception.getBytesRead());
-    assertArrayEquals("hello".getBytes(), mOut.toByteArray());
+    assertArrayEquals("hello".getBytes(), byteArray);
     Throwable cause = exception.getCause();
     assertTrue(cause instanceof UnavailableException);
   }
@@ -168,7 +167,7 @@ public class NettyDataReaderTest {
   public void serverTimeout() throws Exception {
     final long offset = 0;
     final int length = 11;
-
+    byte[] byteArray = new byte[length];
     InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS, 100);
     when(mFsContext.getClusterConf())
@@ -187,7 +186,7 @@ public class NettyDataReaderTest {
     Future<Throwable> serverFault = mStateDriver.run(start);
 
     PartialReadException exception = assertThrows(PartialReadException.class,
-        () -> mReader.read(offset, Channels.newChannel(mOut), length));
+        () -> mReader.read(offset, byteArray, length));
     assertNull(serverFault.get());
     assertEquals(0, exception.getBytesRead());
     assertTrue(exception.getCause() instanceof TimeoutException);
@@ -197,6 +196,7 @@ public class NettyDataReaderTest {
   public void ufsHeartbeatResetsClientTimeout() throws Exception {
     final long offset = 0;
     final int length = 11;
+    byte[] byteArray = new byte[length];
 
     InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS, 1000);
@@ -216,10 +216,10 @@ public class NettyDataReaderTest {
         .andThen(new EofState());
     Future<Throwable> serverFault = mStateDriver.run(start);
 
-    int bytesRead = mReader.read(offset, Channels.newChannel(mOut), length);
+    int bytesRead = mReader.read(offset, byteArray, length);
     assertNull(serverFault.get());
     assertEquals(10, bytesRead);
-    assertArrayEquals("helloworld".getBytes(), mOut.toByteArray());
+    assertArrayEquals("helloworld".getBytes(), byteArray);
   }
 
   private static class ServerStateDriver {

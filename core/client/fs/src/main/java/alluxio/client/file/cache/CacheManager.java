@@ -324,8 +324,8 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
    * @return number of bytes read, 0 if page is not found, -1 on errors
    */
   default int getAndLoad(PageId pageId, int pageOffset, int bytesToRead,
-                         ReadTargetBuffer buffer, CacheContext cacheContext,
-                         Stopwatch stopwatch, Supplier<byte[]> externalDataSupplier) {
+      ReadTargetBuffer buffer, CacheContext cacheContext,
+      Stopwatch stopwatch, Supplier<byte[]> externalDataSupplier) {
     int bytesRead = getWithMetrics(pageId, pageOffset,
         bytesToRead, buffer, cacheContext, stopwatch);
     if (bytesRead > 0) {

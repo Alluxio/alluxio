@@ -116,7 +116,6 @@ public class LocalCachePositionReader implements PositionReader {
     } else {
       mCacheContext = CacheContext.defaults();
     }
-    Metrics.registerGauges();
   }
 
   @Override
@@ -134,6 +133,9 @@ public class LocalCachePositionReader implements PositionReader {
     while (totalBytesRead < lengthToRead) {
       int bytesRead = localCachedRead(buffer,
           (int) (lengthToRead - totalBytesRead), position, stopwatch);
+      if (bytesRead <= 0) {
+        break;
+      }
       totalBytesRead += bytesRead;
       position += bytesRead;
     }
@@ -204,26 +206,20 @@ public class LocalCachePositionReader implements PositionReader {
     return Stopwatch.createUnstarted(Ticker.systemTicker());
   }
 
-  private static final class Metrics {
-    // Note that only counter/guage can be added here.
-    // Both meter and timer need to be used inline
-    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
-
-    private static void registerGauges() {
-      // Cache hit rate = Cache hits / (Cache hits + Cache misses).
-      MetricsSystem.registerGaugeIfAbsent(
-          MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_HIT_RATE.getName()),
-          () -> {
-            long cacheHits = MetricsSystem.meter(
-                MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount();
-            long cacheMisses = MetricsSystem.meter(
-                MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount();
-            long total = cacheHits + cacheMisses;
-            if (total > 0) {
-              return cacheHits / (1.0 * total);
-            }
-            return 0;
-          });
-    }
+  static {
+    // Cache hit rate = Cache hits / (Cache hits + Cache misses).
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_HIT_RATE.getName()),
+        () -> {
+          long cacheHits = MetricsSystem.meter(
+              MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount();
+          long cacheMisses = MetricsSystem.meter(
+              MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount();
+          long total = cacheHits + cacheMisses;
+          if (total > 0) {
+            return cacheHits / (1.0 * total);
+          }
+          return 0;
+        });
   }
 }

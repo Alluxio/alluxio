@@ -76,7 +76,7 @@ public class DoraCacheClient {
       Protocol.OpenUfsBlockOptions ufsOptions) {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getPath());
     // Construct the partial read request
-    DoraDataReader reader;
+    NettyDataReader reader;
     if (mNettyTransEnabled) {
       reader = createNettyDataReader(workerNetAddress, ufsOptions);
     } else {
