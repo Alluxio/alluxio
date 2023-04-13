@@ -12,7 +12,10 @@
 package alluxio.cli.fsadmin.report;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import alluxio.Constants;
+import alluxio.RuntimeConstants;
 import alluxio.client.job.JobMasterClient;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
@@ -57,9 +60,8 @@ public class JobServiceMetricsCommandTest {
 
   @Test
   public void testBasic() throws IOException, ParseException {
-
     JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(
-        1, Lists.newArrayList(1.2, 0.9, 0.7), 10, 2, 2, "testHost");
+        1, Lists.newArrayList(1.2, 0.9, 0.7), 10, 2, 2, "testHost", RuntimeConstants.VERSION, RuntimeConstants.REVISION_SHORT);
 
     Mockito.when(mJobMasterClient.getAllWorkerHealth())
         .thenReturn(Lists.newArrayList(jobWorkerHealth));
@@ -79,13 +81,15 @@ public class JobServiceMetricsCommandTest {
     String[] lineByLine = output.split("\n");
 
     // Worker Health Section
-    assertEquals("Worker: testHost    Task Pool Size: 10     Unfinished Tasks: 2"
-        + "      Active Tasks: 2      Load Avg: 1.2, 0.9, 0.7",
-        lineByLine[0]);
-    assertEquals("", lineByLine[1]);
+    assertTrue(lineByLine[1].contains("Worker: testHost"));
+    assertTrue(lineByLine[1].contains("Worker Version: " + RuntimeConstants.VERSION));
+    assertTrue(lineByLine[1].contains("Worker Revision: " + RuntimeConstants.REVISION_SHORT));
+    assertTrue(lineByLine[1].contains("Task Pool Size: 10     Unfinished Tasks: 2"
+        + "      Active Tasks: 2      Load Avg: 1.2, 0.9, 0.7"));
+    assertEquals("", lineByLine[2]);
 
     // Group By Status
-    lineByLine = ArrayUtils.subarray(lineByLine, 2, lineByLine.length);
+    lineByLine = ArrayUtils.subarray(lineByLine, 3, lineByLine.length);
 
     assertEquals("Status: CREATED   Count: 0", lineByLine[0]);
     assertEquals("Status: CANCELED  Count: 0", lineByLine[1]);
