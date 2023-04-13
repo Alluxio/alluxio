@@ -90,7 +90,7 @@ public class FusePositionReadOrOutStream implements FuseFileStream {
   }
 
   @Override
-  public synchronized int read(ByteBuffer buf, long size, long offset) {
+  public int read(ByteBuffer buf, long size, long offset) {
     if (mOutStream.isPresent()) {
       throw new UnimplementedRuntimeException(
           "Alluxio does not support reading while writing/truncating");
