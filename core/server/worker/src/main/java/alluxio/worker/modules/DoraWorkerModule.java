@@ -72,7 +72,7 @@ public class DoraWorkerModule extends AbstractModule {
     }
 
     // the following objects are required when using dora
-    bind(Worker.class).to(PagedDoraWorker.class).in(Scopes.SINGLETON);
+    bind(Worker.class).to(DoraWorker.class).in(Scopes.SINGLETON);
     bind(DoraWorker.class).to(PagedDoraWorker.class).in(Scopes.SINGLETON);
   }
 }
