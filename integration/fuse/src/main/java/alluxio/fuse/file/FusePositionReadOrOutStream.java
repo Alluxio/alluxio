@@ -91,9 +91,11 @@ public class FusePositionReadOrOutStream implements FuseFileStream {
 
   @Override
   public int read(ByteBuffer buf, long size, long offset) {
-    if (mOutStream.isPresent()) {
-      throw new UnimplementedRuntimeException(
-          "Alluxio does not support reading while writing/truncating");
+    synchronized (this) {
+      if (mOutStream.isPresent()) {
+        throw new UnimplementedRuntimeException(
+            "Alluxio does not support reading while writing/truncating");
+      }
     }
     return getOrInitPrositionReader().read(buf, size, offset);
   }
@@ -109,8 +111,10 @@ public class FusePositionReadOrOutStream implements FuseFileStream {
 
   @Override
   public FileStatus getFileStatus() {
-    if (mOutStream.isPresent()) {
-      return mOutStream.get().getFileStatus();
+    synchronized (this) {
+      if (mOutStream.isPresent()) {
+        return mOutStream.get().getFileStatus();
+      }
     }
     if (mPositionReader.isPresent()) {
       return mPositionReader.get().getFileStatus();
@@ -125,7 +129,9 @@ public class FusePositionReadOrOutStream implements FuseFileStream {
       mPositionReader.get().flush();
       return;
     }
-    mOutStream.ifPresent(FuseFileOutStream::flush);
+    synchronized (this) {
+      mOutStream.ifPresent(FuseFileOutStream::flush);
+    }
   }
 
   @Override
