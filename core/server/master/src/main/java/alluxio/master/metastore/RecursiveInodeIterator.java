@@ -80,6 +80,7 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
     mInodeStore = inodeStore;
   }
 
+  // The locked inode path will become stale after skipChildrenOfTheCurrent() is called.
   @Override
   public void skipChildrenOfTheCurrent() {
     if (mHasNextCalled) {
@@ -164,10 +165,6 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
     if (current.isDirectory()) {
       ReadOption readOption = ReadOption.newBuilder()
           .setReadFrom(populateStartAfter(current.getName())).build();
-      if (readOption.getStartFrom() != null
-          && !readOption.getStartFrom().isEmpty()) {
-        System.out.println(readOption.getStartFrom());
-      }
       CloseableIterator<? extends Inode> nextLevelIterator =
           mInodeStore.getChildren(current.getId(), readOption);
       mIteratorStack.push(new Pair<>(nextLevelIterator, lockedPath));
