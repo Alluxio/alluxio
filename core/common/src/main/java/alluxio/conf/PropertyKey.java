@@ -52,6 +52,7 @@ import alluxio.network.ChannelType;
 import alluxio.security.authentication.AuthType;
 import alluxio.util.FormatUtils;
 import alluxio.util.OSUtils;
+import alluxio.util.compression.DirectoryMarshaller;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockStoreType;
 import alluxio.worker.block.management.BackoffStrategy;
@@ -67,6 +68,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.sun.management.OperatingSystemMXBean;
 import io.netty.util.ResourceLeakDetector;
+import org.rocksdb.CompressionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -2398,6 +2400,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_TYPE =
+      enumBuilder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_TYPE,
+          DirectoryMarshaller.Type.class)
+          .setDefaultValue(DirectoryMarshaller.Type.NO_COMPRESSION)
+          .setDescription("The type of compression to use when transferring a snapshot from one "
+              + "master to another. Options are NO_COMPRESSION, GZIP, TAR_GZIP")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL =
+      intBuilder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL)
+          .setAlias(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL)
+          .setDefaultValue(1)
+          .setDescription("The zip compression level of sending a snapshot from one master to "
+              + "another. Only applicable when "
+              + "alluxio.master.embedded.journal.snapshot.replication.compression.type is not "
+              + "NO_COMPRESSION. The zip format defines ten levels of compression, ranging from 0 "
+              + "(no compression, but very fast) to 9 (best compression, but slow). "
+              + "Or -1 for the system default compression level.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
       dataSizeBuilder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE)
           .setDefaultValue("4MB")
@@ -2581,13 +2605,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL =
-      intBuilder(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL)
-          .setDefaultValue(1)
-          .setDescription("The zip compression level of checkpointing rocksdb, the zip"
-                  + " format defines ten levels of compression, ranging from 0"
-                  + " (no compression, but very fast) to 9 (best compression, but slow)."
-                  + " Or -1 for the system default compression level.")
+  public static final PropertyKey MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE =
+      enumBuilder(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE, CompressionType.class)
+          // default value informed by https://github.com/facebook/rocksdb/wiki/Compression
+          .setDefaultValue(CompressionType.LZ4_COMPRESSION)
+          .setDescription("The compression algorithm that RocksDB uses internally. One of "
+              + "{NO_COMPRESSION SNAPPY_COMPRESSION ZLIB_COMPRESSION BZLIB2_COMPRESSION "
+              + "LZ4_COMPRESSION LZ4HC_COMPRESSION XPRESS_COMPRESSION ZSTD_COMPRESSION "
+              + "DISABLE_COMPRESSION_OPTION}")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -3095,14 +3120,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_JOURNAL_LOG_CONCURRENCY_MAX =
-          intBuilder(Name.MASTER_JOURNAL_LOG_CONCURRENCY_MAX)
-                  .setDefaultValue(256)
-                  .setDescription("Max concurrency for notifyTermIndexUpdated method, be sure it's "
-                          + "enough")
-                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-                  .setScope(Scope.MASTER)
-                  .build();
   public static final PropertyKey MASTER_JOURNAL_REQUEST_DATA_TIMEOUT =
       durationBuilder(Name.MASTER_JOURNAL_REQUEST_DATA_TIMEOUT)
           .setDefaultValue(20000)
@@ -3112,7 +3129,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_REQUEST_INFO_TIMEOUT =
       durationBuilder(Name.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT)
-          .setDefaultValue(20000)
+          .setDefaultValue(10_000)
           .setDescription("Time to wait for follower to respond to request to get information"
               + " about its latest snapshot")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3918,8 +3935,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey STANDBY_MASTER_GRPC_ENABLED =
       booleanBuilder(Name.STANDBY_MASTER_GRPC_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Whether a standby master runs a grpc server")
+          .setDefaultValue(true)
+          .setIsHidden(true)
+          .setDescription("Whether a standby master runs a grpc server. WARNING: disabling this "
+              + "will prevent master snapshotting from working correctly.")
           .setScope(Scope.ALL)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
@@ -8042,6 +8061,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.write.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
         "alluxio.master.embedded.journal.snapshot.replication.chunk.size";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_TYPE =
+        "alluxio.master.embedded.journal.snapshot.replication.compression.type";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL =
+        "alluxio.master.embedded.journal.snapshot.replication.compression.level";
     public static final String MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT =
         "alluxio.master.embedded.journal.raft.client.request.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL =
@@ -8101,6 +8124,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.dir.block";
     public static final String MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL =
         "alluxio.master.metastore.rocks.checkpoint.compression.level";
+    public static final String MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE =
+        "alluxio.master.metastore.rocks.checkpoint.compression.type";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
         "alluxio.master.metastore.rocks.parallel.backup";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =

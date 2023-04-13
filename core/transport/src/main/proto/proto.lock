@@ -1573,6 +1573,10 @@
                 "integer": 2
               },
               {
+                "name": "HISTOGRAM",
+                "integer": 5
+              },
+              {
                 "name": "TIMER",
                 "integer": 3
               },
@@ -5968,6 +5972,10 @@
               {
                 "name": "RAFT_ADDRESSES",
                 "integer": 12
+              },
+              {
+                "name": "MASTER_VERSION",
+                "integer": 13
               }
             ]
           },
@@ -6234,6 +6242,32 @@
                 "name": "raftAddress",
                 "type": "string",
                 "is_repeated": true
+              },
+              {
+                "id": 14,
+                "name": "masterVersions",
+                "type": "MasterVersion",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "MasterVersion",
+            "fields": [
+              {
+                "id": 1,
+                "name": "addresses",
+                "type": "grpc.NetAddress"
+              },
+              {
+                "id": 2,
+                "name": "version",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "state",
+                "type": "string"
               }
             ]
           },
@@ -6894,6 +6928,11 @@
                 "id": 2,
                 "name": "snapshotIndex",
                 "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "exists",
+                "type": "bool"
               }
             ]
           },
@@ -6966,6 +7005,9 @@
                 "type": "SnapshotData"
               }
             ]
+          },
+          {
+            "name": "LatestSnapshotInfoPRequest"
           }
         ],
         "services": [
@@ -6984,6 +7026,17 @@
                 "in_type": "DownloadSnapshotPRequest",
                 "out_type": "DownloadSnapshotPResponse",
                 "in_streamed": true,
+                "out_streamed": true
+              },
+              {
+                "name": "RequestLatestSnapshotInfo",
+                "in_type": "LatestSnapshotInfoPRequest",
+                "out_type": "SnapshotMetadata"
+              },
+              {
+                "name": "RequestLatestSnapshotData",
+                "in_type": "SnapshotMetadata",
+                "out_type": "SnapshotData",
                 "out_streamed": true
               }
             ]

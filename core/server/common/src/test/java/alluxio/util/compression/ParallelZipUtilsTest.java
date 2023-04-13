@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.util;
+package alluxio.util.compression;
 
 import alluxio.util.io.FileUtils;
 

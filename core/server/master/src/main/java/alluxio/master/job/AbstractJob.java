@@ -95,9 +95,6 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
     if (!isRunning()) {
       mEndTime = OptionalLong.of(System.currentTimeMillis());
     }
-    if (state == JobState.SUCCEEDED) {
-      LoadJob.JOB_LOAD_SUCCESS.inc();
-    }
   }
 
   @Override

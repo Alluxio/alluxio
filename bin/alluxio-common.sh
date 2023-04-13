@@ -68,3 +68,13 @@ function get_ramdisk_array() {
   done
   IFS=$oldifs
 }
+
+# Compose the ssh command according to the hostname
+function ssh_command() {
+  local host=$1
+  local command=""
+  if [[ $host != "localhost" && $host != "127.0.0.1" ]]; then
+    command="ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${host}"
+  fi
+  echo "${command}"
+}

@@ -105,7 +105,6 @@ public final class TestRunner {
   public static void main(String[] args) throws Exception {
     TestRunner runner = new TestRunner();
     JCommander jCommander = new JCommander(runner);
-    jCommander.parse(args);
     jCommander.setProgramName("TestRunner");
     jCommander.parse(args);
     if (runner.mHelp) {

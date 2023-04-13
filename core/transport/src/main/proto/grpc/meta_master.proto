@@ -77,6 +77,13 @@ message MasterInfo {
  optional string clusterId = 11;
  optional bool raftJournal = 12;
  repeated string raftAddress = 13;
+ repeated MasterVersion masterVersions = 14;
+}
+
+message MasterVersion {
+  optional grpc.NetAddress addresses = 1;
+  optional string version = 2;
+  optional string state = 3;
 }
 
 enum MasterInfoField {
@@ -93,6 +100,7 @@ enum MasterInfoField {
   CLUSTER_ID = 10;
   RAFT_JOURNAL = 11;
   RAFT_ADDRESSES = 12;
+  MASTER_VERSION = 13;
 }
 
 message GetMasterInfoPOptions {

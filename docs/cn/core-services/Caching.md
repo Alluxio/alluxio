@@ -334,7 +334,7 @@ Alluxio支持命名空间中每个文件和目录的"生存时间(TTL)"设置。
 则TTL功能可用于明确刷新旧数据，从而为新文件释放缓存空间。
 
 Alluxio具有与每个文件或目录关联的TTL属性。这些属性将保存为
-日志的一部分，所以集群重新后也能持久保持。活跃master节点负责
+日志的一部分，所以集群重启后也能持久保持。活跃master节点负责
 当Alluxio提供服务时将元数据保存在内存中。在内部，master运行一个后台
 线程，该线程定期检查文件是否已达到其TTL到期时间。
 
@@ -478,8 +478,12 @@ Alluxio cluster summary:
     Started: 09-28-2018 12:52:09:486
     Uptime: 0 day(s), 0 hour(s), 0 minute(s), and 26 second(s)
     Version: 2.0.0
-    Safe Mode: true
+    Safe Mode: false
     Zookeeper Enabled: false
+    Raft-based Journal: true
+    Raft Journal Addresses: 
+        localhost:19200
+        localhost:19201
     Live Workers: 1
     Lost Workers: 0
     Total Capacity: 10.67GB

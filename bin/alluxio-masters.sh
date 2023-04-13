@@ -12,12 +12,7 @@
 
 set -o pipefail
 
-LAUNCHER=
-# If debugging is enabled propagate that through to sub-shells
-if [[ "$-" == *x* ]]; then
-  LAUNCHER="bash -x"
-fi
-BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+. $(dirname "$0")/alluxio-common.sh
 
 USAGE="Usage: alluxio-masters.sh command..."
 
@@ -46,10 +41,10 @@ fi
 for master in ${HOSTLIST[@]}; do
   echo "[${master}] Connecting as ${USER}..." >> ${ALLUXIO_TASK_LOG}
   if [[ ${HA_ENABLED} == "true" || ${N} -eq 0 ]]; then
-    nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${master} ${LAUNCHER} \
+    nohup $(ssh_command ${master}) ${LAUNCHER} \
       $"${@// /\\ }" 2>&1 | while read line; do echo "[$(date '+%F %T')][${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
   else
-    nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${master} ${LAUNCHER} \
+    nohup $(ssh_command ${master}) ${LAUNCHER} \
       $"export ALLUXIO_MASTER_SECONDARY=true; ${@// /\\ }" 2>&1 | while read line; do echo "[$(date '+%F %T')][${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
   fi
   pids[${#pids[@]}]=$!

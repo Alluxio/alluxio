@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.util;
+package alluxio.util.compression;
 
 import static java.util.stream.Collectors.toList;
 
@@ -21,8 +21,9 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipParameters;
 import org.apache.commons.io.IOUtils;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -42,8 +43,9 @@ public final class TarUtils {
    * @param compressionLevel the compression level to use (0 for no compression, 9 for the most
    *                         compression, or -1 for system default)
    * @param output the output stream to write the data to
+   * @return the number of bytes copied from the directory into the archive
    */
-  public static void writeTarGz(Path dirPath, OutputStream output, int compressionLevel)
+  public static long writeTarGz(Path dirPath, OutputStream output, int compressionLevel)
       throws IOException, InterruptedException {
     GzipParameters params = new GzipParameters();
     params.setCompressionLevel(compressionLevel);
@@ -51,6 +53,7 @@ public final class TarUtils {
     TarArchiveOutputStream archiveStream = new TarArchiveOutputStream(zipStream);
     archiveStream.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
     archiveStream.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
+    long totalBytesCopied = 0;
     try (final Stream<Path> stream = Files.walk(dirPath)) {
       for (Path subPath : stream.collect(toList())) {
         if (Thread.interrupted()) {
@@ -60,8 +63,8 @@ public final class TarUtils {
         TarArchiveEntry entry = new TarArchiveEntry(file, dirPath.relativize(subPath).toString());
         archiveStream.putArchiveEntry(entry);
         if (file.isFile()) {
-          try (InputStream fileIn = Files.newInputStream(subPath)) {
-            IOUtils.copy(fileIn, archiveStream);
+          try (InputStream fileIn = new BufferedInputStream(Files.newInputStream(subPath))) {
+            totalBytesCopied += IOUtils.copyLarge(fileIn, archiveStream);
           }
         }
         archiveStream.closeArchiveEntry();
@@ -69,6 +72,7 @@ public final class TarUtils {
     }
     archiveStream.finish();
     zipStream.finish();
+    return totalBytesCopied;
   }
 
   /**
@@ -76,22 +80,26 @@ public final class TarUtils {
    *
    * @param dirPath the path to write the archive to
    * @param input the input stream
+   * @return the number of bytes copied from the archive in the directory
    */
-  public static void readTarGz(Path dirPath, InputStream input) throws IOException {
+  public static long readTarGz(Path dirPath, InputStream input) throws IOException {
     InputStream zipStream = new GzipCompressorInputStream(input);
     TarArchiveInputStream archiveStream = new TarArchiveInputStream(zipStream);
     TarArchiveEntry entry;
+    long totalBytesCopied = 0;
     while ((entry = (TarArchiveEntry) archiveStream.getNextEntry()) != null) {
       File outputFile = new File(dirPath.toFile(), entry.getName());
       if (entry.isDirectory()) {
         outputFile.mkdirs();
       } else {
         outputFile.getParentFile().mkdirs();
-        try (FileOutputStream fileOut = new FileOutputStream(outputFile)) {
-          IOUtils.copy(archiveStream, fileOut);
+        try (OutputStream fileOut =
+                 new BufferedOutputStream(Files.newOutputStream(outputFile.toPath()))) {
+          totalBytesCopied += IOUtils.copyLarge(archiveStream, fileOut);
         }
       }
     }
+    return totalBytesCopied;
   }
 
   private TarUtils() {} // Utils class
