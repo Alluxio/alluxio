@@ -54,14 +54,13 @@ public class NettyDataReader implements PositionReader {
     clientStateMachine.run();
     int bytesRead = clientStateMachine.getBytesRead();
     PartialReadException exception = clientStateMachine.getException();
-    if (bytesRead == 0 && exception == null) { // end of file
-      return -1;
-    }
-    if (bytesRead == 0) {
-      // TODO(lu) change to runtimeException
-      // TODO(lu/bowen) exception with retry logics
+    if (exception != null) {
       throw exception;
+    } else {
+      if (bytesRead == 0) {
+        return -1;
+      }
+      return bytesRead;
     }
-    return bytesRead;
   }
 }

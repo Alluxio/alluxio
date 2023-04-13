@@ -14,12 +14,13 @@ package alluxio.client.file.dora;
 import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
 import alluxio.client.file.dora.netty.NettyDataReader;
+import alluxio.client.file.dora.netty.PartialReadException;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
-import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,22 +57,20 @@ public class DoraCachePositionReader implements PositionReader {
   @Override
   public int readInternal(long position, ReadTargetBuffer buffer, int length)
       throws IOException {
-    Preconditions.checkArgument(length >= 0, "length should be non-negative");
-    Preconditions.checkArgument(position >= 0, "position should be non-negative");
-    Preconditions.checkArgument(!mClosed, "position reader is closed");
-    if (length == 0) {
-      return 0;
-    }
     if (position >= mFileLength) { // at end of file
       return -1;
     }
     try {
       return mNettyReader.read(position, buffer, length);
-    } catch (Throwable t) {
-      UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client read file error ({} times). Fall back to UFS.",
-          UFS_FALLBACK_COUNTER.getCount(), t);
-      return mFallbackReader.get().read(position, buffer, length);
+    } catch (PartialReadException e) {
+      int bytesRead = e.getBytesRead();
+      if (bytesRead == 0) {
+        // we didn't make any progress, throw the exception so that the caller needs to handle that
+        Throwables.propagateIfPossible(e.getCause(), IOException.class);
+        throw new IOException(e.getCause());
+      }
+      // otherwise ignore the exception and let the caller decide whether to continue
+      return bytesRead;
     }
   }
 

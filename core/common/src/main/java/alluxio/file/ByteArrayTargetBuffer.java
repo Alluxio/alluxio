@@ -75,7 +75,9 @@ public class ByteArrayTargetBuffer implements ReadTargetBuffer {
 
   @Override
   public void writeBytes(ByteBuf buf) {
-    buf.readBytes(mTarget, mOffset, Math.min(buf.readableBytes(), mTarget.length - mOffset));
+    int bytesToRead = Math.min(buf.readableBytes(), mTarget.length - mOffset);
+    buf.readBytes(mTarget, mOffset, bytesToRead);
+    mOffset += bytesToRead;
   }
 
   @Override

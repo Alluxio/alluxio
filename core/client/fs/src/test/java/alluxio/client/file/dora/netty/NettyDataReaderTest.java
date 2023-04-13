@@ -11,7 +11,6 @@
 
 package alluxio.client.file.dora.netty;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
@@ -94,7 +93,7 @@ public class NettyDataReaderTest {
 
     assertNull(serverFault.get());
     assertEquals(length, bytesRead);
-    assertArrayEquals("helloworld".getBytes(), byteArray);
+    checkResult("helloworld".getBytes(), byteArray);
   }
 
   @Test
@@ -112,7 +111,7 @@ public class NettyDataReaderTest {
 
     assertNull(serverFault.get());
     assertEquals(10, bytesRead);
-    assertArrayEquals("helloworld".getBytes(), byteArray);
+    checkResult("helloworld".getBytes(), byteArray);
   }
 
   @Test
@@ -137,7 +136,7 @@ public class NettyDataReaderTest {
 
     assertNull(serverFault.get());
     assertEquals(5, exception.getBytesRead());
-    assertArrayEquals("hello".getBytes(), byteArray);
+    checkResult("hello".getBytes(), byteArray);
     Throwable serverException = exception.getCause();
     assertTrue(serverException instanceof UnknownException);
     assertTrue(serverException.getMessage().contains(serverErrorMsg));
@@ -158,7 +157,7 @@ public class NettyDataReaderTest {
 
     assertNull(serverFault.get());
     assertEquals(5, exception.getBytesRead());
-    assertArrayEquals("hello".getBytes(), byteArray);
+    checkResult("hello".getBytes(), byteArray);
     Throwable cause = exception.getCause();
     assertTrue(cause instanceof UnavailableException);
   }
@@ -219,7 +218,14 @@ public class NettyDataReaderTest {
     int bytesRead = mReader.read(offset, byteArray, length);
     assertNull(serverFault.get());
     assertEquals(10, bytesRead);
-    assertArrayEquals("helloworld".getBytes(), byteArray);
+    checkResult("helloworld".getBytes(), byteArray);
+  }
+
+  private void checkResult(byte[] expected, byte[] actual) {
+    assertTrue(expected.length <= actual.length);
+    for (int i = 0; i < expected.length; i++) {
+      assertEquals(expected[i], actual[i]);
+    }
   }
 
   private static class ServerStateDriver {
