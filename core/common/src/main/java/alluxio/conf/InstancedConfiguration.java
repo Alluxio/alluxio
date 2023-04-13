@@ -602,11 +602,12 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @throws IllegalStateException if invalid checkpoint zip configuration parameters are found
    */
   private void checkCheckpointZipConfig() {
-    int compression = getInt(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
+    int compression = getInt(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL);
     if (compression < -1 || compression > 9) {
       throw new IllegalStateException(String.format("Zip compression level for property key %s"
           + " must be between -1 and 9 inclusive",
-          PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL.getName()));
+          PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL.getName()));
     }
   }
 

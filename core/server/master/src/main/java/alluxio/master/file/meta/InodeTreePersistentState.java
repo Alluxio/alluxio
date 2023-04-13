@@ -56,6 +56,7 @@ import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
@@ -68,8 +69,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 /**
@@ -825,11 +829,29 @@ public class InodeTreePersistentState implements Journaled {
   }
 
   @Override
+  public CompletableFuture<Void> writeToCheckpoint(File directory,
+                                                   ExecutorService executorService) {
+    return CompletableFuture.allOf(Stream.of(mInodeStore, mPinnedInodeFileIds,
+        mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter)
+        .map(journaled -> journaled.writeToCheckpoint(directory, executorService))
+        .toArray(CompletableFuture[]::new));
+  }
+
+  @Override
   public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
     // mTtlBuckets must come after mInodeStore so that it can query the inode store to resolve inode
     // ids to inodes.
     JournalUtils.writeToCheckpoint(output, Arrays.asList(mInodeStore, mPinnedInodeFileIds,
         mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter));
+  }
+
+  @Override
+  public CompletableFuture<Void> restoreFromCheckpoint(File directory,
+                                                       ExecutorService executorService) {
+    return CompletableFuture.allOf(Stream.of(mInodeStore, mPinnedInodeFileIds,
+        mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter)
+        .map(journaled -> journaled.restoreFromCheckpoint(directory, executorService))
+        .toArray(CompletableFuture[]::new));
   }
 
   @Override
