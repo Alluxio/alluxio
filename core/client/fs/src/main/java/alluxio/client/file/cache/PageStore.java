@@ -13,11 +13,11 @@ package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.MemoryPageStore;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.RocksPageStore;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -127,7 +127,7 @@ public interface PageStore extends AutoCloseable {
    * @throws IOException when the store fails to read this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  default int get(PageId pageId, PageReadTargetBuffer buffer)
+  default int get(PageId pageId, ReadTargetBuffer buffer)
       throws IOException, PageNotFoundException {
     return get(pageId, 0, (int) buffer.remaining(), buffer, false);
   }
@@ -144,7 +144,7 @@ public interface PageStore extends AutoCloseable {
    * @throws PageNotFoundException when the page isn't found in the store
    * @throws IllegalArgumentException when the page offset exceeds the page size
    */
-  default int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer)
+  default int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer)
       throws IOException, PageNotFoundException {
     return get(pageId, pageOffset, bytesToRead, buffer, false);
   }
@@ -162,7 +162,7 @@ public interface PageStore extends AutoCloseable {
    * @throws PageNotFoundException when the page isn't found in the store
    * @throws IllegalArgumentException when the page offset exceeds the page size
    */
-  int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
+  int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
       boolean isTemporary)
       throws IOException, PageNotFoundException;
 

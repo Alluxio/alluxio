@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.cache.store;
+package alluxio.file;
 
 import io.netty.buffer.ByteBuf;
 
@@ -21,7 +21,7 @@ import java.nio.channels.WritableByteChannel;
 /**
  * TargetBuffer for zero-copy read from page store.
  */
-public interface PageReadTargetBuffer {
+public interface ReadTargetBuffer {
 
   /**
    * @return the byte array

@@ -13,9 +13,9 @@ package alluxio.client.file.dora;
 
 import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.client.file.dora.netty.NettyDataReader;
 import alluxio.client.file.dora.netty.PartialReadException;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -56,7 +56,7 @@ public class DoraCachePositionReader implements PositionReader {
   }
 
   @Override
-  public int positionReadInternal(long position, PageReadTargetBuffer buffer, int length)
+  public int positionReadInternal(long position, ReadTargetBuffer buffer, int length)
       throws IOException {
     Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(position >= 0, "position should be non-negative");

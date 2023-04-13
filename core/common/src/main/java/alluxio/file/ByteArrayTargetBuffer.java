@@ -9,89 +9,86 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.cache.store;
+package alluxio.file;
+
+import alluxio.annotation.SuppressFBWarnings;
+import alluxio.file.ReadTargetBuffer;
+import alluxio.util.io.ChannelAdapters;
 
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
 
 /**
- * Netty Buf backed target buffer for zero-copy read from page store.
+ * Target buffer backed by bytes array for zero-copy read from page store.
  */
-public class NettyBufTargetBuffer implements PageReadTargetBuffer {
-  private final ByteBuf mTarget;
+@SuppressFBWarnings(
+    value = "EI_EXPOSE_REP2",
+    justification = "The target byte array is exposed as we expect.")
+public class ByteArrayTargetBuffer implements ReadTargetBuffer {
+  private final byte[] mTarget;
+  private int mOffset;
 
   /**
-   * @param target target buffer
+   * Constructor.
+   * @param target
+   * @param offset
    */
-  public NettyBufTargetBuffer(ByteBuf target) {
+  public ByteArrayTargetBuffer(byte[] target, int offset) {
     mTarget = target;
+    mOffset = offset;
   }
 
   @Override
   public byte[] byteArray() {
-    throw new UnsupportedOperationException();
+    return mTarget;
   }
 
   @Override
   public ByteBuffer byteBuffer() {
-    throw new UnsupportedOperationException();
+    return ByteBuffer.wrap(mTarget);
   }
 
   @Override
   public int offset() {
-    return mTarget.writerIndex();
+    return mOffset;
   }
 
   @Override
   public void offset(int newOffset) {
-    mTarget.writerIndex(newOffset);
-  }
-
-  @Override
-  public WritableByteChannel byteChannel() {
-    return new WritableByteChannel() {
-      @Override
-      public int write(ByteBuffer src) throws IOException {
-        int readableBytes = src.remaining();
-        mTarget.writeBytes(src);
-        return readableBytes - src.remaining();
-      }
-
-      @Override
-      public boolean isOpen() {
-        return true;
-      }
-
-      @Override
-      public void close() throws IOException {
-      }
-    };
+    mOffset = newOffset;
   }
 
   @Override
   public long remaining() {
-    return mTarget.writableBytes();
+    return mTarget.length - mOffset;
   }
 
   @Override
   public void writeBytes(byte[] srcArray, int srcOffset, int length) {
-    mTarget.writeBytes(srcArray, srcOffset, length);
+    System.arraycopy(srcArray, srcOffset, mTarget, mOffset, length);
+    mOffset += length;
   }
 
   @Override
   public void writeBytes(ByteBuf buf) {
-    mTarget.writeBytes(buf);
+    buf.readBytes(mTarget, mOffset, Math.min(buf.readableBytes(), mTarget.length - mOffset));
   }
 
   @Override
   public int readFromFile(RandomAccessFile file, int length) throws IOException {
-    try (FileChannel channel = file.getChannel()) {
-      return mTarget.writeBytes(channel, length);
+    int bytesRead = file.read(mTarget, mOffset, length);
+    if (bytesRead != -1) {
+      mOffset += bytesRead;
     }
+    return bytesRead;
+  }
+
+  @Override
+  public WritableByteChannel byteChannel() {
+    return ChannelAdapters.intoByteArray(mTarget, mOffset, mTarget.length - mOffset);
   }
 }

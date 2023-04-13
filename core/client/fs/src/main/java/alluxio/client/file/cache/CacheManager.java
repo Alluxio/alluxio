@@ -15,10 +15,10 @@ import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
 import static alluxio.client.file.CacheContext.StatsUnit.NANO;
 
 import alluxio.client.file.CacheContext;
-import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.file.ByteArrayTargetBuffer;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
@@ -277,7 +277,7 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
    * @param cacheContext cache related context
    * @return number of bytes read, 0 if page is not found, -1 on errors
    */
-  int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
+  int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
       CacheContext cacheContext);
 
   /**
@@ -292,7 +292,7 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
    * @return number of bytes read, 0 if page is not found, -1 on errors
    */
   default int getWithMetrics(PageId pageId, int pageOffset, int bytesToRead,
-      PageReadTargetBuffer buffer, CacheContext cacheContext, Stopwatch stopwatch) {
+      ReadTargetBuffer buffer, CacheContext cacheContext, Stopwatch stopwatch) {
     stopwatch.reset().start();
     int bytesRead =
         get(pageId, pageOffset, bytesToRead, buffer, cacheContext);
@@ -324,8 +324,8 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
    * @return number of bytes read, 0 if page is not found, -1 on errors
    */
   default int getAndLoad(PageId pageId, int pageOffset, int bytesToRead,
-      PageReadTargetBuffer buffer, CacheContext cacheContext,
-      Stopwatch stopwatch, Supplier<byte[]> externalDataSupplier) {
+                         ReadTargetBuffer buffer, CacheContext cacheContext,
+                         Stopwatch stopwatch, Supplier<byte[]> externalDataSupplier) {
     int bytesRead = getWithMetrics(pageId, pageOffset,
         bytesToRead, buffer, cacheContext, stopwatch);
     if (bytesRead > 0) {

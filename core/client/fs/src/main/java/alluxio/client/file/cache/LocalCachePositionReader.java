@@ -16,12 +16,12 @@ import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.file.FileId;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -120,7 +120,7 @@ public class LocalCachePositionReader implements PositionReader {
   }
 
   @Override
-  public int positionReadInternal(long position, PageReadTargetBuffer buffer, int length)
+  public int positionReadInternal(long position, ReadTargetBuffer buffer, int length)
       throws IOException {
     Preconditions.checkArgument(!mClosed, "position reader is closed");
     if (position >= mFileSize) { // at end of file
@@ -155,7 +155,7 @@ public class LocalCachePositionReader implements PositionReader {
     mFallbackReader.close();
   }
 
-  private int localCachedRead(PageReadTargetBuffer bytesBuffer, int length,
+  private int localCachedRead(ReadTargetBuffer bytesBuffer, int length,
       long position, Stopwatch stopwatch) {
     long currentPage = position / mPageSize;
     PageId pageId;

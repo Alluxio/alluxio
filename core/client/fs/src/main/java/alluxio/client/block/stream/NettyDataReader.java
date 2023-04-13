@@ -12,7 +12,6 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
@@ -20,6 +19,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
@@ -171,7 +171,7 @@ public final class NettyDataReader implements DataReader {
   }
 
   @Override
-  public int read(PageReadTargetBuffer buffer) {
+  public int read(ReadTargetBuffer buffer) {
     throw new UnimplementedRuntimeException("to be implemented");
   }
 

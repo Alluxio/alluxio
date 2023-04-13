@@ -11,10 +11,10 @@
 
 package alluxio;
 
-import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
-import alluxio.client.file.cache.store.ByteBufferTargetBuffer;
-import alluxio.client.file.cache.store.NettyBufTargetBuffer;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
+import alluxio.file.ByteArrayTargetBuffer;
+import alluxio.file.ByteBufferTargetBuffer;
+import alluxio.file.NettyBufTargetBuffer;
+import alluxio.file.ReadTargetBuffer;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -76,7 +76,7 @@ public interface PositionReader extends Closeable {
    * @param length bytes to read
    * @return bytes read, or -1 none of data is read
    */
-  default int positionRead(long position, PageReadTargetBuffer buffer, int length)
+  default int positionRead(long position, ReadTargetBuffer buffer, int length)
       throws IOException {
     Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(position >= 0, "position should be non-negative");
@@ -94,7 +94,7 @@ public interface PositionReader extends Closeable {
    * @param length bytes to read
    * @return bytes read, or -1 none of data is read
    */
-  int positionReadInternal(long position, PageReadTargetBuffer buffer, int length)
+  int positionReadInternal(long position, ReadTargetBuffer buffer, int length)
       throws IOException;
 
   /**

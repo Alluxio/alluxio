@@ -12,9 +12,9 @@
 package alluxio.underfs.s3a;
 
 import alluxio.PositionReader;
-import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
+import alluxio.file.ByteArrayTargetBuffer;
 
+import alluxio.file.ReadTargetBuffer;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -51,7 +51,7 @@ public class S3APositionReader implements PositionReader {
   }
 
   @Override
-  public int positionReadInternal(long position, PageReadTargetBuffer buffer, int length)
+  public int positionReadInternal(long position, ReadTargetBuffer buffer, int length)
       throws IOException {
     if (position >= mFileLength) { // at end of file
       return -1;

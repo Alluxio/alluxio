@@ -15,10 +15,10 @@ import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCachePositionReader;
-import alluxio.client.file.cache.store.NettyBufTargetBuffer;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.file.FileId;
+import alluxio.file.NettyBufTargetBuffer;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.worker.block.io.BlockReadableChannel;
 import alluxio.worker.block.io.BlockReader;
 
@@ -79,7 +79,7 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     // Unpooled.wrappedBuffer returns a buffer with writer index set to capacity, so writable
     // bytes is 0, needs explicit clear
     buf.clear();
-    PageReadTargetBuffer targetBuffer = new NettyBufTargetBuffer(buf);
+    ReadTargetBuffer targetBuffer = new NettyBufTargetBuffer(buf);
     int bytesRead = mPositionReader.positionRead(offset, targetBuffer, (int) length);
     if (bytesRead < 0) {
       return EMPTY_BYTE_BUFFER;
@@ -118,7 +118,7 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     }
     int bytesToTransfer =
         (int) Math.min(buf.writableBytes(), mFileSize - mPos);
-    PageReadTargetBuffer targetBuffer = new NettyBufTargetBuffer(buf);
+    ReadTargetBuffer targetBuffer = new NettyBufTargetBuffer(buf);
     int bytesRead = mPositionReader.positionRead(mPos, targetBuffer, bytesToTransfer);
     if (bytesRead > 0) {
       mPos += bytesRead;
@@ -127,7 +127,7 @@ public class PagedFileReader extends BlockReader implements PositionReader {
   }
 
   @Override
-  public int positionReadInternal(long position, PageReadTargetBuffer buffer, int length)
+  public int positionReadInternal(long position, ReadTargetBuffer buffer, int length)
       throws IOException {
     return mPositionReader.positionRead(position, buffer, length);
   }

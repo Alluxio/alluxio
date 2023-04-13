@@ -20,6 +20,7 @@ import alluxio.ProjectConstants;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
+import alluxio.file.ByteArrayTargetBuffer;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.After;

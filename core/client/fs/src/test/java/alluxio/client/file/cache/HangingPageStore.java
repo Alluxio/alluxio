@@ -12,9 +12,9 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.LocalPageStore;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.exception.PageNotFoundException;
+import alluxio.file.ReadTargetBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -44,7 +44,7 @@ class HangingPageStore extends LocalPageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+  public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
       boolean isTemporary)
       throws IOException, PageNotFoundException {
     checkStopHanging();

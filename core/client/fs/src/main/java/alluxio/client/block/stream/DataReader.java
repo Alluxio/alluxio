@@ -11,8 +11,8 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.network.protocol.databuffer.DataBuffer;
 
 import java.io.Closeable;
@@ -36,7 +36,7 @@ public interface DataReader extends Closeable {
    * @param buffer the target buffer
    * @return bytes read, or -1 if EOF
    */
-  default int read(PageReadTargetBuffer buffer) {
+  default int read(ReadTargetBuffer buffer) {
     throw new UnimplementedRuntimeException("read to buffer is not implemented");
   }
 

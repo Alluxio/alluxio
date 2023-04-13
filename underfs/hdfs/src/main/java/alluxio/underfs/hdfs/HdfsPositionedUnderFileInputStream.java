@@ -12,8 +12,8 @@
 package alluxio.underfs.hdfs;
 
 import alluxio.PositionReader;
-import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
+import alluxio.file.ByteArrayTargetBuffer;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.util.io.BufferUtils;
 
@@ -144,7 +144,7 @@ public class HdfsPositionedUnderFileInputStream
   }
 
   @Override
-  public int positionReadInternal(long position, PageReadTargetBuffer buffer, int length)
+  public int positionReadInternal(long position, ReadTargetBuffer buffer, int length)
       throws IOException {
     Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(position >= 0, "position should be non-negative");

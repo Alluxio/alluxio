@@ -15,7 +15,7 @@ import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
+import alluxio.file.ReadTargetBuffer;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -48,7 +48,7 @@ class ByteArrayCacheManager implements CacheManager {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+  public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
       CacheContext cacheContext) {
     if (!mPages.containsKey(pageId)) {
       return 0;
