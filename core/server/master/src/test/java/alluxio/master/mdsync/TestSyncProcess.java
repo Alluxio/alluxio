@@ -49,7 +49,7 @@ public class TestSyncProcess implements SyncProcess {
     List<UfsStatus> items = stream.collect(Collectors.toList());
     if (items.size() == 0) {
       return new SyncProcessResult(loadResult.getTaskInfo(), loadResult.getBaseLoadPath(),
-          null, false, false, null, loadResult.isFirstLoad());
+          null, false, false, loadResult.isFirstLoad());
     }
     boolean rootPathIsFile = items.size() == 1 && loadResult.getBaseLoadPath().equals(
         loadResult.getTaskInfo().getBasePath()) && !items.get(0).isDirectory();
@@ -57,7 +57,7 @@ public class TestSyncProcess implements SyncProcess {
         new PathSequence(new AlluxioURI(items.get(0).getName()),
             new AlluxioURI(items.get(items.size() - 1).getName())),
         loadResult.getUfsLoadResult().isTruncated(), rootPathIsFile,
-        null, loadResult.isFirstLoad());
+        loadResult.isFirstLoad());
   }
 }
 

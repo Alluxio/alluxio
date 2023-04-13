@@ -14,7 +14,6 @@ package alluxio.master.mdsync;
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.conf.path.TrieNode;
-import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
@@ -23,6 +22,8 @@ import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
 
 import com.google.common.base.Preconditions;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,10 @@ public class TaskTracker implements Closeable {
   private final TrieNode<BaseTask> mActiveRecursiveListTasks;
   private final TrieNode<BaseTask> mActiveListTasks;
   private final TrieNode<BaseTask> mActiveStatusTasks;
-  private final HashMap<Long, BaseTask> mTaskMap = new HashMap<>();
+  private final HashMap<Long, BaseTask> mActiveTaskMap = new HashMap<>();
+  // TODO(elega) make this a configurable property
+  private final Cache<Long, BaseTask> mFinishedTaskMap =
+      CacheBuilder.newBuilder().maximumSize(1000).build();
   private final LoadRequestExecutor mLoadRequestExecutor;
   private final UfsSyncPathCache mSyncPathCache;
   private final Function<AlluxioURI, CloseableResource<UfsClient>> mClientSupplier;
@@ -90,8 +94,20 @@ public class TaskTracker implements Closeable {
    * @param taskId the task id
    * @return the task
    */
+  public synchronized Optional<BaseTask> getActiveTask(long taskId) {
+    return Optional.ofNullable(mActiveTaskMap.get(taskId));
+  }
+
+  /**
+   * @param taskId the task id
+   * @return the task
+   */
   public synchronized Optional<BaseTask> getTask(long taskId) {
-    return Optional.ofNullable(mTaskMap.get(taskId));
+    BaseTask task = mActiveTaskMap.get(taskId);
+    if (task != null) {
+      return Optional.of(task);
+    }
+    return Optional.ofNullable(mFinishedTaskMap.getIfPresent(taskId));
   }
 
   synchronized boolean hasRunningTasks() {
@@ -101,12 +117,12 @@ public class TaskTracker implements Closeable {
   }
 
   synchronized void taskComplete(long taskId, boolean isFile) {
-    BaseTask baseTask = mTaskMap.get(taskId);
+    BaseTask baseTask = mActiveTaskMap.get(taskId);
     if (baseTask != null) {
-      if (baseTask.removeOnComplete()) {
-        mTaskMap.remove(taskId);
+      if (!baseTask.removeOnComplete()) {
+        mFinishedTaskMap.put(taskId, baseTask);
       }
-      // TODO(yimin): should we create a new completeTaskMap?
+      mActiveTaskMap.remove(taskId);
       LOG.debug("Task {} completed", baseTask);
       mSyncPathCache.notifySyncedPath(baseTask.getTaskInfo().getBasePath(),
           baseTask.getTaskInfo().getDescendantType(), baseTask.getStartTime(),
@@ -122,7 +138,7 @@ public class TaskTracker implements Closeable {
   }
 
   synchronized void taskError(long taskId, Throwable t) {
-    BaseTask baseTask = mTaskMap.remove(taskId);
+    BaseTask baseTask = mActiveTaskMap.remove(taskId);
     if (baseTask != null) {
       LOG.debug("Task {} failed with error {}", baseTask, t);
       TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(
@@ -137,24 +153,25 @@ public class TaskTracker implements Closeable {
 
   synchronized void cancelTasksUnderPath(AlluxioURI path) {
     mActiveRecursiveListTasks.getLeafChildren(path.getPath()).forEach(nxt ->
-        mTaskMap.remove(nxt.getValue().cancel()));
+        mActiveTaskMap.remove(nxt.getValue().cancel()));
     mActiveListTasks.getLeafChildren(path.getPath()).forEach(nxt ->
-        mTaskMap.remove(nxt.getValue().cancel()));
+        mActiveTaskMap.remove(nxt.getValue().cancel()));
     mActiveStatusTasks.getLeafChildren(path.getPath()).forEach(nxt ->
-        mTaskMap.remove(nxt.getValue().cancel()));
+        mActiveTaskMap.remove(nxt.getValue().cancel()));
   }
 
   public synchronized void cancelTaskById(long taskId) throws NotFoundException {
-    BaseTask baseTask = mTaskMap.get(taskId);
+    BaseTask baseTask = mActiveTaskMap.get(taskId);
     if (baseTask == null) {
-      throw new NotFoundException("Task " + taskId + " not found.");
+      throw new NotFoundException("Task " + taskId + " not found or has already been canceled.");
     }
     if (baseTask.isCompleted().isPresent()) {
       return;
     }
-    if (baseTask.removeOnComplete()) {
-      mTaskMap.remove(taskId);
+    if (!baseTask.removeOnComplete()) {
+      mFinishedTaskMap.put(taskId, baseTask);
     }
+    mActiveTaskMap.remove(taskId);
     baseTask.cancel();
     TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(
         baseTask.getTaskInfo().getDescendantType());
@@ -207,7 +224,7 @@ public class TaskTracker implements Closeable {
                 mSyncPathCache.recordStartSync(),
                 mClientSupplier,
                 removeOnComplete);
-            mTaskMap.put(id, newTask);
+            mActiveTaskMap.put(id, newTask);
             newNode.setValue(newTask);
             mLoadRequestExecutor.addPathLoaderTask(newTask.getLoadTask());
             return newTask;

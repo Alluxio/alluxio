@@ -25,7 +25,6 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.metasync.MetadataSyncContext;
-import alluxio.master.file.metasync.SyncResult;
 import alluxio.master.mdsync.BaseTask;
 import alluxio.util.CommonUtils;
 

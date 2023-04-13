@@ -11,8 +11,6 @@
 
 package alluxio.master.mdsync;
 
-import alluxio.master.file.metasync.SyncResult;
-
 import java.util.Optional;
 import javax.annotation.Nullable;
 

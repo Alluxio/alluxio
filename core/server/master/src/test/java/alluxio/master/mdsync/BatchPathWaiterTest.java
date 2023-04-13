@@ -24,7 +24,6 @@ import static org.mockito.ArgumentMatchers.anyLong;
 
 import alluxio.AlluxioURI;
 import alluxio.file.options.DirectoryLoadType;
-import alluxio.master.file.metasync.SyncResult;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
 import alluxio.underfs.UfsLoadResult;
@@ -97,10 +96,10 @@ public class BatchPathWaiterTest {
     assertThrows(TimeoutException.class, () -> waiter.get(1, TimeUnit.SECONDS));
     // Complete the sync
     path.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), null,
-        false, false, Mockito.mock(SyncResult.class), true));
+        false, false, true));
     SyncProcessResult result = new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path"),
-            new AlluxioURI("/path")), false, true, Mockito.mock(SyncResult.class), false);
+            new AlluxioURI("/path")), false, true, false);
     path.nextCompleted(result);
     // Even though we completed the path being waited for, we only release the waiter for
     // paths greater than the completed path
@@ -130,13 +129,13 @@ public class BatchPathWaiterTest {
     // after completing /path/1 no waiters will be released
     path.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path"),
-            new AlluxioURI("/path/1")), true, false, Mockito.mock(SyncResult.class), false));
+            new AlluxioURI("/path/1")), true, false, false));
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     assertThrows(TimeoutException.class, () -> waiter2.get(1, TimeUnit.SECONDS));
     // after completing /path/2, the waiter for /path/1 will be released
     SyncProcessResult result = new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path/1"),
-            new AlluxioURI("/path/2")), false, false, Mockito.mock(SyncResult.class), false);
+            new AlluxioURI("/path/2")), false, false, false);
     path.nextCompleted(result);
     assertTrue(waiter1.get(1, TimeUnit.SECONDS));
     assertThrows(TimeoutException.class, () -> waiter2.get(1, TimeUnit.SECONDS));
@@ -165,22 +164,22 @@ public class BatchPathWaiterTest {
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     path.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path/3"),
-            new AlluxioURI("/path/4")), true, false, Mockito.mock(SyncResult.class), false));
+            new AlluxioURI("/path/4")), true, false, false));
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     assertThrows(TimeoutException.class, () -> waiter2.get(1, TimeUnit.SECONDS));
     path.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path/2"),
-            new AlluxioURI("/path/3")), true, false, Mockito.mock(SyncResult.class), false));
+            new AlluxioURI("/path/3")), true, false, false));
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     assertThrows(TimeoutException.class, () -> waiter2.get(1, TimeUnit.SECONDS));
     path.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path"),
-            new AlluxioURI("/path/1")), true, false, Mockito.mock(SyncResult.class), false));
+            new AlluxioURI("/path/1")), true, false, false));
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     assertThrows(TimeoutException.class, () -> waiter2.get(1, TimeUnit.SECONDS));
     SyncProcessResult result = new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path/1"),
-            new AlluxioURI("/path/2")), false, false, Mockito.mock(SyncResult.class), false);
+            new AlluxioURI("/path/2")), false, false, false);
     path.nextCompleted(result);
     assertTrue(waiter2.get(1, TimeUnit.SECONDS));
     path.getPathLoadTask().onProcessComplete(nxtLoadID, result);
@@ -204,7 +203,7 @@ public class BatchPathWaiterTest {
     assertFalse(path.isCompleted().isPresent());
     SyncProcessResult result = new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path"),
-            new AlluxioURI("/path")), false, false, Mockito.mock(SyncResult.class), false);
+            new AlluxioURI("/path")), false, false, false);
     path.nextCompleted(result);
     path.getPathLoadTask().onProcessComplete(nxtLoadID, result);
     assertTrue(path.isCompleted().isPresent());
@@ -232,14 +231,14 @@ public class BatchPathWaiterTest {
     List<PathSequence> completedList = Lists.newArrayList(
         new PathSequence(new AlluxioURI(""), new AlluxioURI("/ad")));
     root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true,
-        false, Mockito.mock(SyncResult.class), false));
+        false, false));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </ad, /bf>, should have |<,/bf>|
     completed = new PathSequence(new AlluxioURI("/ad"), new AlluxioURI("/bf"));
     completedList = Lists.newArrayList(new PathSequence(new AlluxioURI(""), new AlluxioURI("/bf")));
     root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true,
-        false, Mockito.mock(SyncResult.class), false));
+        false, false));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </bf, /bf/eg>, should have |<,/bf/eg|
@@ -247,20 +246,20 @@ public class BatchPathWaiterTest {
     completedList = Lists.newArrayList(new PathSequence(new AlluxioURI(""),
         new AlluxioURI("/bf/eg")));
     root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true,
-        false, Mockito.mock(SyncResult.class), false));
+        false, false));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </bf/eg, /tr>, should have |<,/tr|
     completed = new PathSequence(new AlluxioURI("/bf/eg"), new AlluxioURI("/tr"));
     completedList = Lists.newArrayList(new PathSequence(new AlluxioURI(""), new AlluxioURI("/tr")));
     root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true,
-        false, Mockito.mock(SyncResult.class), false));
+        false, false));
     assertEquals(completedList, root.getLastCompleted());
 
     // finish with </tr, /trd>
     completed = new PathSequence(new AlluxioURI("/tr"), new AlluxioURI("/trd"));
     SyncProcessResult finalResult = new SyncProcessResult(ti, ti.getBasePath(), completed,
-        false, false, Mockito.mock(SyncResult.class), false);
+        false, false, false);
     root.nextCompleted(finalResult);
     root.getPathLoadTask().onProcessComplete(nxtLoadID, finalResult);
     assertTrue(root.isCompleted().isPresent());
@@ -286,35 +285,35 @@ public class BatchPathWaiterTest {
     List<PathSequence> completedList = Lists.newArrayList(
         new PathSequence(new AlluxioURI(""), new AlluxioURI("/a")));
     root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false,
-        Mockito.mock(SyncResult.class), false));
+        false));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </a, /b>, should have |<,b>|
     completed = new PathSequence(new AlluxioURI("/a"), new AlluxioURI("/b"));
     completedList = Lists.newArrayList(new PathSequence(new AlluxioURI(""), new AlluxioURI("/b")));
     root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false,
-        Mockito.mock(SyncResult.class), false));
+        false));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </c, /d>, should have |<, /b>, </c, /d>|
     completed = new PathSequence(new AlluxioURI("/c"), new AlluxioURI("/d"));
     completedList.add(completed);
     root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false,
-        Mockito.mock(SyncResult.class), false));
+        false));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </b, /c>, should have |<,/d>|
     completed = new PathSequence(new AlluxioURI("/b"), new AlluxioURI("/c"));
     completedList = Lists.newArrayList(new PathSequence(new AlluxioURI(""), new AlluxioURI("/d")));
     root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false,
-        Mockito.mock(SyncResult.class), false));
+        false));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </g, /h>, should have |<,/d>, </g, /h>|
     completed = new PathSequence(new AlluxioURI("/g"), new AlluxioURI("/h"));
     completedList.add(completed);
     root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false,
-        Mockito.mock(SyncResult.class), false));
+        false));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </d,/e>, should have |<,/e>, </g, /h>|
@@ -322,7 +321,7 @@ public class BatchPathWaiterTest {
     completedList = Lists.newArrayList(new PathSequence(new AlluxioURI(""), new AlluxioURI("/e")),
         new PathSequence(new AlluxioURI("/g"), new AlluxioURI("/h")));
     root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false,
-        Mockito.mock(SyncResult.class), false));
+        false));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </f,/g>, should have |<,/e>, </f, /h>|
@@ -330,20 +329,20 @@ public class BatchPathWaiterTest {
     completedList = Lists.newArrayList(new PathSequence(new AlluxioURI(""), new AlluxioURI("/e")),
         new PathSequence(new AlluxioURI("/f"), new AlluxioURI("/h")));
     root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false,
-        Mockito.mock(SyncResult.class), false));
+        false));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </e,/f>, should have |<,/h>|
     completed = new PathSequence(new AlluxioURI("/e"), new AlluxioURI("/f"));
     completedList = Lists.newArrayList(new PathSequence(new AlluxioURI(""), new AlluxioURI("/h")));
     root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false,
-        Mockito.mock(SyncResult.class), false));
+        false));
     assertEquals(completedList, root.getLastCompleted());
 
     // finish with </h, /j>
     completed = new PathSequence(new AlluxioURI("/h"), new AlluxioURI("/j"));
     SyncProcessResult finalResult = new SyncProcessResult(ti, ti.getBasePath(), completed,
-        false, false, Mockito.mock(SyncResult.class), false);
+        false, false, false);
     root.nextCompleted(finalResult);
     root.getPathLoadTask().onProcessComplete(nxtLoadID, finalResult);
     assertTrue(root.isCompleted().isPresent());

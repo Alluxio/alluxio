@@ -40,7 +40,6 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.metasync.SyncFailReason;
 import alluxio.master.file.metasync.SyncOperation;
-import alluxio.master.file.metasync.SyncResult;
 import alluxio.master.file.metasync.TestMetadataSyncer;
 import alluxio.master.mdsync.BaseTask;
 import alluxio.master.mdsync.TaskInfo;
@@ -109,10 +108,6 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
   private static final AlluxioURI NESTED_MOUNT_POINT = new AlluxioURI("/mnt/nested_s3_mount");
   private static final AlluxioURI NESTED_S3_MOUNT_POINT =
       new AlluxioURI("/s3_mount/nested_s3_mount");
-  /**
-   * If you see invalid keystore format error when the mock server starts,
-   * please install the latest jdk 8.
-   */
   private static final long TIMEOUT_MS = 30_000_0;
 
   @Parameterized.Parameters
@@ -1301,12 +1296,12 @@ public final class FileSystemMetadataSyncV2Test extends FileSystemMasterTestBase
   }
 
   private void assertSyncOperations(TaskInfo taskInfo, Map<SyncOperation, Long> operations) {
+
     for (SyncOperation operation : SyncOperation.values()) {
       assertEquals(
           "Operation " + operation.toString() + " count not equal",
           (long) operations.getOrDefault(operation, 0L),
-          taskInfo.getStats().getSuccessOperationCount().getOrDefault(operation, new AtomicLong())
-              .get()
+          taskInfo.getStats().getSuccessOperationCount()[operation.getValue()].get()
       );
     }
   }

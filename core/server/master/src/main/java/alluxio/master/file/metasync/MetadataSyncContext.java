@@ -227,23 +227,9 @@ public class MetadataSyncContext {
    * Starts the metadata sync.
    */
   public void startSync() {
-    long timestamp = CommonUtils.getCurrentMs();
-    mSyncStartTime = timestamp;
-    mTaskInfo.getStats().updateSyncStartTime(timestamp);
+    mSyncStartTime = CommonUtils.getCurrentMs();
   }
 
-  /**
-   * Concludes the sync with a success.
-   * @return the sync result
-   */
-  public SyncResult success() {
-    Preconditions.checkNotNull(mSyncStartTime);
-    long timestamp = CommonUtils.getCurrentMs();
-    mSyncFinishTime = timestamp;
-    mTaskInfo.getStats().updateSyncFinishTime(timestamp);
-    return new SyncResult(true, mSyncStartTime, mSyncFinishTime, mSuccessMap,
-        mFailedMap, null, mNumUfsFilesScanned);
-  }
 
   public void reportSyncFailReason(SyncFailReason reason, Throwable t) {
     mTaskInfo.getStats().reportSyncFailReason(mLoadResult.getLoadRequest(), mLoadResult, reason, t);

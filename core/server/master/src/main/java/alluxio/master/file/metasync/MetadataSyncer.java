@@ -16,7 +16,6 @@ import alluxio.client.WriteType;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -64,7 +63,6 @@ import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.s3a.AlluxioS3Exception;
 import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.IteratorUtils;
@@ -423,7 +421,7 @@ public class MetadataSyncer implements SyncProcess {
         LOG.debug("Completed processing sync from {} until {}", syncStart, syncEnd);
         return new SyncProcessResult(loadResult.getTaskInfo(), loadResult.getBaseLoadPath(),
             new PathSequence(syncStart, syncEnd), loadResult.getUfsLoadResult().isTruncated(),
-            baseSyncPathIsFile, context.success(), loadResult.isFirstLoad());
+            baseSyncPathIsFile, loadResult.isFirstLoad());
       }
     }
   }

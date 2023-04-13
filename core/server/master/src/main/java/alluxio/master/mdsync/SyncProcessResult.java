@@ -12,7 +12,6 @@
 package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
-import alluxio.master.file.metasync.SyncResult;
 
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -27,29 +26,23 @@ public class SyncProcessResult {
   private final PathSequence mLoaded;
   private final boolean mIsTruncated;
   private final boolean mRootPathIsFile;
-  private final SyncResult mSyncResult;
   private final boolean mIsFirstLoad;
 
   public SyncProcessResult(
       TaskInfo taskInfo, AlluxioURI baseLoadPath,
       @Nullable PathSequence loaded, boolean isTruncated,
-      boolean rootPathIsFile, SyncResult result,
+      boolean rootPathIsFile,
       boolean isFirstLoad) {
     mRootPathIsFile = rootPathIsFile;
     mBaseLoadPath = baseLoadPath;
     mTaskInfo = taskInfo;
     mLoaded = loaded;
     mIsTruncated = isTruncated;
-    mSyncResult = result;
     mIsFirstLoad = isFirstLoad;
   }
 
   public boolean isFirstLoad() {
     return mIsFirstLoad;
-  }
-
-  public SyncResult getSyncResult() {
-    return mSyncResult;
   }
 
   public boolean rootPathIsFile() {

@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.anyLong;
 
 import alluxio.AlluxioURI;
 import alluxio.file.options.DirectoryLoadType;
-import alluxio.master.file.metasync.SyncResult;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
 
@@ -93,7 +92,7 @@ public class DirectoryPathWaiterTest {
     assertThrows(TimeoutException.class, () -> waiter.get(1, TimeUnit.SECONDS));
     path.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path"),
-            new AlluxioURI("/path")), false, true, Mockito.mock(SyncResult.class), false));
+            new AlluxioURI("/path")), false, true, false));
     assertTrue(waiter.get(1, TimeUnit.SECONDS));
   }
 
@@ -114,16 +113,16 @@ public class DirectoryPathWaiterTest {
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     path.nextCompleted(new SyncProcessResult(ti, new AlluxioURI("/path/1"),
         new PathSequence(new AlluxioURI("/path/1"),
-            new AlluxioURI("/path/1")), false, false, Mockito.mock(SyncResult.class), false));
+            new AlluxioURI("/path/1")), false, false, false));
     assertTrue(waiter1.get(1, TimeUnit.SECONDS));
     // if the path is truncated, it should not release the waiter on the path
     path.nextCompleted(new SyncProcessResult(ti, new AlluxioURI("/path/2"),
         new PathSequence(new AlluxioURI("/path/2"),
-            new AlluxioURI("/path/2")), true, false, Mockito.mock(SyncResult.class), false));
+            new AlluxioURI("/path/2")), true, false, false));
     assertThrows(TimeoutException.class, () -> waiter2.get(1, TimeUnit.SECONDS));
     path.nextCompleted(new SyncProcessResult(ti, new AlluxioURI("/path/2"),
         new PathSequence(new AlluxioURI("/path/2"),
-            new AlluxioURI("/path/2")), false, false, Mockito.mock(SyncResult.class), false));
+            new AlluxioURI("/path/2")), false, false, false));
     assertTrue(waiter2.get(1, TimeUnit.SECONDS));
   }
 
@@ -144,13 +143,13 @@ public class DirectoryPathWaiterTest {
     // a different nested path should not release the waiters
     path.nextCompleted(new SyncProcessResult(ti, new AlluxioURI("/path/other"),
         new PathSequence(new AlluxioURI("/path/1"),
-            new AlluxioURI("/path/1")), false, false, Mockito.mock(SyncResult.class), false));
+            new AlluxioURI("/path/1")), false, false, false));
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     assertThrows(TimeoutException.class, () -> waiter2.get(1, TimeUnit.SECONDS));
     // the parent path should release both the children
     path.nextCompleted(new SyncProcessResult(ti, new AlluxioURI("/path"),
         new PathSequence(new AlluxioURI("/path/1"),
-            new AlluxioURI("/path/1")), false, false, Mockito.mock(SyncResult.class), false));
+            new AlluxioURI("/path/1")), false, false, false));
     assertTrue(waiter1.get(1, TimeUnit.SECONDS));
     assertTrue(waiter2.get(1, TimeUnit.SECONDS));
   }
@@ -178,14 +177,14 @@ public class DirectoryPathWaiterTest {
     // finishing the root should only release the direct children
     path.nextCompleted(new SyncProcessResult(ti, new AlluxioURI("/"),
         new PathSequence(new AlluxioURI("/path/1"),
-            new AlluxioURI("/path/1")), false, false, Mockito.mock(SyncResult.class), false));
+            new AlluxioURI("/path/1")), false, false, false));
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     assertThrows(TimeoutException.class, () -> waiter2.get(1, TimeUnit.SECONDS));
     assertTrue(waiter3.get(1, TimeUnit.SECONDS));
     // finishing /path should release the direct children of /path
     SyncProcessResult finalResult = new SyncProcessResult(ti, new AlluxioURI("/path"),
         new PathSequence(new AlluxioURI("/path/1"),
-            new AlluxioURI("/path/1")), false, false, Mockito.mock(SyncResult.class), false);
+            new AlluxioURI("/path/1")), false, false, false);
     path.nextCompleted(finalResult);
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     assertTrue(waiter2.get(1, TimeUnit.SECONDS));

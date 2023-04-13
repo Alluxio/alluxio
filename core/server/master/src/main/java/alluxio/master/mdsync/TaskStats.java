@@ -17,6 +17,7 @@ import alluxio.util.CommonUtils;
 
 import com.google.common.base.MoreObjects;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,11 +38,17 @@ public class TaskStats {
   volatile AtomicLong mSyncStartTime = new AtomicLong(Long.MAX_VALUE);
   volatile AtomicLong mSyncFinishTime = new AtomicLong(Long.MIN_VALUE);
   volatile boolean mSyncFailed = false;
-  volatile boolean mComplete = false;
 
-  final Map<SyncOperation, AtomicLong> mSuccessOperationCount = new ConcurrentHashMap<>();
+  final AtomicLong[] mSuccessOperationCount;
   final Map<Long, SyncFailure> mSyncFailReasons =
       new ConcurrentHashMap<>();
+
+  public TaskStats() {
+    mSuccessOperationCount = new AtomicLong[SyncOperation.values().length];
+    for (int i = 0; i < mSuccessOperationCount.length; ++i) {
+      mSuccessOperationCount[i] = new AtomicLong();
+    }
+  }
 
   public static class SyncFailure {
     private final LoadRequest mLoadRequest;
@@ -89,8 +96,6 @@ public class TaskStats {
   @Override
   public String toString() {
     MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(this)
-        .add("Complete", mComplete)
-        .add("Sync duration", getSyncDuration())
         .add("Success op count", mSuccessOperationCount)
         .add("# of batches", mBatches.get())
         .add("# of objects loaded from UFS", mStatuses.get())
@@ -106,19 +111,7 @@ public class TaskStats {
 
   public String toReportString() {
     MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(this);
-    final String state;
-    if (mLoadFailed) {
-      state = "LOAD_FAILED";
-    } else if (mProcessFailed) {
-      state = "PROCESS_FAILED";
-    } else if (mComplete) {
-      state = "COMPLETED";
-    } else {
-      state = "IN_PROGRESS";
-    }
-    helper.add("State", state)
-        .add("Sync duration", getSyncDuration() + "ms")
-        .add("Success op count", mSuccessOperationCount)
+    helper.add("Success op count", mSuccessOperationCount)
         .add("# of batches", mBatches.get())
         .add("# of objects loaded from UFS", mStatuses.get())
         .add("# of load requests", mLoadRequests.get())
@@ -189,10 +182,6 @@ public class TaskStats {
     mFirstLoadHadResult = true;
   }
 
-  void setComplete() {
-    mComplete = true;
-  }
-
   void setFirstLoadFile() {
     mFirstLoadFile = true;
   }
@@ -200,7 +189,7 @@ public class TaskStats {
   /**
    * @return success operation count map
    */
-  public Map<SyncOperation, AtomicLong> getSuccessOperationCount() {
+  public AtomicLong[] getSuccessOperationCount() {
     return mSuccessOperationCount;
   }
 
@@ -210,13 +199,7 @@ public class TaskStats {
    * @param count the number of successes
    */
   public void reportSyncOperationSuccess(SyncOperation operation, long count) {
-    mSuccessOperationCount.compute(operation, (k, v) -> {
-      if (v == null) {
-        return new AtomicLong(count);
-      }
-      v.addAndGet(count);
-      return v;
-    });
+    mSuccessOperationCount[operation.getValue()].addAndGet(count);
   }
 
   /**
@@ -250,22 +233,6 @@ public class TaskStats {
         (ts) -> Math.max(ts, timestamp)
     );
   }
-
-  /**
-   * @return the sync duration in ms
-   */
-  public Long getSyncDuration() {
-    long start = mSyncStartTime.get();
-    long finish = mSyncFinishTime.get();
-    if (!mComplete && start != Long.MAX_VALUE) {
-      return CommonUtils.getCurrentMs() - start;
-    }
-    if (start == Long.MAX_VALUE || finish == Long.MIN_VALUE) {
-      return null;
-    }
-    return finish - start;
-  }
-
 
   public void reportSyncFailReason(LoadRequest request, @Nullable LoadResult loadResult, SyncFailReason reason, Throwable t) {
     mSyncFailReasons.putIfAbsent(

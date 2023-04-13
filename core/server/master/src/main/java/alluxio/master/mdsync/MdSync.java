@@ -33,25 +33,25 @@ public class MdSync {
   }
 
   void onLoadRequestError(long taskId, long loadId, Throwable t) {
-    mTaskTracker.getTask(taskId).ifPresent(
+    mTaskTracker.getActiveTask(taskId).ifPresent(
         task -> task.getPathLoadTask().onLoadRequestError(loadId, t));
   }
 
   void onFailed(long taskId, Throwable t) {
-    mTaskTracker.getTask(taskId).ifPresent(task -> task.onFailed(t));
+    mTaskTracker.getActiveTask(taskId).ifPresent(task -> task.onFailed(t));
   }
 
   void onProcessError(long taskId, Throwable t) {
-    mTaskTracker.getTask(taskId).ifPresent(task ->
+    mTaskTracker.getActiveTask(taskId).ifPresent(task ->
         task.getPathLoadTask().onProcessError(t));
   }
 
   void onEachResult(long taskId, SyncProcessResult result) {
-    mTaskTracker.getTask(taskId).ifPresent(task -> task.nextCompleted(result));
+    mTaskTracker.getActiveTask(taskId).ifPresent(task -> task.nextCompleted(result));
   }
 
   void onTaskError(long taskId, Throwable t) {
-    mTaskTracker.getTask(taskId).ifPresent(task -> mTaskTracker.taskError(taskId, t));
+    mTaskTracker.getActiveTask(taskId).ifPresent(task -> mTaskTracker.taskError(taskId, t));
   }
 
   void onTaskComplete(long taskId, boolean isFile) {
@@ -59,21 +59,21 @@ public class MdSync {
   }
 
   void onPathLoadComplete(long taskId, boolean isFile) {
-    mTaskTracker.getTask(taskId).ifPresent(task -> task.onComplete(isFile));
+    mTaskTracker.getActiveTask(taskId).ifPresent(task -> task.onComplete(isFile));
   }
 
   public void loadNestedDirectory(long taskId, AlluxioURI path) {
-    mTaskTracker.getTask(taskId).ifPresent(
+    mTaskTracker.getActiveTask(taskId).ifPresent(
         task -> task.getPathLoadTask().loadNestedDirectory(path));
   }
 
   Optional<LoadResult> onReceiveLoadRequestOutput(long taskId, long loadId, UfsLoadResult result) {
-    return mTaskTracker.getTask(taskId).flatMap(task ->
+    return mTaskTracker.getActiveTask(taskId).flatMap(task ->
         task.getPathLoadTask().createLoadResult(loadId, result));
   }
 
   void onProcessComplete(long taskId, long loadRequestId, SyncProcessResult result) {
-    mTaskTracker.getTask(taskId).ifPresent(task ->
+    mTaskTracker.getActiveTask(taskId).ifPresent(task ->
         task.getPathLoadTask().onProcessComplete(loadRequestId, result));
   }
 }

@@ -20,6 +20,7 @@ import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
+import alluxio.util.CommonUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -35,14 +36,36 @@ import java.util.function.Function;
  * This is the overall task for a sync operation.
  */
 public abstract class BaseTask implements PathWaiter {
+  enum State {
+    RUNNING,
+    SUCCEEDED,
+    FAILED,
+    CANCELLED
+  }
+
   private static final Logger LOG = LoggerFactory.getLogger(BaseTask.class);
 
   private final long mStartTime;
+  private volatile Long mFinishTime = null;
   BaseTaskResult mIsCompleted = null;
   private final TaskInfo mTaskInfo;
   private final PathLoaderTask mPathLoadTask;
 
   private final boolean mRemoveOnComplete;
+
+  public synchronized State getState() {
+    if (!isCompleted().isPresent()) {
+      return State.RUNNING;
+    }
+    BaseTaskResult result = isCompleted().get();
+    if (result.succeeded()) {
+      return State.SUCCEEDED;
+    } else if (result.getThrowable().orElse(null) instanceof CancelledException) {
+      return State.CANCELLED;
+    } else {
+      return State.FAILED;
+    }
+  }
 
   public synchronized Optional<BaseTaskResult> isCompleted() {
     return Optional.ofNullable(mIsCompleted);
@@ -104,12 +127,12 @@ public abstract class BaseTask implements PathWaiter {
   }
 
   synchronized void onComplete(boolean isFile) {
+    mFinishTime = CommonUtils.getCurrentMs();
     if (mIsCompleted != null) {
       return;
     }
     mIsCompleted = new BaseTaskResult(null);
     mTaskInfo.getMdSync().onTaskComplete(mTaskInfo.getId(), isFile);
-    mTaskInfo.getStats().setComplete();
     notifyAll();
   }
 
@@ -133,6 +156,7 @@ public abstract class BaseTask implements PathWaiter {
   }
 
   synchronized void onFailed(Throwable t) {
+    mFinishTime = CommonUtils.getCurrentMs();
     if (mIsCompleted != null) {
       return;
     }
@@ -143,6 +167,7 @@ public abstract class BaseTask implements PathWaiter {
   }
 
   synchronized long cancel() {
+    mFinishTime = CommonUtils.getCurrentMs();
     if (mIsCompleted == null) {
       mIsCompleted = new BaseTaskResult(new CancelledException("Task was cancelled"));
     }
@@ -168,5 +193,16 @@ public abstract class BaseTask implements PathWaiter {
         throw new InternalRuntimeException(String.format(
             "Unknown descendant type %s", mTaskInfo.getDescendantType()));
     }
+  }
+
+  /**
+   * @return
+   */
+  public long getSyncDuration() {
+    final Long finishTime = mFinishTime;
+    if (finishTime == null) {
+      return CommonUtils.getCurrentMs() - mStartTime;
+    }
+    return mFinishTime - mStartTime;
   }
 }

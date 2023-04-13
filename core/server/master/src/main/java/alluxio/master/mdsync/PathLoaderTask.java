@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
-import alluxio.master.file.metasync.SyncResult;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
 import alluxio.underfs.UfsLoadResult;
@@ -57,7 +56,6 @@ public class PathLoaderTask {
   private boolean mCompleted = false;
   private Runnable mRunOnPendingLoad;
   private final RateLimiter mRateLimiter;
-  SyncResult mSyncResult = null;
 
   private final Function<AlluxioURI, CloseableResource<UfsClient>> mClientSupplier;
 
