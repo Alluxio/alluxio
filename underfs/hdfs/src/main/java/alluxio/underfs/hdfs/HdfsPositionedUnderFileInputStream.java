@@ -144,7 +144,7 @@ public class HdfsPositionedUnderFileInputStream
   }
 
   @Override
-  public int positionReadInternal(long position, ReadTargetBuffer buffer, int length)
+  public int readInternal(long position, ReadTargetBuffer buffer, int length)
       throws IOException {
     Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(position >= 0, "position should be non-negative");

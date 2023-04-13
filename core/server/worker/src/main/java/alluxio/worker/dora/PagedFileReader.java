@@ -80,7 +80,7 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     // bytes is 0, needs explicit clear
     buf.clear();
     ReadTargetBuffer targetBuffer = new NettyBufTargetBuffer(buf);
-    int bytesRead = mPositionReader.positionRead(offset, targetBuffer, (int) length);
+    int bytesRead = mPositionReader.read(offset, targetBuffer, (int) length);
     if (bytesRead < 0) {
       return EMPTY_BYTE_BUFFER;
     }
@@ -119,7 +119,7 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     int bytesToTransfer =
         (int) Math.min(buf.writableBytes(), mFileSize - mPos);
     ReadTargetBuffer targetBuffer = new NettyBufTargetBuffer(buf);
-    int bytesRead = mPositionReader.positionRead(mPos, targetBuffer, bytesToTransfer);
+    int bytesRead = mPositionReader.read(mPos, targetBuffer, bytesToTransfer);
     if (bytesRead > 0) {
       mPos += bytesRead;
     }
@@ -127,9 +127,9 @@ public class PagedFileReader extends BlockReader implements PositionReader {
   }
 
   @Override
-  public int positionReadInternal(long position, ReadTargetBuffer buffer, int length)
+  public int readInternal(long position, ReadTargetBuffer buffer, int length)
       throws IOException {
-    return mPositionReader.positionRead(position, buffer, length);
+    return mPositionReader.read(position, buffer, length);
   }
 
   @Override

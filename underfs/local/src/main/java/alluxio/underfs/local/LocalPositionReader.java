@@ -36,7 +36,7 @@ public class LocalPositionReader implements PositionReader {
   }
 
   @Override
-  public int positionReadInternal(long position, ReadTargetBuffer buffer, int length)
+  public int readInternal(long position, ReadTargetBuffer buffer, int length)
       throws IOException {
     if (position >= mFileLength) { // at end of file
       return -1;

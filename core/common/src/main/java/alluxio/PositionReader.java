@@ -19,6 +19,7 @@ import alluxio.file.ReadTargetBuffer;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -26,6 +27,7 @@ import java.nio.ByteBuffer;
 /**
  * Position read interface. All implementer should be thread-safe.
  */
+@ThreadSafe
 public interface PositionReader extends Closeable {
   /**
    * @param position position of the file to start reading data
@@ -33,9 +35,9 @@ public interface PositionReader extends Closeable {
    * @param length bytes to read
    * @return bytes read, or -1 none of data is read
    */
-  default int positionRead(long position, byte[] buffer, int length)
+  default int read(long position, byte[] buffer, int length)
       throws IOException {
-    return positionRead(position, new ByteArrayTargetBuffer(buffer, 0), length);
+    return read(position, new ByteArrayTargetBuffer(buffer, 0), length);
   }
 
   /**
@@ -45,9 +47,9 @@ public interface PositionReader extends Closeable {
    * @param length bytes to read
    * @return bytes read, or -1 none of data is read
    */
-  default int positionRead(long position, byte[] buffer, int offset, int length)
+  default int read(long position, byte[] buffer, int offset, int length)
       throws IOException {
-    return positionRead(position, new ByteArrayTargetBuffer(buffer, offset), length);
+    return read(position, new ByteArrayTargetBuffer(buffer, offset), length);
   }
 
   /**
@@ -56,8 +58,8 @@ public interface PositionReader extends Closeable {
    * @param length bytes to read
    * @return bytes read, or -1 none of data is read
    */
-  default int positionRead(long position, ByteBuffer buffer, int length) throws IOException {
-    return positionRead(position, new ByteBufferTargetBuffer(buffer), length);
+  default int read(long position, ByteBuffer buffer, int length) throws IOException {
+    return read(position, new ByteBufferTargetBuffer(buffer), length);
   }
 
   /**
@@ -66,8 +68,8 @@ public interface PositionReader extends Closeable {
    * @param length bytes to read
    * @return bytes read, or -1 none of data is read
    */
-  default int positionRead(long position, ByteBuf buffer, int length) throws IOException {
-    return positionRead(position, new NettyBufTargetBuffer(buffer), length);
+  default int read(long position, ByteBuf buffer, int length) throws IOException {
+    return read(position, new NettyBufTargetBuffer(buffer), length);
   }
 
   /**
@@ -76,7 +78,7 @@ public interface PositionReader extends Closeable {
    * @param length bytes to read
    * @return bytes read, or -1 none of data is read
    */
-  default int positionRead(long position, ReadTargetBuffer buffer, int length)
+  default int read(long position, ReadTargetBuffer buffer, int length)
       throws IOException {
     Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(position >= 0, "position should be non-negative");
@@ -85,7 +87,7 @@ public interface PositionReader extends Closeable {
     if (length == 0) {
       return 0;
     }
-    return positionReadInternal(position, buffer, length);
+    return readInternal(position, buffer, length);
   }
 
   /**
@@ -94,7 +96,7 @@ public interface PositionReader extends Closeable {
    * @param length bytes to read
    * @return bytes read, or -1 none of data is read
    */
-  int positionReadInternal(long position, ReadTargetBuffer buffer, int length)
+  int readInternal(long position, ReadTargetBuffer buffer, int length)
       throws IOException;
 
   /**

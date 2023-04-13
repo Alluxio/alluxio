@@ -56,7 +56,7 @@ public class DoraCachePositionReader implements PositionReader {
   }
 
   @Override
-  public int positionReadInternal(long position, ReadTargetBuffer buffer, int length)
+  public int readInternal(long position, ReadTargetBuffer buffer, int length)
       throws IOException {
     Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(position >= 0, "position should be non-negative");
@@ -84,7 +84,7 @@ public class DoraCachePositionReader implements PositionReader {
       LOG.debug("Dora client read file error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), e);
       // TODO(lu) what if read partial failed, cleanup the buffer?
-      return mFallbackReader.get().positionRead(position, buffer, length);
+      return mFallbackReader.get().read(position, buffer, length);
     }
     return length;
   }

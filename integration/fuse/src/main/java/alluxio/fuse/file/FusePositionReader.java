@@ -93,7 +93,7 @@ public class FusePositionReader implements FuseFileStream {
       throw new FailedPreconditionRuntimeException("Position reader is closed");
     }
     try {
-      return mPositionReader.positionRead(offset, buf, (int) size);
+      return mPositionReader.read(offset, buf, (int) size);
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
     }

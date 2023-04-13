@@ -120,7 +120,7 @@ public class LocalCachePositionReader implements PositionReader {
   }
 
   @Override
-  public int positionReadInternal(long position, ReadTargetBuffer buffer, int length)
+  public int readInternal(long position, ReadTargetBuffer buffer, int length)
       throws IOException {
     Preconditions.checkArgument(!mClosed, "position reader is closed");
     if (position >= mFileSize) { // at end of file
@@ -180,7 +180,7 @@ public class LocalCachePositionReader implements PositionReader {
     while (totalBytesRead < pageSize) {
       try {
         bytesRead = mFallbackReader.get()
-            .positionRead(position, page, totalBytesRead, pageSize - totalBytesRead);
+            .read(position, page, totalBytesRead, pageSize - totalBytesRead);
       } catch (IOException e) {
         throw AlluxioRuntimeException.from(e);
       }
