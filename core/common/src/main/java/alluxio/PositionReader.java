@@ -19,10 +19,10 @@ import alluxio.file.ReadTargetBuffer;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Position read interface. All implementer should be thread-safe.
