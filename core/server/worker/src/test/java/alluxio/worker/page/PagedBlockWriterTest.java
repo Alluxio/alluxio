@@ -153,9 +153,8 @@ public class PagedBlockWriterTest {
     byte[] dataInCache = new byte[mFileLength];
     for (int i = 0; i < pageIds.size(); i++) {
       PageId pageId = pageIds.get(i);
-      int bytesToRead = Math.min(mPageSize, mFileLength - i * mPageSize);
-      mCacheManager.get(pageId, 0, bytesToRead,
-          new ByteArrayTargetBuffer(dataInCache, i * mPageSize, bytesToRead),
+      mCacheManager.get(pageId, 0, Math.min(mPageSize, mFileLength - i * mPageSize),
+          new ByteArrayTargetBuffer(dataInCache, i * mPageSize),
           CacheContext.defaults().setTemporary(false));
     }
     for (int offset = 0; offset < mFileLength; offset += mChunkSize) {

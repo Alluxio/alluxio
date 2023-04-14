@@ -127,13 +127,14 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int read(byte[] bytesBuffer, int offset, int length) throws IOException {
-    return readInternal(new ByteArrayTargetBuffer(bytesBuffer, offset, offset + length),
+    return readInternal(new ByteArrayTargetBuffer(bytesBuffer, offset), offset, length,
         ReadType.READ_INTO_BYTE_ARRAY, mPosition, false);
   }
 
   @Override
   public int read(ByteBuffer buffer) throws IOException {
-    int totalBytesRead = readInternal(new ByteBufferTargetBuffer(buffer),
+    final ByteBufferTargetBuffer targetBuffer = new ByteBufferTargetBuffer(buffer);
+    int totalBytesRead = readInternal(targetBuffer, targetBuffer.offset(), targetBuffer.remaining(),
         ReadType.READ_INTO_BYTE_BUFFER, mPosition, false);
     return totalBytesRead;
   }
@@ -157,7 +158,7 @@ public class LocalCacheFileInStream extends FileInStream {
     }
     int bytesLoadToBuffer = (int) Math.min(mBufferSize, mStatus.getLength() - position);
     int bytesRead =
-        localCachedRead(new ByteArrayTargetBuffer(mBuffer), bytesLoadToBuffer, readType,
+        localCachedRead(new ByteArrayTargetBuffer(mBuffer, 0), bytesLoadToBuffer, readType,
             position, stopwatch);
     mBufferStartOffset = position;
     mBufferEndOffset = position + bytesRead;
@@ -225,10 +226,11 @@ public class LocalCacheFileInStream extends FileInStream {
   }
 
   // TODO(binfan): take ByteBuffer once CacheManager takes ByteBuffer to avoid extra mem copy
-  private int readInternal(PageReadTargetBuffer targetBuffer,
+  private int readInternal(PageReadTargetBuffer targetBuffer, int offset, int length,
       ReadType readType, long position, boolean isPositionedRead) throws IOException {
+    Preconditions.checkArgument(length >= 0, "length should be non-negative");
+    Preconditions.checkArgument(offset >= 0, "offset should be non-negative");
     Preconditions.checkArgument(position >= 0, "position should be non-negative");
-    int length = targetBuffer.remaining();
     if (length == 0) {
       return 0;
     }
@@ -287,7 +289,7 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
-    return readInternal(new ByteArrayTargetBuffer(b, off, len), ReadType.READ_INTO_BYTE_ARRAY,
+    return readInternal(new ByteArrayTargetBuffer(b, off), off, len, ReadType.READ_INTO_BYTE_ARRAY,
         pos, true);
   }
 

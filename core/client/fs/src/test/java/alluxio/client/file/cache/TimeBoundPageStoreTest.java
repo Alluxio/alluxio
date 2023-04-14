@@ -74,7 +74,7 @@ public class TimeBoundPageStoreTest {
   public void put() throws Exception {
     mTimeBoundPageStore.put(PAGE_ID, PAGE);
     assertEquals(PAGE.length,
-        mPageStore.get(PAGE_ID, 0, PAGE.length, new ByteArrayTargetBuffer(mBuf)));
+        mPageStore.get(PAGE_ID, 0, PAGE.length, new ByteArrayTargetBuffer(mBuf, 0)));
     assertArrayEquals(PAGE, mBuf);
   }
 
@@ -82,7 +82,7 @@ public class TimeBoundPageStoreTest {
   public void get() throws Exception {
     mPageStore.put(PAGE_ID, PAGE);
     assertEquals(PAGE.length,
-        mTimeBoundPageStore.get(PAGE_ID, 0, PAGE.length, new ByteArrayTargetBuffer(mBuf)));
+        mTimeBoundPageStore.get(PAGE_ID, 0, PAGE.length, new ByteArrayTargetBuffer(mBuf, 0)));
     assertArrayEquals(PAGE, mBuf);
   }
 
@@ -91,7 +91,7 @@ public class TimeBoundPageStoreTest {
     mPageStore.put(PAGE_ID, PAGE);
     mTimeBoundPageStore.delete(PAGE_ID);
     assertThrows(PageNotFoundException.class, () ->
-        mPageStore.get(PAGE_ID, 0, PAGE.length, new ByteArrayTargetBuffer(mBuf)));
+        mPageStore.get(PAGE_ID, 0, PAGE.length, new ByteArrayTargetBuffer(mBuf, 0)));
   }
 
   @Test
@@ -109,7 +109,7 @@ public class TimeBoundPageStoreTest {
   public void getTimeout() throws Exception {
     mPageStore.setGetHanging(true);
     try {
-      mTimeBoundPageStore.get(PAGE_ID, 0, PAGE.length, new ByteArrayTargetBuffer(mBuf));
+      mTimeBoundPageStore.get(PAGE_ID, 0, PAGE.length, new ByteArrayTargetBuffer(mBuf, 0));
       fail();
     } catch (IOException e) {
       assertTrue(e.getCause() instanceof TimeoutException);

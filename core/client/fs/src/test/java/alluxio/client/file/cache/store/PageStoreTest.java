@@ -79,11 +79,11 @@ public class PageStoreTest {
     PageId id = new PageId("0", 0);
     mPageStore.put(id, msgBytes);
     byte[] buf = new byte[1024];
-    assertEquals(msgBytes.length, mPageStore.get(id, new ByteArrayTargetBuffer(buf)));
+    assertEquals(msgBytes.length, mPageStore.get(id, new ByteArrayTargetBuffer(buf, 0)));
     assertArrayEquals(msgBytes, Arrays.copyOfRange(buf, 0, msgBytes.length));
     mPageStore.delete(id);
     try {
-      mPageStore.get(id, new ByteArrayTargetBuffer(buf));
+      mPageStore.get(id, new ByteArrayTargetBuffer(buf, 0));
       fail();
     } catch (PageNotFoundException e) {
       // Test completed successfully;
@@ -97,7 +97,7 @@ public class PageStoreTest {
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[len];
     for (int offset = 1; offset < len; offset++) {
-      int bytesRead = mPageStore.get(id, offset, len, new ByteArrayTargetBuffer(buf), false);
+      int bytesRead = mPageStore.get(id, offset, len, new ByteArrayTargetBuffer(buf, 0), false);
       assertEquals(len - offset, bytesRead);
       assertArrayEquals(BufferUtils.getIncreasingByteArray(offset, len - offset),
           Arrays.copyOfRange(buf, 0, bytesRead));
@@ -112,7 +112,7 @@ public class PageStoreTest {
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[1024];
     assertThrows(IllegalArgumentException.class, () ->
-        mPageStore.get(id, offset, len, new ByteArrayTargetBuffer(buf)));
+        mPageStore.get(id, offset, len, new ByteArrayTargetBuffer(buf, 0)));
   }
 
   @Test
@@ -122,7 +122,7 @@ public class PageStoreTest {
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[1024];
     for (int b = 1; b < len; b++) {
-      int bytesRead = mPageStore.get(id, 0, b, new ByteArrayTargetBuffer(buf));
+      int bytesRead = mPageStore.get(id, 0, b, new ByteArrayTargetBuffer(buf, 0));
       assertEquals(b, bytesRead);
       assertArrayEquals(BufferUtils.getIncreasingByteArray(b),
           Arrays.copyOfRange(buf, 0, bytesRead));
@@ -136,7 +136,7 @@ public class PageStoreTest {
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     for (int b = 1; b < len; b++) {
       byte[] buf = new byte[b];
-      int bytesRead = mPageStore.get(id, 0, len, new ByteArrayTargetBuffer(buf));
+      int bytesRead = mPageStore.get(id, 0, len, new ByteArrayTargetBuffer(buf, 0));
       assertEquals(b, bytesRead);
       assertArrayEquals(BufferUtils.getIncreasingByteArray(b),
           Arrays.copyOfRange(buf, 0, bytesRead));
