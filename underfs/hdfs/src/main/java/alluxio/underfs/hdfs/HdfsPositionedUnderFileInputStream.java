@@ -159,16 +159,20 @@ public class HdfsPositionedUnderFileInputStream
     int arrayPosition = targetIsByteArray ? buffer.offset() : 0;
     while (totalRead < length) {
       currentRead = ((PositionedReadable) in)
-          .read(position, byteArray, arrayPosition, length - totalRead);
+          .read(position + totalRead, byteArray, arrayPosition + totalRead, length - totalRead);
       if (currentRead <= 0) {
         break;
       }
       totalRead += currentRead;
-      arrayPosition += currentRead;
+    }
+    if (totalRead == 0) {
+      return currentRead;
     }
     if (targetIsByteArray) {
       buffer.offset(arrayPosition);
+    } else {
+      buffer.writeBytes(byteArray, 0, totalRead);
     }
-    return totalRead == 0 ? currentRead : totalRead;
+    return totalRead;
   }
 }

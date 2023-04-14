@@ -12,7 +12,6 @@
 package alluxio.underfs.s3a;
 
 import alluxio.PositionReader;
-import alluxio.file.ByteArrayTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -80,24 +79,17 @@ public class S3APositionReader implements PositionReader {
       throw AlluxioS3Exception.from(String
           .format("Failed to get object: %s bucket: %s", mPath, mBucketName), e);
     }
+    int totalRead = 0;
+    int currentRead = 0;
     try (S3ObjectInputStream in = object.getObjectContent()) {
-      int currentRead = 0;
-      int totalRead = 0;
-      boolean targetIsByteArray = buffer instanceof ByteArrayTargetBuffer;
-      byte[] byteArray = targetIsByteArray ? buffer.byteArray() : new byte[bytesToRead];
-      int arrayPosition = targetIsByteArray ? buffer.offset() : 0;
       while (totalRead < bytesToRead) {
-        currentRead = in.read(byteArray, arrayPosition, length - totalRead);
+        currentRead = buffer.readFromInputStream(in, bytesToRead - totalRead);
         if (currentRead <= 0) {
           break;
         }
         totalRead += currentRead;
-        arrayPosition += currentRead;
       }
-      if (targetIsByteArray) {
-        buffer.offset(arrayPosition);
-      }
-      return totalRead == 0 ? currentRead : totalRead;
     }
+    return totalRead == 0 ? currentRead : totalRead;
   }
 }

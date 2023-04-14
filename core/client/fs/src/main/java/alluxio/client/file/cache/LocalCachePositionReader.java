@@ -69,7 +69,7 @@ public class LocalCachePositionReader implements PositionReader {
         ? new AlluxioURI(status.getUfsPath()).hash() :
         Long.toString(status.getFileId());
     return LocalCachePositionReader.create(conf, cacheManager, fallbackReader,
-        new FileId.StringId(fileId), status.getLength(), pageSize);
+        FileId.of(fileId), status.getLength(), pageSize);
   }
 
   /**

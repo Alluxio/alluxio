@@ -11,10 +11,9 @@
 
 package alluxio;
 
-import com.google.common.base.Supplier;
-
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.function.Supplier;
 
 /**
  * Closeable supplier which supports lazy initialization and cleanup if initialized.

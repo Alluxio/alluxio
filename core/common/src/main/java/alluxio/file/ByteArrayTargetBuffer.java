@@ -18,6 +18,7 @@ import alluxio.util.io.ChannelAdapters;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
@@ -83,6 +84,15 @@ public class ByteArrayTargetBuffer implements ReadTargetBuffer {
   @Override
   public int readFromFile(RandomAccessFile file, int length) throws IOException {
     int bytesRead = file.read(mTarget, mOffset, length);
+    if (bytesRead != -1) {
+      mOffset += bytesRead;
+    }
+    return bytesRead;
+  }
+
+  @Override
+  public int readFromInputStream(InputStream is, int length) throws IOException {
+    int bytesRead = is.read(mTarget, mOffset, length);
     if (bytesRead != -1) {
       mOffset += bytesRead;
     }

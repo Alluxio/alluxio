@@ -17,8 +17,11 @@ import alluxio.util.io.ChannelAdapters;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
 /**
@@ -91,7 +94,22 @@ public class ByteBufferTargetBuffer implements ReadTargetBuffer {
     ByteBuffer slice = mTarget.slice();
     slice.limit(bytesToRead);
     int bytesRead = file.getChannel().read(slice);
-    mTarget.position(mTarget.position() + bytesRead);
+    if (bytesRead > 0) {
+      mTarget.position(mTarget.position() + bytesRead);
+    }
+    return bytesRead;
+  }
+
+  @Override
+  public int readFromInputStream(InputStream is, int length) throws IOException {
+    int bytesToRead = Math.min(length, mTarget.remaining());
+    ReadableByteChannel source = Channels.newChannel(is);
+    ByteBuffer slice = mTarget.slice();
+    slice.limit(bytesToRead);
+    int bytesRead = source.read(slice);
+    if (bytesRead > 0) {
+      mTarget.position(mTarget.position() + bytesRead);
+    }
     return bytesRead;
   }
 }

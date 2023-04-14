@@ -14,6 +14,7 @@ package alluxio.file;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
@@ -74,4 +75,12 @@ public interface ReadTargetBuffer {
    * @return bytes read from the file
    */
   int readFromFile(RandomAccessFile file, int length) throws IOException;
+
+  /**
+   * @param is
+   * @param length
+   * @return bytes read from input stream
+   * @throws IOException
+   */
+  int readFromInputStream(InputStream is, int length) throws IOException;
 }

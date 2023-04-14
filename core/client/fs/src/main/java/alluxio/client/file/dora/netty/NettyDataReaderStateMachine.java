@@ -139,7 +139,7 @@ public class NettyDataReaderStateMachine {
     public final TriggerWithParameters1<ByteBuf, TriggerEvent> mDataAvailableEvent;
     public final TriggerWithParameters1<AlluxioStatusException, TriggerEvent> mServerErrorEvent;
     public final TriggerWithParameters1<Throwable, TriggerEvent> mChannelErrorEvent;
-    public final TriggerWithParameters1<IOException, TriggerEvent> mOutputErrorEvent;
+    public final TriggerWithParameters1<Throwable, TriggerEvent> mOutputErrorEvent;
     public final TriggerWithParameters1<TimeoutException, TriggerEvent> mTimeoutEvent;
     public final TriggerWithParameters1<InterruptedException, TriggerEvent> mInterruptedEvent;
 
@@ -158,7 +158,7 @@ public class NettyDataReaderStateMachine {
       mChannelErrorEvent =
           config.setTriggerParameters(TriggerEvent.CHANNEL_ERROR, Throwable.class);
       mOutputErrorEvent =
-          config.setTriggerParameters(TriggerEvent.OUTPUT_ERROR, IOException.class);
+          config.setTriggerParameters(TriggerEvent.OUTPUT_ERROR, Throwable.class);
       mTimeoutEvent =
           config.setTriggerParameters(TriggerEvent.TIMEOUT, TimeoutException.class);
       mInterruptedEvent =
@@ -429,7 +429,14 @@ public class NettyDataReaderStateMachine {
   void onReceivedData(ByteBuf buf, Transition<State, TriggerEvent> transition) {
     Preconditions.checkState(TriggerEvent.DATA_AVAILABLE == transition.getTrigger());
     int bytesToWrite = buf.readableBytes();
-    mOutputBuffer.writeBytes(buf);
+    try {
+      mOutputBuffer.writeBytes(buf);
+    } catch (RuntimeException e) {
+      fireNext(mTriggerEventsWithParam.mOutputErrorEvent, e);
+      return;
+    } finally {
+      buf.release();
+    }
     mBytesRead += bytesToWrite;
     if (mBytesRead < mLength) {
       fireNext(TriggerEvent.OUTPUT_LENGTH_NOT_FULFILLED);
@@ -457,7 +464,7 @@ public class NettyDataReaderStateMachine {
    * a main exception, it is ignored.
    */
   <T extends Throwable> void addExceptionAsSuppressed(T suppressed,
-                                                      Transition<State, TriggerEvent> transition) {
+      Transition<State, TriggerEvent> transition) {
     if (mLastException != null) {
       mLastException.addSuppressed(suppressed);
     }

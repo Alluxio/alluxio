@@ -14,9 +14,12 @@ package alluxio.file;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
 /**
@@ -93,5 +96,17 @@ public class NettyBufTargetBuffer implements ReadTargetBuffer {
     try (FileChannel channel = file.getChannel()) {
       return mTarget.writeBytes(channel, length);
     }
+  }
+
+  @Override
+  public int readFromInputStream(InputStream is, int length) throws IOException {
+    int bytesToRead = Math.min(length, mTarget.writableBytes());
+    ReadableByteChannel source = Channels.newChannel(is);
+    ByteBuffer slice = mTarget.nioBuffer(mTarget.writerIndex(), bytesToRead);
+    int bytesRead = source.read(slice);
+    if (bytesRead > 0) {
+      mTarget.writerIndex(mTarget.writerIndex() + bytesRead);
+    }
+    return bytesRead;
   }
 }

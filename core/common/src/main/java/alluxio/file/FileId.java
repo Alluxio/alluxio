@@ -47,7 +47,7 @@ public abstract class FileId {
   /**
    * String file ID.
    */
-  public static final class StringId extends FileId {
+  static final class StringId extends FileId {
     private final String mFileId;
 
     /**
